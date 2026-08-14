@@ -102,24 +102,33 @@ jobs:
       id-token: write
 
     steps:
-      # Rule 10: a new job ships at `block`. Being honest about what that buys
-      # here, since the rule itself insists on it: `block` does not enforce
-      # today (#487 — harden-runner fails open to `audit` on the Actions-cache
-      # miss). Read #487 carefully before assuming that applies here: its root
-      # cause is GitHub making the Actions cache read-only for **untrusted
-      # triggers** (`issues`, `issue_comment`, `pull_request`). This job runs on
-      # `release`, which is not in that class, so the cache dance succeeds and
-      # block actually arms. This is, as far as we know, the only enforcing
-      # egress policy in the repository — do not copy the "it degrades anyway"
-      # reasoning from the AI workflows into this file.
+      # Rule 10: a new job ships at `block`.
       #
-      # So the list below is load-bearing, not decorative, and it is NOT from a
-      # measured run: the job only fires on `release: published` and cannot be
-      # exercised from a PR. A missing host costs a signature. The blast radius
-      # is bounded on purpose — `attach-sbom` no longer depends on this job
-      # succeeding, so the failure mode is "SBOMs attach unsigned plus a
-      # ::warning::", not a broken release. Widen the list from the StepSecurity
-      # report of the first real run rather than by guessing again.
+      # This comment does NOT claim that buys enforcement, because rule 10 says
+      # not to until #487 closes and because nobody has measured it. Nothing in
+      # this repository has been observed to enforce egress: harden-runner fails
+      # open to `audit` when its Actions-cache probe misses.
+      #
+      # There is an argument that this job differs from the ones #487 was
+      # written about. That issue's root cause is the Actions cache going
+      # read-only for **untrusted triggers** (`issues`, `issue_comment`,
+      # `pull_request`); this job runs on `release`, which is not in that class,
+      # so the probe may succeed and the policy may actually arm. That is
+      # inference from #487's write-up, not an observation — no one has read an
+      # effective `EgressPolicy:` off a real run of this job. Treat it as a
+      # hypothesis to confirm on the first release (harden-runner's post-step
+      # prints the effective policy), and do not promote it to a control in a
+      # comment, a PR description or a review argument before then. Assuming
+      # block was working is the exact mistake #487 documents.
+      #
+      # The list below is therefore written as if it will be enforced, while
+      # nothing depends on it being enforced. It is NOT from a measured run: the
+      # job only fires on `release: published` and cannot be exercised from a
+      # PR. If the policy does arm and a host is missing, the cost is a
+      # signature rather than a release — `attach-sbom` no longer depends on
+      # this job succeeding, so the failure mode is "SBOMs attach unsigned plus
+      # a ::warning::". Widen the list from the first real run's StepSecurity
+      # report rather than by guessing again.
       #
       # Sigstore hosts are the four in its published signing config
       # (tuf-repo-cdn serves that config; fulcio issues the cert; rekor logs it;
