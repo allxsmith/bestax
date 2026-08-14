@@ -104,12 +104,15 @@ overrides:
   'js-yaml@4': '>=4.3.1 <5'
   # Force patched nanoid under the vite>postcss chain (storybook build
   # tooling) — high advisory GHSA-2v37-7h3g-55p8: custom generators can loop
-  # indefinitely when size is zero. The patched 3.3.17 (2026-08-03) clears the
-  # cooldown and postcss's ^3.3.16 admits it — the lockfile just predates it.
-  # Scoped to the 3.x major (the only copy in the tree; the 4.x/5.x line has
-  # its own patch at 5.1.6 if a consumer ever appears). Prune once the chain
-  # resolves to >=3.3.17 without the force.
-  'nanoid@3': '>=3.3.17 <4'
+  # indefinitely when size is zero. The advisory's affected range was widened
+  # from <3.3.17 to <3.3.18 after 3.3.17 shipped an incomplete fix, so the
+  # earlier force stopped clearing the gate and every open PR went red on it.
+  # 3.3.18 (2026-08-07) is well past the cooldown and postcss's ^3.3.16 admits
+  # it, so no minimumReleaseAgeExclude entry is needed. Scoped to the 3.x major
+  # (the only copy in the tree; the 4.x/5.x line has its own patch at 5.1.6 if
+  # a consumer ever appears). Prune once the chain resolves to >=3.3.18 without
+  # the force.
+  'nanoid@3': '>=3.3.18 <4'
 
 # --- Audit exceptions (no patched release exists) ---
 
