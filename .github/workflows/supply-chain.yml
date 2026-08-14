@@ -105,17 +105,29 @@ jobs:
       # Rule 10: a new job ships at `block`. Being honest about what that buys
       # here, since the rule itself insists on it: `block` does not enforce
       # today (#487 — harden-runner fails open to `audit` on the Actions-cache
-      # miss), so this is egress *monitoring* plus a list that is already in
-      # place for when #487 lands. The three sibling jobs predate the rule and
-      # are grandfathered by its "existing live job" clause; this one does not
-      # get that.
+      # miss). Read #487 carefully before assuming that applies here: its root
+      # cause is GitHub making the Actions cache read-only for **untrusted
+      # triggers** (`issues`, `issue_comment`, `pull_request`). This job runs on
+      # `release`, which is not in that class, so the cache dance succeeds and
+      # block actually arms. This is, as far as we know, the only enforcing
+      # egress policy in the repository — do not copy the "it degrades anyway"
+      # reasoning from the AI workflows into this file.
       #
-      # The endpoints are derived from what cosign-installer and keyless
-      # signing documentedly reach, NOT from a measured run, because this job
-      # only executes on `release: published` and cannot be exercised from a
-      # PR. Additive to harden-runner's GitHub Actions baseline, and incomplete
-      # for the same reason every other allowlist here is: #487 owns the
-      # measured set.
+      # So the list below is load-bearing, not decorative, and it is NOT from a
+      # measured run: the job only fires on `release: published` and cannot be
+      # exercised from a PR. A missing host costs a signature. The blast radius
+      # is bounded on purpose — `attach-sbom` no longer depends on this job
+      # succeeding, so the failure mode is "SBOMs attach unsigned plus a
+      # ::warning::", not a broken release. Widen the list from the StepSecurity
+      # report of the first real run rather than by guessing again.
+      #
+      # Sigstore hosts are the four in its published signing config
+      # (tuf-repo-cdn serves that config; fulcio issues the cert; rekor logs it;
+      # timestamp countersigns the bundle). `oauth2.sigstore.dev` is the fifth
+      # entry there and is deliberately omitted: it serves the interactive OIDC
+      # flow, and this job uses the ambient GitHub Actions credential instead.
+      # The three sibling jobs predate rule 10 and are grandfathered by its
+      # "existing live job" clause; this one does not get that.
       - name: Harden runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
@@ -130,6 +142,7 @@ jobs:
             fulcio.sigstore.dev:443
             rekor.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443
+            timestamp.sigstore.dev:443
 
       - name: Download SBOM artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
