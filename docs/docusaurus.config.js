@@ -11,6 +11,23 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Compact security posture for generated llms.txt / llms-full.txt. Keep in
+// sync with the same block in bulma-ui/llms.txt and bulma-ui/AGENTS.md (#413).
+// llmstxt.org forbids headings in this slot — paragraph + list only.
+const llmsSecurityBlock = [
+  'Supply-chain posture — same claims as the package README; every item is verifiable:',
+  '',
+  '- Signed provenance on every release (sigstore; check `npm audit signatures` or the npm Provenance section)',
+  '- npm OIDC trusted publishing — no long-lived `NPM_TOKEN`; release commits and tags are GPG-signed',
+  '- Socket.dev scans every PR for malware, install scripts, obfuscated code, and privilege escalation',
+  '- Install scripts blocked unless allow-listed; versions younger than 3 days will not install',
+  '- Every GitHub Action pinned to a full commit SHA',
+  '- CodeQL, Dependency Review, Dependabot, and a high-severity `pnpm audit` gate',
+  '- Layered AI review (CodeRabbit + an independent adversarial Claude review) plus required green CI, an approving review, and a human merge',
+  '',
+  'Full detail: https://github.com/allxsmith/bestax/blob/main/SECURITY.md · https://bestax.io/docs/guides/security',
+].join('\n');
+
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 /** @type {import('@docusaurus/types').Config} */
@@ -117,6 +134,8 @@ const config = {
         title: 'Bestax-Bulma',
         description:
           'A Bulma React component library. LLM-friendly documentation for @allxsmith/bestax-bulma.',
+        rootContent: llmsSecurityBlock,
+        fullRootContent: llmsSecurityBlock,
         includeBlog: false,
         includeOrder: ['guides/*', 'skills/*', 'api/*', 'components/*'],
         includeUnmatchedLast: true,

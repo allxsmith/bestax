@@ -1,3 +1,10 @@
+## [5.11.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.0...@allxsmith/bestax-bulma@5.11.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **bulma-ui:** surface supply-chain posture in agent pointer files ([#519](https://github.com/allxsmith/bestax/issues/519)) ([51573e9](https://github.com/allxsmith/bestax/commit/51573e9b0d7655de2aaf49b1ac6c37234b1f07d3)), closes [#413](https://github.com/allxsmith/bestax/issues/413)
+
 # [5.11.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.10.0...@allxsmith/bestax-bulma@5.11.0) (2026-08-13)
 
 
