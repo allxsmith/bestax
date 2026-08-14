@@ -90,8 +90,14 @@ const isCalendarDate = s => {
 
 // Reasons are prose, so accept any separator the house comments already use
 // (em dash, hyphen, colon) and just require some words after it.
+//
+// Two alphanumerics total, not three consecutive: this only has to tell a real
+// reason from an empty one. A stricter bar rejected legitimately terse
+// reasons ("CI", "n/a"), and it would do so while someone is mid-incident
+// adding an urgent bypass — the worst possible moment to argue with a linter
+// about prose. Judging reason QUALITY is review's job, not this gate's.
 const hasReason = text =>
-  /[\p{L}\p{N}]{3}/u.test(text.replace(/^[\s—:-]+/, ''));
+  (text.replace(/^[\s—:-]+/, '').match(/[\p{L}\p{N}]/gu) ?? []).length >= 2;
 
 /**
  * Read the one annotation a comment block is allowed to carry.

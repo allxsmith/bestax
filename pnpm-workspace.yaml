@@ -35,6 +35,15 @@ allowBuilds:
 # The date is a review-by, not a deadline: when it lands, re-check whether the
 # entry still earns its place, then drop it or push the date out with a reason.
 # CONTRIBUTING.md has the runbook for adding one during a live advisory.
+#
+# The entries below deliberately share ONE sweep date rather than staggered
+# ones. Staggering would spread the same work over more red-gate events, and
+# it would be false precision: we cannot predict which parent widens its range
+# first, so per-entry dates would be guesses dressed as schedule. One date means
+# one sweep, one PR, and (via grouped reporting) one violation rather than
+# fourteen. The cost is that the sweep day lands on whoever pushes next — the
+# same "unrelated PR goes red" problem #391 is about, which only the deferred
+# option C removes. Push the whole batch out together when you sweep.
 
 # Dependency cooldown: refuse to install versions published less than 3 days
 # ago (defends against just-published malicious releases, which are usually

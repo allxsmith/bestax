@@ -243,6 +243,31 @@ overrides:
   assert.equal(findExpired(entries, '2026-08-13').unannotated.length, 1);
 });
 
+test('a terse but real reason is accepted', () => {
+  // The bar is "is there a reason", not "is it a good reason". Rejecting `CI`
+  // put a linter argument in front of someone adding an urgent bypass.
+  for (const reason of ['CI', 'n/a', 'see #391']) {
+    const { entries } = parseBypassEntries(`
+overrides:
+  # bestax:review 2026-11-13 — ${reason}
+  'thing@1': '>=1.2.3'
+`);
+    assert.equal(entries[0].error, null, reason);
+    assert.equal(entries[0].review, '2026-11-13', reason);
+  }
+});
+
+test('separators alone are still not a reason', () => {
+  for (const empty of ['—', '-', ':', '— —', '']) {
+    const { entries } = parseBypassEntries(`
+overrides:
+  # bestax:review 2026-11-13 ${empty}
+  'thing@1': '>=1.2.3'
+`);
+    assert.match(entries[0].error ?? '', /no reason/, JSON.stringify(empty));
+  }
+});
+
 test('a marker with no reason is an error', () => {
   const { entries: bare } = parseBypassEntries(`
 overrides:
