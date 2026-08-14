@@ -24,36 +24,65 @@ allowBuilds:
   # (@swc/core-darwin-arm64 etc.), so no script needs to run.
   '@swc/core': false
 
+# Every entry in the three bypass lists below (overrides, the cooldown
+# exclusions, and auditConfig.ignoreGhsas) must carry one of these markers in
+# the comment directly above it — `check:conformance --only=bypass-expiry`
+# fails the build without one, and again once a review date arrives (#391):
+#
+#   # bestax:review YYYY-MM-DD — why this date
+#   # bestax:permanent — why this is not debt
+#
+# The date is a review-by, not a deadline: when it lands, re-check whether the
+# entry still earns its place, then drop it or push the date out with a reason.
+# CONTRIBUTING.md has the runbook for adding one during a live advisory.
+#
+# The entries below deliberately share ONE sweep date rather than staggered
+# ones. Staggering would spread the same work over more red-gate events, and
+# it would be false precision: we cannot predict which parent widens its range
+# first, so per-entry dates would be guesses dressed as schedule. One date means
+# one sweep, one PR, and (via grouped reporting) one violation rather than
+# fourteen. The cost is that the sweep day lands on whoever pushes next — the
+# same "unrelated PR goes red" problem #391 is about, which only the deferred
+# option C removes. Push the whole batch out together when you sweep.
+
 # Dependency cooldown: refuse to install versions published less than 3 days
 # ago (defends against just-published malicious releases, which are usually
 # yanked within hours). Add packages to the exclude list for urgent patches.
 minimumReleaseAge: 4320
-# Dev-only formatter: its output must be deterministic, so we track the exact
-# version the code is formatted with rather than lag it behind the cooldown
-# (which would cause recurring reformat churn). Not shipped to users.
 minimumReleaseAgeExclude:
+  # bestax:permanent — not a bypass to prune: this formatter's output must be
+  # deterministic, so we track the exact version the code is formatted with
+  # rather than lag it behind the cooldown (which would cause recurring
+  # reformat churn). Dev-only, never shipped to users.
   - prettier
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
 # differently, which otherwise splits into two resolved copies).
 overrides:
+  # bestax:permanent — a deliberate single-version pin for formatting
+  # determinism, not an advisory patch waiting on the ecosystem.
   prettier: 3.9.6
   # The entries below force patched versions of transitive dependencies. Each
   # stops being load-bearing once its parents widen their own ranges, so prune
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
   # version is unchanged and `pnpm audit --audit-level=high` stays clean.
+  # Every entry below carries its own marker; this prose annotates nothing.
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force the patched serialize-javascript (transitive via Docusaurus webpack
   # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq).
   serialize-javascript: '>=7.0.3'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched sharp (transitive via wrangler>miniflare, CI-only deploy
   # tooling with its native build blocked above) — high libvips CVEs.
   'sharp@<0.35.0': '>=0.35.0'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched postcss (transitive via vite/storybook and the Docusaurus
   # webpack CSS pipeline) — high advisory GHSA-r28c-9q8g-f849: sourceMappingURL
   # auto-loading follows `../` out of the source directory and discloses
   # arbitrary .map files.
   'postcss@<8.5.18': '>=8.5.18 <9'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched brace-expansion per major — high advisories
   # GHSA-mh99-v99m-4gvg (unbounded expansion length, OOM) and its follow-up
   # GHSA-rgw5-rvv9-x895 (DoS via unbounded intermediate arrays) both ship
@@ -66,15 +95,20 @@ overrides:
   # if one ever appears the audit gate will flag it — decide the cross-major
   # question then, against that consumer's import style.
   'brace-expansion@1': '>=1.1.18 <2'
+  # bestax:review 2026-11-13 — quarterly sweep; 2.x line, prunable on its own
   'brace-expansion@2': '>=2.1.4 <3'
+  # bestax:review 2026-11-13 — quarterly sweep; 3.x line, prunable on its own
   'brace-expansion@3': '>=3.0.6 <4'
+  # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
   'brace-expansion@5': '>=5.0.9 <6'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
   # schema-utils, and the eslint toolchain) — high advisory
   # GHSA-7p8r-x3mc-p8w7: host confusion via a backslash authority introducer.
   # Scoped to the affected 3.x major. Prune once the ajv chain resolves to
   # >=3.1.5 on its own.
   'fast-uri@3': '>=3.1.5 <4'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched undici 7.x (transitive via semantic-release/github and
   # wrangler>miniflare — release and CI-deploy tooling, never published
   # output) — high advisory GHSA-4cwx-7wf7-3272: cross-user information
@@ -82,6 +116,7 @@ overrides:
   # Scoped to the affected 7.x major; the 6.x copy under @actions/http-client
   # is not affected. Prune once those parents require >=7.29.0 themselves.
   'undici@7': '>=7.29.0 <8'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
   # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than
   # "^9.0.3"), so the range no longer floats to a patched release the way it did
@@ -91,7 +126,9 @@ overrides:
   # the affected major so the minimatch 10.x already in the tree is untouched.
   # Prune both once the plugin widens its ranges again.
   'minimatch@9': '>=9.0.7 <10'
+  # bestax:review 2026-11-13 — quarterly sweep; same plugin, separate advisory
   'yaml@2': '>=2.8.3'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched js-yaml per major — high advisory GHSA-5p4m-2wfm-xmqj
   # (CVE-2026-59870): quadratic CPU consumption resolving !!omap. The 3.x copy
   # rides the jest coverage chain (babel-plugin-istanbul >
@@ -101,7 +138,9 @@ overrides:
   # range admits them — the lockfile just predates them. Prune each entry once
   # its line resolves to >=3.15.1 / >=4.3.1 without the force.
   'js-yaml@3': '>=3.15.1 <4'
+  # bestax:review 2026-11-13 — quarterly sweep; 4.x line, prunable on its own
   'js-yaml@4': '>=4.3.1 <5'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched nanoid under the vite>postcss chain (storybook build
   # tooling) — high advisory GHSA-2v37-7h3g-55p8: custom generators can loop
   # indefinitely when size is zero. The advisory's affected range was widened
@@ -127,7 +166,11 @@ overrides:
 # Docusaurus chain resolves to it.
 auditConfig:
   ignoreGhsas:
+    # bestax:review 2026-11-13 — quarterly sweep. These are the only bypasses
+    # here with no patched version to move to, so the review is "has image-size
+    # published a fix yet", not "can we drop this".
     - GHSA-w3rx-r6r6-pgpr
+    # bestax:review 2026-11-13 — quarterly sweep; second image-size advisory
     - GHSA-5p2g-fcmc-qvqq
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages

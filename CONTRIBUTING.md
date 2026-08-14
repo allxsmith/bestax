@@ -62,7 +62,45 @@ pnpm is what powers our supply-chain hardening (see [`pnpm-workspace.yaml`](pnpm
 the [Security guide](./docs/docs/guides/security.md)): lifecycle/postinstall scripts are blocked by
 default, and a 3-day `minimumReleaseAge` cooldown prevents installing just-published versions. If you
 add a dependency whose install scripts must run, add it to `allowBuilds` (run `pnpm approve-builds`);
-if you need a version younger than the cooldown, add it to `minimumReleaseAgeExclude`.
+if you need a version younger than the cooldown, see the runbook below.
+
+#### When a fresh advisory turns CI red
+
+`pnpm audit --audit-level=high` is a blocking gate, and the cooldown refuses anything published in
+the last 72 hours. When an advisory's only patched release is younger than that, the two rules
+genuinely conflict: the gate demands a version the resolver won't fetch, and **every open PR goes
+red**, including yours, over a transitive dependency you never touched (#391). That is expected, it
+is not your PR's fault, and this is the way out:
+
+1. Force the patched version in `overrides`, scoped to the affected range rather than unscoped.
+   When each major ships its own backport, scope per major (`'thing@3': '>=3.1.5 <4'`) so the
+   other majors are untouched. When the advisory has a single patched floor across majors, use
+   an unbounded-lower selector instead (`'thing@<3.1.5': '>=3.1.5'`), as the committed
+   `postcss` and `sharp` entries do — scoping that case to whichever major the lockfile happens
+   to hold today leaves older majors unguarded if a future dependency edge pulls one in.
+2. If the patch is still inside the cooldown, add it to `minimumReleaseAgeExclude` too — without
+   this the resolver refuses the version step 1 demands. **Qualify it with the exact version**
+   (`- 'fast-uri@3.1.5'`, not `- fast-uri`): a bare package name waives the cooldown for every
+   future release of that package, so a later lockfile refresh could pull in a different
+   just-published version that nobody reviewed. That is the whole defence you are stepping
+   around, so step around it as narrowly as possible.
+3. Annotate both entries with a review date — this is required, not a nicety:
+
+   ```yaml
+   # bestax:review 2026-11-13 — drop once the ajv chain resolves to >=3.1.5 itself
+   'fast-uri@3': '>=3.1.5 <4'
+   ```
+
+4. Run `pnpm install`, confirm `pnpm audit --audit-level=high` is clean, and commit the lockfile
+   with it.
+
+Every bypass is temporary by construction, so `pnpm check:conformance --only=bypass-expiry` fails
+the build if an entry has no annotation, and fails again once a review date arrives — that is your
+reminder to drop it, re-resolve, and leave it out if nothing changed. A standing policy that is not
+debt (the `prettier` pin) uses `# bestax:permanent — why` instead and never expires.
+
+Note that `pnpm all` does **not** run the conformance checks; CI does. Run
+`pnpm check:conformance` yourself after editing `pnpm-workspace.yaml`.
 
 ### 2. Clone and Install
 

@@ -27,8 +27,14 @@ Measures active in this repository and its release pipeline:
   are the deliberate minority: `prettier` is excluded (and pinned) so
   formatting stays deterministic and is never shipped to users, and an
   individual package may be excluded temporarily to pull an urgent security
-  patch in ahead of the cooldown — each such entry carries an inline rationale
-  and a removal date.
+  patch in ahead of the cooldown. Every such bypass — here, in `overrides`, and
+  in `auditConfig.ignoreGhsas` — carries a `# bestax:review <date>` marker in
+  the comment above it stating why, and CI fails once that date arrives
+  (`check:conformance --only=bypass-expiry`), so a temporary exception cannot
+  quietly become permanent. The date is a review-by, not a removal deadline:
+  it forces the question, and the answer may be to extend it with a reason.
+  Standing policy that is not debt, like the `prettier` pin, is marked
+  `# bestax:permanent` instead.
 - **Isolated `node_modules`** — pnpm's isolated linker prevents phantom
   (undeclared) dependencies from being imported.
 - **Frozen lockfile in CI** — builds and releases install with

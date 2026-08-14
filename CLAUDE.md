@@ -82,6 +82,12 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
 - Install/postinstall scripts are **blocked by default** — new native deps need an `allowBuilds` entry.
 - `minimumReleaseAge` cooldown: versions younger than 3 days won't install.
+- **Every bypass carries an expiry.** Entries in `overrides`, `minimumReleaseAgeExclude` and
+  `auditConfig.ignoreGhsas` need `# bestax:review YYYY-MM-DD — why` (or `# bestax:permanent — why`
+  for standing policy) in the comment above them. `check:conformance --only=bypass-expiry` fails
+  on a missing annotation and again once a date arrives, so a temporary bypass can't silently
+  become permanent (#391). A blocking audit gate plus the cooldown means a fresh advisory can red
+  every open PR — CONTRIBUTING.md has the runbook.
 - Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
 - Published packages must not ship a `workspace:` or `catalog:` specifier — `npm publish`
   (what semantic-release runs) resolves neither, and the tarball becomes uninstallable

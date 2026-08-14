@@ -35,6 +35,10 @@
  *                        and names only props that really exist
  *   publishable-manifests  no published package ships a `workspace:`/`catalog:`
  *                        specifier consumers would have to resolve (#412)
+ *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
+ *                        carries a `# bestax:review <date>` or
+ *                        `# bestax:permanent` marker, and no review date has
+ *                        passed (#391)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname } from 'node:path';
@@ -53,6 +57,11 @@ import {
   GENERATED_EXEMPT,
   SCSS_SOURCES,
 } from './lib/api-sources.mjs';
+import {
+  BYPASS_BLOCKS,
+  parseBypassEntries,
+  findExpired,
+} from './lib/bypass-annotations.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -1156,6 +1165,86 @@ async function checkPublishableManifests() {
   return violations;
 }
 
+/**
+ * Supply-chain bypasses expire (#391). `overrides`, `minimumReleaseAgeExclude`
+ * and `auditConfig.ignoreGhsas` each weaken a default we otherwise hold, and
+ * every one of them is written as temporary — but nothing made that observable,
+ * so entries outlived their stated reason until an unrelated PR happened to
+ * audit the file.
+ *
+ * Two failure modes, and the second is what gives this teeth: a review date
+ * that has arrived, and an entry with no annotation at all. Without the latter,
+ * a new bypass just omits the marker and the check is decorative.
+ *
+ * Expired entries report as ONE violation per list rather than one each: a
+ * quarterly batch coming due is a single chore, and this check already risks
+ * failing a PR that has nothing to do with dependencies.
+ */
+async function checkBypassExpiry() {
+  const path = join(REPO, 'pnpm-workspace.yaml');
+  const { entries, problems, blocksSeen } = parseBypassEntries(
+    await readFile(path, 'utf8')
+  );
+
+  // Per block, not merely in total: one block going silent while the other two
+  // keep the count nonzero is the same fail-open the parser guards against.
+  const missing = BYPASS_BLOCKS.filter(b => !blocksSeen.has(b.key));
+  if (missing.length) {
+    return missing.map(
+      b =>
+        `pnpm-workspace.yaml: the \`${b.label}\` block was not found, so ` +
+        `nothing in it is policed. If it moved or was renamed, fix its ` +
+        `pattern in scripts/lib/bypass-annotations.mjs. If you pruned its ` +
+        `last entry, keep the key and write \`${b.emptyLiteral}\` rather than ` +
+        `deleting it — dropping a block from BYPASS_BLOCKS unpolices that ` +
+        `surface permanently, so entries would sail through unannotated if ` +
+        `the list ever came back.`
+    );
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { expired, unannotated, malformed } = findExpired(entries, today);
+  const violations = [];
+
+  for (const { line, why } of problems) {
+    violations.push(`pnpm-workspace.yaml line ${line}: ${why}`);
+  }
+
+  for (const entry of malformed) {
+    violations.push(
+      `pnpm-workspace.yaml line ${entry.line}: ${entry.label} entry ` +
+        `"${entry.name}" ${entry.error}`
+    );
+  }
+
+  for (const label of new Set(expired.map(e => e.label))) {
+    const due = expired.filter(e => e.label === label);
+    violations.push(
+      `pnpm-workspace.yaml: ${due.length} ${label} entr${
+        due.length === 1 ? 'y is' : 'ies are'
+      } due for review as of ${today} — ` +
+        due.map(e => `${e.name} (line ${e.line}, ${e.review})`).join(', ') +
+        `. For each: drop it, re-resolve, and leave it out if the resolved ` +
+        `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
+        `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
+        `say why in the same comment.`
+    );
+  }
+
+  for (const entry of unannotated) {
+    violations.push(
+      `pnpm-workspace.yaml line ${entry.line}: ${entry.label} entry ` +
+        `"${entry.name}" has no expiry annotation. Add ` +
+        `\`# bestax:review YYYY-MM-DD — why this date\` to the comment ` +
+        `directly above it, or \`# bestax:permanent — why\` if it is a ` +
+        `deliberate standing policy rather than a patch waiting on the ` +
+        `ecosystem. See the contract at the top of pnpm-workspace.yaml.`
+    );
+  }
+
+  return violations;
+}
+
 // ---------------------------------------------------------------------------
 
 const CHECKS = {
@@ -1171,6 +1260,7 @@ const CHECKS = {
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
   'publishable-manifests': checkPublishableManifests,
+  'bypass-expiry': checkBypassExpiry,
   'inline-style': null, // handled below (takes the flag)
 };
 
