@@ -11,3 +11,6 @@ monorepo.
   as raw markdown — see https://bestax.io/docs/guides/llms.
 - **Agent Skills** (layout scaffolding, forms, theming, custom components) live in
   [`skills/`](skills/README.md): `npx skills add https://github.com/allxsmith/bestax --skill <name>`
+- **Security posture?** Signed provenance, OIDC trusted publishing, Socket.dev on every PR,
+  SHA-pinned actions, blocked install scripts, 3-day cooldown. Full:
+  [`SECURITY.md`](SECURITY.md) · https://bestax.io/docs/guides/security

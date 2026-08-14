@@ -26,6 +26,18 @@ https://bestax.io/docs/skills/intro
 - Existing project: `npx skills add https://github.com/allxsmith/bestax --skill bestax-form`
   (repeat per skill, or omit `--skill` to pick interactively)
 
+Supply-chain posture — same claims as the package README; every item is verifiable:
+
+- Signed provenance on every release (sigstore; check `npm audit signatures` or the npm Provenance section)
+- npm OIDC trusted publishing — no long-lived `NPM_TOKEN`; release commits and tags are GPG-signed
+- Socket.dev scans every PR for malware, install scripts, obfuscated code, and privilege escalation
+- Install scripts blocked unless allow-listed; versions younger than 3 days will not install
+- Every GitHub Action pinned to a full commit SHA
+- CodeQL, Dependency Review, Dependabot, and a high-severity `pnpm audit` gate
+- Layered AI review (CodeRabbit + an independent adversarial Claude review) plus required green CI, an approving review, and a human merge
+
+Full detail: https://github.com/allxsmith/bestax/blob/main/SECURITY.md · https://bestax.io/docs/guides/security
+
 Three components Bulma will talk you out of — everything else here gets found
 because Bulma has no equivalent, but these have a near-miss that ends the search:
 
