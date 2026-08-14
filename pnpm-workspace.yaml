@@ -80,8 +80,13 @@ overrides:
   # Force patched postcss (transitive via vite/storybook and the Docusaurus
   # webpack CSS pipeline) — high advisory GHSA-r28c-9q8g-f849: sourceMappingURL
   # auto-loading follows `../` out of the source directory and discloses
-  # arbitrary .map files.
-  'postcss@<8.5.18': '>=8.5.18 <9'
+  # arbitrary .map files. Floor raised to 8.5.23 for GHSA-fxqj-rqcc-2cmp, the
+  # moderate follow-up to GHSA-6g55-p6wh-862q whose fix was incomplete.
+  # Selector widened from `postcss@<8.5.18` to the whole 8.x major on purpose:
+  # the tree had already floated to 8.5.21, so the old `<8.5.18` selector
+  # matched nothing and the entry had quietly stopped being load-bearing. A
+  # version-bounded selector expires itself the moment the ecosystem passes it.
+  'postcss@8': '>=8.5.23 <9'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched brace-expansion per major — high advisories
   # GHSA-mh99-v99m-4gvg (unbounded expansion length, OOM) and its follow-up
@@ -113,9 +118,20 @@ overrides:
   # wrangler>miniflare — release and CI-deploy tooling, never published
   # output) — high advisory GHSA-4cwx-7wf7-3272: cross-user information
   # disclosure and parse-time crash via degenerate private cache directives.
-  # Scoped to the affected 7.x major; the 6.x copy under @actions/http-client
-  # is not affected. Prune once those parents require >=7.29.0 themselves.
+  # Scoped to the affected 7.x major. Prune once those parents require
+  # >=7.29.0 themselves.
   'undici@7': '>=7.29.0 <8'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # The 6.x copy (under @actions/http-client) was genuinely exempt from
+  # GHSA-4cwx-7wf7-3272 — this comment used to say so and stopped there. It is
+  # NOT exempt from the three moderate advisories that followed, all fixed in
+  # 6.28.0: GHSA-8xcm-r25x-g524 (downstream response desynchronization),
+  # GHSA-m8rv-5g2x-5cg5 (CRLF injection via a blob-like body `type`), and
+  # GHSA-v3r7-h72x-cjcm (cookie attribute injection). None of them trip
+  # `pnpm audit --audit-level=high`, which is exactly why they sat here
+  # unnoticed until the OpenSSF Scorecard run counted them (#404). Prune once
+  # @actions/http-client requires >=6.28.0 itself.
+  'undici@6': '>=6.28.0 <7'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
   # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than
@@ -152,6 +168,19 @@ overrides:
   # a consumer ever appears). Prune once the chain resolves to >=3.3.18 without
   # the force.
   'nanoid@3': '>=3.3.18 <4'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched body-parser 1.x (transitive via the Docusaurus dev server's
+  # express@4 chain) — GHSA-v422-hmwv-36x6, a low-severity DoS when an invalid
+  # `limit` is supplied. Scoped to the 1.x major: the 2.3.0 copy already in the
+  # tree carries the fix. Prune once express@4's range admits >=1.20.6.
+  'body-parser@1': '>=1.20.6 <2'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched webpack-dev-server (the Docusaurus dev server; dev-only,
+  # never shipped) — GHSA-f5vj-f2hx-8m93 (CSRF) and GHSA-m28w-2pqf-7qgj (DoS
+  # via a malformed request), both fixed in 5.2.6. Unscoped: 5.x is the only
+  # line in the tree and 6.0.0 is a major we have not evaluated, so the `<6`
+  # bound is deliberate. Prune once Docusaurus requires >=5.2.6 itself.
+  'webpack-dev-server': '>=5.2.6 <6'
 
 # --- Audit exceptions (no patched release exists) ---
 
