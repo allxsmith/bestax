@@ -343,6 +343,13 @@ jobs:
         id: restamp
         run: |
           pnpm gen:mcp
+          # --intent-to-add mirrors gen:mcp:check exactly. The output is a
+          # directory, and `git diff` cannot see a newly added file that git
+          # has never been told about, so without this a release that somehow
+          # added a file under data/ would read as "no change" here and still
+          # fail the gate on every branch. Today only the version field moves,
+          # but a guard should match the check it exists to satisfy.
+          git add --intent-to-add --all bestax-mcp/data
           if git diff --quiet -- bestax-mcp/data; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "MCP index already matches the released version; nothing to do."
