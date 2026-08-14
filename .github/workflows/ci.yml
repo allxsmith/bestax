@@ -378,12 +378,20 @@ jobs:
           # is correct by construction, and letting it trigger the publish job
           # again would re-run the whole release pipeline to do nothing.
           #
-          # --no-verify because `pnpm install` above installed husky's hooks
-          # into .git/hooks, and those are repo-owned code. Without it, a commit
-          # hook would execute in the one step that holds the bypass token,
-          # which is the thing this split exists to prevent. The message is
-          # machine-generated and already conventional, so nothing is lost.
-          git commit -S --no-verify -m "chore(bestax-mcp): restamp index after release [skip ci]"
+          # `pnpm install` above put husky's hooks in .git/hooks, and those are
+          # repo-owned code. Running one here would execute it in the single
+          # step holding the bypass token, which is the thing this split exists
+          # to prevent.
+          #
+          # core.hooksPath rather than --no-verify: that flag suppresses only
+          # pre-commit and commit-msg, so it would silently stop covering this
+          # the day someone adds a prepare-commit-msg, post-commit or
+          # post-rewrite hook. Pointing hooksPath at a non-directory makes git
+          # find no hook of any name, which is the property actually wanted
+          # here — "no repo code runs in this step", not "these two hooks are
+          # skipped". Only commit-msg exists today; the point is that this
+          # keeps holding when that changes.
+          git -c core.hooksPath=/dev/null commit -S -m "chore(bestax-mcp): restamp index after release [skip ci]"
           if ! git push "https://x-access-token:${RESTAMP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
             echo "::error::Packages published, but pushing the MCP index restamp to main failed. Run 'pnpm gen:mcp' on main and commit, or every new branch will fail gen:mcp:check."
             exit 1
