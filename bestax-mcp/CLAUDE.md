@@ -16,10 +16,15 @@ hand-written `## Usage` / `## Accessibility` sections of the 87 API pages.
 
 - **Never hand-edit `data/`.** CI fails on staleness (`pnpm gen:mcp:check`).
 - `data/catalog.json` and `data/components/*.json` are **committed**.
-- `data/skills/` is **gitignored** and synced from `/skills` at `build` and
-  `prepack`. Only the manifest (`data/skills.json`) is committed — enough for
-  the staleness gate to catch a new or renamed skill, without putting a second
-  copy of ~390 KB of markdown in every skill diff.
+- `data/skills/` is **gitignored** and synced from `/skills` by
+  `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
+  `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
+  committed — enough for the staleness gate to catch a new or renamed skill,
+  without putting a second copy of ~390 KB of markdown in every skill diff.
+  Turbo runs the first three of those concurrently, so that script takes a lock
+  and no-ops when the tree already matches the source; keep both properties if
+  you touch it, and see its trailing "Concurrency" note for why the freshness
+  check is required rather than merely an optimisation.
 - `gen:mcp:check` runs `git add --intent-to-add` before diffing. The output is a
   directory, and `git diff --exit-code` cannot see an untracked file — a newly
   added component would otherwise pass the gate.
