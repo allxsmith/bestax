@@ -329,6 +329,27 @@ auditConfig:
   ]);
 });
 
+test('an explicitly emptied list counts as seen', () => {
+  // Pruning the last entry must not require editing BYPASS_BLOCKS: removing a
+  // block definition would unpolice that surface permanently, so an entry
+  // added back later would never be checked at all.
+  const { entries, blocksSeen } = parseBypassEntries(`
+minimumReleaseAgeExclude: []
+overrides:
+  # bestax:review 2026-11-13 — sweep
+  'thing@1': '>=1.2.3'
+auditConfig:
+  ignoreGhsas: []
+`);
+  assert.ok(blocksSeen.has('minimumReleaseAgeExclude'));
+  assert.ok(blocksSeen.has('ignoreGhsas'));
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['thing@1'],
+    'an empty list contributes no entries and swallows nothing after it'
+  );
+});
+
 test('an unsupported header shape leaves the block unseen, not silently empty', () => {
   // Header matching is deliberately narrow, so semantically equivalent YAML —
   // a quoted key, or a flow sequence — matches nothing. That is safe ONLY

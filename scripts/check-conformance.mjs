@@ -1193,10 +1193,12 @@ async function checkBypassExpiry() {
     return missing.map(
       b =>
         `pnpm-workspace.yaml: the \`${b.label}\` block was not found, so ` +
-        `nothing in it is policed. It moved or was renamed — fix its pattern ` +
-        `in scripts/lib/bypass-annotations.mjs. If the list was deliberately ` +
-        `emptied and removed, drop it from BYPASS_BLOCKS there in the same ` +
-        `change, so the gate never silently covers less than it claims.`
+        `nothing in it is policed. If it moved or was renamed, fix its ` +
+        `pattern in scripts/lib/bypass-annotations.mjs. If you pruned its ` +
+        `last entry, keep the key and write \`${b.label.split('.').pop()}: ` +
+        `[]\` rather than deleting it — dropping a block from BYPASS_BLOCKS ` +
+        `unpolices that surface permanently, so entries would sail through ` +
+        `unannotated if the list ever came back.`
     );
   }
 

@@ -30,12 +30,14 @@ export const BYPASS_BLOCKS = [
     // `overrides:` sits at column 0; its entries are `key: value` pairs. The
     // trailing `.*` swallows any inline comment — only the key is used.
     header: /^overrides:\s*$/,
+    empty: /^overrides:[ \t]*\[[ \t]*\][ \t]*$/,
     entry: /^\s+(.+?):\s*\S.*$/,
     label: 'overrides',
   },
   {
     key: 'minimumReleaseAgeExclude',
     header: /^minimumReleaseAgeExclude:\s*$/,
+    empty: /^minimumReleaseAgeExclude:[ \t]*\[[ \t]*\][ \t]*$/,
     entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
     label: 'minimumReleaseAgeExclude',
   },
@@ -43,6 +45,7 @@ export const BYPASS_BLOCKS = [
     key: 'ignoreGhsas',
     // Nested under `auditConfig:`, so the header itself is indented.
     header: /^\s+ignoreGhsas:\s*$/,
+    empty: /^[ \t]+ignoreGhsas:[ \t]*\[[ \t]*\][ \t]*$/,
     entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
     label: 'auditConfig.ignoreGhsas',
   },
@@ -196,6 +199,16 @@ export function parseBypassEntries(yaml) {
   };
 
   for (const [i, line] of lines.entries()) {
+    // `key: []` — the list exists and is deliberately empty. Counts as seen so
+    // pruning the last entry never requires editing BYPASS_BLOCKS, which would
+    // unpolice that surface for good if the list came back later.
+    const emptied = BYPASS_BLOCKS.find(b => b.empty.test(line));
+    if (emptied) {
+      blocksSeen.add(emptied.key);
+      endBlock();
+      continue;
+    }
+
     const header = BYPASS_BLOCKS.find(b => b.header.test(line));
     if (header) {
       active = header;
