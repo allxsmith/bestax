@@ -50,14 +50,15 @@ files at the package root, so an agent that explores `node_modules` by filename
 (`find` / `ls` for `AGENTS.md`, `CLAUDE.md`, `llms.txt`) lands on these resources
 even if it never opens the README or reaches the network first:
 
-| File        | What it is                                                                          |
-| ----------- | ----------------------------------------------------------------------------------- |
-| `llms.txt`  | A stub index pointing at the site artifacts above.                                  |
-| `AGENTS.md` | The cross-tool agent convention — the same links plus the core library conventions. |
-| `CLAUDE.md` | A copy of `AGENTS.md` under the filename Claude-family tooling probes for first.    |
+| File        | What it is                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| `llms.txt`  | A stub index pointing at the site artifacts above, plus the compact security-posture summary. |
+| `AGENTS.md` | The same links, the core library conventions, and the same security-posture summary.          |
+| `CLAUDE.md` | A copy of `AGENTS.md` under the filename Claude-family tooling probes for first.              |
 
-They are pointers, not documentation — the site artifacts above stay the single
-source of truth, so nothing in the tarball goes stale between releases.
+They are pointers plus a compact, verifiable security-posture summary — the site
+artifacts stay the source of truth for everything else, so the rest of the
+tarball cannot go stale between releases.
 
 ## MCP server
 
