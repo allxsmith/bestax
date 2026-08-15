@@ -135,6 +135,20 @@ jobs:
       # timestamp countersigns the bundle). `oauth2.sigstore.dev` is the fifth
       # entry there and is deliberately omitted: it serves the interactive OIDC
       # flow, and this job uses the ambient GitHub Actions credential instead.
+      #
+      # `*.blob.core.windows.net` is deliberately absent, and this note exists
+      # because three separate review passes have now proposed adding it. The
+      # artifact actions do reach Azure blob storage, but #487 measured a real
+      # run and found those hosts (`results-receiver.actions.githubusercontent
+      # .com`, `productionresultssa9.blob.core.windows.net`) already covered by
+      # harden-runner's built-in Actions baseline, so allow-listing them is
+      # unnecessary. In block mode harden-runner also runs a probe whose whole
+      # purpose is to discover the per-run blob backend host and add it itself.
+      # The wildcard is the specific thing to avoid: every Azure storage account
+      # in existence lives under that suffix, so it would turn the tightest
+      # egress policy in this repository into something close to open egress. If
+      # a real run ever shows a blocked blob endpoint, add that exact host.
+      #
       # The three sibling jobs predate rule 10 and are grandfathered by its
       # "existing live job" clause; this one does not get that.
       - name: Harden runner
