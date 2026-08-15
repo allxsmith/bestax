@@ -42,6 +42,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 export const MARKER = '<!-- security-txt-expiry -->';
 export const DEFAULT_WARN_DAYS = 30;
 
+/**
+ * RFC 3339 §5.6 `date-time`, anchored, with each field bounded so an
+ * out-of-range component is rejected rather than silently rolled over.
+ * Seconds and an offset (`Z` or ±HH:MM) are both required by that grammar.
+ */
+export const RFC3339_DATE_TIME =
+  /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])[Tt](?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:[Zz]|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+
 const API_BASE = 'https://api.github.com';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 30_000;
@@ -126,12 +134,43 @@ export function parseExpires(text) {
   }
 
   const value = matches[0];
+
+  // Format-check before parsing. RFC 9116 §2.5.5 imports `date-time` from
+  // RFC 3339 §5.6, but `new Date()` is far more permissive than that and its
+  // handling of non-ISO input is implementation-defined. Left to the Date
+  // constructor, `Expires: August 15, 2027` parses happily — so this script
+  // would report "364 days away, nothing to do" about a file that securitytxt
+  // .org rejects. Policing this file is the whole job, so the check is here.
+  if (!RFC3339_DATE_TIME.test(value)) {
+    throw new Error(
+      `security.txt has a non-RFC-3339 \`Expires:\` value: "${value}". ` +
+        `RFC 9116 requires a full date-time with seconds and an offset, ` +
+        `e.g. 2027-08-15T00:00:00.000Z`
+    );
+  }
+
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     throw new Error(
       `security.txt has an unparseable \`Expires:\` value: "${value}"`
     );
   }
+
+  // The regex bounds each field but cannot know that February has no 30th, and
+  // JS silently rolls such a date forward instead of rejecting it. For a UTC
+  // timestamp the round-trip catches it. A non-Z offset can legitimately shift
+  // the UTC date by a day, so that case is left to the bounds check alone —
+  // being a day or two out on a 30-day reminder is not worth the machinery.
+  if (
+    /[Zz]$/.test(value) &&
+    parsed.toISOString().slice(0, 10) !== value.slice(0, 10)
+  ) {
+    throw new Error(
+      `security.txt has an \`Expires:\` date that does not exist: "${value}" ` +
+        `(rolled over to ${parsed.toISOString().slice(0, 10)})`
+    );
+  }
+
   return parsed;
 }
 
@@ -251,6 +290,29 @@ async function api(pathOrUrl, { method = 'GET', body } = {}) {
   return res;
 }
 
+/**
+ * Paginate a GET endpoint by following Link rel="next" (same helper shape as
+ * auto-close-duplicates.mjs).
+ *
+ * Load-bearing rather than tidiness. The marker lookup below has to see EVERY
+ * open issue: miss the reminder because it fell off page one and the script
+ * concludes none exists and opens another, every single week. That is the
+ * duplicate-issue spam this design is built to avoid, and it would arrive
+ * silently the first time the repo carries more than 100 open issues and PRs
+ * (40 today, so it is latent rather than live).
+ */
+async function getAllPages(path) {
+  const items = [];
+  let url = path;
+  while (url) {
+    const res = await api(url);
+    items.push(...(await res.json()));
+    const link = res.headers.get('link') ?? '';
+    url = link.match(/<([^>]+)>;\s*rel="next"/)?.[1] ?? null;
+  }
+  return items;
+}
+
 // ---------------------------------------------------------------------------
 // Main.
 // ---------------------------------------------------------------------------
@@ -286,10 +348,12 @@ async function main() {
 
   // Only open issues: a closed one means somebody handled a previous cycle,
   // and reopening it would bury this cycle's context under old discussion.
-  const res = await api(
-    `/repos/${opts.repo}/issues?state=open&per_page=100&sort=created&direction=desc`
+  // Paginated, not just the first page — see getAllPages.
+  const existing = findMarkerIssue(
+    await getAllPages(
+      `/repos/${opts.repo}/issues?state=open&per_page=100&sort=created&direction=desc`
+    )
   );
-  const existing = findMarkerIssue(await res.json());
 
   if (existing) {
     await api(`/repos/${opts.repo}/issues/${existing.number}`, {

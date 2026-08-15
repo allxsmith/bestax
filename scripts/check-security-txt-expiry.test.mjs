@@ -101,7 +101,51 @@ test('parseExpires throws when the field is missing', () => {
 });
 
 test('parseExpires throws on an unparseable date rather than guessing', () => {
-  assert.throws(() => parseExpires(txt('next tuesday')), /unparseable/);
+  assert.throws(() => parseExpires(txt('next tuesday')), /non-RFC-3339/);
+});
+
+test('parseExpires rejects dates new Date() would happily accept', () => {
+  // The reason the format check exists. `new Date()` is far looser than
+  // RFC 3339 and its non-ISO handling is implementation-defined, so without
+  // an explicit check these all parse into real dates and the script cheerfully
+  // reports "nothing to do" about a file securitytxt.org rejects.
+  for (const bad of [
+    'August 15, 2027',
+    '2027/08/15',
+    '08/15/2027',
+    '2027-08-15', // date only: RFC 9116 wants a full date-time
+    '2027-08-15T00:00:00', // no offset
+    '2027-08-15T00:00Z', // no seconds
+  ]) {
+    assert.throws(
+      () => parseExpires(txt(bad)),
+      /non-RFC-3339/,
+      `expected "${bad}" to be rejected`
+    );
+  }
+});
+
+test('parseExpires accepts the RFC 3339 shapes that are actually legal', () => {
+  for (const good of [
+    '2027-08-15T00:00:00Z',
+    '2027-08-15T00:00:00.000Z',
+    '2027-08-15T00:00:00+05:30',
+    '2027-08-15t00:00:00z', // RFC 3339 allows lower case
+  ]) {
+    assert.ok(
+      parseExpires(txt(good)) instanceof Date,
+      `expected "${good}" to parse`
+    );
+  }
+});
+
+test('parseExpires rejects a date that does not exist rather than rolling it over', () => {
+  // JS turns 2027-02-30 into 2027-03-02 without complaint, which would make the
+  // reminder fire against a date nobody wrote.
+  assert.throws(
+    () => parseExpires(txt('2027-02-30T00:00:00Z')),
+    /does not exist/
+  );
 });
 
 test('parseExpires refuses a file with two Expires fields', () => {
