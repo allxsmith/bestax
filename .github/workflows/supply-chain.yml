@@ -197,7 +197,20 @@ jobs:
 
       # Named to match the upload job's existing `bestax-sbom.*` download
       # pattern, so that step needs no change to collect these.
+      #
+      # `!cancelled()` so a partial signing run still publishes what it managed
+      # to produce. The loop above runs under `bash -e`, so if the second
+      # cosign call fails the step fails and this one would be skipped by
+      # default, discarding the bundle the first call had already written. That
+      # would turn "one SBOM signed" into "nothing signed", which is both a
+      # worse outcome than the failure warrants and inconsistent with
+      # attach-sbom, which is deliberately built to degrade rather than
+      # withhold. The job still goes red — this changes what survives the
+      # failure, not whether it is reported. `upload-artifact` defaults to
+      # `if-no-files-found: warn`, so a total signing failure uploads nothing
+      # and attach-sbom's nullglob branch emits its ::warning:: as before.
       - name: Upload signature bundles
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: bestax-sbom.signatures
