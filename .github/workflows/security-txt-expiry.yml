@@ -1,0 +1,96 @@
+name: security.txt expiry
+
+# Weekly reminder to renew docs/static/.well-known/security.txt before its
+# `Expires` date passes (#414).
+#
+# RFC 9116 makes `Expires` mandatory, and an expired security.txt is worse than
+# publishing none — scanners flag it rather than ignoring it. So the file
+# carries a date somebody has to move, and this is what remembers to ask.
+#
+# Deliberately a reminder and NOT a CI gate. Failing the build the day the date
+# passes would red whichever unrelated PR pushed next, which is the complaint
+# #391 is about; the 30-day lead time is what makes a gate unnecessary. Nothing
+# here can fail a build or block a merge.
+#
+# Idempotent: the issue body carries `<!-- security-txt-expiry -->` and an
+# existing open issue with that marker is UPDATED rather than joined by a
+# second one. A weekly cron that opened a fresh issue every run would be worse
+# than no reminder, because the noise is what trains you to ignore it.
+#
+# Deliberately NOT gated on vars.AI_LOOP_ENABLED: this workflow uses zero
+# Claude/AI — the script is plain REST calls — and zero-Claude workflows ignore
+# the AI-spend kill switch (house rule, same as auto-close-duplicates.yml).
+
+on:
+  schedule:
+    # 09:23 UTC Mondays — clear of the other crons in this repo
+    # (02:00 and 06:37 daily; 07:41 and 08:17 Mondays).
+    - cron: '23 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Log what would happen without opening or updating an issue.'
+        required: false
+        type: boolean
+        default: false
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+# One reminder at a time: a manual dispatch overlapping the weekly cron must
+# not race a second creator over the same issue (the marker lookup and the
+# create are not atomic, so two concurrent runs could both miss and both open).
+concurrency:
+  group: security-txt-expiry
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check security.txt expiry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write # open or update the renewal issue
+      contents: read # checkout to read security.txt and run the script
+    steps:
+      # Rule 10: a new job ships at `block`. Not described as an enforcing
+      # control here — rule 10 forbids that until #487 closes, and this list is
+      # derived from what the steps below documentedly reach rather than from a
+      # measured run. Note the nearest sibling (auto-close-duplicates.yml, also
+      # a scheduled issue-writer) carries no harden-runner at all; it predates
+      # the rule. Flagged in the PR for a decision rather than settled here.
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            nodejs.org:443
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # No pnpm, no cache: the script is dependency-free (node: builtins +
+      # global fetch), so plain Node 24 is all it needs.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
+      - name: Open or update the renewal issue
+        env:
+          # GITHUB_TOKEN, not a PAT: issues opened with it do not emit workflow
+          # events, so this cannot re-trigger the comment- and issue-driven
+          # workflows in this repo (invariant I2).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          set -euo pipefail
+          ARGS=(--repo="$REPO")
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          node scripts/check-security-txt-expiry.mjs "${ARGS[@]}"

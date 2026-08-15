@@ -1,0 +1,17 @@
+# Security contact information for bestax.io — RFC 9116.
+#
+# Served from docs/static/.well-known/ (Docusaurus copies static/ verbatim,
+# dot-directories included).
+#
+# Expires is mandatory, and an expired file is worse than none: scanners flag
+# it. Renewal is not left to memory — .github/workflows/security-txt-expiry.yml
+# runs weekly and opens an issue 30 days before the date below. When that issue
+# arrives, re-verify the contacts still work, push Expires out another year, and
+# close it. See issue #414.
+
+Contact: mailto:security@bestax.io
+Contact: https://github.com/allxsmith/bestax/security/advisories/new
+Policy: https://bestax.io/docs/guides/security
+Preferred-Languages: en
+Canonical: https://bestax.io/.well-known/security.txt
+Expires: 2027-08-15T00:00:00.000Z
