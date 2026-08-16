@@ -33,6 +33,22 @@ on:
         required: false
         type: boolean
         default: false
+      warn-days:
+        # The reason this input exists: the real trigger is a year away, so
+        # without it the only proof the mechanism works is waiting a year and
+        # finding out the hard way. Dispatch with something larger than the days
+        # remaining (4000 comfortably covers a one-year Expires) and the run
+        # fires immediately against the real API, creating the issue for real.
+        # Dispatch a second time to watch it UPDATE that issue rather than open
+        # a duplicate, which is the property worth seeing with your own eyes.
+        #
+        # Nothing to revert afterwards: this only widens the window for the one
+        # manual run, the default stays 30, and the scheduled runs are
+        # unaffected. Close the test issue when you are satisfied.
+        description: 'Days before expiry to warn. Raise it (e.g. 4000) to force a real run now.'
+        required: false
+        type: string
+        default: ''
 
 # No workflow-level grants; the single job takes exactly what it needs.
 permissions: {}
@@ -87,10 +103,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           DRY_RUN: ${{ inputs.dry-run }}
+          # Passed via env, never interpolated into the script body: this is
+          # dispatch input, so it is attacker-chosen text on any repo where a
+          # non-maintainer can dispatch. The script validates it and refuses
+          # anything that is not a non-negative number.
+          WARN_DAYS: ${{ inputs.warn-days }}
         run: |
           set -euo pipefail
           ARGS=(--repo="$REPO")
           if [ "${DRY_RUN:-false}" = "true" ]; then
             ARGS+=(--dry-run)
+          fi
+          if [ -n "${WARN_DAYS:-}" ]; then
+            ARGS+=(--warn-days="$WARN_DAYS")
           fi
           node scripts/check-security-txt-expiry.mjs "${ARGS[@]}"
