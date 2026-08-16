@@ -280,3 +280,121 @@ test('findMarkerIssue survives a null body and an empty list', () => {
   assert.equal(findMarkerIssue([]), undefined);
   assert.equal(findMarkerIssue(undefined), undefined);
 });
+
+// --- the create-then-update path ---------------------------------------------
+// `--dry-run` returns before any request, so none of this is reachable through
+// the CLI without hitting the live repo. These stub `globalThis.fetch` so the
+// idempotency the whole design rests on — open exactly one issue, then UPDATE
+// it rather than opening a second — is actually exercised.
+
+import { writeFile, mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { main } from './check-security-txt-expiry.mjs';
+
+/** A fetch stub that records calls and replays queued responses. */
+function stubFetch(pages) {
+  const calls = [];
+  const real = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({
+      url: String(url),
+      method: init.method ?? 'GET',
+      body: init.body,
+    });
+    const next = pages.shift() ?? { body: [], link: null };
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: h => (h.toLowerCase() === 'link' ? next.link : null) },
+      json: async () => next.body,
+      text: async () => JSON.stringify(next.body),
+    };
+  };
+  return {
+    calls,
+    restore: () => {
+      globalThis.fetch = real;
+    },
+  };
+}
+
+async function fixtureNearExpiry() {
+  const dir = await mkdtemp(join(tmpdir(), 'sectxt-'));
+  const file = join(dir, 'security.txt');
+  const soon = new Date(Date.now() + 5 * 864e5).toISOString();
+  await writeFile(file, `Contact: mailto:x@y.z\nExpires: ${soon}\n`);
+  return file;
+}
+
+test('opens exactly one issue when none carries the marker', async () => {
+  const file = await fixtureNearExpiry();
+  const s = stubFetch([
+    { body: [{ number: 1, body: 'unrelated' }], link: null }, // the list
+    { body: { number: 99 }, link: null }, // the create
+  ]);
+  try {
+    await main([`--repo=a/b`, `--file=${file}`]);
+  } finally {
+    s.restore();
+  }
+  const writes = s.calls.filter(c => c.method !== 'GET');
+  assert.equal(writes.length, 1, 'exactly one write');
+  assert.equal(writes[0].method, 'POST');
+  assert.match(writes[0].url, /\/repos\/a\/b\/issues$/);
+  assert.ok(JSON.parse(writes[0].body).body.includes(MARKER));
+});
+
+test('updates the existing issue instead of opening a second', async () => {
+  const file = await fixtureNearExpiry();
+  const s = stubFetch([
+    { body: [{ number: 7, body: `${MARKER}\nold text` }], link: null },
+    { body: { number: 7 }, link: null },
+  ]);
+  try {
+    await main([`--repo=a/b`, `--file=${file}`]);
+  } finally {
+    s.restore();
+  }
+  const writes = s.calls.filter(c => c.method !== 'GET');
+  assert.equal(writes.length, 1, 'exactly one write');
+  assert.equal(writes[0].method, 'PATCH', 'must PATCH, not POST a duplicate');
+  assert.match(writes[0].url, /\/issues\/7$/);
+});
+
+test('finds a marker issue that is only on page two', async () => {
+  // The bug this pagination fixed: with a single-page lookup the marker issue
+  // is missed and a duplicate is opened every run, forever.
+  const file = await fixtureNearExpiry();
+  const s = stubFetch([
+    {
+      body: [{ number: 1, body: 'noise' }],
+      link: '<https://api.github.com/next>; rel="next"',
+    },
+    { body: [{ number: 42, body: `${MARKER}\nburied` }], link: null },
+    { body: { number: 42 }, link: null },
+  ]);
+  try {
+    await main([`--repo=a/b`, `--file=${file}`]);
+  } finally {
+    s.restore();
+  }
+  const writes = s.calls.filter(c => c.method !== 'GET');
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].method, 'PATCH');
+  assert.match(writes[0].url, /\/issues\/42$/, 'must update the buried issue');
+});
+
+test('makes no request at all when the date is far out', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'sectxt-'));
+  const file = join(dir, 'security.txt');
+  const far = new Date(Date.now() + 300 * 864e5).toISOString();
+  await writeFile(file, `Contact: mailto:x@y.z\nExpires: ${far}\n`);
+  const s = stubFetch([]);
+  try {
+    await main([`--repo=a/b`, `--file=${file}`]);
+  } finally {
+    s.restore();
+  }
+  assert.equal(s.calls.length, 0, 'a quiet week must not touch the API');
+});
