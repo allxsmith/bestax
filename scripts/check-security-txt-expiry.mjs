@@ -157,17 +157,24 @@ export function parseExpires(text) {
   }
 
   // The regex bounds each field but cannot know that February has no 30th, and
-  // JS silently rolls such a date forward instead of rejecting it. For a UTC
-  // timestamp the round-trip catches it. A non-Z offset can legitimately shift
-  // the UTC date by a day, so that case is left to the bounds check alone —
-  // being a day or two out on a 30-day reminder is not worth the machinery.
+  // JS silently rolls such a date forward instead of rejecting it.
+  //
+  // Validated on the calendar date ALONE, independent of the time and offset.
+  // The first version of this compared `parsed.toISOString()` against the
+  // input, which only works for a `Z` value — a legitimate `+05:30` timestamp
+  // can shift the UTC date by a day, so that check had to be skipped for
+  // offsets, and `2027-02-30T00:00:00+05:30` sailed through. Round-tripping
+  // just the Y-M-D through Date.UTC has no such blind spot.
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  const probe = new Date(Date.UTC(year, month - 1, day));
   if (
-    /[Zz]$/.test(value) &&
-    parsed.toISOString().slice(0, 10) !== value.slice(0, 10)
+    probe.getUTCFullYear() !== year ||
+    probe.getUTCMonth() !== month - 1 ||
+    probe.getUTCDate() !== day
   ) {
     throw new Error(
       `security.txt has an \`Expires:\` date that does not exist: "${value}" ` +
-        `(rolled over to ${parsed.toISOString().slice(0, 10)})`
+        `(${year}-${String(month).padStart(2, '0')} has no day ${day})`
     );
   }
 

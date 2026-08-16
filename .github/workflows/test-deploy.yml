@@ -60,11 +60,23 @@ jobs:
       # The deploy job never checks out the repo — this artifact is the only
       # thing that crosses the boundary. Fail loudly if the build produced
       # nothing rather than deploying an empty site over the preview.
+      #
+      # include-hidden-files is load-bearing and easy to miss. Since v4 this
+      # action defaults it to FALSE, so every dotfile and dot-directory in
+      # docs/build was silently dropped on the way through — the preview then
+      # 404s on paths the real site serves, because production (deploy.yml)
+      # builds and runs `pages deploy docs/build` in one job with no artifact
+      # round-trip. That divergence is invisible: the upload logs a notice and
+      # the deploy succeeds, so the preview looks healthy while under-serving.
+      # Found via #414, where /.well-known/security.txt 404'd on the preview
+      # despite being present in the build; /.nojekyll had been missing the
+      # same way for as long as this split has existed.
       - name: Upload preview site
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: preview-site
           path: docs/build
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 
