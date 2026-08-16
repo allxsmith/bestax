@@ -148,6 +148,29 @@ test('parseExpires rejects a date that does not exist rather than rolling it ove
   );
 });
 
+test('the rollover check is independent of the offset', () => {
+  // The first version compared toISOString() against the input, which only
+  // works for a `Z` value: a legitimate +05:30 timestamp shifts the UTC date by
+  // a day, so the check was skipped for offsets and this case slipped through.
+  // Validating the Y-M-D alone has no such blind spot.
+  assert.throws(
+    () => parseExpires(txt('2027-02-30T00:00:00+05:30')),
+    /does not exist/
+  );
+  assert.throws(
+    () => parseExpires(txt('2027-04-31T12:00:00-08:00')),
+    /does not exist/
+  );
+  assert.throws(
+    () => parseExpires(txt('2027-02-29T00:00:00Z')),
+    /does not exist/
+  ); // 2027 is not a leap year
+
+  // ...while real dates with offsets still parse, including a genuine leap day.
+  assert.ok(parseExpires(txt('2028-02-29T00:00:00Z')) instanceof Date);
+  assert.ok(parseExpires(txt('2027-03-31T23:59:59+05:30')) instanceof Date);
+});
+
 test('parseExpires refuses a file with two Expires fields', () => {
   const two = `${txt('2027-08-15T00:00:00.000Z')}\nExpires: 2028-01-01T00:00:00.000Z`;
   assert.throws(() => parseExpires(two), /exactly one/);
