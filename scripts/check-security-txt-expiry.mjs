@@ -324,10 +324,19 @@ async function getAllPages(path) {
 // Main.
 // ---------------------------------------------------------------------------
 
-async function main() {
+/**
+ * Exported so the create-then-update path can be exercised against a stubbed
+ * `globalThis.fetch`. That path is the whole point of the design and it cannot
+ * be reached by `--dry-run`, which returns before any request — so without a
+ * seam here, "does it open exactly one issue and update it next week" would be
+ * verified only by running it for real against the live repo.
+ *
+ * `argv` is a parameter rather than read from process for the same reason.
+ */
+export async function main(argv = process.argv.slice(2)) {
   let opts;
   try {
-    opts = parseArgs(process.argv.slice(2));
+    opts = parseArgs(argv);
   } catch (err) {
     console.error(err.message);
     process.exit(2);
