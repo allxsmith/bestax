@@ -302,7 +302,7 @@ jobs:
           cd "$RUNNER_TEMP/verify"
           npm init -y > /dev/null
           npm install --ignore-scripts \
-            @allxsmith/bestax-bulma create-bestax bestax-migrate
+            @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -318,7 +318,7 @@ jobs:
         run: |
           fail=0
           cd "$RUNNER_TEMP/verify"
-          for pkg in @allxsmith/bestax-bulma create-bestax bestax-migrate; do
+          for pkg in @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp; do
             # Pin to the version that was actually installed and audited above.
             # A bare `npm view "$pkg"` re-resolves the `latest` dist-tag, which
             # is mutable, so a publish landing between the install step and this

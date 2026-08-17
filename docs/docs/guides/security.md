@@ -19,9 +19,10 @@ npm via **OIDC trusted publishing** (short-lived, per-run tokens), so there is
 no long-lived npm token that could leak and be used to push a rogue release.
 
 Only the **latest release line** of each package receives security fixes
-(currently bestax-bulma 5.x and create-bestax 3.x). Releases are fully
-automated from `main` via semantic-release, so the newest published version is
-always the patched one — staying current is the supported posture. See
+(currently bestax-bulma 5.x, create-bestax 4.x, bestax-migrate 2.x, and
+bestax-mcp 1.x). Releases are fully automated from `main` via semantic-release,
+so the newest published version is always the patched one — staying current is
+the supported posture. See
 [SECURITY.md](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) for
 the full policy.
 
