@@ -28,7 +28,10 @@
  * Usage:
  *   node scripts/verify-attestation.mjs --dir <scratch-tree> <pkg>...
  *
- * Exit codes: 0 every package's attestation checks out, 1 any did not.
+ * Exit codes: 0 every package's attestation checks out,
+ *             1 at least one did not,
+ *             2 bad usage or an unusable scratch tree — kept distinct so a
+ *               typo'd flag is not reported as a provenance failure.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -70,6 +73,9 @@ export const EXPECTED = Object.freeze({
   ref: 'refs/heads/main',
   builder: 'https://github.com/actions/runner/github-hosted',
   invocationIdPrefix: 'https://github.com/allxsmith/bestax/actions/runs/',
+  // Matched as a substring of resolvedDependencies[].uri, which npm emits as
+  // `git+https://github.com/allxsmith/bestax@refs/heads/main`.
+  sourceUri: 'github.com/allxsmith/bestax',
 });
 
 /** in-toto statement type the SLSA predicate is wrapped in. */
@@ -263,7 +269,15 @@ export function checkStatement(statement, { pkg, version, digest }) {
   const run = statement?.predicate?.runDetails;
   const builder = run?.builder?.id;
   const invocationId = run?.metadata?.invocationId;
-  const gitCommit = build?.resolvedDependencies?.[0]?.digest?.gitCommit;
+  // resolvedDependencies is an unordered collection, so indexing [0] cuts both
+  // ways: a valid attestation listing another dependency first would false-fail,
+  // and an unrelated first entry that happens to carry a 40-char gitCommit would
+  // let a missing source commit pass. Select the descriptor that actually
+  // describes this repository.
+  const source = (
+    Array.isArray(build?.resolvedDependencies) ? build.resolvedDependencies : []
+  ).find(d => typeof d?.uri === 'string' && d.uri.includes(EXPECTED.sourceUri));
+  const gitCommit = source?.digest?.gitCommit;
 
   // Find the subject by name rather than assuming subject[0]. npm emits one
   // today, but the in-toto schema allows several, and indexing would report a
@@ -329,7 +343,11 @@ export function checkStatement(statement, { pkg, version, digest }) {
     );
   }
   if (typeof gitCommit !== 'string' || !/^[0-9a-f]{40}$/.test(gitCommit)) {
-    problems.push(`source commit is "${gitCommit}", expected a 40-char sha`);
+    problems.push(
+      source
+        ? `source commit is "${gitCommit}", expected a 40-char sha`
+        : `no resolved dependency describing ${EXPECTED.sourceUri}`
+    );
   }
   return problems;
 }

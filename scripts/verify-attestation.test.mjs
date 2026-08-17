@@ -62,7 +62,12 @@ function goodStatement({ pkg = 'bestax-migrate', version = '2.0.0' } = {}) {
             repository_owner_id: EXPECTED.repositoryOwnerId,
           },
         },
-        resolvedDependencies: [{ digest: { gitCommit: 'a'.repeat(40) } }],
+        resolvedDependencies: [
+          {
+            uri: `git+https://github.com/allxsmith/bestax@${EXPECTED.ref}`,
+            digest: { gitCommit: 'a'.repeat(40) },
+          },
+        ],
       },
       runDetails: {
         builder: { id: EXPECTED.builder },
@@ -323,10 +328,33 @@ test('a run belonging to another repository is caught', () => {
   assert.match(checkStatement(s, CTX)[0], /invocationId/);
 });
 
-test('a missing or malformed source commit is caught', () => {
+test('a missing source dependency is reported as such', () => {
   const s = goodStatement();
   s.predicate.buildDefinition.resolvedDependencies = [];
-  assert.match(checkStatement(s, CTX)[0], /source commit/);
+  assert.match(checkStatement(s, CTX)[0], /no resolved dependency/);
+});
+
+test('the source descriptor is found even when it is not first', () => {
+  // resolvedDependencies is unordered, so indexing [0] would false-fail here.
+  const s = goodStatement();
+  s.predicate.buildDefinition.resolvedDependencies.unshift({
+    uri: 'git+https://github.com/unrelated/thing@refs/heads/main',
+    digest: { gitCommit: 'b'.repeat(40) },
+  });
+  assert.deepEqual(checkStatement(s, CTX), []);
+});
+
+test('an unrelated dependency cannot stand in for a missing source commit', () => {
+  // The other half of the [0] bug: a foreign entry with a valid-looking sha
+  // must not satisfy the check.
+  const s = goodStatement();
+  s.predicate.buildDefinition.resolvedDependencies = [
+    {
+      uri: 'git+https://github.com/unrelated/thing',
+      digest: { gitCommit: 'c'.repeat(40) },
+    },
+  ];
+  assert.match(checkStatement(s, CTX)[0], /no resolved dependency/);
 });
 
 test('an empty statement fails every check rather than passing any', () => {

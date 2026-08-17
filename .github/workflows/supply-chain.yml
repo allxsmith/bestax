@@ -281,7 +281,7 @@ jobs:
       # The provenance assertion moved out of this file and into
       # scripts/verify-attestation.mjs (#526), because checking what an
       # attestation *says* means decoding a base64 DSSE payload and comparing
-      # six fields — rule 9 logic, not a shell loop. So the job now needs the
+      # nine fields — rule 9 logic, not a shell loop. So the job now needs the
       # repository on disk.
       #
       # This adds a second third-party action to a job that had one, which is
@@ -289,9 +289,19 @@ jobs:
       # the repo-wide pin, and `persist-credentials: false` means no token is
       # written to the runner's git config. The job still declares no
       # `permissions:` and still inherits the workflow-level `contents: read`.
+      #
+      # `ref: main` is load-bearing, not tidiness. Without it checkout takes the
+      # event ref, and this job's primary trigger is `release: published` — so
+      # the verifier would be read from the release tag. A tag pointing at a
+      # commit whose verify-attestation.mjs simply exits 0 would pass this gate
+      # while proving nothing, which bypasses the exact control being added. The
+      # inline shell this replaces had that property for free by living in the
+      # workflow file; moving the logic into scripts/ is what makes it something
+      # to state explicitly.
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: main
           persist-credentials: false
 
       - name: Setup Node.js
@@ -336,7 +346,7 @@ jobs:
       # digest is the one the attestation signs, and that the build it describes
       # is this repository, this workflow, this ref, on a GitHub-hosted runner.
       # The logic lives in scripts/ with a node --test sibling, per rule 9,
-      # because it decodes a base64 DSSE payload and compares six fields; that
+      # because it decodes a base64 DSSE payload and compares nine fields; that
       # is not something a shell loop can be tested for.
       #
       # Fails closed everywhere: a fetch error, an unparsable payload, or a
