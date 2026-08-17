@@ -62,31 +62,52 @@ export const MAX_RETRY_AFTER_MS = 15_000;
  * (usually) a primary/secondary rate limit" — and disagreeing with it here
  * would mean this gate calls a throttled request a deleted page.
  *
- * 3xx is deliberately NOT ok. Requests are made with `redirect: 'follow'`, so
- * a 3xx only reaches us when it could not be followed — a redirect with no
- * `Location`, or a loop. That is a broken link, not a working one.
+ * 3xx is `dead`, not ok and not retryable. Requests are made with
+ * `redirect: 'follow'`, so a 3xx only reaches us when it could not be
+ * followed — a redirect with no `Location` header. That is a broken link, and
+ * retrying it would only turn a real defect into a warning that passes.
+ * (A redirect *loop* never lands here: undici throws, which the caller records
+ * as unreachable. And 304 cannot occur because no conditional request headers
+ * are ever sent.)
  */
 export function classifyStatus(status) {
   if (status >= 200 && status < 300) return 'ok';
+  if (status >= 300 && status < 400) return 'dead';
   if (status === 403 || status === 408 || status === 425 || status === 429) {
     return 'retryable';
   }
   if (status >= 500) return 'retryable';
   if (status >= 400 && status < 500) return 'dead';
-  // 3xx that survived redirect-following, and anything unrecognised. Erring
-  // toward retryable costs latency; erring the other way costs a false red.
+  // Anything unrecognised. Erring toward retryable costs latency; erring the
+  // other way costs a false red on someone's PR.
   return 'retryable';
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-/** `Retry-After` in ms if present, sane, and short enough to be worth waiting. */
-export function retryAfterMs(headers) {
+/**
+ * `Retry-After` in ms if present, sane, and short enough to be worth waiting.
+ *
+ * RFC 9110 §10.2.3 defines two forms and hosts use both: `delay-seconds`, and
+ * an absolute HTTP-date. Parsing only the first is not a crash — a date reads
+ * as NaN and we fall back to the fixed backoff — but it silently ignores a
+ * server that told us exactly when to come back.
+ *
+ * `now` is a parameter so the date branch is testable against a frozen clock
+ * rather than a real one.
+ */
+export function retryAfterMs(headers, now = Date.now()) {
   const raw = headers?.get?.('retry-after');
   if (raw == null) return null;
-  const seconds = Number(raw);
-  if (!Number.isFinite(seconds) || seconds <= 0) return null;
-  const ms = seconds * 1000;
+  const trimmed = String(raw).trim();
+
+  // delay-seconds. Matched strictly, so a negative or fractional value falls
+  // through to the date branch and is rejected there rather than sneaking in.
+  const ms = /^\d+$/.test(trimmed)
+    ? Number(trimmed) * 1000
+    : Date.parse(trimmed) - now;
+
+  if (!Number.isFinite(ms) || ms <= 0) return null;
   return ms <= MAX_RETRY_AFTER_MS ? ms : null;
 }
 

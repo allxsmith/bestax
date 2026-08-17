@@ -112,12 +112,14 @@ function stubFetchByUrl(routes) {
 
 // --- classifyStatus ---------------------------------------------------------
 
-test('2xx resolves; 3xx does not, because redirects are followed', () => {
+test('2xx resolves; a 3xx that survived redirect-following is a dead link', () => {
   for (const s of [200, 204, 299])
     assert.equal(classifyStatus(s), 'ok', `${s}`);
-  // A 3xx only reaches us when it could not be followed — a broken redirect.
-  for (const s of [301, 302, 304]) {
-    assert.equal(classifyStatus(s), 'retryable', `${s}`);
+  // Requests set redirect: 'follow', so a 3xx reaching the caller is a
+  // redirect with no Location — broken, and retrying it would downgrade a
+  // real defect into a warning that passes.
+  for (const s of [301, 302, 307, 308]) {
+    assert.equal(classifyStatus(s), 'dead', `${s}`);
   }
 });
 
@@ -141,11 +143,27 @@ test('5xx is retryable and other 4xx is dead', () => {
 
 // --- retryAfterMs -----------------------------------------------------------
 
-test('Retry-After is honoured when short enough to be worth waiting', () => {
+test('Retry-After delay-seconds is honoured when short enough to be worth waiting', () => {
   assert.equal(retryAfterMs({ get: () => '5' }), 5000);
   assert.equal(retryAfterMs({ get: () => null }), null);
   assert.equal(retryAfterMs({ get: () => 'soon' }), null);
   assert.equal(retryAfterMs({ get: () => '-1' }), null);
+  assert.equal(retryAfterMs({ get: () => '1.5' }), null);
+});
+
+test('Retry-After also accepts the HTTP-date form RFC 9110 allows', () => {
+  // Frozen clock, so the date branch is deterministic.
+  const now = Date.parse('2026-08-17T12:00:00Z');
+  const in5s = new Date(now + 5000).toUTCString();
+  assert.equal(retryAfterMs({ get: () => in5s }, now), 5000);
+
+  // A date already in the past means "come back now", not "wait forever".
+  const past = new Date(now - 60_000).toUTCString();
+  assert.equal(retryAfterMs({ get: () => past }, now), null);
+
+  // And a date beyond the ceiling is ignored like a too-large delay-seconds.
+  const far = new Date(now + MAX_RETRY_AFTER_MS + 1000).toUTCString();
+  assert.equal(retryAfterMs({ get: () => far }, now), null);
 });
 
 test('an unreasonably long Retry-After is ignored rather than stalling the gate', () => {
