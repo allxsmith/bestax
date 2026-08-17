@@ -287,17 +287,22 @@ jobs:
       # the loop by running it ourselves against the real published tarballs
       # rather than the local workspace. npm (not pnpm) on purpose: the
       # signature audit needs an npm-resolved tree and lockfile.
-      # bestax-migrate is deliberately absent: its published manifest still
-      # carries an unresolved `workspace:^` specifier, so `npm install` of it
-      # fails outright and would mask real signature failures here. Add it back
-      # once that is fixed.
+      #
+      # This step is itself the assertion, not just setup for the audit below:
+      # `npm install` exits non-zero on an uninstallable package, so the job
+      # goes red whether the artifact is unsigned or simply broken. That is the
+      # check #412 did not have — it shipped an uninstallable `workspace:^`
+      # manifest precisely because everything else in CI resolves against the
+      # workspace, where the specifier works.
+      #
+      # Keep this list in sync with the provenance loop below.
       - name: Install published packages into a scratch tree
         run: |
           mkdir -p "$RUNNER_TEMP/verify"
           cd "$RUNNER_TEMP/verify"
           npm init -y > /dev/null
           npm install --ignore-scripts \
-            @allxsmith/bestax-bulma create-bestax
+            @allxsmith/bestax-bulma create-bestax bestax-migrate
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -312,7 +317,7 @@ jobs:
       - name: Assert our packages actually carry provenance
         run: |
           fail=0
-          for pkg in @allxsmith/bestax-bulma create-bestax; do
+          for pkg in @allxsmith/bestax-bulma create-bestax bestax-migrate; do
             # --json + a type guard so only a real string counts as present:
             # null, undefined, [] and non-strings all collapse to empty. The
             # array branch covers npm aggregating a bare spec into one element.
