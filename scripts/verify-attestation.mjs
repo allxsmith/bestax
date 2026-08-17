@@ -13,11 +13,22 @@
  * to the exact commit and CI run that built it". The attestation does. Nothing
  * in CI checked the link pointed at us.
  *
- * What is deliberately NOT here: signature verification. `npm audit
- * signatures` runs immediately before this in the same job and covers it.
- * Re-verifying the Sigstore bundle would mean vendoring a verifier for no
- * marginal gain. This script answers a different question — not "is this
- * signed?" but "signed as *what*?".
+ * What is deliberately NOT here: signature verification. This script answers a
+ * different question — not "is this signed?" but "signed as *what*?".
+ *
+ * Be precise about what that leaves uncovered, because the easy version of this
+ * sentence overstates it. `npm audit signatures` runs in the immediately-prior
+ * step and verifies the bundles it fetched. This step makes its *own* request,
+ * so the two are not cryptographically tied: a registry that equivocates —
+ * serving a validly signed foreign attestation to the audit and an unsigned
+ * matching statement here — would satisfy both. Closing that means verifying
+ * this bundle's DSSE signature, which needs a Sigstore verifier this repository
+ * does not vendor.
+ *
+ * What the pairing does buy is that an attacker must compromise the registry's
+ * responses rather than merely publish a wrong attestation, and must do it
+ * differently for two requests seconds apart. That is a real cost increase and
+ * not a proof, which is the honest way to describe it.
  *
  * Design mirrors check-security-txt-expiry.mjs: plain node, zero npm deps,
  * pure helpers exported, main only runs when executed directly. No subprocess:
@@ -38,6 +49,18 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { fetchWithRetry } from './lib/fetch-retry.mjs';
+
+/**
+ * Backoff for the attestation lookup, deliberately longer than the shared
+ * default.
+ *
+ * The shared 1s/3s was tuned for the pull-request URL gate. This job's primary
+ * trigger is `release: published`, seconds after `npm publish`, and the shell
+ * loop it replaces spent 5s/10s waiting out exactly that propagation lag.
+ * Inheriting the PR-tuned budget would have cut the wait from ~15s to ~4s and
+ * false-redded a release whose attestation was merely slow.
+ */
+export const ATTESTATION_BACKOFF_MS = [5000, 10000];
 
 /** The SLSA predicate type npm publishes alongside its own publish attestation. */
 export const SLSA_PREDICATE = 'https://slsa.dev/provenance/v1';
@@ -73,9 +96,12 @@ export const EXPECTED = Object.freeze({
   ref: 'refs/heads/main',
   builder: 'https://github.com/actions/runner/github-hosted',
   invocationIdPrefix: 'https://github.com/allxsmith/bestax/actions/runs/',
-  // Matched as a substring of resolvedDependencies[].uri, which npm emits as
-  // `git+https://github.com/allxsmith/bestax@refs/heads/main`.
-  sourceUri: 'github.com/allxsmith/bestax',
+  // The exact `resolvedDependencies[].uri` npm emits. Compared with `===`,
+  // not `includes`: a substring test also selects
+  // `git+https://github.com/allxsmith/bestax-evil@...`, whose 40-char digest
+  // would then satisfy the source-commit assertion while no dependency
+  // describes this repository at all. Near-collision covered by a test.
+  sourceUri: 'git+https://github.com/allxsmith/bestax@refs/heads/main',
 });
 
 /** in-toto statement type the SLSA predicate is wrapped in. */
@@ -276,7 +302,7 @@ export function checkStatement(statement, { pkg, version, digest }) {
   // describes this repository.
   const source = (
     Array.isArray(build?.resolvedDependencies) ? build.resolvedDependencies : []
-  ).find(d => typeof d?.uri === 'string' && d.uri.includes(EXPECTED.sourceUri));
+  ).find(d => d?.uri === EXPECTED.sourceUri);
   const gitCommit = source?.digest?.gitCommit;
 
   // Find the subject by name rather than assuming subject[0]. npm emits one
@@ -364,6 +390,7 @@ export async function verifyPackage(pkg, { dir, retryOptions = {} }) {
   }
 
   const res = await fetchWithRetry(attestationUrl(pkg, version), {
+    backoffMs: ATTESTATION_BACKOFF_MS,
     ...retryOptions,
     // GET, because the payload is the whole point, and keepBody to get it.
     methods: ['GET'],

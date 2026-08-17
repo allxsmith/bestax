@@ -297,7 +297,18 @@ jobs:
       # while proving nothing, which bypasses the exact control being added. The
       # inline shell this replaces had that property for free by living in the
       # workflow file; moving the logic into scripts/ is what makes it something
-      # to state explicitly.
+      # to state explicitly. Measured, not assumed: past release-triggered runs
+      # of this workflow record `head_branch` as the tag
+      # (e.g. `@allxsmith/bestax-bulma@5.11.1`).
+      #
+      # `github.workflow_sha` was proposed instead and is wrong here for the
+      # same reason — on a release event the workflow file itself comes from the
+      # tag, so pinning to it would reintroduce exactly the exposure `main`
+      # closes. The residual gap is that `main` resolves when checkout runs, so
+      # a push landing in that window changes the verifier: much smaller, since
+      # `main` is protected by a ruleset that admits only reviewed PRs and the
+      # release App's `chore(release)` commit, and anyone able to push there has
+      # already defeated more than this step.
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

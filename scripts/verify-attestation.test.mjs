@@ -344,6 +344,19 @@ test('the source descriptor is found even when it is not first', () => {
   assert.deepEqual(checkStatement(s, CTX), []);
 });
 
+test('a near-collision repository name is not accepted as our source', () => {
+  // `includes` would select bestax-evil here and let its digest satisfy the
+  // source-commit assertion while nothing describes this repository.
+  const s = goodStatement();
+  s.predicate.buildDefinition.resolvedDependencies = [
+    {
+      uri: 'git+https://github.com/allxsmith/bestax-evil@refs/heads/main',
+      digest: { gitCommit: 'd'.repeat(40) },
+    },
+  ];
+  assert.match(checkStatement(s, CTX)[0], /no resolved dependency/);
+});
+
 test('an unrelated dependency cannot stand in for a missing source commit', () => {
   // The other half of the [0] bug: a foreign entry with a valid-looking sha
   // must not satisfy the check.
