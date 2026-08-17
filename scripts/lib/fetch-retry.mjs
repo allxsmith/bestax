@@ -55,12 +55,14 @@ export const MAX_RETRY_AFTER_MS = 15_000;
  * - `dead`      — the host answered no, and asking again cannot change that.
  * - `retryable` — no usable answer: throttling, or the host's own failure.
  *
- * 403 is **retryable**, not dead. It reads like a definite answer about access,
- * but the requests here are anonymous and made from a shared Actions runner IP,
- * and that is exactly how GitHub reports abuse and rate limiting.
- * `auto-close-duplicates.mjs` already reached this conclusion — "403/429 is
- * (usually) a primary/secondary rate limit" — and disagreeing with it here
- * would mean this gate calls a throttled request a deleted page.
+ * 401 and 403 are **retryable**, not dead. They read like definite answers
+ * about access, but neither says anything about whether the URL exists. 403 is
+ * how GitHub reports abuse and rate limiting to anonymous requests from a
+ * shared Actions runner IP — `auto-close-duplicates.mjs` already concluded
+ * "403/429 is (usually) a primary/secondary rate limit", and disagreeing here
+ * would mean this gate calls a throttled request a deleted page. 401 would
+ * mean our own credential went bad, which is a problem with the checker, not
+ * with the link; reding the build for it would blame the wrong thing.
  *
  * 3xx is `dead`, not ok and not retryable. Requests are made with
  * `redirect: 'follow'`, so a 3xx only reaches us when it could not be
@@ -73,7 +75,13 @@ export const MAX_RETRY_AFTER_MS = 15_000;
 export function classifyStatus(status) {
   if (status >= 200 && status < 300) return 'ok';
   if (status >= 300 && status < 400) return 'dead';
-  if (status === 403 || status === 408 || status === 425 || status === 429) {
+  if (
+    status === 401 ||
+    status === 403 ||
+    status === 408 ||
+    status === 425 ||
+    status === 429
+  ) {
     return 'retryable';
   }
   if (status >= 500) return 'retryable';

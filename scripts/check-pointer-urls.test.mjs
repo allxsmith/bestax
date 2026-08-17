@@ -128,11 +128,14 @@ test('404 and 410 are dead', () => {
   assert.equal(classifyStatus(410), 'dead');
 });
 
-test('403 is retryable, matching auto-close-duplicates on rate limits', () => {
+test('401/403 are retryable, matching auto-close-duplicates on rate limits', () => {
   // The whole point: anonymous GitHub requests from a shared runner IP get
   // 403-throttled, and calling that a deleted page is the #525 failure mode.
   assert.equal(classifyStatus(403), 'retryable');
   assert.equal(classifyStatus(429), 'retryable');
+  // 401 means our own credential went bad — a problem with the checker, not
+  // with the link. Reding the build for it would blame the wrong thing.
+  assert.equal(classifyStatus(401), 'retryable');
 });
 
 test('5xx is retryable and other 4xx is dead', () => {
@@ -336,6 +339,100 @@ test('a non-github URL is fetched directly and sends no headers', async () => {
   }
 });
 
+// --- corroboration of a dead verdict ----------------------------------------
+
+test('a bestax.io 404 is believed when the host root is healthy', async () => {
+  const s = stubFetchByUrl({
+    'bestax.io/gone': [
+      { status: 404, statusText: 'Not Found' }, // HEAD
+      { status: 404, statusText: 'Not Found' }, // GET
+    ],
+    // Origin root, the corroborator.
+    'https://bestax.io': [{ status: 200 }],
+  });
+  try {
+    const r = await checkUrl('https://bestax.io/gone', {
+      retryOptions: NO_WAIT,
+    });
+    assert.equal(r.outcome, 'dead');
+  } finally {
+    s.restore();
+  }
+});
+
+test('a bestax.io 404 is NOT believed when the host cannot serve its own root', async () => {
+  // The #525 shape one host over: a CDN incident serving spurious 404s must
+  // not red every open PR.
+  const s = stubFetchByUrl({
+    'bestax.io/gone': [
+      { status: 404, statusText: 'Not Found' },
+      { status: 404, statusText: 'Not Found' },
+    ],
+    'https://bestax.io': all({ status: 503 }),
+  });
+  try {
+    const r = await checkUrl('https://bestax.io/gone', {
+      retryOptions: NO_WAIT,
+    });
+    assert.equal(r.outcome, 'unreachable');
+    assert.match(r.detail, /not corroborated/);
+  } finally {
+    s.restore();
+  }
+});
+
+test('a github API 404 is believed only when the web page agrees', async () => {
+  const s = stubFetchByUrl({
+    'api.github.com': [{ status: 404, statusText: 'Not Found' }],
+    'https://github.com/allxsmith/bestax/blob': [
+      { status: 404, statusText: 'Not Found' }, // HEAD
+      { status: 404, statusText: 'Not Found' }, // GET
+    ],
+  });
+  try {
+    const r = await checkUrl(
+      'https://github.com/allxsmith/bestax/blob/main/GONE.md',
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(r.outcome, 'dead');
+  } finally {
+    s.restore();
+  }
+});
+
+test('a slashed branch that mis-maps to a 404 is caught by the web page', async () => {
+  // githubApiUrl has to guess where the ref ends and the path begins, so
+  // blob/feature/x/README.md maps wrong and the API 404s a file that exists.
+  // The page still serves, so the verdict must not be "gone".
+  const s = stubFetchByUrl({
+    'api.github.com': [{ status: 404, statusText: 'Not Found' }],
+    'https://github.com/allxsmith/bestax/blob': [{ status: 200 }],
+  });
+  try {
+    const r = await checkUrl(
+      'https://github.com/allxsmith/bestax/blob/feature/x/README.md',
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(r.outcome, 'unreachable');
+    assert.match(r.detail, /not corroborated/);
+  } finally {
+    s.restore();
+  }
+});
+
+test('corroboration only runs for a dead verdict, never for a healthy URL', async () => {
+  const s = stubFetchByUrl({ 'bestax.io/fine': [{ status: 200 }] });
+  try {
+    const r = await checkUrl('https://bestax.io/fine', {
+      retryOptions: NO_WAIT,
+    });
+    assert.equal(r.outcome, 'ok');
+    assert.equal(s.calls.length, 1, 'no second request for a passing URL');
+  } finally {
+    s.restore();
+  }
+});
+
 // --- extractUrls ------------------------------------------------------------
 
 test('extractUrls trims sentence punctuation but keeps the path', () => {
@@ -418,6 +515,9 @@ test('main exits 1 on a confirmed dead link', async () => {
       { status: 404, statusText: 'Not Found' }, // GET
     ],
     ...routeAll([{ status: 200 }]),
+    // The corroborator: a healthy host root makes the 404 believable. Listed
+    // last because it is a substring of every URL above.
+    'https://bestax.io': [{ status: 200 }],
   });
   try {
     assert.equal(await main({ root, files: FILES, retryOptions: NO_WAIT }), 1);
@@ -459,6 +559,7 @@ test('a dead link still fails even when another URL is undetermined', async () =
       { status: 404, statusText: 'Not Found' },
     ],
     ...routeAll([{ status: 200 }]),
+    'https://bestax.io': [{ status: 200 }],
   });
   try {
     assert.equal(await main({ root, files: FILES, retryOptions: NO_WAIT }), 1);

@@ -105,31 +105,78 @@ export function githubApiUrl(rawUrl) {
 }
 
 /**
+ * Corroborate a `dead` verdict against a second source before believing it.
+ *
+ * Only a `dead` verdict reds the build, so it is the one that has to be right,
+ * and a single source is not enough to establish it. Two ways that bites:
+ *
+ * - The #525 incident, one host over. The API fallback only covers github.com;
+ *   the other seven URLs are on bestax.io, where a CDN incident serving
+ *   spurious 404s would reproduce exactly the failure this PR removes.
+ * - `githubApiUrl` has to guess where the ref ends and the path begins, so a
+ *   branch with a slash in it (`blob/feature/x/README.md`) mis-maps and the
+ *   API 404s a file that exists.
+ *
+ * The second source differs by what is available. For a github.com URL the
+ * original web page is the corroborator, so the two only agree on "gone" when
+ * both the API and the page say so. For everything else there is no second
+ * view of the same resource, so we ask a weaker but still useful question —
+ * is the host healthy at all? A 404 from a host whose root serves fine is
+ * credible; a 404 from a host that cannot serve its own root is not.
+ *
+ * Disagreement resolves to `unreachable`, which warns and passes. That is the
+ * deliberate direction: a false "gone" reds every open PR, a false
+ * "undetermined" costs one warning and is caught on the next run.
+ */
+async function corroborateDead(url, primary, retryOptions) {
+  const isGithub = githubApiUrl(url) !== null;
+  const second = isGithub ? url : new URL(url).origin;
+
+  const check = await fetchWithRetry(second, retryOptions);
+  if (isGithub ? check.outcome === 'dead' : check.outcome === 'ok') {
+    return primary;
+  }
+  return {
+    ...primary,
+    outcome: 'unreachable',
+    detail:
+      `${primary.detail} (not corroborated: ${second} answered ` +
+      `${check.detail ?? check.status ?? check.outcome})`,
+  };
+}
+
+/**
  * Check one URL, preferring the authoritative endpoint where one exists.
  *
  * The token is optional on purpose: a contributor running `pnpm check:urls`
  * locally has none, and the check must still work for them. Unauthenticated
- * API requests are rate-limited but not forbidden, and a throttle now
- * classifies as retryable rather than dead.
+ * API requests are rate-limited but not forbidden, and a throttle classifies
+ * as retryable rather than dead.
  */
 export async function checkUrl(url, { token, retryOptions = {} } = {}) {
   const apiUrl = githubApiUrl(url);
-  if (!apiUrl) return fetchWithRetry(url, retryOptions);
 
-  const result = await fetchWithRetry(apiUrl, {
-    ...retryOptions,
-    // GET only. The API answers HEAD fine (measured: 200 on the contents
-    // route), but HEAD and GET each cost one request against the rate limit,
-    // so trying HEAD first can only ever spend two where one would do.
-    methods: ['GET'],
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'bestax-check-pointer-urls',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-  return { ...result, via: apiUrl };
+  const primary = apiUrl
+    ? {
+        ...(await fetchWithRetry(apiUrl, {
+          ...retryOptions,
+          // GET only. The API answers HEAD fine (measured: 200 on the contents
+          // route), but HEAD and GET each cost one request against the rate
+          // limit, so trying HEAD first can only ever spend two where one does.
+          methods: ['GET'],
+          headers: {
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'User-Agent': 'bestax-check-pointer-urls',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        })),
+        via: apiUrl,
+      }
+    : await fetchWithRetry(url, retryOptions);
+
+  if (primary.outcome !== 'dead') return primary;
+  return corroborateDead(url, primary, retryOptions);
 }
 
 /** The distinct hosts present in a set of results, for the operator's benefit. */
