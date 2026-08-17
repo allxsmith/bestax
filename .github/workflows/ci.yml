@@ -77,8 +77,18 @@ jobs:
       - name: Format Check
         run: pnpm run format:check
 
+      # github.com URLs are verified through the REST API rather than the web
+      # UI (#525): during the 2026-08-17 incident the API answered 200 for the
+      # same file whose blob page was 404ing, and this failed every open PR.
+      # The token is the job's own read-only GITHUB_TOKEN — it buys the
+      # authenticated rate limit, so a shared runner IP does not get throttled
+      # into a false "link is gone". The check falls back to unauthenticated
+      # requests when it is unset, which is how it runs on a contributor's
+      # laptop.
       - name: Pointer file URLs resolve
         run: pnpm run check:urls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Audit (high severity)
         run: pnpm audit --audit-level=high
