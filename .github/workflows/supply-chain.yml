@@ -317,7 +317,27 @@ jobs:
       - name: Assert our packages actually carry provenance
         run: |
           fail=0
+          cd "$RUNNER_TEMP/verify"
           for pkg in @allxsmith/bestax-bulma create-bestax bestax-migrate; do
+            # Pin to the version that was actually installed and audited above.
+            # A bare `npm view "$pkg"` re-resolves the `latest` dist-tag, which
+            # is mutable, so a publish landing between the install step and this
+            # one would have this step vouch for a version the job never
+            # installed. Reading the version back out of the tree keeps all
+            # three steps talking about the same artifacts. Local read, no
+            # network, so it belongs outside the retry loop below.
+            #
+            # Absent from the tree is its own failure, reported as such rather
+            # than folded into the "no provenance" message below — a missing
+            # install and a dropped attestation want different investigations.
+            version=$(npm ls "$pkg" --depth=0 --json 2>/dev/null \
+              | jq -r --arg pkg "$pkg" '.dependencies[$pkg].version // empty' 2>/dev/null || true)
+            if [ -z "$version" ]; then
+              echo "::error::$pkg is not in the installed tree; cannot verify its provenance"
+              fail=1
+              continue
+            fi
+
             # --json + a type guard so only a real string counts as present:
             # null, undefined, [] and non-strings all collapse to empty. The
             # array branch covers npm aggregating a bare spec into one element.
@@ -330,16 +350,16 @@ jobs:
             # spend three attempts before believing provenance is really gone.
             predicate=""
             for attempt in 1 2 3; do
-              predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType --json 2>/dev/null \
+              predicate=$(npm view "$pkg@$version" dist.attestations.provenance.predicateType --json 2>/dev/null \
                 | jq -r 'if type=="array" then .[0] else . end | select(type=="string")' 2>/dev/null || true)
               [ -n "$predicate" ] && break
               [ "$attempt" -lt 3 ] && sleep $((attempt * 5))
             done
             if [ -z "$predicate" ]; then
-              echo "::error::$pkg has NO provenance attestation on the registry"
+              echo "::error::$pkg@$version has NO provenance attestation on the registry"
               fail=1
             else
-              echo "ok: $pkg -> $predicate"
+              echo "ok: $pkg@$version -> $predicate"
             fi
           done
           exit "$fail"
