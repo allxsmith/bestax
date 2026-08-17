@@ -278,6 +278,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # The provenance assertion moved out of this file and into
+      # scripts/verify-attestation.mjs (#526), because checking what an
+      # attestation *says* means decoding a base64 DSSE payload and comparing
+      # six fields — rule 9 logic, not a shell loop. So the job now needs the
+      # repository on disk.
+      #
+      # This adds a second third-party action to a job that had one, which is
+      # the honest cost of that move rather than something to elide. It is on
+      # the repo-wide pin, and `persist-credentials: false` means no token is
+      # written to the runner's git config. The job still declares no
+      # `permissions:` and still inherits the workflow-level `contents: read`.
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
@@ -295,7 +311,9 @@ jobs:
       # manifest precisely because everything else in CI resolves against the
       # workspace, where the specifier works.
       #
-      # Keep this list in sync with the provenance loop below.
+      # This list is the single source of truth for what gets verified: the
+      # assertion step below reads the roster back out of this tree rather than
+      # repeating it.
       - name: Install published packages into a scratch tree
         run: |
           mkdir -p "$RUNNER_TEMP/verify"
@@ -310,56 +328,25 @@ jobs:
           npm audit signatures
 
       # `npm audit signatures` only fails on signatures/attestations that are
-      # *invalid*; it stays green when provenance is simply absent. On its own
-      # it would therefore never catch a release that silently lost
-      # `publishConfig.provenance` or had OIDC misconfigured. Assert presence
-      # explicitly so a dropped attestation is a hard failure.
-      - name: Assert our packages actually carry provenance
-        run: |
-          fail=0
-          cd "$RUNNER_TEMP/verify"
-          for pkg in @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp; do
-            # Pin to the version that was actually installed and audited above.
-            # A bare `npm view "$pkg"` re-resolves the `latest` dist-tag, which
-            # is mutable, so a publish landing between the install step and this
-            # one would have this step vouch for a version the job never
-            # installed. Reading the version back out of the tree keeps all
-            # three steps talking about the same artifacts. Local read, no
-            # network, so it belongs outside the retry loop below.
-            #
-            # Absent from the tree is its own failure, reported as such rather
-            # than folded into the "no provenance" message below — a missing
-            # install and a dropped attestation want different investigations.
-            version=$(npm ls "$pkg" --depth=0 --json 2>/dev/null \
-              | jq -r --arg pkg "$pkg" '.dependencies[$pkg].version // empty' 2>/dev/null || true)
-            if [ -z "$version" ]; then
-              echo "::error::$pkg is not in the installed tree; cannot verify its provenance"
-              fail=1
-              continue
-            fi
-
-            # --json + a type guard so only a real string counts as present:
-            # null, undefined, [] and non-strings all collapse to empty. The
-            # array branch covers npm aggregating a bare spec into one element.
-            # Any failure (network, 404, missing dist-tag) also yields empty and
-            # fails closed — the right default for a security assertion.
-            #
-            # Retried because this runs weekly and failing closed means a
-            # registry blip would otherwise report the same red as a genuinely
-            # dropped attestation. A gate that cries wolf gets ignored, so
-            # spend three attempts before believing provenance is really gone.
-            predicate=""
-            for attempt in 1 2 3; do
-              predicate=$(npm view "$pkg@$version" dist.attestations.provenance.predicateType --json 2>/dev/null \
-                | jq -r 'if type=="array" then .[0] else . end | select(type=="string")' 2>/dev/null || true)
-              [ -n "$predicate" ] && break
-              [ "$attempt" -lt 3 ] && sleep $((attempt * 5))
-            done
-            if [ -z "$predicate" ]; then
-              echo "::error::$pkg@$version has NO provenance attestation on the registry"
-              fail=1
-            else
-              echo "ok: $pkg@$version -> $predicate"
-            fi
-          done
-          exit "$fail"
+      # *invalid*, and it stays green when provenance is simply absent. It also
+      # never opens the attestation: a validly signed statement naming somebody
+      # else's repository satisfies it completely.
+      #
+      # So this step asserts the contents (#526) — that each installed tarball's
+      # digest is the one the attestation signs, and that the build it describes
+      # is this repository, this workflow, this ref, on a GitHub-hosted runner.
+      # The logic lives in scripts/ with a node --test sibling, per rule 9,
+      # because it decodes a base64 DSSE payload and compares six fields; that
+      # is not something a shell loop can be tested for.
+      #
+      # Fails closed everywhere: a fetch error, an unparsable payload, or a
+      # missing field is a failure, never a silent pass.
+      #
+      # No package list here on purpose. It reads the roster back out of the
+      # scratch tree, so the install step above is the single place the
+      # packages are named. Listing them twice made "keep these in sync" a
+      # hand-maintained invariant with nothing enforcing it — add a fifth
+      # published package to one and not the other and it ships unverified,
+      # silently, green.
+      - name: Assert the attestations say this repository built these tarballs
+        run: node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify"

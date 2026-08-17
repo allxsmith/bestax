@@ -21,19 +21,22 @@
  * a deleted file that existed.
  */
 
-/** Attempts per URL, matching the three the provenance assertion spends. */
+/** Attempts per URL. Three, the number the shell provenance loop used to spend. */
 export const DEFAULT_ATTEMPTS = 3;
 
 /**
- * Backoff between attempts, in ms. Shorter than the provenance step's
- * `attempt * 5s`: that runs weekly and can afford patience, this gates every
- * pull request.
+ * Backoff between attempts, in ms.
+ *
+ * These were tuned for the pull-request gate, which is the latency-sensitive
+ * caller. The weekly provenance job now shares them, down from the 5s/10s its
+ * shell loop used — deliberate, because that job also gained a real retry on
+ * the registry's 404 propagation lag, which is the case the longer wait was
+ * actually protecting against. Retune with both callers in mind.
  *
  * Cost, stated properly because an earlier version of this comment got it
- * backwards: a confirmed-dead link costs one round trip and fails fast. The
+ * backwards: a confirmed-dead URL costs one round trip and fails fast. The
  * expensive case is a host that never answers — attempts x methods x
- * `timeoutMs`, plus this backoff. That is why the caller checks URLs
- * concurrently rather than in sequence.
+ * `timeoutMs`, plus this backoff. That is why callers check concurrently.
  */
 export const DEFAULT_BACKOFF_MS = [1000, 3000];
 
@@ -125,6 +128,16 @@ export function retryAfterMs(headers, now = Date.now()) {
  * Resolves to `{ outcome, status, detail, attempts }` rather than throwing:
  * callers are gates that need every URL's verdict, not an abort on the first.
  *
+ * `keepBody: true` adds `body` to an `ok` result. It is opt-in rather than
+ * always-on: the body is drained either way, but *retaining* it is not free —
+ * the URL gate holds one result per URL for the whole run, and the GitHub
+ * contents API embeds the entire file, so defaulting to on would park
+ * SECURITY.md and AGENTS.md in memory for a caller that never reads them.
+ *
+ * `alsoRetryable` adds statuses to the retryable set for one call. It exists
+ * for the registry attestation lookup, where a 404 seconds after a publish
+ * means "not propagated yet" rather than "does not exist".
+ *
  * - `outcome: 'ok'`          — resolved.
  * - `outcome: 'dead'`        — the host answered no, on the final method.
  * - `outcome: 'unreachable'` — no usable answer after every attempt. Network
@@ -151,6 +164,8 @@ export async function fetchWithRetry(url, options = {}) {
     timeoutMs = DEFAULT_TIMEOUT_MS,
     methods = ['HEAD', 'GET'],
     headers = undefined,
+    keepBody = false,
+    alsoRetryable = [],
   } = options;
 
   let last = { outcome: 'unreachable', status: null, detail: 'not attempted' };
@@ -171,9 +186,11 @@ export async function fetchWithRetry(url, options = {}) {
         // socket out of the pool and ref'd, and the caller sets
         // process.exitCode rather than calling process.exit, so a retained
         // socket would stall the step after the verdict is already printed.
-        await res.text?.().catch(() => '');
+        const body = await res.text?.().catch(() => '');
 
-        const verdict = classifyStatus(res.status);
+        const verdict = alsoRetryable.includes(res.status)
+          ? 'retryable'
+          : classifyStatus(res.status);
         const detail = `${res.status} ${res.statusText ?? ''}`.trim();
 
         if (verdict === 'ok') {
@@ -182,6 +199,7 @@ export async function fetchWithRetry(url, options = {}) {
             status: res.status,
             detail: null,
             attempts: attempt,
+            ...(keepBody ? { body: body ?? '' } : {}),
           };
         }
         if (verdict === 'dead' && isLastMethod) {
