@@ -3,16 +3,17 @@
 ## Supported Versions
 
 Security fixes land on the **latest release line only** — currently
-`@allxsmith/bestax-bulma` 5.x, `create-bestax` 3.x, and `bestax-migrate` 1.x.
-All three packages release automatically from `main` (semantic-release), so the
-latest published version is always the patched one. Older majors may still work
-but receive no security updates; please upgrade.
+`@allxsmith/bestax-bulma` 5.x, `create-bestax` 4.x, `bestax-migrate` 2.x, and
+`bestax-mcp` 1.x. All four packages release automatically from `main`
+(semantic-release), so the latest published version is always the patched one.
+Older majors may still work but receive no security updates; please upgrade.
 
 | Package                   | Supported    | Unsupported |
 | ------------------------- | ------------ | ----------- |
 | `@allxsmith/bestax-bulma` | 5.x (latest) | < 5.0       |
-| `create-bestax`           | 3.x (latest) | < 3.0       |
-| `bestax-migrate`          | 1.x (latest) | —           |
+| `create-bestax`           | 4.x (latest) | < 4.0       |
+| `bestax-migrate`          | 2.x (latest) | < 2.0       |
+| `bestax-mcp`              | 1.x (latest) | —           |
 
 ## Supply-Chain Security
 
@@ -42,7 +43,7 @@ Measures active in this repository and its release pipeline:
   reviewed lockfile resolves. (The React 18/19 compatibility matrix is the
   one deliberate exception: it re-resolves to pin the requested React major
   for testing, and never publishes.)
-- **npm provenance** — all three published packages set
+- **npm provenance** — all four published packages set
   `publishConfig.provenance`, so every release carries a signed attestation
   linking the tarball to the exact commit and CI run that built it.
 - **OIDC trusted publishing** — releases authenticate to npm with
