@@ -272,13 +272,22 @@ jobs:
       # is the argument for dispatching and reading it rather than trusting a
       # green job.
       #
-      # 1. `default-catalogers: javascript` — syft's github-actions cataloger
-      #    was picking up `.github/workflows/*.yml` files that some upstream
-      #    packages ship inside their npm tarballs, so the SBOM listed
-      #    `actions/checkout@v4` and `actions/setup-node@v4` as if they were
-      #    dependencies. bestax-migrate came out at 111 entries against a real
-      #    closure of 98. A consumer-closure document must contain npm packages
-      #    and nothing else.
+      # 1. `default-catalogers: javascript-lock-cataloger` — one cataloger, and
+      #    the narrowness is the point. Two problems, found one after the other:
+      #
+      #    syft's github-actions cataloger was picking up `.github/workflows`
+      #    YAML that some upstream packages ship inside their npm tarballs, so
+      #    the SBOM listed `actions/checkout@v4` and `actions/setup-node@v4` as
+      #    if they were dependencies — bestax-migrate at 111 entries against a
+      #    real closure of 98.
+      #
+      #    Selecting the whole `javascript` group fixed that and broke something
+      #    worse: it enables BOTH javascript catalogers, so every package was
+      #    listed twice — once from its node_modules/package.json and once from
+      #    the lockfile, taking bestax-migrate to 200. The lock cataloger alone
+      #    is what we want: it sees every package (the lockfile is complete) and
+      #    it is the one carrying `resolved`, which is the registry URL that
+      #    ends up as SPDX downloadLocation.
       #
       # 2. `source.name` — every document was named
       #    `/home/runner/work/_temp/consumer`, identical across all four, so the
@@ -295,7 +304,7 @@ jobs:
         run: |
           cat > "$RUNNER_TEMP/syft.yaml" <<YAML
           default-catalogers:
-            - javascript
+            - javascript-lock-cataloger
           source:
             name: "$PACKAGE"
             version: "$VERSION"
