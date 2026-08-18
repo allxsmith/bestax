@@ -126,13 +126,27 @@ jobs:
       # rule and are grandfathered by its "existing live job" clause; this one
       # is not.
       #
-      # This comment does NOT claim that buys enforcement. Nothing in this
-      # repository has been observed to enforce egress — harden-runner fails
-      # open to `audit` when its Actions-cache probe misses (#487) — so the list
-      # below is written as if it will be enforced while nothing depends on it
-      # being. It is a guess from what these steps obviously reach, not a
-      # measurement; widen it from the first real run's StepSecurity report
-      # rather than by guessing a second time.
+      # Unlike every other harden-runner comment in this repository, this one
+      # CAN claim enforcement, because it was measured. Run 32088629752 (a
+      # workflow_dispatch on this branch) reported `EgressPolicy:block` and
+      # actually refused a connection: `domain not allowed:
+      # raw.githubusercontent.com`, which failed the job with ECONNREFUSED.
+      #
+      # That is worth recording against #487, which says nothing here has been
+      # observed to enforce egress. #487's root cause is the Actions cache going
+      # read-only for *untrusted* triggers (issues, issue_comment,
+      # pull_request); this job runs on release, schedule and dispatch, none of
+      # which are in that class, so the probe succeeds and the policy arms. The
+      # sign-sbom comment hypothesised exactly this and declined to assert it.
+      # It is now observed for dispatch. Do not generalise it to the workflows
+      # #487 is actually about.
+      #
+      # The list below is therefore measured, not guessed: raw.githubusercontent
+      # .com is here because sbom-action fetches syft's install script from it,
+      # which no amount of reading the action would have made obvious. The cache
+      # host (productionresultssa12.blob.core.windows.net) is absent on purpose
+      # — harden-runner's probe discovers and adds it itself, as the sign-sbom
+      # comment already claimed and this run confirms.
       - name: Harden runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
@@ -145,6 +159,7 @@ jobs:
             results-receiver.actions.githubusercontent.com:443
             registry.npmjs.org:443
             nodejs.org:443
+            raw.githubusercontent.com:443
 
       # nodejs.org is in the list above because `setup-node` falls back to
       # downloading from nodejs.org/dist when the runner's tool cache misses the
