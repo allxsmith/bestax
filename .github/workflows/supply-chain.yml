@@ -48,7 +48,8 @@ jobs:
       # resolved by the lockfile CI builds from. It is deliberately NOT the
       # published-package dependency closure, which for bestax-bulma is just
       # Bulma. Useful for auditing what builds our releases; do not read it as
-      # "what a consumer installs". Per-package SBOMs are tracked separately.
+      # "what a consumer installs". The per-package consumer closures are the
+      # next job in this file (#424).
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -75,6 +76,334 @@ jobs:
           output-file: bestax-sbom.cdx.json
           upload-release-assets: false
 
+  # The job above answers "what builds their releases". This one answers the
+  # question procurement actually asks — "what enters my dependency tree if I
+  # install this?" — which is a different and much smaller set (#424).
+  #
+  # How much smaller, measured rather than asserted:
+  #
+  #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)
+  #   create-bestax            12             (14)
+  #   bestax-migrate           98             (100)
+  #   bestax-mcp               94             (95)
+  #
+  # The first column is the closure; the second is what the document actually
+  # contains, because a directory scan adds two entries that are not
+  # dependencies: the scratch project the lockfile records as its root, and the
+  # configured source syft emits as a package. Both are named so a reader can
+  # tell what they are. Stated in both columns because a procurement reader
+  # counts entries in the SBOM, not in this comment.
+  #
+  # against a repository SBOM covering the whole dev toolchain. Reading the repo
+  # SBOM as a consumer closure overstates our footprint by about two orders of
+  # magnitude, and the genuinely tiny runtime closure is a selling point that
+  # obscures.
+  #
+  # Per package, not one combined tree. Installing all four together resolves to
+  # 204 packages, which would bury bulma-ui's five-package closure under the
+  # CLIs' dependencies and reproduce the exact problem this job exists to fix.
+  #
+  # Generation only, like `sbom`. Stated precisely: this job does hold a
+  # credential — `contents: read` grants a read-scoped GITHUB_TOKEN, and
+  # sbom-action defaults its `github-token` input to it. The guarantee is that
+  # it holds no WRITE-scoped credential; the write-scoped upload stays confined
+  # to `attach-sbom` (#411's split, and an explicit acceptance criterion of
+  # #424). Saying "no credential" would overstate the boundary.
+  consumer-sbom:
+    name: Consumer SBOM (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      # One package failing must not hide the other three. They are independent
+      # documents; there is nothing to be gained by cancelling the siblings.
+      fail-fast: false
+      matrix:
+        include:
+          - package: '@allxsmith/bestax-bulma'
+            slug: allxsmith-bestax-bulma
+          - package: create-bestax
+            slug: create-bestax
+          - package: bestax-migrate
+            slug: bestax-migrate
+          - package: bestax-mcp
+            slug: bestax-mcp
+
+    steps:
+      # Rule 10: a new job ships at `block`. The three sibling jobs predate that
+      # rule and are grandfathered by its "existing live job" clause; this one
+      # is not.
+      #
+      # This comment does NOT claim that egress-block is an enforced control.
+      # Rule 10 forbids citing it as one until #487 closes, and invariant I1
+      # states plainly that no job here enforces egress — so asserting the
+      # opposite in a comment, while a sibling comment 250 lines below still
+      # says "nothing in this repository has been observed to enforce egress",
+      # would leave the file contradicting itself and the contract.
+      #
+      # What IS on the record, as an observation and nothing more: run
+      # 32088629752 (a workflow_dispatch on this branch) reported
+      # `EgressPolicy:block` and refused a connection — `domain not allowed:
+      # raw.githubusercontent.com` — failing the job with ECONNREFUSED. That
+      # matches the hypothesis the sign-sbom comment raises and declines to
+      # assert: #487's root cause is the Actions cache going read-only for
+      # *untrusted* triggers, and this job runs on release, schedule and
+      # dispatch, none of which are in that class.
+      #
+      # One observation on one trigger is not the measurement #487 needs, and
+      # promoting it to a control belongs in .github/CLAUDE.md — updating I1 and
+      # rule 10 together — not in a workflow comment. Until then, treat this
+      # list as unenforced.
+      #
+      # The list below is therefore measured, not guessed: raw.githubusercontent
+      # .com is here because sbom-action fetches syft's install script from it,
+      # which no amount of reading the action would have made obvious. The cache
+      # host (productionresultssa12.blob.core.windows.net) is absent on purpose
+      # — harden-runner's probe discovers and adds it itself, as the sign-sbom
+      # comment already claimed and this run confirms.
+      - name: Harden runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            results-receiver.actions.githubusercontent.com:443
+            registry.npmjs.org:443
+            nodejs.org:443
+            raw.githubusercontent.com:443
+
+      # nodejs.org is in the list above because `setup-node` falls back to
+      # downloading from nodejs.org/dist when the runner's tool cache misses the
+      # requested version — exactly the kind of host a guessed allowlist omits.
+      #
+      # raw.githubusercontent.com deserves its own note, because it is the
+      # widest entry here and the surrounding comments should not imply
+      # otherwise. sbom-action fetches syft's installer from
+      # `raw.githubusercontent.com/anchore/syft/main/install.sh` — a MUTABLE
+      # ref. So the action being SHA-pinned (rule 1) does not cover the shell
+      # that actually runs, and SECURITY.md advertises SHA pinning as an active
+      # control. The host is also not tight: raw.githubusercontent.com serves
+      # content from every public repository on GitHub, which is the same
+      # objection the sign-sbom comment raises against `*.blob.core.windows.net`
+      # — narrower, but the same kind. Both facts are here so the next reader
+      # does not have to rediscover them.
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
+      # npm, not pnpm: this has to resolve the way a consumer's install does,
+      # and the resulting package-lock.json is deliberately left in place for
+      # Syft to read.
+      #
+      # An earlier draft installed with `--omit=peer` and deleted the lockfile
+      # before scanning, to publish only "what we add" — three packages for
+      # bulma-ui instead of five. That was wrong on every axis, which is worth
+      # recording so nobody reintroduces it:
+      #
+      #   - The lockfile is the only source of `resolved` registry URLs, and
+      #     those DO survive: syft maps NpmPackageLockEntry.Resolved to SPDX
+      #     `downloadLocation`, so each entry records where its tarball came
+      #     from. A node_modules-only scan cannot say that.
+      #
+      #     Note what does NOT survive, because an earlier version of this
+      #     comment claimed it did: the lockfile's `integrity` digests are
+      #     dropped. syft's SPDX exporter populates package checksums for
+      #     Java archives, Go build info and OPAM only (toPackageChecksums in
+      #     spdxhelpers/to_format_model.go), with no npm case. Keeping the
+      #     lockfile does not buy verifiable digests. Do not re-add that claim
+      #     without checking that exporter again.
+      #   - The lockfile is not misleading about peers: it marks them
+      #     `"peer": true`, recording "resolved, not installed here" — strictly
+      #     richer than the physical tree.
+      #   - npm hoists `scheduler` into node_modules even when react-dom is
+      #     omitted, so the on-disk tree implies a dependency nothing installed
+      #     actually requires.
+      #   - Deleting an input so a scanner produces a preferred answer is
+      #     shaping the evidence, in a document whose entire purpose is being
+      #     evidence.
+      #
+      # The point of #424 is already carried by scanning a consumer tree at all:
+      # five packages for bulma-ui against the whole dev toolchain. Trading
+      # away digests to reach three was a bad bargain.
+      #
+      # `--omit=optional` is deliberately NOT used either. It would cut
+      # bestax-migrate from 98 packages to 57, but consumers really do get
+      # optional dependencies, and an SBOM that omits them understates the tree.
+      # `--ignore-scripts` is a deliberate divergence from a real consumer's
+      # install, not an oversight. It matches this repository's standing posture
+      # (pnpm-workspace.yaml blocks install scripts by default) and means this
+      # job never executes arbitrary published code.
+      #
+      # It does change what the document describes, and the honest framing is:
+      # this SBOM is npm's RESOLVED closure, before any post-install mutation.
+      # A lifecycle script can invoke a package manager and alter node_modules
+      # or the lockfile, so "scripts cannot affect the inventory" would be too
+      # strong a claim.
+      #
+      # The scratch project is named and marked private rather than left to
+      # `npm init -y`, which names it after the directory. That default puts a
+      # package called `consumer@1.0.0`, license ISC, at the root of the
+      # lockfile — and therefore into a published SBOM, describing something
+      # that exists nowhere. Naming it for what it is makes the root entry
+      # self-evidently the scan container instead of a phantom dependency.
+      #
+      # The install resolves the mutable `latest` dist-tag, and the version it
+      # lands on is recorded as a step output so it can be stamped into the
+      # artifact name. Without that stamp an SBOM attached to a release would
+      # not say which version it describes, and a later publish would make the
+      # document silently disagree with the release it hangs off.
+      #
+      # An earlier version of this comment said pinning to the release's own
+      # version is "not possible". That was too strong. `release.tag_name` is
+      # `<pkg>@X.Y.Z` (VERSIONING.md), so for the ONE package a release names,
+      # the exact version is available and pinnable. What is not possible is
+      # pinning the other three, which that release says nothing about.
+      #
+      # Two failure modes follow from resolving `latest` for the released
+      # package, and they are real rather than theoretical: the event fires
+      # immediately after `npm publish`, so a CDN-cached packument can resolve
+      # the PREVIOUS version and stamp the SBOM with it; and a re-run days later
+      # resolves a newer `latest`, producing a different filename that
+      # `--clobber` cannot replace, leaving the release carrying two
+      # contradictory consumer SBOMs for the same package.
+      #
+      # Tracked rather than fixed here: doing it properly means matching the tag
+      # to its matrix leg and pinning only that one, which is a behaviour change
+      # worth its own review rather than a drive-by in this PR.
+      - name: Install the published package as a consumer would
+        id: install
+        env:
+          PACKAGE: ${{ matrix.package }}
+          SLUG: ${{ matrix.slug }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/consumer"
+          cd "$RUNNER_TEMP/consumer"
+          cat > package.json <<JSON
+          {
+            "name": "bestax-consumer-closure-$SLUG",
+            "version": "0.0.0",
+            "private": true,
+            "description": "Scan container: the installed closure of $PACKAGE"
+          }
+          JSON
+          npm install --ignore-scripts "$PACKAGE"
+
+          # Read back what was installed rather than re-resolving it, so the
+          # stamp cannot disagree with the tree that was scanned.
+          version=$(jq -r .version "node_modules/$PACKAGE/package.json")
+
+          # Validated against semver rather than merely checked for emptiness.
+          # This value comes out of a published tarball — the one input here
+          # that an attacker would control if a package were compromised — and
+          # it flows into $GITHUB_OUTPUT and into a YAML heredoc below. A value
+          # containing a newline would define arbitrary extra step outputs and
+          # inject syft config keys, which could silently re-shape the very
+          # document this job exists to produce. npm will not publish a
+          # non-semver version, so this should never fire; it costs one regex
+          # to not depend on that.
+          case "$version" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *)
+              echo "::error::$PACKAGE reported an implausible version: '$version'"
+              exit 1
+              ;;
+          esac
+          if printf '%s' "$version" | grep -qv '^[0-9A-Za-z.+-]*$'; then
+            echo "::error::$PACKAGE version contains unexpected characters"
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "resolved $PACKAGE@$version"
+
+      # Three problems the first real run surfaced, all fixed by one syft
+      # config. None were visible without reading a generated document — which
+      # is the argument for dispatching and reading it rather than trusting a
+      # green job.
+      #
+      # 1. `default-catalogers: javascript-lock-cataloger` — one cataloger, and
+      #    the narrowness is the point. Two problems, found one after the other:
+      #
+      #    syft's github-actions cataloger was picking up `.github/workflows`
+      #    YAML that some upstream packages ship inside their npm tarballs, so
+      #    the SBOM listed `actions/checkout@v4` and `actions/setup-node@v4` as
+      #    if they were dependencies — bestax-migrate at 111 entries against a
+      #    real closure of 98.
+      #
+      #    Selecting the whole `javascript` group fixed that and broke something
+      #    worse: it enables BOTH javascript catalogers, so every package was
+      #    listed twice — once from its node_modules/package.json and once from
+      #    the lockfile, taking bestax-migrate to 200. The lock cataloger alone
+      #    is what we want: it sees every package (the lockfile is complete) and
+      #    it is the one carrying `resolved`, which is the registry URL that
+      #    ends up as SPDX downloadLocation.
+      #
+      # 2. `source.name` — every document was named
+      #    `/home/runner/work/_temp/consumer`, identical across all four, so the
+      #    artifact leaked the runner's filesystem layout and did not say which
+      #    package it described. It also appeared as a package entry with a null
+      #    version.
+      #
+      #    The `consumer-closure:` prefix is deliberate. Syft emits the
+      #    configured source as its own SPDX package, so naming it plainly after
+      #    the target made the target appear TWICE — once from the lock
+      #    cataloger with its registry URL, once as the source with
+      #    NOASSERTION. Seven entries for a five-package closure. The prefix
+      #    keeps the document self-identifying while ensuring every actual
+      #    closure package appears exactly once.
+      #
+      # 3. `source.version` — pairs with the above so the document states the
+      #    version it documents, not just the filename.
+      - name: Configure syft
+        env:
+          PACKAGE: ${{ matrix.package }}
+          VERSION: ${{ steps.install.outputs.version }}
+        run: |
+          cat > "$RUNNER_TEMP/syft.yaml" <<YAML
+          default-catalogers:
+            - javascript-lock-cataloger
+          # The lock cataloger globs **/package-lock.json, **/yarn.lock and
+          # **/pnpm-lock.yaml, so without this it also reads lockfiles that
+          # dependencies ship inside their own tarballs. npm always excludes
+          # package-lock.json from a tarball but NOT yarn.lock, so one dep
+          # publishing without a `files:` field would inject its entire dev
+          # closure into this document. That is the third instance of this
+          # failure class on this branch, after the github-actions cataloger
+          # and the javascript group; restricting the cataloger does not close
+          # it, only excluding the tree does.
+          exclude:
+            - './node_modules/**'
+          source:
+            name: "consumer-closure:$PACKAGE"
+            version: "$VERSION"
+          YAML
+          cat "$RUNNER_TEMP/syft.yaml"
+
+      - name: Generate SPDX consumer SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: ${{ runner.temp }}/consumer
+          format: spdx-json
+          config: ${{ runner.temp }}/syft.yaml
+          artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
+          output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
+          # Same reason as the repository SBOM: one deterministic uploader.
+          upload-release-assets: false
+
+      - name: Generate CycloneDX consumer SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: ${{ runner.temp }}/consumer
+          format: cyclonedx-json
+          config: ${{ runner.temp }}/syft.yaml
+          artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
+          output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
+          upload-release-assets: false
+
   # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
   # else. The npm provenance we already publish is invisible to it, so releases
   # carrying SBOMs and no recognised signature scored 0 on that check (#404).
@@ -95,8 +424,21 @@ jobs:
   sign-sbom:
     name: Sign the SBOMs
     runs-on: ubuntu-latest
-    needs: sbom
-    if: github.event_name == 'release'
+    needs: [sbom, consumer-sbom]
+    # The status-check function is load-bearing, not decoration. An `if` with no
+    # status function is implicitly `success() && (...)`, which means EVERY job
+    # in `needs` must succeed — so adding `consumer-sbom` here would make one
+    # flaky `npm install` in any of four matrix legs skip this job entirely and
+    # ship the release with its *repository* SBOMs unsigned. That is a
+    # Signed-Releases score of 0 (#404) caused by an unrelated registry hiccup.
+    #
+    # Repository-SBOM signing must depend only on `sbom`, which is
+    # deterministic (pnpm, frozen lockfile). Consumer SBOMs are additive: if
+    # their job failed there is simply nothing extra to sign, and the glob below
+    # expands to nothing.
+    if: >
+      !cancelled() && github.event_name == 'release' &&
+      needs.sbom.result == 'success'
     permissions:
       contents: read
       id-token: write
@@ -167,10 +509,14 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             timestamp.sigstore.dev:443
 
+      # `bestax-*sbom*` rather than `bestax-sbom.*`: the consumer SBOMs are
+      # named apart from the repository pair on purpose (nobody should confuse
+      # the two), so the narrower pattern would silently sign only half of what
+      # gets attached.
       - name: Download SBOM artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: bestax-sbom.*
+          pattern: bestax-*sbom*
           merge-multiple: true
 
       # cosign-release is pinned rather than left to the action's default so a
@@ -189,14 +535,22 @@ jobs:
       # it is what `cosign verify-blob --bundle` consumes, and it is in the
       # signatureExtensions list of scorecard v5.5.0, which is the version
       # scorecard-action v2.4.4 actually vendors (checked, not assumed).
+      # Globbed rather than listed, so a new SBOM cannot be attached unsigned
+      # just because somebody forgot to add it here. nullglob covers only the
+      # two patterns: the repository pair are literal filenames it cannot
+      # remove, and what guarantees those exist is `needs.sbom.result ==
+      # 'success'` in this job's `if`, not the shopt.
       - name: Sign the SBOMs
         run: |
-          for f in bestax-sbom.spdx.json bestax-sbom.cdx.json; do
+          shopt -s nullglob
+          for f in bestax-sbom.spdx.json bestax-sbom.cdx.json \
+                   bestax-consumer-sbom-*.spdx.json bestax-consumer-sbom-*.cdx.json; do
             cosign sign-blob --yes --bundle "$f.sigstore.json" "$f"
           done
 
-      # Named to match the upload job's existing `bestax-sbom.*` download
-      # pattern, so that step needs no change to collect these.
+      # Named to match the upload job's `bestax-*sbom*` download pattern (both
+      # were widened in #424 so the consumer SBOMs are collected too), so that
+      # step needs no change to pick these up.
       #
       # `!cancelled()` so a partial signing run still publishes what it managed
       # to produce. The loop above runs under `bash -e`, so if the second
@@ -217,6 +571,7 @@ jobs:
           path: |
             bestax-sbom.spdx.json.sigstore.json
             bestax-sbom.cdx.json.sigstore.json
+            bestax-consumer-sbom-*.sigstore.json
           retention-days: 5
 
   # Workflow artifacts expire; a release asset is the durable, linkable copy an
@@ -226,7 +581,7 @@ jobs:
   attach-sbom:
     name: Attach SBOMs and signatures to the release
     runs-on: ubuntu-latest
-    needs: [sbom, sign-sbom]
+    needs: [sbom, consumer-sbom, sign-sbom]
     # Signing is additive and must not be able to cost us the SBOMs themselves.
     # A plain `needs: sign-sbom` would mean a transient Fulcio or Rekor outage
     # leaves the release with no SBOM assets at all, which is strictly worse
@@ -246,7 +601,7 @@ jobs:
       - name: Download SBOM artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: bestax-sbom.*
+          pattern: bestax-*sbom*
           merge-multiple: true
 
       - name: Upload to the release
@@ -254,18 +609,47 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          # The SBOMs are the guarantee that predates signing, so they go up
-          # first and on their own.
+          # The repository SBOMs are the guarantee that predates signing, so
+          # they go up first and on their own.
           gh release upload "$TAG" \
             bestax-sbom.spdx.json \
             bestax-sbom.cdx.json \
             --clobber --repo "$GITHUB_REPOSITORY"
 
+          # Consumer SBOMs are best-effort for the same reason the signature
+          # bundles are: the job's `if` requires only `needs.sbom`, so a failed
+          # consumer-sbom leg degrades to "the repository SBOMs still ship"
+          # rather than costing the release its evidence entirely. nullglob so a
+          # missing set expands to nothing.
+          # Matched on the format suffix rather than a bare `*.json`, which
+          # also excludes the signature bundles: those are named
+          # `<sbom>.spdx.json.sigstore.json`, so they do not end in `.spdx.json`
+          # and are collected separately below instead of being uploaded twice.
+          shopt -s nullglob
+          consumer=(
+            bestax-consumer-sbom-*.spdx.json
+            bestax-consumer-sbom-*.cdx.json
+          )
+          #
+          # The `|| echo` is load-bearing, not defensive habit. `run:` executes
+          # under `bash -e`, so an upload failure here (502, rate limit, asset
+          # size) would abort the step before the signature bundles below are
+          # attached — shipping a release with SBOMs and no signatures, scoring
+          # Signed-Releases 0 (#404). That is the exact outcome this job is
+          # built to avoid, and the `[ -gt 0 ]` guard does not cover it: it
+          # tests "no files found", not "upload failed".
+          if [ ${#consumer[@]} -gt 0 ]; then
+            gh release upload "$TAG" "${consumer[@]}" \
+              --clobber --repo "$GITHUB_REPOSITORY" \
+              || echo "::warning::Consumer SBOM upload failed; the repository SBOMs and signatures still ship."
+          else
+            echo "::warning::No consumer SBOMs found. The repository SBOM still describes the dev toolchain, but the consumer closure (#424) is missing from this release."
+          fi
+
           # Bundles are best-effort by the job's `if`. nullglob so a missing
           # set expands to nothing rather than to a literal pattern that
           # `gh` would then fail to open.
-          shopt -s nullglob
-          sigs=(bestax-sbom.*.sigstore.json)
+          sigs=(bestax-*sbom*.sigstore.json)
           if [ ${#sigs[@]} -gt 0 ]; then
             gh release upload "$TAG" "${sigs[@]}" \
               --clobber --repo "$GITHUB_REPOSITORY"
