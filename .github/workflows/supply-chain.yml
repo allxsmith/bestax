@@ -295,6 +295,14 @@ jobs:
       #    package it described. It also appeared as a package entry with a null
       #    version.
       #
+      #    The `consumer-closure:` prefix is deliberate. Syft emits the
+      #    configured source as its own SPDX package, so naming it plainly after
+      #    the target made the target appear TWICE — once from the lock
+      #    cataloger with its registry URL, once as the source with
+      #    NOASSERTION. Seven entries for a five-package closure. The prefix
+      #    keeps the document self-identifying while ensuring every actual
+      #    closure package appears exactly once.
+      #
       # 3. `source.version` — pairs with the above so the document states the
       #    version it documents, not just the filename.
       - name: Configure syft
@@ -306,7 +314,7 @@ jobs:
           default-catalogers:
             - javascript-lock-cataloger
           source:
-            name: "$PACKAGE"
+            name: "consumer-closure:$PACKAGE"
             version: "$VERSION"
           YAML
           cat "$RUNNER_TEMP/syft.yaml"
