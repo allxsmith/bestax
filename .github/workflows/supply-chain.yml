@@ -267,11 +267,47 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "resolved $PACKAGE@$version"
 
+      # Three problems the first real run surfaced, all fixed by one syft
+      # config. None were visible without reading a generated document — which
+      # is the argument for dispatching and reading it rather than trusting a
+      # green job.
+      #
+      # 1. `default-catalogers: javascript` — syft's github-actions cataloger
+      #    was picking up `.github/workflows/*.yml` files that some upstream
+      #    packages ship inside their npm tarballs, so the SBOM listed
+      #    `actions/checkout@v4` and `actions/setup-node@v4` as if they were
+      #    dependencies. bestax-migrate came out at 111 entries against a real
+      #    closure of 98. A consumer-closure document must contain npm packages
+      #    and nothing else.
+      #
+      # 2. `source.name` — every document was named
+      #    `/home/runner/work/_temp/consumer`, identical across all four, so the
+      #    artifact leaked the runner's filesystem layout and did not say which
+      #    package it described. It also appeared as a package entry with a null
+      #    version.
+      #
+      # 3. `source.version` — pairs with the above so the document states the
+      #    version it documents, not just the filename.
+      - name: Configure syft
+        env:
+          PACKAGE: ${{ matrix.package }}
+          VERSION: ${{ steps.install.outputs.version }}
+        run: |
+          cat > "$RUNNER_TEMP/syft.yaml" <<YAML
+          default-catalogers:
+            - javascript
+          source:
+            name: "$PACKAGE"
+            version: "$VERSION"
+          YAML
+          cat "$RUNNER_TEMP/syft.yaml"
+
       - name: Generate SPDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: ${{ runner.temp }}/consumer
           format: spdx-json
+          config: ${{ runner.temp }}/syft.yaml
           artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
           output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
           # Same reason as the repository SBOM: one deterministic uploader.
@@ -282,6 +318,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/consumer
           format: cyclonedx-json
+          config: ${{ runner.temp }}/syft.yaml
           artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
           output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
           upload-release-assets: false
