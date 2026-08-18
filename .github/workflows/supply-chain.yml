@@ -75,6 +75,156 @@ jobs:
           output-file: bestax-sbom.cdx.json
           upload-release-assets: false
 
+  # The job above answers "what builds their releases". This one answers the
+  # question procurement actually asks — "what enters my dependency tree if I
+  # install this?" — which is a different and much smaller set (#424).
+  #
+  # How much smaller, measured rather than asserted:
+  #
+  #   @allxsmith/bestax-bulma   5 packages
+  #   create-bestax            12
+  #   bestax-migrate           98
+  #   bestax-mcp               94
+  #
+  # against a repository SBOM covering the whole dev toolchain. Reading the repo
+  # SBOM as a consumer closure overstates our footprint by about two orders of
+  # magnitude, and the genuinely tiny runtime closure is a selling point that
+  # obscures.
+  #
+  # Per package, not one combined tree. Installing all four together resolves to
+  # 204 packages, which would bury bulma-ui's five-package closure under the
+  # CLIs' dependencies and reproduce the exact problem this job exists to fix.
+  #
+  # Generation only, like `sbom`: no credential, `contents: read`, and the
+  # write-scoped upload stays confined to `attach-sbom` (#411's split, and an
+  # explicit acceptance criterion of #424).
+  consumer-sbom:
+    name: Consumer SBOM (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      # One package failing must not hide the other three. They are independent
+      # documents; there is nothing to be gained by cancelling the siblings.
+      fail-fast: false
+      matrix:
+        include:
+          - package: '@allxsmith/bestax-bulma'
+            slug: allxsmith-bestax-bulma
+          - package: create-bestax
+            slug: create-bestax
+          - package: bestax-migrate
+            slug: bestax-migrate
+          - package: bestax-mcp
+            slug: bestax-mcp
+
+    steps:
+      # Rule 10: a new job ships at `block`. The three sibling jobs predate that
+      # rule and are grandfathered by its "existing live job" clause; this one
+      # is not.
+      #
+      # This comment does NOT claim that buys enforcement. Nothing in this
+      # repository has been observed to enforce egress — harden-runner fails
+      # open to `audit` when its Actions-cache probe misses (#487) — so the list
+      # below is written as if it will be enforced while nothing depends on it
+      # being. It is a guess from what these steps obviously reach, not a
+      # measurement; widen it from the first real run's StepSecurity report
+      # rather than by guessing a second time.
+      - name: Harden runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            results-receiver.actions.githubusercontent.com:443
+            registry.npmjs.org:443
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
+      # npm, not pnpm: this has to resolve the way a consumer's install does,
+      # and the resulting package-lock.json is deliberately left in place for
+      # Syft to read.
+      #
+      # An earlier draft installed with `--omit=peer` and deleted the lockfile
+      # before scanning, to publish only "what we add" — three packages for
+      # bulma-ui instead of five. That was wrong on every axis, which is worth
+      # recording so nobody reintroduces it:
+      #
+      #   - The lockfile is the ONLY source of `integrity` (sha512) and
+      #     `resolved` URLs. A node_modules-only scan yields names and versions
+      #     with no digests, which is most of what makes an SBOM verifiable.
+      #   - The lockfile is not misleading about peers: it marks them
+      #     `"peer": true`, recording "resolved, not installed here" — strictly
+      #     richer than the physical tree.
+      #   - npm hoists `scheduler` into node_modules even when react-dom is
+      #     omitted, so the on-disk tree implies a dependency nothing installed
+      #     actually requires.
+      #   - Deleting an input so a scanner produces a preferred answer is
+      #     shaping the evidence, in a document whose entire purpose is being
+      #     evidence.
+      #
+      # The point of #424 is already carried by scanning a consumer tree at all:
+      # five packages for bulma-ui against the whole dev toolchain. Trading
+      # away digests to reach three was a bad bargain.
+      #
+      # `--omit=optional` is deliberately NOT used either. It would cut
+      # bestax-migrate from 97 packages to 57, but consumers really do get
+      # optional dependencies, and an SBOM that omits them understates the tree.
+      # `--ignore-scripts` is a deliberate divergence from a real consumer's
+      # install, not an oversight. It matches this repository's standing posture
+      # (pnpm-workspace.yaml blocks install scripts by default) and means this
+      # job never executes arbitrary published code. It does not affect the
+      # document: lifecycle scripts can write files, but they cannot add
+      # packages to the tree, which is what is being catalogued.
+      #
+      # The scratch project is named and marked private rather than left to
+      # `npm init -y`, which names it after the directory. That default puts a
+      # package called `consumer@1.0.0`, license ISC, at the root of the
+      # lockfile — and therefore into a published SBOM, describing something
+      # that exists nowhere. Naming it for what it is makes the root entry
+      # self-evidently the scan container instead of a phantom dependency.
+      - name: Install the published package as a consumer would
+        env:
+          PACKAGE: ${{ matrix.package }}
+          SLUG: ${{ matrix.slug }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/consumer"
+          cd "$RUNNER_TEMP/consumer"
+          cat > package.json <<JSON
+          {
+            "name": "bestax-consumer-closure-$SLUG",
+            "version": "0.0.0",
+            "private": true,
+            "description": "Scan container: the installed closure of $PACKAGE"
+          }
+          JSON
+          npm install --ignore-scripts "$PACKAGE"
+
+      - name: Generate SPDX consumer SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: ${{ runner.temp }}/consumer
+          format: spdx-json
+          artifact-name: bestax-consumer-sbom-${{ matrix.slug }}.spdx.json
+          output-file: bestax-consumer-sbom-${{ matrix.slug }}.spdx.json
+          # Same reason as the repository SBOM: one deterministic uploader.
+          upload-release-assets: false
+
+      - name: Generate CycloneDX consumer SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: ${{ runner.temp }}/consumer
+          format: cyclonedx-json
+          artifact-name: bestax-consumer-sbom-${{ matrix.slug }}.cdx.json
+          output-file: bestax-consumer-sbom-${{ matrix.slug }}.cdx.json
+          upload-release-assets: false
+
   # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
   # else. The npm provenance we already publish is invisible to it, so releases
   # carrying SBOMs and no recognised signature scored 0 on that check (#404).
@@ -95,7 +245,7 @@ jobs:
   sign-sbom:
     name: Sign the SBOMs
     runs-on: ubuntu-latest
-    needs: sbom
+    needs: [sbom, consumer-sbom]
     if: github.event_name == 'release'
     permissions:
       contents: read
@@ -167,10 +317,14 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             timestamp.sigstore.dev:443
 
+      # `bestax-*sbom*` rather than `bestax-sbom.*`: the consumer SBOMs are
+      # named apart from the repository pair on purpose (nobody should confuse
+      # the two), so the narrower pattern would silently sign only half of what
+      # gets attached.
       - name: Download SBOM artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: bestax-sbom.*
+          pattern: bestax-*sbom*
           merge-multiple: true
 
       # cosign-release is pinned rather than left to the action's default so a
@@ -189,9 +343,14 @@ jobs:
       # it is what `cosign verify-blob --bundle` consumes, and it is in the
       # signatureExtensions list of scorecard v5.5.0, which is the version
       # scorecard-action v2.4.4 actually vendors (checked, not assumed).
+      # Globbed rather than listed, so a new SBOM cannot be attached unsigned
+      # just because somebody forgot to add it here. nullglob keeps a missing
+      # set from expanding to a literal pattern cosign would fail to open.
       - name: Sign the SBOMs
         run: |
-          for f in bestax-sbom.spdx.json bestax-sbom.cdx.json; do
+          shopt -s nullglob
+          for f in bestax-sbom.spdx.json bestax-sbom.cdx.json \
+                   bestax-consumer-sbom-*.spdx.json bestax-consumer-sbom-*.cdx.json; do
             cosign sign-blob --yes --bundle "$f.sigstore.json" "$f"
           done
 
@@ -217,6 +376,7 @@ jobs:
           path: |
             bestax-sbom.spdx.json.sigstore.json
             bestax-sbom.cdx.json.sigstore.json
+            bestax-consumer-sbom-*.sigstore.json
           retention-days: 5
 
   # Workflow artifacts expire; a release asset is the durable, linkable copy an
@@ -226,7 +386,7 @@ jobs:
   attach-sbom:
     name: Attach SBOMs and signatures to the release
     runs-on: ubuntu-latest
-    needs: [sbom, sign-sbom]
+    needs: [sbom, consumer-sbom, sign-sbom]
     # Signing is additive and must not be able to cost us the SBOMs themselves.
     # A plain `needs: sign-sbom` would mean a transient Fulcio or Rekor outage
     # leaves the release with no SBOM assets at all, which is strictly worse
@@ -246,7 +406,7 @@ jobs:
       - name: Download SBOM artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: bestax-sbom.*
+          pattern: bestax-*sbom*
           merge-multiple: true
 
       - name: Upload to the release
@@ -254,18 +414,38 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          # The SBOMs are the guarantee that predates signing, so they go up
-          # first and on their own.
+          # The repository SBOMs are the guarantee that predates signing, so
+          # they go up first and on their own.
           gh release upload "$TAG" \
             bestax-sbom.spdx.json \
             bestax-sbom.cdx.json \
             --clobber --repo "$GITHUB_REPOSITORY"
 
+          # Consumer SBOMs are best-effort for the same reason the signature
+          # bundles are: the job's `if` requires only `needs.sbom`, so a failed
+          # consumer-sbom leg degrades to "the repository SBOMs still ship"
+          # rather than costing the release its evidence entirely. nullglob so a
+          # missing set expands to nothing.
+          # Matched on the format suffix rather than a bare `*.json`, which
+          # also excludes the signature bundles: those are named
+          # `<sbom>.spdx.json.sigstore.json`, so they do not end in `.spdx.json`
+          # and are collected separately below instead of being uploaded twice.
+          shopt -s nullglob
+          consumer=(
+            bestax-consumer-sbom-*.spdx.json
+            bestax-consumer-sbom-*.cdx.json
+          )
+          if [ ${#consumer[@]} -gt 0 ]; then
+            gh release upload "$TAG" "${consumer[@]}" \
+              --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            echo "::warning::No consumer SBOMs found. The repository SBOM still describes the dev toolchain, but the consumer closure (#424) is missing from this release."
+          fi
+
           # Bundles are best-effort by the job's `if`. nullglob so a missing
           # set expands to nothing rather than to a literal pattern that
           # `gh` would then fail to open.
-          shopt -s nullglob
-          sigs=(bestax-sbom.*.sigstore.json)
+          sigs=(bestax-*sbom*.sigstore.json)
           if [ ${#sigs[@]} -gt 0 ]; then
             gh release upload "$TAG" "${sigs[@]}" \
               --clobber --repo "$GITHUB_REPOSITORY"
