@@ -95,9 +95,12 @@ jobs:
   # 204 packages, which would bury bulma-ui's five-package closure under the
   # CLIs' dependencies and reproduce the exact problem this job exists to fix.
   #
-  # Generation only, like `sbom`: no credential, `contents: read`, and the
-  # write-scoped upload stays confined to `attach-sbom` (#411's split, and an
-  # explicit acceptance criterion of #424).
+  # Generation only, like `sbom`. Stated precisely: this job does hold a
+  # credential — `contents: read` grants a read-scoped GITHUB_TOKEN, and
+  # sbom-action defaults its `github-token` input to it. The guarantee is that
+  # it holds no WRITE-scoped credential; the write-scoped upload stays confined
+  # to `attach-sbom` (#411's split, and an explicit acceptance criterion of
+  # #424). Saying "no credential" would overstate the boundary.
   consumer-sbom:
     name: Consumer SBOM (${{ matrix.package }})
     runs-on: ubuntu-latest
@@ -161,9 +164,18 @@ jobs:
       # bulma-ui instead of five. That was wrong on every axis, which is worth
       # recording so nobody reintroduces it:
       #
-      #   - The lockfile is the ONLY source of `integrity` (sha512) and
-      #     `resolved` URLs. A node_modules-only scan yields names and versions
-      #     with no digests, which is most of what makes an SBOM verifiable.
+      #   - The lockfile is the only source of `resolved` registry URLs, and
+      #     those DO survive: syft maps NpmPackageLockEntry.Resolved to SPDX
+      #     `downloadLocation`, so each entry records where its tarball came
+      #     from. A node_modules-only scan cannot say that.
+      #
+      #     Note what does NOT survive, because an earlier version of this
+      #     comment claimed it did: the lockfile's `integrity` digests are
+      #     dropped. syft's SPDX exporter populates package checksums for
+      #     Java archives, Go build info and OPAM only (toPackageChecksums in
+      #     spdxhelpers/to_format_model.go), with no npm case. Keeping the
+      #     lockfile does not buy verifiable digests. Do not re-add that claim
+      #     without checking that exporter again.
       #   - The lockfile is not misleading about peers: it marks them
       #     `"peer": true`, recording "resolved, not installed here" — strictly
       #     richer than the physical tree.
@@ -179,14 +191,18 @@ jobs:
       # away digests to reach three was a bad bargain.
       #
       # `--omit=optional` is deliberately NOT used either. It would cut
-      # bestax-migrate from 97 packages to 57, but consumers really do get
+      # bestax-migrate from 98 packages to 57, but consumers really do get
       # optional dependencies, and an SBOM that omits them understates the tree.
       # `--ignore-scripts` is a deliberate divergence from a real consumer's
       # install, not an oversight. It matches this repository's standing posture
       # (pnpm-workspace.yaml blocks install scripts by default) and means this
-      # job never executes arbitrary published code. It does not affect the
-      # document: lifecycle scripts can write files, but they cannot add
-      # packages to the tree, which is what is being catalogued.
+      # job never executes arbitrary published code.
+      #
+      # It does change what the document describes, and the honest framing is:
+      # this SBOM is npm's RESOLVED closure, before any post-install mutation.
+      # A lifecycle script can invoke a package manager and alter node_modules
+      # or the lockfile, so "scripts cannot affect the inventory" would be too
+      # strong a claim.
       #
       # The scratch project is named and marked private rather than left to
       # `npm init -y`, which names it after the directory. That default puts a
