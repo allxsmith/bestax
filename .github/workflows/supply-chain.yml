@@ -114,12 +114,16 @@ jobs:
         include:
           - package: '@allxsmith/bestax-bulma'
             slug: allxsmith-bestax-bulma
+            expected-count: 5
           - package: create-bestax
             slug: create-bestax
+            expected-count: 12
           - package: bestax-migrate
             slug: bestax-migrate
+            expected-count: 98
           - package: bestax-mcp
             slug: bestax-mcp
+            expected-count: 94
 
     steps:
       # Rule 10: a new job ships at `block`. The three sibling jobs predate that
@@ -292,11 +296,15 @@ jobs:
       # 2. `source.name` — every document was named
       #    `/home/runner/work/_temp/consumer`, identical across all four, so the
       #    artifact leaked the runner's filesystem layout and did not say which
-      #    package it described. It also appeared as a package entry with a null
-      #    version.
+      #    package it described.
       #
       # 3. `source.version` — pairs with the above so the document states the
       #    version it documents, not just the filename.
+      #
+      # Keeping those source aliases does introduce scan-only entries, and the
+      # next step trims them back out. That is deliberate: the alias is still the
+      # cleanest way to name the document, while the post-processing is what
+      # keeps the published package list to the actual consumer closure.
       - name: Configure syft
         env:
           PACKAGE: ${{ matrix.package }}
@@ -331,6 +339,27 @@ jobs:
           artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
           output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
           upload-release-assets: false
+
+      # Syft is correct about what it scanned, but that scan subject includes the
+      # temporary wrapper project and the configured source alias we added only so
+      # the document names are meaningful. Those are artifacts of collection, not
+      # packages a consumer installs. Normalize both formats back to the measured
+      # closure and assert the count so a future cataloger/exporter change cannot
+      # silently re-inflate the published document.
+      - name: Normalize consumer SBOMs
+        env:
+          PACKAGE: ${{ matrix.package }}
+          VERSION: ${{ steps.install.outputs.version }}
+          EXPECTED_COUNT: ${{ matrix.expected-count }}
+          SPDX_FILE: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
+          CDX_FILE: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
+        run: >
+          node scripts/normalize-consumer-sbom.mjs
+          --package "$PACKAGE"
+          --version "$VERSION"
+          --expected-count "$EXPECTED_COUNT"
+          --spdx "$SPDX_FILE"
+          --cdx "$CDX_FILE"
 
   # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
   # else. The npm provenance we already publish is invisible to it, so releases
