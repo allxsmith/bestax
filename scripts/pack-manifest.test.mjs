@@ -303,3 +303,62 @@ test('an unresolvable workspace dep fails instead of packing a broken range', ()
   assert.equal(readManifest(root), before);
   assert.equal(fs.existsSync(backupPath(root)), false);
 });
+
+// --- agreement beyond the enumerated shapes ---------------------------------
+//
+// The table above pins the twelve shapes pnpm documents. Deep review on #531
+// noted the gap that leaves: the two predicates agree on those twelve by
+// assertion, and on everything else only because they are currently textually
+// identical. An edit to one of them that happens to change a shape nobody
+// listed would slip through.
+//
+// So assert the biconditional over a spread of odd, adversarial and
+// not-yet-invented specifiers. This deliberately does NOT assert what the
+// verdict should be — only that both sides reach the same one. Deciding the
+// right answer for a hypothetical future pnpm syntax is not this test's job;
+// noticing that the two files stopped answering it the same way is.
+const ODD_SPECIFIERS = [
+  // plausible future or undocumented pnpm shapes
+  'workspace:^1.0.0-beta.1',
+  'workspace:*-next',
+  'workspace:latest',
+  'workspace:1.x',
+  'workspace:>=1',
+  'workspace:@scope/name',
+  'workspace:@scope/name@',
+  'workspace:name@',
+  'workspace:@',
+  'workspace:@@',
+  'workspace://',
+  'workspace:a/b/c@1',
+  'catalog:with-a-name',
+  'catalog:@scope/thing',
+  // adjacent protocols neither side owns
+  'npm:pkg@^1',
+  'file:../pkg',
+  'link:../pkg',
+  'git+https://example.test/x.git',
+  'jsr:@scope/pkg',
+  // degenerate strings
+  '',
+  ' ',
+  'workspace',
+  'workspaces:*',
+  'catalog',
+  'CATALOG:',
+  'WORKSPACE:^',
+  'x'.repeat(200),
+  'workspace:' + 'a'.repeat(200),
+];
+
+for (const spec of ODD_SPECIFIERS) {
+  test(`agreement holds for an unlisted shape: ${JSON.stringify(spec).slice(0, 40)}`, () => {
+    assert.equal(
+      packRefuses(spec),
+      checkFlags(spec),
+      `pack-manifest.mjs and check-conformance.mjs disagree about ` +
+        `${JSON.stringify(spec)}. Whichever is right, one of them was edited ` +
+        `without the other — the drift this file exists to catch.`
+    );
+  });
+}
