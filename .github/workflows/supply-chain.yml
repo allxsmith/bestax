@@ -48,7 +48,8 @@ jobs:
       # resolved by the lockfile CI builds from. It is deliberately NOT the
       # published-package dependency closure, which for bestax-bulma is just
       # Bulma. Useful for auditing what builds our releases; do not read it as
-      # "what a consumer installs". Per-package SBOMs are tracked separately.
+      # "what a consumer installs". The per-package consumer closures are the
+      # next job in this file (#424).
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -81,10 +82,17 @@ jobs:
   #
   # How much smaller, measured rather than asserted:
   #
-  #   @allxsmith/bestax-bulma   5 packages
-  #   create-bestax            12
-  #   bestax-migrate           98
-  #   bestax-mcp               94
+  #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)
+  #   create-bestax            12             (14)
+  #   bestax-migrate           98             (100)
+  #   bestax-mcp               94             (95)
+  #
+  # The first column is the closure; the second is what the document actually
+  # contains, because a directory scan adds two entries that are not
+  # dependencies: the scratch project the lockfile records as its root, and the
+  # configured source syft emits as a package. Both are named so a reader can
+  # tell what they are. Stated in both columns because a procurement reader
+  # counts entries in the SBOM, not in this comment.
   #
   # against a repository SBOM covering the whole dev toolchain. Reading the repo
   # SBOM as a consumer closure overstates our footprint by about two orders of
@@ -126,20 +134,26 @@ jobs:
       # rule and are grandfathered by its "existing live job" clause; this one
       # is not.
       #
-      # Unlike every other harden-runner comment in this repository, this one
-      # CAN claim enforcement, because it was measured. Run 32088629752 (a
-      # workflow_dispatch on this branch) reported `EgressPolicy:block` and
-      # actually refused a connection: `domain not allowed:
-      # raw.githubusercontent.com`, which failed the job with ECONNREFUSED.
+      # This comment does NOT claim that egress-block is an enforced control.
+      # Rule 10 forbids citing it as one until #487 closes, and invariant I1
+      # states plainly that no job here enforces egress — so asserting the
+      # opposite in a comment, while a sibling comment 250 lines below still
+      # says "nothing in this repository has been observed to enforce egress",
+      # would leave the file contradicting itself and the contract.
       #
-      # That is worth recording against #487, which says nothing here has been
-      # observed to enforce egress. #487's root cause is the Actions cache going
-      # read-only for *untrusted* triggers (issues, issue_comment,
-      # pull_request); this job runs on release, schedule and dispatch, none of
-      # which are in that class, so the probe succeeds and the policy arms. The
-      # sign-sbom comment hypothesised exactly this and declined to assert it.
-      # It is now observed for dispatch. Do not generalise it to the workflows
-      # #487 is actually about.
+      # What IS on the record, as an observation and nothing more: run
+      # 32088629752 (a workflow_dispatch on this branch) reported
+      # `EgressPolicy:block` and refused a connection — `domain not allowed:
+      # raw.githubusercontent.com` — failing the job with ECONNREFUSED. That
+      # matches the hypothesis the sign-sbom comment raises and declines to
+      # assert: #487's root cause is the Actions cache going read-only for
+      # *untrusted* triggers, and this job runs on release, schedule and
+      # dispatch, none of which are in that class.
+      #
+      # One observation on one trigger is not the measurement #487 needs, and
+      # promoting it to a control belongs in .github/CLAUDE.md — updating I1 and
+      # rule 10 together — not in a workflow comment. Until then, treat this
+      # list as unenforced.
       #
       # The list below is therefore measured, not guessed: raw.githubusercontent
       # .com is here because sbom-action fetches syft's install script from it,
@@ -163,8 +177,19 @@ jobs:
 
       # nodejs.org is in the list above because `setup-node` falls back to
       # downloading from nodejs.org/dist when the runner's tool cache misses the
-      # requested version. That is exactly the kind of host a guessed allowlist
-      # omits, and under `block` it would fail the job before npm ever runs.
+      # requested version — exactly the kind of host a guessed allowlist omits.
+      #
+      # raw.githubusercontent.com deserves its own note, because it is the
+      # widest entry here and the surrounding comments should not imply
+      # otherwise. sbom-action fetches syft's installer from
+      # `raw.githubusercontent.com/anchore/syft/main/install.sh` — a MUTABLE
+      # ref. So the action being SHA-pinned (rule 1) does not cover the shell
+      # that actually runs, and SECURITY.md advertises SHA pinning as an active
+      # control. The host is also not tight: raw.githubusercontent.com serves
+      # content from every public repository on GitHub, which is the same
+      # objection the sign-sbom comment raises against `*.blob.core.windows.net`
+      # — narrower, but the same kind. Both facts are here so the next reader
+      # does not have to rediscover them.
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
@@ -232,11 +257,23 @@ jobs:
       # not say which version it describes, and a later publish would make the
       # document silently disagree with the release it hangs off.
       #
-      # Pinning to the release's own version is NOT possible here and that is
-      # worth stating: a `release: published` event names one package, but this
-      # job documents all four. On a bulma-ui release, `create-bestax`'s SBOM
-      # necessarily describes whatever create-bestax is at that moment. Naming
-      # the version is what keeps that honest rather than ambiguous.
+      # An earlier version of this comment said pinning to the release's own
+      # version is "not possible". That was too strong. `release.tag_name` is
+      # `<pkg>@X.Y.Z` (VERSIONING.md), so for the ONE package a release names,
+      # the exact version is available and pinnable. What is not possible is
+      # pinning the other three, which that release says nothing about.
+      #
+      # Two failure modes follow from resolving `latest` for the released
+      # package, and they are real rather than theoretical: the event fires
+      # immediately after `npm publish`, so a CDN-cached packument can resolve
+      # the PREVIOUS version and stamp the SBOM with it; and a re-run days later
+      # resolves a newer `latest`, producing a different filename that
+      # `--clobber` cannot replace, leaving the release carrying two
+      # contradictory consumer SBOMs for the same package.
+      #
+      # Tracked rather than fixed here: doing it properly means matching the tag
+      # to its matrix leg and pinning only that one, which is a behaviour change
+      # worth its own review rather than a drive-by in this PR.
       - name: Install the published package as a consumer would
         id: install
         env:
@@ -258,12 +295,28 @@ jobs:
           # Read back what was installed rather than re-resolving it, so the
           # stamp cannot disagree with the tree that was scanned.
           version=$(jq -r .version "node_modules/$PACKAGE/package.json")
+
+          # Validated against semver rather than merely checked for emptiness.
+          # This value comes out of a published tarball — the one input here
+          # that an attacker would control if a package were compromised — and
+          # it flows into $GITHUB_OUTPUT and into a YAML heredoc below. A value
+          # containing a newline would define arbitrary extra step outputs and
+          # inject syft config keys, which could silently re-shape the very
+          # document this job exists to produce. npm will not publish a
+          # non-semver version, so this should never fire; it costs one regex
+          # to not depend on that.
           case "$version" in
-            ''|null)
-              echo "::error::could not read the installed version of $PACKAGE"
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *)
+              echo "::error::$PACKAGE reported an implausible version: '$version'"
               exit 1
               ;;
           esac
+          if printf '%s' "$version" | grep -qv '^[0-9A-Za-z.+-]*$'; then
+            echo "::error::$PACKAGE version contains unexpected characters"
+            exit 1
+          fi
+
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "resolved $PACKAGE@$version"
 
@@ -313,6 +366,17 @@ jobs:
           cat > "$RUNNER_TEMP/syft.yaml" <<YAML
           default-catalogers:
             - javascript-lock-cataloger
+          # The lock cataloger globs **/package-lock.json, **/yarn.lock and
+          # **/pnpm-lock.yaml, so without this it also reads lockfiles that
+          # dependencies ship inside their own tarballs. npm always excludes
+          # package-lock.json from a tarball but NOT yarn.lock, so one dep
+          # publishing without a `files:` field would inject its entire dev
+          # closure into this document. That is the third instance of this
+          # failure class on this branch, after the github-actions cataloger
+          # and the javascript group; restricting the cataloger does not close
+          # it, only excluding the tree does.
+          exclude:
+            - './node_modules/**'
           source:
             name: "consumer-closure:$PACKAGE"
             version: "$VERSION"
@@ -472,8 +536,10 @@ jobs:
       # signatureExtensions list of scorecard v5.5.0, which is the version
       # scorecard-action v2.4.4 actually vendors (checked, not assumed).
       # Globbed rather than listed, so a new SBOM cannot be attached unsigned
-      # just because somebody forgot to add it here. nullglob keeps a missing
-      # set from expanding to a literal pattern cosign would fail to open.
+      # just because somebody forgot to add it here. nullglob covers only the
+      # two patterns: the repository pair are literal filenames it cannot
+      # remove, and what guarantees those exist is `needs.sbom.result ==
+      # 'success'` in this job's `if`, not the shopt.
       - name: Sign the SBOMs
         run: |
           shopt -s nullglob
@@ -482,8 +548,9 @@ jobs:
             cosign sign-blob --yes --bundle "$f.sigstore.json" "$f"
           done
 
-      # Named to match the upload job's existing `bestax-sbom.*` download
-      # pattern, so that step needs no change to collect these.
+      # Named to match the upload job's `bestax-*sbom*` download pattern (both
+      # were widened in #424 so the consumer SBOMs are collected too), so that
+      # step needs no change to pick these up.
       #
       # `!cancelled()` so a partial signing run still publishes what it managed
       # to produce. The loop above runs under `bash -e`, so if the second
@@ -563,9 +630,18 @@ jobs:
             bestax-consumer-sbom-*.spdx.json
             bestax-consumer-sbom-*.cdx.json
           )
+          #
+          # The `|| echo` is load-bearing, not defensive habit. `run:` executes
+          # under `bash -e`, so an upload failure here (502, rate limit, asset
+          # size) would abort the step before the signature bundles below are
+          # attached — shipping a release with SBOMs and no signatures, scoring
+          # Signed-Releases 0 (#404). That is the exact outcome this job is
+          # built to avoid, and the `[ -gt 0 ]` guard does not cover it: it
+          # tests "no files found", not "upload failed".
           if [ ${#consumer[@]} -gt 0 ]; then
             gh release upload "$TAG" "${consumer[@]}" \
-              --clobber --repo "$GITHUB_REPOSITORY"
+              --clobber --repo "$GITHUB_REPOSITORY" \
+              || echo "::warning::Consumer SBOM upload failed; the repository SBOMs and signatures still ship."
           else
             echo "::warning::No consumer SBOMs found. The repository SBOM still describes the dev toolchain, but the consumer closure (#424) is missing from this release."
           fi
