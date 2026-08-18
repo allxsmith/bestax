@@ -42,7 +42,7 @@
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
 // parser — it additionally exposes values and selector nesting, which the CSS
@@ -1025,8 +1025,15 @@ const hasPackTimeProtocol = spec =>
 
 // The two shapes the pack hooks refuse rather than guess at, so devDependencies
 // carrying them are violations no matter how the hooks are wired. Kept in step
-// with bestax-migrate/scripts/pack-manifest.mjs, which exits 1 on both.
-const UNRESOLVABLE_AT_PACK = [
+// with bestax-migrate/scripts/pack-manifest.mjs, which refuses both.
+//
+// "Kept in step" used to mean "by reading both files carefully", and that
+// failed twice during review of #417 — once for `catalog:`, once for the alias
+// form. A shape the script REFUSES but this check EXCUSES is a green CI with a
+// red release, which is the exact inversion this check exists to prevent. So
+// these are exported and scripts/pack-manifest.test.mjs now drives them against
+// the real resolver, asserting the two agree shape for shape (#435).
+export const UNRESOLVABLE_AT_PACK = [
   {
     matches: spec => spec.startsWith('catalog:'),
     why:
@@ -1047,7 +1054,7 @@ const UNRESOLVABLE_AT_PACK = [
   },
 ];
 
-const unresolvableAtPack = spec =>
+export const unresolvableAtPack = spec =>
   typeof spec === 'string' &&
   UNRESOLVABLE_AT_PACK.find(rule => rule.matches(spec));
 
@@ -1307,7 +1314,12 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+// Only run the suite when invoked as a command. The rules above are imported
+// by scripts/pack-manifest.test.mjs, and importing a module should not run a
+// repo-wide conformance sweep as a side effect.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
