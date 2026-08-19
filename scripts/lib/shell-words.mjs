@@ -37,7 +37,10 @@ export function quote(value) {
  * assert things about a command that cannot run.
  */
 export function tokenize(cmd) {
-  const OPERATORS = new Set([';', '|', '&', '>', '<']);
+  // Subshell parens and backticks end a word too: `(cd x && node ./a.mjs)`
+  // otherwise yields `./a.mjs)`, which no extension test matches, so a caller
+  // scanning for script paths silently drops it.
+  const OPERATORS = new Set([';', '|', '&', '>', '<', '(', ')', '`']);
   const words = [];
   let word = null;
   let quoteChar = null;

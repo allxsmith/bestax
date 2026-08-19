@@ -168,3 +168,8 @@ test-apps/
 test-app-*/
 create-bestax/e2e/test-results/
 create-bestax/e2e/playwright-report/
+
+# Written only by the pack-manifest resolver deleted in #436. Kept so a stale
+# backup left on disk by a pre-#436 checkout cannot be committed by a `git add
+# -A` after rebasing. Safe to drop once no working copy predates that change.
+bestax-migrate/package.json.pack-backup

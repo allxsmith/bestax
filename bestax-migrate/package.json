@@ -22,6 +22,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "clean": "rimraf dist",
     "release": "npx semantic-release",
+    "prepack": "node ../scripts/require-pnpm-publish.mjs",
     "prepublishOnly": "node ../scripts/require-pnpm-publish.mjs"
   },
   "keywords": [

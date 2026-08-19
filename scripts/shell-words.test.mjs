@@ -111,3 +111,14 @@ test('an unbalanced quote throws instead of inventing a word', () => {
   assert.throws(() => tokenize("node 'x.mjs"), /unbalanced single quote/);
   assert.throws(() => tokenize('node "x.mjs'), /unbalanced double quote/);
 });
+
+test('subshell parens and backticks end a word', () => {
+  // `(cd x && node ./a.mjs)` otherwise yields `./a.mjs)`, which no extension
+  // test matches, so a path scanner drops it silently.
+  assert.ok(
+    tokenize('(cd sub && node ./scripts/stamp.mjs)').includes(
+      './scripts/stamp.mjs'
+    )
+  );
+  assert.ok(tokenize('node `which x`/a.mjs').includes('/a.mjs'));
+});

@@ -24,6 +24,7 @@ import {
   manifestViolations,
   parseWorkspacePackages,
 } from './check-conformance.mjs';
+import { execOptions, releaseBranches } from './lib/release-config.mjs';
 import { tokenize } from './lib/shell-words.mjs';
 
 const repoFile = rel =>
@@ -80,11 +81,7 @@ test('the declaration was actually parsed out of the check', () => {
  * unreadable config throws, which fails a test.
  */
 async function publishCommand(dir) {
-  const { default: config } = await import(`../${dir}/release.config.js`);
-  const exec = (config.plugins ?? []).find(
-    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
-  );
-  return exec?.[1]?.publishCmd ?? '';
+  return (await execOptions(dir)).publishCmd ?? '';
 }
 
 for (const dir of PUBLISHABLE) {
@@ -157,15 +154,19 @@ test('the scripts the release config names all exist', async () => {
   }
 });
 
-test('the release stays on a single branch, or the dist-tag needs revisiting', () => {
+test('the release stays on a single branch, or the dist-tag needs revisiting', async () => {
   // publishCmd passes no --tag, which is only correct while every release goes
   // to `latest`. @semantic-release/npm's get-channel.js maps a channel that is
   // a valid semver range to `release-<channel>`, and nothing here reimplements
   // that.
-  assert.match(
-    repoFile('bestax-migrate/release.config.js'),
-    /branches: \['main'\]/
-  );
+  //
+  // Read from the loaded config, not the source. This assertion was the third
+  // source-text grep in this file and the only one left after the other two
+  // were found matching the config's own comments: a line reading
+  // `// branches: ['main']` would have satisfied it while the real value was
+  // ['main', 'next'], which is the direction that publishes a prerelease to
+  // the stable dist-tag.
+  assert.deepEqual(await releaseBranches('bestax-migrate'), ['main']);
 });
 
 // --- the rule ----------------------------------------------------------------
@@ -177,7 +178,10 @@ test('the release stays on a single branch, or the dist-tag needs revisiting', (
 // A declared package must also wire the prepublishOnly guard, so fixtures for
 // the pnpm side carry it; otherwise every one of them picks up that violation
 // instead of the one under test.
-const GUARD = { prepublishOnly: 'node ../scripts/require-pnpm-publish.mjs' };
+const GUARD = {
+  prepack: 'node ../scripts/require-pnpm-publish.mjs',
+  prepublishOnly: 'node ../scripts/require-pnpm-publish.mjs',
+};
 
 const WS = spec => ({
   scripts: GUARD,
@@ -239,7 +243,7 @@ test('a pnpm publisher is exempt only in devDependencies', () => {
       [section]: { x: 'workspace:^' },
     });
     assert.equal(v.length, 1, `${section} must be flagged`);
-    assert.match(v[0], /made to install/);
+    assert.match(v[0], /resolved by consumers/);
     // And must not tell a pnpm publisher to switch to pnpm publish.
     assert.doesNotMatch(v[0], /move bestax-migrate to `pnpm publish`/);
   }
@@ -254,7 +258,7 @@ test('each message explains the failure that actually applies', () => {
   })[0];
   assert.match(npm, /npm publish/);
   assert.match(jsr, /@jsr registry/);
-  assert.match(consumer, /devDependencies/);
+  assert.match(consumer, /resolved by consumers/);
   // Three distinct explanations, not one shared tail re-deriving the predicate.
   assert.notEqual(npm, jsr);
   assert.notEqual(jsr, consumer);
@@ -308,7 +312,7 @@ test('hookScripts recognises interpreters other than node', () => {
     ['./scripts/stamp.ts']
   );
   assert.deepEqual(
-    hookScripts({ scripts: { prepare: 'bash ./scripts/g.sh' } }),
+    hookScripts({ scripts: { postpack: 'bash ./scripts/g.sh' } }),
     ['./scripts/g.sh']
   );
 });
@@ -433,7 +437,62 @@ test('hookScripts sees every script in a chained hook', () => {
     ['./scripts/a.mjs', './scripts/b.mjs']
   );
   assert.deepEqual(
-    hookScripts({ scripts: { prepare: 'node ./scripts/a.mjs|tee log' } }),
+    hookScripts({ scripts: { postpack: 'node ./scripts/a.mjs|tee log' } }),
     ['./scripts/a.mjs']
   );
+});
+
+test('a peer dependency is told to pin a range, not to move', () => {
+  // A peer dep is meant to reach consumers, so "move it to devDependencies"
+  // would break the contract rather than fix the specifier.
+  const peer = manifestViolations(PNPM_PKG, {
+    scripts: GUARD,
+    peerDependencies: { x: 'workspace:^' },
+  })[0];
+  assert.match(peer, /semver range/);
+  assert.doesNotMatch(peer, /Move it to devDependencies/);
+
+  // A runtime dependency still gets the move suggestion.
+  const runtime = manifestViolations(PNPM_PKG, {
+    scripts: GUARD,
+    dependencies: { x: 'workspace:^' },
+  })[0];
+  assert.match(runtime, /Move it to devDependencies/);
+});
+
+test('the guard must be run, not merely mentioned', () => {
+  // Both bypasses that satisfied a substring test: naming the file in another
+  // command, and short-circuiting past it.
+  const flagged = scripts =>
+    manifestViolations(PNPM_PKG, { scripts }).some(v => /does not run/.test(v));
+
+  const REAL = 'node ../scripts/require-pnpm-publish.mjs';
+  assert.equal(flagged({ prepack: REAL, prepublishOnly: REAL }), false);
+  assert.equal(
+    flagged({ prepack: REAL, prepublishOnly: 'echo require-pnpm-publish.mjs' }),
+    true,
+    'a mention must not satisfy the check'
+  );
+  assert.equal(
+    flagged({ prepack: REAL, prepublishOnly: `true || ${REAL}` }),
+    true,
+    'short-circuiting past the guard must not satisfy the check'
+  );
+  assert.equal(
+    flagged({ prepack: REAL, prepublishOnly: `${REAL} && echo ok` }),
+    false,
+    'chaining after the guard is fine'
+  );
+});
+
+test('both pack hooks are required, since npm pack runs only prepack', () => {
+  // `npm pack` never runs prepublishOnly, and `npm publish <tarball>` runs no
+  // scripts at all, so prepublishOnly alone leaves a two-step hand publish
+  // shipping the unresolved specifier.
+  const REAL = 'node ../scripts/require-pnpm-publish.mjs';
+  const only = manifestViolations(PNPM_PKG, {
+    scripts: { prepublishOnly: REAL },
+  });
+  assert.equal(only.length, 1);
+  assert.match(only[0], /prepack/);
 });

@@ -1101,16 +1101,42 @@ export function manifestViolations(dir, pkg) {
   // package can otherwise gain the exemption and lose the guard in one edit.
   // Checked here, alongside the exemption it compensates for, so a test that
   // covers one covers the other.
-  if (
-    publishesWithPnpm &&
-    !(pkg?.scripts?.prepublishOnly ?? '').includes('require-pnpm-publish.mjs')
-  ) {
+  // Both hooks, and the command has to RUN the guard rather than mention it:
+  // `echo skipping require-pnpm-publish.mjs` satisfied a substring test while
+  // the exemption stayed granted. `prepack` matters as much as
+  // `prepublishOnly`, because `npm pack` runs only the former and its tarball
+  // can then be published directly.
+  const runsGuard = hook => {
+    const cmd = pkg?.scripts?.[hook];
+    if (typeof cmd !== 'string') return false;
+    let words;
+    try {
+      words = tokenize(cmd);
+    } catch {
+      return false;
+    }
+    // The guard must be the FIRST thing the hook runs. Anything looser admits
+    // a hook that mentions it (`echo skipping require-pnpm-publish.mjs`) or
+    // short-circuits past it (`true || node …/require-pnpm-publish.mjs`), and
+    // both leave the exemption granted with no guard behind it. Deliberately
+    // strict: a hook that needs to do something else can call the guard first
+    // and chain after it.
+    return (
+      words[0] === 'node' &&
+      (words[1] ?? '').endsWith('require-pnpm-publish.mjs')
+    );
+  };
+
+  const missingGuard = ['prepack', 'prepublishOnly'].filter(h => !runsGuard(h));
+
+  if (publishesWithPnpm && missingGuard.length) {
     violations.push(
       `${dir} is declared in PNPM_PUBLISHED, but does not run ` +
-        `scripts/require-pnpm-publish.mjs on prepublishOnly. The exemption ` +
+        `scripts/require-pnpm-publish.mjs on ${missingGuard.join(' or ')}. ` +
+        `The exemption ` +
         `then holds only for releases from CI: a hand-run \`npm publish\` in ` +
         `that directory would ship the specifier verbatim (#412). Add ` +
-        `"prepublishOnly": "node ${relative(
+        `${missingGuard.map(h => `"${h}"`).join(' and ')}: "node ${relative(
           join(REPO, dir),
           join(REPO, 'scripts', 'require-pnpm-publish.mjs')
         )}".`
@@ -1179,10 +1205,17 @@ export function manifestViolations(dir, pkg) {
       }
       return (
         head +
-        `\`pnpm publish\` resolves ${protocol} to a real range, so it installs — ` +
-        `but ${section} is resolved by consumers, so everyone installing ${dir} ` +
-        `is made to install "${name}" too. Move it to devDependencies if only ` +
-        `this package's own build or tests need it.`
+        `\`pnpm publish\` resolves ${protocol} to a real range, so it installs, ` +
+        `but ${section} is resolved by consumers and this specifier only means ` +
+        `something inside the workspace. ` +
+        (section === 'peerDependencies'
+          ? // A peer dep is SUPPOSED to reach consumers, so "move it to
+            // devDependencies" would break the contract rather than fix it.
+            'A peer dependency is meant to reach them, so give it an explicit ' +
+            'semver range naming the versions this package actually supports.'
+          : `Move it to devDependencies if only this package's own build or ` +
+            `tests need it, or give it a plain semver range if consumers ` +
+            `really do need it at runtime.`)
       );
     })
   );
@@ -1197,12 +1230,15 @@ export function manifestViolations(dir, pkg) {
  * Deliberately not every script: `"start": "node dist/index.js"` is a correct
  * entry naming a build OUTPUT, and this check runs before the build in ci.yml,
  * so demanding it exist would red the pipeline on a working config.
+ *
+ * `prepare` is excluded for the same reason and it is not obvious: it runs
+ * after the build during a pack, so `"prepare": "node ./dist/postbuild.mjs"` is
+ * a normal entry whose target legitimately does not exist when this runs.
  */
 const LIFECYCLE_HOOKS = [
   'prepublishOnly',
   'prepublish',
   'prepack',
-  'prepare',
   'postpack',
   'publish',
   'postpublish',
@@ -1266,8 +1302,9 @@ async function checkPublishableManifests() {
       );
       continue;
     }
-    if (pkg.private) continue;
-
+    // The private check lives in manifestViolations, not here, so there is one
+    // copy of it. hookScripts still runs for private packages: a broken pack
+    // hook is worth reporting whether or not the package publishes.
     violations.push(...manifestViolations(dir, pkg));
 
     // Naming a script is not the same as shipping it. A hook pointing at a

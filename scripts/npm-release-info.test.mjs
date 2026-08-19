@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 
 import { releaseInfo, main, cli } from './npm-release-info.mjs';
+import { execOptions } from './lib/release-config.mjs';
 
 // fileURLToPath, not .pathname: a URL path is percent-encoded, so a checkout
 // under a directory with a space resolves to a path that does not exist.
@@ -118,28 +119,24 @@ test('a non-default registry gets no npmjs.com link', () => {
 test('the publishCmd sends pnpm output to stderr and calls this script', async () => {
   // The redirect is what makes stdout parseable. Losing it silently reverts
   // the bare-tag comment, so it is pinned rather than left to review.
-  const { default: config } =
-    await import('../bestax-migrate/release.config.js');
-  const exec = config.plugins.find(
-    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
-  );
-  assert.match(exec[1].publishCmd, /1>&2/);
-  assert.match(exec[1].publishCmd, /npm-release-info\.mjs/);
-  assert.match(exec[1].publishCmd, /--dir=/);
-  assert.match(exec[1].publishCmd, /\$\{nextRelease\.version\}/);
+  const exec = await execOptions('bestax-migrate');
+  assert.match(exec.publishCmd, /1>&2/);
+  assert.match(exec.publishCmd, /npm-release-info\.mjs/);
+  assert.match(exec.publishCmd, /--dir=/);
+  assert.match(exec.publishCmd, /\$\{nextRelease\.version\}/);
   // `|| true` in the SHELL, not just error handling inside the script: node
   // exits non-zero before that handling if it cannot load the file at all, and
   // the `&&` chain would then fail the publish with the tarball already up.
-  assert.match(exec[1].publishCmd, /\|\| true/);
+  assert.match(exec.publishCmd, /\|\| true/);
   // Paths are quoted, so a checkout under a directory with a space does not
   // split into two arguments.
-  assert.match(exec[1].publishCmd, /node '[^']*npm-release-info\.mjs'/);
+  assert.match(exec.publishCmd, /node '[^']*npm-release-info\.mjs'/);
   assert.match(
-    exec[1].verifyConditionsCmd,
+    exec.verifyConditionsCmd,
     /node '[^']*verify-oidc-context\.mjs'/
   );
   // Absolute paths, so neither command depends on the cwd semantic-release was
   // invoked from.
-  assert.doesNotMatch(exec[1].publishCmd, /\.\.\/scripts/);
-  assert.doesNotMatch(exec[1].verifyConditionsCmd, /\.\.\/scripts/);
+  assert.doesNotMatch(exec.publishCmd, /\.\.\/scripts/);
+  assert.doesNotMatch(exec.verifyConditionsCmd, /\.\.\/scripts/);
 });
