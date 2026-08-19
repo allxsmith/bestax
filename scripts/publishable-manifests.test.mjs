@@ -109,6 +109,21 @@ test('a missing plugin list does not throw, and does not read as pnpm', () => {
 
 test('only `pnpm publish` earns the exemption', () => {
   // The exemption is the dangerous verdict, so pin what cannot claim it.
+  // Sanity-check the fixture shape first. This loop asserts a NEGATIVE, so a
+  // malformed config argument makes every case pass vacuously: classifyPublisher
+  // reads `config.plugins`, and an earlier version of this test passed a bare
+  // array, so all six inputs returned 'unknown' and the loop proved nothing.
+  assert.equal(
+    classifyPublisher({
+      plugins: [
+        [NPM, { npmPublish: false }],
+        [EXEC, { publishCmd: PNPM_PUBLISH }],
+      ],
+    }),
+    'pnpm',
+    'fixture shape is wrong: the negatives below would pass vacuously'
+  );
+
   for (const publishCmd of [
     'npm publish',
     'yarn publish',
@@ -116,12 +131,15 @@ test('only `pnpm publish` earns the exemption', () => {
     'pnpm-publish',
     'pnpmpublish',
     'echo "run pnpm publish by hand"',
+    'pnpm publish --dry-run',
   ]) {
     assert.notEqual(
-      classifyPublisher([
-        [NPM, { npmPublish: false }],
-        [EXEC, { publishCmd }],
-      ]),
+      classifyPublisher({
+        plugins: [
+          [NPM, { npmPublish: false }],
+          [EXEC, { publishCmd }],
+        ],
+      }),
       'pnpm',
       `"${publishCmd}" must not be read as publishing with pnpm`
     );

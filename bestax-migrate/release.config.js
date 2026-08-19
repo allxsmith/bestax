@@ -1,3 +1,12 @@
+import path from 'node:path';
+
+// Absolute, so neither exec command depends on the cwd semantic-release was
+// invoked from. It works today only because ci.yml sets `working-directory`,
+// and a relative `../scripts/...` would break the release the moment anything
+// ran it from the repo root.
+const PKG_DIR = import.meta.dirname;
+const SCRIPTS = path.join(PKG_DIR, '..', 'scripts');
+
 export default {
   branches: ['main'],
   tagFormat: 'bestax-migrate@${version}',
@@ -70,7 +79,7 @@ export default {
         // during verifyConditions any more, and semantic-release runs every
         // `prepare` step (including the release commit and tag) before any
         // `publish` step. The script says what it does and does not prove.
-        verifyConditionsCmd: 'node ../scripts/verify-oidc-context.mjs',
+        verifyConditionsCmd: `node ${path.join(SCRIPTS, 'verify-oidc-context.mjs')}`,
 
         // Every flag here is load-bearing; none is decoration.
         //
@@ -114,10 +123,19 @@ export default {
         // and the "release is available on" comment on every linked issue and
         // PR shows a bare `bestax-migrate@x.y.z` instead of the npm link the
         // other three packages get.
+        //
+        // The `&&` tail cannot fail the release: npm-release-info.mjs always
+        // exits 0, degrading to `{}` if anything goes wrong. A non-zero exit
+        // there would throw out of the publish step with the tarball already
+        // on the registry, skipping @semantic-release/github and spending the
+        // version, for the sake of a link in a comment.
         publishCmd:
           'pnpm publish --no-git-checks --provenance --embed-readme ' +
-          '--access public 1>&2 ' +
-          '&& node ../scripts/npm-release-info.mjs ${nextRelease.version}',
+          '--access public 1>&2 && node ' +
+          path.join(SCRIPTS, 'npm-release-info.mjs') +
+          ' --dir=' +
+          PKG_DIR +
+          ' ${nextRelease.version}',
       },
     ],
     [

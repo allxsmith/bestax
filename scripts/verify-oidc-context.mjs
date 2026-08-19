@@ -43,13 +43,21 @@ import { pathToFileURL } from 'node:url';
 const VARS = ['ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
 
 /**
- * `CI` is a string, so `!env.CI` treats the widespread `CI=false` as "in CI"
- * and fails a maintainer's local dry run with an OIDC message that has nothing
- * to do with what they ran. Test the value, not its truthiness.
+ * Keyed on GITHUB_ACTIONS rather than CI, and the difference is which way this
+ * fails when the signal is absent.
+ *
+ * `CI` is set by convention, not by contract: a container image, a composite
+ * action, or a job-level `env:` can leave it unset, and keying on it made this
+ * guard a silent no-op in exactly that case. Wrong direction for something
+ * whose whole job is to fail early, since the fallback is discovering the
+ * problem at publish time with the tag already pushed.
+ *
+ * GITHUB_ACTIONS is guaranteed by the runner, and it is what pnpm's own
+ * `ensureProvenanceGeneration` keys on when deciding whether to demand an OIDC
+ * context. Using the same signal means this cannot disagree with the thing it
+ * front-runs. Its value is the string 'true', so compare it.
  */
-const inCI = env =>
-  env.CI != null &&
-  !['', 'false', '0', 'off', 'no'].includes(String(env.CI).toLowerCase());
+const inCI = env => String(env.GITHUB_ACTIONS).toLowerCase() === 'true';
 
 export function checkOidcContext(env = process.env) {
   if (!inCI(env)) return { ok: true, skipped: true };

@@ -32,7 +32,12 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-export function releaseInfo(pkgName, version, distTag = 'latest') {
+export function releaseInfo(
+  pkgName,
+  version,
+  distTag = 'latest',
+  registry = undefined
+) {
   if (!pkgName) throw new Error('npm-release-info: package has no name');
   if (!version) {
     // Better to fail the publish step than to comment a URL pointing at a
@@ -42,28 +47,67 @@ export function releaseInfo(pkgName, version, distTag = 'latest') {
         'the publishCmd template.'
     );
   }
+  // Upstream omits the url entirely for a non-default registry rather than
+  // linking to npmjs.com, and matching that matters: a link to a package page
+  // that does not exist is worse than no link, which is the whole reason this
+  // script exists.
+  const onNpmjs =
+    !registry || /^https?:\/\/registry\.npmjs\.org\/?$/.test(registry);
   return {
     name: `npm package (@${distTag} dist-tag)`,
-    url: `https://www.npmjs.com/package/${pkgName}/v/${version}`,
+    url: onNpmjs
+      ? `https://www.npmjs.com/package/${pkgName}/v/${version}`
+      : undefined,
     channel: distTag,
   };
 }
 
 export function main(argv = process.argv.slice(2), cwd = process.cwd()) {
-  const { name } = JSON.parse(
-    fs.readFileSync(path.join(cwd, 'package.json'), 'utf8')
+  // `--dir` decouples this from the cwd semantic-release happens to run in.
+  // Both exec commands pass an absolute path, so the release does not depend
+  // on being invoked from the package directory.
+  const dirFlag = argv.find(a => a.startsWith('--dir='));
+  const root = dirFlag ? dirFlag.slice('--dir='.length) : cwd;
+  const { name, publishConfig } = JSON.parse(
+    fs.readFileSync(path.join(root, 'package.json'), 'utf8')
   );
-  const [version, distTag] = argv;
-  return JSON.stringify(releaseInfo(name, version, distTag || 'latest'));
+  const [version, distTag] = argv.filter(a => !a.startsWith('--'));
+  return JSON.stringify(
+    releaseInfo(name, version, distTag || 'latest', publishConfig?.registry)
+  );
+}
+
+/**
+ * The CLI, which deliberately CANNOT fail.
+ *
+ * publishCmd chains this after `pnpm publish` with `&&`, so a non-zero exit
+ * here would throw out of @semantic-release/exec's publish step after the
+ * tarball is already on the registry: @semantic-release/github never runs, the
+ * job goes red, and the version is spent. For a link in a comment. So any
+ * failure degrades to `{}`, which puts the comment back to the bare-tag
+ * rendering this script improves on rather than taking a successful release
+ * down with it. The reason is still printed, on stderr, where the job log
+ * shows it.
+ */
+export function cli(
+  argv = process.argv.slice(2),
+  cwd = process.cwd(),
+  warn = console.error
+) {
+  try {
+    return { stdout: main(argv, cwd), code: 0 };
+  } catch (err) {
+    warn(
+      `npm-release-info: ${err.message}\n` +
+        'The package published successfully; only the npm link in the release ' +
+        'comment is affected.'
+    );
+    return { stdout: '{}', code: 0 };
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  try {
-    console.log(main());
-  } catch (err) {
-    // A stack trace here would be buried under pnpm's publish output; the
-    // message is the actionable part.
-    console.error(err.message);
-    process.exitCode = 1;
-  }
+  const { stdout, code } = cli();
+  console.log(stdout);
+  process.exitCode = code;
 }

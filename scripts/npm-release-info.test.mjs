@@ -10,9 +10,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { releaseInfo, main } from './npm-release-info.mjs';
+import { fileURLToPath } from 'node:url';
 
-const MIGRATE = new URL('../bestax-migrate/', import.meta.url).pathname;
+import { releaseInfo, main, cli } from './npm-release-info.mjs';
+
+// fileURLToPath, not .pathname: a URL path is percent-encoded, so a checkout
+// under a directory with a space resolves to a path that does not exist.
+const MIGRATE = fileURLToPath(new URL('../bestax-migrate/', import.meta.url));
 
 test('the shape matches @semantic-release/npm/lib/get-release-info.js', () => {
   const info = releaseInfo('bestax-migrate', '2.0.1');
@@ -65,6 +69,52 @@ test('main reads the real bestax-migrate manifest and emits parseable JSON', () 
   );
 });
 
+test('the CLI cannot fail, however wrong its input', () => {
+  // publishCmd chains this after `pnpm publish` with `&&`. A non-zero exit
+  // would throw out of the publish step with the tarball already on the
+  // registry: @semantic-release/github never runs, the job reds, the version is
+  // spent. So every failure degrades to `{}`, which renders as the bare tag
+  // this script improves on rather than taking a good release down.
+  for (const argv of [
+    [],
+    ['--dir=/nonexistent'],
+    ['2.0.1', '--dir=/nonexistent'],
+  ]) {
+    const { stdout, code } = cli(argv, MIGRATE, () => {});
+    assert.equal(code, 0, `${JSON.stringify(argv)} must exit 0`);
+    assert.doesNotThrow(() => JSON.parse(stdout), 'stdout must stay parseable');
+  }
+  // …and the reason still reaches the log.
+  let warned = '';
+  cli([], MIGRATE, m => (warned = m));
+  assert.match(warned, /no version/);
+  assert.match(warned, /published successfully/);
+});
+
+test('--dir decouples it from the cwd semantic-release ran in', () => {
+  // Both exec commands pass an absolute --dir, so the release does not depend
+  // on being invoked from the package directory.
+  const { stdout } = cli(['2.0.1', `--dir=${MIGRATE}`], '/', () => {});
+  assert.equal(
+    JSON.parse(stdout).url,
+    'https://www.npmjs.com/package/bestax-migrate/v/2.0.1'
+  );
+});
+
+test('a non-default registry gets no npmjs.com link', () => {
+  // Upstream omits the url rather than linking to a page that will 404, and
+  // matching that is the point: a broken link presented as the release
+  // artifact is worse than the bare tag.
+  const info = releaseInfo('x', '1.0.0', 'latest', 'https://npm.example.test/');
+  assert.equal(info.url, undefined);
+  assert.equal(info.name, 'npm package (@latest dist-tag)');
+  // The default registry still links.
+  assert.ok(
+    releaseInfo('x', '1.0.0', 'latest', 'https://registry.npmjs.org/').url
+  );
+  assert.ok(releaseInfo('x', '1.0.0').url);
+});
+
 test('the publishCmd sends pnpm output to stderr and calls this script', async () => {
   // The redirect is what makes stdout parseable. Losing it silently reverts
   // the bare-tag comment, so it is pinned rather than left to review.
@@ -74,8 +124,11 @@ test('the publishCmd sends pnpm output to stderr and calls this script', async (
     p => Array.isArray(p) && p[0] === '@semantic-release/exec'
   );
   assert.match(exec[1].publishCmd, /1>&2/);
-  assert.match(
-    exec[1].publishCmd,
-    /npm-release-info\.mjs \$\{nextRelease\.version\}/
-  );
+  assert.match(exec[1].publishCmd, /npm-release-info\.mjs/);
+  assert.match(exec[1].publishCmd, /--dir=/);
+  assert.match(exec[1].publishCmd, /\$\{nextRelease\.version\}$/);
+  // Absolute paths, so neither command depends on the cwd semantic-release was
+  // invoked from.
+  assert.doesNotMatch(exec[1].publishCmd, /\.\.\/scripts/);
+  assert.doesNotMatch(exec[1].verifyConditionsCmd, /\.\.\/scripts/);
 });

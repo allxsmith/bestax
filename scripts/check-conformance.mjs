@@ -42,7 +42,7 @@
  *                        passed (#391)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname } from 'node:path';
+import { join, relative, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
@@ -1102,9 +1102,14 @@ export function classifyPublisher(config) {
   // a publish, and a substring match would hand it the exemption. Newlines
   // split too: a multi-line publishCmd is ordinary exec usage.
   const publishesWithPnpm = cmd =>
-    cmd
-      .split(/&&|\|\||[;|\n]/)
-      .some(segment => /^\s*pnpm\s+publish(\s|$)/.test(segment));
+    cmd.split(/&&|\|\||[;|\n]/).some(
+      segment =>
+        /^\s*pnpm\s+publish(\s|$)/.test(segment) &&
+        // A dry run uploads nothing, so it cannot earn the exemption. The
+        // exemption is the only verdict that switches the rule off, so
+        // anything short of a real publish has to miss it.
+        !/(^|\s)--dry-run(\s|=|$)/.test(segment)
+    );
 
   const pnpmPublishes = entries.some(
     ([name, cfg]) =>
@@ -1161,12 +1166,25 @@ export function manifestViolations(dir, pkg, publisher) {
  * path that has moved fails during the release rather than in CI — the one
  * moment where a failure is most expensive.
  */
+// Every place semantic-release accepts a plugin list. `plugins` plus the
+// per-step arrays: an exec command in `prepare` names a script just as much as
+// one in `publish`, and checking only some of them is the same partial-shape
+// mistake classifyPublisher was fixed for.
+const STEP_KEYS = [
+  'plugins',
+  'verifyConditions',
+  'analyzeCommits',
+  'verifyRelease',
+  'generateNotes',
+  'prepare',
+  'publish',
+  'addChannel',
+  'success',
+  'fail',
+];
+
 function missingExecScripts(dir, config) {
-  const cmds = [
-    ...pluginEntries(config?.plugins),
-    ...pluginEntries(config?.publish),
-    ...pluginEntries(config?.verifyConditions),
-  ]
+  const cmds = STEP_KEYS.flatMap(key => pluginEntries(config?.[key]))
     .filter(([name]) => name === '@semantic-release/exec')
     .flatMap(([, cfg]) => Object.values(cfg ?? {}))
     .filter(c => typeof c === 'string');
@@ -1174,12 +1192,22 @@ function missingExecScripts(dir, config) {
   const referenced = new Set();
   for (const cmd of cmds) {
     for (const token of cmd.split(/\s+/)) {
+      // Path-shaped only. A bare `bundle.js` or a `--require=./polyfill.js`
+      // flag is not a script this should demand exists, and reporting one as
+      // missing would red CI over a correct config.
+      if (token.startsWith('-')) continue;
+      if (!token.includes('/')) continue;
       if (/\.(mjs|cjs|js)$/.test(token)) referenced.add(token);
     }
   }
-  // Paths are resolved from the package directory, which is the cwd
-  // semantic-release runs each package's release from.
-  return [...referenced].map(rel => ({ rel, abs: join(REPO, dir, rel) }));
+  // A command may name a script absolutely (the robust form, since exec's cwd
+  // is wherever semantic-release was invoked) or relative to the package
+  // directory. Resolving a relative path against REPO/dir matches the cwd
+  // ci.yml sets.
+  return [...referenced].map(rel => ({
+    rel,
+    abs: isAbsolute(rel) ? rel : join(REPO, dir, rel),
+  }));
 }
 
 async function checkPublishableManifests() {
@@ -1207,22 +1235,30 @@ async function checkPublishableManifests() {
 
     // Imported rather than string-matched: the release config is a module and
     // its plugin list is the thing being classified.
+    //
+    // Absence and breakage are deliberately NOT the same case. A package with
+    // no release.config.js simply does not publish through semantic-release,
+    // which is fine. A config that exists and throws is a release-breaking
+    // problem, and swallowing it would let this report all clear on a package
+    // whose config cannot load at all.
     const configPath = join(REPO, dir, 'release.config.js');
     let config;
-    try {
-      ({ default: config } = await import(pathToFileURL(configPath).href));
-    } catch {
-      // Only an error if there is something to exempt. A publishable package
-      // with no pack-time specifier needs no release config to be readable.
-      if (manifestViolations(dir, pkg, 'unknown').length) {
+    const configExists = await access(configPath).then(
+      () => true,
+      () => false
+    );
+    if (configExists) {
+      try {
+        ({ default: config } = await import(pathToFileURL(configPath).href));
+      } catch (err) {
         violations.push(
-          `${dir}/package.json declares a pack-time specifier but ` +
-            `${dir}/release.config.js could not be read, so there is no way ` +
-            `to tell whether it publishes with \`pnpm publish\` (which ` +
-            `resolves it) or \`npm publish\` (which ships it verbatim, #412).`
+          `${dir}/release.config.js exists but could not be loaded: ` +
+            `${err.message}. semantic-release would fail on it during the ` +
+            `release, and nothing here can classify how ${dir} publishes ` +
+            `until it loads.`
         );
+        continue;
       }
-      continue;
     }
 
     violations.push(...manifestViolations(dir, pkg, classifyPublisher(config)));
@@ -1233,8 +1269,8 @@ async function checkPublishableManifests() {
       } catch {
         violations.push(
           `${dir}/release.config.js runs "${rel}" from an ` +
-            `@semantic-release/exec command, but ${dir}/${rel} does not ` +
-            `exist. Naming a script is not the same as shipping it: this ` +
+            `@semantic-release/exec command, but ${relative(REPO, abs)} does ` +
+            `not exist. Naming a script is not the same as shipping it: this ` +
             `would fail during the release rather than in CI, after the ` +
             `release commit and tag are already pushed (#436).`
         );
