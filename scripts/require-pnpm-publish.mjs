@@ -77,7 +77,22 @@ export function isPnpmPublish(execPath) {
 }
 
 export function main(env = process.env, log = console.error) {
-  if (isPnpmPublish(env.npm_execpath)) return 0;
+  if (isPnpmPublish(env.npm_execpath)) {
+    // A hand-run `pnpm publish` is allowed, and silently produces neither
+    // provenance nor an embedded README: those flags live in the release
+    // config's publishCmd, and this package deliberately carries no
+    // publishConfig.provenance for pnpm to fall back on. CI passes them, so say
+    // nothing there; a human gets one line before the tarball goes out.
+    if (!env.CI && !env.GITHUB_ACTIONS) {
+      log(
+        'require-pnpm-publish: publishing by hand. `--provenance ' +
+          '--embed-readme` are not defaults here and CI passes them for you; ' +
+          'without them this release ships unattested and its npm page loses ' +
+          'its README.'
+      );
+    }
+    return 0;
+  }
   log(
     'This package must be published with `pnpm publish`, not ' +
       `\`npm publish\` (packer: ${env.npm_execpath}).\n` +

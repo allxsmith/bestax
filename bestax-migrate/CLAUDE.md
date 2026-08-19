@@ -122,10 +122,12 @@ mistake, not a proof. Check what a manifest will actually ship with
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
 typecheck target for the e2e, never imported at runtime, and consumers of a
 codemod CLI must not be made to install the component library. That is a policy
-rule, not a protocol one: `pnpm check:conformance --only=publishable-manifests`
-does **not** enforce it (and now exempts this package from the protocol rule
-entirely, since pnpm resolves it), so re-adding the library as a plain-semver
-runtime dependency passes CI. That one is on review.
+rule, not a protocol one, and the conformance check enforces only part of it.
+The pack-time exemption this package gets is narrow: `workspace:`/`catalog:` in
+**devDependencies** only. Moving the library to `dependencies` as `workspace:^`
+is flagged (consumers would be made to install it), but re-adding it as a
+**plain semver range** still passes CI, because that is a policy question rather
+than a protocol one. That one is on review.
 
 The skill lives at repo-root
 `skills/bestax-migrate/`. It **is** bundled into create-bestax (settled in #385): the

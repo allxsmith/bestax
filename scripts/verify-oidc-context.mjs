@@ -74,11 +74,18 @@ export function main(
   log = console.log,
   argv = process.argv.slice(2)
 ) {
-  // Printed on stdout, not stderr: @semantic-release/exec builds its
-  // SemanticReleaseError message from the command's stdout, so an explanation
-  // on stderr shows up only in the scrollback while the surfaced failure reads
-  // "Command failed with exit code 1". The whole value of this guard is telling
-  // the next person what went wrong.
+  // Printed on stdout rather than stderr, but NOT for the reason it is tempting
+  // to write down. @semantic-release/exec looks like it builds its
+  // SemanticReleaseError message from the command's stdout, and its own code
+  // says so — but the test is `error.stdout.trim.length > 0`, and
+  // `String.prototype.trim.length` is the function's arity, 0. So `0 > 0` is
+  // always false and that branch is dead in 7.1.0: every exec failure surfaces
+  // as `${error.name}: ${error.message}`.
+  //
+  // What actually carries this text is exec piping both streams to the job log,
+  // which works either way. stdout is kept because it is where the explanation
+  // WOULD be quoted if upstream fixes that typo, and because the exit code, not
+  // the stream, is what fails the step.
   const { ok, skipped, missing } = checkOidcContext(env, {
     dryRun: argv.includes('--dry-run'),
   });

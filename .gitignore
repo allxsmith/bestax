@@ -72,7 +72,6 @@ web_modules/
 # Output of 'npm pack'
 *.tgz
 bulma-ui/CLAUDE.md.bak
-bestax-migrate/package.json.pack-backup
 
 # Yarn Integrity file
 .yarn-integrity
