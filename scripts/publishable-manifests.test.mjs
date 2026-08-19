@@ -25,7 +25,7 @@ import { readFileSync } from 'node:fs';
 import {
   classifyPublisher,
   manifestViolations,
-  missingExecScripts,
+  referencedScripts,
   parseWorkspacePackages,
   tokenize,
 } from './check-conformance.mjs';
@@ -444,14 +444,14 @@ test('tokenize keeps a quoted path with a space as one token', () => {
 });
 
 const collect = (config, pkg) =>
-  missingExecScripts('somepkg', config, pkg).map(r => r.rel);
+  referencedScripts('somepkg', config, pkg).map(r => r.rel);
 
 test('an exec command in ANY step has its script collected', () => {
   // Scanning three of semantic-release's ten step keys meant a prepareCmd
   // naming a moved script failed mid-release instead of in CI.
   for (const step of ['plugins', 'prepare', 'success', 'fail', 'addChannel']) {
     const entry = ['@semantic-release/exec', { cmd: 'node ./scripts/x.mjs' }];
-    const config = { [step]: step === 'plugins' ? [entry] : [entry] };
+    const config = { [step]: [entry] };
     assert.deepEqual(
       collect(config, {}),
       ['./scripts/x.mjs'],
@@ -509,7 +509,7 @@ test('lifecycle hooks are scanned, other scripts are not', () => {
 test('each path is attributed to the file it came from', () => {
   // A violation that blames the wrong file sends the maintainer to the wrong
   // place.
-  const rows = missingExecScripts(
+  const rows = referencedScripts(
     'somepkg',
     { plugins: [['@semantic-release/exec', { cmd: 'node ./a.mjs' }]] },
     { scripts: { prepack: 'node ./b.mjs' } }
@@ -519,10 +519,79 @@ test('each path is attributed to the file it came from', () => {
 });
 
 test('an absolute path is not re-rooted under the package directory', () => {
-  const rows = missingExecScripts(
+  const rows = referencedScripts(
     'somepkg',
     { plugins: [['@semantic-release/exec', { cmd: "node '/abs/x.mjs'" }]] },
     {}
   );
   assert.equal(rows[0].abs, '/abs/x.mjs');
+});
+
+// --- the narrowed exemption --------------------------------------------------
+
+test('a pnpm publisher is exempt only in devDependencies', () => {
+  // The exemption replaced an unconditional rule that flagged a pack-time
+  // protocol in any consumer-resolved section. Protocol-correct under pnpm, but
+  // it still makes every consumer install the dependency, which is what the old
+  // rule caught.
+  assert.deepEqual(
+    manifestViolations('d', { devDependencies: { x: 'workspace:^' } }, 'pnpm'),
+    []
+  );
+  for (const section of [
+    'dependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ]) {
+    const v = manifestViolations(
+      'd',
+      { [section]: { x: 'workspace:^' } },
+      'pnpm'
+    );
+    assert.equal(v.length, 1, `${section} must still be flagged`);
+    assert.match(v[0], /made to install/);
+    // The old shared tail told a pnpm publisher to switch to pnpm publish.
+    assert.doesNotMatch(v[0], /hand this package's publish step/);
+  }
+});
+
+test('a pnpm publisher is not exempt for protocols pnpm does not resolve', () => {
+  for (const spec of ['jsr:@scope/pkg@^1', 'link:../sibling']) {
+    const v = manifestViolations('d', { devDependencies: { x: spec } }, 'pnpm');
+    assert.equal(v.length, 1, `${spec} must be flagged even for pnpm`);
+    assert.doesNotMatch(
+      v[0],
+      /EUNSUPPORTEDPROTOCOL/,
+      'wrong failure mode cited'
+    );
+  }
+});
+
+test('link: is a violation for npm too', () => {
+  // Neither publisher rewrites it: pnpm's converter chain is
+  // workspace/catalog/jsr, and npm has no link: protocol at all.
+  assert.equal(
+    manifestViolations('d', { dependencies: { x: 'link:../y' } }, 'npm').length,
+    1
+  );
+});
+
+test('a relative exec script resolves against execCwd when the plugin sets one', () => {
+  // bestax-migrate sets execCwd, so ignoring it would check the wrong path:
+  // a false "does not exist" on a working config, or worse, silence on a
+  // genuinely missing one.
+  const rows = referencedScripts(
+    'somepkg',
+    {
+      plugins: [
+        [
+          '@semantic-release/exec',
+          { execCwd: '..', prepareCmd: 'node ./scripts/gen.mjs' },
+        ],
+      ],
+    },
+    {}
+  );
+  assert.match(rows[0].abs, /\/scripts\/gen\.mjs$/);
+  assert.doesNotMatch(rows[0].abs, /somepkg/);
 });

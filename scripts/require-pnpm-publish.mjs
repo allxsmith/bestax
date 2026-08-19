@@ -69,7 +69,11 @@ import { pathToFileURL } from 'node:url';
 export function isPnpmPublish(execPath) {
   if (!execPath) return true;
   const binary = String(execPath).trim().split(/[\\/]/).pop() ?? '';
-  return /^pnpm(\.[cm]?js)?$/.test(binary);
+  // Windows extensions included, and case-insensitively: pnpm is `pnpm.cmd` or
+  // `pnpm.exe` there. Refusing those would block a real release from inside
+  // `prepublishOnly`, after semantic-release has pushed the commit and tag,
+  // which is the one direction this must not fail in.
+  return /^pnpm(\.(c|m)?js|\.cmd|\.exe|\.bat|\.ps1)?$/i.test(binary);
 }
 
 export function main(env = process.env, log = console.error) {
@@ -85,8 +89,12 @@ export function main(env = process.env, log = console.error) {
       '1.0.0).\n' +
       '\n' +
       'Releases are automated and run from CI. If you really are publishing ' +
-      'by hand, use `pnpm publish` and check the tarball first with ' +
-      '`pnpm -C bestax-migrate pack`.'
+      'by hand, the flags are not optional either, because this package no ' +
+      'longer carries a publishConfig.provenance for pnpm to read:\n' +
+      '\n' +
+      '  pnpm publish --provenance --embed-readme --access public\n' +
+      '\n' +
+      'Check what it would ship first with `pnpm -C bestax-migrate pack`.'
   );
   return 1;
 }

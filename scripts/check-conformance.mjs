@@ -42,7 +42,13 @@
  *                        passed (#391)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname, isAbsolute } from 'node:path';
+import {
+  join,
+  relative,
+  dirname,
+  isAbsolute,
+  resolve as resolvePath,
+} from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
@@ -50,6 +56,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // variable tables need. Key extraction is byte-for-byte the behaviour this file
 // used to implement inline (verified against all 26 partials).
 import { registerVarsKeys } from './lib/scss-vars.mjs';
+// The inverse of the quoting bestax-migrate/release.config.js uses to build its
+// exec commands. Shared so the two halves cannot drift (#436).
+import { tokenize } from './lib/shell-words.mjs';
 import { readRegions, sectionSpans } from './lib/api-page.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
@@ -1032,7 +1041,11 @@ export function parseWorkspacePackages(yaml) {
  * conservative one — the honest fix there is to move that package to
  * `pnpm publish` too.
  */
-const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:', 'jsr:'];
+// Every protocol that is meaningful inside this workspace and is not a plain
+// installable specifier once published. `link:` is here because npm cannot
+// resolve it and pnpm does not rewrite it either (its export converter chain is
+// workspace/catalog/jsr only), so it is a violation for BOTH publishers.
+const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:', 'jsr:', 'link:'];
 
 // Of those, the ones `pnpm publish` turns into a plain, installable semver
 // range. That is what makes a pnpm publisher safe to exempt, and it is NOT
@@ -1153,36 +1166,61 @@ export function manifestViolations(dir, pkg, publisher, hasConfig = true) {
     Object.entries(pkg?.[section] ?? {})
       .filter(([, spec]) => hasPackTimeProtocol(spec))
       .map(([name, spec]) => ({ section, name, spec }))
-  ).filter(({ spec }) => {
-    // A pnpm publisher is exempt only for the protocols pnpm turns into a
-    // plain range. jsr: is rewritten to an aliased @jsr specifier, so it stays
-    // a violation no matter who publishes.
+  ).filter(({ section, spec }) => {
     if (publisher !== 'pnpm') return true;
-    return !PNPM_RESOLVES_TO_PLAIN_RANGE.some(pr => spec.startsWith(pr));
+    // The exemption is narrower than "this package publishes with pnpm" in two
+    // ways, both of which were lost when it replaced the old unconditional
+    // rule and are restored here.
+    //
+    // By protocol: only the ones pnpm turns into a plain range. jsr: becomes an
+    // aliased `npm:@jsr/…` specifier and link: is not rewritten at all.
+    if (!PNPM_RESOLVES_TO_PLAIN_RANGE.some(pr => spec.startsWith(pr))) {
+      return true;
+    }
+    // By section: only devDependencies, which is the case the deleted pack
+    // hooks covered. A workspace package in a section consumers resolve is
+    // protocol-correct under pnpm but still makes every consumer install it,
+    // which the old rule caught and bestax-migrate/CLAUDE.md calls a hard rule.
+    return section !== 'devDependencies';
   });
   if (!offenders.length) return [];
 
   return offenders.map(({ section, name, spec }) => {
     const protocol = spec.slice(0, spec.indexOf(':') + 1);
+    // Branch-specific, because the shared tail used to tell a pnpm publisher to
+    // "hand this package's publish step to `pnpm publish`", which it already
+    // does, and blamed EUNSUPPORTEDPROTOCOL for a case that fails as E404.
+    if (publisher === 'pnpm') {
+      const why =
+        section !== 'devDependencies' &&
+        PNPM_RESOLVES_TO_PLAIN_RANGE.some(pr => spec.startsWith(pr))
+          ? `\`pnpm publish\` resolves ${protocol} to a real range, so this ` +
+            `installs — but it is in ${section}, so every consumer of this ` +
+            `package is made to install "${name}" too. Move it to ` +
+            `devDependencies if only this package's build or tests need it.`
+          : `\`pnpm publish\` does not turn ${protocol} into a plain range ` +
+            `(${protocol === 'jsr:' ? 'it rewrites it to an aliased `npm:@jsr/…` specifier, which resolves only for consumers who have configured the @jsr registry' : 'it does not rewrite it at all, so npm and pnpm consumers alike cannot resolve it'}). ` +
+            `Give it a plain semver range.`;
+      return (
+        `${dir}/package.json declares "${name}": "${spec}" in ${section}. ` +
+        why
+      );
+    }
+
     const how =
-      publisher === 'pnpm'
-        ? `${dir}/release.config.js publishes with \`pnpm publish\`, which ` +
-          `rewrites the ${protocol} protocol to an aliased \`npm:@jsr/…\` ` +
-          'specifier rather than a plain range, so it installs only for ' +
-          'consumers who have configured the @jsr registry'
-        : publisher === 'npm'
-          ? `${dir}/release.config.js publishes with \`npm publish\`, which ` +
-            `does not resolve the ${protocol} protocol`
-          : hasConfig
-            ? `${dir}/release.config.js declares no publish mechanism this ` +
-              'check recognises (expected an `@semantic-release/npm` entry, or ' +
-              '`@semantic-release/exec` with a `publishCmd` that runs `pnpm ' +
-              `publish\`), so it cannot be assumed to resolve the ${protocol} ` +
-              'protocol'
-            : // Naming a file that is not there would send the maintainer
-              // somewhere that does not exist.
-              `${dir} has no release.config.js, so nothing establishes that ` +
-              `the ${protocol} protocol gets resolved before publishing`;
+      publisher === 'npm'
+        ? `${dir}/release.config.js publishes with \`npm publish\`, which ` +
+          `does not resolve the ${protocol} protocol`
+        : hasConfig
+          ? `${dir}/release.config.js declares no publish mechanism this ` +
+            'check recognises (expected an `@semantic-release/npm` entry, or ' +
+            '`@semantic-release/exec` with a `publishCmd` that runs `pnpm ' +
+            `publish\`), so it cannot be assumed to resolve the ${protocol} ` +
+            'protocol'
+          : // Naming a file that is not there would send the maintainer
+            // somewhere that does not exist.
+            `${dir} has no release.config.js, so nothing establishes that ` +
+            `the ${protocol} protocol gets resolved before publishing`;
     return (
       `${dir}/package.json declares "${name}": "${spec}" in ${section}, and ` +
       `${how}. The published package would be ` +
@@ -1217,6 +1255,8 @@ const STEP_KEYS = [
   'fail',
 ];
 
+export { tokenize };
+
 /**
  * Script paths named by a shell command. Path-shaped tokens only: a bare
  * `bundle.js` or a `--require=./polyfill.js` flag is not a script to demand
@@ -1225,16 +1265,6 @@ const STEP_KEYS = [
 // Quoted segments count as one token. Splitting on whitespace alone would
 // shred a path containing a space into fragments and then report them as
 // missing scripts.
-// A token is a run of quoted and unquoted chunks with no whitespace between
-// them, so `--dir='/My Projects/x'` stays one token. Matching quotes as
-// separate alternatives instead would split it at the `=`, because the
-// unquoted branch consumes `--dir='/My` before the quote is ever seen.
-const TOKEN_RE = /(?:'[^']*'|"[^"]*"|[^\s'"]+)+/g;
-
-export function tokenize(cmd) {
-  return (cmd.match(TOKEN_RE) ?? []).map(t => t.replace(/['"]/g, ''));
-}
-
 function scriptTokens(cmds) {
   const referenced = new Set();
   for (const cmd of cmds) {
@@ -1261,11 +1291,16 @@ const LIFECYCLE_HOOKS = [
   'postpublish',
 ];
 
-export function missingExecScripts(dir, config, pkg) {
-  const cmds = STEP_KEYS.flatMap(key => pluginEntries(config?.[key]))
-    .filter(([name]) => name === '@semantic-release/exec')
+export function referencedScripts(dir, config, pkg) {
+  const execEntries = STEP_KEYS.flatMap(key =>
+    pluginEntries(config?.[key])
+  ).filter(([name]) => name === '@semantic-release/exec');
+
+  const cmds = execEntries
     .flatMap(([, cfg]) => Object.values(cfg ?? {}))
     .filter(c => typeof c === 'string');
+
+  const execCwd = execEntries.map(([, cfg]) => cfg?.execCwd).find(Boolean);
 
   // Lifecycle hooks name scripts the same way and fail at the same expensive
   // moment. prepublishOnly is the one that matters here: it is what refuses a
@@ -1288,10 +1323,19 @@ export function missingExecScripts(dir, config, pkg) {
   // is wherever semantic-release was invoked) or relative to the package
   // directory. Resolving a relative path against REPO/dir matches the cwd
   // ci.yml sets.
+  // Relative paths resolve against the cwd the command will actually run in.
+  // For an exec plugin that is `execCwd` when set (bestax-migrate sets it);
+  // for a lifecycle hook it is always the package root, since npm and pnpm both
+  // run those from there.
+  const base = source =>
+    source === 'release.config.js' && execCwd
+      ? resolvePath(join(REPO, dir), execCwd)
+      : join(REPO, dir);
+
   return [...referenced].map(([rel, source]) => ({
     rel,
     source,
-    abs: isAbsolute(rel) ? rel : join(REPO, dir, rel),
+    abs: isAbsolute(rel) ? rel : join(base(source), rel),
   }));
 }
 
@@ -1326,13 +1370,37 @@ async function checkPublishableManifests() {
     // which is fine. A config that exists and throws is a release-breaking
     // problem, and swallowing it would let this report all clear on a package
     // whose config cannot load at all.
-    const configPath = join(REPO, dir, 'release.config.js');
+    // semantic-release reads any of these, so "no release.config.js" is only
+    // an honest thing to say when none of them is present.
+    const CONFIG_NAMES = [
+      'release.config.js',
+      'release.config.mjs',
+      'release.config.cjs',
+      '.releaserc',
+      '.releaserc.json',
+      '.releaserc.yaml',
+      '.releaserc.yml',
+      '.releaserc.js',
+    ];
+    let configPath = join(REPO, dir, 'release.config.js');
+    let configExists = false;
+    for (const name of CONFIG_NAMES) {
+      const candidate = join(REPO, dir, name);
+      // eslint-disable-next-line no-await-in-loop
+      if (
+        await access(candidate).then(
+          () => true,
+          () => false
+        )
+      ) {
+        configPath = candidate;
+        configExists = true;
+        break;
+      }
+    }
+    if (!configExists && pkg.release) configExists = true;
     let config;
-    const configExists = await access(configPath).then(
-      () => true,
-      () => false
-    );
-    if (configExists) {
+    if (configExists && /\.[cm]?js$/.test(configPath)) {
       try {
         ({ default: config } = await import(pathToFileURL(configPath).href));
       } catch (err) {
@@ -1346,11 +1414,29 @@ async function checkPublishableManifests() {
       }
     }
 
-    violations.push(
-      ...manifestViolations(dir, pkg, classifyPublisher(config), configExists)
-    );
+    const publisher = classifyPublisher(config);
+    violations.push(...manifestViolations(dir, pkg, publisher, configExists));
 
-    for (const { rel, source, abs } of missingExecScripts(dir, config, pkg)) {
+    // The exemption assumes pnpm packs this package, and the only thing making
+    // that true outside CI is the prepublishOnly guard. Without it, a package
+    // gets the exemption and loses the guard at the same moment, which is the
+    // combination that ships an unresolved specifier with no signal.
+    if (publisher === 'pnpm') {
+      const hook = pkg.scripts?.prepublishOnly ?? '';
+      if (!hook.includes('require-pnpm-publish.mjs')) {
+        violations.push(
+          `${dir} is exempt from the pack-time protocol rule because it ` +
+            `publishes with \`pnpm publish\`, but it does not run ` +
+            `scripts/require-pnpm-publish.mjs on prepublishOnly. The ` +
+            `exemption then holds only for releases from CI: a hand-run ` +
+            `\`npm publish\` in that directory would ship the specifier ` +
+            `verbatim (#412). Add "prepublishOnly": "node ` +
+            `../scripts/require-pnpm-publish.mjs".`
+        );
+      }
+    }
+
+    for (const { rel, source, abs } of referencedScripts(dir, config, pkg)) {
       try {
         await access(abs);
       } catch {

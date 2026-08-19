@@ -59,9 +59,37 @@ test('the user agent is NOT the signal, because npm relays it', () => {
   );
 });
 
-test('a windows-style path is handled', () => {
-  assert.equal(isPnpmPublish('C:\\Users\\x\\pnpm.cjs'), true);
-  assert.equal(isPnpmPublish('C:\\Program Files\\nodejs\\npm-cli.js'), false);
+test('a windows pnpm is allowed, in every form it ships as', () => {
+  // pnpm is pnpm.cmd or pnpm.exe on Windows. Refusing those blocks a real
+  // release from inside prepublishOnly, after the commit and tag are pushed —
+  // the one direction this guard must not fail in.
+  for (const p of [
+    'C:\\Users\\x\\pnpm.cmd',
+    'C:\\Users\\x\\pnpm.exe',
+    'C:\\Users\\x\\pnpm.CJS',
+    'C:\\Users\\x\\pnpm.cjs',
+    'C:\\Users\\x\\pnpm.bat',
+    'C:\\Users\\x\\pnpm.ps1',
+  ]) {
+    assert.equal(isPnpmPublish(p), true, `${p} is pnpm and must be allowed`);
+  }
+  for (const p of [
+    'C:\\Program Files\\nodejs\\npm-cli.js',
+    'C:\\Users\\x\\npm.cmd',
+    'C:\\Users\\x\\yarn.cmd',
+  ]) {
+    assert.equal(isPnpmPublish(p), false, `${p} is not pnpm`);
+  }
+});
+
+test('the refusal spells out the flags a hand publish would otherwise lose', () => {
+  // publishConfig.provenance was removed from the manifest, so a hand
+  // `pnpm publish` — the one path this guard permits — produces no provenance
+  // and no embedded README unless the flags are passed.
+  let msg = '';
+  main({ npm_execpath: NPM }, m => (msg = m));
+  assert.match(msg, /--provenance/);
+  assert.match(msg, /--embed-readme/);
 });
 
 test('an absent execpath is allowed, not refused', () => {

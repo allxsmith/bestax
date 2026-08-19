@@ -99,9 +99,18 @@ old `prepack` hook rewrote `workspace:^` for whatever was packing, so it covered
 manual publish as well as the release pipeline. Deleting it left the guarantee
 living only in `release.config.js`, which the conformance rule then exempts
 precisely because pnpm handles it, so the specifier had no mechanical guard at all
-outside CI. `prepublishOnly` now runs `scripts/require-pnpm-publish.mjs`, which
-refuses any publisher that is not pnpm (both `npm publish` and `pnpm publish` run
-that hook, and they identify themselves in `npm_config_user_agent`).
+outside CI. `prepublishOnly` now runs repo-root `scripts/require-pnpm-publish.mjs`
+(not `bestax-migrate/scripts/`, which still exists for `validate-corpus.mjs`),
+which refuses any publisher that is not pnpm. Both `npm publish` and `pnpm
+publish` run that hook.
+
+**It keys on `npm_execpath`, not `npm_config_user_agent`, and that is not a
+detail to tidy up.** The user agent is inherited: npm relays whatever it finds,
+so `pnpm exec npm publish` runs the hook reporting `pnpm/…` while npm assembles
+the tarball, and an agent check waves it through. `npm_execpath` is rewritten by
+whichever process actually runs the script, so it names the real packer.
+`pnpm check:conformance` also refuses to grant this package its protocol
+exemption unless that hook is wired, so the two cannot drift apart.
 
 It covers the realistic mistake, not every path. `--ignore-scripts` skips the
 hook outright (both npm and pnpm gate lifecycle scripts on it), `npm pack` runs

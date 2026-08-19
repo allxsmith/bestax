@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { quote as sh } from '../scripts/lib/shell-words.mjs';
 
 // Absolute, so neither exec command depends on the cwd semantic-release was
 // invoked from. It works today only because ci.yml sets `working-directory`,
@@ -9,8 +10,8 @@ const SCRIPTS = path.join(PKG_DIR, '..', 'scripts');
 
 // These paths go into a shell string, so a checkout under a directory with a
 // space would otherwise split into two arguments and fail with a confusing
-// "Cannot find module".
-const sh = value => `'${String(value).replace(/'/g, `'\\''`)}'`;
+// "Cannot find module". Shared with the conformance check, which has to undo
+// exactly this quoting to find the scripts these commands name.
 
 export default {
   branches: ['main'],
