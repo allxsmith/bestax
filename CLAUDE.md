@@ -89,9 +89,12 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
   become permanent (#391). A blocking audit gate plus the cooldown means a fresh advisory can red
   every open PR — CONTRIBUTING.md has the runbook.
 - Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
-- Published packages must not ship a `workspace:` or `catalog:` specifier — `npm publish`
-  (what semantic-release runs) resolves neither, and the tarball becomes uninstallable
-  (#412). `check:conformance --only=publishable-manifests` enforces this.
+- **How a package publishes decides what its manifest may contain.** `npm publish` resolves
+  neither `workspace:` nor `catalog:`, so a package published that way must not ship either —
+  the tarball becomes uninstallable (#412). bestax-migrate hands its publish step to
+  `pnpm publish` instead (#436), which resolves every pnpm shape, so it is exempt.
+  `check:conformance --only=publishable-manifests` reads each package's `release.config.js`
+  to tell which rule applies, rather than assuming.
 
 ## Workflow
 

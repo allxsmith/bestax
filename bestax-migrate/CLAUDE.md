@@ -62,19 +62,44 @@ each source library registers in `src/sources/registry.ts`; the first is
 ## Releases
 
 Independent semantic-release, keyed off the `bestax-migrate` commit scope
-(`release.config.js`, tag `bestax-migrate@x.y.z`). Publishing goes through
-`npm publish`, which — unlike `pnpm publish` — does **not** resolve pnpm's
-`workspace:` protocol, so `workspace:^` shipped verbatim in 1.0.0 and made the
-package uninstallable (#412). Two rules follow: `@allxsmith/bestax-bulma` stays
-a **devDependency** (it is only the typecheck target for the e2e, never
-imported at runtime — consumers of a codemod CLI must not be made to install
-the component library), and `scripts/pack-manifest.mjs` resolves any remaining
-`workspace:` specifier during `prepack`/`postpack`. `pnpm check:conformance
---only=publishable-manifests` enforces the protocol half of both: no
-`workspace:`/`catalog:` specifier in the sections consumers resolve, and one
-left in `devDependencies` only with the pack hooks present. It does **not**
-check which section `@allxsmith/bestax-bulma` sits in — re-adding it as a
-plain-semver runtime dependency passes CI, so that one is on review. The skill lives at repo-root
+(`release.config.js`, tag `bestax-migrate@x.y.z`).
+
+**This is the one package that publishes with `pnpm publish`, not `npm publish`
+(#436).** `npm publish` does not resolve pnpm's `workspace:` protocol, so
+`workspace:^` shipped verbatim in 1.0.0 and made the package uninstallable
+(#412). That was patched by a `prepack` hook reimplementing pnpm's rewrite, and
+the reimplementation was wrong twice in one review — so the publish step now
+goes to `@semantic-release/exec` running `pnpm publish`, which resolves every
+pnpm specifier shape by construction. `@semantic-release/npm` stays in the chain
+with `npmPublish: false` purely for its `prepare` step, which writes the version
+`@semantic-release/git` then commits.
+
+Three things about that split are load-bearing, and none of them fails loudly:
+
+- **`--provenance` is required.** pnpm reads `publishConfig.registry` and
+  `.access` but takes `provenance` from options only, so the `provenance: true`
+  in `publishConfig` is inert here. Drop the flag and #411's provenance quietly
+  stops being produced.
+- **`--embed-readme` is required.** pnpm defaults it to false where npm defaults
+  it to true; without it the npmjs.com page loses its README.
+- **The auth pre-flight is weaker than it was.** `@semantic-release/npm`
+  exchanged a real OIDC token during `verifyConditions`. With `npmPublish: false`
+  that is off, and semantic-release finishes every `prepare` step — the release
+  commit and the tag — before the first `publish` step. So a failed publish
+  leaves both behind and spends the version.
+  `scripts/verify-oidc-context.mjs` runs as the exec plugin's
+  `verifyConditionsCmd` and checks only that an OIDC context exists; it does not
+  prove npm will accept the token.
+
+`@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
+typecheck target for the e2e, never imported at runtime, and consumers of a
+codemod CLI must not be made to install the component library. That is a policy
+rule, not a protocol one: `pnpm check:conformance --only=publishable-manifests`
+does **not** enforce it (and now exempts this package from the protocol rule
+entirely, since pnpm resolves it), so re-adding the library as a plain-semver
+runtime dependency passes CI. That one is on review.
+
+The skill lives at repo-root
 `skills/bestax-migrate/`. It **is** bundled into create-bestax (settled in #385): the
 original existing-sites-only policy lost to one uniform bundle, and the skill sits idle
 in a fresh scaffold until legacy imports show up. The canonical roster of surfaces that

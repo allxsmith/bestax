@@ -21,9 +21,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "clean": "rimraf dist",
-    "release": "npx semantic-release",
-    "prepack": "node scripts/pack-manifest.mjs prepack",
-    "postpack": "node scripts/pack-manifest.mjs postpack"
+    "release": "npx semantic-release"
   },
   "keywords": [
     "bestax",

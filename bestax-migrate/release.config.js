@@ -44,10 +44,59 @@ export default {
         changelogFile: 'CHANGELOG.md',
       },
     ],
+    // Publishing is split deliberately (#436). This plugin keeps its `prepare`
+    // step — that is what writes nextRelease.version into package.json for
+    // @semantic-release/git to commit — but its `publish` step shells out to
+    // `npm publish`, which does not resolve pnpm's `workspace:` protocol and
+    // shipped an uninstallable 1.0.0 because of it (#412). So the publish half
+    // goes to `pnpm publish` below, which resolves every pnpm specifier shape
+    // by construction rather than by a script of ours reimplementing a subset.
+    //
+    // `npmPublish: false` also switches off this plugin's npm auth check in
+    // verifyConditions — see verifyConditionsCmd on the exec plugin for what
+    // partially replaces it, and why only partially.
     [
       '@semantic-release/npm',
       {
         pkgRoot: '.',
+        npmPublish: false,
+      },
+    ],
+    [
+      '@semantic-release/exec',
+      {
+        // Guards the one failure this swap newly introduces rather than
+        // inherits: with npmPublish false, nothing exchanges an OIDC token
+        // during verifyConditions any more, and semantic-release runs every
+        // `prepare` step (including the release commit and tag) before any
+        // `publish` step. The script says what it does and does not prove.
+        verifyConditionsCmd: 'node ../scripts/verify-oidc-context.mjs',
+
+        // Every flag here is load-bearing; none is decoration.
+        //
+        //   --provenance    pnpm does NOT read `publishConfig.provenance`. It
+        //                   reads publishConfig.registry and .access only, and
+        //                   `provenance` is absent from the publishConfig
+        //                   whitelist that hoists keys to the top level. Drop
+        //                   this flag and #411's provenance silently stops
+        //                   being produced. Passing it explicitly also survives
+        //                   an OIDC response that omits provenance, because
+        //                   pnpm assigns that with `??=`.
+        //   --embed-readme  pnpm defaults this to false, npm defaults it to
+        //                   true. Without it the npmjs.com page for this
+        //                   package loses its README on the next release.
+        //   --no-git-checks pnpm otherwise refuses to publish from a branch it
+        //                   does not recognise as the publish branch;
+        //                   semantic-release is mid-release when this runs.
+        //   --access        also in publishConfig, but this is the value pnpm
+        //                   errors on when generating provenance for a package
+        //                   it believes is private.
+        //   --tag           rendered by exec as a lodash template. Hardcoding
+        //                   `latest` would publish a future prerelease branch
+        //                   to the stable dist-tag.
+        publishCmd:
+          'pnpm publish --no-git-checks --provenance --embed-readme ' +
+          '--access public --tag ${nextRelease.channel || "latest"}',
       },
     ],
     [

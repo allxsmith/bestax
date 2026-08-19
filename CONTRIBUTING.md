@@ -255,7 +255,7 @@ no `npm publish`, no tag, no GitHub release.
 
 > **Safe to run; never publishes:** everything above. The only things that actually publish are
 > `pnpm exec semantic-release` **without** `--dry-run` (CI-only, on merge to `main`) and a manual
-> `npm publish` — neither of which is in this list.
+> `npm publish` / `pnpm publish` — none of which is in this list.
 
 ---
 
