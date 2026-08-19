@@ -24,12 +24,23 @@
  *   pnpm/11.9.0 npm/? node/v25.2.1 darwin arm64
  *   npm/11.6.2 node/v25.2.1 darwin arm64 workspaces/false
  *
- * Scope, stated plainly rather than implied: this covers `npm publish` run in
- * the package directory, which is the realistic mistake. It does NOT cover
- * `npm pack` (which runs `prepack`/`prepare`, not `prepublishOnly`) or
- * publishing a pre-built tarball (which runs none of the package's scripts).
- * Inspect the tarball with `pnpm -C bestax-migrate pack` if you are unsure what
- * a manifest will ship.
+ * Scope, stated plainly rather than implied. This covers `npm publish` run in
+ * the package directory, which is the realistic mistake. It does NOT cover:
+ *
+ *   - `--ignore-scripts`, which skips this hook entirely. Both npm and pnpm
+ *     gate lifecycle scripts on it (pnpm 11.9.0 wraps the `prepublishOnly` /
+ *     `prepublish` call in `if (!opts.ignoreScripts)`), so `npm publish
+ *     --ignore-scripts` ships the unresolved specifier with no signal at all.
+ *     Worth naming here rather than leaving implied, because a repo whose
+ *     supply-chain policy is built on blocking install scripts is exactly the
+ *     kind of place that reaches for that flag out of habit.
+ *   - `npm pack`, which runs `prepack` and `prepare` rather than
+ *     `prepublishOnly`.
+ *   - publishing a pre-built tarball, which runs none of the package's scripts.
+ *
+ * A hook cannot cover those, so this is a guard against the likely mistake, not
+ * a proof. Inspect the tarball with `pnpm -C bestax-migrate pack` if you are
+ * unsure what a manifest will ship.
  */
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';

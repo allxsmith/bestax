@@ -49,8 +49,15 @@ export function releaseInfo(
   }
   // Upstream omits the url entirely for a non-default registry rather than
   // linking to npmjs.com, and matching that matters: a link to a package page
-  // that does not exist is worse than no link, which is the whole reason this
-  // script exists.
+  // that does not exist is worse than no link.
+  //
+  // The limit of that, stated rather than left to be discovered: the registry
+  // is known here only from `publishConfig.registry`. pnpm resolves the real
+  // one as `publishConfig.registry ?? registries['@scope'] ?? registries.default`,
+  // and the last two come from npmrc, which this cannot see. A registry set
+  // purely in npmrc would therefore still produce an npmjs.com link. The repo's
+  // own .npmrc pins `registry=https://registry.npmjs.org/`, so the two agree
+  // today; a future non-default registry has to pass it here explicitly.
   const onNpmjs =
     !registry || /^https?:\/\/registry\.npmjs\.org\/?$/.test(registry);
   return {

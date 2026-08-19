@@ -126,7 +126,18 @@ test('the publishCmd sends pnpm output to stderr and calls this script', async (
   assert.match(exec[1].publishCmd, /1>&2/);
   assert.match(exec[1].publishCmd, /npm-release-info\.mjs/);
   assert.match(exec[1].publishCmd, /--dir=/);
-  assert.match(exec[1].publishCmd, /\$\{nextRelease\.version\}$/);
+  assert.match(exec[1].publishCmd, /\$\{nextRelease\.version\}/);
+  // `|| true` in the SHELL, not just error handling inside the script: node
+  // exits non-zero before that handling if it cannot load the file at all, and
+  // the `&&` chain would then fail the publish with the tarball already up.
+  assert.match(exec[1].publishCmd, /\|\| true/);
+  // Paths are quoted, so a checkout under a directory with a space does not
+  // split into two arguments.
+  assert.match(exec[1].publishCmd, /node '[^']*npm-release-info\.mjs'/);
+  assert.match(
+    exec[1].verifyConditionsCmd,
+    /node '[^']*verify-oidc-context\.mjs'/
+  );
   // Absolute paths, so neither command depends on the cwd semantic-release was
   // invoked from.
   assert.doesNotMatch(exec[1].publishCmd, /\.\.\/scripts/);

@@ -30,9 +30,12 @@ import {
 
 const NPM = '@semantic-release/npm';
 const EXEC = '@semantic-release/exec';
+// Deliberately matches the real command, which passes NO --tag: release.config.js
+// explains at length why deriving a dist-tag from nextRelease.channel is the bug
+// class #436 exists to stop repeating. A fixture carrying that template would be
+// the thing a maintainer copies.
 const PNPM_PUBLISH =
-  'pnpm publish --no-git-checks --provenance --embed-readme ' +
-  '--access public --tag ${nextRelease.channel || "latest"}';
+  'pnpm publish --no-git-checks --provenance --embed-readme --access public';
 
 // --- the classification ------------------------------------------------------
 
@@ -156,6 +159,81 @@ test('only `pnpm publish` earns the exemption', () => {
   );
 });
 
+// --- every shape semantic-release accepts -------------------------------------
+//
+// Three separate false exemptions on this branch came from a shape
+// classifyPublisher did not recognise, each time falling through to the pnpm
+// branch, which is the verdict that switches the rule off. None of the shapes
+// below had any coverage until the third review; delete a branch of
+// pluginEntries and the suite used to stay green.
+
+const SHAPES = [
+  {
+    what: 'npm as a bare string in plugins',
+    config: { plugins: [NPM, [EXEC, { publishCmd: PNPM_PUBLISH }]] },
+  },
+  {
+    what: 'npm as { path } in plugins',
+    config: {
+      plugins: [
+        { path: NPM, pkgRoot: '.' },
+        [EXEC, { publishCmd: PNPM_PUBLISH }],
+      ],
+    },
+  },
+  {
+    what: 'npm in a per-step publish ARRAY',
+    config: {
+      plugins: [[EXEC, { publishCmd: PNPM_PUBLISH }]],
+      publish: [NPM],
+    },
+  },
+  {
+    what: 'npm as a bare OBJECT on the publish step',
+    config: {
+      plugins: [
+        [NPM, { npmPublish: false }],
+        [EXEC, { publishCmd: PNPM_PUBLISH }],
+      ],
+      publish: { path: NPM },
+    },
+  },
+  {
+    what: 'npm as a bare STRING on the publish step',
+    config: {
+      plugins: [
+        [NPM, { npmPublish: false }],
+        [EXEC, { publishCmd: PNPM_PUBLISH }],
+      ],
+      publish: NPM,
+    },
+  },
+];
+
+for (const { what, config } of SHAPES) {
+  test(`shape: ${what} is not exempt`, () => {
+    // Every one of these really does upload with `npm publish`, so treating it
+    // as pnpm-published waves through the manifest that shipped #412.
+    assert.notEqual(
+      classifyPublisher(config),
+      'pnpm',
+      'this config publishes with npm; exempting it re-opens #412'
+    );
+  });
+}
+
+test('an exec plugin in a non-array step is still found', () => {
+  // Same blindness, other direction: missingExecScripts shares pluginEntries,
+  // so a bare-object exec step used to have its script-existence check skipped.
+  assert.equal(
+    classifyPublisher({
+      plugins: [[NPM, { npmPublish: false }]],
+      publish: { path: EXEC, publishCmd: PNPM_PUBLISH },
+    }),
+    'pnpm'
+  );
+});
+
 // --- the configs this repo actually ships ------------------------------------
 //
 // The fixtures above are hypotheticals. These are the four real release
@@ -176,10 +254,20 @@ const REAL = parseWorkspacePackages(
   readFileSync(new URL('../pnpm-workspace.yaml', import.meta.url), 'utf8')
 )
   .filter(dir => {
-    const pkg = JSON.parse(
-      readFileSync(new URL(`../${dir}/package.json`, import.meta.url), 'utf8')
-    );
-    return !pkg.private;
+    // A workspace entry this cannot resolve (a glob, or a directory landed
+    // before its manifest) must not throw at module scope: node's test runner
+    // would report the file as one failure and every assertion below would
+    // stop running, silently including the one guarding the exemption.
+    // checkPublishableManifests handles the same input gracefully, so this
+    // should not be more brittle than the code it covers.
+    try {
+      const pkg = JSON.parse(
+        readFileSync(new URL(`../${dir}/package.json`, import.meta.url), 'utf8')
+      );
+      return !pkg.private;
+    } catch {
+      return false;
+    }
   })
   .map(dir => [dir, EXPECTED[dir] ?? 'npm']);
 

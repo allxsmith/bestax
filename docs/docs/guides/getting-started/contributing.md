@@ -143,8 +143,10 @@ no `npm publish`, no tag, no GitHub release.
 :::tip Safe to run; never publishes
 Everything above is safe. The only things that actually publish are `pnpm exec semantic-release`
 **without** `--dry-run` (CI-only, on merge to `main`) and a manual `npm publish` / `pnpm publish` —
-none of which is in this list. Note that `bestax-migrate` publishes with `pnpm publish`, so a
-manual `npm publish` there would ship an unresolved `workspace:` specifier (#412).
+none of which is in this list. `bestax-migrate` publishes with `pnpm publish`, and its
+`prepublishOnly` hook refuses any other publisher, so a stray `npm publish` there exits with an
+explanation rather than shipping an unresolved `workspace:` specifier (#412). That hook is skipped
+by `--ignore-scripts`, and never runs for `npm pack` or for publishing a pre-built tarball.
 :::
 
 ## Workflow & conventions

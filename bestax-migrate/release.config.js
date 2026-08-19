@@ -7,6 +7,11 @@ import path from 'node:path';
 const PKG_DIR = import.meta.dirname;
 const SCRIPTS = path.join(PKG_DIR, '..', 'scripts');
 
+// These paths go into a shell string, so a checkout under a directory with a
+// space would otherwise split into two arguments and fail with a confusing
+// "Cannot find module".
+const sh = value => `'${String(value).replace(/'/g, `'\\''`)}'`;
+
 export default {
   branches: ['main'],
   tagFormat: 'bestax-migrate@${version}',
@@ -79,7 +84,7 @@ export default {
         // during verifyConditions any more, and semantic-release runs every
         // `prepare` step (including the release commit and tag) before any
         // `publish` step. The script says what it does and does not prove.
-        verifyConditionsCmd: `node ${path.join(SCRIPTS, 'verify-oidc-context.mjs')}`,
+        verifyConditionsCmd: `node ${sh(path.join(SCRIPTS, 'verify-oidc-context.mjs'))}`,
 
         // Every flag here is load-bearing; none is decoration.
         //
@@ -129,13 +134,19 @@ export default {
         // there would throw out of the publish step with the tarball already
         // on the registry, skipping @semantic-release/github and spending the
         // version, for the sake of a link in a comment.
+        // `|| true` and not just the script's own error handling: if node
+        // cannot LOAD the script (moved, renamed, a syntax error), it exits
+        // non-zero before that handling is ever reached, and the `&&` chain
+        // would then fail the publish step with the tarball already on the
+        // registry. The guarantee has to live in the shell, where it holds
+        // whatever happens to the script.
         publishCmd:
           'pnpm publish --no-git-checks --provenance --embed-readme ' +
-          '--access public 1>&2 && node ' +
-          path.join(SCRIPTS, 'npm-release-info.mjs') +
+          '--access public 1>&2 && { node ' +
+          sh(path.join(SCRIPTS, 'npm-release-info.mjs')) +
           ' --dir=' +
-          PKG_DIR +
-          ' ${nextRelease.version}',
+          sh(PKG_DIR) +
+          ' ${nextRelease.version} || true; }',
       },
     ],
     [

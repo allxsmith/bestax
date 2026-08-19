@@ -1052,8 +1052,13 @@ const DEP_SECTIONS = [
  * green check for a package `npm publish` would then break.
  */
 function pluginEntries(list) {
-  if (!Array.isArray(list)) return [];
-  return list.map(p => {
+  if (list == null) return [];
+  // A step is not always an array. semantic-release accepts a bare plugin name
+  // or a bare `{ path, ...config }` object as the whole step value, and
+  // @semantic-release/npm reads `castArray(context.options.publish)` for
+  // exactly that reason. Treating a non-array as "nothing here" made both
+  // forms invisible, which handed out the exemption.
+  return (Array.isArray(list) ? list : [list]).map(p => {
     if (typeof p === 'string') return [p, {}];
     if (Array.isArray(p)) return [p[0], p[1] ?? {}];
     // `{ path: '@semantic-release/npm', ...config }` — semantic-release's
@@ -1129,7 +1134,7 @@ export function classifyPublisher(config) {
  * branch below never executes in CI and inverting the exemption would leave
  * everything green (#436 review).
  */
-export function manifestViolations(dir, pkg, publisher) {
+export function manifestViolations(dir, pkg, publisher, hasConfig = true) {
   if (pkg?.private) return [];
 
   const offenders = DEP_SECTIONS.flatMap(section =>
@@ -1143,15 +1148,21 @@ export function manifestViolations(dir, pkg, publisher) {
     const protocol = spec.slice(0, spec.indexOf(':') + 1);
     const how =
       publisher === 'npm'
-        ? 'publishes with `npm publish`, which does not resolve the ' +
-          `${protocol} protocol`
-        : 'declares no publish mechanism this check recognises (expected an ' +
-          '`@semantic-release/npm` entry, or `@semantic-release/exec` with a ' +
-          '`publishCmd` that runs `pnpm publish`), so it cannot be assumed to ' +
-          `resolve the ${protocol} protocol`;
+        ? `${dir}/release.config.js publishes with \`npm publish\`, which ` +
+          `does not resolve the ${protocol} protocol`
+        : hasConfig
+          ? `${dir}/release.config.js declares no publish mechanism this ` +
+            'check recognises (expected an `@semantic-release/npm` entry, or ' +
+            '`@semantic-release/exec` with a `publishCmd` that runs `pnpm ' +
+            `publish\`), so it cannot be assumed to resolve the ${protocol} ` +
+            'protocol'
+          : // Naming a file that is not there would send the maintainer
+            // somewhere that does not exist.
+            `${dir} has no release.config.js, so nothing establishes that ` +
+            `the ${protocol} protocol gets resolved before publishing`;
     return (
       `${dir}/package.json declares "${name}": "${spec}" in ${section}, and ` +
-      `${dir}/release.config.js ${how}. The published package would be ` +
+      `${how}. The published package would be ` +
       `uninstallable (EUNSUPPORTEDPROTOCOL, #412). Give it a plain semver ` +
       `range, or hand this package's publish step to \`pnpm publish\`, which ` +
       `resolves every pnpm shape (#436).`
@@ -1188,10 +1199,19 @@ const STEP_KEYS = [
  * `bundle.js` or a `--require=./polyfill.js` flag is not a script to demand
  * exists, and reporting one as missing would red CI over a correct config.
  */
+// Quoted segments count as one token. Splitting on whitespace alone would
+// shred a path containing a space into fragments and then report them as
+// missing scripts.
+const TOKEN_RE = /'([^']*)'|"([^"]*)"|(\S+)/g;
+
+function tokenize(cmd) {
+  return [...cmd.matchAll(TOKEN_RE)].map(m => m[1] ?? m[2] ?? m[3]);
+}
+
 function scriptTokens(cmds) {
   const referenced = new Set();
   for (const cmd of cmds) {
-    for (const token of cmd.split(/\s+/)) {
+    for (const token of tokenize(cmd)) {
       if (token.startsWith('-')) continue;
       if (!token.includes('/')) continue;
       if (/\.(mjs|cjs|js)$/.test(token)) referenced.add(token);
@@ -1199,6 +1219,20 @@ function scriptTokens(cmds) {
   }
   return referenced;
 }
+
+// Only the hooks that run during a pack or publish. Scanning every script
+// would demand that build OUTPUTS exist: `"start": "node dist/index.js"` is a
+// correct entry, and check:conformance runs before the build in ci.yml, so it
+// would red the pipeline on a working config.
+const LIFECYCLE_HOOKS = [
+  'prepublishOnly',
+  'prepublish',
+  'prepack',
+  'prepare',
+  'postpack',
+  'publish',
+  'postpublish',
+];
 
 function missingExecScripts(dir, config, pkg) {
   const cmds = STEP_KEYS.flatMap(key => pluginEntries(config?.[key]))
@@ -1211,7 +1245,7 @@ function missingExecScripts(dir, config, pkg) {
   // non-pnpm publish, and a hook pointing at a moved script fails during the
   // release rather than in CI. npm and pnpm both run lifecycle scripts with the
   // package root as cwd, so those paths always resolve from `dir`.
-  const hookCmds = Object.values(pkg?.scripts ?? {}).filter(
+  const hookCmds = LIFECYCLE_HOOKS.map(h => pkg?.scripts?.[h]).filter(
     c => typeof c === 'string'
   );
 
@@ -1285,7 +1319,9 @@ async function checkPublishableManifests() {
       }
     }
 
-    violations.push(...manifestViolations(dir, pkg, classifyPublisher(config)));
+    violations.push(
+      ...manifestViolations(dir, pkg, classifyPublisher(config), configExists)
+    );
 
     for (const { rel, source, abs } of missingExecScripts(dir, config, pkg)) {
       try {

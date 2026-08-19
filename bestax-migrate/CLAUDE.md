@@ -100,9 +100,11 @@ outside CI. `prepublishOnly` now runs `scripts/require-pnpm-publish.mjs`, which
 refuses any publisher that is not pnpm (both `npm publish` and `pnpm publish` run
 that hook, and they identify themselves in `npm_config_user_agent`).
 
-It covers the realistic mistake, not every path: `npm pack` runs `prepack` and
-`prepare` rather than `prepublishOnly`, and publishing a pre-built tarball runs
-none of the package's scripts. Check what a manifest will actually ship with
+It covers the realistic mistake, not every path. `--ignore-scripts` skips the
+hook outright (both npm and pnpm gate lifecycle scripts on it), `npm pack` runs
+`prepack` and `prepare` rather than `prepublishOnly`, and publishing a pre-built
+tarball runs none of the package's scripts. It is a guard against the likely
+mistake, not a proof. Check what a manifest will actually ship with
 `pnpm -C bestax-migrate pack`.
 
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
