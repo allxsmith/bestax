@@ -984,7 +984,7 @@ async function checkInlineStyle(updateBaseline) {
 // The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
 // other keys in the file (minimumReleaseAgeExclude, publicHoistPattern) are
 // lists too, so scanning the whole file for `- item` would pick them up.
-function parseWorkspacePackages(yaml) {
+export function parseWorkspacePackages(yaml) {
   const dirs = [];
   let inBlock = false;
   for (const line of yaml.split(/\r?\n/)) {
@@ -1032,7 +1032,7 @@ function parseWorkspacePackages(yaml) {
  * conservative one — the honest fix there is to move that package to
  * `pnpm publish` too.
  */
-const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:'];
+const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:', 'jsr:'];
 
 const hasPackTimeProtocol = spec =>
   typeof spec === 'string' && PACK_TIME_PROTOCOLS.some(p => spec.startsWith(p));
@@ -1045,50 +1045,141 @@ const DEP_SECTIONS = [
 ];
 
 /**
- * Which command actually uploads the tarball, read off a semantic-release
- * plugin list.
+ * semantic-release accepts a plugin in three shapes, and a classifier that
+ * knows only some of them is worse than none: the shape it fails to recognise
+ * falls through to the pnpm branch, which is the branch that switches the rule
+ * off. Both misses below were found in review of #436, and both produced a
+ * green check for a package `npm publish` would then break.
+ */
+function pluginEntries(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map(p => {
+    if (typeof p === 'string') return [p, {}];
+    if (Array.isArray(p)) return [p[0], p[1] ?? {}];
+    // `{ path: '@semantic-release/npm', ...config }` — semantic-release's
+    // object form (lib/plugins/utils.js destructures exactly this).
+    if (p && typeof p === 'object' && typeof p.path === 'string') {
+      const { path, ...config } = p;
+      return [path, config];
+    }
+    return [null, {}];
+  });
+}
+
+/**
+ * Which command actually uploads the tarball, read off a whole
+ * semantic-release config.
  *
- * Deliberately derived from the release config rather than assumed, because
- * getting it backwards inverts the whole check: treating an npm-published
- * package as pnpm-published waves through the exact manifest that shipped
- * #412. Exported and driven by scripts/publishable-manifests.test.mjs.
+ * Takes the CONFIG, not `config.plugins`, because `plugins` is not the only
+ * place a publisher can be declared: the per-step arrays (`publish: [...]`)
+ * are live configuration, and @semantic-release/npm reads `options.publish`
+ * itself to pick up its own `npmPublish` setting. Classifying only `plugins`
+ * missed an npm publisher declared there and handed out the exemption.
  *
  * Three verdicts, and only one of them relaxes anything. `'pnpm'` is the
  * exemption and has to be earned; `'npm'` and `'unknown'` are both held to the
  * strict rule, so a config this cannot make sense of fails safe rather than
- * quietly opting out. Note that `@semantic-release/npm` publishes unless it is
- * explicitly switched off, which is why the npm test runs first.
+ * quietly opting out. Note that @semantic-release/npm publishes unless it is
+ * explicitly switched off, which is why the npm test runs first and why an
+ * entry with no config object at all counts as publishing.
+ *
+ * Exported and driven by scripts/publishable-manifests.test.mjs.
  */
-export function classifyPublisher(plugins) {
-  // `?? []` rather than a default parameter: a config carrying `plugins: null`
-  // would slip past a default and throw, and the one verdict that must never
-  // be reached by accident is the exemption.
-  const entries = (plugins ?? []).map(p => (Array.isArray(p) ? p : [p, {}]));
+export function classifyPublisher(config) {
+  const entries = [
+    ...pluginEntries(config?.plugins),
+    ...pluginEntries(config?.publish),
+  ];
 
   const npmPublishes = entries.some(
-    ([name, config]) =>
-      name === '@semantic-release/npm' && config?.npmPublish !== false
+    ([name, cfg]) =>
+      name === '@semantic-release/npm' && cfg?.npmPublish !== false
   );
   if (npmPublishes) return 'npm';
 
   // Anchored per shell segment, not searched. `pnpm publish` quoted inside
   // some other command — `echo "run pnpm publish by hand"` — is a mention, not
-  // a publish, and a substring match would hand it the exemption. Segments so
-  // that a `cd x && pnpm publish` style command still counts.
+  // a publish, and a substring match would hand it the exemption. Newlines
+  // split too: a multi-line publishCmd is ordinary exec usage.
   const publishesWithPnpm = cmd =>
     cmd
-      .split(/&&|\|\||[;|]/)
+      .split(/&&|\|\||[;|\n]/)
       .some(segment => /^\s*pnpm\s+publish(\s|$)/.test(segment));
 
   const pnpmPublishes = entries.some(
-    ([name, config]) =>
+    ([name, cfg]) =>
       name === '@semantic-release/exec' &&
-      typeof config?.publishCmd === 'string' &&
-      publishesWithPnpm(config.publishCmd)
+      typeof cfg?.publishCmd === 'string' &&
+      publishesWithPnpm(cfg.publishCmd)
   );
   if (pnpmPublishes) return 'pnpm';
 
   return 'unknown';
+}
+
+/**
+ * The per-package rule, split out from the filesystem walk so it can be driven
+ * with fixtures. bestax-migrate is the only package in this repo carrying a
+ * pack-time specifier and it is exempt, so without this seam the violation
+ * branch below never executes in CI and inverting the exemption would leave
+ * everything green (#436 review).
+ */
+export function manifestViolations(dir, pkg, publisher) {
+  if (pkg?.private) return [];
+
+  const offenders = DEP_SECTIONS.flatMap(section =>
+    Object.entries(pkg?.[section] ?? {})
+      .filter(([, spec]) => hasPackTimeProtocol(spec))
+      .map(([name, spec]) => ({ section, name, spec }))
+  );
+  if (!offenders.length || publisher === 'pnpm') return [];
+
+  return offenders.map(({ section, name, spec }) => {
+    const protocol = spec.slice(0, spec.indexOf(':') + 1);
+    const how =
+      publisher === 'npm'
+        ? 'publishes with `npm publish`, which does not resolve the ' +
+          `${protocol} protocol`
+        : 'declares no publish mechanism this check recognises (expected an ' +
+          '`@semantic-release/npm` entry, or `@semantic-release/exec` with a ' +
+          '`publishCmd` that runs `pnpm publish`), so it cannot be assumed to ' +
+          `resolve the ${protocol} protocol`;
+    return (
+      `${dir}/package.json declares "${name}": "${spec}" in ${section}, and ` +
+      `${dir}/release.config.js ${how}. The published package would be ` +
+      `uninstallable (EUNSUPPORTEDPROTOCOL, #412). Give it a plain semver ` +
+      `range, or hand this package's publish step to \`pnpm publish\`, which ` +
+      `resolves every pnpm shape (#436).`
+    );
+  });
+}
+
+/**
+ * Scripts an exec plugin shells out to must exist. This is the guard the
+ * deleted pack-hook block carried, kept because its reasoning did not change
+ * with the mechanism: naming a script is not the same as shipping it, and a
+ * path that has moved fails during the release rather than in CI — the one
+ * moment where a failure is most expensive.
+ */
+function missingExecScripts(dir, config) {
+  const cmds = [
+    ...pluginEntries(config?.plugins),
+    ...pluginEntries(config?.publish),
+    ...pluginEntries(config?.verifyConditions),
+  ]
+    .filter(([name]) => name === '@semantic-release/exec')
+    .flatMap(([, cfg]) => Object.values(cfg ?? {}))
+    .filter(c => typeof c === 'string');
+
+  const referenced = new Set();
+  for (const cmd of cmds) {
+    for (const token of cmd.split(/\s+/)) {
+      if (/\.(mjs|cjs|js)$/.test(token)) referenced.add(token);
+    }
+  }
+  // Paths are resolved from the package directory, which is the cwd
+  // semantic-release runs each package's release from.
+  return [...referenced].map(rel => ({ rel, abs: join(REPO, dir, rel) }));
 }
 
 async function checkPublishableManifests() {
@@ -1102,10 +1193,9 @@ async function checkPublishableManifests() {
   }
 
   for (const dir of packages) {
-    const manifestPath = join(REPO, dir, 'package.json');
     let pkg;
     try {
-      pkg = JSON.parse(await readFile(manifestPath, 'utf8'));
+      pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
     } catch {
       violations.push(
         `pnpm-workspace.yaml lists "${dir}" but ${dir}/package.json is missing ` +
@@ -1115,45 +1205,40 @@ async function checkPublishableManifests() {
     }
     if (pkg.private) continue;
 
-    const offenders = DEP_SECTIONS.flatMap(section =>
-      Object.entries(pkg[section] ?? {})
-        .filter(([, spec]) => hasPackTimeProtocol(spec))
-        .map(([name, spec]) => ({ section, name, spec }))
-    );
-    if (!offenders.length) continue;
-
-    // Only now does the publish mechanism matter, so only now is the release
-    // config read. Imported rather than string-matched: the config is a module
-    // and its plugin list is the thing being classified.
+    // Imported rather than string-matched: the release config is a module and
+    // its plugin list is the thing being classified.
     const configPath = join(REPO, dir, 'release.config.js');
-    let publisher;
+    let config;
     try {
-      const { default: config } = await import(pathToFileURL(configPath).href);
-      publisher = classifyPublisher(config?.plugins);
+      ({ default: config } = await import(pathToFileURL(configPath).href));
     } catch {
-      violations.push(
-        `${dir}/package.json declares a pack-time specifier ` +
-          `("${offenders[0].name}": "${offenders[0].spec}") but ` +
-          `${dir}/release.config.js could not be read, so there is no way to ` +
-          `tell whether it publishes with \`pnpm publish\` (which resolves it) ` +
-          `or \`npm publish\` (which ships it verbatim, #412).`
-      );
+      // Only an error if there is something to exempt. A publishable package
+      // with no pack-time specifier needs no release config to be readable.
+      if (manifestViolations(dir, pkg, 'unknown').length) {
+        violations.push(
+          `${dir}/package.json declares a pack-time specifier but ` +
+            `${dir}/release.config.js could not be read, so there is no way ` +
+            `to tell whether it publishes with \`pnpm publish\` (which ` +
+            `resolves it) or \`npm publish\` (which ships it verbatim, #412).`
+        );
+      }
       continue;
     }
 
-    if (publisher === 'pnpm') continue;
+    violations.push(...manifestViolations(dir, pkg, classifyPublisher(config)));
 
-    for (const { section, name, spec } of offenders) {
-      const protocol = spec.slice(0, spec.indexOf(':') + 1);
-      violations.push(
-        `${dir}/package.json declares "${name}": "${spec}" in ${section}, and ` +
-          `${dir}/release.config.js publishes with ` +
-          `${publisher === 'npm' ? '`npm publish`' : 'a mechanism this check does not recognise'}. ` +
-          `npm does not resolve the ${protocol} protocol, so the published ` +
-          `package would be uninstallable (EUNSUPPORTEDPROTOCOL, #412). Give ` +
-          `it a plain semver range, or hand this package's publish step to ` +
-          `\`pnpm publish\`, which resolves every pnpm shape (#436).`
-      );
+    for (const { rel, abs } of missingExecScripts(dir, config)) {
+      try {
+        await access(abs);
+      } catch {
+        violations.push(
+          `${dir}/release.config.js runs "${rel}" from an ` +
+            `@semantic-release/exec command, but ${dir}/${rel} does not ` +
+            `exist. Naming a script is not the same as shipping it: this ` +
+            `would fail during the release rather than in CI, after the ` +
+            `release commit and tag are already pushed (#436).`
+        );
+      }
     }
   }
   return violations;

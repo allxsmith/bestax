@@ -42,8 +42,17 @@ import { pathToFileURL } from 'node:url';
 
 const VARS = ['ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
 
+/**
+ * `CI` is a string, so `!env.CI` treats the widespread `CI=false` as "in CI"
+ * and fails a maintainer's local dry run with an OIDC message that has nothing
+ * to do with what they ran. Test the value, not its truthiness.
+ */
+const inCI = env =>
+  env.CI != null &&
+  !['', 'false', '0', 'off', 'no'].includes(String(env.CI).toLowerCase());
+
 export function checkOidcContext(env = process.env) {
-  if (!env.CI) return { ok: true, skipped: true };
+  if (!inCI(env)) return { ok: true, skipped: true };
   const missing = VARS.filter(name => !env[name]);
   return { ok: missing.length === 0, skipped: false, missing };
 }

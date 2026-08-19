@@ -88,15 +88,27 @@ export default {
         //   --no-git-checks pnpm otherwise refuses to publish from a branch it
         //                   does not recognise as the publish branch;
         //                   semantic-release is mid-release when this runs.
-        //   --access        also in publishConfig, but this is the value pnpm
+        //   --access        belt and braces, not load-bearing: pnpm falls back
+        //                   to publishConfig.access, which this package sets.
+        //                   Stated explicitly because it is the value pnpm
         //                   errors on when generating provenance for a package
-        //                   it believes is private.
-        //   --tag           rendered by exec as a lodash template. Hardcoding
-        //                   `latest` would publish a future prerelease branch
-        //                   to the stable dist-tag.
+        //                   it believes is private, so it should be visible
+        //                   next to --provenance rather than a file away.
+        //
+        // No --tag on purpose. The dist-tag would have to be derived from
+        // nextRelease.channel, and @semantic-release/npm does not derive it
+        // naively: get-channel.js maps a channel that is a valid semver RANGE
+        // to `release-<channel>`, because the registry rejects a dist-tag that
+        // parses as a range. Reimplementing that in a lodash template needs
+        // semver and would be a copy of upstream logic drifting out of sight,
+        // which is the bug class #436 exists to stop repeating. `branches` is
+        // ['main'], so the channel is always null and pnpm's default of
+        // `latest` is already right. The test asserts that `branches` has not
+        // changed, so adding a maintenance or prerelease branch fails CI here
+        // rather than silently publishing it to the stable tag.
         publishCmd:
           'pnpm publish --no-git-checks --provenance --embed-readme ' +
-          '--access public --tag ${nextRelease.channel || "latest"}',
+          '--access public',
       },
     ],
     [

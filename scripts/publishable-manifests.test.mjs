@@ -20,7 +20,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { classifyPublisher } from './check-conformance.mjs';
+import { readFileSync } from 'node:fs';
+
+import {
+  classifyPublisher,
+  manifestViolations,
+  parseWorkspacePackages,
+} from './check-conformance.mjs';
 
 const NPM = '@semantic-release/npm';
 const EXEC = '@semantic-release/exec';
@@ -89,7 +95,7 @@ const CONFIGS = [
 
 for (const { what, plugins, publisher } of CONFIGS) {
   test(`classify: ${what} -> ${publisher}`, () => {
-    assert.equal(classifyPublisher(plugins), publisher);
+    assert.equal(classifyPublisher({ plugins }), publisher);
   });
 }
 
@@ -97,7 +103,7 @@ test('a missing plugin list does not throw, and does not read as pnpm', () => {
   // A release config that fails to parse the way this expects must not produce
   // the one verdict that turns the rule off.
   for (const plugins of [undefined, null]) {
-    assert.notEqual(classifyPublisher(plugins), 'pnpm');
+    assert.notEqual(classifyPublisher({ plugins }), 'pnpm');
   }
 });
 
@@ -122,10 +128,12 @@ test('only `pnpm publish` earns the exemption', () => {
   }
   // …and that the real command still does.
   assert.equal(
-    classifyPublisher([
-      [NPM, { npmPublish: false }],
-      [EXEC, { publishCmd: PNPM_PUBLISH }],
-    ]),
+    classifyPublisher({
+      plugins: [
+        [NPM, { npmPublish: false }],
+        [EXEC, { publishCmd: PNPM_PUBLISH }],
+      ],
+    }),
     'pnpm'
   );
 });
@@ -137,17 +145,39 @@ test('only `pnpm publish` earns the exemption', () => {
 // that leaves the classifier correct but breaks on the actual shape of these
 // files would pass everything above.
 
-const REAL = [
-  ['bulma-ui', 'npm'],
-  ['create-bestax', 'npm'],
-  ['bestax-migrate', 'pnpm'],
-  ['bestax-mcp', 'npm'],
-];
+const EXPECTED = { 'bestax-migrate': 'pnpm' }; // everything else publishes with npm
+
+// Derived from pnpm-workspace.yaml rather than hardcoded, because that is the
+// list checkPublishableManifests actually walks. A fifth publishable package
+// would otherwise be added without this block ever seeing it (#436 review).
+//
+// Reusing the check's own parser rather than writing a second one, for the
+// reason this whole issue is about: the first draft of this block reimplemented
+// it, ran past the `packages:` block, and tried to read `prettier/package.json`.
+const REAL = parseWorkspacePackages(
+  readFileSync(new URL('../pnpm-workspace.yaml', import.meta.url), 'utf8')
+)
+  .filter(dir => {
+    const pkg = JSON.parse(
+      readFileSync(new URL(`../${dir}/package.json`, import.meta.url), 'utf8')
+    );
+    return !pkg.private;
+  })
+  .map(dir => [dir, EXPECTED[dir] ?? 'npm']);
+
+test('the workspace roster was actually discovered', () => {
+  // A parse that silently yielded nothing would make every test below vacuous.
+  assert.ok(
+    REAL.length >= 4,
+    `expected 4+ publishable packages, got ${REAL.length}`
+  );
+  assert.ok(REAL.some(([dir]) => dir === 'bestax-migrate'));
+});
 
 for (const [dir, publisher] of REAL) {
   test(`the real ${dir}/release.config.js classifies as ${publisher}`, async () => {
     const { default: config } = await import(`../${dir}/release.config.js`);
-    assert.equal(classifyPublisher(config.plugins), publisher);
+    assert.equal(classifyPublisher(config), publisher);
   });
 }
 
@@ -165,4 +195,98 @@ test('bestax-migrate passes --provenance and --embed-readme', async () => {
   assert.ok(exec, 'bestax-migrate must publish through @semantic-release/exec');
   assert.match(exec[1].publishCmd, /\s--provenance(\s|$)/);
   assert.match(exec[1].publishCmd, /\s--embed-readme(\s|$)/);
+});
+
+test('the release stays on a single branch, or the dist-tag needs revisiting', async () => {
+  // publishCmd passes no --tag, which is only correct while every release goes
+  // to `latest`. @semantic-release/npm's get-channel.js maps a channel that is
+  // a valid semver range to `release-<channel>` because the registry rejects a
+  // dist-tag that parses as a range, and nothing here reimplements that. So a
+  // maintenance or prerelease branch must fail HERE, in CI, rather than by
+  // publishing 1.x to the stable tag after the tag is already pushed.
+  const { default: config } =
+    await import('../bestax-migrate/release.config.js');
+  assert.deepEqual(
+    config.branches,
+    ['main'],
+    'branches changed: derive the dist-tag in publishCmd before adding a channel'
+  );
+});
+
+// --- the rule itself, which has no live input in this repo --------------------
+//
+// bestax-migrate is the only package carrying a pack-time specifier and it is
+// exempt, so the violation branch never executes during a real run. Without
+// these, inverting the exemption would leave `pnpm check:conformance` green.
+
+const WORKSPACE_DEP = {
+  devDependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+};
+
+test('an npm publisher carrying a pack-time specifier is a violation', () => {
+  const v = manifestViolations('somepkg', WORKSPACE_DEP, 'npm');
+  assert.equal(v.length, 1);
+  assert.match(v[0], /somepkg\/package\.json/);
+  assert.match(v[0], /workspace:/);
+  assert.match(v[0], /#412/);
+});
+
+test('a pnpm publisher carrying the same specifier is exempt', () => {
+  assert.deepEqual(manifestViolations('somepkg', WORKSPACE_DEP, 'pnpm'), []);
+});
+
+test('an unrecognised publisher is held to the strict rule', () => {
+  const v = manifestViolations('somepkg', WORKSPACE_DEP, 'unknown');
+  assert.equal(v.length, 1);
+  // The message must not assert npm semantics it has not established, and must
+  // name what it was looking for so the fix is actionable.
+  assert.doesNotMatch(v[0], /publishes with `npm publish`/);
+  assert.match(v[0], /cannot be assumed to resolve/);
+  assert.match(v[0], /publishCmd/);
+});
+
+test('jsr: counts as a pack-time protocol', () => {
+  // pnpm rewrites jsr: at pack time (replaceJsrProtocol in its converter
+  // chain) and npm has no jsr: protocol, so it is the same shape as #412.
+  assert.equal(
+    manifestViolations(
+      'somepkg',
+      { dependencies: { x: 'jsr:@scope/pkg@^1' } },
+      'npm'
+    ).length,
+    1
+  );
+});
+
+test('every dependency section is inspected, not just dependencies', () => {
+  for (const section of [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ]) {
+    assert.equal(
+      manifestViolations('somepkg', { [section]: { x: 'catalog:' } }, 'npm')
+        .length,
+      1,
+      `${section} must be inspected`
+    );
+  }
+});
+
+test('a private package is not held to any of this', () => {
+  assert.deepEqual(
+    manifestViolations('docs', { private: true, ...WORKSPACE_DEP }, 'npm'),
+    []
+  );
+});
+
+test('a plain semver range is not a violation for anyone', () => {
+  const clean = {
+    dependencies: { bulma: '^1.0.4' },
+    devDependencies: { jest: '^30' },
+  };
+  for (const publisher of ['npm', 'pnpm', 'unknown']) {
+    assert.deepEqual(manifestViolations('somepkg', clean, publisher), []);
+  }
 });

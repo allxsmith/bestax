@@ -91,6 +91,14 @@ Three things about that split are load-bearing, and none of them fails loudly:
   `verifyConditionsCmd` and checks only that an OIDC context exists; it does not
   prove npm will accept the token.
 
+**Never hand-run `npm publish` in this package.** The old `prepack` hook rewrote
+`workspace:^` for whatever was packing, so it covered a manual publish as well as
+the release pipeline. Nothing does now: the guarantee lives entirely in
+`release.config.js`, and `npm publish` run by hand from this directory would ship
+`workspace:^` verbatim and reproduce #412 with nothing to stop it. Use
+`pnpm publish` if you ever need to publish this package outside CI, and check the
+tarball first with `pnpm -C bestax-migrate pack`.
+
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
 typecheck target for the e2e, never imported at runtime, and consumers of a
 codemod CLI must not be made to install the component library. That is a policy
