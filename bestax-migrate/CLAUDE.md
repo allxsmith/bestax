@@ -94,22 +94,35 @@ Three things about that split are load-bearing, and none of them fails loudly:
   `verifyConditionsCmd` and checks only that an OIDC context exists; it does not
   prove npm will accept the token.
 
-**This package must be published with `pnpm publish`, and that is enforced.** The
+**This package must be published with `pnpm publish`, and the likely mistakes
+are refused.** The
 old `prepack` hook rewrote `workspace:^` for whatever was packing, so it covered a
 manual publish as well as the release pipeline. Deleting it left the guarantee
 living only in `release.config.js`, which the conformance rule then exempts
 precisely because pnpm handles it, so the specifier had no mechanical guard at all
-outside CI. `prepublishOnly` now runs repo-root `scripts/require-pnpm-publish.mjs`
-(not `bestax-migrate/scripts/`, which still exists for `validate-corpus.mjs`),
-which refuses any publisher that is not pnpm. Both `npm publish` and `pnpm
-publish` run that hook.
+outside CI. The hooks now run repo-root `scripts/require-pnpm-publish.mjs` (not
+`bestax-migrate/scripts/`, which still exists for `validate-corpus.mjs`), which
+refuses packers it recognises as not being pnpm. Both `npm publish` and `pnpm
+publish` run those hooks.
 
 **It keys on `npm_execpath`, not `npm_config_user_agent`, and that is not a
 detail to tidy up.** The user agent is inherited: npm relays whatever it finds,
 so `pnpm exec npm publish` runs the hook reporting `pnpm/…` while npm assembles
 the tarball, and an agent check waves it through. `npm_execpath` is rewritten by
 whichever process actually runs the script, so it names the real packer.
-`pnpm check:conformance` reports a violation if that hook is missing, so the
+
+**It refuses named packers, and deliberately allows unrecognised ones.** npm,
+yarn, bun and friends are refused by name; anything the guard cannot place is
+let through. That asymmetry is not laziness, and reversing it would be worse
+than the hole it closes: pnpm's own lifecycle runner sets
+`npm_execpath = process.argv[1] || process.cwd()`, so a pnpm build where
+`argv[1]` is falsy reports the package **directory**. Refusing what we cannot
+recognise would kill a genuine release from inside a pack hook, after
+semantic-release has pushed the commit and the tag, which is the one direction
+this guard must never fail in. So it is a guard against the publisher someone
+actually reaches for, not a proof that only pnpm can ever pack this package.
+
+`pnpm check:conformance` reports a violation if either hook is missing, so the
 exemption and its compensating guard cannot drift apart. (It reports the missing
 hook; it does not retract the exemption, so a manifest with both problems shows
 one violation for each.)
