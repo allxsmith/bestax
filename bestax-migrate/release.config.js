@@ -106,9 +106,18 @@ export default {
         // `latest` is already right. The test asserts that `branches` has not
         // changed, so adding a maintenance or prerelease branch fails CI here
         // rather than silently publishing it to the stable tag.
+        // pnpm's own output goes to stderr so stdout carries only the JSON
+        // release object exec parses. Nothing is hidden by that: exec pipes
+        // stdout and stderr separately to the job log, so the publish output
+        // still appears exactly where it does today, and a failed publish
+        // still throws. Without it, exec's parse fails, it returns undefined,
+        // and the "release is available on" comment on every linked issue and
+        // PR shows a bare `bestax-migrate@x.y.z` instead of the npm link the
+        // other three packages get.
         publishCmd:
           'pnpm publish --no-git-checks --provenance --embed-readme ' +
-          '--access public',
+          '--access public 1>&2 ' +
+          '&& node ../scripts/npm-release-info.mjs ${nextRelease.version}',
       },
     ],
     [
