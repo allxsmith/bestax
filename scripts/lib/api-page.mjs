@@ -26,8 +26,6 @@
 const OPEN_RE = /^<!--\s*bestax:generated\s+([a-z][a-z0-9-]*)\s*-->\s*$/;
 const CLOSE_RE = /^<!--\s*\/bestax:generated\s+([a-z][a-z0-9-]*)\s*-->\s*$/;
 
-export const REGION_IDS = ['overview', 'import', 'props', 'cssvars'];
-
 export function openMarker(id) {
   return `<!-- bestax:generated ${id} -->`;
 }
@@ -168,10 +166,6 @@ export function replaceRegion(src, id, body, label = '<source>') {
     ...lines.slice(region.close),
   ];
   return joinLines(next, crlf);
-}
-
-export function hasRegion(src, id, label = '<source>') {
-  return readRegions(src, label).has(id);
 }
 
 /**
