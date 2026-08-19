@@ -109,8 +109,10 @@ detail to tidy up.** The user agent is inherited: npm relays whatever it finds,
 so `pnpm exec npm publish` runs the hook reporting `pnpm/…` while npm assembles
 the tarball, and an agent check waves it through. `npm_execpath` is rewritten by
 whichever process actually runs the script, so it names the real packer.
-`pnpm check:conformance` also refuses to grant this package its protocol
-exemption unless that hook is wired, so the two cannot drift apart.
+`pnpm check:conformance` reports a violation if that hook is missing, so the
+exemption and its compensating guard cannot drift apart. (It reports the missing
+hook; it does not retract the exemption, so a manifest with both problems shows
+one violation for each.)
 
 It covers the realistic mistake, not every path. `--ignore-scripts` skips the
 hook outright (both npm and pnpm gate lifecycle scripts on it), `npm pack` runs

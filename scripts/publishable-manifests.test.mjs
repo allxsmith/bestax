@@ -14,7 +14,7 @@
  * whenever it met a shape it did not know. Here, a wrong reading fails a test
  * instead of switching a rule off.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,6 +24,7 @@ import {
   manifestViolations,
   parseWorkspacePackages,
 } from './check-conformance.mjs';
+import { tokenize } from './lib/shell-words.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -62,44 +63,47 @@ test('the declaration was actually parsed out of the check', () => {
   );
 });
 
-for (const dir of PUBLISHABLE) {
-  test(`${dir}: the release config agrees with the declaration`, () => {
-    // Read as TEXT on purpose. Deciding "does this publish with pnpm" by
-    // parsing the config is what failed four times; a substring is dumb enough
-    // to be right, and its failure mode is a red test rather than a silent
-    // exemption.
-    let source = '';
-    for (const name of [
-      'release.config.js',
-      'release.config.mjs',
-      'release.config.cjs',
-      '.releaserc',
-      '.releaserc.js',
-      '.releaserc.json',
-      '.releaserc.yaml',
-      '.releaserc.yml',
-    ]) {
-      try {
-        source = repoFile(`${dir}/${name}`);
-        break;
-      } catch {
-        /* try the next name */
-      }
-    }
+/**
+ * The command a package's release config actually runs, read from the LOADED
+ * config rather than its source text.
+ *
+ * The first version of this grepped the file for `pnpm publish`, on the theory
+ * that a substring is too dumb to be fooled. It was fooled immediately: the
+ * release config explains at length why it runs `pnpm publish` with
+ * `--provenance` and `--embed-readme`, so the prose satisfied every assertion
+ * and the command itself was unconstrained. Editing the real command to
+ * `npm publish`, or deleting both flags, left the whole suite green.
+ *
+ * Reading one known field of one declared config is not the config-format
+ * modelling that failed four times — that failed because it inferred a VERDICT
+ * from shapes it might not recognise, and fell through to "exempt". Here an
+ * unreadable config throws, which fails a test.
+ */
+async function publishCommand(dir) {
+  const { default: config } = await import(`../${dir}/release.config.js`);
+  const exec = (config.plugins ?? []).find(
+    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
+  );
+  return exec?.[1]?.publishCmd ?? '';
+}
 
-    const runsPnpmPublish = /pnpm[^\n'"]*\bpublish\b/.test(source);
+for (const dir of PUBLISHABLE) {
+  test(`${dir}: the release config agrees with the declaration`, async () => {
+    const cmd = await publishCommand(dir);
+    const runsPnpmPublish = /(^|\s|&&|\{)\s*pnpm\s+publish(\s|$)/.test(cmd);
     if (DECLARED.has(dir)) {
       assert.ok(
         runsPnpmPublish,
-        `${dir} is declared in PNPM_PUBLISHED but its release config never ` +
-          `runs pnpm publish, so it holds an exemption it has not earned.`
+        `${dir} is declared in PNPM_PUBLISHED but its publishCmd is ` +
+          `${JSON.stringify(cmd)}, which does not run pnpm publish. The ` +
+          `declaration grants it an exemption it has not earned.`
       );
     } else {
       assert.ok(
         !runsPnpmPublish,
-        `${dir}'s release config runs pnpm publish but ${dir} is not declared ` +
-          `in PNPM_PUBLISHED, so it is being held to the npm rule. Declare it, ` +
-          `or remove the mention.`
+        `${dir}'s publishCmd runs pnpm publish but ${dir} is not declared in ` +
+          `PNPM_PUBLISHED, so it is being held to the npm rule. Declare it, ` +
+          `or remove the command.`
       );
     }
   });
@@ -113,28 +117,42 @@ test('bestax-migrate is the one declared package, and it wires the guard', () =>
   assert.match(pkg.scripts.prepublishOnly, /require-pnpm-publish\.mjs/);
 });
 
-test('the declared package passes --provenance and --embed-readme', () => {
+test('the declared package passes --provenance and --embed-readme', async () => {
   // Neither is optional and neither fails loudly if dropped: pnpm ignores
-  // publishConfig.provenance, and defaults embed-readme to false where npm
-  // defaults it true.
-  const source = repoFile('bestax-migrate/release.config.js');
-  assert.match(source, /--provenance/);
-  assert.match(source, /--embed-readme/);
+  // publishConfig.provenance (and this package no longer carries one), and
+  // defaults embed-readme to false where npm defaults it true. Asserted
+  // against the command, not the file: both flags appear in the config's
+  // comments, so a source grep passed with them deleted from publishCmd.
+  const cmd = await publishCommand('bestax-migrate');
+  assert.match(cmd, /(^|\s)--provenance(\s|$)/);
+  assert.match(cmd, /(^|\s)--embed-readme(\s|$)/);
 });
 
-test('the scripts the release config names all exist', () => {
-  // The guard the deleted pack-hook block carried. Asserted against the real
-  // config, where the paths are absolute and computed at load time.
-  const source = repoFile('bestax-migrate/release.config.js');
-  const named = [...source.matchAll(/'([\w-]+\.mjs)'/g)].map(m => m[1]);
+test('the scripts the release config names all exist', async () => {
+  // The guard the deleted pack-hook block carried. Read from the commands
+  // through the same tokenizer that has to undo the config's quoting, rather
+  // than by pattern-matching filenames out of the source — which broke on any
+  // path shape other than `path.join(SCRIPTS, 'x.mjs')` and invented
+  // requirements for filenames mentioned in comments.
+  const { default: config } =
+    await import('../bestax-migrate/release.config.js');
+  const exec = config.plugins.find(
+    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
+  )[1];
+
+  const named = Object.values(exec)
+    .filter(v => typeof v === 'string')
+    .flatMap(cmd => tokenize(cmd))
+    .filter(word => /\.(mjs|cjs|js)$/.test(word));
+
   assert.ok(
-    named.length > 0,
-    'expected the config to name at least one script'
+    named.length >= 2,
+    `expected the config to name scripts, got ${named}`
   );
-  for (const name of named) {
-    assert.doesNotThrow(
-      () => repoFile(`scripts/${name}`),
-      `release.config.js names scripts/${name}, which does not exist`
+  for (const abs of named) {
+    assert.ok(
+      existsSync(abs),
+      `release.config.js runs "${abs}", which does not exist`
     );
   }
 });
@@ -184,7 +202,12 @@ test('an npm publisher is held to every pack-time protocol', () => {
   ]) {
     const v = manifestViolations(NPM_PKG, WS(spec));
     assert.equal(v.length, 1, `${spec} must be flagged for an npm publisher`);
-    assert.match(v[0], /#412/);
+    // `file:` is the one npm genuinely understands, so it is not an
+    // EUNSUPPORTEDPROTOCOL; its message says what actually goes wrong instead.
+    assert.match(
+      v[0],
+      spec.startsWith('file:') ? /none of their machines/ : /#412/
+    );
   }
 });
 
@@ -341,4 +364,76 @@ test('an undeclared package is not asked for the guard', () => {
   // bulma-ui has no exemption, so it has nothing to compensate for.
   const v = manifestViolations(NPM_PKG, { dependencies: { bulma: '^1.0.4' } });
   assert.deepEqual(v, []);
+});
+
+test('the exec plugin pins its cwd', async () => {
+  // `pnpm publish` resolves its target package from the cwd, which for exec is
+  // wherever semantic-release was started. Without execCwd a run from the repo
+  // root reaches the publish step — after the release commit and tag are
+  // pushed — and fails on the private root package. Every other exec option is
+  // pinned by a test; this one was not.
+  const { default: config } =
+    await import('../bestax-migrate/release.config.js');
+  const exec = config.plugins.find(
+    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
+  )[1];
+  assert.ok(exec.execCwd, 'execCwd must be set');
+  assert.match(exec.execCwd, /bestax-migrate$/);
+});
+
+test('a violation names a fix that fits the protocol', () => {
+  // Both halves of the npm message have to match. `file:` is not an
+  // EUNSUPPORTEDPROTOCOL, and suggesting a pnpm migration for a protocol pnpm
+  // does not resolve sends the maintainer through a migration that lands on
+  // the same specifier.
+  const ws = manifestViolations(NPM_PKG, WS('workspace:^'))[0];
+  assert.match(ws, /EUNSUPPORTEDPROTOCOL/);
+  assert.match(ws, /PNPM_PUBLISHED/);
+
+  const file = manifestViolations(NPM_PKG, WS('file:../y'))[0];
+  assert.doesNotMatch(file, /EUNSUPPORTEDPROTOCOL/);
+  assert.doesNotMatch(file, /PNPM_PUBLISHED/);
+  assert.match(file, /does not resolve it either/);
+
+  for (const spec of ['jsr:@s/p@^1', 'link:../y', 'portal:../y']) {
+    assert.doesNotMatch(
+      manifestViolations(NPM_PKG, WS(spec))[0],
+      /PNPM_PUBLISHED/,
+      `${spec} must not be advertised as fixable by moving to pnpm publish`
+    );
+  }
+});
+
+test('the suggested prepublishOnly path fits the package depth', () => {
+  // Hardcoding `../scripts/…` is only right for a package one level down.
+  const v = manifestViolations(PNPM_PKG, {
+    devDependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+  })[0];
+  assert.match(v, /node \.\.\/scripts\/require-pnpm-publish\.mjs/);
+});
+
+test('hookScripts skips paths it cannot resolve rather than inventing them', () => {
+  // A shell variable cannot be expanded here, and access()ing the literal text
+  // would report a working hook as broken.
+  assert.deepEqual(
+    hookScripts({ scripts: { prepack: 'node $INIT_CWD/scripts/a.mjs' } }),
+    []
+  );
+  // An unbalanced quote is a command the shell would reject outright.
+  assert.deepEqual(hookScripts({ scripts: { prepack: `node './x.mjs` } }), []);
+});
+
+test('hookScripts sees every script in a chained hook', () => {
+  // `;`, `|` and `>` end a word without whitespace, so a path abutting one was
+  // previously missed — the direction that lets a moved script through.
+  assert.deepEqual(
+    hookScripts({
+      scripts: { prepack: 'node ./scripts/a.mjs;node ./scripts/b.mjs' },
+    }).sort(),
+    ['./scripts/a.mjs', './scripts/b.mjs']
+  );
+  assert.deepEqual(
+    hookScripts({ scripts: { prepare: 'node ./scripts/a.mjs|tee log' } }),
+    ['./scripts/a.mjs']
+  );
 });

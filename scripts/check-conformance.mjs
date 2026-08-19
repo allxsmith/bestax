@@ -1110,7 +1110,10 @@ export function manifestViolations(dir, pkg) {
         `scripts/require-pnpm-publish.mjs on prepublishOnly. The exemption ` +
         `then holds only for releases from CI: a hand-run \`npm publish\` in ` +
         `that directory would ship the specifier verbatim (#412). Add ` +
-        `"prepublishOnly": "node ../scripts/require-pnpm-publish.mjs".`
+        `"prepublishOnly": "node ${relative(
+          join(REPO, dir),
+          join(REPO, 'scripts', 'require-pnpm-publish.mjs')
+        )}".`
     );
   }
 
@@ -1141,13 +1144,27 @@ export function manifestViolations(dir, pkg) {
     ...offenders.map(({ section, name, spec, protocol, why }) => {
       const head = `${dir}/package.json declares "${name}": "${spec}" in ${section}. `;
       if (why === 'npm') {
+        // Both halves have to match the protocol. `file:` is not an
+        // EUNSUPPORTEDPROTOCOL — npm understands it perfectly and resolves it
+        // to a path that exists on this machine and no consumer's. And
+        // suggesting a move to `pnpm publish` is only useful for the protocols
+        // pnpm turns into a range; for the rest it sends the maintainer through
+        // a publish migration that lands on the same specifier.
+        const pnpmWouldFixIt = PNPM_RESOLVES_TO_PLAIN_RANGE.includes(protocol);
         return (
           head +
-          `${dir} publishes with \`npm publish\`, which does not resolve the ` +
-          `${protocol} protocol, so the published package would be ` +
-          `uninstallable (EUNSUPPORTEDPROTOCOL, #412). Give it a plain semver ` +
-          `range, or move ${dir} to \`pnpm publish\` and declare it in ` +
-          `PNPM_PUBLISHED (#436).`
+          `${dir} publishes with \`npm publish\`, which does not resolve ` +
+          `${protocol} ` +
+          (protocol === 'file:'
+            ? 'into anything a consumer can use: it points at a path that ' +
+              'exists here and on none of their machines'
+            : 'at all, so the published package would be uninstallable ' +
+              '(EUNSUPPORTEDPROTOCOL, #412)') +
+          '. Give it a plain semver range' +
+          (pnpmWouldFixIt
+            ? `, or move ${dir} to \`pnpm publish\` and declare it in ` +
+              `PNPM_PUBLISHED (#436).`
+            : '. `pnpm publish` does not resolve it either.')
         );
       }
       if (why === 'unresolved') {
@@ -1207,8 +1224,20 @@ export function hookScripts(pkg) {
   for (const hook of LIFECYCLE_HOOKS) {
     const cmd = pkg?.scripts?.[hook];
     if (typeof cmd !== 'string') continue;
-    for (const word of tokenize(cmd)) {
+    let words;
+    try {
+      words = tokenize(cmd);
+    } catch {
+      // An unbalanced quote is a command the shell would reject anyway.
+      // Reporting a path invented from it would be a violation about a file
+      // nobody named.
+      continue;
+    }
+    for (const word of words) {
       if (word.startsWith('-')) continue;
+      // A path built from a shell variable cannot be resolved here, and
+      // access()ing the literal text would report a working hook as broken.
+      if (word.includes('$')) continue;
       if (!word.includes('/')) continue;
       if (SCRIPT_EXT.test(word)) referenced.add(word);
     }

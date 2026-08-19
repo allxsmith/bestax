@@ -1,4 +1,8 @@
 import path from 'node:path';
+// `sh` quotes the paths below for /bin/sh: a checkout under a directory with a
+// space would otherwise split into two arguments and fail with a confusing
+// "Cannot find module". It is colocated with its inverse, which the conformance
+// check uses to read these commands back.
 import { quote as sh } from '../scripts/lib/shell-words.mjs';
 
 // Absolute, so neither exec command depends on the cwd semantic-release was
@@ -7,11 +11,6 @@ import { quote as sh } from '../scripts/lib/shell-words.mjs';
 // ran it from the repo root.
 const PKG_DIR = import.meta.dirname;
 const SCRIPTS = path.join(PKG_DIR, '..', 'scripts');
-
-// These paths go into a shell string, so a checkout under a directory with a
-// space would otherwise split into two arguments and fail with a confusing
-// "Cannot find module". Shared with the conformance check, which has to undo
-// exactly this quoting to find the scripts these commands name.
 
 export default {
   branches: ['main'],
