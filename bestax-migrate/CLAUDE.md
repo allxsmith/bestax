@@ -114,11 +114,15 @@ exemption and its compensating guard cannot drift apart. (It reports the missing
 hook; it does not retract the exemption, so a manifest with both problems shows
 one violation for each.)
 
-It covers the realistic mistake, not every path. `--ignore-scripts` skips the
-hook outright (both npm and pnpm gate lifecycle scripts on it), `npm pack` runs
-`prepack` and `prepare` rather than `prepublishOnly`, and publishing a pre-built
-tarball runs none of the package's scripts. It is a guard against the likely
-mistake, not a proof. Check what a manifest will actually ship with
+The hook is wired to **both `prepack` and `prepublishOnly`**, and both are
+required by `check:conformance`. `prepack` is the load-bearing one for `npm
+pack`: `npm publish <tarball>` runs no scripts at all, so a tarball packed by
+npm would otherwise be publishable with nothing left to refuse it.
+
+It is still a guard against the likely mistake rather than a proof.
+`--ignore-scripts` skips both hooks outright (npm and pnpm each gate lifecycle
+scripts on it), and a tarball packed before this existed, or packed elsewhere,
+carries no guard with it. Check what a manifest will actually ship with
 `pnpm -C bestax-migrate pack`.
 
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the

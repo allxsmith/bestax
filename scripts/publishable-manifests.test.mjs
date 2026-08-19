@@ -81,7 +81,9 @@ test('the declaration was actually parsed out of the check', () => {
  * unreadable config throws, which fails a test.
  */
 async function publishCommand(dir) {
-  return (await execOptions(dir)).publishCmd ?? '';
+  // A package with no exec plugin publishes with npm, which is a real answer,
+  // not a missing one.
+  return (await execOptions(dir))?.publishCmd ?? '';
 }
 
 for (const dir of PUBLISHABLE) {
@@ -131,15 +133,15 @@ test('the scripts the release config names all exist', async () => {
   // than by pattern-matching filenames out of the source — which broke on any
   // path shape other than `path.join(SCRIPTS, 'x.mjs')` and invented
   // requirements for filenames mentioned in comments.
-  const { default: config } =
-    await import('../bestax-migrate/release.config.js');
-  const exec = config.plugins.find(
-    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
-  )[1];
+  const exec = await execOptions('bestax-migrate');
+  assert.ok(exec, 'bestax-migrate must publish through @semantic-release/exec');
 
-  const named = Object.values(exec)
-    .filter(v => typeof v === 'string')
-    .flatMap(cmd => tokenize(cmd))
+  // Only the *Cmd options are shell commands. execCwd is a raw, unquoted path,
+  // and feeding it to tokenize threw on a checkout containing an apostrophe —
+  // the very case shell-words exists to survive.
+  const named = Object.entries(exec)
+    .filter(([key, v]) => key.endsWith('Cmd') && typeof v === 'string')
+    .flatMap(([, cmd]) => tokenize(cmd))
     .filter(word => /\.(mjs|cjs|js)$/.test(word));
 
   assert.ok(
@@ -251,7 +253,10 @@ test('a pnpm publisher is exempt only in devDependencies', () => {
 
 test('each message explains the failure that actually applies', () => {
   const npm = manifestViolations(NPM_PKG, WS('workspace:^'))[0];
-  const jsr = manifestViolations(PNPM_PKG, WS('jsr:@s/p@^1'))[0];
+  const jsr = manifestViolations(PNPM_PKG, {
+    scripts: GUARD,
+    dependencies: { x: 'jsr:@s/p@^1' },
+  })[0];
   const consumer = manifestViolations(PNPM_PKG, {
     scripts: GUARD,
     dependencies: { x: 'workspace:^' },
@@ -376,11 +381,8 @@ test('the exec plugin pins its cwd', async () => {
   // root reaches the publish step — after the release commit and tag are
   // pushed — and fails on the private root package. Every other exec option is
   // pinned by a test; this one was not.
-  const { default: config } =
-    await import('../bestax-migrate/release.config.js');
-  const exec = config.plugins.find(
-    p => Array.isArray(p) && p[0] === '@semantic-release/exec'
-  )[1];
+  const exec = await execOptions('bestax-migrate');
+  assert.ok(exec, 'bestax-migrate must publish through @semantic-release/exec');
   assert.ok(exec.execCwd, 'execCwd must be set');
   assert.match(exec.execCwd, /bestax-migrate$/);
 });
@@ -495,4 +497,17 @@ test('both pack hooks are required, since npm pack runs only prepack', () => {
   });
   assert.equal(only.length, 1);
   assert.match(only[0], /prepack/);
+});
+
+test('an unresolvable protocol in devDependencies is explained honestly', () => {
+  // Consumers never resolve a dependency's devDependencies, so the
+  // consumer-facing complaint does not apply there — and "give it a semver
+  // range" is not a possible fix for a local path.
+  const v = manifestViolations(PNPM_PKG, {
+    scripts: GUARD,
+    devDependencies: { x: 'file:../fixtures' },
+  })[0];
+  assert.match(v, /consumers do not resolve devDependencies/);
+  assert.doesNotMatch(v, /no consumer can resolve it/);
+  assert.doesNotMatch(v, /plain semver range/);
 });

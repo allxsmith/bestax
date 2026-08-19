@@ -35,8 +35,26 @@ test('another package manager is refused too', () => {
   }
 });
 
-test('a binary that merely starts with the letters pnpm is refused', () => {
-  for (const p of ['/bin/pnpmx.mjs', '/bin/pnpm-fake.js', '/bin/notpnpm.mjs']) {
+test('an unrecognised packer is allowed, not refused', () => {
+  // The asymmetry is deliberate. pnpm's own lifecycle runner falls back to
+  // `process.argv[1] || process.cwd()` for npm_execpath, so a build where
+  // argv[1] is falsy reports the package DIRECTORY. Refusing what we do not
+  // recognise would kill that release from inside a pack hook, after the
+  // commit and tag are pushed.
+  for (const p of [
+    '/home/runner/work/bestax/bestax-migrate',
+    '/bin/pnpmx.mjs',
+    '/opt/some-future-manager',
+  ]) {
+    assert.equal(isPnpmPublish(p), true, `${p} is unrecognised and must pass`);
+  }
+  // …while every packer we can name is still refused.
+  for (const p of [
+    '/x/npm-cli.js',
+    '/x/yarn.js',
+    '/usr/bin/bun',
+    '/x/cnpm.js',
+  ]) {
     assert.equal(isPnpmPublish(p), false, `${p} must be refused`);
   }
 });

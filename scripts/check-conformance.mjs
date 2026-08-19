@@ -1115,21 +1115,24 @@ export function manifestViolations(dir, pkg) {
     } catch {
       return false;
     }
-    // The guard must be the FIRST thing the hook runs. Anything looser admits
-    // a hook that mentions it (`echo skipping require-pnpm-publish.mjs`) or
-    // short-circuits past it (`true || node …/require-pnpm-publish.mjs`), and
-    // both leave the exemption granted with no guard behind it. Deliberately
-    // strict: a hook that needs to do something else can call the guard first
-    // and chain after it.
-    return (
-      words[0] === 'node' &&
-      (words[1] ?? '').endsWith('require-pnpm-publish.mjs')
-    );
+    // The guard must run before anything else can short-circuit past it, but
+    // "first" is about ORDER, not about the exact spelling: `node --flag x`
+    // and `pnpm node x` both execute it, and demanding a literal `node <path>`
+    // reported those as missing with no satisfying form to offer.
+    const i = words.findIndex(w => w.endsWith('require-pnpm-publish.mjs'));
+    if (i < 1) return false;
+    // Everything ahead of it must be an interpreter or a flag. A separator
+    // there means something else ran, or could run instead of, the guard.
+    return words
+      .slice(0, i)
+      .every(w => w.startsWith('-') || /^(node|pnpm|exec)$/.test(w));
   };
 
-  const missingGuard = ['prepack', 'prepublishOnly'].filter(h => !runsGuard(h));
+  const missingGuard = publishesWithPnpm
+    ? ['prepack', 'prepublishOnly'].filter(h => !runsGuard(h))
+    : [];
 
-  if (publishesWithPnpm && missingGuard.length) {
+  if (missingGuard.length) {
     violations.push(
       `${dir} is declared in PNPM_PUBLISHED, but does not run ` +
         `scripts/require-pnpm-publish.mjs on ${missingGuard.join(' or ')}. ` +
@@ -1194,6 +1197,20 @@ export function manifestViolations(dir, pkg) {
         );
       }
       if (why === 'unresolved') {
+        if (section === 'devDependencies') {
+          // No consumer resolves a dependency's devDependencies, so the
+          // consumer-facing complaint does not apply and "give it a semver
+          // range" is not even possible for a local path. It is still worth a
+          // human decision, because it means nothing outside this workspace.
+          return (
+            head +
+            `\`pnpm publish\` does not rewrite ${protocol}, so the published ` +
+            `manifest carries a specifier that means nothing outside this ` +
+            `workspace. Nothing installs it (consumers do not resolve ` +
+            `devDependencies), but it should not ship: drop it, or depend on ` +
+            `the package by name.`
+          );
+        }
         const detail =
           protocol === 'jsr:'
             ? 'rewrites it to an aliased `npm:@jsr/…` specifier, which resolves ' +
@@ -1271,6 +1288,12 @@ export function hookScripts(pkg) {
     }
     for (const word of words) {
       if (word.startsWith('-')) continue;
+      // A build OUTPUT is not a script to demand exists: this check runs
+      // before the build in ci.yml, and `"prepack": "node ./dist/stamp.mjs"`
+      // is a working config. `prepare` was excluded wholesale for this, but
+      // prepack/postpack/publish run at the same moment and needed the same
+      // allowance.
+      if (/(^|\/)(dist|build|lib|out|es|esm|cjs)\//.test(word)) continue;
       // A path built from a shell variable cannot be resolved here, and
       // access()ing the literal text would report a working hook as broken.
       if (word.includes('$')) continue;

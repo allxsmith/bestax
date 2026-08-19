@@ -24,19 +24,20 @@
  *   pnpm/11.9.0 npm/? node/v25.2.1 darwin arm64
  *   npm/11.6.2 node/v25.2.1 darwin arm64 workspaces/false
  *
- * Scope, stated plainly rather than implied. This covers `npm publish` run in
- * the package directory, which is the realistic mistake. It does NOT cover:
+ * Scope, stated plainly rather than implied. bestax-migrate wires this to BOTH
+ * `prepack` and `prepublishOnly`, which between them cover `npm publish` and
+ * `npm pack` — the latter matters because `npm publish <tarball>` runs no
+ * scripts at all, so a tarball packed by npm could otherwise be published with
+ * nothing left to refuse it. What it does NOT cover:
  *
- *   - `--ignore-scripts`, which skips this hook entirely. Both npm and pnpm
+ *   - `--ignore-scripts`, which skips these hooks entirely. Both npm and pnpm
  *     gate lifecycle scripts on it (pnpm 11.9.0 wraps the `prepublishOnly` /
  *     `prepublish` call in `if (!opts.ignoreScripts)`), so `npm publish
  *     --ignore-scripts` ships the unresolved specifier with no signal at all.
- *     Worth naming here rather than leaving implied, because a repo whose
+ *     Worth naming rather than leaving implied, because a repo whose
  *     supply-chain policy is built on blocking install scripts is exactly the
  *     kind of place that reaches for that flag out of habit.
- *   - `npm pack`, which runs `prepack` and `prepare` rather than
- *     `prepublishOnly`.
- *   - publishing a pre-built tarball, which runs none of the package's scripts.
+ *   - a tarball packed before this guard existed, or packed elsewhere.
  *
  * A hook cannot cover those, so this is a guard against the likely mistake, not
  * a proof. Inspect the tarball with `pnpm -C bestax-migrate pack` if you are
@@ -69,11 +70,25 @@ import { pathToFileURL } from 'node:url';
 export function isPnpmPublish(execPath) {
   if (!execPath) return true;
   const binary = String(execPath).trim().split(/[\\/]/).pop() ?? '';
-  // Windows extensions included, and case-insensitively: pnpm is `pnpm.cmd` or
-  // `pnpm.exe` there. Refusing those would block a real release from inside
-  // `prepublishOnly`, after semantic-release has pushed the commit and tag,
-  // which is the one direction this must not fail in.
-  return /^pnpm(\.(c|m)?js|\.cmd|\.exe|\.bat|\.ps1)?$/i.test(binary);
+  const name = binary.replace(/\.(c|m)?js$|\.cmd$|\.exe$|\.bat$|\.ps1$/i, '');
+
+  // Refuse only what is POSITIVELY a different packer. Anything unrecognised is
+  // allowed, and that asymmetry is deliberate: refusing an unknown value fails
+  // a real release from inside a pack hook, after semantic-release has pushed
+  // the commit and tag, and pnpm's own lifecycle runner can hand us one.
+  // Verified in pnpm 11.9.0's bundle:
+  //
+  //   env.npm_execpath = process.pkg != null
+  //     ? process.execPath
+  //     : process.argv[1] || process.cwd()
+  //
+  // so a build where argv[1] is falsy reports the package DIRECTORY. Under a
+  // known-good-only rule that reads as "not pnpm" and kills the release; here
+  // it reads as unrecognised and passes, while `pnpm exec npm publish` — the
+  // case this guard exists for — still names npm-cli and is still refused.
+  const OTHER_PACKAGE_MANAGERS =
+    /^(npm|npm-cli|npx|yarn|yarnpkg|bun|bunx|cnpm|tnpm)$/i;
+  return !OTHER_PACKAGE_MANAGERS.test(name);
 }
 
 export function main(env = process.env, log = console.error) {
