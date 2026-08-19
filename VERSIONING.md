@@ -57,9 +57,16 @@ Each package tags and logs its own releases:
 On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in each package:
 
 1. Each package analyzes the commits since **its own** last tag against its `releaseRules`.
-2. If a release is due: version bump, `CHANGELOG.md` update, npm publish (OIDC trusted
+2. If a release is due: version bump, `CHANGELOG.md` update, publish to npm (OIDC trusted
    publishing — no `NPM_TOKEN`), a signed `chore(release): X.Y.Z [skip ci]` commit, git tag,
    and GitHub release.
+   - Three packages publish via `@semantic-release/npm`, which shells out to `npm publish`.
+     **bestax-migrate publishes with `pnpm publish`** (`@semantic-release/exec`), because it
+     keeps a `workspace:` devDependency and `npm publish` ships that protocol verbatim —
+     which is how 1.0.0 went out uninstallable (#412, #436).
+   - Note the ordering, because it decides what a failed publish costs: semantic-release runs
+     **every** `prepare` step — including the release commit and tag — before **any** `publish`
+     step. A publish that fails leaves the commit and tag behind, and that version is spent.
 3. A push may release any subset of the packages — they never bump each other.
 
 `main` is ruleset-protected, so the release commit and tag are pushed by a dedicated

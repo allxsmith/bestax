@@ -43,9 +43,12 @@ Measures active in this repository and its release pipeline:
   reviewed lockfile resolves. (The React 18/19 compatibility matrix is the
   one deliberate exception: it re-resolves to pin the requested React major
   for testing, and never publishes.)
-- **npm provenance** — all four published packages set
-  `publishConfig.provenance`, so every release carries a signed attestation
-  linking the tarball to the exact commit and CI run that built it.
+- **npm provenance** — every release carries a signed attestation linking the
+  tarball to the exact commit and CI run that built it. Three packages request
+  it with `publishConfig.provenance`; bestax-migrate publishes with
+  `pnpm publish`, which does not read that field, so it passes `--provenance`
+  on the command instead and carries no `publishConfig.provenance` at all
+  (having one there would imply the flag was redundant).
 - **OIDC trusted publishing** — releases authenticate to npm with
   short-lived OIDC tokens minted per run; there is no long-lived `NPM_TOKEN`
   to steal.

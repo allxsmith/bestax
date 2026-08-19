@@ -89,9 +89,18 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
   become permanent (#391). A blocking audit gate plus the cooldown means a fresh advisory can red
   every open PR — CONTRIBUTING.md has the runbook.
 - Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
-- Published packages must not ship a `workspace:` or `catalog:` specifier — `npm publish`
-  (what semantic-release runs) resolves neither, and the tarball becomes uninstallable
-  (#412). `check:conformance --only=publishable-manifests` enforces this.
+- **How a package publishes decides what its manifest may contain.** `npm publish` resolves
+  no pack-time protocol at all, so a package published that way must not ship one — the
+  tarball becomes uninstallable (#412). bestax-migrate hands its publish step to
+  `pnpm publish` instead (#436), which buys it a **narrow** exemption:
+  `workspace:`/`catalog:` in **devDependencies** only. `jsr:` becomes an aliased
+  `npm:@jsr/…` specifier and `link:`/`portal:`/`file:` are not rewritten at all, so those
+  four are a violation in **any** section, exemption or not. `workspace:`/`catalog:` are
+  additionally a violation in a section consumers resolve, since pnpm resolving them does
+  not stop every consumer being made to install the dependency. Which packages publish with pnpm
+  is **declared** in `check:conformance` rather than inferred from their release config —
+  inferring it meant parsing semantic-release's config format, which was wrong four times,
+  and every miss granted the exemption.
 
 ## Workflow
 

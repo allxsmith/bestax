@@ -33,15 +33,16 @@
  *                        the same thing in all three deliberate copies
  *                        (CLAUDE_MD template + both JSX-generating skills),
  *                        and names only props that really exist
- *   publishable-manifests  no published package ships a `workspace:`/`catalog:`
- *                        specifier consumers would have to resolve (#412)
+ *   publishable-manifests  no published package ships a specifier consumers
+ *                        cannot resolve (#412). Which packages publish with
+ *                        `pnpm publish` is declared, not inferred (#436)
  *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
  *                        passed (#391)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname } from 'node:path';
+import { join, relative, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
@@ -49,6 +50,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // variable tables need. Key extraction is byte-for-byte the behaviour this file
 // used to implement inline (verified against all 26 partials).
 import { registerVarsKeys } from './lib/scss-vars.mjs';
+// The inverse of the quoting bestax-migrate/release.config.js uses to build its
+// exec commands. Shared so the two halves cannot drift (#436).
+import { tokenize } from './lib/shell-words.mjs';
 import { readRegions, sectionSpans } from './lib/api-page.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
@@ -983,7 +987,7 @@ async function checkInlineStyle(updateBaseline) {
 // The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
 // other keys in the file (minimumReleaseAgeExclude, publicHoistPattern) are
 // lists too, so scanning the whole file for `- item` would pick them up.
-function parseWorkspacePackages(yaml) {
+export function parseWorkspacePackages(yaml) {
   const dirs = [];
   let inBlock = false;
   for (const line of yaml.split(/\r?\n/)) {
@@ -1001,70 +1005,307 @@ function parseWorkspacePackages(yaml) {
 
 /**
  * `npm publish` — which is what @semantic-release/npm shells out to — does NOT
- * resolve pnpm's `workspace:` protocol the way `pnpm publish` does. A
- * `workspace:^` left in a published manifest is uninstallable by every package
- * manager (`EUNSUPPORTEDPROTOCOL`); that shipped as bestax-migrate@1.0.0
- * (#412), invisibly, because nothing in CI installs the published artifact.
+ * resolve pnpm's `workspace:` protocol. A `workspace:^` left in a published
+ * manifest is uninstallable by every package manager (`EUNSUPPORTEDPROTOCOL`);
+ * that shipped as bestax-migrate@1.0.0 (#412), invisibly, because nothing in
+ * CI installs the published artifact.
  *
- * `catalog:` has the same asymmetry — pnpm resolves it at pack time, npm does
- * not — so it is guarded here too, before the repo grows its first catalog.
+ * bestax-migrate publishes with `pnpm publish` instead (#436), which resolves
+ * those protocols at pack time, so it is exempt from part of this rule. Which
+ * packages those are is DECLARED below, not inferred from their release config.
  *
- * Two rules, both about the manifest as CONSUMERS see it:
- *   1. Sections npm resolves for consumers must have no pack-time protocol at
- *      all. A workspace package needed at runtime has to be a plain semver
- *      range.
- *   2. One left in devDependencies is safe to install but still wrong to
- *      publish, so the package must resolve it at pack time. That escape hatch
- *      is `workspace:`-only: pack-manifest.mjs fails on `catalog:` rather than
- *      resolving it, so wiring up the hooks does not redeem a catalog spec.
+ * That is the whole design, and it is worth saying why, because the obvious
+ * alternative was tried and failed four times. Reading `release.config.js` and
+ * working out how a package publishes means modelling semantic-release's config
+ * format: a plugin may be a bare string, a `[name, config]` tuple, or a
+ * `{ path, ...config }` object; a step may be an array or a single one of those;
+ * the config may live in eight different filenames or in package.json; the
+ * command may be `publishCmd` or the generic `cmd`, and may say `pnpm publish`
+ * or `pnpm --filter x publish`. Every one of those was missed at some point by
+ * a parser that looked obviously correct, and every miss fell through to the
+ * exempt branch — the one verdict that switches the rule OFF. A parser that
+ * fails open is worse than no parser.
+ *
+ * So the exemption is a declaration, which cannot be misparsed, and
+ * scripts/publishable-manifests.test.mjs checks the declaration against what
+ * the release configs actually do. Getting THAT wrong fails a test, loudly,
+ * instead of silently exempting a package.
  */
-const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:'];
+const PNPM_PUBLISHED = new Set(['bestax-migrate']);
 
-const hasPackTimeProtocol = spec =>
-  typeof spec === 'string' && PACK_TIME_PROTOCOLS.some(p => spec.startsWith(p));
-
-// The two shapes the pack hooks refuse rather than guess at, so devDependencies
-// carrying them are violations no matter how the hooks are wired. Kept in step
-// with bestax-migrate/scripts/pack-manifest.mjs, which refuses both.
-//
-// "Kept in step" used to mean "by reading both files carefully", and that
-// failed twice during review of #417 — once for `catalog:`, once for the alias
-// form. A shape the script REFUSES but this check EXCUSES is a green CI with a
-// red release, which is the exact inversion this check exists to prevent. So
-// these are exported and scripts/pack-manifest.test.mjs now drives them against
-// the real resolver, asserting the two agree shape for shape (#435).
-export const UNRESOLVABLE_AT_PACK = [
-  {
-    matches: spec => spec.startsWith('catalog:'),
-    why:
-      'pack-manifest.mjs cannot resolve catalog: — the range lives in ' +
-      'pnpm-workspace.yaml, not in the linked package',
-  },
-  {
-    // `workspace:<name>@<range>`. A semver range holds neither "/" nor a
-    // non-leading "@", so this does not catch `workspace:^5.0.0`.
-    matches: spec => {
-      if (!spec.startsWith('workspace:')) return false;
-      const rest = spec.slice('workspace:'.length);
-      return rest.includes('/') || rest.lastIndexOf('@') > 0;
-    },
-    why:
-      "pnpm's alias form publishes as `npm:<name>@<version>`, which " +
-      'pack-manifest.mjs does not synthesize',
-  },
+/**
+ * Protocols that mean something inside this workspace and are not a plain
+ * installable specifier once published.
+ *
+ * `link:`, `portal:` and `file:` are here because NEITHER publisher rewrites
+ * them: pnpm's export converter chain is workspace/catalog/jsr (verified in the
+ * 11.9.0 bundle), and npm has no notion of the first two at all. A published
+ * manifest carrying one points at a path that does not exist on any consumer's
+ * machine.
+ */
+const PACK_TIME_PROTOCOLS = [
+  'workspace:',
+  'catalog:',
+  'jsr:',
+  'link:',
+  'portal:',
+  'file:',
 ];
 
-export const unresolvableAtPack = spec =>
-  typeof spec === 'string' &&
-  UNRESOLVABLE_AT_PACK.find(rule => rule.matches(spec));
+/**
+ * The subset `pnpm publish` turns into a plain, installable semver range. That
+ * is what makes a pnpm publisher safe to exempt, and it is not all of them:
+ * pnpm rewrites `jsr:@scope/pkg@^1` to `npm:@jsr/scope__pkg@^1`, which resolves
+ * only for a consumer who has configured the @jsr registry.
+ */
+const PNPM_RESOLVES_TO_PLAIN_RANGE = ['workspace:', 'catalog:'];
+
+const DEP_SECTIONS = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+];
+
+/** Sections a consumer of the published package resolves. */
+const CONSUMER_SECTIONS = DEP_SECTIONS.filter(s => s !== 'devDependencies');
+
+const packTimeProtocol = spec =>
+  typeof spec === 'string'
+    ? PACK_TIME_PROTOCOLS.find(p => spec.startsWith(p))
+    : undefined;
+
+/**
+ * The per-package rule, split out from the filesystem walk so it can be driven
+ * with fixtures. Without this seam the violation branches never execute during
+ * a real run — bestax-migrate is the only package carrying a pack-time
+ * specifier and it is exempt for it — so inverting the rule would leave CI
+ * green.
+ *
+ * Each offender carries the reason it survived the filter, so the message does
+ * not re-derive the predicate that produced it. Two copies of one rule inside
+ * one function is the drift this repo keeps paying for.
+ */
+export function manifestViolations(dir, pkg) {
+  if (pkg?.private) return [];
+
+  // The declaration is consulted HERE rather than by the caller, so that a test
+  // driving this function also exercises the wiring. Passing the verdict in
+  // meant a walk that ignored the declaration entirely still passed every test.
+  const publishesWithPnpm = PNPM_PUBLISHED.has(dir);
+
+  const violations = [];
+
+  // The exemption assumes pnpm packs this package. In CI that is the release
+  // config's job; everywhere else it is the prepublishOnly guard's, and a
+  // package can otherwise gain the exemption and lose the guard in one edit.
+  // Checked here, alongside the exemption it compensates for, so a test that
+  // covers one covers the other.
+  // Both hooks, and the command has to RUN the guard rather than mention it:
+  // `echo skipping require-pnpm-publish.mjs` satisfied a substring test while
+  // the exemption stayed granted. `prepack` matters as much as
+  // `prepublishOnly`, because `npm pack` runs only the former and its tarball
+  // can then be published directly.
+  const runsGuard = hook => {
+    const cmd = pkg?.scripts?.[hook];
+    if (typeof cmd !== 'string') return false;
+    let words;
+    try {
+      words = tokenize(cmd);
+    } catch {
+      return false;
+    }
+    // The guard must run before anything else can short-circuit past it, but
+    // "first" is about ORDER, not about the exact spelling: `node --flag x`
+    // and `pnpm node x` both execute it, and demanding a literal `node <path>`
+    // reported those as missing with no satisfying form to offer.
+    const i = words.findIndex(w => w.endsWith('require-pnpm-publish.mjs'));
+    if (i < 1) return false;
+    // Everything ahead of it must be an interpreter or a flag. A separator
+    // there means something else ran, or could run instead of, the guard.
+    return words
+      .slice(0, i)
+      .every(w => w.startsWith('-') || /^(node|pnpm|exec)$/.test(w));
+  };
+
+  const missingGuard = publishesWithPnpm
+    ? ['prepack', 'prepublishOnly'].filter(h => !runsGuard(h))
+    : [];
+
+  if (missingGuard.length) {
+    violations.push(
+      `${dir} is declared in PNPM_PUBLISHED, but does not run ` +
+        `scripts/require-pnpm-publish.mjs on ${missingGuard.join(' or ')}. ` +
+        `The exemption ` +
+        `then holds only for releases from CI: a hand-run \`npm publish\` in ` +
+        `that directory would ship the specifier verbatim (#412). Add ` +
+        `${missingGuard.map(h => `"${h}"`).join(' and ')}: "node ${relative(
+          join(REPO, dir),
+          join(REPO, 'scripts', 'require-pnpm-publish.mjs')
+        )}".`
+    );
+  }
+
+  const offenders = [];
+  for (const section of DEP_SECTIONS) {
+    for (const [name, spec] of Object.entries(pkg?.[section] ?? {})) {
+      const protocol = packTimeProtocol(spec);
+      if (!protocol) continue;
+
+      if (!publishesWithPnpm) {
+        offenders.push({ section, name, spec, protocol, why: 'npm' });
+        continue;
+      }
+      if (!PNPM_RESOLVES_TO_PLAIN_RANGE.includes(protocol)) {
+        offenders.push({ section, name, spec, protocol, why: 'unresolved' });
+        continue;
+      }
+      // pnpm turns this into a real range, so it installs. It is still wrong in
+      // a section consumers resolve: it makes everyone installing this package
+      // install that one too.
+      if (CONSUMER_SECTIONS.includes(section)) {
+        offenders.push({ section, name, spec, protocol, why: 'consumer' });
+      }
+    }
+  }
+
+  violations.push(
+    ...offenders.map(({ section, name, spec, protocol, why }) => {
+      const head = `${dir}/package.json declares "${name}": "${spec}" in ${section}. `;
+      if (why === 'npm') {
+        // Both halves have to match the protocol. `file:` is not an
+        // EUNSUPPORTEDPROTOCOL — npm understands it perfectly and resolves it
+        // to a path that exists on this machine and no consumer's. And
+        // suggesting a move to `pnpm publish` is only useful for the protocols
+        // pnpm turns into a range; for the rest it sends the maintainer through
+        // a publish migration that lands on the same specifier.
+        const pnpmWouldFixIt = PNPM_RESOLVES_TO_PLAIN_RANGE.includes(protocol);
+        return (
+          head +
+          `${dir} publishes with \`npm publish\`, which does not resolve ` +
+          `${protocol} ` +
+          (protocol === 'file:'
+            ? 'into anything a consumer can use: it points at a path that ' +
+              'exists here and on none of their machines'
+            : 'at all, so the published package would be uninstallable ' +
+              '(EUNSUPPORTEDPROTOCOL, #412)') +
+          '. Give it a plain semver range' +
+          (pnpmWouldFixIt
+            ? `, or move ${dir} to \`pnpm publish\` and declare it in ` +
+              `PNPM_PUBLISHED (#436).`
+            : '. `pnpm publish` does not resolve it either.')
+        );
+      }
+      if (why === 'unresolved') {
+        if (section === 'devDependencies') {
+          // No consumer resolves a dependency's devDependencies, so the
+          // consumer-facing complaint does not apply and "give it a semver
+          // range" is not even possible for a local path. It is still worth a
+          // human decision, because it means nothing outside this workspace.
+          return (
+            head +
+            `\`pnpm publish\` does not rewrite ${protocol}, so the published ` +
+            `manifest carries a specifier that means nothing outside this ` +
+            `workspace. Nothing installs it (consumers do not resolve ` +
+            `devDependencies), but it should not ship: drop it, or depend on ` +
+            `the package by name.`
+          );
+        }
+        const detail =
+          protocol === 'jsr:'
+            ? 'rewrites it to an aliased `npm:@jsr/…` specifier, which resolves ' +
+              'only for consumers who have configured the @jsr registry'
+            : 'does not rewrite it at all, so no consumer can resolve it';
+        return (
+          head + `\`pnpm publish\` ${detail}. Give it a plain semver range.`
+        );
+      }
+      return (
+        head +
+        `\`pnpm publish\` resolves ${protocol} to a real range, so it installs, ` +
+        `but ${section} is resolved by consumers and this specifier only means ` +
+        `something inside the workspace. ` +
+        (section === 'peerDependencies'
+          ? // A peer dep is SUPPOSED to reach consumers, so "move it to
+            // devDependencies" would break the contract rather than fix it.
+            'A peer dependency is meant to reach them, so give it an explicit ' +
+            'semver range naming the versions this package actually supports.'
+          : `Move it to devDependencies if only this package's own build or ` +
+            `tests need it, or give it a plain semver range if consumers ` +
+            `really do need it at runtime.`)
+      );
+    })
+  );
+
+  return violations;
+}
+
+/**
+ * Lifecycle hooks that run during a pack or publish, and therefore name scripts
+ * whose absence would fail a release rather than CI.
+ *
+ * Deliberately not every script: `"start": "node dist/index.js"` is a correct
+ * entry naming a build OUTPUT, and this check runs before the build in ci.yml,
+ * so demanding it exist would red the pipeline on a working config.
+ *
+ * `prepare` is excluded for the same reason and it is not obvious: it runs
+ * after the build during a pack, so `"prepare": "node ./dist/postbuild.mjs"` is
+ * a normal entry whose target legitimately does not exist when this runs.
+ */
+const LIFECYCLE_HOOKS = [
+  'prepublishOnly',
+  'prepublish',
+  'prepack',
+  'postpack',
+  'publish',
+  'postpublish',
+];
+
+/**
+ * Script paths a lifecycle hook names. Path-shaped words only: a bare
+ * `bundle.js` or a `--require=./polyfill.js` flag is not a script to demand
+ * exists.
+ *
+ * Extensions rather than "anything path-shaped", because a hook may legitimately
+ * name a directory or a non-file argument. `.ts` and `.sh` are included since
+ * `tsx ./x.ts` and `bash ./x.sh` name a script exactly as much as `node ./x.mjs`.
+ */
+const SCRIPT_EXT = /\.(mjs|cjs|js|ts|mts|cts|sh)$/;
+
+export function hookScripts(pkg) {
+  const referenced = new Set();
+  for (const hook of LIFECYCLE_HOOKS) {
+    const cmd = pkg?.scripts?.[hook];
+    if (typeof cmd !== 'string') continue;
+    let words;
+    try {
+      words = tokenize(cmd);
+    } catch {
+      // An unbalanced quote is a command the shell would reject anyway.
+      // Reporting a path invented from it would be a violation about a file
+      // nobody named.
+      continue;
+    }
+    for (const word of words) {
+      if (word.startsWith('-')) continue;
+      // A build OUTPUT is not a script to demand exists: this check runs
+      // before the build in ci.yml, and `"prepack": "node ./dist/stamp.mjs"`
+      // is a working config. `prepare` was excluded wholesale for this, but
+      // prepack/postpack/publish run at the same moment and needed the same
+      // allowance.
+      if (/(^|\/)(dist|build|lib|out|es|esm|cjs)\//.test(word)) continue;
+      // A path built from a shell variable cannot be resolved here, and
+      // access()ing the literal text would report a working hook as broken.
+      if (word.includes('$')) continue;
+      if (!word.includes('/')) continue;
+      if (SCRIPT_EXT.test(word)) referenced.add(word);
+    }
+  }
+  return [...referenced];
+}
 
 async function checkPublishableManifests() {
   const violations = [];
-  const CONSUMER_SECTIONS = [
-    'dependencies',
-    'peerDependencies',
-    'optionalDependencies',
-  ];
 
   const packages = parseWorkspacePackages(
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
@@ -1074,10 +1315,9 @@ async function checkPublishableManifests() {
   }
 
   for (const dir of packages) {
-    const manifestPath = join(REPO, dir, 'package.json');
     let pkg;
     try {
-      pkg = JSON.parse(await readFile(manifestPath, 'utf8'));
+      pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
     } catch {
       violations.push(
         `pnpm-workspace.yaml lists "${dir}" but ${dir}/package.json is missing ` +
@@ -1085,86 +1325,24 @@ async function checkPublishableManifests() {
       );
       continue;
     }
-    if (pkg.private) continue;
+    // The private check lives in manifestViolations, not here, so there is one
+    // copy of it. hookScripts still runs for private packages: a broken pack
+    // hook is worth reporting whether or not the package publishes.
+    violations.push(...manifestViolations(dir, pkg));
 
-    for (const section of CONSUMER_SECTIONS) {
-      for (const [name, spec] of Object.entries(pkg[section] ?? {})) {
-        if (hasPackTimeProtocol(spec)) {
-          const protocol = spec.slice(0, spec.indexOf(':') + 1);
-          violations.push(
-            `${dir}/package.json declares "${name}": "${spec}" in ${section}. ` +
-              `npm publish does not resolve the ${protocol} protocol, so the ` +
-              `published package is uninstallable (EUNSUPPORTEDPROTOCOL, #412). ` +
-              `Move it to devDependencies if it is only needed to build or ` +
-              `test this package, or give it a plain semver range if consumers ` +
-              `really need it at runtime.`
-          );
-        }
-      }
-    }
-
-    const devDeps = pkg.devDependencies ?? {};
-
-    // Hooks present is no defence for the shapes pack-manifest.mjs refuses:
-    // the check would go green and the release would be what breaks. So these
-    // are violations on their own terms, reported alongside the hook rules
-    // below rather than instead of them.
-    for (const [name, spec] of Object.entries(devDeps)) {
-      const rule = unresolvableAtPack(spec);
-      if (!rule) continue;
-      violations.push(
-        `${dir}/package.json declares "${name}": "${spec}" in ` +
-          `devDependencies. The prepack/postpack hooks do not make that ` +
-          `publishable — ${rule.why} — so the pack fails instead (#412). ` +
-          `Give it a plain semver range.`
-      );
-    }
-
-    // A plain `workspace:` range is the one case the hooks genuinely cover, so
-    // it is the only one whose violation they suppress.
-    const stillUnresolved = Object.values(devDeps).some(
-      spec =>
-        typeof spec === 'string' &&
-        spec.startsWith('workspace:') &&
-        !unresolvableAtPack(spec)
-    );
-    if (!stillUnresolved) continue;
-
-    // Deliberately matched by name: only pack-manifest.mjs is known to perform
-    // this rewrite. A package with its own differently-named pack hook (e.g.
-    // bulma-ui/scripts/pack-pointer-files.mjs) should call pack-manifest.mjs as
-    // well rather than be waved through — a false positive here costs one line
-    // of config, a false negative ships another uninstallable tarball.
-    const hookScripts = ['prepack', 'postpack'].map(hook =>
-      (pkg.scripts?.[hook] ?? '')
-        .split(/\s+/)
-        .find(token => token.endsWith('pack-manifest.mjs'))
-    );
-
-    if (!hookScripts.every(Boolean)) {
-      violations.push(
-        `${dir}/package.json keeps a workspace: specifier in devDependencies ` +
-          `but does not resolve it at pack time, so it would be published ` +
-          `verbatim (#412). Add "prepack": "node scripts/pack-manifest.mjs ` +
-          `prepack" and the matching postpack hook — copy ` +
-          `bestax-migrate/scripts/pack-manifest.mjs.`
-      );
-      continue;
-    }
-
-    // Naming the script is not the same as shipping it. A hook left pointing at
-    // a moved or deleted path satisfies the check above and then fails at
-    // `npm publish` — the one moment where a failure is most expensive.
-    for (const rel of new Set(hookScripts)) {
+    // Naming a script is not the same as shipping it. A hook pointing at a
+    // moved path fails during the release rather than in CI, which is the one
+    // moment where a failure is most expensive. npm and pnpm both run lifecycle
+    // scripts from the package root, so these resolve from `dir`.
+    for (const rel of hookScripts(pkg)) {
+      const abs = isAbsolute(rel) ? rel : join(REPO, dir, rel);
       try {
-        await access(join(REPO, dir, rel));
+        await access(abs);
       } catch {
         violations.push(
-          `${dir}/package.json points its prepack/postpack hooks at "${rel}", ` +
-            `but ${dir}/${rel} does not exist. The workspace: specifier in ` +
-            `devDependencies would go out unresolved (#412), and ` +
-            `the failure would surface during the release rather than in CI. ` +
-            `Restore the script or fix the path in both hooks.`
+          `${dir}/package.json runs "${rel}" from a lifecycle hook, but ` +
+            `${relative(REPO, abs)} does not exist. That would fail during ` +
+            `the release rather than in CI (#436).`
         );
       }
     }
@@ -1314,9 +1492,10 @@ async function main() {
   }
 }
 
-// Only run the suite when invoked as a command. The rules above are imported
-// by scripts/pack-manifest.test.mjs, and importing a module should not run a
-// repo-wide conformance sweep as a side effect.
+// Only run the suite when invoked as a command. `manifestViolations` and
+// `hookScripts` above are imported by scripts/publishable-manifests.test.mjs,
+// and importing a module should not run a repo-wide conformance sweep as a
+// side effect.
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   main().catch(err => {
     console.error(err);
