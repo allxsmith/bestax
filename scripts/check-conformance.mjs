@@ -1183,29 +1183,53 @@ const STEP_KEYS = [
   'fail',
 ];
 
-function missingExecScripts(dir, config) {
-  const cmds = STEP_KEYS.flatMap(key => pluginEntries(config?.[key]))
-    .filter(([name]) => name === '@semantic-release/exec')
-    .flatMap(([, cfg]) => Object.values(cfg ?? {}))
-    .filter(c => typeof c === 'string');
-
+/**
+ * Script paths named by a shell command. Path-shaped tokens only: a bare
+ * `bundle.js` or a `--require=./polyfill.js` flag is not a script to demand
+ * exists, and reporting one as missing would red CI over a correct config.
+ */
+function scriptTokens(cmds) {
   const referenced = new Set();
   for (const cmd of cmds) {
     for (const token of cmd.split(/\s+/)) {
-      // Path-shaped only. A bare `bundle.js` or a `--require=./polyfill.js`
-      // flag is not a script this should demand exists, and reporting one as
-      // missing would red CI over a correct config.
       if (token.startsWith('-')) continue;
       if (!token.includes('/')) continue;
       if (/\.(mjs|cjs|js)$/.test(token)) referenced.add(token);
     }
   }
+  return referenced;
+}
+
+function missingExecScripts(dir, config, pkg) {
+  const cmds = STEP_KEYS.flatMap(key => pluginEntries(config?.[key]))
+    .filter(([name]) => name === '@semantic-release/exec')
+    .flatMap(([, cfg]) => Object.values(cfg ?? {}))
+    .filter(c => typeof c === 'string');
+
+  // Lifecycle hooks name scripts the same way and fail at the same expensive
+  // moment. prepublishOnly is the one that matters here: it is what refuses a
+  // non-pnpm publish, and a hook pointing at a moved script fails during the
+  // release rather than in CI. npm and pnpm both run lifecycle scripts with the
+  // package root as cwd, so those paths always resolve from `dir`.
+  const hookCmds = Object.values(pkg?.scripts ?? {}).filter(
+    c => typeof c === 'string'
+  );
+
+  // Keep the origin with each path: a violation that blames the wrong file
+  // sends the maintainer to the wrong place.
+  const referenced = new Map();
+  for (const rel of scriptTokens(cmds))
+    referenced.set(rel, 'release.config.js');
+  for (const rel of scriptTokens(hookCmds)) {
+    if (!referenced.has(rel)) referenced.set(rel, 'package.json');
+  }
   // A command may name a script absolutely (the robust form, since exec's cwd
   // is wherever semantic-release was invoked) or relative to the package
   // directory. Resolving a relative path against REPO/dir matches the cwd
   // ci.yml sets.
-  return [...referenced].map(rel => ({
+  return [...referenced].map(([rel, source]) => ({
     rel,
+    source,
     abs: isAbsolute(rel) ? rel : join(REPO, dir, rel),
   }));
 }
@@ -1263,13 +1287,12 @@ async function checkPublishableManifests() {
 
     violations.push(...manifestViolations(dir, pkg, classifyPublisher(config)));
 
-    for (const { rel, abs } of missingExecScripts(dir, config)) {
+    for (const { rel, source, abs } of missingExecScripts(dir, config, pkg)) {
       try {
         await access(abs);
       } catch {
         violations.push(
-          `${dir}/release.config.js runs "${rel}" from an ` +
-            `@semantic-release/exec command, but ${relative(REPO, abs)} does ` +
+          `${dir}/${source} runs "${rel}", but ${relative(REPO, abs)} does ` +
             `not exist. Naming a script is not the same as shipping it: this ` +
             `would fail during the release rather than in CI, after the ` +
             `release commit and tag are already pushed (#436).`

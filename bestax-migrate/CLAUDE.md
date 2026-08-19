@@ -91,13 +91,19 @@ Three things about that split are load-bearing, and none of them fails loudly:
   `verifyConditionsCmd` and checks only that an OIDC context exists; it does not
   prove npm will accept the token.
 
-**Never hand-run `npm publish` in this package.** The old `prepack` hook rewrote
-`workspace:^` for whatever was packing, so it covered a manual publish as well as
-the release pipeline. Nothing does now: the guarantee lives entirely in
-`release.config.js`, and `npm publish` run by hand from this directory would ship
-`workspace:^` verbatim and reproduce #412 with nothing to stop it. Use
-`pnpm publish` if you ever need to publish this package outside CI, and check the
-tarball first with `pnpm -C bestax-migrate pack`.
+**This package must be published with `pnpm publish`, and that is enforced.** The
+old `prepack` hook rewrote `workspace:^` for whatever was packing, so it covered a
+manual publish as well as the release pipeline. Deleting it left the guarantee
+living only in `release.config.js`, which the conformance rule then exempts
+precisely because pnpm handles it, so the specifier had no mechanical guard at all
+outside CI. `prepublishOnly` now runs `scripts/require-pnpm-publish.mjs`, which
+refuses any publisher that is not pnpm (both `npm publish` and `pnpm publish` run
+that hook, and they identify themselves in `npm_config_user_agent`).
+
+It covers the realistic mistake, not every path: `npm pack` runs `prepack` and
+`prepare` rather than `prepublishOnly`, and publishing a pre-built tarball runs
+none of the package's scripts. Check what a manifest will actually ship with
+`pnpm -C bestax-migrate pack`.
 
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
 typecheck target for the e2e, never imported at runtime, and consumers of a
