@@ -46,21 +46,37 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 /**
- * The publish is pnpm's if the user agent says so. An ABSENT user agent is
- * treated as allowed: `prepublishOnly` only runs under a package manager, so a
- * missing value means someone invoked this script directly, and failing there
- * would be a confusing no-op refusal rather than a caught mistake.
+ * Keyed on `npm_execpath`, NOT on `npm_config_user_agent`.
+ *
+ * The user agent is inherited. npm relays whatever it finds in the
+ * environment, so `pnpm exec npm publish` runs this hook reporting
+ * `pnpm/11.9.0 …` and an agent check waves it straight through — while npm,
+ * not pnpm, assembles the tarball and ships `workspace:^` unresolved. That is
+ * #412 through the guard written to stop it, via the most natural
+ * hand-publish form in a pnpm monorepo. Measured:
+ *
+ *   pnpm publish          agent pnpm/…   execpath …/pnpm/11.9.0/bin/pnpm.mjs
+ *   npm publish           agent npm/…    execpath …/npm/bin/npm-cli.js
+ *   pnpm exec npm publish agent pnpm/…   execpath …/npm/bin/npm-cli.js
+ *
+ * `npm_execpath` is rewritten by whichever process actually runs the lifecycle
+ * script, so it names the real packer where the agent only names an ancestor.
+ *
+ * An ABSENT execpath is treated as allowed: `prepublishOnly` only runs under a
+ * package manager, so nothing there means the script was invoked directly, and
+ * failing would be a confusing refusal rather than a caught mistake.
  */
-export function isPnpmPublish(userAgent) {
-  if (!userAgent) return true;
-  return /^pnpm\//.test(String(userAgent).trim());
+export function isPnpmPublish(execPath) {
+  if (!execPath) return true;
+  const binary = String(execPath).trim().split(/[\\/]/).pop() ?? '';
+  return /^pnpm(\.[cm]?js)?$/.test(binary);
 }
 
 export function main(env = process.env, log = console.error) {
-  if (isPnpmPublish(env.npm_config_user_agent)) return 0;
+  if (isPnpmPublish(env.npm_execpath)) return 0;
   log(
     'This package must be published with `pnpm publish`, not ' +
-      `\`npm publish\` (agent: ${env.npm_config_user_agent}).\n` +
+      `\`npm publish\` (packer: ${env.npm_execpath}).\n` +
       '\n' +
       'It declares "@allxsmith/bestax-bulma": "workspace:^" in ' +
       'devDependencies. pnpm resolves the workspace: protocol at pack time; ' +

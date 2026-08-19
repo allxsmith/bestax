@@ -25,7 +25,9 @@ import { readFileSync } from 'node:fs';
 import {
   classifyPublisher,
   manifestViolations,
+  missingExecScripts,
   parseWorkspacePackages,
+  tokenize,
 } from './check-conformance.mjs';
 
 const NPM = '@semantic-release/npm';
@@ -282,10 +284,37 @@ test('the workspace roster was actually discovered', () => {
 
 for (const [dir, publisher] of REAL) {
   test(`the real ${dir}/release.config.js classifies as ${publisher}`, async () => {
-    const { default: config } = await import(`../${dir}/release.config.js`);
+    // checkPublishableManifests treats a missing release.config.js as fine (a
+    // package that simply does not publish through semantic-release), so this
+    // must not be more brittle than the code it covers.
+    let config;
+    try {
+      ({ default: config } = await import(`../${dir}/release.config.js`));
+    } catch (err) {
+      assert.match(
+        err.message,
+        /Cannot find module/,
+        `${dir}/release.config.js exists but failed to load: ${err.message}`
+      );
+      return;
+    }
     assert.equal(classifyPublisher(config), publisher);
   });
 }
+
+test('a package with no release.config.js is reported without naming one', () => {
+  // The hasConfig=false branch had no coverage, and its whole purpose is not
+  // sending a maintainer to a file that is not there.
+  const v = manifestViolations(
+    'somepkg',
+    { devDependencies: { x: 'workspace:^' } },
+    'unknown',
+    false
+  );
+  assert.equal(v.length, 1);
+  assert.match(v[0], /has no release\.config\.js/);
+  assert.doesNotMatch(v[0], /somepkg\/release\.config\.js/);
+});
 
 test('bestax-migrate passes --provenance and --embed-readme', async () => {
   // Neither is optional and neither fails loudly if dropped, which is exactly
@@ -395,4 +424,105 @@ test('a plain semver range is not a violation for anyone', () => {
   for (const publisher of ['npm', 'pnpm', 'unknown']) {
     assert.deepEqual(manifestViolations('somepkg', clean, publisher), []);
   }
+});
+
+// --- the script-existence path -----------------------------------------------
+//
+// This is the guard the deleted pack-hook block carried, and until now it was
+// the least-covered code in the change: its only live input is bestax-migrate's
+// own hook, which passes whatever the logic does. Three separate defects in it
+// reached review (three step arrays out of ten, any .js token treated as a
+// path, unquoted paths shredded on whitespace), all of which a test here would
+// have caught.
+
+test('tokenize keeps a quoted path with a space as one token', () => {
+  assert.deepEqual(
+    tokenize(`node '/My Projects/x/a.mjs' --dir='/My Projects/x'`),
+    ['node', '/My Projects/x/a.mjs', '--dir=/My Projects/x']
+  );
+  assert.deepEqual(tokenize('node "/A B/c.mjs"'), ['node', '/A B/c.mjs']);
+});
+
+const collect = (config, pkg) =>
+  missingExecScripts('somepkg', config, pkg).map(r => r.rel);
+
+test('an exec command in ANY step has its script collected', () => {
+  // Scanning three of semantic-release's ten step keys meant a prepareCmd
+  // naming a moved script failed mid-release instead of in CI.
+  for (const step of ['plugins', 'prepare', 'success', 'fail', 'addChannel']) {
+    const entry = ['@semantic-release/exec', { cmd: 'node ./scripts/x.mjs' }];
+    const config = { [step]: step === 'plugins' ? [entry] : [entry] };
+    assert.deepEqual(
+      collect(config, {}),
+      ['./scripts/x.mjs'],
+      `${step} missed`
+    );
+  }
+});
+
+test('a non-array step is scanned too', () => {
+  assert.deepEqual(
+    collect(
+      {
+        publish: {
+          path: '@semantic-release/exec',
+          publishCmd: 'node ./s/x.mjs',
+        },
+      },
+      {}
+    ),
+    ['./s/x.mjs']
+  );
+});
+
+test('only path-shaped tokens count as scripts', () => {
+  // `"start": "node dist/index.js"` is a correct entry and conformance runs
+  // before the build, so demanding build outputs exist would red the pipeline.
+  const config = {
+    plugins: [
+      [
+        '@semantic-release/exec',
+        { cmd: 'node ./scripts/x.mjs --out=bundle.js --require=./p.js' },
+      ],
+    ],
+  };
+  assert.deepEqual(collect(config, {}), ['./scripts/x.mjs']);
+});
+
+test('lifecycle hooks are scanned, other scripts are not', () => {
+  const pkg = {
+    scripts: {
+      prepublishOnly: 'node ../scripts/guard.mjs',
+      start: 'node dist/index.js',
+      test: 'node ./tools/t.js',
+    },
+  };
+  const found = collect({}, pkg);
+  assert.ok(
+    found.includes('../scripts/guard.mjs'),
+    'prepublishOnly must count'
+  );
+  assert.ok(!found.includes('dist/index.js'), 'start must not be demanded');
+  assert.ok(!found.includes('./tools/t.js'), 'test must not be demanded');
+});
+
+test('each path is attributed to the file it came from', () => {
+  // A violation that blames the wrong file sends the maintainer to the wrong
+  // place.
+  const rows = missingExecScripts(
+    'somepkg',
+    { plugins: [['@semantic-release/exec', { cmd: 'node ./a.mjs' }]] },
+    { scripts: { prepack: 'node ./b.mjs' } }
+  );
+  assert.equal(rows.find(r => r.rel === './a.mjs').source, 'release.config.js');
+  assert.equal(rows.find(r => r.rel === './b.mjs').source, 'package.json');
+});
+
+test('an absolute path is not re-rooted under the package directory', () => {
+  const rows = missingExecScripts(
+    'somepkg',
+    { plugins: [['@semantic-release/exec', { cmd: "node '/abs/x.mjs'" }]] },
+    {}
+  );
+  assert.equal(rows[0].abs, '/abs/x.mjs');
 });

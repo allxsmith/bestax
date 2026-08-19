@@ -1034,6 +1034,15 @@ export function parseWorkspacePackages(yaml) {
  */
 const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:', 'jsr:'];
 
+// Of those, the ones `pnpm publish` turns into a plain, installable semver
+// range. That is what makes a pnpm publisher safe to exempt, and it is NOT
+// true of all three: pnpm rewrites `jsr:@scope/pkg@^1` to
+// `npm:@jsr/scope__pkg@^1` (parseJsrSpecifier -> jsrToNpmPackageName ->
+// createNpmAliasedSpecifier), which resolves only for a consumer who has
+// `@jsr:registry=https://npm.jsr.io` in their npmrc. Everyone else gets E404.
+// So the exemption is per-protocol, not per-package.
+const PNPM_RESOLVES_TO_PLAIN_RANGE = ['workspace:', 'catalog:'];
+
 const hasPackTimeProtocol = spec =>
   typeof spec === 'string' && PACK_TIME_PROTOCOLS.some(p => spec.startsWith(p));
 
@@ -1116,11 +1125,14 @@ export function classifyPublisher(config) {
         !/(^|\s)--dry-run(\s|=|$)/.test(segment)
     );
 
+  // `cmd` and not just `publishCmd`: exec resolves its command as
+  // `config[cmdProp] ? cmdProp : 'cmd'`, so a generic `cmd` really does publish.
   const pnpmPublishes = entries.some(
     ([name, cfg]) =>
       name === '@semantic-release/exec' &&
-      typeof cfg?.publishCmd === 'string' &&
-      publishesWithPnpm(cfg.publishCmd)
+      [cfg?.publishCmd, cfg?.cmd].some(
+        c => typeof c === 'string' && publishesWithPnpm(c)
+      )
   );
   if (pnpmPublishes) return 'pnpm';
 
@@ -1141,25 +1153,36 @@ export function manifestViolations(dir, pkg, publisher, hasConfig = true) {
     Object.entries(pkg?.[section] ?? {})
       .filter(([, spec]) => hasPackTimeProtocol(spec))
       .map(([name, spec]) => ({ section, name, spec }))
-  );
-  if (!offenders.length || publisher === 'pnpm') return [];
+  ).filter(({ spec }) => {
+    // A pnpm publisher is exempt only for the protocols pnpm turns into a
+    // plain range. jsr: is rewritten to an aliased @jsr specifier, so it stays
+    // a violation no matter who publishes.
+    if (publisher !== 'pnpm') return true;
+    return !PNPM_RESOLVES_TO_PLAIN_RANGE.some(pr => spec.startsWith(pr));
+  });
+  if (!offenders.length) return [];
 
   return offenders.map(({ section, name, spec }) => {
     const protocol = spec.slice(0, spec.indexOf(':') + 1);
     const how =
-      publisher === 'npm'
-        ? `${dir}/release.config.js publishes with \`npm publish\`, which ` +
-          `does not resolve the ${protocol} protocol`
-        : hasConfig
-          ? `${dir}/release.config.js declares no publish mechanism this ` +
-            'check recognises (expected an `@semantic-release/npm` entry, or ' +
-            '`@semantic-release/exec` with a `publishCmd` that runs `pnpm ' +
-            `publish\`), so it cannot be assumed to resolve the ${protocol} ` +
-            'protocol'
-          : // Naming a file that is not there would send the maintainer
-            // somewhere that does not exist.
-            `${dir} has no release.config.js, so nothing establishes that ` +
-            `the ${protocol} protocol gets resolved before publishing`;
+      publisher === 'pnpm'
+        ? `${dir}/release.config.js publishes with \`pnpm publish\`, which ` +
+          `rewrites the ${protocol} protocol to an aliased \`npm:@jsr/…\` ` +
+          'specifier rather than a plain range, so it installs only for ' +
+          'consumers who have configured the @jsr registry'
+        : publisher === 'npm'
+          ? `${dir}/release.config.js publishes with \`npm publish\`, which ` +
+            `does not resolve the ${protocol} protocol`
+          : hasConfig
+            ? `${dir}/release.config.js declares no publish mechanism this ` +
+              'check recognises (expected an `@semantic-release/npm` entry, or ' +
+              '`@semantic-release/exec` with a `publishCmd` that runs `pnpm ' +
+              `publish\`), so it cannot be assumed to resolve the ${protocol} ` +
+              'protocol'
+            : // Naming a file that is not there would send the maintainer
+              // somewhere that does not exist.
+              `${dir} has no release.config.js, so nothing establishes that ` +
+              `the ${protocol} protocol gets resolved before publishing`;
     return (
       `${dir}/package.json declares "${name}": "${spec}" in ${section}, and ` +
       `${how}. The published package would be ` +
@@ -1202,10 +1225,14 @@ const STEP_KEYS = [
 // Quoted segments count as one token. Splitting on whitespace alone would
 // shred a path containing a space into fragments and then report them as
 // missing scripts.
-const TOKEN_RE = /'([^']*)'|"([^"]*)"|(\S+)/g;
+// A token is a run of quoted and unquoted chunks with no whitespace between
+// them, so `--dir='/My Projects/x'` stays one token. Matching quotes as
+// separate alternatives instead would split it at the `=`, because the
+// unquoted branch consumes `--dir='/My` before the quote is ever seen.
+const TOKEN_RE = /(?:'[^']*'|"[^"]*"|[^\s'"]+)+/g;
 
-function tokenize(cmd) {
-  return [...cmd.matchAll(TOKEN_RE)].map(m => m[1] ?? m[2] ?? m[3]);
+export function tokenize(cmd) {
+  return (cmd.match(TOKEN_RE) ?? []).map(t => t.replace(/['"]/g, ''));
 }
 
 function scriptTokens(cmds) {
@@ -1234,7 +1261,7 @@ const LIFECYCLE_HOOKS = [
   'postpublish',
 ];
 
-function missingExecScripts(dir, config, pkg) {
+export function missingExecScripts(dir, config, pkg) {
   const cmds = STEP_KEYS.flatMap(key => pluginEntries(config?.[key]))
     .filter(([name]) => name === '@semantic-release/exec')
     .flatMap(([, cfg]) => Object.values(cfg ?? {}))

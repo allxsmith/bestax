@@ -23,7 +23,7 @@
     "gen:mcp": "node scripts/gen-mcp-index.mjs",
     "gen:mcp:check": "node scripts/gen-mcp-index.mjs && git add --intent-to-add --all bestax-mcp/data && git diff --exit-code -- bestax-mcp/data",
     "gen": "pnpm gen:api-docs && pnpm gen:catalog && pnpm gen:mcp",
-    "all": "turbo run build typecheck test test:coverage bundle:stats && pnpm run lint && pnpm run format:check && turbo run build-storybook --filter=@allxsmith/bestax-bulma",
+    "all": "turbo run build typecheck test test:coverage bundle:stats && node --test \"scripts/*.test.mjs\" && pnpm run lint && pnpm run format:check && turbo run build-storybook --filter=@allxsmith/bestax-bulma",
     "storybook": "turbo run storybook --filter=@allxsmith/bestax-bulma",
     "docs": "turbo run docs --filter=@allxsmith/bestax-docs",
     "release": "turbo run release",

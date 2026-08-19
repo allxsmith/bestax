@@ -59,14 +59,29 @@ const VARS = ['ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
  */
 const inCI = env => String(env.GITHUB_ACTIONS).toLowerCase() === 'true';
 
-export function checkOidcContext(env = process.env) {
+export function checkOidcContext(env = process.env, { dryRun = false } = {}) {
+  // semantic-release marks verifyConditions `dryRun: true`, so this runs on a
+  // dry run too. A dry run never publishes and needs no token, and failing one
+  // would break the command CONTRIBUTING.md advertises as safe.
+  if (dryRun) return { ok: true, skipped: true };
   if (!inCI(env)) return { ok: true, skipped: true };
   const missing = VARS.filter(name => !env[name]);
   return { ok: missing.length === 0, skipped: false, missing };
 }
 
-export function main(env = process.env, log = console.error) {
-  const { ok, skipped, missing } = checkOidcContext(env);
+export function main(
+  env = process.env,
+  log = console.log,
+  argv = process.argv.slice(2)
+) {
+  // Printed on stdout, not stderr: @semantic-release/exec builds its
+  // SemanticReleaseError message from the command's stdout, so an explanation
+  // on stderr shows up only in the scrollback while the surfaced failure reads
+  // "Command failed with exit code 1". The whole value of this guard is telling
+  // the next person what went wrong.
+  const { ok, skipped, missing } = checkOidcContext(env, {
+    dryRun: argv.includes('--dry-run'),
+  });
   if (skipped || ok) return 0;
   log(
     `verify-oidc-context: ${missing.join(' and ')} ${

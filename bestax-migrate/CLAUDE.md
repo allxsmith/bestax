@@ -77,9 +77,12 @@ with `npmPublish: false` purely for its `prepare` step, which writes the version
 Three things about that split are load-bearing, and none of them fails loudly:
 
 - **`--provenance` is required.** pnpm reads `publishConfig.registry` and
-  `.access` but takes `provenance` from options only, so the `provenance: true`
-  in `publishConfig` is inert here. Drop the flag and #411's provenance quietly
-  stops being produced.
+  `.access` but takes `provenance` from options only. `publishConfig.provenance`
+  was deliberately REMOVED from this package's manifest rather than left in
+  place: it does nothing under pnpm, and the most likely reason anyone would
+  delete the flag is reading `"provenance": true` in package.json and concluding
+  it is redundant. Drop the flag and #411's provenance quietly stops being
+  produced.
 - **`--embed-readme` is required.** pnpm defaults it to false where npm defaults
   it to true; without it the npmjs.com page loses its README.
 - **The auth pre-flight is weaker than it was.** `@semantic-release/npm`

@@ -79,23 +79,39 @@ export default {
     [
       '@semantic-release/exec',
       {
+        // Every command below runs here, not in whatever directory
+        // semantic-release was started from. `pnpm publish` resolves its target
+        // package from the cwd, so without this a run from the repo root would
+        // reach the publish step (after the release commit and tag are already
+        // pushed) and fail on the private root package.
+        execCwd: PKG_DIR,
+
         // Guards the one failure this swap newly introduces rather than
         // inherits: with npmPublish false, nothing exchanges an OIDC token
         // during verifyConditions any more, and semantic-release runs every
         // `prepare` step (including the release commit and tag) before any
         // `publish` step. The script says what it does and does not prove.
-        verifyConditionsCmd: `node ${sh(path.join(SCRIPTS, 'verify-oidc-context.mjs'))}`,
+        // `${options.dryRun}` is available because exec renders its commands
+        // as lodash templates over the semantic-release context. Needed
+        // because verifyConditions is marked `dryRun: true` upstream, so this
+        // runs during `semantic-release --dry-run` as well, and a dry run
+        // publishes nothing and needs no token.
+        verifyConditionsCmd:
+          `node ${sh(path.join(SCRIPTS, 'verify-oidc-context.mjs'))}` +
+          ' ${options.dryRun ? "--dry-run" : ""}',
 
         // Every flag here is load-bearing; none is decoration.
         //
-        //   --provenance    pnpm does NOT read `publishConfig.provenance`. It
-        //                   reads publishConfig.registry and .access only, and
-        //                   `provenance` is absent from the publishConfig
-        //                   whitelist that hoists keys to the top level. Drop
-        //                   this flag and #411's provenance silently stops
-        //                   being produced. Passing it explicitly also survives
-        //                   an OIDC response that omits provenance, because
-        //                   pnpm assigns that with `??=`.
+        //   --provenance    The ONLY thing turning provenance on. pnpm reads
+        //                   publishConfig.registry and .access but takes
+        //                   `provenance` from options, and it is absent from
+        //                   the whitelist that hoists publishConfig keys. The
+        //                   package.json no longer carries a
+        //                   `publishConfig.provenance` at all, precisely so
+        //                   nobody reads one and concludes this flag is
+        //                   redundant. Passing it explicitly also survives an
+        //                   OIDC response that omits provenance, since pnpm
+        //                   assigns that with `??=`.
         //   --embed-readme  pnpm defaults this to false, npm defaults it to
         //                   true. Without it the npmjs.com page for this
         //                   package loses its README on the next release.
