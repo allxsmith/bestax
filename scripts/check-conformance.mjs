@@ -55,7 +55,6 @@ import { registerVarsKeys } from './lib/scss-vars.mjs';
 // exec commands. Shared so the two halves cannot drift (#436).
 import { tokenize } from './lib/shell-words.mjs';
 import {
-  PACK_TIME_PROTOCOLS,
   PNPM_RESOLVES_TO_PLAIN_RANGE,
   DEP_SECTIONS,
   CONSUMER_SECTIONS,

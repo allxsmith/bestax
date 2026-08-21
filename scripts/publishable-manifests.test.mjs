@@ -24,7 +24,11 @@ import {
   manifestViolations,
   parseWorkspacePackages,
 } from './check-conformance.mjs';
-import { execOptions, releaseBranches } from './lib/release-config.mjs';
+import {
+  execOptions,
+  npmOptions,
+  releaseBranches,
+} from './lib/release-config.mjs';
 import { tokenize } from './lib/shell-words.mjs';
 
 const repoFile = rel =>
@@ -429,6 +433,30 @@ test('an undeclared package is not asked for the guard', () => {
   // describe the opposite of what the fixture does.
   const v = manifestViolations(NPM_PKG, { dependencies: { bulma: '^1.0.4' } });
   assert.deepEqual(v, []);
+});
+
+test('every declared package disables the npm plugin publish step', async () => {
+  // The other half of the publish decision, and the half with no symptom.
+  // @semantic-release/npm is kept ONLY for its prepare step, which writes the
+  // version the release commit carries. Delete `npmPublish: false` and it
+  // publishes with `npm publish` first — shipping whatever pack-time protocol
+  // the manifest holds, which is #412 — and THEN the exec plugin runs
+  // `pnpm publish` against a version that is already on the registry.
+  //
+  // Every other assertion here pins the exec half. Nothing pinned this one, so
+  // deleting one line left the whole suite green.
+  for (const dir of DECLARED) {
+    const npm = await npmOptions(dir);
+    assert.ok(
+      npm,
+      `${dir} must keep @semantic-release/npm for its prepare step`
+    );
+    assert.equal(
+      npm.npmPublish,
+      false,
+      `${dir} must set npmPublish: false, or it publishes twice`
+    );
+  }
 });
 
 test('every declared package pins its exec cwd to itself', async () => {
