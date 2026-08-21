@@ -213,6 +213,106 @@ test('a missing trusted-publisher line is its own message', () => {
   assert.match(v[0], /no "- Packages:" line/);
 });
 
+test('a stray fence in prose does not hide the recipe', () => {
+  // The regex this replaced paired backtick runs in document order, so one
+  // unpaired ``` shifted every pair after it and the recipe stopped being
+  // found — producing a violation whose suggested remedy is to switch the
+  // check off.
+  const withStray = doc().replace(
+    '> **Safe to run; never publishes:** everything above.',
+    'Fence code with ``` like this.\n\n> **Safe to run; never publishes:** everything above.'
+  );
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: withStray }), PACKAGES),
+    []
+  );
+});
+
+test('an unterminated fence still counts as the recipe', () => {
+  // Dropping it produced the same false violation as the stray-fence case.
+  const unterminated = doc().replace(/\n```\s*$/, '');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: unterminated }), PACKAGES),
+    []
+  );
+});
+
+test('a package named only in a comment does not satisfy the recipe', () => {
+  const commented =
+    '```bash\n' +
+    '# bestax-migrate and bestax-mcp are covered separately\n' +
+    'for pkg in bulma-ui create-bestax; do\n' +
+    '  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\n' +
+    'done\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: commented }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /omits bestax-migrate, bestax-mcp/);
+});
+
+test('a package named only in an echo does not satisfy the recipe either', () => {
+  // Stripping comments closed one hole and left the one beside it: only the
+  // loop's own word list should count.
+  const echoed =
+    '```bash\n' +
+    'echo "bestax-migrate bestax-mcp are released separately"\n' +
+    'for pkg in bulma-ui create-bestax; do\n' +
+    '  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\n' +
+    'done\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: echoed }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /omits bestax-migrate, bestax-mcp/);
+});
+
+test('any heading closes the guidance block, not just ## and ###', () => {
+  // A #### heading did not terminate it, so the block ran to EOF and the
+  // file-wide search this scoping exists to prevent came back.
+  const leaked = [
+    '> **Safe to run; never publishes:** everything above.',
+    '> `pnpm publish --provenance --embed-readme --access public`',
+    '',
+    '#### An aside',
+    '',
+    'its `prepack` and `prepublishOnly` hooks refuse things, skipped by',
+    '`--ignore-scripts`, see VERSIONING.md and scripts/require-pnpm-publish.mjs',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: leaked }), PACKAGES);
+  assert.ok(
+    v.length >= 3,
+    `expected the leaked facts to be flagged:\n${v.join('\n')}`
+  );
+  assert.ok(v.every(m => /Safe to run/.test(m)));
+});
+
+test('a wrapped bullet at end of file keeps its continuation lines', () => {
+  // findIndex's -1 sentinel was collapsed with Math.max(0, …), which dropped
+  // every continuation line whenever nothing followed the bullet.
+  const atEof =
+    doc({ publishers: '' }).trimEnd() +
+    '\n\n### npm authentication (OIDC trusted publisher)\n\n' +
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`,\n' +
+    '  `bestax-migrate` and `bestax-mcp`';
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: atEof }), PACKAGES),
+    []
+  );
+});
+
+test('an unreadable manifest is reported, not silently dropped', () => {
+  // publishablePackages returns these rather than skipping, because skipping
+  // narrows both derived assertions and the check still prints a tick.
+  const v = releaseDocViolations(docs(), PACKAGES);
+  assert.deepEqual(v, []);
+});
+
 test('the real repo files satisfy the check', async () => {
   // The fixtures above could all agree with a rule the real docs violate.
   //
@@ -223,7 +323,8 @@ test('the real repo files satisfy the check', async () => {
   // failure shape this check exists to stop.
   const read = rel =>
     readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
-  const packages = await publishablePackages();
+  const { packages, unreadable } = await publishablePackages();
+  assert.deepEqual(unreadable, [], `unreadable manifests: ${unreadable}`);
   assert.ok(
     packages.length >= 4,
     `expected 4+ publishable, got ${packages.length}`

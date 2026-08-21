@@ -63,7 +63,12 @@ import {
   CONSUMER_SECTIONS,
   packTimeProtocol,
 } from './lib/pack-time-protocols.mjs';
-import { readRegions, sectionSpans } from './lib/api-page.mjs';
+import {
+  fenceMask,
+  readRegions,
+  sectionSpans,
+  splitLines,
+} from './lib/api-page.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
   ORDERED_CATEGORIES,
@@ -864,71 +869,118 @@ const RELEASE_DOC_FACTS = [
  * failure publishable-manifests.test.mjs records against its own first version
  * — the prose satisfied the assertion while the thing being asserted was gone.
  *
- * Ends at the admonition close, the next heading, or a horizontal rule, which
- * covers both the blockquote form and the Docusaurus `:::tip` form.
+ * Fence-aware, and it ends at ANY heading rather than `##`/`###`. Both were
+ * bugs: a `####` heading did not close the block, so it ran to EOF and restored
+ * the file-wide search this exists to prevent; and a `---` or `:::` inside a
+ * fenced example truncated it early, in the other direction.
  */
 function safeToRunBlock(src) {
-  const lines = src.split('\n');
+  const { lines } = splitLines(src);
+  const masked = fenceMask(lines);
   const start = lines.findIndex(l =>
     l.includes('Safe to run; never publishes')
   );
   if (start < 0) return null;
-  const rest = lines.slice(start + 1);
-  let end = rest.findIndex(
-    l => l.trim() === ':::' || /^#{2,3}\s/.test(l) || l.trim() === '---'
-  );
-  if (end < 0) end = rest.length;
-  return [lines[start], ...rest.slice(0, end)].join('\n');
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (masked[i]) continue; // a terminator inside a fenced example is content
+    const l = lines[i];
+    if (
+      l.trim() === ':::' ||
+      /^\s{0,3}#{1,6}\s/.test(l) ||
+      l.trim() === '---'
+    ) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start, end).join('\n');
 }
 
 /**
  * The fenced block that runs the semantic-release dry run, or null. Located by
  * content rather than by heading, so renaming the section does not silently
  * switch this check off.
+ *
+ * Fences come from `fenceMask` rather than a /```[\s\S]*?```/g match, which
+ * pairs backtick runs in document order: one stray ``` in prose, or a
+ * ````markdown wrapper around a nested fence, shifts every pair after it and the
+ * real recipe stops being found. The remedy the violation then offers is "drop
+ * this file from RELEASE_DOC_FILES", i.e. switch the check off, which is the
+ * worst way to be wrong. An UNTERMINATED fence runs to EOF and is still
+ * returned, for the same reason — dropping it produced that same false
+ * violation.
  */
 function dryRunRecipe(src) {
-  // Walked line by line rather than matched with /```[\s\S]*?```/g, which pairs
-  // backtick runs in document order: one stray ``` in prose, or a ````markdown
-  // wrapper around a nested fence — both ordinary in contributor docs — shift
-  // every pair after it and the real recipe stops being found. The remedy the
-  // violation then offers is "drop this file from RELEASE_DOC_FILES", i.e.
-  // switch the check off, which is the worst way to be wrong.
-  const lines = src.split('\n');
+  const { lines } = splitLines(src);
+  const masked = fenceMask(lines);
   const blocks = [];
-  let open = null;
-  let current = [];
-  for (const line of lines) {
-    const fence = line.match(/^\s*(`{3,})/);
-    if (open === null) {
-      if (fence) {
-        open = fence[1];
-        current = [];
-      }
-      continue;
-    }
-    // Only a run at least as long as the opener closes it.
-    if (fence && fence[1].length >= open.length && line.trim() === fence[1]) {
+  let current = null;
+  for (let i = 0; i < lines.length; i++) {
+    if (masked[i]) (current ??= []).push(lines[i]);
+    else if (current) {
       blocks.push(current.join('\n'));
-      open = null;
-      continue;
+      current = null;
     }
-    current.push(line);
   }
+  if (current) blocks.push(current.join('\n')); // unterminated fence at EOF
   return blocks.find(b => b.includes('semantic-release --dry-run')) ?? null;
 }
 
 /**
- * The command lines of a shell block: everything that is not a comment.
+ * The package names a dry-run recipe actually iterates over.
  *
- * A package named only in a `# …` comment satisfied the recipe assertion while
- * being absent from the loop that actually runs — which is the #536 failure the
- * assertion exists to catch, reintroduced one level down.
+ * Two narrowings, each closing a way a package could look covered while the
+ * recipe skipped it. First comments are stripped, because a name in a `# …`
+ * line satisfied the assertion while being absent from the loop. Then, if the
+ * block drives a `for … in …` loop, ONLY that word list counts — otherwise an
+ * `echo "bestax-mcp is released separately"` satisfies it just as well, which
+ * is the same failure one step further out.
  */
-const commandLines = block =>
-  block
+function recipeTargets(block) {
+  const commands = block
     .split('\n')
     .map(l => l.replace(/#.*$/, ''))
     .join('\n');
+  const loop = commands.match(/\bfor\s+\w+\s+in\s+([^;\n]+)/);
+  return loop ? loop[1] : commands;
+}
+
+/**
+ * The `- Packages:` bullet from the OIDC section, with any wrapped
+ * continuation lines.
+ *
+ * A named extractor rather than an inline block, so the slicing can be driven
+ * from a test — its first version collapsed `findIndex`'s -1 sentinel with
+ * `Math.max(0, …)`, which dropped every continuation line whenever the bullet
+ * ran to the end of the file with no blank line after it. That is precisely the
+ * case the extractor was written to handle.
+ *
+ * Scoped to the OIDC section rather than the first match in the file, because
+ * file-wide is the vacuity already fixed once for RELEASE_DOC_FACTS: an earlier
+ * `- Packages:` bullet elsewhere would satisfy this while the real list went
+ * short.
+ */
+function packagesBullet(src) {
+  const { lines } = splitLines(src);
+  const masked = fenceMask(lines);
+  const anchor = lines.findIndex(
+    (l, i) => !masked[i] && /trusted publisher/i.test(l)
+  );
+  const from = anchor < 0 ? 0 : anchor;
+  const start = lines.findIndex(
+    (l, i) => i >= from && !masked[i] && l.trimStart().startsWith('- Packages:')
+  );
+  if (start < 0) return '';
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (!lines[i].trim() || /^\s*[-*]\s/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start, end).join('\n');
+}
 
 /**
  * Package identifiers in `text`, as whole tokens.
@@ -1007,7 +1059,7 @@ export function releaseDocViolations(docs, packages) {
           `scripts/check-conformance.mjs if the page no longer covers releases.`
       );
     } else {
-      const named = packageTokens(commandLines(recipe));
+      const named = packageTokens(recipeTargets(recipe));
       const missing = packages.filter(p => !named.has(p.dir));
       if (missing.length) {
         violations.push(
@@ -1028,47 +1080,31 @@ export function releaseDocViolations(docs, packages) {
   // Keyed off the declared list, not a hardcoded name: with the string inline,
   // renaming the file and updating RELEASE_DOC_FILES made the
   // highest-consequence assertion in this check silently no-op.
+  //
+  // Absent from the map is also a different fact from present-but-empty, and it
+  // already has its own message in checkReleaseDocsSync. Coercing one into the
+  // other told a reader the file had no bullet when the file was never read.
   const [primary] = RELEASE_DOC_FILES;
-  const contributing = docs.get(primary);
-  {
-    // The bullet plus any wrapped continuation lines. Taking only the line that
-    // starts with "- Packages:" meant re-wrapping that bullet — it is far
-    // longer than the file's usual width — dropped the trailing packages and
-    // failed against documentation that was correct.
-    const lines = (contributing ?? '').split('\n');
-    const start = lines.findIndex(l => l.trimStart().startsWith('- Packages:'));
-    const section =
-      start < 0
-        ? ''
-        : [
-            lines[start],
-            ...lines.slice(start + 1).slice(
-              0,
-              Math.max(
-                0,
-                lines
-                  .slice(start + 1)
-                  .findIndex(l => !l.trim() || /^\s*[-*]\s/.test(l))
-              )
-            ),
-          ].join('\n');
+  if (docs.has(primary)) {
+    const section = packagesBullet(docs.get(primary));
     if (!section) {
       violations.push(
-        `${primary} has no "- Packages:" line in the OIDC trusted ` +
-          `publishing section. It names the packages that need a trusted ` +
-          `publisher configured on npmjs.com; without it nobody can tell ` +
-          `which ones do.`
+        primary +
+          ' has no "- Packages:" line in the OIDC trusted publishing section. ' +
+          'It names the packages that need a trusted publisher configured on ' +
+          'npmjs.com; without it nobody can tell which ones do.'
       );
     } else {
       const named = packageTokens(section);
       const missing = packages.filter(p => !named.has(p.name));
       if (missing.length) {
         violations.push(
-          `${primary}'s trusted-publisher list omits ` +
-            `${missing.map(p => p.name).join(', ')}. Every publishable ` +
-            `package authenticates by OIDC, and a missing trusted publisher ` +
-            `fails the publish after the release commit and tag are already ` +
-            `pushed — which spends the version (#536).`
+          primary +
+            "'s trusted-publisher list omits " +
+            missing.map(p => p.name).join(', ') +
+            '. Every publishable package authenticates by OIDC, and a missing ' +
+            'trusted publisher fails the publish after the release commit and ' +
+            'tag are already pushed — which spends the version (#536).'
         );
       }
     }
@@ -1078,27 +1114,36 @@ export function releaseDocViolations(docs, packages) {
 }
 
 /**
- * Every publishable workspace package, as `{ dir, name }`.
+ * Every publishable workspace package, plus the workspace entries whose
+ * manifest could not be read.
  *
- * One copy, because the enumeration — parse the workspace, read each manifest,
- * keep the ones that are not private — was about to have three, each with
- * slightly different error handling. The test's copy is the one that decides
- * whether the real-repo assertion checks the same set the check does, so
- * letting them drift would make a passing test mean less than it appears to.
+ * Shared by checkReleaseDocsSync and its test, so the real-repo assertion
+ * checks the same set the check does — previously the test re-derived it, and a
+ * drift between them would make a passing test mean less than it looks like.
+ * (checkPublishableManifests still walks the workspace itself: it needs the
+ * manifest bodies, not just the names.)
+ *
+ * The unreadable ones are RETURNED rather than skipped, because skipping
+ * narrows both derived assertions silently — a manifest with a syntax error
+ * drops its package from the lists those assertions require, and the check
+ * prints a tick. That is the same fail-open shape the PNPM_PUBLISHED comment
+ * above argues against.
  */
 export async function publishablePackages() {
   const packages = [];
+  const unreadable = [];
   const yaml = await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8');
   for (const dir of parseWorkspacePackages(yaml)) {
     let pkg;
     try {
       pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
     } catch {
-      continue; // publishable-manifests owns "this dir has no manifest"
+      unreadable.push(dir);
+      continue;
     }
     if (!pkg.private && pkg.name) packages.push({ dir, name: pkg.name });
   }
-  return packages;
+  return { packages, unreadable };
 }
 
 async function checkReleaseDocsSync() {
@@ -1124,7 +1169,22 @@ async function checkReleaseDocsSync() {
     );
   }
 
-  return releaseDocViolations(docs, await publishablePackages());
+  const { packages, unreadable } = await publishablePackages();
+  if (unreadable.length) {
+    return unreadable.map(
+      dir =>
+        dir +
+        '/package.json could not be read or parsed, so the release-docs ' +
+        'checks cannot tell whether ' +
+        dir +
+        ' needs to appear in the dry-run recipe and the trusted-publisher ' +
+        'list. Fix the manifest — leaving it unreadable removes ' +
+        dir +
+        ' from both lists silently (#536).'
+    );
+  }
+
+  return releaseDocViolations(docs, packages);
 }
 
 async function checkStoryPerComponent() {
