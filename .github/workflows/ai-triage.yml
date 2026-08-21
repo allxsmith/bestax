@@ -179,7 +179,7 @@ jobs:
       # fixed, `audit` here is an honest label for what all three jobs do, and the
       # flip is a no-op that would only make this comment wrong again.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: audit
           allowed-endpoints: >
