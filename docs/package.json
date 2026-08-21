@@ -42,7 +42,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "docusaurus-plugin-llms": "^0.5.1",
     "gray-matter": "^4.0.3",
-    "playwright": "^1.62.0",
+    "playwright": "^1.62.1",
     "raw-loader": "^4.0.2"
   },
   "browserslist": {
