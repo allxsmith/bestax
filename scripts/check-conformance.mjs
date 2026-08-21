@@ -1043,6 +1043,7 @@ const PNPM_PUBLISHED = new Set([
   'bulma-ui',
   'create-bestax',
   'bestax-migrate',
+  'bestax-mcp',
 ]);
 
 /**
