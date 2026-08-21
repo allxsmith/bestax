@@ -29,6 +29,7 @@ import {
   npmOptions,
   releaseBranches,
 } from './lib/release-config.mjs';
+import { basename } from 'node:path';
 import { tokenize } from './lib/shell-words.mjs';
 
 const repoFile = rel =>
@@ -475,10 +476,20 @@ test('every declared package pins its exec cwd to itself', async () => {
     assert.ok(exec, `${dir} must publish through @semantic-release/exec`);
     assert.ok(exec.execCwd, `${dir}: execCwd must be set`);
     assert.match(exec.execCwd, new RegExp(`(^|/)${dir}$`), `${dir}: execCwd`);
-    // The release-info tail is pointed by --dir= and has the same failure mode.
-    assert.match(
-      exec.publishCmd,
-      new RegExp(`--dir=(['"]?)[^'"\\s]*/${dir}\\1(\\s|$)`),
+    // The release-info tail is pointed by --dir= and has the same failure
+    // mode. Read through tokenize rather than a regex over the raw command:
+    // the path is shell-quoted, so a checkout under "~/My Projects" or a
+    // directory with an apostrophe puts characters inside the quotes that a
+    // naive pattern reads as the end of the argument. The first version of
+    // this assertion did exactly that and would have failed CI for those
+    // contributors — which is the case shell-words exists to survive.
+    const dirArg = tokenize(exec.publishCmd)
+      .filter(w => w.startsWith('--dir='))
+      .map(w => w.slice('--dir='.length));
+    assert.equal(dirArg.length, 1, `${dir}: expected exactly one --dir`);
+    assert.equal(
+      basename(dirArg[0]),
+      dir,
       `${dir}: publishCmd --dir must name the same package`
     );
   }
