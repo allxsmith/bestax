@@ -79,7 +79,7 @@ improvising.
 Independent semantic-release keyed off the `bulma-ui` commit scope
 (`release.config.js`, tag `@allxsmith/bestax-bulma@x.y.z`). It publishes with
 `pnpm publish`, like every package here (#532) — the command, its flags, and the
-three ways that publish fails quietly are documented in `VERSIONING.md` and
+ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
 
 Two things specific to this package. It is the only **scoped** one, and scoped

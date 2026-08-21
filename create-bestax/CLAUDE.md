@@ -47,7 +47,7 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 Independent semantic-release keyed off the `create-bestax` commit scope
 (`release.config.js`, tag `create-bestax@x.y.z`). It publishes with
 `pnpm publish`, like every package here (#532) — the command, its flags, and the
-three ways that publish fails quietly are documented in `VERSIONING.md` and
+ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
 
 Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, so the skills

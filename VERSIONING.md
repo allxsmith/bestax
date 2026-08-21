@@ -73,7 +73,7 @@ On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in eac
      step. A publish that fails leaves the commit and tag behind, and that version is spent.
 3. A push may release any subset of the packages — they never bump each other.
 
-Three things about that publish step are load-bearing, and none of them fails loudly:
+Five things about that publish step are load-bearing, and none of them fails loudly:
 
 - **`--provenance` is required.** pnpm reads `publishConfig.registry` and `.access` but takes
   `provenance` from options only. `publishConfig.provenance` is deliberately absent from every
@@ -82,6 +82,16 @@ Three things about that publish step are load-bearing, and none of them fails lo
   it is redundant. Drop the flag and #411's provenance quietly stops being produced.
 - **`--embed-readme` is required.** pnpm defaults it to false where npm defaults it to true;
   without it the npmjs.com page loses its README.
+- **There is deliberately no `--tag`.** Correct only while every release goes to `latest`,
+  which holds because every package's `branches` is `['main']` so the channel is always null.
+  Adding a maintenance or prerelease branch means deriving the dist-tag first, and that
+  derivation is not naive — see `scripts/lib/pnpm-publish.mjs`. A test fails if `branches`
+  changes, so the decision cannot be made silently.
+- **The publish command redirects pnpm's output to stderr.** `@semantic-release/exec` parses
+  stdout as the JSON release object; pnpm prints prose there. Without the redirect the parse
+  fails and the "release is available on" comment posted to every linked issue and PR shows a
+  bare tag instead of an npm link. The reasoning, including why the trailing `|| true` lives in
+  the shell rather than the script, is in `scripts/lib/pnpm-publish.mjs`.
 - **The auth pre-flight is weaker than it was.** `@semantic-release/npm` exchanged a real OIDC
   token during `verifyConditions`. With `npmPublish: false` that is off, so
   `scripts/verify-oidc-context.mjs` runs as the exec plugin's `verifyConditionsCmd` and checks
