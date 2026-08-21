@@ -1,11 +1,12 @@
 /**
- * Covers scripts/npm-release-info.mjs (#436).
+ * Covers scripts/npm-release-info.mjs (#436, #532).
  *
  * The output shape is the contract: @semantic-release/github renders it into
  * the comment posted on every linked issue and PR, and it has to be
- * indistinguishable from what @semantic-release/npm produces for the three
- * packages still publishing that way. So the field names and the URL format
- * are pinned against that plugin's get-release-info.js.
+ * indistinguishable from what @semantic-release/npm used to produce. Since
+ * #532 no package publishes through that plugin, so there is nothing left to
+ * compare a release comment against by eye — which is why the field names and
+ * the URL format stay pinned against that plugin's get-release-info.js here.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

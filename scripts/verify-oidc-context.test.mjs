@@ -1,7 +1,7 @@
 /**
- * Covers scripts/verify-oidc-context.mjs (#436).
+ * Covers scripts/verify-oidc-context.mjs (#436, #532).
  *
- * This guard exists because moving bestax-migrate to `pnpm publish` switched
+ * This guard exists because moving to `pnpm publish` switched
  * off `@semantic-release/npm`'s OIDC check in verifyConditions, and
  * semantic-release pushes the release commit and tag before any publish step
  * runs. Both directions are worth pinning: a guard that never fires is

@@ -82,9 +82,12 @@ Independent semantic-release keyed off the `bulma-ui` commit scope
 three ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
 
-Two things specific to this package. It is the only **scoped** one, so
-`--access public` on the publish command is load-bearing rather than belt and
-braces: scoped packages default to restricted. And its `prepack`/`postpack`
+Two things specific to this package. It is the only **scoped** one, and scoped
+packages default to `restricted`, so `access` has to be set somewhere or the
+release is private. It is set twice over — `publishConfig.access` here and
+`--access public` on the shared publish command — and either alone is enough,
+so neither is load-bearing on its own. Removing both is the mistake, and it
+costs more here than anywhere else. And its `prepack`/`postpack`
 pair (`scripts/pack-pointer-files.mjs`, #344) swaps the contributor
 `CLAUDE.md` for the consumer copy of `AGENTS.md` inside the tarball and puts it
 back — pnpm runs both hooks, so the round trip holds, but if a pack is

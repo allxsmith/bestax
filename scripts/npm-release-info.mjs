@@ -24,8 +24,10 @@
  * throws.
  *
  * Name and URL deliberately match `@semantic-release/npm/lib/get-release-info.js`
- * exactly, so bestax-migrate's comments are indistinguishable from the three
- * packages still publishing through that plugin.
+ * exactly, so the comment a pnpm-published release posts is indistinguishable
+ * from the one that plugin used to post. Every package publishes this way now
+ * (#532), so there is no longer a package to compare against — which is the
+ * reason to keep matching the upstream shape rather than drift from it.
  */
 import fs from 'node:fs';
 import path from 'node:path';

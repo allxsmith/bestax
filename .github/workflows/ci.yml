@@ -217,10 +217,16 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      # No npm pin here any more. Every package now publishes with
-      # `pnpm publish` (#436 for bestax-migrate, #532 for the other three),
-      # which carries its own OIDC exchange, so nothing in this job shells out
-      # to `npm publish` and there is no npm version left for it to need.
+      # The npm pin is gone: it existed because OIDC trusted publishing needs
+      # npm >= 11.5.1, and nothing here runs `npm publish` any more. Every
+      # package publishes with `pnpm publish` (#436 for bestax-migrate, #532
+      # for the other three), which carries its own OIDC exchange.
+      #
+      # This does NOT mean the job has no use for npm. @semantic-release/npm
+      # keeps its prepare step, which shells out to `npm version` to write the
+      # release version into package.json. So the runner still needs a working
+      # npm and setup-node still needs its registry-url; what no longer
+      # applies is the version floor, because that came from publishing.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

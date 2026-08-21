@@ -67,9 +67,14 @@ Independent semantic-release, keyed off the `bestax-migrate` commit scope
 **Publishing is shared, and this package is why it looks the way it does.**
 Every package here publishes with `pnpm publish` rather than `npm publish`
 (#436, then #532), through the plugin pair in `scripts/lib/pnpm-publish.mjs`.
-The mechanism, its three quiet failure modes, and the `prepack` /
-`prepublishOnly` guard are documented once in `VERSIONING.md` and in that
-helper — read those rather than a copy here.
+The mechanism and its three quiet failure modes are documented once in
+`VERSIONING.md` and in that helper. The `prepack` / `prepublishOnly` guard is
+documented in `scripts/require-pnpm-publish.mjs`, and that header is worth
+reading before touching it: why it keys on `npm_execpath` rather than the
+inherited `npm_config_user_agent`, and why it refuses only packers it can
+name instead of allow-listing pnpm. `pnpm check:conformance` reports a
+violation if either hook is missing, so the exemption and the guard that
+compensates for it cannot drift apart.
 
 What is specific to bestax-migrate is the specifier that forced it.
 `npm publish` does not resolve pnpm's `workspace:` protocol, so the

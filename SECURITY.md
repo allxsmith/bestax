@@ -50,6 +50,11 @@ Measures active in this repository and its release pipeline:
   No package carries a `publishConfig.provenance` at all — having one there
   would imply the flag was redundant, and dropping the flag is the quiet way to
   lose attestations entirely (#436, #532).
+- **Licence text comes from the workspace root** — no package carries its own
+  `LICENSE` file, and `pnpm publish` copies the root one into every tarball.
+  npm did not, so releases before #532 shipped none. It is the right file
+  today because every package is MIT, but a package published under different
+  terms would need its own `LICENSE` rather than inheriting this one.
 - **OIDC trusted publishing** — releases authenticate to npm with
   short-lived OIDC tokens minted per run; there is no long-lived `NPM_TOKEN`
   to steal.

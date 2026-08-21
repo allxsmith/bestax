@@ -95,8 +95,16 @@ diff check is scoped to `bestax-mcp/data`.
 
 `files` carries a `"!data/.sync-skills"` negation, and it is not cosmetic.
 `files` ships all of `data/`, and `sync-skills.mjs` keeps its fingerprint and
-lock state in `data/.sync-skills/`. npm happened to leave that out of the
-tarball; pnpm does not, so without the negation the move to `pnpm publish`
-(#532) would have started shipping build state as product. Verified by diffing
-a `pnpm -C bestax-mcp pack` against the published tarball — which is the check
-worth repeating whenever `files` or the sync script changes.
+lock state in `data/.sync-skills/`, so without the negation that build state
+ships as product.
+
+**This is not a `pnpm publish` behaviour, and an earlier version of this note
+said it was.** npm and pnpm both include dot-directories under a `files`
+entry; a synthetic package with `files: ["data"]` and `data/.state/x` packs
+identically under either. The published 1.0.0 tarball has no `.sync-skills`
+only because the state directory did not exist yet — it arrived with #520 on
+2026-08-14, two days after 1.0.0 shipped. So this was a latent bug that the
+next release would have hit whoever packed it, surfaced by diffing a
+`pnpm -C bestax-mcp pack` against the published tarball while moving
+publishers (#532). That diff is the check worth repeating whenever `files` or
+the sync script changes, because nothing asserts tarball contents.
