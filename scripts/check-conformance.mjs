@@ -965,11 +965,16 @@ function packagesBullet(src) {
   const { lines } = splitLines(src);
   const masked = fenceMask(lines);
   const anchor = lines.findIndex(
-    (l, i) => !masked[i] && /trusted publisher/i.test(l)
+    (l, i) => !masked[i] && /trusted[- ]publish/i.test(l)
   );
-  const from = anchor < 0 ? 0 : anchor;
+  // No OIDC section means no trusted-publisher list, which is the violation.
+  // Falling back to line 0 restored the file-wide search this extractor exists
+  // to prevent: an unrelated "- Packages:" bullet elsewhere then satisfied the
+  // assertion even with the real guidance deleted.
+  if (anchor < 0) return '';
   const start = lines.findIndex(
-    (l, i) => i >= from && !masked[i] && l.trimStart().startsWith('- Packages:')
+    (l, i) =>
+      i >= anchor && !masked[i] && l.trimStart().startsWith('- Packages:')
   );
   if (start < 0) return '';
   let end = lines.length;
@@ -1005,6 +1010,28 @@ const packageTokens = text => new Set(text.match(/[@\w./-]+/g) ?? []);
  * @param docs Map of repo-relative path -> file contents
  * @param packages [{ dir, name }] for every publishable workspace package
  */
+/**
+ * Violations for workspace entries whose manifest could not be read.
+ *
+ * Pure and exported for the same reason releaseDocViolations is: the branch
+ * that used to build these messages lived inside checkReleaseDocsSync, where a
+ * test could not reach it — so the test named for this case asserted the clean
+ * case instead and would have stayed green through a regression.
+ */
+export function unreadableManifestViolations(unreadable) {
+  return unreadable.map(
+    dir =>
+      dir +
+      '/package.json could not be read or parsed, so the release-docs checks ' +
+      'cannot tell whether ' +
+      dir +
+      ' needs to appear in the dry-run recipe and the trusted-publisher list. ' +
+      'Fix the manifest — leaving it unreadable removes ' +
+      dir +
+      ' from both lists silently (#536).'
+  );
+}
+
 export function releaseDocViolations(docs, packages) {
   const violations = [];
 
@@ -1170,19 +1197,8 @@ async function checkReleaseDocsSync() {
   }
 
   const { packages, unreadable } = await publishablePackages();
-  if (unreadable.length) {
-    return unreadable.map(
-      dir =>
-        dir +
-        '/package.json could not be read or parsed, so the release-docs ' +
-        'checks cannot tell whether ' +
-        dir +
-        ' needs to appear in the dry-run recipe and the trusted-publisher ' +
-        'list. Fix the manifest — leaving it unreadable removes ' +
-        dir +
-        ' from both lists silently (#536).'
-    );
-  }
+  const unreadableViolations = unreadableManifestViolations(unreadable);
+  if (unreadableViolations.length) return unreadableViolations;
 
   return releaseDocViolations(docs, packages);
 }

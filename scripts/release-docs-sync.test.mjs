@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import {
   publishablePackages,
   releaseDocViolations,
+  unreadableManifestViolations,
 } from './check-conformance.mjs';
 
 const PACKAGES = [
@@ -42,8 +43,18 @@ const recipe = (dirs = PACKAGES.map(p => p.dir)) =>
   dirs.join(' ') +
   '; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
 
+// The bullet AND the section heading that anchors it. packagesBullet locates
+// the list by its OIDC section rather than by the first "- Packages:" in the
+// file, so a fixture without the anchor is not a valid stand-in for the real
+// document — and every fixture here was one until the anchor rule landed.
 const publishers = (names = PACKAGES.map(p => p.name)) =>
-  `- Packages: ${names.map(n => `\`${n}\``).join(', ')}`;
+  [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'Each published package needs a trusted publisher configured on npmjs.com:',
+    '',
+    `- Packages: ${names.map(n => `\`${n}\``).join(', ')}`,
+  ].join('\n');
 
 const doc = (opts = {}) =>
   [
@@ -306,11 +317,34 @@ test('a wrapped bullet at end of file keeps its continuation lines', () => {
   );
 });
 
-test('an unreadable manifest is reported, not silently dropped', () => {
-  // publishablePackages returns these rather than skipping, because skipping
-  // narrows both derived assertions and the check still prints a tick.
-  const v = releaseDocViolations(docs(), PACKAGES);
-  assert.deepEqual(v, []);
+test('a missing OIDC section is not rescued by a bullet elsewhere', () => {
+  // packagesBullet fell back to line 0 when it found no "trusted publisher"
+  // anchor, which is the file-wide search it exists to prevent: an unrelated
+  // "- Packages:" bullet then satisfied the assertion with the real guidance
+  // deleted.
+  const noOidcSection = [
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp`',
+    '',
+    doc({ publishers: '' }),
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: noOidcSection }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "- Packages:" line in the OIDC trusted/);
+});
+
+test('unreadable manifests each get a violation naming the package', () => {
+  // The branch this covers used to live inside checkReleaseDocsSync, where no
+  // test could reach it — so the test named for this asserted the clean case
+  // and would have stayed green through a regression.
+  assert.deepEqual(unreadableManifestViolations([]), []);
+  const v = unreadableManifestViolations(['bestax-mcp', 'create-bestax']);
+  assert.equal(v.length, 2);
+  assert.match(v[0], /^bestax-mcp\/package\.json could not be read/);
+  assert.match(v[0], /removes bestax-mcp from both lists silently/);
+  assert.match(v[1], /^create-bestax\/package\.json/);
 });
 
 test('the real repo files satisfy the check', async () => {
