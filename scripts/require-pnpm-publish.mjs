@@ -52,6 +52,15 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+// Shared with check-conformance.mjs, which uses the same list to decide
+// whether a manifest is a violation. This file only uses it to name the
+// offending specifier, but the two must agree or a protocol the check
+// refuses is one this refusal cannot describe.
+import {
+  PACK_TIME_PROTOCOLS,
+  DEP_SECTIONS,
+} from './lib/pack-time-protocols.mjs';
+
 /**
  * Keyed on `npm_execpath`, NOT on `npm_config_user_agent`.
  *
@@ -97,31 +106,6 @@ export function isPnpmPublish(execPath) {
   return !OTHER_PACKAGE_MANAGERS.test(name);
 }
 
-/**
- * Restated here rather than imported from check-conformance.mjs, and the
- * difference in consequence is why that is acceptable. THERE the list is a
- * rule: it decides whether a manifest is a violation. HERE it only decides
- * whether the refusal can name a specific offending specifier. If the two
- * drift, this message gets less specific; it does not get a wrong verdict. The
- * alternative is importing a 60KB check into a lifecycle hook that runs on
- * every pack, to improve one sentence.
- */
-const PACK_TIME_PROTOCOLS = [
-  'workspace:',
-  'catalog:',
-  'jsr:',
-  'link:',
-  'portal:',
-  'file:',
-];
-
-const DEP_SECTIONS = [
-  'dependencies',
-  'devDependencies',
-  'peerDependencies',
-  'optionalDependencies',
-];
-
 /** Every specifier in `pkg` that only means something inside this workspace. */
 export function packTimeSpecifiers(pkg) {
   const found = [];
@@ -162,7 +146,18 @@ export function main(
     // publishCmd, and no package here carries a publishConfig.provenance for
     // pnpm to fall back on. CI passes them, so say nothing there; a human gets
     // one line before the tarball goes out.
-    if (!env.CI && !env.GITHUB_ACTIONS) {
+    //
+    // Only on prepublishOnly, which is the hook that runs when something is
+    // actually being published. `pnpm pack` runs prepack alone, and warning
+    // there meant four packages printed "publishing by hand" during a
+    // read-only inspection — including on `pnpm -C <pkg> pack`, the command
+    // this file's own header and three CLAUDE.md files recommend for checking
+    // what a manifest will ship. That is how a real warning gets tuned out.
+    if (
+      env.npm_lifecycle_event === 'prepublishOnly' &&
+      !env.CI &&
+      !env.GITHUB_ACTIONS
+    ) {
       log(
         'require-pnpm-publish: publishing by hand. `--provenance ' +
           '--embed-readme` are not defaults here and CI passes them for you; ' +

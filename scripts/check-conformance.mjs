@@ -54,6 +54,13 @@ import { registerVarsKeys } from './lib/scss-vars.mjs';
 // The inverse of the quoting bestax-migrate/release.config.js uses to build its
 // exec commands. Shared so the two halves cannot drift (#436).
 import { tokenize } from './lib/shell-words.mjs';
+import {
+  PACK_TIME_PROTOCOLS,
+  PNPM_RESOLVES_TO_PLAIN_RANGE,
+  DEP_SECTIONS,
+  CONSUMER_SECTIONS,
+  packTimeProtocol,
+} from './lib/pack-time-protocols.mjs';
 import { readRegions, sectionSpans } from './lib/api-page.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
@@ -1045,48 +1052,6 @@ const PNPM_PUBLISHED = new Set([
   'bestax-migrate',
   'bestax-mcp',
 ]);
-
-/**
- * Protocols that mean something inside this workspace and are not a plain
- * installable specifier once published.
- *
- * `link:`, `portal:` and `file:` are here because NEITHER publisher rewrites
- * them: pnpm's export converter chain is workspace/catalog/jsr (verified in the
- * 11.9.0 bundle), and npm has no notion of the first two at all. A published
- * manifest carrying one points at a path that does not exist on any consumer's
- * machine.
- */
-const PACK_TIME_PROTOCOLS = [
-  'workspace:',
-  'catalog:',
-  'jsr:',
-  'link:',
-  'portal:',
-  'file:',
-];
-
-/**
- * The subset `pnpm publish` turns into a plain, installable semver range. That
- * is what makes a pnpm publisher safe to exempt, and it is not all of them:
- * pnpm rewrites `jsr:@scope/pkg@^1` to `npm:@jsr/scope__pkg@^1`, which resolves
- * only for a consumer who has configured the @jsr registry.
- */
-const PNPM_RESOLVES_TO_PLAIN_RANGE = ['workspace:', 'catalog:'];
-
-const DEP_SECTIONS = [
-  'dependencies',
-  'devDependencies',
-  'peerDependencies',
-  'optionalDependencies',
-];
-
-/** Sections a consumer of the published package resolves. */
-const CONSUMER_SECTIONS = DEP_SECTIONS.filter(s => s !== 'devDependencies');
-
-const packTimeProtocol = spec =>
-  typeof spec === 'string'
-    ? PACK_TIME_PROTOCOLS.find(p => spec.startsWith(p))
-    : undefined;
 
 /**
  * The per-package rule, split out from the filesystem walk so it can be driven
