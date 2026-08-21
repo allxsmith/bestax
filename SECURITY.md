@@ -43,8 +43,9 @@ Measures active in this repository and its release pipeline:
   reviewed lockfile resolves. (The React 18/19 compatibility matrix is the
   one deliberate exception: it re-resolves to pin the requested React major
   for testing, and never publishes.)
-- **npm provenance** — every release carries a signed attestation linking the
-  tarball to the exact commit and CI run that built it. Releases come from CI
+- **npm provenance** — every release now carries a signed attestation linking
+  the tarball to the exact commit and CI run that built it (versions older than
+  the currently supported lines predate it). Releases come from CI
   and nowhere else, which is what backs that claim. No package carries a
   `publishConfig.provenance` — having one would imply the flag was redundant,
   and dropping the flag is the quiet way to lose attestations entirely. The

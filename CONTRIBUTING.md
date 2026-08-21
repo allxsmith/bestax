@@ -175,7 +175,7 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (all four packages) + the scripts/ node:test suite
+pnpm run test           # jest (all four packages) + the docs and scripts/ node:test suites
 pnpm run test:coverage  # coverage (bulma-ui 99%; the other three 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
