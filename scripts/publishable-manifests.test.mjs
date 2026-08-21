@@ -44,14 +44,26 @@ const DECLARED = new Set(
     .filter(Boolean)
 );
 
+// parseWorkspacePackages returns each `packages:` entry as literal text, so a
+// glob like `packages/*` comes back unexpanded. Swallowing that would quietly
+// shrink PUBLISHABLE, and PUBLISHABLE is what the declaration is compared
+// against — the "a new package must be declared" guarantee would stop holding
+// for everything under the glob while this file stayed green. So an entry whose
+// manifest cannot be read is a failure, not a filtered-out row.
 const PUBLISHABLE = parseWorkspacePackages(
   repoFile('pnpm-workspace.yaml')
 ).filter(dir => {
+  let manifest;
   try {
-    return !JSON.parse(repoFile(`${dir}/package.json`)).private;
+    manifest = repoFile(`${dir}/package.json`);
   } catch {
-    return false;
+    throw new Error(
+      `pnpm-workspace.yaml lists "${dir}", which has no readable package.json. ` +
+        'If that is a glob, parseWorkspacePackages does not expand it and every ' +
+        'package under it is silently exempt from the checks in this file.'
+    );
   }
+  return !JSON.parse(manifest).private;
 });
 
 test('the declaration was actually parsed out of the check', () => {
@@ -412,21 +424,36 @@ test('a declared package that drops the guard is flagged for it', () => {
 });
 
 test('an undeclared package is not asked for the guard', () => {
-  // bulma-ui has no exemption, so it has nothing to compensate for.
+  // An undeclared package has no exemption, so it has nothing to compensate
+  // for. This said `bulma-ui` until #532 declared it, which made the comment
+  // describe the opposite of what the fixture does.
   const v = manifestViolations(NPM_PKG, { dependencies: { bulma: '^1.0.4' } });
   assert.deepEqual(v, []);
 });
 
-test('the exec plugin pins its cwd', async () => {
+test('every declared package pins its exec cwd to itself', async () => {
   // `pnpm publish` resolves its target package from the cwd, which for exec is
   // wherever semantic-release was started. Without execCwd a run from the repo
   // root reaches the publish step — after the release commit and tag are
-  // pushed — and fails on the private root package. Every other exec option is
-  // pinned by a test; this one was not.
-  const exec = await execOptions('bestax-migrate');
-  assert.ok(exec, 'bestax-migrate must publish through @semantic-release/exec');
-  assert.ok(exec.execCwd, 'execCwd must be set');
-  assert.match(exec.execCwd, /bestax-migrate$/);
+  // pushed — and fails on the private root package.
+  //
+  // Looped, and matched against the package it belongs to, because
+  // pnpmPublishPlugins now takes the directory as an ARGUMENT. A config that
+  // passed a copy-pasted path would publish the wrong package from a release
+  // whose commit and tag are already on main, and asserting only that execCwd
+  // is truthy would not notice.
+  for (const dir of DECLARED) {
+    const exec = await execOptions(dir);
+    assert.ok(exec, `${dir} must publish through @semantic-release/exec`);
+    assert.ok(exec.execCwd, `${dir}: execCwd must be set`);
+    assert.match(exec.execCwd, new RegExp(`(^|/)${dir}$`), `${dir}: execCwd`);
+    // The release-info tail is pointed by --dir= and has the same failure mode.
+    assert.match(
+      exec.publishCmd,
+      new RegExp(`--dir=(['"]?)[^'"\\s]*/${dir}\\1(\\s|$)`),
+      `${dir}: publishCmd --dir must name the same package`
+    );
+  }
 });
 
 test('a violation names a fix that fits the protocol', () => {
