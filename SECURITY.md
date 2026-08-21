@@ -50,8 +50,9 @@ Measures active in this repository and its release pipeline:
   `publishConfig.provenance` — having one would imply the flag was redundant,
   and dropping the flag is the quiet way to lose attestations entirely. The
   `prepack`/`prepublishOnly` guards refuse packers they recognise as not being
-  pnpm; they do not refuse a hand-run `pnpm publish` that omits the flag, which
-  they warn about instead. Why it works that way is in
+  pnpm. They do not refuse a hand-run `pnpm publish` that omits the flag; the
+  `prepublishOnly` hook warns about it instead, and only outside CI, so that
+  inspecting a tarball with `pnpm pack` stays quiet. Why it works that way is in
   [`VERSIONING.md`](./VERSIONING.md#release-process).
 - **Licence text comes from the workspace root** — no package carries its own
   `LICENSE` file, and `pnpm publish` copies the root one into every tarball.

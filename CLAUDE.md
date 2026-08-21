@@ -44,7 +44,7 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 Enforced by CI (`.github/workflows/ci.yml`):
 
 - Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics);
-  create-bestax, bestax-migrate and bestax-mcp 95% (78% branches).
+  every other jest package 95% (78% branches). `docs` has no jest suite.
 - Stale skill catalog fails (`gen:catalog:check`) and a stale MCP index fails
   (`gen:mcp:check`); build, typecheck, lint, format, audit.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);

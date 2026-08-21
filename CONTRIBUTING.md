@@ -28,8 +28,9 @@ Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
   - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
-    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other package**
-    95% (78% branches), each in its own jest config
+    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other jest
+    package** 95% (78% branches), each in its own config. `docs` runs
+    `node --test` and has no coverage threshold
 - **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
 - **Type checks pass** (`pnpm typecheck`)
 - **Storybook runs and covers UI changes** (`pnpm storybook`)
@@ -175,7 +176,7 @@ pnpm run all
 pnpm run build          # turbo build all packages
 pnpm run typecheck
 pnpm run test           # jest in every package + the docs and scripts/ node:test suites
-pnpm run test:coverage  # coverage (bulma-ui 99%; every other package 95%, 78% branches)
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -281,7 +282,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
-5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% with 78% branches for every other package).
+5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% with 78% branches for every other jest package).
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
@@ -353,7 +354,7 @@ The CI `publish` job grants `id-token: write`. It no longer pins an npm version:
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; every other package 95%, 78% branches).
+- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; every other jest package 95%, 78% branches). `docs` has no jest suite and no threshold.
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).
@@ -370,10 +371,14 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
 - **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, `style`
   or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`
   or `bestax-mcp` (repo-specific commitlint rule — the scope decides which package releases,
-  see [`VERSIONING.md`](./VERSIONING.md)). `revert` is in that list for a reason worth
-  knowing: commit-analyzer ships `{ revert: true, release: 'patch' }`, so an unscoped revert
-  matches no package's negated-scope suppression and would patch-release **all** of them.
-  `RELEASE_TYPES` and `RELEASE_SCOPES` in `commitlint.config.js` are the source of truth.
+  see [`VERSIONING.md`](./VERSIONING.md)). `revert` is in that list because
+  commit-analyzer ships `{ revert: true, release: 'patch' }`, so an unscoped revert would
+  match no package's negated-scope suppression and patch-release **all** of them. Note the
+  residual, which `commitlint.config.js` records: that rule fires on the parser's
+  `revertPattern` — git's own `Revert "…"` form — and commitlint's default `ignores` skip
+  those messages entirely, so scoping is a convention here rather than something the hook
+  can enforce. Keep reverts conventional and scoped. `RELEASE_TYPES` and `RELEASE_SCOPES`
+  in `commitlint.config.js` are the source of truth.
 - **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
   **not** picked up by our release tooling.
 - Non-releasing types (`docs`, `chore`, `ci`, `test`, `build`) may omit the scope.
