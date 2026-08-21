@@ -41,3 +41,17 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 - Manual smoke: build, then scaffold **outside the repo**
   (`node create-bestax/dist/index.js /tmp/app -t vite-ts -y`) — inside the workspace you'd
   need `--ignore-workspace`.
+
+## Releases
+
+Independent semantic-release keyed off the `create-bestax` commit scope
+(`release.config.js`, tag `create-bestax@x.y.z`). It publishes with
+`pnpm publish`, like every package here (#532) — the command, its flags, and the
+three ways that publish fails quietly are documented in `VERSIONING.md` and
+`scripts/lib/pnpm-publish.mjs`.
+
+Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, so the skills
+bundled into `templates/` are refreshed as part of packing rather than
+committed. There is no `postpack` because nothing is swapped out, only copied
+in — a local `pnpm pack` therefore leaves `templates/skills/` populated, which
+is gitignored and expected.

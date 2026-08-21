@@ -91,8 +91,9 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 - Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
 - **How a package publishes decides what its manifest may contain.** `npm publish` resolves
   no pack-time protocol at all, so a package published that way must not ship one — the
-  tarball becomes uninstallable (#412). bestax-migrate hands its publish step to
-  `pnpm publish` instead (#436), which buys it a **narrow** exemption:
+  tarball becomes uninstallable (#412). Every package here hands its publish step to
+  `pnpm publish` instead (#436 for bestax-migrate, #532 for the rest), through the shared
+  `scripts/lib/pnpm-publish.mjs`, which buys each a **narrow** exemption:
   `workspace:`/`catalog:` in **devDependencies** only. `jsr:` becomes an aliased
   `npm:@jsr/…` specifier and `link:`/`portal:`/`file:` are not rewritten at all, so those
   four are a violation in **any** section, exemption or not. `workspace:`/`catalog:` are

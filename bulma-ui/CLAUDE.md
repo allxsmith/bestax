@@ -73,3 +73,20 @@ improvising.
 - Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is marketing-visible (the READMEs link the live bundlephobia badge) — check `pnpm bundle:stats`
   (writes `dist/stats.html`) when adding anything with real runtime weight.
+
+## Releases
+
+Independent semantic-release keyed off the `bulma-ui` commit scope
+(`release.config.js`, tag `@allxsmith/bestax-bulma@x.y.z`). It publishes with
+`pnpm publish`, like every package here (#532) — the command, its flags, and the
+three ways that publish fails quietly are documented in `VERSIONING.md` and
+`scripts/lib/pnpm-publish.mjs`.
+
+Two things specific to this package. It is the only **scoped** one, so
+`--access public` on the publish command is load-bearing rather than belt and
+braces: scoped packages default to restricted. And its `prepack`/`postpack`
+pair (`scripts/pack-pointer-files.mjs`, #344) swaps the contributor
+`CLAUDE.md` for the consumer copy of `AGENTS.md` inside the tarball and puts it
+back — pnpm runs both hooks, so the round trip holds, but if a pack is
+interrupted a `CLAUDE.md.bak` is left behind and the next `prepack` refuses
+until you restore it.

@@ -44,11 +44,12 @@ Measures active in this repository and its release pipeline:
   one deliberate exception: it re-resolves to pin the requested React major
   for testing, and never publishes.)
 - **npm provenance** — every release carries a signed attestation linking the
-  tarball to the exact commit and CI run that built it. Three packages request
-  it with `publishConfig.provenance`; bestax-migrate publishes with
-  `pnpm publish`, which does not read that field, so it passes `--provenance`
-  on the command instead and carries no `publishConfig.provenance` at all
-  (having one there would imply the flag was redundant).
+  tarball to the exact commit and CI run that built it. Every package publishes
+  with `pnpm publish`, which does not read `publishConfig.provenance`, so the
+  `--provenance` flag on the publish command is the only thing turning it on.
+  No package carries a `publishConfig.provenance` at all — having one there
+  would imply the flag was redundant, and dropping the flag is the quiet way to
+  lose attestations entirely (#436, #532).
 - **OIDC trusted publishing** — releases authenticate to npm with
   short-lived OIDC tokens minted per run; there is no long-lived `NPM_TOKEN`
   to steal.

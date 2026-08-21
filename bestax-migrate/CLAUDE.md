@@ -64,79 +64,22 @@ each source library registers in `src/sources/registry.ts`; the first is
 Independent semantic-release, keyed off the `bestax-migrate` commit scope
 (`release.config.js`, tag `bestax-migrate@x.y.z`).
 
-**This is the one package that publishes with `pnpm publish`, not `npm publish`
-(#436).** `npm publish` does not resolve pnpm's `workspace:` protocol, so
-`workspace:^` shipped verbatim in 1.0.0 and made the package uninstallable
-(#412). That was patched by a `prepack` hook reimplementing pnpm's rewrite, and
-the reimplementation was wrong twice in one review — so the publish step now
-goes to `@semantic-release/exec` running `pnpm publish`, which resolves every
-pnpm specifier shape by construction. `@semantic-release/npm` stays in the chain
-with `npmPublish: false` purely for its `prepare` step, which writes the version
-`@semantic-release/git` then commits.
+**Publishing is shared, and this package is why it looks the way it does.**
+Every package here publishes with `pnpm publish` rather than `npm publish`
+(#436, then #532), through the plugin pair in `scripts/lib/pnpm-publish.mjs`.
+The mechanism, its three quiet failure modes, and the `prepack` /
+`prepublishOnly` guard are documented once in `VERSIONING.md` and in that
+helper — read those rather than a copy here.
 
-Three things about that split are load-bearing, and none of them fails loudly:
-
-- **`--provenance` is required.** pnpm reads `publishConfig.registry` and
-  `.access` but takes `provenance` from options only. `publishConfig.provenance`
-  was deliberately REMOVED from this package's manifest rather than left in
-  place: it does nothing under pnpm, and the most likely reason anyone would
-  delete the flag is reading `"provenance": true` in package.json and concluding
-  it is redundant. Drop the flag and #411's provenance quietly stops being
-  produced.
-- **`--embed-readme` is required.** pnpm defaults it to false where npm defaults
-  it to true; without it the npmjs.com page loses its README.
-- **The auth pre-flight is weaker than it was.** `@semantic-release/npm`
-  exchanged a real OIDC token during `verifyConditions`. With `npmPublish: false`
-  that is off, and semantic-release finishes every `prepare` step — the release
-  commit and the tag — before the first `publish` step. So a failed publish
-  leaves both behind and spends the version.
-  `scripts/verify-oidc-context.mjs` runs as the exec plugin's
-  `verifyConditionsCmd` and checks only that an OIDC context exists; it does not
-  prove npm will accept the token.
-
-**This package must be published with `pnpm publish`, and the likely mistakes
-are refused.** The
-old `prepack` hook rewrote `workspace:^` for whatever was packing, so it covered a
-manual publish as well as the release pipeline. Deleting it left the guarantee
-living only in `release.config.js`, which the conformance rule then exempts
-precisely because pnpm handles it, so the specifier had no mechanical guard at all
-outside CI. The hooks now run repo-root `scripts/require-pnpm-publish.mjs` (not
-`bestax-migrate/scripts/`, which still exists for `validate-corpus.mjs`), which
-refuses packers it recognises as not being pnpm. Both `npm publish` and `pnpm
-publish` run those hooks.
-
-**It keys on `npm_execpath`, not `npm_config_user_agent`, and that is not a
-detail to tidy up.** The user agent is inherited: npm relays whatever it finds,
-so `pnpm exec npm publish` runs the hook reporting `pnpm/…` while npm assembles
-the tarball, and an agent check waves it through. `npm_execpath` is rewritten by
-whichever process actually runs the script, so it names the real packer.
-
-**It refuses named packers, and deliberately allows unrecognised ones.** npm,
-yarn, bun and friends are refused by name; anything the guard cannot place is
-let through. That asymmetry is not laziness, and reversing it would be worse
-than the hole it closes: pnpm's own lifecycle runner sets
-`npm_execpath = process.argv[1] || process.cwd()`, so a pnpm build where
-`argv[1]` is falsy reports the package **directory**. Refusing what we cannot
-recognise would kill a genuine release from inside a pack hook, after
-semantic-release has pushed the commit and the tag, which is the one direction
-this guard must never fail in. So it is a guard against the publisher someone
-actually reaches for, not a proof that only pnpm can ever pack this package.
-
-`pnpm check:conformance` reports a violation if either hook is missing, so the
-exemption and its compensating guard cannot drift apart. (It reports the missing
-hook; it does not retract the exemption, so a manifest with both problems shows
-one violation for each.)
-
-The hook is wired to **both `prepack` and `prepublishOnly`**, and both are
-required by `check:conformance`. `prepack` is the load-bearing one for `npm
-pack`: `npm publish <tarball>` runs no scripts at all, so a tarball packed by
-npm would otherwise be publishable with nothing left to refuse it.
-
-It is still a guard against the likely mistake rather than a proof.
-`--ignore-scripts` skips both hooks outright (npm and pnpm each gate lifecycle
-scripts on it), and a tarball packed before this existed, or packed elsewhere,
-carries no guard with it. Check what a manifest will actually ship with
-`pnpm -C bestax-migrate pack`.
+What is specific to bestax-migrate is the specifier that forced it.
+`npm publish` does not resolve pnpm's `workspace:` protocol, so the
+`workspace:^` below shipped verbatim in 1.0.0 and made the package
+uninstallable (#412). That was first patched by a `prepack` hook
+reimplementing pnpm's rewrite, and the reimplementation was wrong twice in one
+review — which is the whole argument for handing the job to pnpm instead of
+owning a subset of its logic. This is still the only package carrying such a
+specifier, so it is the one whose tarball is worth inspecting after any change
+to how packing works: `pnpm -C bestax-migrate pack`.
 
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
 typecheck target for the e2e, never imported at runtime, and consumers of a

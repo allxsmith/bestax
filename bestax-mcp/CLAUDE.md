@@ -78,3 +78,25 @@ test would pass while the server advertised nothing.
 
 They run against the committed index, not fixtures. The index is the product; a
 test that stubs it proves nothing about what ships.
+
+## Releases
+
+Independent semantic-release keyed off the `bestax-mcp` commit scope
+(`release.config.js`, tag `bestax-mcp@x.y.z`). It publishes with
+`pnpm publish`, like every package here (#532) — the command, its flags, and the
+three ways that publish fails quietly are documented in `VERSIONING.md` and
+`scripts/lib/pnpm-publish.mjs`.
+
+Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills
+`data/skills/` at pack time. That directory is gitignored while the manifest
+`data/skills.json` is committed, so packing locally does not dirty the tree —
+which also keeps it clear of the post-release restamp step in `ci.yml`, whose
+diff check is scoped to `bestax-mcp/data`.
+
+`files` carries a `"!data/.sync-skills"` negation, and it is not cosmetic.
+`files` ships all of `data/`, and `sync-skills.mjs` keeps its fingerprint and
+lock state in `data/.sync-skills/`. npm happened to leave that out of the
+tarball; pnpm does not, so without the negation the move to `pnpm publish`
+(#532) would have started shipping build state as product. Verified by diffing
+a `pnpm -C bestax-mcp pack` against the published tarball — which is the check
+worth repeating whenever `files` or the sync script changes.
