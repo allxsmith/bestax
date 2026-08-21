@@ -46,13 +46,12 @@ Measures active in this repository and its release pipeline:
 - **npm provenance** — every release carries a signed attestation linking the
   tarball to the exact commit and CI run that built it. Releases come from CI
   and nowhere else, which is what backs that claim. No package carries a
-  `publishConfig.provenance`; the flag on the publish command is what produces
-  the attestation, and `prepack`/`prepublishOnly` guards refuse a publisher
-  that would skip it. Why it works that way is in
+  `publishConfig.provenance` — having one would imply the flag was redundant,
+  and dropping the flag is the quiet way to lose attestations entirely. The
+  `prepack`/`prepublishOnly` guards refuse packers they recognise as not being
+  pnpm; they do not refuse a hand-run `pnpm publish` that omits the flag, which
+  they warn about instead. Why it works that way is in
   [`VERSIONING.md`](./VERSIONING.md#release-process).
-  No package carries a `publishConfig.provenance` at all — having one there
-  would imply the flag was redundant, and dropping the flag is the quiet way to
-  lose attestations entirely (#436, #532).
 - **Licence text comes from the workspace root** — no package carries its own
   `LICENSE` file, and `pnpm publish` copies the root one into every tarball.
   npm did not, so releases before #532 shipped none. It is the right file

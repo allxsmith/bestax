@@ -28,8 +28,9 @@ Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
   - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
-    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)), **create-bestax 95%**
-    (78% branches, [`create-bestax/jest.config.mjs`](./create-bestax/jest.config.mjs))
+    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **create-bestax**,
+    **bestax-migrate** and **bestax-mcp** 95% (78% branches), each in that package's
+    own jest config
 - **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
 - **Type checks pass** (`pnpm typecheck`)
 - **Storybook runs and covers UI changes** (`pnpm storybook`)
@@ -174,7 +175,7 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (bulma-ui + create-bestax)
+pnpm run test           # jest (all four packages) + the scripts/ node:test suite
 pnpm run test:coverage  # coverage (bulma-ui 99%; the other three 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
@@ -353,7 +354,7 @@ The CI `publish` job grants `id-token: write`. It no longer pins an npm version:
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%, create-bestax 95%).
+- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; create-bestax, bestax-migrate and bestax-mcp 95%, 78% branches).
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).
@@ -367,9 +368,13 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
 
 - **Format:** `<type>(<scope>): <subject>` — imperative subject, blank line, then an optional
   body with bullet points and context.
-- **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, or `style`
-  **must** use a scope of `bulma-ui`, `docs`, or `create-bestax` (repo-specific commitlint
-  rule — the scope decides which package releases, see [`VERSIONING.md`](./VERSIONING.md)).
+- **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, `style`
+  or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`
+  or `bestax-mcp` (repo-specific commitlint rule — the scope decides which package releases,
+  see [`VERSIONING.md`](./VERSIONING.md)). `revert` is in that list for a reason worth
+  knowing: commit-analyzer ships `{ revert: true, release: 'patch' }`, so an unscoped revert
+  matches no package's negated-scope suppression and would patch-release **all** of them.
+  `RELEASE_TYPES` and `RELEASE_SCOPES` in `commitlint.config.js` are the source of truth.
 - **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
   **not** picked up by our release tooling.
 - Non-releasing types (`docs`, `chore`, `ci`, `test`, `build`) may omit the scope.

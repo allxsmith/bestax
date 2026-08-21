@@ -61,7 +61,7 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (bulma-ui + create-bestax)
+pnpm run test           # jest (all four packages) + the scripts/ node:test suite
 pnpm run test:coverage  # coverage (bulma-ui 99%; the other three 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
@@ -165,9 +165,10 @@ and `scripts/require-pnpm-publish.mjs`.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) — the type and scope
 drive [semantic-release](https://semantic-release.gitbook.io/). Releasing types (`feat`, `fix`,
-`perf`, `refactor`, `style`) must carry one of the scopes in `RELEASE_SCOPES` (`bulma-ui`, `docs`,
-`create-bestax`, `bestax-migrate`, `bestax-mcp`); `chore`, `ci`,
-`build`, and `test` don't publish. Publishing uses npm **OIDC trusted publishing** with **provenance**
+`perf`, `refactor`, `style`, `revert`) must carry one of the scopes in `RELEASE_SCOPES`
+(`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`); `chore`, `ci`,
+`build`, and `test` don't publish. `revert` is release-triggering because commit-analyzer
+patch-releases reverts by default, so an unscoped one would bump every package. Publishing uses npm **OIDC trusted publishing** with **provenance**
 (no long-lived token). See [`CONTRIBUTING.md`](https://github.com/allxsmith/bestax/blob/main/CONTRIBUTING.md)
 for the full details.
 
