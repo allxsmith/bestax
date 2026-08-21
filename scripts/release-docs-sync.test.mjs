@@ -89,6 +89,32 @@ test('the dry-run recipe must name every publishable package', () => {
   assert.match(v[0], /omits bestax-migrate, bestax-mcp/);
 });
 
+test('an overlapping package name is not satisfied by a substring', () => {
+  // The membership test was `recipe.includes(dir)` and looked fine. Every
+  // publishable name here contains "bestax", so a package literally named
+  // `bestax` read as already present in a recipe that named only
+  // `create-bestax` and `bestax-mcp` — and "present" is the verdict that
+  // switches this rule off. Fail-open, from the same family as the parser
+  // #436 refused to write.
+  const withOverlap = [...PACKAGES, { dir: 'bestax', name: 'bestax' }];
+  const v = releaseDocViolations(
+    docs({
+      contributing: doc({
+        // Names every existing package, and not the new one.
+        recipe: recipe(PACKAGES.map(p => p.dir)),
+        publishers: publishers(PACKAGES.map(p => p.name)),
+      }),
+    }),
+    withOverlap
+  );
+  // Both recipes miss it, and so does the trusted-publisher list.
+  assert.equal(v.length, 3, v.join('\n'));
+  assert.ok(
+    v.every(m => /bestax\b/.test(m)),
+    'both messages must name the omitted package'
+  );
+});
+
 test('a missing recipe is reported as missing, not as a package list', () => {
   const v = releaseDocViolations(
     docs({ contributing: doc({ recipe: '```bash\npnpm all\n```' }) }),

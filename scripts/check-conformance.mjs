@@ -862,6 +862,21 @@ function dryRunRecipe(src) {
 }
 
 /**
+ * Package identifiers in `text`, as whole tokens.
+ *
+ * Substring matching looked fine and was not: every publishable name here
+ * contains "bestax", so a package literally named `bestax` would read as
+ * already present in a recipe listing only `create-bestax` and `bestax-mcp` —
+ * and being present is the verdict that switches this rule off. That is the
+ * same fail-open shape #436 warns about for the publisher declaration, arrived
+ * at from a different direction.
+ *
+ * The character class keeps `@scope/name` and `kebab-case` whole, so tokens
+ * compare as identifiers rather than as spans of text.
+ */
+const packageTokens = text => new Set(text.match(/[@\w./-]+/g) ?? []);
+
+/**
  * Violations for the release docs. Pure, so scripts/release-docs-sync.test.mjs
  * can drive it on fixtures — the four existing sync checks have no tests, and
  * publishable-manifests is the precedent worth following instead.
@@ -897,7 +912,8 @@ export function releaseDocViolations(docs, packages) {
           `scripts/check-conformance.mjs if the page no longer covers releases.`
       );
     } else {
-      const missing = packages.filter(p => !recipe.includes(p.dir));
+      const named = packageTokens(recipe);
+      const missing = packages.filter(p => !named.has(p.dir));
       if (missing.length) {
         violations.push(
           `${rel}'s semantic-release dry-run recipe omits ` +
@@ -928,7 +944,8 @@ export function releaseDocViolations(docs, packages) {
           `which ones do.`
       );
     } else {
-      const missing = packages.filter(p => !section.includes(p.name));
+      const named = packageTokens(section);
+      const missing = packages.filter(p => !named.has(p.name));
       if (missing.length) {
         violations.push(
           `CONTRIBUTING.md's trusted-publisher list omits ` +
