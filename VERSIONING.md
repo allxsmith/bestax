@@ -60,14 +60,39 @@ On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in eac
 2. If a release is due: version bump, `CHANGELOG.md` update, publish to npm (OIDC trusted
    publishing — no `NPM_TOKEN`), a signed `chore(release): X.Y.Z [skip ci]` commit, git tag,
    and GitHub release.
-   - Three packages publish via `@semantic-release/npm`, which shells out to `npm publish`.
-     **bestax-migrate publishes with `pnpm publish`** (`@semantic-release/exec`), because it
-     keeps a `workspace:` devDependency and `npm publish` ships that protocol verbatim —
-     which is how 1.0.0 went out uninstallable (#412, #436).
+   - **Every package publishes with `pnpm publish`** (`@semantic-release/exec`), not
+     `npm publish`. `@semantic-release/npm` stays in each chain with `npmPublish: false`
+     purely for its `prepare` step, which writes the version the release commit carries.
+     bestax-migrate moved first, because it keeps a `workspace:` devDependency and
+     `npm publish` ships that protocol verbatim — which is how its 1.0.0 went out
+     uninstallable (#412, #436); the other three followed once one real release had proved
+     the OIDC handshake (#532). The publish command and the reasons behind each of its flags
+     live in `scripts/lib/pnpm-publish.mjs`.
    - Note the ordering, because it decides what a failed publish costs: semantic-release runs
      **every** `prepare` step — including the release commit and tag — before **any** `publish`
      step. A publish that fails leaves the commit and tag behind, and that version is spent.
 3. A push may release any subset of the packages — they never bump each other.
+
+Three things about that publish step are load-bearing, and none of them fails loudly:
+
+- **`--provenance` is required.** pnpm reads `publishConfig.registry` and `.access` but takes
+  `provenance` from options only. `publishConfig.provenance` is deliberately absent from every
+  manifest rather than left in place: it does nothing under pnpm, and the most likely reason
+  anyone would delete the flag is reading `"provenance": true` in a package.json and concluding
+  it is redundant. Drop the flag and #411's provenance quietly stops being produced.
+- **`--embed-readme` is required.** pnpm defaults it to false where npm defaults it to true;
+  without it the npmjs.com page loses its README.
+- **The auth pre-flight is weaker than it was.** `@semantic-release/npm` exchanged a real OIDC
+  token during `verifyConditions`. With `npmPublish: false` that is off, so
+  `scripts/verify-oidc-context.mjs` runs as the exec plugin's `verifyConditionsCmd` and checks
+  only that an OIDC context exists; it does not prove npm will accept the token. Combined with
+  the ordering above, a failed publish spends the version.
+
+Outside CI, each package's `prepack` and `prepublishOnly` hooks run
+`scripts/require-pnpm-publish.mjs`, which refuses packers it recognises as not being pnpm — so
+a stray `npm publish` or `npm pack` exits with an explanation instead of shipping a manifest
+nobody can install. It is a guard against the likely mistake, not a proof: `--ignore-scripts`
+skips it, and a tarball packed elsewhere carries no guard with it.
 
 `main` is ruleset-protected, so the release commit and tag are pushed by a dedicated
 GitHub App that is the ruleset's only automation bypass — not by `github-actions[bot]`.

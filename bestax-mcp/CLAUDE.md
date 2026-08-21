@@ -78,3 +78,33 @@ test would pass while the server advertised nothing.
 
 They run against the committed index, not fixtures. The index is the product; a
 test that stubs it proves nothing about what ships.
+
+## Releases
+
+Independent semantic-release keyed off the `bestax-mcp` commit scope
+(`release.config.js`, tag `bestax-mcp@x.y.z`). It publishes with
+`pnpm publish`, like every package here (#532) — the command, its flags, and the
+three ways that publish fails quietly are documented in `VERSIONING.md` and
+`scripts/lib/pnpm-publish.mjs`.
+
+Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills
+`data/skills/` at pack time. That directory is gitignored while the manifest
+`data/skills.json` is committed, so packing locally does not dirty the tree —
+which also keeps it clear of the post-release restamp step in `ci.yml`, whose
+diff check is scoped to `bestax-mcp/data`.
+
+`files` carries a `"!data/.sync-skills"` negation, and it is not cosmetic.
+`files` ships all of `data/`, and `sync-skills.mjs` keeps its fingerprint and
+lock state in `data/.sync-skills/`, so without the negation that build state
+ships as product.
+
+**This is not a `pnpm publish` behaviour, and an earlier version of this note
+said it was.** npm and pnpm both include dot-directories under a `files`
+entry; a synthetic package with `files: ["data"]` and `data/.state/x` packs
+identically under either. The published 1.0.0 tarball has no `.sync-skills`
+only because the state directory did not exist yet — it arrived with #520 on
+2026-08-14, two days after 1.0.0 shipped. So this was a latent bug that the
+next release would have hit whoever packed it, surfaced by diffing a
+`pnpm -C bestax-mcp pack` against the published tarball while moving
+publishers (#532). That diff is the check worth repeating whenever `files` or
+the sync script changes, because nothing asserts tarball contents.

@@ -8,7 +8,8 @@
   },
   "files": [
     "dist",
-    "data"
+    "data",
+    "!data/.sync-skills"
   ],
   "scripts": {
     "build": "node scripts/sync-skills.mjs && tsc",
@@ -22,7 +23,8 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rimraf dist",
     "release": "npx semantic-release",
-    "prepack": "node scripts/sync-skills.mjs"
+    "prepack": "node ../scripts/require-pnpm-publish.mjs && node scripts/sync-skills.mjs",
+    "prepublishOnly": "node ../scripts/require-pnpm-publish.mjs"
   },
   "keywords": [
     "bestax",
@@ -64,7 +66,6 @@
     "typescript": "^6.0.3"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   }
 }

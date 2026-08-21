@@ -1,30 +1,34 @@
 #!/usr/bin/env node
 /**
- * Refuses a publish driven by anything other than pnpm (#436).
+ * Refuses a publish driven by anything other than pnpm (#436, #532).
  *
- * bestax-migrate keeps `"@allxsmith/bestax-bulma": "workspace:^"` in
- * devDependencies. `pnpm publish` rewrites that to a real range at pack time;
- * `npm publish` ships the protocol verbatim, which is what made 1.0.0
- * uninstallable (#412).
+ * Every package in this workspace publishes with `pnpm publish`. `npm publish`
+ * resolves none of pnpm's pack-time protocols, so a `workspace:^` reaches the
+ * registry verbatim and the published package is uninstallable for everyone —
+ * which is exactly what shipped as bestax-migrate@1.0.0 (#412).
  *
- * That used to be covered twice over: a `prepack` hook rewrote the specifier
- * for whatever was packing, and `check:conformance` refused to let the
- * specifier exist without those hooks wired. #436 removed the hook, because
- * hand-rolling pnpm's rewrite is the bug class it exists to stop owning, and
- * the conformance rule now EXEMPTS this package precisely because pnpm handles
- * it. Both of those are right, and together they left the specifier with no
- * mechanical guard at all: correct in the release pipeline, and a prose rule in
- * CLAUDE.md everywhere else.
+ * That used to be covered twice over for the one package that carried such a
+ * specifier: a `prepack` hook rewrote it for whatever was packing, and
+ * `check:conformance` refused to let the specifier exist without those hooks
+ * wired. #436 removed the hook, because hand-rolling pnpm's rewrite is the bug
+ * class it exists to stop owning, and the conformance rule now EXEMPTS a
+ * declared pnpm publisher precisely because pnpm handles it. Both of those are
+ * right, and together they left the exemption resting on an assumption —
+ * "pnpm packs this" — that nothing outside CI enforced.
  *
  * So guard the packer instead of the specifier. `pnpm publish` runs
  * `prepublishOnly` (verified against pnpm 11.9.0, which invokes it alongside
  * `prepublish` before packing), and so does `npm publish`, so this hook sees
- * both and can tell them apart by the user agent each sets:
+ * both and can tell them apart.
  *
- *   pnpm/11.9.0 npm/? node/v25.2.1 darwin arm64
- *   npm/11.6.2 node/v25.2.1 darwin arm64 workspaces/false
+ * It is wired into every publishable package, not only the one with a
+ * `workspace:` specifier. Two reasons, and the second is the load-bearing one:
+ * a package that gains such a dependency should not also have to remember to
+ * add a guard, and the flags the release passes (`--provenance`,
+ * `--embed-readme`) are not pnpm's defaults, so a hand `npm publish` degrades
+ * every package here, not just that one.
  *
- * Scope, stated plainly rather than implied. bestax-migrate wires this to BOTH
+ * Scope, stated plainly rather than implied. Each package wires this to BOTH
  * `prepack` and `prepublishOnly`, which between them cover `npm publish` and
  * `npm pack` — the latter matters because `npm publish <tarball>` runs no
  * scripts at all, so a tarball packed by npm could otherwise be published with
@@ -33,18 +37,29 @@
  *   - `--ignore-scripts`, which skips these hooks entirely. Both npm and pnpm
  *     gate lifecycle scripts on it (pnpm 11.9.0 wraps the `prepublishOnly` /
  *     `prepublish` call in `if (!opts.ignoreScripts)`), so `npm publish
- *     --ignore-scripts` ships the unresolved specifier with no signal at all.
+ *     --ignore-scripts` ships whatever the manifest says with no signal at all.
  *     Worth naming rather than leaving implied, because a repo whose
  *     supply-chain policy is built on blocking install scripts is exactly the
  *     kind of place that reaches for that flag out of habit.
  *   - a tarball packed before this guard existed, or packed elsewhere.
  *
  * A hook cannot cover those, so this is a guard against the likely mistake, not
- * a proof. Inspect the tarball with `pnpm -C bestax-migrate pack` if you are
- * unsure what a manifest will ship.
+ * a proof. Inspect the tarball with `pnpm -C <package> pack` if you are unsure
+ * what a manifest will ship.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
+
+// Shared with check-conformance.mjs, which uses the same list to decide
+// whether a manifest is a violation. This file only uses it to name the
+// offending specifier, but the two must agree or a protocol the check
+// refuses is one this refusal cannot describe.
+import {
+  PACK_TIME_PROTOCOLS,
+  DEP_SECTIONS,
+} from './lib/pack-time-protocols.mjs';
 
 /**
  * Keyed on `npm_execpath`, NOT on `npm_config_user_agent`.
@@ -91,14 +106,58 @@ export function isPnpmPublish(execPath) {
   return !OTHER_PACKAGE_MANAGERS.test(name);
 }
 
-export function main(env = process.env, log = console.error) {
+/** Every specifier in `pkg` that only means something inside this workspace. */
+export function packTimeSpecifiers(pkg) {
+  const found = [];
+  for (const section of DEP_SECTIONS) {
+    for (const [name, spec] of Object.entries(pkg?.[section] ?? {})) {
+      if (typeof spec !== 'string') continue;
+      if (PACK_TIME_PROTOCOLS.some(p => spec.startsWith(p))) {
+        found.push({ section, name, spec });
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * What is being packed, read from the cwd — lifecycle hooks run in the package
+ * root. Never throws: this is called only to write a better error message, and
+ * a guard that crashed while explaining itself would report the wrong problem.
+ */
+function describePackage(cwd) {
+  const dir = path.basename(cwd);
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json')));
+    return { dir, name: pkg.name ?? dir, specifiers: packTimeSpecifiers(pkg) };
+  } catch {
+    return { dir, name: dir, specifiers: [] };
+  }
+}
+
+export function main(
+  env = process.env,
+  log = console.error,
+  cwd = process.cwd()
+) {
   if (isPnpmPublish(env.npm_execpath)) {
     // A hand-run `pnpm publish` is allowed, and silently produces neither
-    // provenance nor an embedded README: those flags live in the release
-    // config's publishCmd, and this package deliberately carries no
-    // publishConfig.provenance for pnpm to fall back on. CI passes them, so say
-    // nothing there; a human gets one line before the tarball goes out.
-    if (!env.CI && !env.GITHUB_ACTIONS) {
+    // provenance nor an embedded README: those flags live in the shared
+    // publishCmd, and no package here carries a publishConfig.provenance for
+    // pnpm to fall back on. CI passes them, so say nothing there; a human gets
+    // one line before the tarball goes out.
+    //
+    // Only on prepublishOnly, which is the hook that runs when something is
+    // actually being published. `pnpm pack` runs prepack alone, and warning
+    // there meant four packages printed "publishing by hand" during a
+    // read-only inspection — including on `pnpm -C <pkg> pack`, the command
+    // this file's own header and three CLAUDE.md files recommend for checking
+    // what a manifest will ship. That is how a real warning gets tuned out.
+    if (
+      env.npm_lifecycle_event === 'prepublishOnly' &&
+      !env.CI &&
+      !env.GITHUB_ACTIONS
+    ) {
       log(
         'require-pnpm-publish: publishing by hand. `--provenance ' +
           '--embed-readme` are not defaults here and CI passes them for you; ' +
@@ -108,23 +167,38 @@ export function main(env = process.env, log = console.error) {
     }
     return 0;
   }
+
+  const { dir, name, specifiers } = describePackage(cwd);
+  // Named only when the manifest actually carries one. Inventing a specifier
+  // for a package that has none would send the reader looking for something
+  // that is not there, and the rule holds for that package either way.
+  const declared = specifiers.length
+    ? `${name} declares ` +
+      specifiers
+        .map(s => `"${s.name}": "${s.spec}" in ${s.section}`)
+        .join(', ') +
+      ', which npm would ship verbatim.\n\n'
+    : '';
+
   log(
-    'This package must be published with `pnpm publish`, not ' +
+    `This package must be published with \`pnpm publish\`, not ` +
       `\`npm publish\` (packer: ${env.npm_execpath}).\n` +
       '\n' +
-      'It declares "@allxsmith/bestax-bulma": "workspace:^" in ' +
-      'devDependencies. pnpm resolves the workspace: protocol at pack time; ' +
-      'npm ships it verbatim, and the published package is then uninstallable ' +
-      'for everyone (EUNSUPPORTEDPROTOCOL, #412 shipped exactly this as ' +
-      '1.0.0).\n' +
+      declared +
+      'Every package in this workspace publishes with pnpm, because ' +
+      "`npm publish` resolves none of pnpm's pack-time protocols — a " +
+      '`workspace:` specifier reaches the registry verbatim, and #412 shipped ' +
+      'exactly that as bestax-migrate@1.0.0, uninstallable ' +
+      '(EUNSUPPORTEDPROTOCOL).\n' +
       '\n' +
       'Releases are automated and run from CI. If you really are publishing ' +
-      'by hand, the flags are not optional either, because this package no ' +
-      'longer carries a publishConfig.provenance for pnpm to read:\n' +
+      'by hand, the flags are not optional either, because no package here ' +
+      'carries a publishConfig.provenance for pnpm to read:\n' +
       '\n' +
       '  pnpm publish --provenance --embed-readme --access public\n' +
       '\n' +
-      'Check what it would ship first with `pnpm -C bestax-migrate pack`.'
+      'Check what it would ship first with `pnpm pack`, from this ' +
+      `directory (${dir}).`
   );
   return 1;
 }

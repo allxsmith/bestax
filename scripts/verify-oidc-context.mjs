@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * Pre-flight for the packages that publish with `pnpm publish` (#436).
+ * Pre-flight for the packages that publish with `pnpm publish` (#436, #532),
+ * which is all four of them.
  *
- * bestax-migrate hands its publish step to `@semantic-release/exec` running
+ * Each hands its publish step to `@semantic-release/exec` running
  * `pnpm publish`, because `npm publish` does not resolve pnpm's `workspace:`
- * protocol and shipped an uninstallable 1.0.0 (#412). Doing that costs one
+ * protocol and shipped an uninstallable bestax-migrate 1.0.0 (#412). Doing that costs one
  * thing worth replacing: `@semantic-release/npm` performed a real OIDC token
  * exchange inside `verifyConditions`, so a job missing `id-token: write` failed
  * before semantic-release had written anything. With `npmPublish: false` that

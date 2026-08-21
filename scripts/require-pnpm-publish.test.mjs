@@ -1,5 +1,5 @@
 /**
- * Covers scripts/require-pnpm-publish.mjs (#436).
+ * Covers scripts/require-pnpm-publish.mjs (#436, #532).
  *
  * Both directions are load-bearing and they fail differently. A guard that
  * misses `npm publish` lets #412 ship again with no signal. A guard that
@@ -8,9 +8,14 @@
  * commit and tag.
  */
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
-import { isPnpmPublish, main } from './require-pnpm-publish.mjs';
+import {
+  isPnpmPublish,
+  main,
+  packTimeSpecifiers,
+} from './require-pnpm-publish.mjs';
 
 const PNPM = '/Users/x/.cache/node/corepack/v1/pnpm/11.9.0/bin/pnpm.mjs';
 const NPM = '/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js';
@@ -100,6 +105,28 @@ test('a windows pnpm is allowed, in every form it ships as', () => {
   }
 });
 
+test('the hand-publish advisory fires on prepublishOnly and nowhere else', () => {
+  // prepack runs on `pnpm pack` too, which is a read-only inspection and the
+  // command this repo's docs recommend for checking what a manifest ships.
+  // Warning there had four packages printing a publish warning at people who
+  // were not publishing, which is how a real warning gets tuned out.
+  const hand = { npm_execpath: PNPM };
+  let msg = '';
+  main({ ...hand, npm_lifecycle_event: 'prepublishOnly' }, m => (msg = m));
+  assert.match(msg, /publishing by hand/);
+
+  msg = '';
+  main({ ...hand, npm_lifecycle_event: 'prepack' }, m => (msg = m));
+  assert.equal(msg, '', 'pnpm pack must not warn about publishing');
+
+  msg = '';
+  main(
+    { ...hand, npm_lifecycle_event: 'prepublishOnly', CI: 'true' },
+    m => (msg = m)
+  );
+  assert.equal(msg, '', 'CI passes the flags, so it needs no advice');
+});
+
 test('the refusal spells out the flags a hand publish would otherwise lose', () => {
   // publishConfig.provenance was removed from the manifest, so a hand
   // `pnpm publish` — the one path this guard permits — produces no provenance
@@ -128,14 +155,78 @@ test('the refusal explains the consequence, not just the rule', () => {
   assert.match(msg, /EUNSUPPORTEDPROTOCOL/);
 });
 
-test('bestax-migrate actually wires the hook up', async () => {
-  // The script existing is not the same as it running.
-  const pkg = await import('../bestax-migrate/package.json', {
-    with: { type: 'json' },
-  });
-  assert.match(
-    pkg.default.scripts.prepublishOnly,
-    /require-pnpm-publish\.mjs/,
-    'bestax-migrate must run the guard on prepublishOnly'
+// Real package directories, because the branch under test READS the manifest.
+// The first version of these pointed at /tmp/nowhere/<pkg>, so describePackage
+// took its catch path every time and the "no specifier" assertion passed for
+// the wrong reason — leaving the specifier-naming branch, which is the whole
+// point of the change, with no coverage at all.
+const repoDir = name => fileURLToPath(new URL(`../${name}`, import.meta.url));
+
+test('the refusal names the package being packed, not a hardcoded one', () => {
+  // The message used to describe bestax-migrate's situation to whoever ran it.
+  // With four callers that was wrong for three of them, so it now reads the
+  // cwd — which is where a lifecycle hook runs.
+  let msg = '';
+  main({ npm_execpath: NPM }, m => (msg = m), repoDir('bulma-ui'));
+  assert.match(msg, /from this directory \(bulma-ui\)/);
+});
+
+test('a readable manifest gets its offending specifier quoted', () => {
+  // bestax-migrate is the only package carrying one, and naming it is the
+  // reason this branch exists at all.
+  let msg = '';
+  main({ npm_execpath: NPM }, m => (msg = m), repoDir('bestax-migrate'));
+  assert.match(msg, /bestax-migrate declares/);
+  assert.match(msg, /"@allxsmith\/bestax-bulma": "workspace:\^"/);
+  assert.match(msg, /in devDependencies/);
+});
+
+test('a package with no pack-time specifier is not told it has one', () => {
+  // Inventing a specifier sends the reader looking for something that is not
+  // there. The rule still holds for that package, so the message says why
+  // without naming a dependency.
+  let msg = '';
+  main({ npm_execpath: NPM }, m => (msg = m), repoDir('bulma-ui'));
+  assert.doesNotMatch(msg, /bulma-ui declares/);
+  // …and still explains the rule and its consequence.
+  assert.match(msg, /#412/);
+  assert.match(msg, /--provenance/);
+});
+
+test('an unreadable manifest degrades to the directory name, never throws', () => {
+  // This runs inside a pack hook. A guard that crashed while explaining itself
+  // would report the wrong problem, and on the allow path would fail a real
+  // release after the commit and tag are pushed.
+  let msg = '';
+  const code = main(
+    { npm_execpath: '/x/npm-cli.js' },
+    m => (msg = m),
+    '/tmp/definitely-not-a-package/some-pkg'
   );
+  assert.equal(code, 1);
+  assert.match(msg, /from this directory \(some-pkg\)/);
+});
+
+test('packTimeSpecifiers finds every protocol, in every section', () => {
+  assert.deepEqual(
+    packTimeSpecifiers({
+      dependencies: { a: 'workspace:^', ok: '^1.0.0' },
+      devDependencies: { b: 'catalog:' },
+      peerDependencies: { c: 'link:../y' },
+      optionalDependencies: { d: 'file:../z' },
+    }),
+    [
+      { section: 'dependencies', name: 'a', spec: 'workspace:^' },
+      { section: 'devDependencies', name: 'b', spec: 'catalog:' },
+      { section: 'peerDependencies', name: 'c', spec: 'link:../y' },
+      { section: 'optionalDependencies', name: 'd', spec: 'file:../z' },
+    ]
+  );
+});
+
+test('packTimeSpecifiers survives a manifest that is missing or odd', () => {
+  assert.deepEqual(packTimeSpecifiers(undefined), []);
+  assert.deepEqual(packTimeSpecifiers({}), []);
+  // A non-string specifier is malformed, not a protocol; it must not crash.
+  assert.deepEqual(packTimeSpecifiers({ dependencies: { a: { x: 1 } } }), []);
 });

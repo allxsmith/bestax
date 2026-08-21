@@ -217,18 +217,16 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      # bulma-ui, create-bestax and bestax-mcp publish via
-      # @semantic-release/npm, which shells out to `npm publish`. OIDC trusted
-      # publishing requires npm >= 11.5.1, so pin a known-good npm even though
-      # dependencies are managed by pnpm.
+      # The npm pin is gone: it existed because OIDC trusted publishing needs
+      # npm >= 11.5.1, and nothing here runs `npm publish` any more. Every
+      # package publishes with `pnpm publish` (#436 for bestax-migrate, #532
+      # for the other three), which carries its own OIDC exchange.
       #
-      # bestax-migrate is the exception and does not need this: it publishes
-      # with `pnpm publish` (#436), which carries its own OIDC exchange, because
-      # `npm publish` does not resolve the `workspace:` protocol it keeps in
-      # devDependencies (#412). Its release step below is otherwise identical.
-      - name: Update npm for OIDC trusted publishing
-        run: npm install -g npm@latest
-
+      # This does NOT mean the job has no use for npm. @semantic-release/npm
+      # keeps its prepare step, which shells out to `npm version` to write the
+      # release version into package.json. So the runner still needs a working
+      # npm and setup-node still needs its registry-url; what no longer
+      # applies is the version floor, because that came from publishing.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -281,6 +279,9 @@ jobs:
       # No NPM_TOKEN: publishing authenticates via OIDC trusted publishing.
       # A present NPM_TOKEN takes precedence over OIDC and reintroduces the
       # EOTP (one-time password) failure on 2FA-protected accounts.
+      # All four release steps are identical on purpose: each package's
+      # release.config.js decides how it publishes, and since #532 all four
+      # answer `pnpm publish` through the same shared helper.
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui
         env:

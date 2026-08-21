@@ -24,7 +24,12 @@ import {
   manifestViolations,
   parseWorkspacePackages,
 } from './check-conformance.mjs';
-import { execOptions, releaseBranches } from './lib/release-config.mjs';
+import {
+  execOptions,
+  npmOptions,
+  releaseBranches,
+} from './lib/release-config.mjs';
+import { basename } from 'node:path';
 import { tokenize } from './lib/shell-words.mjs';
 
 const repoFile = rel =>
@@ -44,14 +49,26 @@ const DECLARED = new Set(
     .filter(Boolean)
 );
 
+// parseWorkspacePackages returns each `packages:` entry as literal text, so a
+// glob like `packages/*` comes back unexpanded. Swallowing that would quietly
+// shrink PUBLISHABLE, and PUBLISHABLE is what the declaration is compared
+// against — the "a new package must be declared" guarantee would stop holding
+// for everything under the glob while this file stayed green. So an entry whose
+// manifest cannot be read is a failure, not a filtered-out row.
 const PUBLISHABLE = parseWorkspacePackages(
   repoFile('pnpm-workspace.yaml')
 ).filter(dir => {
+  let manifest;
   try {
-    return !JSON.parse(repoFile(`${dir}/package.json`)).private;
+    manifest = repoFile(`${dir}/package.json`);
   } catch {
-    return false;
+    throw new Error(
+      `pnpm-workspace.yaml lists "${dir}", which has no readable package.json. ` +
+        'If that is a glob, parseWorkspacePackages does not expand it and every ' +
+        'package under it is silently exempt from the checks in this file.'
+    );
   }
+  return !JSON.parse(manifest).private;
 });
 
 test('the declaration was actually parsed out of the check', () => {
@@ -108,23 +125,44 @@ for (const dir of PUBLISHABLE) {
   });
 }
 
-test('bestax-migrate is the one declared package, and it wires the guard', () => {
-  // Stated rather than derived, so adding a package to the declaration is a
-  // deliberate act that fails this test first.
-  assert.deepEqual([...DECLARED], ['bestax-migrate']);
-  const pkg = JSON.parse(repoFile('bestax-migrate/package.json'));
-  assert.match(pkg.scripts.prepublishOnly, /require-pnpm-publish\.mjs/);
+test('every publishable package is declared, and each wires the guard', () => {
+  // Derived from the workspace rather than restated, so a NEW publishable
+  // package fails here until someone decides how it publishes — which is the
+  // one moment that decision is cheap. Adding a name to PNPM_PUBLISHED without
+  // moving its release config fails the per-package test above instead.
+  assert.deepEqual([...DECLARED].sort(), [...PUBLISHABLE].sort());
+
+  // The exemption assumes pnpm packs these. In CI that is the release config's
+  // job; everywhere else it is the hooks'. `npm pack` runs only prepack, and
+  // `npm publish <tarball>` runs neither, so both are required.
+  for (const dir of DECLARED) {
+    const pkg = JSON.parse(repoFile(`${dir}/package.json`));
+    for (const hook of ['prepack', 'prepublishOnly']) {
+      assert.match(
+        pkg.scripts?.[hook] ?? '',
+        /require-pnpm-publish\.mjs/,
+        `${dir} must run the guard on ${hook}`
+      );
+    }
+  }
 });
 
-test('the declared package passes --provenance and --embed-readme', async () => {
+test('every declared package passes --provenance and --embed-readme', async () => {
   // Neither is optional and neither fails loudly if dropped: pnpm ignores
-  // publishConfig.provenance (and this package no longer carries one), and
+  // publishConfig.provenance (and no package carries one any more), and
   // defaults embed-readme to false where npm defaults it true. Asserted
-  // against the command, not the file: both flags appear in the config's
-  // comments, so a source grep passed with them deleted from publishCmd.
-  const cmd = await publishCommand('bestax-migrate');
-  assert.match(cmd, /(^|\s)--provenance(\s|$)/);
-  assert.match(cmd, /(^|\s)--embed-readme(\s|$)/);
+  // against the command, not the file: both flags appear in the shared
+  // helper's comments, so a source grep passed with them deleted from
+  // publishCmd.
+  //
+  // Looped over every package even though one helper builds all four commands,
+  // because that helper is an implementation detail. What must hold is that
+  // each package's config actually produces them.
+  for (const dir of DECLARED) {
+    const cmd = await publishCommand(dir);
+    assert.match(cmd, /(^|\s)--provenance(\s|$)/, `${dir} loses provenance`);
+    assert.match(cmd, /(^|\s)--embed-readme(\s|$)/, `${dir} loses its README`);
+  }
 });
 
 test('the scripts the release config names all exist', async () => {
@@ -133,8 +171,12 @@ test('the scripts the release config names all exist', async () => {
   // than by pattern-matching filenames out of the source — which broke on any
   // path shape other than `path.join(SCRIPTS, 'x.mjs')` and invented
   // requirements for filenames mentioned in comments.
-  const exec = await execOptions('bestax-migrate');
-  assert.ok(exec, 'bestax-migrate must publish through @semantic-release/exec');
+  for (const dir of DECLARED) await assertNamedScriptsExist(dir);
+});
+
+async function assertNamedScriptsExist(dir) {
+  const exec = await execOptions(dir);
+  assert.ok(exec, `${dir} must publish through @semantic-release/exec`);
 
   // Only the *Cmd options are shell commands. execCwd is a raw, unquoted path,
   // and feeding it to tokenize threw on a checkout containing an apostrophe —
@@ -146,15 +188,15 @@ test('the scripts the release config names all exist', async () => {
 
   assert.ok(
     named.length >= 2,
-    `expected the config to name scripts, got ${named}`
+    `expected ${dir}'s config to name scripts, got ${named}`
   );
   for (const abs of named) {
     assert.ok(
       existsSync(abs),
-      `release.config.js runs "${abs}", which does not exist`
+      `${dir}/release.config.js runs "${abs}", which does not exist`
     );
   }
-});
+}
 
 test('the release stays on a single branch, or the dist-tag needs revisiting', async () => {
   // publishCmd passes no --tag, which is only correct while every release goes
@@ -168,7 +210,9 @@ test('the release stays on a single branch, or the dist-tag needs revisiting', a
   // `// branches: ['main']` would have satisfied it while the real value was
   // ['main', 'next'], which is the direction that publishes a prerelease to
   // the stable dist-tag.
-  assert.deepEqual(await releaseBranches('bestax-migrate'), ['main']);
+  for (const dir of DECLARED) {
+    assert.deepEqual(await releaseBranches(dir), ['main'], dir);
+  }
 });
 
 // --- the rule ----------------------------------------------------------------
@@ -190,12 +234,23 @@ const WS = spec => ({
   devDependencies: { '@allxsmith/bestax-bulma': spec },
 });
 
-// Real directory names, because manifestViolations consults the declaration
-// itself. `bulma-ui` is not declared, so it stands for an npm publisher;
-// `bestax-migrate` is, so it stands for a pnpm one. A rule that ignored the
-// declaration would pass fixtures that carried the verdict as an argument.
-const NPM_PKG = 'bulma-ui';
+// Directory NAMES, because manifestViolations consults the declaration itself
+// rather than taking a verdict as an argument — a rule that ignored the
+// declaration would pass these fixtures.
+//
+// NPM_PKG used to be `bulma-ui`, a real undeclared package. #532 declared the
+// last of those, so nothing real is left to play the part and the npm branch
+// is exercised through a name that is deliberately not a workspace package:
+// the case it now guards is a package that does not exist yet. The assertion
+// below is what keeps that true, since declaring this name would silently turn
+// every npm-branch test into a pnpm-branch one.
+const NPM_PKG = 'a-package-that-has-not-moved-yet';
 const PNPM_PKG = 'bestax-migrate';
+
+test('the npm-publisher fixture really is undeclared', () => {
+  assert.ok(!DECLARED.has(NPM_PKG), `${NPM_PKG} must not be declared`);
+  assert.ok(DECLARED.has(PNPM_PKG), `${PNPM_PKG} must be declared`);
+});
 
 test('an npm publisher is held to every pack-time protocol', () => {
   for (const spec of [
@@ -351,11 +406,15 @@ test('an undeclared package gets no exemption, whatever the walk does', () => {
   // The mutation this exists for: a walk that hands every package the pnpm
   // verdict. Because manifestViolations consults the declaration itself, a
   // package that is not in it cannot be exempted from anywhere.
-  const v = manifestViolations('bulma-ui', WS('workspace:^'));
-  assert.equal(v.length, 1, 'bulma-ui is not declared and must not be exempt');
+  const v = manifestViolations(NPM_PKG, WS('workspace:^'));
+  assert.equal(
+    v.length,
+    1,
+    `${NPM_PKG} is not declared and must not be exempt`
+  );
   assert.match(v[0], /npm publish/);
-  // …and the declared one still is.
-  assert.deepEqual(manifestViolations('bestax-migrate', WS('workspace:^')), []);
+  // …and a declared one still is.
+  assert.deepEqual(manifestViolations(PNPM_PKG, WS('workspace:^')), []);
 });
 
 test('a declared package that drops the guard is flagged for it', () => {
@@ -370,21 +429,70 @@ test('a declared package that drops the guard is flagged for it', () => {
 });
 
 test('an undeclared package is not asked for the guard', () => {
-  // bulma-ui has no exemption, so it has nothing to compensate for.
+  // An undeclared package has no exemption, so it has nothing to compensate
+  // for. This said `bulma-ui` until #532 declared it, which made the comment
+  // describe the opposite of what the fixture does.
   const v = manifestViolations(NPM_PKG, { dependencies: { bulma: '^1.0.4' } });
   assert.deepEqual(v, []);
 });
 
-test('the exec plugin pins its cwd', async () => {
+test('every declared package disables the npm plugin publish step', async () => {
+  // The other half of the publish decision, and the half with no symptom.
+  // @semantic-release/npm is kept ONLY for its prepare step, which writes the
+  // version the release commit carries. Delete `npmPublish: false` and it
+  // publishes with `npm publish` first — shipping whatever pack-time protocol
+  // the manifest holds, which is #412 — and THEN the exec plugin runs
+  // `pnpm publish` against a version that is already on the registry.
+  //
+  // Every other assertion here pins the exec half. Nothing pinned this one, so
+  // deleting one line left the whole suite green.
+  for (const dir of DECLARED) {
+    const npm = await npmOptions(dir);
+    assert.ok(
+      npm,
+      `${dir} must keep @semantic-release/npm for its prepare step`
+    );
+    assert.equal(
+      npm.npmPublish,
+      false,
+      `${dir} must set npmPublish: false, or it publishes twice`
+    );
+  }
+});
+
+test('every declared package pins its exec cwd to itself', async () => {
   // `pnpm publish` resolves its target package from the cwd, which for exec is
   // wherever semantic-release was started. Without execCwd a run from the repo
   // root reaches the publish step — after the release commit and tag are
-  // pushed — and fails on the private root package. Every other exec option is
-  // pinned by a test; this one was not.
-  const exec = await execOptions('bestax-migrate');
-  assert.ok(exec, 'bestax-migrate must publish through @semantic-release/exec');
-  assert.ok(exec.execCwd, 'execCwd must be set');
-  assert.match(exec.execCwd, /bestax-migrate$/);
+  // pushed — and fails on the private root package.
+  //
+  // Looped, and matched against the package it belongs to, because
+  // pnpmPublishPlugins now takes the directory as an ARGUMENT. A config that
+  // passed a copy-pasted path would publish the wrong package from a release
+  // whose commit and tag are already on main, and asserting only that execCwd
+  // is truthy would not notice.
+  for (const dir of DECLARED) {
+    const exec = await execOptions(dir);
+    assert.ok(exec, `${dir} must publish through @semantic-release/exec`);
+    assert.ok(exec.execCwd, `${dir}: execCwd must be set`);
+    assert.match(exec.execCwd, new RegExp(`(^|/)${dir}$`), `${dir}: execCwd`);
+    // The release-info tail is pointed by --dir= and has the same failure
+    // mode. Read through tokenize rather than a regex over the raw command:
+    // the path is shell-quoted, so a checkout under "~/My Projects" or a
+    // directory with an apostrophe puts characters inside the quotes that a
+    // naive pattern reads as the end of the argument. The first version of
+    // this assertion did exactly that and would have failed CI for those
+    // contributors — which is the case shell-words exists to survive.
+    const dirArg = tokenize(exec.publishCmd)
+      .filter(w => w.startsWith('--dir='))
+      .map(w => w.slice('--dir='.length));
+    assert.equal(dirArg.length, 1, `${dir}: expected exactly one --dir`);
+    assert.equal(
+      basename(dirArg[0]),
+      dir,
+      `${dir}: publishCmd --dir must name the same package`
+    );
+  }
 });
 
 test('a violation names a fix that fits the protocol', () => {

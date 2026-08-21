@@ -12,6 +12,7 @@
  * each dereferencing `[1]` without checking it found anything.
  */
 const EXEC = '@semantic-release/exec';
+const NPM = '@semantic-release/npm';
 
 /**
  * Understands the three plugin shapes semantic-release accepts, because two of
@@ -20,22 +21,22 @@ const EXEC = '@semantic-release/exec';
  * a form this cannot read — the caller is asserting things about that config,
  * so degrading to `{}` would turn a real assertion into a vacuous pass.
  */
-export async function execOptions(dir) {
+export async function pluginOptions(dir, plugin) {
   const { default: config } = await import(`../../${dir}/release.config.js`);
   const plugins = config.plugins ?? [];
 
   for (const p of plugins) {
     if (typeof p === 'string') {
-      if (p === EXEC) {
+      if (p === plugin) {
         throw new Error(
-          `${dir}/release.config.js declares ${EXEC} with no options; there is ` +
+          `${dir}/release.config.js declares ${plugin} with no options; there is ` +
             'nothing to read.'
         );
       }
       continue;
     }
-    if (Array.isArray(p) && p[0] === EXEC) return p[1] ?? {};
-    if (p && typeof p === 'object' && p.path === EXEC) {
+    if (Array.isArray(p) && p[0] === plugin) return p[1] ?? {};
+    if (p && typeof p === 'object' && p.path === plugin) {
       // eslint-disable-next-line no-unused-vars
       const { path: _path, ...options } = p;
       return options;
@@ -43,6 +44,17 @@ export async function execOptions(dir) {
   }
   return null;
 }
+
+/** Options on the exec plugin, which is what actually publishes. */
+export const execOptions = dir => pluginOptions(dir, EXEC);
+
+/**
+ * Options on the npm plugin, which is kept only for its `prepare` step. Its
+ * `npmPublish: false` is half of the publish decision: without it
+ * semantic-release publishes with npm AND then runs `pnpm publish`, which is a
+ * duplicate publish rather than a failure.
+ */
+export const npmOptions = dir => pluginOptions(dir, NPM);
 
 /** The `branches` a package releases from. */
 export async function releaseBranches(dir) {

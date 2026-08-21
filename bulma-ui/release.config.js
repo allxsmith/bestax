@@ -1,3 +1,5 @@
+import { pnpmPublishPlugins } from '../scripts/lib/pnpm-publish.mjs';
+
 export default {
   branches: ['main'],
   tagFormat: '@allxsmith/bestax-bulma@${version}', // Ensures correct tag format for this package
@@ -42,12 +44,10 @@ export default {
         changelogFile: 'CHANGELOG.md',
       },
     ],
-    [
-      '@semantic-release/npm',
-      {
-        pkgRoot: '.',
-      },
-    ],
+    // Publishing goes to `pnpm publish` rather than `npm publish` (#436, #532).
+    // The two plugins are one decision and every flag they pass is load-bearing
+    // in a way that fails quietly, so both live in the helper with the reasons.
+    ...pnpmPublishPlugins(import.meta.dirname),
     [
       '@semantic-release/git',
       {
