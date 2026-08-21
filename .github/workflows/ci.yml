@@ -217,18 +217,10 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      # bulma-ui, create-bestax and bestax-mcp publish via
-      # @semantic-release/npm, which shells out to `npm publish`. OIDC trusted
-      # publishing requires npm >= 11.5.1, so pin a known-good npm even though
-      # dependencies are managed by pnpm.
-      #
-      # bestax-migrate is the exception and does not need this: it publishes
-      # with `pnpm publish` (#436), which carries its own OIDC exchange, because
-      # `npm publish` does not resolve the `workspace:` protocol it keeps in
-      # devDependencies (#412). Its release step below is otherwise identical.
-      - name: Update npm for OIDC trusted publishing
-        run: npm install -g npm@latest
-
+      # No npm pin here any more. Every package now publishes with
+      # `pnpm publish` (#436 for bestax-migrate, #532 for the other three),
+      # which carries its own OIDC exchange, so nothing in this job shells out
+      # to `npm publish` and there is no npm version left for it to need.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -281,6 +273,9 @@ jobs:
       # No NPM_TOKEN: publishing authenticates via OIDC trusted publishing.
       # A present NPM_TOKEN takes precedence over OIDC and reintroduces the
       # EOTP (one-time password) failure on 2FA-protected accounts.
+      # All four release steps are identical on purpose: each package's
+      # release.config.js decides how it publishes, and since #532 all four
+      # answer `pnpm publish` through the same shared helper.
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui
         env:
