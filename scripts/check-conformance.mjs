@@ -35,7 +35,8 @@
  *                        and names only props that really exist
  *   publishable-manifests  no published package ships a specifier consumers
  *                        cannot resolve (#412). Which packages publish with
- *                        `pnpm publish` is declared, not inferred (#436)
+ *                        `pnpm publish` is declared, not inferred (#436,
+ *                        #532)
  *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
@@ -1010,9 +1011,16 @@ export function parseWorkspacePackages(yaml) {
  * that shipped as bestax-migrate@1.0.0 (#412), invisibly, because nothing in
  * CI installs the published artifact.
  *
- * bestax-migrate publishes with `pnpm publish` instead (#436), which resolves
- * those protocols at pack time, so it is exempt from part of this rule. Which
- * packages those are is DECLARED below, not inferred from their release config.
+ * Every package here publishes with `pnpm publish` instead — bestax-migrate
+ * first (#436), the other three once one real release had proved the OIDC
+ * handshake (#532) — which resolves those protocols at pack time, so each is
+ * exempt from part of this rule. Which packages those are is DECLARED below,
+ * not inferred from their release config.
+ *
+ * The npm branch below therefore has no package left to fire on today, and it
+ * stays anyway: it is what holds a NEW package to the strict rule until it is
+ * deliberately moved and declared. Deleting it would make "not yet declared"
+ * mean "exempt", which is the failure mode the rest of this comment is about.
  *
  * That is the whole design, and it is worth saying why, because the obvious
  * alternative was tried and failed four times. Reading `release.config.js` and
@@ -1031,7 +1039,10 @@ export function parseWorkspacePackages(yaml) {
  * the release configs actually do. Getting THAT wrong fails a test, loudly,
  * instead of silently exempting a package.
  */
-const PNPM_PUBLISHED = new Set(['bestax-migrate']);
+const PNPM_PUBLISHED = new Set([
+  'bulma-ui',
+  'bestax-migrate',
+]);
 
 /**
  * Protocols that mean something inside this workspace and are not a plain

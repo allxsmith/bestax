@@ -38,7 +38,8 @@
     "test-storybook": "test-storybook",
     "test-storybook:dark": "STORYBOOK_THEME=dark test-storybook",
     "test-storybook:ci": "node scripts/test-storybook-ci.mjs",
-    "prepack": "node scripts/pack-pointer-files.mjs prepack",
+    "prepack": "node ../scripts/require-pnpm-publish.mjs && node scripts/pack-pointer-files.mjs prepack",
+    "prepublishOnly": "node ../scripts/require-pnpm-publish.mjs",
     "postpack": "node scripts/pack-pointer-files.mjs postpack"
   },
   "devDependencies": {
@@ -201,7 +202,6 @@
     "url": "https://github.com/allxsmith/bestax/issues"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   }
 }
