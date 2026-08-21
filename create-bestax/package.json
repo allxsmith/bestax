@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "build": "node scripts/sync-skills.mjs && tsc",
-    "prepack": "node scripts/sync-skills.mjs",
+    "prepack": "node ../scripts/require-pnpm-publish.mjs && node scripts/sync-skills.mjs",
+    "prepublishOnly": "node ../scripts/require-pnpm-publish.mjs",
     "dev": "tsc --watch",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
@@ -73,7 +74,6 @@
     "wait-on": "^9.1.0"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   }
 }

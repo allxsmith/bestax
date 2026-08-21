@@ -1041,6 +1041,7 @@ export function parseWorkspacePackages(yaml) {
  */
 const PNPM_PUBLISHED = new Set([
   'bulma-ui',
+  'create-bestax',
   'bestax-migrate',
 ]);
 
