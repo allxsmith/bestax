@@ -841,15 +841,45 @@ const RELEASE_DOC_FILES = [
 
 // What a contributor must still learn from either copy. Each is load-bearing:
 // the flags because pnpm's defaults silently drop provenance and the README,
-// the hook names because those are what refuse a stray publish, and the
-// --ignore-scripts caveat because it is the documented hole in that guard.
+// the hook names because those are what refuse a stray publish, the
+// --ignore-scripts caveat because it is the documented hole in that guard, and
+// the two pointers because the mechanism was deliberately moved out of these
+// files and a reader who needs it has to be told where it went.
 const RELEASE_DOC_FACTS = [
   '--provenance --embed-readme --access public',
   'prepack',
   'prepublishOnly',
   '--ignore-scripts',
   'VERSIONING.md',
+  'scripts/require-pnpm-publish.mjs',
 ];
+
+/**
+ * The "safe to run; never publishes" guidance, which is the block these facts
+ * have to live in.
+ *
+ * Scoped rather than searched file-wide, because file-wide was vacuous:
+ * CONTRIBUTING.md links VERSIONING.md twice more for unrelated reasons, so
+ * deleting the pointer from this block left the check green. That is the same
+ * failure publishable-manifests.test.mjs records against its own first version
+ * — the prose satisfied the assertion while the thing being asserted was gone.
+ *
+ * Ends at the admonition close, the next heading, or a horizontal rule, which
+ * covers both the blockquote form and the Docusaurus `:::tip` form.
+ */
+function safeToRunBlock(src) {
+  const lines = src.split('\n');
+  const start = lines.findIndex(l =>
+    l.includes('Safe to run; never publishes')
+  );
+  if (start < 0) return null;
+  const rest = lines.slice(start + 1);
+  let end = rest.findIndex(
+    l => l.trim() === ':::' || /^#{2,3}\s/.test(l) || l.trim() === '---'
+  );
+  if (end < 0) end = rest.length;
+  return [lines[start], ...rest.slice(0, end)].join('\n');
+}
 
 /**
  * The fenced block that runs the semantic-release dry run, or null. Located by
@@ -857,9 +887,48 @@ const RELEASE_DOC_FACTS = [
  * switch this check off.
  */
 function dryRunRecipe(src) {
-  const fences = src.match(/```[\s\S]*?```/g) ?? [];
-  return fences.find(f => f.includes('semantic-release --dry-run')) ?? null;
+  // Walked line by line rather than matched with /```[\s\S]*?```/g, which pairs
+  // backtick runs in document order: one stray ``` in prose, or a ````markdown
+  // wrapper around a nested fence — both ordinary in contributor docs — shift
+  // every pair after it and the real recipe stops being found. The remedy the
+  // violation then offers is "drop this file from RELEASE_DOC_FILES", i.e.
+  // switch the check off, which is the worst way to be wrong.
+  const lines = src.split('\n');
+  const blocks = [];
+  let open = null;
+  let current = [];
+  for (const line of lines) {
+    const fence = line.match(/^\s*(`{3,})/);
+    if (open === null) {
+      if (fence) {
+        open = fence[1];
+        current = [];
+      }
+      continue;
+    }
+    // Only a run at least as long as the opener closes it.
+    if (fence && fence[1].length >= open.length && line.trim() === fence[1]) {
+      blocks.push(current.join('\n'));
+      open = null;
+      continue;
+    }
+    current.push(line);
+  }
+  return blocks.find(b => b.includes('semantic-release --dry-run')) ?? null;
 }
+
+/**
+ * The command lines of a shell block: everything that is not a comment.
+ *
+ * A package named only in a `# …` comment satisfied the recipe assertion while
+ * being absent from the loop that actually runs — which is the #536 failure the
+ * assertion exists to catch, reintroduced one level down.
+ */
+const commandLines = block =>
+  block
+    .split('\n')
+    .map(l => l.replace(/#.*$/, ''))
+    .join('\n');
 
 /**
  * Package identifiers in `text`, as whole tokens.
@@ -887,13 +956,39 @@ const packageTokens = text => new Set(text.match(/[@\w./-]+/g) ?? []);
 export function releaseDocViolations(docs, packages) {
   const violations = [];
 
-  for (const [rel, raw] of docs) {
-    const src = raw.replace(/\\/g, '');
+  // Both derived assertions are satisfied by an empty list, so an enumeration
+  // that silently returned nothing would print a tick while asserting nothing.
+  // checkPublishableManifests guards the same case for the same reason.
+  if (!packages.length) {
+    return [
+      'No publishable packages were found, so the release-docs checks that ' +
+        'derive their package list would pass without asserting anything. ' +
+        'That usually means pnpm-workspace.yaml changed shape — ' +
+        'parseWorkspacePackages reads a block list of plain entries, not a ' +
+        'flow sequence or a glob (#536).',
+    ];
+  }
 
+  // No backslash normalisation here, unlike near-miss-sync: that check compares
+  // a markdown copy against a TS template literal, and these are two markdown
+  // files. Stripping backslashes would only delete them from documented shell
+  // and path content, where they are the point.
+  for (const [rel, src] of docs) {
+    const block = safeToRunBlock(src);
+    if (block === null) {
+      violations.push(
+        `${rel} has no "Safe to run; never publishes" guidance. That block is ` +
+          `where a contributor is told not to hand-publish and where the ` +
+          `pointers to the full reasoning live — restore it, or drop ${rel} ` +
+          `from RELEASE_DOC_FILES in scripts/check-conformance.mjs (#536).`
+      );
+    }
     for (const fact of RELEASE_DOC_FACTS) {
-      if (!src.includes(fact)) {
+      if (!(block ?? '').includes(fact)) {
+        if (block === null) continue; // already reported, once, above
         violations.push(
-          `${rel} no longer mentions "${fact}". The release guidance is ` +
+          `${rel}'s "Safe to run" guidance no longer mentions "${fact}". The ` +
+            `release guidance is ` +
             `deliberately duplicated across ${RELEASE_DOC_FILES.join(' and ')} ` +
             `so a contributor meets it wherever they land — apply the same ` +
             `edit to both, and keep the full reasoning in VERSIONING.md and ` +
@@ -912,7 +1007,7 @@ export function releaseDocViolations(docs, packages) {
           `scripts/check-conformance.mjs if the page no longer covers releases.`
       );
     } else {
-      const named = packageTokens(recipe);
+      const named = packageTokens(commandLines(recipe));
       const missing = packages.filter(p => !named.has(p.dir));
       if (missing.length) {
         violations.push(
@@ -930,15 +1025,36 @@ export function releaseDocViolations(docs, packages) {
   // not a documentation problem: a package with no trusted publisher fails its
   // publish AFTER the release commit and tag are pushed, and the version is
   // spent.
-  const contributing = docs.get('CONTRIBUTING.md');
-  if (contributing) {
-    const section = contributing
-      .split('\n')
-      .filter(l => l.trimStart().startsWith('- Packages:'))
-      .join('\n');
+  // Keyed off the declared list, not a hardcoded name: with the string inline,
+  // renaming the file and updating RELEASE_DOC_FILES made the
+  // highest-consequence assertion in this check silently no-op.
+  const [primary] = RELEASE_DOC_FILES;
+  const contributing = docs.get(primary);
+  {
+    // The bullet plus any wrapped continuation lines. Taking only the line that
+    // starts with "- Packages:" meant re-wrapping that bullet — it is far
+    // longer than the file's usual width — dropped the trailing packages and
+    // failed against documentation that was correct.
+    const lines = (contributing ?? '').split('\n');
+    const start = lines.findIndex(l => l.trimStart().startsWith('- Packages:'));
+    const section =
+      start < 0
+        ? ''
+        : [
+            lines[start],
+            ...lines.slice(start + 1).slice(
+              0,
+              Math.max(
+                0,
+                lines
+                  .slice(start + 1)
+                  .findIndex(l => !l.trim() || /^\s*[-*]\s/.test(l))
+              )
+            ),
+          ].join('\n');
     if (!section) {
       violations.push(
-        `CONTRIBUTING.md has no "- Packages:" line in the OIDC trusted ` +
+        `${primary} has no "- Packages:" line in the OIDC trusted ` +
           `publishing section. It names the packages that need a trusted ` +
           `publisher configured on npmjs.com; without it nobody can tell ` +
           `which ones do.`
@@ -948,7 +1064,7 @@ export function releaseDocViolations(docs, packages) {
       const missing = packages.filter(p => !named.has(p.name));
       if (missing.length) {
         violations.push(
-          `CONTRIBUTING.md's trusted-publisher list omits ` +
+          `${primary}'s trusted-publisher list omits ` +
             `${missing.map(p => p.name).join(', ')}. Every publishable ` +
             `package authenticates by OIDC, and a missing trusted publisher ` +
             `fails the publish after the release commit and tag are already ` +
@@ -961,16 +1077,19 @@ export function releaseDocViolations(docs, packages) {
   return violations;
 }
 
-async function checkReleaseDocsSync() {
-  const docs = new Map();
-  for (const rel of RELEASE_DOC_FILES) {
-    docs.set(rel, await readFile(join(REPO, rel), 'utf8'));
-  }
-
+/**
+ * Every publishable workspace package, as `{ dir, name }`.
+ *
+ * One copy, because the enumeration — parse the workspace, read each manifest,
+ * keep the ones that are not private — was about to have three, each with
+ * slightly different error handling. The test's copy is the one that decides
+ * whether the real-repo assertion checks the same set the check does, so
+ * letting them drift would make a passing test mean less than it appears to.
+ */
+export async function publishablePackages() {
   const packages = [];
-  for (const dir of parseWorkspacePackages(
-    await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
-  )) {
+  const yaml = await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8');
+  for (const dir of parseWorkspacePackages(yaml)) {
     let pkg;
     try {
       pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
@@ -979,8 +1098,33 @@ async function checkReleaseDocsSync() {
     }
     if (!pkg.private && pkg.name) packages.push({ dir, name: pkg.name });
   }
+  return packages;
+}
 
-  return releaseDocViolations(docs, packages);
+async function checkReleaseDocsSync() {
+  const docs = new Map();
+  const missing = [];
+  for (const rel of RELEASE_DOC_FILES) {
+    try {
+      docs.set(rel, await readFile(join(REPO, rel), 'utf8'));
+    } catch {
+      // A renamed or deleted release doc is a violation with a fix, not an
+      // ENOENT out of the middle of the run. Throwing here aborts every other
+      // check and hands the contributor a stack trace, which is the one thing
+      // the house rule at the top of this file says not to do.
+      missing.push(rel);
+    }
+  }
+  if (missing.length) {
+    return missing.map(
+      rel =>
+        `${rel} is listed in RELEASE_DOC_FILES but does not exist. Restore it, ` +
+        `or update RELEASE_DOC_FILES in scripts/check-conformance.mjs if the ` +
+        `release guidance moved (#536).`
+    );
+  }
+
+  return releaseDocViolations(docs, await publishablePackages());
 }
 
 async function checkStoryPerComponent() {

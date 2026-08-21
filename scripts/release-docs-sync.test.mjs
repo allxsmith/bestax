@@ -18,7 +18,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import {
-  parseWorkspacePackages,
+  publishablePackages,
   releaseDocViolations,
 } from './check-conformance.mjs';
 
@@ -34,6 +34,7 @@ const FACTS = [
   'its `prepack` and `prepublishOnly` hooks refuse',
   'skipped by `--ignore-scripts`',
   'see VERSIONING.md',
+  'and scripts/require-pnpm-publish.mjs',
 ];
 
 const recipe = (dirs = PACKAGES.map(p => p.dir)) =>
@@ -46,10 +47,14 @@ const publishers = (names = PACKAGES.map(p => p.name)) =>
 
 const doc = (opts = {}) =>
   [
-    ...(opts.facts ?? FACTS),
+    '> **Safe to run; never publishes:** everything above.',
+    ...(opts.facts ?? FACTS).map(f => `> ${f}`),
+    '',
+    '---',
+    '',
     opts.recipe ?? recipe(),
     opts.publishers ?? publishers(),
-  ].join('\n\n');
+  ].join('\n');
 
 const docs = (over = {}) =>
   new Map([
@@ -74,6 +79,51 @@ test('a fact dropped from one copy only is caught', () => {
   assert.equal(v.length, 1);
   assert.match(v[0], /^docs\/docs\/guides\/getting-started\/contributing\.md/);
   assert.match(v[0], /apply the same edit to both/);
+});
+
+test('a fact is required inside the safe-to-run block, not anywhere in the file', () => {
+  // The bug this exists for: the fact check searched the whole file, and
+  // CONTRIBUTING.md links VERSIONING.md twice more for unrelated reasons — so
+  // deleting the pointer from the guidance left the check green. The prose
+  // satisfied the assertion while the thing being asserted was gone.
+  const withStrayMention = [
+    '# Contributing',
+    '',
+    'Versioning details live in VERSIONING.md and are worth reading.',
+    'The guard is scripts/require-pnpm-publish.mjs, described elsewhere.',
+    '',
+    '> **Safe to run; never publishes:** run a manual',
+    '> `pnpm publish --provenance --embed-readme --access public` only if you must.',
+    '> The `prepack` and `prepublishOnly` hooks refuse a stray publish, though',
+    '> `--ignore-scripts` skips them.',
+    '',
+    '---',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+
+  const v = releaseDocViolations(
+    docs({ contributing: withStrayMention }),
+    PACKAGES
+  );
+  const pointers = v.filter(m => /VERSIONING\.md|require-pnpm-publish/.test(m));
+  assert.equal(pointers.length, 2, v.join('\n'));
+  assert.ok(
+    pointers.every(m => /"Safe to run" guidance/.test(m)),
+    'the message must say which block is missing it'
+  );
+});
+
+test('a missing safe-to-run block is reported once, not once per fact', () => {
+  // Otherwise deleting the section produces six near-identical messages and
+  // buries the one that says what actually happened.
+  const v = releaseDocViolations(
+    docs({ contributing: [recipe(), publishers()].join('\n\n') }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "Safe to run; never publishes" guidance/);
 });
 
 test('the dry-run recipe must name every publishable package', () => {
@@ -109,9 +159,11 @@ test('an overlapping package name is not satisfied by a substring', () => {
   );
   // Both recipes miss it, and so does the trusted-publisher list.
   assert.equal(v.length, 3, v.join('\n'));
+  // `\b` alone is not enough: "bestax" is followed by a word boundary inside
+  // "bestax-migrate", so /bestax\b/ matched every message and proved nothing.
   assert.ok(
-    v.every(m => /bestax\b/.test(m)),
-    'both messages must name the omitted package'
+    v.every(m => /omits bestax(,|\.|$|\s)/m.test(m)),
+    `each message must name \`bestax\` itself:\n${v.join('\n')}`
   );
 });
 
@@ -137,10 +189,19 @@ test('the trusted-publisher list must name every publishable package', () => {
   assert.match(v[0], /spends the version/);
 });
 
-test('the trusted-publisher list is only required of CONTRIBUTING.md', () => {
+test('the trusted-publisher list is only required of the primary file', () => {
   // The docs mirror is a contributor page, not the operational runbook, so it
-  // is not asked for the npmjs.com configuration list.
-  assert.deepEqual(releaseDocViolations(docs(), PACKAGES), []);
+  // is not asked for the npmjs.com configuration list — and an incomplete one
+  // there is not a violation either. Asserted with a deliberately short list on
+  // the mirror, because the previous version of this test was byte-identical to
+  // "a matching pair is clean" and so asserted nothing of its own.
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ mirror: doc({ publishers: publishers(['create-bestax']) }) }),
+      PACKAGES
+    ),
+    []
+  );
 });
 
 test('a missing trusted-publisher line is its own message', () => {
@@ -152,52 +213,17 @@ test('a missing trusted-publisher line is its own message', () => {
   assert.match(v[0], /no "- Packages:" line/);
 });
 
-/**
- * How a TS template literal would carry this text: backslashes first, then
- * backticks. That order is the whole correctness of an escaper — doing
- * backticks first would then double the backslashes it just introduced — and
- * writing only the backtick half is what CodeQL flags as incomplete escaping,
- * correctly, even though these fixtures happen to contain no backslashes.
- */
-const asTemplateLiteral = s => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
-
-test('escaped backticks compare equal, as in the other sync checks', () => {
-  // near-miss-sync strips backslashes so a TS template literal's escaped
-  // backticks match a markdown copy's plain ones. Same normalisation here, so
-  // a fact quoted from a template does not read as missing.
-  const escaped = asTemplateLiteral(doc());
-  assert.deepEqual(
-    releaseDocViolations(
-      new Map([
-        ['CONTRIBUTING.md', escaped],
-        ['docs/docs/guides/getting-started/contributing.md', escaped],
-      ]),
-      PACKAGES
-    ),
-    []
-  );
-});
-
-test('the real repo files satisfy the check', () => {
+test('the real repo files satisfy the check', async () => {
   // The fixtures above could all agree with a rule the real docs violate.
   //
-  // The package list is DERIVED here rather than reusing the PACKAGES fixture:
-  // a fifth publishable package would otherwise let this pass against a stale
-  // four while the real check failed in CI, which is the exact failure shape
-  // this whole check exists to stop.
+  // The package list comes from publishablePackages(), the same helper the
+  // check itself uses, rather than from the PACKAGES fixture or a third
+  // re-derivation. A fifth publishable package therefore cannot let this pass
+  // against a stale four while the real check fails — which is the exact
+  // failure shape this check exists to stop.
   const read = rel =>
     readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
-  const packages = parseWorkspacePackages(read('pnpm-workspace.yaml'))
-    .map(dir => {
-      try {
-        return { dir, ...JSON.parse(read(`${dir}/package.json`)) };
-      } catch {
-        return null;
-      }
-    })
-    .filter(p => p && !p.private && p.name)
-    .map(({ dir, name }) => ({ dir, name }));
-
+  const packages = await publishablePackages();
   assert.ok(
     packages.length >= 4,
     `expected 4+ publishable, got ${packages.length}`
@@ -210,4 +236,12 @@ test('the real repo files satisfy the check', () => {
     ],
   ]);
   assert.deepEqual(releaseDocViolations(real, packages), []);
+});
+
+test('an empty package list is refused, not silently satisfied', () => {
+  // Both derived assertions are vacuously true against no packages, so an
+  // enumeration that quietly returned nothing would print a tick.
+  const v = releaseDocViolations(docs(), []);
+  assert.equal(v.length, 1);
+  assert.match(v[0], /No publishable packages were found/);
 });
