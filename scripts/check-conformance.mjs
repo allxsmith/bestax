@@ -29,6 +29,9 @@
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
+ *   release-docs-sync    CONTRIBUTING.md and its docs-site mirror keep the
+ *                        facts a contributor acts on, and both name every
+ *                        package that actually releases (#536)
  *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
  *                        the same thing in all three deliberate copies
  *                        (CLAUDE_MD template + both JSX-generating skills),
@@ -813,6 +816,156 @@ async function checkStyleMappingSync() {
   return violations;
 }
 
+// The release documentation says the same things in two places: CONTRIBUTING.md
+// and the docs-site page that mirrors it. That mirror is hand-maintained — no
+// generator writes into docs/docs/guides — and by the time #536 was filed the
+// two had drifted in eight hunks, including a coverage threshold that was
+// simply wrong and a dry-run recipe naming two of the four packages that
+// actually release.
+//
+// The full rationale for the publish flags lives in scripts/lib/pnpm-publish.mjs
+// and VERSIONING.md; these two files are meant to carry only what a contributor
+// acts on, plus a pointer. So this check pins the small set of facts that must
+// survive in BOTH copies, and derives the package lists from the workspace
+// rather than restating them — the two staleness classes #536 found were both
+// "a list of packages that stopped being all of them".
+//
+// Deliberately NOT a byte diff. The two files legitimately differ: one uses a
+// blockquote, the other a Docusaurus admonition, and the docs page links
+// absolute GitHub URLs where the root file links relative paths. A diff would
+// fail on all of that and teach people to ignore it.
+const RELEASE_DOC_FILES = [
+  'CONTRIBUTING.md',
+  'docs/docs/guides/getting-started/contributing.md',
+];
+
+// What a contributor must still learn from either copy. Each is load-bearing:
+// the flags because pnpm's defaults silently drop provenance and the README,
+// the hook names because those are what refuse a stray publish, and the
+// --ignore-scripts caveat because it is the documented hole in that guard.
+const RELEASE_DOC_FACTS = [
+  '--provenance --embed-readme --access public',
+  'prepack',
+  'prepublishOnly',
+  '--ignore-scripts',
+  'VERSIONING.md',
+];
+
+/**
+ * The fenced block that runs the semantic-release dry run, or null. Located by
+ * content rather than by heading, so renaming the section does not silently
+ * switch this check off.
+ */
+function dryRunRecipe(src) {
+  const fences = src.match(/```[\s\S]*?```/g) ?? [];
+  return fences.find(f => f.includes('semantic-release --dry-run')) ?? null;
+}
+
+/**
+ * Violations for the release docs. Pure, so scripts/release-docs-sync.test.mjs
+ * can drive it on fixtures — the four existing sync checks have no tests, and
+ * publishable-manifests is the precedent worth following instead.
+ *
+ * @param docs Map of repo-relative path -> file contents
+ * @param packages [{ dir, name }] for every publishable workspace package
+ */
+export function releaseDocViolations(docs, packages) {
+  const violations = [];
+
+  for (const [rel, raw] of docs) {
+    const src = raw.replace(/\\/g, '');
+
+    for (const fact of RELEASE_DOC_FACTS) {
+      if (!src.includes(fact)) {
+        violations.push(
+          `${rel} no longer mentions "${fact}". The release guidance is ` +
+            `deliberately duplicated across ${RELEASE_DOC_FILES.join(' and ')} ` +
+            `so a contributor meets it wherever they land — apply the same ` +
+            `edit to both, and keep the full reasoning in VERSIONING.md and ` +
+            `scripts/lib/pnpm-publish.mjs rather than copying it here (#536).`
+        );
+      }
+    }
+
+    // Derived, not restated: the recipe has to cover whatever releases today.
+    const recipe = dryRunRecipe(src);
+    if (recipe === null) {
+      violations.push(
+        `${rel} has no fenced block running \`semantic-release --dry-run\`. ` +
+          `That recipe is how a contributor previews a release without ` +
+          `publishing — restore it, or drop ${rel} from RELEASE_DOC_FILES in ` +
+          `scripts/check-conformance.mjs if the page no longer covers releases.`
+      );
+    } else {
+      const missing = packages.filter(p => !recipe.includes(p.dir));
+      if (missing.length) {
+        violations.push(
+          `${rel}'s semantic-release dry-run recipe omits ` +
+            `${missing.map(p => p.dir).join(', ')}. Every publishable package ` +
+            `runs semantic-release in CI, so a recipe that names only some of ` +
+            `them tells a contributor a release is a no-op when it is not ` +
+            `(#536).`
+        );
+      }
+    }
+  }
+
+  // The trusted-publisher list is CONTRIBUTING-only, and getting it wrong is
+  // not a documentation problem: a package with no trusted publisher fails its
+  // publish AFTER the release commit and tag are pushed, and the version is
+  // spent.
+  const contributing = docs.get('CONTRIBUTING.md');
+  if (contributing) {
+    const section = contributing
+      .split('\n')
+      .filter(l => l.trimStart().startsWith('- Packages:'))
+      .join('\n');
+    if (!section) {
+      violations.push(
+        `CONTRIBUTING.md has no "- Packages:" line in the OIDC trusted ` +
+          `publishing section. It names the packages that need a trusted ` +
+          `publisher configured on npmjs.com; without it nobody can tell ` +
+          `which ones do.`
+      );
+    } else {
+      const missing = packages.filter(p => !section.includes(p.name));
+      if (missing.length) {
+        violations.push(
+          `CONTRIBUTING.md's trusted-publisher list omits ` +
+            `${missing.map(p => p.name).join(', ')}. Every publishable ` +
+            `package authenticates by OIDC, and a missing trusted publisher ` +
+            `fails the publish after the release commit and tag are already ` +
+            `pushed — which spends the version (#536).`
+        );
+      }
+    }
+  }
+
+  return violations;
+}
+
+async function checkReleaseDocsSync() {
+  const docs = new Map();
+  for (const rel of RELEASE_DOC_FILES) {
+    docs.set(rel, await readFile(join(REPO, rel), 'utf8'));
+  }
+
+  const packages = [];
+  for (const dir of parseWorkspacePackages(
+    await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
+  )) {
+    let pkg;
+    try {
+      pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
+    } catch {
+      continue; // publishable-manifests owns "this dir has no manifest"
+    }
+    if (!pkg.private && pkg.name) packages.push({ dir, name: pkg.name });
+  }
+
+  return releaseDocViolations(docs, packages);
+}
+
 async function checkStoryPerComponent() {
   const violations = [];
   const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
@@ -1418,6 +1571,7 @@ const CHECKS = {
   'skills-sync': checkSkillsSync,
   'style-mapping-sync': checkStyleMappingSync,
   'near-miss-sync': checkNearMissSync,
+  'release-docs-sync': checkReleaseDocsSync,
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
