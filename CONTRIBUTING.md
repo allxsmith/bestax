@@ -28,9 +28,8 @@ Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
   - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
-    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **create-bestax**,
-    **bestax-migrate** and **bestax-mcp** 95% (78% branches), each in that package's
-    own jest config
+    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other package**
+    95% (78% branches), each in its own jest config
 - **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
 - **Type checks pass** (`pnpm typecheck`)
 - **Storybook runs and covers UI changes** (`pnpm storybook`)
@@ -175,8 +174,8 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (all four packages) + the docs and scripts/ node:test suites
-pnpm run test:coverage  # coverage (bulma-ui 99%; the other three 95%, 78% branches)
+pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -282,7 +281,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
-5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% for create-bestax).
+5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% with 78% branches for every other package).
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
@@ -330,7 +329,7 @@ The short version for contributors:
 
 ## Semantic Release & Publishing
 
-We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of both packages to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) and [`create-bestax`](https://www.npmjs.com/package/create-bestax).
+We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of every package to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma), plus [`create-bestax`](https://www.npmjs.com/package/create-bestax), [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate) and [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp).
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases — see [Commit Message Guidelines](#commit-message-guidelines).
 - **Packages version and release independently, keyed off the commit scope** — `feat(bulma-ui)` releases only bestax-bulma. See [`VERSIONING.md`](./VERSIONING.md).
@@ -342,7 +341,7 @@ Publishing authenticates with npm via [OIDC trusted publishing](https://docs.npm
 
 For this to work, each published package must have a trusted publisher configured **once** on npmjs.com (Package → Settings → Trusted Publisher):
 
-- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp` — all four, and a missing entry fails the publish _after_ the release commit and tag are pushed
+- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp` — every publishable package, and a missing entry fails the publish _after_ the release commit and tag are pushed
 - Provider: **GitHub Actions**
 - Repository: `allxsmith/bestax`
 - Workflow: `ci.yml`
@@ -354,7 +353,7 @@ The CI `publish` job grants `id-token: write`. It no longer pins an npm version:
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; create-bestax, bestax-migrate and bestax-mcp 95%, 78% branches).
+- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; every other package 95%, 78% branches).
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).

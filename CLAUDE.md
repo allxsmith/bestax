@@ -43,8 +43,8 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 
 Enforced by CI (`.github/workflows/ci.yml`):
 
-- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
-  create-bestax and bestax-mcp 95% (78% branches).
+- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics);
+  create-bestax, bestax-migrate and bestax-mcp 95% (78% branches).
 - Stale skill catalog fails (`gen:catalog:check`) and a stale MCP index fails
   (`gen:mcp:check`); build, typecheck, lint, format, audit.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
@@ -61,7 +61,7 @@ Enforced in review (a green CI does **not** check these):
 Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
 semantic-release. Two repo-specific rules:
 
-- Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`,
+- Commits of type `feat|fix|perf|refactor|style|revert` **must** use a scope of `bulma-ui`, `docs`,
   `create-bestax`, `bestax-migrate`, or `bestax-mcp` — unscoped release types are rejected
   (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth).
 - **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only

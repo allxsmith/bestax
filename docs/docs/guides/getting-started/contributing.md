@@ -61,8 +61,8 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (all four packages) + the docs and scripts/ node:test suites
-pnpm run test:coverage  # coverage (bulma-ui 99%; the other three 95%, 78% branches)
+pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -160,14 +160,15 @@ and `scripts/require-pnpm-publish.mjs`.
 ## Workflow & conventions
 
 1. Branch off `main`, make your change in the right workspace (`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp`).
-2. Add/update tests (bulma-ui holds 99% coverage, the other three 95%) and Storybook stories for UI changes.
+2. Add/update tests (bulma-ui holds 99% coverage; every other package 95%, 78% branches) and Storybook stories for UI changes.
 3. Run `pnpm all`, then open a PR targeting `main`.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) — the type and scope
 drive [semantic-release](https://semantic-release.gitbook.io/). Releasing types (`feat`, `fix`,
 `perf`, `refactor`, `style`, `revert`) must carry one of the scopes in `RELEASE_SCOPES`
-(`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`); `chore`, `ci`,
-`build`, and `test` don't publish. `revert` is release-triggering because commit-analyzer
+(`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`); `docs`, `chore`, `ci`,
+`build`, and `test` don't publish — note `docs` is both a valid scope and a non-releasing
+type, so `docs(bulma-ui):` and `docs:` alike publish nothing. `revert` is release-triggering because commit-analyzer
 patch-releases reverts by default, so an unscoped one would bump every package. Publishing uses npm **OIDC trusted publishing** with **provenance**
 (no long-lived token). See [`CONTRIBUTING.md`](https://github.com/allxsmith/bestax/blob/main/CONTRIBUTING.md)
 for the full details.
