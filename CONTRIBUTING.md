@@ -175,7 +175,7 @@ pnpm run all
 pnpm run build          # turbo build all packages
 pnpm run typecheck
 pnpm run test           # jest (bulma-ui + create-bestax)
-pnpm run test:coverage  # coverage (bulma-ui: 99%; create-bestax: 95%, 78% branches)
+pnpm run test:coverage  # coverage (bulma-ui 99%; the other three 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -246,8 +246,9 @@ Runs the real commit analysis + next-version calc, but publishes nothing:
 
 ```bash
 export GITHUB_TOKEN=<a token with repo read>   # the github plugin needs it even in dry-run
-cd bulma-ui      && pnpm exec semantic-release --dry-run --no-ci ; cd ..
-cd create-bestax && pnpm exec semantic-release --dry-run --no-ci ; cd ..
+for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do
+  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )
+done
 ```
 
 It prints "The next release version is X.Y.Z" per package (or "no release") from your local commits —
@@ -255,14 +256,16 @@ no `npm publish`, no tag, no GitHub release.
 
 > **Safe to run; never publishes:** everything above. The only things that actually publish are
 > `pnpm exec semantic-release` **without** `--dry-run` (CI-only, on merge to `main`) and a manual
-> `pnpm publish --provenance --embed-readme --access public` — neither of which is in this
-> list. Those flags are not optional: pnpm defaults `embed-readme` to false and ignores
-> `publishConfig.provenance`, which no package carries, so a bare `pnpm publish` ships
-> unattested and loses the npm page's README. Every package publishes with `pnpm publish`,
-> and each one's `prepack` and `prepublishOnly` hooks refuse the publishers they recognise as not
-> being pnpm, so a stray `npm publish` or `npm pack` exits with an explanation rather than
-> shipping an unresolved specifier (#412). Both hooks are skipped by `--ignore-scripts`, and
-> neither travels with a tarball that was packed elsewhere.
+> `pnpm publish --provenance --embed-readme --access public` — neither of which is in this list.
+> Those flags are not optional, and a bare `pnpm publish` ships unattested and loses the npm
+> page's README.
+>
+> You are unlikely to need a manual publish at all. Every package's `prepack` and
+> `prepublishOnly` hooks refuse publishers they recognise as not being pnpm, so a stray
+> `npm publish` or `npm pack` exits with an explanation rather than shipping an unresolved
+> specifier (#412) — though `--ignore-scripts` skips both, and neither travels with a tarball
+> packed elsewhere. Why each flag matters and what the guard does and does not cover:
+> [`VERSIONING.md`](./VERSIONING.md#release-process) and `scripts/require-pnpm-publish.mjs`.
 
 ---
 
@@ -338,12 +341,12 @@ Publishing authenticates with npm via [OIDC trusted publishing](https://docs.npm
 
 For this to work, each published package must have a trusted publisher configured **once** on npmjs.com (Package → Settings → Trusted Publisher):
 
-- Packages: `@allxsmith/bestax-bulma` and `create-bestax`
+- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp` — all four, and a missing entry fails the publish _after_ the release commit and tag are pushed
 - Provider: **GitHub Actions**
 - Repository: `allxsmith/bestax`
 - Workflow: `ci.yml`
 
-The CI `publish` job grants `id-token: write` and upgrades npm to a version that supports OIDC.
+The CI `publish` job grants `id-token: write`. It no longer pins an npm version: that pin existed because `npm publish` needed npm >= 11.5.1 for OIDC, and since #532 every package publishes with `pnpm publish`, which carries its own OIDC exchange.
 
 ---
 

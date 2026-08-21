@@ -11,8 +11,8 @@ where to report a vulnerability.
 
 ## What you install is what we built
 
-Both published packages — `@allxsmith/bestax-bulma` and `create-bestax` — are
-released with **npm provenance**: every version carries a signed attestation
+Every published package — `@allxsmith/bestax-bulma`, `create-bestax`,
+`bestax-migrate` and `bestax-mcp` — is released with **npm provenance**: every version carries a signed attestation
 generated at publish time that links the tarball on the registry to the exact
 source commit and the public CI run that built it. Releases authenticate to
 npm via **OIDC trusted publishing** (short-lived, per-run tokens), so there is
@@ -29,9 +29,11 @@ the full policy.
 ## Verify it yourself
 
 - **Provenance on npmjs.com** — the package pages for
-  [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
-  and [`create-bestax`](https://www.npmjs.com/package/create-bestax) show a
-  _Provenance_ section linking each version to its source commit and build.
+  [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma),
+  [`create-bestax`](https://www.npmjs.com/package/create-bestax),
+  [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate) and
+  [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) each show a
+  _Provenance_ section linking every version to its source commit and build.
 - **`npm audit signatures`** — in projects installed with the npm CLI, run it
   to check registry signatures and provenance attestations for every package
   in your tree, Bestax included. (It's an npm command — for pnpm or yarn
