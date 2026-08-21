@@ -1,3 +1,27 @@
+## [4.1.1](https://github.com/allxsmith/bestax/compare/create-bestax@4.1.0...create-bestax@4.1.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** close two false-exemption paths in the publish classifier ([e76c592](https://github.com/allxsmith/bestax/commit/e76c592abc03587ead58f84c5954d23ea407581a)), closes [#412](https://github.com/allxsmith/bestax/issues/412) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** colocate the shell-quoting contract and narrow the exemption ([de4a299](https://github.com/allxsmith/bestax/commit/de4a299422ed281b924086e01613e46fb61c2e1d)), closes [#435](https://github.com/allxsmith/bestax/issues/435)
+* **bestax-migrate:** guard prepack, which npm pack runs and prepublishOnly does not ([830c621](https://github.com/allxsmith/bestax/commit/830c621efa4f3df1b57de9fd55dec57b07a44546)), closes [#412](https://github.com/allxsmith/bestax/issues/412) [pre-#436](https://github.com/pre-/issues/436)
+* **bestax-migrate:** key the publish guard on the packer, not on an inherited agent ([cf49058](https://github.com/allxsmith/bestax/commit/cf49058ccad10190c2b2bf6dac81ec8d3e07f326)), closes [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** recognise every plugin shape semantic-release accepts ([37ba3ea](https://github.com/allxsmith/bestax/commit/37ba3ea0e9a11944ccd119ed220785e49a6e1b57)), closes [#436](https://github.com/allxsmith/bestax/issues/436)
+* **bestax-migrate:** refuse a publish that is not pnpm's ([bf27cd4](https://github.com/allxsmith/bestax/commit/bf27cd4f22fb8a5c102c9770f44673c6c97fff86))
+* **bestax-migrate:** refuse only packers we can name, not everything unfamiliar ([0b12a94](https://github.com/allxsmith/bestax/commit/0b12a94fe34b76f582485aee7299fb38671ca17f))
+* **bestax-migrate:** restore the npm link in the release success comment ([64b7a8a](https://github.com/allxsmith/bestax/commit/64b7a8a650c10af70467fcc5effebb0cb41305f6))
+* **bestax-migrate:** stop the release-info tail from being able to fail a release ([f9048cf](https://github.com/allxsmith/bestax/commit/f9048cf4ffc8761ff53b338d085068b4ab159b0c))
+* **bulma-ui:** surface supply-chain posture in agent pointer files ([#519](https://github.com/allxsmith/bestax/issues/519)) ([51573e9](https://github.com/allxsmith/bestax/commit/51573e9b0d7655de2aaf49b1ac6c37234b1f07d3)), closes [#413](https://github.com/allxsmith/bestax/issues/413)
+* **docs:** make the preview deploy include dotfiles, and validate offset dates ([6162fec](https://github.com/allxsmith/bestax/commit/6162fecf4863f04c82800e7d70eb42222ec92192))
+
+
+### Features
+
+* **bulma-ui:** allow --bulma-scheme-* overrides in Theme bulmaVars ([1b0c573](https://github.com/allxsmith/bestax/commit/1b0c573b1233dfa7ee80910de4c0c03065f5a6a6))
+* **bulma-ui:** scheme-aware bgColor values via new bulmaHelperStyles channel ([7e317d4](https://github.com/allxsmith/bestax/commit/7e317d42db16a44ff82ab5d8ebb4e632ce54aae6))
+* **docs:** publish security.txt with a scheduled renewal reminder ([21dca27](https://github.com/allxsmith/bestax/commit/21dca2770b48db97186b08e06f15d3d3f4b22c84)), closes [#391](https://github.com/allxsmith/bestax/issues/391)
+
 # [4.1.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.0.2...create-bestax@4.1.0) (2026-08-13)
 
 
