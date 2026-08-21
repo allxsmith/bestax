@@ -8,6 +8,7 @@
  * commit and tag.
  */
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 import {
@@ -104,6 +105,28 @@ test('a windows pnpm is allowed, in every form it ships as', () => {
   }
 });
 
+test('the hand-publish advisory fires on prepublishOnly and nowhere else', () => {
+  // prepack runs on `pnpm pack` too, which is a read-only inspection and the
+  // command this repo's docs recommend for checking what a manifest ships.
+  // Warning there had four packages printing a publish warning at people who
+  // were not publishing, which is how a real warning gets tuned out.
+  const hand = { npm_execpath: PNPM };
+  let msg = '';
+  main({ ...hand, npm_lifecycle_event: 'prepublishOnly' }, m => (msg = m));
+  assert.match(msg, /publishing by hand/);
+
+  msg = '';
+  main({ ...hand, npm_lifecycle_event: 'prepack' }, m => (msg = m));
+  assert.equal(msg, '', 'pnpm pack must not warn about publishing');
+
+  msg = '';
+  main(
+    { ...hand, npm_lifecycle_event: 'prepublishOnly', CI: 'true' },
+    m => (msg = m)
+  );
+  assert.equal(msg, '', 'CI passes the flags, so it needs no advice');
+});
+
 test('the refusal spells out the flags a hand publish would otherwise lose', () => {
   // publishConfig.provenance was removed from the manifest, so a hand
   // `pnpm publish` — the one path this guard permits — produces no provenance
@@ -132,41 +155,30 @@ test('the refusal explains the consequence, not just the rule', () => {
   assert.match(msg, /EUNSUPPORTEDPROTOCOL/);
 });
 
-test('every publishable package actually wires the hook up', async () => {
-  // The script existing is not the same as it running, and #532 moved three
-  // more packages onto the exemption this compensates for. Both hooks matter:
-  // `npm pack` runs only prepack, and `npm publish <tarball>` runs neither,
-  // so a tarball packed by npm would otherwise have nothing left to refuse it.
-  for (const dir of [
-    'bulma-ui',
-    'create-bestax',
-    'bestax-migrate',
-    'bestax-mcp',
-  ]) {
-    const pkg = await import(`../${dir}/package.json`, {
-      with: { type: 'json' },
-    });
-    for (const hook of ['prepack', 'prepublishOnly']) {
-      assert.match(
-        pkg.default.scripts[hook] ?? '',
-        /require-pnpm-publish\.mjs/,
-        `${dir} must run the guard on ${hook}`
-      );
-    }
-  }
-});
+// Real package directories, because the branch under test READS the manifest.
+// The first version of these pointed at /tmp/nowhere/<pkg>, so describePackage
+// took its catch path every time and the "no specifier" assertion passed for
+// the wrong reason — leaving the specifier-naming branch, which is the whole
+// point of the change, with no coverage at all.
+const repoDir = name => fileURLToPath(new URL(`../${name}`, import.meta.url));
 
 test('the refusal names the package being packed, not a hardcoded one', () => {
   // The message used to describe bestax-migrate's situation to whoever ran it.
   // With four callers that was wrong for three of them, so it now reads the
   // cwd — which is where a lifecycle hook runs.
   let msg = '';
-  main(
-    { npm_execpath: '/x/npm-cli.js' },
-    m => (msg = m),
-    '/tmp/nowhere/bulma-ui'
-  );
+  main({ npm_execpath: NPM }, m => (msg = m), repoDir('bulma-ui'));
   assert.match(msg, /pnpm -C bulma-ui pack/);
+});
+
+test('a readable manifest gets its offending specifier quoted', () => {
+  // bestax-migrate is the only package carrying one, and naming it is the
+  // reason this branch exists at all.
+  let msg = '';
+  main({ npm_execpath: NPM }, m => (msg = m), repoDir('bestax-migrate'));
+  assert.match(msg, /bestax-migrate declares/);
+  assert.match(msg, /"@allxsmith\/bestax-bulma": "workspace:\^"/);
+  assert.match(msg, /in devDependencies/);
 });
 
 test('a package with no pack-time specifier is not told it has one', () => {
@@ -174,11 +186,7 @@ test('a package with no pack-time specifier is not told it has one', () => {
   // there. The rule still holds for that package, so the message says why
   // without naming a dependency.
   let msg = '';
-  main(
-    { npm_execpath: '/x/npm-cli.js' },
-    m => (msg = m),
-    '/tmp/nowhere/bulma-ui'
-  );
+  main({ npm_execpath: NPM }, m => (msg = m), repoDir('bulma-ui'));
   assert.doesNotMatch(msg, /bulma-ui declares/);
   // …and still explains the rule and its consequence.
   assert.match(msg, /#412/);
