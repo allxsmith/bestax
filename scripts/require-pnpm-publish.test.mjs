@@ -168,7 +168,7 @@ test('the refusal names the package being packed, not a hardcoded one', () => {
   // cwd — which is where a lifecycle hook runs.
   let msg = '';
   main({ npm_execpath: NPM }, m => (msg = m), repoDir('bulma-ui'));
-  assert.match(msg, /pnpm -C bulma-ui pack/);
+  assert.match(msg, /from this directory \(bulma-ui\)/);
 });
 
 test('a readable manifest gets its offending specifier quoted', () => {
@@ -204,7 +204,7 @@ test('an unreadable manifest degrades to the directory name, never throws', () =
     '/tmp/definitely-not-a-package/some-pkg'
   );
   assert.equal(code, 1);
-  assert.match(msg, /pnpm -C some-pkg pack/);
+  assert.match(msg, /from this directory \(some-pkg\)/);
 });
 
 test('packTimeSpecifiers finds every protocol, in every section', () => {

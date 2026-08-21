@@ -197,7 +197,8 @@ export function main(
       '\n' +
       '  pnpm publish --provenance --embed-readme --access public\n' +
       '\n' +
-      `Check what it would ship first with \`pnpm -C ${dir} pack\`.`
+      'Check what it would ship first with `pnpm pack`, from this ' +
+      `directory (${dir}).`
   );
   return 1;
 }
