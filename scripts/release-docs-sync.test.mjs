@@ -317,6 +317,47 @@ test('a wrapped bullet at end of file keeps its continuation lines', () => {
   );
 });
 
+test('a fenced example is not mistaken for the guidance block', () => {
+  // masked was built and then not consulted when finding the START, so an
+  // example that quotes the marker became the block — and the real guidance
+  // could be deleted with the check still green.
+  const quoted = [
+    '````markdown',
+    '> **Safe to run; never publishes:** everything above.',
+    '> `pnpm publish --provenance --embed-readme --access public`',
+    '> its `prepack` and `prepublishOnly` hooks refuse, skipped by `--ignore-scripts`,',
+    '> see VERSIONING.md and scripts/require-pnpm-publish.mjs',
+    '````',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: quoted }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "Safe to run; never publishes" guidance/);
+});
+
+test('a package list in a later section does not rescue the OIDC one', () => {
+  // The bullet search ran to EOF after the anchor, so a complete list further
+  // down stood in for an OIDC section that had lost its own.
+  const rescued = [
+    doc({ publishers: '' }).trimEnd(),
+    '',
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'Each published package needs a trusted publisher configured on npmjs.com:',
+    '',
+    '(the bullet that belongs here has been deleted)',
+    '',
+    '### Something else entirely',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp`',
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: rescued }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "- Packages:" line in the OIDC trusted/);
+});
+
 test('a missing OIDC section is not rescued by a bullet elsewhere', () => {
   // packagesBullet fell back to line 0 when it found no "trusted publisher"
   // anchor, which is the file-wide search it exists to prevent: an unrelated

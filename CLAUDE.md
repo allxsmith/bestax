@@ -63,7 +63,9 @@ semantic-release. Two repo-specific rules:
 
 - Commits of type `feat|fix|perf|refactor|style|revert` **must** use a scope of `bulma-ui`, `docs`,
   `create-bestax`, `bestax-migrate`, or `bestax-mcp` — unscoped release types are rejected
-  (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth).
+  (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth). One exception worth
+  knowing: commitlint's default ignores skip git's own `Revert "…"` messages, so the hook cannot
+  reject an unscoped revert in that form — keep reverts conventional and scoped by hand.
 - **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
   `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
   `releaseRules` in each package's `release.config.js` are the source of truth.

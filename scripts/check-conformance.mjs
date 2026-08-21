@@ -877,8 +877,11 @@ const RELEASE_DOC_FACTS = [
 function safeToRunBlock(src) {
   const { lines } = splitLines(src);
   const masked = fenceMask(lines);
-  const start = lines.findIndex(l =>
-    l.includes('Safe to run; never publishes')
+  // `!masked[i]` on the START too, not only on the terminator scan: a fenced
+  // example containing this marker would otherwise BE the block, and the real
+  // guidance could then be deleted with the check still green.
+  const start = lines.findIndex(
+    (l, i) => !masked[i] && l.includes('Safe to run; never publishes')
   );
   if (start < 0) return null;
   let end = lines.length;
@@ -972,9 +975,23 @@ function packagesBullet(src) {
   // to prevent: an unrelated "- Packages:" bullet elsewhere then satisfied the
   // assertion even with the real guidance deleted.
   if (anchor < 0) return '';
+  // Bounded at the next heading, because scanning to EOF let a complete
+  // "- Packages:" list in some later, unrelated section stand in for an OIDC
+  // section that had lost its own — the same fail-open as the line-0 fallback,
+  // one step further down the file.
+  let limit = lines.length;
+  for (let i = anchor + 1; i < lines.length; i++) {
+    if (!masked[i] && /^\s{0,3}#{1,6}\s/.test(lines[i])) {
+      limit = i;
+      break;
+    }
+  }
   const start = lines.findIndex(
     (l, i) =>
-      i >= anchor && !masked[i] && l.trimStart().startsWith('- Packages:')
+      i >= anchor &&
+      i < limit &&
+      !masked[i] &&
+      l.trimStart().startsWith('- Packages:')
   );
   if (start < 0) return '';
   let end = lines.length;
@@ -1156,14 +1173,14 @@ export function releaseDocViolations(docs, packages) {
  * prints a tick. That is the same fail-open shape the PNPM_PUBLISHED comment
  * above argues against.
  */
-export async function publishablePackages() {
+export async function publishablePackages(root = REPO) {
   const packages = [];
   const unreadable = [];
-  const yaml = await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8');
+  const yaml = await readFile(join(root, 'pnpm-workspace.yaml'), 'utf8');
   for (const dir of parseWorkspacePackages(yaml)) {
     let pkg;
     try {
-      pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
+      pkg = JSON.parse(await readFile(join(root, dir, 'package.json'), 'utf8'));
     } catch {
       unreadable.push(dir);
       continue;
