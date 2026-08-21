@@ -1,5 +1,5 @@
 /**
- * Covers scripts/require-pnpm-publish.mjs (#436).
+ * Covers scripts/require-pnpm-publish.mjs (#436, #532).
  *
  * Both directions are load-bearing and they fail differently. A guard that
  * misses `npm publish` lets #412 ship again with no signal. A guard that
@@ -10,7 +10,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { isPnpmPublish, main } from './require-pnpm-publish.mjs';
+import {
+  isPnpmPublish,
+  main,
+  packTimeSpecifiers,
+} from './require-pnpm-publish.mjs';
 
 const PNPM = '/Users/x/.cache/node/corepack/v1/pnpm/11.9.0/bin/pnpm.mjs';
 const NPM = '/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js';
@@ -128,14 +132,93 @@ test('the refusal explains the consequence, not just the rule', () => {
   assert.match(msg, /EUNSUPPORTEDPROTOCOL/);
 });
 
-test('bestax-migrate actually wires the hook up', async () => {
-  // The script existing is not the same as it running.
-  const pkg = await import('../bestax-migrate/package.json', {
-    with: { type: 'json' },
-  });
-  assert.match(
-    pkg.default.scripts.prepublishOnly,
-    /require-pnpm-publish\.mjs/,
-    'bestax-migrate must run the guard on prepublishOnly'
+test('every publishable package actually wires the hook up', async () => {
+  // The script existing is not the same as it running, and #532 moved three
+  // more packages onto the exemption this compensates for. Both hooks matter:
+  // `npm pack` runs only prepack, and `npm publish <tarball>` runs neither,
+  // so a tarball packed by npm would otherwise have nothing left to refuse it.
+  for (const dir of [
+    'bulma-ui',
+    'create-bestax',
+    'bestax-migrate',
+    'bestax-mcp',
+  ]) {
+    const pkg = await import(`../${dir}/package.json`, {
+      with: { type: 'json' },
+    });
+    for (const hook of ['prepack', 'prepublishOnly']) {
+      assert.match(
+        pkg.default.scripts[hook] ?? '',
+        /require-pnpm-publish\.mjs/,
+        `${dir} must run the guard on ${hook}`
+      );
+    }
+  }
+});
+
+test('the refusal names the package being packed, not a hardcoded one', () => {
+  // The message used to describe bestax-migrate's situation to whoever ran it.
+  // With four callers that was wrong for three of them, so it now reads the
+  // cwd — which is where a lifecycle hook runs.
+  let msg = '';
+  main(
+    { npm_execpath: '/x/npm-cli.js' },
+    m => (msg = m),
+    '/tmp/nowhere/bulma-ui'
   );
+  assert.match(msg, /pnpm -C bulma-ui pack/);
+});
+
+test('a package with no pack-time specifier is not told it has one', () => {
+  // Inventing a specifier sends the reader looking for something that is not
+  // there. The rule still holds for that package, so the message says why
+  // without naming a dependency.
+  let msg = '';
+  main(
+    { npm_execpath: '/x/npm-cli.js' },
+    m => (msg = m),
+    '/tmp/nowhere/bulma-ui'
+  );
+  assert.doesNotMatch(msg, /bulma-ui declares/);
+  // …and still explains the rule and its consequence.
+  assert.match(msg, /#412/);
+  assert.match(msg, /--provenance/);
+});
+
+test('an unreadable manifest degrades to the directory name, never throws', () => {
+  // This runs inside a pack hook. A guard that crashed while explaining itself
+  // would report the wrong problem, and on the allow path would fail a real
+  // release after the commit and tag are pushed.
+  let msg = '';
+  const code = main(
+    { npm_execpath: '/x/npm-cli.js' },
+    m => (msg = m),
+    '/tmp/definitely-not-a-package/some-pkg'
+  );
+  assert.equal(code, 1);
+  assert.match(msg, /pnpm -C some-pkg pack/);
+});
+
+test('packTimeSpecifiers finds every protocol, in every section', () => {
+  assert.deepEqual(
+    packTimeSpecifiers({
+      dependencies: { a: 'workspace:^', ok: '^1.0.0' },
+      devDependencies: { b: 'catalog:' },
+      peerDependencies: { c: 'link:../y' },
+      optionalDependencies: { d: 'file:../z' },
+    }),
+    [
+      { section: 'dependencies', name: 'a', spec: 'workspace:^' },
+      { section: 'devDependencies', name: 'b', spec: 'catalog:' },
+      { section: 'peerDependencies', name: 'c', spec: 'link:../y' },
+      { section: 'optionalDependencies', name: 'd', spec: 'file:../z' },
+    ]
+  );
+});
+
+test('packTimeSpecifiers survives a manifest that is missing or odd', () => {
+  assert.deepEqual(packTimeSpecifiers(undefined), []);
+  assert.deepEqual(packTimeSpecifiers({}), []);
+  // A non-string specifier is malformed, not a protocol; it must not crash.
+  assert.deepEqual(packTimeSpecifiers({ dependencies: { a: { x: 1 } } }), []);
 });
