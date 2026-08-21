@@ -126,11 +126,20 @@ test('a missing trusted-publisher line is its own message', () => {
   assert.match(v[0], /no "- Packages:" line/);
 });
 
+/**
+ * How a TS template literal would carry this text: backslashes first, then
+ * backticks. That order is the whole correctness of an escaper — doing
+ * backticks first would then double the backslashes it just introduced — and
+ * writing only the backtick half is what CodeQL flags as incomplete escaping,
+ * correctly, even though these fixtures happen to contain no backslashes.
+ */
+const asTemplateLiteral = s => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
+
 test('escaped backticks compare equal, as in the other sync checks', () => {
   // near-miss-sync strips backslashes so a TS template literal's escaped
   // backticks match a markdown copy's plain ones. Same normalisation here, so
   // a fact quoted from a template does not read as missing.
-  const escaped = doc().replace(/`/g, '\\`');
+  const escaped = asTemplateLiteral(doc());
   assert.deepEqual(
     releaseDocViolations(
       new Map([
