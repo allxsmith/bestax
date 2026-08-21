@@ -1,3 +1,37 @@
+## [1.0.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.0.0...bestax-mcp@1.0.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** close two false-exemption paths in the publish classifier ([e76c592](https://github.com/allxsmith/bestax/commit/e76c592abc03587ead58f84c5954d23ea407581a)), closes [#412](https://github.com/allxsmith/bestax/issues/412) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** colocate the shell-quoting contract and narrow the exemption ([de4a299](https://github.com/allxsmith/bestax/commit/de4a299422ed281b924086e01613e46fb61c2e1d)), closes [#435](https://github.com/allxsmith/bestax/issues/435)
+* **bestax-migrate:** guard prepack, which npm pack runs and prepublishOnly does not ([830c621](https://github.com/allxsmith/bestax/commit/830c621efa4f3df1b57de9fd55dec57b07a44546)), closes [#412](https://github.com/allxsmith/bestax/issues/412) [pre-#436](https://github.com/pre-/issues/436)
+* **bestax-migrate:** key the publish guard on the packer, not on an inherited agent ([cf49058](https://github.com/allxsmith/bestax/commit/cf49058ccad10190c2b2bf6dac81ec8d3e07f326)), closes [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** recognise every plugin shape semantic-release accepts ([37ba3ea](https://github.com/allxsmith/bestax/commit/37ba3ea0e9a11944ccd119ed220785e49a6e1b57)), closes [#436](https://github.com/allxsmith/bestax/issues/436)
+* **bestax-migrate:** refuse a publish that is not pnpm's ([bf27cd4](https://github.com/allxsmith/bestax/commit/bf27cd4f22fb8a5c102c9770f44673c6c97fff86))
+* **bestax-migrate:** refuse only packers we can name, not everything unfamiliar ([0b12a94](https://github.com/allxsmith/bestax/commit/0b12a94fe34b76f582485aee7299fb38671ca17f))
+* **bestax-migrate:** restore the npm link in the release success comment ([64b7a8a](https://github.com/allxsmith/bestax/commit/64b7a8a650c10af70467fcc5effebb0cb41305f6))
+* **bestax-migrate:** stop the release-info tail from being able to fail a release ([f9048cf](https://github.com/allxsmith/bestax/commit/f9048cf4ffc8761ff53b338d085068b4ab159b0c))
+* **bulma-ui:** enumerate string size literals so the docs extractor keeps concrete type values ([00bfff3](https://github.com/allxsmith/bestax/commit/00bfff32ed715f8c4e9b4858be8e1f3159b71e0f))
+* **bulma-ui:** surface supply-chain posture in agent pointer files ([#519](https://github.com/allxsmith/bestax/issues/519)) ([51573e9](https://github.com/allxsmith/bestax/commit/51573e9b0d7655de2aaf49b1ac6c37234b1f07d3)), closes [#413](https://github.com/allxsmith/bestax/issues/413)
+* **create-bestax:** document strictPort port-collision recovery in generated CLAUDE.md ([7ba0756](https://github.com/allxsmith/bestax/commit/7ba0756a59c654a1857012119352ab425d20c203)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+* **create-bestax:** scope the strictPort recovery kill to the TCP listener ([5fe5397](https://github.com/allxsmith/bestax/commit/5fe5397cd665fd32d693c46f4e2204b076bf73a1)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+* **create-bestax:** ship scaffold .gitignore via rename-on-copy and ignore *.tsbuildinfo ([2094086](https://github.com/allxsmith/bestax/commit/209408608e7a45d7346369e98ef106bacfc48cf8)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+* **docs:** make the preview deploy include dotfiles, and validate offset dates ([6162fec](https://github.com/allxsmith/bestax/commit/6162fecf4863f04c82800e7d70eb42222ec92192))
+
+
+### Features
+
+* **bulma-ui:** accept Bulma helper props on Card.* sub-parts ([39eb6a0](https://github.com/allxsmith/bestax/commit/39eb6a0745f2d5d6488667593eb310d9d7f64d00))
+* **bulma-ui:** accept isFullwidth on every full-width component, deprecate divergent casings ([8ae7d4c](https://github.com/allxsmith/bestax/commit/8ae7d4cccfa4d1d4169693b0eaff6bedbdc327a1))
+* **bulma-ui:** accept string sizes on Column and numeric sizes on Title and SubTitle ([6d02f67](https://github.com/allxsmith/bestax/commit/6d02f67ac14c0a448085b60527f0814f0734c6a0))
+* **bulma-ui:** add deprecated NumberInput and TagInput alias exports ([9b320de](https://github.com/allxsmith/bestax/commit/9b320de9ff4b318ebfd017df36d1740fde8012ee))
+* **bulma-ui:** add isLight to Tag ([46e446a](https://github.com/allxsmith/bestax/commit/46e446a6974d79e4afca737b3023d148101b1120))
+* **bulma-ui:** allow --bulma-scheme-* overrides in Theme bulmaVars ([1b0c573](https://github.com/allxsmith/bestax/commit/1b0c573b1233dfa7ee80910de4c0c03065f5a6a6))
+* **bulma-ui:** scheme-aware bgColor values via new bulmaHelperStyles channel ([7e317d4](https://github.com/allxsmith/bestax/commit/7e317d42db16a44ff82ab5d8ebb4e632ce54aae6))
+* **create-bestax:** print next steps for the invoking package manager ([935ff82](https://github.com/allxsmith/bestax/commit/935ff82f3efd4688027e82f3f639490eb6ad664b)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+* **docs:** publish security.txt with a scheduled renewal reminder ([21dca27](https://github.com/allxsmith/bestax/commit/21dca2770b48db97186b08e06f15d3d3f4b22c84)), closes [#391](https://github.com/allxsmith/bestax/issues/391)
+
 # 1.0.0 (2026-08-12)
 
 
