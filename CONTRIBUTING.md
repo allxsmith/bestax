@@ -255,7 +255,10 @@ no `npm publish`, no tag, no GitHub release.
 
 > **Safe to run; never publishes:** everything above. The only things that actually publish are
 > `pnpm exec semantic-release` **without** `--dry-run` (CI-only, on merge to `main`) and a manual
-> `pnpm publish` — neither of which is in this list. Every package publishes with `pnpm publish`,
+> `pnpm publish --provenance --embed-readme --access public` — neither of which is in this
+> list. Those flags are not optional: pnpm defaults `embed-readme` to false and ignores
+> `publishConfig.provenance`, which no package carries, so a bare `pnpm publish` ships
+> unattested and loses the npm page's README. Every package publishes with `pnpm publish`,
 > and each one's `prepack` and `prepublishOnly` hooks refuse the publishers they recognise as not
 > being pnpm, so a stray `npm publish` or `npm pack` exits with an explanation rather than
 > shipping an unresolved specifier (#412). Both hooks are skipped by `--ignore-scripts`, and
