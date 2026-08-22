@@ -1806,12 +1806,16 @@ async function checkPublishableManifests() {
   const manifests = [];
   for (const dir of packages) {
     try {
-      manifests.push({
-        dir,
-        pkg: JSON.parse(
-          await readFile(join(REPO, dir, 'package.json'), 'utf8')
-        ),
-      });
+      const pkg = JSON.parse(
+        await readFile(join(REPO, dir, 'package.json'), 'utf8')
+      );
+      // JSON.parse succeeds on `null`, `42`, `"x"` — shapes a truncated write
+      // or merge artifact really produces. Dereferencing one later would
+      // throw a TypeError past the runner's loop and abort every remaining
+      // check with a stack trace, when this exact case has a violation
+      // written for it. Review caught the sibling-map pass doing just that.
+      if (!pkg || typeof pkg !== 'object') throw new Error('not an object');
+      manifests.push({ dir, pkg });
     } catch {
       violations.push(
         `pnpm-workspace.yaml lists "${dir}" but ${dir}/package.json is missing ` +
