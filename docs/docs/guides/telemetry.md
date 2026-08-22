@@ -37,14 +37,14 @@ Sent once after a successful scaffold:
 
 Sent once after a successful run:
 
-| Field              | Values                                                                      |
-| ------------------ | --------------------------------------------------------------------------- |
-| `source`           | the source library migrated from, e.g. `react-bulma-components`             |
-| `cssMode`          | `bestax`, `bulma`, or `keep`                                                |
-| `dry`              | `true` or `false` — whether it was a dry run                                |
-| `deps`             | `true` or `false` — whether `package.json` dependencies were updated        |
-| Changed-file count | a bucket — `0`, `1-9`, `10-49`, `50-199`, or `200+` — plus the capped count |
-| TODO counts        | per migration rule: the rule name and a count, nothing else                 |
+| Field              | Values                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| `source`           | the source library migrated from, e.g. `react-bulma-components`                                |
+| `cssMode`          | `bestax`, `bulma`, or `keep`                                                                   |
+| `dry`              | `true` or `false` — whether it was a dry run                                                   |
+| `deps`             | `true` or `false` — whether `package.json` dependencies were updated                           |
+| Changed-file count | a bucket — `0`, `1-9`, `10-49`, `50-199`, or `200+` — plus the capped count                    |
+| TODO counts        | per migration rule: the rule name (including `prop:<jsxProp>` slugs) and a count, nothing else |
 
 Never file paths, never file contents, never code. The TODO report printed in
 your terminal lists files and lines; the telemetry event carries only rule
