@@ -36,11 +36,17 @@ Notes:
   enforced by commitlint ([`commitlint.config.js`](./commitlint.config.js)) via the husky
   `commit-msg` hook. This is what guarantees the per-scope release rules can't be bypassed by
   an unscoped commit.
-- `revert` is scope-gated too: commit-analyzer's default rules ship
-  `{ revert: true, release: 'patch' }`, so an unscoped revert would patch-release **every**
-  package. A scoped `revert(bulma-ui): …` patch-releases only its package. Caveat: commitlint's
-  default ignores skip git-revert-style `Revert "…"` messages entirely, so keep reverts in
-  conventional form.
+- `revert` is scope-gated too, but a scoped revert **releases nothing** — plan rollbacks
+  accordingly. The only revert rule anywhere is commit-analyzer's default
+  `{ revert: true, release: 'patch' }`, keyed on the parser's revert _detection_, and the
+  angular `revertPattern` matches only a `Revert "…"`/`revert: …` header followed by a
+  `This reverts commit <sha>` body — a scoped `revert(bulma-ui): …` header is invisible to
+  it, and no `releaseRules` entry here names the `revert` type. To actually publish a
+  rollback, follow the revert with `fix(<scope>): …` (or commit the rollback as a `fix`
+  directly). The hazard runs the other way for git's own `Revert "…"` form, which
+  commitlint's default ignores wave through: with its generated body it trips the default
+  revert rule with **no scope to confine it** and would patch-release every package — so
+  keep reverts in conventional, scoped form, and don't expect them to publish on their own.
 - A commit scoped to `docs` never releases any package.
 
 ## Tags & Changelogs

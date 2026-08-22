@@ -33,7 +33,10 @@ rosters — that would be the same bug one level up.
 Deliberately outside that check, so still yours to remember: a docs page under
 `docs/docs/skills/`, its entry in `docs/sidebars.js`, and the intro's bullet roster. Those key
 off page slugs rather than skill directory names, and holding them would amount to requiring a
-docs page per skill, which is a separate rule nobody has asked for.
+docs page per skill, which is a separate rule nobody has asked for. Also unchecked: any
+per-skill docs page that states bundling (`docs/docs/skills/migrate.mdx` says create-bestax
+preinstalls it) — if a per-skill bundling opt-out is ever added, those statements are the
+first thing it falsifies, and nothing will flag them.
 
 ## Rules
 
