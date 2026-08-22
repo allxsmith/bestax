@@ -1,8 +1,8 @@
 # skills/ — Agent Skills are a shipped product
 
 These teach coding agents to **use** the library. They are published two ways — bundled into
-`create-bestax` (via `scripts/sync-skills.mjs` at its build time, per its `SKILLS`
-allowlist — bundling is opt-in per skill) and installable with
+`create-bestax` (via `scripts/sync-skills.mjs` at its build time; every skill bundles, #540)
+and installable with
 `npx skills add https://github.com/allxsmith/bestax --skill <name>` — so treat changes here
 like library code: they get bug reports (#194, #195, #196, #197) and ship to users.
 
@@ -14,14 +14,25 @@ like library code: they get bug reports (#194, #195, #196, #197) and ship to use
 
 ## Adding a skill
 
-A new skill directory publishes nothing by itself — update every roster in the same PR:
+The roster is **read, not listed**: `create-bestax/scripts/sync-skills.mjs`,
+`bestax-mcp/scripts/sync-skills.mjs` and `scripts/gen-mcp-index.mjs` each discover any directory
+holding a `SKILL.md`, so a new one bundles everywhere by construction (#540). There is no
+allowlist to join and no per-skill bundling call to make — #385 settled that every skill bundles,
+on the grounds that a carve-out is the kind of thing that drifts.
 
-- `create-bestax/scripts/sync-skills.mjs` `SKILLS` allowlist, **if** the skill should bundle
-  into scaffolded apps (per-skill policy, see #385; nothing warns when a directory is absent
-  from the list), plus the scaffolded-app roster in `create-bestax/src/constants.ts`
-  (`CLAUDE_MD` template) when bundled.
-- `skills/README.md` — the roster is hardcoded three times (table, install block, layout tree).
-- A docs page under `docs/docs/skills/` and the intro's roster.
+The prose copies cannot be derived, and `pnpm check:conformance --only=skills-roster` fails until
+each names the new skill (it also fails if one still names a skill you deleted):
+
+- `skills/README.md` — hardcoded three times (table, install block, layout tree).
+- `create-bestax/src/constants.ts` — the `CLAUDE_MD` template's "AI skills" roster.
+- `docs/docs/skills/intro.md` and `docs/docs/guides/llms/index.md` — the install blocks.
+- `bulma-ui/README.md` and `bulma-ui/AGENTS.md` — both ship inside the npm tarball, so a stale
+  roster there is consumer-facing.
+
+Deliberately **not** covered by that check, so still yours to remember: a docs page under
+`docs/docs/skills/`, its entry in `docs/sidebars.js`, and the intro's bullet roster — those key
+off page slugs rather than skill directory names, and holding them would amount to requiring a
+docs page per skill, which is a separate rule nobody has asked for.
 
 ## Rules
 

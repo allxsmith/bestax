@@ -26,6 +26,10 @@
  *                        removing styles, shrink it with `--update-baseline`)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
+ *   skills-roster        every skill directory under skills/ is named in each
+ *                        hand-maintained roster (README, docs, the scaffolded
+ *                        CLAUDE.md), and no roster names one that is gone
+ *                        (#540). Distinct from skills-sync above.
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
@@ -1836,6 +1840,242 @@ async function checkBypassExpiry() {
   return violations;
 }
 
+// --- skills-roster -----------------------------------------------------------
+
+/**
+ * Every hand-maintained copy of the skills roster, and the shape it uses.
+ *
+ * The three consumers that CAN derive the roster now all do: create-bestax's
+ * and bestax-mcp's `sync-skills.mjs`, and `gen-mcp-index.mjs` (#540). What is
+ * left is prose, which cannot be derived and so drifts silently — a new skill
+ * directory could ship while every copy below still described the old set, and
+ * nothing compared them.
+ *
+ * Not to be confused with `skills-sync`, which despite the name is about the
+ * bestax-theming skill's two reference inventories and never reads the roster.
+ *
+ * Each copy is located by its STRUCTURE — a table row, a tree entry, an install
+ * line — rather than by the bare skill name occurring anywhere in the file.
+ * `bestax-migrate` is why: it is also a package, a CLI, and the marker the
+ * codemod leaves behind, so it appears in prose in most of these files, and a
+ * bare-name search would pass on a table that had lost its row. The cost is
+ * that reformatting one of these blocks breaks its pattern, so every message
+ * prints the exact line the check wanted to find.
+ *
+ * Two install blocks are deliberately NOT here. `bulma-ui/README.md` and
+ * `bulma-ui/AGENTS.md` each show a single `--skill` line as an example rather
+ * than a roster; holding them to all seven would demand a list neither is
+ * trying to be. Their real rosters (a table and a parenthetical) are covered.
+ *
+ * `fenceMask` is deliberately not used. Three of these copies live inside a
+ * fenced code block on purpose, which is the opposite of what masking is for.
+ *
+ * The capture group is the point: reading the names back out checks BOTH
+ * directions, so a roster still advertising a deleted skill fails too. That
+ * half has no other guard — sync-skills.mjs just silently stops copying it.
+ */
+export const SKILL_ROSTERS = [
+  {
+    file: 'skills/README.md',
+    copies: [
+      {
+        what: 'the Skills table',
+        list: /^\|[ \t]*\[`([a-z][a-z0-9-]*)`\]/gm,
+        example: n => `| [\`${n}\`](./${n}/SKILL.md) | Use it when… |`,
+      },
+      {
+        what: 'the Install block',
+        list: /--skill +([a-z][a-z0-9-]*)/g,
+        example: n =>
+          `npx skills add https://github.com/allxsmith/bestax --skill ${n}`,
+      },
+      {
+        what: 'the Layout tree',
+        list: /^ {2}([a-z][a-z0-9-]*)\/$/gm,
+        example: n => `  ${n}/`,
+      },
+    ],
+  },
+  {
+    file: 'create-bestax/src/constants.ts',
+    // Scoped: this file is mostly other prose, and `- **bold**` is a bullet
+    // shape the CLAUDE_MD template uses in several unrelated sections.
+    scope: section('## AI skills'),
+    copies: [
+      {
+        what: 'the scaffolded CLAUDE.md "AI skills" roster',
+        list: /^- \*\*([a-z][a-z0-9-]*)\*\*/gm,
+        example: n => `- **${n}** — one line on what it does.`,
+      },
+    ],
+  },
+  {
+    file: 'docs/docs/skills/intro.md',
+    copies: [
+      {
+        // The bullet roster below this block is deliberately not checked: it
+        // links page slugs (`[Custom Component](./custom-component)`), not
+        // skill directory names, so there is nothing here to match it against
+        // without also requiring a docs page per skill.
+        what: 'the skills-add block',
+        list: /--skill +([a-z][a-z0-9-]*)/g,
+        example: n =>
+          `npx skills add https://github.com/allxsmith/bestax --skill ${n}`,
+      },
+    ],
+  },
+  {
+    file: 'docs/docs/guides/llms/index.md',
+    copies: [
+      {
+        what: 'the skills-add block',
+        list: /--skill +([a-z][a-z0-9-]*)/g,
+        example: n =>
+          `npx skills add https://github.com/allxsmith/bestax --skill ${n}`,
+      },
+    ],
+  },
+  {
+    file: 'bulma-ui/README.md',
+    copies: [
+      {
+        what: 'the Agent Skills table',
+        list: /^[ \t]*\|[ \t]*`([a-z][a-z0-9-]*)`[ \t]*\|/gm,
+        example: n => `  | \`${n}\` | Use it when… |`,
+      },
+    ],
+  },
+  {
+    file: 'bulma-ui/AGENTS.md',
+    // This one ships in the npm tarball, so a stale roster here is
+    // consumer-facing rather than internal.
+    scope: text => text.match(/Agent skills \(([^)]*)\)/)?.[1] ?? null,
+    copies: [
+      {
+        what: 'the "Agent skills (…)" list',
+        list: /([a-z][a-z0-9-]*)/g,
+        example: n => `${n} (in the parenthetical, comma-separated)`,
+      },
+    ],
+  },
+];
+
+/**
+ * A markdown section by heading, up to the next heading of the same depth.
+ * Returns null when the heading is gone, which is a violation rather than an
+ * empty section — an anchor that silently stops matching turns a check off.
+ */
+function section(heading) {
+  return text => {
+    const start = text.indexOf(heading);
+    if (start < 0) return null;
+    const rest = text.slice(start + heading.length);
+    const end = rest.indexOf('\n## ');
+    return end < 0 ? rest : rest.slice(0, end);
+  };
+}
+
+/**
+ * The skill roster, READ from the directory — never a hardcoded list, for the
+ * same reason gen-mcp-index.mjs says so at its own reader.
+ */
+export async function readSkillNames(dir = join(REPO, 'skills')) {
+  const names = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    try {
+      await access(join(dir, entry.name, 'SKILL.md'));
+      names.push(entry.name);
+    } catch {
+      // A directory without a SKILL.md is not a skill.
+    }
+  }
+  return names.sort();
+}
+
+/**
+ * Split from the filesystem walk so the branches below can be driven with
+ * fixtures. Every roster agrees today, so without that seam none of them ever
+ * executes and inverting the rule would leave CI green — the same reason
+ * manifestViolations is shaped this way.
+ */
+export function rosterViolations(skills, sources) {
+  const violations = [];
+  const known = new Set(skills);
+
+  for (const roster of SKILL_ROSTERS) {
+    const text = sources?.[roster.file];
+    if (typeof text !== 'string') {
+      violations.push(
+        `${roster.file}: could not be read, so its skill roster went ` +
+          `unchecked. If the file moved, update SKILL_ROSTERS in ` +
+          `scripts/check-conformance.mjs.`
+      );
+      continue;
+    }
+
+    const scoped = roster.scope ? roster.scope(text) : text;
+    if (scoped == null) {
+      violations.push(
+        `${roster.file}: the section this check anchors on is gone, so its ` +
+          `skill roster went unchecked. Restore it, or update SKILL_ROSTERS ` +
+          `in scripts/check-conformance.mjs.`
+      );
+      continue;
+    }
+
+    for (const copy of roster.copies) {
+      const listed = new Set([...scoped.matchAll(copy.list)].map(m => m[1]));
+
+      const missing = skills.filter(name => !listed.has(name));
+      if (missing.length) {
+        violations.push(
+          `${roster.file}: ${copy.what} does not name ${missing.join(', ')}. ` +
+            `Add one entry per skill, e.g. ${copy.example(missing[0])}`
+        );
+      }
+
+      // The other direction, which nothing else covers: sync-skills.mjs stops
+      // copying a deleted skill without a word, leaving every prose copy
+      // advertising something users cannot install.
+      const stale = [...listed].filter(name => !known.has(name)).sort();
+      if (stale.length) {
+        violations.push(
+          `${roster.file}: ${copy.what} still names ${stale.join(', ')}, ` +
+            `which is not a directory with a SKILL.md under skills/. Drop the ` +
+            `entry, or restore the skill.`
+        );
+      }
+    }
+  }
+
+  return violations;
+}
+
+async function checkSkillsRoster() {
+  const skills = await readSkillNames();
+  // Fail rather than pass vacuously: an empty roster would make every
+  // comparison below trivially satisfied.
+  if (!skills.length) {
+    return [
+      'skills/: no directory with a SKILL.md was found, so every roster ' +
+        'this check compares against went unchecked.',
+    ];
+  }
+
+  const sources = {};
+  for (const { file } of SKILL_ROSTERS) {
+    try {
+      sources[file] = await readFile(join(REPO, file), 'utf8');
+    } catch {
+      // Left undefined on purpose; rosterViolations reports the unreadable
+      // file rather than skipping it.
+    }
+  }
+
+  return rosterViolations(skills, sources);
+}
+
 // ---------------------------------------------------------------------------
 
 const CHECKS = {
@@ -1845,6 +2085,7 @@ const CHECKS = {
   'docs-generated': checkDocsGenerated,
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
+  'skills-roster': checkSkillsRoster,
   'style-mapping-sync': checkStyleMappingSync,
   'near-miss-sync': checkNearMissSync,
   'release-docs-sync': checkReleaseDocsSync,
