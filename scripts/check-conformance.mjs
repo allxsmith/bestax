@@ -1955,7 +1955,10 @@ export const SKILL_ROSTERS = [
         // Comma-delimited items, not "any lowercase word". A bare
         // /([a-z][a-z0-9-]*)/g here would read the "and" out of
         // "x, y, and z" and then demand you delete a skill called `and`.
-        list: /(?:^|,)\s*([a-z][a-z0-9-]*)\s*(?=,|$)/g,
+        // The optional conjunction is not decoration: serial commas are house
+        // style, so "x, y, and z" is the likely spelling, and without it the
+        // final skill reads as missing from a roster that is complete.
+        list: /(?:^|,)\s*(?:and\s+|or\s+)?([a-z][a-z0-9-]*)\s*(?=,|$)/g,
         example: n => `${n} (comma-separated, inside the parenthetical)`,
       },
     ],
@@ -2032,13 +2035,23 @@ const SKILL_DIR_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 export async function readSkillDirs(dir = join(REPO, 'skills')) {
   const found = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+    if (!entry.isDirectory()) continue;
+
     let hasSkillFile = true;
     try {
       await access(join(dir, entry.name, 'SKILL.md'));
     } catch {
       hasSkillFile = false;
     }
+
+    // A dotted directory is not a skill by convention, but none of the three
+    // consumers tests for the dot — each takes any directory holding a
+    // SKILL.md. So `.draft/SKILL.md` really would be bundled and indexed, and
+    // skipping it here would hide exactly the silent omission this check
+    // exists to end. Reported, and SKILL_DIR_NAME then rejects the name.
+    // A dotted directory WITHOUT a SKILL.md is just tooling, so it is ignored.
+    if (entry.name.startsWith('.') && !hasSkillFile) continue;
+
     found.push({ name: entry.name, hasSkillFile });
   }
   return found.sort((a, b) => a.name.localeCompare(b.name));
@@ -2161,7 +2174,12 @@ async function checkSkillsRoster() {
   }
 
   const violations = skillDirViolations(dirs);
-  const skills = dirs.filter(d => d.hasSkillFile).map(d => d.name);
+  // Only names a roster could actually express take part in the comparison.
+  // An unexpressible one already has its own violation above, and asking nine
+  // prose rosters to name something they cannot spell would bury it.
+  const skills = dirs
+    .filter(d => d.hasSkillFile && SKILL_DIR_NAME.test(d.name))
+    .map(d => d.name);
   // Fail rather than pass vacuously: an empty roster would make every
   // comparison below trivially satisfied.
   if (!skills.length) {

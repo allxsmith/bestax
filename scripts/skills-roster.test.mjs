@@ -3,7 +3,9 @@
  * repo actually does (#540).
  *
  * The rule exists because `skills/` is a shipped product whose roster is
- * copied by hand into six files that nothing compared against the directory.
+ * copied by hand into rosters that nothing compared against the directory.
+ * `SKILL_ROSTERS` is the count; stating one here would be a number to keep in
+ * sync, which is the bug this file exists to prevent.
  * Every one of those copies agrees today, so none of the violation branches
  * executes during a real run — inverting the rule would leave CI green. That
  * is what the fixtures below are for, and it is the same reason
@@ -259,8 +261,26 @@ test('an Oxford comma does not invent a skill called "and"', () => {
     'bestax-optimize, bestax-theming',
     'bestax-optimize, and bestax-theming'
   );
-  const v = rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', oxford));
-  assert.doesNotMatch(v.join(' '), /names and\b/, 'must not invent "and"');
+  // Asserted clean, not merely "does not mention `and`". The weaker assertion
+  // passed while the parser silently dropped the skill AFTER the conjunction,
+  // reporting a complete roster as missing its last entry.
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', oxford)),
+    []
+  );
+});
+
+test('a hidden directory holding a SKILL.md is not skipped', () => {
+  // None of the three consumers tests for the dot, so `.draft/SKILL.md` really
+  // would be bundled and indexed. Skipping it here would hide precisely the
+  // silent omission this check exists to end.
+  const v = skillDirViolations([
+    { name: 'bestax-form', hasSkillFile: true },
+    { name: '.draft', hasSkillFile: true },
+  ]);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /\.draft/);
+  assert.match(v[0], /kebab-case/);
 });
 
 test('the section scope is line-anchored, not a substring search', () => {
