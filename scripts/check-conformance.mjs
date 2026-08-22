@@ -74,6 +74,16 @@ import {
   splitLines,
 } from './lib/api-page.mjs';
 import { renderPage } from './gen-api-docs.mjs';
+// The generated install rosters: checkSkillsRoster compares each committed
+// region against the generator's own output, the same in-process shape as
+// docs-generated with renderPage above. One-directional import — the
+// generator keeps its own directory reader precisely so it never needs this
+// module back.
+import {
+  renderInstallBlock,
+  REGION_ID as INSTALL_REGION,
+  TARGETS as INSTALL_TARGETS,
+} from './gen-skills-rosters.mjs';
 import {
   ORDERED_CATEGORIES,
   MANAGED_CATEGORIES,
@@ -1085,9 +1095,9 @@ export function releaseDocViolations(docs, packages) {
     return [
       'No publishable packages were found, so the release-docs checks that ' +
         'derive their package list would pass without asserting anything. ' +
-        'That usually means pnpm-workspace.yaml changed shape — ' +
-        'parseWorkspacePackages reads a block list of plain entries, not a ' +
-        'flow sequence or a glob (#536).',
+        'A flow sequence or a glob now throws in parseWorkspacePackages ' +
+        'itself (#438), so reaching this means the block list is empty or ' +
+        'every entry is private (#536).',
     ];
   }
 
@@ -1427,18 +1437,58 @@ async function checkInlineStyle(updateBaseline) {
 // The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
 // other keys in the file (minimumReleaseAgeExclude, publicHoistPattern) are
 // lists too, so scanning the whole file for `- item` would pick them up.
+//
+// Still a hand parser, on purpose (#438 weighed the alternatives): the repo
+// declares no YAML dependency anywhere, and bypass-annotations.mjs records the
+// house position that adding one to police this file would itself be subject
+// to the cooldown the file configures. Asking pnpm (`pnpm m ls --json`) would
+// be scripts/' first subprocess and would break the fixture-driven purity two
+// test files rely on. So the parser stays, and its known cliffs are fenced:
+// an entry it cannot represent THROWS naming the limitation, instead of
+// silently truncating the list — the direction that mattered, because every
+// check walking this list quietly loses coverage for whatever falls off it.
 export function parseWorkspacePackages(yaml) {
   const dirs = [];
   let inBlock = false;
   for (const line of yaml.split(/\r?\n/)) {
+    const flow = line.match(/^packages:\s*(\[.*)$/);
+    if (flow) {
+      // `packages: [a, b]` is valid YAML this parser does not read. Returning
+      // [] here used to fall through to the vaguer "no packages: entries"
+      // guards, two calls away from the cause.
+      throw new Error(
+        'pnpm-workspace.yaml: `packages:` is a flow sequence ' +
+          `(${flow[1].trim()}), which parseWorkspacePackages does not read. ` +
+          'Use a block list (one `- dir` per line).'
+      );
+    }
     if (/^packages:\s*$/.test(line)) {
       inBlock = true;
       continue;
     }
     if (!inBlock) continue;
-    const item = line.match(/^\s+-\s*(\S+)\s*$/);
-    if (item) dirs.push(item[1].replace(/^['"]|['"]$/g, ''));
-    else if (line.trim() && !line.trimStart().startsWith('#')) break;
+    // An inline ` # comment` ends the entry, it does not end the block. The
+    // old parser matched the whole rest-of-line, so `- create-bestax # x`
+    // failed the match, fell into the terminator branch, and silently dropped
+    // every entry after it (#438's worse half). Stripped only when whitespace
+    // precedes the `#`, matching YAML: `- a#b` is one scalar, not `a` plus a
+    // comment.
+    const item = line.replace(/\s#.*$/, '').match(/^\s+-\s*(\S+)\s*$/);
+    if (item) {
+      const entry = item[1].replace(/^['"]|['"]$/g, '');
+      if (/[*?[\]]/.test(entry)) {
+        // A glob is a real pnpm feature this repo deliberately does not use:
+        // nothing here expands it, so every package under it would silently
+        // fall outside every check that walks this list.
+        throw new Error(
+          `pnpm-workspace.yaml: "${entry}" is a glob, which ` +
+            'parseWorkspacePackages does not expand — every package under it ' +
+            'would be silently exempt from the conformance checks. List each ' +
+            'directory explicitly.'
+        );
+      }
+      dirs.push(entry);
+    } else if (line.trim() && !line.trimStart().startsWith('#')) break;
   }
   return dirs;
 }
@@ -1865,13 +1915,17 @@ async function checkBypassExpiry() {
  * Two install lines are deliberately NOT rosters. `bulma-ui/README.md` and
  * `bulma-ui/AGENTS.md` each show a single `--skill` command as an example;
  * holding them to all seven would demand a list neither is trying to be. Their
- * real rosters (a table and a parenthetical) are covered instead. For the same
- * reason the three real install blocks are scoped to their fence, so an example
- * elsewhere in those files cannot stand in for a missing entry.
+ * real rosters (a table and a parenthetical) are covered instead.
  *
- * `fenceMask` is deliberately not used. FOUR of these copies live inside a
- * fenced block on purpose — the three install blocks and the layout tree —
- * which is the opposite of what masking is for.
+ * The three install BLOCKS are no longer here at all: they are generated by
+ * scripts/gen-skills-rosters.mjs (#542), and checkSkillsRoster compares each
+ * committed region against that generator's output instead of pattern-matching
+ * it — a stale block fails with "run pnpm gen", the same shape as
+ * docs-generated. This table holds what cannot be derived.
+ *
+ * `fenceMask` is deliberately not used. One of these copies (the layout tree)
+ * lives inside a fenced block on purpose, which is the opposite of what
+ * masking is for.
  *
  * The capture group is the point: reading the names back out checks BOTH
  * directions, so a roster still advertising a deleted skill fails too. That
@@ -1886,7 +1940,6 @@ export const SKILL_ROSTERS = [
         list: /^\|[ \t]*\[`([a-z][a-z0-9-]*)`\]/gm,
         example: n => `| [\`${n}\`](./${n}/SKILL.md) | Use it when… |`,
       },
-      skillsAddBlock('the Install block'),
       {
         what: 'the Layout tree',
         list: /^ {2}([a-z][a-z0-9-]*)\/$/gm,
@@ -1907,20 +1960,12 @@ export const SKILL_ROSTERS = [
       },
     ],
   },
-  {
-    file: 'docs/docs/skills/intro.md',
-    copies: [
-      // The bullet roster below that block is deliberately not checked: it
-      // links page slugs (`[Custom Component](./custom-component)`), not skill
-      // directory names, so matching it would amount to requiring a docs page
-      // per skill — a separate rule.
-      skillsAddBlock('the skills-add block'),
-    ],
-  },
-  {
-    file: 'docs/docs/guides/llms/index.md',
-    copies: [skillsAddBlock('the skills-add block')],
-  },
+  // docs/docs/skills/intro.md and docs/docs/guides/llms/index.md carry only
+  // the generated install block, so they are covered by the staleness pass in
+  // checkSkillsRoster rather than listed here. intro.md's bullet roster below
+  // that block is deliberately unchecked: it links page slugs, not skill
+  // directory names, and matching it would amount to requiring a docs page
+  // per skill — a separate rule.
   {
     // The repo's front page, and the roster with the widest audience. It was
     // already stale when this check landed — four skills against seven — which
@@ -1964,33 +2009,6 @@ export const SKILL_ROSTERS = [
     ],
   },
 ];
-
-/** One install block, defined once: three files carry the identical shape. */
-function skillsAddBlock(what) {
-  return {
-    what,
-    scope: installFence(),
-    list: /--skill +([a-z][a-z0-9-]*)/g,
-    example: n =>
-      `npx skills add https://github.com/allxsmith/bestax --skill ${n}`,
-  };
-}
-
-/**
- * The fenced block holding the skills-add roster.
- *
- * Scoped rather than scanning the file, because a single `--skill` line used as
- * an EXAMPLE elsewhere would otherwise satisfy a skill that had been dropped
- * from the roster itself.
- */
-function installFence() {
-  return text => {
-    for (const [, body] of text.matchAll(/^```[a-z]*\n([\s\S]*?)^```/gm)) {
-      if (body.includes('--skill ')) return body;
-    }
-    return null;
-  };
-}
 
 /**
  * A markdown section by heading, up to the next heading of the same depth or
@@ -2157,6 +2175,52 @@ export function rosterViolations(skills, sources) {
   return violations;
 }
 
+/**
+ * The three generated install rosters, compared byte-for-byte against what
+ * scripts/gen-skills-rosters.mjs would write (#542). Pure and fixture-driven
+ * like its neighbours: on a clean tree none of these branches fires.
+ *
+ * Every miss is a violation, never a skip — an absent marker pair means the
+ * generator cannot write the block AND this check cannot read it, which is
+ * the silent-generation failure #464 documents.
+ */
+export function installBlockViolations(skills, sources) {
+  const violations = [];
+  for (const { file, fence } of INSTALL_TARGETS) {
+    const text = sources?.[file];
+    if (typeof text !== 'string') {
+      violations.push(
+        `${file}: could not be read, so its generated install roster went ` +
+          `unchecked. If the file moved, update TARGETS in ` +
+          `scripts/gen-skills-rosters.mjs.`
+      );
+      continue;
+    }
+    let region;
+    try {
+      region = readRegions(text, file).get(INSTALL_REGION);
+    } catch (err) {
+      violations.push(String(err.message ?? err));
+      continue;
+    }
+    if (!region) {
+      violations.push(
+        `${file}: the <!-- bestax:generated ${INSTALL_REGION} --> marker ` +
+          `pair is gone, so the roster can be neither regenerated nor ` +
+          `checked. Restore the pair around the install block.`
+      );
+      continue;
+    }
+    if (region.body.trim() !== renderInstallBlock(skills, fence).trim()) {
+      violations.push(
+        `${file}: the generated install roster is stale. Run \`pnpm gen\` ` +
+          `and commit the result.`
+      );
+    }
+  }
+  return violations;
+}
+
 async function checkSkillsRoster() {
   const skillsDir = join(REPO, 'skills');
 
@@ -2191,16 +2255,24 @@ async function checkSkillsRoster() {
   }
 
   const sources = {};
-  for (const { file } of SKILL_ROSTERS) {
+  const files = new Set([
+    ...SKILL_ROSTERS.map(r => r.file),
+    ...INSTALL_TARGETS.map(t => t.file),
+  ]);
+  for (const file of files) {
     try {
       sources[file] = await readFile(join(REPO, file), 'utf8');
     } catch {
-      // Left undefined on purpose; rosterViolations reports the unreadable
-      // file rather than skipping it.
+      // Left undefined on purpose; both rules report the unreadable file
+      // rather than skipping it.
     }
   }
 
-  return [...violations, ...rosterViolations(skills, sources)];
+  return [
+    ...violations,
+    ...rosterViolations(skills, sources),
+    ...installBlockViolations(skills, sources),
+  ];
 }
 
 // ---------------------------------------------------------------------------

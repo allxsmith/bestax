@@ -23,12 +23,18 @@ provenance — #385 settled only `bestax-migrate`'s case and kept the per-skill 
 rule is #540's own decision, taken on the reasoning #385 gave for it ("a per-skill carve-out is
 exactly the kind of thing that drifts").
 
-What stays hand-written is prose — rosters spread across the READMEs, the docs, and the
-scaffolded `CLAUDE_MD`. `pnpm check:conformance --only=skills-roster` holds those to the
-directory in both directions: it fails if one omits your new skill, and if one still names a
-skill you deleted. `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list
-and the failure names every file you missed, so this file deliberately keeps no roster of
-rosters — that would be the same bug one level up.
+The three install blocks (this README, the docs intro, the llms guide) are **generated**:
+`pnpm gen` rewrites them between their `bestax:generated skills-install` markers from the
+directory listing (#542, `scripts/gen-skills-rosters.mjs`), and the `skills-roster` conformance
+check fails while a committed block is stale. Do not hand-edit inside the markers.
+
+What stays hand-written is prose that cannot be derived — the "Use it when…" tables, the layout
+tree, the scaffolded `CLAUDE_MD` roster, AGENTS.md's parenthetical.
+`pnpm check:conformance --only=skills-roster` holds those to the directory in both directions:
+it fails if one omits your new skill, and if one still names a skill you deleted.
+`SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list and the failure
+names every file you missed, so this file deliberately keeps no roster of rosters — that would
+be the same bug one level up.
 
 Deliberately outside that check, so still yours to remember: a docs page under
 `docs/docs/skills/`, its entry in `docs/sidebars.js`, and the intro's bullet roster. Those key
