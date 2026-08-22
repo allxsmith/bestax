@@ -387,3 +387,16 @@ test('prose smuggled into the parenthetical fails the stale direction', () => {
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /still names more/);
 });
+
+test('a fenced example quoting the Agent Skills marker is not the anchor', () => {
+  // The anchor search skips masked lines, or an example containing the
+  // marker text before the real section scopes the check to a quoted table.
+  const decoyed = REAL['README.md'].replace(
+    '- 🧩 **[Agent Skills](',
+    '```md\n- 🧩 **[Agent Skills](https://x)** — quoted example\n| `bestax-fake` | nope |\n```\n\n- 🧩 **[Agent Skills]('
+  );
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('README.md', decoyed)),
+    []
+  );
+});

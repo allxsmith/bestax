@@ -238,6 +238,9 @@ try {
     for (const name of names) {
       await cp(path.join(skillsSrc, name), path.join(skillsDest, name), {
         recursive: true,
+        // Same reason as create-bestax's bundler: a symlinked skill must ship
+        // its target's bytes, not a link into a checkout nobody else has.
+        dereference: true,
       });
     }
     // Stamped last: a run killed mid-copy leaves no stamp, so the next caller

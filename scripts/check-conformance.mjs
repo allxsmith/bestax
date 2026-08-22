@@ -988,10 +988,20 @@ function recipeTargets(block) {
     // the join, `for pkg in a b \\<newline> c d` counted only the first
     // line's names and falsely reported the wrapped-onto ones missing.
     .replace(/\\\n\s*/g, ' ');
-  // EVERY loop's word list, not the first: a recipe legitimately grows a
-  // second loop, and honoring only one made the other's targets invisible.
-  const loops = [...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)/g)];
-  return loops.length ? loops.map(m => m[1]).join(' ') : commands;
+  // The loop that RUNS the release is the one whose word list counts.
+  // First-only missed a legitimate second release loop; union-of-all was the
+  // opposite failure — a preliminary loop over every package (an echo, an
+  // owner check) covered an omission in the loop that actually invokes the
+  // dry run. Segments are for…done spans; only those whose body mentions the
+  // release command contribute, falling back to all loops when none does, so
+  // a recipe driving the run through a variable stays a presence check
+  // rather than a false red.
+  const segments = [
+    ...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)[\s\S]*?\bdone\b/g),
+  ];
+  if (!segments.length) return commands;
+  const release = segments.filter(m => m[0].includes('semantic-release'));
+  return (release.length ? release : segments).map(m => m[1]).join(' ');
 }
 
 /**
@@ -1260,11 +1270,14 @@ export async function publishablePackages(root = REPO) {
     let pkg;
     try {
       pkg = JSON.parse(await readFile(join(root, dir, 'package.json'), 'utf8'));
-      // JSON.parse succeeds on `null`, `42`, `"x"` — shapes a truncated write
-      // really produces. Dereferencing one below would throw a TypeError past
-      // the runner's loop and abort every remaining check, when `unreadable`
-      // exists for exactly this case.
-      if (!pkg || typeof pkg !== 'object') throw new Error('not an object');
+      // JSON.parse succeeds on `null`, `42`, `"x"`, `[]` — shapes a truncated
+      // write really produces. `null` dereferenced below threw a TypeError
+      // past the runner's loop; an ARRAY passes typeof and instead vanishes
+      // silently (no name, so it never joins the package list) — the same
+      // outcome by a quieter road. Both are unreadable manifests.
+      if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) {
+        throw new Error('not an object');
+      }
     } catch {
       unreadable.push(dir);
       continue;
@@ -2074,18 +2087,30 @@ function installFence() {
 function agentSkillsTable() {
   return text => {
     const { lines, crlf } = splitLines(text);
-    const marker = lines.findIndex(l => /\*\*\[Agent Skills\]\(/.test(l));
+    // Fence-aware like every extractor here: a fenced example QUOTING the
+    // marker before the real section would otherwise become the anchor and
+    // scope the check to an example table.
+    const masked = fenceMask(lines);
+    const marker = lines.findIndex(
+      (l, i) => !masked[i] && /\*\*\[Agent Skills\]\(/.test(l)
+    );
     if (marker < 0) return null;
     let start = -1;
     for (let i = marker + 1; i < Math.min(marker + 6, lines.length); i++) {
-      if (lines[i].trimStart().startsWith('|')) {
+      if (!masked[i] && lines[i].trimStart().startsWith('|')) {
         start = i;
         break;
       }
     }
     if (start < 0) return null;
     let end = start;
-    while (end < lines.length && lines[end].trimStart().startsWith('|')) end++;
+    while (
+      end < lines.length &&
+      !masked[end] &&
+      lines[end].trimStart().startsWith('|')
+    ) {
+      end++;
+    }
     return joinLines(lines.slice(start, end), crlf);
   };
 }

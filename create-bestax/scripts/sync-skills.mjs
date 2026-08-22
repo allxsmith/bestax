@@ -113,7 +113,12 @@ if (missing.length || extra.length) {
 await fs.emptyDir(skillsDest);
 
 for (const name of skills) {
-  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name));
+  // dereference: discovery admits a symlinked skill, and copying the LINK
+  // would ship a tarball entry pointing back into a checkout that consumers
+  // do not have. The bundle must contain the target's bytes.
+  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name), {
+    dereference: true,
+  });
 }
 
 console.log(`[sync-skills] copied ${skills.length} skills -> templates/skills`);

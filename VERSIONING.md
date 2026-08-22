@@ -44,7 +44,7 @@ Notes:
   it, and no `releaseRules` entry here names the `revert` type. To actually publish a
   rollback, follow the revert with `fix(<scope>): …` (or commit the rollback as a `fix`
   directly). The hazard runs the other way for git's own `Revert "…"` form, which
-  commitlint's default ignores wave through: with its generated body it trips the default
+  commitlint's default ignore rules let through unexamined: with its generated body it trips the default
   revert rule with **no scope to confine it** and would patch-release every package — so
   keep reverts in conventional, scoped form, and don't expect them to publish on their own.
 - A commit scoped to `docs` never releases any package.

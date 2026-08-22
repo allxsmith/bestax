@@ -172,7 +172,7 @@ type, so `docs(bulma-ui):` and `docs:` alike publish nothing. A scoped `revert(s
 commit releases **nothing** — the only revert rule is commit-analyzer's default, and it keys
 on the parser detecting git's `Revert "…"` shape, which a scoped header never matches; ship a
 rollback with a follow-up `fix(scope):` commit. Git's own `Revert "…"` form is the opposite
-hazard: commitlint's default ignores wave it through, and its generated body trips the
+hazard: commitlint's default ignore rules let it through unexamined, and its generated body trips the
 default revert rule with no scope to confine it, so it would patch-release every package. Publishing uses npm **OIDC trusted publishing** with **provenance**
 (no long-lived token). See [`CONTRIBUTING.md`](https://github.com/allxsmith/bestax/blob/main/CONTRIBUTING.md)
 for the full details.

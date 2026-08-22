@@ -545,3 +545,35 @@ test('a manifest that parses to null is unreadable, not a crash', async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('a preliminary loop cannot cover for the release loop', () => {
+  // Union-of-all-loops was fail-open: an echo loop over every package let a
+  // release loop covering only one pass the presence check. Only loops whose
+  // body invokes the dry run contribute.
+  const twoLoops =
+    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n' +
+    'for pkg in bulma-ui; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: twoLoops }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the echo loop must not mask the omission');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('an array manifest is unreadable, not silently absent', async () => {
+  // `[]` parses, passes typeof object, has no name — the package vanished
+  // from the list with no violation, the same outcome as the null crash by a
+  // quieter road.
+  const root = await mkdtemp(join(tmpdir(), 'array-manifest-'));
+  try {
+    await writeFile(join(root, 'pnpm-workspace.yaml'), 'packages:\n  - arr\n');
+    await mkdir(join(root, 'arr'));
+    await writeFile(join(root, 'arr', 'package.json'), '[]');
+    const { packages, unreadable } = await publishablePackages(root);
+    assert.deepEqual(packages, []);
+    assert.deepEqual(unreadable, ['arr']);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
