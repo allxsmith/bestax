@@ -28,6 +28,18 @@ const cell = (text: string) =>
     .replace(/\r?\n/g, ' ')
     .trim();
 
+/**
+ * Tag an outbound link with `utm_source=bestax-mcp` so a docs or Storybook
+ * visit that started here shows up as such in the site analytics. Render-time
+ * only — the URLs in `data/` are generated and stay canonical. Idempotent, and
+ * anything that is not an http(s) URL passes through unchanged.
+ */
+export function attributed(url: string): string {
+  if (!/^https?:\/\//.test(url)) return url;
+  if (url.includes('utm_source=bestax-mcp')) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}utm_source=bestax-mcp`;
+}
+
 export function table(headers: string[], rows: string[][]): string {
   if (!rows.length) return '';
   return [
@@ -145,8 +157,10 @@ export function renderComponent(
     out.push(`**Related:** ${record.related.map(r => `\`${r}\``).join(', ')}.`);
   }
 
-  const links = [`Docs: ${record.docsUrl}`];
-  if (record.storybook) links.push(`Storybook: ${record.storybook}`);
+  const links = [`Docs: ${attributed(record.docsUrl)}`];
+  if (record.storybook) {
+    links.push(`Storybook: ${attributed(record.storybook)}`);
+  }
   out.push(links.join(' · '));
   return out.join('\n\n');
 }
