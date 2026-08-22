@@ -49,9 +49,11 @@ test('the real linkbutton partial yields its four variables', () => {
     '--bulma-link-button-transition-duration',
     '--bulma-link-button-underline-offset',
   ]);
-  // The default is declared on the component's own selector, and the page's
-  // lead sentence says so — 'global' here would claim `:root`.
-  assert.ok(rows.every(r => r.scope === 'root'));
+  // The default is declared on the component's own COMPOUND selector, and
+  // the page's lead sentence keys its override advice off that — 'root' here
+  // would advise a className override that 0-2-0 specificity silently beats,
+  // and 'global' would claim `:root`.
+  assert.ok(rows.every(r => r.scope === 'compound'));
 });
 
 test('the same partial yields nothing for Button', () => {
@@ -72,7 +74,7 @@ test('a compound selector claims keys matching its prefix', () => {
   const rows = componentVars(src, 'link-button');
   assert.equal(rows.length, 1);
   assert.equal(rows[0].cssVar, '--bulma-link-button-underline-offset');
-  assert.equal(rows[0].scope, 'root');
+  assert.equal(rows[0].scope, 'compound');
 });
 
 test('a compound selector does not claim keys of another component', () => {

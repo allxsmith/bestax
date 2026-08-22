@@ -301,16 +301,24 @@ function compoundClasses(item) {
 }
 
 /**
- * Is the root class present on this selector, counting compound selectors?
- * This is the "the default is declared on the component's own selector"
- * predicate, which the page's lead sentence relies on (scope: 'root').
+ * How the root class appears on this selector: on a simple selector
+ * ('root'), inside a compound ('compound'), or not at all (null). The page's
+ * lead sentence needs the distinction, not just presence — a compound like
+ * `.button.link-button` has specificity 0-2-0, so the "override via
+ * className" advice that is true for a simple selector silently does nothing
+ * there (a single custom class is 0-1-0 and loses regardless of load order).
  */
-function selectorNamesRoot(selector, root) {
-  if (!root) return false;
-  if (selectorClasses(selector).includes(root)) return true;
-  return splitTopLevel(selector, ',').some(item =>
-    compoundClasses(item).includes(root)
-  );
+function selectorRootKind(selector, root) {
+  if (!root) return null;
+  if (selectorClasses(selector).includes(root)) return 'root';
+  if (
+    splitTopLevel(selector, ',').some(item =>
+      compoundClasses(item).includes(root)
+    )
+  ) {
+    return 'compound';
+  }
+  return null;
 }
 
 /**
@@ -440,10 +448,11 @@ export function componentVars(src, root, prefix = root) {
       cssVar: `--${CSSVARS_PREFIX}${key}`,
       sassVar,
       value: renderValue(sassVar ? defaults.get(varRef[1]) : rawValue),
-      // Where the DEFAULT is declared, which the page's lead sentence needs to
-      // state correctly: 'root' means the component's own selector — simple or
-      // compound — and 'global' means `:root` or a mixin body.
-      scope: selectorNamesRoot(chain[0], root) ? 'root' : 'global',
+      // Where the DEFAULT is declared, which the page's lead sentence needs
+      // to state correctly: 'root' is the component's own simple selector,
+      // 'compound' a compound carrying it (higher specificity, different
+      // override advice), 'global' a `:root` or mixin body.
+      scope: selectorRootKind(chain[0], root) ?? 'global',
     });
   }
   return rows;

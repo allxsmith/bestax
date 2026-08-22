@@ -287,7 +287,9 @@ async function cssVarsFor(info) {
         // `root` means Bulma declares it on the component's own selector; the
         // semantic wrappers get theirs from `:root`, and an agent overriding
         // them needs to know which.
-        scope: row.scope === 'root' ? 'component' : 'global',
+        // 'root' and 'compound' both mean the component's own declaration;
+        // only a :root/mixin registration is global.
+        scope: row.scope === 'global' ? 'global' : 'component',
       });
     }
   }

@@ -214,7 +214,7 @@ The `isOutlined`, `isInverted`, and `isLight` props from Button are not availabl
 
 <!-- bestax:generated cssvars -->
 
-`LinkButton` registers these variables on its own `.link-button` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+`LinkButton` registers these variables on a compound selector (higher specificity than a single class). Override them with inline `style`, or with a selector that matches or exceeds that specificity — a lone class via `className` loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
 | CSS Variable                              | Sass Variable                      | Default                    |
 | ----------------------------------------- | ---------------------------------- | -------------------------- |
