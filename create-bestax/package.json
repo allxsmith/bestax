@@ -62,10 +62,10 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.0.0",
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "^1.62.1",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@types/prompts": "^2.4.9",
     "@types/wait-on": "^5.3.4",
     "jest": "^30.2.0",
