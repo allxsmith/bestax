@@ -273,6 +273,47 @@ function selectorClasses(selector) {
 }
 
 /**
+ * `.#{iv.$class-prefix}button.#{iv.$class-prefix}link-button` ->
+ * ['button', 'link-button'] — the classes of ONE compound selector.
+ *
+ * Deliberately strict, because every relaxation is a mis-attribution bug:
+ * only chained prefixed classes with nothing between or after them qualify,
+ * and a single class returns [] so simple selectors stay on the
+ * selectorClasses path untouched. A descendant selector
+ * (`.tooltip.is-dark .tooltip-content`), a pseudo (`:hover`), or an
+ * unprefixed class all disqualify the item — those either re-register keys
+ * the base block already owns (dedupe makes them neutral) or belong to
+ * nobody, and guessing here is how a wrapper's variables would leak onto the
+ * wrapped component's page (#464).
+ */
+function compoundClasses(item) {
+  const s = item.trim();
+  if (!s || /[\s>+~(]/.test(s)) return [];
+  const classes = [];
+  const token = /\.#\{\s*iv\.\$class-prefix\s*\}([a-z][a-z0-9-]*)/g;
+  let consumed = 0;
+  for (let m; (m = token.exec(s));) {
+    if (m.index !== consumed) return [];
+    classes.push(m[1]);
+    consumed = token.lastIndex;
+  }
+  return consumed === s.length && classes.length >= 2 ? classes : [];
+}
+
+/**
+ * Is the root class present on this selector, counting compound selectors?
+ * This is the "the default is declared on the component's own selector"
+ * predicate, which the page's lead sentence relies on (scope: 'root').
+ */
+function selectorNamesRoot(selector, root) {
+  if (!root) return false;
+  if (selectorClasses(selector).includes(root)) return true;
+  return splitTopLevel(selector, ',').some(item =>
+    compoundClasses(item).includes(root)
+  );
+}
+
+/**
  * Render a raw sass value as it will reach the browser: `cv.getVar("x")`
  * becomes `var(--bulma-x)`, interpolation wrappers are dropped, and whitespace
  * collapses to one line.
@@ -334,6 +375,21 @@ export function renderValue(raw) {
 function ownsRegistration(selector, root, prefix, key) {
   if (root && selectorClasses(selector).includes(root)) return true;
   if (!prefix) return false;
+  // A COMPOUND selector carrying the root class (`.button.link-button` for
+  // LinkButton) is claimed like a host registration: by class AND key prefix
+  // together. The class test alone would be wrong in both directions — that
+  // same selector contains `button`, and without the key test Button's page
+  // would grow four bogus `--bulma-link-button-*` rows the moment LinkButton's
+  // partial parsed (#464). The prefix test alone would claim `:root` blocks
+  // that already have their own arm below.
+  if (
+    root &&
+    splitTopLevel(selector, ',').some(item =>
+      compoundClasses(item).includes(root)
+    )
+  ) {
+    return key === prefix || key.startsWith(`${prefix}-`);
+  }
   // A `@mixin delete { … }` body is the other off-selector home: Bulma declares
   // every `--bulma-delete-*` there and applies the mixin to `.delete`.
   const offSelector =
@@ -385,10 +441,9 @@ export function componentVars(src, root, prefix = root) {
       sassVar,
       value: renderValue(sassVar ? defaults.get(varRef[1]) : rawValue),
       // Where the DEFAULT is declared, which the page's lead sentence needs to
-      // state correctly: 'root' means the component's own selector, 'global'
-      // means `:root` or a mixin body.
-      scope:
-        root && selectorClasses(chain[0]).includes(root) ? 'root' : 'global',
+      // state correctly: 'root' means the component's own selector — simple or
+      // compound — and 'global' means `:root` or a mixin body.
+      scope: selectorNamesRoot(chain[0], root) ? 'root' : 'global',
     });
   }
   return rows;
