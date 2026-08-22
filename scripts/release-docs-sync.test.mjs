@@ -358,6 +358,41 @@ test('a package list in a later section does not rescue the OIDC one', () => {
   assert.match(v[0], /no "- Packages:" line in the OIDC trusted/);
 });
 
+test('body prose about trusted publishing is not an anchor', () => {
+  // The anchor matched any line mentioning it, so deleting the heading left
+  // the section's own sentence anchoring the search and the list still passed
+  // while the section it belongs to was gone.
+  const headingless = [
+    doc({ publishers: '' }).trimEnd(),
+    '',
+    'Each published package needs a trusted publisher configured on npmjs.com:',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp`',
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: headingless }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "- Packages:" line in the OIDC trusted/);
+});
+
+test('a heading butted against the bullet does not extend the list', () => {
+  // The continuation scan ran past the section, so a heading immediately after
+  // the bullet — no blank line — swept the next section in, and a package
+  // named there covered an omission in this one.
+  const butted = [
+    doc({ publishers: '' }).trimEnd(),
+    '',
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`',
+    '### Something else',
+    '`bestax-migrate` and `bestax-mcp` are mentioned here for other reasons',
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: butted }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /trusted-publisher list omits/);
+  assert.match(v[0], /bestax-migrate/);
+});
+
 test('a missing OIDC section is not rescued by a bullet elsewhere', () => {
   // packagesBullet fell back to line 0 when it found no "trusted publisher"
   // anchor, which is the file-wide search it exists to prevent: an unrelated

@@ -967,8 +967,14 @@ function recipeTargets(block) {
 function packagesBullet(src) {
   const { lines } = splitLines(src);
   const masked = fenceMask(lines);
+  // The anchor has to be the HEADING, not any prose that mentions trusted
+  // publishing. Matching body text meant deleting the heading left the
+  // section's own sentence anchoring the search, so the list still passed
+  // while the section it belongs to was gone. Requiring a heading also makes
+  // anchor..limit a real section rather than an arbitrary span.
   const anchor = lines.findIndex(
-    (l, i) => !masked[i] && /trusted[- ]publish/i.test(l)
+    (l, i) =>
+      !masked[i] && /^\s{0,3}#{1,6}\s/.test(l) && /trusted[- ]publish/i.test(l)
   );
   // No OIDC section means no trusted-publisher list, which is the violation.
   // Falling back to line 0 restored the file-wide search this extractor exists
@@ -994,8 +1000,11 @@ function packagesBullet(src) {
       l.trimStart().startsWith('- Packages:')
   );
   if (start < 0) return '';
-  let end = lines.length;
-  for (let i = start + 1; i < lines.length; i++) {
+  // Bounded by `limit` as well: a heading immediately after the bullet, with no
+  // blank line between, otherwise swept the next section in — and a package
+  // named there could then cover an omission in this list.
+  let end = limit;
+  for (let i = start + 1; i < limit; i++) {
     if (!lines[i].trim() || /^\s*[-*]\s/.test(lines[i])) {
       end = i;
       break;
@@ -1020,14 +1029,6 @@ function packagesBullet(src) {
 const packageTokens = text => new Set(text.match(/[@\w./-]+/g) ?? []);
 
 /**
- * Violations for the release docs. Pure, so scripts/release-docs-sync.test.mjs
- * can drive it on fixtures — the four existing sync checks have no tests, and
- * publishable-manifests is the precedent worth following instead.
- *
- * @param docs Map of repo-relative path -> file contents
- * @param packages [{ dir, name }] for every publishable workspace package
- */
-/**
  * Violations for workspace entries whose manifest could not be read.
  *
  * Pure and exported for the same reason releaseDocViolations is: the branch
@@ -1049,6 +1050,14 @@ export function unreadableManifestViolations(unreadable) {
   );
 }
 
+/**
+ * Violations for the release docs. Pure, so scripts/release-docs-sync.test.mjs
+ * can drive it on fixtures — the four existing sync checks have no tests, and
+ * publishable-manifests is the precedent worth following instead.
+ *
+ * @param docs Map of repo-relative path -> file contents
+ * @param packages [{ dir, name }] for every publishable workspace package
+ */
 export function releaseDocViolations(docs, packages) {
   const violations = [];
 
