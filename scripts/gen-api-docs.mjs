@@ -267,12 +267,19 @@ async function renderCssVars(info, { relPath }) {
         ? bulmaSassPath(source.path)
         : join(REPO, source.path);
     const src = await readFile(file, 'utf8');
-    const root = source.root ?? info.rootClass;
-    const prefix = source.root ?? info.varPrefix;
+    // No per-entry override: gen-api-sources emits only { pkg, path }, and a
+    // hand-added field inside the generated markers is erased on the next
+    // regenerate. The real escape hatch is ROOT_CLASS_OVERRIDES /
+    // VAR_PREFIX_OVERRIDES in props-extract.mjs, which survive regeneration.
+    // This file once read a `source.root ?? …` here, and its own error
+    // message advised adding the field the generator would delete (#464).
+    const root = info.rootClass;
+    const prefix = info.varPrefix;
     if (!root && !prefix) {
       throw new Error(
-        `${info.name}: cannot determine the root class for ${source.path}. Add a ` +
-          `\`root\` to its SCSS_SOURCES entry in scripts/lib/api-sources.mjs.`
+        `${info.name}: cannot determine the root class for ${source.path}. ` +
+          `Add the component to ROOT_CLASS_OVERRIDES in ` +
+          `scripts/lib/props-extract.mjs.`
       );
     }
     for (const row of componentVars(src, root, prefix)) {
