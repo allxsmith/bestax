@@ -42,6 +42,22 @@ describe('attributed', () => {
       expect(attributed(notAUrl)).toBe(notAUrl);
     }
   });
+
+  it('keeps a fragment after the query string', () => {
+    expect(attributed('https://bestax.io/docs/guides/foo#bar')).toBe(
+      'https://bestax.io/docs/guides/foo?utm_source=bestax-mcp#bar'
+    );
+  });
+
+  it('inserts ahead of the fragment when a query string is already present', () => {
+    expect(
+      attributed(
+        'https://bestax.io/storybook/?path=/story/elements-button#anchor'
+      )
+    ).toBe(
+      'https://bestax.io/storybook/?path=/story/elements-button&utm_source=bestax-mcp#anchor'
+    );
+  });
 });
 
 describe('renderComponent link line', () => {

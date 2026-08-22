@@ -37,7 +37,13 @@ const cell = (text: string) =>
 export function attributed(url: string): string {
   if (!/^https?:\/\//.test(url)) return url;
   if (url.includes('utm_source=bestax-mcp')) return url;
-  return `${url}${url.includes('?') ? '&' : '?'}utm_source=bestax-mcp`;
+  // Insert before the fragment so `#heading` stays a fragment. Do not use
+  // URL.searchParams: it re-encodes Storybook `path=/story/...` as `%2F`.
+  const hashIndex = url.indexOf('#');
+  const hash = hashIndex === -1 ? '' : url.slice(hashIndex);
+  const withoutHash = hashIndex === -1 ? url : url.slice(0, hashIndex);
+  const sep = withoutHash.includes('?') ? '&' : '?';
+  return `${withoutHash}${sep}utm_source=bestax-mcp${hash}`;
 }
 
 export function table(headers: string[], rows: string[][]): string {
