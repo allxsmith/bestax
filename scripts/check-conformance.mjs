@@ -1814,7 +1814,11 @@ async function checkPublishableManifests() {
       // throw a TypeError past the runner's loop and abort every remaining
       // check with a stack trace, when this exact case has a violation
       // written for it. Review caught the sibling-map pass doing just that.
-      if (!pkg || typeof pkg !== 'object') throw new Error('not an object');
+      // An ARRAY passes typeof and instead vanishes silently — no name, so
+      // it never joins the sibling map. Same outcome, quieter road.
+      if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) {
+        throw new Error('not an object');
+      }
       manifests.push({ dir, pkg });
     } catch {
       violations.push(
