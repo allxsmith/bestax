@@ -17,15 +17,15 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 
 ## Sync rules (this package re-ships other parts of the repo)
 
-- `pnpm build` and `prepack` run `scripts/sync-skills.mjs`, which copies **the skills named
-  in its hardcoded `SKILLS` allowlist** — not the whole repo-root `skills/` dir — into the
-  package. An unlisted skill silently doesn't bundle; a delisted one silently vanishes (the
-  script empties the destination first, and its success line reports the array length either
-  way); no CI check compares the list against `skills/*`. Bundling is a per-skill policy
-  decision (bestax-migrate's was settled as bundled, #385) — when adding a skill, decide it
-  explicitly and keep the allowlist, `skills/README.md`, `docs/docs/skills/intro.md`, any
-  per-skill docs page that states bundling (`docs/docs/skills/migrate.mdx` does), and the
-  `CLAUDE_MD` roster in `src/constants.ts` in agreement. **Never edit the bundled copy** — change `skills/` at the
+- `pnpm build` and `prepack` run `scripts/sync-skills.mjs`, which copies **every directory
+  under the repo-root `skills/` that holds a `SKILL.md`** into the package. The roster is read,
+  not listed (#540): there is no allowlist, so a new skill bundles without anyone remembering
+  to add it, and a deleted one stops bundling. That replaced a hardcoded `SKILLS` array which
+  errored on a listed-but-missing skill and said nothing about the reverse, and it settles the
+  mechanism for the policy #385 settled — every skill bundles. What is _not_ derivable is the
+  prose roster: `skills/README.md`, `docs/docs/skills/intro.md`, and the `CLAUDE_MD` roster in
+  `src/constants.ts` must each name every skill. The `skills-roster` conformance check now
+  enforces that in both directions. **Never edit the bundled copy** — change `skills/` at the
   repo root; the build re-syncs.
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check
