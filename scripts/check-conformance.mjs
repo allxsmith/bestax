@@ -835,6 +835,19 @@ async function checkStyleMappingSync() {
 // rather than restating them — the two staleness classes #536 found were both
 // "a list of packages that stopped being all of them".
 //
+// Why this parses markdown at all, since the obvious simplification is to stop.
+// Whole-file matching would have caught the failure that prompted #536:
+// bestax-migrate and bestax-mcp appeared ZERO times in either guide, so a plain
+// token-membership test over the whole file catches it, and four of the five
+// facts below occur exactly once per file so they need no scoping either. The
+// parsing buys one thing on top of that — a package that IS named somewhere in
+// the file but missing from the recipe or the publisher list specifically — and
+// that refinement is where every edge case lives: fence pairing, section
+// anchors, continuation lines, sentinels. Measured, not assumed, and kept
+// deliberately. If it ever needs paying for again, the cheap version is
+// "every publishable package is named somewhere in each guide", and it is worth
+// knowing that it would have been enough for the bug that started this.
+//
 // Deliberately NOT a byte diff. The two files legitimately differ: one uses a
 // blockquote, the other a Docusaurus admonition, and the docs page links
 // absolute GitHub URLs where the root file links relative paths. A diff would
