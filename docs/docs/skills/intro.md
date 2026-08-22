@@ -11,15 +11,19 @@ other skills.sh-compatible tools — how to build with **@allxsmith/bestax-bulma
 
 Install one with the [`skills`](https://skills.sh/) CLI:
 
+<!-- bestax:generated skills-install -->
+
 ```bash
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
-npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
-npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
+npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
+npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 ```
+
+<!-- /bestax:generated skills-install -->
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills** into the
 generated app's `.claude/skills/` (alongside a `CLAUDE.md`), so a Claude Code session picks them up

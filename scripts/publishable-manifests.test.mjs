@@ -49,12 +49,13 @@ const DECLARED = new Set(
     .filter(Boolean)
 );
 
-// parseWorkspacePackages returns each `packages:` entry as literal text, so a
-// glob like `packages/*` comes back unexpanded. Swallowing that would quietly
-// shrink PUBLISHABLE, and PUBLISHABLE is what the declaration is compared
-// against — the "a new package must be declared" guarantee would stop holding
-// for everything under the glob while this file stayed green. So an entry whose
-// manifest cannot be read is a failure, not a filtered-out row.
+// A glob now throws inside parseWorkspacePackages itself (#438), so the case
+// this filter fences is the remaining one: a listed directory whose manifest
+// cannot be read (deleted, moved, or misspelled). Swallowing that would
+// quietly shrink PUBLISHABLE, and PUBLISHABLE is what the declaration is
+// compared against — the "a new package must be declared" guarantee would
+// stop holding while this file stayed green. So an unreadable manifest is a
+// failure, not a filtered-out row.
 const PUBLISHABLE = parseWorkspacePackages(
   repoFile('pnpm-workspace.yaml')
 ).filter(dir => {
@@ -64,8 +65,7 @@ const PUBLISHABLE = parseWorkspacePackages(
   } catch {
     throw new Error(
       `pnpm-workspace.yaml lists "${dir}", which has no readable package.json. ` +
-        'If that is a glob, parseWorkspacePackages does not expand it and every ' +
-        'package under it is silently exempt from the checks in this file.'
+        'Every check in this file silently exempts a package it cannot read.'
     );
   }
   return !JSON.parse(manifest).private;
@@ -213,6 +213,80 @@ test('the release stays on a single branch, or the dist-tag needs revisiting', a
   for (const dir of DECLARED) {
     assert.deepEqual(await releaseBranches(dir), ['main'], dir);
   }
+});
+
+// --- the workspace parser (#438) ------------------------------------------
+
+test('an inline comment ends the entry, not the block', () => {
+  // The old parser required end-of-line after the token, so a commented entry
+  // fell into the terminator branch and every entry after it silently
+  // vanished — the direction that mattered, because each check walking the
+  // list quietly lost coverage for whatever fell off it.
+  assert.deepEqual(
+    parseWorkspacePackages(
+      'packages:\n  - bulma-ui\n  - create-bestax # scaffolder\n  - bestax-migrate\n'
+    ),
+    ['bulma-ui', 'create-bestax', 'bestax-migrate']
+  );
+});
+
+test('a hash inside a token is a scalar, not a comment', () => {
+  // YAML only starts a comment after whitespace; stripping every `#` would
+  // mis-parse `a#b` as `a`, which is the same silent-wrong-answer class.
+  assert.deepEqual(parseWorkspacePackages('packages:\n  - a#b\n'), ['a#b']);
+});
+
+test('a glob entry throws naming the limitation', () => {
+  // Nothing expands globs here, so returning it as literal text sent the
+  // failure two calls downstream as a confusing unreadable-manifest error.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - packages/*\n'),
+    /glob.*List each directory explicitly/s
+  );
+});
+
+test('a flow sequence throws instead of parsing as nothing', () => {
+  // `packages: [a, b]` used to return [] and surface as the vaguer "no
+  // packages: entries" guard, two calls from the cause.
+  assert.throws(
+    () => parseWorkspacePackages('packages: [a, b]\n'),
+    /flow sequence/
+  );
+});
+
+test('a quoted scalar hiding a comment throws instead of misparsing', () => {
+  // `- "docs # archive"` is one scalar in YAML, but the comment strip cannot
+  // know it is inside quotes; it used to come back as `docs` — the wrong
+  // directory, inspected with confidence. The unbalanced quote it leaves
+  // behind is the fingerprint the parser now throws on.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - "docs # archive"\n'),
+    /mixes quotes and comments/
+  );
+});
+
+test('an unreadable sequence entry throws instead of truncating', () => {
+  // `- &core bulma-ui` is valid YAML this parser cannot read. Breaking there
+  // would silently drop the entry AND everything after it — the fail-open
+  // truncation #438 exists to end — so any dash line that fails the match
+  // throws, and only a dedented line ends the block.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - &core bulma-ui\n  - docs\n'),
+    /cannot parse the entry/
+  );
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - "foo bar"\n'),
+    /cannot parse the entry/
+  );
+});
+
+test('quotes, blank lines, and comment lines still parse as before', () => {
+  assert.deepEqual(
+    parseWorkspacePackages(
+      'packages:\n  - \'bulma-ui\'\n\n  # a note\n  - "docs"\nminimumReleaseAge: 1\n'
+    ),
+    ['bulma-ui', 'docs']
+  );
 });
 
 // --- the rule ----------------------------------------------------------------

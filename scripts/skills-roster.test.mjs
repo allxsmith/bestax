@@ -18,18 +18,23 @@ import assert from 'node:assert/strict';
 
 import {
   SKILL_ROSTERS,
+  installBlockViolations,
   readSkillDirs,
   readSkillNames,
   rosterViolations,
   skillDirViolations,
 } from './check-conformance.mjs';
+import { renderInstallBlock, TARGETS } from './gen-skills-rosters.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
 
 /** Every roster file, read for real. The fixtures below mutate copies of these. */
 const REAL = Object.fromEntries(
-  SKILL_ROSTERS.map(({ file }) => [file, repoFile(file)])
+  [...SKILL_ROSTERS.map(r => r.file), ...TARGETS.map(t => t.file)].map(f => [
+    f,
+    repoFile(f),
+  ])
 );
 
 const SKILLS = await readSkillNames(
@@ -93,31 +98,69 @@ test('a skill missing from one copy is caught, and only that copy', () => {
   assert.match(v[0], /bestax-migrate/);
 });
 
-test('the message shows the line to add, not just the name', () => {
-  const gutted = REAL['skills/README.md'].replace(
-    /^npx skills add .*--skill bestax-form\n/m,
-    ''
-  );
-  const v = rosterViolations(SKILLS, withFile('skills/README.md', gutted));
-  assert.equal(v.length, 1, v.join('\n'));
-  // A contributor should be able to paste the fix rather than infer the shape.
-  assert.match(v[0], /npx skills add .*--skill bestax-form/);
+test('the generated install blocks match the committed files byte for byte', () => {
+  // The staleness half of #542: what is committed is exactly what
+  // gen-skills-rosters.mjs would write. If this fails, run `pnpm gen`.
+  assert.deepEqual(installBlockViolations(SKILLS, REAL), []);
 });
 
-test('a roster naming a skill that no longer exists is caught', () => {
-  // The other direction, which nothing else covers: sync-skills.mjs stops
-  // copying a deleted skill in silence, leaving the prose advertising it.
+test('renderInstallBlock writes one line per skill, alphabetical', () => {
+  const body = renderInstallBlock(['b-zeta', 'b-alpha'], 'sh');
+  // Deliberately NOT sorted here: sorting is readSkillNames' job, and doing
+  // it twice would hide a reader that stopped sorting.
+  assert.equal(
+    body,
+    [
+      '',
+      '```sh',
+      'npx skills add https://github.com/allxsmith/bestax --skill b-zeta',
+      'npx skills add https://github.com/allxsmith/bestax --skill b-alpha',
+      '```',
+      '',
+    ].join('\n')
+  );
+});
+
+test('a ghost skill inside a generated block reads as stale', () => {
+  // The other direction for the generated copies: a block still advertising a
+  // deleted skill differs from the generator's output, so it fails as stale
+  // and `pnpm gen` removes the line. No pattern matching involved.
   const ghosted = REAL['docs/docs/skills/intro.md'].replace(
     '--skill bestax-form',
     '--skill bestax-form\nnpx skills add x --skill bestax-ghost'
   );
-  const v = rosterViolations(
+  const v = installBlockViolations(
     SKILLS,
     withFile('docs/docs/skills/intro.md', ghosted)
   );
   assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /still names bestax-ghost/);
-  assert.match(v[0], /Drop the entry, or restore the skill/);
+  assert.match(v[0], /stale/);
+  assert.match(v[0], /pnpm gen/);
+});
+
+test('a missing marker pair is a violation, never a skip', () => {
+  // replaceRegion treats absence as an opt-out by design; these blocks are
+  // not opt-outable. A file without the pair can be neither regenerated nor
+  // checked, which is the silent-generation failure #464 documents.
+  const stripped = REAL['docs/docs/guides/llms/index.md']
+    .replace('<!-- bestax:generated skills-install -->\n\n', '')
+    .replace('\n\n<!-- /bestax:generated skills-install -->', '');
+  const v = installBlockViolations(
+    SKILLS,
+    withFile('docs/docs/guides/llms/index.md', stripped)
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /marker/);
+  assert.match(v[0], /Restore/);
+});
+
+test('an unreadable generated target fails rather than being skipped', () => {
+  const sources = { ...REAL };
+  delete sources['skills/README.md'];
+  const v = installBlockViolations(SKILLS, sources);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /skills\/README\.md/);
+  assert.match(v[0], /went unchecked/);
 });
 
 test('an unreadable roster file fails rather than being skipped', () => {
@@ -173,27 +216,6 @@ test('the scoped rosters really are scoped', () => {
   const v = rosterViolations(
     SKILLS,
     withFile('create-bestax/src/constants.ts', decoy)
-  );
-  assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /does not name bestax-icons/);
-});
-
-test('an example --skill line outside the fence does not satisfy the roster', () => {
-  // The install rosters are scoped to their fenced block precisely so a stray
-  // example cannot stand in for a missing entry. bulma-ui's README and
-  // AGENTS.md each carry exactly such an example, which is why neither is
-  // checked on its install line at all.
-  const moved = REAL['docs/docs/guides/llms/index.md']
-    .replace(/^npx skills add .*--skill bestax-icons\n/m, '')
-    .replace(
-      'Beyond the raw docs',
-      'Try `npx skills add https://github.com/allxsmith/bestax --skill bestax-icons` too.\n\nBeyond the raw docs'
-    );
-  assert.ok(moved.includes('--skill bestax-icons'), 'decoy must survive');
-
-  const v = rosterViolations(
-    SKILLS,
-    withFile('docs/docs/guides/llms/index.md', moved)
   );
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /does not name bestax-icons/);

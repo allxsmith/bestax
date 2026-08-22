@@ -27,15 +27,19 @@ examples — useful if your client speaks MCP but not skills.
 
 Add a skill to your agent with the [`skills`](https://skills.sh/) CLI:
 
+<!-- bestax:generated skills-install -->
+
 ```sh
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
-npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
-npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
+npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
+npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 ```
+
+<!-- /bestax:generated skills-install -->
 
 ## Layout
 
