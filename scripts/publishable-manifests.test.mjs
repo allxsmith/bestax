@@ -254,6 +254,32 @@ test('a flow sequence throws instead of parsing as nothing', () => {
   );
 });
 
+test('a quoted scalar hiding a comment throws instead of misparsing', () => {
+  // `- "docs # archive"` is one scalar in YAML, but the comment strip cannot
+  // know it is inside quotes; it used to come back as `docs` — the wrong
+  // directory, inspected with confidence. The unbalanced quote it leaves
+  // behind is the fingerprint the parser now throws on.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - "docs # archive"\n'),
+    /mixes quotes and comments/
+  );
+});
+
+test('an unreadable sequence entry throws instead of truncating', () => {
+  // `- &core bulma-ui` is valid YAML this parser cannot read. Breaking there
+  // would silently drop the entry AND everything after it — the fail-open
+  // truncation #438 exists to end — so any dash line that fails the match
+  // throws, and only a dedented line ends the block.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - &core bulma-ui\n  - docs\n'),
+    /cannot parse the entry/
+  );
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - "foo bar"\n'),
+    /cannot parse the entry/
+  );
+});
+
 test('quotes, blank lines, and comment lines still parse as before', () => {
   assert.deepEqual(
     parseWorkspacePackages(

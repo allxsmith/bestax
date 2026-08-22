@@ -1475,6 +1475,17 @@ export function parseWorkspacePackages(yaml) {
     // comment.
     const item = line.replace(/\s#.*$/, '').match(/^\s+-\s*(\S+)\s*$/);
     if (item) {
+      // ` #` inside a QUOTED scalar is data, and the strip above cannot know
+      // that. It leaves an unbalanced quote behind (`- "docs # archive"`
+      // becomes `"docs`), which used to be silently returned as `docs` — the
+      // wrong directory, inspected with confidence. An odd quote count is
+      // that mutilation's fingerprint, so it throws instead.
+      if ((item[1].split('"').length + item[1].split("'").length) % 2 === 1) {
+        throw new Error(
+          `pnpm-workspace.yaml: ${line.trim()} mixes quotes and comments in ` +
+            'a way this parser cannot represent. Use a bare directory name.'
+        );
+      }
       const entry = item[1].replace(/^['"]|['"]$/g, '');
       if (/[*?[\]]/.test(entry)) {
         // A glob is a real pnpm feature this repo deliberately does not use:
@@ -1488,6 +1499,16 @@ export function parseWorkspacePackages(yaml) {
         );
       }
       dirs.push(entry);
+    } else if (/^\s+-/.test(line)) {
+      // A sequence entry this parser cannot read (`- &anchor x`, a quoted
+      // scalar with spaces). Breaking here would keep the fail-open truncation
+      // this change exists to end: everything after the odd entry silently
+      // vanishes from every check. The block ends only at a dedented line.
+      throw new Error(
+        `pnpm-workspace.yaml: cannot parse the entry ${line.trim()}. ` +
+          'parseWorkspacePackages reads plain (optionally quoted) directory ' +
+          'names only.'
+      );
     } else if (line.trim() && !line.trimStart().startsWith('#')) break;
   }
   return dirs;
