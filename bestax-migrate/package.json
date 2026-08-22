@@ -50,7 +50,7 @@
     "url": "https://github.com/allxsmith/bestax/issues"
   },
   "dependencies": {
-    "@babel/parser": "^7.26.0",
+    "@babel/parser": "^7.29.8",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
     "jscodeshift": "^17.3.0"
