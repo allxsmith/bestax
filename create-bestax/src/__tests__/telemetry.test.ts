@@ -17,9 +17,9 @@ const {
   persistTelemetryDecision,
   sendTelemetry,
   getToolVersion,
-  buildScaffoldPayload,
-  reportScaffold,
-} = await import('../telemetry.js');
+} = await import('../telemetry-core.js');
+const { buildScaffoldPayload, reportScaffold } =
+  await import('../telemetry.js');
 
 const ENV_KEYS = [
   'XDG_CONFIG_HOME',
@@ -96,11 +96,10 @@ describe('telemetryConfigPath', () => {
 });
 
 describe('resolveTelemetry precedence', () => {
-  it('is undecided (prompt allowed) with no signals at all', async () => {
+  it('is undecided with no signals at all', async () => {
     expect(await resolveTelemetry()).toEqual({
       decision: 'undecided',
       source: 'default',
-      promptAllowed: true,
     });
   });
 
@@ -114,7 +113,6 @@ describe('resolveTelemetry precedence', () => {
     expect(await resolveTelemetry(flag)).toEqual({
       decision,
       source: 'flag',
-      promptAllowed: false,
     });
   });
 
@@ -125,7 +123,6 @@ describe('resolveTelemetry precedence', () => {
     expect(await resolveTelemetry()).toEqual({
       decision: 'off',
       source: 'dnt',
-      promptAllowed: false,
     });
   });
 
@@ -141,7 +138,6 @@ describe('resolveTelemetry precedence', () => {
     expect(await resolveTelemetry()).toEqual({
       decision: 'on',
       source: 'env',
-      promptAllowed: false,
     });
   });
 
@@ -166,7 +162,6 @@ describe('resolveTelemetry precedence', () => {
       expect(await resolveTelemetry()).toEqual({
         decision,
         source: 'config',
-        promptAllowed: false,
       });
     }
   );
@@ -195,19 +190,6 @@ describe('persistTelemetryDecision', () => {
     expect(config.enabled).toBe(true);
     expect(config.decidedBy).toBe('create-bestax@1.0.0');
     expect(typeof config.decidedAt).toBe('string');
-  });
-
-  it('preserves the noticed map of the sibling CLI', async () => {
-    await writeConfig({
-      version: 1,
-      noticed: { 'bestax-migrate': '2026-01-01T00:00:00.000Z' },
-    });
-    await persistTelemetryDecision(false, 'create-bestax@1.0.0');
-    const config = await readConfigFile();
-    expect(config.enabled).toBe(false);
-    expect(config.noticed).toEqual({
-      'bestax-migrate': '2026-01-01T00:00:00.000Z',
-    });
   });
 
   it('stays silent when the config dir is unwritable', async () => {

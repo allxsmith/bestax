@@ -105,8 +105,8 @@ export function createCLI(): Command {
     )
     .option('--no-telemetry', 'disable anonymous usage telemetry')
     .option('-y, --yes', 'skip prompts and use defaults or provided options')
-    .action((projectDir?: string, options?: unknown) => {
-      projectCreator.create(projectDir, options as CLIOptions);
+    .action(async (projectDir?: string, options?: unknown) => {
+      await projectCreator.create(projectDir, options as CLIOptions);
     });
 
   return program;
@@ -116,13 +116,13 @@ export function isMainModule(importMetaUrl: string, argv1: string): boolean {
   return importMetaUrl === `file://${argv1}`;
 }
 
-export function runCLI(): void {
+export async function runCLI(): Promise<void> {
   const program = createCLI();
-  program.parse();
+  await program.parseAsync();
 }
 
 // Only run if this is the main module
 /* istanbul ignore next */
 if (isMainModule(import.meta.url, process.argv[1])) {
-  runCLI();
+  await runCLI();
 }
