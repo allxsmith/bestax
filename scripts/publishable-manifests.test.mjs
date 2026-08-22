@@ -23,6 +23,7 @@ import {
   hookScripts,
   manifestViolations,
   parseWorkspacePackages,
+  siblingViolations,
 } from './check-conformance.mjs';
 import {
   execOptions,
@@ -618,4 +619,99 @@ test('an unresolvable protocol in devDependencies is explained honestly', () => 
   assert.match(v, /consumers do not resolve devDependencies/);
   assert.doesNotMatch(v, /no consumer can resolve it/);
   assert.doesNotMatch(v, /plain semver range/);
+});
+
+// --- the sibling-at-runtime rule (#537) --------------------------------------
+//
+// Driven with an explicit name set because the rule is pure and the real set
+// is derived inside the async walk. No published package carries a sibling in
+// a consumer section today, so none of these branches executes on the real
+// tree — the same seam rationale as everything above.
+
+const SIBLINGS = new Set([
+  '@allxsmith/bestax-bulma',
+  'create-bestax',
+  'bestax-migrate',
+  'bestax-mcp',
+]);
+
+test('a plain-semver sibling in dependencies is flagged, whatever the range', () => {
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-bulma': '^5' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /consumers of bestax-migrate/);
+  assert.match(v[0], /#537/);
+});
+
+test('an optionalDependencies sibling is flagged the same way', () => {
+  const v = siblingViolations(
+    'bestax-mcp',
+    { name: 'bestax-mcp', optionalDependencies: { 'create-bestax': '^4' } },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1);
+});
+
+test('a peer sibling is outside this rule, deliberately', () => {
+  // A departure from the protocol rule, which does fire on a workspace: peer:
+  // peers are the one section where "consumers install this" is the intended
+  // semantic. The protocol rule still polices HOW a peer is spelled.
+  assert.deepEqual(
+    siblingViolations(
+      'bulma-ui',
+      {
+        name: '@allxsmith/bestax-bulma',
+        peerDependencies: { 'bestax-mcp': '^1' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a devDependencies sibling stays legal — it reaches no consumer', () => {
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      {
+        name: 'bestax-migrate',
+        devDependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a private package may depend on any sibling it likes', () => {
+  // docs really does dep the library; nobody installs docs from a registry.
+  assert.deepEqual(
+    siblingViolations(
+      'docs',
+      {
+        name: '@allxsmith/bestax-docs',
+        private: true,
+        dependencies: { '@allxsmith/bestax-bulma': 'workspace:*' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test("a non-sibling dependency is still nobody's business", () => {
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      { name: 'bestax-migrate', dependencies: { bulma: '^1.0.4' } },
+      SIBLINGS
+    ),
+    []
+  );
 });
