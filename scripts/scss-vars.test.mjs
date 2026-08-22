@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { componentVars } from './lib/scss-vars.mjs';
+import { componentVars, registerVarsEntries } from './lib/scss-vars.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -122,4 +122,16 @@ test('modifier compounds stay dedupe-neutral on the real partials', () => {
   ]) {
     assert.equal(componentVars(repoFile(file), root).length, count, file);
   }
+});
+
+test('the singular register-var form counts as registering (orphan rule input)', () => {
+  // The orphan rule asks "does this partial register anything?" through
+  // registerVarsEntries, not registerVarsKeys — the latter reads only the
+  // plural form, and Bulma's own sources use the singular. A repo partial
+  // written that way must not bypass the rule with zero keys.
+  const src = `.#{iv.$class-prefix}foo {
+  @include cv.register-var("foo-gap", 1rem);
+}
+`;
+  assert.equal(registerVarsEntries(src).length, 1);
 });

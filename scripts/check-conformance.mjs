@@ -57,7 +57,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // parser — it additionally exposes values and selector nesting, which the CSS
 // variable tables need. Key extraction is byte-for-byte the behaviour this file
 // used to implement inline (verified against all 26 partials).
-import { registerVarsKeys } from './lib/scss-vars.mjs';
+import { registerVarsKeys, registerVarsEntries } from './lib/scss-vars.mjs';
 // The inverse of the quoting bestax-migrate/release.config.js uses to build its
 // exec commands. Shared so the two halves cannot drift (#436).
 import { tokenize } from './lib/shell-words.mjs';
@@ -551,10 +551,14 @@ async function checkScssConformance() {
       const partialName = f.replace(/^_/, '').replace(/\.scss$/, '');
 
       // 0. Registered variables must reach an API page (#464).
+      // registerVarsEntries, not registerVarsKeys: the latter reads only the
+      // plural `register-vars((…))` form, and a partial using the singular
+      // `register-var(k, v)` — which Bulma's own sources do — would bypass
+      // this rule with zero keys while registering real variables.
       violations.push(
         ...orphanPartialViolations(
           rel,
-          registerVarsKeys(src).size > 0,
+          registerVarsEntries(src).length > 0,
           claimedPaths
         )
       );
