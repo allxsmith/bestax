@@ -61,8 +61,8 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (bulma-ui + create-bestax)
-pnpm run test:coverage  # coverage (must stay >= 95%)
+pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -133,8 +133,9 @@ Runs the real commit analysis and next-version calc, but publishes nothing:
 
 ```bash
 export GITHUB_TOKEN=your_token   # the github plugin needs a repo-read token even in dry-run
-cd bulma-ui      && pnpm exec semantic-release --dry-run --no-ci ; cd ..
-cd create-bestax && pnpm exec semantic-release --dry-run --no-ci ; cd ..
+for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do
+  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )
+done
 ```
 
 It prints "The next release version is X.Y.Z" per package (or "no release") from your local commits —
@@ -144,25 +145,33 @@ no `npm publish`, no tag, no GitHub release.
 Everything above is safe. The only things that actually publish are `pnpm exec semantic-release`
 **without** `--dry-run` (CI-only, on merge to `main`) and a manual
 `pnpm publish --provenance --embed-readme --access public` — neither of which is in this list.
-Those flags are not optional: pnpm defaults `embed-readme` to false and ignores
-`publishConfig.provenance`, which no package carries, so a bare `pnpm publish` ships unattested
-and loses the npm page's README. Every package publishes with `pnpm publish`, and each one's
-`prepack` and `prepublishOnly` hooks refuse the publishers they recognise as not being pnpm, so a
-stray `npm publish` or `npm pack` exits with an explanation rather than producing an
-unresolved `workspace:` specifier (#412). Both hooks are skipped by `--ignore-scripts`, and neither travels with a
-tarball that was packed elsewhere.
+Those flags are not optional, and a bare `pnpm publish` ships unattested and loses the npm
+page's README.
+
+You are unlikely to need a manual publish at all. Every package's `prepack` and
+`prepublishOnly` hooks refuse publishers they recognise as not being pnpm, so a stray
+`npm publish` or `npm pack` exits with an explanation rather than producing an unresolved
+`workspace:` specifier (#412) — though `--ignore-scripts` skips both, and neither travels with a
+tarball packed elsewhere. Why each flag matters and what the guard does and does not cover:
+[`VERSIONING.md`](https://github.com/allxsmith/bestax/blob/main/VERSIONING.md#release-process)
+and `scripts/require-pnpm-publish.mjs`.
 :::
 
 ## Workflow & conventions
 
-1. Branch off `main`, make your change in the right workspace (`bulma-ui`, `create-bestax`, or `docs`).
-2. Add/update tests (≥ 95% coverage) and Storybook stories for UI changes.
+1. Branch off `main`, make your change in the right workspace (`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp`).
+2. Add/update tests (bulma-ui holds 99% coverage; every other jest package 95%, 78% branches) and Storybook stories for UI changes.
 3. Run `pnpm all`, then open a PR targeting `main`.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) — the type and scope
 drive [semantic-release](https://semantic-release.gitbook.io/). Releasing types (`feat`, `fix`,
-`perf`, `refactor`, `style`) must be scoped to `bulma-ui` or `create-bestax`; `docs`, `chore`, `ci`,
-`build`, and `test` don't publish. Publishing uses npm **OIDC trusted publishing** with **provenance**
+`perf`, `refactor`, `style`, `revert`) must carry one of the scopes in `RELEASE_SCOPES`
+(`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`); `docs`, `chore`, `ci`,
+`build`, and `test` don't publish — note `docs` is both a valid scope and a non-releasing
+type, so `docs(bulma-ui):` and `docs:` alike publish nothing. `revert` is release-triggering because commit-analyzer
+patch-releases reverts by default, so an unscoped one would bump every package — though
+commitlint's default ignores skip git's own `Revert "…"` form, so scoping that one is a
+convention the hook cannot enforce. Publishing uses npm **OIDC trusted publishing** with **provenance**
 (no long-lived token). See [`CONTRIBUTING.md`](https://github.com/allxsmith/bestax/blob/main/CONTRIBUTING.md)
 for the full details.
 

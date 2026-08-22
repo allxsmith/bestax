@@ -84,7 +84,7 @@ test that stubs it proves nothing about what ships.
 Independent semantic-release keyed off the `bestax-mcp` commit scope
 (`release.config.js`, tag `bestax-mcp@x.y.z`). It publishes with
 `pnpm publish`, like every package here (#532) — the command, its flags, and the
-three ways that publish fails quietly are documented in `VERSIONING.md` and
+ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
 
 Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills

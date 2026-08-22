@@ -67,7 +67,7 @@ Independent semantic-release, keyed off the `bestax-migrate` commit scope
 **Publishing is shared, and this package is why it looks the way it does.**
 Every package here publishes with `pnpm publish` rather than `npm publish`
 (#436, then #532), through the plugin pair in `scripts/lib/pnpm-publish.mjs`.
-The mechanism and its three quiet failure modes are documented once in
+The mechanism and the ways it fails quietly are documented once in
 `VERSIONING.md` and in that helper. The `prepack` / `prepublishOnly` guard is
 documented in `scripts/require-pnpm-publish.mjs`, and that header is worth
 reading before touching it: why it keys on `npm_execpath` rather than the

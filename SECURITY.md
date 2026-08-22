@@ -43,16 +43,17 @@ Measures active in this repository and its release pipeline:
   reviewed lockfile resolves. (The React 18/19 compatibility matrix is the
   one deliberate exception: it re-resolves to pin the requested React major
   for testing, and never publishes.)
-- **npm provenance** — every release carries a signed attestation linking the
-  tarball to the exact commit and CI run that built it. Releases come from CI
-  and nowhere else, which is what backs that claim: every package publishes
-  with `pnpm publish`, which does not read `publishConfig.provenance`, so the
-  `--provenance` flag CI passes is the only thing turning it on. A hand publish
-  that omitted it would ship unattested, which is why the `prepublishOnly`
-  guard prints the flags before letting one through.
-  No package carries a `publishConfig.provenance` at all — having one there
-  would imply the flag was redundant, and dropping the flag is the quiet way to
-  lose attestations entirely (#436, #532).
+- **npm provenance** — every release now carries a signed attestation linking
+  the tarball to the exact commit and CI run that built it (versions older than
+  the currently supported lines predate it). Releases come from CI
+  and nowhere else, which is what backs that claim. No package carries a
+  `publishConfig.provenance` — having one would imply the flag was redundant,
+  and dropping the flag is the quiet way to lose attestations entirely. The
+  `prepack`/`prepublishOnly` guards refuse packers they recognise as not being
+  pnpm. They do not refuse a hand-run `pnpm publish` that omits the flag; the
+  `prepublishOnly` hook warns about it instead, and only outside CI, so that
+  inspecting a tarball with `pnpm pack` stays quiet. Why it works that way is in
+  [`VERSIONING.md`](./VERSIONING.md#release-process).
 - **Licence text comes from the workspace root** — no package carries its own
   `LICENSE` file, and `pnpm publish` copies the root one into every tarball.
   npm did not, so releases before #532 shipped none. It is the right file

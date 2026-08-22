@@ -28,8 +28,9 @@ Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
   - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
-    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)), **create-bestax 95%**
-    (78% branches, [`create-bestax/jest.config.mjs`](./create-bestax/jest.config.mjs))
+    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other jest
+    package** 95% (78% branches), each in its own config. `docs` runs
+    `node --test` and has no coverage threshold
 - **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
 - **Type checks pass** (`pnpm typecheck`)
 - **Storybook runs and covers UI changes** (`pnpm storybook`)
@@ -174,8 +175,8 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest (bulma-ui + create-bestax)
-pnpm run test:coverage  # coverage (bulma-ui: 99%; create-bestax: 95%, 78% branches)
+pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -246,8 +247,9 @@ Runs the real commit analysis + next-version calc, but publishes nothing:
 
 ```bash
 export GITHUB_TOKEN=<a token with repo read>   # the github plugin needs it even in dry-run
-cd bulma-ui      && pnpm exec semantic-release --dry-run --no-ci ; cd ..
-cd create-bestax && pnpm exec semantic-release --dry-run --no-ci ; cd ..
+for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do
+  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )
+done
 ```
 
 It prints "The next release version is X.Y.Z" per package (or "no release") from your local commits —
@@ -255,14 +257,16 @@ no `npm publish`, no tag, no GitHub release.
 
 > **Safe to run; never publishes:** everything above. The only things that actually publish are
 > `pnpm exec semantic-release` **without** `--dry-run` (CI-only, on merge to `main`) and a manual
-> `pnpm publish --provenance --embed-readme --access public` — neither of which is in this
-> list. Those flags are not optional: pnpm defaults `embed-readme` to false and ignores
-> `publishConfig.provenance`, which no package carries, so a bare `pnpm publish` ships
-> unattested and loses the npm page's README. Every package publishes with `pnpm publish`,
-> and each one's `prepack` and `prepublishOnly` hooks refuse the publishers they recognise as not
-> being pnpm, so a stray `npm publish` or `npm pack` exits with an explanation rather than
-> shipping an unresolved specifier (#412). Both hooks are skipped by `--ignore-scripts`, and
-> neither travels with a tarball that was packed elsewhere.
+> `pnpm publish --provenance --embed-readme --access public` — neither of which is in this list.
+> Those flags are not optional, and a bare `pnpm publish` ships unattested and loses the npm
+> page's README.
+>
+> You are unlikely to need a manual publish at all. Every package's `prepack` and
+> `prepublishOnly` hooks refuse publishers they recognise as not being pnpm, so a stray
+> `npm publish` or `npm pack` exits with an explanation rather than shipping an unresolved
+> specifier (#412) — though `--ignore-scripts` skips both, and neither travels with a tarball
+> packed elsewhere. Why each flag matters and what the guard does and does not cover:
+> [`VERSIONING.md`](./VERSIONING.md#release-process) and `scripts/require-pnpm-publish.mjs`.
 
 ---
 
@@ -278,7 +282,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
-5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% for create-bestax).
+5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% with 78% branches for every other jest package).
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
@@ -326,7 +330,7 @@ The short version for contributors:
 
 ## Semantic Release & Publishing
 
-We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of both packages to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) and [`create-bestax`](https://www.npmjs.com/package/create-bestax).
+We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of every package to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma), plus [`create-bestax`](https://www.npmjs.com/package/create-bestax), [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate) and [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp).
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases — see [Commit Message Guidelines](#commit-message-guidelines).
 - **Packages version and release independently, keyed off the commit scope** — `feat(bulma-ui)` releases only bestax-bulma. See [`VERSIONING.md`](./VERSIONING.md).
@@ -338,19 +342,19 @@ Publishing authenticates with npm via [OIDC trusted publishing](https://docs.npm
 
 For this to work, each published package must have a trusted publisher configured **once** on npmjs.com (Package → Settings → Trusted Publisher):
 
-- Packages: `@allxsmith/bestax-bulma` and `create-bestax`
+- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp` — every publishable package, and a missing entry fails the publish _after_ the release commit and tag are pushed
 - Provider: **GitHub Actions**
 - Repository: `allxsmith/bestax`
 - Workflow: `ci.yml`
 
-The CI `publish` job grants `id-token: write` and upgrades npm to a version that supports OIDC.
+The CI `publish` job grants `id-token: write`. It no longer pins an npm version: that pin existed because `npm publish` needed npm >= 11.5.1 for OIDC, and since #532 every package publishes with `pnpm publish`, which carries its own OIDC exchange.
 
 ---
 
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%, create-bestax 95%).
+- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; every other jest package 95%, 78% branches). `docs` has no jest suite and no threshold.
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).
@@ -364,9 +368,17 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
 
 - **Format:** `<type>(<scope>): <subject>` — imperative subject, blank line, then an optional
   body with bullet points and context.
-- **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, or `style`
-  **must** use a scope of `bulma-ui`, `docs`, or `create-bestax` (repo-specific commitlint
-  rule — the scope decides which package releases, see [`VERSIONING.md`](./VERSIONING.md)).
+- **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, `style`
+  or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`
+  or `bestax-mcp` (repo-specific commitlint rule — the scope decides which package releases,
+  see [`VERSIONING.md`](./VERSIONING.md)). `revert` is in that list because
+  commit-analyzer ships `{ revert: true, release: 'patch' }`, so an unscoped revert would
+  match no package's negated-scope suppression and patch-release **all** of them. Note the
+  residual, which `commitlint.config.js` records: that rule fires on the parser's
+  `revertPattern` — git's own `Revert "…"` form — and commitlint's default `ignores` skip
+  those messages entirely, so scoping is a convention here rather than something the hook
+  can enforce. Keep reverts conventional and scoped. `RELEASE_TYPES` and `RELEASE_SCOPES`
+  in `commitlint.config.js` are the source of truth.
 - **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
   **not** picked up by our release tooling.
 - Non-releasing types (`docs`, `chore`, `ci`, `test`, `build`) may omit the scope.
