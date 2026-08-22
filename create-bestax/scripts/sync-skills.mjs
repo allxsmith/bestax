@@ -36,6 +36,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'fs-extra';
 
+import { readSkillNames, rosterDiff } from '../../scripts/lib/skill-dirs.mjs';
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(here, '..');
 const skillsSrc = path.resolve(pkgRoot, '..', 'skills');
@@ -46,18 +48,11 @@ if (!fs.existsSync(skillsSrc)) {
   process.exit(1);
 }
 
-// A directory with a SKILL.md is a skill. That predicate is what excludes
-// `skills/README.md` and `skills/CLAUDE.md` without naming them, so a new
-// non-skill file at that level does not become a phantom skill. Sorted so the
-// copy order — and the count in the success line — is deterministic.
-const skills = (await fs.readdir(skillsSrc, { withFileTypes: true }))
-  .filter(
-    entry =>
-      entry.isDirectory() &&
-      fs.existsSync(path.join(skillsSrc, entry.name, 'SKILL.md'))
-  )
-  .map(entry => entry.name)
-  .sort();
+// A directory with a SKILL.md is a skill — the predicate lives in the shared
+// lib so this bundler, bestax-mcp's, the MCP index generator and the
+// conformance check all ask the same question (a local isDirectory() filter
+// here silently dropped symlinked skills the allowlist-era code shipped).
+const skills = await readSkillNames(skillsSrc);
 
 // Checked BEFORE emptying the destination, which the hardcoded version did not
 // have to think about. Reading a roster off disk means a wrong path or a
@@ -68,10 +63,62 @@ if (!skills.length) {
   process.exit(1);
 }
 
+// The guard the deleted allowlist provided by accident of being hardcoded:
+// it exited 1 when a listed skill was missing and could never ship unlisted
+// content. Discovery ships whatever is on disk, so a partial checkout would
+// ship a silent subset and a scratch directory would ship unreviewed — with
+// only a different count in the success line. The committed, gen:mcp:check-
+// gated skills.json is the derived authority the allowlist never was: any
+// diff between it and the tree fails the pack loudly, before a tarball
+// exists. (This runs on prepack, a path CI's conformance check does not
+// cover — a manual `pnpm pack`/publish is exactly where it matters.)
+const authorityFile = path.resolve(
+  pkgRoot,
+  '..',
+  'bestax-mcp',
+  'data',
+  'skills.json'
+);
+let authority;
+try {
+  authority = JSON.parse(fs.readFileSync(authorityFile, 'utf8')).skills.map(
+    s => s.dir
+  );
+} catch {
+  console.error(
+    `[sync-skills] cannot read ${authorityFile} — the committed skill ` +
+      'roster is the pack-time authority. Run `pnpm gen:mcp`.'
+  );
+  process.exit(1);
+}
+const { missing, extra } = rosterDiff(skills, authority);
+if (missing.length || extra.length) {
+  if (missing.length) {
+    console.error(
+      `[sync-skills] skills/ is missing ${missing.join(', ')} — the ` +
+        'committed roster (bestax-mcp/data/skills.json) says they exist. ' +
+        'Restore them, or run `pnpm gen:mcp` if they were removed on purpose.'
+    );
+  }
+  if (extra.length) {
+    console.error(
+      `[sync-skills] skills/ contains ${extra.join(', ')}, which the ` +
+        'committed roster does not know. Run `pnpm gen` to review and ' +
+        'commit the roster change before anything bundles it.'
+    );
+  }
+  process.exit(1);
+}
+
 await fs.emptyDir(skillsDest);
 
 for (const name of skills) {
-  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name));
+  // dereference: discovery admits a symlinked skill, and copying the LINK
+  // would ship a tarball entry pointing back into a checkout that consumers
+  // do not have. The bundle must contain the target's bytes.
+  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name), {
+    dereference: true,
+  });
 }
 
 console.log(`[sync-skills] copied ${skills.length} skills -> templates/skills`);

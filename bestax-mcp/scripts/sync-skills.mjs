@@ -42,6 +42,7 @@ import { existsSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import path from 'node:path';
+import { readSkillNames, rosterDiff } from '../../scripts/lib/skill-dirs.mjs';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -68,16 +69,48 @@ if (!existsSync(skillsSrc)) {
   process.exit(1);
 }
 
-const names = (await readdir(skillsSrc, { withFileTypes: true }))
-  .filter(
-    e => e.isDirectory() && existsSync(path.join(skillsSrc, e.name, 'SKILL.md'))
-  )
-  .map(e => e.name)
-  .sort();
+// The predicate is the shared one — see scripts/lib/skill-dirs.mjs for why
+// four private copies were worse (symlinks, dot-dirs, collation).
+const names = await readSkillNames(skillsSrc);
 
 if (!names.length) {
   console.error(`[sync-skills] no skills found in ${skillsSrc}`);
   process.exit(1);
+}
+
+// Same pack-time guard as create-bestax's bundler: the committed,
+// gen:mcp:check-gated manifest is the authority, and any diff between it and
+// the tree fails loudly before a tarball can ship a silent subset (or an
+// unreviewed extra). rosterDiff lives in the shared lib.
+{
+  const manifestFile = path.join(pkgRoot, 'data', 'skills.json');
+  let authority;
+  try {
+    authority = JSON.parse(await readFile(manifestFile, 'utf8')).skills.map(
+      s => s.dir
+    );
+  } catch {
+    console.error(
+      `[sync-skills] cannot read ${manifestFile}. Run \`pnpm gen:mcp\`.`
+    );
+    process.exit(1);
+  }
+  const { missing, extra } = rosterDiff(names, authority);
+  if (missing.length || extra.length) {
+    for (const [set, verb] of [
+      [missing, 'is missing'],
+      [extra, 'contains unrostered'],
+    ]) {
+      if (set.length) {
+        console.error(
+          `[sync-skills] skills/ ${verb} ${set.join(', ')} relative to the ` +
+            'committed data/skills.json. Run `pnpm gen:mcp` to review and ' +
+            'commit the roster change.'
+        );
+      }
+    }
+    process.exit(1);
+  }
 }
 
 // Hash of every source path and its bytes. Content rather than mtime on
@@ -205,6 +238,9 @@ try {
     for (const name of names) {
       await cp(path.join(skillsSrc, name), path.join(skillsDest, name), {
         recursive: true,
+        // Same reason as create-bestax's bundler: a symlinked skill must ship
+        // its target's bytes, not a link into a checkout nobody else has.
+        dereference: true,
       });
     }
     // Stamped last: a run killed mid-copy leaves no stamp, so the next caller

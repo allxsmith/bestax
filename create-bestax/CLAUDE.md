@@ -25,9 +25,11 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
   bundles; #385 settled only `bestax-migrate`'s case and kept the per-skill rule, so dropping
   that rule is #540's decision, taken on #385's reasoning. What is _not_ derivable is the
   prose rosters, this package's `CLAUDE_MD` roster in `src/constants.ts` among them. The
-  `skills-roster` conformance check holds every one of them to the directory in both directions;
-  `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list, and its failure
-  names each file you missed. **Never edit the bundled copy** — change `skills/` at the repo
+  `skills-roster` conformance check holds the rosters listed in `SKILL_ROSTERS`
+  (`scripts/check-conformance.mjs`) to the directory in both directions, and its failure names
+  each file you missed — but the list has deliberate exclusions (the docs intro's bullet
+  roster keys off page slugs, not skill names), so read `skills/CLAUDE.md` for what stays
+  yours to remember. **Never edit the bundled copy** — change `skills/` at the repo
   root; the build re-syncs.
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check

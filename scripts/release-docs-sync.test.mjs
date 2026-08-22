@@ -15,6 +15,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -455,4 +458,122 @@ test('an empty package list is refused, not silently satisfied', () => {
   const v = releaseDocViolations(docs(), []);
   assert.equal(v.length, 1);
   assert.match(v[0], /No publishable packages were found/);
+});
+
+// --- hardening round (#544 review) -------------------------------------------
+
+test('a backslash-wrapped for-loop list is read in full', () => {
+  // recipeTargets stopped at the first newline, so names wrapped onto the
+  // continuation line were falsely reported missing from the recipe.
+  const wrapped =
+    '```bash\nfor pkg in bulma-ui create-bestax \\\n' +
+    '  bestax-migrate bestax-mcp; do\n' +
+    '  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ contributing: doc({ recipe: wrapped }) }),
+      PACKAGES
+    ),
+    []
+  );
+});
+
+test('an example fence butted above the recipe does not merge into it', () => {
+  // fenceMask marks delimiter lines true, so two butted fences formed one
+  // block — and an example loop naming all four dirs then masked a real
+  // omission in the recipe below it (fail-open), while a partial example
+  // produced false missing-package reds (false positive).
+  const butted =
+    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n```\n' +
+    recipe(['bulma-ui']); // the REAL recipe omits three packages
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: butted }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the omission must not be masked by the example');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('a fence butted under the Packages bullet does not extend it', () => {
+  // The continuation scan stopped at blank lines and bullets only, so a
+  // fenced example with no blank line above it was swept into the bullet
+  // text and its tokens counted as trusted publishers.
+  const swept =
+    publishers(PACKAGES.slice(0, 3).map(p => p.name)) +
+    '\n```bash\nnpm owner ls bestax-mcp\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: swept }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the fenced mention must not stand in for the list');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('an earlier trusted-publishing heading does not steal the anchor', () => {
+  // First-match anchoring meant a new earlier heading captured the search
+  // and produced a false "no Packages line" while the real section was fine.
+  const decoy =
+    '## Why trusted publishing?\n\nBecause tokens leak.\n\n' + doc();
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: decoy }), PACKAGES),
+    []
+  );
+});
+
+test('a manifest that parses to null is unreadable, not a crash', async () => {
+  // JSON.parse succeeds on the literal `null` — a truncated-write artifact —
+  // and dereferencing it threw a TypeError past the runner's loop, aborting
+  // every remaining conformance check instead of reporting the one broken
+  // package through the violation written for exactly this case.
+  const root = await mkdtemp(join(tmpdir(), 'null-manifest-'));
+  try {
+    await writeFile(
+      join(root, 'pnpm-workspace.yaml'),
+      'packages:\n  - good\n  - broken\n'
+    );
+    await mkdir(join(root, 'good'));
+    await writeFile(
+      join(root, 'good', 'package.json'),
+      '{"name": "good", "private": false}'
+    );
+    await mkdir(join(root, 'broken'));
+    await writeFile(join(root, 'broken', 'package.json'), 'null');
+    const { packages, unreadable } = await publishablePackages(root);
+    assert.deepEqual(packages, [{ dir: 'good', name: 'good' }]);
+    assert.deepEqual(unreadable, ['broken']);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('a preliminary loop cannot cover for the release loop', () => {
+  // Union-of-all-loops was fail-open: an echo loop over every package let a
+  // release loop covering only one pass the presence check. Only loops whose
+  // body invokes the dry run contribute.
+  const twoLoops =
+    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n' +
+    'for pkg in bulma-ui; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: twoLoops }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the echo loop must not mask the omission');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('an array manifest is unreadable, not silently absent', async () => {
+  // `[]` parses, passes typeof object, has no name — the package vanished
+  // from the list with no violation, the same outcome as the null crash by a
+  // quieter road.
+  const root = await mkdtemp(join(tmpdir(), 'array-manifest-'));
+  try {
+    await writeFile(join(root, 'pnpm-workspace.yaml'), 'packages:\n  - arr\n');
+    await mkdir(join(root, 'arr'));
+    await writeFile(join(root, 'arr', 'package.json'), '[]');
+    const { packages, unreadable } = await publishablePackages(root);
+    assert.deepEqual(packages, []);
+    assert.deepEqual(unreadable, ['arr']);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

@@ -168,10 +168,12 @@ drive [semantic-release](https://semantic-release.gitbook.io/). Releasing types 
 `perf`, `refactor`, `style`, `revert`) must carry one of the scopes in `RELEASE_SCOPES`
 (`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`); `docs`, `chore`, `ci`,
 `build`, and `test` don't publish — note `docs` is both a valid scope and a non-releasing
-type, so `docs(bulma-ui):` and `docs:` alike publish nothing. `revert` is release-triggering because commit-analyzer
-patch-releases reverts by default, so an unscoped one would bump every package — though
-commitlint's default ignores skip git's own `Revert "…"` form, so scoping that one is a
-convention the hook cannot enforce. Publishing uses npm **OIDC trusted publishing** with **provenance**
+type, so `docs(bulma-ui):` and `docs:` alike publish nothing. A scoped `revert(scope):`
+commit releases **nothing** — the only revert rule is commit-analyzer's default, and it keys
+on the parser detecting git's `Revert "…"` shape, which a scoped header never matches; ship a
+rollback with a follow-up `fix(scope):` commit. Git's own `Revert "…"` form is the opposite
+hazard: commitlint's default ignore rules let it through unexamined, and its generated body trips the
+default revert rule with no scope to confine it, so it would patch-release every package. Publishing uses npm **OIDC trusted publishing** with **provenance**
 (no long-lived token). See [`CONTRIBUTING.md`](https://github.com/allxsmith/bestax/blob/main/CONTRIBUTING.md)
 for the full details.
 
