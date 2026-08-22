@@ -35,6 +35,10 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'fs-extra';
+import {
+  readSkillNames,
+  untrackedSkillDirs,
+} from '../../scripts/lib/skills.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(here, '..');
@@ -46,18 +50,13 @@ if (!fs.existsSync(skillsSrc)) {
   process.exit(1);
 }
 
-// A directory with a SKILL.md is a skill. That predicate is what excludes
-// `skills/README.md` and `skills/CLAUDE.md` without naming them, so a new
-// non-skill file at that level does not become a phantom skill. Sorted so the
-// copy order — and the count in the success line — is deterministic.
-const skills = (await fs.readdir(skillsSrc, { withFileTypes: true }))
-  .filter(
-    entry =>
-      entry.isDirectory() &&
-      fs.existsSync(path.join(skillsSrc, entry.name, 'SKILL.md'))
-  )
-  .map(entry => entry.name)
-  .sort();
+// A directory with a SKILL.md is a skill — the predicate lives once in
+// scripts/lib/skills.mjs, shared with bestax-mcp's sync, gen-mcp-index and
+// check-conformance, so the four consumers cannot drift. It is what excludes
+// `skills/README.md` and `skills/CLAUDE.md` without naming them, and the list
+// comes back sorted so the copy order — and the count in the success line —
+// is deterministic.
+const skills = await readSkillNames(skillsSrc);
 
 // Checked BEFORE emptying the destination, which the hardcoded version did not
 // have to think about. Reading a roster off disk means a wrong path or a
@@ -65,6 +64,20 @@ const skills = (await fs.readdir(skillsSrc, { withFileTypes: true }))
 // first would ship an empty bundle rather than failing.
 if (!skills.length) {
   console.error(`[sync-skills] no skills found in ${skillsSrc}`);
+  process.exit(1);
+}
+
+// The vetting gate the deleted allowlist used to be: discovery bundles
+// whatever is on disk, and CI's skills-roster check only sees committed
+// state — so an untracked scratch directory would ship in a local build or a
+// manual publish with no gate anywhere in the path. `git add` is the act of
+// vetting; a tree without git (an exported tarball) skips the gate.
+const untracked = untrackedSkillDirs(skillsSrc, skills);
+if (untracked.length) {
+  console.error(
+    `[sync-skills] refusing to bundle untracked skill dir(s): ` +
+      `${untracked.join(', ')}. \`git add\` them to vet them, or remove them.`
+  );
   process.exit(1);
 }
 
