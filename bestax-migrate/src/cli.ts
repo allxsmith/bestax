@@ -3,6 +3,7 @@
  *
  *   bestax-migrate <source> <paths...> [--dry] [--print] [--extensions ...]
  *                  [--css bestax|bulma|keep] [--no-deps]
+ *                  [--telemetry|--no-telemetry]
  *
  * Walks the given files/directories, routes each file by type (JS/TSX →
  * jscodeshift transform, .scss/.sass → the source's stylesheet transform),
@@ -13,11 +14,14 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { createInterface } from 'node:readline/promises';
+import type { Readable, Writable } from 'node:stream';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { Reporter } from './report.js';
 import { runTransform } from './runner.js';
 import { getSource, sourceNames } from './sources/registry.js';
+import { reportMigrateRun, type MigrateRunStats } from './telemetry.js';
 import type { CssMode, MigrationSource } from './types.js';
 
 const SKIP_DIRS = new Set([
@@ -212,6 +216,87 @@ function migrateDependencies(
   }
 }
 
+const TELEMETRY_NOTICE =
+  'Help improve bestax-migrate — share anonymous usage stats?\n' +
+  'Sends only rule names and counts — never file paths or code.\n' +
+  '  Details & opt-out: https://bestax.io/docs/guides/telemetry\n' +
+  '  Feedback welcome:  https://github.com/allxsmith/bestax/issues';
+const TELEMETRY_ACK_ON = 'Thanks! Opt out anytime with --no-telemetry.';
+const TELEMETRY_ACK_OFF = "No problem — we won't ask again.";
+
+/**
+ * One-question consent prompt (readline — this package carries no interactive
+ * prompt dependency). Returns null when the question is cancelled (Ctrl-C /
+ * Ctrl-D): a cancel is not an answer and nothing is persisted. The streams are
+ * injectable so tests can drive the question without a TTY.
+ */
+export async function promptTelemetryConsent(
+  io: CliIo,
+  input: Readable = process.stdin,
+  output: Writable = process.stdout
+): Promise<boolean | null> {
+  io.log('');
+  io.log(chalk.gray(TELEMETRY_NOTICE));
+  const rl = createInterface({ input, output });
+  const cancelled = new AbortController();
+  // Ctrl-C emits SIGINT on the interface and Ctrl-D closes it; both must
+  // reject the pending question instead of leaving it hanging forever.
+  rl.once('SIGINT', () => rl.close());
+  rl.once('close', () => cancelled.abort());
+  try {
+    const answer = await rl.question('Share anonymous usage stats? (y/N) ', {
+      signal: cancelled.signal,
+    });
+    return /^y(es)?$/i.test(answer.trim());
+  } catch {
+    return null;
+  } finally {
+    rl.close();
+  }
+}
+
+/**
+ * Consent + beacon after a successful run. Only success events are reported,
+ * the beacon is awaited (so no error path can kill an in-flight request), and
+ * nothing in here may throw or alter the exit code. The prompt is skipped
+ * without a TTY on both ends, under an explicit flag, or with DO_NOT_TRACK
+ * set (the non-interactive path must never hang).
+ */
+export async function handleTelemetry(
+  stats: MigrateRunStats,
+  flag: boolean | undefined,
+  io: CliIo,
+  promptConsent: (io: CliIo) => Promise<boolean | null> = promptTelemetryConsent
+): Promise<void> {
+  try {
+    await reportMigrateRun(stats, flag, {
+      interactive:
+        process.stdin.isTTY === true && process.stdout.isTTY === true,
+      promptConsent: async () => {
+        const answer = await promptConsent(io);
+        if (answer === true) {
+          io.log(chalk.dim(TELEMETRY_ACK_ON));
+        } else if (answer === false) {
+          io.log(chalk.dim(TELEMETRY_ACK_OFF));
+        }
+        return answer;
+      },
+    });
+  } catch {
+    // Telemetry must never affect the migration's outcome.
+  }
+}
+
+/** Post-run "star us" nudge — TTY only, so piped output stays parseable. */
+function displayStarNudge(io: CliIo): void {
+  if (process.stdout.isTTY !== true) return;
+  io.log('');
+  io.log(
+    chalk.yellow('★ If you enjoy using bestax-bulma, please star us on GitHub!')
+  );
+  io.log(chalk.dim('   https://github.com/allxsmith/bestax'));
+}
+
 export function createCLI(
   io: CliIo = { log: console.log, error: console.error }
 ): Command {
@@ -243,7 +328,12 @@ export function createCLI(
       'bestax'
     )
     .option('--no-deps', 'skip updating package.json dependencies')
-    .action((sourceName: string, targets: string[], options) => {
+    .option(
+      '--telemetry',
+      'enable anonymous usage telemetry (https://bestax.io/docs/guides/telemetry)'
+    )
+    .option('--no-telemetry', 'disable anonymous usage telemetry')
+    .action(async (sourceName: string, targets: string[], options) => {
       const source = getSource(sourceName);
       if (!source) {
         io.error(
@@ -301,6 +391,25 @@ export function createCLI(
 
       io.log(
         reporter.render(source.label + (runOptions.dry ? ' (dry run)' : ''))
+      );
+
+      displayStarNudge(io);
+
+      // Success path only: rule names and counts, never file/line/message.
+      const stats: MigrateRunStats = {
+        source: source.name,
+        cssMode: runOptions.cssMode,
+        dry: runOptions.dry,
+        deps: runOptions.deps,
+        changedCount: reporter.changedCount,
+        todosByRule: reporter
+          .todosByRule()
+          .map(({ rule, entries }) => ({ rule, count: entries.length })),
+      };
+      await handleTelemetry(
+        stats,
+        options.telemetry as boolean | undefined,
+        io
       );
     });
   return program;

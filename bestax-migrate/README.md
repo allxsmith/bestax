@@ -84,6 +84,18 @@ A codemod rewrites your source in place, so how it is built and published matter
 
 Full detail: [`SECURITY.md`](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
+## Telemetry
+
+`bestax-migrate` can send one **anonymous** usage event after a successful
+run — only if you opt in when asked (once, on an interactive terminal). The
+event is just the run's shape — source library, CSS mode, the dry/deps flags, a
+bucketed changed-file count, and per-rule TODO counts — never file paths, file
+contents, code, names, IPs, or machine IDs, and no identifier exists that could
+link two events together. Opt out any time with `--no-telemetry`,
+`BESTAX_TELEMETRY=0`, or `DO_NOT_TRACK=1`.
+
+Full disclosure of every field and control: [Telemetry guide](https://bestax.io/docs/guides/telemetry)
+
 ## License
 
 MIT © Alex Smith
