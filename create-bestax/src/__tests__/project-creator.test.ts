@@ -46,9 +46,15 @@ jest.unstable_mockModule('../file-system.js', () => ({
   updatePackageJson: jest.fn(),
 }));
 
+// Mock telemetry so create() never reads the real config or hits the network
+jest.unstable_mockModule('../telemetry.js', () => ({
+  reportScaffold: jest.fn(async () => undefined),
+}));
+
 const fs = await import('fs-extra');
 const prompts = (await import('prompts')).default;
 const fileSystem = await import('../file-system.js');
+const telemetry = await import('../telemetry.js');
 const { ProjectCreator } = await import('../project-creator.js');
 const { ICON_LIBRARIES: _ICON_LIBRARIES, BULMA_FLAVORS: _BULMA_FLAVORS } =
   await import('../constants.js');
@@ -1681,6 +1687,131 @@ describe('ProjectCreator', () => {
         }),
         { spaces: 2 }
       );
+    });
+  });
+
+  describe('create — telemetry', () => {
+    const reportScaffold = telemetry.reportScaffold as jest.MockedFunction<
+      typeof telemetry.reportScaffold
+    >;
+    const fullFlags = {
+      template: 'vite-ts',
+      bulma: 'prefixed',
+      icon: 'mdi',
+      skills: false,
+    };
+
+    function mockSuccessfulScaffold(): void {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(false);
+      (
+        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+          typeof fileSystem.isDirectoryEmpty
+        >
+      ).mockResolvedValue(true);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+    }
+
+    it('reports the chosen options after a successful scaffold', async () => {
+      mockSuccessfulScaffold();
+
+      await projectCreator.create('test-project', { ...fullFlags, yes: true });
+
+      expect(reportScaffold).toHaveBeenCalledTimes(1);
+      const [choices, flag, opts] = reportScaffold.mock.calls[0];
+      expect(choices).toEqual({
+        template: 'vite-ts',
+        bulmaFlavor: 'prefixed',
+        iconLibrary: 'mdi',
+        skills: false,
+      });
+      expect(flag).toBeUndefined();
+      // -y means the consent question may not be asked (#192)
+      expect(opts.interactive).toBe(false);
+    });
+
+    it('passes an explicit --telemetry/--no-telemetry flag through', async () => {
+      mockSuccessfulScaffold();
+
+      await projectCreator.create('test-project', {
+        ...fullFlags,
+        yes: true,
+        telemetry: false,
+      });
+
+      expect(reportScaffold.mock.calls[0][1]).toBe(false);
+    });
+
+    it('is interactive only when stdin is a TTY and -y is absent', async () => {
+      mockSuccessfulScaffold();
+      await projectCreator.create('test-project', fullFlags);
+      expect(reportScaffold.mock.calls[0][2].interactive).toBe(true);
+
+      reportScaffold.mockClear();
+      setStdinTTY(false);
+      mockSuccessfulScaffold();
+      await projectCreator.create('test-project', fullFlags);
+      expect(reportScaffold.mock.calls[0][2].interactive).toBe(false);
+    });
+
+    it('the consent callback asks the prompt and acknowledges a yes', async () => {
+      mockSuccessfulScaffold();
+      reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
+        await expect(opts.promptConsent()).resolves.toBe(true);
+      });
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: true,
+      });
+
+      await projectCreator.create('test-project', fullFlags);
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Opt out anytime')
+      );
+    });
+
+    it('acknowledges a no without sending', async () => {
+      mockSuccessfulScaffold();
+      reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
+        await expect(opts.promptConsent()).resolves.toBe(false);
+      });
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: false,
+      });
+
+      await projectCreator.create('test-project', fullFlags);
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining("we won't ask again")
+      );
+    });
+
+    it('a cancelled consent prompt prints no ack', async () => {
+      mockSuccessfulScaffold();
+      reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
+        await expect(opts.promptConsent()).resolves.toBeNull();
+      });
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+
+      await projectCreator.create('test-project', fullFlags);
+
+      const logged = (console.log as jest.Mock).mock.calls.flat().join('\n');
+      expect(logged).not.toContain('Opt out anytime');
+      expect(logged).not.toContain("we won't ask again");
+    });
+
+    it('a telemetry failure never breaks the scaffold', async () => {
+      mockSuccessfulScaffold();
+      reportScaffold.mockRejectedValueOnce(new Error('telemetry boom'));
+
+      await expect(
+        projectCreator.create('test-project', { ...fullFlags, yes: true })
+      ).resolves.toBeUndefined();
     });
   });
 });

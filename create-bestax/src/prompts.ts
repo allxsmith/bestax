@@ -1,4 +1,5 @@
 import prompts from 'prompts';
+import chalk from 'chalk';
 import {
   TEMPLATES,
   DEFAULT_PROJECT_NAME,
@@ -90,6 +91,25 @@ export async function promptIconLibrary(): Promise<string | null> {
   });
 
   return response.iconLibrary || null;
+}
+
+/**
+ * Consent for anonymous usage telemetry. Deliberately does NOT call
+ * ensureInteractive(): consent is optional, so without a TTY the caller skips
+ * the question instead of failing the run (#192). Returns null when the user
+ * cancels (Ctrl-C) — a cancel is not an answer and nothing is persisted.
+ */
+export async function promptTelemetryConsent(): Promise<boolean | null> {
+  console.log();
+  console.log(chalk.gray(MESSAGES.TELEMETRY_NOTICE));
+  const response = await prompts({
+    type: 'confirm',
+    name: 'telemetry',
+    message: PROMPT_MESSAGES.TELEMETRY_CONSENT,
+    initial: false,
+  });
+
+  return typeof response.telemetry === 'boolean' ? response.telemetry : null;
 }
 
 export async function promptBulmaFlavor(): Promise<string | null> {

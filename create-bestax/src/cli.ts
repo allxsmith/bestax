@@ -99,6 +99,11 @@ export function createCLI(): Command {
     )
     .option('--skills', 'install the bestax AI skills into .claude/skills')
     .option('--no-skills', 'do not install the bestax AI skills')
+    .option(
+      '--telemetry',
+      'enable anonymous usage telemetry (https://bestax.io/docs/guides/telemetry)'
+    )
+    .option('--no-telemetry', 'disable anonymous usage telemetry')
     .option('-y, --yes', 'skip prompts and use defaults or provided options')
     .action((projectDir?: string, options?: unknown) => {
       projectCreator.create(projectDir, options as CLIOptions);

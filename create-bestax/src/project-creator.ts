@@ -17,7 +17,9 @@ import {
   promptIconLibrary,
   promptBulmaFlavor,
   promptInstallSkills,
+  promptTelemetryConsent,
 } from './prompts.js';
+import { reportScaffold, type ScaffoldChoices } from './telemetry.js';
 import {
   displayHeader,
   displaySuccess,
@@ -57,6 +59,7 @@ export interface CLIOptions {
   bulma?: string;
   icon?: string;
   skills?: boolean;
+  telemetry?: boolean;
   yes?: boolean;
 }
 
@@ -601,9 +604,44 @@ export class ProjectCreator {
         });
       }
       displaySuccess(targetDir);
+      await this.handleTelemetry(options, {
+        template,
+        bulmaFlavor,
+        iconLibrary,
+        skills: installSkills,
+      });
     } catch (error) {
       displayError((error as Error).message);
       process.exit(1);
+    }
+  }
+
+  /**
+   * Consent + beacon after a successful scaffold. Only success events are
+   * reported, the beacon is awaited (so no process.exit(1) site can kill an
+   * in-flight request), and nothing in here may throw or alter the exit code.
+   * The prompt is skipped for -y, missing TTY, an explicit flag, or
+   * DO_NOT_TRACK (#192: the non-interactive path must never hang).
+   */
+  private async handleTelemetry(
+    options: CLIOptions | undefined,
+    choices: ScaffoldChoices
+  ): Promise<void> {
+    try {
+      await reportScaffold(choices, options?.telemetry, {
+        interactive: process.stdin.isTTY === true && options?.yes !== true,
+        promptConsent: async () => {
+          const answer = await promptTelemetryConsent();
+          if (answer === true) {
+            console.log(chalk.dim(MESSAGES.TELEMETRY_ACK_ON));
+          } else if (answer === false) {
+            console.log(chalk.dim(MESSAGES.TELEMETRY_ACK_OFF));
+          }
+          return answer;
+        },
+      });
+    } catch {
+      // Telemetry must never affect the scaffold's outcome.
     }
   }
 }
