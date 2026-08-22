@@ -207,3 +207,20 @@ If your LinkButton has only an icon, use `aria-label` to provide accessible text
 :::note
 The `isOutlined`, `isInverted`, and `isLight` props from Button are not available on LinkButton — they don't apply to link-like buttons.
 :::
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`LinkButton` registers these variables on its own `.link-button` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                              | Sass Variable                      | Default                    |
+| ----------------------------------------- | ---------------------------------- | -------------------------- |
+| `--bulma-link-button-underline-offset`    | `$link-button-underline-offset`    | `0.2em`                    |
+| `--bulma-link-button-transition-duration` | `$link-button-transition-duration` | `var(--bulma-duration)`    |
+| `--bulma-link-button-ghost-color`         | `$link-button-ghost-color`         | `var(--bulma-text)`        |
+| `--bulma-link-button-ghost-hover-color`   | `$link-button-ghost-hover-color`   | `var(--bulma-text-strong)` |
+
+<!-- /bestax:generated cssvars -->
