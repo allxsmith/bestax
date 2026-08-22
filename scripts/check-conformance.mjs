@@ -1651,6 +1651,80 @@ export function manifestViolations(dir, pkg) {
 }
 
 /**
+ * No published package may depend on a workspace sibling in a section
+ * consumers resolve, however the specifier is spelled (#537).
+ *
+ * The protocol rule above is one spelling of this policy caught by side
+ * effect: `workspace:^` in `dependencies` is flagged because pnpm resolving
+ * it does not stop consumers installing it. But since every package publishes
+ * with pnpm (#532), `workspace:^` and a plain `^5.11.2` land in the tarball
+ * as the same installable range — so the likelier spelling, a hand-written
+ * semver range, passed every check while making every consumer of a
+ * four-file codemod CLI install the component library. bestax-migrate's
+ * CLAUDE.md carried "that one is on review" as the only enforcement.
+ *
+ * The rule is blanket over published packages rather than an opt-in set: no
+ * package has a sibling dep in a consumer section today, so nothing is
+ * grandfathered, and a scaffolder or an MCP server has no more business
+ * pulling in the component library than the codemod does. If a package ever
+ * legitimately needs one, that PR adds the exemption — a decision at the
+ * moment it is cheap, the PNPM_PUBLISHED shape.
+ *
+ * peerDependencies are deliberately OUTSIDE the rule, and this departs from
+ * the protocol rule above, which does fire on a `workspace:` peer (with
+ * pin-a-range advice). The departure is the point: a peer on a sibling is
+ * the one section where "consumers install this" is the intended semantic —
+ * a component add-on peering on the core library is a normal thing to want.
+ *
+ * `siblings` (a Map of name → { private }) arrives as an argument because
+ * this function is pure and fixture-driven like manifestViolations, and the
+ * names live in manifests only the async walk can read. It is DERIVED from
+ * the workspace there, never declared — a hardcoded name list is the drift
+ * class #540 closed. Private-ness rides along because the fix differs: a
+ * private sibling cannot become a peerDependency, since no consumer could
+ * resolve it.
+ */
+export function siblingViolations(dir, pkg, siblings) {
+  if (pkg?.private) return [];
+  const violations = [];
+  for (const section of ['dependencies', 'optionalDependencies']) {
+    for (const [name, spec] of Object.entries(pkg?.[section] ?? {})) {
+      // An npm alias installs its TARGET, so `"ui": "npm:@allxsmith/…@^5"`
+      // pulls in the sibling under another key. Compared on the target, or
+      // the rule is bypassable by renaming — review on the PR caught exactly
+      // that hole. The last `@` splits off the range; a scoped name's leading
+      // `@` survives because the slice starts past `npm:`.
+      let target = name;
+      if (typeof spec === 'string' && spec.startsWith('npm:')) {
+        const aliased = spec.slice(4);
+        const at = aliased.lastIndexOf('@');
+        target = at > 0 ? aliased.slice(0, at) : aliased;
+      }
+      const sibling = siblings.get(target);
+      if (!sibling || target === pkg?.name) continue;
+      // A PRIVATE sibling gets different advice: it does not exist on the
+      // registry, so "make it a peerDependency" would leave every consumer
+      // unable to install — the dependency cannot ship in any section
+      // consumers resolve.
+      const fix = sibling.private
+        ? `"${target}" is private and unpublishable, so no consumer could ` +
+          `ever resolve it — this dependency cannot ship at all. Move it ` +
+          `to devDependencies.`
+        : `Move it to devDependencies, or if consumers really must resolve ` +
+          `it, make it a peerDependency with an explicit range.`;
+      violations.push(
+        `${dir}/package.json depends on workspace sibling "${target}" in ` +
+          `${section}${target === name ? '' : ` (aliased as "${name}")`}. ` +
+          `Whatever the specifier says, consumers of ${dir} would be made ` +
+          `to install it and its whole tree — a codemod CLI pulling in the ` +
+          `component library is the case this rule exists for (#537). ${fix}`
+      );
+    }
+  }
+  return violations;
+}
+
+/**
  * Lifecycle hooks that run during a pack or publish, and therefore name scripts
  * whose absence would fail a release rather than CI.
  *
@@ -1724,21 +1798,47 @@ async function checkPublishableManifests() {
     return ['pnpm-workspace.yaml has no `packages:` entries — cannot check.'];
   }
 
+  // First pass: read every manifest once, so the sibling-name set exists
+  // before any package is judged. Derived from the workspace, not declared —
+  // a hardcoded name list is the drift class #540 closed. Private packages'
+  // NAMES still count as siblings (depending on one is broken for consumers
+  // either way), but private packages are not themselves judged.
+  const manifests = [];
   for (const dir of packages) {
-    let pkg;
     try {
-      pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
+      const pkg = JSON.parse(
+        await readFile(join(REPO, dir, 'package.json'), 'utf8')
+      );
+      // JSON.parse succeeds on `null`, `42`, `"x"` — shapes a truncated write
+      // or merge artifact really produces. Dereferencing one later would
+      // throw a TypeError past the runner's loop and abort every remaining
+      // check with a stack trace, when this exact case has a violation
+      // written for it. Review caught the sibling-map pass doing just that.
+      // An ARRAY passes typeof and instead vanishes silently — no name, so
+      // it never joins the sibling map. Same outcome, quieter road.
+      if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) {
+        throw new Error('not an object');
+      }
+      manifests.push({ dir, pkg });
     } catch {
       violations.push(
         `pnpm-workspace.yaml lists "${dir}" but ${dir}/package.json is missing ` +
           `or unparseable.`
       );
-      continue;
     }
+  }
+  const siblings = new Map(
+    manifests
+      .filter(m => m.pkg.name)
+      .map(m => [m.pkg.name, { private: Boolean(m.pkg.private) }])
+  );
+
+  for (const { dir, pkg } of manifests) {
     // The private check lives in manifestViolations, not here, so there is one
     // copy of it. hookScripts still runs for private packages: a broken pack
     // hook is worth reporting whether or not the package publishes.
     violations.push(...manifestViolations(dir, pkg));
+    violations.push(...siblingViolations(dir, pkg, siblings));
 
     // Naming a script is not the same as shipping it. A hook pointing at a
     // moved path fails during the release rather than in CI, which is the one
