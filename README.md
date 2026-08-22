@@ -26,7 +26,7 @@ TypeScript-first React component library for the **Bulma v1** CSS framework — 
 | **Icons (optional)** | Font Awesome, Material Design Icons, Ionicons, Material Icons, Material Symbols — all optional peer dependencies                                                               |
 | **Docs**             | [bestax.io](https://bestax.io) · [Storybook](https://bestax.io/storybook)                                                                                                      |
 | **LLM docs**         | [llms.txt](https://bestax.io/llms.txt) (curated index) · [llms-full.txt](https://bestax.io/llms-full.txt) (complete docs, one file)                                            |
-| **Agent Skills**     | `npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold` ([all four skills](skills/README.md))                                                      |
+| **Agent Skills**     | `npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold` ([the full roster](skills/README.md))                                                      |
 | **Community**        | [Discord](https://discord.gg/zehJrQGtKu) · [Stack Overflow `bestax`](https://stackoverflow.com/questions/tagged/bestax) · [Issues](https://github.com/allxsmith/bestax/issues) |
 
 > **If you are an AI agent or LLM:** fetch **<https://bestax.io/llms.txt>** for a curated index of the full documentation, or **<https://bestax.io/llms-full.txt>** for the complete docs in a single file, before answering questions about or writing code with this library. Every page on [bestax.io](https://bestax.io) is also available as raw markdown — see the [LLMs guide](https://bestax.io/docs/guides/llms).
@@ -164,6 +164,9 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
   | `bestax-form`             | Building forms — Field/Control composition and the full input inventory          |
   | `bestax-theming`          | Customizing colors, fonts, dark mode via `Theme` and `--bulma-*` variables       |
   | `bestax-custom-component` | Building a new custom component beyond stock Bulma, the bestax way               |
+  | `bestax-icons`            | Adding icons — Icon/IconText and the five supported icon libraries               |
+  | `bestax-optimize`         | Shrinking the built CSS — flavor builds, modular Sass, import hygiene            |
+  | `bestax-migrate`          | Moving an app off react-bulma-components (v4) onto bestax-bulma                  |
 
   ```bash
   npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold

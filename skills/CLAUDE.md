@@ -1,8 +1,8 @@
 # skills/ — Agent Skills are a shipped product
 
 These teach coding agents to **use** the library. They are published two ways — bundled into
-`create-bestax` (via `scripts/sync-skills.mjs` at its build time, per its `SKILLS`
-allowlist — bundling is opt-in per skill) and installable with
+`create-bestax` (via `scripts/sync-skills.mjs` at its build time; every skill bundles, #540)
+and installable with
 `npx skills add https://github.com/allxsmith/bestax --skill <name>` — so treat changes here
 like library code: they get bug reports (#194, #195, #196, #197) and ship to users.
 
@@ -14,14 +14,26 @@ like library code: they get bug reports (#194, #195, #196, #197) and ship to use
 
 ## Adding a skill
 
-A new skill directory publishes nothing by itself — update every roster in the same PR:
+The roster is **read, not listed**. `create-bestax/scripts/sync-skills.mjs` and
+`bestax-mcp/scripts/sync-skills.mjs` each copy every directory holding a `SKILL.md` into their
+package, and `scripts/gen-mcp-index.mjs` discovers the same set to generate the MCP manifest
+(it indexes, it does not bundle). A new skill therefore reaches all three by construction
+(#540): there is no allowlist to join, and no per-skill bundling call to make. Note the
+provenance — #385 settled only `bestax-migrate`'s case and kept the per-skill rule; dropping that
+rule is #540's own decision, taken on the reasoning #385 gave for it ("a per-skill carve-out is
+exactly the kind of thing that drifts").
 
-- `create-bestax/scripts/sync-skills.mjs` `SKILLS` allowlist, **if** the skill should bundle
-  into scaffolded apps (per-skill policy, see #385; nothing warns when a directory is absent
-  from the list), plus the scaffolded-app roster in `create-bestax/src/constants.ts`
-  (`CLAUDE_MD` template) when bundled.
-- `skills/README.md` — the roster is hardcoded three times (table, install block, layout tree).
-- A docs page under `docs/docs/skills/` and the intro's roster.
+What stays hand-written is prose — rosters spread across the READMEs, the docs, and the
+scaffolded `CLAUDE_MD`. `pnpm check:conformance --only=skills-roster` holds those to the
+directory in both directions: it fails if one omits your new skill, and if one still names a
+skill you deleted. `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list
+and the failure names every file you missed, so this file deliberately keeps no roster of
+rosters — that would be the same bug one level up.
+
+Deliberately outside that check, so still yours to remember: a docs page under
+`docs/docs/skills/`, its entry in `docs/sidebars.js`, and the intro's bullet roster. Those key
+off page slugs rather than skill directory names, and holding them would amount to requiring a
+docs page per skill, which is a separate rule nobody has asked for.
 
 ## Rules
 
