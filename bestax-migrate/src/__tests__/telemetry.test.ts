@@ -11,16 +11,9 @@ import { mkdtemp, readFile, writeFile, mkdir } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-const {
-  telemetryConfigPath,
-  resolveTelemetry,
-  persistTelemetryDecision,
-  markNoticed,
-  sendTelemetry,
-  getToolVersion,
-  buildMigratePayload,
-  reportMigrateRun,
-} = await import('../telemetry.js');
+const { getToolVersion } = await import('../telemetry-core.js');
+const { buildMigratePayload, reportMigrateRun } =
+  await import('../telemetry.js');
 
 const ENV_KEYS = [
   'XDG_CONFIG_HOME',
@@ -81,220 +74,24 @@ afterAll(() => {
   globalThis.fetch = originalFetch;
 });
 
-describe('telemetryConfigPath', () => {
-  it('uses XDG_CONFIG_HOME when set', () => {
-    expect(telemetryConfigPath()).toBe(
-      join(configHome, 'bestax', 'telemetry.json')
-    );
-  });
-
-  it('falls back to ~/.config when XDG_CONFIG_HOME is unset', () => {
-    delete process.env.XDG_CONFIG_HOME;
-    expect(telemetryConfigPath()).toMatch(
-      /[/\\]\.config[/\\]bestax[/\\]telemetry\.json$/
-    );
-  });
-});
-
-describe('resolveTelemetry precedence', () => {
-  it('is undecided (prompt allowed) with no signals at all', async () => {
-    expect(await resolveTelemetry()).toEqual({
-      decision: 'undecided',
-      source: 'default',
-      promptAllowed: true,
-    });
-  });
-
-  it.each([
-    [true, 'on'],
-    [false, 'off'],
-  ] as const)('flag %s wins over everything', async (flag, decision) => {
-    process.env.DO_NOT_TRACK = '1';
-    process.env.BESTAX_TELEMETRY = flag ? '0' : '1';
-    await writeConfig({ version: 1, enabled: !flag });
-    expect(await resolveTelemetry(flag)).toEqual({
-      decision,
-      source: 'flag',
-      promptAllowed: false,
-    });
-  });
-
-  it('DO_NOT_TRACK beats env var and config', async () => {
-    process.env.DO_NOT_TRACK = '1';
-    process.env.BESTAX_TELEMETRY = '1';
-    await writeConfig({ version: 1, enabled: true });
-    expect(await resolveTelemetry()).toEqual({
-      decision: 'off',
-      source: 'dnt',
-      promptAllowed: false,
-    });
-  });
-
-  it.each(['0', ''])('DO_NOT_TRACK=%j is not a DNT signal', async value => {
-    process.env.DO_NOT_TRACK = value;
-    const resolved = await resolveTelemetry();
-    expect(resolved.source).toBe('default');
-  });
-
-  it('BESTAX_TELEMETRY=1 forces on without persisting', async () => {
-    process.env.BESTAX_TELEMETRY = '1';
-    await writeConfig({ version: 1, enabled: false });
-    expect(await resolveTelemetry()).toEqual({
-      decision: 'on',
-      source: 'env',
-      promptAllowed: false,
-    });
-  });
-
-  it('BESTAX_TELEMETRY=0 forces off', async () => {
-    process.env.BESTAX_TELEMETRY = '0';
-    await writeConfig({ version: 1, enabled: true });
-    expect((await resolveTelemetry()).decision).toBe('off');
-  });
-
-  it('ignores junk BESTAX_TELEMETRY values', async () => {
-    process.env.BESTAX_TELEMETRY = 'yes';
-    expect((await resolveTelemetry()).source).toBe('default');
-  });
-
-  it.each([
-    [true, 'on'],
-    [false, 'off'],
-  ] as const)(
-    'reads enabled=%s from the config file',
-    async (enabled, decision) => {
-      await writeConfig({ version: 1, enabled });
-      expect(await resolveTelemetry()).toEqual({
-        decision,
-        source: 'config',
-        promptAllowed: false,
-      });
-    }
-  );
-
-  it('treats corrupt config as undecided', async () => {
-    await writeConfig('{not json');
-    expect((await resolveTelemetry()).decision).toBe('undecided');
-  });
-
-  it('treats a config without a boolean enabled as undecided', async () => {
-    await writeConfig({ version: 1, enabled: 'yes' });
-    expect((await resolveTelemetry()).decision).toBe('undecided');
-  });
-
-  it('treats a non-object config as undecided', async () => {
-    await writeConfig('null');
-    expect((await resolveTelemetry()).decision).toBe('undecided');
-  });
-});
-
-describe('persistTelemetryDecision', () => {
-  it('writes the config schema', async () => {
-    await persistTelemetryDecision(true, 'bestax-migrate@1.0.0');
-    const config = await readConfigFile();
-    expect(config.version).toBe(1);
-    expect(config.enabled).toBe(true);
-    expect(config.decidedBy).toBe('bestax-migrate@1.0.0');
-    expect(typeof config.decidedAt).toBe('string');
-  });
-
-  it('preserves the noticed map of the sibling CLI', async () => {
-    await writeConfig({
-      version: 1,
-      noticed: { 'create-bestax': '2026-01-01T00:00:00.000Z' },
-    });
-    await persistTelemetryDecision(false, 'bestax-migrate@1.0.0');
-    const config = await readConfigFile();
-    expect(config.enabled).toBe(false);
-    expect(config.noticed).toEqual({
-      'create-bestax': '2026-01-01T00:00:00.000Z',
-    });
-  });
-
-  it('stays silent when the config dir is unwritable', async () => {
-    const blocker = join(configHome, 'blocker');
-    await writeFile(blocker, 'file, not a dir', 'utf-8');
-    process.env.XDG_CONFIG_HOME = blocker;
-    await expect(
-      persistTelemetryDecision(true, 'bestax-migrate@1.0.0')
-    ).resolves.toBeUndefined();
-  });
-});
-
-describe('markNoticed', () => {
-  it('records the first notice and returns true', async () => {
-    expect(await markNoticed('bestax-migrate')).toBe(true);
-    const config = await readConfigFile();
-    expect(config.version).toBe(1);
-    const noticed = config.noticed as Record<string, string>;
-    expect(new Date(noticed['bestax-migrate']).getTime()).not.toBeNaN();
-  });
-
-  it('returns false once the notice is recorded', async () => {
-    expect(await markNoticed('bestax-migrate')).toBe(true);
-    expect(await markNoticed('bestax-migrate')).toBe(false);
-  });
-
-  it('preserves every other config field and sibling notices', async () => {
-    await writeConfig({
-      version: 1,
-      enabled: true,
-      decidedAt: '2026-01-01T00:00:00.000Z',
-      decidedBy: 'create-bestax@1.0.0',
-      noticed: { 'create-bestax': '2026-01-01T00:00:00.000Z' },
-    });
-    expect(await markNoticed('bestax-migrate')).toBe(true);
-    const config = await readConfigFile();
-    expect(config.enabled).toBe(true);
-    expect(config.decidedBy).toBe('create-bestax@1.0.0');
-    const noticed = config.noticed as Record<string, string>;
-    expect(noticed['create-bestax']).toBe('2026-01-01T00:00:00.000Z');
-    expect(noticed['bestax-migrate']).toBeDefined();
-  });
-
-  it('returns true without throwing when the config dir is unwritable', async () => {
-    // The notice is shown this run and may simply repeat later.
-    const blocker = join(configHome, 'blocker');
-    await writeFile(blocker, 'file, not a dir', 'utf-8');
-    process.env.XDG_CONFIG_HOME = blocker;
-    await expect(markNoticed('bestax-migrate')).resolves.toBe(true);
-  });
-});
-
-describe('sendTelemetry', () => {
-  it('POSTs JSON to the default endpoint', async () => {
-    await sendTelemetry({ v: 1 });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchMock.mock.calls[0] as FetchArgs;
-    expect(url).toBe('https://bestax.io/api/t');
-    expect(init.method).toBe('POST');
-    expect(init.headers).toEqual({ 'content-type': 'application/json' });
-    expect(init.body).toBe('{"v":1}');
-    expect(init.signal).toBeInstanceOf(AbortSignal);
-  });
-
-  it('honors BESTAX_TELEMETRY_ENDPOINT', async () => {
-    process.env.BESTAX_TELEMETRY_ENDPOINT = 'http://127.0.0.1:8787/api/t';
-    await sendTelemetry({ v: 1 });
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://127.0.0.1:8787/api/t');
-  });
-
-  it('resolves silently when fetch rejects', async () => {
-    fetchMock.mockRejectedValueOnce(new Error('offline'));
-    await expect(sendTelemetry({ v: 1 })).resolves.toBeUndefined();
-  });
-
-  it('ignores non-2xx responses', async () => {
-    fetchMock.mockResolvedValueOnce(new Response(null, { status: 400 }));
-    await expect(sendTelemetry({ v: 1 })).resolves.toBeUndefined();
-  });
-});
-
 describe('getToolVersion', () => {
   it('reads the package version', () => {
     expect(getToolVersion()).toMatch(/^\d+\.\d+\.\d+/);
   });
 });
+
+/** Production slugs the worker must accept — keep in lockstep with telemetry-worker tests. */
+const PRODUCTION_RULES = [
+  'prop:className',
+  'prop:renderAs',
+  'prop:size',
+  'unsupported-file',
+  'peer-deps',
+  'plain-element',
+  'imports',
+  'responsive',
+  'deps',
+] as const;
 
 describe('buildMigratePayload', () => {
   const baseStats = {
@@ -307,7 +104,7 @@ describe('buildMigratePayload', () => {
   };
 
   it('contains exactly the allowlisted fields and nothing else', () => {
-    const payload = buildMigratePayload(baseStats) as Record<string, unknown>;
+    const payload = buildMigratePayload(baseStats);
 
     expect(Object.keys(payload).sort()).toEqual([
       'event',
@@ -324,7 +121,7 @@ describe('buildMigratePayload', () => {
     expect(payload.event).toBe('migrate');
     expect(payload.nodeMajor).toBe(Number(process.versions.node.split('.')[0]));
     expect(payload.platform).toBe(process.platform);
-    expect(Object.keys(payload.props as object).sort()).toEqual([
+    expect(Object.keys(payload.props).sort()).toEqual([
       'changedBucket',
       'changedCount',
       'cssMode',
@@ -332,13 +129,12 @@ describe('buildMigratePayload', () => {
       'dry',
       'source',
     ]);
-    const props = payload.props as Record<string, unknown>;
-    expect(props.source).toBe('react-bulma-components');
-    expect(props.cssMode).toBe('bestax');
-    expect(props.dry).toBe(false);
-    expect(props.deps).toBe(true);
-    expect(props.changedCount).toBe(3);
-    expect(props.changedBucket).toBe('1-9');
+    expect(payload.props.source).toBe('react-bulma-components');
+    expect(payload.props.cssMode).toBe('bestax');
+    expect(payload.props.dry).toBe(false);
+    expect(payload.props.deps).toBe(true);
+    expect(payload.props.changedCount).toBe(3);
+    expect(payload.props.changedBucket).toBe('1-9');
     expect(payload.todosByRule).toEqual([
       { rule: 'unsupported-file', count: 2 },
     ]);
@@ -348,8 +144,18 @@ describe('buildMigratePayload', () => {
     const payload = buildMigratePayload({
       ...baseStats,
       todosByRule: [],
-    }) as Record<string, unknown>;
+    });
     expect('todosByRule' in payload).toBe(false);
+  });
+
+  it('passes through production rule slugs including prop:className', () => {
+    const payload = buildMigratePayload({
+      ...baseStats,
+      todosByRule: PRODUCTION_RULES.map(rule => ({ rule, count: 1 })),
+    });
+    expect(payload.todosByRule?.map(entry => entry.rule)).toEqual([
+      ...PRODUCTION_RULES,
+    ]);
   });
 
   it.each([
@@ -365,7 +171,7 @@ describe('buildMigratePayload', () => {
     const payload = buildMigratePayload({
       ...baseStats,
       changedCount,
-    }) as { props: Record<string, unknown> };
+    });
     expect(payload.props.changedBucket).toBe(bucket);
     expect(payload.props.changedCount).toBe(changedCount);
   });
@@ -374,7 +180,7 @@ describe('buildMigratePayload', () => {
     const payload = buildMigratePayload({
       ...baseStats,
       changedCount: 123456,
-    }) as { props: Record<string, unknown> };
+    });
     expect(payload.props.changedCount).toBe(10000);
     expect(payload.props.changedBucket).toBe('200+');
   });
@@ -384,12 +190,10 @@ describe('buildMigratePayload', () => {
       rule: `rule-${i}`,
       count: i === 0 ? 250000 : i,
     }));
-    const payload = buildMigratePayload({ ...baseStats, todosByRule }) as {
-      todosByRule: Array<{ rule: string; count: number }>;
-    };
+    const payload = buildMigratePayload({ ...baseStats, todosByRule });
     expect(payload.todosByRule).toHaveLength(20);
-    expect(payload.todosByRule[0]).toEqual({ rule: 'rule-0', count: 100000 });
-    expect(payload.todosByRule[19]).toEqual({ rule: 'rule-19', count: 19 });
+    expect(payload.todosByRule?.[0]).toEqual({ rule: 'rule-0', count: 100000 });
+    expect(payload.todosByRule?.[19]).toEqual({ rule: 'rule-19', count: 19 });
   });
 });
 
