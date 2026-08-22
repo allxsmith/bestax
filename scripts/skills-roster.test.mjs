@@ -311,3 +311,79 @@ test('an empty roster of skills does not pass vacuously', () => {
     v.join('\n')
   );
 });
+
+// --- hardening round (#544 review) -------------------------------------------
+
+test('a fenced shell comment does not truncate the AI skills section', () => {
+  // section() used to terminate at any column-0 `#` line, including one
+  // inside a fenced example — reporting an intact roster as wholly missing.
+  const fenced = REAL['create-bestax/src/constants.ts'].replace(
+    '- **bestax-custom-component**',
+    '```bash\n# reinstall the skills\nnpx skills add x\n```\n\n- **bestax-custom-component**'
+  );
+  assert.deepEqual(
+    rosterViolations(
+      SKILLS,
+      withFile('create-bestax/src/constants.ts', fenced)
+    ),
+    []
+  );
+});
+
+test('a stale bullet after a fenced example is still caught', () => {
+  // The fail-open direction of the same bug: with the section truncated at
+  // the fence, anything after it went unchecked.
+  const fenced = REAL['create-bestax/src/constants.ts'].replace(
+    '- **bestax-custom-component**',
+    '```bash\n# comment\n```\n\n- **bestax-ghost** — gone.\n- **bestax-custom-component**'
+  );
+  const v = rosterViolations(
+    SKILLS,
+    withFile('create-bestax/src/constants.ts', fenced)
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /still names bestax-ghost/);
+});
+
+test('an unrelated table elsewhere in README.md is nobody’s business', () => {
+  // The row pattern used to harvest the first cell of EVERY table in the
+  // file, so a future table with a backticked kebab-case first column fed
+  // the stale-direction check and demanded its rows be deleted.
+  const extra = REAL['README.md'] + '\n| `build-tool` | compiles things |\n';
+  assert.deepEqual(rosterViolations(SKILLS, withFile('README.md', extra)), []);
+});
+
+test('losing the Agent Skills marker is an anchor violation, not a skip', () => {
+  const gone = REAL['README.md'].replace(
+    '**[Agent Skills](',
+    '**[Agent Tools]('
+  );
+  const v = rosterViolations(SKILLS, withFile('README.md', gone));
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /anchors on is gone/);
+});
+
+test('the non-Oxford spelling reads every name in the parenthetical', () => {
+  // "x, y and z" — the replaced regex dropped BOTH final names and reported
+  // them missing from a complete roster; "x and y" captured nothing at all.
+  const nonOxford = REAL['bulma-ui/AGENTS.md'].replace(
+    'bestax-optimize, bestax-theming',
+    'bestax-optimize and bestax-theming'
+  );
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', nonOxford)),
+    []
+  );
+});
+
+test('prose smuggled into the parenthetical fails the stale direction', () => {
+  // ", and more" is not a roster entry; the list must hold exactly the
+  // roster, so junk is a red — named as the unexpected token it is.
+  const padded = REAL['bulma-ui/AGENTS.md'].replace(
+    'bestax-theming):',
+    'bestax-theming, and more):'
+  );
+  const v = rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', padded));
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /still names more/);
+});

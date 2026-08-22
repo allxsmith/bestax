@@ -68,7 +68,12 @@ import {
   packTimeProtocol,
 } from './lib/pack-time-protocols.mjs';
 import {
+  readSkillDirs as sharedReadSkillDirs,
+  readSkillNames as sharedReadSkillNames,
+} from './lib/skill-dirs.mjs';
+import {
   fenceMask,
+  joinLines,
   readRegions,
   sectionSpans,
   splitLines,
@@ -937,8 +942,25 @@ function dryRunRecipe(src) {
   const blocks = [];
   let current = null;
   for (let i = 0; i < lines.length; i++) {
-    if (masked[i]) (current ??= []).push(lines[i]);
-    else if (current) {
+    if (masked[i]) {
+      (current ??= []).push(lines[i]);
+      // fenceMask marks DELIMITER lines true, so two fences butted together
+      // with no prose between them form one contiguous masked run — and a
+      // merged block let an example fence's `for` loop stand in for the
+      // recipe's (or mask an omission in it). A bare closing delimiter
+      // followed immediately by an opening one is the seam between fences;
+      // split there. CommonMark says a closing fence has no info string,
+      // which is what distinguishes the pair.
+      if (
+        /^\s{0,3}(?:`{3,}|~{3,})\s*$/.test(lines[i]) &&
+        current.length > 1 &&
+        masked[i + 1] &&
+        /^\s{0,3}(?:`{3,}|~{3,})\S*/.test(lines[i + 1] ?? '')
+      ) {
+        blocks.push(current.join('\n'));
+        current = null;
+      }
+    } else if (current) {
       blocks.push(current.join('\n'));
       current = null;
     }
@@ -961,9 +983,15 @@ function recipeTargets(block) {
   const commands = block
     .split('\n')
     .map(l => l.replace(/#.*$/, ''))
-    .join('\n');
-  const loop = commands.match(/\bfor\s+\w+\s+in\s+([^;\n]+)/);
-  return loop ? loop[1] : commands;
+    .join('\n')
+    // A backslash continuation is one shell word-list across lines. Without
+    // the join, `for pkg in a b \\<newline> c d` counted only the first
+    // line's names and falsely reported the wrapped-onto ones missing.
+    .replace(/\\\n\s*/g, ' ');
+  // EVERY loop's word list, not the first: a recipe legitimately grows a
+  // second loop, and honoring only one made the other's targets invisible.
+  const loops = [...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)/g)];
+  return loops.length ? loops.map(m => m[1]).join(' ') : commands;
 }
 
 /**
@@ -989,10 +1017,31 @@ function packagesBullet(src) {
   // section's own sentence anchoring the search, so the list still passed
   // while the section it belongs to was gone. Requiring a heading also makes
   // anchor..limit a real section rather than an arbitrary span.
-  const anchor = lines.findIndex(
-    (l, i) =>
-      !masked[i] && /^\s{0,3}#{1,6}\s/.test(l) && /trusted[- ]publish/i.test(l)
-  );
+  // Of the headings that mention trusted publishing, anchor on the one whose
+  // section actually CONTAINS the bullet. First-match anchoring meant a new
+  // earlier heading (a changelog note, a blog-ish aside) captured the search
+  // and produced a false "no \`- Packages:\` line" while the real section was
+  // intact. A heading with no bullet in its span still anchors when it is the
+  // only candidate, so "section exists but lost its list" stays a violation.
+  const candidates = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (
+      !masked[i] &&
+      /^\s{0,3}#{1,6}\s/.test(lines[i]) &&
+      /trusted[- ]publish/i.test(lines[i])
+    ) {
+      candidates.push(i);
+    }
+  }
+  const owns = idx => {
+    for (let i = idx + 1; i < lines.length; i++) {
+      if (!masked[i] && /^\s{0,3}#{1,6}\s/.test(lines[i])) return false;
+      if (!masked[i] && lines[i].trimStart().startsWith('- Packages:'))
+        return true;
+    }
+    return false;
+  };
+  const anchor = candidates.find(owns) ?? candidates[0] ?? -1;
   // No OIDC section means no trusted-publisher list, which is the violation.
   // Falling back to line 0 restored the file-wide search this extractor exists
   // to prevent: an unrelated "- Packages:" bullet elsewhere then satisfied the
@@ -1022,7 +1071,11 @@ function packagesBullet(src) {
   // named there could then cover an omission in this list.
   let end = limit;
   for (let i = start + 1; i < limit; i++) {
-    if (!lines[i].trim() || /^\s*[-*]\s/.test(lines[i])) {
+    // A masked line ends the bullet too: a fenced example butted directly
+    // under the list (no blank line) was swept into the bullet text, and a
+    // package named in the example then covered an omission in the list —
+    // the fail-open whose cost this check itself documents.
+    if (!lines[i].trim() || /^\s*[-*]\s/.test(lines[i]) || masked[i]) {
       end = i;
       break;
     }
@@ -1207,6 +1260,11 @@ export async function publishablePackages(root = REPO) {
     let pkg;
     try {
       pkg = JSON.parse(await readFile(join(root, dir, 'package.json'), 'utf8'));
+      // JSON.parse succeeds on `null`, `42`, `"x"` — shapes a truncated write
+      // really produces. Dereferencing one below would throw a TypeError past
+      // the runner's loop and abort every remaining check, when `unreadable`
+      // exists for exactly this case.
+      if (!pkg || typeof pkg !== 'object') throw new Error('not an object');
     } catch {
       unreadable.push(dir);
       continue;
@@ -1926,6 +1984,12 @@ export const SKILL_ROSTERS = [
     // already stale when this check landed — four skills against seven — which
     // is the drift the check exists for, sitting in the most visible place.
     file: 'README.md',
+    // Scoped to the table under the Agent Skills bullet. Unscoped, the row
+    // pattern harvested the first cell of EVERY table in the file, so any
+    // future table with a backticked kebab-case first column (the monorepo
+    // table is one formatting edit away) fed the stale-direction check and
+    // produced a false red demanding its rows be deleted.
+    scope: agentSkillsTable(),
     copies: [
       {
         what: 'the Agent Skills table',
@@ -1936,6 +2000,7 @@ export const SKILL_ROSTERS = [
   },
   {
     file: 'bulma-ui/README.md',
+    scope: agentSkillsTable(),
     copies: [
       {
         what: 'the Agent Skills table',
@@ -1952,13 +2017,21 @@ export const SKILL_ROSTERS = [
     copies: [
       {
         what: 'the "Agent skills (…)" list',
-        // Comma-delimited items, not "any lowercase word". A bare
-        // /([a-z][a-z0-9-]*)/g here would read the "and" out of
-        // "x, y, and z" and then demand you delete a skill called `and`.
-        // The optional conjunction is not decoration: serial commas are house
-        // style, so "x, y, and z" is the likely spelling, and without it the
-        // final skill reads as missing from a roster that is complete.
-        list: /(?:^|,)\s*(?:and\s+|or\s+)?([a-z][a-z0-9-]*)\s*(?=,|$)/g,
+        // Tokenised, not pattern-matched. The regex this replaces was wrong
+        // in both directions: its conjunction was only tolerated straight
+        // after a comma, so the non-Oxford "x, y and z" dropped BOTH final
+        // names (false missing on a complete roster), and a two-item
+        // "x and y" captured nothing. Splitting on commas and free-standing
+        // conjunctions reads every spelling; anything left that is not a
+        // skill name then fails the stale direction, which is the right
+        // verdict for prose inside a list that should hold exactly the
+        // roster.
+        tokens: text =>
+          text
+            .split(',')
+            .flatMap(part => part.split(/\s+(?:and|or)\s+/))
+            .map(s => s.trim())
+            .filter(Boolean),
         example: n => `${n} (comma-separated, inside the parenthetical)`,
       },
     ],
@@ -1993,6 +2066,31 @@ function installFence() {
 }
 
 /**
+ * The table under the `**[Agent Skills](…)**` bullet: the marker line, then
+ * the first contiguous run of `|` rows within the next few lines. Returns
+ * null when the marker is gone, which rosterViolations reports as the
+ * anchor-gone violation rather than silently checking nothing.
+ */
+function agentSkillsTable() {
+  return text => {
+    const { lines, crlf } = splitLines(text);
+    const marker = lines.findIndex(l => /\*\*\[Agent Skills\]\(/.test(l));
+    if (marker < 0) return null;
+    let start = -1;
+    for (let i = marker + 1; i < Math.min(marker + 6, lines.length); i++) {
+      if (lines[i].trimStart().startsWith('|')) {
+        start = i;
+        break;
+      }
+    }
+    if (start < 0) return null;
+    let end = start;
+    while (end < lines.length && lines[end].trimStart().startsWith('|')) end++;
+    return joinLines(lines.slice(start, end), crlf);
+  };
+}
+
+/**
  * A markdown section by heading, up to the next heading of the same depth or
  * shallower.
  *
@@ -2007,14 +2105,27 @@ function installFence() {
 function section(heading) {
   const depth = heading.match(/^#+/)[0].length;
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const start = new RegExp(`^${escaped}[ \\t]*$`, 'm');
-  const end = new RegExp(`^#{1,${depth}} `, 'm');
+  const start = new RegExp(`^${escaped}[ \\t]*$`);
+  const end = new RegExp(`^#{1,${depth}} `);
+  // Fence-aware, like every extractor in this file and sectionSpans in
+  // api-page.mjs (whose header rule is "every scan runs through fenceMask").
+  // Without the mask, a column-0 `# comment` inside a fenced shell example
+  // matched the terminator and truncated the section — the check then
+  // reported an intact roster as entirely missing, and a stale bullet AFTER
+  // the fence went unchecked in the other direction.
   return text => {
-    const opened = start.exec(text);
-    if (!opened) return null;
-    const rest = text.slice(opened.index + opened[0].length);
-    const closed = end.exec(rest);
-    return closed ? rest.slice(0, closed.index) : rest;
+    const { lines, crlf } = splitLines(text);
+    const masked = fenceMask(lines);
+    const opened = lines.findIndex((l, i) => !masked[i] && start.test(l));
+    if (opened < 0) return null;
+    let closed = lines.length;
+    for (let i = opened + 1; i < lines.length; i++) {
+      if (!masked[i] && end.test(lines[i])) {
+        closed = i;
+        break;
+      }
+    }
+    return joinLines(lines.slice(opened + 1, closed), crlf);
   };
 }
 
@@ -2027,44 +2138,18 @@ function section(heading) {
 const SKILL_DIR_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 /**
- * Every candidate directory under `skills/`, with whether it actually holds a
- * SKILL.md. Returned together so the caller can complain about the ones that
- * do not, instead of silently skipping them — a half-landed skill directory is
- * exactly the silent omission this check exists to end.
+ * Discovery is DELEGATED to the shared predicate, not reimplemented: this
+ * check validates rosters against what the bundlers actually ship, and that
+ * is only true while all of them ask the same question. Four diverging
+ * copies is how #540's drift would re-open one level down. Re-exported so
+ * the test file keeps its imports.
  */
 export async function readSkillDirs(dir = join(REPO, 'skills')) {
-  const found = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-
-    let hasSkillFile = true;
-    try {
-      await access(join(dir, entry.name, 'SKILL.md'));
-    } catch {
-      hasSkillFile = false;
-    }
-
-    // A dotted directory is not a skill by convention, but none of the three
-    // consumers tests for the dot — each takes any directory holding a
-    // SKILL.md. So `.draft/SKILL.md` really would be bundled and indexed, and
-    // skipping it here would hide exactly the silent omission this check
-    // exists to end. Reported, and SKILL_DIR_NAME then rejects the name.
-    // A dotted directory WITHOUT a SKILL.md is just tooling, so it is ignored.
-    if (entry.name.startsWith('.') && !hasSkillFile) continue;
-
-    found.push({ name: entry.name, hasSkillFile });
-  }
-  return found.sort((a, b) => a.name.localeCompare(b.name));
+  return sharedReadSkillDirs(dir);
 }
 
-/**
- * The skill roster, READ from the directory — never a hardcoded list, for the
- * same reason gen-mcp-index.mjs says so at its own reader.
- */
 export async function readSkillNames(dir = join(REPO, 'skills')) {
-  return (await readSkillDirs(dir))
-    .filter(d => d.hasSkillFile)
-    .map(d => d.name);
+  return sharedReadSkillNames(dir);
 }
 
 /**
@@ -2130,7 +2215,13 @@ export function rosterViolations(skills, sources) {
         continue;
       }
 
-      const listed = new Set([...scoped.matchAll(copy.list)].map(m => m[1]));
+      // A copy provides either a structural pattern or a tokenizer — the
+      // parenthetical is prose, and prose defeated two pattern attempts.
+      const listed = new Set(
+        copy.tokens
+          ? copy.tokens(scoped)
+          : [...scoped.matchAll(copy.list)].map(m => m[1])
+      );
 
       const missing = skills.filter(name => !listed.has(name));
       if (missing.length) {
