@@ -14,23 +14,24 @@ like library code: they get bug reports (#194, #195, #196, #197) and ship to use
 
 ## Adding a skill
 
-The roster is **read, not listed**: `create-bestax/scripts/sync-skills.mjs`,
-`bestax-mcp/scripts/sync-skills.mjs` and `scripts/gen-mcp-index.mjs` each discover any directory
-holding a `SKILL.md`, so a new one bundles everywhere by construction (#540). There is no
-allowlist to join and no per-skill bundling call to make — #385 settled that every skill bundles,
-on the grounds that a carve-out is the kind of thing that drifts.
+The roster is **read, not listed**. `create-bestax/scripts/sync-skills.mjs` and
+`bestax-mcp/scripts/sync-skills.mjs` each copy every directory holding a `SKILL.md` into their
+package, and `scripts/gen-mcp-index.mjs` discovers the same set to generate the MCP manifest
+(it indexes, it does not bundle). A new skill therefore reaches all three by construction
+(#540): there is no allowlist to join, and no per-skill bundling call to make. Note the
+provenance — #385 settled only `bestax-migrate`'s case and kept the per-skill rule; dropping that
+rule is #540's own decision, taken on the reasoning #385 gave for it ("a per-skill carve-out is
+exactly the kind of thing that drifts").
 
-The prose copies cannot be derived, and `pnpm check:conformance --only=skills-roster` fails until
-each names the new skill (it also fails if one still names a skill you deleted):
+What stays hand-written is prose — rosters spread across the READMEs, the docs, and the
+scaffolded `CLAUDE_MD`. `pnpm check:conformance --only=skills-roster` holds those to the
+directory in both directions: it fails if one omits your new skill, and if one still names a
+skill you deleted. `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list
+and the failure names every file you missed, so this file deliberately keeps no roster of
+rosters — that would be the same bug one level up.
 
-- `skills/README.md` — hardcoded three times (table, install block, layout tree).
-- `create-bestax/src/constants.ts` — the `CLAUDE_MD` template's "AI skills" roster.
-- `docs/docs/skills/intro.md` and `docs/docs/guides/llms/index.md` — the install blocks.
-- `bulma-ui/README.md` and `bulma-ui/AGENTS.md` — both ship inside the npm tarball, so a stale
-  roster there is consumer-facing.
-
-Deliberately **not** covered by that check, so still yours to remember: a docs page under
-`docs/docs/skills/`, its entry in `docs/sidebars.js`, and the intro's bullet roster — those key
+Deliberately outside that check, so still yours to remember: a docs page under
+`docs/docs/skills/`, its entry in `docs/sidebars.js`, and the intro's bullet roster. Those key
 off page slugs rather than skill directory names, and holding them would amount to requiring a
 docs page per skill, which is a separate rule nobody has asked for.
 

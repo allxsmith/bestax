@@ -9,11 +9,17 @@
 // `SKILLS` array. It errored when a LISTED skill was missing from disk, but
 // never when a skill on disk was missing from the list, so a new skill
 // directory that nobody added to it silently never bundled and no gate
-// noticed. Every skill directory now bundles by construction, which is the
-// uniform bundle #385 settled on and the reason it gave ("a per-skill
-// carve-out is exactly the kind of thing that drifts"). If a skill ever must
-// NOT bundle, add an explicit opt-out here, so the omission is a decision in
-// this file rather than an absence nobody sees.
+// noticed. Every skill directory now bundles by construction.
+//
+// State the provenance precisely, because it is easy to overstate: #385
+// settled ONE skill's case (bestax-migrate bundles) and explicitly kept the
+// per-skill decision rule — "The per-skill-decision rule stays". What it did
+// give is the reasoning this generalises, "a per-skill carve-out is exactly
+// the kind of thing that drifts, and this issue is the proof". Removing the
+// rule outright is a NEW decision made in #540, not something #385 already
+// concluded. If a skill ever must not bundle, add an explicit opt-out here,
+// so the omission is a decision in this file rather than an absence nobody
+// sees.
 //
 // This was the last of the three roster consumers to be listed rather than
 // read; `bestax-mcp/scripts/sync-skills.mjs` and `scripts/gen-mcp-index.mjs`
@@ -21,11 +27,11 @@
 // (README, docs, the scaffolded CLAUDE.md), and those are held by
 // `pnpm check:conformance --only=skills-roster`.
 //
-// Two deliberate differences from bestax-mcp's copy survive, per the three it
-// documents in its own header: fs-extra stays (this package already depends on
-// it, so avoiding it buys nothing), and this is still not concurrency-safe
-// (the only callers are `build` and `prepack`, which never overlap — port the
-// locking if a third is ever added).
+// Two deliberate differences from bestax-mcp's copy survive, and its header
+// lists the same two: fs-extra stays (this package already depends on it, so
+// avoiding it buys nothing), and this is still not concurrency-safe (the only
+// callers are `build` and `prepack`, which never overlap — port the locking if
+// a third is ever added).
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'fs-extra';

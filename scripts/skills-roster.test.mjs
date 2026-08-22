@@ -16,8 +16,10 @@ import assert from 'node:assert/strict';
 
 import {
   SKILL_ROSTERS,
+  readSkillDirs,
   readSkillNames,
   rosterViolations,
+  skillDirViolations,
 } from './check-conformance.mjs';
 
 const repoFile = rel =>
@@ -172,6 +174,110 @@ test('the scoped rosters really are scoped', () => {
   );
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /does not name bestax-icons/);
+});
+
+test('an example --skill line outside the fence does not satisfy the roster', () => {
+  // The install rosters are scoped to their fenced block precisely so a stray
+  // example cannot stand in for a missing entry. bulma-ui's README and
+  // AGENTS.md each carry exactly such an example, which is why neither is
+  // checked on its install line at all.
+  const moved = REAL['docs/docs/guides/llms/index.md']
+    .replace(/^npx skills add .*--skill bestax-icons\n/m, '')
+    .replace(
+      'Beyond the raw docs',
+      'Try `npx skills add https://github.com/allxsmith/bestax --skill bestax-icons` too.\n\nBeyond the raw docs'
+    );
+  assert.ok(moved.includes('--skill bestax-icons'), 'decoy must survive');
+
+  const v = rosterViolations(
+    SKILLS,
+    withFile('docs/docs/guides/llms/index.md', moved)
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /does not name bestax-icons/);
+});
+
+test('the root README roster is covered', () => {
+  // Copilot caught this one live on the PR that added the check: the repo's
+  // front page listed four skills against seven, and nothing held it.
+  assert.ok(
+    SKILL_ROSTERS.some(r => r.file === 'README.md'),
+    'the root README must be in SKILL_ROSTERS'
+  );
+  const gutted = REAL['README.md']
+    .split('\n')
+    .filter(l => !l.includes('`bestax-optimize`'))
+    .join('\n');
+  const v = rosterViolations(SKILLS, withFile('README.md', gutted));
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /README\.md/);
+  assert.match(v[0], /bestax-optimize/);
+});
+
+test('a directory that looks like a skill but has no SKILL.md is caught', () => {
+  // Discovery silently skips it, which would be the old silent-omission bug in
+  // a new place: a half-landed skill ships nothing and no roster is asked for it.
+  const v = skillDirViolations([
+    { name: 'bestax-form', hasSkillFile: true },
+    { name: 'bestax-halfdone', hasSkillFile: false },
+  ]);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /bestax-halfdone/);
+  assert.match(v[0], /has no SKILL\.md/);
+});
+
+test('a skill name the roster patterns cannot express is caught', () => {
+  // Every roster pattern captures a kebab-case token, so a name outside that
+  // shape would make the check unsatisfiable: it reports the skill missing and
+  // the line it tells you to paste still does not match.
+  const v = skillDirViolations([
+    { name: 'bestax_under', hasSkillFile: true },
+    { name: 'Bestax-Caps', hasSkillFile: true },
+    { name: 'bestax--double', hasSkillFile: true },
+  ]);
+  assert.equal(v.length, 3, v.join('\n'));
+  assert.ok(
+    v.every(m => /kebab-case/.test(m)),
+    v.join('\n')
+  );
+});
+
+test('the real skills directory has no anomalies', async () => {
+  assert.deepEqual(
+    skillDirViolations(
+      await readSkillDirs(fileURLToPath(new URL('../skills', import.meta.url)))
+    ),
+    []
+  );
+});
+
+test('an Oxford comma does not invent a skill called "and"', () => {
+  // The AGENTS.md roster is a prose parenthetical, the one copy that is not
+  // structural. A bare /([a-z][a-z0-9-]*)/g there would read the "and" out of
+  // "x, y, and z" and demand you delete a skill by that name.
+  const oxford = REAL['bulma-ui/AGENTS.md'].replace(
+    'bestax-optimize, bestax-theming',
+    'bestax-optimize, and bestax-theming'
+  );
+  const v = rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', oxford));
+  assert.doesNotMatch(v.join(' '), /names and\b/, 'must not invent "and"');
+});
+
+test('the section scope is line-anchored, not a substring search', () => {
+  // `'## AI skills'` occurs inside `'### AI skills'`, so an indexOf-based scope
+  // would lock onto a subheading and report an intact roster as wholly missing.
+  // This is the failure c8b5d11 fixed in the release-docs extractors.
+  const decoyed = REAL['create-bestax/src/constants.ts'].replace(
+    '## AI skills',
+    '### AI skills\n\nA decoy subheading.\n\n## AI skills'
+  );
+  assert.deepEqual(
+    rosterViolations(
+      SKILLS,
+      withFile('create-bestax/src/constants.ts', decoyed)
+    ),
+    []
+  );
 });
 
 test('an empty roster of skills does not pass vacuously', () => {

@@ -21,12 +21,14 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
   under the repo-root `skills/` that holds a `SKILL.md`** into the package. The roster is read,
   not listed (#540): there is no allowlist, so a new skill bundles without anyone remembering
   to add it, and a deleted one stops bundling. That replaced a hardcoded `SKILLS` array which
-  errored on a listed-but-missing skill and said nothing about the reverse, and it settles the
-  mechanism for the policy #385 settled — every skill bundles. What is _not_ derivable is the
-  prose roster: `skills/README.md`, `docs/docs/skills/intro.md`, and the `CLAUDE_MD` roster in
-  `src/constants.ts` must each name every skill. The `skills-roster` conformance check now
-  enforces that in both directions. **Never edit the bundled copy** — change `skills/` at the
-  repo root; the build re-syncs.
+  errored on a listed-but-missing skill and said nothing about the reverse. Every skill now
+  bundles; #385 settled only `bestax-migrate`'s case and kept the per-skill rule, so dropping
+  that rule is #540's decision, taken on #385's reasoning. What is _not_ derivable is the
+  prose rosters, this package's `CLAUDE_MD` roster in `src/constants.ts` among them. The
+  `skills-roster` conformance check holds every one of them to the directory in both directions;
+  `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list, and its failure
+  names each file you missed. **Never edit the bundled copy** — change `skills/` at the repo
+  root; the build re-syncs.
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check
   whether this template must change too.
