@@ -273,6 +273,55 @@ function selectorClasses(selector) {
 }
 
 /**
+ * `.#{iv.$class-prefix}button.#{iv.$class-prefix}link-button` ->
+ * ['button', 'link-button'] — the classes of ONE compound selector.
+ *
+ * Deliberately strict, because every relaxation is a mis-attribution bug:
+ * only chained prefixed classes with nothing between or after them qualify,
+ * and a single class returns [] so simple selectors stay on the
+ * selectorClasses path untouched. A descendant selector
+ * (`.tooltip.is-dark .tooltip-content`), a pseudo (`:hover`), or an
+ * unprefixed class all disqualify the item — those either re-register keys
+ * the base block already owns (dedupe makes them neutral) or belong to
+ * nobody, and guessing here is how a wrapper's variables would leak onto the
+ * wrapped component's page (#464).
+ */
+function compoundClasses(item) {
+  const s = item.trim();
+  if (!s || /[\s>+~(]/.test(s)) return [];
+  const classes = [];
+  const token = /\.#\{\s*iv\.\$class-prefix\s*\}([a-z][a-z0-9-]*)/g;
+  let consumed = 0;
+  for (let m; (m = token.exec(s));) {
+    if (m.index !== consumed) return [];
+    classes.push(m[1]);
+    consumed = token.lastIndex;
+  }
+  return consumed === s.length && classes.length >= 2 ? classes : [];
+}
+
+/**
+ * How the root class appears on this selector: on a simple selector
+ * ('root'), inside a compound ('compound'), or not at all (null). The page's
+ * lead sentence needs the distinction, not just presence — a compound like
+ * `.button.link-button` has specificity 0-2-0, so the "override via
+ * className" advice that is true for a simple selector silently does nothing
+ * there (a single custom class is 0-1-0 and loses regardless of load order).
+ */
+function selectorRootKind(selector, root) {
+  if (!root) return null;
+  if (selectorClasses(selector).includes(root)) return 'root';
+  if (
+    splitTopLevel(selector, ',').some(item =>
+      compoundClasses(item).includes(root)
+    )
+  ) {
+    return 'compound';
+  }
+  return null;
+}
+
+/**
  * Render a raw sass value as it will reach the browser: `cv.getVar("x")`
  * becomes `var(--bulma-x)`, interpolation wrappers are dropped, and whitespace
  * collapses to one line.
@@ -334,6 +383,21 @@ export function renderValue(raw) {
 function ownsRegistration(selector, root, prefix, key) {
   if (root && selectorClasses(selector).includes(root)) return true;
   if (!prefix) return false;
+  // A COMPOUND selector carrying the root class (`.button.link-button` for
+  // LinkButton) is claimed like a host registration: by class AND key prefix
+  // together. The class test alone would be wrong in both directions — that
+  // same selector contains `button`, and without the key test Button's page
+  // would grow four bogus `--bulma-link-button-*` rows the moment LinkButton's
+  // partial parsed (#464). The prefix test alone would claim `:root` blocks
+  // that already have their own arm below.
+  if (
+    root &&
+    splitTopLevel(selector, ',').some(item =>
+      compoundClasses(item).includes(root)
+    )
+  ) {
+    return key === prefix || key.startsWith(`${prefix}-`);
+  }
   // A `@mixin delete { … }` body is the other off-selector home: Bulma declares
   // every `--bulma-delete-*` there and applies the mixin to `.delete`.
   const offSelector =
@@ -384,11 +448,11 @@ export function componentVars(src, root, prefix = root) {
       cssVar: `--${CSSVARS_PREFIX}${key}`,
       sassVar,
       value: renderValue(sassVar ? defaults.get(varRef[1]) : rawValue),
-      // Where the DEFAULT is declared, which the page's lead sentence needs to
-      // state correctly: 'root' means the component's own selector, 'global'
-      // means `:root` or a mixin body.
-      scope:
-        root && selectorClasses(chain[0]).includes(root) ? 'root' : 'global',
+      // Where the DEFAULT is declared, which the page's lead sentence needs
+      // to state correctly: 'root' is the component's own simple selector,
+      // 'compound' a compound carrying it (higher specificity, different
+      // override advice), 'global' a `:root` or mixin body.
+      scope: selectorRootKind(chain[0], root) ?? 'global',
     });
   }
   return rows;

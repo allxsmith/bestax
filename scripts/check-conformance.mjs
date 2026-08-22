@@ -57,7 +57,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // parser — it additionally exposes values and selector nesting, which the CSS
 // variable tables need. Key extraction is byte-for-byte the behaviour this file
 // used to implement inline (verified against all 26 partials).
-import { registerVarsKeys } from './lib/scss-vars.mjs';
+import { registerVarsKeys, registerVarsEntries } from './lib/scss-vars.mjs';
 // The inverse of the quoting bestax-migrate/release.config.js uses to build its
 // exec commands. Shared so the two halves cannot drift (#436).
 import { tokenize } from './lib/shell-words.mjs';
@@ -451,9 +451,86 @@ async function checkDocsGenerated() {
   return violations;
 }
 
+/**
+ * Partials that register variables no component claims, held as decisions
+ * rather than drift. Each entry names why it is unclaimed and where the work
+ * to claim it is tracked. Remove an entry once its partial is claimed — the
+ * check fails on a stale exemption, so this list cannot quietly outlive the
+ * problem it defers.
+ */
+const ORPHAN_EXEMPT = new Map([
+  [
+    'bulma-ui/src/scss/components/_tabs.scss',
+    'vertical-tabs vars register under .tabs-root, which the matcher does ' +
+      'not connect to Tabs (root class `tabs`) — #543',
+  ],
+  [
+    'bulma-ui/src/scss/form/_dateinput.scss',
+    'DateInputBase is overridden to root class `input`, so DateInput maps ' +
+      'only to bulma form/shared.scss — #543',
+  ],
+  [
+    'bulma-ui/src/scss/form/_timeinput.scss',
+    'same *Base → input override as _dateinput.scss — #543',
+  ],
+  [
+    'bulma-ui/src/scss/form/_datetimeinput.scss',
+    'same *Base → input override as _dateinput.scss — #543',
+  ],
+  [
+    'bulma-ui/src/scss/form/_picker-popover.scss',
+    'shared picker chrome owned by no single component; needs an ownership ' +
+      'decision before it can be claimed — #543',
+  ],
+]);
+
+/**
+ * A repo partial that registers CSS variables but appears in no component's
+ * SCSS_SOURCES entry documents nothing: the API page's CSS & Sass Variables
+ * section is suppressed by the very `[]` that should have listed it, and every
+ * gate stays green (#464 — LinkButton shipped four user-facing variables
+ * invisibly this way).
+ *
+ * Pure and fixture-driven for the usual reason: no real partial trips these
+ * branches once the exemptions are settled, so without the seam an inverted
+ * rule stays green.
+ *
+ * @param rel        repo-relative partial path
+ * @param registers  does the partial call cv.register-vars with any keys?
+ * @param claimed    Set of repo-relative paths appearing in SCSS_SOURCES
+ */
+export function orphanPartialViolations(rel, registers, claimed) {
+  const exemptWhy = ORPHAN_EXEMPT.get(rel);
+  if (claimed.has(rel)) {
+    // A claimed partial must not also be exempt, or the exemption survives
+    // the fix and the next reader trusts a reason that no longer applies.
+    return exemptWhy
+      ? [
+          `${rel} is claimed by SCSS_SOURCES but still listed in ` +
+            `ORPHAN_EXEMPT (“${exemptWhy}”). Remove the stale exemption.`,
+        ]
+      : [];
+  }
+  if (!registers || exemptWhy) return [];
+  return [
+    `${rel} registers CSS variables but no component claims it in ` +
+      `SCSS_SOURCES (scripts/lib/api-sources.mjs), so they appear on no API ` +
+      `page. Run \`pnpm gen:api-sources\`; if the mapping still misses it, ` +
+      `the matcher needs a fix (see the compound-selector case, #464), or ` +
+      `add an ORPHAN_EXEMPT entry saying why and where it is tracked.`,
+  ];
+}
+
 async function checkScssConformance() {
   const violations = [];
   const scssRoot = join(REPO, 'bulma-ui', 'src', 'scss');
+  // Every repo path SCSS_SOURCES claims, for the orphan rule below. Computed
+  // once — the map is committed, importable state.
+  const claimedPaths = new Set(
+    Object.values(SCSS_SOURCES)
+      .flat()
+      .map(e => e.path)
+  );
   // Component partials live here; scss/helpers are static utility classes and
   // scss/versions are build entrypoints (both out of scope).
   const dirs = ['components', 'elements', 'form'];
@@ -472,6 +549,19 @@ async function checkScssConformance() {
       const rel = `bulma-ui/src/scss/${dir}/${f}`;
       const src = await readFile(join(dirPath, f), 'utf8');
       const partialName = f.replace(/^_/, '').replace(/\.scss$/, '');
+
+      // 0. Registered variables must reach an API page (#464).
+      // registerVarsEntries, not registerVarsKeys: the latter reads only the
+      // plural `register-vars((…))` form, and a partial using the singular
+      // `register-var(k, v)` — which Bulma's own sources do — would bypass
+      // this rule with zero keys while registering real variables.
+      violations.push(
+        ...orphanPartialViolations(
+          rel,
+          registerVarsEntries(src).length > 0,
+          claimedPaths
+        )
+      );
 
       // 1. Partial must be wired into the flavor builds via _index.scss —
       //    an unregistered partial silently ships nothing.
