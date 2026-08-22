@@ -1,3 +1,5 @@
+## [4.1.2](https://github.com/allxsmith/bestax/compare/create-bestax@4.1.1...create-bestax@4.1.2) (2026-08-22)
+
 ## [4.1.1](https://github.com/allxsmith/bestax/compare/create-bestax@4.1.0...create-bestax@4.1.1) (2026-08-21)
 
 
