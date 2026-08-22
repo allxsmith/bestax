@@ -12,12 +12,16 @@ missing binding in local dev still answers `204`.
 npx wrangler deploy
 ```
 
-Run by Alex — the package is not in the pnpm workspace yet, and Wrangler
-bundles `src/index.ts` directly (no build step). The worker is bound to the
-zone route `bestax.io/api/t`. If that route ever conflicts with whatever
-serves the rest of `bestax.io`, the fallback is a custom domain: attach
-`t.bestax.io` to the worker and point the CLIs at `https://t.bestax.io/api/t`
-(the handler only checks the `/api/t` pathname, so no code change needed).
+Run by Alex — the package is not in the pnpm workspace (Wrangler's native
+`workerd` build is blocked repo-wide). Wrangler bundles `src/index.ts`
+directly (no build step). Tests and typecheck still run from the repo root:
+`pnpm test` includes `node --test telemetry-worker/src/__tests__/*.test.ts`,
+and `pnpm typecheck` includes `tsc -p telemetry-worker`. The worker is bound
+to the zone route `bestax.io/api/t`. If that route ever conflicts with
+whatever serves the rest of `bestax.io`, the fallback is a custom domain:
+attach `t.bestax.io` to the worker and point the CLIs at
+`https://t.bestax.io/api/t` (the handler only checks the `/api/t` pathname,
+so no code change needed).
 
 ## Analytics Engine mapping
 

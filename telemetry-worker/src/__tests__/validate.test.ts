@@ -268,8 +268,20 @@ describe('validate: rejects props enum values', () => {
   }
 });
 
-describe('validate: rejects todosByRule shapes', () => {
-  it('more than 20 entries', () => {
+describe('validate: todosByRule', () => {
+  const PRODUCTION_RULES = [
+    'prop:className',
+    'prop:renderAs',
+    'prop:size',
+    'unsupported-file',
+    'peer-deps',
+    'plain-element',
+    'imports',
+    'responsive',
+    'deps',
+  ] as const;
+
+  it('more than 20 entries rejects the whole payload', () => {
     const payload = migratePayload();
     payload.todosByRule = Array.from({ length: 21 }, (_, i) => ({
       rule: `rule-${i}`,
@@ -287,26 +299,52 @@ describe('validate: rejects todosByRule shapes', () => {
     assertOk(payload);
   });
 
-  it('non-array todosByRule', () => {
+  it('non-array todosByRule rejects the whole payload', () => {
     const payload = migratePayload();
     payload.todosByRule = { rule: 'x', count: 1 };
     assertRejected(payload, 'todosByRule must be an array');
   });
 
-  it('entry with extra key', () => {
+  it('accepts production migrate rule slugs', () => {
     const payload = migratePayload();
-    payload.todosByRule = [{ rule: 'x', count: 1, file: 'App.tsx' }];
-    assertRejected(payload, 'todo entry with extra key');
+    payload.todosByRule = PRODUCTION_RULES.map(rule => ({ rule, count: 1 }));
+    const result = validate(payload);
+    assert.equal(result.ok, true, JSON.stringify(result));
+    if (result.ok && result.payload.tool === 'bestax-migrate') {
+      assert.deepEqual(
+        result.payload.todosByRule?.map(entry => entry.rule),
+        [...PRODUCTION_RULES]
+      );
+    }
   });
 
-  it('entry missing count', () => {
+  it('drops a bad entry and keeps the run plus good slugs', () => {
     const payload = migratePayload();
-    payload.todosByRule = [{ rule: 'x' }];
-    assertRejected(payload, 'todo entry missing count');
+    payload.todosByRule = [
+      { rule: 'prop:className', count: 2 },
+      { rule: 'has space', count: 1 },
+      { rule: 'x', count: 1, file: 'App.tsx' },
+      { rule: 'ok-rule' },
+      { rule: 'ok-rule', count: -1 },
+    ];
+    const result = validate(payload);
+    assert.equal(result.ok, true, JSON.stringify(result));
+    if (result.ok && result.payload.tool === 'bestax-migrate') {
+      assert.deepEqual(result.payload.todosByRule, [
+        { rule: 'prop:className', count: 2 },
+      ]);
+    }
+  });
+
+  it('omits todosByRule when every entry is dropped', () => {
+    const payload = migratePayload();
+    payload.todosByRule = [{ rule: 'x', count: 1, file: 'App.tsx' }];
+    const result = validate(payload);
+    assert.equal(result.ok, true, JSON.stringify(result));
+    if (result.ok) assert.equal('todosByRule' in result.payload, false);
   });
 
   for (const rule of [
-    'UPPER',
     '-leading-dash',
     '.leading-dot',
     '',
@@ -314,18 +352,22 @@ describe('validate: rejects todosByRule shapes', () => {
     'a'.repeat(65),
     42,
   ]) {
-    it(`rule = ${JSON.stringify(rule)}`, () => {
+    it(`drops rule = ${JSON.stringify(rule)} and keeps the run`, () => {
       const payload = migratePayload();
       payload.todosByRule = [{ rule, count: 1 }];
-      assertRejected(payload, 'bad rule slug');
+      const result = validate(payload);
+      assert.equal(result.ok, true, JSON.stringify(result));
+      if (result.ok) assert.equal('todosByRule' in result.payload, false);
     });
   }
 
   for (const count of [-1, 100001, 0.5, '3', null]) {
-    it(`count = ${JSON.stringify(count)}`, () => {
+    it(`drops count = ${JSON.stringify(count)} and keeps the run`, () => {
       const payload = migratePayload();
       payload.todosByRule = [{ rule: 'ok-rule', count }];
-      assertRejected(payload, 'bad todo count');
+      const result = validate(payload);
+      assert.equal(result.ok, true, JSON.stringify(result));
+      if (result.ok) assert.equal('todosByRule' in result.payload, false);
     });
   }
 });

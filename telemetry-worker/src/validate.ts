@@ -1,8 +1,10 @@
 /**
- * Reject-by-default payload validation. Every key, everywhere, must be on an
- * allowlist and every value must match its allowlisted shape — anything else
- * rejects the whole payload. Rejection reasons are internal (tests/debug
- * only); the handler always answers a bare 400.
+ * Reject-by-default payload validation. Unknown top-level or props keys, and
+ * a malformed envelope, reject the whole payload (privacy: extra fields never
+ * land). A single bad `todosByRule` entry is dropped and the run is kept —
+ * migrate's production slugs include `prop:className`, and one ugly slug must
+ * not zero out the event. Rejection reasons are internal (tests/debug only);
+ * the handler always answers a bare 400.
  */
 
 import {
@@ -26,7 +28,9 @@ export type ValidationResult =
 
 const VERSION_RE = /^\d+\.\d+\.\d+(-[\w.]+)?$/;
 const MAX_VERSION_LENGTH = 32;
-const RULE_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+// Production slugs are `prop:<jsxProp>` (colon + camelCase) plus lowercase
+// families like `unsupported-file`. Length cap is the whole slug.
+const RULE_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
 
 const TOP_KEYS = [
   'v',
@@ -152,12 +156,13 @@ export function validate(body: unknown): ValidationResult {
       if (!Array.isArray(todos) || todos.length > MAX_TODO_RULES) {
         return reject('invalid todosByRule');
       }
+      const kept: { rule: string; count: number }[] = [];
       for (const entry of todos) {
         if (!isRecord(entry) || !hasExactKeys(entry, TODO_ENTRY_KEYS)) {
-          return reject('invalid todosByRule entry');
+          continue;
         }
         if (typeof entry.rule !== 'string' || !RULE_RE.test(entry.rule)) {
-          return reject('invalid todo rule');
+          continue;
         }
         if (
           typeof entry.count !== 'number' ||
@@ -165,8 +170,14 @@ export function validate(body: unknown): ValidationResult {
           entry.count < 0 ||
           entry.count > MAX_CHANGED_COUNT
         ) {
-          return reject('invalid todo count');
+          continue;
         }
+        kept.push({ rule: entry.rule, count: entry.count });
+      }
+      if (kept.length > 0) {
+        body.todosByRule = kept;
+      } else {
+        delete body.todosByRule;
       }
     }
   }

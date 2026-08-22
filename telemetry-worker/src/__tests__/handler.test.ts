@@ -254,6 +254,32 @@ describe('handler: accepted payloads', () => {
     assert.equal(points.length, 0);
   });
 
+  it('a bad todo entry is dropped; the run and good slugs still write', async () => {
+    const { env, points } = makeEnv();
+    const payload = migratePayload();
+    payload.todosByRule = [
+      { rule: 'prop:className', count: 4 },
+      { rule: 'has space', count: 1 },
+      { rule: 'x', count: 1, file: 'App.tsx' },
+    ];
+    const res = await call(post(payload), env);
+    assert.equal(res.status, 204);
+    assert.equal(points.length, 2);
+    assert.equal(points[0]?.blobs?.[0], 'migrate');
+    assert.deepEqual(points[1], {
+      indexes: ['bestax-migrate'],
+      blobs: [
+        'migrate_todo',
+        '0.3.0',
+        'linux',
+        '20',
+        'react-bulma-components',
+        'prop:className',
+      ],
+      doubles: [4],
+    });
+  });
+
   it('204 even without the TELEMETRY binding (fire-and-forget)', async () => {
     const res = await call(post(createPayload()), {});
     assert.equal(res.status, 204);

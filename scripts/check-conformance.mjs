@@ -48,6 +48,10 @@
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
  *                        passed (#391)
+ *   telemetry-core       create-bestax and bestax-migrate telemetry-core.ts
+ *                        copies are byte-identical
+ *   telemetry-allowlists worker schema enums are a superset of the CLI values
+ *                        (templates, flavors, icons, sources, css modes, PMs)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute } from 'node:path';
@@ -2204,6 +2208,163 @@ async function checkSkillsRoster() {
 }
 
 // ---------------------------------------------------------------------------
+// Telemetry: two standalone CLIs cannot share a package, so the kernel is
+// copied. The worker allowlists are the privacy backstop — a new template
+// that isn't listed there is silently dropped.
+// ---------------------------------------------------------------------------
+
+const TELEMETRY_CORE_CANONICAL = 'create-bestax/src/telemetry-core.ts';
+const TELEMETRY_CORE_COPY = 'bestax-migrate/src/telemetry-core.ts';
+
+async function checkTelemetryCore() {
+  const violations = [];
+  let canonical;
+  let copy;
+  try {
+    canonical = await readFile(join(REPO, TELEMETRY_CORE_CANONICAL), 'utf8');
+  } catch {
+    return [
+      `${TELEMETRY_CORE_CANONICAL} is missing (canonical telemetry kernel).`,
+    ];
+  }
+  try {
+    copy = await readFile(join(REPO, TELEMETRY_CORE_COPY), 'utf8');
+  } catch {
+    return [
+      `${TELEMETRY_CORE_COPY} is missing. Copy ${TELEMETRY_CORE_CANONICAL} ` +
+        `over it so the two CLI kernels stay in lockstep.`,
+    ];
+  }
+  if (canonical !== copy) {
+    violations.push(
+      `${TELEMETRY_CORE_COPY} differs from ${TELEMETRY_CORE_CANONICAL} ` +
+        `(canonical). Copy ${TELEMETRY_CORE_CANONICAL} over ${TELEMETRY_CORE_COPY} ` +
+        `so the two CLI kernels stay in lockstep — they cannot share a package ` +
+        `(published standalone).`
+    );
+  }
+  return violations;
+}
+
+function quotedStringsIn(block) {
+  return [...block.matchAll(/'([^']+)'/g)].map(m => m[1]);
+}
+
+function constStringArray(src, name) {
+  const m = src.match(
+    new RegExp(`const ${name} = \\[([\\s\\S]*?)\\] as const`)
+  );
+  return m ? quotedStringsIn(m[1]) : null;
+}
+
+function exportedNamedArray(src, name) {
+  const m = src.match(
+    new RegExp(`export const ${name}[^=]*= \\[([\\s\\S]*?)\\];`)
+  );
+  if (!m) return null;
+  return [...m[1].matchAll(/name: '([^']+)'/g)].map(x => x[1]);
+}
+
+function cssModes(src) {
+  const m = src.match(/const CSS_MODES: CssMode\[\] = \[([\s\S]*?)\];/);
+  return m ? quotedStringsIn(m[1]) : null;
+}
+
+async function migrateSourceNames() {
+  const dir = join(REPO, 'bestax-migrate/src/sources');
+  const names = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    try {
+      const src = await readFile(join(dir, entry.name, 'index.ts'), 'utf8');
+      const m = src.match(/: MigrationSource = \{[\s\S]*?name: '([^']+)'/);
+      if (m) names.push(m[1]);
+    } catch {
+      // Directory without an index.ts is not a source.
+    }
+  }
+  return names;
+}
+
+function missingFromWorker(label, producer, worker, workerFile) {
+  if (producer === null) {
+    return [`could not parse producer values for ${label}`];
+  }
+  if (worker === null) {
+    return [
+      `could not parse ${label} from ${workerFile} — the worker schema ` +
+        `array is missing or malformed.`,
+    ];
+  }
+  const missing = producer.filter(value => !worker.includes(value));
+  return missing.map(
+    value =>
+      `${label} value '${value}' is used by a CLI but missing from ` +
+      `${workerFile} — add it there first or its events are silently dropped.`
+  );
+}
+
+async function checkTelemetryAllowlists() {
+  const workerFile = 'telemetry-worker/src/schema.ts';
+  const constantsFile = 'create-bestax/src/constants.ts';
+  const pmFile = 'create-bestax/src/package-manager.ts';
+  const cliFile = 'bestax-migrate/src/cli.ts';
+  const [schema, constants, pm, cli] = await Promise.all([
+    readFile(join(REPO, workerFile), 'utf8'),
+    readFile(join(REPO, constantsFile), 'utf8'),
+    readFile(join(REPO, pmFile), 'utf8'),
+    readFile(join(REPO, cliFile), 'utf8'),
+  ]);
+  const sources = await migrateSourceNames();
+  const violations = [];
+  if (!sources.length) {
+    violations.push(
+      'bestax-migrate/src/sources/*/index.ts: no MigrationSource `name` was ' +
+        'found, so the worker allowlist went unchecked.'
+    );
+  }
+  violations.push(
+    ...missingFromWorker(
+      'template',
+      exportedNamedArray(constants, 'TEMPLATES'),
+      constStringArray(schema, 'TEMPLATE_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'bulmaFlavor',
+      exportedNamedArray(constants, 'BULMA_FLAVORS'),
+      constStringArray(schema, 'BULMA_FLAVOR_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'iconLibrary',
+      exportedNamedArray(constants, 'ICON_LIBRARIES'),
+      constStringArray(schema, 'ICON_LIBRARY_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'packageManager',
+      constStringArray(pm, 'KNOWN'),
+      constStringArray(schema, 'PACKAGE_MANAGER_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'migrate source',
+      sources,
+      constStringArray(schema, 'MIGRATE_SOURCE_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'cssMode',
+      cssModes(cli),
+      constStringArray(schema, 'CSS_MODE_VALUES'),
+      workerFile
+    )
+  );
+  return violations;
+}
+
+// ---------------------------------------------------------------------------
 
 const CHECKS = {
   'listings-sync': checkListingsSync,
@@ -2221,6 +2382,8 @@ const CHECKS = {
   'autodocs-tag': checkAutodocsTag,
   'publishable-manifests': checkPublishableManifests,
   'bypass-expiry': checkBypassExpiry,
+  'telemetry-core': checkTelemetryCore,
+  'telemetry-allowlists': checkTelemetryAllowlists,
   'inline-style': null, // handled below (takes the flag)
 };
 
