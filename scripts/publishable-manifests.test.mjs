@@ -628,11 +628,12 @@ test('an unresolvable protocol in devDependencies is explained honestly', () => 
 // a consumer section today, so none of these branches executes on the real
 // tree — the same seam rationale as everything above.
 
-const SIBLINGS = new Set([
-  '@allxsmith/bestax-bulma',
-  'create-bestax',
-  'bestax-migrate',
-  'bestax-mcp',
+const SIBLINGS = new Map([
+  ['@allxsmith/bestax-bulma', { private: false }],
+  ['create-bestax', { private: false }],
+  ['bestax-migrate', { private: false }],
+  ['bestax-mcp', { private: false }],
+  ['@allxsmith/bestax-docs', { private: true }],
 ]);
 
 test('a plain-semver sibling in dependencies is flagged, whatever the range', () => {
@@ -714,4 +715,37 @@ test("a non-sibling dependency is still nobody's business", () => {
     ),
     []
   );
+});
+
+test('an npm alias pointing at a sibling is still a sibling', () => {
+  // `"ui": "npm:@allxsmith/bestax-bulma@^5"` installs the sibling under
+  // another key, so a key-only comparison was bypassable by renaming —
+  // review caught the hole. The message names both the target and the alias.
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { ui: 'npm:@allxsmith/bestax-bulma@^5' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /@allxsmith\/bestax-bulma/);
+  assert.match(v[0], /aliased as "ui"/);
+});
+
+test('a private sibling is not offered the peerDependency escape', () => {
+  // docs is unpublishable, so "make it a peerDependency" would leave every
+  // consumer unable to install. The advice must not name an impossible fix.
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-docs': 'workspace:*' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /private and unpublishable/);
+  assert.doesNotMatch(v[0], /make it a peerDependency/);
 });
