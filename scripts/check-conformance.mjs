@@ -1506,7 +1506,7 @@ const PNPM_PUBLISHED = new Set([
  * not re-derive the predicate that produced it. Two copies of one rule inside
  * one function is the drift this repo keeps paying for.
  */
-export function manifestViolations(dir, pkg) {
+export function manifestViolations(dir, pkg, siblings = new Map()) {
   if (pkg?.private) return [];
 
   // The declaration is consulted HERE rather than by the caller, so that a test
@@ -1582,8 +1582,13 @@ export function manifestViolations(dir, pkg) {
       }
       // pnpm turns this into a real range, so it installs. It is still wrong in
       // a section consumers resolve: it makes everyone installing this package
-      // install that one too.
-      if (CONSUMER_SECTIONS.includes(section)) {
+      // install that one too — but when the target is a workspace SIBLING,
+      // siblingViolations owns the case: its move-to-devDependencies fix is
+      // the right one, while this rule's pin-a-range advice would keep the
+      // sibling dependency in place and just trade one violation for another
+      // (#546 review). A `catalog:` entry can point at an external package,
+      // which is no sibling, so the skip is by name, not by protocol.
+      if (CONSUMER_SECTIONS.includes(section) && !siblings.has(name)) {
         offenders.push({ section, name, spec, protocol, why: 'consumer' });
       }
     }
@@ -1847,7 +1852,7 @@ async function checkPublishableManifests() {
     // The private check lives in manifestViolations, not here, so there is one
     // copy of it. hookScripts still runs for private packages: a broken pack
     // hook is worth reporting whether or not the package publishes.
-    violations.push(...manifestViolations(dir, pkg));
+    violations.push(...manifestViolations(dir, pkg, siblings));
     violations.push(...siblingViolations(dir, pkg, siblings));
 
     // Naming a script is not the same as shipping it. A hook pointing at a

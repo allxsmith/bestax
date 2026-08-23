@@ -749,3 +749,31 @@ test('a private sibling is not offered the peerDependency escape', () => {
   assert.match(v[0], /private and unpublishable/);
   assert.doesNotMatch(v[0], /make it a peerDependency/);
 });
+
+test('one violation, one fix: the sibling rule owns a workspace: sibling dep', () => {
+  // Before the dedupe, a `workspace:^` sibling in dependencies drew BOTH the
+  // protocol rule (pin a range) and the sibling rule (move to devDependencies)
+  // — contradictory advice for one defect (#546 review). The sibling rule's
+  // fix is the correct one, so the protocol rule stands down by name; a
+  // `catalog:` entry pointing at an EXTERNAL package is no sibling and stays
+  // protocol-flagged.
+  const siblings = new Map([['@allxsmith/bestax-bulma', { private: false }]]);
+  const pkg = {
+    name: 'bestax-migrate',
+    dependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+  };
+  const protocol = manifestViolations('bestax-migrate', pkg, siblings).filter(
+    v => v.includes('bestax-bulma')
+  );
+  const sibling = siblingViolations('bestax-migrate', pkg, siblings);
+  assert.equal(protocol.length, 0);
+  assert.equal(sibling.length, 1);
+  assert.match(sibling[0], /Move it to devDependencies/);
+
+  const external = manifestViolations(
+    'x',
+    { name: 'x', dependencies: { leftpad: 'catalog:' } },
+    siblings
+  );
+  assert.ok(external.some(v => v.includes('leftpad')));
+});
