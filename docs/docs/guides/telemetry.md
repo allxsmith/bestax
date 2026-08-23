@@ -105,17 +105,28 @@ Engine as aggregate counts, retained for roughly 90 days. No third-party
 analytics service ever sees the data.
 
 As a server-side privacy backstop, the endpoint validates every field of every
-event against a strict allowlist and rejects anything else — so even a modified
-or buggy client cannot get extra data stored.
+event and rejects anything else. With one exception, every field is a closed
+enum, a version string, or a bounded integer, so a modified or buggy client
+cannot get extra data stored in those fields. The exception is migration rule
+names, which are open-ended by design (the `prop:<jsxProp>` slugs mean no fixed
+list exists): the endpoint bounds them — at most 20 per event, each 1–64
+characters of `A-Za-z0-9._:-` — but stores them verbatim, so a modified client
+could record short arbitrary strings there. Aggregate queries treat
+unrecognized rule names as noise.
 
 ## The MCP server
 
 `bestax-mcp` sends **no telemetry at all** and makes no network requests — it
-stays fully offline. The documentation links it prints include a
-`utm_source=bestax-mcp` query parameter, so if you visit the docs site through
-one of those links, that visit is attributable in the site's own traffic
-analytics. That is the only measurement, and it happens on bestax.io like any
-other page visit.
+stays fully offline. Some of the links it prints carry a
+`utm_source=bestax-mcp` query parameter: the Docs and Storybook links on
+component responses and the link in the version-drift notice are tagged at
+render time. Skill bodies and reference docs (`get_skill`, the MCP prompts and
+resources) are served verbatim from the bundled markdown — rewriting URLs
+inside arbitrary markdown and code examples risks corrupting them — so the
+bestax.io links in those are untagged. If you visit the docs site through a
+tagged link, that visit is attributable in the site's own traffic analytics.
+That is the only measurement, and it happens on bestax.io like any other page
+visit.
 
 ## Why we collect this
 

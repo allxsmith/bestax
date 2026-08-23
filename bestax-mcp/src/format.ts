@@ -33,6 +33,13 @@ const cell = (text: string) =>
  * visit that started here shows up as such in the site analytics. Render-time
  * only — the URLs in `data/` are generated and stay canonical. Idempotent, and
  * anything that is not an http(s) URL passes through unchanged.
+ *
+ * Coverage is deliberately partial: only links this server composes itself —
+ * the Docs/Storybook footer on component responses and the version-drift
+ * notice — go through here. Skill bodies and reference docs are served
+ * verbatim from the bundled markdown, untagged links included, because
+ * rewriting URLs inside arbitrary markdown/code examples risks corrupting
+ * them. Do not "fix" that by running this over served markdown.
  */
 export function attributed(url: string): string {
   if (!/^https?:\/\//.test(url)) return url;
