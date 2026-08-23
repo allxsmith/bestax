@@ -11,6 +11,8 @@ other skills.sh-compatible tools — how to build with **@allxsmith/bestax-bulma
 
 Install one with the [`skills`](https://skills.sh/) CLI:
 
+<!-- skills-roster:install -->
+
 ```bash
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form

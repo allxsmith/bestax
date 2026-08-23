@@ -43,6 +43,10 @@ import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  readSkillNames,
+  untrackedSkillDirs,
+} from '../../scripts/lib/skills.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(here, '..');
@@ -68,15 +72,23 @@ if (!existsSync(skillsSrc)) {
   process.exit(1);
 }
 
-const names = (await readdir(skillsSrc, { withFileTypes: true }))
-  .filter(
-    e => e.isDirectory() && existsSync(path.join(skillsSrc, e.name, 'SKILL.md'))
-  )
-  .map(e => e.name)
-  .sort();
+// The shared predicate (scripts/lib/skills.mjs): a directory holding a
+// SKILL.md, sorted deterministically — one definition for all four consumers.
+const names = await readSkillNames(skillsSrc);
 
 if (!names.length) {
   console.error(`[sync-skills] no skills found in ${skillsSrc}`);
+  process.exit(1);
+}
+
+// Same vetting gate as create-bestax's sync: data/skills ships in the npm
+// tarball, so an untracked scratch skill must not reach a manual publish.
+const untrackedHere = untrackedSkillDirs(skillsSrc, names);
+if (untrackedHere.length) {
+  console.error(
+    `[sync-skills] refusing to bundle untracked skill dir(s): ` +
+      `${untrackedHere.join(', ')}. \`git add\` them to vet them, or remove them.`
+  );
   process.exit(1);
 }
 

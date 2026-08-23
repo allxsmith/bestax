@@ -19,11 +19,11 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 
 - `pnpm build` and `prepack` run `scripts/sync-skills.mjs`, which copies **every directory
   under the repo-root `skills/` that holds a `SKILL.md`** into the package. The roster is read,
-  not listed (#540): there is no allowlist, so a new skill bundles without anyone remembering
-  to add it, and a deleted one stops bundling. That replaced a hardcoded `SKILLS` array which
-  errored on a listed-but-missing skill and said nothing about the reverse. Every skill now
-  bundles; #385 settled only `bestax-migrate`'s case and kept the per-skill rule, so dropping
-  that rule is #540's decision, taken on #385's reasoning. What is _not_ derivable is the
+  not listed (#540): every skill bundles by construction, with no allowlist to join. Full
+  provenance (#385 vs #540) and the slot for a future per-skill opt-out live in that script's
+  header. If such an opt-out is ever exercised, the docs pages that assert bundling —
+  today `docs/docs/skills/migrate.mdx` and `docs/docs/skills/intro.md` — must be corrected in
+  the same change: no automated check reads those claims. What is _not_ derivable is the
   prose rosters, this package's `CLAUDE_MD` roster in `src/constants.ts` among them. The
   `skills-roster` conformance check holds every one of them to the directory in both directions;
   `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list, and its failure
