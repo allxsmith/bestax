@@ -123,14 +123,16 @@ export function untrackedSkillPaths(skillsDir, names) {
     if (realpathSync(toplevel) !== realpathSync(resolve(dirname(skillsDir)))) {
       return [];
     }
-    const others = git(skillsDir, [
-      'ls-files',
-      '--others',
-      '--exclude-standard',
-      '--',
-      '.',
-    ]);
-    return pathsInsideSkills(others.split('\n'), names);
+    // No --exclude-standard: sync copies everything on disk, so gitignored
+    // content inside a skill (.env, *.log, a stray node_modules) would ship
+    // right past an exclude-standard gate. The one exemption is .DS_Store —
+    // Finder drops it everywhere and the sync scripts filter it out of the
+    // copy instead, so it neither blocks builds nor ships.
+    const others = git(skillsDir, ['ls-files', '--others', '--', '.']);
+    return pathsInsideSkills(
+      others.split('\n').filter(p => !p.endsWith('.DS_Store')),
+      names
+    );
   } catch {
     return [];
   }

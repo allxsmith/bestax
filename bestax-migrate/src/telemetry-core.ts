@@ -46,7 +46,15 @@ async function readConfig(): Promise<TelemetryConfig | null> {
     const parsed: unknown = JSON.parse(
       await readFile(telemetryConfigPath(), 'utf-8')
     );
-    if (parsed !== null && typeof parsed === 'object') {
+    // Consent fails closed: only a well-formed v1 record is trusted. A bare
+    // {"enabled":true}, an array, or an unknown future schema version reads
+    // as "never asked" (prompt again) — never as an opt-in.
+    if (
+      parsed !== null &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed) &&
+      (parsed as { version?: unknown }).version === 1
+    ) {
       return parsed as TelemetryConfig;
     }
   } catch {

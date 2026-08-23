@@ -217,6 +217,9 @@ try {
     for (const name of names) {
       await cp(path.join(skillsSrc, name), path.join(skillsDest, name), {
         recursive: true,
+        // .DS_Store is the one path the vetting gate exempts; keep it out of
+        // the bundle too so the exemption never becomes shipped content.
+        filter: src => !src.endsWith('.DS_Store'),
       });
     }
     // Stamped last: a run killed mid-copy leaves no stamp, so the next caller

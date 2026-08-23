@@ -579,6 +579,33 @@ describe('promptTelemetryConsent', () => {
     expect(text).toContain('https://github.com/allxsmith/bestax/issues');
   });
 
+  it('a SIGINT at the question cancels, exits 130, and persists nothing', async () => {
+    // PassThrough streams never emit SIGINT (only real TTY input does), so
+    // capture the interface via the injectable factory and emit it directly —
+    // exercising the real handler: exitCode 130, question aborted to null.
+    const { createInterface } = await import('node:readline/promises');
+    const originalExitCode = process.exitCode;
+    const input = new PassThrough();
+    const output = new PassThrough();
+    output.resume();
+    let captured: ReturnType<typeof createInterface> | undefined;
+    const capture: typeof createInterface = ((opts: unknown) => {
+      captured = createInterface(opts as Parameters<typeof createInterface>[0]);
+      return captured;
+    }) as typeof createInterface;
+
+    const pending = promptTelemetryConsent(makeIo(), input, output, capture);
+    await new Promise(resolve => setImmediate(resolve));
+    captured?.emit('SIGINT');
+
+    await expect(pending).resolves.toBeNull();
+    expect(process.exitCode).toBe(130);
+    process.exitCode = originalExitCode;
+    expect(
+      fs.existsSync(path.join(process.env.XDG_CONFIG_HOME as string, 'bestax'))
+    ).toBe(false);
+  });
+
   it('treats a closed input (Ctrl-D) as a cancel, not an answer', async () => {
     const input = new PassThrough();
     const output = new PassThrough();

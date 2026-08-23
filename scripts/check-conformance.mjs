@@ -2436,7 +2436,7 @@ function quotedStringsIn(block) {
   return [...block.matchAll(/'([^']+)'/g)].map(m => m[1]);
 }
 
-function constStringArray(src, name) {
+export function constStringArray(src, name) {
   const m = src.match(
     new RegExp(`const ${name} = \\[([\\s\\S]*?)\\] as const`)
   );
@@ -2464,7 +2464,7 @@ async function importProducer(relPath, pick) {
 // bestax-migrate/src/cli.ts stays regex-scraped: importing it would drag the
 // whole transform chain (jscodeshift included) into every conformance run.
 // The scrape fails loudly as null when the declaration stops matching.
-function cssModes(src) {
+export function cssModes(src) {
   const m = src.match(/const CSS_MODES: CssMode\[\] = \[([\s\S]*?)\];/);
   return m ? quotedStringsIn(m[1]) : null;
 }
@@ -2476,8 +2476,9 @@ function cssModes(src) {
  * unchecked against the worker, and its production events would 400 at
  * ingest with every gate green.
  */
-async function migrateSourceNames() {
-  const dir = join(REPO, 'bestax-migrate/src/sources');
+export async function migrateSourceNames(
+  dir = join(REPO, 'bestax-migrate/src/sources')
+) {
   const names = [];
   const unparsed = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -2495,7 +2496,7 @@ async function migrateSourceNames() {
   return { names, unparsed };
 }
 
-function missingFromWorker(label, producer, worker, workerFile) {
+export function missingFromWorker(label, producer, worker, workerFile) {
   if (producer === null) {
     return [`could not parse producer values for ${label}`];
   }
@@ -2513,7 +2514,7 @@ function missingFromWorker(label, producer, worker, workerFile) {
   );
 }
 
-async function checkTelemetryAllowlists() {
+export async function checkTelemetryAllowlists() {
   const workerFile = 'telemetry-worker/src/schema.ts';
   const constantsFile = 'create-bestax/src/constants.ts';
   const cliFile = 'bestax-migrate/src/cli.ts';

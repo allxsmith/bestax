@@ -84,7 +84,11 @@ if (untracked.length) {
 await fs.emptyDir(skillsDest);
 
 for (const name of skills) {
-  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name));
+  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name), {
+    // .DS_Store is the one path the vetting gate exempts; keep it out of the
+    // bundle too so the exemption never becomes shipped content.
+    filter: src => !src.endsWith('.DS_Store'),
+  });
 }
 
 console.log(`[sync-skills] copied ${skills.length} skills -> templates/skills`);

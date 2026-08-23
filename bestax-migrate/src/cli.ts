@@ -237,11 +237,14 @@ const TELEMETRY_ACK_UNSAVED =
 export async function promptTelemetryConsent(
   io: CliIo,
   input: Readable = process.stdin,
-  output: Writable = process.stdout
+  output: Writable = process.stdout,
+  // Injectable for tests: SIGINT is only emitted by real TTY input, so a test
+  // captures the interface through this factory and emits it directly.
+  makeInterface: typeof createInterface = createInterface
 ): Promise<boolean | null> {
   io.log('');
   io.log(chalk.gray(TELEMETRY_NOTICE));
-  const rl = createInterface({ input, output });
+  const rl = makeInterface({ input, output });
   const cancelled = new AbortController();
   // Ctrl-C emits SIGINT on the interface and Ctrl-D closes it; both must
   // reject the pending question instead of leaving it hanging forever.

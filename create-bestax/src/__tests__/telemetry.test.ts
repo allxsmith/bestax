@@ -178,6 +178,18 @@ describe('resolveTelemetry precedence', () => {
     expect((await resolveTelemetry()).decision).toBe('undecided');
   });
 
+  it('a bare {"enabled":true} never enables — consent fails closed', async () => {
+    // No version field: a hand-written or foreign record is not a valid v1
+    // opt-in and must read as "never asked", not as consent.
+    await writeConfig({ enabled: true });
+    expect((await resolveTelemetry()).decision).toBe('undecided');
+  });
+
+  it('an unknown future schema version is undecided, not trusted', async () => {
+    await writeConfig({ version: 2, enabled: true });
+    expect((await resolveTelemetry()).decision).toBe('undecided');
+  });
+
   it('treats a non-object config as undecided', async () => {
     await writeConfig('null');
     expect((await resolveTelemetry()).decision).toBe('undecided');
