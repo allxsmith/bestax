@@ -25,6 +25,22 @@ jobs:
     name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     steps:
+      # Rule 10 (.github/CLAUDE.md): new jobs ship with egress-policy: block —
+      # this is the job holding the Cloudflare deploy token. Endpoints:
+      # checkout (github.com trio), wrangler install (npm registry), and the
+      # upload itself (api.cloudflare.com). Wrangler's own metrics beacon is
+      # disabled below instead of allow-listing its host.
+      - name: Harden runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.cloudflare.com:443
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            registry.npmjs.org:443
+
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -33,6 +49,8 @@ jobs:
       # bundler does the rest.
       - name: Deploy with wrangler
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
+        env:
+          WRANGLER_SEND_METRICS: 'false'
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
