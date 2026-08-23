@@ -45,7 +45,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   readSkillNames,
-  untrackedSkillDirs,
+  untrackedSkillPaths,
 } from '../../scripts/lib/skills.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -83,10 +83,10 @@ if (!names.length) {
 
 // Same vetting gate as create-bestax's sync: data/skills ships in the npm
 // tarball, so an untracked scratch skill must not reach a manual publish.
-const untrackedHere = untrackedSkillDirs(skillsSrc, names);
+const untrackedHere = untrackedSkillPaths(skillsSrc, names);
 if (untrackedHere.length) {
   console.error(
-    `[sync-skills] refusing to bundle untracked skill dir(s): ` +
+    `[sync-skills] refusing to bundle untracked file(s) under skills/: ` +
       `${untrackedHere.join(', ')}. \`git add\` them to vet them, or remove them.`
   );
   process.exit(1);

@@ -37,7 +37,7 @@ import path from 'node:path';
 import fs from 'fs-extra';
 import {
   readSkillNames,
-  untrackedSkillDirs,
+  untrackedSkillPaths,
 } from '../../scripts/lib/skills.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -72,10 +72,10 @@ if (!skills.length) {
 // state — so an untracked scratch directory would ship in a local build or a
 // manual publish with no gate anywhere in the path. `git add` is the act of
 // vetting; a tree without git (an exported tarball) skips the gate.
-const untracked = untrackedSkillDirs(skillsSrc, skills);
+const untracked = untrackedSkillPaths(skillsSrc, skills);
 if (untracked.length) {
   console.error(
-    `[sync-skills] refusing to bundle untracked skill dir(s): ` +
+    `[sync-skills] refusing to bundle untracked file(s) under skills/: ` +
       `${untracked.join(', ')}. \`git add\` them to vet them, or remove them.`
   );
   process.exit(1);

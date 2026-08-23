@@ -7,7 +7,8 @@
 // here now; a predicate change lands once or not at all.
 
 import { readdir, access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { realpathSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 /**
@@ -80,34 +81,55 @@ export function rosterSkillNames(dirs) {
 }
 
 /**
- * The names in `names` whose SKILL.md is not in `trackedPaths` (paths relative
- * to the skills dir, as `git ls-files` prints them). Pure so it can be tested
- * without a fixture repository.
+ * The paths in `candidatePaths` (relative to the skills dir, as git prints
+ * them) that sit inside one of the bundled skill directories in `names`. Pure
+ * so it can be tested without a fixture repository.
  */
-export function untrackedAgainst(trackedPaths, names) {
-  const tracked = new Set(trackedPaths);
-  return names.filter(name => !tracked.has(`${name}/SKILL.md`));
+export function pathsInsideSkills(candidatePaths, names) {
+  const bundled = new Set(names);
+  return candidatePaths.filter(p => p && bundled.has(p.split('/')[0]));
+}
+
+function git(cwd, args) {
+  return execFileSync('git', ['-C', cwd, ...args], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
 }
 
 /**
  * The vetting gate the deleted allowlist used to be (#541 review): discovery
- * bundles whatever is on disk, so an untracked scratch directory with a
- * SKILL.md would ship in a local build or a manual publish with no gate in the
- * path — CI's skills-roster check only ever sees committed state. Bundlers
- * call this and refuse untracked skills; `git add` is the act of vetting.
+ * bundles whatever is on disk, so untracked content would ship in a local
+ * build or a manual publish with no gate in the path — CI's skills-roster
+ * check only ever sees committed state. Bundlers call this and refuse
+ * untracked FILES, not just directories: sync copies whole skill directories
+ * off disk, so a scratch note dropped into a tracked skill ships exactly like
+ * a scratch skill would. `git add` is the act of vetting; `.gitignore`d noise
+ * (`.DS_Store`) stays exempt via --exclude-standard.
  *
- * Returns [] when git is unavailable or the tree is not a repository (a
- * consumer building from an exported tarball has nothing to vet against).
+ * Returns [] when there is nothing to vet against:
+ * - git is unavailable, or the tree is not inside any repository, or
+ * - git resolves some OTHER repository — an exported (git-less) bestax tree
+ *   nested under a git-managed directory would otherwise report every skill
+ *   untracked and hard-fail the build (#550 review). The gate only speaks for
+ *   the repository whose root actually contains this skills directory.
  */
-export function untrackedSkillDirs(skillsDir, names) {
-  let output;
+export function untrackedSkillPaths(skillsDir, names) {
   try {
-    output = execFileSync('git', ['-C', skillsDir, 'ls-files', '--', '.'], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
+    const toplevel = git(skillsDir, ['rev-parse', '--show-toplevel']).trim();
+    // realpath both sides: git prints physical paths (macOS /tmp → /private/tmp).
+    if (realpathSync(toplevel) !== realpathSync(resolve(dirname(skillsDir)))) {
+      return [];
+    }
+    const others = git(skillsDir, [
+      'ls-files',
+      '--others',
+      '--exclude-standard',
+      '--',
+      '.',
+    ]);
+    return pathsInsideSkills(others.split('\n'), names);
   } catch {
     return [];
   }
-  return untrackedAgainst(output.split('\n'), names);
 }

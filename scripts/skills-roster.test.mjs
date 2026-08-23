@@ -26,7 +26,7 @@ import {
   skillsPageViolations,
   frontmatterNameViolations,
 } from './check-conformance.mjs';
-import { untrackedAgainst } from './lib/skills.mjs';
+import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -552,15 +552,86 @@ test('the tests and the check derive the comparison set the same way', () => {
   assert.deepEqual(rosterSkillNames(dirs), ['bestax-form']);
 });
 
-test('untracked skill directories are flagged against the tracked set', () => {
-  const tracked = [
-    'bestax-form/SKILL.md',
-    'bestax-form/references/x.md',
-    'bestax-icons/SKILL.md',
+test('only paths inside bundled skill directories count against the gate', () => {
+  const others = [
+    'bestax-form/notes.md',
+    'bestax-wip/SKILL.md',
+    'scratch.txt',
+    '',
   ];
-  assert.deepEqual(
-    untrackedAgainst(tracked, ['bestax-form', 'bestax-icons', 'bestax-wip']),
-    ['bestax-wip']
+  assert.deepEqual(pathsInsideSkills(others, ['bestax-form', 'bestax-wip']), [
+    'bestax-form/notes.md',
+    'bestax-wip/SKILL.md',
+  ]);
+  assert.deepEqual(pathsInsideSkills(others, ['bestax-icons']), []);
+});
+
+test('the vetting gate flags untracked files only in its OWN repository', async t => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } =
+    await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+
+  const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-gate-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const git = (cwd, ...args) =>
+    execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
+
+  // Scenario 1: skills/ inside its own repository — a tracked skill with an
+  // untracked scratch file inside it is flagged FILE-granularly (sync copies
+  // whole directories, so the scratch file would ship), and a fully-tracked
+  // skill passes.
+  const own = path.join(root, 'own');
+  mkdirSync(path.join(own, 'skills', 'bestax-form'), { recursive: true });
+  writeFileSync(path.join(own, 'skills', 'bestax-form', 'SKILL.md'), '# s\n');
+  git(own, 'init', '-q');
+  git(own, 'add', '-A');
+  const skillsDir = path.join(own, 'skills');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), []);
+  writeFileSync(path.join(skillsDir, 'bestax-form', 'notes.md'), 'draft\n');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), [
+    'bestax-form/notes.md',
+  ]);
+  // A file outside the bundled skill dirs never blocks the bundle.
+  writeFileSync(path.join(skillsDir, 'scratch.txt'), 'x\n');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), [
+    'bestax-form/notes.md',
+  ]);
+
+  // Scenario 2: an exported (git-less) tree nested inside some OUTER
+  // repository. git resolves the outer repo, which knows none of these files —
+  // the gate must return [] instead of refusing every skill (#550 review
+  // reproduced exactly this against a git-managed $HOME).
+  const outer = path.join(root, 'outer');
+  mkdirSync(path.join(outer, 'exported', 'skills', 'bestax-form'), {
+    recursive: true,
+  });
+  writeFileSync(
+    path.join(outer, 'exported', 'skills', 'bestax-form', 'SKILL.md'),
+    '# s\n'
   );
-  assert.deepEqual(untrackedAgainst(tracked, ['bestax-form']), []);
+  git(outer, 'init', '-q');
+  assert.deepEqual(
+    untrackedSkillPaths(path.join(outer, 'exported', 'skills'), [
+      'bestax-form',
+    ]),
+    []
+  );
+});
+
+test('an adjacent fence with no blank line cannot merge into the scope', () => {
+  // fenceMask marks delimiters and interiors alike, so back-to-back fences
+  // form one continuous masked run; the close-scan must stop at the block's
+  // own closer, not the run's end, or the second block's tokens join the
+  // roster comparison.
+  const merged = REAL['docs/docs/skills/intro.md'].replace(
+    /^```$/m,
+    '```\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-ghost\n```'
+  );
+  assert.ok(merged.includes('bestax-ghost'), 'fixture must inject the decoy');
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('docs/docs/skills/intro.md', merged)),
+    []
+  );
 });
