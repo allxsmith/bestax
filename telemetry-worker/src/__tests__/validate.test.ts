@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { PLATFORM_VALUES } from '../schema.ts';
 import { validate } from '../validate.ts';
 
 type Payload = Record<string, unknown>;
@@ -73,7 +74,9 @@ describe('validate: accepts', () => {
     assertOk(payload);
   });
 
-  for (const platform of ['netbsd', 'haiku']) {
+  // Parameterized over the schema's own allowlist so a platform added there
+  // is covered automatically; the reject side is 'beos' below.
+  for (const platform of PLATFORM_VALUES) {
     it(`${platform} platform`, () => {
       const payload = createPayload();
       payload.platform = platform;
@@ -83,9 +86,20 @@ describe('validate: accepts', () => {
 
   it('validated payload round-trips unchanged', () => {
     const payload = migratePayload();
+    // Clone BEFORE validate(): it returns (and may mutate) the very object it
+    // was given, so comparing result.payload against `payload` is vacuous.
+    const expected = structuredClone(payload);
     const result = validate(payload);
     assert.equal(result.ok, true);
-    if (result.ok) assert.deepEqual(result.payload, payload);
+    if (result.ok) {
+      // Content contract: a fully-valid payload passes through with no field
+      // altered or dropped.
+      assert.deepEqual(result.payload, expected);
+      // Identity contract: validate() intentionally returns the same object
+      // it was passed (no defensive copy) — the handler forwards this
+      // reference straight to the Analytics Engine point mappers.
+      assert.equal(result.payload, payload);
+    }
   });
 });
 

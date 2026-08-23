@@ -10,6 +10,16 @@ import type { ReportRunOptions } from './telemetry-core.js';
  * never file paths, messages, or code.
  */
 
+/**
+ * Client half of the wire-contract caps. The worker's schema.ts / validate.ts
+ * (telemetry-worker) hold the other half; scripts/telemetry-contract.test.mjs
+ * pins each pair equal (TODO_RULES_CAP === MAX_TODO_RULES, TODO_COUNT_CAP ===
+ * MAX_CHANGED_COUNT, CHANGED_COUNT_CAP === CHANGED_COUNT_DOUBLE_CAP).
+ */
+export const TODO_RULES_CAP = 20;
+export const TODO_COUNT_CAP = 100000;
+export const CHANGED_COUNT_CAP = 10000;
+
 export interface MigrateRunStats {
   /** Registry source name, e.g. 'react-bulma-components'. */
   source: string;
@@ -42,8 +52,11 @@ export interface MigratePayload {
 
 export function buildMigratePayload(stats: MigrateRunStats): MigratePayload {
   const todosByRule = stats.todosByRule
-    .slice(0, 20)
-    .map(({ rule, count }) => ({ rule, count: Math.min(count, 100000) }));
+    .slice(0, TODO_RULES_CAP)
+    .map(({ rule, count }) => ({
+      rule,
+      count: Math.min(count, TODO_COUNT_CAP),
+    }));
   return {
     v: 1,
     tool: 'bestax-migrate',
@@ -56,7 +69,7 @@ export function buildMigratePayload(stats: MigrateRunStats): MigratePayload {
       cssMode: stats.cssMode,
       dry: stats.dry,
       deps: stats.deps,
-      changedCount: Math.min(stats.changedCount, 10000),
+      changedCount: Math.min(stats.changedCount, CHANGED_COUNT_CAP),
     },
     ...(todosByRule.length > 0 ? { todosByRule } : {}),
   };

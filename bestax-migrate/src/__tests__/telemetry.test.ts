@@ -12,8 +12,13 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 
 const { getToolVersion } = await import('../telemetry-core.js');
-const { buildMigratePayload, reportMigrateRun } =
-  await import('../telemetry.js');
+const {
+  buildMigratePayload,
+  reportMigrateRun,
+  TODO_RULES_CAP,
+  TODO_COUNT_CAP,
+  CHANGED_COUNT_CAP,
+} = await import('../telemetry.js');
 
 const ENV_KEYS = [
   'XDG_CONFIG_HOME',
@@ -160,24 +165,30 @@ describe('buildMigratePayload', () => {
 
   // The 0/1-9/10-49/50-199/200+ bucket is derived by the ingest worker from
   // changedCount — sending it too gave the boundaries three sources of truth.
-  it('caps changedCount at 10000 and sends no bucket', () => {
+  it('caps changedCount at CHANGED_COUNT_CAP and sends no bucket', () => {
     const payload = buildMigratePayload({
       ...baseStats,
-      changedCount: 123456,
+      changedCount: CHANGED_COUNT_CAP + 113456,
     });
-    expect(payload.props.changedCount).toBe(10000);
+    expect(payload.props.changedCount).toBe(CHANGED_COUNT_CAP);
     expect('changedBucket' in payload.props).toBe(false);
   });
 
-  it('sends at most 20 rules and caps each count', () => {
-    const todosByRule = Array.from({ length: 25 }, (_, i) => ({
+  it('sends at most TODO_RULES_CAP rules and caps each count', () => {
+    const todosByRule = Array.from({ length: TODO_RULES_CAP + 5 }, (_, i) => ({
       rule: `rule-${i}`,
-      count: i === 0 ? 250000 : i,
+      count: i === 0 ? TODO_COUNT_CAP + 150000 : i,
     }));
     const payload = buildMigratePayload({ ...baseStats, todosByRule });
-    expect(payload.todosByRule).toHaveLength(20);
-    expect(payload.todosByRule?.[0]).toEqual({ rule: 'rule-0', count: 100000 });
-    expect(payload.todosByRule?.[19]).toEqual({ rule: 'rule-19', count: 19 });
+    expect(payload.todosByRule).toHaveLength(TODO_RULES_CAP);
+    expect(payload.todosByRule?.[0]).toEqual({
+      rule: 'rule-0',
+      count: TODO_COUNT_CAP,
+    });
+    expect(payload.todosByRule?.[TODO_RULES_CAP - 1]).toEqual({
+      rule: `rule-${TODO_RULES_CAP - 1}`,
+      count: TODO_RULES_CAP - 1,
+    });
   });
 });
 

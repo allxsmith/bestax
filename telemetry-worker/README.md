@@ -8,12 +8,23 @@ missing binding in local dev still answers `204`.
 
 ## Deploy
 
+CI deploys this worker: `.github/workflows/deploy-worker.yml` runs `wrangler
+deploy` on every `main` push that touches `telemetry-worker/**`, plus a manual
+re-run via `workflow_dispatch` from the Actions tab. Its only credential is
+the dedicated `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, an API token scoped to
+Workers Scripts:Edit + Workers Routes:Edit on bestax.io — separate from the
+Pages token, so each pipeline holds only what it deploys. Mind the merge-time
+consequence: a merged change under `telemetry-worker/**` ships to production
+immediately.
+
+Deploying from a laptop remains the fallback:
+
 ```sh
 npx wrangler deploy
 ```
 
-Run by Alex — the deploy is manual (nothing in `.github/workflows` touches
-this worker). The package IS in the pnpm workspace, so the lockfile, audit
+(authenticate with `wrangler login` OAuth and keep the granted scopes
+least-privilege). The package IS in the pnpm workspace, so the lockfile, audit
 gate, and 3-day cooldown govern its devDependencies; they stay exact-pinned
 anyway so a deploy is reproducible from the manifest alone. Wrangler's native
 `workerd` postinstall is blocked repo-wide (`allowBuilds`), which `wrangler
@@ -79,10 +90,16 @@ FROM bestax_telemetry WHERE index1='create-bestax' AND blob1='scaffold'
 
 ## Privacy
 
-- Allowlist validation is the backstop: every key and value in a payload must
-  match a closed allowlist (`src/schema.ts`, `src/validate.ts`) or the whole
-  payload is rejected with a bare `400`. Unknown values are dropped, never
-  stored — fail closed. New templates, flavors, icon libraries, sources, or
+- Allowlist validation is the backstop, with one deliberate exception: every
+  key must match the schema, and every value must be a closed enum, a version
+  string, or a bounded integer (`src/schema.ts`, `src/validate.ts`) or the
+  whole payload is rejected with a bare `400` — fail closed. The exception is
+  `todosByRule[].rule`: migrate rule names like `prop:className` are
+  open-ended, so an enum is impossible by design. A rule is pattern-validated
+  free text instead (1–64 chars of `[A-Za-z0-9._:-]`, at most 20 entries) and
+  stored verbatim, which means a modified client can store short arbitrary
+  strings in that one column — aggregate queries should treat unrecognized
+  rule names as noise. New templates, flavors, icon libraries, sources, or
   CSS modes must be added to `src/schema.ts` **first** or their runs are
   silently discarded.
 - No IP address or User-Agent is ever read or stored; `request.cf` is never

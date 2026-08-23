@@ -1,8 +1,8 @@
 /**
  * Minimal structural types for the Workers runtime bindings this worker uses.
- * Deliberately hand-rolled: this package sits outside the pnpm workspace (for
- * now), so @cloudflare/workers-types cannot be installed. Request/Response/URL
- * come from the `webworker` TS lib instead (see tsconfig.json).
+ * Deliberately hand-rolled to keep the worker dependency-free — no
+ * @cloudflare/workers-types. Request/Response/URL come from the `webworker`
+ * TS lib instead (see tsconfig.json).
  */
 
 export interface AnalyticsEngineDataPoint {

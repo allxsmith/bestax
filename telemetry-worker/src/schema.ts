@@ -43,17 +43,24 @@ const MIGRATE_SOURCE_VALUES = ['react-bulma-components'] as const;
 // bestax-migrate/src/cli.ts → CSS_MODES
 const CSS_MODE_VALUES = ['bestax', 'bulma', 'keep'] as const;
 const PACKAGE_MANAGER_VALUES = ['npm', 'pnpm', 'yarn', 'bun'] as const;
-const PLATFORM_VALUES = [
+// Node's documented process.platform values (nodejs.org/api/process.html):
+// aix, darwin, freebsd, linux, openbsd, sunos, win32, plus android, cygwin,
+// haiku, netbsd, os400 on some builds. All 12, listed in that order so an
+// omission is checkable against the sentence above at a glance. Exported so
+// the worker tests parameterize acceptance over the full list.
+export const PLATFORM_VALUES = [
   'aix',
   'darwin',
   'freebsd',
   'linux',
-  'netbsd',
   'openbsd',
   'sunos',
   'win32',
   'android',
+  'cygwin',
   'haiku',
+  'netbsd',
+  'os400',
 ] as const;
 
 export type Template = (typeof TEMPLATE_VALUES)[number];
