@@ -28,6 +28,37 @@ const cell = (text: string) =>
     .replace(/\r?\n/g, ' ')
     .trim();
 
+/**
+ * Tag an outbound link with `utm_source=bestax-mcp` so a docs or Storybook
+ * visit that started here shows up as such in the site analytics. Render-time
+ * only — the URLs in `data/` are generated and stay canonical. Idempotent, and
+ * anything that is not an http(s) URL passes through unchanged.
+ *
+ * Coverage is deliberately partial: only links this server composes itself —
+ * the Docs/Storybook footer on component responses and the version-drift
+ * notice — go through here. Skill bodies and reference docs are served
+ * verbatim from the bundled markdown, untagged links included, because
+ * rewriting URLs inside arbitrary markdown/code examples risks corrupting
+ * them. Do not "fix" that by running this over served markdown.
+ */
+export function attributed(url: string): string {
+  if (!/^https?:\/\//.test(url)) return url;
+  // Split the fragment FIRST: the already-tagged check below must inspect
+  // only the query. A `#utm_source=bestax-mcp` inside a fragment (or the
+  // same text inside another parameter's value) is not attribution — the
+  // analytics request never sees it — so matching it would skip tagging.
+  // Do not use URL.searchParams: it re-encodes Storybook `path=/story/...`
+  // as `%2F`.
+  const hashIndex = url.indexOf('#');
+  const hash = hashIndex === -1 ? '' : url.slice(hashIndex);
+  const withoutHash = hashIndex === -1 ? url : url.slice(0, hashIndex);
+  const queryIndex = withoutHash.indexOf('?');
+  const query = queryIndex === -1 ? '' : withoutHash.slice(queryIndex + 1);
+  if (query.split('&').includes('utm_source=bestax-mcp')) return url;
+  const sep = queryIndex === -1 ? '?' : '&';
+  return `${withoutHash}${sep}utm_source=bestax-mcp${hash}`;
+}
+
 export function table(headers: string[], rows: string[][]): string {
   if (!rows.length) return '';
   return [
@@ -145,8 +176,10 @@ export function renderComponent(
     out.push(`**Related:** ${record.related.map(r => `\`${r}\``).join(', ')}.`);
   }
 
-  const links = [`Docs: ${record.docsUrl}`];
-  if (record.storybook) links.push(`Storybook: ${record.storybook}`);
+  const links = [`Docs: ${attributed(record.docsUrl)}`];
+  if (record.storybook) {
+    links.push(`Storybook: ${attributed(record.storybook)}`);
+  }
   out.push(links.join(' · '));
   return out.join('\n\n');
 }

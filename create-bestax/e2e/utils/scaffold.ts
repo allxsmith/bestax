@@ -62,6 +62,11 @@ export async function scaffoldApp(config: ScaffoldConfig): Promise<string> {
   execSync(scaffoldCmd, {
     cwd: path.dirname(outputDir),
     stdio: 'inherit',
+    // Never send telemetry from tests: -y only skips the consent prompt, and
+    // this exec inherits the developer's real environment — on an opted-in
+    // machine every e2e scaffold would POST a synthetic event to production.
+    // BESTAX_TELEMETRY=0 is the per-run kill switch and beats the config.
+    env: { ...process.env, BESTAX_TELEMETRY: '0' },
   });
 
   // -y implies the AI-skills opt-in, so every real scaffold must contain the

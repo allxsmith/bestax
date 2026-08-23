@@ -20,9 +20,13 @@ import {
   SKILL_ROSTERS,
   readSkillDirs,
   readSkillNames,
+  rosterSkillNames,
   rosterViolations,
   skillDirViolations,
+  skillsPageViolations,
+  frontmatterNameViolations,
 } from './check-conformance.mjs';
+import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -309,5 +313,325 @@ test('an empty roster of skills does not pass vacuously', () => {
   assert.ok(
     v.every(m => /still names/.test(m)),
     v.join('\n')
+  );
+});
+
+// --- regressions from the #541 review ------------------------------------------
+
+test('an example fence ABOVE the real install block cannot hijack the anchor', () => {
+  // The first installFence returned the first fence containing "--skill ", so
+  // a quick-start example above the real block silently became the validated
+  // roster — dark in the stale direction, and reporting a complete block as
+  // six skills short in the other.
+  const decoyed = REAL['docs/docs/skills/intro.md']
+    .replace(
+      'Install one with',
+      'Quick start:\n\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold\n```\n\nInstall one with'
+    )
+    .replace(/^npx skills add .*--skill bestax-form\n/m, '');
+  const v = rosterViolations(
+    SKILLS,
+    withFile('docs/docs/skills/intro.md', decoyed)
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /skills-add block/);
+  assert.match(v[0], /does not name bestax-form/);
+});
+
+test('a ghost skill in the real block is caught despite a decoy example above', () => {
+  // The false-green half of the same bug: with the decoy anchored, a deleted
+  // skill still advertised in the REAL block produced zero violations.
+  const decoyed = REAL['docs/docs/skills/intro.md']
+    .replace(
+      'Install one with',
+      'Quick start:\n\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold\n```\n\nInstall one with'
+    )
+    .replace(
+      '--skill bestax-form',
+      '--skill bestax-form\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-ghost'
+    );
+  const v = rosterViolations(
+    SKILLS,
+    withFile('docs/docs/skills/intro.md', decoyed)
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /still names bestax-ghost/);
+});
+
+test('a metadata info string on an earlier fence does not frame-shift the pairing', () => {
+  // /^```[a-z]*\n/ could not open ```bash title="…", so every later fence
+  // paired against the wrong delimiter and the anchor reported itself gone.
+  // ~1,155 fences across docs/docs use metadata-style openers.
+  const decorated = REAL['docs/docs/guides/llms/index.md'].replace(
+    'Install one with',
+    '\n```bash title="quick start" showLineNumbers\nnpx skills add x --skill bestax-icons\n```\n\nInstall one with'
+  );
+  assert.notEqual(decorated, REAL['docs/docs/guides/llms/index.md']);
+  assert.deepEqual(
+    rosterViolations(
+      SKILLS,
+      withFile('docs/docs/guides/llms/index.md', decorated)
+    ),
+    []
+  );
+});
+
+test('a removed marker is a missing anchor, not a silent skip', () => {
+  const unmarked = REAL['skills/README.md'].replace(
+    '<!-- skills-roster:install -->\n\n',
+    ''
+  );
+  const v = rosterViolations(SKILLS, withFile('skills/README.md', unmarked));
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /Install block/);
+  assert.match(v[0], /anchors on is gone/);
+});
+
+test('a fenced # comment inside the AI-skills section does not truncate it', () => {
+  // section()'s end terminator was fence-blind: a flush-left "# comment" in a
+  // fenced bash example ended the scope, so the roster below it reported as
+  // entirely missing (or, after the bullets, silently went unchecked).
+  const fenced = REAL['create-bestax/src/constants.ts'].replace(
+    '## AI skills',
+    '## AI skills\n\n```bash\n# install more skills later\nnpx skills add x\n```'
+  );
+  assert.notEqual(fenced, REAL['create-bestax/src/constants.ts']);
+  assert.deepEqual(
+    rosterViolations(
+      SKILLS,
+      withFile('create-bestax/src/constants.ts', fenced)
+    ),
+    []
+  );
+});
+
+test('dropping the serial comma does not lose the last two names', () => {
+  // The old comma-list regex only recognized a conjunction after a comma, so
+  // "…, x and y" un-matched BOTH final names and a complete roster reported
+  // two skills missing.
+  const plain = REAL['bulma-ui/AGENTS.md'].replace(
+    'bestax-optimize, bestax-theming',
+    'bestax-optimize and bestax-theming'
+  );
+  assert.notEqual(plain, REAL['bulma-ui/AGENTS.md']);
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', plain)),
+    []
+  );
+});
+
+test('install blocks with the same members but different orders are caught', () => {
+  // The copies are byte-identical on purpose; a Set comparison alone let
+  // docs/docs/guides/llms/index.md drift into a different ordering unseen.
+  const swapped = REAL['docs/docs/guides/llms/index.md'].replace(
+    /--skill bestax-migrate(\n.*--skill )bestax-optimize/,
+    '--skill bestax-optimize$1bestax-migrate'
+  );
+  assert.notEqual(swapped, REAL['docs/docs/guides/llms/index.md']);
+  const v = rosterViolations(
+    SKILLS,
+    withFile('docs/docs/guides/llms/index.md', swapped)
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /different order/);
+});
+
+test('a kebab-case cell in an unrelated table is not a roster row', () => {
+  // The table patterns used to scan the whole file: any backticked kebab-case
+  // first cell anywhere satisfied (or polluted) the Agent Skills table.
+  const decoyed =
+    REAL['bulma-ui/README.md'] +
+    '\n| Hook        | Notes |\n| ----------- | ----- |\n| `use-theme` | …     |\n';
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('bulma-ui/README.md', decoyed)),
+    []
+  );
+});
+
+test('a deleted roster row is caught even when the name appears in another table', () => {
+  // The silent-drift direction of the same bug: bestax-migrate is also a
+  // package name, so a row for it elsewhere kept the check green after the
+  // real roster row was deleted.
+  const gutted =
+    REAL['bulma-ui/README.md']
+      .split('\n')
+      .filter(l => !/^\s*\|\s*`bestax-migrate`/.test(l))
+      .join('\n') +
+    '\n| Package          | Notes |\n| ---------------- | ----- |\n| `bestax-migrate` | …     |\n';
+  const v = rosterViolations(SKILLS, withFile('bulma-ui/README.md', gutted));
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /does not name bestax-migrate/);
+});
+
+test('an indented dir line in an unrelated fence is not a Layout tree entry', () => {
+  const decoyed =
+    REAL['skills/README.md'] +
+    '\nA scaffolded app looks like:\n\n```\nmy-app/\n  skills/\n  launch/\n```\n';
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('skills/README.md', decoyed)),
+    []
+  );
+});
+
+test('the docs-site surfaces are held through the slug transform', () => {
+  const noSidebar = REAL['docs/sidebars.js'].replace(
+    /^\s*'skills\/optimize',\n/m,
+    ''
+  );
+  assert.notEqual(noSidebar, REAL['docs/sidebars.js']);
+  const v = rosterViolations(SKILLS, withFile('docs/sidebars.js', noSidebar));
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /skillsSidebar/);
+  assert.match(v[0], /does not name bestax-optimize/);
+
+  const noBullet = REAL['docs/docs/skills/intro.md'].replace(
+    /^- \*\*\[Migrate\]\(\.\/migrate\)\*\*/m,
+    '- **Migrate** (link dropped)'
+  );
+  assert.notEqual(noBullet, REAL['docs/docs/skills/intro.md']);
+  const w = rosterViolations(
+    SKILLS,
+    withFile('docs/docs/skills/intro.md', noBullet)
+  );
+  assert.equal(w.length, 1, w.join('\n'));
+  assert.match(w[0], /bullet roster/);
+  assert.match(w[0], /does not name bestax-migrate/);
+});
+
+test('per-skill docs pages: missing and orphaned pages are both caught', () => {
+  const v = skillsPageViolations(
+    ['bestax-form', 'bestax-icons'],
+    ['intro.md', 'form.mdx']
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /docs\/docs\/skills\/icons\.mdx: missing/);
+
+  const w = skillsPageViolations(
+    ['bestax-form'],
+    ['intro.md', 'form.mdx', 'theming.mdx']
+  );
+  assert.equal(w.length, 1, w.join('\n'));
+  assert.match(w[0], /docs\/docs\/skills\/theming/);
+  assert.match(w[0], /no skill directory maps/);
+
+  // intro is the index page, never a skill; an unreadable dir is reported.
+  assert.deepEqual(
+    skillsPageViolations(['bestax-form'], ['intro.md', 'form.mdx']),
+    []
+  );
+  assert.match(
+    skillsPageViolations(['bestax-form'], null)[0],
+    /went unchecked/
+  );
+});
+
+test('a frontmatter name that disagrees with the directory is caught', () => {
+  // Every prose roster follows the DIRECTORY name while gen-mcp-index keys the
+  // shipped MCP manifest off the FRONTMATTER — without this gate a rename in
+  // one place ships two disagreeing rosters with everything green.
+  const v = frontmatterNameViolations([
+    { name: 'bestax-optimize', fmName: 'bestax-css-optimize' },
+    { name: 'bestax-form', fmName: 'bestax-form' },
+    { name: 'bestax-icons', fmName: null },
+  ]);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /bestax-optimize/);
+  assert.match(v[0], /bestax-css-optimize/);
+});
+
+test('the tests and the check derive the comparison set the same way', () => {
+  // readSkillNames is the bundling view (what the sync scripts copy);
+  // rosterSkillNames additionally drops names the prose patterns cannot
+  // express. Using the former for the roster comparison would demand prose
+  // name `.draft` — the unsatisfiable noise the check's own comment avoids.
+  const dirs = [
+    { name: '.draft', hasSkillFile: true },
+    { name: 'bestax-form', hasSkillFile: true },
+    { name: 'half-landed', hasSkillFile: false },
+  ];
+  assert.deepEqual(rosterSkillNames(dirs), ['bestax-form']);
+});
+
+test('only paths inside bundled skill directories count against the gate', () => {
+  const others = [
+    'bestax-form/notes.md',
+    'bestax-wip/SKILL.md',
+    'scratch.txt',
+    '',
+  ];
+  assert.deepEqual(pathsInsideSkills(others, ['bestax-form', 'bestax-wip']), [
+    'bestax-form/notes.md',
+    'bestax-wip/SKILL.md',
+  ]);
+  assert.deepEqual(pathsInsideSkills(others, ['bestax-icons']), []);
+});
+
+test('the vetting gate flags untracked files only in its OWN repository', async t => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } =
+    await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+
+  const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-gate-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const git = (cwd, ...args) =>
+    execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
+
+  // Scenario 1: skills/ inside its own repository — a tracked skill with an
+  // untracked scratch file inside it is flagged FILE-granularly (sync copies
+  // whole directories, so the scratch file would ship), and a fully-tracked
+  // skill passes.
+  const own = path.join(root, 'own');
+  mkdirSync(path.join(own, 'skills', 'bestax-form'), { recursive: true });
+  writeFileSync(path.join(own, 'skills', 'bestax-form', 'SKILL.md'), '# s\n');
+  git(own, 'init', '-q');
+  git(own, 'add', '-A');
+  const skillsDir = path.join(own, 'skills');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), []);
+  writeFileSync(path.join(skillsDir, 'bestax-form', 'notes.md'), 'draft\n');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), [
+    'bestax-form/notes.md',
+  ]);
+  // A file outside the bundled skill dirs never blocks the bundle.
+  writeFileSync(path.join(skillsDir, 'scratch.txt'), 'x\n');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), [
+    'bestax-form/notes.md',
+  ]);
+
+  // Scenario 2: an exported (git-less) tree nested inside some OUTER
+  // repository. git resolves the outer repo, which knows none of these files —
+  // the gate must return [] instead of refusing every skill (#550 review
+  // reproduced exactly this against a git-managed $HOME).
+  const outer = path.join(root, 'outer');
+  mkdirSync(path.join(outer, 'exported', 'skills', 'bestax-form'), {
+    recursive: true,
+  });
+  writeFileSync(
+    path.join(outer, 'exported', 'skills', 'bestax-form', 'SKILL.md'),
+    '# s\n'
+  );
+  git(outer, 'init', '-q');
+  assert.deepEqual(
+    untrackedSkillPaths(path.join(outer, 'exported', 'skills'), [
+      'bestax-form',
+    ]),
+    []
+  );
+});
+
+test('an adjacent fence with no blank line cannot merge into the scope', () => {
+  // fenceMask marks delimiters and interiors alike, so back-to-back fences
+  // form one continuous masked run; the close-scan must stop at the block's
+  // own closer, not the run's end, or the second block's tokens join the
+  // roster comparison.
+  const merged = REAL['docs/docs/skills/intro.md'].replace(
+    /^```$/m,
+    '```\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-ghost\n```'
+  );
+  assert.ok(merged.includes('bestax-ghost'), 'fixture must inject the decoy');
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('docs/docs/skills/intro.md', merged)),
+    []
   );
 });

@@ -22,4 +22,4 @@ if (major < 22) {
 
 const { createCLI } = await import('./cli.js');
 
-createCLI().parse();
+await createCLI().parseAsync(process.argv);

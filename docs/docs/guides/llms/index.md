@@ -27,14 +27,16 @@ Beyond the raw docs, bestax ships **Agent Skills** that teach an agent _how_ to 
 with the library (conventions, patterns, and a component catalog). Install one with the
 [`skills`](https://skills.sh/) CLI:
 
+<!-- skills-roster:install -->
+
 ```bash
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
-npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
+npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 ```
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills**

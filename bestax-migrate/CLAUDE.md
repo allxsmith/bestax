@@ -34,6 +34,12 @@ each source library registers in `src/sources/registry.ts`; the first is
   (package.json updater; never runs an install), `jsx-utils.ts` (AST helpers).
 - Components with no bestax equivalent (Element, Tile) keep a trimmed, TODO-annotated RBC
   import so the code still runs during gradual migration.
+- `src/telemetry-core.ts` is a byte-for-byte copy of
+  `create-bestax/src/telemetry-core.ts` — never edit it here; edit the
+  create-bestax original and copy it over (`check:conformance
+--only=telemetry-core` enforces identity). This package's payload builder and
+  caps live in `src/telemetry.ts`; the caps are pinned to the ingest worker's
+  bounds by `scripts/telemetry-contract.test.mjs`.
 
 ## Testing
 

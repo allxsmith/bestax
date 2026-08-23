@@ -27,6 +27,8 @@ examples — useful if your client speaks MCP but not skills.
 
 Add a skill to your agent with the [`skills`](https://skills.sh/) CLI:
 
+<!-- skills-roster:install -->
+
 ```sh
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
@@ -38,6 +40,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 ```
 
 ## Layout
+
+<!-- skills-roster:tree -->
 
 ```
 skills/

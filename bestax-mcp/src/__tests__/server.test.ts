@@ -354,6 +354,14 @@ describe('get_component', () => {
     expect(failed(res)).toBe(true);
     expect(text(res)).toContain('Button');
   });
+
+  // The server itself never goes online; the utm tag on the links it hands out
+  // is what makes a follow-through visible in the bestax.io analytics.
+  it('tags the emitted docs and Storybook links for attribution', async () => {
+    const out = text(await call('get_component', { name: 'Button' }));
+    expect(out).toMatch(/Docs: https:\/\/\S+\?utm_source=bestax-mcp/);
+    expect(out).toMatch(/Storybook: https:\/\/\S+&utm_source=bestax-mcp/);
+  });
 });
 
 describe('get_props', () => {

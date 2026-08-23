@@ -48,6 +48,10 @@
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
  *                        passed (#391)
+ *   telemetry-core       create-bestax and bestax-migrate telemetry-core.ts
+ *                        copies are byte-identical
+ *   telemetry-allowlists worker schema enums are a superset of the CLI values
+ *                        (templates, flavors, icons, sources, css modes, PMs)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute } from 'node:path';
@@ -73,6 +77,12 @@ import {
   sectionSpans,
   splitLines,
 } from './lib/api-page.mjs';
+import {
+  SKILL_DIR_NAME,
+  readSkillDirs as libReadSkillDirs,
+  readSkillNames as libReadSkillNames,
+  rosterSkillNames,
+} from './lib/skills.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
   ORDERED_CATEGORIES,
@@ -1947,9 +1957,11 @@ async function checkBypassExpiry() {
  *
  * The three consumers that CAN derive the roster do: create-bestax's and
  * bestax-mcp's `sync-skills.mjs` copy each directory holding a `SKILL.md`, and
- * `gen-mcp-index.mjs` indexes the same set (#540). What is left is prose, which
- * cannot be derived and so drifts silently — the repo-root README was already
- * four skills behind seven when this check landed, on the project's front page.
+ * `gen-mcp-index.mjs` indexes the same set (#540) — all through
+ * `scripts/lib/skills.mjs`, the single definition of that predicate. What is
+ * left is prose, which cannot be derived and so drifts silently — the repo-root
+ * README was already four skills behind seven when this check landed, on the
+ * project's front page.
  *
  * Not to be confused with `skills-sync`, which despite the name is about the
  * bestax-theming skill's two reference inventories and never reads the roster.
@@ -1958,24 +1970,32 @@ async function checkBypassExpiry() {
  * line — rather than by the bare skill name occurring anywhere in the file.
  * `bestax-migrate` is why: it is also a package, a CLI, and the marker the
  * codemod leaves behind, so it appears in prose in most of these files, and a
- * bare-name search would pass on a table that had lost its row. The cost is
- * that reformatting one of these blocks breaks its pattern, so every message
- * prints the exact line the check wanted to find.
+ * bare-name search would pass on a table that had lost its row.
  *
  * Two install lines are deliberately NOT rosters. `bulma-ui/README.md` and
  * `bulma-ui/AGENTS.md` each show a single `--skill` command as an example;
  * holding them to all seven would demand a list neither is trying to be. Their
- * real rosters (a table and a parenthetical) are covered instead. For the same
- * reason the three real install blocks are scoped to their fence, so an example
- * elsewhere in those files cannot stand in for a missing entry.
+ * real rosters (a table and a parenthetical) are covered instead.
  *
- * `fenceMask` is deliberately not used. FOUR of these copies live inside a
- * fenced block on purpose — the three install blocks and the layout tree —
- * which is the opposite of what masking is for.
+ * The fenced copies — the three install blocks and the layout tree — anchor on
+ * a `<!-- skills-roster:… -->` marker line and take the fence that follows,
+ * parsed with `fenceMask`. The first version anchored on "the first fence
+ * containing `--skill `", so a quick-start example above the real block
+ * silently became the validated roster, and its `/^```[a-z]*\n/` opener could
+ * not parse info strings (```bash title=…), frame-shifting every later fence.
+ * The Agent Skills tables anchor on their own `| Skill |` header row for the
+ * same reason: `bestax-migrate` in the first cell of some OTHER table must not
+ * stand in for a deleted row.
  *
  * The capture group is the point: reading the names back out checks BOTH
  * directions, so a roster still advertising a deleted skill fails too. That
  * half has no other guard — sync-skills.mjs just silently stops copying it.
+ *
+ * The docs-site surfaces are held through the slug transform (directory name
+ * minus `bestax-`, exactly what gen-mcp-index.mjs ships as `promptName`): the
+ * sidebar entries and the intro bullet roster here, and the per-skill page
+ * files in `skillsPageViolations`. A new skill fails conformance until its
+ * docs page, sidebar entry, and intro bullet exist.
  */
 export const SKILL_ROSTERS = [
   {
@@ -1983,12 +2003,14 @@ export const SKILL_ROSTERS = [
     copies: [
       {
         what: 'the Skills table',
+        scope: skillsTableScope(),
         list: /^\|[ \t]*\[`([a-z][a-z0-9-]*)`\]/gm,
         example: n => `| [\`${n}\`](./${n}/SKILL.md) | Use it when… |`,
       },
       skillsAddBlock('the Install block'),
       {
         what: 'the Layout tree',
+        scope: markerFence('skills-roster:tree'),
         list: /^ {2}([a-z][a-z0-9-]*)\/$/gm,
         example: n => `  ${n}/`,
       },
@@ -2010,11 +2032,17 @@ export const SKILL_ROSTERS = [
   {
     file: 'docs/docs/skills/intro.md',
     copies: [
-      // The bullet roster below that block is deliberately not checked: it
-      // links page slugs (`[Custom Component](./custom-component)`), not skill
-      // directory names, so matching it would amount to requiring a docs page
-      // per skill — a separate rule.
       skillsAddBlock('the skills-add block'),
+      {
+        what: 'the per-skill bullet roster',
+        names: text =>
+          [...text.matchAll(/^- \*\*\[[^\]]+\]\(\.\/([a-z0-9-]+)\)\*\*/gm)].map(
+            m => m[1]
+          ),
+        fromToken: slug => `bestax-${slug}`,
+        example: n =>
+          `- **[…](./${n.replace(/^bestax-/, '')})** — one line on when to reach for it.`,
+      },
     ],
   },
   {
@@ -2026,23 +2054,11 @@ export const SKILL_ROSTERS = [
     // already stale when this check landed — four skills against seven — which
     // is the drift the check exists for, sitting in the most visible place.
     file: 'README.md',
-    copies: [
-      {
-        what: 'the Agent Skills table',
-        list: /^[ \t]*\|[ \t]*`([a-z][a-z0-9-]*)`[ \t]*\|/gm,
-        example: n => `  | \`${n}\` | Use it when… |`,
-      },
-    ],
+    copies: [agentSkillsTable()],
   },
   {
     file: 'bulma-ui/README.md',
-    copies: [
-      {
-        what: 'the Agent Skills table',
-        list: /^[ \t]*\|[ \t]*`([a-z][a-z0-9-]*)`[ \t]*\|/gm,
-        example: n => `  | \`${n}\` | Use it when… |`,
-      },
-    ],
+    copies: [agentSkillsTable()],
   },
   {
     file: 'bulma-ui/AGENTS.md',
@@ -2052,119 +2068,168 @@ export const SKILL_ROSTERS = [
     copies: [
       {
         what: 'the "Agent skills (…)" list',
-        // Comma-delimited items, not "any lowercase word". A bare
-        // /([a-z][a-z0-9-]*)/g here would read the "and" out of
-        // "x, y, and z" and then demand you delete a skill called `and`.
-        // The optional conjunction is not decoration: serial commas are house
-        // style, so "x, y, and z" is the likely spelling, and without it the
-        // final skill reads as missing from a roster that is complete.
-        list: /(?:^|,)\s*(?:and\s+|or\s+)?([a-z][a-z0-9-]*)\s*(?=,|$)/g,
+        // A prose comma list, so it is SPLIT rather than pattern-matched: the
+        // first version's regex only recognized a conjunction after a comma,
+        // and the non-serial spelling "…, x and y" silently dropped the last
+        // TWO names. Conjunctions need surrounding whitespace so a hyphenated
+        // name containing "and" can never be split apart.
+        names: text =>
+          text
+            .split(/,|\s+and\s+|\s+or\s+/)
+            .map(s => s.trim())
+            .filter(s => /^[a-z][a-z0-9-]*$/.test(s)),
         example: n => `${n} (comma-separated, inside the parenthetical)`,
+      },
+    ],
+  },
+  {
+    file: 'docs/sidebars.js',
+    copies: [
+      {
+        what: 'the skillsSidebar entries',
+        names: text =>
+          [...text.matchAll(/'skills\/([a-z0-9-]+)'/g)]
+            .map(m => m[1])
+            .filter(slug => slug !== 'intro'),
+        fromToken: slug => `bestax-${slug}`,
+        example: n => `'skills/${n.replace(/^bestax-/, '')}',`,
       },
     ],
   },
 ];
 
-/** One install block, defined once: three files carry the identical shape. */
+/**
+ * One install block, defined once: three files carry the identical shape.
+ * `orderGroup` makes rosterViolations compare their ORDER too — the copies
+ * are byte-identical on purpose, and a Set comparison alone let two of them
+ * drift into different orderings without a word.
+ */
 function skillsAddBlock(what) {
   return {
     what,
-    scope: installFence(),
+    scope: markerFence('skills-roster:install'),
+    orderGroup: 'the install block',
     list: /--skill +([a-z][a-z0-9-]*)/g,
     example: n =>
       `npx skills add https://github.com/allxsmith/bestax --skill ${n}`,
   };
 }
 
+/** The Agent Skills table both READMEs carry, scoped to its own header row. */
+function agentSkillsTable() {
+  return {
+    what: 'the Agent Skills table',
+    scope: skillsTableScope(),
+    list: /^[ \t]*\|[ \t]*\[?`([a-z][a-z0-9-]*)`/gm,
+    example: n => `  | \`${n}\` | Use it when… |`,
+  };
+}
+
 /**
- * The fenced block holding the skills-add roster.
- *
- * Scoped rather than scanning the file, because a single `--skill` line used as
- * an EXAMPLE elsewhere would otherwise satisfy a skill that had been dropped
- * from the roster itself.
+ * The body of the table whose header row's first cell is "Skill": every row
+ * from the separator line to the first non-table line. Anchoring on the header
+ * is what keeps a kebab-case first cell in some OTHER table (`bestax-migrate`
+ * is also a package name) from standing in for a roster row — in either
+ * direction.
  */
-function installFence() {
+function skillsTableScope() {
   return text => {
-    for (const [, body] of text.matchAll(/^```[a-z]*\n([\s\S]*?)^```/gm)) {
-      if (body.includes('--skill ')) return body;
+    const m = text.match(
+      /^[ \t]*\|[ \t]*Skill[ \t]*\|.*\n[ \t]*\|[ \t:|-]+\|?[ \t]*\n((?:[ \t]*\|.*(?:\n|$))*)/m
+    );
+    return m ? m[1] : null;
+  };
+}
+
+/**
+ * The fenced block following a `<!-- marker -->` line.
+ *
+ * Anchored on an explicit marker rather than on the first fence whose body
+ * looks right: content-sniffing is how an example block hijacked the install
+ * roster. Fences are walked with `fenceMask`, which parses info strings and
+ * ~~~ fences per CommonMark, so a decorated fence earlier in the file cannot
+ * frame-shift the pairing. Only blank lines may sit between the marker and
+ * its fence — anything else is a moved marker, reported as a missing anchor.
+ */
+function markerFence(marker) {
+  const markerLine = `<!-- ${marker} -->`;
+  return text => {
+    const { lines } = splitLines(text);
+    const mask = fenceMask(lines);
+    const at = lines.findIndex((l, i) => !mask[i] && l.trim() === markerLine);
+    if (at === -1) return null;
+
+    let open = -1;
+    for (let i = at + 1; i < lines.length; i++) {
+      if (mask[i]) {
+        open = i;
+        break;
+      }
+      if (lines[i].trim() !== '') return null;
     }
-    return null;
+    if (open === -1) return null;
+
+    // The closer is matched against the OPENER (same char, at least as long,
+    // no info string — CommonMark), not against the fenceMask run: mask marks
+    // delimiters and interiors alike, so two fences with no blank line between
+    // them form one continuous run and the first version merged them into a
+    // single scope, letting tokens from an unrelated adjacent block satisfy or
+    // pollute the roster (#550 review).
+    const opener = lines[open].match(/^ {0,3}(`{3,}|~{3,})/);
+    const char = opener[1][0];
+    const len = opener[1].length;
+    let close = lines.length;
+    for (let i = open + 1; i < lines.length; i++) {
+      const m = lines[i].match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
+      if (m && m[1][0] === char && m[1].length >= len) {
+        close = i;
+        break;
+      }
+    }
+    return lines.slice(open + 1, close).join('\n');
   };
 }
 
 /**
  * A markdown section by heading, up to the next heading of the same depth or
- * shallower.
- *
- * Line-anchored, not `indexOf`: an unanchored search for `## AI skills` also
- * matches the tail of `### AI skills`, and any mention of it in prose or inside
- * a fence. The scope would then silently shift to the wrong block and report an
- * intact roster as entirely missing — the same failure c8b5d11 fixed in the
- * release-docs extractors. The terminator is derived from the heading's own
- * depth rather than hardcoded to `##`, so this stays correct if a caller ever
- * passes an `###`.
+ * shallower — counting only headings OUTSIDE fenced blocks. The first version
+ * matched `^#{1,depth} ` anywhere, so a flush-left `# comment` inside a fenced
+ * bash example truncated the scope: everything below the fence silently went
+ * unchecked. `fenceMask` is the same guard the release-docs extractors use.
  */
 function section(heading) {
   const depth = heading.match(/^#+/)[0].length;
-  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const start = new RegExp(`^${escaped}[ \\t]*$`, 'm');
-  const end = new RegExp(`^#{1,${depth}} `, 'm');
+  const endRe = new RegExp(`^#{1,${depth}} `);
   return text => {
-    const opened = start.exec(text);
-    if (!opened) return null;
-    const rest = text.slice(opened.index + opened[0].length);
-    const closed = end.exec(rest);
-    return closed ? rest.slice(0, closed.index) : rest;
+    const { lines } = splitLines(text);
+    const mask = fenceMask(lines);
+    const start = lines.findIndex(
+      (l, i) => !mask[i] && l.trimEnd() === heading
+    );
+    if (start === -1) return null;
+
+    let end = lines.length;
+    for (let i = start + 1; i < lines.length; i++) {
+      if (!mask[i] && endRe.test(lines[i])) {
+        end = i;
+        break;
+      }
+    }
+    return lines.slice(start + 1, end).join('\n');
   };
 }
 
-/**
- * Skill directory names have to be expressible in every roster pattern above,
- * all of which capture a kebab-case token. A name outside that shape would make
- * the check permanently unsatisfiable: it would report the skill missing, and
- * the line it tells you to paste still would not match.
- */
-const SKILL_DIR_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+// The roster definition itself lives in scripts/lib/skills.mjs, shared with
+// both sync scripts and gen-mcp-index.mjs so the four consumers cannot drift.
+// Re-exported here because this check and its tests are the historical home.
+export { SKILL_DIR_NAME, rosterSkillNames };
 
-/**
- * Every candidate directory under `skills/`, with whether it actually holds a
- * SKILL.md. Returned together so the caller can complain about the ones that
- * do not, instead of silently skipping them — a half-landed skill directory is
- * exactly the silent omission this check exists to end.
- */
 export async function readSkillDirs(dir = join(REPO, 'skills')) {
-  const found = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-
-    let hasSkillFile = true;
-    try {
-      await access(join(dir, entry.name, 'SKILL.md'));
-    } catch {
-      hasSkillFile = false;
-    }
-
-    // A dotted directory is not a skill by convention, but none of the three
-    // consumers tests for the dot — each takes any directory holding a
-    // SKILL.md. So `.draft/SKILL.md` really would be bundled and indexed, and
-    // skipping it here would hide exactly the silent omission this check
-    // exists to end. Reported, and SKILL_DIR_NAME then rejects the name.
-    // A dotted directory WITHOUT a SKILL.md is just tooling, so it is ignored.
-    if (entry.name.startsWith('.') && !hasSkillFile) continue;
-
-    found.push({ name: entry.name, hasSkillFile });
-  }
-  return found.sort((a, b) => a.name.localeCompare(b.name));
+  return libReadSkillDirs(dir);
 }
 
-/**
- * The skill roster, READ from the directory — never a hardcoded list, for the
- * same reason gen-mcp-index.mjs says so at its own reader.
- */
 export async function readSkillNames(dir = join(REPO, 'skills')) {
-  return (await readSkillDirs(dir))
-    .filter(d => d.hasSkillFile)
-    .map(d => d.name);
+  return libReadSkillNames(dir);
 }
 
 /**
@@ -2204,6 +2269,7 @@ export function skillDirViolations(dirs) {
 export function rosterViolations(skills, sources) {
   const violations = [];
   const known = new Set(skills);
+  const orderGroups = {};
 
   for (const roster of SKILL_ROSTERS) {
     const text = sources?.[roster.file];
@@ -2230,7 +2296,21 @@ export function rosterViolations(skills, sources) {
         continue;
       }
 
-      const listed = new Set([...scoped.matchAll(copy.list)].map(m => m[1]));
+      // A copy either captures tokens with a regex or parses them with a
+      // `names` function (the AGENTS.md comma list); `fromToken` maps slugs
+      // back to directory names for the docs-site copies.
+      const tokens = copy.names
+        ? copy.names(scoped)
+        : [...scoped.matchAll(copy.list)].map(m => m[1]);
+      const seq = copy.fromToken ? tokens.map(copy.fromToken) : tokens;
+      const listed = new Set(seq);
+
+      if (copy.orderGroup) {
+        (orderGroups[copy.orderGroup] ??= []).push({
+          file: roster.file,
+          seq,
+        });
+      }
 
       const missing = skills.filter(name => !listed.has(name));
       if (missing.length) {
@@ -2254,7 +2334,94 @@ export function rosterViolations(skills, sources) {
     }
   }
 
+  // Copies in an order group are byte-identical by design; when their
+  // memberships agree but their orders do not, the Set comparison above is
+  // blind to the drift, so it is reported here.
+  for (const [group, entries] of Object.entries(orderGroups)) {
+    const [first, ...rest] = entries;
+    for (const other of rest) {
+      const sameMembers =
+        first.seq.length === other.seq.length &&
+        [...first.seq].sort().join('\n') === [...other.seq].sort().join('\n');
+      if (sameMembers && first.seq.join('\n') !== other.seq.join('\n')) {
+        violations.push(
+          `${other.file}: ${group} lists the same skills as ${first.file} ` +
+            `in a different order. The blocks are copies on purpose — match ` +
+            `the order in ${first.file}.`
+        );
+      }
+    }
+  }
+
   return violations;
+}
+
+/**
+ * The per-skill docs pages, keyed by slug (directory name minus `bestax-`) —
+ * the same transform gen-mcp-index.mjs ships as `promptName`. Pure, like
+ * rosterViolations, so the branches can be driven with fixtures.
+ */
+export function skillsPageViolations(skills, pageFiles) {
+  if (!Array.isArray(pageFiles)) {
+    return [
+      'docs/docs/skills/: could not be read, so the per-skill docs pages ' +
+        'went unchecked.',
+    ];
+  }
+  const violations = [];
+  const slugs = new Set(
+    pageFiles
+      .filter(f => /\.(md|mdx)$/.test(f))
+      .map(f => f.replace(/\.(md|mdx)$/, ''))
+  );
+  for (const name of skills) {
+    const slug = name.replace(/^bestax-/, '');
+    if (!slugs.has(slug)) {
+      violations.push(
+        `docs/docs/skills/${slug}.mdx: missing — every skill has a docs page ` +
+          `named by its slug (directory name minus "bestax-"). Add the page, ` +
+          `its docs/sidebars.js entry, and its intro bullet.`
+      );
+    }
+  }
+  const knownSlugs = new Set(skills.map(n => n.replace(/^bestax-/, '')));
+  for (const slug of slugs) {
+    if (slug === 'intro' || knownSlugs.has(slug)) continue;
+    violations.push(
+      `docs/docs/skills/${slug}: no skill directory maps to this page ` +
+        `(directory name minus "bestax-"). Remove the page, or restore the ` +
+        `skill.`
+    );
+  }
+  return violations;
+}
+
+/**
+ * Frontmatter `name:` must equal the directory name. Every prose roster and
+ * install line is held to the DIRECTORY name, while gen-mcp-index.mjs keys the
+ * shipped MCP manifest off the FRONTMATTER (`fm.name || name`, and promptName
+ * derives from it) — with no gate, one edit ships two disagreeing rosters
+ * while everything stays green.
+ */
+export function frontmatterNameViolations(entries) {
+  const violations = [];
+  for (const { name, fmName } of entries) {
+    if (fmName && fmName !== name) {
+      violations.push(
+        `skills/${name}/SKILL.md: frontmatter says "name: ${fmName}" but the ` +
+          `directory is ${name}. The rosters follow the directory and the MCP ` +
+          `manifest follows the frontmatter, so a mismatch ships two ` +
+          `disagreeing rosters. Rename one to match the other.`
+      );
+    }
+  }
+  return violations;
+}
+
+function skillFrontmatterName(text) {
+  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fm) return null;
+  return fm[1].match(/^name:\s*['"]?([^'"\r\n]+?)['"]?\s*$/m)?.[1] ?? null;
 }
 
 async function checkSkillsRoster() {
@@ -2276,10 +2443,9 @@ async function checkSkillsRoster() {
   const violations = skillDirViolations(dirs);
   // Only names a roster could actually express take part in the comparison.
   // An unexpressible one already has its own violation above, and asking nine
-  // prose rosters to name something they cannot spell would bury it.
-  const skills = dirs
-    .filter(d => d.hasSkillFile && SKILL_DIR_NAME.test(d.name))
-    .map(d => d.name);
+  // prose rosters to name something they cannot spell would bury it. The same
+  // derivation the tests use — rosterSkillNames — so the two cannot diverge.
+  const skills = rosterSkillNames(dirs);
   // Fail rather than pass vacuously: an empty roster would make every
   // comparison below trivially satisfied.
   if (!skills.length) {
@@ -2289,6 +2455,30 @@ async function checkSkillsRoster() {
     );
     return violations;
   }
+
+  const fmEntries = [];
+  for (const name of skills) {
+    try {
+      fmEntries.push({
+        name,
+        fmName: skillFrontmatterName(
+          await readFile(join(skillsDir, name, 'SKILL.md'), 'utf8')
+        ),
+      });
+    } catch {
+      // The dir listing said SKILL.md exists; a read race is not this
+      // check's problem.
+    }
+  }
+  violations.push(...frontmatterNameViolations(fmEntries));
+
+  let pageFiles = null;
+  try {
+    pageFiles = await readdir(join(REPO, 'docs', 'docs', 'skills'));
+  } catch {
+    // Reported by skillsPageViolations rather than skipped.
+  }
+  violations.push(...skillsPageViolations(skills, pageFiles));
 
   const sources = {};
   for (const { file } of SKILL_ROSTERS) {
@@ -2301,6 +2491,201 @@ async function checkSkillsRoster() {
   }
 
   return [...violations, ...rosterViolations(skills, sources)];
+}
+
+// ---------------------------------------------------------------------------
+// Telemetry: two standalone CLIs cannot share a package, so the kernel is
+// copied. The worker allowlists are the privacy backstop — a new template
+// that isn't listed there is silently dropped.
+// ---------------------------------------------------------------------------
+
+const TELEMETRY_CORE_CANONICAL = 'create-bestax/src/telemetry-core.ts';
+const TELEMETRY_CORE_COPY = 'bestax-migrate/src/telemetry-core.ts';
+
+async function checkTelemetryCore() {
+  const violations = [];
+  let canonical;
+  let copy;
+  try {
+    canonical = await readFile(join(REPO, TELEMETRY_CORE_CANONICAL), 'utf8');
+  } catch {
+    return [
+      `${TELEMETRY_CORE_CANONICAL} is missing (canonical telemetry kernel).`,
+    ];
+  }
+  try {
+    copy = await readFile(join(REPO, TELEMETRY_CORE_COPY), 'utf8');
+  } catch {
+    return [
+      `${TELEMETRY_CORE_COPY} is missing. Copy ${TELEMETRY_CORE_CANONICAL} ` +
+        `over it so the two CLI kernels stay in lockstep.`,
+    ];
+  }
+  if (canonical !== copy) {
+    violations.push(
+      `${TELEMETRY_CORE_COPY} differs from ${TELEMETRY_CORE_CANONICAL} ` +
+        `(canonical). Copy ${TELEMETRY_CORE_CANONICAL} over ${TELEMETRY_CORE_COPY} ` +
+        `so the two CLI kernels stay in lockstep — they cannot share a package ` +
+        `(published standalone).`
+    );
+  }
+  return violations;
+}
+
+function quotedStringsIn(block) {
+  return [...block.matchAll(/'([^']+)'/g)].map(m => m[1]);
+}
+
+export function constStringArray(src, name) {
+  const m = src.match(
+    new RegExp(`const ${name} = \\[([\\s\\S]*?)\\] as const`)
+  );
+  return m ? quotedStringsIn(m[1]) : null;
+}
+
+/**
+ * Import a CLI module and pick the producer values out of it. Importing beats
+ * regex-scraping wherever the module is a leaf (#550 review: a scrape that
+ * stops matching a reshaped declaration silently narrows the comparison — an
+ * import either yields the real array or fails loudly as null here).
+ * constants.ts and package-manager.ts import nothing but chalk, so pulling
+ * them into a conformance run is cheap; node's type stripping loads the .ts
+ * directly.
+ */
+async function importProducer(relPath, pick) {
+  try {
+    const mod = await import(pathToFileURL(join(REPO, relPath)).href);
+    return pick(mod);
+  } catch {
+    return null;
+  }
+}
+
+// bestax-migrate/src/cli.ts stays regex-scraped: importing it would drag the
+// whole transform chain (jscodeshift included) into every conformance run.
+// The scrape fails loudly as null when the declaration stops matching.
+export function cssModes(src) {
+  const m = src.match(/const CSS_MODES: CssMode\[\] = \[([\s\S]*?)\];/);
+  return m ? quotedStringsIn(m[1]) : null;
+}
+
+/**
+ * Every source's registry name, plus the directories whose index.ts exists
+ * but did not yield one — a non-matching declaration must be REPORTED, not
+ * skipped (#550 review): a silently-dropped source would leave its enum
+ * unchecked against the worker, and its production events would 400 at
+ * ingest with every gate green.
+ */
+export async function migrateSourceNames(
+  dir = join(REPO, 'bestax-migrate/src/sources')
+) {
+  const names = [];
+  const unparsed = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    let src;
+    try {
+      src = await readFile(join(dir, entry.name, 'index.ts'), 'utf8');
+    } catch {
+      continue; // a directory without an index.ts is not a source
+    }
+    const m = src.match(/: MigrationSource = \{[\s\S]*?name: '([^']+)'/);
+    if (m) names.push(m[1]);
+    else unparsed.push(entry.name);
+  }
+  return { names, unparsed };
+}
+
+export function missingFromWorker(label, producer, worker, workerFile) {
+  if (producer === null) {
+    return [`could not parse producer values for ${label}`];
+  }
+  if (worker === null) {
+    return [
+      `could not parse ${label} from ${workerFile} — the worker schema ` +
+        `array is missing or malformed.`,
+    ];
+  }
+  const missing = producer.filter(value => !worker.includes(value));
+  return missing.map(
+    value =>
+      `${label} value '${value}' is used by a CLI but missing from ` +
+      `${workerFile} — add it there first or its events are silently dropped.`
+  );
+}
+
+export async function checkTelemetryAllowlists() {
+  const workerFile = 'telemetry-worker/src/schema.ts';
+  const constantsFile = 'create-bestax/src/constants.ts';
+  const cliFile = 'bestax-migrate/src/cli.ts';
+  const [schema, cli] = await Promise.all([
+    readFile(join(REPO, workerFile), 'utf8'),
+    readFile(join(REPO, cliFile), 'utf8'),
+  ]);
+  const [templates, flavors, icons, pms] = await Promise.all([
+    importProducer(constantsFile, m => m.TEMPLATES.map(t => t.name)),
+    importProducer(constantsFile, m => m.BULMA_FLAVORS.map(f => f.name)),
+    importProducer(constantsFile, m => m.ICON_LIBRARIES.map(i => i.name)),
+    importProducer('create-bestax/src/package-manager.ts', m => [
+      ...m.KNOWN_PACKAGE_MANAGERS,
+    ]),
+  ]);
+  const sources = await migrateSourceNames();
+  const violations = [];
+  if (!sources.names.length) {
+    violations.push(
+      'bestax-migrate/src/sources/*/index.ts: no MigrationSource `name` was ' +
+        'found, so the worker allowlist went unchecked.'
+    );
+  }
+  for (const dir of sources.unparsed) {
+    violations.push(
+      `bestax-migrate/src/sources/${dir}/index.ts: has an index.ts but no ` +
+        `parseable \`: MigrationSource = { name: '…' }\` declaration, so its ` +
+        `enum would silently skip the worker comparison and its production ` +
+        `events would be dropped at ingest. Match the shape, or update ` +
+        `migrateSourceNames in scripts/check-conformance.mjs.`
+    );
+  }
+  violations.push(
+    ...missingFromWorker(
+      'template',
+      templates,
+      constStringArray(schema, 'TEMPLATE_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'bulmaFlavor',
+      flavors,
+      constStringArray(schema, 'BULMA_FLAVOR_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'iconLibrary',
+      icons,
+      constStringArray(schema, 'ICON_LIBRARY_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'packageManager',
+      pms,
+      constStringArray(schema, 'PACKAGE_MANAGER_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'migrate source',
+      sources.names,
+      constStringArray(schema, 'MIGRATE_SOURCE_VALUES'),
+      workerFile
+    ),
+    ...missingFromWorker(
+      'cssMode',
+      cssModes(cli),
+      constStringArray(schema, 'CSS_MODE_VALUES'),
+      workerFile
+    )
+  );
+  return violations;
 }
 
 // ---------------------------------------------------------------------------
@@ -2321,6 +2706,8 @@ const CHECKS = {
   'autodocs-tag': checkAutodocsTag,
   'publishable-manifests': checkPublishableManifests,
   'bypass-expiry': checkBypassExpiry,
+  'telemetry-core': checkTelemetryCore,
+  'telemetry-allowlists': checkTelemetryAllowlists,
   'inline-style': null, // handled below (takes the flag)
 };
 

@@ -43,8 +43,10 @@ the API pages and the skill catalog.
   spends the context the client needs for the actual task.
 - **No hardcoded roster.** Prompts, resources and skill lookups are all derived
   from `data/skills.json`, which the generator builds by reading the `skills/`
-  directory. `skills/CLAUDE.md` already counts five places the roster is
-  duplicated; do not add a sixth.
+  directory. The rule repo-wide is derive, don't list (#540); the prose copies
+  that cannot be derived are held to the directory by the `skills-roster`
+  conformance check (`pnpm check:conformance --only=skills-roster`). Do not add
+  a hand-maintained copy here for that check to chase.
 - **Nothing on stdout but JSON-RPC.** stdout _is_ the transport. Diagnostics go
   to stderr — a stray `console.log` surfaces to the user as an unexplained
   disconnect.

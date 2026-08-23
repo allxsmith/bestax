@@ -1,3 +1,23 @@
+# [4.2.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.1.2...create-bestax@4.2.0) (2026-08-23)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** keep URL fragments when attributing docs links ([1ef43ce](https://github.com/allxsmith/bestax/commit/1ef43ce5c11e30eee4eb6e8dab65058baa4f8c59))
+* **bestax-migrate:** name the wire caps and pin them to the worker ([06b3653](https://github.com/allxsmith/bestax/commit/06b3653c5489e5f35bdc082c8dac476eef173de2))
+* **bestax-migrate:** stop sending changedBucket, honor Ctrl-C at consent ([271ba4c](https://github.com/allxsmith/bestax/commit/271ba4c3f19ef2846cad80be696c8b3af1991030))
+* **create-bestax:** fail closed on foreign consent records, gate ignored files ([81df919](https://github.com/allxsmith/bestax/commit/81df91954cd421c57df7df0495698178be083f5a))
+* **create-bestax:** gate consent on both TTYs, honor DNT and Ctrl-C ([8def8da](https://github.com/allxsmith/bestax/commit/8def8da80ce70160d50efba1ae2869827c5814b3))
+* **create-bestax:** never send telemetry from the e2e scaffold harness ([a6db102](https://github.com/allxsmith/bestax/commit/a6db10299c77368622988c1cfc1687b433f5d602))
+* **create-bestax:** review-thread fixes across the telemetry surface ([750b53e](https://github.com/allxsmith/bestax/commit/750b53e052ccb1acf803e01c5ee7bdafbba21b1a)), closes [#550](https://github.com/allxsmith/bestax/issues/550)
+
+
+### Features
+
+* **bestax-mcp:** attribute emitted docs links with utm_source ([b6b1a1f](https://github.com/allxsmith/bestax/commit/b6b1a1f42d99ac14ae93c638d1a2ff2559791f40))
+* **bestax-migrate:** add opt-in anonymous telemetry ([20c5492](https://github.com/allxsmith/bestax/commit/20c5492b88e5de7212ad47cd687a97a3ecb6a900))
+* **create-bestax:** add opt-in anonymous telemetry ([1e5b488](https://github.com/allxsmith/bestax/commit/1e5b488f8808ffb09b69fdc7e4f7447f74e0bbf2)), closes [#192](https://github.com/allxsmith/bestax/issues/192)
+
 ## [4.1.2](https://github.com/allxsmith/bestax/compare/create-bestax@4.1.1...create-bestax@4.1.2) (2026-08-22)
 
 ## [4.1.1](https://github.com/allxsmith/bestax/compare/create-bestax@4.1.0...create-bestax@4.1.1) (2026-08-21)
