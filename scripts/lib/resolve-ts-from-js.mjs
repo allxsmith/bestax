@@ -8,8 +8,11 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export async function resolve(specifier, context, nextResolve) {
+  // file: parents only — fileURLToPath throws on any other scheme, and this
+  // hook must fall through (never fail) for modules it was not written for
+  // (a data: URL, another loader's in-memory parent).
   if (
-    context.parentURL &&
+    context.parentURL?.startsWith('file:') &&
     specifier.startsWith('.') &&
     specifier.endsWith('.js')
   ) {
