@@ -43,8 +43,11 @@ Sent once after a successful run:
 | `cssMode`          | `bestax`, `bulma`, or `keep`                                                                   |
 | `dry`              | `true` or `false` — whether it was a dry run                                                   |
 | `deps`             | `true` or `false` — whether `package.json` dependencies were updated                           |
-| Changed-file count | a bucket — `0`, `1-9`, `10-49`, `50-199`, or `200+` — plus the capped count                    |
+| Changed-file count | capped at 10,000 (the ingest endpoint buckets it as `0`/`1-9`/`10-49`/`50-199`/`200+`)         |
 | TODO counts        | per migration rule: the rule name (including `prop:<jsxProp>` slugs) and a count, nothing else |
+| CLI version        | the `bestax-migrate` version that ran                                                          |
+| Node major version | e.g. `22`                                                                                      |
+| OS platform        | the platform name, e.g. `darwin`, `linux`, `win32`                                             |
 
 Never file paths, never file contents, never code. The TODO report printed in
 your terminal lists files and lines; the telemetry event carries only rule
@@ -68,7 +71,9 @@ same machine.
 
 ## How consent works
 
-Telemetry is off until you opt in, and you're asked exactly once:
+Telemetry is off until you opt in, and once you answer you're never asked
+again (cancelling the question with Ctrl-C is not an answer — you may be asked
+on a later run):
 
 - `create-bestax` asks at the end of a successful scaffold.
 - `bestax-migrate` asks once after a run, and only on an interactive terminal.
@@ -84,7 +89,13 @@ ever asked once. Delete that file to be asked again.
 | ------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `--telemetry` / `--no-telemetry`            | Flags on both CLIs — set the choice for this run **and persist it** to the consent file |
 | `BESTAX_TELEMETRY=1` / `BESTAX_TELEMETRY=0` | Enable or disable for this run only — never persisted                                   |
-| `DO_NOT_TRACK=1`                            | Disables everything, including the consent prompt itself                                |
+| `DO_NOT_TRACK=1`                            | Disables telemetry and the consent prompt itself                                        |
+
+One interaction worth spelling out: with `DO_NOT_TRACK` set, an explicit
+`--telemetry` flag still applies **to that single run** (typing the flag is a
+direct ask, which the DNT convention lets win) — but under `DO_NOT_TRACK` the
+flag is **never saved**, so a copied command containing `--telemetry` cannot
+enable telemetry beyond the run it was typed for.
 
 ## Where the data goes
 
