@@ -211,6 +211,11 @@ describe('versionNote', () => {
     expect(note).toContain('4.0.0');
   });
 
+  it('tags the docs link it points at, like every emitted link', () => {
+    const note = versionNote(info({ installed: '4.0.0', drift: 'major' }));
+    expect(note).toContain('https://bestax.io/docs?utm_source=bestax-mcp');
+  });
+
   it('warns on a minor mismatch, where props can move', () => {
     expect(versionNote(info({ installed: '5.2.0', drift: 'minor' }))).toContain(
       '⚠'

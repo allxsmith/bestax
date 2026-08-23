@@ -151,6 +151,18 @@ A scaffolder runs with write access to your filesystem and picks your starting d
 
 Full detail: [`SECURITY.md`](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
+## Telemetry
+
+`create-bestax` can send one **anonymous** usage event after a successful
+scaffold — only if you opt in when asked (once, at the end of a scaffold). The
+event is just the choices you made — template, Bulma flavor, icon library,
+skills, package manager — plus the CLI version, Node major version, and OS
+platform; never names, IPs, machine IDs, paths, or file contents, and no
+identifier exists that could link two events together. Opt out any time with
+`--no-telemetry`, `BESTAX_TELEMETRY=0`, or `DO_NOT_TRACK=1`.
+
+Full disclosure of every field and control: [Telemetry guide](https://bestax.io/docs/guides/telemetry)
+
 ## Publishing
 
 This package uses semantic-release with scope-based rules. Only commits with `feat(create-bestax)` or `fix(create-bestax)` will trigger releases.

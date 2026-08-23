@@ -38,6 +38,12 @@ export function displaySuccess(targetDir: string): void {
   );
   console.log(chalk.dim('   https://github.com/allxsmith/bestax'));
   console.log();
+  console.log(
+    chalk.dim(
+      '   Ideas or problems? Open an issue: https://github.com/allxsmith/bestax/issues'
+    )
+  );
+  console.log();
 }
 
 export function displayError(message: string): void {

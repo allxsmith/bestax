@@ -50,6 +50,7 @@ const {
   promptBulmaFlavor,
   promptIconLibrary,
   promptInstallSkills,
+  promptTelemetryConsent,
 } = await import('../prompts.js');
 
 // Import helper functions from cli.js
@@ -375,6 +376,72 @@ describe('prompts', () => {
         const result = await promptIconLibrary();
         expect(result).toBe(library.name);
       }
+    });
+  });
+
+  describe('promptTelemetryConsent', () => {
+    it('returns true when the user opts in', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: true,
+      });
+      await expect(promptTelemetryConsent()).resolves.toBe(true);
+    });
+
+    it('returns false when the user declines', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: false,
+      });
+      await expect(promptTelemetryConsent()).resolves.toBe(false);
+    });
+
+    it('returns null on cancel and honors the interrupt via exit code 130', async () => {
+      const originalExitCode = process.exitCode;
+      (prompts as jest.MockedFunction<typeof prompts>).mockImplementationOnce(
+        (async (_questions: unknown, opts?: { onCancel?: () => void }) => {
+          opts?.onCancel?.();
+          return {};
+        }) as unknown as typeof prompts
+      );
+      await expect(promptTelemetryConsent()).resolves.toBeNull();
+      expect(process.exitCode).toBe(130);
+      process.exitCode = originalExitCode;
+    });
+
+    it('a missing answer without a cancel leaves the exit code alone', async () => {
+      const originalExitCode = process.exitCode;
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      await expect(promptTelemetryConsent()).resolves.toBeNull();
+      expect(process.exitCode).toBe(originalExitCode);
+    });
+
+    it('is an opt-in confirm defaulting to No, preceded by the notice', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: false,
+      });
+      await promptTelemetryConsent();
+
+      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+        .calls[0]?.[0] as { type: string; initial: boolean; message: string };
+      expect(promptCall.type).toBe('confirm');
+      expect(promptCall.initial).toBe(false);
+      expect(promptCall.message).toBe('Share anonymous usage stats?');
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('https://bestax.io/docs/guides/telemetry')
+      );
+    });
+
+    it('does not require a TTY (the caller skips it instead)', async () => {
+      setStdinTTY(false);
+      const mockExit = jest
+        .spyOn(process, 'exit')
+        .mockImplementation((() => undefined) as never);
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: true,
+      });
+
+      await expect(promptTelemetryConsent()).resolves.toBe(true);
+      expect(mockExit).not.toHaveBeenCalled();
+      mockExit.mockRestore();
     });
   });
 });

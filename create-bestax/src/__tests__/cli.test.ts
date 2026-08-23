@@ -161,6 +161,32 @@ describe('cli', () => {
           flags: '-y, --yes',
         })
       );
+      expect(options).toContainEqual(
+        expect.objectContaining({
+          flags: '--telemetry',
+        })
+      );
+      expect(options).toContainEqual(
+        expect.objectContaining({
+          flags: '--no-telemetry',
+        })
+      );
+    });
+
+    it('should leave telemetry undefined when neither flag is given', () => {
+      const program = createCLI();
+      program.parse(['my-app', '-y'], { from: 'user' });
+      expect(program.opts().telemetry).toBeUndefined();
+    });
+
+    it('should parse --telemetry and --no-telemetry into a boolean', () => {
+      const on = createCLI();
+      on.parse(['my-app', '-y', '--telemetry'], { from: 'user' });
+      expect(on.opts().telemetry).toBe(true);
+
+      const off = createCLI();
+      off.parse(['my-app', '-y', '--no-telemetry'], { from: 'user' });
+      expect(off.opts().telemetry).toBe(false);
     });
 
     it('should have correct template options in help text', () => {
