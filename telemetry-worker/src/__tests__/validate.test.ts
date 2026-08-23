@@ -32,7 +32,6 @@ const migratePayload = (): Payload => ({
     cssMode: 'bestax',
     dry: false,
     deps: true,
-    changedBucket: '10-49',
     changedCount: 23,
   },
   todosByRule: [
@@ -74,6 +73,14 @@ describe('validate: accepts', () => {
     assertOk(payload);
   });
 
+  for (const platform of ['netbsd', 'haiku']) {
+    it(`${platform} platform`, () => {
+      const payload = createPayload();
+      payload.platform = platform;
+      assertOk(payload);
+    });
+  }
+
   it('validated payload round-trips unchanged', () => {
     const payload = migratePayload();
     const result = validate(payload);
@@ -113,6 +120,12 @@ describe('validate: rejects unknown or missing keys', () => {
     assertRejected(payload, 'unknown props key');
   });
 
+  it('changedBucket in migrate props (derived server-side, not a wire field)', () => {
+    const payload = migratePayload();
+    props(payload).changedBucket = '10-49';
+    assertRejected(payload, 'changedBucket is no longer accepted');
+  });
+
   for (const key of [
     'v',
     'tool',
@@ -143,14 +156,7 @@ describe('validate: rejects unknown or missing keys', () => {
     });
   }
 
-  for (const key of [
-    'source',
-    'cssMode',
-    'dry',
-    'deps',
-    'changedBucket',
-    'changedCount',
-  ]) {
+  for (const key of ['source', 'cssMode', 'dry', 'deps', 'changedCount']) {
     it(`missing migrate props.${key}`, () => {
       const payload = migratePayload();
       delete props(payload)[key];
@@ -212,7 +218,7 @@ describe('validate: rejects envelope field values', () => {
 
   it('unknown platform', () => {
     const payload = createPayload();
-    payload.platform = 'haiku';
+    payload.platform = 'beos';
     assertRejected(payload, 'unknown platform');
   });
 
@@ -231,7 +237,6 @@ describe('validate: rejects props enum values', () => {
     ['packageManager', createPayload, 'packageManager'],
     ['source', migratePayload, 'source'],
     ['cssMode', migratePayload, 'cssMode'],
-    ['changedBucket', migratePayload, 'changedBucket'],
   ];
   for (const [label, factory, key] of badEnum) {
     it(`unknown ${label}`, () => {
@@ -240,12 +245,6 @@ describe('validate: rejects props enum values', () => {
       assertRejected(payload, `unknown ${label}`);
     });
   }
-
-  it('bucket label as changedBucket', () => {
-    const payload = migratePayload();
-    props(payload).changedBucket = '1-10';
-    assertRejected(payload, 'changedBucket not in bucket set');
-  });
 
   for (const [key, factory] of [
     ['skills', createPayload],

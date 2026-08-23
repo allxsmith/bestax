@@ -13,8 +13,9 @@ npx wrangler deploy
 ```
 
 Run by Alex — the package is not in the pnpm workspace (Wrangler's native
-`workerd` build is blocked repo-wide). Wrangler bundles `src/index.ts`
-directly (no build step). Tests and typecheck still run from the repo root:
+`workerd` build is blocked repo-wide), so the exact-pinned devDependencies in
+`package.json` are the only version control these tools get until it joins.
+Wrangler bundles `src/index.ts` directly (no build step). Tests and typecheck still run from the repo root:
 `pnpm test` includes `node --test telemetry-worker/src/__tests__/*.test.ts`,
 and `pnpm typecheck` includes `tsc -p telemetry-worker`. The worker is bound
 to the zone route `bestax.io/api/t`. If that route ever conflicts with
@@ -39,8 +40,12 @@ so no code change needed).
 | `blob6`   | bulmaFlavor / cssMode               | rule                 |
 | `blob7`   | iconLibrary / dry (`1`/`0`)         | —                    |
 | `blob8`   | skills (`1`/`0`) / deps (`1`/`0`)   | —                    |
-| `blob9`   | packageManager / changedBucket      | —                    |
-| `double1` | — / changedCount (capped at 10 000) | count                |
+| `blob9`   | packageManager / changedBucket¹     | —                    |
+| `double1` | — / changedCount (capped at 10 000) | count (same cap)     |
+
+¹ `changedBucket` is not a wire field: the worker derives it from the capped
+`changedCount` (`0`, `1-9`, `10-49`, `50-199`, `200+`), so the bucket and the
+double can never disagree.
 
 ## Example queries
 
@@ -78,4 +83,8 @@ FROM bestax_telemetry WHERE index1='create-bestax' AND blob1='scaffold'
   silently discarded.
 - No IP address or User-Agent is ever read or stored; `request.cf` is never
   touched; request bodies are never logged.
+- The ingest is unauthenticated by design — any client can POST synthetic
+  events, because per-sender identification would contradict the no-identifier
+  privacy contract — so aggregate queries should treat absolute counts as
+  indicative, not audited.
 - No CORS headers: the endpoint is for the CLIs, not browsers.

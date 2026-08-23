@@ -48,12 +48,13 @@ const PLATFORM_VALUES = [
   'darwin',
   'freebsd',
   'linux',
+  'netbsd',
   'openbsd',
   'sunos',
   'win32',
   'android',
+  'haiku',
 ] as const;
-const CHANGED_BUCKET_VALUES = ['0', '1-9', '10-49', '50-199', '200+'] as const;
 
 export type Template = (typeof TEMPLATE_VALUES)[number];
 export type BulmaFlavor = (typeof BULMA_FLAVOR_VALUES)[number];
@@ -62,7 +63,6 @@ export type MigrateSource = (typeof MIGRATE_SOURCE_VALUES)[number];
 export type CssMode = (typeof CSS_MODE_VALUES)[number];
 export type PackageManager = (typeof PACKAGE_MANAGER_VALUES)[number];
 export type Platform = (typeof PLATFORM_VALUES)[number];
-export type ChangedBucket = (typeof CHANGED_BUCKET_VALUES)[number];
 
 export const TEMPLATES: ReadonlySet<string> = new Set(TEMPLATE_VALUES);
 export const BULMA_FLAVORS: ReadonlySet<string> = new Set(BULMA_FLAVOR_VALUES);
@@ -75,15 +75,33 @@ export const PACKAGE_MANAGERS: ReadonlySet<string> = new Set(
   PACKAGE_MANAGER_VALUES
 );
 export const PLATFORMS: ReadonlySet<string> = new Set(PLATFORM_VALUES);
-export const CHANGED_BUCKETS: ReadonlySet<string> = new Set(
-  CHANGED_BUCKET_VALUES
-);
 
 export const MAX_TODO_RULES = 20;
 export const MAX_CHANGED_COUNT = 100000;
-// changedCount above this is a pathological run; cap the stored double so one
-// outlier cannot dominate SUM(double1 * _sample_interval) aggregates.
+// A count above this is a pathological run; cap every stored double — the run
+// event's changedCount and each migrate_todo count alike — so one outlier
+// cannot dominate SUM(double1 * _sample_interval) aggregates.
 export const CHANGED_COUNT_DOUBLE_CAP = 10000;
+
+// changedBucket (blob9 on the migrate run event) is derived HERE, not sent on
+// the wire. Single boundary definition: ascending lower bounds; each label is
+// derived ('0', '1-9', '10-49', '50-199', '200+'), so the buckets cannot
+// drift from the boundaries.
+const CHANGED_BUCKET_BOUNDS = [0, 1, 10, 50, 200] as const;
+
+export function changedBucket(count: number): string {
+  let i = 0;
+  while (
+    i + 1 < CHANGED_BUCKET_BOUNDS.length &&
+    count >= CHANGED_BUCKET_BOUNDS[i + 1]
+  ) {
+    i += 1;
+  }
+  const lo = CHANGED_BUCKET_BOUNDS[i];
+  if (i === CHANGED_BUCKET_BOUNDS.length - 1) return `${lo}+`;
+  const next = CHANGED_BUCKET_BOUNDS[i + 1];
+  return next - lo === 1 ? `${lo}` : `${lo}-${next - 1}`;
+}
 
 export interface CreateBestaxPayload {
   v: 1;
@@ -113,7 +131,6 @@ export interface MigratePayload {
     cssMode: CssMode;
     dry: boolean;
     deps: boolean;
-    changedBucket: ChangedBucket;
     changedCount: number;
   };
   todosByRule?: { rule: string; count: number }[];
@@ -135,8 +152,11 @@ export type TelemetryPayload = CreateBestaxPayload | MigratePayload;
  * | blob6   | bulmaFlavor     / cssMode          | rule               |
  * | blob7   | iconLibrary     / dry '1'|'0'      | —                  |
  * | blob8   | skills '1'|'0'  / deps '1'|'0'     | —                  |
- * | blob9   | packageManager  / changedBucket    | —                  |
+ * | blob9   | packageManager  / changedBucket*   | —                  |
  * | double1 | —               / changedCount     | count              |
+ *
+ * *changedBucket is derived server-side from the capped changedCount — it is
+ * not a wire field.
  */
 export function runEventPoint(
   payload: TelemetryPayload
@@ -163,6 +183,7 @@ export function runEventPoint(
     };
   }
   const p = payload.props;
+  const cappedCount = Math.min(p.changedCount, CHANGED_COUNT_DOUBLE_CAP);
   return {
     indexes: [payload.tool],
     blobs: [
@@ -171,9 +192,9 @@ export function runEventPoint(
       p.cssMode,
       p.dry ? '1' : '0',
       p.deps ? '1' : '0',
-      p.changedBucket,
+      changedBucket(cappedCount),
     ],
-    doubles: [Math.min(p.changedCount, CHANGED_COUNT_DOUBLE_CAP)],
+    doubles: [cappedCount],
   };
 }
 
@@ -191,6 +212,6 @@ export function todoPoints(
       payload.props.source,
       entry.rule,
     ],
-    doubles: [entry.count],
+    doubles: [Math.min(entry.count, CHANGED_COUNT_DOUBLE_CAP)],
   }));
 }

@@ -59,7 +59,6 @@ const migratePayload = () => ({
     cssMode: 'bestax',
     dry: false,
     deps: true,
-    changedBucket: '10-49',
     changedCount: 23,
   },
   todosByRule: [
@@ -116,9 +115,9 @@ describe('handler: request gate', () => {
         'content-type': 'application/json',
         'content-length': '999999',
       }),
-      text: async () => {
+      get body() {
         read = true;
-        return '{}';
+        return null;
       },
     };
     const { env, points } = makeEnv();
@@ -132,6 +131,67 @@ describe('handler: request gate', () => {
     const { env, points } = makeEnv();
     const res = await call(post(`{"pad":"${'a'.repeat(9000)}"}`), env);
     assert.equal(res.status, 413);
+    assert.equal(points.length, 0);
+  });
+
+  it('413 for an oversized chunked body, without buffering it all', async () => {
+    // A streamed body declares no content-length, so only the running byte
+    // count can refuse it. 1 KiB chunks: the cap must trip on chunk 9 and
+    // stop pulling — chunk 20 must never be requested.
+    let pulls = 0;
+    const chunk = new TextEncoder().encode('a'.repeat(1024));
+    const stream = new ReadableStream({
+      pull(controller) {
+        pulls += 1;
+        if (pulls > 20) controller.close();
+        else controller.enqueue(chunk);
+      },
+    });
+    const request = new Request(ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: stream,
+      duplex: 'half',
+    } as RequestInit);
+    const { env, points } = makeEnv();
+    const res = await call(request, env);
+    assert.equal(res.status, 413);
+    assert.ok(pulls < 20, `stopped pulling early (pulled ${pulls} chunks)`);
+    assert.equal(points.length, 0);
+  });
+
+  it('accepts a valid payload sent as a chunked stream', async () => {
+    const bytes = new TextEncoder().encode(JSON.stringify(createPayload()));
+    const stream = new ReadableStream({
+      start(controller) {
+        // Split mid-payload so decoding must happen after reassembly.
+        controller.enqueue(bytes.slice(0, 40));
+        controller.enqueue(bytes.slice(40));
+        controller.close();
+      },
+    });
+    const request = new Request(ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: stream,
+      duplex: 'half',
+    } as RequestInit);
+    const { env, points } = makeEnv();
+    const res = await call(request, env);
+    assert.equal(res.status, 204);
+    assert.equal(points.length, 1);
+  });
+
+  it('400 for a POST with no body', async () => {
+    const { env, points } = makeEnv();
+    const res = await call(
+      new Request(ENDPOINT, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+      }),
+      env
+    );
+    assert.equal(res.status, 400);
     assert.equal(points.length, 0);
   });
 
@@ -221,13 +281,51 @@ describe('handler: accepted payloads', () => {
     });
   });
 
-  it('caps the changedCount double at 10000', async () => {
+  it('caps the changedCount double at 10000 and buckets the capped value', async () => {
     const { env, points } = makeEnv();
     const payload = migratePayload();
     payload.props.changedCount = 100000;
     const res = await call(post(payload), env);
     assert.equal(res.status, 204);
     assert.deepEqual(points[0]?.doubles, [10000]);
+    assert.equal(points[0]?.blobs?.[8], '200+');
+  });
+
+  it('derives changedBucket (blob9) from changedCount server-side', async () => {
+    const boundaries: [number, string][] = [
+      [0, '0'],
+      [1, '1-9'],
+      [9, '1-9'],
+      [10, '10-49'],
+      [49, '10-49'],
+      [50, '50-199'],
+      [199, '50-199'],
+      [200, '200+'],
+      [10000, '200+'],
+      [100000, '200+'], // capped to 10000 first, still 200+
+    ];
+    for (const [changedCount, bucket] of boundaries) {
+      const { env, points } = makeEnv();
+      const payload = migratePayload();
+      payload.props.changedCount = changedCount;
+      const res = await call(post(payload), env);
+      assert.equal(res.status, 204);
+      assert.equal(
+        points[0]?.blobs?.[8],
+        bucket,
+        `changedCount ${changedCount} → bucket ${bucket}`
+      );
+    }
+  });
+
+  it('caps each todo count double at 10000', async () => {
+    const { env, points } = makeEnv();
+    const payload = migratePayload();
+    payload.todosByRule = [{ rule: 'prop:className', count: 100000 }];
+    const res = await call(post(payload), env);
+    assert.equal(res.status, 204);
+    assert.equal(points.length, 2);
+    assert.deepEqual(points[1]?.doubles, [10000]);
   });
 
   it('20 todo rules → exactly 21 writes', async () => {

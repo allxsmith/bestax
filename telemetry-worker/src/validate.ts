@@ -9,7 +9,6 @@
 
 import {
   BULMA_FLAVORS,
-  CHANGED_BUCKETS,
   CSS_MODES,
   EVENT_FOR_TOOL,
   ICON_LIBRARIES,
@@ -48,12 +47,13 @@ const CREATE_PROP_KEYS = [
   'skills',
   'packageManager',
 ] as const;
+// changedBucket is NOT a wire field: the worker derives it from changedCount
+// (schema.ts), so a payload sending it is rejected as an unknown key.
 const MIGRATE_PROP_KEYS = [
   'source',
   'cssMode',
   'dry',
   'deps',
-  'changedBucket',
   'changedCount',
 ] as const;
 const TODO_ENTRY_KEYS = ['rule', 'count'] as const;
@@ -139,9 +139,6 @@ export function validate(body: unknown): ValidationResult {
     if (!inSet(CSS_MODES, props.cssMode)) return reject('unknown cssMode');
     if (typeof props.dry !== 'boolean') return reject('invalid dry');
     if (typeof props.deps !== 'boolean') return reject('invalid deps');
-    if (!inSet(CHANGED_BUCKETS, props.changedBucket)) {
-      return reject('unknown changedBucket');
-    }
     if (
       typeof props.changedCount !== 'number' ||
       !Number.isInteger(props.changedCount) ||
