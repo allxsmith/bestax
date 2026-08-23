@@ -2069,18 +2069,24 @@ function markerFence(marker) {
     }
     if (open === -1) return null;
 
-    let close = open + 1;
-    while (close < lines.length && mask[close]) close++;
-    // mask marks both delimiters; the last masked line is the closing fence
-    // unless the fence runs unterminated to EOF.
-    const body = lines.slice(open + 1, close);
-    if (
-      body.length &&
-      /^ {0,3}(`{3,}|~{3,})[ \t]*$/.test(body[body.length - 1])
-    ) {
-      body.pop();
+    // The closer is matched against the OPENER (same char, at least as long,
+    // no info string — CommonMark), not against the fenceMask run: mask marks
+    // delimiters and interiors alike, so two fences with no blank line between
+    // them form one continuous run and the first version merged them into a
+    // single scope, letting tokens from an unrelated adjacent block satisfy or
+    // pollute the roster (#550 review).
+    const opener = lines[open].match(/^ {0,3}(`{3,}|~{3,})/);
+    const char = opener[1][0];
+    const len = opener[1].length;
+    let close = lines.length;
+    for (let i = open + 1; i < lines.length; i++) {
+      const m = lines[i].match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
+      if (m && m[1][0] === char && m[1].length >= len) {
+        close = i;
+        break;
+      }
     }
-    return body.join('\n');
+    return lines.slice(open + 1, close).join('\n');
   };
 }
 
@@ -2437,33 +2443,56 @@ function constStringArray(src, name) {
   return m ? quotedStringsIn(m[1]) : null;
 }
 
-function exportedNamedArray(src, name) {
-  const m = src.match(
-    new RegExp(`export const ${name}[^=]*= \\[([\\s\\S]*?)\\];`)
-  );
-  if (!m) return null;
-  return [...m[1].matchAll(/name: '([^']+)'/g)].map(x => x[1]);
+/**
+ * Import a CLI module and pick the producer values out of it. Importing beats
+ * regex-scraping wherever the module is a leaf (#550 review: a scrape that
+ * stops matching a reshaped declaration silently narrows the comparison — an
+ * import either yields the real array or fails loudly as null here).
+ * constants.ts and package-manager.ts import nothing but chalk, so pulling
+ * them into a conformance run is cheap; node's type stripping loads the .ts
+ * directly.
+ */
+async function importProducer(relPath, pick) {
+  try {
+    const mod = await import(pathToFileURL(join(REPO, relPath)).href);
+    return pick(mod);
+  } catch {
+    return null;
+  }
 }
 
+// bestax-migrate/src/cli.ts stays regex-scraped: importing it would drag the
+// whole transform chain (jscodeshift included) into every conformance run.
+// The scrape fails loudly as null when the declaration stops matching.
 function cssModes(src) {
   const m = src.match(/const CSS_MODES: CssMode\[\] = \[([\s\S]*?)\];/);
   return m ? quotedStringsIn(m[1]) : null;
 }
 
+/**
+ * Every source's registry name, plus the directories whose index.ts exists
+ * but did not yield one — a non-matching declaration must be REPORTED, not
+ * skipped (#550 review): a silently-dropped source would leave its enum
+ * unchecked against the worker, and its production events would 400 at
+ * ingest with every gate green.
+ */
 async function migrateSourceNames() {
   const dir = join(REPO, 'bestax-migrate/src/sources');
   const names = [];
+  const unparsed = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
+    let src;
     try {
-      const src = await readFile(join(dir, entry.name, 'index.ts'), 'utf8');
-      const m = src.match(/: MigrationSource = \{[\s\S]*?name: '([^']+)'/);
-      if (m) names.push(m[1]);
+      src = await readFile(join(dir, entry.name, 'index.ts'), 'utf8');
     } catch {
-      // Directory without an index.ts is not a source.
+      continue; // a directory without an index.ts is not a source
     }
+    const m = src.match(/: MigrationSource = \{[\s\S]*?name: '([^']+)'/);
+    if (m) names.push(m[1]);
+    else unparsed.push(entry.name);
   }
-  return names;
+  return { names, unparsed };
 }
 
 function missingFromWorker(label, producer, worker, workerFile) {
@@ -2487,50 +2516,64 @@ function missingFromWorker(label, producer, worker, workerFile) {
 async function checkTelemetryAllowlists() {
   const workerFile = 'telemetry-worker/src/schema.ts';
   const constantsFile = 'create-bestax/src/constants.ts';
-  const pmFile = 'create-bestax/src/package-manager.ts';
   const cliFile = 'bestax-migrate/src/cli.ts';
-  const [schema, constants, pm, cli] = await Promise.all([
+  const [schema, cli] = await Promise.all([
     readFile(join(REPO, workerFile), 'utf8'),
-    readFile(join(REPO, constantsFile), 'utf8'),
-    readFile(join(REPO, pmFile), 'utf8'),
     readFile(join(REPO, cliFile), 'utf8'),
+  ]);
+  const [templates, flavors, icons, pms] = await Promise.all([
+    importProducer(constantsFile, m => m.TEMPLATES.map(t => t.name)),
+    importProducer(constantsFile, m => m.BULMA_FLAVORS.map(f => f.name)),
+    importProducer(constantsFile, m => m.ICON_LIBRARIES.map(i => i.name)),
+    importProducer('create-bestax/src/package-manager.ts', m => [
+      ...m.KNOWN_PACKAGE_MANAGERS,
+    ]),
   ]);
   const sources = await migrateSourceNames();
   const violations = [];
-  if (!sources.length) {
+  if (!sources.names.length) {
     violations.push(
       'bestax-migrate/src/sources/*/index.ts: no MigrationSource `name` was ' +
         'found, so the worker allowlist went unchecked.'
     );
   }
+  for (const dir of sources.unparsed) {
+    violations.push(
+      `bestax-migrate/src/sources/${dir}/index.ts: has an index.ts but no ` +
+        `parseable \`: MigrationSource = { name: '…' }\` declaration, so its ` +
+        `enum would silently skip the worker comparison and its production ` +
+        `events would be dropped at ingest. Match the shape, or update ` +
+        `migrateSourceNames in scripts/check-conformance.mjs.`
+    );
+  }
   violations.push(
     ...missingFromWorker(
       'template',
-      exportedNamedArray(constants, 'TEMPLATES'),
+      templates,
       constStringArray(schema, 'TEMPLATE_VALUES'),
       workerFile
     ),
     ...missingFromWorker(
       'bulmaFlavor',
-      exportedNamedArray(constants, 'BULMA_FLAVORS'),
+      flavors,
       constStringArray(schema, 'BULMA_FLAVOR_VALUES'),
       workerFile
     ),
     ...missingFromWorker(
       'iconLibrary',
-      exportedNamedArray(constants, 'ICON_LIBRARIES'),
+      icons,
       constStringArray(schema, 'ICON_LIBRARY_VALUES'),
       workerFile
     ),
     ...missingFromWorker(
       'packageManager',
-      constStringArray(pm, 'KNOWN'),
+      pms,
       constStringArray(schema, 'PACKAGE_MANAGER_VALUES'),
       workerFile
     ),
     ...missingFromWorker(
       'migrate source',
-      sources,
+      sources.names,
       constStringArray(schema, 'MIGRATE_SOURCE_VALUES'),
       workerFile
     ),
