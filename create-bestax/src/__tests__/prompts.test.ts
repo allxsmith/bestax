@@ -394,9 +394,24 @@ describe('prompts', () => {
       await expect(promptTelemetryConsent()).resolves.toBe(false);
     });
 
-    it('returns null on cancel', async () => {
+    it('returns null on cancel and honors the interrupt via exit code 130', async () => {
+      const originalExitCode = process.exitCode;
+      (prompts as jest.MockedFunction<typeof prompts>).mockImplementationOnce(
+        (async (_questions: unknown, opts?: { onCancel?: () => void }) => {
+          opts?.onCancel?.();
+          return {};
+        }) as unknown as typeof prompts
+      );
+      await expect(promptTelemetryConsent()).resolves.toBeNull();
+      expect(process.exitCode).toBe(130);
+      process.exitCode = originalExitCode;
+    });
+
+    it('a missing answer without a cancel leaves the exit code alone', async () => {
+      const originalExitCode = process.exitCode;
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
       await expect(promptTelemetryConsent()).resolves.toBeNull();
+      expect(process.exitCode).toBe(originalExitCode);
     });
 
     it('is an opt-in confirm defaulting to No, preceded by the notice', async () => {

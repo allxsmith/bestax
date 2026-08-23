@@ -7,7 +7,7 @@ import {
   afterEach,
   afterAll,
 } from '@jest/globals';
-import { mkdtemp, readFile, writeFile, mkdir } from 'fs/promises';
+import { mkdtemp, readFile, writeFile, mkdir, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -69,7 +69,9 @@ beforeEach(async () => {
   globalThis.fetch = fetchMock as unknown as typeof fetch;
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // ~80 scratch dirs per run otherwise outlive the suite in the OS tmpdir.
+  await rm(configHome, { recursive: true, force: true });
   for (const key of ENV_KEYS) {
     if (savedEnv[key] === undefined) delete process.env[key];
     else process.env[key] = savedEnv[key];
@@ -183,8 +185,10 @@ describe('resolveTelemetry precedence', () => {
 });
 
 describe('persistTelemetryDecision', () => {
-  it('writes the config schema', async () => {
-    await persistTelemetryDecision(true, 'create-bestax@1.0.0');
+  it('writes the config schema and reports success', async () => {
+    await expect(
+      persistTelemetryDecision(true, 'create-bestax@1.0.0')
+    ).resolves.toBe(true);
     const config = await readConfigFile();
     expect(config.version).toBe(1);
     expect(config.enabled).toBe(true);
@@ -192,13 +196,13 @@ describe('persistTelemetryDecision', () => {
     expect(typeof config.decidedAt).toBe('string');
   });
 
-  it('stays silent when the config dir is unwritable', async () => {
+  it('stays silent when the config dir is unwritable, and says so', async () => {
     const blocker = join(configHome, 'blocker');
     await writeFile(blocker, 'file, not a dir', 'utf-8');
     process.env.XDG_CONFIG_HOME = blocker;
     await expect(
       persistTelemetryDecision(true, 'create-bestax@1.0.0')
-    ).resolves.toBeUndefined();
+    ).resolves.toBe(false);
   });
 });
 
@@ -281,6 +285,62 @@ describe('reportScaffold', () => {
     iconLibrary: 'mdi',
     skills: false,
   };
+
+  it('a flag under DO_NOT_TRACK applies to this run only, never persisted', async () => {
+    // A copied command containing --telemetry must not enable telemetry
+    // beyond the run it was typed for when the user has opted out globally.
+    process.env.DO_NOT_TRACK = '1';
+    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    await reportScaffold(choices, true, { interactive: true, promptConsent });
+    expect(promptConsent).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await expect(readConfigFile()).rejects.toThrow();
+
+    fetchMock.mockClear();
+    await reportScaffold(choices, false, { interactive: true, promptConsent });
+    expect(fetchMock).not.toHaveBeenCalled();
+    await expect(readConfigFile()).rejects.toThrow();
+  });
+
+  it('tells onDecided whether the prompted decision was saved', async () => {
+    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptYes = jest
+      .fn<() => Promise<boolean | null>>()
+      .mockResolvedValue(true);
+    await reportScaffold(choices, undefined, {
+      interactive: true,
+      promptConsent: promptYes,
+      onDecided,
+    });
+    expect(onDecided).toHaveBeenCalledWith(true, true);
+
+    onDecided.mockClear();
+    const blocker = join(configHome, 'blocker');
+    await writeFile(blocker, 'file, not a dir', 'utf-8');
+    process.env.XDG_CONFIG_HOME = blocker;
+    const promptNo = jest
+      .fn<() => Promise<boolean | null>>()
+      .mockResolvedValue(false);
+    await reportScaffold(choices, undefined, {
+      interactive: true,
+      promptConsent: promptNo,
+      onDecided,
+    });
+    expect(onDecided).toHaveBeenCalledWith(false, false);
+  });
+
+  it('does not call onDecided on a cancel', async () => {
+    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptConsent = jest
+      .fn<() => Promise<boolean | null>>()
+      .mockResolvedValue(null);
+    await reportScaffold(choices, undefined, {
+      interactive: true,
+      promptConsent,
+      onDecided,
+    });
+    expect(onDecided).not.toHaveBeenCalled();
+  });
 
   it('flag=true persists and sends without prompting', async () => {
     const promptConsent = jest.fn<() => Promise<boolean | null>>();

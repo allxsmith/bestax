@@ -48,6 +48,8 @@ export const MESSAGES = {
     '  Feedback welcome:  https://github.com/allxsmith/bestax/issues',
   TELEMETRY_ACK_ON: 'Thanks! Opt out anytime with --no-telemetry.',
   TELEMETRY_ACK_OFF: "No problem — we won't ask again.",
+  TELEMETRY_ACK_UNSAVED:
+    "Couldn't save your choice (config dir not writable) — you may be asked again.",
 } as const;
 
 // Dev-server manifest written into .claude/ with the skills opt-in so Claude

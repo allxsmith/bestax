@@ -82,6 +82,27 @@ function restoreStdinTTY(): void {
   }
 }
 
+const originalStdoutTTYDescriptor = Object.getOwnPropertyDescriptor(
+  process.stdout,
+  'isTTY'
+);
+
+function setStdoutTTY(value: boolean | undefined): void {
+  Object.defineProperty(process.stdout, 'isTTY', {
+    value,
+    configurable: true,
+    writable: true,
+  });
+}
+
+function restoreStdoutTTY(): void {
+  if (originalStdoutTTYDescriptor) {
+    Object.defineProperty(process.stdout, 'isTTY', originalStdoutTTYDescriptor);
+  } else {
+    delete (process.stdout as { isTTY?: boolean }).isTTY;
+  }
+}
+
 beforeEach(() => {
   console.log = jest.fn();
   console.error = jest.fn();
@@ -1747,22 +1768,37 @@ describe('ProjectCreator', () => {
       expect(reportScaffold.mock.calls[0][1]).toBe(false);
     });
 
-    it('is interactive only when stdin is a TTY and -y is absent', async () => {
-      mockSuccessfulScaffold();
-      await projectCreator.create('test-project', fullFlags);
-      expect(reportScaffold.mock.calls[0][2].interactive).toBe(true);
+    it('is interactive only with a TTY on both ends and -y absent', async () => {
+      try {
+        setStdoutTTY(true);
+        mockSuccessfulScaffold();
+        await projectCreator.create('test-project', fullFlags);
+        expect(reportScaffold.mock.calls[0][2].interactive).toBe(true);
 
-      reportScaffold.mockClear();
-      setStdinTTY(false);
-      mockSuccessfulScaffold();
-      await projectCreator.create('test-project', fullFlags);
-      expect(reportScaffold.mock.calls[0][2].interactive).toBe(false);
+        // stdout redirected: the question would render into the log while
+        // the CLI blocked on an invisible prompt.
+        reportScaffold.mockClear();
+        setStdoutTTY(false);
+        mockSuccessfulScaffold();
+        await projectCreator.create('test-project', fullFlags);
+        expect(reportScaffold.mock.calls[0][2].interactive).toBe(false);
+
+        reportScaffold.mockClear();
+        setStdoutTTY(true);
+        setStdinTTY(false);
+        mockSuccessfulScaffold();
+        await projectCreator.create('test-project', fullFlags);
+        expect(reportScaffold.mock.calls[0][2].interactive).toBe(false);
+      } finally {
+        restoreStdoutTTY();
+      }
     });
 
-    it('the consent callback asks the prompt and acknowledges a yes', async () => {
+    it('the consent callback asks the prompt, and a saved yes is acknowledged', async () => {
       mockSuccessfulScaffold();
       reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
         await expect(opts.promptConsent()).resolves.toBe(true);
+        opts.onDecided?.(true, true);
       });
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: true,
@@ -1775,10 +1811,11 @@ describe('ProjectCreator', () => {
       );
     });
 
-    it('acknowledges a no without sending', async () => {
+    it('a saved no is acknowledged without sending', async () => {
       mockSuccessfulScaffold();
       reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
         await expect(opts.promptConsent()).resolves.toBe(false);
+        opts.onDecided?.(false, true);
       });
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: false,
@@ -1789,6 +1826,25 @@ describe('ProjectCreator', () => {
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining("we won't ask again")
       );
+    });
+
+    it('an unsaved decision is acknowledged truthfully, not with a promise', async () => {
+      // "We won't ask again" after a swallowed write failure would be false
+      // on every future run; the ack is worded on whether the write stuck.
+      mockSuccessfulScaffold();
+      reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
+        await expect(opts.promptConsent()).resolves.toBe(false);
+        opts.onDecided?.(false, false);
+      });
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        telemetry: false,
+      });
+
+      await projectCreator.create('test-project', fullFlags);
+
+      const logged = (console.log as jest.Mock).mock.calls.flat().join('\n');
+      expect(logged).toContain("Couldn't save your choice");
+      expect(logged).not.toContain("we won't ask again");
     });
 
     it('a cancelled consent prompt prints no ack', async () => {

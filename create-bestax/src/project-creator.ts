@@ -619,9 +619,11 @@ export class ProjectCreator {
   /**
    * Consent + beacon after a successful scaffold. Only success events are
    * reported, the beacon is awaited (so no process.exit(1) site can kill an
-   * in-flight request), and nothing in here may throw or alter the exit code.
-   * The prompt is skipped for -y, missing TTY, an explicit flag, or
-   * DO_NOT_TRACK (#192: the non-interactive path must never hang).
+   * in-flight request), and nothing in here may throw or fail the scaffold.
+   * The prompt is skipped for -y, an explicit flag, DO_NOT_TRACK, or a
+   * missing TTY on EITHER end — with stdout redirected the question would
+   * render into the log while the CLI blocked on an invisible prompt
+   * (#192: the non-interactive path must never hang).
    */
   private async handleTelemetry(
     options: CLIOptions | undefined,
@@ -629,15 +631,21 @@ export class ProjectCreator {
   ): Promise<void> {
     try {
       await reportScaffold(choices, options?.telemetry, {
-        interactive: process.stdin.isTTY === true && options?.yes !== true,
-        promptConsent: async () => {
-          const answer = await promptTelemetryConsent();
-          if (answer === true) {
+        interactive:
+          process.stdin.isTTY === true &&
+          process.stdout.isTTY === true &&
+          options?.yes !== true,
+        promptConsent: promptTelemetryConsent,
+        onDecided: (enabled, persisted) => {
+          // Worded on whether the write actually stuck: promising "we won't
+          // ask again" after a swallowed write failure would be false.
+          if (!persisted) {
+            console.log(chalk.dim(MESSAGES.TELEMETRY_ACK_UNSAVED));
+          } else if (enabled) {
             console.log(chalk.dim(MESSAGES.TELEMETRY_ACK_ON));
-          } else if (answer === false) {
+          } else {
             console.log(chalk.dim(MESSAGES.TELEMETRY_ACK_OFF));
           }
-          return answer;
         },
       });
     } catch {

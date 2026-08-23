@@ -93,10 +93,15 @@ export async function resolveTelemetry(
   return { decision: 'undecided', source: 'default' };
 }
 
+/**
+ * Returns whether the decision was actually written: callers word their
+ * acknowledgement on it, because promising "we won't ask again" after a
+ * swallowed write failure would be false on every future run.
+ */
 export async function persistTelemetryDecision(
   enabled: boolean,
   decidedBy: string
-): Promise<void> {
+): Promise<boolean> {
   try {
     const config: TelemetryConfig = {
       version: 1,
@@ -107,8 +112,10 @@ export async function persistTelemetryDecision(
     const filePath = telemetryConfigPath();
     await mkdir(dirname(filePath), { recursive: true });
     await writeFile(filePath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
+    return true;
   } catch {
     // An unwritable config dir must not break the CLI.
+    return false;
   }
 }
 
@@ -140,8 +147,13 @@ export function getToolVersion(): string {
 export interface ReportRunOptions {
   /** True only when a consent question could actually be answered. */
   interactive: boolean;
-  /** Owns all consent UI (notice, question, ack); null means cancelled. */
+  /** Owns the consent UI up to the answer (notice, question); null = cancelled. */
   promptConsent: () => Promise<boolean | null>;
+  /**
+   * Called after a prompted answer has been (attempted to be) saved, so the
+   * acknowledgement can tell the truth about whether it will stick.
+   */
+  onDecided?: (enabled: boolean, persisted: boolean) => void;
 }
 
 export async function reportRun(
@@ -154,16 +166,26 @@ export async function reportRun(
   let decision = resolved.decision;
 
   if (resolved.source === 'flag') {
-    // Flags are the scripted equivalent of the prompt: decided once, remembered.
-    await persistTelemetryDecision(
-      decision === 'on',
-      `${toolName}@${getToolVersion()}`
-    );
+    // Flags are the scripted equivalent of the prompt: decided once,
+    // remembered — EXCEPT under DO_NOT_TRACK, where the flag still applies to
+    // this one run (an explicit ask on the command line wins) but is never
+    // written down, so a copied command containing --telemetry cannot enable
+    // telemetry beyond the run it was typed for.
+    if (!doNotTrack()) {
+      await persistTelemetryDecision(
+        decision === 'on',
+        `${toolName}@${getToolVersion()}`
+      );
+    }
   } else if (decision === 'undecided' && options.interactive) {
     const answer = await options.promptConsent();
     if (answer !== null) {
-      await persistTelemetryDecision(answer, `${toolName}@${getToolVersion()}`);
+      const persisted = await persistTelemetryDecision(
+        answer,
+        `${toolName}@${getToolVersion()}`
+      );
       decision = answer ? 'on' : 'off';
+      options.onDecided?.(answer, persisted);
     }
   }
 
