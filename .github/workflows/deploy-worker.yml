@@ -34,9 +34,11 @@ jobs:
     steps:
       # Rule 10 (.github/CLAUDE.md): new jobs ship with egress-policy: block —
       # this is the job holding the Cloudflare deploy token. Endpoints:
-      # checkout (github.com trio), wrangler install (npm registry), and the
-      # upload itself (api.cloudflare.com). Wrangler's own metrics beacon is
-      # disabled below instead of allow-listing its host.
+      # checkout (github.com trio), the pnpm/node toolchain (npm registry,
+      # nodejs.org + release assets for a toolcache miss), and the upload
+      # itself (api.cloudflare.com). Wrangler's own metrics beacon is disabled
+      # below instead of allow-listing its host. No actions-cache endpoints on
+      # purpose: setup-node runs cache-less here to keep this list short.
       - name: Harden runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
@@ -46,6 +48,8 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            nodejs.org:443
             registry.npmjs.org:443
 
       - name: Checkout code
@@ -55,16 +59,25 @@ jobs:
           # the local git config for the rest of the job.
           persist-credentials: false
 
-      # No pnpm/Node setup: the worker is stdlib-only TypeScript with no build
-      # step of its own — wrangler-action installs the pinned wrangler and its
-      # bundler does the rest.
-      - name: Deploy with wrangler
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
-        env:
-          WRANGLER_SEND_METRICS: 'false'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: telemetry-worker
-          wranglerVersion: '4.124.0'
-          command: deploy
+          node-version: '24'
+
+      # Wrangler comes from the workspace lockfile — the same pinned version,
+      # cooldown, audit, and blocked-install-script policy that governs every
+      # other dependency. wrangler-action would instead `npm i` its own copy
+      # at deploy time, resolving wrangler's transitive ranges fresh and
+      # outside all of those controls.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy with wrangler
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: pnpm --filter telemetry-worker exec wrangler deploy
