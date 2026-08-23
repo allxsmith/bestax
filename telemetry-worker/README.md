@@ -12,10 +12,14 @@ missing binding in local dev still answers `204`.
 npx wrangler deploy
 ```
 
-Run by Alex — the package is not in the pnpm workspace (Wrangler's native
-`workerd` build is blocked repo-wide), so the exact-pinned devDependencies in
-`package.json` are the only version control these tools get until it joins.
-Wrangler bundles `src/index.ts` directly (no build step). Tests and typecheck still run from the repo root:
+Run by Alex — the deploy is manual (nothing in `.github/workflows` touches
+this worker). The package IS in the pnpm workspace, so the lockfile, audit
+gate, and 3-day cooldown govern its devDependencies; they stay exact-pinned
+anyway so a deploy is reproducible from the manifest alone. Wrangler's native
+`workerd` postinstall is blocked repo-wide (`allowBuilds`), which `wrangler
+deploy` never needs — for local `wrangler dev`, use `--remote` or flip the
+`workerd` entry. Wrangler bundles `src/index.ts` directly (no build step).
+Tests and typecheck still run from the repo root:
 `pnpm test` includes `node --test telemetry-worker/src/__tests__/*.test.ts`,
 and `pnpm typecheck` includes `tsc -p telemetry-worker`. The worker is bound
 to the zone route `bestax.io/api/t`. If that route ever conflicts with

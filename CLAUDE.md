@@ -10,7 +10,7 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
   (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
-  (deployed manually with wrangler; not yet in the pnpm workspace)
+  (deployed manually with wrangler)
 - `eval/agent-loop/` — cold-start eval harness: does an unassisted agent build correctly when
   given one of our guidance channels (the skills, the MCP server, both)? Frozen rubric, its
   own README
