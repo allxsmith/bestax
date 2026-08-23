@@ -37,6 +37,19 @@ describe('attributed', () => {
     expect(attributed(tagged)).toBe(tagged);
   });
 
+  it('is not fooled by the tag text inside a fragment', () => {
+    // The analytics request never sees the fragment, so this URL is NOT
+    // attributed yet — the already-tagged check must look at the query only.
+    expect(attributed('https://bestax.io/docs#utm_source=bestax-mcp')).toBe(
+      'https://bestax.io/docs?utm_source=bestax-mcp#utm_source=bestax-mcp'
+    );
+  });
+
+  it('is not fooled by the tag text inside another parameter value', () => {
+    const url = 'https://bestax.io/docs?ref=utm_source=bestax-mcp';
+    expect(attributed(url)).toBe(`${url}&utm_source=bestax-mcp`);
+  });
+
   it('passes non-http(s) strings through unchanged', () => {
     for (const notAUrl of ['bestax://catalog', 'mailto:a@b.c', 'Button', '']) {
       expect(attributed(notAUrl)).toBe(notAUrl);

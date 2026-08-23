@@ -574,9 +574,7 @@ describe('promptTelemetryConsent', () => {
     expect(text).toContain(
       'Help improve bestax-migrate — share anonymous usage stats?'
     );
-    expect(text).toContain(
-      'Sends only rule names and counts — never file paths or code.'
-    );
+    expect(text).toContain('Never file paths, file contents, or code.');
     expect(text).toContain('https://bestax.io/docs/guides/telemetry');
     expect(text).toContain('https://github.com/allxsmith/bestax/issues');
   });

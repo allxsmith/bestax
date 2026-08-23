@@ -329,6 +329,36 @@ describe('reportScaffold', () => {
     expect(onDecided).toHaveBeenCalledWith(false, false);
   });
 
+  it('surfaces a failed flag persistence through onDecided', async () => {
+    // With an opposite value already saved and the config unwritable,
+    // --no-telemetry would apply to this run only and the next family run
+    // would silently re-enable — the caller must get to warn about that.
+    const blocker = join(configHome, 'blocker');
+    await writeFile(blocker, 'file, not a dir', 'utf-8');
+    process.env.XDG_CONFIG_HOME = blocker;
+    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    await reportScaffold(choices, false, {
+      interactive: false,
+      promptConsent,
+      onDecided,
+    });
+    expect(onDecided).toHaveBeenCalledWith(false, false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not call onDecided when a flag persists cleanly', async () => {
+    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    await reportScaffold(choices, true, {
+      interactive: false,
+      promptConsent,
+      onDecided,
+    });
+    expect(onDecided).not.toHaveBeenCalled();
+    expect((await readConfigFile()).enabled).toBe(true);
+  });
+
   it('does not call onDecided on a cancel', async () => {
     const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
     const promptConsent = jest

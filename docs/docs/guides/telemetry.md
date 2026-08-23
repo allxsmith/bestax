@@ -90,6 +90,7 @@ ever asked once. Delete that file to be asked again.
 | `--telemetry` / `--no-telemetry`            | Flags on both CLIs — set the choice for this run **and persist it** to the consent file |
 | `BESTAX_TELEMETRY=1` / `BESTAX_TELEMETRY=0` | Enable or disable for this run only — never persisted                                   |
 | `DO_NOT_TRACK=1`                            | Disables telemetry and the consent prompt itself                                        |
+| `BESTAX_TELEMETRY_ENDPOINT=<url>`           | Redirects the event for this run — a test hook; only meaningful if you set it yourself  |
 
 One interaction worth spelling out: with `DO_NOT_TRACK` set, an explicit
 `--telemetry` flag still applies **to that single run** (typing the flag is a

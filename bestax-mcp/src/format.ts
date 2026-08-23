@@ -43,13 +43,19 @@ const cell = (text: string) =>
  */
 export function attributed(url: string): string {
   if (!/^https?:\/\//.test(url)) return url;
-  if (url.includes('utm_source=bestax-mcp')) return url;
-  // Insert before the fragment so `#heading` stays a fragment. Do not use
-  // URL.searchParams: it re-encodes Storybook `path=/story/...` as `%2F`.
+  // Split the fragment FIRST: the already-tagged check below must inspect
+  // only the query. A `#utm_source=bestax-mcp` inside a fragment (or the
+  // same text inside another parameter's value) is not attribution — the
+  // analytics request never sees it — so matching it would skip tagging.
+  // Do not use URL.searchParams: it re-encodes Storybook `path=/story/...`
+  // as `%2F`.
   const hashIndex = url.indexOf('#');
   const hash = hashIndex === -1 ? '' : url.slice(hashIndex);
   const withoutHash = hashIndex === -1 ? url : url.slice(0, hashIndex);
-  const sep = withoutHash.includes('?') ? '&' : '?';
+  const queryIndex = withoutHash.indexOf('?');
+  const query = queryIndex === -1 ? '' : withoutHash.slice(queryIndex + 1);
+  if (query.split('&').includes('utm_source=bestax-mcp')) return url;
+  const sep = queryIndex === -1 ? '?' : '&';
   return `${withoutHash}${sep}utm_source=bestax-mcp${hash}`;
 }
 

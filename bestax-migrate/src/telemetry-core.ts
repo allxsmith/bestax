@@ -172,10 +172,16 @@ export async function reportRun(
     // written down, so a copied command containing --telemetry cannot enable
     // telemetry beyond the run it was typed for.
     if (!doNotTrack()) {
-      await persistTelemetryDecision(
+      const persisted = await persistTelemetryDecision(
         decision === 'on',
         `${toolName}@${getToolVersion()}`
       );
+      // A silently unsaved flag is worse than an unsaved answer: with an
+      // opposite value already in the shared config, --no-telemetry would
+      // apply to this run only and the next family run would re-enable.
+      if (!persisted) {
+        options.onDecided?.(decision === 'on', false);
+      }
     }
   } else if (decision === 'undecided' && options.interactive) {
     const answer = await options.promptConsent();

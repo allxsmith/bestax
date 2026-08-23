@@ -218,7 +218,9 @@ function migrateDependencies(
 
 const TELEMETRY_NOTICE =
   'Help improve bestax-migrate — share anonymous usage stats?\n' +
-  'Sends only rule names and counts — never file paths or code.\n' +
+  "Sends only the run's shape (source library, CSS mode, dry/deps flags,\n" +
+  'changed-file count, rule names and counts) plus CLI version, Node major,\n' +
+  'and OS name. Never file paths, file contents, or code.\n' +
   '  Details & opt-out: https://bestax.io/docs/guides/telemetry\n' +
   '  Feedback welcome:  https://github.com/allxsmith/bestax/issues';
 const TELEMETRY_ACK_ON = 'Thanks! Opt out anytime with --no-telemetry.';

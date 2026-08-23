@@ -6,7 +6,7 @@
 // scripts/lib/shell-words.mjs (#436) exists to prevent. All four import from
 // here now; a predicate change lands once or not at all.
 
-import { readdir, access } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { realpathSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -44,11 +44,13 @@ export async function readSkillDirs(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
 
-    let hasSkillFile = true;
+    // A regular file specifically: a directory named SKILL.md would satisfy
+    // a bare existence probe and then break every consumer that reads it.
+    let hasSkillFile = false;
     try {
-      await access(join(dir, entry.name, 'SKILL.md'));
+      hasSkillFile = (await stat(join(dir, entry.name, 'SKILL.md'))).isFile();
     } catch {
-      hasSkillFile = false;
+      // missing → not a skill
     }
 
     if (entry.name.startsWith('.') && !hasSkillFile) continue;

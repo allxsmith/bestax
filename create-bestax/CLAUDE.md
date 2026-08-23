@@ -32,6 +32,14 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check
   whether this template must change too.
+- `src/telemetry-core.ts` is the shared consent/beacon kernel, duplicated
+  byte-for-byte into `bestax-migrate/src/telemetry-core.ts` (standalone
+  publishes, no bundler — so no workspace package). **Edit the copy here, then
+  copy it over migrate's**; `check:conformance --only=telemetry-core` fails on
+  any divergence. Tool-specific payload builders stay in each package's
+  `src/telemetry.ts`, and the worker's allowlists must gain new enum values
+  FIRST (`check:conformance --only=telemetry-allowlists`) or events are
+  silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
 

@@ -20,6 +20,13 @@ on:
 permissions:
   contents: read
 
+# Serialize deploys: two quick main pushes must not race — an older run
+# finishing last would ship stale worker code. No cancel-in-progress: a
+# deploy already uploading should finish, then the newer one runs.
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy to Cloudflare Workers
@@ -43,6 +50,10 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # No later step needs authenticated git; don't leave the token in
+          # the local git config for the rest of the job.
+          persist-credentials: false
 
       # No pnpm/Node setup: the worker is stdlib-only TypeScript with no build
       # step of its own — wrangler-action installs the pinned wrangler and its
