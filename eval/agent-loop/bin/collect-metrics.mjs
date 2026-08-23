@@ -254,7 +254,15 @@ if (transcriptPath && existsSync(transcriptPath)) {
         for (const m of inputStr.matchAll(
           /https?:\/\/[^"\\\s]*bestax\.io[^"\\\s]*/g
         ))
-          docsUrls.add(m[0]);
+          // The MCP server tags the links it prints with utm_source=bestax-mcp
+          // (passive attribution). Strip it here so the tagged and bare forms
+          // of one page count once, keeping docs_fetches comparable across
+          // guidance channels instead of double-counting the MCP one.
+          docsUrls.add(
+            m[0]
+              .replace(/([?&])utm_source=bestax-mcp&?/, '$1')
+              .replace(/[?&]$/, '')
+          );
       }
     }
   }
