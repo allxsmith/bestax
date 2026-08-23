@@ -1,0 +1,41 @@
+# Deploys telemetry-worker to Cloudflare Workers on every main-branch change
+# under telemetry-worker/**, mirroring the Pages deploy in deploy.yml: build
+# happens here (wrangler bundles src/index.ts), Cloudflare only receives the
+# artifact. workflow_dispatch allows a manual redeploy from the Actions tab.
+#
+# The only credential in this job is CLOUDFLARE_WORKERS_DEPLOY_TOKEN, an API
+# token scoped to Workers Scripts:Edit + Workers Routes:Edit on bestax.io —
+# deliberately separate from CLOUDFLARE_API_TOKEN (Pages) so each pipeline
+# holds only what it deploys.
+name: Deploy telemetry worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'telemetry-worker/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Workers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # No pnpm/Node setup: the worker is stdlib-only TypeScript with no build
+      # step of its own — wrangler-action installs the pinned wrangler and its
+      # bundler does the rest.
+      - name: Deploy with wrangler
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: telemetry-worker
+          wranglerVersion: '4.124.0'
+          command: deploy
