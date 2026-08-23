@@ -223,6 +223,8 @@ const TELEMETRY_NOTICE =
   '  Feedback welcome:  https://github.com/allxsmith/bestax/issues';
 const TELEMETRY_ACK_ON = 'Thanks! Opt out anytime with --no-telemetry.';
 const TELEMETRY_ACK_OFF = "No problem — we won't ask again.";
+const TELEMETRY_ACK_UNSAVED =
+  "Couldn't save your choice (config dir not writable) — you may be asked again.";
 
 /**
  * One-question consent prompt (readline — this package carries no interactive
@@ -241,7 +243,13 @@ export async function promptTelemetryConsent(
   const cancelled = new AbortController();
   // Ctrl-C emits SIGINT on the interface and Ctrl-D closes it; both must
   // reject the pending question instead of leaving it hanging forever.
-  rl.once('SIGINT', () => rl.close());
+  rl.once('SIGINT', () => {
+    // Honor the interrupt instead of swallowing it into a zero exit: the run
+    // itself already succeeded, so no abrupt kill — but the ^C must be
+    // visible to callers. 130 = 128 + SIGINT, the shell convention.
+    process.exitCode = 130;
+    rl.close();
+  });
   rl.once('close', () => cancelled.abort());
   try {
     const answer = await rl.question('Share anonymous usage stats? (y/N) ', {
@@ -272,14 +280,17 @@ export async function handleTelemetry(
     await reportMigrateRun(stats, flag, {
       interactive:
         process.stdin.isTTY === true && process.stdout.isTTY === true,
-      promptConsent: async () => {
-        const answer = await promptConsent(io);
-        if (answer === true) {
+      promptConsent: () => promptConsent(io),
+      onDecided: (enabled, persisted) => {
+        // Worded on whether the write actually stuck: promising "we won't
+        // ask again" after a swallowed write failure would be false.
+        if (!persisted) {
+          io.log(chalk.dim(TELEMETRY_ACK_UNSAVED));
+        } else if (enabled) {
           io.log(chalk.dim(TELEMETRY_ACK_ON));
-        } else if (answer === false) {
+        } else {
           io.log(chalk.dim(TELEMETRY_ACK_OFF));
         }
-        return answer;
       },
     });
   } catch {

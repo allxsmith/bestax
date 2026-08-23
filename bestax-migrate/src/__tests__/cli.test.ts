@@ -488,6 +488,21 @@ describe('handleTelemetry', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('acknowledges truthfully when the choice could not be saved', async () => {
+    // "We won't ask again" after a swallowed write failure would be false on
+    // every future run; the ack is worded on whether the write stuck.
+    setTTY(process.stdout, true);
+    setTTY(process.stdin, true);
+    const blocker = path.join(process.env.XDG_CONFIG_HOME as string, 'blocker');
+    fs.writeFileSync(blocker, 'file, not a dir');
+    process.env.XDG_CONFIG_HOME = blocker;
+    const io = makeIo();
+    await handleTelemetry(stats, undefined, io, async () => false);
+    expect(io.logs.join('\n')).toContain("Couldn't save your choice");
+    expect(io.logs.join('\n')).not.toContain("we won't ask again");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('a cancelled prompt acks nothing and persists nothing', async () => {
     setTTY(process.stdout, true);
     setTTY(process.stdin, true);

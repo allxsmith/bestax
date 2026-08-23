@@ -33,18 +33,11 @@ export interface MigratePayload {
     cssMode: string;
     dry: boolean;
     deps: boolean;
-    changedBucket: string;
+    // The 0/1-9/10-49/50-199/200+ bucket is derived by the ingest worker from
+    // this count — sending it too gave the boundaries three sources of truth.
     changedCount: number;
   };
   todosByRule?: Array<{ rule: string; count: number }>;
-}
-
-function changedBucket(changedCount: number): string {
-  if (changedCount <= 0) return '0';
-  if (changedCount <= 9) return '1-9';
-  if (changedCount <= 49) return '10-49';
-  if (changedCount <= 199) return '50-199';
-  return '200+';
 }
 
 export function buildMigratePayload(stats: MigrateRunStats): MigratePayload {
@@ -63,7 +56,6 @@ export function buildMigratePayload(stats: MigrateRunStats): MigratePayload {
       cssMode: stats.cssMode,
       dry: stats.dry,
       deps: stats.deps,
-      changedBucket: changedBucket(stats.changedCount),
       changedCount: Math.min(stats.changedCount, 10000),
     },
     ...(todosByRule.length > 0 ? { todosByRule } : {}),

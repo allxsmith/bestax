@@ -7,7 +7,7 @@ import {
   afterEach,
   afterAll,
 } from '@jest/globals';
-import { mkdtemp, readFile, writeFile, mkdir } from 'fs/promises';
+import { mkdtemp, readFile, writeFile, mkdir, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -63,7 +63,9 @@ beforeEach(async () => {
   globalThis.fetch = fetchMock as unknown as typeof fetch;
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // ~80 scratch dirs per run otherwise outlive the suite in the OS tmpdir.
+  await rm(configHome, { recursive: true, force: true });
   for (const key of ENV_KEYS) {
     if (savedEnv[key] === undefined) delete process.env[key];
     else process.env[key] = savedEnv[key];
@@ -122,7 +124,6 @@ describe('buildMigratePayload', () => {
     expect(payload.nodeMajor).toBe(Number(process.versions.node.split('.')[0]));
     expect(payload.platform).toBe(process.platform);
     expect(Object.keys(payload.props).sort()).toEqual([
-      'changedBucket',
       'changedCount',
       'cssMode',
       'deps',
@@ -134,7 +135,6 @@ describe('buildMigratePayload', () => {
     expect(payload.props.dry).toBe(false);
     expect(payload.props.deps).toBe(true);
     expect(payload.props.changedCount).toBe(3);
-    expect(payload.props.changedBucket).toBe('1-9');
     expect(payload.todosByRule).toEqual([
       { rule: 'unsupported-file', count: 2 },
     ]);
@@ -158,31 +158,15 @@ describe('buildMigratePayload', () => {
     ]);
   });
 
-  it.each([
-    [0, '0'],
-    [1, '1-9'],
-    [9, '1-9'],
-    [10, '10-49'],
-    [49, '10-49'],
-    [50, '50-199'],
-    [199, '50-199'],
-    [200, '200+'],
-  ] as const)('buckets changedCount=%d as %s', (changedCount, bucket) => {
-    const payload = buildMigratePayload({
-      ...baseStats,
-      changedCount,
-    });
-    expect(payload.props.changedBucket).toBe(bucket);
-    expect(payload.props.changedCount).toBe(changedCount);
-  });
-
-  it('caps changedCount at 10000', () => {
+  // The 0/1-9/10-49/50-199/200+ bucket is derived by the ingest worker from
+  // changedCount — sending it too gave the boundaries three sources of truth.
+  it('caps changedCount at 10000 and sends no bucket', () => {
     const payload = buildMigratePayload({
       ...baseStats,
       changedCount: 123456,
     });
     expect(payload.props.changedCount).toBe(10000);
-    expect(payload.props.changedBucket).toBe('200+');
+    expect('changedBucket' in payload.props).toBe(false);
   });
 
   it('sends at most 20 rules and caps each count', () => {
@@ -219,7 +203,7 @@ describe('reportMigrateRun', () => {
       props: Record<string, unknown>;
     };
     expect(body.props.source).toBe('react-bulma-components');
-    expect(body.props.changedBucket).toBe('10-49');
+    expect(body.props.changedCount).toBe(12);
   });
 
   it('flag=false persists off and sends nothing', async () => {
