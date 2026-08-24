@@ -112,18 +112,103 @@ test('an unprefixed class disqualifies the compound', () => {
 });
 
 test('modifier compounds stay dedupe-neutral on the real partials', () => {
-  // The four files that register under `.root.is-modifier` compounds only
-  // re-register base-block keys. First-wins dedupe means the compound arm adds
-  // zero rows — asserted against the real sources so a future edit that breaks
-  // the neutrality shows up here, not on a docs page.
+  // Files that register under `.root.is-modifier` compounds only re-register
+  // base-block keys. First-wins dedupe means the compound arm adds zero rows —
+  // asserted against the real sources so a future edit that breaks the
+  // neutrality shows up here, not on a docs page. (Tooltip and Sidebar counts
+  // include the constituent-element rows asserted separately below.)
   for (const [file, root, count] of [
     ['bulma-ui/src/scss/components/_avatars.scss', 'avatars', 3],
-    ['bulma-ui/src/scss/components/_sidebar.scss', 'sidebar', 28],
-    ['bulma-ui/src/scss/components/_tooltip.scss', 'tooltip', 1],
+    ['bulma-ui/src/scss/components/_sidebar.scss', 'sidebar', 29],
+    ['bulma-ui/src/scss/components/_tooltip.scss', 'tooltip', 13],
     ['bulma-ui/src/scss/form/_numberinput.scss', 'numberinput', 7],
   ]) {
     assert.equal(componentVars(repoFile(file), root).length, count, file);
   }
+});
+
+// --- constituent elements (#544) ---------------------------------------------
+
+test('the real tooltip partial yields all 13 variables with true scopes', () => {
+  // Pre-#544, only the wrapper's dashed-color row survived: the 12 variables
+  // registered on `.tooltip-content` — the element that IS the themed
+  // tooltip — belonged to nobody and appeared on no page.
+  const rows = componentVars(
+    repoFile('bulma-ui/src/scss/components/_tooltip.scss'),
+    'tooltip'
+  );
+  assert.equal(rows.length, 13);
+  const byScope = Object.groupBy(rows, r => r.scope);
+  assert.deepEqual(
+    byScope.root.map(r => r.cssVar),
+    ['--bulma-tooltip-dashed-color']
+  );
+  assert.equal(byScope.element.length, 12);
+});
+
+test('the real sidebar partial yields the overlay variable as element-scoped', () => {
+  const rows = componentVars(
+    repoFile('bulma-ui/src/scss/components/_sidebar.scss'),
+    'sidebar'
+  );
+  const overlay = rows.find(
+    r => r.cssVar === '--bulma-sidebar-overlay-background'
+  );
+  assert.equal(overlay?.scope, 'element');
+});
+
+test('a constituent-element selector claims keys matching the root prefix', () => {
+  const src = partial(`${PREFIX}tooltip-content`, ['tooltip-background']);
+  const rows = componentVars(src, 'tooltip');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].scope, 'element');
+});
+
+test('a constituent does not claim keys that name a sibling component', () => {
+  // `.card-header` starts with `card-`, but its keys are CardHeader's own —
+  // Card must not absorb them, or a future CardHeader page double-lists them.
+  const src = partial(`${PREFIX}card-header`, [
+    'card-header-weight',
+    'card-header-x-padding',
+  ]);
+  assert.deepEqual(componentVars(src, 'card'), []);
+  // Queried AS that component, the simple-root arm owns them as before.
+  assert.equal(componentVars(src, 'card-header').length, 2);
+});
+
+test('spaced interpolation still parses as the class prefix', () => {
+  // prettier and hand edits both produce `#{ iv.$class-prefix }`; the
+  // whitespace must not demote a compound (or constituent) to unparseable.
+  const src = partial(
+    '.#{ iv.$class-prefix }button.#{ iv.$class-prefix }link-button',
+    ['link-button-underline-offset']
+  );
+  assert.equal(componentVars(src, 'link-button').length, 1);
+});
+
+test('a later root registration upgrades a duplicate key to root scope', () => {
+  // tooltip's shape: `.tooltip-content` lists the full set, then the
+  // `.tooltip` wrapper re-registers dashed-color for its own underline. The
+  // root home is where className/style overrides land, so it wins the advice.
+  const src = `$tooltip-dashed-color: 1em !default;
+${PREFIX}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-dashed-color": #{$tooltip-dashed-color},
+    )
+  );
+}
+${PREFIX}tooltip {
+  @include cv.register-vars(
+    (
+      "tooltip-dashed-color": #{$tooltip-dashed-color},
+    )
+  );
+}
+`;
+  const rows = componentVars(src, 'tooltip');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].scope, 'root');
 });
 
 test('the singular register-var form counts as registering (orphan rule input)', () => {

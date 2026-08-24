@@ -500,39 +500,80 @@ const ORPHAN_EXEMPT = new Map([
 ]);
 
 /**
- * A repo partial that registers CSS variables but appears in no component's
- * SCSS_SOURCES entry documents nothing: the API page's CSS & Sass Variables
- * section is suppressed by the very `[]` that should have listed it, and every
- * gate stays green (#464 — LinkButton shipped four user-facing variables
- * invisibly this way).
+ * A registered CSS variable that reaches no documentation surface is #464's
+ * shape, whatever the file's claim status: an UNCLAIMED partial suppresses
+ * its whole section, and a CLAIMED partial can still register keys the
+ * attribution walk cannot place (a sibling class like `.sidebar-background`)
+ * — those shipped invisibly too, with the boolean version of this rule
+ * green. So the rule compares KEYS against what is actually documented: the
+ * committed MCP catalog's variable set, whose own staleness is gated by
+ * `gen:mcp:check`, making it an exact ledger of what the generators can
+ * attribute.
+ *
+ * Exemption semantics follow: an exemption on a claimed partial is ACTIVE
+ * while any of its keys are undocumented, and stale once all are — and on an
+ * unclaimed partial, stale once it stops registering at all. The caller
+ * sweeps for exemptions naming files the walk never visited, so a rename or
+ * delete cannot leave one alive (the docstring's cannot-outlive-the-problem
+ * guarantee used to hold only for the claimed-and-present case).
  *
  * Pure and fixture-driven for the usual reason: no real partial trips these
  * branches once the exemptions are settled, so without the seam an inverted
  * rule stays green.
  *
- * @param rel        repo-relative partial path
- * @param registers  does the partial call cv.register-vars with any keys?
- * @param claimed    Set of repo-relative paths appearing in SCSS_SOURCES
+ * @param rel            repo-relative partial path
+ * @param keys           variable keys the partial registers (either spelling)
+ * @param claimed        Set of repo-relative paths appearing in SCSS_SOURCES
+ * @param documentedKeys Set of variable keys the committed MCP catalog carries
  */
-export function orphanPartialViolations(rel, registers, claimed) {
+export function orphanPartialViolations(rel, keys, claimed, documentedKeys) {
   const exemptWhy = ORPHAN_EXEMPT.get(rel);
   if (claimed.has(rel)) {
-    // A claimed partial must not also be exempt, or the exemption survives
-    // the fix and the next reader trusts a reason that no longer applies.
-    return exemptWhy
+    const undocumented = keys.filter(k => !documentedKeys.has(k));
+    if (exemptWhy) {
+      return undocumented.length
+        ? [] // the exemption is doing its documented job
+        : [
+            `${rel} is claimed and every variable it registers is ` +
+              `documented, yet it is still listed in ORPHAN_EXEMPT ` +
+              `(“${exemptWhy}”). Remove the stale exemption.`,
+          ];
+    }
+    return undocumented.length
       ? [
-          `${rel} is claimed by SCSS_SOURCES but still listed in ` +
-            `ORPHAN_EXEMPT (“${exemptWhy}”). Remove the stale exemption.`,
+          `${rel} is claimed by SCSS_SOURCES, but registers ` +
+            undocumented.map(k => `\`--bulma-${k}\``).join(', ') +
+            ` absent from the committed MCP data, so ` +
+            `${undocumented.length === 1 ? 'it appears' : 'they appear'} on ` +
+            `no API page and in no MCP data. Run \`pnpm gen\` first — if ` +
+            `${undocumented.length === 1 ? 'it' : 'they'} still fail, the ` +
+            `attribution walk cannot place ` +
+            `${undocumented.length === 1 ? 'its' : 'their'} selector: give ` +
+            `${undocumented.length === 1 ? 'it' : 'them'} an attributable ` +
+            `home (the claimant's root, compound, or constituent-element ` +
+            `selector, \`:root\`, or a \`@mixin <prefix>\` body), or add an ` +
+            `ORPHAN_EXEMPT entry saying why and where it is tracked.`,
         ]
       : [];
   }
-  if (!registers || exemptWhy) return [];
+  if (!keys.length) {
+    return exemptWhy
+      ? [
+          `${rel} no longer registers any CSS variables, yet it is still ` +
+            `listed in ORPHAN_EXEMPT (“${exemptWhy}”). The exemption ` +
+            `outlived the problem — remove it.`,
+        ]
+      : [];
+  }
+  if (exemptWhy) return [];
   return [
     `${rel} registers CSS variables but no component claims it in ` +
       `SCSS_SOURCES (scripts/lib/api-sources.mjs), so they appear on no API ` +
-      `page. Run \`pnpm gen:api-sources\`; if the mapping still misses it, ` +
-      `the matcher needs a fix (see the compound-selector case, #464), or ` +
-      `add an ORPHAN_EXEMPT entry saying why and where it is tracked.`,
+      `page. Run \`pnpm gen:api-sources\` — it claims a partial only when ` +
+      `the attribution walk can place its keys, so if that changes nothing, ` +
+      `either give the keys an attributable home (or fix the matcher — see ` +
+      `the compound-selector case, #464), or add an ORPHAN_EXEMPT entry ` +
+      `saying why and where it is tracked.`,
   ];
 }
 
@@ -546,6 +587,29 @@ async function checkScssConformance() {
       .flat()
       .map(e => e.path)
   );
+  // The documentation ledger the orphan rule compares registered keys
+  // against: every variable in the committed MCP catalog. gen:mcp:check
+  // gates its staleness, so committed data is exactly what the generators
+  // can attribute — no need to re-run the extraction here.
+  const documentedKeys = new Set();
+  try {
+    const dataDir = join(REPO, 'bestax-mcp', 'data', 'components');
+    for (const f of await readdir(dataDir)) {
+      if (!f.endsWith('.json')) continue;
+      const record = JSON.parse(await readFile(join(dataDir, f), 'utf8'));
+      for (const v of record.cssVars ?? []) {
+        if (typeof v.css === 'string' && v.css.startsWith('--bulma-')) {
+          documentedKeys.add(v.css.slice('--bulma-'.length));
+        }
+      }
+    }
+  } catch {
+    violations.push(
+      'bestax-mcp/data/components could not be read, so the orphan rule ' +
+        'has no documentation ledger to compare registered variables against.'
+    );
+  }
+  const visited = new Set();
   // Component partials live here; scss/helpers are static utility classes and
   // scss/versions are build entrypoints (both out of scope).
   const dirs = ['components', 'elements', 'form'];
@@ -565,16 +629,18 @@ async function checkScssConformance() {
       const src = await readFile(join(dirPath, f), 'utf8');
       const partialName = f.replace(/^_/, '').replace(/\.scss$/, '');
 
-      // 0. Registered variables must reach an API page (#464).
-      // registerVarsEntries, not registerVarsKeys: the latter reads only the
-      // plural `register-vars((…))` form, and a partial using the singular
-      // `register-var(k, v)` — which Bulma's own sources do — would bypass
-      // this rule with zero keys while registering real variables.
+      // 0. Registered variables must reach a documentation surface (#464) —
+      // compared key-by-key, so a claimed partial registering under a
+      // selector the walk cannot place is caught too, not just wholly
+      // unclaimed files. registerVarsEntries reads both spellings
+      // (registerVarsKeys now delegates to it for the same reason).
+      visited.add(rel);
       violations.push(
         ...orphanPartialViolations(
           rel,
-          registerVarsEntries(src).length > 0,
-          claimedPaths
+          [...new Set(registerVarsEntries(src).map(e => e.key))],
+          claimedPaths,
+          documentedKeys
         )
       );
 
@@ -639,6 +705,20 @@ async function checkScssConformance() {
       });
     }
   }
+  // The lifecycle sweep the exemption docstring promises: an ORPHAN_EXEMPT
+  // entry naming a path the walk never visited is an exemption for a
+  // renamed or deleted partial — the old path would otherwise keep its
+  // entry alive forever while the new one prompts a second exemption.
+  for (const [rel, why] of ORPHAN_EXEMPT) {
+    if (!visited.has(rel)) {
+      violations.push(
+        `ORPHAN_EXEMPT lists ${rel} (“${why}”), but no such partial exists ` +
+          `on that path. The file was renamed or removed — delete the ` +
+          `entry, or update its path.`
+      );
+    }
+  }
+
   return violations;
 }
 
