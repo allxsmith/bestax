@@ -37,6 +37,7 @@ pnpm typecheck      # tsc --noEmit
 pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
 pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
+pnpm gen:skills     # regenerate the skill install rosters (conformance fails if stale)
 pnpm gen            # all four generators (api docs, catalog, MCP index, skill rosters)
 pnpm docs           # Docusaurus dev server :3000
 pnpm storybook      # Storybook dev server :6006

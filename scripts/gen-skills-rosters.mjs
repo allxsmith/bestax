@@ -66,8 +66,9 @@ export const TARGETS = [
 /**
  * The region body: the fenced block, one install line per skill,
  * alphabetical. Pure, so the conformance check can compare and the tests can
- * drive it without touching disk. Alphabetical unified three copies that
- * disagreed on order (two of the three swapped their last two entries).
+ * drive it without touching disk. Alphabetical because a derived order is a
+ * non-decision: the three copies once drifted apart on hand-curated order,
+ * and a sort nobody maintains cannot.
  */
 export function renderInstallBlock(skills, fence) {
   return [

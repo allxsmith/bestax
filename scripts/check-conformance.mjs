@@ -2056,8 +2056,8 @@ async function checkBypassExpiry() {
  * Not to be confused with `skills-sync`, which despite the name is about the
  * bestax-theming skill's two reference inventories and never reads the roster.
  *
- * Each copy is located by its STRUCTURE — a table row, a tree entry, an install
- * line — rather than by the bare skill name occurring anywhere in the file.
+ * Each copy is located by its STRUCTURE — a table row, a tree entry, a slug
+ * link — rather than by the bare skill name occurring anywhere in the file.
  * `bestax-migrate` is why: it is also a package, a CLI, and the marker the
  * codemod leaves behind, so it appears in prose in most of these files, and a
  * bare-name search would pass on a table that had lost its row.
@@ -2067,15 +2067,19 @@ async function checkBypassExpiry() {
  * holding them to all seven would demand a list neither is trying to be. Their
  * real rosters (a table and a parenthetical) are covered instead.
  *
- * The fenced copies — the three install blocks and the layout tree — anchor on
- * a `<!-- skills-roster:… -->` marker line and take the fence that follows,
- * parsed with `fenceMask`. The first version anchored on "the first fence
- * containing `--skill `", so a quick-start example above the real block
- * silently became the validated roster, and its `/^```[a-z]*\n/` opener could
- * not parse info strings (```bash title=…), frame-shifting every later fence.
- * The Agent Skills tables anchor on their own `| Skill |` header row for the
- * same reason: `bestax-migrate` in the first cell of some OTHER table must not
- * stand in for a deleted row.
+ * The one fenced copy — the hand-written layout tree — anchors on its
+ * `<!-- skills-roster:tree -->` marker line and takes the fence that follows,
+ * parsed with `fenceMask`. (The three install blocks are no longer prose
+ * copies at all: gen-skills-rosters.mjs writes them between
+ * `bestax:generated` markers, and checkSkillsRoster diffs the committed
+ * region against the generator's output.) The anchoring history still
+ * matters for the tree: the first fence-scope here content-sniffed "the
+ * first fence containing" its shape, so a decoy block could hijack it, and
+ * its `/^```[a-z]*\n/` opener could not parse info strings
+ * (```bash title=…), frame-shifting every later fence. The Agent Skills
+ * tables anchor on their own `| Skill |` header row for the same reason:
+ * `bestax-migrate` in the first cell of some OTHER table must not stand in
+ * for a deleted row.
  *
  * The capture group is the point: reading the names back out checks BOTH
  * directions, so a roster still advertising a deleted skill fails too. That
