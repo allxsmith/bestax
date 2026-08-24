@@ -1,4 +1,5 @@
 import prompts from 'prompts';
+import chalk from 'chalk';
 import {
   TEMPLATES,
   DEFAULT_PROJECT_NAME,
@@ -90,6 +91,42 @@ export async function promptIconLibrary(): Promise<string | null> {
   });
 
   return response.iconLibrary || null;
+}
+
+/**
+ * Consent for anonymous usage telemetry. Deliberately does NOT call
+ * ensureInteractive(): consent is optional, so without a TTY the caller skips
+ * the question instead of failing the run (#192). Returns null when the user
+ * cancels (Ctrl-C) — a cancel is not an answer and nothing is persisted, but
+ * the interrupt is honored via exit code 130 rather than swallowed.
+ */
+export async function promptTelemetryConsent(): Promise<boolean | null> {
+  console.log();
+  console.log(chalk.gray(MESSAGES.TELEMETRY_NOTICE));
+  let cancelled = false;
+  const response = await prompts(
+    {
+      type: 'confirm',
+      name: 'telemetry',
+      message: PROMPT_MESSAGES.TELEMETRY_CONSENT,
+      initial: false,
+    },
+    {
+      onCancel: () => {
+        cancelled = true;
+      },
+    }
+  );
+
+  if (cancelled) {
+    // A cancel is not an answer, but it IS an interrupt: without this, a ^C
+    // at the question would be swallowed and the run would exit 0 as if it
+    // had never been interrupted. 130 = 128 + SIGINT, the shell convention.
+    // The scaffold itself already succeeded, so no abrupt process.exit here.
+    process.exitCode = 130;
+    return null;
+  }
+  return typeof response.telemetry === 'boolean' ? response.telemetry : null;
 }
 
 export async function promptBulmaFlavor(): Promise<string | null> {

@@ -16,6 +16,8 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, join, parse } from 'node:path';
 
+import { attributed } from './format.js';
+
 const PACKAGE = '@allxsmith/bestax-bulma';
 
 export interface VersionInfo {
@@ -171,6 +173,6 @@ export function versionNote(info: VersionInfo): string | null {
   return (
     `⚠ This index documents ${PACKAGE} ${info.indexed}; this project has ` +
     `${info.installed}. Props, defaults and CSS variables may differ — check ` +
-    `https://bestax.io/docs before relying on anything above.`
+    `${attributed('https://bestax.io/docs')} before relying on anything above.`
   );
 }

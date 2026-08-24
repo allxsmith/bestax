@@ -1,0 +1,17 @@
+{
+  "name": "telemetry-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test 'src/__tests__/*.test.ts'",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "wrangler": "4.124.0"
+  }
+}

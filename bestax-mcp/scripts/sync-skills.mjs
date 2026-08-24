@@ -42,8 +42,11 @@ import { existsSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import path from 'node:path';
-import { readSkillNames, rosterDiff } from '../../scripts/lib/skill-dirs.mjs';
 import { fileURLToPath } from 'node:url';
+import {
+  readSkillNames,
+  untrackedSkillPaths,
+} from '../../scripts/lib/skills.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(here, '..');
@@ -69,8 +72,8 @@ if (!existsSync(skillsSrc)) {
   process.exit(1);
 }
 
-// The predicate is the shared one — see scripts/lib/skill-dirs.mjs for why
-// four private copies were worse (symlinks, dot-dirs, collation).
+// The shared predicate (scripts/lib/skills.mjs): a directory holding a
+// SKILL.md, sorted deterministically — one definition for all four consumers.
 const names = await readSkillNames(skillsSrc);
 
 if (!names.length) {
@@ -78,39 +81,15 @@ if (!names.length) {
   process.exit(1);
 }
 
-// Same pack-time guard as create-bestax's bundler: the committed,
-// gen:mcp:check-gated manifest is the authority, and any diff between it and
-// the tree fails loudly before a tarball can ship a silent subset (or an
-// unreviewed extra). rosterDiff lives in the shared lib.
-{
-  const manifestFile = path.join(pkgRoot, 'data', 'skills.json');
-  let authority;
-  try {
-    authority = JSON.parse(await readFile(manifestFile, 'utf8')).skills.map(
-      s => s.dir
-    );
-  } catch {
-    console.error(
-      `[sync-skills] cannot read ${manifestFile}. Run \`pnpm gen:mcp\`.`
-    );
-    process.exit(1);
-  }
-  const { missing, extra } = rosterDiff(names, authority);
-  if (missing.length || extra.length) {
-    for (const [set, verb] of [
-      [missing, 'is missing'],
-      [extra, 'contains unrostered'],
-    ]) {
-      if (set.length) {
-        console.error(
-          `[sync-skills] skills/ ${verb} ${set.join(', ')} relative to the ` +
-            'committed data/skills.json. Run `pnpm gen:mcp` to review and ' +
-            'commit the roster change.'
-        );
-      }
-    }
-    process.exit(1);
-  }
+// Same vetting gate as create-bestax's sync: data/skills ships in the npm
+// tarball, so an untracked scratch skill must not reach a manual publish.
+const untrackedHere = untrackedSkillPaths(skillsSrc, names);
+if (untrackedHere.length) {
+  console.error(
+    `[sync-skills] refusing to bundle untracked file(s) under skills/: ` +
+      `${untrackedHere.join(', ')}. \`git add\` them to vet them, or remove them.`
+  );
+  process.exit(1);
 }
 
 // Hash of every source path and its bytes. Content rather than mtime on
@@ -238,9 +217,9 @@ try {
     for (const name of names) {
       await cp(path.join(skillsSrc, name), path.join(skillsDest, name), {
         recursive: true,
-        // Same reason as create-bestax's bundler: a symlinked skill must ship
-        // its target's bytes, not a link into a checkout nobody else has.
-        dereference: true,
+        // .DS_Store is the one path the vetting gate exempts; keep it out of
+        // the bundle too so the exemption never becomes shipped content.
+        filter: src => !src.endsWith('.DS_Store'),
       });
     }
     // Stamped last: a run killed mid-copy leaves no stamp, so the next caller

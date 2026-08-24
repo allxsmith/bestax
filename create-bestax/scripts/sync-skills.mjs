@@ -35,8 +35,10 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'fs-extra';
-
-import { readSkillNames, rosterDiff } from '../../scripts/lib/skill-dirs.mjs';
+import {
+  readSkillNames,
+  untrackedSkillPaths,
+} from '../../scripts/lib/skills.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(here, '..');
@@ -48,10 +50,12 @@ if (!fs.existsSync(skillsSrc)) {
   process.exit(1);
 }
 
-// A directory with a SKILL.md is a skill — the predicate lives in the shared
-// lib so this bundler, bestax-mcp's, the MCP index generator and the
-// conformance check all ask the same question (a local isDirectory() filter
-// here silently dropped symlinked skills the allowlist-era code shipped).
+// A directory with a SKILL.md is a skill — the predicate lives once in
+// scripts/lib/skills.mjs, shared with bestax-mcp's sync, gen-mcp-index and
+// check-conformance, so the four consumers cannot drift. It is what excludes
+// `skills/README.md` and `skills/CLAUDE.md` without naming them, and the list
+// comes back sorted so the copy order — and the count in the success line —
+// is deterministic.
 const skills = await readSkillNames(skillsSrc);
 
 // Checked BEFORE emptying the destination, which the hardcoded version did not
@@ -63,61 +67,27 @@ if (!skills.length) {
   process.exit(1);
 }
 
-// The guard the deleted allowlist provided by accident of being hardcoded:
-// it exited 1 when a listed skill was missing and could never ship unlisted
-// content. Discovery ships whatever is on disk, so a partial checkout would
-// ship a silent subset and a scratch directory would ship unreviewed — with
-// only a different count in the success line. The committed, gen:mcp:check-
-// gated skills.json is the derived authority the allowlist never was: any
-// diff between it and the tree fails the pack loudly, before a tarball
-// exists. (This runs on prepack, a path CI's conformance check does not
-// cover — a manual `pnpm pack`/publish is exactly where it matters.)
-const authorityFile = path.resolve(
-  pkgRoot,
-  '..',
-  'bestax-mcp',
-  'data',
-  'skills.json'
-);
-let authority;
-try {
-  authority = JSON.parse(fs.readFileSync(authorityFile, 'utf8')).skills.map(
-    s => s.dir
-  );
-} catch {
+// The vetting gate the deleted allowlist used to be: discovery bundles
+// whatever is on disk, and CI's skills-roster check only sees committed
+// state — so an untracked scratch directory would ship in a local build or a
+// manual publish with no gate anywhere in the path. `git add` is the act of
+// vetting; a tree without git (an exported tarball) skips the gate.
+const untracked = untrackedSkillPaths(skillsSrc, skills);
+if (untracked.length) {
   console.error(
-    `[sync-skills] cannot read ${authorityFile} — the committed skill ` +
-      'roster is the pack-time authority. Run `pnpm gen:mcp`.'
+    `[sync-skills] refusing to bundle untracked file(s) under skills/: ` +
+      `${untracked.join(', ')}. \`git add\` them to vet them, or remove them.`
   );
-  process.exit(1);
-}
-const { missing, extra } = rosterDiff(skills, authority);
-if (missing.length || extra.length) {
-  if (missing.length) {
-    console.error(
-      `[sync-skills] skills/ is missing ${missing.join(', ')} — the ` +
-        'committed roster (bestax-mcp/data/skills.json) says they exist. ' +
-        'Restore them, or run `pnpm gen:mcp` if they were removed on purpose.'
-    );
-  }
-  if (extra.length) {
-    console.error(
-      `[sync-skills] skills/ contains ${extra.join(', ')}, which the ` +
-        'committed roster does not know. Run `pnpm gen` to review and ' +
-        'commit the roster change before anything bundles it.'
-    );
-  }
   process.exit(1);
 }
 
 await fs.emptyDir(skillsDest);
 
 for (const name of skills) {
-  // dereference: discovery admits a symlinked skill, and copying the LINK
-  // would ship a tarball entry pointing back into a checkout that consumers
-  // do not have. The bundle must contain the target's bytes.
   await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name), {
-    dereference: true,
+    // .DS_Store is the one path the vetting gate exempts; keep it out of the
+    // bundle too so the exemption never becomes shipped content.
+    filter: src => !src.endsWith('.DS_Store'),
   });
 }
 

@@ -42,7 +42,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 import { sectionSpans, sectionBody, firstSentence } from './lib/api-page.mjs';
-import { readSkillNames } from './lib/skill-dirs.mjs';
+import { readSkillNames } from './lib/skills.mjs';
 import { extractComponent } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
@@ -318,9 +318,8 @@ function propRow(r) {
 
 /**
  * The skills roster, READ from the directory — never a hardcoded list. The
- * predicate itself lives in lib/skill-dirs.mjs, shared with both bundlers
- * and the conformance check, so all four agree on what counts as a skill
- * (symlinks included — Dirent.isDirectory() alone dropped those).
+ * predicate (a directory holding a SKILL.md) lives in scripts/lib/skills.mjs,
+ * shared with both sync scripts and check-conformance.
  */
 async function readSkills() {
   const out = [];

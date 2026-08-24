@@ -1,0 +1,8 @@
+name = "bestax-telemetry"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+routes = [{ pattern = "bestax.io/api/t", zone_name = "bestax.io" }]
+
+[[analytics_engine_datasets]]
+binding = "TELEMETRY"
+dataset = "bestax_telemetry"

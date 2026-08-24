@@ -25,5 +25,4 @@ export {};
 
 const { createCLI } = await import('./cli.js');
 
-const program = createCLI();
-program.parse();
+await createCLI().parseAsync(process.argv);
