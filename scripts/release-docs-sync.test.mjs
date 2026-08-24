@@ -15,12 +15,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
   publishablePackages,
   releaseDocViolations,
   unreadableManifestViolations,
+  recipeTargets,
 } from './check-conformance.mjs';
 
 const PACKAGES = [
@@ -455,4 +459,261 @@ test('an empty package list is refused, not silently satisfied', () => {
   const v = releaseDocViolations(docs(), []);
   assert.equal(v.length, 1);
   assert.match(v[0], /No publishable packages were found/);
+});
+
+// --- hardening round (#544 review) -------------------------------------------
+
+test('a backslash-wrapped for-loop list is read in full', () => {
+  // recipeTargets stopped at the first newline, so names wrapped onto the
+  // continuation line were falsely reported missing from the recipe.
+  const wrapped =
+    '```bash\nfor pkg in bulma-ui create-bestax \\\n' +
+    '  bestax-migrate bestax-mcp; do\n' +
+    '  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ contributing: doc({ recipe: wrapped }) }),
+      PACKAGES
+    ),
+    []
+  );
+});
+
+test('an example fence butted above the recipe does not merge into it', () => {
+  // fenceMask marks delimiter lines true, so two butted fences formed one
+  // block — and an example loop naming all four dirs then masked a real
+  // omission in the recipe below it (fail-open), while a partial example
+  // produced false missing-package reds (false positive).
+  const butted =
+    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n```\n' +
+    recipe(['bulma-ui']); // the REAL recipe omits three packages
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: butted }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the omission must not be masked by the example');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('a fence butted under the Packages bullet does not extend it', () => {
+  // The continuation scan stopped at blank lines and bullets only, so a
+  // fenced example with no blank line above it was swept into the bullet
+  // text and its tokens counted as trusted publishers.
+  const swept =
+    publishers(PACKAGES.slice(0, 3).map(p => p.name)) +
+    '\n```bash\nnpm owner ls bestax-mcp\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: swept }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the fenced mention must not stand in for the list');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('an earlier trusted-publishing heading does not steal the anchor', () => {
+  // First-match anchoring meant a new earlier heading captured the search
+  // and produced a false "no Packages line" while the real section was fine.
+  const decoy =
+    '## Why trusted publishing?\n\nBecause tokens leak.\n\n' + doc();
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: decoy }), PACKAGES),
+    []
+  );
+});
+
+/**
+ * A throwaway workspace on disk: one directory per entry of
+ * `manifestsByDir`, each holding that literal package.json text, listed in
+ * pnpm-workspace.yaml in insertion order. The sibling suites' local fixture
+ * helper pattern (fixtureRepo, fixtureTree) — the manifest string is the
+ * only thing an unreadable-manifest case varies.
+ */
+async function fixtureWorkspace(manifestsByDir, fn) {
+  const root = await mkdtemp(join(tmpdir(), 'manifests-'));
+  try {
+    const dirs = Object.keys(manifestsByDir);
+    await writeFile(
+      join(root, 'pnpm-workspace.yaml'),
+      'packages:\n' + dirs.map(d => `  - ${d}\n`).join('')
+    );
+    for (const [dir, manifest] of Object.entries(manifestsByDir)) {
+      await mkdir(join(root, dir));
+      await writeFile(join(root, dir, 'package.json'), manifest);
+    }
+    return await fn(root);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+}
+
+test('a manifest that parses to null is unreadable, not a crash', async () => {
+  // JSON.parse succeeds on the literal `null` — a truncated-write artifact —
+  // and dereferencing it threw a TypeError past the runner's loop, aborting
+  // every remaining conformance check instead of reporting the one broken
+  // package through the violation written for exactly this case.
+  await fixtureWorkspace(
+    { good: '{"name": "good", "private": false}', broken: 'null' },
+    async root => {
+      const { packages, unreadable } = await publishablePackages(root);
+      assert.deepEqual(packages, [{ dir: 'good', name: 'good' }]);
+      assert.deepEqual(unreadable, ['broken']);
+    }
+  );
+});
+
+test('scalar manifests are unreadable too, not silently absent', async () => {
+  // The other parseable non-object shapes the shape-check comment names.
+  await fixtureWorkspace({ num: '42', str: '"x"' }, async root => {
+    const { packages, unreadable } = await publishablePackages(root);
+    assert.deepEqual(packages, []);
+    assert.deepEqual(unreadable, ['num', 'str']);
+  });
+});
+
+test('a preliminary loop cannot cover for the release loop', () => {
+  // Union-of-all-loops was fail-open: an echo loop over every package let a
+  // release loop covering only one pass the presence check. Only loops whose
+  // body invokes the dry run contribute.
+  const twoLoops =
+    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n' +
+    'for pkg in bulma-ui; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: twoLoops }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the echo loop must not mask the omission');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('an array manifest is unreadable, not silently absent', async () => {
+  // `[]` parses, passes typeof object, has no name — the package vanished
+  // from the list with no violation, the same outcome as the null crash by a
+  // quieter road.
+  await fixtureWorkspace({ arr: '[]' }, async root => {
+    const { packages, unreadable } = await publishablePackages(root);
+    assert.deepEqual(packages, []);
+    assert.deepEqual(unreadable, ['arr']);
+  });
+});
+
+test('an echoed semantic-release mention is not an invoking loop', () => {
+  // A banner loop over every package must not stand in for (or dilute) the
+  // loop that actually runs the release.
+  const block = [
+    'for pkg in a b c d; do',
+    '  echo "will run semantic-release for $pkg"',
+    'done',
+    'for pkg in a b; do',
+    '  pnpm exec semantic-release --dry-run',
+    'done',
+  ].join('\n');
+  assert.equal(recipeTargets(block), 'a b');
+});
+
+// --- #548-review regressions --------------------------------------------------
+
+test('a one-line banner loop is not the release loop', () => {
+  // The line starts with `for`, not `echo`, so a line-anchored exclusion
+  // missed it; invocation is judged per `;`-segment with do/then/else peeled.
+  const block = [
+    '```bash',
+    'for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "next: semantic-release for $pkg"; done',
+    'for pkg in bulma-ui; do',
+    '  pnpm exec semantic-release --dry-run --no-ci',
+    'done',
+    '```',
+  ].join('\n');
+  assert.equal(recipeTargets(block), 'bulma-ui');
+});
+
+test('an unquoted subshell echo is still just a banner', () => {
+  const block = [
+    'for pkg in a b c; do (echo starting semantic-release run); done',
+    'for pkg in a; do pnpm exec semantic-release --dry-run; done',
+  ].join('\n');
+  assert.equal(recipeTargets(block), 'a');
+});
+
+test("a quoted 'done' does not end the release loop's segment", () => {
+  const block = [
+    'for pkg in a b c d; do echo "$pkg"; done',
+    'for pkg in a b; do',
+    '  echo "step done"',
+    '  pnpm exec semantic-release --dry-run',
+    'done',
+  ].join('\n');
+  assert.equal(recipeTargets(block), 'a b');
+});
+
+test('a comment-hidden done confines the check to the loop, not the block', () => {
+  // With `done` swallowed by the comment strip, segmentation used to
+  // dissolve and the WHOLE block became the word list — an echo naming the
+  // other packages then satisfied the presence check.
+  const block = [
+    'for pkg in bulma-ui; do pnpm exec semantic-release --dry-run # done manually',
+    'echo "later: create-bestax bestax-migrate bestax-mcp"',
+  ].join('\n');
+  assert.equal(recipeTargets(block).trim(), 'bulma-ui');
+});
+
+test('an example fence spelling out the dry-run command does not become the recipe', () => {
+  // Selection prefers the block that INVOKES the command; the example's
+  // echoed (quoted) mention is stripped from its operative text.
+  const example =
+    '```text\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do\n' +
+    '  echo "pnpm exec semantic-release --dry-run --no-ci in $pkg"\ndone\n```';
+  const real =
+    '```bash\nfor pkg in bulma-ui; do\n  pnpm exec semantic-release --dry-run --no-ci\ndone\n```';
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: example + '\n' + real }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the real recipe must be the one checked');
+  assert.match(v.join(' '), /bestax-mcp/);
+});
+
+test('fence-shaped content inside a ~~~ block does not split it', () => {
+  // Structure comes from fenceSpans, not from re-guessing seams in the mask:
+  // a ``` line shown INSIDE a ~~~ fence is content, and splitting there left
+  // the fragment loop-less.
+  const block = [
+    '~~~bash',
+    'cat <<EOF',
+    '```',
+    '```bash',
+    'EOF',
+    'for pkg in bulma-ui; do',
+    '  pnpm exec semantic-release --dry-run --no-ci',
+    'done',
+    '~~~',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: block }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the recipe must be found whole');
+  assert.match(v.join(' '), /omits/);
+  assert.doesNotMatch(v.join(' '), /has no .* dry-run/);
+});
+
+test("a later aside's bullet cannot absorb a deleted trusted-publisher list", () => {
+  // The owning-section anchor was fail-open: deleting the real section's
+  // bullet let a later trusted-publishing-titled aside's stray bullet stand
+  // in. Every candidate section's bullet is validated now, so an incomplete
+  // stand-in still fails, and no-bullet-anywhere still fires.
+  const withAside = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'The real section, its bullet deleted.',
+    '',
+    '### Why trusted publishing?',
+    '',
+    '- Packages: `bulma-ui`',
+    '',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: withAside }) }),
+    PACKAGES
+  );
+  assert.ok(v.length >= 1, 'the incomplete stand-in must not pass');
 });

@@ -371,13 +371,17 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
 - **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, `style`
   or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`
   or `bestax-mcp` (repo-specific commitlint rule — the scope decides which package releases,
-  see [`VERSIONING.md`](./VERSIONING.md)). `revert` is in that list because
-  commit-analyzer ships `{ revert: true, release: 'patch' }`, so an unscoped revert would
-  match no package's negated-scope suppression and patch-release **all** of them. Note the
-  residual, which `commitlint.config.js` records: that rule fires on the parser's
-  `revertPattern` — git's own `Revert "…"` form — and commitlint's default `ignores` skip
-  those messages entirely, so scoping is a convention here rather than something the hook
-  can enforce. Keep reverts conventional and scoped. `RELEASE_TYPES` and `RELEASE_SCOPES`
+  see [`VERSIONING.md`](./VERSIONING.md)). One correction worth knowing about `revert`:
+  a scoped conventional `revert(<scope>): …` **releases nothing** — the only revert rule is
+  commit-analyzer's default `{ revert: true, release: 'patch' }`, keyed on the angular
+  `revertPattern`, which matches a `Revert "…"` **or** bare `revert: …` header followed by a
+  `This reverts commit <sha>` body; a parenthesized `revert(<scope>):` header matches
+  neither. The two detected forms differ in what fences them: an unscoped `revert: …` is
+  rejected by commitlint's scope rule before it can land, while git's own `Revert "…"` form
+  is skipped by commitlint's default `ignores` entirely — and its generated body **does**
+  trip the default patch rule for every package, making it the real hazard. So keep reverts
+  conventional and scoped, and ship an actual rollback release as a follow-up
+  `fix(<scope>): …`. `RELEASE_TYPES` and `RELEASE_SCOPES`
   in `commitlint.config.js` are the source of truth.
 - **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
   **not** picked up by our release tooling.
