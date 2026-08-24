@@ -73,6 +73,7 @@ import {
 } from './lib/pack-time-protocols.mjs';
 import {
   fenceMask,
+  fenceSpans,
   readRegions,
   sectionSpans,
   splitLines,
@@ -906,6 +907,48 @@ const RELEASE_DOC_FACTS = [
  * the file-wide search this exists to prevent; and a `---` or `:::` inside a
  * fenced example truncated it early, in the other direction.
  */
+// One definition of a markdown heading line for every release-docs
+// extractor: four hand-copies of this regex had already picked up a \s-vs-
+// space disagreement with fenceMask's CommonMark reading (#548 review).
+const MD_HEADING = /^ {0,3}#{1,6}\s/;
+
+/**
+ * Comment- and quote-stripped shell text — the OPERATIVE part of a recipe.
+ * Quotes go because every fail-open in this family arrived through prose
+ * inside the block: an echoed banner naming the command, a quoted 'step
+ * done' ending a segment early. In these recipes the operative shell — loop
+ * word lists, the release invocation — is never quoted, so what survives is
+ * what runs.
+ */
+function shellOperative(text) {
+  return text
+    .split('\n')
+    .map(l => l.replace(/"[^"]*"|'[^']*'/g, '""').replace(/#.*$/, ''))
+    .join('\n')
+    .replace(/\\\n\s*/g, ' ');
+}
+
+/**
+ * True when the operative text INVOKES `cmd`: the mention sits in command
+ * position of some `;`/`|`/`&`/subshell segment, with shell keywords
+ * (do/then/else) peeled — so `do pnpm exec semantic-release` counts while
+ * `do echo semantic-release …` and a subshell echo do not, whatever the line
+ * starts with (#548 review: the first version only excluded echo at line
+ * start, so a one-line banner loop passed as the release loop).
+ */
+function invokesCommand(operative, cmd) {
+  return operative.split('\n').some(line =>
+    line.split(/[;|&()]+/).some(seg => {
+      if (!seg.includes(cmd)) return false;
+      const first = seg
+        .trim()
+        .replace(/^(?:do|then|else)\s+/, '')
+        .split(/\s+/)[0];
+      return first !== 'echo' && first !== 'printf';
+    })
+  );
+}
+
 function safeToRunBlock(src) {
   const { lines } = splitLines(src);
   const masked = fenceMask(lines);
@@ -920,11 +963,7 @@ function safeToRunBlock(src) {
   for (let i = start + 1; i < lines.length; i++) {
     if (masked[i]) continue; // a terminator inside a fenced example is content
     const l = lines[i];
-    if (
-      l.trim() === ':::' ||
-      /^\s{0,3}#{1,6}\s/.test(l) ||
-      l.trim() === '---'
-    ) {
+    if (l.trim() === ':::' || MD_HEADING.test(l) || l.trim() === '---') {
       end = i;
       break;
     }
@@ -948,35 +987,28 @@ function safeToRunBlock(src) {
  */
 function dryRunRecipe(src) {
   const { lines } = splitLines(src);
-  const masked = fenceMask(lines);
-  const blocks = [];
-  let current = null;
-  for (let i = 0; i < lines.length; i++) {
-    if (masked[i]) {
-      (current ??= []).push(lines[i]);
-      // fenceMask marks DELIMITER lines true, so two fences butted together
-      // with no prose between them form one contiguous masked run — and a
-      // merged block let an example fence's `for` loop stand in for the
-      // recipe's (or mask an omission in it). A bare closing delimiter
-      // followed immediately by an opening one is the seam between fences;
-      // split there. CommonMark says a closing fence has no info string,
-      // which is what distinguishes the pair.
-      if (
-        /^\s{0,3}(?:`{3,}|~{3,})\s*$/.test(lines[i]) &&
-        current.length > 1 &&
-        masked[i + 1] &&
-        /^\s{0,3}(?:`{3,}|~{3,})\S*/.test(lines[i + 1] ?? '')
-      ) {
-        blocks.push(current.join('\n'));
-        current = null;
-      }
-    } else if (current) {
-      blocks.push(current.join('\n'));
-      current = null;
-    }
-  }
-  if (current) blocks.push(current.join('\n')); // unterminated fence at EOF
-  return blocks.find(b => b.includes('semantic-release --dry-run')) ?? null;
+  // Real block spans from the fence state machine — never re-derived from
+  // the boolean mask, where butted fences form one run and a content line
+  // shaped like a delimiter split a real block mid-fence (#548 review; the
+  // seam heuristic this replaces misfired on ``` lines shown inside a ~~~ or
+  // ````markdown wrapper). An unterminated fence still runs to EOF and is
+  // still returned: dropping it produced the switch-the-check-off violation
+  // this docblock has always warned about.
+  const blocks = fenceSpans(lines).map(({ open, close }) =>
+    lines.slice(open, close + 1).join('\n')
+  );
+  // Selection prefers the block that INVOKES the dry run over the first one
+  // that merely mentions it: an example fence above the recipe, echoing the
+  // command it describes, otherwise becomes "the recipe" and the real one
+  // below is never checked. Containment stays as the fallback so a recipe
+  // driving the run through a variable keeps being found.
+  return (
+    blocks.find(b =>
+      invokesCommand(shellOperative(b), 'semantic-release --dry-run')
+    ) ??
+    blocks.find(b => b.includes('semantic-release --dry-run')) ??
+    null
+  );
 }
 
 /**
@@ -990,39 +1022,29 @@ function dryRunRecipe(src) {
  * is the same failure one step further out.
  */
 export function recipeTargets(block) {
-  const commands = block
-    .split('\n')
-    .map(l => l.replace(/#.*$/, ''))
-    .join('\n')
-    // A backslash continuation is one shell word-list across lines. Without
-    // the join, `for pkg in a b \\<newline> c d` counted only the first
-    // line's names and falsely reported the wrapped-onto ones missing.
-    .replace(/\\\n\s*/g, ' ');
-  // The loop that RUNS the release is the one whose word list counts.
-  // First-only missed a legitimate second release loop; union-of-all was the
-  // opposite failure — a preliminary loop over every package (an echo, an
-  // owner check) covered an omission in the loop that actually invokes the
-  // dry run. Segments are for…done spans; only those whose body mentions the
-  // release command contribute, falling back to all loops when none does, so
-  // a recipe driving the run through a variable stays a presence check
-  // rather than a false red.
-  const segments = [
-    ...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)[\s\S]*?\bdone\b/g),
-  ];
-  if (!segments.length) return commands;
-  // A mention has to look like an INVOCATION: a preliminary loop that merely
-  // echoes the command name (a progress banner, a dry-run preview) must not
-  // be classified alongside the loop that runs it (#548 review).
-  const invokes = seg =>
-    seg
-      .split('\n')
-      .some(
-        l =>
-          /\bsemantic-release\b/.test(l) &&
-          !/^\s*(?:echo|printf)\b/.test(l.trim())
-      );
-  const release = segments.filter(m => invokes(m[0]));
-  return (release.length ? release : segments).map(m => m[1]).join(' ');
+  // Quote- and comment-stripped first (shellOperative): a quoted 'step done'
+  // used to end the release loop's segment above its invocation line, and a
+  // quoted banner naming the command classified its loop as the release
+  // loop. Backslash continuations are joined there too, so a wrapped
+  // word-list stays one list.
+  const commands = shellOperative(block);
+  // Segments run from each `for … in` header to the NEXT header (or end) —
+  // never to `done`: a missing or comment-hidden `done` dissolved every
+  // segment and the whole block became the word list, the exact vacuity this
+  // function exists to prevent (#548 review).
+  const headers = [...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)/g)];
+  if (!headers.length) return commands;
+  const segments = headers.map((m, i) => ({
+    list: m[1],
+    body: commands.slice(m.index, headers[i + 1]?.index ?? commands.length),
+  }));
+  // Only loops that INVOKE the release contribute their word lists, falling
+  // back to all loops when none does, so a recipe driving the run through a
+  // variable stays a presence check rather than a false red.
+  const release = segments.filter(s =>
+    invokesCommand(s.body, 'semantic-release')
+  );
+  return (release.length ? release : segments).map(s => s.list).join(' ');
 }
 
 /**
@@ -1043,75 +1065,49 @@ export function recipeTargets(block) {
 function packagesBullet(src) {
   const { lines } = splitLines(src);
   const masked = fenceMask(lines);
-  // The anchor has to be the HEADING, not any prose that mentions trusted
-  // publishing. Matching body text meant deleting the heading left the
-  // section's own sentence anchoring the search, so the list still passed
-  // while the section it belongs to was gone. Requiring a heading also makes
-  // anchor..limit a real section rather than an arbitrary span.
-  // Of the headings that mention trusted publishing, anchor on the one whose
-  // section actually CONTAINS the bullet. First-match anchoring meant a new
-  // earlier heading (a changelog note, a blog-ish aside) captured the search
-  // and produced a false "no \`- Packages:\` line" while the real section was
-  // intact. A heading with no bullet in its span still anchors when it is the
-  // only candidate, so "section exists but lost its list" stays a violation.
-  const candidates = [];
+  const isHeading = i => !masked[i] && MD_HEADING.test(lines[i]);
+  // ONE pass over the candidate headings, each judged on its own span. The
+  // first-match anchor let an earlier trusted-publishing-titled aside steal
+  // the search (false red); preferring the section that owns a bullet let a
+  // LATER aside's stray bullet absorb the check while the real section's
+  // list was deleted (fail-open — #548 review caught both generations). So:
+  // every candidate section that contains a `- Packages:` bullet contributes
+  // it, the caller validates each contribution, and no bullet anywhere among
+  // the candidates is the violation. A candidate with no bullet adds
+  // nothing rather than anchoring-and-failing, which keeps a prose aside
+  // titled like the section from producing a false red — but if NO candidate
+  // owns a bullet, "section exists but lost its list" still fires.
+  const bullets = [];
   for (let i = 0; i < lines.length; i++) {
-    if (
-      !masked[i] &&
-      /^\s{0,3}#{1,6}\s/.test(lines[i]) &&
-      /trusted[- ]publish/i.test(lines[i])
-    ) {
-      candidates.push(i);
+    if (!(isHeading(i) && /trusted[- ]publish/i.test(lines[i]))) continue;
+    let limit = lines.length;
+    for (let j = i + 1; j < lines.length; j++) {
+      if (isHeading(j)) {
+        limit = j;
+        break;
+      }
     }
+    let start = -1;
+    for (let j = i + 1; j < limit; j++) {
+      if (!masked[j] && lines[j].trimStart().startsWith('- Packages:')) {
+        start = j;
+        break;
+      }
+    }
+    if (start < 0) continue;
+    // Bounded by the next bullet, blank, masked line, or the section end: a
+    // fenced example or the next section butted under the list otherwise
+    // swept in, and a package named there covered an omission in the list.
+    let end = limit;
+    for (let j = start + 1; j < limit; j++) {
+      if (!lines[j].trim() || /^\s*[-*]\s/.test(lines[j]) || masked[j]) {
+        end = j;
+        break;
+      }
+    }
+    bullets.push(lines.slice(start, end).join('\n'));
   }
-  const owns = idx => {
-    for (let i = idx + 1; i < lines.length; i++) {
-      if (!masked[i] && /^\s{0,3}#{1,6}\s/.test(lines[i])) return false;
-      if (!masked[i] && lines[i].trimStart().startsWith('- Packages:'))
-        return true;
-    }
-    return false;
-  };
-  const anchor = candidates.find(owns) ?? candidates[0] ?? -1;
-  // No OIDC section means no trusted-publisher list, which is the violation.
-  // Falling back to line 0 restored the file-wide search this extractor exists
-  // to prevent: an unrelated "- Packages:" bullet elsewhere then satisfied the
-  // assertion even with the real guidance deleted.
-  if (anchor < 0) return '';
-  // Bounded at the next heading, because scanning to EOF let a complete
-  // "- Packages:" list in some later, unrelated section stand in for an OIDC
-  // section that had lost its own — the same fail-open as the line-0 fallback,
-  // one step further down the file.
-  let limit = lines.length;
-  for (let i = anchor + 1; i < lines.length; i++) {
-    if (!masked[i] && /^\s{0,3}#{1,6}\s/.test(lines[i])) {
-      limit = i;
-      break;
-    }
-  }
-  const start = lines.findIndex(
-    (l, i) =>
-      i >= anchor &&
-      i < limit &&
-      !masked[i] &&
-      l.trimStart().startsWith('- Packages:')
-  );
-  if (start < 0) return '';
-  // Bounded by `limit` as well: a heading immediately after the bullet, with no
-  // blank line between, otherwise swept the next section in — and a package
-  // named there could then cover an omission in this list.
-  let end = limit;
-  for (let i = start + 1; i < limit; i++) {
-    // A masked line ends the bullet too: a fenced example butted directly
-    // under the list (no blank line) was swept into the bullet text, and a
-    // package named in the example then covered an omission in the list —
-    // the fail-open whose cost this check itself documents.
-    if (!lines[i].trim() || /^\s*[-*]\s/.test(lines[i]) || masked[i]) {
-      end = i;
-      break;
-    }
-  }
-  return lines.slice(start, end).join('\n');
+  return bullets;
 }
 
 /**
@@ -1141,7 +1137,8 @@ export function unreadableManifestViolations(unreadable) {
   return unreadable.map(
     dir =>
       dir +
-      '/package.json could not be read or parsed, so the release-docs checks ' +
+      '/package.json could not be read or parsed, or is not a JSON object, ' +
+      'so the release-docs checks ' +
       'cannot tell whether ' +
       dir +
       ' needs to appear in the dry-run recipe and the trusted-publisher list. ' +
@@ -1241,8 +1238,8 @@ export function releaseDocViolations(docs, packages) {
   // other told a reader the file had no bullet when the file was never read.
   const [primary] = RELEASE_DOC_FILES;
   if (docs.has(primary)) {
-    const section = packagesBullet(docs.get(primary));
-    if (!section) {
+    const sections = packagesBullet(docs.get(primary));
+    if (!sections.length) {
       violations.push(
         primary +
           ' has no "- Packages:" line in the OIDC trusted publishing section. ' +
@@ -1250,17 +1247,23 @@ export function releaseDocViolations(docs, packages) {
           'npmjs.com; without it nobody can tell which ones do.'
       );
     } else {
-      const named = packageTokens(section);
-      const missing = packages.filter(p => !named.has(p.name));
-      if (missing.length) {
-        violations.push(
-          primary +
-            "'s trusted-publisher list omits " +
-            missing.map(p => p.name).join(', ') +
-            '. Every publishable package authenticates by OIDC, and a missing ' +
-            'trusted publisher fails the publish after the release commit and ' +
-            'tag are already pushed — which spends the version (#536).'
-        );
+      // EVERY bullet under a trusted-publishing heading must be complete: a
+      // stale duplicate list must not hide behind a fresh one, whichever
+      // order they appear in.
+      for (const section of sections) {
+        const named = packageTokens(section);
+        const missing = packages.filter(p => !named.has(p.name));
+        if (missing.length) {
+          violations.push(
+            primary +
+              "'s trusted-publisher list omits " +
+              missing.map(p => p.name).join(', ') +
+              '. Every publishable package authenticates by OIDC, and a ' +
+              'missing trusted publisher fails the publish after the release ' +
+              'commit and tag are already pushed — which spends the version ' +
+              '(#536).'
+          );
+        }
       }
     }
   }
@@ -1292,15 +1295,17 @@ export async function publishablePackages(root = REPO) {
     let pkg;
     try {
       pkg = JSON.parse(await readFile(join(root, dir, 'package.json'), 'utf8'));
-      // JSON.parse succeeds on `null`, `42`, `"x"`, `[]` — shapes a truncated
-      // write really produces. `null` dereferenced below threw a TypeError
-      // past the runner's loop; an ARRAY passes typeof and instead vanishes
-      // silently (no name, so it never joins the package list) — the same
-      // outcome by a quieter road. Both are unreadable manifests.
-      if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) {
-        throw new Error('not an object');
-      }
     } catch {
+      unreadable.push(dir);
+      continue;
+    }
+    // JSON.parse succeeds on `null`, `42`, `"x"`, `[]` — shapes a truncated
+    // write really produces. `null` dereferenced below threw a TypeError past
+    // the runner's loop; an ARRAY passes typeof and instead vanished silently
+    // (no name, so it never joined the package list) — the same outcome by a
+    // quieter road. Both count as unreadable manifests, checked here in the
+    // open rather than by throwing into the catch above.
+    if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) {
       unreadable.push(dir);
       continue;
     }

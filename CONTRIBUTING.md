@@ -374,11 +374,14 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
   see [`VERSIONING.md`](./VERSIONING.md)). One correction worth knowing about `revert`:
   a scoped conventional `revert(<scope>): …` **releases nothing** — the only revert rule is
   commit-analyzer's default `{ revert: true, release: 'patch' }`, keyed on the angular
-  `revertPattern`, which matches only git's own `Revert "…"` shape with a
-  `This reverts commit <sha>` body. That git-generated form is the real hazard: commitlint's
-  default `ignores` skip it entirely (no scope check) and its body **does** trip the default
-  patch rule for every package. So keep reverts conventional and scoped, and ship an actual
-  rollback release as a follow-up `fix(<scope>): …`. `RELEASE_TYPES` and `RELEASE_SCOPES`
+  `revertPattern`, which matches a `Revert "…"` **or** bare `revert: …` header followed by a
+  `This reverts commit <sha>` body; a parenthesized `revert(<scope>):` header matches
+  neither. The two detected forms differ in what fences them: an unscoped `revert: …` is
+  rejected by commitlint's scope rule before it can land, while git's own `Revert "…"` form
+  is skipped by commitlint's default `ignores` entirely — and its generated body **does**
+  trip the default patch rule for every package, making it the real hazard. So keep reverts
+  conventional and scoped, and ship an actual rollback release as a follow-up
+  `fix(<scope>): …`. `RELEASE_TYPES` and `RELEASE_SCOPES`
   in `commitlint.config.js` are the source of truth.
 - **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
   **not** picked up by our release tooling.

@@ -54,32 +54,48 @@ export function joinLines(lines, crlf) {
  */
 export function fenceMask(lines) {
   const mask = new Array(lines.length).fill(false);
+  for (const { open, close } of fenceSpans(lines)) {
+    for (let i = open; i <= close; i++) mask[i] = true;
+  }
+  return mask;
+}
+
+/**
+ * The fenced blocks of `lines`, as [{ open, close }] line-index pairs with
+ * both delimiters included (`close` is the last line for a fence left
+ * unterminated at EOF). The same CommonMark rules as `fenceMask` — in fact
+ * fenceMask is derived from this, so the two views cannot disagree. Consumers
+ * that need BLOCKS should use this rather than re-deriving structure from the
+ * boolean mask: in the mask, butted fences form one continuous run, and a
+ * content line shaped like a delimiter is indistinguishable from one.
+ */
+export function fenceSpans(lines) {
+  const spans = [];
   let fence = null; // { char, len }
+  let open = -1;
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    const m = lines[i].match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
     if (!fence) {
       if (m) {
         // An opening ``` fence may not contain a backtick in its info string.
         const char = m[1][0];
         if (!(char === '`' && m[2].includes('`'))) {
           fence = { char, len: m[1].length };
-          mask[i] = true;
+          open = i;
         }
       }
-    } else {
-      mask[i] = true;
-      if (
-        m &&
-        m[1][0] === fence.char &&
-        m[1].length >= fence.len &&
-        !m[2].trim()
-      ) {
-        fence = null;
-      }
+    } else if (
+      m &&
+      m[1][0] === fence.char &&
+      m[1].length >= fence.len &&
+      !m[2].trim()
+    ) {
+      spans.push({ open, close: i });
+      fence = null;
     }
   }
-  return mask;
+  if (fence) spans.push({ open, close: lines.length - 1 });
+  return spans;
 }
 
 /**
