@@ -635,14 +635,34 @@ async function checkScssConformance() {
       // unclaimed files. registerVarsEntries reads both spellings
       // (registerVarsKeys now delegates to it for the same reason).
       visited.add(rel);
+      const registeredKeys = [
+        ...new Set(registerVarsEntries(src).map(e => e.key)),
+      ];
       violations.push(
         ...orphanPartialViolations(
           rel,
-          [...new Set(registerVarsEntries(src).map(e => e.key))],
+          registeredKeys,
           claimedPaths,
           documentedKeys
         )
       );
+      // A register-vars call the parser reads no entries from — passing a
+      // map variable instead of a literal map — would otherwise slip past
+      // the orphan rule as "registers nothing". (A file mixing a literal
+      // call with a variable-form one still parses entries and is not
+      // caught; no repo partial does either today, this pins that.)
+      const registerCalls = (
+        src.match(/@include\s+(?:[\w-]+\.)?register-vars?\b/g) ?? []
+      ).length;
+      if (registerCalls > 0 && registeredKeys.length === 0) {
+        violations.push(
+          `${rel} calls register-vars in a form the parser reads no ` +
+            `entries from (e.g. passing a map variable), so its variables ` +
+            `bypass the docs pipeline and the orphan rule. Inline the ` +
+            `literal map, or add an ORPHAN_EXEMPT entry saying why and ` +
+            `where it is tracked.`
+        );
+      }
 
       // 1. Partial must be wired into the flavor builds via _index.scss —
       //    an unregistered partial silently ships nothing.
