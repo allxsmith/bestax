@@ -24,6 +24,7 @@ import {
   publishablePackages,
   releaseDocViolations,
   unreadableManifestViolations,
+  recipeTargets,
 } from './check-conformance.mjs';
 
 const PACKAGES = [
@@ -576,4 +577,18 @@ test('an array manifest is unreadable, not silently absent', async () => {
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test('an echoed semantic-release mention is not an invoking loop', () => {
+  // A banner loop over every package must not stand in for (or dilute) the
+  // loop that actually runs the release.
+  const block = [
+    'for pkg in a b c d; do',
+    '  echo "will run semantic-release for $pkg"',
+    'done',
+    'for pkg in a b; do',
+    '  pnpm exec semantic-release --dry-run',
+    'done',
+  ].join('\n');
+  assert.equal(recipeTargets(block), 'a b');
 });

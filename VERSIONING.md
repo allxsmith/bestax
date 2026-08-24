@@ -31,7 +31,7 @@ Notes:
 
 - **Breaking changes require a `BREAKING CHANGE:` footer** in the commit body. The angular
   commit-analyzer preset does **not** parse `feat(bulma-ui)!:` bang headers.
-- Commits of a releasing type (`feat`, `fix`, `perf`, `refactor`, `style`, `revert`) **must**
+- Commits of a scope-gated type (`feat`, `fix`, `perf`, `refactor`, `style`, `revert`) **must**
   carry a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp` —
   enforced by commitlint ([`commitlint.config.js`](./commitlint.config.js)) via the husky
   `commit-msg` hook. This is what guarantees the per-scope release rules can't be bypassed by

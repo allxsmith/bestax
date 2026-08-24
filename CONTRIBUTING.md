@@ -371,13 +371,14 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
 - **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, `style`
   or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`
   or `bestax-mcp` (repo-specific commitlint rule — the scope decides which package releases,
-  see [`VERSIONING.md`](./VERSIONING.md)). `revert` is in that list because
-  commit-analyzer ships `{ revert: true, release: 'patch' }`, so an unscoped revert would
-  match no package's negated-scope suppression and patch-release **all** of them. Note the
-  residual, which `commitlint.config.js` records: that rule fires on the parser's
-  `revertPattern` — git's own `Revert "…"` form — and commitlint's default `ignores` skip
-  those messages entirely, so scoping is a convention here rather than something the hook
-  can enforce. Keep reverts conventional and scoped. `RELEASE_TYPES` and `RELEASE_SCOPES`
+  see [`VERSIONING.md`](./VERSIONING.md)). One correction worth knowing about `revert`:
+  a scoped conventional `revert(<scope>): …` **releases nothing** — the only revert rule is
+  commit-analyzer's default `{ revert: true, release: 'patch' }`, keyed on the angular
+  `revertPattern`, which matches only git's own `Revert "…"` shape with a
+  `This reverts commit <sha>` body. That git-generated form is the real hazard: commitlint's
+  default `ignores` skip it entirely (no scope check) and its body **does** trip the default
+  patch rule for every package. So keep reverts conventional and scoped, and ship an actual
+  rollback release as a follow-up `fix(<scope>): …`. `RELEASE_TYPES` and `RELEASE_SCOPES`
   in `commitlint.config.js` are the source of truth.
 - **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
   **not** picked up by our release tooling.

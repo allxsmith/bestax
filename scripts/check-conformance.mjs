@@ -989,7 +989,7 @@ function dryRunRecipe(src) {
  * `echo "bestax-mcp is released separately"` satisfies it just as well, which
  * is the same failure one step further out.
  */
-function recipeTargets(block) {
+export function recipeTargets(block) {
   const commands = block
     .split('\n')
     .map(l => l.replace(/#.*$/, ''))
@@ -1010,7 +1010,18 @@ function recipeTargets(block) {
     ...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)[\s\S]*?\bdone\b/g),
   ];
   if (!segments.length) return commands;
-  const release = segments.filter(m => m[0].includes('semantic-release'));
+  // A mention has to look like an INVOCATION: a preliminary loop that merely
+  // echoes the command name (a progress banner, a dry-run preview) must not
+  // be classified alongside the loop that runs it (#548 review).
+  const invokes = seg =>
+    seg
+      .split('\n')
+      .some(
+        l =>
+          /\bsemantic-release\b/.test(l) &&
+          !/^\s*(?:echo|printf)\b/.test(l.trim())
+      );
+  const release = segments.filter(m => invokes(m[0]));
   return (release.length ? release : segments).map(m => m[1]).join(' ');
 }
 

@@ -67,7 +67,8 @@ Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consu
 semantic-release. Two repo-specific rules:
 
 - Commits of type `feat|fix|perf|refactor|style|revert` **must** use a scope of `bulma-ui`, `docs`,
-  `create-bestax`, `bestax-migrate`, or `bestax-mcp` — unscoped release types are rejected
+  `create-bestax`, `bestax-migrate`, or `bestax-mcp` — an unscoped commit of any of these
+  scope-gated types is rejected
   (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth). One exception worth
   knowing: commitlint's default ignores skip git's own `Revert "…"` messages, so the hook cannot
   reject an unscoped revert in that form — keep reverts conventional and scoped by hand, and
