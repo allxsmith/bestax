@@ -23,6 +23,7 @@ import {
   hookScripts,
   manifestViolations,
   parseWorkspacePackages,
+  siblingViolations,
 } from './check-conformance.mjs';
 import {
   execOptions,
@@ -618,4 +619,161 @@ test('an unresolvable protocol in devDependencies is explained honestly', () => 
   assert.match(v, /consumers do not resolve devDependencies/);
   assert.doesNotMatch(v, /no consumer can resolve it/);
   assert.doesNotMatch(v, /plain semver range/);
+});
+
+// --- the sibling-at-runtime rule (#537) --------------------------------------
+//
+// Driven with an explicit name set because the rule is pure and the real set
+// is derived inside the async walk. No published package carries a sibling in
+// a consumer section today, so none of these branches executes on the real
+// tree — the same seam rationale as everything above.
+
+const SIBLINGS = new Map([
+  ['@allxsmith/bestax-bulma', { private: false }],
+  ['create-bestax', { private: false }],
+  ['bestax-migrate', { private: false }],
+  ['bestax-mcp', { private: false }],
+  ['@allxsmith/bestax-docs', { private: true }],
+]);
+
+test('a plain-semver sibling in dependencies is flagged, whatever the range', () => {
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-bulma': '^5' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /consumers of bestax-migrate/);
+  assert.match(v[0], /#537/);
+});
+
+test('an optionalDependencies sibling is flagged the same way', () => {
+  const v = siblingViolations(
+    'bestax-mcp',
+    { name: 'bestax-mcp', optionalDependencies: { 'create-bestax': '^4' } },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1);
+});
+
+test('a peer sibling is outside this rule, deliberately', () => {
+  // A departure from the protocol rule, which does fire on a workspace: peer:
+  // peers are the one section where "consumers install this" is the intended
+  // semantic. The protocol rule still polices HOW a peer is spelled.
+  assert.deepEqual(
+    siblingViolations(
+      'bulma-ui',
+      {
+        name: '@allxsmith/bestax-bulma',
+        peerDependencies: { 'bestax-mcp': '^1' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a devDependencies sibling stays legal — it reaches no consumer', () => {
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      {
+        name: 'bestax-migrate',
+        devDependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a private package may depend on any sibling it likes', () => {
+  // docs really does dep the library; nobody installs docs from a registry.
+  assert.deepEqual(
+    siblingViolations(
+      'docs',
+      {
+        name: '@allxsmith/bestax-docs',
+        private: true,
+        dependencies: { '@allxsmith/bestax-bulma': 'workspace:*' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test("a non-sibling dependency is still nobody's business", () => {
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      { name: 'bestax-migrate', dependencies: { bulma: '^1.0.4' } },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('an npm alias pointing at a sibling is still a sibling', () => {
+  // `"ui": "npm:@allxsmith/bestax-bulma@^5"` installs the sibling under
+  // another key, so a key-only comparison was bypassable by renaming —
+  // review caught the hole. The message names both the target and the alias.
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { ui: 'npm:@allxsmith/bestax-bulma@^5' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /@allxsmith\/bestax-bulma/);
+  assert.match(v[0], /aliased as "ui"/);
+});
+
+test('a private sibling is not offered the peerDependency escape', () => {
+  // docs is unpublishable, so "make it a peerDependency" would leave every
+  // consumer unable to install. The advice must not name an impossible fix.
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-docs': 'workspace:*' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /private and unpublishable/);
+  assert.doesNotMatch(v[0], /make it a peerDependency/);
+});
+
+test('one violation, one fix: the sibling rule owns a workspace: sibling dep', () => {
+  // Before the dedupe, a `workspace:^` sibling in dependencies drew BOTH the
+  // protocol rule (pin a range) and the sibling rule (move to devDependencies)
+  // — contradictory advice for one defect (#546 review). The sibling rule's
+  // fix is the correct one, so the protocol rule stands down by name; a
+  // `catalog:` entry pointing at an EXTERNAL package is no sibling and stays
+  // protocol-flagged.
+  const siblings = new Map([['@allxsmith/bestax-bulma', { private: false }]]);
+  const pkg = {
+    name: 'bestax-migrate',
+    dependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+  };
+  const protocol = manifestViolations('bestax-migrate', pkg, siblings).filter(
+    v => v.includes('bestax-bulma')
+  );
+  const sibling = siblingViolations('bestax-migrate', pkg, siblings);
+  assert.equal(protocol.length, 0);
+  assert.equal(sibling.length, 1);
+  assert.match(sibling[0], /Move it to devDependencies/);
+
+  const external = manifestViolations(
+    'x',
+    { name: 'x', dependencies: { leftpad: 'catalog:' } },
+    siblings
+  );
+  assert.ok(external.some(v => v.includes('leftpad')));
 });

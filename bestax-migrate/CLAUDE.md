@@ -94,13 +94,15 @@ to how packing works: `pnpm -C bestax-migrate pack`.
 
 `@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
 typecheck target for the e2e, never imported at runtime, and consumers of a
-codemod CLI must not be made to install the component library. That is a policy
-rule, not a protocol one, and the conformance check enforces only part of it.
-The pack-time exemption this package gets is narrow: `workspace:`/`catalog:` in
-**devDependencies** only. Moving the library to `dependencies` as `workspace:^`
-is flagged (consumers would be made to install it), but re-adding it as a
-**plain semver range** still passes CI, because that is a policy question rather
-than a protocol one. That one is on review.
+codemod CLI must not be made to install the component library. Both halves of
+that are now enforced by `publishable-manifests` (#537): the protocol rule
+flags `workspace:^` in a consumer section, and the sibling rule flags a
+workspace package name in `dependencies`/`optionalDependencies` **whatever
+the specifier says** — so the plain-semver spelling that used to pass on
+review attention alone fails CI with the move-it-back fix named. One
+appearance that is NOT a counterexample: the e2e asserts the **migrated
+app's** manifest depends on the library (`e2e/kitchen-sink.test.ts`) — that
+is the codemod's output, which should depend on it, and no check reads it.
 
 The skill lives at repo-root
 `skills/bestax-migrate/`. It **is** bundled into create-bestax (settled in #385): the
