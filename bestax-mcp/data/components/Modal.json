@@ -324,121 +324,121 @@
       "css": "--bulma-modal-z",
       "sass": "$modal-z",
       "default": "40",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-background-background-color",
       "sass": "$modal-background-background-color",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.86)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-content-width",
       "sass": "$modal-content-width",
       "default": "40rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-content-margin-mobile",
       "sass": "$modal-content-margin-mobile",
       "default": "1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-content-spacing-mobile",
       "sass": "$modal-content-spacing-mobile",
       "default": "10rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-content-spacing-tablet",
       "sass": "$modal-content-spacing-tablet",
       "default": "2.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-close-dimensions",
       "sass": "$modal-close-dimensions",
       "default": "2.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-close-right",
       "sass": "$modal-close-right",
       "default": "1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-close-top",
       "sass": "$modal-close-top",
       "default": "1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-spacing",
       "sass": "$modal-card-spacing",
       "default": "2.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-head-background-color",
       "sass": "$modal-card-head-background-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-head-padding",
       "sass": "$modal-card-head-padding",
       "default": "2rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-head-radius",
       "sass": "$modal-card-head-radius",
       "default": "var(--bulma-radius-large)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-title-color",
       "sass": "$modal-card-title-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-title-line-height",
       "sass": "$modal-card-title-line-height",
       "default": "1",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-title-size",
       "sass": "$modal-card-title-size",
       "default": "var(--bulma-size-4)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-foot-background-color",
       "sass": "$modal-card-foot-background-color",
       "default": "var(--bulma-scheme-main-bis)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-foot-radius",
       "sass": "$modal-card-foot-radius",
       "default": "var(--bulma-radius-large)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-body-background-color",
       "sass": "$modal-card-body-background-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-modal-card-body-padding",
       "sass": "$modal-card-body-padding",
       "default": "2rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

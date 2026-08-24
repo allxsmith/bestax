@@ -123,43 +123,43 @@
       "css": "--bulma-notification-h",
       "sass": null,
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-notification-s",
       "sass": null,
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-notification-background-l",
       "sass": null,
       "default": "var(--bulma-background-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-notification-color-l",
       "sass": null,
       "default": "var(--bulma-text-strong-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-notification-code-background-color",
       "sass": "$notification-code-background-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-notification-radius",
       "sass": "$notification-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-notification-padding",
       "sass": "$notification-padding",
       "default": "1.375em 1.5em",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

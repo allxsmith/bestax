@@ -110,67 +110,67 @@
       "css": "--bulma-checkbox-size",
       "sass": "$checkbox-size",
       "default": "1.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-border-width",
       "sass": "$checkbox-border-width",
       "default": "2px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-radius",
       "sass": "$checkbox-radius",
       "default": "var(--bulma-radius-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-border-color",
       "sass": "$checkbox-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-background",
       "sass": "$checkbox-background",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-check-color",
       "sass": "$checkbox-check-color",
       "default": "var(--bulma-scheme-invert)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-active-color",
       "sass": "$checkbox-active-color",
       "default": "var(--bulma-primary)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-label-gap",
       "sass": "$checkbox-label-gap",
       "default": "0.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-focus-shadow-size",
       "sass": "$checkbox-focus-shadow-size",
       "default": "0 0 0 0.125em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-transition-duration",
       "sass": "$checkbox-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-checkbox-indeterminate-color",
       "sass": "$checkbox-indeterminate-color",
       "default": "var(--bulma-primary)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

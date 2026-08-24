@@ -533,7 +533,7 @@
       "css": "--bulma-block-spacing",
       "sass": null,
       "default": "var(--bulma-field-block-spacing)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

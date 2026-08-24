@@ -326,7 +326,7 @@
       "css": "--bulma-level-item-spacing",
       "sass": "$level-item-spacing",
       "default": "calc(var(--bulma-block-spacing) * 0.5)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

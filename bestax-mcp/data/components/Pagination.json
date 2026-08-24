@@ -379,241 +379,241 @@
       "css": "--bulma-pagination-margin",
       "sass": "$pagination-margin",
       "default": "-0.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-min-width",
       "sass": "$pagination-min-width",
       "default": "var(--bulma-control-height)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-h",
       "sass": "$pagination-item-h",
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-s",
       "sass": "$pagination-item-s",
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-l",
       "sass": "$pagination-item-l",
       "default": "var(--bulma-scheme-main-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-background-l-delta",
       "sass": "$pagination-item-background-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-hover-background-l-delta",
       "sass": "$pagination-item-hover-background-l-delta",
       "default": "var(--bulma-hover-background-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-active-background-l-delta",
       "sass": "$pagination-item-active-background-l-delta",
       "default": "var(--bulma-active-background-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-border-style",
       "sass": "$pagination-item-border-style",
       "default": "solid",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-border-width",
       "sass": "$pagination-item-border-width",
       "default": "var(--bulma-control-border-width)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-border-l",
       "sass": "$pagination-item-border-l",
       "default": "var(--bulma-border-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-border-l-delta",
       "sass": "$pagination-item-border-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-hover-border-l-delta",
       "sass": "$pagination-item-hover-border-l-delta",
       "default": "var(--bulma-hover-border-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-active-border-l-delta",
       "sass": "$pagination-item-active-border-l-delta",
       "default": "var(--bulma-active-border-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-focus-border-l-delta",
       "sass": "$pagination-item-focus-border-l-delta",
       "default": "var(--bulma-focus-border-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-color-l",
       "sass": "$pagination-item-color-l",
       "default": "var(--bulma-text-strong-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-font-size",
       "sass": "$pagination-item-font-size",
       "default": "1em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-margin",
       "sass": "$pagination-item-margin",
       "default": "0.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-padding-left",
       "sass": "$pagination-item-padding-left",
       "default": "0.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-padding-right",
       "sass": "$pagination-item-padding-right",
       "default": "0.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-outer-shadow-h",
       "sass": "$pagination-item-outer-shadow-h",
       "default": "0",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-outer-shadow-s",
       "sass": "$pagination-item-outer-shadow-s",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-outer-shadow-l",
       "sass": "$pagination-item-outer-shadow-l",
       "default": "20%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-item-outer-shadow-a",
       "sass": "$pagination-item-outer-shadow-a",
       "default": "0.05",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-nav-padding-left",
       "sass": "$pagination-nav-padding-left",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-nav-padding-right",
       "sass": "$pagination-nav-padding-right",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-disabled-color",
       "sass": "$pagination-disabled-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-disabled-background-color",
       "sass": "$pagination-disabled-background-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-disabled-border-color",
       "sass": "$pagination-disabled-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-current-color",
       "sass": "$pagination-current-color",
       "default": "var(--bulma-link-invert)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-current-background-color",
       "sass": "$pagination-current-background-color",
       "default": "var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-current-border-color",
       "sass": "$pagination-current-border-color",
       "default": "var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-ellipsis-color",
       "sass": "$pagination-ellipsis-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-shadow-inset",
       "sass": "$pagination-shadow-inset",
       "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.2)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-selected-item-h",
       "sass": "$pagination-selected-item-h",
       "default": "var(--bulma-link-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-selected-item-s",
       "sass": "$pagination-selected-item-s",
       "default": "var(--bulma-link-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-selected-item-l",
       "sass": "$pagination-selected-item-l",
       "default": "var(--bulma-link-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-selected-item-background-l",
       "sass": "$pagination-selected-item-background-l",
       "default": "var(--bulma-link-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-selected-item-border-l",
       "sass": "$pagination-selected-item-border-l",
       "default": "var(--bulma-link-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-pagination-selected-item-color-l",
       "sass": "$pagination-selected-item-color-l",
       "default": "var(--bulma-link-invert-l)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

@@ -179,139 +179,139 @@
       "css": "--bulma-menu-item-h",
       "sass": "$menu-item-h",
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-s",
       "sass": "$menu-item-s",
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-l",
       "sass": "$menu-item-l",
       "default": "var(--bulma-scheme-main-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-background-l",
       "sass": "$menu-item-background-l",
       "default": "var(--bulma-scheme-main-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-background-l-delta",
       "sass": "$menu-item-background-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-hover-background-l-delta",
       "sass": "$menu-item-hover-background-l-delta",
       "default": "var(--bulma-hover-background-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-active-background-l-delta",
       "sass": "$menu-item-active-background-l-delta",
       "default": "var(--bulma-active-background-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-color-l",
       "sass": "$menu-item-color-l",
       "default": "var(--bulma-text-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-radius",
       "sass": "$menu-item-radius",
       "default": "var(--bulma-radius-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-selected-h",
       "sass": "$menu-item-selected-h",
       "default": "var(--bulma-link-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-selected-s",
       "sass": "$menu-item-selected-s",
       "default": "var(--bulma-link-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-selected-l",
       "sass": "$menu-item-selected-l",
       "default": "var(--bulma-link-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-selected-background-l",
       "sass": "$menu-item-selected-background-l",
       "default": "var(--bulma-link-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-item-selected-color-l",
       "sass": "$menu-item-selected-color-l",
       "default": "var(--bulma-link-invert-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-list-border-left",
       "sass": "$menu-list-border-left",
       "default": "1px solid var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-list-line-height",
       "sass": "$menu-list-line-height",
       "default": "1.25",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-list-link-padding",
       "sass": "$menu-list-link-padding",
       "default": "0.5em 0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-nested-list-margin",
       "sass": "$menu-nested-list-margin",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-nested-list-padding-left",
       "sass": "$menu-nested-list-padding-left",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-label-color",
       "sass": "$menu-label-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-label-font-size",
       "sass": "$menu-label-font-size",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-label-letter-spacing",
       "sass": "$menu-label-letter-spacing",
       "default": "0.1em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-menu-label-spacing",
       "sass": "$menu-label-spacing",
       "default": "1em",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

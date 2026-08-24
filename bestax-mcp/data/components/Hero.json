@@ -292,49 +292,49 @@
       "css": "--bulma-hero-body-padding",
       "sass": "$hero-body-padding",
       "default": "3rem 1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-body-padding-tablet",
       "sass": "$hero-body-padding-tablet",
       "default": "3rem 3rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-body-padding-small",
       "sass": "$hero-body-padding-small",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-body-padding-medium",
       "sass": "$hero-body-padding-medium",
       "default": "9rem 4.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-body-padding-large",
       "sass": "$hero-body-padding-large",
       "default": "18rem 6rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-gradient-h-offset",
       "sass": "$hero-gradient-h-offset",
       "default": "5deg",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-gradient-s-offset",
       "sass": "$hero-gradient-s-offset",
       "default": "10%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-hero-gradient-l-offset",
       "sass": "$hero-gradient-l-offset",
       "default": "5%",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

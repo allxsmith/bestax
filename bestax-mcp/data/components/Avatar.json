@@ -190,31 +190,31 @@
       "css": "--bulma-avatar-size",
       "sass": "$avatar-size",
       "default": "48px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-avatar-background",
       "sass": "$avatar-background",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-avatar-color",
       "sass": "$avatar-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-avatar-weight",
       "sass": "$avatar-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-avatar-rounded-radius",
       "sass": "$avatar-rounded-radius",
       "default": "var(--bulma-radius-large)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

@@ -126,7 +126,7 @@ test('CSS variables are indexed back to their component', () => {
   assert.equal(catalog.cssVarIndex['--bulma-button-h'], 'Button');
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
-    assert.ok(['component', 'global'].includes(v.scope));
+    assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
   }
 });
 

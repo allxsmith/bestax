@@ -258,25 +258,25 @@
       "css": "--bulma-link-button-underline-offset",
       "sass": "$link-button-underline-offset",
       "default": "0.2em",
-      "scope": "component"
+      "scope": "compound"
     },
     {
       "css": "--bulma-link-button-transition-duration",
       "sass": "$link-button-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "compound"
     },
     {
       "css": "--bulma-link-button-ghost-color",
       "sass": "$link-button-ghost-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "compound"
     },
     {
       "css": "--bulma-link-button-ghost-hover-color",
       "sass": "$link-button-ghost-hover-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "compound"
     }
   ]
 }

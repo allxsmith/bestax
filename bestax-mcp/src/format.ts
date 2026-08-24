@@ -200,15 +200,41 @@ export function renderCssVars(vars: CssVar[]): string {
     ])
   );
   // Where Bulma declares the default decides where an override has to go, and
-  // getting that wrong is the single most common theming failure.
+  // getting that wrong is the single most common theming failure — including
+  // by this function: collapsing compound-declared variables into the
+  // override-via-className advice re-created #464 on the MCP surface.
   const scopes = new Set(vars.map(v => v.scope));
-  const note = scopes.has('component')
-    ? "Variables scoped `component` are declared on the component's own element — " +
-      'override them there or via `className`; a value set on an ancestor is only ' +
-      'inherited and loses to the component-level declaration.'
-    : 'These are declared globally, so overriding them on `:root` (or with the ' +
-      '`Theme` component) retheme every instance.';
-  return `${body}\n\n${note}`;
+  const notes: string[] = [];
+  if (scopes.has('root')) {
+    notes.push(
+      "Variables scoped `root` are declared on the component's own element — " +
+        'override them there or via `className`; a value set on an ancestor ' +
+        'is only inherited and loses to the component-level declaration.'
+    );
+  }
+  if (scopes.has('compound')) {
+    notes.push(
+      'Variables scoped `compound` are declared on a compound selector ' +
+        '(higher specificity than a single class): a lone class added via ' +
+        '`className` loses — override with inline `style`, or a selector ' +
+        'that matches or exceeds that specificity.'
+    );
+  }
+  if (scopes.has('element')) {
+    notes.push(
+      'Variables scoped `element` are declared on a constituent element ' +
+        '(e.g. `.tooltip-content`): values set via `className`, the `style` ' +
+        'prop, or an ancestor are only inherited and lose — target the ' +
+        'declaring element in your CSS.'
+    );
+  }
+  if (scopes.has('global')) {
+    notes.push(
+      'Variables scoped `global` are declared on `:root` — override them ' +
+        'there (or with the `Theme` component) to retheme every instance.'
+    );
+  }
+  return `${body}\n\n${notes.join('\n\n')}`;
 }
 
 export function renderCatalog(entries: CatalogEntry[]): string {
