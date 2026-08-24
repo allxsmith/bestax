@@ -217,7 +217,8 @@ export function renderCssVars(vars: CssVar[]): string {
       'Variables scoped `compound` are declared on a compound selector ' +
         '(higher specificity than a single class): a lone class added via ' +
         '`className` loses — override with inline `style`, or a selector ' +
-        'that matches or exceeds that specificity.'
+        'that exceeds that specificity (one that only matches it must ' +
+        'load after the library styles to win by source order).'
     );
   }
   if (scopes.has('element')) {
