@@ -23,6 +23,7 @@ import {
   hookScripts,
   manifestViolations,
   parseWorkspacePackages,
+  siblingViolations,
 } from './check-conformance.mjs';
 import {
   execOptions,
@@ -49,12 +50,13 @@ const DECLARED = new Set(
     .filter(Boolean)
 );
 
-// parseWorkspacePackages returns each `packages:` entry as literal text, so a
-// glob like `packages/*` comes back unexpanded. Swallowing that would quietly
-// shrink PUBLISHABLE, and PUBLISHABLE is what the declaration is compared
-// against — the "a new package must be declared" guarantee would stop holding
-// for everything under the glob while this file stayed green. So an entry whose
-// manifest cannot be read is a failure, not a filtered-out row.
+// A glob now throws inside parseWorkspacePackages itself (#438), so the case
+// this filter fences is the remaining one: a listed directory whose manifest
+// cannot be read (deleted, moved, or misspelled). Swallowing that would
+// quietly shrink PUBLISHABLE, and PUBLISHABLE is what the declaration is
+// compared against — the "a new package must be declared" guarantee would
+// stop holding while this file stayed green. So an unreadable manifest is a
+// failure, not a filtered-out row.
 const PUBLISHABLE = parseWorkspacePackages(
   repoFile('pnpm-workspace.yaml')
 ).filter(dir => {
@@ -64,8 +66,7 @@ const PUBLISHABLE = parseWorkspacePackages(
   } catch {
     throw new Error(
       `pnpm-workspace.yaml lists "${dir}", which has no readable package.json. ` +
-        'If that is a glob, parseWorkspacePackages does not expand it and every ' +
-        'package under it is silently exempt from the checks in this file.'
+        'Every check in this file silently exempts a package it cannot read.'
     );
   }
   return !JSON.parse(manifest).private;
@@ -213,6 +214,90 @@ test('the release stays on a single branch, or the dist-tag needs revisiting', a
   for (const dir of DECLARED) {
     assert.deepEqual(await releaseBranches(dir), ['main'], dir);
   }
+});
+
+// --- the workspace parser (#438) ------------------------------------------
+
+test('an inline comment ends the entry, not the block', () => {
+  // The old parser required end-of-line after the token, so a commented entry
+  // fell into the terminator branch and every entry after it silently
+  // vanished — the direction that mattered, because each check walking the
+  // list quietly lost coverage for whatever fell off it.
+  assert.deepEqual(
+    parseWorkspacePackages(
+      'packages:\n  - bulma-ui\n  - create-bestax # scaffolder\n  - bestax-migrate\n'
+    ),
+    ['bulma-ui', 'create-bestax', 'bestax-migrate']
+  );
+});
+
+test('a hash inside a token is a scalar, not a comment', () => {
+  // YAML only starts a comment after whitespace; stripping every `#` would
+  // mis-parse `a#b` as `a`, which is the same silent-wrong-answer class.
+  assert.deepEqual(parseWorkspacePackages('packages:\n  - a#b\n'), ['a#b']);
+});
+
+test('a glob entry throws naming the limitation', () => {
+  // Nothing expands globs here, so returning it as literal text sent the
+  // failure two calls downstream as a confusing unreadable-manifest error.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - packages/*\n'),
+    /glob.*List each directory explicitly/s
+  );
+});
+
+test('a flow sequence throws instead of parsing as nothing', () => {
+  // `packages: [a, b]` used to return [] and surface as the vaguer "no
+  // packages: entries" guard, two calls from the cause.
+  assert.throws(
+    () => parseWorkspacePackages('packages: [a, b]\n'),
+    /flow sequence/
+  );
+});
+
+test('a quoted scalar hiding a comment throws instead of misparsing', () => {
+  // `- "docs # archive"` is one scalar in YAML, but the comment strip cannot
+  // know it is inside quotes; it used to come back as `docs` — the wrong
+  // directory, inspected with confidence. The mutilated token it leaves
+  // behind (an opening quote with no closer) is the fingerprint the parser
+  // now throws on. Each delimiter is validated independently (#545 review):
+  // the valid `- "foo's"` parses, and the malformed `- "foo'` throws rather
+  // than shedding both mismatched quotes.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - "docs # archive"\n'),
+    /quoted scalar|stray quote/
+  );
+  assert.deepEqual(parseWorkspacePackages(`packages:\n  - "foo's"\n`), [
+    "foo's",
+  ]);
+  assert.throws(
+    () => parseWorkspacePackages(`packages:\n  - "foo'\n`),
+    /quoted scalar/
+  );
+});
+
+test('an unreadable sequence entry throws instead of truncating', () => {
+  // `- &core bulma-ui` is valid YAML this parser cannot read. Breaking there
+  // would silently drop the entry AND everything after it — the fail-open
+  // truncation #438 exists to end — so any dash line that fails the match
+  // throws, and only a dedented line ends the block.
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - &core bulma-ui\n  - docs\n'),
+    /cannot parse the entry/
+  );
+  assert.throws(
+    () => parseWorkspacePackages('packages:\n  - "foo bar"\n'),
+    /cannot parse the entry/
+  );
+});
+
+test('quotes, blank lines, and comment lines still parse as before', () => {
+  assert.deepEqual(
+    parseWorkspacePackages(
+      'packages:\n  - \'bulma-ui\'\n\n  # a note\n  - "docs"\nminimumReleaseAge: 1\n'
+    ),
+    ['bulma-ui', 'docs']
+  );
 });
 
 // --- the rule ----------------------------------------------------------------
@@ -618,4 +703,161 @@ test('an unresolvable protocol in devDependencies is explained honestly', () => 
   assert.match(v, /consumers do not resolve devDependencies/);
   assert.doesNotMatch(v, /no consumer can resolve it/);
   assert.doesNotMatch(v, /plain semver range/);
+});
+
+// --- the sibling-at-runtime rule (#537) --------------------------------------
+//
+// Driven with an explicit name set because the rule is pure and the real set
+// is derived inside the async walk. No published package carries a sibling in
+// a consumer section today, so none of these branches executes on the real
+// tree — the same seam rationale as everything above.
+
+const SIBLINGS = new Map([
+  ['@allxsmith/bestax-bulma', { private: false }],
+  ['create-bestax', { private: false }],
+  ['bestax-migrate', { private: false }],
+  ['bestax-mcp', { private: false }],
+  ['@allxsmith/bestax-docs', { private: true }],
+]);
+
+test('a plain-semver sibling in dependencies is flagged, whatever the range', () => {
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-bulma': '^5' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /consumers of bestax-migrate/);
+  assert.match(v[0], /#537/);
+});
+
+test('an optionalDependencies sibling is flagged the same way', () => {
+  const v = siblingViolations(
+    'bestax-mcp',
+    { name: 'bestax-mcp', optionalDependencies: { 'create-bestax': '^4' } },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1);
+});
+
+test('a peer sibling is outside this rule, deliberately', () => {
+  // A departure from the protocol rule, which does fire on a workspace: peer:
+  // peers are the one section where "consumers install this" is the intended
+  // semantic. The protocol rule still polices HOW a peer is spelled.
+  assert.deepEqual(
+    siblingViolations(
+      'bulma-ui',
+      {
+        name: '@allxsmith/bestax-bulma',
+        peerDependencies: { 'bestax-mcp': '^1' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a devDependencies sibling stays legal — it reaches no consumer', () => {
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      {
+        name: 'bestax-migrate',
+        devDependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a private package may depend on any sibling it likes', () => {
+  // docs really does dep the library; nobody installs docs from a registry.
+  assert.deepEqual(
+    siblingViolations(
+      'docs',
+      {
+        name: '@allxsmith/bestax-docs',
+        private: true,
+        dependencies: { '@allxsmith/bestax-bulma': 'workspace:*' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test("a non-sibling dependency is still nobody's business", () => {
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      { name: 'bestax-migrate', dependencies: { bulma: '^1.0.4' } },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('an npm alias pointing at a sibling is still a sibling', () => {
+  // `"ui": "npm:@allxsmith/bestax-bulma@^5"` installs the sibling under
+  // another key, so a key-only comparison was bypassable by renaming —
+  // review caught the hole. The message names both the target and the alias.
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { ui: 'npm:@allxsmith/bestax-bulma@^5' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /@allxsmith\/bestax-bulma/);
+  assert.match(v[0], /aliased as "ui"/);
+});
+
+test('a private sibling is not offered the peerDependency escape', () => {
+  // docs is unpublishable, so "make it a peerDependency" would leave every
+  // consumer unable to install. The advice must not name an impossible fix.
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-docs': 'workspace:*' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /private and unpublishable/);
+  assert.doesNotMatch(v[0], /make it a peerDependency/);
+});
+
+test('one violation, one fix: the sibling rule owns a workspace: sibling dep', () => {
+  // Before the dedupe, a `workspace:^` sibling in dependencies drew BOTH the
+  // protocol rule (pin a range) and the sibling rule (move to devDependencies)
+  // — contradictory advice for one defect (#546 review). The sibling rule's
+  // fix is the correct one, so the protocol rule stands down by name; a
+  // `catalog:` entry pointing at an EXTERNAL package is no sibling and stays
+  // protocol-flagged.
+  const siblings = new Map([['@allxsmith/bestax-bulma', { private: false }]]);
+  const pkg = {
+    name: 'bestax-migrate',
+    dependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+  };
+  const protocol = manifestViolations('bestax-migrate', pkg, siblings).filter(
+    v => v.includes('bestax-bulma')
+  );
+  const sibling = siblingViolations('bestax-migrate', pkg, siblings);
+  assert.equal(protocol.length, 0);
+  assert.equal(sibling.length, 1);
+  assert.match(sibling[0], /Move it to devDependencies/);
+
+  const external = manifestViolations(
+    'x',
+    { name: 'x', dependencies: { leftpad: 'catalog:' } },
+    siblings
+  );
+  assert.ok(external.some(v => v.includes('leftpad')));
 });

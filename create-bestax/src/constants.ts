@@ -39,6 +39,17 @@ export const MESSAGES = {
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
+  TELEMETRY_NOTICE:
+    'Help improve bestax — share anonymous usage stats?\n' +
+    'Sends only the options you chose (template, Bulma flavor, icon library,\n' +
+    'skills, package manager) plus CLI version, Node major, and OS name.\n' +
+    'Never your name, paths, project names, or any personal data.\n' +
+    '  Details & opt-out: https://bestax.io/docs/guides/telemetry\n' +
+    '  Feedback welcome:  https://github.com/allxsmith/bestax/issues',
+  TELEMETRY_ACK_ON: 'Thanks! Opt out anytime with --no-telemetry.',
+  TELEMETRY_ACK_OFF: "No problem — we won't ask again.",
+  TELEMETRY_ACK_UNSAVED:
+    "Couldn't save your choice (config dir not writable) — you may be asked again.",
 } as const;
 
 // Dev-server manifest written into .claude/ with the skills opt-in so Claude
@@ -72,6 +83,7 @@ export const PROMPTS = {
   SELECT_BULMA_FLAVOR: 'Which Bulma CSS flavor would you like to use?',
   INSTALL_SKILLS:
     'Install the bestax AI skills (.claude/skills) for Claude Code and other agents?',
+  TELEMETRY_CONSENT: 'Share anonymous usage stats?',
 } as const;
 
 // Icon libraries that require a `ConfigProvider iconLibrary` wrapper, mapped

@@ -778,8 +778,10 @@ export async function createServer(
 
   // -- Prompts, one per skill ----------------------------------------------
   //
-  // Generated from the manifest, never listed here. skills/CLAUDE.md counts the
-  // roster as already duplicated in five places; this would have been a sixth.
+  // Generated from the manifest, never listed here. The roster is derived, not
+  // hand-listed (#540); the prose copies that cannot be derived are held to the
+  // directory by the skills-roster conformance check (`pnpm check:conformance
+  // --only=skills-roster`). A list here would be one more copy for it to chase.
   for (const skill of skills) {
     server.registerPrompt(
       skill.promptName,

@@ -14,6 +14,9 @@ export default {
     '!src/**/__tests__/**',
     '!src/**/__testfixtures__/**',
     '!src/index.ts', // bin entry — exercised via the e2e/CLI tests, not unit-covered
+    // Byte-identical to create-bestax; covered there. Drift fails
+    // `check:conformance --only=telemetry-core`.
+    '!src/telemetry-core.ts',
   ],
   coverageThreshold: {
     global: {

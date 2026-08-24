@@ -42,6 +42,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 import { sectionSpans, sectionBody, firstSentence } from './lib/api-page.mjs';
+import { readSkillNames } from './lib/skills.mjs';
 import { extractComponent } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
@@ -317,12 +318,15 @@ function propRow(r) {
 
 // ---------------------------------------------------------------------------
 
-/** The skills roster, READ from the directory — never a hardcoded list. */
+/**
+ * The skills roster, READ from the directory — never a hardcoded list. The
+ * predicate (a directory holding a SKILL.md) lives in scripts/lib/skills.mjs,
+ * shared with both sync scripts and check-conformance.
+ */
 async function readSkills() {
   const out = [];
-  for (const name of await subdirs(SKILLS_DIR)) {
+  for (const name of await readSkillNames(SKILLS_DIR)) {
     const skillFile = join(SKILLS_DIR, name, 'SKILL.md');
-    if (!existsSync(skillFile)) continue;
     const src = await readFile(skillFile, 'utf8');
     const fm = frontmatter(src);
     const listing = async sub => {

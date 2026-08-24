@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "webworker"],
+    "types": [],
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  // Tests run under `node --test` (type stripping) and import node:test, whose
+  // types aren't resolvable here (no @types/node with types: []) — src only.
+  "exclude": ["src/__tests__"]
+}
