@@ -4,6 +4,7 @@ packages:
   - create-bestax
   - bestax-migrate
   - bestax-mcp
+  - telemetry-worker
 
 # --- Supply-chain hardening ---
 

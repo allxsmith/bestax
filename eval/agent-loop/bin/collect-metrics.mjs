@@ -254,7 +254,19 @@ if (transcriptPath && existsSync(transcriptPath)) {
         for (const m of inputStr.matchAll(
           /https?:\/\/[^"\\\s]*bestax\.io[^"\\\s]*/g
         ))
-          docsUrls.add(m[0]);
+          // The MCP server tags the links it prints with utm_source=bestax-mcp
+          // (passive attribution). Strip it here so the tagged and bare forms
+          // of one page count once, keeping docs_fetches comparable across
+          // guidance channels instead of double-counting the MCP one. Two
+          // cases, because attributed() supports fragments: mid-query the
+          // param yields its delimiter to the next param; as the last param
+          // its own leading ?/& goes too, whether the URL ends there or a
+          // #fragment follows (the old end-anchored cleanup left '?#').
+          docsUrls.add(
+            m[0]
+              .replace(/([?&])utm_source=bestax-mcp&/, '$1')
+              .replace(/[?&]utm_source=bestax-mcp(?=#|$)/, '')
+          );
       }
     }
   }

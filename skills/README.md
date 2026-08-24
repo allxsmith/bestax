@@ -43,6 +43,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 
 ## Layout
 
+<!-- skills-roster:tree -->
+
 ```
 skills/
   bestax-custom-component/

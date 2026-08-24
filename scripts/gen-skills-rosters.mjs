@@ -33,13 +33,13 @@
  * quietly emits nothing while every gate stays green is the failure mode that
  * hid LinkButton's CSS variables for months (#464).
  */
-import { readFile, writeFile, readdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 import { readRegions, replaceRegion } from './lib/api-page.mjs';
+import { readSkillNames } from './lib/skills.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -59,24 +59,9 @@ export const TARGETS = [
   { file: 'docs/docs/guides/llms/index.md', fence: 'bash' },
 ];
 
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-
-/**
- * The roster, READ from the directory — never a hardcoded list. Local rather
- * than imported from check-conformance.mjs, which exports the same predicate:
- * the conformance check imports THIS module for the staleness comparison, and
- * importing back would make the two files a cycle. gen-mcp-index.mjs keeps
- * its own reader for the same reason.
- */
-export async function readSkillNames(dir = join(REPO, 'skills')) {
-  const names = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    if (!existsSync(join(dir, entry.name, 'SKILL.md'))) continue;
-    names.push(entry.name);
-  }
-  return names.sort(byCodePoint);
-}
+// The roster reader lives in scripts/lib/skills.mjs — the one predicate all
+// consumers share (the local-copy-to-avoid-a-cycle rationale predates the
+// lib; a lib import cannot cycle with check-conformance).
 
 /**
  * The region body: the fenced block, one install line per skill,
@@ -98,7 +83,7 @@ export function renderInstallBlock(skills, fence) {
 }
 
 export async function main() {
-  const skills = await readSkillNames();
+  const skills = await readSkillNames(join(REPO, 'skills'));
   if (!skills.length) {
     throw new Error('no skill directories with a SKILL.md found under skills/');
   }
