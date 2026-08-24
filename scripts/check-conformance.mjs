@@ -1482,17 +1482,35 @@ export function parseWorkspacePackages(yaml) {
     const item = line.replace(/\s#.*$/, '').match(/^\s+-\s*(\S+)\s*$/);
     if (item) {
       // ` #` inside a QUOTED scalar is data, and the strip above cannot know
-      // that. It leaves an unbalanced quote behind (`- "docs # archive"`
+      // that: it leaves a mutilated token behind (`- "docs # archive"`
       // becomes `"docs`), which used to be silently returned as `docs` — the
-      // wrong directory, inspected with confidence. An odd quote count is
-      // that mutilation's fingerprint, so it throws instead.
-      if ((item[1].split('"').length + item[1].split("'").length) % 2 === 1) {
+      // wrong directory, inspected with confidence. Each delimiter is
+      // validated independently (#545 review): a combined quote-count parity
+      // check both rejected the valid `- "foo's"` and accepted the malformed
+      // `- "foo'` as `foo`.
+      let entry = item[1];
+      const quote = entry[0] === '"' || entry[0] === "'" ? entry[0] : null;
+      if (quote) {
+        if (
+          entry.length < 2 ||
+          entry[entry.length - 1] !== quote ||
+          entry.slice(1, -1).includes(quote)
+        ) {
+          throw new Error(
+            `pnpm-workspace.yaml: cannot parse the entry ${line.trim()} — a ` +
+              'quoted scalar must open and close with the same quote, with ' +
+              'none of that quote inside. Use a bare directory name.'
+          );
+        }
+        entry = entry.slice(1, -1);
+      } else if (entry.includes('"') || entry.includes("'")) {
+        // A quote mid-token in an unquoted scalar is the comment-strip
+        // fingerprint, or a shape this parser does not read.
         throw new Error(
-          `pnpm-workspace.yaml: ${line.trim()} mixes quotes and comments in ` +
-            'a way this parser cannot represent. Use a bare directory name.'
+          `pnpm-workspace.yaml: cannot parse the entry ${line.trim()} — ` +
+            'stray quote in an unquoted scalar. Use a bare directory name.'
         );
       }
-      const entry = item[1].replace(/^['"]|['"]$/g, '');
       if (/[*?[\]]/.test(entry)) {
         // A glob is a real pnpm feature this repo deliberately does not use:
         // nothing here expands it, so every package under it would silently

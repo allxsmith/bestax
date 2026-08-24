@@ -258,11 +258,21 @@ test('a flow sequence throws instead of parsing as nothing', () => {
 test('a quoted scalar hiding a comment throws instead of misparsing', () => {
   // `- "docs # archive"` is one scalar in YAML, but the comment strip cannot
   // know it is inside quotes; it used to come back as `docs` — the wrong
-  // directory, inspected with confidence. The unbalanced quote it leaves
-  // behind is the fingerprint the parser now throws on.
+  // directory, inspected with confidence. The mutilated token it leaves
+  // behind (an opening quote with no closer) is the fingerprint the parser
+  // now throws on. Each delimiter is validated independently (#545 review):
+  // the valid `- "foo's"` parses, and the malformed `- "foo'` throws rather
+  // than shedding both mismatched quotes.
   assert.throws(
     () => parseWorkspacePackages('packages:\n  - "docs # archive"\n'),
-    /mixes quotes and comments/
+    /quoted scalar|stray quote/
+  );
+  assert.deepEqual(parseWorkspacePackages(`packages:\n  - "foo's"\n`), [
+    "foo's",
+  ]);
+  assert.throws(
+    () => parseWorkspacePackages(`packages:\n  - "foo'\n`),
+    /quoted scalar/
   );
 });
 
