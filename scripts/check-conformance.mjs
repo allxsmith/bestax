@@ -85,6 +85,11 @@ import {
 } from './lib/skills.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
+  REGION_ID as SKILLS_INSTALL_REGION,
+  TARGETS as SKILLS_INSTALL_TARGETS,
+  renderInstallBlock,
+} from './gen-skills-rosters.mjs';
+import {
   ORDERED_CATEGORIES,
   MANAGED_CATEGORIES,
   GENERATED_EXEMPT,
@@ -1096,8 +1101,9 @@ export function releaseDocViolations(docs, packages) {
       'No publishable packages were found, so the release-docs checks that ' +
         'derive their package list would pass without asserting anything. ' +
         'That usually means pnpm-workspace.yaml changed shape — ' +
-        'parseWorkspacePackages reads a block list of plain entries, not a ' +
-        'flow sequence or a glob (#536).',
+        'A flow sequence or a glob now throws in parseWorkspacePackages ' +
+        'itself (#438), so reaching this means the block list is empty or ' +
+        'every entry is private (#536).',
     ];
   }
 
@@ -1437,18 +1443,97 @@ async function checkInlineStyle(updateBaseline) {
 // The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
 // other keys in the file (minimumReleaseAgeExclude, publicHoistPattern) are
 // lists too, so scanning the whole file for `- item` would pick them up.
+//
+// Still a hand parser, on purpose (#438 weighed the alternatives): the repo
+// declares no YAML dependency anywhere, and bypass-annotations.mjs records the
+// house position that adding one to police this file would itself be subject
+// to the cooldown the file configures. Asking pnpm (`pnpm m ls --json`) would
+// be scripts/' first subprocess and would break the fixture-driven purity two
+// test files rely on. So the parser stays, and its known cliffs are fenced:
+// an entry it cannot represent THROWS naming the limitation, instead of
+// silently truncating the list — the direction that mattered, because every
+// check walking this list quietly loses coverage for whatever falls off it.
 export function parseWorkspacePackages(yaml) {
   const dirs = [];
   let inBlock = false;
   for (const line of yaml.split(/\r?\n/)) {
+    const flow = line.match(/^packages:\s*(\[.*)$/);
+    if (flow) {
+      // `packages: [a, b]` is valid YAML this parser does not read. Returning
+      // [] here used to fall through to the vaguer "no packages: entries"
+      // guards, two calls away from the cause.
+      throw new Error(
+        'pnpm-workspace.yaml: `packages:` is a flow sequence ' +
+          `(${flow[1].trim()}), which parseWorkspacePackages does not read. ` +
+          'Use a block list (one `- dir` per line).'
+      );
+    }
     if (/^packages:\s*$/.test(line)) {
       inBlock = true;
       continue;
     }
     if (!inBlock) continue;
-    const item = line.match(/^\s+-\s*(\S+)\s*$/);
-    if (item) dirs.push(item[1].replace(/^['"]|['"]$/g, ''));
-    else if (line.trim() && !line.trimStart().startsWith('#')) break;
+    // An inline ` # comment` ends the entry, it does not end the block. The
+    // old parser matched the whole rest-of-line, so `- create-bestax # x`
+    // failed the match, fell into the terminator branch, and silently dropped
+    // every entry after it (#438's worse half). Stripped only when whitespace
+    // precedes the `#`, matching YAML: `- a#b` is one scalar, not `a` plus a
+    // comment.
+    const item = line.replace(/\s#.*$/, '').match(/^\s+-\s*(\S+)\s*$/);
+    if (item) {
+      // ` #` inside a QUOTED scalar is data, and the strip above cannot know
+      // that: it leaves a mutilated token behind (`- "docs # archive"`
+      // becomes `"docs`), which used to be silently returned as `docs` — the
+      // wrong directory, inspected with confidence. Each delimiter is
+      // validated independently (#545 review): a combined quote-count parity
+      // check both rejected the valid `- "foo's"` and accepted the malformed
+      // `- "foo'` as `foo`.
+      let entry = item[1];
+      const quote = entry[0] === '"' || entry[0] === "'" ? entry[0] : null;
+      if (quote) {
+        if (
+          entry.length < 2 ||
+          entry[entry.length - 1] !== quote ||
+          entry.slice(1, -1).includes(quote)
+        ) {
+          throw new Error(
+            `pnpm-workspace.yaml: cannot parse the entry ${line.trim()} — a ` +
+              'quoted scalar must open and close with the same quote, with ' +
+              'none of that quote inside. Use a bare directory name.'
+          );
+        }
+        entry = entry.slice(1, -1);
+      } else if (entry.includes('"') || entry.includes("'")) {
+        // A quote mid-token in an unquoted scalar is the comment-strip
+        // fingerprint, or a shape this parser does not read.
+        throw new Error(
+          `pnpm-workspace.yaml: cannot parse the entry ${line.trim()} — ` +
+            'stray quote in an unquoted scalar. Use a bare directory name.'
+        );
+      }
+      if (/[*?[\]]/.test(entry)) {
+        // A glob is a real pnpm feature this repo deliberately does not use:
+        // nothing here expands it, so every package under it would silently
+        // fall outside every check that walks this list.
+        throw new Error(
+          `pnpm-workspace.yaml: "${entry}" is a glob, which ` +
+            'parseWorkspacePackages does not expand — every package under it ' +
+            'would be silently exempt from the conformance checks. List each ' +
+            'directory explicitly.'
+        );
+      }
+      dirs.push(entry);
+    } else if (/^\s+-/.test(line)) {
+      // A sequence entry this parser cannot read (`- &anchor x`, a quoted
+      // scalar with spaces). Breaking here would keep the fail-open truncation
+      // this change exists to end: everything after the odd entry silently
+      // vanishes from every check. The block ends only at a dedented line.
+      throw new Error(
+        `pnpm-workspace.yaml: cannot parse the entry ${line.trim()}. ` +
+          'parseWorkspacePackages reads plain (optionally quoted) directory ' +
+          'names only.'
+      );
+    } else if (line.trim() && !line.trimStart().startsWith('#')) break;
   }
   return dirs;
 }
@@ -1971,8 +2056,8 @@ async function checkBypassExpiry() {
  * Not to be confused with `skills-sync`, which despite the name is about the
  * bestax-theming skill's two reference inventories and never reads the roster.
  *
- * Each copy is located by its STRUCTURE — a table row, a tree entry, an install
- * line — rather than by the bare skill name occurring anywhere in the file.
+ * Each copy is located by its STRUCTURE — a table row, a tree entry, a slug
+ * link — rather than by the bare skill name occurring anywhere in the file.
  * `bestax-migrate` is why: it is also a package, a CLI, and the marker the
  * codemod leaves behind, so it appears in prose in most of these files, and a
  * bare-name search would pass on a table that had lost its row.
@@ -1982,15 +2067,19 @@ async function checkBypassExpiry() {
  * holding them to all seven would demand a list neither is trying to be. Their
  * real rosters (a table and a parenthetical) are covered instead.
  *
- * The fenced copies — the three install blocks and the layout tree — anchor on
- * a `<!-- skills-roster:… -->` marker line and take the fence that follows,
- * parsed with `fenceMask`. The first version anchored on "the first fence
- * containing `--skill `", so a quick-start example above the real block
- * silently became the validated roster, and its `/^```[a-z]*\n/` opener could
- * not parse info strings (```bash title=…), frame-shifting every later fence.
- * The Agent Skills tables anchor on their own `| Skill |` header row for the
- * same reason: `bestax-migrate` in the first cell of some OTHER table must not
- * stand in for a deleted row.
+ * The one fenced copy — the hand-written layout tree — anchors on its
+ * `<!-- skills-roster:tree -->` marker line and takes the fence that follows,
+ * parsed with `fenceMask`. (The three install blocks are no longer prose
+ * copies at all: gen-skills-rosters.mjs writes them between
+ * `bestax:generated` markers, and checkSkillsRoster diffs the committed
+ * region against the generator's output.) The anchoring history still
+ * matters for the tree: the first fence-scope here content-sniffed "the
+ * first fence containing" its shape, so a decoy block could hijack it, and
+ * its `/^```[a-z]*\n/` opener could not parse info strings
+ * (```bash title=…), frame-shifting every later fence. The Agent Skills
+ * tables anchor on their own `| Skill |` header row for the same reason:
+ * `bestax-migrate` in the first cell of some OTHER table must not stand in
+ * for a deleted row.
  *
  * The capture group is the point: reading the names back out checks BOTH
  * directions, so a roster still advertising a deleted skill fails too. That
@@ -2012,7 +2101,6 @@ export const SKILL_ROSTERS = [
         list: /^\|[ \t]*\[`([a-z][a-z0-9-]*)`\]/gm,
         example: n => `| [\`${n}\`](./${n}/SKILL.md) | Use it when… |`,
       },
-      skillsAddBlock('the Install block'),
       {
         what: 'the Layout tree',
         scope: markerFence('skills-roster:tree'),
@@ -2037,7 +2125,9 @@ export const SKILL_ROSTERS = [
   {
     file: 'docs/docs/skills/intro.md',
     copies: [
-      skillsAddBlock('the skills-add block'),
+      // The install block above the bullets is GENERATED between
+      // bestax:generated markers (gen-skills-rosters.mjs) and held fresh by
+      // the staleness comparison in checkSkillsRoster, not by a prose copy.
       {
         what: 'the per-skill bullet roster',
         names: text =>
@@ -2049,10 +2139,6 @@ export const SKILL_ROSTERS = [
           `- **[…](./${n.replace(/^bestax-/, '')})** — one line on when to reach for it.`,
       },
     ],
-  },
-  {
-    file: 'docs/docs/guides/llms/index.md',
-    copies: [skillsAddBlock('the skills-add block')],
   },
   {
     // The repo's front page, and the roster with the widest audience. It was
@@ -2102,23 +2188,6 @@ export const SKILL_ROSTERS = [
     ],
   },
 ];
-
-/**
- * One install block, defined once: three files carry the identical shape.
- * `orderGroup` makes rosterViolations compare their ORDER too — the copies
- * are byte-identical on purpose, and a Set comparison alone let two of them
- * drift into different orderings without a word.
- */
-function skillsAddBlock(what) {
-  return {
-    what,
-    scope: markerFence('skills-roster:install'),
-    orderGroup: 'the install block',
-    list: /--skill +([a-z][a-z0-9-]*)/g,
-    example: n =>
-      `npx skills add https://github.com/allxsmith/bestax --skill ${n}`,
-  };
-}
 
 /** The Agent Skills table both READMEs carry, scoped to its own header row. */
 function agentSkillsTable() {
@@ -2274,7 +2343,6 @@ export function skillDirViolations(dirs) {
 export function rosterViolations(skills, sources) {
   const violations = [];
   const known = new Set(skills);
-  const orderGroups = {};
 
   for (const roster of SKILL_ROSTERS) {
     const text = sources?.[roster.file];
@@ -2310,13 +2378,6 @@ export function rosterViolations(skills, sources) {
       const seq = copy.fromToken ? tokens.map(copy.fromToken) : tokens;
       const listed = new Set(seq);
 
-      if (copy.orderGroup) {
-        (orderGroups[copy.orderGroup] ??= []).push({
-          file: roster.file,
-          seq,
-        });
-      }
-
       const missing = skills.filter(name => !listed.has(name));
       if (missing.length) {
         violations.push(
@@ -2334,25 +2395,6 @@ export function rosterViolations(skills, sources) {
           `${roster.file}: ${copy.what} still names ${stale.join(', ')}, ` +
             `which is not a directory with a SKILL.md under skills/. Drop the ` +
             `entry, or restore the skill.`
-        );
-      }
-    }
-  }
-
-  // Copies in an order group are byte-identical by design; when their
-  // memberships agree but their orders do not, the Set comparison above is
-  // blind to the drift, so it is reported here.
-  for (const [group, entries] of Object.entries(orderGroups)) {
-    const [first, ...rest] = entries;
-    for (const other of rest) {
-      const sameMembers =
-        first.seq.length === other.seq.length &&
-        [...first.seq].sort().join('\n') === [...other.seq].sort().join('\n');
-      if (sameMembers && first.seq.join('\n') !== other.seq.join('\n')) {
-        violations.push(
-          `${other.file}: ${group} lists the same skills as ${first.file} ` +
-            `in a different order. The blocks are copies on purpose — match ` +
-            `the order in ${first.file}.`
         );
       }
     }
@@ -2484,6 +2526,40 @@ async function checkSkillsRoster() {
     // Reported by skillsPageViolations rather than skipped.
   }
   violations.push(...skillsPageViolations(skills, pageFiles));
+
+  // The three install blocks are GENERATED (gen-skills-rosters.mjs) between
+  // bestax:generated markers; freshness is enforced by recomputing the region
+  // from the same roster the generator reads and diffing — a stale or missing
+  // region fails conformance without a separate gen:check step. Compared on
+  // the BUNDLED name set (every dir with a SKILL.md), matching the generator,
+  // not the prose-expressible subset the copies above are held to.
+  const bundled = dirs.filter(d => d.hasSkillFile).map(d => d.name);
+  for (const { file, fence } of SKILLS_INSTALL_TARGETS) {
+    let text;
+    try {
+      text = await readFile(join(REPO, file), 'utf8');
+    } catch {
+      violations.push(
+        `${file}: could not be read, so its generated install roster went ` +
+          `unchecked.`
+      );
+      continue;
+    }
+    const region = readRegions(text, file).get(SKILLS_INSTALL_REGION);
+    if (!region) {
+      violations.push(
+        `${file}: no \`<!-- bestax:generated ${SKILLS_INSTALL_REGION} -->\` ` +
+          `marker pair, so the generated install roster went unchecked. ` +
+          `Restore the markers and run pnpm gen:skills.`
+      );
+      continue;
+    }
+    if (region.body !== renderInstallBlock(bundled, fence)) {
+      violations.push(
+        `${file}: the generated install roster is stale. Run pnpm gen:skills.`
+      );
+    }
+  }
 
   const sources = {};
   for (const { file } of SKILL_ROSTERS) {

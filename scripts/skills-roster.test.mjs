@@ -98,27 +98,24 @@ test('a skill missing from one copy is caught, and only that copy', () => {
 });
 
 test('the message shows the line to add, not just the name', () => {
-  const gutted = REAL['skills/README.md'].replace(
-    /^npx skills add .*--skill bestax-form\n/m,
-    ''
-  );
+  const gutted = REAL['skills/README.md']
+    .split('\n')
+    .filter(l => !l.startsWith('| [`bestax-form`]'))
+    .join('\n');
   const v = rosterViolations(SKILLS, withFile('skills/README.md', gutted));
   assert.equal(v.length, 1, v.join('\n'));
   // A contributor should be able to paste the fix rather than infer the shape.
-  assert.match(v[0], /npx skills add .*--skill bestax-form/);
+  assert.match(v[0], /\| \[`bestax-form`\]\(\.\/bestax-form\/SKILL\.md\)/);
 });
 
 test('a roster naming a skill that no longer exists is caught', () => {
   // The other direction, which nothing else covers: sync-skills.mjs stops
   // copying a deleted skill in silence, leaving the prose advertising it.
-  const ghosted = REAL['docs/docs/skills/intro.md'].replace(
-    '--skill bestax-form',
-    '--skill bestax-form\nnpx skills add x --skill bestax-ghost'
+  const ghosted = REAL['skills/README.md'].replace(
+    '| [`bestax-form`]',
+    '| [`bestax-ghost`](./bestax-ghost/SKILL.md) | Ghost. |\n| [`bestax-form`]'
   );
-  const v = rosterViolations(
-    SKILLS,
-    withFile('docs/docs/skills/intro.md', ghosted)
-  );
+  const v = rosterViolations(SKILLS, withFile('skills/README.md', ghosted));
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /still names bestax-ghost/);
   assert.match(v[0], /Drop the entry, or restore the skill/);
@@ -177,27 +174,6 @@ test('the scoped rosters really are scoped', () => {
   const v = rosterViolations(
     SKILLS,
     withFile('create-bestax/src/constants.ts', decoy)
-  );
-  assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /does not name bestax-icons/);
-});
-
-test('an example --skill line outside the fence does not satisfy the roster', () => {
-  // The install rosters are scoped to their fenced block precisely so a stray
-  // example cannot stand in for a missing entry. bulma-ui's README and
-  // AGENTS.md each carry exactly such an example, which is why neither is
-  // checked on its install line at all.
-  const moved = REAL['docs/docs/guides/llms/index.md']
-    .replace(/^npx skills add .*--skill bestax-icons\n/m, '')
-    .replace(
-      'Beyond the raw docs',
-      'Try `npx skills add https://github.com/allxsmith/bestax --skill bestax-icons` too.\n\nBeyond the raw docs'
-    );
-  assert.ok(moved.includes('--skill bestax-icons'), 'decoy must survive');
-
-  const v = rosterViolations(
-    SKILLS,
-    withFile('docs/docs/guides/llms/index.md', moved)
   );
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /does not name bestax-icons/);
@@ -318,72 +294,30 @@ test('an empty roster of skills does not pass vacuously', () => {
 
 // --- regressions from the #541 review ------------------------------------------
 
-test('an example fence ABOVE the real install block cannot hijack the anchor', () => {
-  // The first installFence returned the first fence containing "--skill ", so
-  // a quick-start example above the real block silently became the validated
-  // roster — dark in the stale direction, and reporting a complete block as
-  // six skills short in the other.
-  const decoyed = REAL['docs/docs/skills/intro.md']
-    .replace(
-      'Install one with',
-      'Quick start:\n\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold\n```\n\nInstall one with'
-    )
-    .replace(/^npx skills add .*--skill bestax-form\n/m, '');
-  const v = rosterViolations(
-    SKILLS,
-    withFile('docs/docs/skills/intro.md', decoyed)
-  );
-  assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /skills-add block/);
-  assert.match(v[0], /does not name bestax-form/);
-});
-
-test('a ghost skill in the real block is caught despite a decoy example above', () => {
-  // The false-green half of the same bug: with the decoy anchored, a deleted
-  // skill still advertised in the REAL block produced zero violations.
-  const decoyed = REAL['docs/docs/skills/intro.md']
-    .replace(
-      'Install one with',
-      'Quick start:\n\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold\n```\n\nInstall one with'
-    )
-    .replace(
-      '--skill bestax-form',
-      '--skill bestax-form\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-ghost'
-    );
-  const v = rosterViolations(
-    SKILLS,
-    withFile('docs/docs/skills/intro.md', decoyed)
-  );
-  assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /still names bestax-ghost/);
-});
-
 test('a metadata info string on an earlier fence does not frame-shift the pairing', () => {
-  // /^```[a-z]*\n/ could not open ```bash title="…", so every later fence
-  // paired against the wrong delimiter and the anchor reported itself gone.
-  // ~1,155 fences across docs/docs use metadata-style openers.
-  const decorated = REAL['docs/docs/guides/llms/index.md'].replace(
-    'Install one with',
-    '\n```bash title="quick start" showLineNumbers\nnpx skills add x --skill bestax-icons\n```\n\nInstall one with'
+  // markerFence walks fences with fenceMask, which parses info strings —
+  // a decorated fence above the tree's marker must not shift which block
+  // the Layout-tree scope lands on.
+  const decorated = REAL['skills/README.md'].replace(
+    '## Layout',
+    '```bash title="quick look" showLineNumbers\nls skills/\n```\n\n## Layout'
   );
-  assert.notEqual(decorated, REAL['docs/docs/guides/llms/index.md']);
+  assert.notEqual(decorated, REAL['skills/README.md']);
   assert.deepEqual(
-    rosterViolations(
-      SKILLS,
-      withFile('docs/docs/guides/llms/index.md', decorated)
-    ),
+    rosterViolations(SKILLS, withFile('skills/README.md', decorated)),
     []
   );
 });
 
 test('a removed marker is a missing anchor, not a silent skip', () => {
   const unmarked = REAL['skills/README.md'].replace(
-    '<!-- skills-roster:install -->\n\n',
+    '<!-- skills-roster:tree -->\n\n',
     ''
   );
+  assert.notEqual(unmarked, REAL['skills/README.md']);
   const v = rosterViolations(SKILLS, withFile('skills/README.md', unmarked));
   assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /Install block/);
+  assert.match(v[0], /Layout tree/);
   assert.match(v[0], /anchors on is gone/);
 });
 
@@ -418,22 +352,6 @@ test('dropping the serial comma does not lose the last two names', () => {
     rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', plain)),
     []
   );
-});
-
-test('install blocks with the same members but different orders are caught', () => {
-  // The copies are byte-identical on purpose; a Set comparison alone let
-  // docs/docs/guides/llms/index.md drift into a different ordering unseen.
-  const swapped = REAL['docs/docs/guides/llms/index.md'].replace(
-    /--skill bestax-migrate(\n.*--skill )bestax-optimize/,
-    '--skill bestax-optimize$1bestax-migrate'
-  );
-  assert.notEqual(swapped, REAL['docs/docs/guides/llms/index.md']);
-  const v = rosterViolations(
-    SKILLS,
-    withFile('docs/docs/guides/llms/index.md', swapped)
-  );
-  assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /different order/);
 });
 
 test('a kebab-case cell in an unrelated table is not a roster row', () => {
@@ -622,16 +540,55 @@ test('the vetting gate flags untracked files only in its OWN repository', async 
 
 test('an adjacent fence with no blank line cannot merge into the scope', () => {
   // fenceMask marks delimiters and interiors alike, so back-to-back fences
-  // form one continuous masked run; the close-scan must stop at the block's
-  // own closer, not the run's end, or the second block's tokens join the
-  // roster comparison.
-  const merged = REAL['docs/docs/skills/intro.md'].replace(
-    /^```$/m,
-    '```\n```bash\nnpx skills add https://github.com/allxsmith/bestax --skill bestax-ghost\n```'
+  // form one continuous masked run; the close-scan must stop at the tree
+  // block's own closer, or the second block's entries join the comparison.
+  const treeAt = REAL['skills/README.md'].indexOf(
+    '<!-- skills-roster:tree -->'
   );
-  assert.ok(merged.includes('bestax-ghost'), 'fixture must inject the decoy');
+  assert.ok(treeAt !== -1);
+  const openAt = REAL['skills/README.md'].indexOf('\n```\n', treeAt);
+  const closeAt = REAL['skills/README.md'].indexOf('\n```\n', openAt + 5);
+  const merged =
+    REAL['skills/README.md'].slice(0, closeAt + 5) +
+    '```\n  bestax-ghost/\n```\n' +
+    REAL['skills/README.md'].slice(closeAt + 5);
+  assert.ok(merged.includes('bestax-ghost'));
   assert.deepEqual(
-    rosterViolations(SKILLS, withFile('docs/docs/skills/intro.md', merged)),
+    rosterViolations(SKILLS, withFile('skills/README.md', merged)),
     []
+  );
+});
+
+// --- the generated install rosters (#542) -------------------------------------
+
+test('the generated install regions are fresh on the real tree', async () => {
+  const { TARGETS, REGION_ID, renderInstallBlock } =
+    await import('./gen-skills-rosters.mjs');
+  const { readRegions } = await import('./lib/api-page.mjs');
+  const { readSkillNames } = await import('./lib/skills.mjs');
+  const skills = await readSkillNames(
+    fileURLToPath(new URL('../skills', import.meta.url))
+  );
+  for (const { file, fence } of TARGETS) {
+    const region = readRegions(repoFile(file), file).get(REGION_ID);
+    assert.ok(region, `${file} lost its ${REGION_ID} marker pair`);
+    assert.equal(
+      region.body,
+      renderInstallBlock(skills, fence),
+      `${file} is stale — run pnpm gen:skills`
+    );
+  }
+});
+
+test('renderInstallBlock is a pure function of its inputs, order preserved', async () => {
+  // Sorting belongs to the roster reader; the renderer must not reorder, or
+  // the staleness diff would mask a reader regression.
+  const { renderInstallBlock } = await import('./gen-skills-rosters.mjs');
+  assert.equal(
+    renderInstallBlock(['b-skill', 'a-skill'], 'sh'),
+    '\n```sh\n' +
+      'npx skills add https://github.com/allxsmith/bestax --skill b-skill\n' +
+      'npx skills add https://github.com/allxsmith/bestax --skill a-skill\n' +
+      '```\n'
   );
 });

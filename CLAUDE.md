@@ -19,6 +19,7 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
   which is the security contract for anything in `workflows/`)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
+- `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
 
 ## Toolchain
 
@@ -36,7 +37,8 @@ pnpm typecheck      # tsc --noEmit
 pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
 pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
-pnpm gen            # all three generators (api docs, catalog, MCP index)
+pnpm gen:skills     # regenerate the skill install rosters (conformance fails if stale)
+pnpm gen            # all four generators (api docs, catalog, MCP index, skill rosters)
 pnpm docs           # Docusaurus dev server :3000
 pnpm storybook      # Storybook dev server :6006
 pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package

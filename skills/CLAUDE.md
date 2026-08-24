@@ -22,12 +22,18 @@ there is no allowlist to join, and no per-skill bundling call to make. Full prov
 (#385 vs #540) and the slot for a future per-skill opt-out live in
 `create-bestax/scripts/sync-skills.mjs`'s header.
 
-What stays hand-written is prose — rosters spread across the READMEs, the docs, and the
-scaffolded `CLAUDE_MD`. `pnpm check:conformance --only=skills-roster` holds those to the
-directory in both directions: it fails if one omits your new skill, and if one still names a
-skill you deleted. `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list
-and the failure names every file you missed, so this file deliberately keeps no roster of
-rosters — that would be the same bug one level up.
+The three install blocks (this README, the docs intro, the llms guide) are **generated**:
+`pnpm gen` rewrites them between their `bestax:generated skills-install` markers from the
+directory listing (#542, `scripts/gen-skills-rosters.mjs`), and the `skills-roster` conformance
+check fails while a committed block is stale. Do not hand-edit inside the markers.
+
+What stays hand-written is prose that cannot be derived — the "Use it when…" tables, the layout
+tree, the scaffolded `CLAUDE_MD` roster, AGENTS.md's parenthetical.
+`pnpm check:conformance --only=skills-roster` holds those to the directory in both directions:
+it fails if one omits your new skill, and if one still names a skill you deleted.
+`SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list and the failure
+names every file you missed, so this file deliberately keeps no roster of rosters — that would
+be the same bug one level up.
 
 The docs-site surfaces — the per-skill page under `docs/docs/skills/`, its entry in
 `docs/sidebars.js`, and the intro's bullet roster — are held by the same check through the
