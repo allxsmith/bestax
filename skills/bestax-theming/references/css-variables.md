@@ -140,8 +140,9 @@ lone class or the `style` prop cannot outrank:
 
 - **Compound selectors** — LinkButton's variables are declared on `.button.link-button`
   (specificity 0-2-0). A single class added via `className` is 0-1-0 and loses regardless of
-  stylesheet order. Override with the `style` prop, or with a selector that matches or
-  exceeds the compound: `.button.link-button { --bulma-link-button-ghost-color: … }`.
+  stylesheet order. Override with the `style` prop, or in CSS loaded after the library
+  styles with a selector that matches or exceeds the compound:
+  `.button.link-button { --bulma-link-button-ghost-color: … }`.
 - **Constituent elements** — Tooltip's variables (all but `--bulma-tooltip-dashed-color`)
   are declared on `.tooltip-content`, and Sidebar's `--bulma-sidebar-overlay-background` on
   `.sidebar-background`. Values set via `className` or `style` land on the component root and

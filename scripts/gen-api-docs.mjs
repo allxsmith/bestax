@@ -322,8 +322,9 @@ async function renderCssVars(info, { relPath }) {
     compound:
       `\`${info.name}\` registers these variables on a compound selector ` +
       `(higher specificity than a single class). Override them with inline ` +
-      `\`style\`, or with a selector that matches or exceeds that ` +
-      `specificity — a lone class via \`className\` loses to the ` +
+      `\`style\`, or with a selector that exceeds that specificity (one ` +
+      `that only matches it must load after the library styles to win by ` +
+      `source order) — a lone class via \`className\` loses to the ` +
       `component-level declaration. See [Theme](${themeLink}).`,
     element:
       `\`${info.name}\` registers these variables on its constituent ` +
@@ -349,7 +350,8 @@ async function renderCssVars(info, { relPath }) {
     compound:
       `† declared on a compound selector (higher specificity than a single ` +
       `class): a lone \`className\` class loses — override with inline ` +
-      `\`style\` or a selector matching that specificity.`,
+      `\`style\` or a selector exceeding that specificity (matching it ` +
+      `wins only when loaded after the library styles).`,
     element:
       `‡ declared on a constituent element: values set via \`className\`, ` +
       `the \`style\` prop, or an ancestor are only inherited and lose — ` +
