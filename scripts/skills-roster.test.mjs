@@ -592,3 +592,17 @@ test('renderInstallBlock is a pure function of its inputs, order preserved', asy
       '```\n'
   );
 });
+
+test('a fenced quote of "Agent skills (…)" is not the parenthetical', () => {
+  // The #548 deep review named this scope as the one non-fence-aware
+  // straggler: a fenced example quoting the phrase before the real roster
+  // stole the match, scoping the check to the quote.
+  const decoyed = REAL['bulma-ui/AGENTS.md'].replace(
+    'Agent skills (',
+    '```md\nAgent skills (bestax-fake):\n```\n\nAgent skills ('
+  );
+  assert.deepEqual(
+    rosterViolations(SKILLS, withFile('bulma-ui/AGENTS.md', decoyed)),
+    []
+  );
+});
