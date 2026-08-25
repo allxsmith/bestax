@@ -20,7 +20,7 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 | `Element`      | —                                            | Flagged: no generic element; use a semantic component + helper props                                                        |
 | `Footer`       | `Footer`                                     | Auto                                                                                                                        |
 | `Form.*`       | flat imports                                 | See Form table below                                                                                                        |
-| `Heading`      | `Title` / `SubTitle` / `<p class="heading">` | Auto; `subtitle` picks `SubTitle`, `heading` picks the plain element                                                        |
+| `Heading`      | `Title` / `SubTitle` / `<p class="heading">` | Auto for literal `subtitle`/`heading` (by value, not presence — `subtitle={false}` is `Title`); dynamic value flagged       |
 | `Hero`         | `Hero`                                       | Auto; `hasNavbar`→`fullheightWithNavbar`; `halfheight`/`gradient` flagged                                                   |
 | `Icon`         | `Icon`                                       | `<i class="fas fa-x">` children → `name`/`library`/`variant` props; else flagged                                            |
 | `Image`        | `Image`                                      | Auto; numeric `size={128}` → `size="128x128"`, `rounded`→`isRounded`                                                        |
