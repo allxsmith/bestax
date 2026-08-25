@@ -83,9 +83,41 @@ const VAR_DECL = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(!default)?\s*;\s*$/;
  * that would otherwise fool the character scanners into mis-reading the
  * value's structure; the comment is inert to Sass, so removing it for
  * analysis is safe. The emitted value still carries the comment verbatim.
+ *
+ * The scan tracks quote state first and only recognizes a block comment
+ * outside a string, in one pass — a bare regex would treat a slash-star …
+ * star-slash-shaped span that straddles two quoted strings (opening marker in
+ * one string, closing marker in the next) as a comment and delete the real
+ * top-level comma between them, so a genuine list would fold unparenthesized.
+ * An unterminated comment consumes the rest of the value.
  */
 function stripSassComments(value: string): string {
-  return value.replace(/\/\*[\s\S]*?\*\//g, '');
+  let result = '';
+  let quote: string | null = null;
+  let escaped = false;
+  for (let i = 0; i < value.length; i += 1) {
+    const char = value[i];
+    if (quote) {
+      result += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === '/' && value[i + 1] === '*') {
+      const end = value.indexOf('*/', i + 2);
+      if (end === -1) break; // unterminated comment — drop the rest
+      i = end + 1; // resume after the closing */
+      continue;
+    }
+    if (char === '"' || char === "'") quote = char;
+    result += char;
+  }
+  return result;
 }
 
 /**

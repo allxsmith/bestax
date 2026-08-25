@@ -84,6 +84,20 @@ describe('transformStyles (.scss)', () => {
     );
   });
 
+  it('wraps a value whose /* … */-shaped span straddles two quoted strings', () => {
+    // The `/*`…`*/` markers each sit inside a different quoted string, so the
+    // span between them is NOT a comment. A strip-first regex would delete it
+    // together with the real top-level comma, folding the list unparenthesized;
+    // recognizing comments only outside strings keeps the comma top-level.
+    const source = [
+      '$foo: "a /* b", "c */ d";',
+      '',
+      "@import 'bulma/bulma.sass';",
+    ].join('\n');
+    const { output } = run('straddle.scss', source);
+    expect(output).toContain('$foo: ("a /* b", "c */ d")');
+  });
+
   it('leaves a comma-free folded value unparenthesized', () => {
     const source = [
       '$primary: #1e6b99;',
