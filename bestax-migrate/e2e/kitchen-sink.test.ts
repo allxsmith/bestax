@@ -174,6 +174,7 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('prop:colorVariant');
     expect(rules).toContain('prop:value');
     expect(rules).toContain('prop:delta');
+    expect(rules).toContain('prop:remove');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
