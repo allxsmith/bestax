@@ -124,9 +124,9 @@ same rule as the extras section below).
 
 ## Extras component variables
 
-Every "Beyond Bulma" extra registers its own `--bulma-<component>-*` variables. They are
-registered on the component's **own selector** (`.avatar`, `.dialog`, `.tooltip`, … —
-`.bestax-avatar` etc. with the prefixed CSS flavor), not on `:root`. A value set on a wrapping
+Every "Beyond Bulma" extra registers its own `--bulma-<component>-*` variables. Most are
+registered on the component's **own selector** (`.avatar`, `.dialog`, … — `.bestax-avatar`
+etc. with the prefixed CSS flavor), not on `:root`. A value set on a wrapping
 ancestor — including `Theme`'s `bulmaVars` on a wrapping `Theme` — is only _inherited_ and
 always loses to the component-level declaration, so it will NOT take effect. Working overrides
 target the component's own element instead: redeclare on the component's own class in your CSS
@@ -134,6 +134,20 @@ target the component's own element instead: redeclare on the component's own cla
 `className` and scope the override under it
 (`.avatar.big-avatar { --bulma-avatar-size: 3.5rem; }`), or set it via the component's `style`
 prop. Several default to core theme vars above, so they already flow through a custom theme.
+
+Two exceptions where that advice silently fails, because the declarations sit somewhere a
+lone class or the `style` prop cannot outrank:
+
+- **Compound selectors** — LinkButton's variables are declared on `.button.link-button`
+  (specificity 0-2-0). A single class added via `className` is 0-1-0 and loses regardless of
+  stylesheet order. Override with the `style` prop, or in CSS loaded after the library
+  styles with a selector that matches or exceeds the compound:
+  `.button.link-button { --bulma-link-button-ghost-color: … }`.
+- **Constituent elements** — Tooltip's variables (all but `--bulma-tooltip-dashed-color`)
+  are declared on `.tooltip-content`, and Sidebar's `--bulma-sidebar-overlay-background` on
+  `.sidebar-background`. Values set via `className` or `style` land on the component root and
+  are only inherited by the constituent, so they lose to its own declaration — target the
+  declaring element in your CSS: `.tooltip-content { --bulma-tooltip-background: … }`.
 
 ### Avatar / Avatars / Badge
 
@@ -237,6 +251,8 @@ own-selector override rule applies.
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
 
 ### LinkButton
+
+Declared on the compound `.button.link-button` — see the compound-selector exception above.
 
 `--bulma-link-button-ghost-color`, `--bulma-link-button-ghost-hover-color`,
 `--bulma-link-button-transition-duration`, `--bulma-link-button-underline-offset`
@@ -377,6 +393,9 @@ own-selector override rule applies.
 `--bulma-toast-radius`, `--bulma-toast-shadow`
 
 ### Tooltip
+
+All but `--bulma-tooltip-dashed-color` are declared on `.tooltip-content` — see the
+constituent-element exception above.
 
 `--bulma-tooltip-arrow-margin`, `--bulma-tooltip-arrow-size`, `--bulma-tooltip-background`,
 `--bulma-tooltip-color`, `--bulma-tooltip-dashed-color`, `--bulma-tooltip-font-size`,

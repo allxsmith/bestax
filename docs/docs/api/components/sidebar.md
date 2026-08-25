@@ -497,5 +497,8 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 | `--bulma-sidebar-menu-item-active-background` | `$sidebar-menu-item-active-background` | `var(--bulma-link)`               |
 | `--bulma-sidebar-menu-item-active-color`      | `$sidebar-menu-item-active-color`      | `var(--bulma-link-invert)`        |
 | `--bulma-sidebar-static-border-color`         | `$sidebar-static-border-color`         | `var(--bulma-border)`             |
+| `--bulma-sidebar-overlay-background` ‡        | `$sidebar-overlay-background`          | `hsla(0, 0%, 4%, 0.86)`           |
+
+‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->

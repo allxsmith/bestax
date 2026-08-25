@@ -201,61 +201,61 @@
       "css": "--bulma-badge-height",
       "sass": "$badge-height",
       "default": "1.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-min-width",
       "sass": "$badge-min-width",
       "default": "1.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-padding",
       "sass": "$badge-padding",
       "default": "0 0.4em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-font-size",
       "sass": "$badge-font-size",
       "default": "0.7rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-radius",
       "sass": "$badge-radius",
       "default": "var(--bulma-radius-rounded)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-ring-color",
       "sass": "$badge-ring-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-ring-width",
       "sass": "$badge-ring-width",
       "default": "2px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-dot-size",
       "sass": "$badge-dot-size",
       "default": "0.65em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-inset-circle",
       "sass": "$badge-inset-circle",
       "default": "12%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-badge-animation-duration",
       "sass": "$badge-animation-duration",
       "default": "1.4s",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

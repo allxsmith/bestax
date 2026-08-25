@@ -726,181 +726,181 @@
       "css": "--bulma-input-h",
       "sass": "$input-h",
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-s",
       "sass": "$input-s",
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-l",
       "sass": "$input-l",
       "default": "var(--bulma-scheme-main-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-border-style",
       "sass": "$input-border-style",
       "default": "solid",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-border-width",
       "sass": "$input-border-width",
       "default": "var(--bulma-control-border-width)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-border-l",
       "sass": "$input-border-l",
       "default": "var(--bulma-border-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-border-l-delta",
       "sass": "$input-border-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-border-color",
       "sass": "$input-border-color",
       "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-hover-border-l-delta",
       "sass": "$input-hover-border-l-delta",
       "default": "var(--bulma-hover-border-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-active-border-l-delta",
       "sass": "$input-active-border-l-delta",
       "default": "var(--bulma-active-border-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-focus-h",
       "sass": "$input-focus-h",
       "default": "var(--bulma-focus-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-focus-s",
       "sass": "$input-focus-s",
       "default": "var(--bulma-focus-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-focus-l",
       "sass": "$input-focus-l",
       "default": "var(--bulma-focus-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-focus-shadow-size",
       "sass": "$input-focus-shadow-size",
       "default": "var(--bulma-focus-shadow-size)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-focus-shadow-alpha",
       "sass": "$input-focus-shadow-alpha",
       "default": "var(--bulma-focus-shadow-alpha)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-color-l",
       "sass": "$input-color-l",
       "default": "var(--bulma-text-strong-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-background-l",
       "sass": "$input-background-l",
       "default": "var(--bulma-scheme-main-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-background-l-delta",
       "sass": "$input-background-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-height",
       "sass": "$input-height",
       "default": "var(--bulma-control-height)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-shadow",
       "sass": "$input-shadow",
       "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-placeholder-color",
       "sass": "$input-placeholder-color",
       "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-disabled-color",
       "sass": "$input-disabled-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-disabled-background-color",
       "sass": "$input-disabled-background-color",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-disabled-border-color",
       "sass": "$input-disabled-border-color",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-disabled-placeholder-color",
       "sass": "$input-disabled-placeholder-color",
       "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-arrow",
       "sass": "$input-arrow",
       "default": "var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-icon-color",
       "sass": "$input-icon-color",
       "default": "var(--bulma-text-light)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-icon-hover-color",
       "sass": "$input-icon-hover-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-icon-focus-color",
       "sass": "$input-icon-focus-color",
       "default": "var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-input-radius",
       "sass": "$input-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

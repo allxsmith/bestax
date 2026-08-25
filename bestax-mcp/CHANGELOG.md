@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.1.0...bestax-mcp@1.1.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** carry each CSS variable's declaring scope in the index ([79a5b2c](https://github.com/allxsmith/bestax/commit/79a5b2c9e9eccfd34e54a6d53375972f4b15021c))
+* **bestax-mcp:** note source order beside matched-specificity advice ([e8d960f](https://github.com/allxsmith/bestax/commit/e8d960f5b151c6b94d3b9069126ef1665ee20f02))
+
 # [1.1.0](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.0.1...bestax-mcp@1.1.0) (2026-08-23)
 
 

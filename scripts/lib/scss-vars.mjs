@@ -243,21 +243,12 @@ export function registerVarsEntries(src) {
  * would newly fail partials that were already passing.
  */
 export function registerVarsKeys(src) {
-  const keys = new Set();
-  const re = /cv\.register-vars\s*\(/g;
-  while (re.exec(src) !== null) {
-    let depth = 1;
-    let i = re.lastIndex;
-    while (i < src.length && depth > 0) {
-      if (src[i] === '(') depth++;
-      else if (src[i] === ')') depth--;
-      i++;
-    }
-    const block = src.slice(re.lastIndex, i);
-    for (const k of block.matchAll(/['"]([a-z0-9-]+)['"][ \t]*:/g))
-      keys.add(k[1]);
-  }
-  return keys;
+  // Both spellings, by delegating to the entries parser: matching only the
+  // plural `register-vars((…))` form let a partial using Bulma's own singular
+  // `register-var(k, v)` ship variables past skills-sync with zero keys — the
+  // #464 silent-miss class, half-fixed until the two parsers agreed (#544
+  // review).
+  return new Set(registerVarsEntries(src).map(e => e.key));
 }
 
 /** `.#{iv.$class-prefix}hero` (or a list of them) -> ['hero']. */
@@ -270,6 +261,73 @@ function selectorClasses(selector) {
         .trim()
     )
     .filter(s => /^[a-z][a-z0-9-]*$/.test(s));
+}
+
+/**
+ * `.#{iv.$class-prefix}button.#{iv.$class-prefix}link-button` ->
+ * ['button', 'link-button'] — the classes of ONE compound selector.
+ *
+ * Deliberately strict, because every relaxation is a mis-attribution bug:
+ * only chained prefixed classes with nothing between or after them qualify,
+ * and a single class returns [] so simple selectors stay on the
+ * selectorClasses path untouched. A descendant selector
+ * (`.tooltip.is-dark .tooltip-content`), a pseudo (`:hover`), or an
+ * unprefixed class all disqualify the item — those either re-register keys
+ * the base block already owns (dedupe makes them neutral) or belong to
+ * nobody, and guessing here is how a wrapper's variables would leak onto the
+ * wrapped component's page (#464).
+ */
+function compoundClasses(item) {
+  // Interpolation whitespace is style, not structure: `#{ iv.$class-prefix }`
+  // and the tight form are the same selector, and the shape guard below must
+  // judge the SELECTOR, not the author's spacing — a spaced compound
+  // silently orphaned its variables, re-creating #464 (#544 review).
+  const s = item
+    .trim()
+    .replace(/#\{\s*iv\.\$class-prefix\s*\}/g, '#{iv.$class-prefix}');
+  if (!s || /[\s>+~(]/.test(s)) return [];
+  const classes = [];
+  const token = /\.#\{\s*iv\.\$class-prefix\s*\}([a-z][a-z0-9-]*)/g;
+  let consumed = 0;
+  for (let m; (m = token.exec(s));) {
+    if (m.index !== consumed) return [];
+    classes.push(m[1]);
+    consumed = token.lastIndex;
+  }
+  return consumed === s.length && classes.length >= 2 ? classes : [];
+}
+
+/**
+ * How the root class appears on this selector: on a simple selector
+ * ('root'), inside a compound ('compound'), or not at all (null). The page's
+ * lead sentence needs the distinction, not just presence — a compound like
+ * `.button.link-button` has specificity 0-2-0, so the "override via
+ * className" advice that is true for a simple selector silently does nothing
+ * there (a single custom class is 0-1-0 and loses regardless of load order).
+ */
+function selectorRootKind(selector, root) {
+  if (!root) return null;
+  if (selectorClasses(selector).includes(root)) return 'root';
+  if (
+    splitTopLevel(selector, ',').some(item =>
+      compoundClasses(item).includes(root)
+    )
+  ) {
+    return 'compound';
+  }
+  // A constituent element (`.tooltip-content`, `.sidebar-background`): the
+  // component's own piece, where its themed declarations actually live. Its
+  // own scope, because the advice differs from every other kind: a value
+  // set via className or the style prop lands on the component ROOT, is
+  // merely inherited by the constituent, and loses to the constituent's own
+  // declaration — the override has to target the declaring element.
+  {
+    const classes = selectorClasses(selector);
+    if (classes.length === 1 && classes[0].startsWith(`${root}-`)) {
+      return 'element';
+    }
+  }
+  return null;
 }
 
 /**
@@ -334,6 +392,54 @@ export function renderValue(raw) {
 function ownsRegistration(selector, root, prefix, key) {
   if (root && selectorClasses(selector).includes(root)) return true;
   if (!prefix) return false;
+  // A COMPOUND selector carrying the root class (`.button.link-button` for
+  // LinkButton) is claimed like a host registration: by class AND key prefix
+  // together. The class test alone would be wrong in both directions — that
+  // same selector contains `button`, and without the key test Button's page
+  // would grow four bogus `--bulma-link-button-*` rows the moment LinkButton's
+  // partial parsed (#464). The prefix test alone would claim `:root` blocks
+  // that already have their own arm below.
+  const compound =
+    root &&
+    splitTopLevel(selector, ',')
+      .map(compoundClasses)
+      .find(cs => cs.includes(root));
+  if (compound) {
+    // Ownership follows the compound's DISTINGUISHING classes — everything
+    // after the base class (`.button.link-button` is authored base-first).
+    // `link-button-*` keys belong to LinkButton; a wrapper retuning a
+    // member's own key (`button-padding-vertical` at 0-2-0) is claimed by
+    // NOBODY here and falls to the orphan gate loudly, instead of silently
+    // landing on the member's page where first-source-wins dedupe would
+    // replace the member's real default — and prefix-sharing families stop
+    // double-claiming the same row (#544 review).
+    if (!compound.slice(1).includes(root)) return false;
+    return key === prefix || key.startsWith(`${prefix}-`);
+  }
+  // A CONSTITUENT-element registration: `.tooltip-content` and
+  // `.sidebar-background` are the component's own pieces, named
+  // `<root>-<suffix>`, and they are where the themed declarations actually
+  // live — 13 real user-facing variables shipped invisibly under the boolean
+  // orphan rule because nothing could place them (#544 review found one;
+  // the key-level rule then found the rest). Guarded in both directions:
+  // the class must extend the root's name, the key must match the PREFIX,
+  // and the key must NOT extend the constituent class's own name — keys
+  // shaped `card-header-*` on `.card-header` belong to a CardHeader
+  // component's root arm, not to Card's constituent arm, or prefix-sharing
+  // families would double-claim.
+  const constituent =
+    root &&
+    (() => {
+      const classes = selectorClasses(selector);
+      return (
+        classes.length === 1 &&
+        classes[0].startsWith(`${root}-`) &&
+        (key === prefix || key.startsWith(`${prefix}-`)) &&
+        key !== classes[0] &&
+        !key.startsWith(`${classes[0]}-`)
+      );
+    })();
+  if (constituent) return true;
   // A `@mixin delete { … }` body is the other off-selector home: Bulma declares
   // every `--bulma-delete-*` there and applies the mixin to `.delete`.
   const offSelector =
@@ -361,7 +467,7 @@ function isVariablesHost(selector) {
 export function componentVars(src, root, prefix = root) {
   const defaults = defaultDeclarations(src);
   const rows = [];
-  const seen = new Set();
+  const byKey = new Map();
 
   for (const { key, rawValue, chain } of registerVarsEntries(src)) {
     // Depth-1 registrations on the component's own root selector only. Anything
@@ -369,8 +475,18 @@ export function componentVars(src, root, prefix = root) {
     // variables nested inside this one (hero.scss's navbar/tabs/title blocks).
     if (chain.length !== 1) continue;
     if (!ownsRegistration(chain[0], root, prefix, key)) continue;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (byKey.has(key)) {
+      // A key can register on more than one home: tooltip's content element
+      // lists the full set while the `.tooltip` wrapper re-registers
+      // dashed-color for its own underline. The default value is the same
+      // $var both times; only the override advice differs, and the root-class
+      // home is the actionable one (it IS the element className/style reach),
+      // so a root registration upgrades the scope wherever it appears.
+      if ((selectorRootKind(chain[0], root) ?? 'global') === 'root') {
+        byKey.get(key).scope = 'root';
+      }
+      continue;
+    }
 
     const inner =
       rawValue.startsWith('#{') &&
@@ -380,16 +496,18 @@ export function componentVars(src, root, prefix = root) {
     const varRef = inner.match(/^\$([a-zA-Z0-9_-]+)$/);
     const sassVar = varRef && defaults.has(varRef[1]) ? `$${varRef[1]}` : null;
 
-    rows.push({
+    const row = {
       cssVar: `--${CSSVARS_PREFIX}${key}`,
       sassVar,
       value: renderValue(sassVar ? defaults.get(varRef[1]) : rawValue),
-      // Where the DEFAULT is declared, which the page's lead sentence needs to
-      // state correctly: 'root' means the component's own selector, 'global'
-      // means `:root` or a mixin body.
-      scope:
-        root && selectorClasses(chain[0]).includes(root) ? 'root' : 'global',
-    });
+      // Where the DEFAULT is declared, which the page's lead sentence needs
+      // to state correctly: 'root' is the component's own simple selector,
+      // 'compound' a compound carrying it (higher specificity, different
+      // override advice), 'global' a `:root` or mixin body.
+      scope: selectorRootKind(chain[0], root) ?? 'global',
+    };
+    byKey.set(key, row);
+    rows.push(row);
   }
   return rows;
 }

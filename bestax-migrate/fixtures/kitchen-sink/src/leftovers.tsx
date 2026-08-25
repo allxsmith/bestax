@@ -22,11 +22,15 @@ import {
 export function Leftovers() {
   const [choice, setChoice] = useState('a');
   const [page, setPage] = useState(1);
+  const [isRemove, setIsRemove] = useState(false);
   return (
     <div>
       <Element renderAs="span" textColor="grey">
         Generic element
       </Element>
+      <Button remove={isRemove} onClick={() => setIsRemove(true)}>
+        Dynamic remove
+      </Button>
       <Tile kind="ancestor">
         <Tile kind="parent" vertical size={8}>
           <Tile kind="child">Tile child</Tile>

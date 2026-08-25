@@ -203,10 +203,82 @@
   ],
   "cssVars": [
     {
+      "css": "--bulma-tooltip-background",
+      "sass": "$tooltip-background",
+      "default": "hsl(0, 0%, 21%)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-color",
+      "sass": "$tooltip-color",
+      "default": "white",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-radius",
+      "sass": "$tooltip-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-padding",
+      "sass": "$tooltip-padding",
+      "default": "0.35rem 0.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-max-width",
+      "sass": "$tooltip-max-width",
+      "default": "15rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-multiline-width",
+      "sass": "$tooltip-multiline-width",
+      "default": "15rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-arrow-size",
+      "sass": "$tooltip-arrow-size",
+      "default": "5px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-arrow-margin",
+      "sass": "$tooltip-arrow-margin",
+      "default": "4px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-z-index",
+      "sass": "$tooltip-z-index",
+      "default": "$extras-z-index-tooltip",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-font-size",
+      "sass": "$tooltip-font-size",
+      "default": "calc($extras-size-normal * 0.85)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-font-weight",
+      "sass": "$tooltip-font-weight",
+      "default": "$extras-weight-normal",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tooltip-line-height",
+      "sass": "$tooltip-line-height",
+      "default": "1.25",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-tooltip-dashed-color",
       "sass": "$tooltip-dashed-color",
       "default": "hsl(0, 0%, 60%)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

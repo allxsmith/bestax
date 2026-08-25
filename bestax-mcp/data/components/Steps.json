@@ -338,115 +338,115 @@
       "css": "--bulma-steps-marker-size",
       "sass": "$steps-marker-size",
       "default": "2rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-marker-size-small",
       "sass": "$steps-marker-size-small",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-marker-size-medium",
       "sass": "$steps-marker-size-medium",
       "default": "2.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-marker-size-large",
       "sass": "$steps-marker-size-large",
       "default": "3rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-divider-height",
       "sass": "$steps-divider-height",
       "default": "0.2em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-default-color",
       "sass": "$steps-default-color",
       "default": "var(--bulma-grey-light)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-marker-background",
       "sass": "$steps-marker-background",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-marker-font-size",
       "sass": "$steps-marker-font-size",
       "default": "var(--bulma-size-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-marker-font-weight",
       "sass": "$steps-marker-font-weight",
       "default": "var(--bulma-weight-bold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-title-size",
       "sass": "$steps-title-size",
       "default": "var(--bulma-size-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-title-weight",
       "sass": "$steps-title-weight",
       "default": "var(--bulma-weight-medium)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-title-color",
       "sass": "$steps-title-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-title-active-color",
       "sass": "$steps-title-active-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-title-active-weight",
       "sass": "$steps-title-active-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-content-margin-top",
       "sass": "$steps-content-margin-top",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-vertical-padding",
       "sass": "$steps-vertical-padding",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-vertical-content-margin-left",
       "sass": "$steps-vertical-content-margin-left",
       "default": "1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-animation-duration",
       "sass": "$steps-animation-duration",
       "default": "0.3s",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-steps-navigation-margin-top",
       "sass": "$steps-navigation-margin-top",
       "default": "1rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

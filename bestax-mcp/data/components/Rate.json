@@ -346,121 +346,121 @@
       "css": "--bulma-rate-color-inactive",
       "sass": "$rate-color-inactive",
       "default": "var(--bulma-grey-light)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-color-active",
       "sass": "$rate-color-active",
       "default": "hsl(48, 100%, 50%)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-color-hover",
       "sass": "$rate-color-hover",
       "default": "hsl(48, 100%, 67%)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-icon-size",
       "sass": "$rate-icon-size",
       "default": "1.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-icon-size-small",
       "sass": "$rate-icon-size-small",
       "default": "1em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-icon-size-medium",
       "sass": "$rate-icon-size-medium",
       "default": "2em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-icon-size-large",
       "sass": "$rate-icon-size-large",
       "default": "2.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-font-icon-size",
       "sass": "$rate-font-icon-size",
       "default": "1.35em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-font-icon-size-small",
       "sass": "$rate-font-icon-size-small",
       "default": "0.9em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-font-icon-size-medium",
       "sass": "$rate-font-icon-size-medium",
       "default": "1.8em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-font-icon-size-large",
       "sass": "$rate-font-icon-size-large",
       "default": "2.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-gap",
       "sass": "$rate-gap",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-spaced-gap",
       "sass": "$rate-spaced-gap",
       "default": "0.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-score-weight",
       "sass": "$rate-score-weight",
       "default": "600",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-score-color",
       "sass": "$rate-score-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-text-color",
       "sass": "$rate-text-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-text-size",
       "sass": "$rate-text-size",
       "default": "0.875em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-transition-duration",
       "sass": "$rate-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-disabled-opacity",
       "sass": "$rate-disabled-opacity",
       "default": "0.5",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-rate-pop-scale",
       "sass": "$rate-pop-scale",
       "default": "1.2",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

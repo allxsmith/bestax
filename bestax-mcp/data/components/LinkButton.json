@@ -253,5 +253,30 @@
       "types": []
     }
   ],
-  "cssVars": []
+  "cssVars": [
+    {
+      "css": "--bulma-link-button-underline-offset",
+      "sass": "$link-button-underline-offset",
+      "default": "0.2em",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-link-button-transition-duration",
+      "sass": "$link-button-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-link-button-ghost-color",
+      "sass": "$link-button-ghost-color",
+      "default": "var(--bulma-text)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-link-button-ghost-hover-color",
+      "sass": "$link-button-ghost-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "compound"
+    }
+  ]
 }

@@ -333,25 +333,25 @@
       "css": "--bulma-grid-gap",
       "sass": "$grip-gap",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-grid-column-min",
       "sass": null,
       "default": "9rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-grid-cell-column-span",
       "sass": null,
       "default": "1",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-grid-cell-row-span",
       "sass": null,
       "default": "1",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

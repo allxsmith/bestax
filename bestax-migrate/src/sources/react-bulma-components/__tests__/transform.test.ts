@@ -327,6 +327,57 @@ describe('react-bulma-components transform fixtures', () => {
       expect((output ?? '').match(/<a /g)).toHaveLength(1);
     });
 
+    it('drops a literal `remove={false}` without becoming a Delete', () => {
+      const source = [
+        "import { Button } from 'react-bulma-components';",
+        'export const A = () => <Button remove={false}>Save</Button>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'button-false.tsx', source);
+      expect(output).toContain('<Button>Save</Button>');
+      expect(output).not.toContain('remove');
+      expect(output).not.toContain('Delete');
+    });
+
+    it('leaves a dynamic Button `remove` as a TODO instead of guessing', () => {
+      const source = [
+        "import { Button } from 'react-bulma-components';",
+        'export const A = ({ isRemove }: { isRemove: boolean }) => (',
+        '  <Button remove={isRemove}>Save</Button>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'button-dynamic.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(todos.some(t => t.rule === 'prop:remove')).toBe(true);
+      expect(output).toContain('<Button remove={isRemove}>Save</Button>');
+      expect(output).not.toContain('<Delete');
+    });
+
+    it('resolves a static string/number `remove` by truthiness, not a TODO', () => {
+      const source = [
+        "import { Button } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <div>',
+        '    <Button remove="true" />',
+        '    <Button remove="">Save</Button>',
+        '    <Button remove={0}>Save</Button>',
+        '  </div>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'button-static.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // Truthy literal renders the delete cross at RBC runtime → <Delete/>.
+      expect(output).toContain('<Delete');
+      // Falsy literals just drop the prop; the button stays a button.
+      expect((output ?? '').match(/<Button>Save<\/Button>/g)).toHaveLength(2);
+      // A statically-known value is never mislabeled as dynamic.
+      expect(todos.some(t => t.rule === 'prop:remove')).toBe(false);
+      expect(output).not.toContain('remove=');
+    });
+
     it('flags a dynamic Heading subtitle and falls back to Title', () => {
       const source = [
         "import { Heading } from 'react-bulma-components';",

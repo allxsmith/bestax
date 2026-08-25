@@ -183,121 +183,121 @@
       "css": "--bulma-message-border-l-delta",
       "sass": "$message-border-l-delta",
       "default": "-20%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-radius",
       "sass": "$message-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-header-weight",
       "sass": "$message-header-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-header-padding",
       "sass": "$message-header-padding",
       "default": "1em 1.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-header-radius",
       "sass": "$message-header-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-body-border-width",
       "sass": "$message-body-border-width",
       "default": "0 0 0 4px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-body-color",
       "sass": "$message-body-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-body-padding",
       "sass": "$message-body-padding",
       "default": "1.25em 1.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-body-radius",
       "sass": "$message-body-radius",
       "default": "var(--bulma-radius-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-body-pre-code-background-color",
       "sass": "$message-body-pre-code-background-color",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-header-body-border-width",
       "sass": "$message-header-body-border-width",
       "default": "0",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-h",
       "sass": "$message-h",
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-s",
       "sass": "$message-s",
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-background-l",
       "sass": "$message-background-l",
       "default": "var(--bulma-background-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-border-l",
       "sass": "$message-border-l",
       "default": "var(--bulma-border-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-border-style",
       "sass": "$message-border-style",
       "default": "solid",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-border-width",
       "sass": "$message-border-width",
       "default": "0.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-color-l",
       "sass": "$message-color-l",
       "default": "var(--bulma-text-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-header-background-l",
       "sass": "$message-header-background-l",
       "default": "var(--bulma-dark-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-message-header-color-l",
       "sass": "$message-header-color-l",
       "default": "var(--bulma-text-dark-invert-l)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

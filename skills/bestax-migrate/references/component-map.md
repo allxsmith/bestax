@@ -6,40 +6,40 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 
 ## Top-level components
 
-| RBC            | bestax                                       | Notes                                                                                                                 |
-| -------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `Block`        | `Block`                                      | Auto                                                                                                                  |
-| `Box`          | `Box`                                        | Auto                                                                                                                  |
-| `Breadcrumb`   | `Breadcrumb`                                 | Auto; `align` → `alignment` (`center`→`centered`)                                                                     |
-| `Button`       | `Button`                                     | Auto; `<Button remove/>` → `<Delete/>`; see prop map                                                                  |
-| `Card`         | `Card`                                       | Auto                                                                                                                  |
-| `Columns`      | `Columns`                                    | Auto; `breakpoint="mobile"`→`isMobile`, `multiline`→`isMultiline`, …                                                  |
-| `Container`    | `Container`                                  | Auto; `breakpoint="fluid"`→`fluid`, `max`→`isMax`                                                                     |
-| `Content`      | `Content`                                    | Auto                                                                                                                  |
-| `Dropdown`     | `Dropdown`                                   | Structure auto; controlled `value`/`onChange` flagged                                                                 |
-| `Element`      | —                                            | Flagged: no generic element; use a semantic component + helper props                                                  |
-| `Footer`       | `Footer`                                     | Auto                                                                                                                  |
-| `Form.*`       | flat imports                                 | See Form table below                                                                                                  |
-| `Heading`      | `Title` / `SubTitle` / `<p class="heading">` | Auto for literal `subtitle`/`heading` (by value, not presence — `subtitle={false}` is `Title`); dynamic value flagged |
-| `Hero`         | `Hero`                                       | Auto; `hasNavbar`→`fullheightWithNavbar`; `halfheight`/`gradient` flagged                                             |
-| `Icon`         | `Icon`                                       | `<i class="fas fa-x">` children → `name`/`library`/`variant` props; else flagged                                      |
-| `Image`        | `Image`                                      | Auto; numeric `size={128}` → `size="128x128"`, `rounded`→`isRounded`                                                  |
-| `Level`        | `Level`                                      | Auto; `breakpoint="mobile"`→`isMobile`                                                                                |
-| `Loader`       | plain `<div className="loader">`             | Auto (Bulma v1 still ships the class)                                                                                 |
-| `Media`        | `Media`                                      | Auto                                                                                                                  |
-| `Menu`         | `Menu`                                       | Auto                                                                                                                  |
-| `Message`      | `Message`                                    | Auto; `size` flagged                                                                                                  |
-| `Modal`        | `Modal`                                      | `show`→`active`; `closeOnEsc`/`closeOnBlur`/`showClose` flagged (defaults cover them)                                 |
-| `Navbar`       | `Navbar`                                     | Auto; see dropdown note below                                                                                         |
-| `Notification` | `Notification`                               | Auto; `light`→`isLight`                                                                                               |
-| `Pagination`   | `Pagination`                                 | `onChange`→`onPageChange`; `delta`/labels/`showFirstLast`/`autoHide` flagged                                          |
-| `Panel`        | `Panel`                                      | Auto                                                                                                                  |
-| `Progress`     | `Progress`                                   | Auto                                                                                                                  |
-| `Section`      | `Section`                                    | Auto                                                                                                                  |
-| `Table`        | `Table`                                      | Auto; `size="fullwidth"`→`isFullwidth`, `striped`→`isStriped`, …                                                      |
-| `Tabs`         | `Tabs`                                       | Auto; children wrapped in `Tabs.List`; `type="toggle-rounded"`→`toggle rounded`                                       |
-| `Tag`          | `Tag`                                        | Auto; `remove`→`isDelete`, `rounded`→`isRounded`                                                                      |
-| `Tile`         | —                                            | Flagged: Bulma v1 replaced tiles with `Grid`/`Cell`                                                                   |
+| RBC            | bestax                                       | Notes                                                                                                                       |
+| -------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `Block`        | `Block`                                      | Auto                                                                                                                        |
+| `Box`          | `Box`                                        | Auto                                                                                                                        |
+| `Breadcrumb`   | `Breadcrumb`                                 | Auto; `align` → `alignment` (`center`→`centered`)                                                                           |
+| `Button`       | `Button`                                     | Auto for literal `remove` (by value, not presence — truthy → `<Delete/>`, `remove={false}` stays `Button`); dynamic flagged |
+| `Card`         | `Card`                                       | Auto                                                                                                                        |
+| `Columns`      | `Columns`                                    | Auto; `breakpoint="mobile"`→`isMobile`, `multiline`→`isMultiline`, …                                                        |
+| `Container`    | `Container`                                  | Auto; `breakpoint="fluid"`→`fluid`, `max`→`isMax`                                                                           |
+| `Content`      | `Content`                                    | Auto                                                                                                                        |
+| `Dropdown`     | `Dropdown`                                   | Structure auto; controlled `value`/`onChange` flagged                                                                       |
+| `Element`      | —                                            | Flagged: no generic element; use a semantic component + helper props                                                        |
+| `Footer`       | `Footer`                                     | Auto                                                                                                                        |
+| `Form.*`       | flat imports                                 | See Form table below                                                                                                        |
+| `Heading`      | `Title` / `SubTitle` / `<p class="heading">` | Auto for literal `subtitle`/`heading` (by value, not presence — `subtitle={false}` is `Title`); dynamic value flagged       |
+| `Hero`         | `Hero`                                       | Auto; `hasNavbar`→`fullheightWithNavbar`; `halfheight`/`gradient` flagged                                                   |
+| `Icon`         | `Icon`                                       | `<i class="fas fa-x">` children → `name`/`library`/`variant` props; else flagged                                            |
+| `Image`        | `Image`                                      | Auto; numeric `size={128}` → `size="128x128"`, `rounded`→`isRounded`                                                        |
+| `Level`        | `Level`                                      | Auto; `breakpoint="mobile"`→`isMobile`                                                                                      |
+| `Loader`       | plain `<div className="loader">`             | Auto (Bulma v1 still ships the class)                                                                                       |
+| `Media`        | `Media`                                      | Auto                                                                                                                        |
+| `Menu`         | `Menu`                                       | Auto                                                                                                                        |
+| `Message`      | `Message`                                    | Auto; `size` flagged                                                                                                        |
+| `Modal`        | `Modal`                                      | `show`→`active`; `closeOnEsc`/`closeOnBlur`/`showClose` flagged (defaults cover them)                                       |
+| `Navbar`       | `Navbar`                                     | Auto; see dropdown note below                                                                                               |
+| `Notification` | `Notification`                               | Auto; `light`→`isLight`                                                                                                     |
+| `Pagination`   | `Pagination`                                 | `onChange`→`onPageChange`; `delta`/labels/`showFirstLast`/`autoHide` flagged                                                |
+| `Panel`        | `Panel`                                      | Auto                                                                                                                        |
+| `Progress`     | `Progress`                                   | Auto                                                                                                                        |
+| `Section`      | `Section`                                    | Auto                                                                                                                        |
+| `Table`        | `Table`                                      | Auto; `size="fullwidth"`→`isFullwidth`, `striped`→`isStriped`, …                                                            |
+| `Tabs`         | `Tabs`                                       | Auto; children wrapped in `Tabs.List`; `type="toggle-rounded"`→`toggle rounded`                                             |
+| `Tag`          | `Tag`                                        | Auto; `remove`→`isDelete`, `rounded`→`isRounded`                                                                            |
+| `Tile`         | —                                            | Flagged: Bulma v1 replaced tiles with `Grid`/`Cell`                                                                         |
 
 ## Compound sub-components
 

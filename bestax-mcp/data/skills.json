@@ -88,12 +88,12 @@
         {
           "id": "component-map",
           "file": "references/component-map.md",
-          "bytes": 12984
+          "bytes": 13190
         },
         {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 5679
+          "bytes": 5838
         },
         { "id": "prop-map", "file": "references/prop-map.md", "bytes": 6363 },
         {
@@ -127,7 +127,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 25446
+          "bytes": 26650
         },
         {
           "id": "themeable-components",

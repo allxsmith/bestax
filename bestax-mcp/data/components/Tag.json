@@ -156,55 +156,55 @@
       "css": "--bulma-tag-h",
       "sass": "$tag-h",
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-s",
       "sass": "$tag-s",
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-background-l",
       "sass": "$tag-background-l",
       "default": "var(--bulma-background-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-background-l-delta",
       "sass": "$tag-background-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-hover-background-l-delta",
       "sass": "$tag-hover-background-l-delta",
       "default": "var(--bulma-hover-background-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-active-background-l-delta",
       "sass": "$tag-active-background-l-delta",
       "default": "var(--bulma-active-background-l-delta)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-color-l",
       "sass": "$tag-color-l",
       "default": "var(--bulma-text-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-radius",
       "sass": "$tag-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tag-delete-margin",
       "sass": "$tag-delete-margin",
       "default": "1px",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }
