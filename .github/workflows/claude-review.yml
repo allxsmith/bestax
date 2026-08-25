@@ -18,8 +18,10 @@ name: Claude Deep Review
 # Security posture: same-repo PRs only (never forks), the labeler's live
 # role is re-verified via the collaborators API (triage+ required, so a
 # label applied by automation on behalf of an outsider is a silent no-op),
-# and the dedupe marker still caps usage at one review per PR ever —
-# re-labeling never re-fires it.
+# and the dedupe marker caps AUTOMATIC usage at one review per PR — a
+# triage+ user re-applying `deep-review` is the one deliberate re-run
+# path (e.g. after new commits or a prompt upgrade; see the dedupe
+# step's EXCEPTION below).
 #
 # Deliberately does NOT trigger on `synchronize`: one review per PR, so
 # Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
