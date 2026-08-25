@@ -6,6 +6,9 @@ export function Actions({ isRemove }: { isRemove: boolean }) {
     <div>
       <Delete />
       <Button>Save</Button>
+      <Delete>Save</Delete>
+      <Button>Save</Button>
+      <Button>Save</Button>
       <Button remove={isRemove}>Save</Button>
     </div>
   );

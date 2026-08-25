@@ -205,16 +205,19 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * `<Button remove />` (or a literal `remove={true}`) is Bulma's delete
-   * cross → bestax `<Delete />`. A literal `false` just drops the prop; a
-   * dynamic value can render as either one depending on runtime state, so
+   * `<Button remove />` (or any truthy literal) is Bulma's delete
+   * cross → bestax `<Delete />`. A falsy literal just drops the prop; only a
+   * genuine expression can render as either one depending on runtime state, so
    * it's a TODO instead of a silent guess.
    */
   button(ctx, path, element) {
     const attr = findAttr(element, 'remove');
     if (!attr) return {};
     const literal = literalValueOf(attr);
-    if (literal.kind === 'boolean') {
+    if (literal.kind !== 'expression') {
+      // A statically-known value always renders the same at runtime: truthy
+      // (`remove`, `remove={true}`, `remove="true"`) → `<Delete />`; falsy
+      // (`remove={false}`, `remove=""`, `remove={0}`) → just drop the prop.
       removeAttr(element, attr);
       ctx.dirty = true;
       return literal.value ? { target: 'Delete' } : {};

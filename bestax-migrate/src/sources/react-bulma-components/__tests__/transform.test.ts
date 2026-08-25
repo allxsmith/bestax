@@ -354,6 +354,30 @@ describe('react-bulma-components transform fixtures', () => {
       expect(output).not.toContain('<Delete');
     });
 
+    it('resolves a static string/number `remove` by truthiness, not a TODO', () => {
+      const source = [
+        "import { Button } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <div>',
+        '    <Button remove="true" />',
+        '    <Button remove="">Save</Button>',
+        '    <Button remove={0}>Save</Button>',
+        '  </div>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'button-static.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // Truthy literal renders the delete cross at RBC runtime → <Delete/>.
+      expect(output).toContain('<Delete');
+      // Falsy literals just drop the prop; the button stays a button.
+      expect((output ?? '').match(/<Button>Save<\/Button>/g)).toHaveLength(2);
+      // A statically-known value is never mislabeled as dynamic.
+      expect(todos.some(t => t.rule === 'prop:remove')).toBe(false);
+      expect(output).not.toContain('remove=');
+    });
+
     it('flags a Menu.List title it cannot lift to a sibling', () => {
       const source = [
         "import { Menu } from 'react-bulma-components';",
