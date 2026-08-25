@@ -93,7 +93,16 @@ function isFoldableValue(value: string): boolean {
  */
 function hasTopLevelComma(value: string): boolean {
   let quote: string | null = null;
+  let escaped = false;
   for (const char of value) {
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
     if (quote) {
       if (char === quote) quote = null;
       continue;

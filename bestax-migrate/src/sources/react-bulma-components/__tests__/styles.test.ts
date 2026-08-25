@@ -56,6 +56,18 @@ describe('transformStyles (.scss)', () => {
     );
   });
 
+  it('does not wrap a single quoted string whose escaped quote precedes a comma', () => {
+    // `"a\", b"` is one string value — the escaped `"` must not close the
+    // quote and expose the comma as top-level, or we would emit needless
+    // parens. Track backslash escapes while scanning.
+    const source = ['$foo: "a\\", b";', '', "@import 'bulma/bulma.sass';"].join(
+      '\n'
+    );
+    const { output } = run('escaped.scss', source);
+    expect(output).toContain('$foo: "a\\", b"\n');
+    expect(output).not.toContain('$foo: ("a\\", b")');
+  });
+
   it('leaves a comma-free folded value unparenthesized', () => {
     const source = [
       '$primary: #1e6b99;',
