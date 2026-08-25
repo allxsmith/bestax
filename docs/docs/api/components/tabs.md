@@ -528,6 +528,10 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 | CSS Variable                                         | Sass Variable                                 | Default                     |
 | ---------------------------------------------------- | --------------------------------------------- | --------------------------- |
+| `--bulma-tabs-vertical-min-width` ‡                  | `$tabs-vertical-min-width`                    | `200px`                     |
+| `--bulma-tabs-vertical-border-color` ‡               | `$tabs-vertical-border-color`                 | `var(--bulma-border)`       |
+| `--bulma-tabs-vertical-border-width` ‡               | `$tabs-vertical-border-width`                 | `1px`                       |
+| `--bulma-tabs-content-padding` ‡                     | `$tabs-content-padding`                       | `1rem`                      |
 | `--bulma-tabs-border-bottom-color`                   | `$tabs-border-bottom-color`                   | `var(--bulma-border)`       |
 | `--bulma-tabs-border-bottom-style`                   | `$tabs-border-bottom-style`                   | `solid`                     |
 | `--bulma-tabs-border-bottom-width`                   | `$tabs-border-bottom-width`                   | `1px`                       |
@@ -552,5 +556,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 | `--bulma-tabs-toggle-link-active-background-color`   | `$tabs-toggle-link-active-background-color`   | `var(--bulma-link)`         |
 | `--bulma-tabs-toggle-link-active-border-color`       | `$tabs-toggle-link-active-border-color`       | `var(--bulma-link)`         |
 | `--bulma-tabs-toggle-link-active-color`              | `$tabs-toggle-link-active-color`              | `var(--bulma-link-invert)`  |
+
+‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->

@@ -769,6 +769,222 @@
   ],
   "cssVars": [
     {
+      "css": "--bulma-dateinput-min-width",
+      "sass": "$dateinput-min-width",
+      "default": "16rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-size",
+      "sass": "$dateinput-cell-size",
+      "default": "2.25rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-radius",
+      "sass": "$dateinput-cell-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-color",
+      "sass": "$dateinput-cell-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-hover-bg",
+      "sass": "$dateinput-cell-hover-bg",
+      "default": "hsla(0, 0%, 50%, 0.13)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-selected-bg",
+      "sass": "$dateinput-cell-selected-bg",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-selected-color",
+      "sass": "$dateinput-cell-selected-color",
+      "default": "var(--bulma-primary-invert)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-today-color",
+      "sass": "$dateinput-cell-today-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-disabled-color",
+      "sass": "$dateinput-cell-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-cell-other-month-color",
+      "sass": "$dateinput-cell-other-month-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-header-padding",
+      "sass": "$dateinput-header-padding",
+      "default": "0.5rem 0",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-day-name-color",
+      "sass": "$dateinput-day-name-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-day-name-size",
+      "sass": "$dateinput-day-name-size",
+      "default": "var(--bulma-size-7)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dateinput-nav-button-size",
+      "sass": "$dateinput-nav-button-size",
+      "default": "1.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-gap",
+      "sass": "$datetimeinput-gap",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-card-background",
+      "sass": "$datetimeinput-time-card-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-card-border-color",
+      "sass": "$datetimeinput-time-card-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-card-radius",
+      "sass": "$datetimeinput-time-card-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-card-shadow",
+      "sass": "$datetimeinput-time-card-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.18)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-card-padding",
+      "sass": "$datetimeinput-time-card-padding",
+      "default": "0.5rem 0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-overlay-background",
+      "sass": "$datetimeinput-time-overlay-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.55)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-datetimeinput-time-overlay-blur",
+      "sass": "$datetimeinput-time-overlay-blur",
+      "default": "3px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-width",
+      "sass": "$timeinput-wheel-width",
+      "default": "3rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-item-height",
+      "sass": "$timeinput-wheel-item-height",
+      "default": "2rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-gap",
+      "sass": "$timeinput-wheel-gap",
+      "default": "0.4rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-bg",
+      "sass": "$timeinput-wheel-bg",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-color",
+      "sass": "$timeinput-wheel-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-dim-color",
+      "sass": "$timeinput-wheel-dim-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-hover-bg",
+      "sass": "$timeinput-wheel-hover-bg",
+      "default": "hsla(0, 0%, 50%, 0.13)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-selected-bg",
+      "sass": "$timeinput-wheel-selected-bg",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-selected-color",
+      "sass": "$timeinput-wheel-selected-color",
+      "default": "var(--bulma-primary-invert)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-radius",
+      "sass": "$timeinput-wheel-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-mask",
+      "sass": "$timeinput-wheel-mask",
+      "default": "linear-gradient(180deg, transparent 0, black 18%, black 82%, transparent 100%)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-separator-color",
+      "sass": "$timeinput-separator-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-separator-size",
+      "sass": "$timeinput-separator-size",
+      "default": "var(--bulma-size-5)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeinput-footer-padding",
+      "sass": "$timeinput-footer-padding",
+      "default": "0.5rem 0 0",
+      "scope": "root"
+    },
+    {
       "css": "--bulma-input-h",
       "sass": "$input-h",
       "default": "var(--bulma-scheme-h)",

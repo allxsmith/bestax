@@ -465,6 +465,30 @@
   ],
   "cssVars": [
     {
+      "css": "--bulma-tabs-vertical-min-width",
+      "sass": "$tabs-vertical-min-width",
+      "default": "200px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tabs-vertical-border-color",
+      "sass": "$tabs-vertical-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tabs-vertical-border-width",
+      "sass": "$tabs-vertical-border-width",
+      "default": "1px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tabs-content-padding",
+      "sass": "$tabs-content-padding",
+      "default": "1rem",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-tabs-border-bottom-color",
       "sass": "$tabs-border-bottom-color",
       "default": "var(--bulma-border)",

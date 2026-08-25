@@ -900,6 +900,20 @@ Use `inline` instead of the popover when you have vertical room to spare — boo
 
 | CSS Variable                               | Sass Variable                       | Default                                                                                                                  |
 | ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-dateinput-min-width`              | `$dateinput-min-width`              | `16rem`                                                                                                                  |
+| `--bulma-dateinput-cell-size`              | `$dateinput-cell-size`              | `2.25rem`                                                                                                                |
+| `--bulma-dateinput-cell-radius`            | `$dateinput-cell-radius`            | `var(--bulma-radius-small)`                                                                                              |
+| `--bulma-dateinput-cell-color`             | `$dateinput-cell-color`             | `var(--bulma-text)`                                                                                                      |
+| `--bulma-dateinput-cell-hover-bg`          | `$dateinput-cell-hover-bg`          | `hsla(0, 0%, 50%, 0.13)`                                                                                                 |
+| `--bulma-dateinput-cell-selected-bg`       | `$dateinput-cell-selected-bg`       | `var(--bulma-primary)`                                                                                                   |
+| `--bulma-dateinput-cell-selected-color`    | `$dateinput-cell-selected-color`    | `var(--bulma-primary-invert)`                                                                                            |
+| `--bulma-dateinput-cell-today-color`       | `$dateinput-cell-today-color`       | `var(--bulma-primary)`                                                                                                   |
+| `--bulma-dateinput-cell-disabled-color`    | `$dateinput-cell-disabled-color`    | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-dateinput-cell-other-month-color` | `$dateinput-cell-other-month-color` | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-dateinput-header-padding`         | `$dateinput-header-padding`         | `0.5rem 0`                                                                                                               |
+| `--bulma-dateinput-day-name-color`         | `$dateinput-day-name-color`         | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-dateinput-day-name-size`          | `$dateinput-day-name-size`          | `var(--bulma-size-7)`                                                                                                    |
+| `--bulma-dateinput-nav-button-size`        | `$dateinput-nav-button-size`        | `1.75rem`                                                                                                                |
 | `--bulma-input-h`                          | `$input-h`                          | `var(--bulma-scheme-h)`                                                                                                  |
 | `--bulma-input-s`                          | `$input-s`                          | `var(--bulma-scheme-s)`                                                                                                  |
 | `--bulma-input-l`                          | `$input-l`                          | `var(--bulma-scheme-main-l)`                                                                                             |
