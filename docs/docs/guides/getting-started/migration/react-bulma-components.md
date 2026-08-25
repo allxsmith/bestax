@@ -66,8 +66,10 @@ in place:
   library being removed, not a third-party extension, so it is rewritten into that identical
   `@use 'bulma/sass'` (+ extras) root, folding any leading `$var` overrides, rather than the
   hard-configured `scss/bestax` bundle that couldn't take them. If the file already has its
-  own Bulma root the redundant line is dropped (the extras still added once). Computed
-  variables and indented-syntax `.sass` files are flagged instead of guessed at.
+  own Bulma root the redundant root/index line is dropped (the extras still added once); a
+  dropped RBC **deep partial** is flagged with a TODO instead, since `bulma/sass` may not
+  carry its styles. Computed variables and indented-syntax `.sass` files are flagged instead
+  of guessed at.
 - **Dependencies** — the nearest `package.json` drops `react-bulma-components`, gains
   `@allxsmith/bestax-bulma`, moves `bulma` to `^1.0.4`, and swaps the dead `node-sass` for
   dart `sass`. The codemod never runs an install — do that yourself afterwards.

@@ -231,10 +231,11 @@ describe('transformStyles (.scss)', () => {
         const { output, todos } = run('main.scss', source);
         expect(output).not.toContain('third-party');
         expect(output).not.toContain('bulma-components');
+        // The mislabel we guard against is calling the library's own root a
+        // third-party `bulma-components` *extension*; a report that names the
+        // package while rewriting its root is fine.
         expect(todos.every(t => !t.message.includes('third-party'))).toBe(true);
-        expect(todos.every(t => !t.message.includes('bulma-components'))).toBe(
-          true
-        );
+        expect(todos.every(t => !t.message.includes('extension'))).toBe(true);
       }
     );
 
@@ -401,6 +402,59 @@ describe('transformStyles (.scss)', () => {
       const bulmaUses = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
       expect(bulmaUses).toHaveLength(1);
       expect(output).not.toContain('react-bulma-components');
+    });
+
+    it('flags a dropped RBC deep partial instead of losing its CSS (bulma mode)', () => {
+      const source = [
+        "@import 'bulma/bulma.sass';",
+        "@import 'react-bulma-components/src/components/navbar.sass';",
+      ].join('\n');
+      const { output, todos } = run('main.scss', source, 'bulma');
+      const bulmaRoots = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
+      expect(bulmaRoots).toHaveLength(1);
+      expect(output).not.toContain('react-bulma-components/src/components');
+      expect(output).toContain('stylesheet partial');
+      expect(todos.some(t => t.message.includes('partial dropped'))).toBe(true);
+    });
+
+    it('flags a second RBC deep partial in bestax mode (root + extras, partial not lost)', () => {
+      const source = [
+        "@import 'react-bulma-components/src/index.sass';",
+        "@import 'react-bulma-components/src/components/tooltip.sass';",
+      ].join('\n');
+      const { output, todos } = run('main.scss', source);
+      const bulmaRoots = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
+      expect(bulmaRoots).toHaveLength(1);
+      const extras = (output ?? '').match(/bestax-bulma\/scss\/extras/g) ?? [];
+      expect(extras).toHaveLength(1);
+      expect(output).not.toContain('react-bulma-components/src/components');
+      expect(output).toContain('stylesheet partial');
+      expect(todos.some(t => t.message.includes('partial dropped'))).toBe(true);
+    });
+
+    it('flags an RBC deep partial dropped beside the file’s own @use root (bestax mode)', () => {
+      const source = [
+        "@use 'bulma/sass';",
+        "@import 'react-bulma-components/src/components/navbar.sass';",
+      ].join('\n');
+      const { output, todos } = run('main.scss', source);
+      const bulmaRoots = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
+      expect(bulmaRoots).toHaveLength(1);
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+      expect(output).toContain('stylesheet partial');
+      expect(todos.some(t => t.message.includes('partial dropped'))).toBe(true);
+    });
+
+    it('does not flag the RBC root/index import when it is dropped as redundant', () => {
+      const source = [
+        "@import 'bulma/bulma';",
+        "@import 'react-bulma-components/src/index.sass';",
+      ].join('\n');
+      const { output, todos } = run('main.scss', source, 'bulma');
+      expect(output).not.toContain('stylesheet partial');
+      expect(todos.some(t => t.message.includes('partial dropped'))).toBe(
+        false
+      );
     });
 
     it('still detects a genuine bulma-* extension alongside the RBC stylesheet', () => {

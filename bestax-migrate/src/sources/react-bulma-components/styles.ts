@@ -91,6 +91,19 @@ const RBC_STYLE_IMPORT =
   /^(\s*)@import\s+(['"])((?:\.\.?\/)+node_modules\/|~)?react-bulma-components\/[^'"]*\2\s*;?\s*$/;
 
 /**
+ * The subset of RBC stylesheet imports that are the library's own *root*: the
+ * bare package specifier, the documented Sass entry point (`src/index`), and
+ * the bundled v3 CSS (`dist/react-bulma-components(.min).css`). These pull in
+ * the whole library, which `bulma/sass` supersedes — so when the file already
+ * has a Bulma root, dropping one of these loses nothing. A deep RBC partial
+ * (`src/components/navbar.sass`) is NOT a root: `bulma/sass` doesn't carry a
+ * given partial's styles, so removing one silently would drop CSS. We flag
+ * those instead (the package's "never a silent skip" rule).
+ */
+const RBC_ROOT_STYLESHEET =
+  /^\s*@import\s+(['"])(?:(?:\.\.?\/)+node_modules\/|~)?react-bulma-components(?:\/src\/index(?:\.s[ac]ss)?|\/dist\/react-bulma-components(?:\.min)?\.css)?\1\s*;?\s*$/;
+
+/**
  * A Bulma module root already pulled in via `@use` — the file's own
  * `@use 'bulma/sass'` (any prefix, configured or not) or the bestax bundle
  * (`scss/bestax`, which itself loads `bulma/sass with (…)`). When one is
@@ -405,21 +418,48 @@ export const transformStyles: StylesTransform = (
               ? "replaced react-bulma-components's stylesheet import with bulma/sass; the package is removed from dependencies, so the old import would not resolve"
               : "replaced react-bulma-components's stylesheet import with bulma/sass; it is a Bulma 0.9 asset the migrated v1 components can't use (--no-deps left the package in place)"
           );
+        } else {
+          // bestax/bulma modes rewrite the file's root without a TODO — still
+          // report it so the migration summary reflects the restructured root.
+          report(
+            collector,
+            filePath,
+            i + 1,
+            'sass',
+            "replaced react-bulma-components's stylesheet import with a Bulma v1 @use root"
+          );
         }
-      } else if (cssMode === 'bestax' && !extrasAdded) {
-        // A Bulma root already exists in this file — a `bulma/…` @import we
-        // convert, or the file's own `@use` root. Keep it and add only the
-        // extras: never a second root, and never the configured bundle that
-        // would reconfigure an already-loaded module.
-        out.push(
-          prefix
-            ? `${indent}@use '${prefix}@allxsmith/bestax-bulma/src/scss/extras';`
-            : `${indent}${EXTRAS_USE}`
-        );
-        extrasAdded = true;
+      } else {
+        // A Bulma root already covers this file (a `bulma/…` @import we
+        // convert, the file's own `@use` root, or an earlier RBC line we
+        // rewrote). In bestax mode keep that root and add only the extras —
+        // never a second root, never the configured bundle that would
+        // reconfigure an already-loaded module.
+        if (cssMode === 'bestax' && !extrasAdded) {
+          out.push(
+            prefix
+              ? `${indent}@use '${prefix}@allxsmith/bestax-bulma/src/scss/extras';`
+              : `${indent}${EXTRAS_USE}`
+          );
+          extrasAdded = true;
+        }
+        // Dropping the RBC line is only safe for its root/index stylesheet,
+        // which `bulma/sass` supersedes. A deep RBC partial can carry styles
+        // `bulma/sass` doesn't, so removing it silently would lose CSS — flag
+        // it with a TODO + report entry instead (never a silent skip).
+        if (!RBC_ROOT_STYLESHEET.test(line)) {
+          out.push(
+            `${indent}// ${TODO}: dropped a react-bulma-components stylesheet partial that has no Bulma v1 root equivalent; port any styles it carried beyond Bulma's own by hand — see ${GUIDE}`
+          );
+          report(
+            collector,
+            filePath,
+            i + 1,
+            'sass',
+            'react-bulma-components stylesheet partial dropped; port any styles it carried beyond Bulma’s own by hand'
+          );
+        }
       }
-      // Otherwise (bulma/keep with a root already present) the line is
-      // redundant — drop it rather than importing Bulma twice.
       changed = true;
       continue;
     }

@@ -61,8 +61,12 @@ finish what it flagged.
   user's own theme vars, and reconfiguring `bulma/sass` when another file already
   configures it is a hard Sass error. If the file already has its own `bulma/…` root
   (a `@use 'bulma/sass'` of its own, or a Bulma `@import` the codemod converts), the RBC
-  line is dropped instead of emitting a second root; in `bestax` mode the extras are
-  added once alongside that existing root.
+  **root/index** line (`src/index`, the bundled `dist/*.css`, or the bare specifier) is
+  dropped instead of emitting a second root; in `bestax` mode the extras are added once
+  alongside that existing root. A dropped RBC **deep partial** (e.g.
+  `src/components/navbar.sass`) is different — `bulma/sass` doesn't necessarily carry a
+  given partial's styles, so it gets a `// TODO(bestax-migrate)` and a report entry
+  ("port any styles it carried beyond Bulma's own by hand") rather than vanishing silently.
 
 - **package.json**: `react-bulma-components` removed, `@allxsmith/bestax-bulma` added,
   `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),
