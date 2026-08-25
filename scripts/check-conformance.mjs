@@ -476,24 +476,6 @@ async function checkDocsGenerated() {
  */
 const ORPHAN_EXEMPT = new Map([
   [
-    'bulma-ui/src/scss/components/_tabs.scss',
-    'vertical-tabs vars register under .tabs-root, which the matcher does ' +
-      'not connect to Tabs (root class `tabs`) — #543',
-  ],
-  [
-    'bulma-ui/src/scss/form/_dateinput.scss',
-    'DateInputBase is overridden to root class `input`, so DateInput maps ' +
-      'only to bulma form/shared.scss — #543',
-  ],
-  [
-    'bulma-ui/src/scss/form/_timeinput.scss',
-    'same *Base → input override as _dateinput.scss — #543',
-  ],
-  [
-    'bulma-ui/src/scss/form/_datetimeinput.scss',
-    'same *Base → input override as _dateinput.scss — #543',
-  ],
-  [
     'bulma-ui/src/scss/form/_picker-popover.scss',
     'shared picker chrome owned by no single component; needs an ownership ' +
       'decision before it can be claimed — #543',

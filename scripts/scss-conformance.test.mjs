@@ -61,12 +61,12 @@ test('an exemption that outlives its orphan is itself a violation', () => {
   // still exempted, document all its keys, and the check demands the entry be
   // removed. Driven against a REAL exempted path, so this also pins that the
   // exemptions still parse.
-  const tabs = 'bulma-ui/src/scss/components/_tabs.scss';
+  const popover = 'bulma-ui/src/scss/form/_picker-popover.scss';
   const v = orphanPartialViolations(
-    tabs,
-    ['tabs-x'],
-    new Set([tabs]),
-    new Set(['tabs-x'])
+    popover,
+    ['picker-popover-x'],
+    new Set([popover]),
+    new Set(['picker-popover-x'])
   );
   assert.equal(v.length, 1);
   assert.match(v[0], /stale exemption/i);
@@ -75,22 +75,22 @@ test('an exemption that outlives its orphan is itself a violation', () => {
 test('an exemption that outlives the registrations is itself a violation', () => {
   // The other stale shape: the partial stopped registering variables
   // entirely, so there is nothing left to exempt.
-  const tabs = 'bulma-ui/src/scss/components/_tabs.scss';
-  const v = orphanPartialViolations(tabs, [], new Set(), new Set());
+  const popover = 'bulma-ui/src/scss/form/_picker-popover.scss';
+  const v = orphanPartialViolations(popover, [], new Set(), new Set());
   assert.equal(v.length, 1);
   assert.match(v[0], /outlived the problem/);
 });
 
 test('an exempted orphan is quiet while the gap it names persists', () => {
-  const tabs = 'bulma-ui/src/scss/components/_tabs.scss';
+  const popover = 'bulma-ui/src/scss/form/_picker-popover.scss';
   // Unclaimed but registering: the documented #543 state.
   assert.deepEqual(
-    orphanPartialViolations(tabs, ['tabs-x'], new Set(), new Set()),
+    orphanPartialViolations(popover, ['picker-popover-x'], new Set(), new Set()),
     []
   );
   // Claimed with keys still undocumented: the exemption is doing its job.
   assert.deepEqual(
-    orphanPartialViolations(tabs, ['tabs-x'], new Set([tabs]), new Set()),
+    orphanPartialViolations(popover, ['picker-popover-x'], new Set([popover]), new Set()),
     []
   );
 });
