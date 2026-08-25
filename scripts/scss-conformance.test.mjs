@@ -85,12 +85,22 @@ test('an exempted orphan is quiet while the gap it names persists', () => {
   const popover = 'bulma-ui/src/scss/form/_picker-popover.scss';
   // Unclaimed but registering: the documented #543 state.
   assert.deepEqual(
-    orphanPartialViolations(popover, ['picker-popover-x'], new Set(), new Set()),
+    orphanPartialViolations(
+      popover,
+      ['picker-popover-x'],
+      new Set(),
+      new Set()
+    ),
     []
   );
   // Claimed with keys still undocumented: the exemption is doing its job.
   assert.deepEqual(
-    orphanPartialViolations(popover, ['picker-popover-x'], new Set([popover]), new Set()),
+    orphanPartialViolations(
+      popover,
+      ['picker-popover-x'],
+      new Set([popover]),
+      new Set()
+    ),
     []
   );
 });
