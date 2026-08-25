@@ -390,6 +390,41 @@ describe('react-bulma-components transform fixtures', () => {
       expect(output).toContain('<Title heading={useHeadingStyle}>x</Title>');
     });
 
+    it('resolves a statically-truthy string `heading` literal without a dynamic TODO', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = () => <Heading heading="heading">x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-string.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // A statically-known truthy value renders the plain `.heading` paragraph
+      // at runtime, so it collapses just like a bare `heading` — never the
+      // "dynamic value" TODO that main resolved correctly.
+      expect(todos.some(t => t.rule === 'prop:heading')).toBe(false);
+      expect(output).toContain('className="heading"');
+      expect(output).not.toContain('<Title');
+    });
+
+    it('resolves a statically-truthy string `subtitle` literal to SubTitle without a dynamic TODO', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = () => <Heading subtitle="yes">x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'subtitle-string.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(false);
+      expect(output).toContain('<SubTitle>x</SubTitle>');
+    });
+
     it('flags a Menu.List title it cannot lift to a sibling', () => {
       const source = [
         "import { Menu } from 'react-bulma-components';",
