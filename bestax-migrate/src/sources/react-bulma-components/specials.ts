@@ -204,13 +204,28 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { handledProps: ['multiline'] };
   },
 
-  /** `<Button remove />` is Bulma's delete cross → bestax `<Delete />`. */
-  button(ctx, _path, element) {
+  /**
+   * `<Button remove />` (or a literal `remove={true}`) is Bulma's delete
+   * cross → bestax `<Delete />`. A literal `false` just drops the prop; a
+   * dynamic value can render as either one depending on runtime state, so
+   * it's a TODO instead of a silent guess.
+   */
+  button(ctx, path, element) {
     const attr = findAttr(element, 'remove');
     if (!attr) return {};
-    removeAttr(element, attr);
-    ctx.dirty = true;
-    return { target: 'Delete' };
+    const literal = literalValueOf(attr);
+    if (literal.kind === 'boolean') {
+      removeAttr(element, attr);
+      ctx.dirty = true;
+      return literal.value ? { target: 'Delete' } : {};
+    }
+    addTodo(
+      ctx,
+      path,
+      'prop:remove',
+      '`remove` has a dynamic value; this can render as either a Button or a Delete cross — split the branch by hand'
+    );
+    return {};
   },
 
   /** Heading → Title / SubTitle / plain `.heading` paragraph. */
