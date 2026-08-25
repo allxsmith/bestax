@@ -1,6 +1,6 @@
 {
   "name": "bestax-migrate",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Codemods for migrating existing React apps from other Bulma libraries to @allxsmith/bestax-bulma",
   "type": "module",
   "bin": {

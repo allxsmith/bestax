@@ -1,3 +1,14 @@
+## [2.1.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.1...bestax-migrate@2.1.2) (2026-08-25)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep dynamic Heading props and never drop them in the collapse ([8a076c0](https://github.com/allxsmith/bestax/commit/8a076c04764741a11ce95e12aba0e53220e9caf1))
+* **bestax-migrate:** keep subtitle class when literal subtitle collapses with heading ([85c4e91](https://github.com/allxsmith/bestax/commit/85c4e91dccf2d1eb136d06543518e5a356981411))
+* **bestax-migrate:** pick Heading target by prop value, not presence ([81b6374](https://github.com/allxsmith/bestax/commit/81b6374bc3e73949247e4ce73ece0876d5c631a1)), closes [#552](https://github.com/allxsmith/bestax/issues/552)
+* **bestax-migrate:** regenerate MCP index for component-map ([ba745f2](https://github.com/allxsmith/bestax/commit/ba745f2cee8f36868f071a5addb25531864da62f))
+* **bestax-migrate:** resolve static string/number Heading props by truthiness ([f063086](https://github.com/allxsmith/bestax/commit/f063086344b7fa3f7cc6c368a95669c6fc27a14b)), closes [#558](https://github.com/allxsmith/bestax/issues/558)
+
 ## [2.1.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.0...bestax-migrate@2.1.1) (2026-08-25)
 
 
