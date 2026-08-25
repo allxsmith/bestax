@@ -1055,6 +1055,55 @@ const ROOT_CLASS_OVERRIDES = {
 };
 
 /**
+ * Extra root classes to probe for SCSS variable partials, beyond a
+ * component's own `rootClass`/`varPrefix`.
+ *
+ * The `*Base -> input` entries in ROOT_CLASS_OVERRIDES above are correct for
+ * PROPS (the trigger a reader can restyle via className really is an
+ * `.input`), but wrong as the sole SCSS mapping: the calendar grid and the
+ * time wheels are internal, unexported helpers
+ * (`form/_pickerInternals/Calendar.tsx`, `.../TimeWheels.tsx`) that render
+ * their OWN prefixed root class (`dateinput`, `timeinput`) and register a
+ * whole partial's worth of variables under it. That class reaches neither
+ * `pickRootClass` (it never appears in the *Base module's own source, only
+ * in the helper it renders) nor the override (which points at `input`
+ * instead), so `_dateinput.scss`, `_timeinput.scss` and `_datetimeinput.scss`
+ * registered 36 variables no API page could ever show (#543). Kept separate
+ * from `rootClass` rather than folded in, so the props page's override-advice
+ * sentence keeps naming the actual visible root.
+ */
+export const EXTRA_VAR_ROOTS = {
+  DateInput: ['dateinput'],
+  DateInputBase: ['dateinput'],
+  TimeInput: ['timeinput'],
+  TimeInputBase: ['timeinput'],
+  // DateTimeInputBase renders both the calendar grid AND the time wheels
+  // (the "time card" that slides over the calendar), plus its own
+  // `datetimeinput` panel class — the latter would resolve on its own via
+  // name-matching if ROOT_CLASS_OVERRIDES did not already claim `input` for
+  // props purposes first.
+  DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput'],
+  DateTimeInputBase: ['datetimeinput', 'dateinput', 'timeinput'],
+};
+
+/**
+ * `(root, prefix)` pairs to try when attributing a SCSS partial's variables to
+ * `name` — its own `rootClass`/`varPrefix` first, then each of
+ * `EXTRA_VAR_ROOTS[name]` (an extra is the component's own class within a
+ * partial it also owns, so root and prefix match). Shared by both the
+ * SCSS_SOURCES generator (which candidate found this file at all?) and the
+ * docs generator (which candidate's rows does THIS specific file render?) —
+ * the two must agree on what counts as a match, or a claimed partial renders
+ * no rows on the page that claimed it.
+ */
+export function varRootCandidates(name, rootClass, varPrefix) {
+  return [
+    { root: rootClass, prefix: varPrefix },
+    ...(EXTRA_VAR_ROOTS[name] ?? []).map(r => ({ root: r, prefix: r })),
+  ];
+}
+
+/**
  * The Bulma root class a component renders.
  *
  * Taking the FIRST `usePrefixedClassNames` literal is wrong: components that

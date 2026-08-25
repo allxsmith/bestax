@@ -723,6 +723,90 @@
   ],
   "cssVars": [
     {
+      "css": "--bulma-timeinput-wheel-width",
+      "sass": "$timeinput-wheel-width",
+      "default": "3rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-item-height",
+      "sass": "$timeinput-wheel-item-height",
+      "default": "2rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-gap",
+      "sass": "$timeinput-wheel-gap",
+      "default": "0.4rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-bg",
+      "sass": "$timeinput-wheel-bg",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-color",
+      "sass": "$timeinput-wheel-color",
+      "default": "var(--bulma-text)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-dim-color",
+      "sass": "$timeinput-wheel-dim-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-hover-bg",
+      "sass": "$timeinput-wheel-hover-bg",
+      "default": "hsla(0, 0%, 50%, 0.13)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-selected-bg",
+      "sass": "$timeinput-wheel-selected-bg",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-selected-color",
+      "sass": "$timeinput-wheel-selected-color",
+      "default": "var(--bulma-primary-invert)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-radius",
+      "sass": "$timeinput-wheel-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-wheel-mask",
+      "sass": "$timeinput-wheel-mask",
+      "default": "linear-gradient(180deg, transparent 0, black 18%, black 82%, transparent 100%)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-separator-color",
+      "sass": "$timeinput-separator-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-separator-size",
+      "sass": "$timeinput-separator-size",
+      "default": "var(--bulma-size-5)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-timeinput-footer-padding",
+      "sass": "$timeinput-footer-padding",
+      "default": "0.5rem 0 0",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-input-h",
       "sass": "$input-h",
       "default": "var(--bulma-scheme-h)",

@@ -38,7 +38,7 @@ import {
   renderTable,
   firstSentence,
 } from './lib/api-page.mjs';
-import { extractComponent } from './lib/props-extract.mjs';
+import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
   SCSS_SOURCES,
@@ -253,12 +253,37 @@ async function renderCssVars(info, { relPath }) {
   const sources = SCSS_SOURCES[info.name];
   if (!sources || !sources.length) return null;
 
+  // No per-entry override: gen-api-sources emits only { pkg, path }, and a
+  // hand-added field inside the generated markers is erased on the next
+  // regenerate. The real escape hatch is ROOT_CLASS_OVERRIDES /
+  // VAR_PREFIX_OVERRIDES (and, for a component owning more than one of its
+  // own repo partials, EXTRA_VAR_ROOTS) in props-extract.mjs, which survive
+  // regeneration. This file once read a `source.root ?? …` here, and its own
+  // error message advised adding the field the generator would delete (#464).
+  const candidates = varRootCandidates(
+    info.name,
+    info.rootClass,
+    info.varPrefix
+  );
+  if (!candidates.some(c => c.root || c.prefix)) {
+    throw new Error(
+      `${info.name}: cannot determine the root class or variable prefix. ` +
+        `Add the component to ROOT_CLASS_OVERRIDES or — for a semantic ` +
+        `wrapper with no prefixed class of its own — VAR_PREFIX_OVERRIDES ` +
+        `in scripts/lib/props-extract.mjs.`
+    );
+  }
+
   const rows = [];
   // A component can legitimately draw variables from more than one partial:
   // Bulma's form/shared.scss registers the `--bulma-input-*` set on a selector
   // list covering .control/.input/.textarea/.select, so those really do apply
-  // to all four. Dedupe across files by CSS variable name, first source wins —
-  // the same rule componentVars() applies within a file.
+  // to all four. It can also draw variables from a SINGLE partial under a
+  // DIFFERENT one of its own roots than the primary one (the date/time
+  // pickers' internal calendar/wheel helpers, #543) — every candidate is
+  // tried against every source. Dedupe across (file, candidate) by CSS
+  // variable name, first match wins — the same rule componentVars() applies
+  // within a file.
   const seen = new Set();
   const scopes = new Set();
   for (const source of sources) {
@@ -267,34 +292,33 @@ async function renderCssVars(info, { relPath }) {
         ? bulmaSassPath(source.path)
         : join(REPO, source.path);
     const src = await readFile(file, 'utf8');
-    // No per-entry override: gen-api-sources emits only { pkg, path }, and a
-    // hand-added field inside the generated markers is erased on the next
-    // regenerate. The real escape hatch is ROOT_CLASS_OVERRIDES /
-    // VAR_PREFIX_OVERRIDES in props-extract.mjs, which survive regeneration.
-    // This file once read a `source.root ?? …` here, and its own error
-    // message advised adding the field the generator would delete (#464).
-    const root = info.rootClass;
-    const prefix = info.varPrefix;
-    if (!root && !prefix) {
-      throw new Error(
-        `${info.name}: cannot determine the root class or variable prefix ` +
-          `for ${source.path}. Add the component to ROOT_CLASS_OVERRIDES ` +
-          `or — for a semantic wrapper with no prefixed class of its own — ` +
-          `VAR_PREFIX_OVERRIDES in scripts/lib/props-extract.mjs.`
-      );
-    }
-    for (const row of componentVars(src, root, prefix)) {
-      if (seen.has(row.cssVar)) continue;
-      seen.add(row.cssVar);
-      scopes.add(row.scope);
-      rows.push({
-        scope: row.scope,
-        cells: [
-          `\`${row.cssVar}\``,
-          row.sassVar ? `\`${row.sassVar}\`` : '—',
-          `\`${row.value}\``,
-        ],
-      });
+    for (const { root, prefix } of candidates) {
+      if (!root && !prefix) continue;
+      // An EXTRA root (its class differs from the component's primary
+      // rootClass) is a constituent element the component also owns — the
+      // pickers' calendar grid and time wheels, on `.dateinput`/`.timeinput`/
+      // `.datetimeinput`, not the primary `.input`. Inside their own partial
+      // that class IS the selector's root, so componentVars scores them
+      // 'root'; but the page's 'root' lead names `.input` and tells the reader
+      // to override there or via `className`, which loses — the element is
+      // separate and can be portaled, so even inheritance breaks. Force
+      // 'element' so the existing marker + note fire, exactly as Tabs'
+      // `.tabs-root` vars already do via the primary-root constituent rule.
+      const isExtra = root !== info.rootClass;
+      for (const row of componentVars(src, root, prefix)) {
+        if (seen.has(row.cssVar)) continue;
+        seen.add(row.cssVar);
+        const scope = isExtra ? 'element' : row.scope;
+        scopes.add(scope);
+        rows.push({
+          scope,
+          cells: [
+            `\`${row.cssVar}\``,
+            row.sassVar ? `\`${row.sassVar}\`` : '—',
+            `\`${row.value}\``,
+          ],
+        });
+      }
     }
   }
   if (!rows.length) return null;

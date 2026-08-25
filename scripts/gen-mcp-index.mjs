@@ -43,7 +43,7 @@ import { createRequire } from 'node:module';
 
 import { sectionSpans, sectionBody, firstSentence } from './lib/api-page.mjs';
 import { readSkillNames } from './lib/skills.mjs';
-import { extractComponent } from './lib/props-extract.mjs';
+import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
   SCSS_SOURCES,
@@ -267,6 +267,21 @@ function bulmaSassPath(rel) {
 async function cssVarsFor(info) {
   const sources = SCSS_SOURCES[info.name];
   if (!sources?.length) return [];
+  // No per-entry override, same as gen-api-docs: gen-api-sources emits
+  // only { pkg, path }, and a hand-added `root:` field is erased on the
+  // next regenerate — honoring it here while the docs generator ignored it
+  // would let the two surfaces ship contradicting tables (#544 review; the
+  // old line also conflated a root CLASS with the var PREFIX, which
+  // diverge exactly where VAR_PREFIX_OVERRIDES applies). Trying every
+  // candidate from `varRootCandidates` (not just the primary root/prefix)
+  // keeps this in step with gen-api-docs.mjs's renderCssVars for a
+  // component that owns more than one of its own repo partials (#543).
+  const candidates = varRootCandidates(
+    info.name,
+    info.rootClass,
+    info.varPrefix
+  );
+  if (!candidates.some(c => c.root || c.prefix)) return [];
   const rows = [];
   const seen = new Set();
   for (const source of sources) {
@@ -275,28 +290,30 @@ async function cssVarsFor(info) {
         ? bulmaSassPath(source.path)
         : join(REPO, source.path);
     const src = await readFile(file, 'utf8');
-    // No per-entry override, same as gen-api-docs: gen-api-sources emits
-    // only { pkg, path }, and a hand-added `root:` field is erased on the
-    // next regenerate — honoring it here while the docs generator ignored it
-    // would let the two surfaces ship contradicting tables (#544 review; the
-    // old line also conflated a root CLASS with the var PREFIX, which
-    // diverge exactly where VAR_PREFIX_OVERRIDES applies).
-    const root = info.rootClass;
-    const prefix = info.varPrefix;
-    if (!root && !prefix) continue;
-    for (const row of componentVars(src, root, prefix)) {
-      if (seen.has(row.cssVar)) continue;
-      seen.add(row.cssVar);
-      rows.push({
-        css: row.cssVar,
-        sass: row.sassVar || null,
-        default: row.value,
-        // The scope survives verbatim: collapsing 'compound' into
-        // 'component' made the server give the className override advice
-        // that silently loses at 0-2-0 — the exact #464 failure, on the MCP
-        // surface, while the docs page said the opposite (#544 review).
-        scope: row.scope,
-      });
+    for (const { root, prefix } of candidates) {
+      if (!root && !prefix) continue;
+      // An EXTRA root (differing from the primary rootClass) is a constituent
+      // element the component owns — the pickers' calendar/wheel helpers on
+      // `.dateinput`/`.timeinput`/`.datetimeinput`, not the primary `.input`.
+      // componentVars scores them 'root' inside their own partial, but 'root'
+      // advice names `.input`/`className` and loses (separate, portalable
+      // element). Force 'element' so the MCP scope agrees with the docs page
+      // (gen-api-docs.mjs renderCssVars), which does the same (#543).
+      const isExtra = root !== info.rootClass;
+      for (const row of componentVars(src, root, prefix)) {
+        if (seen.has(row.cssVar)) continue;
+        seen.add(row.cssVar);
+        rows.push({
+          css: row.cssVar,
+          sass: row.sassVar || null,
+          default: row.value,
+          // The scope survives verbatim: collapsing 'compound' into
+          // 'component' made the server give the className override advice
+          // that silently loses at 0-2-0 — the exact #464 failure, on the
+          // MCP surface, while the docs page said the opposite (#544 review).
+          scope: isExtra ? 'element' : row.scope,
+        });
+      }
     }
   }
   return rows;

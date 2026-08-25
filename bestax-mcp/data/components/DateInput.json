@@ -689,6 +689,90 @@
   ],
   "cssVars": [
     {
+      "css": "--bulma-dateinput-min-width",
+      "sass": "$dateinput-min-width",
+      "default": "16rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-size",
+      "sass": "$dateinput-cell-size",
+      "default": "2.25rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-radius",
+      "sass": "$dateinput-cell-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-color",
+      "sass": "$dateinput-cell-color",
+      "default": "var(--bulma-text)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-hover-bg",
+      "sass": "$dateinput-cell-hover-bg",
+      "default": "hsla(0, 0%, 50%, 0.13)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-selected-bg",
+      "sass": "$dateinput-cell-selected-bg",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-selected-color",
+      "sass": "$dateinput-cell-selected-color",
+      "default": "var(--bulma-primary-invert)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-today-color",
+      "sass": "$dateinput-cell-today-color",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-disabled-color",
+      "sass": "$dateinput-cell-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-other-month-color",
+      "sass": "$dateinput-cell-other-month-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-header-padding",
+      "sass": "$dateinput-header-padding",
+      "default": "0.5rem 0",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-day-name-color",
+      "sass": "$dateinput-day-name-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-day-name-size",
+      "sass": "$dateinput-day-name-size",
+      "default": "var(--bulma-size-7)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-nav-button-size",
+      "sass": "$dateinput-nav-button-size",
+      "default": "1.75rem",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-input-h",
       "sass": "$input-h",
       "default": "var(--bulma-scheme-h)",

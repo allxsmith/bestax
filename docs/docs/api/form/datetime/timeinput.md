@@ -1045,6 +1045,20 @@ When you pass an explicit token `format`, **that format is the source of truth f
 
 | CSS Variable                               | Sass Variable                       | Default                                                                                                                  |
 | ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-timeinput-wheel-width` ‡          | `$timeinput-wheel-width`            | `3rem`                                                                                                                   |
+| `--bulma-timeinput-wheel-item-height` ‡    | `$timeinput-wheel-item-height`      | `2rem`                                                                                                                   |
+| `--bulma-timeinput-wheel-gap` ‡            | `$timeinput-wheel-gap`              | `0.4rem`                                                                                                                 |
+| `--bulma-timeinput-wheel-bg` ‡             | `$timeinput-wheel-bg`               | `var(--bulma-scheme-main)`                                                                                               |
+| `--bulma-timeinput-wheel-color` ‡          | `$timeinput-wheel-color`            | `var(--bulma-text)`                                                                                                      |
+| `--bulma-timeinput-wheel-dim-color` ‡      | `$timeinput-wheel-dim-color`        | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-timeinput-wheel-hover-bg` ‡       | `$timeinput-wheel-hover-bg`         | `hsla(0, 0%, 50%, 0.13)`                                                                                                 |
+| `--bulma-timeinput-wheel-selected-bg` ‡    | `$timeinput-wheel-selected-bg`      | `var(--bulma-primary)`                                                                                                   |
+| `--bulma-timeinput-wheel-selected-color` ‡ | `$timeinput-wheel-selected-color`   | `var(--bulma-primary-invert)`                                                                                            |
+| `--bulma-timeinput-wheel-radius` ‡         | `$timeinput-wheel-radius`           | `var(--bulma-radius)`                                                                                                    |
+| `--bulma-timeinput-wheel-mask` ‡           | `$timeinput-wheel-mask`             | `linear-gradient(180deg, transparent 0, black 18%, black 82%, transparent 100%)`                                         |
+| `--bulma-timeinput-separator-color` ‡      | `$timeinput-separator-color`        | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-timeinput-separator-size` ‡       | `$timeinput-separator-size`         | `var(--bulma-size-5)`                                                                                                    |
+| `--bulma-timeinput-footer-padding` ‡       | `$timeinput-footer-padding`         | `0.5rem 0 0`                                                                                                             |
 | `--bulma-input-h`                          | `$input-h`                          | `var(--bulma-scheme-h)`                                                                                                  |
 | `--bulma-input-s`                          | `$input-s`                          | `var(--bulma-scheme-s)`                                                                                                  |
 | `--bulma-input-l`                          | `$input-l`                          | `var(--bulma-scheme-main-l)`                                                                                             |
@@ -1075,5 +1089,7 @@ When you pass an explicit token `format`, **that format is the source of truth f
 | `--bulma-input-icon-hover-color`           | `$input-icon-hover-color`           | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-input-icon-focus-color`           | `$input-icon-focus-color`           | `var(--bulma-link)`                                                                                                      |
 | `--bulma-input-radius`                     | `$input-radius`                     | `var(--bulma-radius)`                                                                                                    |
+
+‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->

@@ -32,7 +32,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 import { componentVars } from './lib/scss-vars.mjs';
-import { extractComponent, exportedModules } from './lib/props-extract.mjs';
+import {
+  extractComponent,
+  exportedModules,
+  varRootCandidates,
+} from './lib/props-extract.mjs';
 import { GENERATED_EXEMPT } from './lib/api-sources.mjs';
 
 const require = createRequire(import.meta.url);
@@ -112,6 +116,27 @@ async function candidatePartials() {
   );
 }
 
+/**
+ * SCSS partials registering variables under any of `candidates` — a
+ * component can carry both its bulma source and its own repo partial(s) (see
+ * `varRootCandidates`/`EXTRA_VAR_ROOTS` in props-extract.mjs, #543). Deduped
+ * by path; final order is by path for determinism, matching every other list
+ * this generator writes.
+ */
+export function resolveScssHits(candidates, partials) {
+  const hits = new Map();
+  for (const { root, prefix } of candidates) {
+    if (!root && !prefix) continue;
+    for (const partial of partials) {
+      if (hits.has(partial.path)) continue;
+      if (componentVars(partial.src, root, prefix).length > 0) {
+        hits.set(partial.path, partial);
+      }
+    }
+  }
+  return [...hits.values()].sort((a, b) => byCodePoint(a.path, b.path));
+}
+
 function fmt(v) {
   return JSON.stringify(v);
 }
@@ -151,12 +176,10 @@ async function main() {
       );
       continue;
     }
-    const hits =
-      root || prefix
-        ? partials
-            .filter(p => componentVars(p.src, root, prefix).length > 0)
-            .sort((a, b) => byCodePoint(a.path, b.path))
-        : [];
+    const candidates = varRootCandidates(name, root, prefix);
+    const hits = candidates.some(c => c.root || c.prefix)
+      ? resolveScssHits(candidates, partials)
+      : [];
     scss.push({ name, hits, root });
   }
 
