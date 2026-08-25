@@ -38,17 +38,26 @@ finish what it flagged.
   **dart-sass ≥ 1.79** — the codemod's node-sass replacement installs that, but check
   bundler-pinned older versions (Parcel's sass transformer pins 1.66).
 
-  react-bulma-components' own v3-era stylesheet entry point — bare or `~`-prefixed
-  `react-bulma-components/src/index.sass`, or the bundled
-  `react-bulma-components/dist/react-bulma-components(.min).css` — is not a third-party
-  extension; it's the library being migrated away from, and (unless `--no-deps` is
-  passed) `package.json` no longer lists it, so the import can never resolve once
-  installed. Every `--css` mode replaces it rather than leaving a known-broken import:
-  `bestax` (default) emits `@use '@allxsmith/bestax-bulma/scss/bestax';`; `bulma` emits
-  plain `@use 'bulma/sass';`; `keep` emits the same plain `@use 'bulma/sass';` with a TODO
-  explaining the replacement (mirroring how the CSS-import pass treats RBC's dead v3
-  bundled CSS even under `--css keep`). If the file already has its own `bulma/…` root
-  import, the now-redundant line is dropped instead of emitting a second one.
+  react-bulma-components' own stylesheet — any `react-bulma-components/…` specifier,
+  bare, `~`-prefixed, or a relative `node_modules/` path, covering the documented v3
+  entry points (`src/index.sass`, `dist/react-bulma-components(.min).css`) as well as
+  deep partials and extensionless forms — is not a third-party extension; it's the
+  library being migrated away from. It targets Bulma 0.9, not the v1 your components now
+  use, and (unless `--no-deps` is passed) `package.json` no longer lists it, so the
+  import can never resolve once installed. Every `--css` mode rewrites it into a real
+  Bulma root rather than leaving a known-broken import — the **same shape the
+  `@import 'bulma/…'` root path emits**, so a file that starts from RBC and one that
+  starts from a Bulma import converge: `bestax` (default) emits
+  `@use 'bulma/sass';` (folding any leading `$var` overrides above the import into
+  `with (…)`) plus `@use '@allxsmith/bestax-bulma/scss/extras';`; `bulma` emits plain
+  `@use 'bulma/sass';`; `keep` does the same with a TODO explaining the replacement
+  (worded to match whether `--no-deps` kept the package). It deliberately does **not**
+  emit the hard-configured `scss/bestax` bundle here — that bundle can't carry the
+  user's own theme vars, and reconfiguring `bulma/sass` when another file already
+  configures it is a hard Sass error. If the file already has its own `bulma/…` root
+  (a `@use 'bulma/sass'` of its own, or a Bulma `@import` the codemod converts), the RBC
+  line is dropped instead of emitting a second root; in `bestax` mode the extras are
+  added once alongside that existing root.
 
 - **package.json**: `react-bulma-components` removed, `@allxsmith/bestax-bulma` added,
   `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),

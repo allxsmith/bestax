@@ -116,6 +116,7 @@ function migrateFiles(
         output = source.transformStyles
           ? source.transformStyles(file, sourceText, collector, {
               cssMode: options.cssMode,
+              deps: options.deps,
             })
           : null;
       } else {

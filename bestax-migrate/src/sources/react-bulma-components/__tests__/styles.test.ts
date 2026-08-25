@@ -169,12 +169,16 @@ describe('transformStyles (.scss)', () => {
       }
     );
 
-    it('bestax mode: rewrites the bare Sass entry point to the bestax bundle', () => {
+    it('bestax mode: rewrites the bare Sass entry point to bulma/sass + extras', () => {
       const { output } = run(
         'main.scss',
         "@import 'react-bulma-components/src/index.sass';\n"
       );
-      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/bestax';");
+      expect(output).toContain("@use 'bulma/sass';");
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+      // Never the hard-configured bundle: it can't take the user's own theme
+      // vars and reconfiguring bulma/sass elsewhere in the build is a hard error.
+      expect(output).not.toContain('scss/bestax');
       expect(output).not.toContain('@import');
       expect(output).not.toContain('TODO');
     });
@@ -184,7 +188,8 @@ describe('transformStyles (.scss)', () => {
         'main.scss',
         "@import '~react-bulma-components/src/index.sass';\n"
       );
-      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/bestax';");
+      expect(output).toContain("@use 'bulma/sass';");
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
     });
 
     it('bestax mode: rewrites the bundled v3 CSS entry point the same way', () => {
@@ -192,7 +197,94 @@ describe('transformStyles (.scss)', () => {
         'main.scss',
         "@import 'react-bulma-components/dist/react-bulma-components.min.css';\n"
       );
-      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/bestax';");
+      expect(output).toContain("@use 'bulma/sass';");
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+    });
+
+    it('folds leading $var overrides above the RBC stylesheet into with (…)', () => {
+      const source = [
+        '$primary: #ff6b35;',
+        "@import '~react-bulma-components/src/index.sass';",
+      ].join('\n');
+      const { output } = run('theme.scss', source);
+      expect(output).toContain("@use 'bulma/sass' with (");
+      expect(output).toContain('$primary: #ff6b35');
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+      expect(output).not.toContain('scss/bestax');
+    });
+
+    it.each([
+      [
+        'relative node_modules Sass path',
+        "@import '../../node_modules/react-bulma-components/src/index.sass';\n",
+      ],
+      [
+        'extensionless Sass entry point',
+        "@import 'react-bulma-components/src/index';\n",
+      ],
+      [
+        'deep component partial',
+        "@import 'react-bulma-components/src/components/navbar.sass';\n",
+      ],
+    ])(
+      'rewrites the RBC stylesheet regardless of specifier shape (%s)',
+      (_l, source) => {
+        const { output } = run('main.scss', source);
+        expect(output).toContain('bulma/sass');
+        expect(output).not.toContain('react-bulma-components');
+        expect(output).not.toContain('convert to @use by hand');
+      }
+    );
+
+    it('preserves the relative node_modules prefix on the rewritten root', () => {
+      const { output } = run(
+        'deep/nested.scss',
+        "@import '../../node_modules/react-bulma-components/src/index.sass';\n"
+      );
+      expect(output).toContain("@use '../../node_modules/bulma/sass';");
+      expect(output).toContain(
+        "@use '../../node_modules/@allxsmith/bestax-bulma/src/scss/extras';"
+      );
+    });
+
+    it('adds only the extras when the file already has its own @use bulma root', () => {
+      const source = [
+        "@use 'bulma/sass';",
+        "@import 'react-bulma-components/src/index.sass';",
+      ].join('\n');
+      const { output } = run('main.scss', source);
+      const bulmaRoots = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
+      expect(bulmaRoots).toHaveLength(1); // the existing one, not a second
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+      expect(output).not.toContain('scss/bestax');
+      expect(output).not.toContain('react-bulma-components');
+    });
+
+    it('drops the RBC line entirely (no second root) with an existing @use root in bulma mode', () => {
+      const source = [
+        "@use 'bulma/sass';",
+        "@import 'react-bulma-components/src/index.sass';",
+      ].join('\n');
+      const { output } = run('main.scss', source, 'bulma');
+      const bulmaRoots = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
+      expect(bulmaRoots).toHaveLength(1);
+      expect(output).not.toContain('extras');
+      expect(output).not.toContain('react-bulma-components');
+    });
+
+    it('keep mode under --no-deps does not claim the package was removed', () => {
+      const todos: TodoEntry[] = [];
+      const output = transformStyles(
+        'main.scss',
+        "@import 'react-bulma-components/src/index.sass';\n",
+        { add: entry => todos.push(entry) },
+        { cssMode: 'keep', deps: false }
+      );
+      expect(output).toContain("@use 'bulma/sass';");
+      expect(output).not.toContain('is removed');
+      expect(output).not.toContain('entry is removed');
+      expect(todos[0].message).not.toContain('removed from dependencies');
+      expect(todos[0].message).toContain('--no-deps');
     });
 
     it('bulma mode: rewrites to plain bulma/sass with no extras', () => {
