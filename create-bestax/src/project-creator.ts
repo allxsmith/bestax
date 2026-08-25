@@ -275,9 +275,8 @@ export class ProjectCreator {
           // integrity attributes are deliberately not added: the ionicons ESM
           // loader dynamically imports per-icon chunks that cannot carry
           // integrity hashes, so entry-file SRI would give false assurance.
-          const ioniconScripts = `    <!-- Ionicons -->
+          const ioniconScripts = `    <!-- Ionicons (v8 is ESM-only; no legacy nomodule fallback exists) -->
     <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
   `;
           htmlContent =
             htmlContent.slice(0, insertPosition) +
