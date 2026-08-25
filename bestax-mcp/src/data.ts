@@ -51,8 +51,16 @@ export interface CssVar {
   css: string;
   sass: string | null;
   default: string;
-  /** `component`: declared on the component's own selector. `global`: on :root. */
-  scope: 'component' | 'global';
+  /**
+   * Where the default is declared, which decides where an override must go:
+   * `root` — the component's own class (override there or via className);
+   * `compound` — a compound selector like `.button.link-button` (a lone
+   * className class loses at 0-1-0 vs 0-2-0);
+   * `element` — a constituent element like `.tooltip-content` (className and
+   * the style prop are only inherited and lose);
+   * `global` — `:root`, so the theme owns it.
+   */
+  scope: 'root' | 'compound' | 'element' | 'global';
 }
 
 export interface Example {

@@ -296,217 +296,217 @@
       "css": "--bulma-carousel-arrow-size",
       "sass": "$carousel-arrow-size",
       "default": "48px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-size-mobile",
       "sass": "$carousel-arrow-size-mobile",
       "default": "36px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-background",
       "sass": "$carousel-arrow-background",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-background-hover",
       "sass": "$carousel-arrow-background-hover",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.95)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-color",
       "sass": "$carousel-arrow-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-disabled-opacity",
       "sass": "$carousel-arrow-disabled-opacity",
       "default": "0.3",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-offset",
       "sass": "$carousel-arrow-offset",
       "default": "1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-offset-mobile",
       "sass": "$carousel-arrow-offset-mobile",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-icon-size",
       "sass": "$carousel-arrow-icon-size",
       "default": "24px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-icon-size-mobile",
       "sass": "$carousel-arrow-icon-size-mobile",
       "default": "18px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-arrow-radius",
       "sass": "$carousel-arrow-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-size",
       "sass": "$carousel-indicator-size",
       "default": "10px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-size-mobile",
       "sass": "$carousel-indicator-size-mobile",
       "default": "8px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-gap",
       "sass": "$carousel-indicator-gap",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-gap-mobile",
       "sass": "$carousel-indicator-gap-mobile",
       "default": "0.375rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-background",
       "sass": "$carousel-indicator-background",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-background-hover",
       "sass": "$carousel-indicator-background-hover",
       "default": "var(--bulma-border-hover)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-background-active",
       "sass": "$carousel-indicator-background-active",
       "default": "var(--bulma-primary)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-circle-size",
       "sass": "$carousel-indicator-circle-size",
       "default": "12px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-line-width",
       "sass": "$carousel-indicator-line-width",
       "default": "30px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-line-width-mobile",
       "sass": "$carousel-indicator-line-width-mobile",
       "default": "20px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-line-height",
       "sass": "$carousel-indicator-line-height",
       "default": "4px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-line-height-mobile",
       "sass": "$carousel-indicator-line-height-mobile",
       "default": "3px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-line-radius",
       "sass": "$carousel-indicator-line-radius",
       "default": "var(--bulma-radius-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-bar-width",
       "sass": "$carousel-indicator-bar-width",
       "default": "24px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-bar-width-mobile",
       "sass": "$carousel-indicator-bar-width-mobile",
       "default": "16px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-bar-height",
       "sass": "$carousel-indicator-bar-height",
       "default": "6px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-indicator-bar-height-mobile",
       "sass": "$carousel-indicator-bar-height-mobile",
       "default": "4px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-arrow-background",
       "sass": "$carousel-overlay-arrow-background",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-arrow-background-hover",
       "sass": "$carousel-overlay-arrow-background-hover",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-arrow-color",
       "sass": "$carousel-overlay-arrow-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background",
       "sass": "$carousel-overlay-indicator-background",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background-hover",
       "sass": "$carousel-overlay-indicator-background-hover",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background-active",
       "sass": "$carousel-overlay-indicator-background-active",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-transition-duration",
       "sass": "$carousel-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-carousel-fade-duration",
       "sass": "$carousel-fade-duration",
       "default": "0.5s",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

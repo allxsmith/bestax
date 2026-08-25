@@ -58,3 +58,11 @@ Rules the pattern encodes:
 - New CSS variables should be documented in
   `skills/bestax-theming/references/css-variables.md`, and the component's rows added to
   `skills/bestax-theming/references/themeable-components.md`, in the same PR.
+- **A wrapper component styling a compound selector** (LinkButton's
+  `.#{iv.$class-prefix}button.#{iv.$class-prefix}link-button`) is claimed by class AND key
+  prefix together: name your variables `<your-prefix>-*` or the matcher assigns them to
+  nobody. After adding one, run `pnpm gen:api-sources` and confirm the component's
+  `SCSS_SOURCES` entry is non-empty — an empty entry silently suppresses the API page's
+  CSS & Sass Variables section, which is how LinkButton shipped four variables invisibly
+  (#464). The orphan rule in `check:conformance` now fails on a partial that no component
+  claims, so the miss is loud, but the fix is still yours to make.

@@ -141,37 +141,37 @@
       "css": "--bulma-reveal-offset",
       "sass": "$reveal-offset",
       "default": "24px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-reveal-offset-large",
       "sass": "$reveal-offset-large",
       "default": "64px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-reveal-scale",
       "sass": "$reveal-scale",
       "default": "0.92",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-reveal-flip-angle",
       "sass": "$reveal-flip-angle",
       "default": "-15deg",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-reveal-duration",
       "sass": "$reveal-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-reveal-easing",
       "sass": "$reveal-easing",
       "default": "var(--bulma-easing)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

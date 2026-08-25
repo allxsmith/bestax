@@ -110,55 +110,55 @@
       "css": "--bulma-radio-size",
       "sass": "$radio-size",
       "default": "1.25em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-border-width",
       "sass": "$radio-border-width",
       "default": "2px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-border-color",
       "sass": "$radio-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-background",
       "sass": "$radio-background",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-dot-color",
       "sass": "$radio-dot-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-active-color",
       "sass": "$radio-active-color",
       "default": "var(--bulma-primary)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-label-gap",
       "sass": "$radio-label-gap",
       "default": "0.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-focus-shadow-size",
       "sass": "$radio-focus-shadow-size",
       "default": "0 0 0 0.125em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-radio-transition-duration",
       "sass": "$radio-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

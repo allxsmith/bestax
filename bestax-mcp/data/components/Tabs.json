@@ -468,145 +468,145 @@
       "css": "--bulma-tabs-border-bottom-color",
       "sass": "$tabs-border-bottom-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-border-bottom-style",
       "sass": "$tabs-border-bottom-style",
       "default": "solid",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-border-bottom-width",
       "sass": "$tabs-border-bottom-width",
       "default": "1px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-link-color",
       "sass": "$tabs-link-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-link-hover-border-bottom-color",
       "sass": "$tabs-link-hover-border-bottom-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-link-hover-color",
       "sass": "$tabs-link-hover-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-link-active-border-bottom-color",
       "sass": "$tabs-link-active-border-bottom-color",
       "default": "var(--bulma-link-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-link-active-color",
       "sass": "$tabs-link-active-color",
       "default": "var(--bulma-link-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-link-padding",
       "sass": "$tabs-link-padding",
       "default": "0.5em 1em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-boxed-link-radius",
       "sass": "$tabs-boxed-link-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-boxed-link-hover-background-color",
       "sass": "$tabs-boxed-link-hover-background-color",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-boxed-link-hover-border-bottom-color",
       "sass": "$tabs-boxed-link-hover-border-bottom-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-boxed-link-active-background-color",
       "sass": "$tabs-boxed-link-active-background-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-boxed-link-active-border-color",
       "sass": "$tabs-boxed-link-active-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-boxed-link-active-border-bottom-color",
       "sass": "$tabs-boxed-link-active-border-bottom-color",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-border-color",
       "sass": "$tabs-toggle-link-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-border-style",
       "sass": "$tabs-toggle-link-border-style",
       "default": "solid",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-border-width",
       "sass": "$tabs-toggle-link-border-width",
       "default": "1px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-hover-background-color",
       "sass": "$tabs-toggle-link-hover-background-color",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-hover-border-color",
       "sass": "$tabs-toggle-link-hover-border-color",
       "default": "var(--bulma-border-hover)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-radius",
       "sass": "$tabs-toggle-link-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-active-background-color",
       "sass": "$tabs-toggle-link-active-background-color",
       "default": "var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-active-border-color",
       "sass": "$tabs-toggle-link-active-border-color",
       "default": "var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-tabs-toggle-link-active-color",
       "sass": "$tabs-toggle-link-active-color",
       "default": "var(--bulma-link-invert)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

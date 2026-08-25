@@ -113,25 +113,25 @@
       "css": "--bulma-progress-border-radius",
       "sass": "$progress-border-radius",
       "default": "var(--bulma-radius-rounded)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-progress-bar-background-color",
       "sass": "$progress-bar-background-color",
       "default": "var(--bulma-border-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-progress-value-background-color",
       "sass": "$progress-value-background-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-progress-indeterminate-duration",
       "sass": "$progress-indeterminate-duration",
       "default": "1.5s",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

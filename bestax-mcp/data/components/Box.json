@@ -115,43 +115,43 @@
       "css": "--bulma-box-background-color",
       "sass": "$box-background-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-box-color",
       "sass": "$box-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-box-radius",
       "sass": "$box-radius",
       "default": "var(--bulma-radius-large)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-box-shadow",
       "sass": "$box-shadow",
       "default": "var(--bulma-shadow)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-box-padding",
       "sass": "$box-padding",
       "default": "1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-box-link-hover-shadow",
       "sass": "$box-link-hover-shadow",
       "default": "0 0.5em 1em -0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1), 0 0 0 1px var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-box-link-active-shadow",
       "sass": "$box-link-active-shadow",
       "default": "inset 0 1px 2px hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.2), 0 0 0 1px var(--bulma-link)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

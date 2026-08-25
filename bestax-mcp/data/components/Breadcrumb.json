@@ -119,37 +119,37 @@
       "css": "--bulma-breadcrumb-item-color",
       "sass": "$breadcrumb-item-color",
       "default": "var(--bulma-link-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-breadcrumb-item-hover-color",
       "sass": "$breadcrumb-item-hover-color",
       "default": "var(--bulma-link-text-hover)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-breadcrumb-item-active-color",
       "sass": "$breadcrumb-item-active-color",
       "default": "var(--bulma-link-text-active)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-breadcrumb-item-padding-vertical",
       "sass": "$breadcrumb-item-padding-vertical",
       "default": "0",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-breadcrumb-item-padding-horizontal",
       "sass": "$breadcrumb-item-padding-horizontal",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-breadcrumb-item-separator-color",
       "sass": "$breadcrumb-item-separator-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

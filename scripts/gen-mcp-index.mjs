@@ -275,8 +275,14 @@ async function cssVarsFor(info) {
         ? bulmaSassPath(source.path)
         : join(REPO, source.path);
     const src = await readFile(file, 'utf8');
-    const root = source.root ?? info.rootClass;
-    const prefix = source.root ?? info.varPrefix;
+    // No per-entry override, same as gen-api-docs: gen-api-sources emits
+    // only { pkg, path }, and a hand-added `root:` field is erased on the
+    // next regenerate — honoring it here while the docs generator ignored it
+    // would let the two surfaces ship contradicting tables (#544 review; the
+    // old line also conflated a root CLASS with the var PREFIX, which
+    // diverge exactly where VAR_PREFIX_OVERRIDES applies).
+    const root = info.rootClass;
+    const prefix = info.varPrefix;
     if (!root && !prefix) continue;
     for (const row of componentVars(src, root, prefix)) {
       if (seen.has(row.cssVar)) continue;
@@ -285,10 +291,11 @@ async function cssVarsFor(info) {
         css: row.cssVar,
         sass: row.sassVar || null,
         default: row.value,
-        // `root` means Bulma declares it on the component's own selector; the
-        // semantic wrappers get theirs from `:root`, and an agent overriding
-        // them needs to know which.
-        scope: row.scope === 'root' ? 'component' : 'global',
+        // The scope survives verbatim: collapsing 'compound' into
+        // 'component' made the server give the className override advice
+        // that silently loses at 0-2-0 — the exact #464 failure, on the MCP
+        // surface, while the docs page said the opposite (#544 review).
+        scope: row.scope,
       });
     }
   }

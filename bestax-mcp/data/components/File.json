@@ -293,121 +293,121 @@
       "css": "--bulma-file-radius",
       "sass": "$file-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-name-border-color",
       "sass": "$file-name-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-name-border-style",
       "sass": "$file-name-border-style",
       "default": "solid",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-name-border-width",
       "sass": "$file-name-border-width",
       "default": "1px 1px 1px 0",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-name-max-width",
       "sass": "$file-name-max-width",
       "default": "16em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-h",
       "sass": "$file-h",
       "default": "var(--bulma-scheme-h)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-s",
       "sass": "$file-s",
       "default": "var(--bulma-scheme-s)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-background-l",
       "sass": "$file-background-l",
       "default": "var(--bulma-scheme-main-ter-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-background-l-delta",
       "sass": "$file-background-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-hover-background-l-delta",
       "sass": "$file-hover-background-l-delta",
       "default": "-5%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-active-background-l-delta",
       "sass": "$file-active-background-l-delta",
       "default": "-10%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-border-l",
       "sass": "$file-border-l",
       "default": "var(--bulma-border-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-border-l-delta",
       "sass": "$file-border-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-hover-border-l-delta",
       "sass": "$file-hover-border-l-delta",
       "default": "-10%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-active-border-l-delta",
       "sass": "$file-active-border-l-delta",
       "default": "-20%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-cta-color-l",
       "sass": "$file-cta-color-l",
       "default": "var(--bulma-text-strong-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-name-color-l",
       "sass": "$file-name-color-l",
       "default": "var(--bulma-text-strong-l)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-color-l-delta",
       "sass": "$file-color-l-delta",
       "default": "0%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-hover-color-l-delta",
       "sass": "$file-hover-color-l-delta",
       "default": "-5%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-file-active-color-l-delta",
       "sass": "$file-active-color-l-delta",
       "default": "-10%",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

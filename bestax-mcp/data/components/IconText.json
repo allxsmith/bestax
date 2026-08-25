@@ -277,31 +277,31 @@
       "css": "--bulma-icon-dimensions",
       "sass": "$icon-dimensions",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-icon-dimensions-small",
       "sass": "$icon-dimensions-small",
       "default": "1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-icon-dimensions-medium",
       "sass": "$icon-dimensions-medium",
       "default": "2rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-icon-dimensions-large",
       "sass": "$icon-dimensions-large",
       "default": "3rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-icon-text-spacing",
       "sass": "$icon-text-spacing",
       "default": "0.25em",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

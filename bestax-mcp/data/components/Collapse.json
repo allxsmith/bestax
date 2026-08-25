@@ -176,43 +176,43 @@
       "css": "--bulma-collapse-margin-bottom",
       "sass": "$collapse-margin-bottom",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-collapse-border-color",
       "sass": "$collapse-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-collapse-radius",
       "sass": "$collapse-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-collapse-trigger-icon-size",
       "sass": "$collapse-trigger-icon-size",
       "default": "1.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-collapse-trigger-icon-margin",
       "sass": "$collapse-trigger-icon-margin",
       "default": "0.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-collapse-header-weight",
       "sass": "$collapse-header-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-collapse-group-gap",
       "sass": "$collapse-group-gap",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

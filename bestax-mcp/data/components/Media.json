@@ -297,49 +297,49 @@
       "css": "--bulma-media-border-color",
       "sass": "$media-border-color",
       "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-border-l), 0.5)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-border-size",
       "sass": "$media-border-size",
       "default": "1px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-spacing",
       "sass": "$media-spacing",
       "default": "1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-spacing-large",
       "sass": "$media-spacing-large",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-content-spacing",
       "sass": "$media-content-spacing",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-level-1-spacing",
       "sass": "$media-level-1-spacing",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-level-1-content-spacing",
       "sass": "$media-level-1-content-spacing",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-media-level-2-spacing",
       "sass": "$media-level-2-spacing",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }
