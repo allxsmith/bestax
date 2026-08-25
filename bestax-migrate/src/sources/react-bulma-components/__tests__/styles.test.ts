@@ -68,6 +68,22 @@ describe('transformStyles (.scss)', () => {
     expect(output).not.toContain('$foo: ("a\\", b")');
   });
 
+  it('wraps a folded value whose block comment holds a quote before the comma', () => {
+    // The `/* … */` comment carries an apostrophe (`user's`); without stripping
+    // it the scanner enters string state on that apostrophe, never closes, and
+    // misses the real top-level comma — emitting the bare list Dart Sass rejects
+    // with `expected "$"`.
+    const source = [
+      "$family-primary: /* user's choice */ Arial, sans-serif;",
+      '',
+      "@import 'bulma/bulma.sass';",
+    ].join('\n');
+    const { output } = run('commented.scss', source);
+    expect(output).toContain(
+      "$family-primary: (/* user's choice */ Arial, sans-serif)"
+    );
+  });
+
   it('leaves a comma-free folded value unparenthesized', () => {
     const source = [
       '$primary: #1e6b99;',

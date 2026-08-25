@@ -77,24 +77,38 @@ const EXTENSION_IMPORT =
 const VAR_DECL = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(!default)?\s*;\s*$/;
 
 /**
+ * Strips Sass block comments (slash-star … star-slash spans) from a value
+ * before it is analyzed for foldability or top-level commas. A comment can
+ * carry an unbalanced quote (an apostrophe in `user's`) or a stray `(`/`$`
+ * that would otherwise fool the character scanners into mis-reading the
+ * value's structure; the comment is inert to Sass, so removing it for
+ * analysis is safe. The emitted value still carries the comment verbatim.
+ */
+function stripSassComments(value: string): string {
+  return value.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
+/**
  * A value is fold-safe for `with (…)` when it is a plain literal — no
  * function calls, interpolation, variable references, or at-rules. Hex
- * colors (`#ff6b35`) are fine; `#{…}` interpolation is not.
+ * colors (`#ff6b35`) are fine; `#{…}` interpolation is not. Block comments are
+ * ignored for this test — their contents don't make the value non-literal.
  */
 function isFoldableValue(value: string): boolean {
-  return !/[()$@]|#\{/.test(value);
+  return !/[()$@]|#\{/.test(stripSassComments(value));
 }
 
 /**
  * Whether `value` has a comma outside any quoted string — a bare Sass list
  * (`'Nunito', sans-serif`) that must be parenthesized before it can sit
  * inside `with (…)`, or Dart Sass reads the comma as an argument separator
- * instead of a list delimiter.
+ * instead of a list delimiter. Block comments are stripped first so a quote or
+ * comma inside one (an apostrophe in `user's`) can't skew the scan.
  */
 function hasTopLevelComma(value: string): boolean {
   let quote: string | null = null;
   let escaped = false;
-  for (const char of value) {
+  for (const char of stripSassComments(value)) {
     if (escaped) {
       escaped = false;
       continue;
