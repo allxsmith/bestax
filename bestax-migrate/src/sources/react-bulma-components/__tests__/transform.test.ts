@@ -344,7 +344,29 @@ describe('react-bulma-components transform fixtures', () => {
         }
       );
       expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(true);
-      expect(output).toContain('<Title>x</Title>');
+      // The dynamic expression is preserved on the element (not deleted) so
+      // the branch can be split by hand.
+      expect(output).toContain('<Title subtitle={isSub}>x</Title>');
+    });
+
+    it('does not collapse `<Heading heading subtitle={expr}>` to a plain element and flags the dynamic subtitle', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ isSub }: { isSub?: boolean }) => (',
+        '  <Heading heading subtitle={isSub}>x</Heading>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-both.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // The dynamic subtitle blocks the structural `heading` collapse: it must
+      // NOT become a `<p className="heading">` (that would silently drop the
+      // dynamic subtitle) and it must leave a prop:subtitle TODO.
+      expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(true);
+      expect(output).not.toContain('className="heading"');
+      expect(output).toContain('subtitle={isSub}');
+      expect(output).toContain('<Title');
     });
 
     it('flags a dynamic Heading heading prop and keeps Title/SubTitle instead of collapsing to a plain element', () => {
@@ -364,7 +386,8 @@ describe('react-bulma-components transform fixtures', () => {
         }
       );
       expect(todos.some(t => t.rule === 'prop:heading')).toBe(true);
-      expect(output).toContain('<Title>x</Title>');
+      // The dynamic expression is preserved on the element (not deleted).
+      expect(output).toContain('<Title heading={useHeadingStyle}>x</Title>');
     });
 
     it('flags a Menu.List title it cannot lift to a sibling', () => {

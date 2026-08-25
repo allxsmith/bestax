@@ -218,73 +218,88 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * `title: !subtitle && !heading` / `subtitle: subtitle` — the *value* of
    * each prop picks the target, not merely whether it was passed. A literal
    * `false` is equivalent to the prop being absent; a dynamic value can't be
-   * resolved at codemod time, so it's left as a TODO with a conservative
-   * (Title/SubTitle, never the structural plain-element rewrite) fallback.
+   * resolved at codemod time, so it's left in place with a TODO and a
+   * conservative (Title/SubTitle, never the structural plain-element rewrite)
+   * fallback so the branch can be split by hand. The subtitle class is applied
+   * independently of heading in RBC, so a dynamic `subtitle` blocks the
+   * structural `heading` collapse — collapsing would silently drop it.
    */
   heading(ctx, path, element) {
     const headingAttr = findAttr(element, 'heading');
-    if (headingAttr) {
-      const literal = literalValueOf(headingAttr);
-      if (literal.kind === 'boolean' && literal.value === true) {
-        removeAttr(element, headingAttr);
-        const className = mergeClassName(
-          ctx,
-          path,
-          element,
-          'heading',
-          'Heading'
-        );
-        const rest = stripModifierProps(
-          ctx,
-          path,
-          attributesOf(element).filter(
-            a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
-          ),
-          'Heading'
-        );
-        const replacement = plainElement(
-          ctx.j,
-          'p',
-          className,
-          rest,
-          element.children ?? []
-        );
-        path.replace(replacement);
-        ctx.dirty = true;
-        return { replaced: true };
-      }
-      if (literal.kind === 'boolean') {
-        // `heading={false}` behaves as if the prop were absent.
-        removeAttr(element, headingAttr);
-        ctx.dirty = true;
-      } else {
-        addTodo(
-          ctx,
-          path,
-          'prop:heading',
-          '`heading` has a dynamic value; when truthy it renders a plain `<p className="heading">` instead of Title/SubTitle — resolve by hand'
-        );
-        removeAttr(element, headingAttr);
-      }
-    }
     const subtitleAttr = findAttr(element, 'subtitle');
-    if (subtitleAttr) {
-      const literal = literalValueOf(subtitleAttr);
-      if (literal.kind === 'boolean') {
-        removeAttr(element, subtitleAttr);
-        ctx.dirty = true;
-        return { target: literal.value ? 'SubTitle' : 'Title' };
-      }
+    const headingLit = headingAttr ? literalValueOf(headingAttr) : undefined;
+    const subtitleLit = subtitleAttr ? literalValueOf(subtitleAttr) : undefined;
+    const headingDynamic = !!headingLit && headingLit.kind !== 'boolean';
+    const subtitleDynamic = !!subtitleLit && subtitleLit.kind !== 'boolean';
+
+    // Dynamic values can't be resolved to a target: leave the prop on the
+    // element (so its expression survives for hand-splitting) plus a TODO.
+    if (subtitleDynamic) {
       addTodo(
         ctx,
         path,
         'prop:subtitle',
         '`subtitle` has a dynamic value; pick between Title / SubTitle by hand'
       );
+    }
+    if (headingDynamic) {
+      addTodo(
+        ctx,
+        path,
+        'prop:heading',
+        '`heading` has a dynamic value; when truthy it renders a plain `<p className="heading">` instead of Title/SubTitle — resolve by hand'
+      );
+    }
+
+    // Literal-true `heading` collapses to a plain `.heading` paragraph — but
+    // only when `subtitle` isn't a dynamic value the collapse would drop.
+    if (
+      headingLit?.kind === 'boolean' &&
+      headingLit.value === true &&
+      !subtitleDynamic
+    ) {
+      removeAttr(element, headingAttr);
+      const className = mergeClassName(
+        ctx,
+        path,
+        element,
+        'heading',
+        'Heading'
+      );
+      const rest = stripModifierProps(
+        ctx,
+        path,
+        attributesOf(element).filter(
+          a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
+        ),
+        'Heading'
+      );
+      const replacement = plainElement(
+        ctx.j,
+        'p',
+        className,
+        rest,
+        element.children ?? []
+      );
+      path.replace(replacement);
+      ctx.dirty = true;
+      return { replaced: true };
+    }
+
+    // A resolvable literal `heading` (`false`, or `true` blocked by a dynamic
+    // subtitle) behaves as if the prop were absent — drop it. A dynamic
+    // `heading` stays put (its TODO is already filed above).
+    if (headingLit?.kind === 'boolean') {
+      removeAttr(element, headingAttr);
+      ctx.dirty = true;
+    }
+
+    if (subtitleLit?.kind === 'boolean') {
       removeAttr(element, subtitleAttr);
       ctx.dirty = true;
-      return { target: 'Title' };
+      return { target: subtitleLit.value ? 'SubTitle' : 'Title' };
     }
+    // Dynamic subtitle (attr kept) or no subtitle → conservative Title.
     return { target: 'Title' };
   },
 
