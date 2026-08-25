@@ -85,6 +85,33 @@ function isFoldableValue(value: string): boolean {
   return !/[()$@]|#\{/.test(value);
 }
 
+/**
+ * Whether `value` has a comma outside any quoted string — a bare Sass list
+ * (`'Nunito', sans-serif`) that must be parenthesized before it can sit
+ * inside `with (…)`, or Dart Sass reads the comma as an argument separator
+ * instead of a list delimiter.
+ */
+function hasTopLevelComma(value: string): boolean {
+  let quote: string | null = null;
+  for (const char of value) {
+    if (quote) {
+      if (char === quote) quote = null;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === ',') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Formats a folded value for the `with (…)` clause, parenthesizing a bare list. */
+function formatFoldedValue(value: string): string {
+  return hasTopLevelComma(value) ? `(${value})` : value;
+}
+
 function report(
   collector: TodoCollector | undefined,
   file: string,
@@ -151,7 +178,7 @@ export const transformStyles: StylesTransform = (
         out.push(`${indent}@use '${bulmaSass}' with (`);
         foldableVars.forEach(({ name, value }, index) => {
           const comma = index < foldableVars.length - 1 ? ',' : '';
-          out.push(`${indent}  $${name}: ${value}${comma}`);
+          out.push(`${indent}  $${name}: ${formatFoldedValue(value)}${comma}`);
         });
         out.push(`${indent});`);
       } else {

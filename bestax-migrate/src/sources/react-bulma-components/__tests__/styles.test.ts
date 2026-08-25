@@ -34,10 +34,37 @@ describe('transformStyles (.scss)', () => {
     const { output } = run('theme.scss', source);
     expect(output).toContain("@use 'bulma/sass' with (");
     expect(output).toContain('$primary: #ff6b35,');
-    expect(output).toContain("$family-primary: 'Nunito', sans-serif");
+    expect(output).toContain("$family-primary: ('Nunito', sans-serif)");
     expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
     expect(output).not.toContain('@import');
     expect(output).not.toContain('!default');
+  });
+
+  it('wraps a folded value with a top-level comma in parens (#554)', () => {
+    // A bare comma list inside `with (…)` reads as extra arguments to Dart
+    // Sass, not a single list value — this is the repo's own kitchen-sink
+    // fixture, which used to emit Sass that fails to compile.
+    const source = [
+      '$primary: #1e6b99;',
+      "$family-primary: 'Nunito', sans-serif;",
+      '',
+      "@import 'bulma/bulma.sass';",
+    ].join('\n');
+    const { output } = run('fonts.scss', source);
+    expect(output).toContain(
+      "@use 'bulma/sass' with (\n  $primary: #1e6b99,\n  $family-primary: ('Nunito', sans-serif)\n);"
+    );
+  });
+
+  it('leaves a comma-free folded value unparenthesized', () => {
+    const source = [
+      '$primary: #1e6b99;',
+      '',
+      "@import 'bulma/bulma.sass';",
+    ].join('\n');
+    const { output } = run('plain.scss', source);
+    expect(output).toContain('$primary: #1e6b99\n');
+    expect(output).not.toContain('$primary: (#1e6b99)');
   });
 
   it('handles the plain root import without variables', () => {
