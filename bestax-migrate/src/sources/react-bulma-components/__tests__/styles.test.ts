@@ -141,6 +141,106 @@ describe('transformStyles (.scss)', () => {
     expect(output).toContain('TODO(bestax-migrate)');
     expect(todos).toHaveLength(1);
   });
+
+  describe("the source library's own stylesheet", () => {
+    it.each([
+      [
+        'bare Sass entry point',
+        "@import 'react-bulma-components/src/index.sass';\n",
+      ],
+      [
+        '~-prefixed Sass entry point',
+        "@import '~react-bulma-components/src/index.sass';\n",
+      ],
+      [
+        'bundled v3 CSS',
+        "@import 'react-bulma-components/dist/react-bulma-components.min.css';\n",
+      ],
+    ])(
+      'is not mislabeled as a third-party extension (%s)',
+      (_label, source) => {
+        const { output, todos } = run('main.scss', source);
+        expect(output).not.toContain('third-party');
+        expect(output).not.toContain('bulma-components');
+        expect(todos.every(t => !t.message.includes('third-party'))).toBe(true);
+        expect(todos.every(t => !t.message.includes('bulma-components'))).toBe(
+          true
+        );
+      }
+    );
+
+    it('bestax mode: rewrites the bare Sass entry point to the bestax bundle', () => {
+      const { output } = run(
+        'main.scss',
+        "@import 'react-bulma-components/src/index.sass';\n"
+      );
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/bestax';");
+      expect(output).not.toContain('@import');
+      expect(output).not.toContain('TODO');
+    });
+
+    it('bestax mode: rewrites the ~-prefixed Sass entry point the same way', () => {
+      const { output } = run(
+        'main.scss',
+        "@import '~react-bulma-components/src/index.sass';\n"
+      );
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/bestax';");
+    });
+
+    it('bestax mode: rewrites the bundled v3 CSS entry point the same way', () => {
+      const { output } = run(
+        'main.scss',
+        "@import 'react-bulma-components/dist/react-bulma-components.min.css';\n"
+      );
+      expect(output).toContain("@use '@allxsmith/bestax-bulma/scss/bestax';");
+    });
+
+    it('bulma mode: rewrites to plain bulma/sass with no extras', () => {
+      const { output } = run(
+        'main.scss',
+        "@import 'react-bulma-components/src/index.sass';\n",
+        'bulma'
+      );
+      expect(output).toContain("@use 'bulma/sass';");
+      expect(output).not.toContain('extras');
+    });
+
+    it('keep mode: still replaces the dead import, with an accurate TODO', () => {
+      const { output, todos } = run(
+        'main.scss',
+        "@import 'react-bulma-components/src/index.sass';\n",
+        'keep'
+      );
+      expect(output).toContain("@use 'bulma/sass';");
+      expect(output).toContain('TODO(bestax-migrate)');
+      expect(output).not.toContain('@import');
+      expect(todos[0].message).toContain('removed from dependencies');
+      expect(todos[0].message).not.toContain('third-party');
+    });
+
+    it('drops the now-redundant import when a real bulma root import already exists', () => {
+      const source = [
+        "@import 'bulma/bulma';",
+        "@import 'react-bulma-components/src/index.sass';",
+      ].join('\n');
+      const { output } = run('main.scss', source);
+      const bulmaUses = (output ?? '').match(/@use '[^']*bulma\/sass'/g) ?? [];
+      expect(bulmaUses).toHaveLength(1);
+      expect(output).not.toContain('react-bulma-components');
+    });
+
+    it('still detects a genuine bulma-* extension alongside the RBC stylesheet', () => {
+      const source = [
+        "@import 'react-bulma-components/src/index.sass';",
+        "@import 'bulma-checkradio/dist/css/bulma-checkradio.min.css';",
+      ].join('\n');
+      const { output, todos } = run('main.scss', source);
+      expect(output).toContain('bulma-checkradio is a Bulma 0.9-era extension');
+      expect(todos.some(t => t.message.includes('bulma-checkradio'))).toBe(
+        true
+      );
+    });
+  });
 });
 
 describe('transformStyles (.sass indented syntax)', () => {

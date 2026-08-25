@@ -68,10 +68,23 @@ const OTHER_BULMA_IMPORT = /^\s*@import\s+['"][^'"]*bulma[^'"]*['"]/;
 /**
  * Third-party Bulma extension packages (`bulma-checkradio`, `bulma-switch`,
  * …) — 0.9-era add-ons whose v1 compatibility varies; several are covered
- * by the bestax extras.
+ * by the bestax extras. The `bulma-` package name must start at a specifier
+ * segment boundary (right after the quote/`~`, or after a `/`) so this does
+ * not also match a name that merely *contains* `bulma-`, like
+ * `react-bulma-components` (see EXTENSION_IMPORT's own regression test).
  */
 const EXTENSION_IMPORT =
-  /^\s*@import\s+['"][^'"]*\bbulma-([\w-]+?)(?:\/|\.|['"])/;
+  /^\s*@import\s+['"](?:~|[^'"]*\/)?bulma-([\w-]+?)(?:\/|\.|['"])/;
+
+/**
+ * The source library's own stylesheet (RBC v3's two documented setup
+ * paths — the bundled CSS and the "advanced" Sass entry point, bare or
+ * `~`-prefixed). This is not a third-party extension: it is the library
+ * being migrated away from, and `deps.ts` removes its package.json entry
+ * in the same run, so leaving the import in place breaks the Sass build.
+ */
+const RBC_STYLE_IMPORT =
+  /^(\s*)@import\s+(['"])(~)?react-bulma-components\/(?:src\/index\.(?:sass|scss)|dist\/react-bulma-components(?:\.min)?\.css)\2\s*;?\s*$/;
 
 /** Any `$name: value;` declaration (with or without `!default`). */
 const VAR_DECL = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(!default)?\s*;\s*$/;
@@ -121,6 +134,7 @@ export const transformStyles: StylesTransform = (
   const out: string[] = [];
   let changed = false;
   let extrasAdded = source.includes('@allxsmith/bestax-bulma/scss');
+  let rbcStyleEmitted = false;
 
   // Pass 1: find safe leading variable overrides and the first root import.
   const rootImportIndex = lines.findIndex(line => ROOT_IMPORT.test(line));
@@ -234,6 +248,43 @@ export const transformStyles: StylesTransform = (
         'sass',
         `Bulma 0.9 partial path \`bulma/sass/${importPath}\` has no direct v1 equivalent`
       );
+      changed = true;
+      continue;
+    }
+
+    const rbcStyle = line.match(RBC_STYLE_IMPORT);
+    if (rbcStyle && !line.includes(TODO)) {
+      const indent = rbcStyle[1];
+      if (rootImportIndex === -1 && !rbcStyleEmitted) {
+        // The library's own stylesheet never resolves post-migration —
+        // deps.ts removes react-bulma-components from package.json in the
+        // same run — so every mode replaces it with a real Bulma entry
+        // point rather than leaving a guaranteed-broken import; this
+        // mirrors how the JS-side CSS pass treats RBC's dead v3 bundled
+        // CSS even under `--css keep`.
+        if (cssMode === 'bestax') {
+          out.push(`${indent}@use '@allxsmith/bestax-bulma/scss/bestax';`);
+          extrasAdded = true; // the bundle already includes the extras
+        } else {
+          out.push(`${indent}@use 'bulma/sass';`);
+        }
+        if (cssMode === 'keep') {
+          out.push(
+            `${indent}// ${TODO}: replaced react-bulma-components's own stylesheet with @use 'bulma/sass' — its package.json entry is removed, so the old import no longer resolves; install bulma@^1 — see ${GUIDE}`
+          );
+          report(
+            collector,
+            filePath,
+            i + 1,
+            'sass',
+            "replaced react-bulma-components's stylesheet import with bulma/sass; the package is removed from dependencies, so the old import would not resolve"
+          );
+        }
+        rbcStyleEmitted = true;
+      }
+      // Otherwise a real `bulma/…` root import already brings in Bulma (and,
+      // in bestax mode, the extras) elsewhere in this file — drop the now-
+      // redundant line entirely rather than importing Bulma twice.
       changed = true;
       continue;
     }

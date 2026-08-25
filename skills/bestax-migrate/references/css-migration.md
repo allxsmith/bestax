@@ -38,6 +38,18 @@ finish what it flagged.
   **dart-sass ≥ 1.79** — the codemod's node-sass replacement installs that, but check
   bundler-pinned older versions (Parcel's sass transformer pins 1.66).
 
+  react-bulma-components' own v3-era stylesheet entry point — bare or `~`-prefixed
+  `react-bulma-components/src/index.sass`, or the bundled
+  `react-bulma-components/dist/react-bulma-components(.min).css` — is not a third-party
+  extension; it's the library being migrated away from, and (unless `--no-deps` is
+  passed) `package.json` no longer lists it, so the import can never resolve once
+  installed. Every `--css` mode replaces it rather than leaving a known-broken import:
+  `bestax` (default) emits `@use '@allxsmith/bestax-bulma/scss/bestax';`; `bulma` emits
+  plain `@use 'bulma/sass';`; `keep` emits the same plain `@use 'bulma/sass';` with a TODO
+  explaining the replacement (mirroring how the CSS-import pass treats RBC's dead v3
+  bundled CSS even under `--css keep`). If the file already has its own `bulma/…` root
+  import, the now-redundant line is dropped instead of emitting a second one.
+
 - **package.json**: `react-bulma-components` removed, `@allxsmith/bestax-bulma` added,
   `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),
   and dead `node-sass` replaced with dart `sass`. Run the package manager's install
@@ -63,6 +75,8 @@ elements,form,components,grid,layout,helpers,themes}` with leaf partials like
   compatibility. Class-based usage (`className="is-checkradio"`) keeps needing the
   extension; usage that migrated to bestax components (Radio, Checkbox, the advanced
   form controls) is already styled by the bestax extras, so the import can go.
+  react-bulma-components' own stylesheet is never flagged this way (see above) — only
+  packages actually named `bulma-*` are.
 
 ## Choosing a CSS flavor (optional)
 
