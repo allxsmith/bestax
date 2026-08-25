@@ -1,3 +1,16 @@
+## [2.1.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.2...bestax-migrate@2.1.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** flag dropped RBC deep partials instead of losing their CSS ([7db47db](https://github.com/allxsmith/bestax/commit/7db47db794c6a8960718e0b12a163bd56d6cc8c2))
+* **bestax-migrate:** rewrite RBC stylesheet as a real Bulma root, folding vars ([036cf79](https://github.com/allxsmith/bestax/commit/036cf79130e1397df0e2e708d1d115bec217511c))
+* **bestax-migrate:** stop mislabeling RBC's own stylesheet as a third-party extension ([6a18553](https://github.com/allxsmith/bestax/commit/6a185530b04e49b79bad57caa320b4ff427b984b)), closes [#555](https://github.com/allxsmith/bestax/issues/555)
+* **create-bestax:** remove dead ionicons nomodule fallback from generated & shipped surfaces ([db3d588](https://github.com/allxsmith/bestax/commit/db3d5883ad6abf30567c8048cc8ff6c2b9131e07)), closes [#564](https://github.com/allxsmith/bestax/issues/564)
+* **docs:** attribute four orphaned SCSS partials to the API pages that own them ([2f72490](https://github.com/allxsmith/bestax/commit/2f7249076574ff3840e57f79ed5dcf991b71b6b4)), closes [#543](https://github.com/allxsmith/bestax/issues/543)
+* **docs:** remove dead ionicons nomodule fallback script ([c96cc29](https://github.com/allxsmith/bestax/commit/c96cc2930e827e9ea9dfcfe8782cc0e5464a821e)), closes [#445](https://github.com/allxsmith/bestax/issues/445)
+* **docs:** scope picker calendar/wheel vars to their constituent element ([8889d91](https://github.com/allxsmith/bestax/commit/8889d9174d7b5a5d004144fa78abf379f664695f))
+
 ## [2.1.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.1...bestax-migrate@2.1.2) (2026-08-25)
 
 
