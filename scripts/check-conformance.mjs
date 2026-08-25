@@ -57,10 +57,10 @@ import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-// `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
-// parser — it additionally exposes values and selector nesting, which the CSS
-// variable tables need. Key extraction is byte-for-byte the behaviour this file
-// used to implement inline (verified against all 26 partials).
+// The registration parser lives in lib/ so the API-docs generator shares it —
+// it additionally exposes values and selector nesting, which the CSS variable
+// tables need. registerVarsKeys delegates to registerVarsEntries, so both
+// spellings of register-vars count everywhere either import is used.
 import { registerVarsKeys, registerVarsEntries } from './lib/scss-vars.mjs';
 // The inverse of the quoting bestax-migrate/release.config.js uses to build its
 // exec commands. Shared so the two halves cannot drift (#436).
