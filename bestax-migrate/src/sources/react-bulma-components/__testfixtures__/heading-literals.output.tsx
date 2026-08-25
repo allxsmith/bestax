@@ -7,6 +7,7 @@ export function Titles() {
       <Title>b</Title>
       <Title>c</Title>
       <Title size="3">d</Title>
+      <p className="heading subtitle">e</p>
     </div>
   );
 }

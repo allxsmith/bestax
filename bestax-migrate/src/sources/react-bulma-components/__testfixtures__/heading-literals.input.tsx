@@ -7,6 +7,7 @@ export function Titles() {
       <Heading subtitle={false}>b</Heading>
       <Heading heading={false}>c</Heading>
       <Heading size={3}>d</Heading>
+      <Heading heading subtitle>e</Heading>
     </div>
   );
 }

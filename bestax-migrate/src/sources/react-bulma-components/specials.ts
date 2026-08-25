@@ -282,13 +282,16 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
     // A truthy literal `heading` collapses to a plain `.heading` paragraph —
     // but only when `subtitle` isn't a dynamic value the collapse would drop.
+    // A truthy *literal* `subtitle` is safe to collapse: RBC applies its class
+    // independently, so it rides along on the paragraph as `heading subtitle`
+    // (dropping it would be the same silent loss the dynamic guard prevents).
     if (headingTruthy && !subtitleDynamic) {
       removeAttr(element, headingAttr);
       const className = mergeClassName(
         ctx,
         path,
         element,
-        'heading',
+        subtitleTruthy ? 'heading subtitle' : 'heading',
         'Heading'
       );
       const rest = stripModifierProps(

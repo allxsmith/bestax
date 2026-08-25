@@ -420,6 +420,22 @@ describe('react-bulma-components transform fixtures', () => {
       expect(output).toContain('<Title');
     });
 
+    it('keeps the `subtitle` class when a literal-truthy `subtitle` collapses alongside `heading`', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = () => <Heading heading subtitle>x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-both.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // Both props are truthy literals, so the element collapses to the plain
+      // `.heading` paragraph — but RBC applies the subtitle class independently,
+      // so it must ride along rather than being silently dropped.
+      expect(todos).toHaveLength(0);
+      expect(output).toContain('className="heading subtitle"');
+    });
+
     it('flags a dynamic Heading heading prop and keeps Title/SubTitle instead of collapsing to a plain element', () => {
       const source = [
         "import { Heading } from 'react-bulma-components';",
