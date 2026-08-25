@@ -230,79 +230,79 @@
       "css": "--bulma-toast-background",
       "sass": "$toast-background",
       "default": "hsl(0, 0%, 21%)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-color",
       "sass": "$toast-color",
       "default": "hsl(0, 0%, 96%)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-radius",
       "sass": "$toast-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-shadow",
       "sass": "$toast-shadow",
       "default": "0 4px 12px hsla(0, 0%, 0%, 0.2)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-padding",
       "sass": "$toast-padding",
       "default": "0.875rem 1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-min-width",
       "sass": "$toast-min-width",
       "default": "288px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-max-width",
       "sass": "$toast-max-width",
       "default": "568px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-gap",
       "sass": "$toast-gap",
       "default": "1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-message-size",
       "sass": "$toast-message-size",
       "default": "0.95rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-animation-duration",
       "sass": "$toast-animation-duration",
       "default": "0.3s",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-action-weight",
       "sass": "$toast-action-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-action-radius",
       "sass": "$toast-action-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-toast-action-hover-opacity",
       "sass": "$toast-action-hover-opacity",
       "default": "0.1",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

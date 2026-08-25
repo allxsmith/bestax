@@ -260,30 +260,41 @@ async function renderCssVars(info, { relPath }) {
   // to all four. Dedupe across files by CSS variable name, first source wins —
   // the same rule componentVars() applies within a file.
   const seen = new Set();
-  let onRoot = false;
+  const scopes = new Set();
   for (const source of sources) {
     const file =
       source.pkg === 'bulma'
         ? bulmaSassPath(source.path)
         : join(REPO, source.path);
     const src = await readFile(file, 'utf8');
-    const root = source.root ?? info.rootClass;
-    const prefix = source.root ?? info.varPrefix;
+    // No per-entry override: gen-api-sources emits only { pkg, path }, and a
+    // hand-added field inside the generated markers is erased on the next
+    // regenerate. The real escape hatch is ROOT_CLASS_OVERRIDES /
+    // VAR_PREFIX_OVERRIDES in props-extract.mjs, which survive regeneration.
+    // This file once read a `source.root ?? …` here, and its own error
+    // message advised adding the field the generator would delete (#464).
+    const root = info.rootClass;
+    const prefix = info.varPrefix;
     if (!root && !prefix) {
       throw new Error(
-        `${info.name}: cannot determine the root class for ${source.path}. Add a ` +
-          `\`root\` to its SCSS_SOURCES entry in scripts/lib/api-sources.mjs.`
+        `${info.name}: cannot determine the root class or variable prefix ` +
+          `for ${source.path}. Add the component to ROOT_CLASS_OVERRIDES ` +
+          `or — for a semantic wrapper with no prefixed class of its own — ` +
+          `VAR_PREFIX_OVERRIDES in scripts/lib/props-extract.mjs.`
       );
     }
     for (const row of componentVars(src, root, prefix)) {
       if (seen.has(row.cssVar)) continue;
       seen.add(row.cssVar);
-      if (row.scope === 'root') onRoot = true;
-      rows.push([
-        `\`${row.cssVar}\``,
-        row.sassVar ? `\`${row.sassVar}\`` : '—',
-        `\`${row.value}\``,
-      ]);
+      scopes.add(row.scope);
+      rows.push({
+        scope: row.scope,
+        cells: [
+          `\`${row.cssVar}\``,
+          row.sassVar ? `\`${row.sassVar}\`` : '—',
+          `\`${row.value}\``,
+        ],
+      });
     }
   }
   if (!rows.length) return null;
@@ -296,18 +307,75 @@ async function renderCssVars(info, { relPath }) {
   // would send a reader looking for a declaration that is not there. Either way
   // the override advice is the same, because custom properties inherit.
   const target = info.rootClass ? `\`.${info.rootClass}\`` : 'its own';
-  const lead = onRoot
-    ? `\`${info.name}\` registers these variables on its own ` +
+  // The compound wording exists because the className advice below it is
+  // specificity-dependent, not universal: LinkButton's defaults sit on
+  // `.button.link-button` (0-2-0), and a single custom class added via
+  // className is 0-1-0 — it loses regardless of stylesheet order, so the
+  // documented override would silently do nothing. Review on #544 caught the
+  // generated page giving exactly that advice.
+  // One scope, one lead — the page-wide sentence may only claim what holds
+  // for EVERY row. On a mixed page the baseline scope's lead applies and the
+  // minority rows carry a marker with their own note below the table: one
+  // compound- or element-scoped row must not rewrite the advice for every
+  // className-overridable row on the page, and vice versa (#544 review).
+  const LEADS = {
+    compound:
+      `\`${info.name}\` registers these variables on a compound selector ` +
+      `(higher specificity than a single class). Override them with inline ` +
+      `\`style\`, or with a selector that exceeds that specificity (one ` +
+      `that only matches it must load after the library styles to win by ` +
+      `source order) — a lone class via \`className\` loses to the ` +
+      `component-level declaration. See [Theme](${themeLink}).`,
+    element:
+      `\`${info.name}\` registers these variables on its constituent ` +
+      `elements, where the themed declarations live. A value set via ` +
+      `\`className\`, the \`style\` prop, or any ancestor is only ` +
+      `inherited and loses to the element's own declaration — override by ` +
+      `targeting the declaring element in your CSS. See ` +
+      `[Theme](${themeLink}).`,
+    root:
+      `\`${info.name}\` registers these variables on its own ` +
       `${target} element. Override them there (or via \`className\`) — ` +
       `a value set on an ancestor is only inherited, and loses to the ` +
-      `component-level declaration. See [Theme](${themeLink}).`
-    : `Bulma declares these variables globally rather than on ` +
+      `component-level declaration. See [Theme](${themeLink}).`,
+    global:
+      `Bulma declares these variables globally rather than on ` +
       `\`${info.name}\`'s own element, so the defaults come from the theme. ` +
       `Override them anywhere above the component — on the element itself ` +
       `(via \`className\`/\`style\`) for a one-off, or on \`:root\` to retheme ` +
-      `every instance. See [Theme](${themeLink}).`;
+      `every instance. See [Theme](${themeLink}).`,
+  };
+  const MARKERS = { compound: '†', element: '‡' };
+  const NOTES = {
+    compound:
+      `† declared on a compound selector (higher specificity than a single ` +
+      `class): a lone \`className\` class loses — override with inline ` +
+      `\`style\` or a selector exceeding that specificity (matching it ` +
+      `wins only when loaded after the library styles).`,
+    element:
+      `‡ declared on a constituent element: values set via \`className\`, ` +
+      `the \`style\` prop, or an ancestor are only inherited and lose — ` +
+      `target the declaring element in your CSS.`,
+  };
+  const baseline = ['root', 'global', 'element', 'compound'].find(s =>
+    scopes.has(s)
+  );
+  const lead = LEADS[baseline];
+  const marked = [...scopes].filter(s => s !== baseline && MARKERS[s]);
+  const notes = marked.map(s => NOTES[s]);
 
-  return `\n${lead}\n\n${renderTable(['CSS Variable', 'Sass Variable', 'Default'], rows)}\n`;
+  const cells = rows.map(r => {
+    const marker = r.scope !== baseline && MARKERS[r.scope];
+    return marker
+      ? [`${r.cells[0]} ${marker}`, r.cells[1], r.cells[2]]
+      : r.cells;
+  });
+  const table = renderTable(
+    ['CSS Variable', 'Sass Variable', 'Default'],
+    cells
+  );
+  const tail = notes.length ? `\n\n${notes.join('\n\n')}` : '';
+  return `\n${lead}\n\n${table}${tail}\n`;
 }
 
 // ---------------------------------------------------------------------------

@@ -53,16 +53,18 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
 /**
  * Which SCSS partial(s) register a component's CSS variables.
  *
- * `[]` means "verified: registers none" and suppresses the
- * `## CSS & Sass Variables` section — either the component has no SCSS, or it
- * is a semantic wrapper (`Paragraph`, `Span`, the `Table` family) with no Bulma
- * root class. A component MISSING from this map is a hard error in
- * `gen-api-docs.mjs`, so a new component cannot silently lose the section.
+ * `[]` means "the matcher found none" and suppresses the
+ * `## CSS & Sass Variables` section. Usually that is correct — the component
+ * has no SCSS, or it is a semantic wrapper (`Paragraph`, `Span`, the `Table`
+ * family) with no Bulma root class — but it is a matcher verdict, not a
+ * verification: LinkButton sat here as `[]` for months while its partial
+ * registered four variables under a compound selector the matcher could not
+ * parse (#464). Two guards close that gap: a component MISSING from this map
+ * is a hard error in `gen-api-docs.mjs`, and a partial registering variables
+ * that no entry here claims fails `check:conformance` (the orphan rule).
  *
  * `pkg: 'bulma'` resolves under node_modules/bulma; `pkg: 'repo'` is
- * repo-relative (the extras in bulma-ui/src/scss). An optional `root` overrides
- * the auto-derived root class, needed only where one partial serves two
- * components.
+ * repo-relative (the extras in bulma-ui/src/scss).
  */
 // <generated:scss-sources>
 export const SCSS_SOURCES = {
@@ -121,7 +123,9 @@ export const SCSS_SOURCES = {
   InputBase: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
   Level: [{ pkg: 'bulma', path: 'sass/layout/level.scss' }],
   Link: [],
-  LinkButton: [],
+  LinkButton: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_linkbutton.scss' },
+  ],
   ListItem: [],
   Loading: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },

@@ -322,43 +322,43 @@
       "css": "--bulma-numberinput-stepper-width",
       "sass": "$numberinput-stepper-width",
       "default": "2.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-numberinput-stepper-border-color",
       "sass": "$numberinput-stepper-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-numberinput-stepper-button-color",
       "sass": "$numberinput-stepper-button-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-numberinput-stepper-button-hover-color",
       "sass": "$numberinput-stepper-button-hover-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-numberinput-stepper-button-hover-bg",
       "sass": "$numberinput-stepper-button-hover-bg",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-numberinput-disabled-opacity",
       "sass": "$numberinput-disabled-opacity",
       "default": "0.5",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-numberinput-rounded-button-size",
       "sass": "$numberinput-rounded-button-size",
       "default": "2.5em",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

@@ -207,85 +207,85 @@
       "css": "--bulma-switch-width",
       "sass": "$switch-width",
       "default": "2.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-height",
       "sass": "$switch-height",
       "default": "1.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-padding",
       "sass": "$switch-padding",
       "default": "0.1875em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-border-width",
       "sass": "$switch-border-width",
       "default": "1px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-background",
       "sass": "$switch-background",
       "default": "var(--bulma-grey-light)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-circle-color",
       "sass": "$switch-circle-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-active-color",
       "sass": "$switch-active-color",
       "default": "var(--bulma-primary)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-radius",
       "sass": "$switch-radius",
       "default": "var(--bulma-radius-rounded)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-label-gap",
       "sass": "$switch-label-gap",
       "default": "0.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-transition-duration",
       "sass": "$switch-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-circle-shadow",
       "sass": "$switch-circle-shadow",
       "default": "0 2px 3px rgba(10, 10, 10, 0.1)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-focus-shadow",
       "sass": "$switch-focus-shadow",
       "default": "0 0 0 0.125em rgba(0, 0, 0, 0.1)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-thin-height",
       "sass": "$switch-thin-height",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-switch-thin-circle-size",
       "sass": "$switch-thin-circle-size",
       "default": "1.25em",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

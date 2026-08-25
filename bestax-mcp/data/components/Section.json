@@ -103,25 +103,25 @@
       "css": "--bulma-section-padding",
       "sass": "$section-padding",
       "default": "3rem 1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-section-padding-desktop",
       "sass": "$section-padding-desktop",
       "default": "3rem 3rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-section-padding-medium",
       "sass": "$section-padding-medium",
       "default": "9rem 4.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-section-padding-large",
       "sass": "$section-padding-large",
       "default": "18rem 6rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

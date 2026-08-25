@@ -163,7 +163,8 @@ async function main() {
   if (unresolved.length) {
     console.error(
       `\nERROR: cannot determine the root class for ${unresolved.length} ` +
-        `component(s). Add each to ROOT_CLASS_OVERRIDES in ` +
+        `component(s). Add each to ROOT_CLASS_OVERRIDES — or, for a semantic ` +
+        `wrapper with no prefixed class of its own, VAR_PREFIX_OVERRIDES — in ` +
         `scripts/lib/props-extract.mjs after checking the component source:\n  ` +
         unresolved.join('\n  ') +
         '\n'

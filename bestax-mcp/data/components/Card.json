@@ -626,91 +626,91 @@
       "css": "--bulma-card-color",
       "sass": "$card-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-background-color",
       "sass": "$card-background-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-shadow",
       "sass": "$card-shadow",
       "default": "var(--bulma-shadow)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-radius",
       "sass": "$card-radius",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-header-background-color",
       "sass": "$card-header-background-color",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-header-color",
       "sass": "$card-header-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-header-padding",
       "sass": "$card-header-padding",
       "default": "0.75rem 1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-header-shadow",
       "sass": "$card-header-shadow",
       "default": "0 0.125em 0.25em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-header-weight",
       "sass": "$card-header-weight",
       "default": "var(--bulma-weight-bold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-content-background-color",
       "sass": "$card-content-background-color",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-content-padding",
       "sass": "$card-content-padding",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-footer-background-color",
       "sass": "$card-footer-background-color",
       "default": "transparent",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-footer-border-top",
       "sass": "$card-footer-border-top",
       "default": "1px solid var(--bulma-border-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-footer-padding",
       "sass": "$card-footer-padding",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-card-media-margin",
       "sass": "$card-media-margin",
       "default": "var(--bulma-block-spacing)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

@@ -533,55 +533,55 @@
       "css": "--bulma-taginput-height",
       "sass": "$taginput-height",
       "default": "auto",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-min-height",
       "sass": "$taginput-min-height",
       "default": "2.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-padding",
       "sass": "$taginput-padding",
       "default": "0.375rem 0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-border-color",
       "sass": "$taginput-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-border-radius",
       "sass": "$taginput-border-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-background",
       "sass": "$taginput-background",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-tag-gap",
       "sass": "$taginput-tag-gap",
       "default": "0.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-dropdown-max-height",
       "sass": "$taginput-dropdown-max-height",
       "default": "200px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-taginput-transition-duration",
       "sass": "$taginput-transition-duration",
       "default": "var(--bulma-duration)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

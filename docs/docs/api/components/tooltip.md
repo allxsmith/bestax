@@ -324,8 +324,22 @@ function example() {
 
 `Tooltip` registers these variables on its own `.tooltip` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                   | Sass Variable           | Default           |
-| ------------------------------ | ----------------------- | ----------------- |
-| `--bulma-tooltip-dashed-color` | `$tooltip-dashed-color` | `hsl(0, 0%, 60%)` |
+| CSS Variable                        | Sass Variable              | Default                            |
+| ----------------------------------- | -------------------------- | ---------------------------------- |
+| `--bulma-tooltip-background` ‡      | `$tooltip-background`      | `hsl(0, 0%, 21%)`                  |
+| `--bulma-tooltip-color` ‡           | `$tooltip-color`           | `white`                            |
+| `--bulma-tooltip-radius` ‡          | `$tooltip-radius`          | `var(--bulma-radius)`              |
+| `--bulma-tooltip-padding` ‡         | `$tooltip-padding`         | `0.35rem 0.75rem`                  |
+| `--bulma-tooltip-max-width` ‡       | `$tooltip-max-width`       | `15rem`                            |
+| `--bulma-tooltip-multiline-width` ‡ | `$tooltip-multiline-width` | `15rem`                            |
+| `--bulma-tooltip-arrow-size` ‡      | `$tooltip-arrow-size`      | `5px`                              |
+| `--bulma-tooltip-arrow-margin` ‡    | `$tooltip-arrow-margin`    | `4px`                              |
+| `--bulma-tooltip-z-index` ‡         | `$tooltip-z-index`         | `$extras-z-index-tooltip`          |
+| `--bulma-tooltip-font-size` ‡       | `$tooltip-font-size`       | `calc($extras-size-normal * 0.85)` |
+| `--bulma-tooltip-font-weight` ‡     | `$tooltip-font-weight`     | `$extras-weight-normal`            |
+| `--bulma-tooltip-line-height` ‡     | `$tooltip-line-height`     | `1.25`                             |
+| `--bulma-tooltip-dashed-color`      | `$tooltip-dashed-color`    | `hsl(0, 0%, 60%)`                  |
+
+‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->

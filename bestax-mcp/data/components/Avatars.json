@@ -276,19 +276,19 @@
       "css": "--bulma-avatars-ring-color",
       "sass": "$avatars-ring-color",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-avatars-ring-width",
       "sass": "$avatars-ring-width",
       "default": "2px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-avatars-spacing",
       "sass": "$avatars-spacing-md",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

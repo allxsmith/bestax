@@ -67,7 +67,11 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   from the SCSS). To change a props table, change the TSDoc on the interface member. Prose
   outside the markers — including admonitions right below the Overview sentence — is yours.
   Deleting a marker pair opts that region out; `docs-section-order` makes that visible rather
-  than silent. Managed categories are listed in `scripts/lib/api-sources.mjs` — the set starts
+  than silent. One exception to that opt-out: `cssvars` presence is data-driven — the section
+  renders only when the component's `SCSS_SOURCES` entry (in `scripts/lib/api-sources.mjs`)
+  is non-empty, so a wrong `[]` there suppresses it with every gate green (#464; the orphan
+  rule in `check:conformance` now catches the unclaimed-partial half of that).
+  Managed categories are listed in `scripts/lib/api-sources.mjs` — the set starts
   empty and grows one category per PR, so a page is only generated once its category lands.
 - Section order on a managed page: Overview, Import, Usage, _(page-specific extras)_,
   Accessibility, Related Components, Additional Resources, Props, CSS & Sass Variables.

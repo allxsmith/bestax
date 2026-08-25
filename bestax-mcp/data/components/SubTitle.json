@@ -137,97 +137,97 @@
       "css": "--bulma-title-color",
       "sass": "$title-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-family",
       "sass": "$title-family",
       "default": "false",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-size",
       "sass": "$title-size",
       "default": "var(--bulma-size-3)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-weight",
       "sass": "$title-weight",
       "default": "var(--bulma-weight-extrabold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-line-height",
       "sass": "$title-line-height",
       "default": "1.125",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-strong-color",
       "sass": "$title-strong-color",
       "default": "inherit",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-strong-weight",
       "sass": "$title-strong-weight",
       "default": "inherit",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-sub-size",
       "sass": "$title-sub-size",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-title-sup-size",
       "sass": "$title-sup-size",
       "default": "0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-color",
       "sass": "$subtitle-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-family",
       "sass": "$subtitle-family",
       "default": "false",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-size",
       "sass": "$subtitle-size",
       "default": "var(--bulma-size-5)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-weight",
       "sass": "$subtitle-weight",
       "default": "var(--bulma-weight-normal)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-line-height",
       "sass": "$subtitle-line-height",
       "default": "1.25",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-strong-color",
       "sass": "$subtitle-strong-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-subtitle-strong-weight",
       "sass": "$subtitle-strong-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

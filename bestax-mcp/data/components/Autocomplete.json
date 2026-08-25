@@ -430,175 +430,175 @@
       "css": "--bulma-autocomplete-dropdown-z-index",
       "sass": "$autocomplete-dropdown-z-index",
       "default": "20",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-dropdown-offset",
       "sass": "$autocomplete-dropdown-offset",
       "default": "4px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-dropdown-background",
       "sass": "$autocomplete-dropdown-background",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-dropdown-radius",
       "sass": "$autocomplete-dropdown-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-dropdown-shadow",
       "sass": "$autocomplete-dropdown-shadow",
       "default": "var(--bulma-shadow)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-dropdown-padding-y",
       "sass": "$autocomplete-dropdown-padding-y",
       "default": "0.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-padding",
       "sass": "$autocomplete-item-padding",
       "default": "0.375rem 1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-color",
       "sass": "$autocomplete-item-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-hover-background",
       "sass": "$autocomplete-item-hover-background",
       "default": "hsla(0, 0%, 50%, 0.13)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-hover-color",
       "sass": "$autocomplete-item-hover-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-disabled-color",
       "sass": "$autocomplete-item-disabled-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-disabled-opacity",
       "sass": "$autocomplete-item-disabled-opacity",
       "default": "0.5",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-header-footer-padding",
       "sass": "$autocomplete-header-footer-padding",
       "default": "0.5rem 1rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-header-footer-color",
       "sass": "$autocomplete-header-footer-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-header-footer-size",
       "sass": "$autocomplete-header-footer-size",
       "default": "var(--bulma-size-small)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-border-color",
       "sass": "$autocomplete-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-border-hover-color",
       "sass": "$autocomplete-border-hover-color",
       "default": "var(--bulma-border-hover)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-icon-hover-color",
       "sass": "$autocomplete-icon-hover-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-loader-border-color",
       "sass": "$autocomplete-loader-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-loader-active-color",
       "sass": "$autocomplete-loader-active-color",
       "default": "var(--bulma-primary)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-loader-duration",
       "sass": "$autocomplete-loader-duration",
       "default": "0.6s",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-empty-color",
       "sass": "$autocomplete-empty-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-scrollbar-width",
       "sass": "$autocomplete-scrollbar-width",
       "default": "8px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-scrollbar-track",
       "sass": "$autocomplete-scrollbar-track",
       "default": "var(--bulma-scheme-main-bis)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-scrollbar-thumb",
       "sass": "$autocomplete-scrollbar-thumb",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-scrollbar-thumb-hover",
       "sass": "$autocomplete-scrollbar-thumb-hover",
       "default": "var(--bulma-border-hover)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-small-padding",
       "sass": "$autocomplete-item-small-padding",
       "default": "0.25rem 0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-medium-padding",
       "sass": "$autocomplete-item-medium-padding",
       "default": "0.5rem 1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-autocomplete-item-large-padding",
       "sass": "$autocomplete-item-large-padding",
       "default": "0.625rem 1.5rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

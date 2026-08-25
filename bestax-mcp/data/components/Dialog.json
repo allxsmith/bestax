@@ -177,109 +177,109 @@
       "css": "--bulma-dialog-width",
       "sass": "$dialog-width",
       "default": "420px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-max-width",
       "sass": "$dialog-max-width",
       "default": "90%",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-radius",
       "sass": "$dialog-radius",
       "default": "var(--bulma-radius)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-background",
       "sass": "$dialog-background",
       "default": "var(--bulma-scheme-main)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-shadow",
       "sass": "$dialog-shadow",
       "default": "0 8px 24px hsla(0, 0%, 0%, 0.2)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-header-padding",
       "sass": "$dialog-header-padding",
       "default": "1rem 1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-body-padding",
       "sass": "$dialog-body-padding",
       "default": "1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-body-color",
       "sass": "$dialog-body-color",
       "default": "var(--bulma-text)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-body-line-height",
       "sass": "$dialog-body-line-height",
       "default": "1.5",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-footer-padding",
       "sass": "$dialog-footer-padding",
       "default": "1rem 1.25rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-footer-gap",
       "sass": "$dialog-footer-gap",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-border-color",
       "sass": "$dialog-border-color",
       "default": "var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-title-size",
       "sass": "$dialog-title-size",
       "default": "var(--bulma-size-5)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-title-weight",
       "sass": "$dialog-title-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-title-color",
       "sass": "$dialog-title-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-icon-size",
       "sass": "$dialog-icon-size",
       "default": "1.5rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-icon-margin",
       "sass": "$dialog-icon-margin",
       "default": "0.75rem",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-dialog-animation-duration",
       "sass": "$dialog-animation-duration",
       "default": "0.2s",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

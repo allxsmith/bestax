@@ -104,12 +104,94 @@ const USE_BULMA_ROOT =
 const VAR_DECL = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(!default)?\s*;\s*$/;
 
 /**
+ * Strips Sass block comments (slash-star … star-slash spans) from a value
+ * before it is analyzed for foldability or top-level commas. A comment can
+ * carry an unbalanced quote (an apostrophe in `user's`) or a stray `(`/`$`
+ * that would otherwise fool the character scanners into mis-reading the
+ * value's structure; the comment is inert to Sass, so removing it for
+ * analysis is safe. The emitted value still carries the comment verbatim.
+ *
+ * The scan tracks quote state first and only recognizes a block comment
+ * outside a string, in one pass — a bare regex would treat a slash-star …
+ * star-slash-shaped span that straddles two quoted strings (opening marker in
+ * one string, closing marker in the next) as a comment and delete the real
+ * top-level comma between them, so a genuine list would fold unparenthesized.
+ * An unterminated comment consumes the rest of the value.
+ */
+function stripSassComments(value: string): string {
+  let result = '';
+  let quote: string | null = null;
+  let escaped = false;
+  for (let i = 0; i < value.length; i += 1) {
+    const char = value[i];
+    if (quote) {
+      result += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === '/' && value[i + 1] === '*') {
+      const end = value.indexOf('*/', i + 2);
+      if (end === -1) break; // unterminated comment — drop the rest
+      i = end + 1; // resume after the closing */
+      continue;
+    }
+    if (char === '"' || char === "'") quote = char;
+    result += char;
+  }
+  return result;
+}
+
+/**
  * A value is fold-safe for `with (…)` when it is a plain literal — no
  * function calls, interpolation, variable references, or at-rules. Hex
- * colors (`#ff6b35`) are fine; `#{…}` interpolation is not.
+ * colors (`#ff6b35`) are fine; `#{…}` interpolation is not. Block comments are
+ * ignored for this test — their contents don't make the value non-literal.
  */
 function isFoldableValue(value: string): boolean {
-  return !/[()$@]|#\{/.test(value);
+  return !/[()$@]|#\{/.test(stripSassComments(value));
+}
+
+/**
+ * Whether `value` has a comma outside any quoted string — a bare Sass list
+ * (`'Nunito', sans-serif`) that must be parenthesized before it can sit
+ * inside `with (…)`, or Dart Sass reads the comma as an argument separator
+ * instead of a list delimiter. Block comments are stripped first so a quote or
+ * comma inside one (an apostrophe in `user's`) can't skew the scan.
+ */
+function hasTopLevelComma(value: string): boolean {
+  let quote: string | null = null;
+  let escaped = false;
+  for (const char of stripSassComments(value)) {
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) quote = null;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === ',') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Formats a folded value for the `with (…)` clause, parenthesizing a bare list. */
+function formatFoldedValue(value: string): string {
+  return hasTopLevelComma(value) ? `(${value})` : value;
 }
 
 function report(
@@ -196,7 +278,7 @@ export const transformStyles: StylesTransform = (
       out.push(`${indent}@use '${bulmaSass}' with (`);
       foldableVars.forEach(({ name, value }, index) => {
         const comma = index < foldableVars.length - 1 ? ',' : '';
-        out.push(`${indent}  $${name}: ${value}${comma}`);
+        out.push(`${indent}  $${name}: ${formatFoldedValue(value)}${comma}`);
       });
       out.push(`${indent});`);
     } else {

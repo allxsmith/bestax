@@ -91,19 +91,19 @@
       "css": "--bulma-footer-background-color",
       "sass": "$footer-background-color",
       "default": "var(--bulma-scheme-main-bis)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-footer-color",
       "sass": "$footer-color",
       "default": "false",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-footer-padding",
       "sass": "$footer-padding",
       "default": "3rem 1.5rem 6rem",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }

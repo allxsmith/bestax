@@ -126,103 +126,103 @@
       "css": "--bulma-content-heading-color",
       "sass": "$content-heading-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-heading-weight",
       "sass": "$content-heading-weight",
       "default": "var(--bulma-weight-extrabold)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-heading-line-height",
       "sass": "$content-heading-line-height",
       "default": "1.125",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-block-margin-bottom",
       "sass": "$content-block-margin-bottom",
       "default": "1em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-blockquote-background-color",
       "sass": "$content-blockquote-background-color",
       "default": "var(--bulma-background)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-blockquote-border-left",
       "sass": "$content-blockquote-border-left",
       "default": "5px solid var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-blockquote-padding",
       "sass": "$content-blockquote-padding",
       "default": "1.25em 1.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-pre-padding",
       "sass": "$content-pre-padding",
       "default": "1.25em 1.5em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-cell-border",
       "sass": "$content-table-cell-border",
       "default": "1px solid var(--bulma-border)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-cell-border-width",
       "sass": "$content-table-cell-border-width",
       "default": "0 0 1px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-cell-padding",
       "sass": "$content-table-cell-padding",
       "default": "0.5em 0.75em",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-cell-heading-color",
       "sass": "$content-table-cell-heading-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-head-cell-border-width",
       "sass": "$content-table-head-cell-border-width",
       "default": "0 0 2px",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-head-cell-color",
       "sass": "$content-table-head-cell-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-body-last-row-cell-border-bottom-width",
       "sass": "$content-table-body-last-row-cell-border-bottom-width",
       "default": "0",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-foot-cell-border-width",
       "sass": "$content-table-foot-cell-border-width",
       "default": "2px 0 0",
-      "scope": "component"
+      "scope": "root"
     },
     {
       "css": "--bulma-content-table-foot-cell-color",
       "sass": "$content-table-foot-cell-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "component"
+      "scope": "root"
     }
   ]
 }
