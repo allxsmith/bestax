@@ -337,23 +337,26 @@ These only matter if you happened to spread the omitted native HTML attribute di
 
 3.x ships ~30 new components. Highlights:
 
-| Component        | Description                                                           |
-| ---------------- | --------------------------------------------------------------------- |
-| `<Tooltip>`      | Auto-positioned floating tooltip                                      |
-| `<Carousel>`     | Slide carousel with dragging, indicators, keyboard nav                |
-| `<Collapse>`     | Animated collapse / expand sections                                   |
-| `<Dialog>`       | Modal dialogs with `confirm` / `alert` / `prompt` API                 |
-| `<Loading>`      | Overlay spinner for any container                                     |
-| `<Sidebar>`      | Slide-out side panel with overlay or inline modes                     |
-| `<Toast>`        | Toast notifications with positions, queues, and action/cancel buttons |
-| `<Steps>`        | Multi-step wizard navigation                                          |
-| `<LinkButton>`   | Link-styled button (text / ghost / underline variants)                |
-| `<Switch>`       | Bulma switch toggle                                                   |
-| `<Slider>`       | Range slider with dual-thumb mode and ticks                           |
-| `<Numberinput>`  | Number input with `+/–` steppers                                      |
-| `<Rate>`         | Star rating with half-star precision                                  |
-| `<Autocomplete>` | Filterable suggest input                                              |
-| `<Taginput>`     | Multi-tag input with autocomplete                                     |
+| Component         | Description                                                           |
+| ----------------- | --------------------------------------------------------------------- |
+| `<Tooltip>`       | Auto-positioned floating tooltip                                      |
+| `<Carousel>`      | Slide carousel with dragging, indicators, keyboard nav                |
+| `<Collapse>`      | Animated collapse / expand sections                                   |
+| `<Dialog>`        | Modal dialogs with `confirm` / `alert` / `prompt` API                 |
+| `<Loading>`       | Overlay spinner for any container                                     |
+| `<Sidebar>`       | Slide-out side panel with overlay or inline modes                     |
+| `<Toast>`         | Toast notifications with positions, queues, and action/cancel buttons |
+| `<Steps>`         | Multi-step wizard navigation                                          |
+| `<LinkButton>`    | Link-styled button (text / ghost / underline variants)                |
+| `<Switch>`        | Bulma switch toggle                                                   |
+| `<Slider>`        | Range slider with dual-thumb mode and ticks                           |
+| `<Numberinput>`   | Number input with `+/–` steppers                                      |
+| `<Rate>`          | Star rating with half-star precision                                  |
+| `<Autocomplete>`  | Filterable suggest input                                              |
+| `<Taginput>`      | Multi-tag input with autocomplete                                     |
+| `<DateInput>`     | Popover calendar with segmented keyboard entry right in the field     |
+| `<TimeInput>`     | Popover wheel spinner for time of day, 12-hour or 24-hour             |
+| `<DateTimeInput>` | Calendar and time wheels combined in a single popover                 |
 
 Plus text and list elements: `Code`, `Divider`, `Emphasis`, `Figure`, `Link`, `ListItem`, `OrderedList`, `Paragraph`, `Pre`, `Span`, `Strong`, `UnorderedList`.
 
@@ -411,7 +414,7 @@ For reference, here's the per-component status. Any component not listed had no 
 - `Control` — **No breaking changes.** New `iconLeftName` / `iconRightName` shortcut props.
 - `Checkbox`, `Radio` — **BREAKING (visual).** Now render with a hidden native input plus a custom indicator span. Requires the new extras CSS (`dist/extras.css` or `dist/bestax.css`) to render visibly. Also additively read from `useCheckboxesGroup()` / `useRadiosGroup()` context when present (with "local props always win").
 - `Checkboxes`, `Radios` — **Notable, not breaking** (their JSX is the same, their child Checkbox/Radio elements still need extras CSS — see Checkbox/Radio above). Now optional state containers via new `value` / `defaultValue` / `onChange` props.
-- `Autocomplete`, `FormContext`, `InputBase`, `Numberinput`, `Rate`, `SelectBase`, `Slider`, `Switch`, `Taginput`, `TextAreaBase`, `fieldProps` — **NEW.**
+- `Autocomplete`, `DateInput`, `DateTimeInput`, `FormContext`, `InputBase`, `Numberinput`, `Rate`, `SelectBase`, `Slider`, `Switch`, `Taginput`, `TextAreaBase`, `TimeInput`, `fieldProps` — **NEW.** `DateInput`, `TimeInput`, `DateTimeInput` each ship a `*Base` variant (e.g. `DateInputBase`) and share popover/calendar internals from `_pickerInternals/`.
 
 ### helpers/
 
