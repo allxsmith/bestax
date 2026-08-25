@@ -2236,8 +2236,25 @@ export const SKILL_ROSTERS = [
   {
     file: 'bulma-ui/AGENTS.md',
     // This one ships in the npm tarball, so a stale roster here is
-    // consumer-facing rather than internal.
-    scope: text => text.match(/Agent skills \(([^)]*)\)/)?.[1] ?? null,
+    // consumer-facing rather than internal. Fence-aware like every other
+    // scope — the #548 deep review named this as the one straggler in the
+    // class: a fenced example quoting "Agent skills (…)" before the real
+    // parenthetical would steal the match and scope the check to the quote.
+    scope: text => {
+      const { lines } = splitLines(text);
+      const masked = fenceMask(lines);
+      // The parenthetical wraps across lines, so match on the joined
+      // unmasked text from the first unmasked occurrence.
+      const start = lines.findIndex(
+        (l, i) => !masked[i] && l.includes('Agent skills (')
+      );
+      if (start < 0) return null;
+      const rest = lines
+        .slice(start)
+        .filter((_, i) => !masked[start + i])
+        .join('\n');
+      return rest.match(/Agent skills \(([^)]*)\)/)?.[1] ?? null;
+    },
     copies: [
       {
         what: 'the "Agent skills (…)" list',
