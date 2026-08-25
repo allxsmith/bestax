@@ -22,12 +22,17 @@ finish what it flagged.
 
   ```scss
   @use 'bulma/sass' with (
-      $primary: #ff6b35,
-      $family-primary: 'Nunito',
-      sans-serif
-    );
+    $primary: #ff6b35,
+    $family-primary: (
+      'Nunito',
+      sans-serif,
+    )
+  );
   @use '@allxsmith/bestax-bulma/scss/extras';
   ```
+
+  A comma-valued override (a font-family stack) is wrapped in parens so Dart Sass
+  reads it as one list value, not extra arguments to `with (…)`.
 
   0.9 `_all` aggregator imports (`bulma/sass/elements/_all`) became directory modules
   (`@use 'bulma/sass/elements';`). Relative node_modules paths

@@ -147,7 +147,7 @@ describe('kitchen-sink e2e', () => {
     );
     expect(scss).toContain("@use 'bulma/sass' with (");
     expect(scss).toContain('$primary: #1e6b99,');
-    expect(scss).toContain("$family-primary: 'Nunito', sans-serif");
+    expect(scss).toContain("$family-primary: ('Nunito', sans-serif)");
     expect(scss).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
     expect(scss).not.toContain('@import');
     expect(scss).toContain('.app-shell');
