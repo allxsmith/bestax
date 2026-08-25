@@ -519,6 +519,34 @@ export const BulmaPrefixedTheme = () => (
   </div>
 );
 
+// Shadow: <Theme bulmaVars={{ '--bulma-shadow': ... }}> overrides the upstream
+// token that `.box`/`.card` derive their own shadow variable from, so the ring
+// cascades into descendant Boxes/Cards. The class-based `shadow="shadowless"`
+// prop is unaffected — it still emits `is-shadowless` rather than a CSS var.
+export const ShadowTheme = () => (
+  <Theme bulmaVars={{ '--bulma-shadow': '0 0 0 3px var(--bulma-primary)' }}>
+    <Title size="3">Custom shadow via --bulma-shadow</Title>
+    <p className="mb-4">
+      Passing <code>--bulma-shadow</code> through <code>bulmaVars</code>{' '}
+      overrides the upstream token that <code>.box</code> derives its{' '}
+      <code>--bulma-box-shadow</code> from, so the primary ring cascades into
+      every descendant Box.
+    </p>
+    <Box>
+      <Title size="5">Featured Box</Title>
+      <p>This Box inherits the custom primary-ring shadow from the Theme.</p>
+    </Box>
+    <Box mt="4" shadow="shadowless">
+      <Title size="5">Shadowless Box</Title>
+      <p>
+        This Box sets <code>shadow=&quot;shadowless&quot;</code>, which still
+        emits the <code>is-shadowless</code> helper class and opts out of the
+        cascaded ring.
+      </p>
+    </Box>
+  </Theme>
+);
+
 // Dark mode: <Theme colorMode> writes the `data-theme` attribute on <html>,
 // flipping Bulma's light/dark scheme globally. `'system'` follows the OS.
 export const DarkMode = () => {
