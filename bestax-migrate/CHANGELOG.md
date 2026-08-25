@@ -1,3 +1,17 @@
+## [2.1.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.0...bestax-migrate@2.1.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** carry each CSS variable's declaring scope in the index ([79a5b2c](https://github.com/allxsmith/bestax/commit/79a5b2c9e9eccfd34e54a6d53375972f4b15021c))
+* **bestax-mcp:** note source order beside matched-specificity advice ([e8d960f](https://github.com/allxsmith/bestax/commit/e8d960f5b151c6b94d3b9069126ef1665ee20f02))
+* **bestax-migrate:** only convert Button remove to Delete on a true literal ([2ee5d0b](https://github.com/allxsmith/bestax/commit/2ee5d0bb78e6e31d6b6f1b24c814c4367d10bf5f)), closes [#553](https://github.com/allxsmith/bestax/issues/553)
+* **bestax-migrate:** parenthesize comma-valued folded Sass variables ([5a7b052](https://github.com/allxsmith/bestax/commit/5a7b05284f3faa870c6305b0a02556e53851e93a)), closes [#554](https://github.com/allxsmith/bestax/issues/554)
+* **bestax-migrate:** recognize Sass block comments only outside strings ([cdf4ad6](https://github.com/allxsmith/bestax/commit/cdf4ad69a017cadf6d9e7eca7936b6df1fe166bf)), closes [#554](https://github.com/allxsmith/bestax/issues/554)
+* **bestax-migrate:** resolve static string/number Button remove by truthiness ([62084bf](https://github.com/allxsmith/bestax/commit/62084bfc4aa6ea71cf725d48ca39e930a97e3787))
+* **bestax-migrate:** strip Sass block comments before scanning folded values ([c3fbd46](https://github.com/allxsmith/bestax/commit/c3fbd46b34e4ed0639747afdec18a46a40115c83)), closes [#554](https://github.com/allxsmith/bestax/issues/554)
+* **bestax-migrate:** track backslash escapes when scanning folded Sass values ([eac92eb](https://github.com/allxsmith/bestax/commit/eac92ebeb2ff94d8771c8629d9edb78299a2071e))
+
 # [2.1.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.0.1...bestax-migrate@2.1.0) (2026-08-23)
 
 
