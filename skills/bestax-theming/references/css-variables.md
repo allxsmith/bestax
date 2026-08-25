@@ -101,26 +101,27 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 | `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars` |
 | `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars` |
 
-## Shadow — the one token `bulmaVars` cannot set
+## Shadow — override the upstream token, not the derived one
 
-`--bulma-shadow` is a real Bulma variable (`.box` and `.card` both derive
-`--bulma-box-shadow`/`--bulma-card-shadow` from it), but it is **not a key of `bulmaVars`** —
-that record is a closed union built from an explicit list, and shadow was left out. Writing
-`<Theme bulmaVars={{ '--bulma-shadow': … }}>` is a compile error, and it is the single most
-repeated invention in this library's cold-start evals: every run on every guidance channel
-tried it.
+`--bulma-shadow` (plus its `--bulma-shadow-h`/`-s`/`-l` channels) is a real Bulma variable that
+`.box`, `.card`, `.dropdown`, and `.panel` each derive their own shadow variable from
+(`--bulma-box-shadow`, `--bulma-card-shadow`, …). It **is** a key of `bulmaVars`, so `Theme` can
+set it directly:
 
-Set it in CSS instead, then apply the class to the one element that needs it:
-
-```css
-.featured-ring {
-  --bulma-shadow: 0 0 0 2px var(--bulma-primary);
-}
+```tsx
+<Theme bulmaVars={{ '--bulma-shadow': '0 0 0 2px var(--bulma-primary)' }}>
+  <Box>featured</Box>
+</Theme>
 ```
 
+There is no individual `shadow` prop for it — `shadow` already names the unrelated
+`shadowless` helper class (`shadow="shadowless"` → `is-shadowless`) — so reach it through
+`bulmaVars` as shown above.
+
 Do **not** reach for `--bulma-box-shadow`/`--bulma-card-shadow` from an ancestor instead —
-those are re-declared on `.box`/`.card` themselves, so an inherited value always loses (the
-same rule as the extras section below).
+those are re-declared on `.box`/`.card` themselves, so an inherited value always loses. Setting
+`--bulma-shadow` from an ancestor `Theme` is the one override that cascades into all of them
+(the same rule as the extras section below).
 
 ## Extras component variables
 

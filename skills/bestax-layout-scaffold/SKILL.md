@@ -99,10 +99,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   and `.box` re-declare `--bulma-card-shadow`/`--bulma-box-shadow` from `--bulma-shadow` on
   their own selector, so setting _those_ from an ancestor never wins (same for
   `--bulma-box-radius`; `--bulma-card-radius` is a literal with no ancestor route at all).
-  It has to be a CSS rule rather than `<Theme bulmaVars={{ '--bulma-shadow': … }}>`, because
-  `bulmaVars` is a closed typed record and `--bulma-shadow` is not one of its keys — that
-  exact call **does not compile**, and it was the single most repeated invention across this
-  library's cold-start evals. Either way the subtree stays theme- and dark-mode-aware.
+  A class-scoped CSS rule keeps the ring on just the one featured card without wrapping it in
+  its own `Theme`; `<Theme bulmaVars={{ '--bulma-shadow': … }}>` also compiles and is the
+  better fit when the override already applies to a whole scoped subtree. Either way the
+  subtree stays theme- and dark-mode-aware.
 
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
@@ -194,7 +194,7 @@ inline `style`.
       every other `Section` — never band CSS, never `bgColor="light"`/`"white"`.
 - [ ] Decorative CSS ≤10 lines total incl. comments — no file-header comment (hero wash +
       featured-card ring), `--bulma-*`-derived; no resets — Bulma ships one.
-      The ring sets `--bulma-shadow` in a CSS rule; `Theme bulmaVars` has no such key.
+      The ring sets `--bulma-shadow` (via a scoped CSS rule or `Theme bulmaVars`).
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
       it, run the `bestax-optimize` skill (measure first).

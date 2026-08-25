@@ -234,6 +234,48 @@ describe('Theme', () => {
     expect(() => unmount()).not.toThrow();
   });
 
+  it('applies --bulma-shadow (and its h/s/l components) from bulmaVars', () => {
+    // Regression test for #499: --bulma-shadow is the upstream token that
+    // .box/.card/.dropdown/.panel derive their own shadow variables from, so
+    // it must be settable via bulmaVars even though it isn't exposed as an
+    // individual prop.
+    const vars = {
+      '--bulma-shadow': '0 0 0 2px hsl(0, 0%, 0%)',
+      '--bulma-shadow-h': '200deg',
+      '--bulma-shadow-s': '50%',
+      '--bulma-shadow-l': '10%',
+    };
+    const { container } = render(
+      <Theme bulmaVars={vars}>
+        <div data-testid="content">Test Content</div>
+      </Theme>
+    );
+
+    const themeDiv = container.firstChild as HTMLElement;
+    expect(themeDiv.style.getPropertyValue('--bulma-shadow')).toBe(
+      '0 0 0 2px hsl(0, 0%, 0%)'
+    );
+    expect(themeDiv.style.getPropertyValue('--bulma-shadow-h')).toBe('200deg');
+    expect(themeDiv.style.getPropertyValue('--bulma-shadow-s')).toBe('50%');
+    expect(themeDiv.style.getPropertyValue('--bulma-shadow-l')).toBe('10%');
+  });
+
+  it('keeps the `shadow` prop as the shadowless helper class, not a CSS var', () => {
+    // Regression test for #499: --bulma-shadow's minted prop name ("shadow")
+    // collides with the pre-existing BulmaOtherProps `shadow` prop
+    // (shadow="shadowless" -> is-shadowless class). The `shadow` prop must
+    // keep producing the class, not get diverted into --bulma-shadow.
+    const { container } = render(
+      <Theme shadow="shadowless">
+        <div data-testid="content">Test Content</div>
+      </Theme>
+    );
+
+    const themeDiv = container.firstChild as HTMLElement;
+    expect(themeDiv.className).toContain('is-shadowless');
+    expect(themeDiv.style.getPropertyValue('--bulma-shadow')).toBe('');
+  });
+
   it('skips invalid CSS variable keys when building the local style object', () => {
     // Inject a non-Bulma key via bulmaVars; the local-style branch's
     // `bulmaCssVars.includes(key) && value` guard should drop it.
