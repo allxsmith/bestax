@@ -52,11 +52,10 @@ Set it once on `ConfigProvider` and omit `library` everywhere else.
     type="module"
     src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"
   ></script>
-  <script
-    nomodule
-    src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"
-  ></script>
   ```
+
+  Ionicons v8 is ESM-only — there is no legacy `nomodule` bundle, so a single
+  `type="module"` tag is all that is needed.
 
 - **Scaffold flag:** `--icon ionicons` — which maps to `iconLibrary="ion"`. Passing
   `'ionicons'` as the `library`/`iconLibrary` value renders nothing.

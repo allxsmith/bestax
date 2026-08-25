@@ -136,16 +136,13 @@ import 'ionicons/dist/ionicons/ionicons.esm.js';
 
 **Alternative Setup (CDN):**
 
-You can also load ionicons via CDN by adding these script tags to your HTML:
+You can also load ionicons via CDN by adding this script tag to your HTML. Ionicons v8 ships
+only an ES module build, so no `nomodule` fallback script is needed:
 
 ```html
 <script
   type="module"
   src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"
-></script>
-<script
-  nomodule
-  src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"
 ></script>
 ```
 
