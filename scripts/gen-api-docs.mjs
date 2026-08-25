@@ -294,12 +294,24 @@ async function renderCssVars(info, { relPath }) {
     const src = await readFile(file, 'utf8');
     for (const { root, prefix } of candidates) {
       if (!root && !prefix) continue;
+      // An EXTRA root (its class differs from the component's primary
+      // rootClass) is a constituent element the component also owns — the
+      // pickers' calendar grid and time wheels, on `.dateinput`/`.timeinput`/
+      // `.datetimeinput`, not the primary `.input`. Inside their own partial
+      // that class IS the selector's root, so componentVars scores them
+      // 'root'; but the page's 'root' lead names `.input` and tells the reader
+      // to override there or via `className`, which loses — the element is
+      // separate and can be portaled, so even inheritance breaks. Force
+      // 'element' so the existing marker + note fire, exactly as Tabs'
+      // `.tabs-root` vars already do via the primary-root constituent rule.
+      const isExtra = root !== info.rootClass;
       for (const row of componentVars(src, root, prefix)) {
         if (seen.has(row.cssVar)) continue;
         seen.add(row.cssVar);
-        scopes.add(row.scope);
+        const scope = isExtra ? 'element' : row.scope;
+        scopes.add(scope);
         rows.push({
-          scope: row.scope,
+          scope,
           cells: [
             `\`${row.cssVar}\``,
             row.sassVar ? `\`${row.sassVar}\`` : '—',

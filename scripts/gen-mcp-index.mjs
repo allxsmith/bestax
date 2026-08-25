@@ -292,6 +292,14 @@ async function cssVarsFor(info) {
     const src = await readFile(file, 'utf8');
     for (const { root, prefix } of candidates) {
       if (!root && !prefix) continue;
+      // An EXTRA root (differing from the primary rootClass) is a constituent
+      // element the component owns — the pickers' calendar/wheel helpers on
+      // `.dateinput`/`.timeinput`/`.datetimeinput`, not the primary `.input`.
+      // componentVars scores them 'root' inside their own partial, but 'root'
+      // advice names `.input`/`className` and loses (separate, portalable
+      // element). Force 'element' so the MCP scope agrees with the docs page
+      // (gen-api-docs.mjs renderCssVars), which does the same (#543).
+      const isExtra = root !== info.rootClass;
       for (const row of componentVars(src, root, prefix)) {
         if (seen.has(row.cssVar)) continue;
         seen.add(row.cssVar);
@@ -303,7 +311,7 @@ async function cssVarsFor(info) {
           // 'component' made the server give the className override advice
           // that silently loses at 0-2-0 — the exact #464 failure, on the
           // MCP surface, while the docs page said the opposite (#544 review).
-          scope: row.scope,
+          scope: isExtra ? 'element' : row.scope,
         });
       }
     }
