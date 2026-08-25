@@ -62,8 +62,16 @@ in place:
   `@allxsmith/bestax-bulma/bestax.css` bundle (Bulma v1 + the bestax extras); SCSS files move
   from Bulma 0.9's `@import 'bulma/bulma'` + `$var !default` overrides to
   `@use 'bulma/sass' with ($var: …)` plus `@use '@allxsmith/bestax-bulma/scss/extras'`, and
-  the dead `_all` partial paths map onto the v1 module tree. Computed variables and
-  indented-syntax `.sass` files are flagged instead of guessed at.
+  the dead `_all` partial paths map onto the v1 module tree. react-bulma-components' own
+  stylesheet (any `react-bulma-components/…` specifier — the v3 entry points bare, `~`- or
+  relative-`node_modules`-prefixed, plus deep partials) gets the same treatment — it's the
+  library being removed, not a third-party extension, so it is rewritten into that identical
+  `@use 'bulma/sass'` (+ extras) root, folding any leading `$var` overrides, rather than the
+  hard-configured `scss/bestax` bundle that couldn't take them. If the file already has its
+  own Bulma root the redundant root/index line is dropped (the extras still added once); a
+  dropped RBC **deep partial** is flagged with a TODO instead, since `bulma/sass` may not
+  carry its styles. Computed variables and indented-syntax `.sass` files are flagged instead
+  of guessed at.
 - **Dependencies** — the nearest `package.json` drops `react-bulma-components`, gains
   `@allxsmith/bestax-bulma`, moves `bulma` to `^1.0.4`, and swaps the dead `node-sass` for
   dart `sass`. The codemod never runs an install — do that yourself afterwards.
@@ -125,8 +133,10 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 The codemod maps the react-bulma-components **v4** API. v3-era patterns are detected and
 flagged rather than converted: bundled-CSS imports
 (`react-bulma-components/dist/react-bulma-components.min.css`) are rewritten to the Bulma v1
-stylesheet, and deep `react-bulma-components/lib/components/*` imports get a TODO pointing you
-at the v4 named-import style first.
+stylesheet, its Sass equivalent (`react-bulma-components/src/index.sass`, bare or
+`~`-prefixed) is rewritten the same way in SCSS files, and deep
+`react-bulma-components/lib/components/*` imports get a TODO pointing you at the v4
+named-import style first.
 
 ## Coming from a different library?
 

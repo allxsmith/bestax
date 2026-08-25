@@ -68,10 +68,50 @@ const OTHER_BULMA_IMPORT = /^\s*@import\s+['"][^'"]*bulma[^'"]*['"]/;
 /**
  * Third-party Bulma extension packages (`bulma-checkradio`, `bulma-switch`,
  * …) — 0.9-era add-ons whose v1 compatibility varies; several are covered
- * by the bestax extras.
+ * by the bestax extras. The `bulma-` package name must start at a specifier
+ * segment boundary (right after the quote/`~`, or after a `/`) so this does
+ * not also match a name that merely *contains* `bulma-`, like
+ * `react-bulma-components` (see EXTENSION_IMPORT's own regression test).
  */
 const EXTENSION_IMPORT =
-  /^\s*@import\s+['"][^'"]*\bbulma-([\w-]+?)(?:\/|\.|['"])/;
+  /^\s*@import\s+['"](?:~|[^'"]*\/)?bulma-([\w-]+?)(?:\/|\.|['"])/;
+
+/**
+ * The source library's own stylesheet. This is not a third-party extension:
+ * it is the library being migrated away from, and `deps.ts` removes its
+ * package.json entry in the same run, so leaving the import in place breaks
+ * the Sass build. Any `react-bulma-components/…` specifier is dead the same
+ * way — the documented v3 setup paths (the bundled CSS, the "advanced" Sass
+ * entry point), but also deep partials and extensionless forms — so, like
+ * `transform.ts`, we match on the package prefix rather than enumerating
+ * shapes. The prefix may be bare, `~`-prefixed, or a relative node_modules
+ * path (the Parcel form `ROOT_IMPORT` also supports).
+ */
+const RBC_STYLE_IMPORT =
+  /^(\s*)@import\s+(['"])((?:\.\.?\/)+node_modules\/|~)?react-bulma-components\/[^'"]*\2\s*;?\s*$/;
+
+/**
+ * The subset of RBC stylesheet imports that are the library's own *root*: the
+ * bare package specifier, the documented Sass entry point (`src/index`), and
+ * the bundled v3 CSS (`dist/react-bulma-components(.min).css`). These pull in
+ * the whole library, which `bulma/sass` supersedes — so when the file already
+ * has a Bulma root, dropping one of these loses nothing. A deep RBC partial
+ * (`src/components/navbar.sass`) is NOT a root: `bulma/sass` doesn't carry a
+ * given partial's styles, so removing one silently would drop CSS. We flag
+ * those instead (the package's "never a silent skip" rule).
+ */
+const RBC_ROOT_STYLESHEET =
+  /^\s*@import\s+(['"])(?:(?:\.\.?\/)+node_modules\/|~)?react-bulma-components(?:\/src\/index(?:\.s[ac]ss)?|\/dist\/react-bulma-components(?:\.min)?\.css)?\1\s*;?\s*$/;
+
+/**
+ * A Bulma module root already pulled in via `@use` — the file's own
+ * `@use 'bulma/sass'` (any prefix, configured or not) or the bestax bundle
+ * (`scss/bestax`, which itself loads `bulma/sass with (…)`). When one is
+ * present we must not emit a second root: a duplicate `bulma/sass` namespace,
+ * or reconfiguring an already-loaded module, is a hard Sass error.
+ */
+const USE_BULMA_ROOT =
+  /^\s*@use\s+(['"])(?:~|(?:\.\.?\/)+node_modules\/)?(?:bulma\/sass|@allxsmith\/bestax-bulma\/(?:src\/)?scss\/bestax)\1/;
 
 /** Any `$name: value;` declaration (with or without `!default`). */
 const VAR_DECL = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(!default)?\s*;\s*$/;
@@ -204,13 +244,26 @@ export const transformStyles: StylesTransform = (
   let changed = false;
   let extrasAdded = source.includes('@allxsmith/bestax-bulma/scss');
 
-  // Pass 1: find safe leading variable overrides and the first root import.
+  // Pass 1: locate the file's Bulma root and the safe leading variable
+  // overrides that fold into it. A real `bulma/…` @import root wins; otherwise
+  // the RBC stylesheet, which we rewrite into a root the same way — so a file
+  // that starts from RBC and one that starts from a bulma @import converge on
+  // the identical shape. A pre-existing `@use` root means we create no new one.
   const rootImportIndex = lines.findIndex(line => ROOT_IMPORT.test(line));
+  const rbcRootIndex = lines.findIndex(
+    line => RBC_STYLE_IMPORT.test(line) && !line.includes(TODO)
+  );
+  const hasUseBulmaRoot = lines.some(line => USE_BULMA_ROOT.test(line));
+  const foldTargetIndex = hasUseBulmaRoot
+    ? -1
+    : rootImportIndex !== -1
+      ? rootImportIndex
+      : rbcRootIndex;
   const foldableVars: Array<{ index: number; name: string; value: string }> =
     [];
   const unsafeVarLines: number[] = [];
-  if (rootImportIndex !== -1) {
-    for (let i = 0; i < rootImportIndex; i += 1) {
+  if (foldTargetIndex !== -1) {
+    for (let i = 0; i < foldTargetIndex; i += 1) {
       const line = lines[i];
       const match = line.match(VAR_DECL);
       if (match && isFoldableValue(match[2])) {
@@ -222,46 +275,58 @@ export const transformStyles: StylesTransform = (
   }
   const folded = new Set(foldableVars.map(v => v.index));
 
+  /**
+   * Emit a Bulma module root at `indent` (folding the leading var overrides
+   * gathered above into `with (…)`, flagging any unsafe ones), then, in
+   * bestax mode, the extras. `prefix` is a preserved relative-path prefix
+   * (raw-file toolchains resolve paths, not package specifiers) or ''.
+   */
+  const emitBulmaRoot = (
+    indent: string,
+    prefix: string,
+    lineNo: number
+  ): void => {
+    const bulmaSass = `${prefix}bulma/sass`;
+    if (foldableVars.length > 0) {
+      out.push(`${indent}@use '${bulmaSass}' with (`);
+      foldableVars.forEach(({ name, value }, index) => {
+        const comma = index < foldableVars.length - 1 ? ',' : '';
+        out.push(`${indent}  $${name}: ${formatFoldedValue(value)}${comma}`);
+      });
+      out.push(`${indent});`);
+    } else {
+      out.push(`${indent}@use '${bulmaSass}';`);
+    }
+    if (unsafeVarLines.length > 0) {
+      out.push(
+        `${indent}// ${TODO}: the variable override(s) above use computed values; move them into the @use "bulma/sass" with (…) configuration by hand`
+      );
+      report(
+        collector,
+        filePath,
+        lineNo,
+        'sass',
+        'variable overrides with computed values could not be folded into `with (…)`'
+      );
+    }
+    if (cssMode === 'bestax' && !extrasAdded) {
+      out.push(
+        prefix
+          ? `${indent}@use '${prefix}@allxsmith/bestax-bulma/src/scss/extras';`
+          : `${indent}${EXTRAS_USE}`
+      );
+      extrasAdded = true;
+    }
+  };
+
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
 
     if (i === rootImportIndex) {
       const rootMatch = line.match(ROOT_IMPORT);
-      const indent = rootMatch?.[1] ?? '';
-      const bulmaSass = `${keptPrefix(rootMatch?.[3])}bulma/sass`;
-      if (foldableVars.length > 0) {
-        out.push(`${indent}@use '${bulmaSass}' with (`);
-        foldableVars.forEach(({ name, value }, index) => {
-          const comma = index < foldableVars.length - 1 ? ',' : '';
-          out.push(`${indent}  $${name}: ${formatFoldedValue(value)}${comma}`);
-        });
-        out.push(`${indent});`);
-      } else {
-        out.push(`${indent}@use '${bulmaSass}';`);
-      }
-      if (unsafeVarLines.length > 0) {
-        out.push(
-          `${indent}// ${TODO}: the variable override(s) above use computed values; move them into the @use "bulma/sass" with (…) configuration by hand`
-        );
-        report(
-          collector,
-          filePath,
-          i + 1,
-          'sass',
-          'variable overrides with computed values could not be folded into `with (…)`'
-        );
-      }
-      if (cssMode === 'bestax' && !extrasAdded) {
-        // A path-prefixed root import means the toolchain resolves raw file
-        // paths, not package specifiers — point at the shipped file directly.
-        const extrasPrefix = keptPrefix(rootMatch?.[3]);
-        out.push(
-          extrasPrefix
-            ? `${indent}@use '${extrasPrefix}@allxsmith/bestax-bulma/src/scss/extras';`
-            : `${indent}${EXTRAS_USE}`
-        );
-        extrasAdded = true;
-      }
+      // A path-prefixed root import means the toolchain resolves raw file
+      // paths, not package specifiers — point at the shipped files directly.
+      emitBulmaRoot(rootMatch?.[1] ?? '', keptPrefix(rootMatch?.[3]), i + 1);
       changed = true;
       continue;
     }
@@ -316,6 +381,85 @@ export const transformStyles: StylesTransform = (
         'sass',
         `Bulma 0.9 partial path \`bulma/sass/${importPath}\` has no direct v1 equivalent`
       );
+      changed = true;
+      continue;
+    }
+
+    const rbcStyle = line.match(RBC_STYLE_IMPORT);
+    if (rbcStyle && !line.includes(TODO)) {
+      const indent = rbcStyle[1];
+      const prefix = keptPrefix(rbcStyle[3]);
+      if (i === rbcRootIndex && rootImportIndex === -1 && !hasUseBulmaRoot) {
+        // The library's own stylesheet never resolves post-migration (deps.ts
+        // removes react-bulma-components in the same run), and it is this
+        // file's only Bulma root, so rewrite it into one — the same shape the
+        // @import root path emits, folding any leading var overrides. Emitting
+        // a real `bulma/sass` (+ extras) rather than the hard-configured
+        // bestax bundle keeps this convergent with the @import path and avoids
+        // reconfiguring `bulma/sass` if a themed root exists elsewhere.
+        emitBulmaRoot(indent, prefix, i + 1);
+        if (cssMode === 'keep') {
+          // The replacement is unavoidable even in keep mode: RBC's own
+          // stylesheet is a v3 (Bulma 0.9) asset the migrated v1 components
+          // can't use. What changed depends on whether the manifest step ran.
+          const depsRan = options.deps !== false;
+          const detail = depsRan
+            ? 'its package.json entry is removed, so the old import no longer resolves; install bulma@^1'
+            : 'it targets Bulma 0.9, not the v1 your components now use; --no-deps kept the dependency, so install bulma@^1 alongside it';
+          out.push(
+            `${indent}// ${TODO}: replaced react-bulma-components's own stylesheet with @use 'bulma/sass' — ${detail} — see ${GUIDE}`
+          );
+          report(
+            collector,
+            filePath,
+            i + 1,
+            'sass',
+            depsRan
+              ? "replaced react-bulma-components's stylesheet import with bulma/sass; the package is removed from dependencies, so the old import would not resolve"
+              : "replaced react-bulma-components's stylesheet import with bulma/sass; it is a Bulma 0.9 asset the migrated v1 components can't use (--no-deps left the package in place)"
+          );
+        } else {
+          // bestax/bulma modes rewrite the file's root without a TODO — still
+          // report it so the migration summary reflects the restructured root.
+          report(
+            collector,
+            filePath,
+            i + 1,
+            'sass',
+            "replaced react-bulma-components's stylesheet import with a Bulma v1 @use root"
+          );
+        }
+      } else {
+        // A Bulma root already covers this file (a `bulma/…` @import we
+        // convert, the file's own `@use` root, or an earlier RBC line we
+        // rewrote). In bestax mode keep that root and add only the extras —
+        // never a second root, never the configured bundle that would
+        // reconfigure an already-loaded module.
+        if (cssMode === 'bestax' && !extrasAdded) {
+          out.push(
+            prefix
+              ? `${indent}@use '${prefix}@allxsmith/bestax-bulma/src/scss/extras';`
+              : `${indent}${EXTRAS_USE}`
+          );
+          extrasAdded = true;
+        }
+        // Dropping the RBC line is only safe for its root/index stylesheet,
+        // which `bulma/sass` supersedes. A deep RBC partial can carry styles
+        // `bulma/sass` doesn't, so removing it silently would lose CSS — flag
+        // it with a TODO + report entry instead (never a silent skip).
+        if (!RBC_ROOT_STYLESHEET.test(line)) {
+          out.push(
+            `${indent}// ${TODO}: dropped a react-bulma-components stylesheet partial that has no Bulma v1 root equivalent; port any styles it carried beyond Bulma's own by hand — see ${GUIDE}`
+          );
+          report(
+            collector,
+            filePath,
+            i + 1,
+            'sass',
+            'react-bulma-components stylesheet partial dropped; port any styles it carried beyond Bulma’s own by hand'
+          );
+        }
+      }
       changed = true;
       continue;
     }

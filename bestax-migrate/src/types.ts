@@ -101,6 +101,13 @@ export type CssMode = 'bestax' | 'bulma' | 'keep';
 export interface TransformOptions {
   collector?: TodoCollector;
   cssMode?: CssMode;
+  /**
+   * Whether the run also updates package.json (false under `--no-deps`).
+   * The stylesheet transform's messaging depends on it: it may only claim a
+   * dependency was removed when the manifest step actually runs. Undefined is
+   * treated as the CLI default (deps on).
+   */
+  deps?: boolean;
   [key: string]: unknown;
 }
 

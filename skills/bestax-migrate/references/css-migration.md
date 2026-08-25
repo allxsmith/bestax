@@ -43,6 +43,31 @@ finish what it flagged.
   **dart-sass ≥ 1.79** — the codemod's node-sass replacement installs that, but check
   bundler-pinned older versions (Parcel's sass transformer pins 1.66).
 
+  react-bulma-components' own stylesheet — any `react-bulma-components/…` specifier,
+  bare, `~`-prefixed, or a relative `node_modules/` path, covering the documented v3
+  entry points (`src/index.sass`, `dist/react-bulma-components(.min).css`) as well as
+  deep partials and extensionless forms — is not a third-party extension; it's the
+  library being migrated away from. It targets Bulma 0.9, not the v1 your components now
+  use, and (unless `--no-deps` is passed) `package.json` no longer lists it, so the
+  import can never resolve once installed. Every `--css` mode rewrites it into a real
+  Bulma root rather than leaving a known-broken import — the **same shape the
+  `@import 'bulma/…'` root path emits**, so a file that starts from RBC and one that
+  starts from a Bulma import converge: `bestax` (default) emits
+  `@use 'bulma/sass';` (folding any leading `$var` overrides above the import into
+  `with (…)`) plus `@use '@allxsmith/bestax-bulma/scss/extras';`; `bulma` emits plain
+  `@use 'bulma/sass';`; `keep` does the same with a TODO explaining the replacement
+  (worded to match whether `--no-deps` kept the package). It deliberately does **not**
+  emit the hard-configured `scss/bestax` bundle here — that bundle can't carry the
+  user's own theme vars, and reconfiguring `bulma/sass` when another file already
+  configures it is a hard Sass error. If the file already has its own `bulma/…` root
+  (a `@use 'bulma/sass'` of its own, or a Bulma `@import` the codemod converts), the RBC
+  **root/index** line (`src/index`, the bundled `dist/*.css`, or the bare specifier) is
+  dropped instead of emitting a second root; in `bestax` mode the extras are added once
+  alongside that existing root. A dropped RBC **deep partial** (e.g.
+  `src/components/navbar.sass`) is different — `bulma/sass` doesn't necessarily carry a
+  given partial's styles, so it gets a `// TODO(bestax-migrate)` and a report entry
+  ("port any styles it carried beyond Bulma's own by hand") rather than vanishing silently.
+
 - **package.json**: `react-bulma-components` removed, `@allxsmith/bestax-bulma` added,
   `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),
   and dead `node-sass` replaced with dart `sass`. Run the package manager's install
@@ -68,6 +93,8 @@ elements,form,components,grid,layout,helpers,themes}` with leaf partials like
   compatibility. Class-based usage (`className="is-checkradio"`) keeps needing the
   extension; usage that migrated to bestax components (Radio, Checkbox, the advanced
   form controls) is already styled by the bestax extras, so the import can go.
+  react-bulma-components' own stylesheet is never flagged this way (see above) — only
+  packages actually named `bulma-*` are.
 
 ## Choosing a CSS flavor (optional)
 
