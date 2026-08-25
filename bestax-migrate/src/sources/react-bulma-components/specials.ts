@@ -213,42 +213,77 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { target: 'Delete' };
   },
 
-  /** Heading → Title / SubTitle / plain `.heading` paragraph. */
+  /**
+   * Heading → Title / SubTitle / plain `.heading` paragraph, matching RBC's
+   * `title: !subtitle && !heading` / `subtitle: subtitle` — the *value* of
+   * each prop picks the target, not merely whether it was passed. A literal
+   * `false` is equivalent to the prop being absent; a dynamic value can't be
+   * resolved at codemod time, so it's left as a TODO with a conservative
+   * (Title/SubTitle, never the structural plain-element rewrite) fallback.
+   */
   heading(ctx, path, element) {
     const headingAttr = findAttr(element, 'heading');
     if (headingAttr) {
-      removeAttr(element, headingAttr);
-      const className = mergeClassName(
-        ctx,
-        path,
-        element,
-        'heading',
-        'Heading'
-      );
-      const rest = stripModifierProps(
-        ctx,
-        path,
-        attributesOf(element).filter(
-          a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
-        ),
-        'Heading'
-      );
-      const replacement = plainElement(
-        ctx.j,
-        'p',
-        className,
-        rest,
-        element.children ?? []
-      );
-      path.replace(replacement);
-      ctx.dirty = true;
-      return { replaced: true };
+      const literal = literalValueOf(headingAttr);
+      if (literal.kind === 'boolean' && literal.value === true) {
+        removeAttr(element, headingAttr);
+        const className = mergeClassName(
+          ctx,
+          path,
+          element,
+          'heading',
+          'Heading'
+        );
+        const rest = stripModifierProps(
+          ctx,
+          path,
+          attributesOf(element).filter(
+            a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
+          ),
+          'Heading'
+        );
+        const replacement = plainElement(
+          ctx.j,
+          'p',
+          className,
+          rest,
+          element.children ?? []
+        );
+        path.replace(replacement);
+        ctx.dirty = true;
+        return { replaced: true };
+      }
+      if (literal.kind === 'boolean') {
+        // `heading={false}` behaves as if the prop were absent.
+        removeAttr(element, headingAttr);
+        ctx.dirty = true;
+      } else {
+        addTodo(
+          ctx,
+          path,
+          'prop:heading',
+          '`heading` has a dynamic value; when truthy it renders a plain `<p className="heading">` instead of Title/SubTitle — resolve by hand'
+        );
+        removeAttr(element, headingAttr);
+      }
     }
     const subtitleAttr = findAttr(element, 'subtitle');
     if (subtitleAttr) {
+      const literal = literalValueOf(subtitleAttr);
+      if (literal.kind === 'boolean') {
+        removeAttr(element, subtitleAttr);
+        ctx.dirty = true;
+        return { target: literal.value ? 'SubTitle' : 'Title' };
+      }
+      addTodo(
+        ctx,
+        path,
+        'prop:subtitle',
+        '`subtitle` has a dynamic value; pick between Title / SubTitle by hand'
+      );
       removeAttr(element, subtitleAttr);
       ctx.dirty = true;
-      return { target: 'SubTitle' };
+      return { target: 'Title' };
     }
     return { target: 'Title' };
   },

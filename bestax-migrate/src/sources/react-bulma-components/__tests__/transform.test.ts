@@ -327,6 +327,46 @@ describe('react-bulma-components transform fixtures', () => {
       expect((output ?? '').match(/<a /g)).toHaveLength(1);
     });
 
+    it('flags a dynamic Heading subtitle and falls back to Title', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ isSub }: { isSub?: boolean }) => (',
+        '  <Heading subtitle={isSub}>x</Heading>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'heading-subtitle.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(true);
+      expect(output).toContain('<Title>x</Title>');
+    });
+
+    it('flags a dynamic Heading heading prop and keeps Title/SubTitle instead of collapsing to a plain element', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ useHeadingStyle }: { useHeadingStyle?: boolean }) => (',
+        '  <Heading heading={useHeadingStyle}>x</Heading>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'heading-heading.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(todos.some(t => t.rule === 'prop:heading')).toBe(true);
+      expect(output).toContain('<Title>x</Title>');
+    });
+
     it('flags a Menu.List title it cannot lift to a sibling', () => {
       const source = [
         "import { Menu } from 'react-bulma-components';",

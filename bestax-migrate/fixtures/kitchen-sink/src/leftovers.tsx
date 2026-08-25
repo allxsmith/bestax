@@ -12,6 +12,7 @@ import {
   Card,
   Dropdown,
   Element,
+  Heading,
   Hero,
   Modal,
   Pagination,
@@ -60,6 +61,8 @@ export function Leftovers() {
         showFirstLast
         autoHide
       />
+      <Heading subtitle={choice === 'a'}>Dynamic subtitle</Heading>
+      <Heading heading={choice === 'a'}>Dynamic heading</Heading>
     </div>
   );
 }
