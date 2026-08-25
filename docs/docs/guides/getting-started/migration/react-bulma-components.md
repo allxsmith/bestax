@@ -43,7 +43,9 @@ in place:
   and the `const { Input, Field } = Form;` destructuring pattern.
 - **Components** — all 32 components and their compound sub-components are mapped, e.g.
   `Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` →
-  `Hero.Foot`, `Panel.Header` → `Panel.Heading`, `Heading subtitle` → `SubTitle`,
+  `Hero.Foot`, `Panel.Header` → `Panel.Heading`, `Heading` → `Title`/`SubTitle` by prop value
+  (`subtitle={true}` → `SubTitle`, `subtitle={false}`/absent → `Title`, a dynamic `subtitle`/`heading`
+  value is left in place with a `TODO(bestax-migrate)`),
   `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
 - **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullWidth`, now a deprecated alias of

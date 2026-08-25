@@ -378,6 +378,120 @@ describe('react-bulma-components transform fixtures', () => {
       expect(output).not.toContain('remove=');
     });
 
+    it('flags a dynamic Heading subtitle and falls back to Title', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ isSub }: { isSub?: boolean }) => (',
+        '  <Heading subtitle={isSub}>x</Heading>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'heading-subtitle.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(true);
+      // The dynamic expression is preserved on the element (not deleted) so
+      // the branch can be split by hand.
+      expect(output).toContain('<Title subtitle={isSub}>x</Title>');
+    });
+
+    it('does not collapse `<Heading heading subtitle={expr}>` to a plain element and flags the dynamic subtitle', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ isSub }: { isSub?: boolean }) => (',
+        '  <Heading heading subtitle={isSub}>x</Heading>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-both.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // The dynamic subtitle blocks the structural `heading` collapse: it must
+      // NOT become a `<p className="heading">` (that would silently drop the
+      // dynamic subtitle) and it must leave a prop:subtitle TODO.
+      expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(true);
+      expect(output).not.toContain('className="heading"');
+      expect(output).toContain('subtitle={isSub}');
+      expect(output).toContain('<Title');
+    });
+
+    it('keeps the `subtitle` class when a literal-truthy `subtitle` collapses alongside `heading`', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = () => <Heading heading subtitle>x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-both.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // Both props are truthy literals, so the element collapses to the plain
+      // `.heading` paragraph — but RBC applies the subtitle class independently,
+      // so it must ride along rather than being silently dropped.
+      expect(todos).toHaveLength(0);
+      expect(output).toContain('className="heading subtitle"');
+    });
+
+    it('flags a dynamic Heading heading prop and keeps Title/SubTitle instead of collapsing to a plain element', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ useHeadingStyle }: { useHeadingStyle?: boolean }) => (',
+        '  <Heading heading={useHeadingStyle}>x</Heading>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'heading-heading.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(todos.some(t => t.rule === 'prop:heading')).toBe(true);
+      // The dynamic expression is preserved on the element (not deleted).
+      expect(output).toContain('<Title heading={useHeadingStyle}>x</Title>');
+    });
+
+    it('resolves a statically-truthy string `heading` literal without a dynamic TODO', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = () => <Heading heading="heading">x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-string.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      // A statically-known truthy value renders the plain `.heading` paragraph
+      // at runtime, so it collapses just like a bare `heading` — never the
+      // "dynamic value" TODO that main resolved correctly.
+      expect(todos.some(t => t.rule === 'prop:heading')).toBe(false);
+      expect(output).toContain('className="heading"');
+      expect(output).not.toContain('<Title');
+    });
+
+    it('resolves a statically-truthy string `subtitle` literal to SubTitle without a dynamic TODO', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = () => <Heading subtitle="yes">x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'subtitle-string.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(false);
+      expect(output).toContain('<SubTitle>x</SubTitle>');
+    });
+
     it('flags a Menu.List title it cannot lift to a sibling', () => {
       const source = [
         "import { Menu } from 'react-bulma-components';",

@@ -231,16 +231,67 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return {};
   },
 
-  /** Heading → Title / SubTitle / plain `.heading` paragraph. */
+  /**
+   * Heading → Title / SubTitle / plain `.heading` paragraph, matching RBC's
+   * `title: !subtitle && !heading` / `subtitle: subtitle` — the *value* of
+   * each prop picks the target, not merely whether it was passed. Any
+   * statically-known literal resolves to a fixed truthiness at codemod time
+   * (a bare prop and `heading={true}`/`heading="heading"` are all truthy;
+   * `heading={false}`/`heading=""`/`heading={0}` are falsy and equivalent to
+   * the prop being absent), exactly as RBC evaluates the prop at runtime —
+   * this mirrors the Button `remove` handler so the two don't contradict each
+   * other on string/number literals. Only a genuine expression can't be
+   * resolved: it's left in place with a TODO and a conservative
+   * (Title/SubTitle, never the structural plain-element rewrite) fallback so
+   * the branch can be split by hand. The subtitle class is applied
+   * independently of heading in RBC, so a dynamic `subtitle` blocks the
+   * structural `heading` collapse — collapsing would silently drop it.
+   */
   heading(ctx, path, element) {
     const headingAttr = findAttr(element, 'heading');
-    if (headingAttr) {
+    const subtitleAttr = findAttr(element, 'subtitle');
+    const headingLit = headingAttr ? literalValueOf(headingAttr) : undefined;
+    const subtitleLit = subtitleAttr ? literalValueOf(subtitleAttr) : undefined;
+    const headingDynamic = headingLit?.kind === 'expression';
+    const subtitleDynamic = subtitleLit?.kind === 'expression';
+    // A resolvable literal (boolean/string/number) collapses to its runtime
+    // truthiness; an expression stays dynamic.
+    const headingTruthy =
+      !!headingLit && headingLit.kind !== 'expression' && !!headingLit.value;
+    const subtitleTruthy =
+      !!subtitleLit && subtitleLit.kind !== 'expression' && !!subtitleLit.value;
+
+    // Dynamic values can't be resolved to a target: leave the prop on the
+    // element (so its expression survives for hand-splitting) plus a TODO.
+    if (subtitleDynamic) {
+      addTodo(
+        ctx,
+        path,
+        'prop:subtitle',
+        '`subtitle` has a dynamic value; pick between Title / SubTitle by hand'
+      );
+    }
+    if (headingDynamic) {
+      addTodo(
+        ctx,
+        path,
+        'prop:heading',
+        '`heading` has a dynamic value; when truthy it renders a plain `<p className="heading">` instead of Title/SubTitle — resolve by hand'
+      );
+    }
+
+    // A truthy literal `heading` collapses to a plain `.heading` paragraph —
+    // but only when `subtitle` isn't a dynamic value the collapse would drop.
+    // A truthy *literal* `subtitle` is safe to collapse: RBC applies its class
+    // independently, so it rides along on the paragraph as `heading subtitle`
+    // (dropping it would be the same silent loss the dynamic guard prevents).
+    if (headingTruthy && !subtitleDynamic) {
       removeAttr(element, headingAttr);
       const className = mergeClassName(
         ctx,
         path,
         element,
-        'heading',
+        subtitleTruthy ? 'heading subtitle' : 'heading',
         'Heading'
       );
       const rest = stripModifierProps(
@@ -262,12 +313,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
       return { replaced: true };
     }
-    const subtitleAttr = findAttr(element, 'subtitle');
-    if (subtitleAttr) {
+
+    // A resolvable literal `heading` that didn't collapse (falsy, or truthy
+    // but blocked by a dynamic subtitle) behaves as if the prop were absent —
+    // drop it. A dynamic `heading` stays put (its TODO is already filed above).
+    if (headingLit && !headingDynamic) {
+      removeAttr(element, headingAttr);
+      ctx.dirty = true;
+    }
+
+    if (subtitleLit && !subtitleDynamic) {
       removeAttr(element, subtitleAttr);
       ctx.dirty = true;
-      return { target: 'SubTitle' };
+      return { target: subtitleTruthy ? 'SubTitle' : 'Title' };
     }
+    // Dynamic subtitle (attr kept) or no subtitle → conservative Title.
     return { target: 'Title' };
   },
 
