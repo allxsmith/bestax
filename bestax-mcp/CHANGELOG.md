@@ -1,3 +1,30 @@
+## [1.1.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.1.1...bestax-mcp@1.1.2) (2026-08-26)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** regenerate data index for Theme shadow vars change ([bc631b9](https://github.com/allxsmith/bestax/commit/bc631b904160fe017541247391291c6707b7b5fb))
+* **bestax-migrate:** flag dropped RBC deep partials instead of losing their CSS ([7db47db](https://github.com/allxsmith/bestax/commit/7db47db794c6a8960718e0b12a163bd56d6cc8c2))
+* **bestax-migrate:** keep dynamic Heading props and never drop them in the collapse ([8a076c0](https://github.com/allxsmith/bestax/commit/8a076c04764741a11ce95e12aba0e53220e9caf1))
+* **bestax-migrate:** keep subtitle class when literal subtitle collapses with heading ([85c4e91](https://github.com/allxsmith/bestax/commit/85c4e91dccf2d1eb136d06543518e5a356981411))
+* **bestax-migrate:** only convert Button remove to Delete on a true literal ([2ee5d0b](https://github.com/allxsmith/bestax/commit/2ee5d0bb78e6e31d6b6f1b24c814c4367d10bf5f)), closes [#553](https://github.com/allxsmith/bestax/issues/553)
+* **bestax-migrate:** parenthesize comma-valued folded Sass variables ([5a7b052](https://github.com/allxsmith/bestax/commit/5a7b05284f3faa870c6305b0a02556e53851e93a)), closes [#554](https://github.com/allxsmith/bestax/issues/554)
+* **bestax-migrate:** pick Heading target by prop value, not presence ([81b6374](https://github.com/allxsmith/bestax/commit/81b6374bc3e73949247e4ce73ece0876d5c631a1)), closes [#552](https://github.com/allxsmith/bestax/issues/552)
+* **bestax-migrate:** recognize Sass block comments only outside strings ([cdf4ad6](https://github.com/allxsmith/bestax/commit/cdf4ad69a017cadf6d9e7eca7936b6df1fe166bf)), closes [#554](https://github.com/allxsmith/bestax/issues/554)
+* **bestax-migrate:** regenerate MCP index for component-map ([ba745f2](https://github.com/allxsmith/bestax/commit/ba745f2cee8f36868f071a5addb25531864da62f))
+* **bestax-migrate:** resolve static string/number Button remove by truthiness ([62084bf](https://github.com/allxsmith/bestax/commit/62084bfc4aa6ea71cf725d48ca39e930a97e3787))
+* **bestax-migrate:** resolve static string/number Heading props by truthiness ([f063086](https://github.com/allxsmith/bestax/commit/f063086344b7fa3f7cc6c368a95669c6fc27a14b)), closes [#558](https://github.com/allxsmith/bestax/issues/558)
+* **bestax-migrate:** rewrite RBC stylesheet as a real Bulma root, folding vars ([036cf79](https://github.com/allxsmith/bestax/commit/036cf79130e1397df0e2e708d1d115bec217511c))
+* **bestax-migrate:** stop mislabeling RBC's own stylesheet as a third-party extension ([6a18553](https://github.com/allxsmith/bestax/commit/6a185530b04e49b79bad57caa320b4ff427b984b)), closes [#555](https://github.com/allxsmith/bestax/issues/555)
+* **bestax-migrate:** strip Sass block comments before scanning folded values ([c3fbd46](https://github.com/allxsmith/bestax/commit/c3fbd46b34e4ed0639747afdec18a46a40115c83)), closes [#554](https://github.com/allxsmith/bestax/issues/554)
+* **bestax-migrate:** track backslash escapes when scanning folded Sass values ([eac92eb](https://github.com/allxsmith/bestax/commit/eac92ebeb2ff94d8771c8629d9edb78299a2071e))
+* **bulma-ui:** add --bulma-shadow to Theme's bulmaVars union ([753ad41](https://github.com/allxsmith/bestax/commit/753ad41bae0a090bfaf2053c4f4afa3760209cee)), closes [#499](https://github.com/allxsmith/bestax/issues/499)
+* **create-bestax:** remove dead ionicons nomodule fallback from generated & shipped surfaces ([db3d588](https://github.com/allxsmith/bestax/commit/db3d5883ad6abf30567c8048cc8ff6c2b9131e07)), closes [#564](https://github.com/allxsmith/bestax/issues/564)
+* **docs:** attribute four orphaned SCSS partials to the API pages that own them ([2f72490](https://github.com/allxsmith/bestax/commit/2f7249076574ff3840e57f79ed5dcf991b71b6b4)), closes [#543](https://github.com/allxsmith/bestax/issues/543)
+* **docs:** fail the build on broken anchor links ([0d2f497](https://github.com/allxsmith/bestax/commit/0d2f497112cc459275e243309bd2ca51a9977ac8)), closes [#467](https://github.com/allxsmith/bestax/issues/467)
+* **docs:** remove dead ionicons nomodule fallback script ([c96cc29](https://github.com/allxsmith/bestax/commit/c96cc2930e827e9ea9dfcfe8782cc0e5464a821e)), closes [#445](https://github.com/allxsmith/bestax/issues/445)
+* **docs:** scope picker calendar/wheel vars to their constituent element ([8889d91](https://github.com/allxsmith/bestax/commit/8889d9174d7b5a5d004144fa78abf379f664695f))
+
 ## [1.1.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.1.0...bestax-mcp@1.1.1) (2026-08-25)
 
 
