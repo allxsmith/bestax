@@ -327,6 +327,7 @@ function PrefixedTheme() {
 - Use the `bulmaVars` prop when you need to set variables not covered by individual props
 - Individual props (like `primaryH`) are converted to their corresponding CSS variable names
 - `bulmaVars` also accepts the scheme surface variables — `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter`, `--bulma-scheme-invert`, `--bulma-scheme-invert-bis`, `--bulma-scheme-invert-ter` — so overriding `--bulma-scheme-main-bis`/`-ter` re-tints every scheme-background band (e.g., `<Section bgColor="scheme-main-bis">`) at once
+- `bulmaVars` also accepts `--bulma-shadow` (plus `--bulma-shadow-h`/`-s`/`-l`) — the upstream token that `.box`, `.card`, `.dropdown`, and `.panel` derive their own shadow variables from. Those selectors re-declare their derived variable (e.g. `--bulma-box-shadow`) on themselves, so setting it from an ancestor `Theme` is only inherited and never wins; overriding `--bulma-shadow` itself is the one override that cascades. There is no individual `shadow` prop for this — `shadow` already names the unrelated `shadowless` helper class — so reach it through `bulmaVars`
 
 ### Performance Considerations
 
@@ -728,6 +729,19 @@ The Theme component accepts individual CSS variable props that correspond to Bul
 | `dangerH`  | `string` | Danger color hue (0-360)              | `--bulma-danger-h`  |
 | `dangerS`  | `string` | Danger color saturation (percentage)  | `--bulma-danger-s`  |
 | `dangerL`  | `string` | Danger color lightness (percentage)   | `--bulma-danger-l`  |
+
+#### Shadow Variables
+
+Reachable only through `bulmaVars` — there is no individual prop, since `shadow` already names
+the `BulmaOtherProps` `shadowless` helper class. As noted above, `--bulma-shadow` is the one
+override that cascades into `.box`/`.card`/`.dropdown`/`.panel` shadows.
+
+| CSS Variable       | Description                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `--bulma-shadow-h` | Shadow color hue (0-360)                                                                              |
+| `--bulma-shadow-s` | Shadow color saturation (percentage)                                                                  |
+| `--bulma-shadow-l` | Shadow color lightness (percentage)                                                                   |
+| `--bulma-shadow`   | The full shadow value that `.box`/`.card`/`.dropdown`/`.panel` derive their own shadow variables from |
 
 #### Complete CSS Variables List
 

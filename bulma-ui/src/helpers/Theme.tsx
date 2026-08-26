@@ -48,6 +48,14 @@ const bulmaCssVars = [
   '--bulma-danger-h',
   '--bulma-danger-s',
   '--bulma-danger-l',
+  // shadow (the upstream token .box/.card/.dropdown/.panel derive their own
+  // shadow variables from; overriding it from an ancestor is the route that
+  // cascades, since those selectors re-declare their derived var on
+  // themselves)
+  '--bulma-shadow-h',
+  '--bulma-shadow-s',
+  '--bulma-shadow-l',
+  '--bulma-shadow',
   // typography
   '--bulma-family-primary',
   '--bulma-family-secondary',
@@ -575,9 +583,19 @@ function cssVarToProp(varName: string): string {
     .join('');
 }
 
-/** Mapping of camelCase prop names to their Bulma CSS variable counterparts. */
+/**
+ * Mapping of camelCase prop names to their Bulma CSS variable counterparts.
+ *
+ * `--bulma-shadow` is excluded: `cssVarToProp` would mint it as `shadow`,
+ * which already exists as a `BulmaOtherProps` prop (`shadow?: 'shadowless'`,
+ * applied via `useBulmaClasses`) — keeping it out of this map means that
+ * prop keeps its existing class-based meaning, while `--bulma-shadow` is
+ * still reachable through the `bulmaVars` object.
+ */
 const bulmaVarPropMap = Object.fromEntries(
-  bulmaCssVars.map(cssVar => [cssVarToProp(cssVar), cssVar])
+  bulmaCssVars
+    .map(cssVar => [cssVarToProp(cssVar), cssVar])
+    .filter(([prop]) => prop !== 'shadow')
 ) as Record<string, string>;
 
 /**
