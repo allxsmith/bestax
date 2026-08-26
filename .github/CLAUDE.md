@@ -191,8 +191,14 @@ writing the trigger string at all.
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
 non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
 `node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
-Two parsers are still inline and tracked in #454: the publish sanitizer and the scan-verdict
-parser.
+The two #454 parsers are extracted: the scan-verdict parser
+(`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
+(`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
+the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
+tests together. Smaller instances of the same shape remain inline (the exec-file sentinel
+checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
+one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported
+helpers rather than growing the YAML.
 
 ### 10. `harden-runner` on new jobs starts at `block`, and `block` does not currently mean block
 

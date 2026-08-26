@@ -322,7 +322,22 @@ jobs:
     timeout-minutes: 5
     permissions:
       issues: write
+      contents: read # checkout the default branch to run the sanitizer script
     steps:
+      # Trusted default-branch content only — the trigger is `issues: labeled`,
+      # so no attacker-controlled ref exists for this event.
+      - name: Checkout base default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      # No pnpm, no cache: the sanitizer below is dependency-free
+      # (node: builtins only), so plain Node 24 is all it needs.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
       - name: Post drafted repro (github-actions[bot]; sanitized)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -342,25 +357,15 @@ jobs:
               printf 'Claude could not draft a self-contained reproduction test for this issue automatically. A maintainer can add concrete repro steps and re-apply the `claude-repro` label.\n'
             } > "$BODY"
           else
-            # Deterministic sanitize (opaque bytes): (1) entity-encode @-handles so
-            # no comment can carry a live mention (belt-and-braces; a GITHUB_TOKEN
-            # comment cannot re-trigger anyway); (2) break the machine markers OTHER
-            # automation parses — auto-close-duplicates.mjs (`<!-- ... -->` +
-            # `Duplicate of #N`) and the *-RESULT/SECURITY-SCAN watchdogs — since
-            # github-actions[bot] is an automation author those consumers trust.
-            # (3) neuter fence delimiters. The draft is wrapped in a ```tsx block
-            # below, so a line of backticks inside it closes that block early and
-            # everything after is rendered as markdown rather than shown as code.
-            # Cosmetic rather than a privilege issue — this posts as
-            # github-actions[bot] and the markers above are already defanged — but
-            # a broken-out draft is exactly the thing a reviewer skims past.
-            SAN=$(printf '%s' "$TEST" \
-              | sed -E 's/@(claude|coderabbitai|bestaxbot)/\&#64;\1/gI' \
-              | sed -E 's/<!--/\&lt;!--/g; s/-->/--\&gt;/g' \
-              | sed -E 's/(Duplicate of) #/\1 \&#35;/gI' \
-              | sed -E 's/^(TRIAGE-RESULT|SECURITY-SCAN|REPRO-RESULT|REPRO-DRAFT):/\1 :/g' \
-              | sed -E 's/^([ \t]*)(`{3,}|~{3,})/\1\&#96;\&#96;\&#96;/g' \
-              | head -c 12000)
+            # Deterministic sanitize (opaque bytes) + 12000-byte truncation in
+            # scripts/sanitize-repro-draft.mjs (rule 9; what each rule defangs
+            # and why is in that file's header, and its test sibling holds the
+            # coupling with auto-close-duplicates.mjs to the consumer's own
+            # patterns). Under `set -e` a missing or crashing sanitizer FAILS
+            # this step — never posts — which is the correct failure direction
+            # for invariant I2; cleanup then removes the label and posts the
+            # neutral notice.
+            SAN=$(printf '%s' "$TEST" | node scripts/sanitize-repro-draft.mjs)
             {
               printf '%s\n\n' '<!-- ai-repro:draft -->'
               printf '### AI reproduction (author-only)\n\n'
