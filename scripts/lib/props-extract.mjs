@@ -1071,19 +1071,36 @@ const ROOT_CLASS_OVERRIDES = {
  * registered 36 variables no API page could ever show (#543). Kept separate
  * from `rootClass` rather than folded in, so the props page's override-advice
  * sentence keeps naming the actual visible root.
+ *
+ * `picker-popover` is the same story for a different element: all three
+ * pickers open their panel through the shared, unexported `PickerPopover`
+ * helper (`form/_pickerInternals/PickerPopover.tsx`), which renders its own
+ * `.picker-popover` root and owns none of the three components exclusively.
+ * `_picker-popover.scss` registers 8 of its 11 variables there at depth 1 —
+ * reachable the same way once each picker probes that root too. The other 3
+ * (`picker-trigger-*`) register two levels deep, inside an `@each` over the
+ * three pickers' own container classes; `componentVars`' depth-1 filter
+ * cannot reach them regardless of root, so they stay exempted in
+ * `ORPHAN_EXEMPT` until that walk learns to descend a known-safe loop shape
+ * (#543).
  */
 export const EXTRA_VAR_ROOTS = {
-  DateInput: ['dateinput'],
-  DateInputBase: ['dateinput'],
-  TimeInput: ['timeinput'],
-  TimeInputBase: ['timeinput'],
+  DateInput: ['dateinput', 'picker-popover'],
+  DateInputBase: ['dateinput', 'picker-popover'],
+  TimeInput: ['timeinput', 'picker-popover'],
+  TimeInputBase: ['timeinput', 'picker-popover'],
   // DateTimeInputBase renders both the calendar grid AND the time wheels
   // (the "time card" that slides over the calendar), plus its own
   // `datetimeinput` panel class — the latter would resolve on its own via
   // name-matching if ROOT_CLASS_OVERRIDES did not already claim `input` for
   // props purposes first.
-  DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput'],
-  DateTimeInputBase: ['datetimeinput', 'dateinput', 'timeinput'],
+  DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
+  DateTimeInputBase: [
+    'datetimeinput',
+    'dateinput',
+    'timeinput',
+    'picker-popover',
+  ],
 };
 
 /**
