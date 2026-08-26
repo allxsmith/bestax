@@ -53,6 +53,16 @@ test('HTML comment delimiters are broken, so no forged marker survives', () => {
   );
 });
 
+test('the alternate comment close --!> is broken too — a defang-more divergence from sed', () => {
+  // HTML parsers honor `--!>` as a comment end ("incorrectly closed
+  // comment"), so breaking only `-->` would leave an alternate close alive.
+  // The sed this replaced only broke `-->`; CodeQL js/bad-tag-filter caught
+  // the gap on the extraction PR. Like the CR divergence below, this only
+  // sanitizes MORE than the old pipeline.
+  assert.equal(sanitizeText('x --!> y'), 'x --!&gt; y');
+  assert.equal(sanitizeText('-->'), '--&gt;');
+});
+
 test('Duplicate of # is defanged in any case, preserving case', () => {
   assert.equal(sanitizeText('Duplicate of #123'), 'Duplicate of &#35;123');
   assert.equal(sanitizeText('duplicate of #7'), 'duplicate of &#35;7');

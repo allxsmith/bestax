@@ -37,11 +37,14 @@
  * byte-identically and truncation at MAX_BYTES is exactly `head -c` —
  * applied AFTER entity expansion, as before. Every pattern is pure ASCII and
  * UTF-8 continuation bytes are all ≥ 0x80, so no rule can false-match inside
- * a multibyte character. One accepted divergence, in the more-sanitized
- * direction: JS `^` under /m also matches after a bare `\r`, where sed only
- * splits on `\n` — a CR-delimited line can be defanged here that sed left
- * alone. Do not "fix" that by normalizing CRs away; for the fence rule that
- * would be a fail-open change.
+ * a multibyte character. Two accepted divergences, both in the
+ * more-sanitized direction — do not "fix" either back toward the sed
+ * behavior, which would be a fail-open change:
+ * - JS `^` under /m also matches after a bare `\r`, where sed only splits on
+ *   `\n` — a CR-delimited line can be defanged here that sed left alone.
+ * - `--!>` (HTML's "incorrectly closed comment", which parsers still honor
+ *   as a comment end) is broken alongside `-->`; the sed only broke the
+ *   latter. Flagged by CodeQL js/bad-tag-filter on the extraction PR.
  */
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
@@ -54,7 +57,7 @@ export const MAX_BYTES = 12000;
 const RULES = [
   [/@(claude|coderabbitai|bestaxbot)/gi, '&#64;$1'],
   [/<!--/g, '&lt;!--'],
-  [/-->/g, '--&gt;'],
+  [/(--!?)>/g, '$1&gt;'],
   [/(Duplicate of) #/gi, '$1 &#35;'],
   [/^(TRIAGE-RESULT|SECURITY-SCAN|REPRO-RESULT|REPRO-DRAFT):/gm, '$1 :'],
   [/^([ \t]*)(`{3,}|~{3,})/gm, '$1&#96;&#96;&#96;'],
