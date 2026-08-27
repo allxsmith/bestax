@@ -1,3 +1,18 @@
+## [2.1.4](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.3...bestax-migrate@2.1.4) (2026-08-27)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** regenerate data index for Theme shadow vars change ([bc631b9](https://github.com/allxsmith/bestax/commit/bc631b904160fe017541247391291c6707b7b5fb))
+* **bulma-ui:** add --bulma-shadow to Theme's bulmaVars union ([753ad41](https://github.com/allxsmith/bestax/commit/753ad41bae0a090bfaf2053c4f4afa3760209cee)), closes [#499](https://github.com/allxsmith/bestax/issues/499)
+* **bulma-ui:** attribute shared picker-popover CSS variables to date/time pickers ([80f62ce](https://github.com/allxsmith/bestax/commit/80f62cedb67cde0a6844012be4171edc2df5950e)), closes [#543](https://github.com/allxsmith/bestax/issues/543) [#543](https://github.com/allxsmith/bestax/issues/543)
+* **docs:** fail the build on broken anchor links ([0d2f497](https://github.com/allxsmith/bestax/commit/0d2f497112cc459275e243309bd2ca51a9977ac8)), closes [#467](https://github.com/allxsmith/bestax/issues/467)
+
+
+### Features
+
+* **bestax-mcp:** surface CSS variables from get_component's default answer ([0ab98cc](https://github.com/allxsmith/bestax/commit/0ab98ccf56636945f14c5fcb8f1c07dd9091b7a9)), closes [#501](https://github.com/allxsmith/bestax/issues/501)
+
 ## [2.1.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.2...bestax-migrate@2.1.3) (2026-08-25)
 
 
