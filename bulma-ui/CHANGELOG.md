@@ -1,3 +1,10 @@
+## [5.11.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.3...@allxsmith/bestax-bulma@5.11.4) (2026-08-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** attribute shared picker-popover CSS variables to date/time pickers ([80f62ce](https://github.com/allxsmith/bestax/commit/80f62cedb67cde0a6844012be4171edc2df5950e)), closes [#543](https://github.com/allxsmith/bestax/issues/543) [#543](https://github.com/allxsmith/bestax/issues/543)
+
 ## [5.11.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.2...@allxsmith/bestax-bulma@5.11.3) (2026-08-26)
 
 
