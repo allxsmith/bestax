@@ -51,7 +51,11 @@ in place:
   (`loading` → `isLoading`, `fullwidth` → `isFullWidth`, now a deprecated alias of
   `isFullwidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
-  (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
+  (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`). `Field`'s
+  `kind`/`align`/`multiline` fold into bestax's `grouped`/`hasAddons` (`kind="addons"` →
+  `hasAddons`, `kind="group" multiline` → `grouped="multiline"`), resolved by prop value —
+  `multiline={false}` drops out, and a dynamic `multiline` is left in place with a
+  `TODO(bestax-migrate)`.
 - **Responsive objects** — `mobile={{ size: 4 }}` flattens to `sizeMobile={4}`,
   `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on.
 - **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, Navbar dropdown
