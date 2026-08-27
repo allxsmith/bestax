@@ -38,7 +38,7 @@
  *   (missing checkout, missing node) surface in the wrapper instead, which
  *   also defaults to flagged/other.
  *
- * Parsing parity with the jq it replaced (`jq -es '[.[] | if type == "array"
+ * Parsing against the jq it replaced (`jq -es '[.[] | if type == "array"
  * then .[] else . end] | ...'`): the file may be one JSON array or a stream of
  * newline-delimited values; top-level arrays are flattened exactly one level;
  * only plain objects with `type == "result"` count and the LAST one wins;
@@ -47,6 +47,16 @@
  * non-empty line rejects the whole file. Never "improve" that to skip bad
  * lines: a skipped final `is_error: true` record would promote an earlier
  * clean one, which is a fail-open parse.
+ *
+ * That is parity-or-STRICTER, not parity — do not restate it as parity. `jq
+ * -s` slurps any whitespace-separated stream, so a pretty-printed multi-line
+ * value, or two values on one line, both parsed under the shell and both
+ * return `flagged other` here (the single-document parse fails, then the
+ * line-oriented fallback rejects each fragment). Unreachable while the action
+ * writes one JSON array, and it errs toward flagging, so it is a false-flag
+ * risk rather than a security one — but if the output format ever drifts to a
+ * pretty-printed stream, this is the line that turns every scan into a flag.
+ * The test sibling pins both shapes so the divergence stays visible.
  *
  * Exported helpers are pure so the fail-closed matrix is unit-testable; main
  * only runs when the file is executed directly.

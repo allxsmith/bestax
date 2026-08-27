@@ -193,6 +193,24 @@ test('the last result record wins', () => {
   );
 });
 
+test('whitespace-separated streams flag — stricter than the jq, deliberately', () => {
+  // `jq -s` slurps any whitespace-separated stream, so both shapes below
+  // parsed under the shell this replaced. Here they do not. Unreachable while
+  // the action writes a single JSON array, and it errs toward flagging — but
+  // it IS a divergence from the file header's "against the jq" comparison, so
+  // pin it rather than leave it to be rediscovered as a mystery false flag.
+  const pretty = [
+    JSON.stringify({ type: 'system' }, null, 2),
+    JSON.stringify(record('SECURITY-SCAN: clean'), null, 2),
+  ].join('\n');
+  assert.deepEqual(parseVerdict(pretty), flaggedOther);
+
+  const sameLine =
+    JSON.stringify({ type: 'system' }) +
+    JSON.stringify(record('SECURITY-SCAN: clean'));
+  assert.deepEqual(parseVerdict(sameLine), flaggedOther);
+});
+
 test('unparsable JSON flags', () => {
   assert.deepEqual(parseVerdict('not json at all {'), flaggedOther);
 });

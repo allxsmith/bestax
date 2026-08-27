@@ -366,6 +366,18 @@ jobs:
             # for invariant I2; cleanup then removes the label and posts the
             # neutral notice.
             SAN=$(printf '%s' "$TEST" | node scripts/sanitize-repro-draft.mjs)
+            # `set -e` catches a sanitizer that exits non-zero, but not one that
+            # exits 0 having written nothing — which the main guard does if
+            # import.meta.url and argv[1] ever disagree (Node realpaths the ESM
+            # entry; argv[1] is only resolved, so a symlinked workspace splits
+            # them). Empty output here is anomalous by construction: `drafted`
+            # is only set for a non-empty draft file, and no rule can empty a
+            # non-empty input. Fail loud rather than post an empty ```tsx block
+            # under a "Claude drafted the test below" heading.
+            if [ -z "$SAN" ]; then
+              echo "::error::sanitizer produced no output for a drafted test — refusing to publish."
+              exit 1
+            fi
             {
               printf '%s\n\n' '<!-- ai-repro:draft -->'
               printf '### AI reproduction (author-only)\n\n'

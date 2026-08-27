@@ -195,13 +195,6 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      # No pnpm, no cache: the verdict parser below is dependency-free
-      # (node: builtins only), so plain Node 24 is all it needs.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        if: steps.gate.outputs.run == 'true'
-        with:
-          node-version: '24'
-
       - name: Run Claude (security scan)
         id: claude
         if: steps.gate.outputs.run == 'true'
@@ -271,6 +264,14 @@ jobs:
       # checkout failed under `always()`, a crashed script, garbled output —
       # leaves the flagged/other default in place, and the case enum below is
       # the only thing that admits a category string into the summary.
+      #
+      # Deliberately no setup-node: the parser imports node: builtins only, and
+      # every GitHub-hosted runner ships a Node the Actions runner itself needs.
+      # A setup-node here would add a nodejs.org fetch to a control that runs
+      # under `always()` — and because this step flags on any non-clean outcome,
+      # a failed fetch (tool-cache miss, or an armed egress block once #487
+      # lands, whose allowlist does not name that host) would label the item
+      # with no scan having happened. Do not add one back.
       - name: Apply label on non-clean verdict (fail-closed)
         if: always() && steps.gate.outputs.run == 'true'
         env:
@@ -282,7 +283,11 @@ jobs:
           set -euo pipefail
           VERDICT="flagged"   # fail-closed default
           CATEGORY="other"
-          OUT=$(node scripts/parse-scan-verdict.mjs "${EXEC_FILE:-}") || OUT=''
+          # 2>/dev/null as the jq it replaced had: the script's own no-leak
+          # contract covers only what its try/catch wraps, so a failure before
+          # main runs (missing module, syntax error) would otherwise print to
+          # the public job log, which this step's header promises against.
+          OUT=$(node scripts/parse-scan-verdict.mjs "${EXEC_FILE:-}" 2>/dev/null) || OUT=''
           case "$OUT" in
             clean) VERDICT="clean" ;;
             'flagged injection' | 'flagged obfuscated-code' | 'flagged social-engineering' | 'flagged other')
