@@ -1,7 +1,7 @@
 ---
 title: Modal
 sidebar_label: Modal
-description: The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.
+description: The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.
 ---
 
 # Modal
@@ -10,7 +10,7 @@ description: The `Modal` component provides a flexible, accessible modal dialog 
 
 <!-- bestax:generated overview -->
 
-The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.
+The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.
 
 <!-- /bestax:generated overview -->
 
@@ -22,7 +22,7 @@ The Modal component supports two APIs:
 - **Compound Components API**: Use `Modal.Background`, `Modal.Card`, `Modal.Content`, and `Modal.Close` for full control and better readability
 
 :::info
-Use `Modal` for dialogs, confirmations, forms, or custom popover content. Supports card-style layouts (header/body/footer) or arbitrary content modals.
+Use `Modal` for forms or custom popover content — an empty overlay you build the contents of. For a ready-made confirm or alert, use [`Dialog`](./dialog.md) instead. `Modal` supports card-style layouts (header/body/footer) or arbitrary content modals.
 :::
 
 ---
@@ -43,7 +43,7 @@ import { Modal } from '@allxsmith/bestax-bulma';
 
 ### Modal Card (with title and footer)
 
-To display a modal dialog with a header and footer, use the `Modal` component with the `active` prop to control visibility, and provide `modalCardTitle` and `modalCardFoot` for the card layout. The `onClose` prop handles closing the modal, and you can use Bulma color helpers for further customization. This pattern is ideal for forms, confirmations, or any content that requires user attention in a focused overlay.
+To display a modal dialog with a header and footer, use the `Modal` component with the `active` prop to control visibility, and provide `modalCardTitle` and `modalCardFoot` for the card layout. The `onClose` prop handles closing the modal, and you can use Bulma color helpers for further customization. This pattern is ideal for forms or any content that requires user attention in a focused overlay.
 
 ```tsx live
 function example() {
@@ -103,7 +103,7 @@ function example() {
 
 ### Modal Card (footer only)
 
-Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for confirmation dialogs or actions that do not require a title.
+Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for footer-driven actions that do not require a title.
 
 ```tsx live
 function example() {
@@ -288,6 +288,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 
 ## Related Components
 
+- [`Dialog`](./dialog.md): Confirm/alert — use this unless you need arbitrary modal content.
 - [`Button`](../elements/button.md): Use for actions in modal footers.
 - [`Field`](../form/field.md), [`Input`](../form/input.md): For forms inside modals.
 - [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.

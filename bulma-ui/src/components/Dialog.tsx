@@ -46,7 +46,7 @@ export interface DialogProps
 }
 
 /**
- * The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+ * The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
  *
  * @function
  * @param {DialogProps} props - Props for the Dialog component.
