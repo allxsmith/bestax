@@ -73,7 +73,6 @@ import {
 } from './lib/pack-time-protocols.mjs';
 import {
   fenceMask,
-  fenceSpans,
   readRegions,
   sectionSpans,
   splitLines,
@@ -1027,23 +1026,43 @@ async function checkStyleMappingSync() {
 // rather than restating them — the two staleness classes #536 found were both
 // "a list of packages that stopped being all of them".
 //
-// Why this parses markdown at all, since the obvious simplification is to stop.
-// Whole-file matching would have caught the failure that prompted #536:
-// bestax-migrate and bestax-mcp appeared ZERO times in either guide, so a plain
-// token-membership test over the whole file catches it, and four of the five
-// facts below occur exactly once per file so they need no scoping either. The
-// parsing buys one thing on top of that — a package that IS named somewhere in
-// the file but missing from the recipe or the publisher list specifically — and
-// that refinement is where every edge case lives: fence pairing, section
-// anchors, continuation lines, sentinels. Measured, not assumed, and kept
-// deliberately. If it ever needs paying for again, the cheap version is
-// "every publishable package is named somewhere in each guide", and it is worth
-// knowing that it would have been enough for the bug that started this.
+// Why the duplication PERSISTS, which is the question this header used to leave
+// open (#547). Deliberately NOT a byte diff: the two files legitimately differ,
+// one wrapping the guidance in a blockquote and the other in a Docusaurus
+// admonition, and the docs page links absolute GitHub URLs where the root file
+// links relative paths. A diff would fail on all of that and teach people to
+// ignore it. Generating the shared block into both files between
+// `bestax:generated` markers — the #542 skill-roster shape — was considered for
+// exactly this and DECLINED: it puts machine-owned regions in the repo's
+// most-read contributor document, where every future hand-editor of raw
+// CONTRIBUTING.md meets them. A broken marker pair fails loudly (readRegions
+// throws), so the objection is friction rather than safety — but that friction
+// is paid by every editor forever, and the drift class it removes is one
+// enumeration per file. So both copies stay hand-written, and this rule holds
+// them together. Please stop re-proposing the generator.
 //
-// Deliberately NOT a byte diff. The two files legitimately differ: one uses a
-// blockquote, the other a Docusaurus admonition, and the docs page links
-// absolute GitHub URLs where the root file links relative paths. A diff would
-// fail on all of that and teach people to ignore it.
+// Why the assertions are SCOPED rather than file-wide. Whole-file matching
+// would have caught the failure that prompted #536 — bestax-migrate and
+// bestax-mcp appeared ZERO times in either guide — but it is vacuous for the
+// facts (CONTRIBUTING.md links VERSIONING.md twice more for unrelated reasons)
+// and nearly vacuous for the packages, since every publishable name is also
+// spelled out in the commit-scope prose. Each assertion is therefore scoped to
+// the construct that OWNS the list, and then reduced to whole-token membership
+// inside it.
+//
+// What that scoping deliberately does NOT do, since the previous generation
+// did: it does not parse shell. Reading loop word lists, command position and
+// echo-vs-invoke bought one refinement — a package named inside the recipe
+// fence but absent from the loop itself — and that refinement is where all four
+// bugs #548 fixed lived, each one a false red whose suggested remedy was "drop
+// this file from RELEASE_DOC_FILES", i.e. switch the check off. The trade taken
+// in #547: a package named anywhere in the recipe fence now counts, as does one
+// named anywhere below the `- Packages:` bullet in its own section. Both holes
+// are bounded by a construct measured in lines, and on today's documents the
+// names appear only in the loop word list and only in the bullet itself, so the
+// two readings agree. Comment and quoted text are still stripped from the fence
+// (shellOperative) and fenced lines are still dropped from the publisher list,
+// which keeps the cheapest of those exclusions without any shell grammar.
 const RELEASE_DOC_FILES = [
   'CONTRIBUTING.md',
   'docs/docs/guides/getting-started/contributing.md',
@@ -1078,6 +1097,13 @@ const RELEASE_DOC_FACTS = [
  * bugs: a `####` heading did not close the block, so it ran to EOF and restored
  * the file-wide search this exists to prevent; and a `---` or `:::` inside a
  * fenced example truncated it early, in the other direction.
+ *
+ * The `:::` terminator is nesting-aware for the same reason (#547). On the docs
+ * page the guidance IS the admonition, so its own closing `:::` is the end —
+ * but a nested `:::note` inside it closes first, and taking that as the end
+ * truncated the block above most of the facts. Docusaurus nests by widening the
+ * outer run, so a close only ends the block when it matches the run that opened
+ * it.
  */
 // One definition of a markdown heading line for every release-docs
 // extractor: four hand-copies of this regex had already picked up a \s-vs-
@@ -1085,201 +1111,401 @@ const RELEASE_DOC_FACTS = [
 const MD_HEADING = /^ {0,3}#{1,6}\s/;
 
 /**
+ * The reader's view of a markdown source, in one interleaved pass:
+ *
+ *   fenced[i]   — line i is part of a fenced code block (delimiters included)
+ *   visible[i]  — line i's RENDERED text: comment content excised, '' for
+ *                 fenced lines (their content is reachable via `lines` and the
+ *                 spans; it is example text, not prose)
+ *   spans       — the fenced blocks, as [{ open, close }] line-index pairs,
+ *                 delimiters included, an unterminated fence running to EOF
+ *
+ * One pass rather than fenceMask + a comment mask layered on top, because the
+ * two grammars gate each other in BOTH directions and a layered computation
+ * gets one of them wrong (#547 review, round 5). A `<!--` inside a fenced
+ * block is literal text and must not open a comment — docs pages display HTML
+ * comments in `html` fences on purpose. A fence delimiter inside a comment is
+ * comment text and must not open a fence — layering comment state over a
+ * comment-blind fenceMask let a commented-out ``` fragment open a phantom
+ * fence that swallowed the comment's own close, masking the document to EOF.
+ * So: inside a fence, comments cannot open; inside a comment, fences cannot
+ * open; each construct is closed only by its own terminator.
+ *
+ * Excised text rather than a boolean line mask, which round 5 killed: a
+ * boolean cannot say "part of this line is rendered". It masked an anchor
+ * line annotated with a trailing `<!-- keep in sync -->` (false red on the
+ * likeliest lines to receive such a note — the check's own anchors), while
+ * leaving a commented-out fact INSIDE the guidance block satisfying
+ * `includes()` (fail-open). Visible text gets both right for free: the
+ * annotation vanishes, the anchor stays; the commented fact vanishes, the
+ * assertion bites.
+ *
+ * The comment grammar, and why each production is here:
+ *
+ *   `<!-->` and `<!--->`   complete empty comments (CommonMark 0.31's abrupt
+ *                          closes). Matching `<!--` first and never the
+ *                          overlapping close left `open` stuck true and the
+ *                          whole visible document masked — a one-character
+ *                          typo of `<!-- -->` red-flagged every assertion.
+ *   `<!-- … -->` / `--!>`  the HTML comment; both close forms end it. `--!>`
+ *                          is the parse-error close browsers honor (CodeQL
+ *                          js/bad-tag-filter; the repro sanitizer breaks it
+ *                          for the same reason).
+ *   `{/* … *\/}`           the MDX comment (its close is written with a
+ *                          backslash here only because the raw sequence would
+ *                          end this docblock). The docs mirror is MDX-compiled
+ *                          — docusaurus.config.js leaves markdown.format as
+ *                          mdx — so MDX comments hide rendered content there.
+ *                          Without this production, the commented-out-content
+ *                          fail-open this file closes for HTML comments
+ *                          stayed fully open on one of the two release docs
+ *                          via its native comment syntax. In the
+ *                          GitHub-rendered file `{/*` is literal, but only if
+ *                          someone writes it in prose, which no release doc
+ *                          does.
+ *
+ * Inline code spans are protected: `` `<!--` `` documenting marker syntax is
+ * literal text, so delimiters are scanned on a copy with code spans blanked
+ * (positions preserved). Scanned, not excised — the span stays visible.
+ *
+ * Accepted residuals, recorded rather than modeled: the two files' renderers
+ * genuinely disagree on `--!>` (browsers close there, remark-comment does
+ * not), so on the MDX mirror text between a `--!>` and a later `-->` counts
+ * as visible while the published page hides it — modeling per-file comment
+ * grammars buys that corner and nothing else. A code span AFTER a same-line
+ * comment close is scanned unstripped. And the span protection is LINE-LOCAL
+ * even though CommonMark spans may wrap: a span whose first line carries the
+ * opener plus `<!--` and whose closing run sits on the next line renders the
+ * marker literally, while this scan opens a comment (false red, declined in
+ * round 7). Fixing that by carrying an unmatched run forward flips a case
+ * this pass gets right — an unpaired backtick before a real `<!--` renders
+ * hidden and must KEEP masking — because telling "literal backtick" from
+ * "wrapping span" needs cross-line lookahead for the matching closer, which
+ * is a CommonMark span parser. Every one of these needs a comment-or-span
+ * construct no release doc contains, and each fails LOUD (a red naming the
+ * file), never silently.
+ */
+const COMMENT_TOKEN = /<!--->|<!-->|<!--|--!?>|\{\/\*|\*\/\}/g;
+
+function docStructure(lines) {
+  const fenced = new Array(lines.length).fill(false);
+  const visible = new Array(lines.length).fill('');
+  const spans = [];
+  let fence = null; // { char, len, open } — open is the delimiter line index
+  let comment = null; // null | 'html' | 'mdx'
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (fence) {
+      fenced[i] = true;
+      const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+      if (
+        m &&
+        m[1][0] === fence.char &&
+        m[1].length >= fence.len &&
+        !m[2].trim()
+      ) {
+        spans.push({ open: fence.open, close: i });
+        fence = null;
+      }
+      continue;
+    }
+    if (!comment) {
+      const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+      // An opening ``` fence may not contain a backtick in its info string.
+      if (m && !(m[1][0] === '`' && m[2].includes('`'))) {
+        fence = { char: m[1][0], len: m[1].length, open: i };
+        fenced[i] = true;
+        continue;
+      }
+    }
+    // Delimiters are found on a code-span-blanked copy (same length, so
+    // indices line up with `line`); the visible text is cut from the real
+    // line. Inside a comment the text is not markdown, so it scans raw.
+    // Spans pair per CommonMark: an N-backtick run closes with a run of
+    // exactly N, so ``<!--`` protects its opener too — a single-tick-only
+    // blank left the double-tick form's `<!--` visible to the scanner, which
+    // then hid the rest of the document (round 6).
+    const scan = comment
+      ? line
+      : line.replace(/(?<!`)(`+)(?!`)(.*?[^`])\1(?!`)/g, s =>
+          ' '.repeat(s.length)
+        );
+    let out = '';
+    let from = comment ? line.length : 0;
+    for (const m of scan.matchAll(COMMENT_TOKEN)) {
+      const t = m[0];
+      if (!comment) {
+        if (t === '<!--' || t === '{/*') {
+          out += line.slice(from, m.index);
+          from = line.length;
+          comment = t === '<!--' ? 'html' : 'mdx';
+        } else if (t === '<!-->' || t === '<!--->') {
+          out += line.slice(from, m.index);
+          from = m.index + t.length;
+        }
+        // A stray close with nothing open is literal text.
+      } else if (
+        comment === 'html' ? t === '-->' || t === '--!>' : t === '*/}'
+      ) {
+        comment = null;
+        from = m.index + t.length;
+      }
+    }
+    if (!comment) out += line.slice(from);
+    visible[i] = out;
+  }
+  if (fence) spans.push({ open: fence.open, close: lines.length - 1 });
+  return { fenced, visible, spans };
+}
+
+/**
  * Comment- and quote-stripped shell text — the OPERATIVE part of a recipe.
- * Quotes go because every fail-open in this family arrived through prose
- * inside the block: an echoed banner naming the command, a quoted 'step
- * done' ending a segment early. In these recipes the operative shell — loop
- * word lists, the release invocation — is never quoted, so what survives is
+ * Quotes go because both fail-opens this family ever saw arrived through prose
+ * inside the fence: a `# …` line naming a package the loop skipped, and an
+ * echoed banner naming one. In these recipes the operative shell — the loop
+ * word list, the release invocation — is never quoted, so what survives is
  * what runs.
+ *
+ * Whitespace is then normalised, which is NOT loop parsing and is load-bearing
+ * for the ANCHOR rather than for any word list. A wrapped invocation —
+ * `pnpm exec semantic-release \` breaking before `--dry-run` — splits the
+ * string recipeFences searches for, so the fence stops being a recipe at all
+ * and the page is reported as having none: a false red whose stated remedy is
+ * to drop the file from RELEASE_DOC_FILES, i.e. the exact failure this rule
+ * keeps being rewritten to avoid.
+ *
+ * It takes BOTH replacements, which is why the continuation join alone never
+ * fixed this and the case was broken before #547 as well (found in review).
+ * Joining leaves the space that sat BEFORE the backslash in place, so the
+ * result is `semantic-release  --dry-run` with two spaces and the anchor still
+ * misses. Collapsing horizontal runs afterwards is what actually closes it.
+ * The continuation regex takes `[ \t]*` rather than `\s*` so it joins one
+ * line, not every blank line that happens to follow.
+ *
+ * ORDER: comments per line, then the join, then quotes, then whitespace.
+ * Quote-stripping before the join was a fail-open the other way (#547 review,
+ * round 5): a double-quoted banner WRAPPED across a continuation has no quote
+ * pair on either physical line, so nothing stripped, and the join then
+ * manufactured the anchor inside pure echo text — a fence that runs nothing
+ * became "the recipe" and red-flagged every package. Joining first restores
+ * the pair, and the banner strips like any other quoted prose. Comments stay
+ * per-line and FIRST, so a `\` at the end of a commented line cannot join the
+ * next line into the comment.
+ *
+ * The comment strip is QUOTE-AWARE (round 6): running before the quote strip,
+ * a bare /#.*$/ took the `#` inside `echo "Step #1"` as a comment and deleted
+ * the invocation after it — the "no fenced block" false red again. The
+ * alternation consumes paired quoted strings intact (keeping them for the
+ * quote pass after the join) and removes only a `#` that sits outside them.
+ * A `#` inside a string that a continuation WRAPS is still mis-stripped —
+ * that needs a hash inside quotes inside a wrapped line, and each of this
+ * function's passes is line-local by design.
+ *
+ * Beyond that, this is all that is left of the shell reading. The
+ * command-position and loop-segmentation layers that used to sit here were
+ * deleted in #547; the header above records what that traded.
  */
 function shellOperative(text) {
   return text
     .split('\n')
-    .map(l => l.replace(/"[^"]*"|'[^']*'/g, '""').replace(/#.*$/, ''))
+    .map(l => l.replace(/("[^"\n]*"|'[^'\n]*')|#.*$/g, (m, q) => q ?? ''))
     .join('\n')
-    .replace(/\\\n\s*/g, ' ');
-}
-
-/**
- * True when the operative text INVOKES `cmd`: the mention sits in command
- * position of some `;`/`|`/`&`/subshell segment, with shell keywords
- * (do/then/else) peeled — so `do pnpm exec semantic-release` counts while
- * `do echo semantic-release …` and a subshell echo do not, whatever the line
- * starts with (#548 review: the first version only excluded echo at line
- * start, so a one-line banner loop passed as the release loop).
- */
-function invokesCommand(operative, cmd) {
-  return operative.split('\n').some(line =>
-    line.split(/[;|&()]+/).some(seg => {
-      if (!seg.includes(cmd)) return false;
-      const first = seg
-        .trim()
-        .replace(/^(?:do|then|else)\s+/, '')
-        .split(/\s+/)[0];
-      return first !== 'echo' && first !== 'printf';
-    })
-  );
+    .replace(/\\\n[ \t]*/g, ' ')
+    .replace(/"[^"\n]*"|'[^'\n]*'/g, '""')
+    .replace(/[ \t]+/g, ' ');
 }
 
 function safeToRunBlock(src) {
   const { lines } = splitLines(src);
-  const masked = fenceMask(lines);
-  // `!masked[i]` on the START too, not only on the terminator scan: a fenced
-  // example containing this marker would otherwise BE the block, and the real
-  // guidance could then be deleted with the check still green.
-  const start = lines.findIndex(
-    (l, i) => !masked[i] && l.includes('Safe to run; never publishes')
+  const { fenced, visible } = docStructure(lines);
+  // VISIBLE text throughout — the search, the terminators, and the returned
+  // block alike (#547 review, round 5). Searching raw lines let a fenced
+  // example or a commented-out copy of the marker BE the block; returning raw
+  // lines let a fact whose only occurrence was commented out still satisfy
+  // `includes()`, which is the commented-out-not-deleted fail-open this file
+  // closes elsewhere; and terminating on raw lines let a heading inside an
+  // HTML comment — a parked draft, invisible to every reader — end the block
+  // above most of the facts. Fenced lines are the one exception: their raw
+  // text stays in the returned block (an example inside the guidance is part
+  // of the guidance), and they never terminate it.
+  const text = i => (fenced[i] ? lines[i] : visible[i]);
+  const start = visible.findIndex(l =>
+    l.includes('Safe to run; never publishes')
   );
   if (start < 0) return null;
+  // The run that opened the guidance, when the marker line IS the opener (the
+  // docs page): only a bare close at least that wide ends the block; anything
+  // narrower is a nested admonition closing itself, since Docusaurus nests by
+  // widening the OUTER run. In the blockquote form there is no opener, and the
+  // terminator is exactly `:::` — a wider bare run is stray junk, not a close,
+  // which is what this scan did before nesting was considered (a `::::` line
+  // ending the blockquote block was an undocumented behavior flip the round-5
+  // review caught). Closes match on trimmed text, so an indented `:::` still
+  // terminates, as it always had.
+  //
+  // A residual the round-5 rewrite briefly lost the record of (deep review):
+  // if the marker is moved OFF its `:::tip` line into the admonition body, the
+  // opener's width is invisible here, the blockquote fallback applies, and a
+  // nested `:::` close truncates the block again — a false red. Finding the
+  // enclosing opener by scanning backwards would fix that shape, and is the
+  // kind of refinement the header above argues against buying: the marker sits
+  // on its opener line in the committed page, and the failure is loud.
+  const outer = visible[start].match(/^ {0,3}(:{3,}).*\S/)?.[1].length ?? null;
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) {
-    if (masked[i]) continue; // a terminator inside a fenced example is content
-    const l = lines[i];
-    if (l.trim() === ':::' || MD_HEADING.test(l) || l.trim() === '---') {
+    if (fenced[i]) continue; // a terminator inside a fenced example is content
+    const l = visible[i];
+    const close = l.trim().match(/^(:{3,})$/)?.[1].length ?? 0;
+    if (close && (outer === null ? close === 3 : close >= outer)) {
+      end = i;
+      break;
+    }
+    if (MD_HEADING.test(l) || l.trim() === '---') {
       end = i;
       break;
     }
   }
-  return lines.slice(start, end).join('\n');
+  return lines
+    .slice(start, end)
+    .map((_, k) => text(start + k))
+    .join('\n');
 }
 
 /**
- * The fenced block that runs the semantic-release dry run, or null. Located by
- * content rather than by heading, so renaming the section does not silently
- * switch this check off.
+ * Every fenced block that runs the semantic-release dry run, comment- and
+ * quote-stripped. Located by CONTENT rather than by heading, so renaming the
+ * section does not silently switch this check off.
  *
- * Fences come from `fenceMask` rather than a /```[\s\S]*?```/g match, which
- * pairs backtick runs in document order: one stray ``` in prose, or a
- * ````markdown wrapper around a nested fence, shifts every pair after it and the
- * real recipe stops being found. The remedy the violation then offers is "drop
- * this file from RELEASE_DOC_FILES", i.e. switch the check off, which is the
- * worst way to be wrong. An UNTERMINATED fence runs to EOF and is still
- * returned, for the same reason — dropping it produced that same false
- * violation.
+ * The fence is the scope, and that is the whole of the reading (#547): a fence
+ * is a recipe, so a prose mention of the command — "run `semantic-release
+ * --dry-run` to preview" in some other section — is excluded by construction
+ * rather than by inspecting command position.
+ *
+ * ALL matching fences are returned, not the best one. Picking a single fence
+ * was itself a bug twice over: first-match let an example fence above the
+ * recipe become "the recipe", and preferring the one that looked like it
+ * invoked let a stale second recipe hide behind a fresh one. Every fence that
+ * runs the dry run is a recipe a contributor might copy, so every one of them
+ * has to be complete.
+ *
+ * Fences come from `docStructure`'s state machine rather than a
+ * /```[\s\S]*?```/g match, which pairs backtick runs in document order: one
+ * stray ``` in prose, or a ````markdown wrapper around a nested fence, shifts
+ * every pair after it and the real recipe stops being found. The remedy the
+ * violation then offers is "drop this file from RELEASE_DOC_FILES", i.e.
+ * switch the check off, which is the worst way to be wrong. An UNTERMINATED
+ * fence runs to EOF and is still returned, for the same reason — dropping it
+ * produced that same false violation. The spans are comment-aware by
+ * construction, so a complete recipe inside `<!-- … -->` — which renders as
+ * nothing — is not a fence at all, and cannot cover for the visible recipe
+ * being removed (pre-#547, in every generation).
+ *
+ * What is knowingly NOT found (#547 review, round 5, declined): a recipe
+ * driving the invocation through a variable — `CMD="… --dry-run"; $CMD` —
+ * since quote-stripping deletes the anchor before the filter sees it. The
+ * previous generation's raw-containment fallback covered that, but the same
+ * fallback is what let a quoted echo banner count as a recipe, and membership
+ * alone cannot tell those two quoted anchors apart; telling them apart is
+ * command-position parsing, which is the layer #547 deleted. Both committed
+ * recipes invoke directly, and a variable-form rewrite that reds CI names its
+ * own remedy in the violation text.
  */
-function dryRunRecipe(src) {
+export function recipeFences(src) {
   const { lines } = splitLines(src);
-  // Real block spans from the fence state machine — never re-derived from
-  // the boolean mask, where butted fences form one run and a content line
-  // shaped like a delimiter split a real block mid-fence (#548 review; the
-  // seam heuristic this replaces misfired on ``` lines shown inside a ~~~ or
-  // ````markdown wrapper). An unterminated fence still runs to EOF and is
-  // still returned: dropping it produced the switch-the-check-off violation
-  // this docblock has always warned about.
-  const blocks = fenceSpans(lines).map(({ open, close }) =>
-    lines.slice(open, close + 1).join('\n')
-  );
-  // Selection prefers the block that INVOKES the dry run over the first one
-  // that merely mentions it: an example fence above the recipe, echoing the
-  // command it describes, otherwise becomes "the recipe" and the real one
-  // below is never checked. Containment stays as the fallback so a recipe
-  // driving the run through a variable keeps being found.
-  return (
-    blocks.find(b =>
-      invokesCommand(shellOperative(b), 'semantic-release --dry-run')
-    ) ??
-    blocks.find(b => b.includes('semantic-release --dry-run')) ??
-    null
-  );
+  // From open + 1: the OPENING delimiter is markup, not shell. Its info string
+  // was inside the operative text in every generation of this check, and under
+  // membership that let ```bash bestax-mcp count as naming bestax-mcp — the
+  // loop-word-list narrowing used to exclude it, so this one is a regression
+  // (found in review). It also let an info string carrying the anchor conjure
+  // a recipe out of a fence with no invocation at all, which was fail-open on
+  // main too. Sliced through `close`, not `close - 1`: for an unterminated
+  // fence `close` is the last line of the file and is real content.
+  return docStructure(lines)
+    .spans.map(({ open, close }) =>
+      shellOperative(lines.slice(open + 1, close + 1).join('\n'))
+    )
+    .filter(b => b.includes('semantic-release --dry-run'));
 }
 
 /**
- * The package names a dry-run recipe actually iterates over.
+ * Every `- Packages:` list in every heading section whose TITLE claims trusted
+ * publishing — the section that owns the packages needing a publisher
+ * configured on npmjs.com. Each entry runs from its bullet to the NEXT
+ * `- Packages:` bullet, or to the end of the section, in VISIBLE text —
+ * fenced examples contribute nothing and commented content is excised.
  *
- * Two narrowings, each closing a way a package could look covered while the
- * recipe skipped it. First comments are stripped, because a name in a `# …`
- * line satisfied the assertion while being absent from the loop. Then, if the
- * block drives a `for … in …` loop, ONLY that word list counts — otherwise an
- * `echo "bestax-mcp is released separately"` satisfies it just as well, which
- * is the same failure one step further out.
+ * What #547 changed: the bullet is still ANCHORED by its literal `- Packages:`
+ * prefix, which is a one-line find and a stable marker in the document, but the
+ * end-bound scan around it is gone. That scan stopped at the next bullet, blank
+ * line, fenced line or section end, and three of those four bounds had been a
+ * bug in their own right — a continuation line dropped at EOF, a butted heading
+ * sweeping the next section in, a butted fence doing the same.
+ *
+ * One bound survives, and it is not optional: the next anchor. Running to the
+ * section end merged a stale list with the complete one below it and the union
+ * passed — a fail-open, and the single regression this rewrite introduced,
+ * caught in review. Bounding each list by the next keeps every one of them
+ * judged on its own, which is stronger than either previous generation: the
+ * old scan only ever validated the FIRST bullet in a section, so a stale
+ * duplicate underneath a good list went unchecked.
+ *
+ * The trade is that anything else below a bullet counts toward it: on the
+ * committed page that is the Provider/Repository/Workflow bullets and one
+ * paragraph, none of which names a package. Fenced lines are the exception and
+ * stay excluded — `npm owner ls bestax-mcp` in an example must not stand in for
+ * the list.
+ *
+ * A candidate section with NO bullet contributes nothing rather than
+ * anchoring-and-failing, so a prose aside titled like this section does not
+ * produce a false red; but if no candidate owns a bullet, "the section lost its
+ * list" still fires from the caller. Every candidate that does own one is
+ * validated: the first-match anchor let an earlier aside steal the search
+ * (false red), and preferring the section that owned a bullet let a LATER
+ * aside absorb the check while the real list was deleted (fail-open — #548
+ * review caught both generations).
+ *
+ * Sections run to the next heading at ANY level, so a `####` sub-heading closes
+ * one rather than letting it swallow the rest of the file.
  */
-export function recipeTargets(block) {
-  // Quote- and comment-stripped first (shellOperative): a quoted 'step done'
-  // used to end the release loop's segment above its invocation line, and a
-  // quoted banner naming the command classified its loop as the release
-  // loop. Backslash continuations are joined there too, so a wrapped
-  // word-list stays one list.
-  const commands = shellOperative(block);
-  // Segments run from each `for … in` header to the NEXT header (or end) —
-  // never to `done`: a missing or comment-hidden `done` dissolved every
-  // segment and the whole block became the word list, the exact vacuity this
-  // function exists to prevent (#548 review).
-  const headers = [...commands.matchAll(/\bfor\s+\w+\s+in\s+([^;\n]+)/g)];
-  if (!headers.length) return commands;
-  const segments = headers.map((m, i) => ({
-    list: m[1],
-    body: commands.slice(m.index, headers[i + 1]?.index ?? commands.length),
-  }));
-  // Only loops that INVOKE the release contribute their word lists, falling
-  // back to all loops when none does, so a recipe driving the run through a
-  // variable stays a presence check rather than a false red.
-  const release = segments.filter(s =>
-    invokesCommand(s.body, 'semantic-release')
-  );
-  return (release.length ? release : segments).map(s => s.list).join(' ');
-}
-
-/**
- * The `- Packages:` bullet from the OIDC section, with any wrapped
- * continuation lines.
- *
- * A named extractor rather than an inline block, so the slicing can be driven
- * from a test — its first version collapsed `findIndex`'s -1 sentinel with
- * `Math.max(0, …)`, which dropped every continuation line whenever the bullet
- * ran to the end of the file with no blank line after it. That is precisely the
- * case the extractor was written to handle.
- *
- * Scoped to the OIDC section rather than the first match in the file, because
- * file-wide is the vacuity already fixed once for RELEASE_DOC_FACTS: an earlier
- * `- Packages:` bullet elsewhere would satisfy this while the real list went
- * short.
- */
-function packagesBullet(src) {
+export function publisherSections(src) {
   const { lines } = splitLines(src);
-  const masked = fenceMask(lines);
-  const isHeading = i => !masked[i] && MD_HEADING.test(lines[i]);
-  // ONE pass over the candidate headings, each judged on its own span. The
-  // first-match anchor let an earlier trusted-publishing-titled aside steal
-  // the search (false red); preferring the section that owns a bullet let a
-  // LATER aside's stray bullet absorb the check while the real section's
-  // list was deleted (fail-open — #548 review caught both generations). So:
-  // every candidate section that contains a `- Packages:` bullet contributes
-  // it, the caller validates each contribution, and no bullet anywhere among
-  // the candidates is the violation. A candidate with no bullet adds
-  // nothing rather than anchoring-and-failing, which keeps a prose aside
-  // titled like the section from producing a false red — but if NO candidate
-  // owns a bullet, "section exists but lost its list" still fires.
-  const bullets = [];
+  const { visible } = docStructure(lines);
+  // VISIBLE text throughout (#547 review, round 5): a commented-out heading
+  // does not anchor a section, a commented-out bullet is not a list, and a
+  // fenced line's visible text is '' — while a bullet ANNOTATED with a
+  // trailing `<!-- keep in sync -->` keeps its anchor, since only the comment
+  // is excised. Boolean masking got the last one wrong on exactly the lines
+  // likeliest to carry such a note: the check's own anchors.
+  const isHeading = i => MD_HEADING.test(visible[i]);
+  const sections = [];
   for (let i = 0; i < lines.length; i++) {
-    if (!(isHeading(i) && /trusted[- ]publish/i.test(lines[i]))) continue;
-    let limit = lines.length;
+    if (!(isHeading(i) && /trusted[- ]publish/i.test(visible[i]))) continue;
+    let end = lines.length;
     for (let j = i + 1; j < lines.length; j++) {
       if (isHeading(j)) {
-        limit = j;
-        break;
-      }
-    }
-    let start = -1;
-    for (let j = i + 1; j < limit; j++) {
-      if (!masked[j] && lines[j].trimStart().startsWith('- Packages:')) {
-        start = j;
-        break;
-      }
-    }
-    if (start < 0) continue;
-    // Bounded by the next bullet, blank, masked line, or the section end: a
-    // fenced example or the next section butted under the list otherwise
-    // swept in, and a package named there covered an omission in the list.
-    let end = limit;
-    for (let j = start + 1; j < limit; j++) {
-      if (!lines[j].trim() || /^\s*[-*]\s/.test(lines[j]) || masked[j]) {
         end = j;
         break;
       }
     }
-    bullets.push(lines.slice(start, end).join('\n'));
+    // EVERY `- Packages:` anchor in the section, each bounded by the NEXT one.
+    // Running the first anchor to the section end merged a stale list with the
+    // complete one below it, and the union passed — a fail-open, and the one
+    // regression this rewrite introduced (found in review). Bounding by the
+    // next anchor is the only bound this needs: continuation lines and the
+    // Provider/Repository/Workflow bullets sit before it, so they still count,
+    // and each list is judged on its own.
+    const anchors = [];
+    for (let j = i + 1; j < end; j++) {
+      if (visible[j].trimStart().startsWith('- Packages:')) {
+        anchors.push(j);
+      }
+    }
+    for (const [k, start] of anchors.entries()) {
+      const stop = anchors[k + 1] ?? end;
+      sections.push(visible.slice(start, stop).join('\n'));
+    }
   }
-  return bullets;
+  return sections;
 }
 
 /**
@@ -1374,16 +1600,20 @@ export function releaseDocViolations(docs, packages) {
     }
 
     // Derived, not restated: the recipe has to cover whatever releases today.
-    const recipe = dryRunRecipe(src);
-    if (recipe === null) {
+    const recipes = recipeFences(src);
+    if (!recipes.length) {
       violations.push(
         `${rel} has no fenced block running \`semantic-release --dry-run\`. ` +
           `That recipe is how a contributor previews a release without ` +
           `publishing — restore it, or drop ${rel} from RELEASE_DOC_FILES in ` +
           `scripts/check-conformance.mjs if the page no longer covers releases.`
       );
-    } else {
-      const named = packageTokens(recipeTargets(recipe));
+    }
+    // Every one of them, not the best-looking one: a contributor copies
+    // whichever fence they land on, so a second recipe that went short is a
+    // wrong instruction even with a complete one further up the page.
+    for (const recipe of recipes) {
+      const named = packageTokens(recipe);
       const missing = packages.filter(p => !named.has(p.dir));
       if (missing.length) {
         violations.push(
@@ -1410,7 +1640,7 @@ export function releaseDocViolations(docs, packages) {
   // other told a reader the file had no bullet when the file was never read.
   const [primary] = RELEASE_DOC_FILES;
   if (docs.has(primary)) {
-    const sections = packagesBullet(docs.get(primary));
+    const sections = publisherSections(docs.get(primary));
     if (!sections.length) {
       violations.push(
         primary +
@@ -1419,9 +1649,9 @@ export function releaseDocViolations(docs, packages) {
           'npmjs.com; without it nobody can tell which ones do.'
       );
     } else {
-      // EVERY bullet under a trusted-publishing heading must be complete: a
-      // stale duplicate list must not hide behind a fresh one, whichever
-      // order they appear in.
+      // EVERY list under a trusted-publishing heading must be complete: a
+      // stale duplicate must not hide behind a fresh one, whichever order they
+      // appear in.
       for (const section of sections) {
         const named = packageTokens(section);
         const missing = packages.filter(p => !named.has(p.name));

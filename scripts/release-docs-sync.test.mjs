@@ -24,7 +24,8 @@ import {
   publishablePackages,
   releaseDocViolations,
   unreadableManifestViolations,
-  recipeTargets,
+  recipeFences,
+  publisherSections,
 } from './check-conformance.mjs';
 
 const PACKAGES = [
@@ -47,7 +48,7 @@ const recipe = (dirs = PACKAGES.map(p => p.dir)) =>
   dirs.join(' ') +
   '; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
 
-// The bullet AND the section heading that anchors it. packagesBullet locates
+// The bullet AND the section heading that anchors it. publisherSections locates
 // the list by its OIDC section rather than by the first "- Packages:" in the
 // file, so a fixture without the anchor is not a valid stand-in for the real
 // document — and every fixture here was one until the anchor rule landed.
@@ -245,9 +246,22 @@ test('a stray fence in prose does not hide the recipe', () => {
 
 test('an unterminated fence still counts as the recipe', () => {
   // Dropping it produced the same false violation as the stray-fence case.
-  const unterminated = doc().replace(/\n```\s*$/, '');
+  //
+  // Asserted on the MIRROR, and built rather than edited. The previous version
+  // stripped a trailing ``` from doc(), which ends with the publishers bullet
+  // and so has none — it asserted the untouched fixture and would have stayed
+  // green through the regression it names. On the primary file it could not be
+  // asserted at all: a fence left open swallows the trusted-publisher bullet
+  // below it, which is a different (and correct) violation.
+  const unterminated = doc({
+    publishers: '',
+    recipe:
+      '```bash\nfor pkg in ' +
+      PACKAGES.map(p => p.dir).join(' ') +
+      '; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone',
+  });
   assert.deepEqual(
-    releaseDocViolations(docs({ contributing: unterminated }), PACKAGES),
+    releaseDocViolations(docs({ mirror: unterminated }), PACKAGES),
     []
   );
 });
@@ -268,8 +282,9 @@ test('a package named only in a comment does not satisfy the recipe', () => {
 });
 
 test('a package named only in an echo does not satisfy the recipe either', () => {
-  // Stripping comments closed one hole and left the one beside it: only the
-  // loop's own word list should count.
+  // Stripping comments closed one hole and left the one beside it. Since #547
+  // the guard is quote-stripping (shellOperative): the banner's names live in
+  // a quoted string, and quoted text is not operative shell.
   const echoed =
     '```bash\n' +
     'echo "bestax-migrate bestax-mcp are released separately"\n' +
@@ -398,10 +413,11 @@ test('a heading butted against the bullet does not extend the list', () => {
 });
 
 test('a missing OIDC section is not rescued by a bullet elsewhere', () => {
-  // packagesBullet fell back to line 0 when it found no "trusted publisher"
-  // anchor, which is the file-wide search it exists to prevent: an unrelated
-  // "- Packages:" bullet then satisfied the assertion with the real guidance
-  // deleted.
+  // An early extractor generation fell back to line 0 when it found no
+  // "trusted publisher" anchor, which is the file-wide search it exists to
+  // prevent: an unrelated "- Packages:" bullet then satisfied the assertion
+  // with the real guidance deleted. publisherSections contributes nothing
+  // without an anchoring heading, so the caller's no-section message fires.
   const noOidcSection = [
     '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp`',
     '',
@@ -464,8 +480,10 @@ test('an empty package list is refused, not silently satisfied', () => {
 // --- hardening round (#544 review) -------------------------------------------
 
 test('a backslash-wrapped for-loop list is read in full', () => {
-  // recipeTargets stopped at the first newline, so names wrapped onto the
-  // continuation line were falsely reported missing from the recipe.
+  // The line-bounded read this covers is gone with the loop parsing (#547) —
+  // membership spans the whole fence, so a wrapped list cannot be cut in half.
+  // Kept because the false red it records is the one a future narrowing would
+  // most easily reintroduce.
   const wrapped =
     '```bash\nfor pkg in bulma-ui create-bestax \\\n' +
     '  bestax-migrate bestax-mcp; do\n' +
@@ -570,21 +588,6 @@ test('scalar manifests are unreadable too, not silently absent', async () => {
   });
 });
 
-test('a preliminary loop cannot cover for the release loop', () => {
-  // Union-of-all-loops was fail-open: an echo loop over every package let a
-  // release loop covering only one pass the presence check. Only loops whose
-  // body invokes the dry run contribute.
-  const twoLoops =
-    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n' +
-    'for pkg in bulma-ui; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
-  const v = releaseDocViolations(
-    docs({ contributing: doc({ recipe: twoLoops }) }),
-    PACKAGES
-  );
-  assert.ok(v.length >= 1, 'the echo loop must not mask the omission');
-  assert.match(v.join(' '), /bestax-mcp/);
-});
-
 test('an array manifest is unreadable, not silently absent', async () => {
   // `[]` parses, passes typeof object, has no name — the package vanished
   // from the list with no violation, the same outcome as the null crash by a
@@ -596,69 +599,14 @@ test('an array manifest is unreadable, not silently absent', async () => {
   });
 });
 
-test('an echoed semantic-release mention is not an invoking loop', () => {
-  // A banner loop over every package must not stand in for (or dilute) the
-  // loop that actually runs the release.
-  const block = [
-    'for pkg in a b c d; do',
-    '  echo "will run semantic-release for $pkg"',
-    'done',
-    'for pkg in a b; do',
-    '  pnpm exec semantic-release --dry-run',
-    'done',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'a b');
-});
-
 // --- #548-review regressions --------------------------------------------------
 
-test('a one-line banner loop is not the release loop', () => {
-  // The line starts with `for`, not `echo`, so a line-anchored exclusion
-  // missed it; invocation is judged per `;`-segment with do/then/else peeled.
-  const block = [
-    '```bash',
-    'for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "next: semantic-release for $pkg"; done',
-    'for pkg in bulma-ui; do',
-    '  pnpm exec semantic-release --dry-run --no-ci',
-    'done',
-    '```',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'bulma-ui');
-});
-
-test('an unquoted subshell echo is still just a banner', () => {
-  const block = [
-    'for pkg in a b c; do (echo starting semantic-release run); done',
-    'for pkg in a; do pnpm exec semantic-release --dry-run; done',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'a');
-});
-
-test("a quoted 'done' does not end the release loop's segment", () => {
-  const block = [
-    'for pkg in a b c d; do echo "$pkg"; done',
-    'for pkg in a b; do',
-    '  echo "step done"',
-    '  pnpm exec semantic-release --dry-run',
-    'done',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'a b');
-});
-
-test('a comment-hidden done confines the check to the loop, not the block', () => {
-  // With `done` swallowed by the comment strip, segmentation used to
-  // dissolve and the WHOLE block became the word list — an echo naming the
-  // other packages then satisfied the presence check.
-  const block = [
-    'for pkg in bulma-ui; do pnpm exec semantic-release --dry-run # done manually',
-    'echo "later: create-bestax bestax-migrate bestax-mcp"',
-  ].join('\n');
-  assert.equal(recipeTargets(block).trim(), 'bulma-ui');
-});
-
 test('an example fence spelling out the dry-run command does not become the recipe', () => {
-  // Selection prefers the block that INVOKES the command; the example's
-  // echoed (quoted) mention is stripped from its operative text.
+  // The example's echoed mention is quoted, and quoted text is stripped from
+  // the operative text before the anchor filter — so the example is not a
+  // candidate at all and only the real recipe is held to the package list.
+  // (The invoke-preferring selection that used to make this call was deleted
+  // in #547; quote-stripping is the guard that remains.)
   const example =
     '```text\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do\n' +
     '  echo "pnpm exec semantic-release --dry-run --no-ci in $pkg"\ndone\n```';
@@ -673,9 +621,9 @@ test('an example fence spelling out the dry-run command does not become the reci
 });
 
 test('fence-shaped content inside a ~~~ block does not split it', () => {
-  // Structure comes from fenceSpans, not from re-guessing seams in the mask:
-  // a ``` line shown INSIDE a ~~~ fence is content, and splitting there left
-  // the fragment loop-less.
+  // Structure comes from the fence state machine (docStructure), not from
+  // re-guessing seams in a boolean mask: a ``` line shown INSIDE a ~~~ fence
+  // is content, and splitting there left the fragment loop-less.
   const block = [
     '~~~bash',
     'cat <<EOF',
@@ -716,4 +664,547 @@ test("a later aside's bullet cannot absorb a deleted trusted-publisher list", ()
     PACKAGES
   );
   assert.ok(v.length >= 1, 'the incomplete stand-in must not pass');
+});
+
+// --- #547: scoped membership replaces the shell reading -----------------------
+
+test('a nested admonition does not truncate the guidance block', () => {
+  // On the docs page the guidance IS an admonition, so its own closing ::: is
+  // the end of the block. A nested :::note closes first, and taking that as the
+  // end cut the block off above most of the facts — every one of them then read
+  // as deleted. Docusaurus nests by widening the OUTER run, so only a close at
+  // least as wide as the opener ends it.
+  const nested = [
+    '::::tip Safe to run; never publishes',
+    '',
+    ':::note',
+    'An aside. Its close is not the end of the guidance.',
+    ':::',
+    '',
+    ...FACTS,
+    '::::',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: nested }), PACKAGES),
+    []
+  );
+});
+
+test('the guidance block still ends at its own close', () => {
+  // The nesting fix must not switch the terminator off in the other direction:
+  // a fact that slipped BELOW the closing run is outside the block, and the
+  // file-wide search this scoping exists to prevent must not come back.
+  const escaped = [
+    '::::tip Safe to run; never publishes',
+    ...FACTS.slice(0, -1),
+    '::::',
+    '',
+    FACTS.at(-1),
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: escaped }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /"Safe to run" guidance no longer mentions/);
+});
+
+test('a second recipe fence must be complete too', () => {
+  // Picking one fence was a bug in both directions — first-match let an example
+  // stand in for the recipe, and preferring the one that looked like it invoked
+  // let a stale second recipe hide behind a fresh one. A contributor copies
+  // whichever fence they land on, so every fence that runs the dry run is held
+  // to the full list.
+  const two = recipe() + '\n\n' + recipe(['bulma-ui']);
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: two }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /omits create-bestax, bestax-migrate, bestax-mcp/);
+});
+
+test('recipeFences reads fences only, and reads all of them', () => {
+  // The fence is the scope, which is the whole of the shell reading now: a
+  // prose mention of the command is excluded by construction rather than by
+  // inspecting command position, and a quoted banner is stripped before the
+  // fence is even considered a candidate.
+  const src = [
+    'Run `pnpm exec semantic-release --dry-run` first — prose, not a recipe.',
+    '',
+    recipe(['bulma-ui']),
+    '',
+    '```bash',
+    'echo "pnpm exec semantic-release --dry-run"   # a banner, not a run',
+    '```',
+    '',
+    recipe(['bestax-mcp']),
+  ].join('\n');
+  const found = recipeFences(src);
+  assert.equal(found.length, 2, found.join('\n---\n'));
+  assert.match(found[0], /for pkg in bulma-ui;/);
+  assert.match(found[1], /for pkg in bestax-mcp;/);
+});
+
+test('publisherSections anchors on the bullet and drops fenced lines', () => {
+  // The three bounds this replaces were each a bug: a continuation line lost at
+  // EOF, a butted heading sweeping the next section in, a butted fence doing
+  // the same. Running to the section end has no bounds to get wrong — but
+  // fenced lines stay excluded, because an example command naming a package
+  // must not stand in for the list.
+  const src = [
+    '## Why trusted publishing?',
+    '',
+    'Prose naming `bestax-mcp` in passing. This aside owns no list.',
+    '',
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'An intro naming `create-bestax` above the bullet.',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`,',
+    '  `bestax-migrate`',
+    '- Provider: GitHub Actions',
+    '',
+    '```bash',
+    'npm owner ls bestax-mcp',
+    '```',
+  ].join('\n');
+  const [section, ...rest] = publisherSections(src);
+  assert.deepEqual(rest, [], 'a candidate with no bullet contributes nothing');
+  assert.match(section, /bestax-migrate/, 'continuation lines survive');
+  assert.match(section, /Provider/, 'the rest of the section counts');
+  assert.doesNotMatch(
+    section,
+    /create-bestax/,
+    'prose above the bullet is not part of the list'
+  );
+  assert.doesNotMatch(
+    section,
+    /bestax-mcp/,
+    'a fenced example must not stand in for the list'
+  );
+});
+
+test('a stray ::: still closes a blockquote-form guidance block', () => {
+  // The nesting fix must not become a fail-open: with no opener on the marker
+  // line there is no width to match, and treating that as "nothing can close
+  // this" ran the block on to the next heading — the file-wide search this
+  // scoping exists to prevent, arrived at from a new direction.
+  const strayClose = [
+    '> **Safe to run; never publishes:** everything above.',
+    ...FACTS.slice(0, -1).map(f => `> ${f}`),
+    ':::',
+    '',
+    FACTS.at(-1),
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: strayClose }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /"Safe to run" guidance no longer mentions/);
+});
+
+test('a wrapped invocation is still found as a recipe', () => {
+  // A fence whose command wraps before `--dry-run` was invisible to the recipe
+  // search, so the page read as having NO recipe — a false red whose suggested
+  // remedy is to drop the file from RELEASE_DOC_FILES.
+  //
+  // Pre-existing, not a #547 regression: the continuation join this rule
+  // already had left the space that sat BEFORE the backslash in place, so the
+  // joined text read `semantic-release  --dry-run` and the anchor missed it on
+  // main too. Raised in review against the deletion, and true of both sides of
+  // it; collapsing horizontal runs is what actually fixes it.
+  const wrapped = [
+    '```bash',
+    'for pkg in ' + PACKAGES.map(p => p.dir).join(' ') + '; do',
+    '  ( cd "$pkg" && pnpm exec semantic-release \\',
+    '      --dry-run --no-ci )',
+    'done',
+    '```',
+  ].join('\n');
+  assert.equal(recipeFences(wrapped).length, 1);
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ contributing: doc({ recipe: wrapped }) }),
+      PACKAGES
+    ),
+    []
+  );
+});
+
+test('a duplicate list in one section cannot rescue a stale one', () => {
+  // Slicing from the FIRST anchor to the section end merged both lists into one
+  // token set, so a stale list passed on the strength of the complete one below
+  // it. Fail-open, and the one regression the #547 rewrite introduced — the
+  // bounded-bullet scan it replaced caught this. Each anchor is now bounded by
+  // the next, so every list is judged on its own.
+  const twoLists = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`',
+    '',
+    'Superseded by:',
+    '',
+    `- Packages: ${PACKAGES.map(p => `\`${p.name}\``).join(', ')}`,
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: twoLists }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /trusted-publisher list omits/);
+  assert.match(v[0], /bestax-migrate, bestax-mcp/);
+});
+
+test('a stale list BELOW a complete one is caught too', () => {
+  // The bounded scan on main only ever validated the first bullet in a section,
+  // so a stale duplicate underneath a good list went unchecked. Validating
+  // every anchor is strictly stronger than either previous generation.
+  const staleBelow = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    `- Packages: ${PACKAGES.map(p => `\`${p.name}\``).join(', ')}`,
+    '',
+    'An older copy nobody deleted:',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: staleBelow }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /bestax-migrate, bestax-mcp/);
+});
+
+test('a fence info string is markup, not part of the recipe', () => {
+  // Two holes, one cause: the opening delimiter used to sit inside the
+  // operative text. Under membership its info string could supply a package
+  // the loop omits — a regression, since the loop-word-list narrowing excluded
+  // it — and an info string carrying the anchor could conjure a recipe from a
+  // fence with no invocation, which was fail-open on main too.
+  const infoStringNames = [
+    '```bash bestax-mcp',
+    'for pkg in bulma-ui create-bestax bestax-migrate; do',
+    '  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )',
+    'done',
+    '```',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: infoStringNames }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /omits bestax-mcp/);
+
+  // And an info string alone is not an invocation.
+  const infoStringOnly = [
+    '```bash semantic-release --dry-run',
+    'pnpm all',
+    '```',
+  ].join('\n');
+  assert.equal(recipeFences(infoStringOnly).length, 0);
+});
+
+test('an unterminated fence keeps its final line, which is real content', () => {
+  // The companion to dropping the OPENING delimiter: the closing one may not be
+  // dropped with it. For a fence left open at EOF, fenceSpans reports the last
+  // line of the file as `close`, and that line is content. The existing
+  // unterminated-fence case could not see this — its final line is blank, so
+  // slicing it off changed nothing and the bound went unguarded.
+  const src = [
+    '```bash',
+    'pnpm exec semantic-release --dry-run --no-ci \\',
+    '  --debug   # wraps onto the last line of the file',
+  ].join('\n');
+  const [fence, ...rest] = recipeFences(src);
+  assert.ok(fence, 'an unterminated fence is still a recipe');
+  assert.deepEqual(rest, []);
+  assert.match(fence, /--debug/, 'the final line is content, not a delimiter');
+});
+
+// --- HTML comments are not rendered, so they are not evidence (CodeRabbit) ----
+
+test('a commented-out recipe does not satisfy the recipe check', () => {
+  // Commenting a section out rather than deleting it removed what a contributor
+  // actually sees while every assertion stayed green. Pre-#547 — main counted
+  // commented content in all three extractors.
+  const commented = ['<!--', recipe(), '-->'].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: commented }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no fenced block running/);
+});
+
+test('a commented-out trusted-publisher list does not satisfy its check', () => {
+  const commented = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'The list used to be here.',
+    '',
+    '<!--',
+    `- Packages: ${PACKAGES.map(p => `\`${p.name}\``).join(', ')}`,
+    '-->',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: commented }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "- Packages:" line/);
+});
+
+test('a commented-out guidance block does not satisfy the facts check', () => {
+  // The third site, which the review did not name but shares the defect: the
+  // facts were being read out of text nobody can see.
+  const commented = [
+    '<!--',
+    '> **Safe to run; never publishes:** everything above.',
+    ...FACTS.map(f => `> ${f}`),
+    '-->',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: commented }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "Safe to run; never publishes" guidance/);
+});
+
+test('an HTML comment inside a fence is literal text, not a comment', () => {
+  // Both directions of the fence/comment interaction. A `<!--` shown inside a
+  // fenced example must not open a comment that swallows the rest of the page —
+  // docs pages display HTML comments in `html` fences for exactly this reason.
+  const shown = [
+    '```html',
+    '<!--',
+    'a marker shown as an example, never closed inside the fence',
+    '```',
+    '',
+    doc(),
+  ].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: shown }), PACKAGES),
+    []
+  );
+});
+
+test('a one-line comment does not hide what follows it', () => {
+  // `<!-- x -->` opens and closes on its own line, so the next line is visible.
+  const withNote = ['<!-- an editorial note -->', '', doc()].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: withNote }), PACKAGES),
+    []
+  );
+});
+
+test('the alternate comment close --!> ends a comment too', () => {
+  // Browsers honor `--!>` as a comment close per the HTML spec (a parse
+  // error, but effective), so everything after it is RENDERED. Recognizing
+  // only `-->` left the mask open, hiding the entire visible document — every
+  // assertion false-reds at once, and the violation's own remedy is to drop
+  // the file from RELEASE_DOC_FILES. CodeQL js/bad-tag-filter; the repro
+  // sanitizer breaks `--!>` for the same reason.
+  const alternateClose = [
+    '<!-- an aside, closed the parse-error way --!>',
+    '',
+    doc(),
+  ].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: alternateClose }), PACKAGES),
+    []
+  );
+  // And the hiding direction still holds: content only visible because of
+  // `--!>` is content — a recipe between `--!>` and `-->` counts.
+  const between = ['<!-- hidden --!>', doc(), '<!-- hidden again -->'].join(
+    '\n'
+  );
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: between }), PACKAGES),
+    []
+  );
+});
+
+// --- round 5 (/code-review max): visible text replaces the boolean mask ------
+
+test('a fact commented out inside the guidance block is caught', () => {
+  // The boolean mask closed the commented-out class for the block's START and
+  // left the block's CONTENT raw, so a fact whose only occurrence sat inside
+  // <!-- … --> still satisfied includes() — the exact fail-open the mask was
+  // built to close, alive inside the construct it guards. The block is now
+  // visible text, so hidden facts are not evidence.
+  const hiddenFact = doc().replace(
+    '> see VERSIONING.md',
+    '<!-- > see VERSIONING.md -->'
+  );
+  const v = releaseDocViolations(docs({ contributing: hiddenFact }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no longer mentions "VERSIONING\.md"/);
+});
+
+test('an abrupt empty comment is complete, not an opener', () => {
+  // <!--> and <!---> are complete empty comments (CommonMark 0.31 abrupt
+  // closes). Matching `<!--` first and never the overlapping close left the
+  // state stuck open, and a one-character typo of `<!-- -->` masked the whole
+  // visible document — every assertion red at once.
+  for (const empty of ['<!-->', '<!--->']) {
+    assert.deepEqual(
+      releaseDocViolations(
+        docs({ contributing: [empty, '', doc()].join('\n') }),
+        PACKAGES
+      ),
+      [],
+      empty
+    );
+  }
+});
+
+test('a comment opener inside a code span is literal', () => {
+  // Prose documenting the repo's own marker syntax — `<!--` in a code span —
+  // renders as text, but scanned raw it opened a comment with no close and
+  // masked everything to EOF.
+  const withSpan = ['Use `<!--` to open an HTML comment.', '', doc()].join(
+    '\n'
+  );
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: withSpan }), PACKAGES),
+    []
+  );
+});
+
+test('an MDX comment hides content like an HTML comment does', () => {
+  // The docs mirror is MDX-compiled, so {/* … */} renders as nothing there.
+  // Masking only HTML comments left the commented-out-content fail-open fully
+  // open on one of the two release docs via its native comment syntax.
+  const mdxHidden = doc({
+    publishers: '',
+    recipe: ['{/*', recipe(), '*/}'].join('\n'),
+  });
+  const v = releaseDocViolations(docs({ mirror: mdxHidden }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no fenced block running/);
+  // And an MDX aside above visible content hides only itself.
+  const aside = ['{/* an aside */}', '', doc()].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: aside }), PACKAGES),
+    []
+  );
+});
+
+test('a commented-out draft inside the guidance block does not end it', () => {
+  // A parked draft — a heading inside <!-- … --> between two fact lines — is
+  // invisible to every reader, but the terminator scan read it raw and ended
+  // the block above the facts below it: five false "no longer mentions" reds.
+  const parked = doc().replace(
+    '> see VERSIONING.md',
+    ['<!--', '#### old wording', '-->', '> see VERSIONING.md'].join('\n')
+  );
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: parked }), PACKAGES),
+    []
+  );
+});
+
+test('a fence delimiter inside a comment is comment text', () => {
+  // Layering comment state over a comment-blind fenceMask let a commented-out
+  // ``` fragment open a phantom fence that captured the comment's own close —
+  // the mask then stayed open to EOF and every assertion false-redded. One
+  // interleaved pass: inside a comment, fences cannot open.
+  const fragment = ['<!--', '```', 'old fence fragment', '-->', '', doc()].join(
+    '\n'
+  );
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: fragment }), PACKAGES),
+    []
+  );
+});
+
+test('an inline comment annotating an anchor line does not hide it', () => {
+  // The likeliest lines to receive a trailing <!-- keep in sync --> note are
+  // the check's own anchors, and boolean whole-line masking made exactly those
+  // anchors vanish. Excision removes the note and keeps the anchor.
+  const annotated = doc()
+    .replace(
+      '> **Safe to run; never publishes:** everything above.',
+      '> **Safe to run; never publishes:** everything above. <!-- sync note -->'
+    )
+    .replace(/(- Packages: .*)$/m, '$1 <!-- keep in sync with npmjs.com -->');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: annotated }), PACKAGES),
+    []
+  );
+});
+
+test('a wrapped quoted banner is not a recipe', () => {
+  // Quote-stripping ran per line BEFORE the continuation join, so a banner
+  // whose quoted text wrapped across a continuation had no pair on either
+  // physical line — nothing stripped — and the join then manufactured the
+  // anchor inside pure echo text: a fence that runs nothing red-flagged every
+  // package. Joining first restores the pair.
+  const banner =
+    '```bash\necho "preview with: pnpm exec semantic-release \\\n' +
+    '  --dry-run (no publish happens)"\n```';
+  const both = doc().replace(recipe(), recipe() + '\n\n' + banner);
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: both }), PACKAGES),
+    []
+  );
+});
+
+test('a stray :::: does not end a blockquote-form guidance block', () => {
+  // The width-aware close matched any bare run >= 3 in the blockquote form,
+  // where the terminator had always been exactly `:::` — a stray wider run
+  // ended the block early (false red). An INDENTED ::: still terminates, as
+  // it always had: closes match on trimmed text.
+  const strayWide = doc().replace(
+    '> see VERSIONING.md',
+    '::::\n> see VERSIONING.md'
+  );
+  const v = releaseDocViolations(docs({ contributing: strayWide }), PACKAGES);
+  assert.deepEqual(v, [], v.join('\n'));
+  const indented = doc().replace(
+    '> see VERSIONING.md',
+    '    :::\n> see VERSIONING.md'
+  );
+  const v2 = releaseDocViolations(docs({ contributing: indented }), PACKAGES);
+  assert.ok(v2.length >= 1, 'an indented ::: must still terminate the block');
+});
+
+// --- round 6 -----------------------------------------------------------------
+
+test('a hash inside a quoted argument is not a comment', () => {
+  // The round-5 reorder put the comment strip before the quote strip, so a
+  // bare /#.*$/ took the `#` inside `echo "Step #1"` as a comment opener and
+  // deleted the invocation after it — the "no fenced block" false red. The
+  // strip is quote-aware now: paired strings pass through it intact and only
+  // a `#` outside them starts a comment.
+  const hashed =
+    '```bash\nfor pkg in ' +
+    PACKAGES.map(p => p.dir).join(' ') +
+    '; do\n  echo "Step #1"; ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ contributing: doc({ recipe: hashed }) }),
+      PACKAGES
+    ),
+    []
+  );
+});
+
+test('a double-backtick code span protects its comment opener too', () => {
+  // CommonMark pairs an N-backtick run with a closing run of exactly N, so
+  // ``<!--`` is as much a code span as `<!--` — but the blanking regex only
+  // knew the single-tick form, and the double-tick span's opener reached the
+  // scanner and hid the rest of the document.
+  const withSpan = ['Use ``<!--`` to document a marker.', '', doc()].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: withSpan }), PACKAGES),
+    []
+  );
 });
