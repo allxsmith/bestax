@@ -830,3 +830,48 @@ test('a wrapped invocation is still found as a recipe', () => {
     []
   );
 });
+
+test('a duplicate list in one section cannot rescue a stale one', () => {
+  // Slicing from the FIRST anchor to the section end merged both lists into one
+  // token set, so a stale list passed on the strength of the complete one below
+  // it. Fail-open, and the one regression the #547 rewrite introduced — the
+  // bounded-bullet scan it replaced caught this. Each anchor is now bounded by
+  // the next, so every list is judged on its own.
+  const twoLists = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`',
+    '',
+    'Superseded by:',
+    '',
+    `- Packages: ${PACKAGES.map(p => `\`${p.name}\``).join(', ')}`,
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: twoLists }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /trusted-publisher list omits/);
+  assert.match(v[0], /bestax-migrate, bestax-mcp/);
+});
+
+test('a stale list BELOW a complete one is caught too', () => {
+  // The bounded scan on main only ever validated the first bullet in a section,
+  // so a stale duplicate underneath a good list went unchecked. Validating
+  // every anchor is strictly stronger than either previous generation.
+  const staleBelow = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    `- Packages: ${PACKAGES.map(p => `\`${p.name}\``).join(', ')}`,
+    '',
+    'An older copy nobody deleted:',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`, `create-bestax`',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: staleBelow }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /bestax-migrate, bestax-mcp/);
+});

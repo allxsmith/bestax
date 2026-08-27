@@ -1246,25 +1246,31 @@ export function recipeFences(src) {
 }
 
 /**
- * The `- Packages:` list of every heading section whose TITLE claims trusted
+ * Every `- Packages:` list in every heading section whose TITLE claims trusted
  * publishing — the section that owns the packages needing a publisher
- * configured on npmjs.com. Each entry runs from the bullet to the end of its
- * section, fenced lines dropped.
+ * configured on npmjs.com. Each entry runs from its bullet to the NEXT
+ * `- Packages:` bullet, or to the end of the section, fenced lines dropped.
  *
  * What #547 changed: the bullet is still ANCHORED by its literal `- Packages:`
- * prefix, which is a one-line find and a stable marker in the document, but it
- * is no longer SLICED out of the section. The old end-bound scan stopped at the
- * next bullet, blank line, fenced line or section end, and three of those four
- * bounds had been a bug in their own right — a continuation line dropped at
- * EOF, a butted heading sweeping the next section in, a butted fence doing the
- * same. Running to the section end instead has no bounds to get wrong, and the
- * section end is already computed.
+ * prefix, which is a one-line find and a stable marker in the document, but the
+ * end-bound scan around it is gone. That scan stopped at the next bullet, blank
+ * line, fenced line or section end, and three of those four bounds had been a
+ * bug in their own right — a continuation line dropped at EOF, a butted heading
+ * sweeping the next section in, a butted fence doing the same.
  *
- * The trade is that anything below the bullet in the same section now counts:
- * on the committed page that is the Provider/Repository/Workflow bullets and
- * one paragraph, none of which names a package. Fenced lines are the exception
- * and stay excluded — `npm owner ls bestax-mcp` in an example must not stand in
- * for the list, which is the one bound worth keeping.
+ * One bound survives, and it is not optional: the next anchor. Running to the
+ * section end merged a stale list with the complete one below it and the union
+ * passed — a fail-open, and the single regression this rewrite introduced,
+ * caught in review. Bounding each list by the next keeps every one of them
+ * judged on its own, which is stronger than either previous generation: the
+ * old scan only ever validated the FIRST bullet in a section, so a stale
+ * duplicate underneath a good list went unchecked.
+ *
+ * The trade is that anything else below a bullet counts toward it: on the
+ * committed page that is the Provider/Repository/Workflow bullets and one
+ * paragraph, none of which names a package. Fenced lines are the exception and
+ * stay excluded — `npm owner ls bestax-mcp` in an example must not stand in for
+ * the list.
  *
  * A candidate section with NO bullet contributes nothing rather than
  * anchoring-and-failing, so a prose aside titled like this section does not
@@ -1292,20 +1298,28 @@ export function publisherSections(src) {
         break;
       }
     }
-    const start = lines.findIndex(
-      (l, j) =>
-        j > i &&
-        j < end &&
-        !masked[j] &&
-        l.trimStart().startsWith('- Packages:')
-    );
-    if (start < 0) continue;
-    sections.push(
-      lines
-        .slice(start, end)
-        .filter((_, j) => !masked[start + j])
-        .join('\n')
-    );
+    // EVERY `- Packages:` anchor in the section, each bounded by the NEXT one.
+    // Running the first anchor to the section end merged a stale list with the
+    // complete one below it, and the union passed — a fail-open, and the one
+    // regression this rewrite introduced (found in review). Bounding by the
+    // next anchor is the only bound this needs: continuation lines and the
+    // Provider/Repository/Workflow bullets sit before it, so they still count,
+    // and each list is judged on its own.
+    const anchors = [];
+    for (let j = i + 1; j < end; j++) {
+      if (!masked[j] && lines[j].trimStart().startsWith('- Packages:')) {
+        anchors.push(j);
+      }
+    }
+    for (const [k, start] of anchors.entries()) {
+      const stop = anchors[k + 1] ?? end;
+      sections.push(
+        lines
+          .slice(start, stop)
+          .filter((_, j) => !masked[start + j])
+          .join('\n')
+      );
+    }
   }
   return sections;
 }
