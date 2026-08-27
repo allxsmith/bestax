@@ -802,3 +802,31 @@ test('a stray ::: still closes a blockquote-form guidance block', () => {
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /"Safe to run" guidance no longer mentions/);
 });
+
+test('a wrapped invocation is still found as a recipe', () => {
+  // A fence whose command wraps before `--dry-run` was invisible to the recipe
+  // search, so the page read as having NO recipe — a false red whose suggested
+  // remedy is to drop the file from RELEASE_DOC_FILES.
+  //
+  // Pre-existing, not a #547 regression: the continuation join this rule
+  // already had left the space that sat BEFORE the backslash in place, so the
+  // joined text read `semantic-release  --dry-run` and the anchor missed it on
+  // main too. Raised in review against the deletion, and true of both sides of
+  // it; collapsing horizontal runs is what actually fixes it.
+  const wrapped = [
+    '```bash',
+    'for pkg in ' + PACKAGES.map(p => p.dir).join(' ') + '; do',
+    '  ( cd "$pkg" && pnpm exec semantic-release \\',
+    '      --dry-run --no-ci )',
+    'done',
+    '```',
+  ].join('\n');
+  assert.equal(recipeFences(wrapped).length, 1);
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ contributing: doc({ recipe: wrapped }) }),
+      PACKAGES
+    ),
+    []
+  );
+});

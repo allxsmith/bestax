@@ -1119,15 +1119,33 @@ const MD_HEADING = /^ {0,3}#{1,6}\s/;
  * word list, the release invocation — is never quoted, so what survives is
  * what runs.
  *
- * This is all that is left of the shell reading. The command-position and
- * loop-segmentation layers that used to sit here were deleted in #547; the
- * header above records what that traded.
+ * Whitespace is then normalised, which is NOT loop parsing and is load-bearing
+ * for the ANCHOR rather than for any word list. A wrapped invocation —
+ * `pnpm exec semantic-release \` breaking before `--dry-run` — splits the
+ * string recipeFences searches for, so the fence stops being a recipe at all
+ * and the page is reported as having none: a false red whose stated remedy is
+ * to drop the file from RELEASE_DOC_FILES, i.e. the exact failure this rule
+ * keeps being rewritten to avoid.
+ *
+ * It takes BOTH replacements, which is why the continuation join alone never
+ * fixed this and the case was broken before #547 as well (found in review).
+ * Joining leaves the space that sat BEFORE the backslash in place, so the
+ * result is `semantic-release  --dry-run` with two spaces and the anchor still
+ * misses. Collapsing horizontal runs afterwards is what actually closes it.
+ * The continuation regex takes `[ \t]*` rather than `\s*` so it joins one
+ * line, not every blank line that happens to follow.
+ *
+ * Beyond that, this is all that is left of the shell reading. The
+ * command-position and loop-segmentation layers that used to sit here were
+ * deleted in #547; the header above records what that traded.
  */
 function shellOperative(text) {
   return text
     .split('\n')
     .map(l => l.replace(/"[^"]*"|'[^']*'/g, '""').replace(/#.*$/, ''))
-    .join('\n');
+    .join('\n')
+    .replace(/\\\n[ \t]*/g, ' ')
+    .replace(/[ \t]+/g, ' ');
 }
 
 /**
