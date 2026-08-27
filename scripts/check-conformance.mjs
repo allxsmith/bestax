@@ -73,7 +73,6 @@ import {
 } from './lib/pack-time-protocols.mjs';
 import {
   fenceMask,
-  fenceSpans,
   readRegions,
   sectionSpans,
   splitLines,
@@ -1112,59 +1111,136 @@ const RELEASE_DOC_FACTS = [
 const MD_HEADING = /^ {0,3}#{1,6}\s/;
 
 /**
- * Boolean per line: true when the line is inside an HTML comment, i.e. NOT
- * rendered. Every release-doc extractor consults this alongside fenceMask.
+ * The reader's view of a markdown source, in one interleaved pass:
  *
- * The hole it closes, which predates #547 and lived in all three extractors
- * (CodeRabbit named two of them): a complete recipe fence or `- Packages:`
- * list commented out with `<!-- … -->` still satisfied its assertion. Someone
- * commenting out a section rather than deleting it therefore removed the
- * guidance a contributor actually sees while the check stayed green — the
- * fail-open shape this rule exists to prevent, arrived at by editing rather
- * than by drift.
+ *   fenced[i]   — line i is part of a fenced code block (delimiters included)
+ *   visible[i]  — line i's RENDERED text: comment content excised, '' for
+ *                 fenced lines (their content is reachable via `lines` and the
+ *                 spans; it is example text, not prose)
+ *   spans       — the fenced blocks, as [{ open, close }] line-index pairs,
+ *                 delimiters included, an unterminated fence running to EOF
  *
- * Fence interaction, in both directions. A `<!--` INSIDE a fenced block is
- * literal text and must not open a comment — docs pages show HTML comments in
- * `html` fences for exactly this reason. But a FENCE inside a comment is still
- * commented, so the open state has to carry across fenced lines rather than
- * skipping them: that is the very case reported, a commented-out recipe fence.
- * Hence state transitions ignore fenced lines while the mask still applies to
- * them.
+ * One pass rather than fenceMask + a comment mask layered on top, because the
+ * two grammars gate each other in BOTH directions and a layered computation
+ * gets one of them wrong (#547 review, round 5). A `<!--` inside a fenced
+ * block is literal text and must not open a comment — docs pages display HTML
+ * comments in `html` fences on purpose. A fence delimiter inside a comment is
+ * comment text and must not open a fence — layering comment state over a
+ * comment-blind fenceMask let a commented-out ``` fragment open a phantom
+ * fence that swallowed the comment's own close, masking the document to EOF.
+ * So: inside a fence, comments cannot open; inside a comment, fences cannot
+ * open; each construct is closed only by its own terminator.
  *
- * Whole-line granularity, matching fenceMask. A line that mixes visible text
- * with a comment opener reads as commented, which over-masks the visible half;
- * neither release doc contains an HTML comment at all today, so the precise
- * split would be machinery for a case that does not occur.
+ * Excised text rather than a boolean line mask, which round 5 killed: a
+ * boolean cannot say "part of this line is rendered". It masked an anchor
+ * line annotated with a trailing `<!-- keep in sync -->` (false red on the
+ * likeliest lines to receive such a note — the check's own anchors), while
+ * leaving a commented-out fact INSIDE the guidance block satisfying
+ * `includes()` (fail-open). Visible text gets both right for free: the
+ * annotation vanishes, the anchor stays; the commented fact vanishes, the
+ * assertion bites.
  *
- * Both close forms end a comment: `-->` and the parse-error form `--!>`,
- * which browsers honor per the HTML spec. Recognizing only `-->` left a
- * `--!>`-closed comment open in the mask, hiding the entire VISIBLE document
- * below it — every assertion then false-reds at once, and the violation text's
- * own remedy is to drop the file from RELEASE_DOC_FILES. CodeQL flags exactly
- * this (js/bad-tag-filter), and the repro sanitizer already breaks `--!>` for
- * the same reason.
+ * The comment grammar, and why each production is here:
+ *
+ *   `<!-->` and `<!--->`   complete empty comments (CommonMark 0.31's abrupt
+ *                          closes). Matching `<!--` first and never the
+ *                          overlapping close left `open` stuck true and the
+ *                          whole visible document masked — a one-character
+ *                          typo of `<!-- -->` red-flagged every assertion.
+ *   `<!-- … -->` / `--!>`  the HTML comment; both close forms end it. `--!>`
+ *                          is the parse-error close browsers honor (CodeQL
+ *                          js/bad-tag-filter; the repro sanitizer breaks it
+ *                          for the same reason).
+ *   `{/* … *\/}`           the MDX comment (its close is written with a
+ *                          backslash here only because the raw sequence would
+ *                          end this docblock). The docs mirror is MDX-compiled
+ *                          — docusaurus.config.js leaves markdown.format as
+ *                          mdx — so MDX comments hide rendered content there.
+ *                          Without this production, the commented-out-content
+ *                          fail-open this file closes for HTML comments
+ *                          stayed fully open on one of the two release docs
+ *                          via its native comment syntax. In the
+ *                          GitHub-rendered file `{/*` is literal, but only if
+ *                          someone writes it in prose, which no release doc
+ *                          does.
+ *
+ * Inline code spans are protected: `` `<!--` `` documenting marker syntax is
+ * literal text, so delimiters are scanned on a copy with code spans blanked
+ * (positions preserved). Scanned, not excised — the span stays visible.
+ *
+ * Accepted residuals, recorded rather than modeled: the two files' renderers
+ * genuinely disagree on `--!>` (browsers close there, remark-comment does
+ * not), so on the MDX mirror text between a `--!>` and a later `-->` counts
+ * as visible while the published page hides it — modeling per-file comment
+ * grammars buys that corner and nothing else. A code span AFTER a same-line
+ * comment close is scanned unstripped. Both need comment constructs no
+ * release doc contains.
  */
-function commentMask(lines, fenced) {
-  const mask = new Array(lines.length).fill(false);
-  let open = false;
+const COMMENT_TOKEN = /<!--->|<!-->|<!--|--!?>|\{\/\*|\*\/\}/g;
+
+function docStructure(lines) {
+  const fenced = new Array(lines.length).fill(false);
+  const visible = new Array(lines.length).fill('');
+  const spans = [];
+  let fence = null; // { char, len, open } — open is the delimiter line index
+  let comment = null; // null | 'html' | 'mdx'
   for (let i = 0; i < lines.length; i++) {
-    if (fenced[i]) {
-      mask[i] = open; // commented-out fence: masked, but cannot toggle state
+    const line = lines[i];
+    if (fence) {
+      fenced[i] = true;
+      const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+      if (
+        m &&
+        m[1][0] === fence.char &&
+        m[1].length >= fence.len &&
+        !m[2].trim()
+      ) {
+        spans.push({ open: fence.open, close: i });
+        fence = null;
+      }
       continue;
     }
-    mask[i] = open || lines[i].includes('<!--');
-    for (const m of lines[i].matchAll(/<!--|--!?>/g)) {
-      open = m[0] === '<!--';
+    if (!comment) {
+      const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+      // An opening ``` fence may not contain a backtick in its info string.
+      if (m && !(m[1][0] === '`' && m[2].includes('`'))) {
+        fence = { char: m[1][0], len: m[1].length, open: i };
+        fenced[i] = true;
+        continue;
+      }
     }
+    // Delimiters are found on a code-span-blanked copy (same length, so
+    // indices line up with `line`); the visible text is cut from the real
+    // line. Inside a comment the text is not markdown, so it scans raw.
+    const scan = comment
+      ? line
+      : line.replace(/`[^`\n]*`/g, s => ' '.repeat(s.length));
+    let out = '';
+    let from = comment ? line.length : 0;
+    for (const m of scan.matchAll(COMMENT_TOKEN)) {
+      const t = m[0];
+      if (!comment) {
+        if (t === '<!--' || t === '{/*') {
+          out += line.slice(from, m.index);
+          from = line.length;
+          comment = t === '<!--' ? 'html' : 'mdx';
+        } else if (t === '<!-->' || t === '<!--->') {
+          out += line.slice(from, m.index);
+          from = m.index + t.length;
+        }
+        // A stray close with nothing open is literal text.
+      } else if (
+        comment === 'html' ? t === '-->' || t === '--!>' : t === '*/}'
+      ) {
+        comment = null;
+        from = m.index + t.length;
+      }
+    }
+    if (!comment) out += line.slice(from);
+    visible[i] = out;
   }
-  return mask;
-}
-
-/** Lines hidden from a reader: fenced-example content OR commented out. */
-function hiddenLines(lines) {
-  const fenced = fenceMask(lines);
-  const commented = commentMask(lines, fenced);
-  return { fenced, commented };
+  if (fence) spans.push({ open: fence.open, close: lines.length - 1 });
+  return { fenced, visible, spans };
 }
 
 /**
@@ -1191,6 +1267,16 @@ function hiddenLines(lines) {
  * The continuation regex takes `[ \t]*` rather than `\s*` so it joins one
  * line, not every blank line that happens to follow.
  *
+ * ORDER: comments per line, then the join, then quotes, then whitespace.
+ * Quote-stripping before the join was a fail-open the other way (#547 review,
+ * round 5): a double-quoted banner WRAPPED across a continuation has no quote
+ * pair on either physical line, so nothing stripped, and the join then
+ * manufactured the anchor inside pure echo text — a fence that runs nothing
+ * became "the recipe" and red-flagged every package. Joining first restores
+ * the pair, and the banner strips like any other quoted prose. Comments stay
+ * per-line and FIRST, so a `\` at the end of a commented line cannot join the
+ * next line into the comment.
+ *
  * Beyond that, this is all that is left of the shell reading. The
  * command-position and loop-segmentation layers that used to sit here were
  * deleted in #547; the header above records what that traded.
@@ -1198,58 +1284,47 @@ function hiddenLines(lines) {
 function shellOperative(text) {
   return text
     .split('\n')
-    .map(l => l.replace(/"[^"]*"|'[^']*'/g, '""').replace(/#.*$/, ''))
+    .map(l => l.replace(/#.*$/, ''))
     .join('\n')
     .replace(/\\\n[ \t]*/g, ' ')
+    .replace(/"[^"\n]*"|'[^'\n]*'/g, '""')
     .replace(/[ \t]+/g, ' ');
-}
-
-/**
- * A Docusaurus admonition delimiter, or null. `:::tip Safe to run` OPENS,
- * a bare `:::` CLOSES, and the run length matters — nesting works by widening
- * the outer run (`::::tip` around `:::note`), exactly as CommonMark fences
- * nest by widening the backtick run.
- */
-function admonitionDelim(line) {
-  const m = line.match(/^ {0,3}(:{3,})(.*)$/);
-  if (!m) return null;
-  return { len: m[1].length, open: Boolean(m[2].trim()) };
 }
 
 function safeToRunBlock(src) {
   const { lines } = splitLines(src);
-  const { fenced: masked, commented } = hiddenLines(lines);
-  // Hidden on the START too, not only on the terminator scan: a fenced example
-  // or a commented-out copy containing this marker would otherwise BE the
-  // block, and the real guidance could then be deleted with the check still
-  // green.
-  const start = lines.findIndex(
-    (l, i) =>
-      !masked[i] && !commented[i] && l.includes('Safe to run; never publishes')
+  const { fenced, visible } = docStructure(lines);
+  // VISIBLE text throughout — the search, the terminators, and the returned
+  // block alike (#547 review, round 5). Searching raw lines let a fenced
+  // example or a commented-out copy of the marker BE the block; returning raw
+  // lines let a fact whose only occurrence was commented out still satisfy
+  // `includes()`, which is the commented-out-not-deleted fail-open this file
+  // closes elsewhere; and terminating on raw lines let a heading inside an
+  // HTML comment — a parked draft, invisible to every reader — end the block
+  // above most of the facts. Fenced lines are the one exception: their raw
+  // text stays in the returned block (an example inside the guidance is part
+  // of the guidance), and they never terminate it.
+  const text = i => (fenced[i] ? lines[i] : visible[i]);
+  const start = visible.findIndex(l =>
+    l.includes('Safe to run; never publishes')
   );
   if (start < 0) return null;
   // The run that opened the guidance, when the marker line IS the opener (the
-  // docs page). Only a close at least that wide ends the block; anything
-  // narrower is a nested admonition closing itself.
-  //
-  // Falling back to 3 rather than to Infinity, deliberately: Infinity reads
-  // better — "no opener, so no close can end this" — and is the fail-open
-  // direction, because the blockquote form would then run past a stray `:::`
-  // to the next heading and restore the file-wide search this scoping exists
-  // to prevent. 3 is what this line did before nesting was considered at all.
-  // The residual, recorded rather than chased: if the marker is moved OFF its
-  // `:::tip` line into the body, the opener's width is no longer visible here
-  // and a nested close truncates the block again. Finding the enclosing opener
-  // by scanning backwards would fix that shape, and is the kind of refinement
-  // the header above argues against buying.
-  const opened = admonitionDelim(lines[start]);
-  const outer = opened?.open ? opened.len : 3;
+  // docs page): only a bare close at least that wide ends the block; anything
+  // narrower is a nested admonition closing itself, since Docusaurus nests by
+  // widening the OUTER run. In the blockquote form there is no opener, and the
+  // terminator is exactly `:::` — a wider bare run is stray junk, not a close,
+  // which is what this scan did before nesting was considered (a `::::` line
+  // ending the blockquote block was an undocumented behavior flip the round-5
+  // review caught). Closes match on trimmed text, so an indented `:::` still
+  // terminates, as it always had.
+  const outer = visible[start].match(/^ {0,3}(:{3,}).*\S/)?.[1].length ?? null;
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) {
-    if (masked[i]) continue; // a terminator inside a fenced example is content
-    const l = lines[i];
-    const delim = admonitionDelim(l);
-    if (delim && !delim.open && delim.len >= outer) {
+    if (fenced[i]) continue; // a terminator inside a fenced example is content
+    const l = visible[i];
+    const close = l.trim().match(/^(:{3,})$/)?.[1].length ?? 0;
+    if (close && (outer === null ? close === 3 : close >= outer)) {
       end = i;
       break;
     }
@@ -1258,7 +1333,10 @@ function safeToRunBlock(src) {
       break;
     }
   }
-  return lines.slice(start, end).join('\n');
+  return lines
+    .slice(start, end)
+    .map((_, k) => text(start + k))
+    .join('\n');
 }
 
 /**
@@ -1278,24 +1356,30 @@ function safeToRunBlock(src) {
  * runs the dry run is a recipe a contributor might copy, so every one of them
  * has to be complete.
  *
- * Fences come from `fenceSpans` rather than a /```[\s\S]*?```/g match, which
- * pairs backtick runs in document order: one stray ``` in prose, or a
- * ````markdown wrapper around a nested fence, shifts every pair after it and the
- * real recipe stops being found. The remedy the violation then offers is "drop
- * this file from RELEASE_DOC_FILES", i.e. switch the check off, which is the
- * worst way to be wrong. An UNTERMINATED fence runs to EOF and is still
- * returned, for the same reason — dropping it produced that same false
- * violation.
+ * Fences come from `docStructure`'s state machine rather than a
+ * /```[\s\S]*?```/g match, which pairs backtick runs in document order: one
+ * stray ``` in prose, or a ````markdown wrapper around a nested fence, shifts
+ * every pair after it and the real recipe stops being found. The remedy the
+ * violation then offers is "drop this file from RELEASE_DOC_FILES", i.e.
+ * switch the check off, which is the worst way to be wrong. An UNTERMINATED
+ * fence runs to EOF and is still returned, for the same reason — dropping it
+ * produced that same false violation. The spans are comment-aware by
+ * construction, so a complete recipe inside `<!-- … -->` — which renders as
+ * nothing — is not a fence at all, and cannot cover for the visible recipe
+ * being removed (pre-#547, in every generation).
+ *
+ * What is knowingly NOT found (#547 review, round 5, declined): a recipe
+ * driving the invocation through a variable — `CMD="… --dry-run"; $CMD` —
+ * since quote-stripping deletes the anchor before the filter sees it. The
+ * previous generation's raw-containment fallback covered that, but the same
+ * fallback is what let a quoted echo banner count as a recipe, and membership
+ * alone cannot tell those two quoted anchors apart; telling them apart is
+ * command-position parsing, which is the layer #547 deleted. Both committed
+ * recipes invoke directly, and a variable-form rewrite that reds CI names its
+ * own remedy in the violation text.
  */
 export function recipeFences(src) {
   const { lines } = splitLines(src);
-  // Real block spans from the fence state machine — never re-derived from
-  // the boolean mask, where butted fences form one run and a content line
-  // shaped like a delimiter split a real block mid-fence (#548 review; the
-  // seam heuristic this replaces misfired on ``` lines shown inside a ~~~ or
-  // ````markdown wrapper). An unterminated fence still runs to EOF and is
-  // still returned: dropping it produced the switch-the-check-off violation
-  // this docblock has always warned about.
   // From open + 1: the OPENING delimiter is markup, not shell. Its info string
   // was inside the operative text in every generation of this check, and under
   // membership that let ```bash bestax-mcp count as naming bestax-mcp — the
@@ -1304,14 +1388,8 @@ export function recipeFences(src) {
   // a recipe out of a fence with no invocation at all, which was fail-open on
   // main too. Sliced through `close`, not `close - 1`: for an unterminated
   // fence `close` is the last line of the file and is real content.
-  //
-  // Commented-out fences are dropped entirely: a complete recipe inside
-  // `<!-- … -->` renders as nothing, so counting it let the visible recipe be
-  // removed with the check still green (pre-#547, in every generation).
-  const { commented } = hiddenLines(lines);
-  return fenceSpans(lines)
-    .filter(({ open }) => !commented[open])
-    .map(({ open, close }) =>
+  return docStructure(lines)
+    .spans.map(({ open, close }) =>
       shellOperative(lines.slice(open + 1, close + 1).join('\n'))
     )
     .filter(b => b.includes('semantic-release --dry-run'));
@@ -1321,8 +1399,8 @@ export function recipeFences(src) {
  * Every `- Packages:` list in every heading section whose TITLE claims trusted
  * publishing — the section that owns the packages needing a publisher
  * configured on npmjs.com. Each entry runs from its bullet to the NEXT
- * `- Packages:` bullet, or to the end of the section, hidden lines dropped —
- * fenced examples and HTML-commented content alike.
+ * `- Packages:` bullet, or to the end of the section, in VISIBLE text —
+ * fenced examples contribute nothing and commented content is excised.
  *
  * What #547 changed: the bullet is still ANCHORED by its literal `- Packages:`
  * prefix, which is a one-line find and a stable marker in the document, but the
@@ -1359,14 +1437,17 @@ export function recipeFences(src) {
  */
 export function publisherSections(src) {
   const { lines } = splitLines(src);
-  const { fenced, commented } = hiddenLines(lines);
-  // Hidden either way: a commented-out heading does not anchor a section, a
-  // commented-out bullet is not a list, and neither counts toward one.
-  const masked = lines.map((_, i) => fenced[i] || commented[i]);
-  const isHeading = i => !masked[i] && MD_HEADING.test(lines[i]);
+  const { visible } = docStructure(lines);
+  // VISIBLE text throughout (#547 review, round 5): a commented-out heading
+  // does not anchor a section, a commented-out bullet is not a list, and a
+  // fenced line's visible text is '' — while a bullet ANNOTATED with a
+  // trailing `<!-- keep in sync -->` keeps its anchor, since only the comment
+  // is excised. Boolean masking got the last one wrong on exactly the lines
+  // likeliest to carry such a note: the check's own anchors.
+  const isHeading = i => MD_HEADING.test(visible[i]);
   const sections = [];
   for (let i = 0; i < lines.length; i++) {
-    if (!(isHeading(i) && /trusted[- ]publish/i.test(lines[i]))) continue;
+    if (!(isHeading(i) && /trusted[- ]publish/i.test(visible[i]))) continue;
     let end = lines.length;
     for (let j = i + 1; j < lines.length; j++) {
       if (isHeading(j)) {
@@ -1383,18 +1464,13 @@ export function publisherSections(src) {
     // and each list is judged on its own.
     const anchors = [];
     for (let j = i + 1; j < end; j++) {
-      if (!masked[j] && lines[j].trimStart().startsWith('- Packages:')) {
+      if (visible[j].trimStart().startsWith('- Packages:')) {
         anchors.push(j);
       }
     }
     for (const [k, start] of anchors.entries()) {
       const stop = anchors[k + 1] ?? end;
-      sections.push(
-        lines
-          .slice(start, stop)
-          .filter((_, j) => !masked[start + j])
-          .join('\n')
-      );
+      sections.push(visible.slice(start, stop).join('\n'));
     }
   }
   return sections;
