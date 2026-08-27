@@ -108,6 +108,18 @@ test('sanitized output can never satisfy auto-close-duplicates.mjs', () => {
     'duplicate of #55',
     `${MARKER}\nDuplicate of #55 — please close`,
   ].join('\n');
+
+  // Prove the fixture is hostile BEFORE sanitizing, or the checks below pass
+  // vacuously and this test stops delivering the coupling it advertises. The
+  // MARKER half is built from the import, so it is hostile by construction;
+  // the `Duplicate of #N` half is hard-coded text. If the consumer's
+  // DUPLICATE_RE ever drifts to another phrase, this fixture stops matching
+  // it, the post-sanitize assertion then succeeds for the wrong reason, and
+  // the sanitizer quietly stops covering the pattern that consumer acts on.
+  // These two lines make that drift a red build instead.
+  assert.ok(hostile.includes(MARKER));
+  assert.ok(DUPLICATE_RE.test(hostile));
+
   const out = sanitizeText(hostile);
   assert.ok(!out.includes(MARKER));
   assert.ok(!DUPLICATE_RE.test(out));
