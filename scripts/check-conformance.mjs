@@ -1173,8 +1173,17 @@ const MD_HEADING = /^ {0,3}#{1,6}\s/;
  * not), so on the MDX mirror text between a `--!>` and a later `-->` counts
  * as visible while the published page hides it — modeling per-file comment
  * grammars buys that corner and nothing else. A code span AFTER a same-line
- * comment close is scanned unstripped. Both need comment constructs no
- * release doc contains.
+ * comment close is scanned unstripped. And the span protection is LINE-LOCAL
+ * even though CommonMark spans may wrap: a span whose first line carries the
+ * opener plus `<!--` and whose closing run sits on the next line renders the
+ * marker literally, while this scan opens a comment (false red, declined in
+ * round 7). Fixing that by carrying an unmatched run forward flips a case
+ * this pass gets right — an unpaired backtick before a real `<!--` renders
+ * hidden and must KEEP masking — because telling "literal backtick" from
+ * "wrapping span" needs cross-line lookahead for the matching closer, which
+ * is a CommonMark span parser. Every one of these needs a comment-or-span
+ * construct no release doc contains, and each fails LOUD (a red naming the
+ * file), never silently.
  */
 const COMMENT_TOKEN = /<!--->|<!-->|<!--|--!?>|\{\/\*|\*\/\}/g;
 
