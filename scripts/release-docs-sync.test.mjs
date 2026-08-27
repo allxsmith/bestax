@@ -24,7 +24,8 @@ import {
   publishablePackages,
   releaseDocViolations,
   unreadableManifestViolations,
-  recipeTargets,
+  recipeFences,
+  publisherSections,
 } from './check-conformance.mjs';
 
 const PACKAGES = [
@@ -47,7 +48,7 @@ const recipe = (dirs = PACKAGES.map(p => p.dir)) =>
   dirs.join(' ') +
   '; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
 
-// The bullet AND the section heading that anchors it. packagesBullet locates
+// The bullet AND the section heading that anchors it. publisherSections locates
 // the list by its OIDC section rather than by the first "- Packages:" in the
 // file, so a fixture without the anchor is not a valid stand-in for the real
 // document — and every fixture here was one until the anchor rule landed.
@@ -245,9 +246,22 @@ test('a stray fence in prose does not hide the recipe', () => {
 
 test('an unterminated fence still counts as the recipe', () => {
   // Dropping it produced the same false violation as the stray-fence case.
-  const unterminated = doc().replace(/\n```\s*$/, '');
+  //
+  // Asserted on the MIRROR, and built rather than edited. The previous version
+  // stripped a trailing ``` from doc(), which ends with the publishers bullet
+  // and so has none — it asserted the untouched fixture and would have stayed
+  // green through the regression it names. On the primary file it could not be
+  // asserted at all: a fence left open swallows the trusted-publisher bullet
+  // below it, which is a different (and correct) violation.
+  const unterminated = doc({
+    publishers: '',
+    recipe:
+      '```bash\nfor pkg in ' +
+      PACKAGES.map(p => p.dir).join(' ') +
+      '; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone',
+  });
   assert.deepEqual(
-    releaseDocViolations(docs({ contributing: unterminated }), PACKAGES),
+    releaseDocViolations(docs({ mirror: unterminated }), PACKAGES),
     []
   );
 });
@@ -464,8 +478,10 @@ test('an empty package list is refused, not silently satisfied', () => {
 // --- hardening round (#544 review) -------------------------------------------
 
 test('a backslash-wrapped for-loop list is read in full', () => {
-  // recipeTargets stopped at the first newline, so names wrapped onto the
-  // continuation line were falsely reported missing from the recipe.
+  // The line-bounded read this covers is gone with the loop parsing (#547) —
+  // membership spans the whole fence, so a wrapped list cannot be cut in half.
+  // Kept because the false red it records is the one a future narrowing would
+  // most easily reintroduce.
   const wrapped =
     '```bash\nfor pkg in bulma-ui create-bestax \\\n' +
     '  bestax-migrate bestax-mcp; do\n' +
@@ -570,21 +586,6 @@ test('scalar manifests are unreadable too, not silently absent', async () => {
   });
 });
 
-test('a preliminary loop cannot cover for the release loop', () => {
-  // Union-of-all-loops was fail-open: an echo loop over every package let a
-  // release loop covering only one pass the presence check. Only loops whose
-  // body invokes the dry run contribute.
-  const twoLoops =
-    '```bash\nfor pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "$pkg"; done\n' +
-    'for pkg in bulma-ui; do\n  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
-  const v = releaseDocViolations(
-    docs({ contributing: doc({ recipe: twoLoops }) }),
-    PACKAGES
-  );
-  assert.ok(v.length >= 1, 'the echo loop must not mask the omission');
-  assert.match(v.join(' '), /bestax-mcp/);
-});
-
 test('an array manifest is unreadable, not silently absent', async () => {
   // `[]` parses, passes typeof object, has no name — the package vanished
   // from the list with no violation, the same outcome as the null crash by a
@@ -596,65 +597,7 @@ test('an array manifest is unreadable, not silently absent', async () => {
   });
 });
 
-test('an echoed semantic-release mention is not an invoking loop', () => {
-  // A banner loop over every package must not stand in for (or dilute) the
-  // loop that actually runs the release.
-  const block = [
-    'for pkg in a b c d; do',
-    '  echo "will run semantic-release for $pkg"',
-    'done',
-    'for pkg in a b; do',
-    '  pnpm exec semantic-release --dry-run',
-    'done',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'a b');
-});
-
 // --- #548-review regressions --------------------------------------------------
-
-test('a one-line banner loop is not the release loop', () => {
-  // The line starts with `for`, not `echo`, so a line-anchored exclusion
-  // missed it; invocation is judged per `;`-segment with do/then/else peeled.
-  const block = [
-    '```bash',
-    'for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do echo "next: semantic-release for $pkg"; done',
-    'for pkg in bulma-ui; do',
-    '  pnpm exec semantic-release --dry-run --no-ci',
-    'done',
-    '```',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'bulma-ui');
-});
-
-test('an unquoted subshell echo is still just a banner', () => {
-  const block = [
-    'for pkg in a b c; do (echo starting semantic-release run); done',
-    'for pkg in a; do pnpm exec semantic-release --dry-run; done',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'a');
-});
-
-test("a quoted 'done' does not end the release loop's segment", () => {
-  const block = [
-    'for pkg in a b c d; do echo "$pkg"; done',
-    'for pkg in a b; do',
-    '  echo "step done"',
-    '  pnpm exec semantic-release --dry-run',
-    'done',
-  ].join('\n');
-  assert.equal(recipeTargets(block), 'a b');
-});
-
-test('a comment-hidden done confines the check to the loop, not the block', () => {
-  // With `done` swallowed by the comment strip, segmentation used to
-  // dissolve and the WHOLE block became the word list — an echo naming the
-  // other packages then satisfied the presence check.
-  const block = [
-    'for pkg in bulma-ui; do pnpm exec semantic-release --dry-run # done manually',
-    'echo "later: create-bestax bestax-migrate bestax-mcp"',
-  ].join('\n');
-  assert.equal(recipeTargets(block).trim(), 'bulma-ui');
-});
 
 test('an example fence spelling out the dry-run command does not become the recipe', () => {
   // Selection prefers the block that INVOKES the command; the example's
@@ -716,4 +659,146 @@ test("a later aside's bullet cannot absorb a deleted trusted-publisher list", ()
     PACKAGES
   );
   assert.ok(v.length >= 1, 'the incomplete stand-in must not pass');
+});
+
+// --- #547: scoped membership replaces the shell reading -----------------------
+
+test('a nested admonition does not truncate the guidance block', () => {
+  // On the docs page the guidance IS an admonition, so its own closing ::: is
+  // the end of the block. A nested :::note closes first, and taking that as the
+  // end cut the block off above most of the facts — every one of them then read
+  // as deleted. Docusaurus nests by widening the OUTER run, so only a close at
+  // least as wide as the opener ends it.
+  const nested = [
+    '::::tip Safe to run; never publishes',
+    '',
+    ':::note',
+    'An aside. Its close is not the end of the guidance.',
+    ':::',
+    '',
+    ...FACTS,
+    '::::',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: nested }), PACKAGES),
+    []
+  );
+});
+
+test('the guidance block still ends at its own close', () => {
+  // The nesting fix must not switch the terminator off in the other direction:
+  // a fact that slipped BELOW the closing run is outside the block, and the
+  // file-wide search this scoping exists to prevent must not come back.
+  const escaped = [
+    '::::tip Safe to run; never publishes',
+    ...FACTS.slice(0, -1),
+    '::::',
+    '',
+    FACTS.at(-1),
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: escaped }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /"Safe to run" guidance no longer mentions/);
+});
+
+test('a second recipe fence must be complete too', () => {
+  // Picking one fence was a bug in both directions — first-match let an example
+  // stand in for the recipe, and preferring the one that looked like it invoked
+  // let a stale second recipe hide behind a fresh one. A contributor copies
+  // whichever fence they land on, so every fence that runs the dry run is held
+  // to the full list.
+  const two = recipe() + '\n\n' + recipe(['bulma-ui']);
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: two }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /omits create-bestax, bestax-migrate, bestax-mcp/);
+});
+
+test('recipeFences reads fences only, and reads all of them', () => {
+  // The fence is the scope, which is the whole of the shell reading now: a
+  // prose mention of the command is excluded by construction rather than by
+  // inspecting command position, and a quoted banner is stripped before the
+  // fence is even considered a candidate.
+  const src = [
+    'Run `pnpm exec semantic-release --dry-run` first — prose, not a recipe.',
+    '',
+    recipe(['bulma-ui']),
+    '',
+    '```bash',
+    'echo "pnpm exec semantic-release --dry-run"   # a banner, not a run',
+    '```',
+    '',
+    recipe(['bestax-mcp']),
+  ].join('\n');
+  const found = recipeFences(src);
+  assert.equal(found.length, 2, found.join('\n---\n'));
+  assert.match(found[0], /for pkg in bulma-ui;/);
+  assert.match(found[1], /for pkg in bestax-mcp;/);
+});
+
+test('publisherSections anchors on the bullet and drops fenced lines', () => {
+  // The three bounds this replaces were each a bug: a continuation line lost at
+  // EOF, a butted heading sweeping the next section in, a butted fence doing
+  // the same. Running to the section end has no bounds to get wrong — but
+  // fenced lines stay excluded, because an example command naming a package
+  // must not stand in for the list.
+  const src = [
+    '## Why trusted publishing?',
+    '',
+    'Prose naming `bestax-mcp` in passing. This aside owns no list.',
+    '',
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'An intro naming `create-bestax` above the bullet.',
+    '',
+    '- Packages: `@allxsmith/bestax-bulma`,',
+    '  `bestax-migrate`',
+    '- Provider: GitHub Actions',
+    '',
+    '```bash',
+    'npm owner ls bestax-mcp',
+    '```',
+  ].join('\n');
+  const [section, ...rest] = publisherSections(src);
+  assert.deepEqual(rest, [], 'a candidate with no bullet contributes nothing');
+  assert.match(section, /bestax-migrate/, 'continuation lines survive');
+  assert.match(section, /Provider/, 'the rest of the section counts');
+  assert.doesNotMatch(
+    section,
+    /create-bestax/,
+    'prose above the bullet is not part of the list'
+  );
+  assert.doesNotMatch(
+    section,
+    /bestax-mcp/,
+    'a fenced example must not stand in for the list'
+  );
+});
+
+test('a stray ::: still closes a blockquote-form guidance block', () => {
+  // The nesting fix must not become a fail-open: with no opener on the marker
+  // line there is no width to match, and treating that as "nothing can close
+  // this" ran the block on to the next heading — the file-wide search this
+  // scoping exists to prevent, arrived at from a new direction.
+  const strayClose = [
+    '> **Safe to run; never publishes:** everything above.',
+    ...FACTS.slice(0, -1).map(f => `> ${f}`),
+    ':::',
+    '',
+    FACTS.at(-1),
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: strayClose }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /"Safe to run" guidance no longer mentions/);
 });
