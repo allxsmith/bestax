@@ -1175,3 +1175,36 @@ test('a stray :::: does not end a blockquote-form guidance block', () => {
   const v2 = releaseDocViolations(docs({ contributing: indented }), PACKAGES);
   assert.ok(v2.length >= 1, 'an indented ::: must still terminate the block');
 });
+
+// --- round 6 -----------------------------------------------------------------
+
+test('a hash inside a quoted argument is not a comment', () => {
+  // The round-5 reorder put the comment strip before the quote strip, so a
+  // bare /#.*$/ took the `#` inside `echo "Step #1"` as a comment opener and
+  // deleted the invocation after it — the "no fenced block" false red. The
+  // strip is quote-aware now: paired strings pass through it intact and only
+  // a `#` outside them starts a comment.
+  const hashed =
+    '```bash\nfor pkg in ' +
+    PACKAGES.map(p => p.dir).join(' ') +
+    '; do\n  echo "Step #1"; ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )\ndone\n```';
+  assert.deepEqual(
+    releaseDocViolations(
+      docs({ contributing: doc({ recipe: hashed }) }),
+      PACKAGES
+    ),
+    []
+  );
+});
+
+test('a double-backtick code span protects its comment opener too', () => {
+  // CommonMark pairs an N-backtick run with a closing run of exactly N, so
+  // ``<!--`` is as much a code span as `<!--` — but the blanking regex only
+  // knew the single-tick form, and the double-tick span's opener reached the
+  // scanner and hid the rest of the document.
+  const withSpan = ['Use ``<!--`` to document a marker.', '', doc()].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: withSpan }), PACKAGES),
+    []
+  );
+});

@@ -1212,9 +1212,15 @@ function docStructure(lines) {
     // Delimiters are found on a code-span-blanked copy (same length, so
     // indices line up with `line`); the visible text is cut from the real
     // line. Inside a comment the text is not markdown, so it scans raw.
+    // Spans pair per CommonMark: an N-backtick run closes with a run of
+    // exactly N, so ``<!--`` protects its opener too — a single-tick-only
+    // blank left the double-tick form's `<!--` visible to the scanner, which
+    // then hid the rest of the document (round 6).
     const scan = comment
       ? line
-      : line.replace(/`[^`\n]*`/g, s => ' '.repeat(s.length));
+      : line.replace(/(?<!`)(`+)(?!`)(.*?[^`])\1(?!`)/g, s =>
+          ' '.repeat(s.length)
+        );
     let out = '';
     let from = comment ? line.length : 0;
     for (const m of scan.matchAll(COMMENT_TOKEN)) {
@@ -1277,6 +1283,15 @@ function docStructure(lines) {
  * per-line and FIRST, so a `\` at the end of a commented line cannot join the
  * next line into the comment.
  *
+ * The comment strip is QUOTE-AWARE (round 6): running before the quote strip,
+ * a bare /#.*$/ took the `#` inside `echo "Step #1"` as a comment and deleted
+ * the invocation after it — the "no fenced block" false red again. The
+ * alternation consumes paired quoted strings intact (keeping them for the
+ * quote pass after the join) and removes only a `#` that sits outside them.
+ * A `#` inside a string that a continuation WRAPS is still mis-stripped —
+ * that needs a hash inside quotes inside a wrapped line, and each of this
+ * function's passes is line-local by design.
+ *
  * Beyond that, this is all that is left of the shell reading. The
  * command-position and loop-segmentation layers that used to sit here were
  * deleted in #547; the header above records what that traded.
@@ -1284,7 +1299,7 @@ function docStructure(lines) {
 function shellOperative(text) {
   return text
     .split('\n')
-    .map(l => l.replace(/#.*$/, ''))
+    .map(l => l.replace(/("[^"\n]*"|'[^'\n]*')|#.*$/g, (m, q) => q ?? ''))
     .join('\n')
     .replace(/\\\n[ \t]*/g, ' ')
     .replace(/"[^"\n]*"|'[^'\n]*'/g, '""')
