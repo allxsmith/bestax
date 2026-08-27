@@ -256,12 +256,22 @@ jobs:
               SECURITY-SCAN: flagged (injection|obfuscated-code|social-engineering|other)
             Choose the single best category. Put NO explanation on this line.
 
-      # FAIL-CLOSED labeler (no AI). Default verdict is FLAGGED; only a positively
-      # parsed `SECURITY-SCAN: clean` as the anchored final line, with is_error
-      # false, leaves the label off. Runs even if the Claude step failed
-      # (`always()`), so a crashed/injection-truncated session flags rather than
-      # silently reading as clean. Uses the anchored last-line jq (never a loose
-      # grep over the execution file, which contains echoed attacker text).
+      # FAIL-CLOSED labeler (no AI). The parsing lives in
+      # scripts/parse-scan-verdict.mjs (rule 9; the fail-closed contract and its
+      # rationale are in that file's header, the seven-shape trace in its test
+      # sibling). The script always exits 0 and prints exactly `clean` or
+      # `flagged <category>`; ANY other outcome — node missing because the
+      # checkout failed under `always()`, a crashed script, garbled output —
+      # leaves the flagged/other default in place, and the case enum below is
+      # the only thing that admits a category string into the summary.
+      #
+      # Deliberately no setup-node: the parser imports node: builtins only, and
+      # every GitHub-hosted runner ships a Node the Actions runner itself needs.
+      # A setup-node here would add a nodejs.org fetch to a control that runs
+      # under `always()` — and because this step flags on any non-clean outcome,
+      # a failed fetch (tool-cache miss, or an armed egress block once #487
+      # lands, whose allowlist does not name that host) would label the item
+      # with no scan having happened. Do not add one back.
       - name: Apply label on non-clean verdict (fail-closed)
         if: always() && steps.gate.outputs.run == 'true'
         env:
@@ -273,23 +283,16 @@ jobs:
           set -euo pipefail
           VERDICT="flagged"   # fail-closed default
           CATEGORY="other"
-          if [ -n "${EXEC_FILE:-}" ] && [ -f "$EXEC_FILE" ]; then
-            OK=$(jq -es '[.[] | if type == "array" then .[] else . end]
-                         | map(select(type == "object" and .type == "result"))
-                         | last | (.is_error == false)' "$EXEC_FILE" 2>/dev/null || echo false)
-            LINE=$(jq -rs '[.[] | if type == "array" then .[] else . end]
-                           | map(select(type == "object" and .type == "result"))
-                           | last | (.result // "")
-                           | split("\n") | map(select(length > 0)) | (.[-1] // "")' \
-                   "$EXEC_FILE" 2>/dev/null || echo "")
-            if [ "$OK" = "true" ] && printf '%s' "$LINE" | grep -qE '^SECURITY-SCAN: clean$'; then
-              VERDICT="clean"
-            elif [ "$OK" = "true" ] && printf '%s' "$LINE" \
-                 | grep -qE '^SECURITY-SCAN: flagged \((injection|obfuscated-code|social-engineering|other)\)$'; then
-              VERDICT="flagged"
-              CATEGORY=$(printf '%s' "$LINE" | sed -E 's/^SECURITY-SCAN: flagged \((.*)\)$/\1/')
-            fi
-          fi
+          # 2>/dev/null as the jq it replaced had: the script's own no-leak
+          # contract covers only what its try/catch wraps, so a failure before
+          # main runs (missing module, syntax error) would otherwise print to
+          # the public job log, which this step's header promises against.
+          OUT=$(node scripts/parse-scan-verdict.mjs "${EXEC_FILE:-}" 2>/dev/null) || OUT=''
+          case "$OUT" in
+            clean) VERDICT="clean" ;;
+            'flagged injection' | 'flagged obfuscated-code' | 'flagged social-engineering' | 'flagged other')
+              CATEGORY="${OUT#flagged }" ;;
+          esac
           if [ "$VERDICT" = "clean" ]; then
             echo "scan clean for #$NUMBER — no label"
             echo "Security scan: clean on #$NUMBER." >> "$GITHUB_STEP_SUMMARY"

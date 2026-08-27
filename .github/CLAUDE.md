@@ -191,8 +191,29 @@ writing the trigger string at all.
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
 non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
 `node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
-Two parsers are still inline and tracked in #454: the publish sanitizer and the scan-verdict
-parser.
+The two #454 parsers are extracted: the scan-verdict parser
+(`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
+(`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
+the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
+tests together. Smaller instances of the same shape remain inline (the exec-file sentinel
+checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
+one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported
+helpers rather than growing the YAML.
+
+**Extraction has a bootstrap gap: a new script flags its own introducing PR.** A workflow runs
+the YAML from the PR merge ref, but the jobs here deliberately check out the default branch
+(never PR head code). A script the PR adds therefore does not exist in the workspace its own
+run reads: `node` exits `MODULE_NOT_FOUND`, the caller takes its fallback, and a fail-closed
+verdict path labels the item on infrastructure grounds without the verdict ever being read.
+Origin: #570 applied `needs-security-review` to itself this way, which then gated
+`claude-repro`, `claude-fix`, `@claude` and `@bestaxbot` on that PR.
+
+Do not close this by checking out the PR head — running PR-authored code in a job holding a
+credential is the thing that pin prevents, and trading it away for a cosmetic label is a far
+worse deal than the flag. Treat the gap as expected cost instead: say in the PR description
+that the flag is self-inflicted, and clear the label by hand once the script is on the default
+branch. The same applies to moving or renaming a script a workflow already calls — the rename
+lands in the YAML a run before it lands in the tree that run checks out.
 
 ### 10. `harden-runner` on new jobs starts at `block`, and `block` does not currently mean block
 

@@ -109,10 +109,12 @@ test('the marker and the Duplicate line are both required', () => {
 });
 
 test('an automation comment quoting a duplicate line still parses', () => {
-  // Documents the coupling with claude-repro.yml, which defangs
-  // "Duplicate of #" in drafted tests precisely because github-actions[bot] is
-  // an author this parser trusts. If that sanitizer regresses, this is the
-  // consumer that acts on the smuggled line — so the two must stay in step.
+  // Documents the coupling with sanitize-repro-draft.mjs (claude-repro.yml's
+  // publish sanitizer), which defangs "Duplicate of #" in drafted tests
+  // precisely because github-actions[bot] is an author this parser trusts. If
+  // that sanitizer regresses, this is the consumer that acts on the smuggled
+  // line — sanitize-repro-draft.test.mjs imports MARKER and DUPLICATE_RE from
+  // this file and asserts sanitized output can never satisfy them.
   const found = findMarkerComment([
     comment(
       1,
