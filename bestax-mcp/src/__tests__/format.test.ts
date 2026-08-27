@@ -85,3 +85,32 @@ describe('renderComponent link line', () => {
     );
   });
 });
+
+describe('renderComponent CSS variable pointer', () => {
+  // Issue #501: get_css_variables reached 1/10 MCP-only builders in an eval arm where
+  // every run themed the site by hand. The routing fix is a pointer at `include`, not a
+  // separate tool call the builder has to already know to make.
+  it('names the count and points at include when cssVars is not requested', async () => {
+    const record = await loadComponent('Button');
+    const out = renderComponent(record, ['props']);
+    expect(out).not.toContain('## CSS Variables');
+    expect(out).toContain(
+      `\`Button\` has ${record.cssVars.length} CSS variables for theming`
+    );
+    expect(out).toContain('include: ["cssVars"]');
+  });
+
+  it('says nothing when cssVars is already included', async () => {
+    const record = await loadComponent('Button');
+    const out = renderComponent(record, ['props', 'cssVars']);
+    expect(out).toContain('## CSS Variables');
+    expect(out).not.toContain('for theming — pass');
+  });
+
+  it('says nothing for a component with no CSS variables', async () => {
+    const record = await loadComponent('Block');
+    expect(record.cssVars).toHaveLength(0);
+    const out = renderComponent(record, ['props']);
+    expect(out).not.toContain('CSS variable');
+  });
+});
