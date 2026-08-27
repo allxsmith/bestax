@@ -260,7 +260,7 @@ Where the state actually stands, since "which jobs enforce" was mis-stated repea
   `supply-chain` (`consumer-sbom` and `sign-sbom`), `security-txt-expiry`.
 - **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
   `claude-pr-loop` (`fix` and `verify`), `claude-review`. These run repo code with a model token;
-  their block flip is the follow-up this rule owes.
+  their block flip is the follow-up this rule owes, tracked in #578.
 - **No harden-runner at all** — `auto-close-duplicates` and the API-only jobs
   (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`, `supply-chain`'s `sbom`/`attach-sbom`/
   `verify-provenance`).

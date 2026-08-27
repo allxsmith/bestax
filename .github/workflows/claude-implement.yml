@@ -50,9 +50,9 @@ jobs:
       # guessed allowlist would break the job on its first miss; audit mode
       # reports every endpoint the run touches without refusing any, which is
       # what produces the list a block flip needs. That flip is the follow-up
-      # rule 10 owes, tracked against #487 — audit is a starting point here, not
-      # a resting place, and this is one of the two jobs that runs repo code
-      # alongside the token, so it is the one that most wants the flip.
+      # rule 10 owes (#578) — audit is a starting point here, not a resting
+      # place, and this is one of the two jobs that runs repo code alongside the
+      # token, so it is the one that most wants the flip.
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:

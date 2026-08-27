@@ -332,9 +332,9 @@ jobs:
       # measured. A guessed allowlist would break the loop on its first miss;
       # audit mode reports every endpoint the run touches without refusing any,
       # which is what produces the list a block flip needs. That flip is the
-      # follow-up rule 10 owes, tracked against #487 — audit is a starting point
-      # here, not a resting place, and this is one of the two jobs that runs
-      # repo code alongside the token, so it is the one that most wants the flip.
+      # follow-up rule 10 owes (#578) — audit is a starting point here, not a
+      # resting place, and this is one of the two jobs that runs repo code
+      # alongside the token, so it is the one that most wants the flip.
       #
       # The sibling sweep/gate/handoff/halt jobs make GitHub API calls only and
       # carry no harden-runner; only `fix` and `verify` execute repo code.
@@ -634,7 +634,7 @@ jobs:
       # AUDIT, not block — same reasoning as the `fix` job above: this job checks
       # out a PR branch, installs dependencies and runs a Claude session with a
       # model token, and its egress is unmeasured. Audit mode produces the list a
-      # block flip needs. Tracked against #487 as the follow-up rule 10 owes.
+      # block flip needs. Tracked as the follow-up rule 10 owes (#578).
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:

@@ -80,8 +80,8 @@ jobs:
       # reach rather than from a measured run; widen it from a StepSecurity
       # report if one is ever refused. Note the nearest sibling
       # (auto-close-duplicates.yml, also a scheduled issue-writer) carries no
-      # harden-runner at all; it predates the rule and is tracked in the #487
-      # follow-up rather than settled here.
+      # harden-runner at all; it predates the rule and is tracked in #578 rather
+      # than settled here.
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
