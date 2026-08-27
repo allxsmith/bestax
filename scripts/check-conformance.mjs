@@ -1112,6 +1112,54 @@ const RELEASE_DOC_FACTS = [
 const MD_HEADING = /^ {0,3}#{1,6}\s/;
 
 /**
+ * Boolean per line: true when the line is inside an HTML comment, i.e. NOT
+ * rendered. Every release-doc extractor consults this alongside fenceMask.
+ *
+ * The hole it closes, which predates #547 and lived in all three extractors
+ * (CodeRabbit named two of them): a complete recipe fence or `- Packages:`
+ * list commented out with `<!-- … -->` still satisfied its assertion. Someone
+ * commenting out a section rather than deleting it therefore removed the
+ * guidance a contributor actually sees while the check stayed green — the
+ * fail-open shape this rule exists to prevent, arrived at by editing rather
+ * than by drift.
+ *
+ * Fence interaction, in both directions. A `<!--` INSIDE a fenced block is
+ * literal text and must not open a comment — docs pages show HTML comments in
+ * `html` fences for exactly this reason. But a FENCE inside a comment is still
+ * commented, so the open state has to carry across fenced lines rather than
+ * skipping them: that is the very case reported, a commented-out recipe fence.
+ * Hence state transitions ignore fenced lines while the mask still applies to
+ * them.
+ *
+ * Whole-line granularity, matching fenceMask. A line that mixes visible text
+ * with a comment opener reads as commented, which over-masks the visible half;
+ * neither release doc contains an HTML comment at all today, so the precise
+ * split would be machinery for a case that does not occur.
+ */
+function commentMask(lines, fenced) {
+  const mask = new Array(lines.length).fill(false);
+  let open = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (fenced[i]) {
+      mask[i] = open; // commented-out fence: masked, but cannot toggle state
+      continue;
+    }
+    mask[i] = open || lines[i].includes('<!--');
+    for (const m of lines[i].matchAll(/<!--|-->/g)) {
+      open = m[0] === '<!--';
+    }
+  }
+  return mask;
+}
+
+/** Lines hidden from a reader: fenced-example content OR commented out. */
+function hiddenLines(lines) {
+  const fenced = fenceMask(lines);
+  const commented = commentMask(lines, fenced);
+  return { fenced, commented };
+}
+
+/**
  * Comment- and quote-stripped shell text — the OPERATIVE part of a recipe.
  * Quotes go because both fail-opens this family ever saw arrived through prose
  * inside the fence: a `# …` line naming a package the loop skipped, and an
@@ -1162,12 +1210,14 @@ function admonitionDelim(line) {
 
 function safeToRunBlock(src) {
   const { lines } = splitLines(src);
-  const masked = fenceMask(lines);
-  // `!masked[i]` on the START too, not only on the terminator scan: a fenced
-  // example containing this marker would otherwise BE the block, and the real
-  // guidance could then be deleted with the check still green.
+  const { fenced: masked, commented } = hiddenLines(lines);
+  // Hidden on the START too, not only on the terminator scan: a fenced example
+  // or a commented-out copy containing this marker would otherwise BE the
+  // block, and the real guidance could then be deleted with the check still
+  // green.
   const start = lines.findIndex(
-    (l, i) => !masked[i] && l.includes('Safe to run; never publishes')
+    (l, i) =>
+      !masked[i] && !commented[i] && l.includes('Safe to run; never publishes')
   );
   if (start < 0) return null;
   // The run that opened the guidance, when the marker line IS the opener (the
@@ -1246,7 +1296,13 @@ export function recipeFences(src) {
   // a recipe out of a fence with no invocation at all, which was fail-open on
   // main too. Sliced through `close`, not `close - 1`: for an unterminated
   // fence `close` is the last line of the file and is real content.
+  //
+  // Commented-out fences are dropped entirely: a complete recipe inside
+  // `<!-- … -->` renders as nothing, so counting it let the visible recipe be
+  // removed with the check still green (pre-#547, in every generation).
+  const { commented } = hiddenLines(lines);
   return fenceSpans(lines)
+    .filter(({ open }) => !commented[open])
     .map(({ open, close }) =>
       shellOperative(lines.slice(open + 1, close + 1).join('\n'))
     )
@@ -1257,7 +1313,8 @@ export function recipeFences(src) {
  * Every `- Packages:` list in every heading section whose TITLE claims trusted
  * publishing — the section that owns the packages needing a publisher
  * configured on npmjs.com. Each entry runs from its bullet to the NEXT
- * `- Packages:` bullet, or to the end of the section, fenced lines dropped.
+ * `- Packages:` bullet, or to the end of the section, hidden lines dropped —
+ * fenced examples and HTML-commented content alike.
  *
  * What #547 changed: the bullet is still ANCHORED by its literal `- Packages:`
  * prefix, which is a one-line find and a stable marker in the document, but the
@@ -1294,7 +1351,10 @@ export function recipeFences(src) {
  */
 export function publisherSections(src) {
   const { lines } = splitLines(src);
-  const masked = fenceMask(lines);
+  const { fenced, commented } = hiddenLines(lines);
+  // Hidden either way: a commented-out heading does not anchor a section, a
+  // commented-out bullet is not a list, and neither counts toward one.
+  const masked = lines.map((_, i) => fenced[i] || commented[i]);
   const isHeading = i => !masked[i] && MD_HEADING.test(lines[i]);
   const sections = [];
   for (let i = 0; i < lines.length; i++) {

@@ -921,3 +921,80 @@ test('an unterminated fence keeps its final line, which is real content', () => 
   assert.deepEqual(rest, []);
   assert.match(fence, /--debug/, 'the final line is content, not a delimiter');
 });
+
+// --- HTML comments are not rendered, so they are not evidence (CodeRabbit) ----
+
+test('a commented-out recipe does not satisfy the recipe check', () => {
+  // Commenting a section out rather than deleting it removed what a contributor
+  // actually sees while every assertion stayed green. Pre-#547 — main counted
+  // commented content in all three extractors.
+  const commented = ['<!--', recipe(), '-->'].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: commented }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no fenced block running/);
+});
+
+test('a commented-out trusted-publisher list does not satisfy its check', () => {
+  const commented = [
+    '### npm authentication (OIDC trusted publishing)',
+    '',
+    'The list used to be here.',
+    '',
+    '<!--',
+    `- Packages: ${PACKAGES.map(p => `\`${p.name}\``).join(', ')}`,
+    '-->',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ publishers: commented }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "- Packages:" line/);
+});
+
+test('a commented-out guidance block does not satisfy the facts check', () => {
+  // The third site, which the review did not name but shares the defect: the
+  // facts were being read out of text nobody can see.
+  const commented = [
+    '<!--',
+    '> **Safe to run; never publishes:** everything above.',
+    ...FACTS.map(f => `> ${f}`),
+    '-->',
+    '',
+    recipe(),
+    publishers(),
+  ].join('\n');
+  const v = releaseDocViolations(docs({ contributing: commented }), PACKAGES);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /no "Safe to run; never publishes" guidance/);
+});
+
+test('an HTML comment inside a fence is literal text, not a comment', () => {
+  // Both directions of the fence/comment interaction. A `<!--` shown inside a
+  // fenced example must not open a comment that swallows the rest of the page —
+  // docs pages display HTML comments in `html` fences for exactly this reason.
+  const shown = [
+    '```html',
+    '<!--',
+    'a marker shown as an example, never closed inside the fence',
+    '```',
+    '',
+    doc(),
+  ].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: shown }), PACKAGES),
+    []
+  );
+});
+
+test('a one-line comment does not hide what follows it', () => {
+  // `<!-- x -->` opens and closes on its own line, so the next line is visible.
+  const withNote = ['<!-- an editorial note -->', '', doc()].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: withNote }), PACKAGES),
+    []
+  );
+});
