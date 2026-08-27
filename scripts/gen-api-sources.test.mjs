@@ -136,6 +136,8 @@ test('varRootCandidates probes the shared picker-popover root for every picker',
     'DateInputBase',
     'TimeInput',
     'TimeInputBase',
+    'DateTimeInput',
+    'DateTimeInputBase',
   ]) {
     const cands = varRootCandidates(name, 'input', 'input');
     assert.ok(
@@ -143,8 +145,6 @@ test('varRootCandidates probes the shared picker-popover root for every picker',
       `${name} should probe picker-popover`
     );
   }
-  const dt = varRootCandidates('DateTimeInput', 'input', 'input');
-  assert.ok(dt.some(c => c.root === 'picker-popover'));
 });
 
 test('DateInput claims the shared picker-popover partial only once the extra root is tried', () => {
