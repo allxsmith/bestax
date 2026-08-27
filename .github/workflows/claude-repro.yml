@@ -31,11 +31,16 @@ name: Claude Repro
 #       step, with the credential check as the last line rather than the first. Do
 #       not weaken either of those on the grounds that the check exists.
 #
-#       That list used to name harden-runner's egress block as a third leg. It is
-#       not one, and never has been: the policy declared below silently degrades
-#       to audit on every run in this repo (#487). I1 rests on two controls today,
-#       not three. Both are real and both still hold, which is why #487 is a
-#       defense-in-depth regression rather than an open exfil path.
+#       harden-runner's egress block is a third leg again, and this time it is
+#       load-bearing rather than assumed: the policy declared below used to
+#       degrade to audit on every run (#487), and now enforces, with the step
+#       after it asserting the effective policy so a regression fails the job
+#       instead of passing quietly. What it buys here is narrow and worth stating
+#       exactly: Claude has no tool that opens a socket, so egress-block is a
+#       backstop on the paths that would remain if `Write` plus the publish job
+#       were ever chained. It bounds where data can go; it does not stop the
+#       drafting session reading the environment. The first two legs remain the
+#       ones doing the work.
 #   I2  No attacker- or Claude-authored free text reaches a comment un-neutralized
 #       AND with a re-trigger-capable identity. The `publish` job deterministically
 #       defangs machine markers / @mentions in the drafted test, then posts it via
@@ -127,24 +132,44 @@ jobs:
       result: ${{ steps.draft.outputs.result }}
       test: ${{ steps.draft.outputs.test }}
     steps:
-      # Egress-block would be defense-in-depth here (Claude has no tool that opens
-      # a socket), but it is not in effect: harden-runner degrades `block` to
-      # `audit` on every run in this repo (#487). Left declared so the intent stays
-      # recorded and closing #487 needs no change here. The allowlist is additive
-      # to harden-runner's GitHub Actions baseline and is NOT currently complete:
-      # a real session reaches three hosts it does not list (#487 has the set), so
-      # it must be widened before enforcement is switched on.
+      # Egress-block is defense-in-depth here (Claude has no tool that opens a
+      # socket) and it is now in effect: harden-runner used to degrade `block` to
+      # `audit` on every run in this repo (#487), which v2.21.0 fixed, and the
+      # step below asserts the effective policy. The allowlist is additive to
+      # harden-runner's GitHub Actions baseline and is measured from a real run
+      # rather than guessed.
+      #
+      # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
+      # path — the action curls the installer from the first and pulls the binary
+      # from the second. Without them this job fails before the session starts.
+      #
+      # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
+      # deliberately ABSENT rather than allow-listed: it is not a functional
+      # dependency, and the session below sets
+      # CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing attempts it.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
             api.anthropic.com:443
             statsig.anthropic.com:443
+            claude.ai:443
+            downloads.claude.ai:443
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
             registry.npmjs.org:443
+
+      # harden-runner writes its EFFECTIVE config here, after every policy
+      # decision its pre-step makes, so this asserts what is in force rather than
+      # what the block above asked for. A missing file means the pre-step bailed
+      # before installing the agent and nothing is monitoring egress, so jq
+      # failing on it is the direction we want: #487 was exactly this control
+      # degrading in silence for two months. Linux-only path (macOS writes
+      # /opt/step-security/agent.json); every runner here is ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: jq -e '.egress_policy == "block"' /home/agent/agent.json
 
       - name: Checkout base default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -174,6 +199,13 @@ jobs:
           # exchange. No PAT anywhere in this workflow.
           github_token: ${{ secrets.GITHUB_TOKEN }}
           show_full_output: true
+          # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
+          # host stays off the egress allowlist above AND the CLI is told not to
+          # emit it, so the block policy has nothing to refuse (#487). This also
+          # covers feature-flag evaluation, which is what statsig.anthropic.com
+          # would otherwise be for.
+          settings: |
+            {"env": {"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}}
           # I1: no Bash / Task / web tools, so the session cannot execute code,
           # read env (the OAuth token), fetch, or reach another issue. It can only
           # read the checkout + the pre-fetched issue and write ONE test file.
@@ -278,9 +310,11 @@ jobs:
             # can never be complete — chunked, reversed, rot13 or arithmetic
             # encodings all defeat it. The real control is the tool restriction
             # (no Bash/gh/Task); this catches the naive path and turns it into a
-            # failed build instead of a public comment. Egress-block was named
-            # here as the second real control and it is not in effect (#487),
-            # which leaves the tool restriction carrying that weight alone.
+            # failed build instead of a public comment. Egress-block is the
+            # second real control and enforces again since #487, but note it
+            # cannot help on this particular path: the exfil route this check
+            # guards is the drafted file itself, published by a later job, not
+            # an outbound connection from the drafting session.
             for secret in "$OAUTH_TOKEN" "$JOB_TOKEN"; do
               [ -n "$secret" ] || continue
               B64=$(printf '%s' "$secret" | base64 | tr -d '\n=')

@@ -69,13 +69,20 @@ jobs:
       issues: write # open or update the renewal issue
       contents: read # checkout to read security.txt and run the script
     steps:
-      # Rule 10: a new job ships at `block`. Not described as an enforcing
-      # control here — rule 10 forbids that until #487 closes, and this list is
-      # derived from what the steps below documentedly reach rather than from a
-      # measured run. Note the nearest sibling (auto-close-duplicates.yml, also
-      # a scheduled issue-writer) carries no harden-runner at all; it predates
-      # the rule. Flagged in the PR for a decision rather than settled here.
-      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+      # Rule 10: a new job ships at `block`, and since #487 that is an enforcing
+      # control here rather than a declared intention — this job was already
+      # observed arming `EgressPolicy:block` on run 31952287389, because
+      # `schedule` and `workflow_dispatch` are outside the untrusted-trigger
+      # class whose broken cache probe caused the fail-open. The assertion below
+      # is what keeps that true rather than assumed.
+      #
+      # The list itself is still derived from what the steps below documentedly
+      # reach rather than from a measured run; widen it from a StepSecurity
+      # report if one is ever refused. Note the nearest sibling
+      # (auto-close-duplicates.yml, also a scheduled issue-writer) carries no
+      # harden-runner at all; it predates the rule and is tracked in the #487
+      # follow-up rather than settled here.
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -84,6 +91,15 @@ jobs:
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
             nodejs.org:443
+
+      # harden-runner writes its EFFECTIVE config here, after every policy
+      # decision its pre-step makes, so this asserts what is in force rather than
+      # what the block above asked for. A missing file means the pre-step bailed
+      # before installing the agent and nothing is monitoring egress, so jq
+      # failing on it is the direction we want (#487). Linux-only path (macOS
+      # writes /opt/step-security/agent.json); every runner here is ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: jq -e '.egress_policy == "block"' /home/agent/agent.json
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

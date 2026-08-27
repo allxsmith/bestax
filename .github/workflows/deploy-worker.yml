@@ -40,7 +40,7 @@ jobs:
       # below instead of allow-listing its host. No actions-cache endpoints on
       # purpose: setup-node runs cache-less here to keep this list short.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -51,6 +51,16 @@ jobs:
             release-assets.githubusercontent.com:443
             nodejs.org:443
             registry.npmjs.org:443
+
+      # harden-runner writes its EFFECTIVE config here, after every policy
+      # decision its pre-step makes, so this asserts what is in force rather than
+      # what the block above asked for. A missing file means the pre-step bailed
+      # before installing the agent and nothing is monitoring egress, so jq
+      # failing on it is the direction we want: #487 was this control degrading
+      # in silence on other jobs for two months. Linux-only path (macOS writes
+      # /opt/step-security/agent.json); every runner here is ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: jq -e '.egress_policy == "block"' /home/agent/agent.json
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
