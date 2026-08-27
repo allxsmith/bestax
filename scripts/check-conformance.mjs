@@ -1342,6 +1342,14 @@ function safeToRunBlock(src) {
   // ending the blockquote block was an undocumented behavior flip the round-5
   // review caught). Closes match on trimmed text, so an indented `:::` still
   // terminates, as it always had.
+  //
+  // A residual the round-5 rewrite briefly lost the record of (deep review):
+  // if the marker is moved OFF its `:::tip` line into the admonition body, the
+  // opener's width is invisible here, the blockquote fallback applies, and a
+  // nested `:::` close truncates the block again — a false red. Finding the
+  // enclosing opener by scanning backwards would fix that shape, and is the
+  // kind of refinement the header above argues against buying: the marker sits
+  // on its opener line in the committed page, and the failure is loud.
   const outer = visible[start].match(/^ {0,3}(:{3,}).*\S/)?.[1].length ?? null;
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) {
