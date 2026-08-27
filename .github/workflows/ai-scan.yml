@@ -30,12 +30,18 @@ name: AI Security Scan
 # `show_full_output` is deliberately OFF and only a coarse category (never
 # free-text) is surfaced, to avoid an evasion oracle.
 #
-# EGRESS IS NOT ENFORCED HERE, despite the `egress-policy: block` below.
-# harden-runner silently degrades it to `audit` on every run in this repo
-# (#487): arming block needs an Actions cache entry, GitHub made that cache
-# read-only for untrusted triggers, and the resulting miss fails OPEN. So the
-# tool allowlist is the only thing confining this session. Do not count
-# egress-block as a second control until #487 closes.
+# EGRESS IS ENFORCED HERE (#487). harden-runner used to degrade `block` to
+# `audit` on every run in this repo — arming block needed an Actions cache
+# entry, GitHub made that cache read-only for untrusted triggers, and the miss
+# failed OPEN. v2.21.0 removed that downgrade path, and the step after
+# harden-runner asserts the EFFECTIVE policy, so a regression fails this job
+# instead of degrading in silence.
+#
+# Be precise about what that adds: it bounds where the OAuth token can be sent
+# if the tool allowlist is ever defeated. It does not replace the allowlist —
+# `gh` reaches api.github.com, which is allow-listed, so egress-block would not
+# stop a write issued through a tool. Two controls, each covering what the
+# other does not.
 #
 # Be precise about where "read-only" comes from: the job's GITHUB_TOKEN is
 # WRITE-scoped (issues/pull-requests), because the gate charges the budget marker
@@ -106,23 +112,43 @@ jobs:
       pull-requests: write # apply needs-security-review on PRs
     steps:
       # Defense-in-depth: the session's only tools are read-only gh (which reaches
-      # only GitHub), so it cannot open arbitrary sockets. Block mode would bound
-      # the OAuth-token surface regardless, but it is not in effect (#487, see the
-      # header). Left declared so the intent stays recorded and closing #487 needs
-      # no change here. The allowlist is additive to harden-runner's GitHub Actions
-      # baseline and is NOT currently complete: a real session reaches three hosts
-      # it does not list (#487 has the measured set).
+      # only GitHub), so it cannot open arbitrary sockets. Block mode bounds the
+      # OAuth-token surface regardless. The allowlist is additive to
+      # harden-runner's GitHub Actions baseline; the set below is measured from a
+      # real run (#487), not guessed.
+      #
+      # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
+      # path — the action curls the installer from the first and pulls the binary
+      # from the second. Without them this job fails before the session starts.
+      #
+      # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
+      # deliberately ABSENT rather than allow-listed: it is not a functional
+      # dependency, and the session below sets
+      # CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing attempts it. Denying
+      # it and silencing it are a tighter pair than allow-listing it.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
             api.anthropic.com:443
             statsig.anthropic.com:443
+            claude.ai:443
+            downloads.claude.ai:443
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
             registry.npmjs.org:443
+
+      # harden-runner writes its EFFECTIVE config here, after every policy
+      # decision its pre-step makes, so this asserts what is in force rather than
+      # what the block above asked for. A missing file means the pre-step bailed
+      # before installing the agent and nothing is monitoring egress, so jq
+      # failing on it is the direction we want: #487 was exactly this control
+      # degrading in silence for two months. Linux-only path (macOS writes
+      # /opt/step-security/agent.json); every runner here is ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: jq -e '.egress_policy == "block"' /home/agent/agent.json
 
       # Skip bot/automation authors, then charge the daily budget (fail-open).
       - name: Gate (skip bots; charge budget)
@@ -204,6 +230,13 @@ jobs:
           # Read-only job token; no PAT — the scanner needs no identity and must
           # not have one (nothing to steal / impersonate on injection).
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
+          # host stays off the egress allowlist above AND the CLI is told not to
+          # emit it, so the block policy has nothing to refuse (#487). This also
+          # covers feature-flag evaluation, which is what statsig.anthropic.com
+          # would otherwise be for.
+          settings: |
+            {"env": {"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}}
           # DELIBERATELY NO show_full_output: unlike the triage sibling, the
           # scanner's reasoning IS the detection logic. Publishing it to the public
           # job log would be an evasion oracle. The sentinel is parsed from the

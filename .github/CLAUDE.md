@@ -68,10 +68,14 @@ regardless of how convenient it is.
   proof. The credential-shape check in `Collect draft` (literal, base64, and hex forms) is a
   backstop for the same reason, and is documented as one.
 
-  I1 used to be described as resting on three legs, the third being harden-runner's egress
-  block. It rests on two. **No job in this repository enforces egress** — `block` silently
-  degrades to `audit` (#487) — so anywhere you are tempted to trade away a tool restriction
-  because "egress is blocked anyway", the trade is against nothing.
+  The third leg, harden-runner's egress block, is real again as of #487 — `block` used to
+  degrade silently to `audit`, and now enforces and is asserted (rule 10). Be exact about what
+  it adds, because the tempting misreading is the dangerous one: it bounds **where** a session
+  can send data, not **what** it can do with the hosts it is allowed. `api.github.com` is
+  necessarily allow-listed in every one of these jobs, so egress-block cannot stop a write
+  issued through a tool. Never trade away a tool restriction on the grounds that "egress is
+  blocked anyway" — the two controls cover different things, which is the whole reason both
+  exist.
 
 - **I2 — no untrusted or model-authored free text reaches a re-trigger-capable identity.**
   Comments posted with `GITHUB_TOKEN` do not emit workflow events. Comments posted with a PAT
@@ -93,6 +97,18 @@ When bumping, bump every occurrence in a single commit and verify there is exact
 ```bash
 grep -rho "actions/checkout@[a-f0-9]\{40\}" .github/workflows/ | sort | uniq -c   # expect one line
 ```
+
+That grep is the whole verification — nothing in CI reads `.github/**`. Two consequences worth
+holding on to:
+
+- **Do not move a pin out of `.github/workflows/`.** Wrapping a step in a local composite action
+  under `.github/actions/` would make the grep match zero lines and pass silently, which is the
+  same shape of failure as #487 itself.
+- **`harden-runner` has an assertion tied to its pin.** Every block-mode job asserts the
+  effective policy out of `/home/agent/agent.json` (rule 10). That path is an internal detail of
+  the action with no compatibility guarantee, so a bump that moves or renames it fails every
+  block job at once. That is the intended direction, but check it when bumping rather than being
+  surprised by it.
 
 Origin: #361 shipped two new workflows pinned to `9c091bb…` (v7.0.0, twelve commits behind)
 while nineteen other usages were on v7.0.1 — and both were commented `# v7`, so the drift was
@@ -215,29 +231,47 @@ that the flag is self-inflicted, and clear the label by hand once the script is 
 branch. The same applies to moving or renaming a script a workflow already calls — the rename
 lands in the YAML a run before it lands in the tree that run checks out.
 
-### 10. `harden-runner` on new jobs starts at `block`, and `block` does not currently mean block
+### 10. `harden-runner` on new jobs starts at `block`, and every block job asserts it
 
 New jobs ship with `egress-policy: block`. An **existing** live job may be introduced at `audit`
 first, because flipping straight to block risks breaking it if the action's runtime egress needs
 an un-allow-listed host — but that is a temporary state that owes a follow-up issue, not a
 resting place.
 
-**Nothing in this repository is enforcing egress today.** harden-runner arms block mode by
-reading an Actions cache entry; GitHub made that cache read-only for untrusted triggers
-(`issues`, `issue_comment`, `pull_request` — i.e. every workflow here), and harden-runner fails
-**open** to `audit` on the resulting miss, announcing it with a single `core.info` line. Tracked
-in #487 with the fix and the measured endpoint list.
+**Every block-mode job must carry the assertion step immediately after harden-runner:**
 
-Two things follow, and both matter more than the policy value in the YAML:
+```yaml
+- name: Assert egress policy is enforced
+  run: jq -e '.egress_policy == "block"' /home/agent/agent.json
+```
 
-- Never cite egress-block as a control in a comment, a PR description, or a review argument
-  until #487 closes. It is the exact failure the checklist below ends on.
-- The allowlists are stale as well as unenforced: a real session reaches three hosts none of
-  them list. Widening an allowlist is still a security change (rule 2), and #487 is where the
-  measured set lives.
+harden-runner's pre-step serializes its **effective** config there after every policy decision,
+so this checks what is in force rather than what the YAML asked for. A missing file means the
+pre-step bailed before installing the agent, and failing on that is correct: no file, no
+monitoring. This is not ceremony — it exists because of #487, where `block` silently meant
+`audit` on every untrusted trigger for two months and the only announcement was one `core.info`
+line. harden-runner v2.21.0 removed that fail-open path; the assertion is what stops the next
+one being invisible.
 
-Verify rather than assume, on any run: harden-runner logs `Switching egress-policy to audit
-mode` in its pre-step, and its post-step prints the effective `EgressPolicy:`.
+Where the state actually stands, since "which jobs enforce" was mis-stated repeatedly during
+#487 and the distinction is load-bearing:
+
+- **Enforcing and asserted** — `ai-scan`, `claude-repro`, `ai-triage`, `deploy-worker`,
+  `supply-chain` (`consumer-sbom` and `sign-sbom`), `security-txt-expiry`.
+- **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
+  `claude-pr-loop` (`fix` and `verify`), `claude-review`. These run repo code with a model token;
+  their block flip is the follow-up this rule owes.
+- **No harden-runner at all** — `auto-close-duplicates` and the API-only jobs
+  (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`, `supply-chain`'s `sbom`/`attach-sbom`/
+  `verify-provenance`).
+
+Citing egress-block as a control is now legitimate **for the first group only**, and only for
+what it actually does: it bounds where data can go, not what a session can do with an
+allow-listed host (see I1). Widening an allowlist remains a security change under rule 2, and
+`sign-sbom`'s list is still assembled by reading the actions rather than from a measured run.
+
+Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
+prints the effective `EgressPolicy:`.
 
 ## Review checklist for a workflow change
 
@@ -247,6 +281,8 @@ mode` in its pre-step, and its post-step prints the effective `EgressPolicy:`.
 - [ ] Is the posting identity `GITHUB_TOKEN` (inert) or a PAT (re-triggering)?
 - [ ] New repository variable? Gate is `== 'on'`-shaped, and the docs table lists its unset default.
 - [ ] Action SHAs match the repo-wide pin, and the version comment is truthful.
+- [ ] New `block` job carries the effective-policy assertion (rule 10); no pin left outside
+      `.github/workflows/`.
 - [ ] New verdict path fails closed; new counter path fails open.
 - [ ] Security comments claim exactly what the mechanism delivers — no more.
 
