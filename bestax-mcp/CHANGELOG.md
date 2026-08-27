@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.1.2...bestax-mcp@1.2.0) (2026-08-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** attribute shared picker-popover CSS variables to date/time pickers ([80f62ce](https://github.com/allxsmith/bestax/commit/80f62cedb67cde0a6844012be4171edc2df5950e)), closes [#543](https://github.com/allxsmith/bestax/issues/543) [#543](https://github.com/allxsmith/bestax/issues/543)
+
+
+### Features
+
+* **bestax-mcp:** surface CSS variables from get_component's default answer ([0ab98cc](https://github.com/allxsmith/bestax/commit/0ab98ccf56636945f14c5fcb8f1c07dd9091b7a9)), closes [#501](https://github.com/allxsmith/bestax/issues/501)
+
 ## [1.1.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.1.1...bestax-mcp@1.1.2) (2026-08-26)
 
 
