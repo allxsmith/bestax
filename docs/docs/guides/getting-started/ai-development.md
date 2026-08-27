@@ -99,7 +99,8 @@ draft cannot re-trigger anything. The whole pipeline holds no PAT. A flagged iss
 New issues and PRs are automatically assessed by a read-only Claude session for malicious code,
 prompt injection aimed at this repo's automation, and social engineering. When it flags an item,
 a deterministic step applies **`needs-security-review`** (the reason stays in the private run
-output, never a public comment). The scan holds no write tools and no PAT, so it has no channel
+output, never a public comment). The scan holds no write tools, no PAT, and no write-scoped
+token — the labeling happens in a separate job the session cannot reach — so it has no channel
 to post or leak anything; it fails **closed** (a crashed or inconclusive scan flags rather than
 passes). It is **opt-in**: it runs only when `AI_SCAN_MODE` is `on` (or `y`). Every other
 value disables it — including `off`, unset, empty, and typos. `AI_SCAN_DAILY_LIMIT` caps it (auto scans per

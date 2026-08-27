@@ -104,13 +104,13 @@ invisible to a reader. Copilot caught it; nothing in CI would have.
 not a convenience list, and widening it grants capability with **no permissions diff for a
 reviewer to notice** — the `permissions:` block looks identical before and after.
 
-Two sessions where the allowlist is the _only_ thing between untrusted text and repository
-write:
+One session where the allowlist is the _only_ thing between untrusted text and repository
+write, and one where it used to be:
 
-| Workflow        | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                           |
-| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ai-triage.yml` | `AI_LOOP_PAT` (bestaxbot)                                        | Full repo write. Confined to GET-only `gh` reads plus the two comment commands.                                                                                                                              |
-| `ai-scan.yml`   | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes. |
+| Workflow        | Credential in the session's job                                           | What the allowlist is holding back                                                                                                                                                                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ai-triage.yml` | `AI_LOOP_PAT` (bestaxbot)                                                 | Full repo write. Confined to GET-only `gh` reads plus the two comment commands.                                                                                                                                                                                                                                          |
+| `ai-scan.yml`   | job `GITHUB_TOKEN`, **read**-scoped (`contents`/`issues`/`pull-requests`) | Nothing any more — since #455 the session's job cannot write at all. The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them. The allowlist is now defense in depth. Keep it narrow anyway. |
 
 Concrete rules:
 
@@ -121,8 +121,12 @@ Concrete rules:
 - Never add `Edit`, `Write`, `MultiEdit`, or `Task` to `ai-scan.yml`.
 - `--disallowedTools` is defense in depth, and its deny rules do take precedence over the
   allows — but do not lean on it as the primary control. Narrow the allowlist.
-- Prefer removing the need for the boundary over hardening it. Splitting `ai-scan`'s labeler
-  into its own job so the model session can drop to `contents: read` is tracked in #455.
+- Prefer removing the need for the boundary over hardening it. #455 is the worked example:
+  `ai-scan.yml` was one job whose write scopes the model session merely happened not to use,
+  and it became three (`gate` / `scan` / `label`) so the session's own job grants are
+  read-only. The allowlist did not change; what changed is that it is no longer the only
+  thing standing behind it. When a session's job holds a write scope for the benefit of some
+  _other_ step, that is the shape to look for.
 
 ### 3. Opt in explicitly for anything that spends model usage
 
