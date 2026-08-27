@@ -8,6 +8,7 @@ import {
   makeAttr,
   plainElement,
   removeAttr,
+  resolveBooleanish,
 } from '../jsx-utils.js';
 
 const j = jscodeshift.withParser('tsx');
@@ -74,6 +75,22 @@ describe('attribute helpers', () => {
     expect(attributesOf(el)).toHaveLength(1);
     removeAttr(el, findAttr(el, 'a'));
     expect(findAttr(el, 'a')).toBeUndefined();
+  });
+});
+
+describe('resolveBooleanish', () => {
+  it("resolves every statically-known literal by truthiness, matching RBC's `!!value`", () => {
+    const el = firstElement(
+      '<X bare a={true} b={false} c="true" d="" e={1} f={0} g={cond} />;'
+    );
+    expect(resolveBooleanish(findAttr(el, 'bare'))).toBe('truthy');
+    expect(resolveBooleanish(findAttr(el, 'a'))).toBe('truthy');
+    expect(resolveBooleanish(findAttr(el, 'b'))).toBe('falsy');
+    expect(resolveBooleanish(findAttr(el, 'c'))).toBe('truthy');
+    expect(resolveBooleanish(findAttr(el, 'd'))).toBe('falsy');
+    expect(resolveBooleanish(findAttr(el, 'e'))).toBe('truthy');
+    expect(resolveBooleanish(findAttr(el, 'f'))).toBe('falsy');
+    expect(resolveBooleanish(findAttr(el, 'g'))).toBe('expression');
   });
 });
 

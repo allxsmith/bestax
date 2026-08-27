@@ -116,6 +116,23 @@ export function literalValueOf(attr: any): LiteralValue {
   return { kind: 'expression' };
 }
 
+export type Booleanish = 'truthy' | 'falsy' | 'expression';
+
+/**
+ * Classify a JSX attribute by the truthiness RBC evaluates it with at
+ * runtime (`!!value`): every statically-known literal (boolean, string, or
+ * number) resolves to `'truthy'`/`'falsy'`; only a genuine expression is
+ * `'expression'`. This is the single place the six call sites that branch on
+ * a "booleanish" prop (Button `remove`, Heading `heading`/`subtitle`,
+ * `booleanToProp`, the `active` ladders, Field `multiline`) agree on what
+ * counts as resolvable, so they can't drift out of sync with each other.
+ */
+export function resolveBooleanish(attr: any): Booleanish {
+  const literal = literalValueOf(attr);
+  if (literal.kind === 'expression') return 'expression';
+  return literal.value ? 'truthy' : 'falsy';
+}
+
 /** Create `name` (bare boolean) or `name="value"` attribute. */
 export function makeAttr(j: JSCodeshift, name: string, value?: string): any {
   return j.jsxAttribute(
