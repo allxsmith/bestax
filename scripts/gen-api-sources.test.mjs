@@ -39,6 +39,7 @@ test('varRootCandidates tries the primary root/prefix before any extra', () => {
   assert.deepEqual(cands[0], { root: 'input', prefix: 'input' });
   assert.deepEqual(cands.slice(1), [
     { root: 'dateinput', prefix: 'dateinput' },
+    { root: 'picker-popover', prefix: 'picker-popover' },
   ]);
 });
 
@@ -52,7 +53,7 @@ test('DateTimeInput probes its own panel class plus the calendar and wheels', ()
   const cands = varRootCandidates('DateTimeInput', 'input', 'input');
   assert.deepEqual(
     cands.map(c => c.root),
-    ['input', 'datetimeinput', 'dateinput', 'timeinput']
+    ['input', 'datetimeinput', 'dateinput', 'timeinput', 'picker-popover']
   );
 });
 
@@ -122,5 +123,69 @@ test('Tabs already attributes .tabs-root to its primary root — the gap was sta
     '--bulma-tabs-vertical-border-color',
     '--bulma-tabs-vertical-border-width',
     '--bulma-tabs-vertical-min-width',
+  ]);
+});
+
+// --- picker-popover: shared chrome, owned by all three pickers (#543) ----
+
+const PICKER_POPOVER = 'bulma-ui/src/scss/form/_picker-popover.scss';
+
+test('varRootCandidates probes the shared picker-popover root for every picker', () => {
+  for (const name of [
+    'DateInput',
+    'DateInputBase',
+    'TimeInput',
+    'TimeInputBase',
+    'DateTimeInput',
+    'DateTimeInputBase',
+  ]) {
+    const cands = varRootCandidates(name, 'input', 'input');
+    assert.ok(
+      cands.some(c => c.root === 'picker-popover'),
+      `${name} should probe picker-popover`
+    );
+  }
+});
+
+test('DateInput claims the shared picker-popover partial only once the extra root is tried', () => {
+  const partials = [{ path: PICKER_POPOVER, src: repoFile(PICKER_POPOVER) }];
+  // DateInput's props root (`input`) and its calendar's own root (`dateinput`)
+  // — the state before this fix — appear nowhere in the shared popover
+  // partial, so it stayed unclaimed and reached no API page.
+  const withoutPopover = [
+    { root: 'input', prefix: 'input' },
+    { root: 'dateinput', prefix: 'dateinput' },
+  ];
+  assert.deepEqual(resolveScssHits(withoutPopover, partials), []);
+
+  // The fix: probing the shared `picker-popover` root claims the file.
+  const candidates = varRootCandidates('DateInput', 'input', 'input');
+  const hits = resolveScssHits(candidates, partials);
+  assert.deepEqual(
+    hits.map(h => h.path),
+    [PICKER_POPOVER]
+  );
+});
+
+test('componentVars attributes the 8 depth-1 popover variables, not the 3 nested trigger ones', () => {
+  // `_picker-popover.scss` registers 11 keys total, but 3
+  // (`picker-trigger-*`) sit two levels deep inside an `@each` over each
+  // picker's own container class — componentVars' depth-1 filter can't place
+  // them regardless of root, which is why the partial stays in
+  // ORPHAN_EXEMPT even once claimed.
+  const rows = componentVars(
+    repoFile(PICKER_POPOVER),
+    'picker-popover',
+    'picker-popover'
+  );
+  assert.deepEqual(rows.map(r => r.cssVar).sort(), [
+    '--bulma-picker-popover-animation-duration',
+    '--bulma-picker-popover-background',
+    '--bulma-picker-popover-border-color',
+    '--bulma-picker-popover-offset',
+    '--bulma-picker-popover-padding',
+    '--bulma-picker-popover-radius',
+    '--bulma-picker-popover-shadow',
+    '--bulma-picker-popover-z-index',
   ]);
 });

@@ -103,21 +103,25 @@ export const SCSS_SOURCES = {
   ],
   DateInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   DateInputBase: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   DateTimeInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_datetimeinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_timeinput.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   DateTimeInputBase: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_datetimeinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_timeinput.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
@@ -207,10 +211,12 @@ export const SCSS_SOURCES = {
   Thead: [],
   Theme: [],
   TimeInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_timeinput.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   TimeInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_timeinput.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],

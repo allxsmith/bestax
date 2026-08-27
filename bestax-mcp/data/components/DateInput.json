@@ -773,6 +773,54 @@
       "scope": "element"
     },
     {
+      "css": "--bulma-picker-popover-z-index",
+      "sass": "$picker-popover-z-index",
+      "default": "30",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-background",
+      "sass": "$picker-popover-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-radius",
+      "sass": "$picker-popover-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-shadow",
+      "sass": "$picker-popover-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.18)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-border-color",
+      "sass": "$picker-popover-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-padding",
+      "sass": "$picker-popover-padding",
+      "default": "0.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-offset",
+      "sass": "$picker-popover-offset",
+      "default": "4px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-animation-duration",
+      "sass": "$picker-popover-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-input-h",
       "sass": "$input-h",
       "default": "var(--bulma-scheme-h)",
