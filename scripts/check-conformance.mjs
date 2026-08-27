@@ -1135,6 +1135,14 @@ const MD_HEADING = /^ {0,3}#{1,6}\s/;
  * with a comment opener reads as commented, which over-masks the visible half;
  * neither release doc contains an HTML comment at all today, so the precise
  * split would be machinery for a case that does not occur.
+ *
+ * Both close forms end a comment: `-->` and the parse-error form `--!>`,
+ * which browsers honor per the HTML spec. Recognizing only `-->` left a
+ * `--!>`-closed comment open in the mask, hiding the entire VISIBLE document
+ * below it — every assertion then false-reds at once, and the violation text's
+ * own remedy is to drop the file from RELEASE_DOC_FILES. CodeQL flags exactly
+ * this (js/bad-tag-filter), and the repro sanitizer already breaks `--!>` for
+ * the same reason.
  */
 function commentMask(lines, fenced) {
   const mask = new Array(lines.length).fill(false);
@@ -1145,7 +1153,7 @@ function commentMask(lines, fenced) {
       continue;
     }
     mask[i] = open || lines[i].includes('<!--');
-    for (const m of lines[i].matchAll(/<!--|-->/g)) {
+    for (const m of lines[i].matchAll(/<!--|--!?>/g)) {
       open = m[0] === '<!--';
     }
   }

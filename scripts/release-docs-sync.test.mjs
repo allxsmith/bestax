@@ -998,3 +998,30 @@ test('a one-line comment does not hide what follows it', () => {
     []
   );
 });
+
+test('the alternate comment close --!> ends a comment too', () => {
+  // Browsers honor `--!>` as a comment close per the HTML spec (a parse
+  // error, but effective), so everything after it is RENDERED. Recognizing
+  // only `-->` left the mask open, hiding the entire visible document — every
+  // assertion false-reds at once, and the violation's own remedy is to drop
+  // the file from RELEASE_DOC_FILES. CodeQL js/bad-tag-filter; the repro
+  // sanitizer breaks `--!>` for the same reason.
+  const alternateClose = [
+    '<!-- an aside, closed the parse-error way --!>',
+    '',
+    doc(),
+  ].join('\n');
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: alternateClose }), PACKAGES),
+    []
+  );
+  // And the hiding direction still holds: content only visible because of
+  // `--!>` is content — a recipe between `--!>` and `-->` counts.
+  const between = ['<!-- hidden --!>', doc(), '<!-- hidden again -->'].join(
+    '\n'
+  );
+  assert.deepEqual(
+    releaseDocViolations(docs({ contributing: between }), PACKAGES),
+    []
+  );
+});
