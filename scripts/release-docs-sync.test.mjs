@@ -875,3 +875,49 @@ test('a stale list BELOW a complete one is caught too', () => {
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /bestax-migrate, bestax-mcp/);
 });
+
+test('a fence info string is markup, not part of the recipe', () => {
+  // Two holes, one cause: the opening delimiter used to sit inside the
+  // operative text. Under membership its info string could supply a package
+  // the loop omits — a regression, since the loop-word-list narrowing excluded
+  // it — and an info string carrying the anchor could conjure a recipe from a
+  // fence with no invocation, which was fail-open on main too.
+  const infoStringNames = [
+    '```bash bestax-mcp',
+    'for pkg in bulma-ui create-bestax bestax-migrate; do',
+    '  ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )',
+    'done',
+    '```',
+  ].join('\n');
+  const v = releaseDocViolations(
+    docs({ contributing: doc({ recipe: infoStringNames }) }),
+    PACKAGES
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /omits bestax-mcp/);
+
+  // And an info string alone is not an invocation.
+  const infoStringOnly = [
+    '```bash semantic-release --dry-run',
+    'pnpm all',
+    '```',
+  ].join('\n');
+  assert.equal(recipeFences(infoStringOnly).length, 0);
+});
+
+test('an unterminated fence keeps its final line, which is real content', () => {
+  // The companion to dropping the OPENING delimiter: the closing one may not be
+  // dropped with it. For a fence left open at EOF, fenceSpans reports the last
+  // line of the file as `close`, and that line is content. The existing
+  // unterminated-fence case could not see this — its final line is blank, so
+  // slicing it off changed nothing and the bound went unguarded.
+  const src = [
+    '```bash',
+    'pnpm exec semantic-release --dry-run --no-ci \\',
+    '  --debug   # wraps onto the last line of the file',
+  ].join('\n');
+  const [fence, ...rest] = recipeFences(src);
+  assert.ok(fence, 'an unterminated fence is still a recipe');
+  assert.deepEqual(rest, []);
+  assert.match(fence, /--debug/, 'the final line is content, not a delimiter');
+});

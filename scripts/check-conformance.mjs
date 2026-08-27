@@ -1238,9 +1238,17 @@ export function recipeFences(src) {
   // ````markdown wrapper). An unterminated fence still runs to EOF and is
   // still returned: dropping it produced the switch-the-check-off violation
   // this docblock has always warned about.
+  // From open + 1: the OPENING delimiter is markup, not shell. Its info string
+  // was inside the operative text in every generation of this check, and under
+  // membership that let ```bash bestax-mcp count as naming bestax-mcp — the
+  // loop-word-list narrowing used to exclude it, so this one is a regression
+  // (found in review). It also let an info string carrying the anchor conjure
+  // a recipe out of a fence with no invocation at all, which was fail-open on
+  // main too. Sliced through `close`, not `close - 1`: for an unterminated
+  // fence `close` is the last line of the file and is real content.
   return fenceSpans(lines)
     .map(({ open, close }) =>
-      shellOperative(lines.slice(open, close + 1).join('\n'))
+      shellOperative(lines.slice(open + 1, close + 1).join('\n'))
     )
     .filter(b => b.includes('semantic-release --dry-run'));
 }
