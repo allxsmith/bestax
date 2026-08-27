@@ -168,6 +168,16 @@ export function renderComponent(
   }
   if (include.includes('cssVars') && record.cssVars.length) {
     out.push('## CSS Variables', renderCssVars(record.cssVars));
+  } else if (record.cssVars.length) {
+    // Routing, not a second tool call: get_component can already serve this on the
+    // call being made, so the fix is a pointer at `include`, not at get_css_variables.
+    // A 20-run eval (issue #501) found get_css_variables reached 1/10 MCP-only builders
+    // in an arm where every one themed the site by hand instead.
+    out.push(
+      `\`${record.name}\` has ${record.cssVars.length} CSS variable${
+        record.cssVars.length === 1 ? '' : 's'
+      } for theming — pass \`include: ["cssVars"]\` to see them.`
+    );
   }
   if (include.includes('accessibility') && record.accessibility) {
     out.push('## Accessibility', record.accessibility);

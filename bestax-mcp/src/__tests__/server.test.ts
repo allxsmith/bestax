@@ -362,6 +362,35 @@ describe('get_component', () => {
     expect(out).toMatch(/Docs: https:\/\/\S+\?utm_source=bestax-mcp/);
     expect(out).toMatch(/Storybook: https:\/\/\S+&utm_source=bestax-mcp/);
   });
+
+  // Issue #501: get_css_variables reached 1/10 MCP-only builders in an eval arm where
+  // every run themed the site. get_component can already serve the variables on the call
+  // being made (`include: ["cssVars"]`), so the default answer names the count and points
+  // there instead of requiring a builder to already know a second tool exists.
+  describe('surfaces CSS variables without a second tool call', () => {
+    it('names the count and the include option by default', async () => {
+      const out = text(await call('get_component', { name: 'Button' }));
+      expect(out).toMatch(/`Button` has \d+ CSS variables? for theming/);
+      expect(out).toContain('include: ["cssVars"]');
+      expect(out).not.toContain('## CSS Variables');
+    });
+
+    it('says nothing once cssVars is already included', async () => {
+      const out = text(
+        await call('get_component', {
+          name: 'Button',
+          include: ['props', 'cssVars'],
+        })
+      );
+      expect(out).toContain('## CSS Variables');
+      expect(out).not.toContain('for theming — pass');
+    });
+
+    it('says nothing for a component with no CSS variables', async () => {
+      const out = text(await call('get_component', { name: 'Block' }));
+      expect(out).not.toContain('CSS variable');
+    });
+  });
 });
 
 describe('get_props', () => {

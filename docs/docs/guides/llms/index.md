@@ -121,7 +121,9 @@ Start with `list_components` — its output names the tool to call next. Reach f
 
 It also exposes each skill as an MCP **prompt** (`theming`, `form`, `layout-scaffold`, …) and
 serves `bestax://catalog`, `bestax://components/{name}` and `bestax://skills/{name}` as
-**resources**.
+**resources** — useful in clients where the _user_ attaches context (`@`-mentioning a
+resource), rather than a channel the model reaches for mid-task the way it does the tools
+above.
 
 ### Offline, and pinned to a version
 
