@@ -1,7 +1,7 @@
 ---
 title: Dialog
 sidebar_label: Dialog
-description: The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+description: The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 ---
 
 # Dialog
@@ -10,7 +10,7 @@ description: The `Dialog` component provides confirmation and alert dialogs with
 
 <!-- bestax:generated overview -->
 
-The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 
 <!-- /bestax:generated overview -->
 

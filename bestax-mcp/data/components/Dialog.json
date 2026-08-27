@@ -29,14 +29,14 @@
   "accessibility": "- Uses `role=\"alertdialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` to indicate modal behavior\n- Focus is trapped within the dialog when open\n- Escape key closes the dialog (when `canCancel` is true)\n- Body scroll is prevented when dialog is open\n- Confirm/cancel buttons are keyboard accessible",
   "related": ["Modal", "Toast"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-dialog",
-  "summary": "The `Dialog` component provides confirmation and alert dialogs with customizable actions.",
+  "summary": "The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.",
   "import": "import { Dialog, DialogContainer, dialog } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Dialog.tsx",
   "rootClass": "dialog",
   "parts": [
     {
       "path": "Dialog",
-      "summary": "The `Dialog` component provides confirmation and alert dialogs with customizable actions.",
+      "summary": "The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.",
       "component": null,
       "props": [
         {
