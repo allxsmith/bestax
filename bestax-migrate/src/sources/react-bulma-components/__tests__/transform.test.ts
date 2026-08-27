@@ -507,6 +507,104 @@ describe('react-bulma-components transform fixtures', () => {
       });
       expect(todos.some(t => t.rule === 'prop:title')).toBe(true);
     });
+
+    it('resolves a truthy string `booleanToProp` literal instead of taking the dynamic-TODO branch', () => {
+      const source = [
+        "import { Button } from 'react-bulma-components';",
+        'export const A = () => <Button rounded="true">Save</Button>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'button-rounded.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(output).toContain('isRounded');
+      expect(output).not.toContain('rounded=');
+      expect(todos.some(t => t.rule === 'prop:rounded')).toBe(false);
+    });
+
+    it('drops a falsy string `booleanToProp` literal instead of taking the dynamic-TODO branch', () => {
+      const source = [
+        "import { Button } from 'react-bulma-components';",
+        'export const A = () => <Button rounded="">Save</Button>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'button-unrounded.tsx',
+        source,
+        {
+          add: entry => todos.push(entry),
+        }
+      );
+      expect(output).not.toContain('rounded');
+      expect(output).not.toContain('isRounded');
+      expect(todos.some(t => t.rule === 'prop:rounded')).toBe(false);
+    });
+
+    it('resolves a static string/number Panel.Tabs.Tab `active` by truthiness, not a TODO', () => {
+      const source = [
+        "import { Panel } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <Panel>',
+        '    <Panel.Tabs>',
+        '      <Panel.Tabs.Tab active="true">All</Panel.Tabs.Tab>',
+        '      <Panel.Tabs.Tab active={0}>None</Panel.Tabs.Tab>',
+        '    </Panel.Tabs>',
+        '  </Panel>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'panel-tabs.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(output).toContain('className="is-active">All');
+      expect(output).toContain('>None</a>');
+      expect(todos.some(t => t.rule === 'prop:active')).toBe(false);
+    });
+
+    it('resolves a static string Breadcrumb.Item `active` by truthiness, not a TODO', () => {
+      const source = [
+        "import { Breadcrumb } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <Breadcrumb>',
+        '    <Breadcrumb.Item active="true" href="/here">Here</Breadcrumb.Item>',
+        '  </Breadcrumb>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'breadcrumb.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(output).toContain('<li className="is-active">');
+      expect(todos.some(t => t.rule === 'prop:active')).toBe(false);
+    });
+
+    it('drops a falsy `multiline={false}` by value instead of by presence', () => {
+      const source = [
+        "import { Form } from 'react-bulma-components';",
+        'export const A = () => <Form.Field multiline={false} />;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'field-false.tsx', source);
+      // Presence-only classification would wrongly grant `grouped="multiline"`
+      // to a falsy value; resolving by value drops it like an absent prop.
+      expect(output).toContain('<Field />');
+      expect(output).not.toContain('grouped');
+    });
+
+    it('keeps a dynamic Field `multiline` on the element with a TODO instead of dropping it', () => {
+      const source = [
+        "import { Form } from 'react-bulma-components';",
+        'export const A = ({ wrap }: { wrap: boolean }) => (',
+        '  <Form.Field kind="group" multiline={wrap} />',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'field-dynamic.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(output).toContain('multiline={wrap}');
+      expect(todos.some(t => t.rule === 'prop:multiline')).toBe(true);
+    });
   });
 
   describe('stylesheet imports', () => {

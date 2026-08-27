@@ -14,6 +14,7 @@ import {
   literalValueOf,
   makeAttr,
   removeAttr,
+  resolveBooleanish,
   type TransformContext,
 } from './jsx-utils.js';
 
@@ -110,11 +111,12 @@ export function applyPropAction(
 
   if (action.booleanToProp) {
     const { name, value } = action.booleanToProp;
-    if (literal.kind === 'boolean' && literal.value === true) {
+    const resolved = resolveBooleanish(attr);
+    if (resolved === 'truthy') {
       removeAttr(element, attr);
       addConverted(ctx, path, element, originalName, name, value);
       ctx.dirty = true;
-    } else if (literal.kind === 'boolean' && literal.value === false) {
+    } else if (resolved === 'falsy') {
       removeAttr(element, attr);
       ctx.dirty = true;
     } else if (value === undefined) {

@@ -20,6 +20,7 @@ import {
   makeAttr,
   plainElement,
   removeAttr,
+  resolveBooleanish,
   type TransformContext,
 } from './jsx-utils.js';
 
@@ -213,14 +214,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
   button(ctx, path, element) {
     const attr = findAttr(element, 'remove');
     if (!attr) return {};
-    const literal = literalValueOf(attr);
-    if (literal.kind !== 'expression') {
+    const resolved = resolveBooleanish(attr);
+    if (resolved !== 'expression') {
       // A statically-known value always renders the same at runtime: truthy
       // (`remove`, `remove={true}`, `remove="true"`) → `<Delete />`; falsy
       // (`remove={false}`, `remove=""`, `remove={0}`) → just drop the prop.
       removeAttr(element, attr);
       ctx.dirty = true;
-      return literal.value ? { target: 'Delete' } : {};
+      return resolved === 'truthy' ? { target: 'Delete' } : {};
     }
     addTodo(
       ctx,
@@ -250,16 +251,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
   heading(ctx, path, element) {
     const headingAttr = findAttr(element, 'heading');
     const subtitleAttr = findAttr(element, 'subtitle');
-    const headingLit = headingAttr ? literalValueOf(headingAttr) : undefined;
-    const subtitleLit = subtitleAttr ? literalValueOf(subtitleAttr) : undefined;
-    const headingDynamic = headingLit?.kind === 'expression';
-    const subtitleDynamic = subtitleLit?.kind === 'expression';
+    const headingResolved = headingAttr
+      ? resolveBooleanish(headingAttr)
+      : undefined;
+    const subtitleResolved = subtitleAttr
+      ? resolveBooleanish(subtitleAttr)
+      : undefined;
+    const headingDynamic = headingResolved === 'expression';
+    const subtitleDynamic = subtitleResolved === 'expression';
     // A resolvable literal (boolean/string/number) collapses to its runtime
     // truthiness; an expression stays dynamic.
-    const headingTruthy =
-      !!headingLit && headingLit.kind !== 'expression' && !!headingLit.value;
-    const subtitleTruthy =
-      !!subtitleLit && subtitleLit.kind !== 'expression' && !!subtitleLit.value;
+    const headingTruthy = headingResolved === 'truthy';
+    const subtitleTruthy = subtitleResolved === 'truthy';
 
     // Dynamic values can't be resolved to a target: leave the prop on the
     // element (so its expression survives for hand-splitting) plus a TODO.
@@ -317,12 +320,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // A resolvable literal `heading` that didn't collapse (falsy, or truthy
     // but blocked by a dynamic subtitle) behaves as if the prop were absent —
     // drop it. A dynamic `heading` stays put (its TODO is already filed above).
-    if (headingLit && !headingDynamic) {
+    if (headingAttr && !headingDynamic) {
       removeAttr(element, headingAttr);
       ctx.dirty = true;
     }
 
-    if (subtitleLit && !subtitleDynamic) {
+    if (subtitleAttr && !subtitleDynamic) {
       removeAttr(element, subtitleAttr);
       ctx.dirty = true;
       return { target: subtitleTruthy ? 'SubTitle' : 'Title' };
@@ -481,22 +484,49 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'prop:kind',
         'dynamic Field kind/align; map to the bestax `grouped` / `hasAddons` props by hand'
       );
-      return {};
+      // This handler owns `multiline` end-to-end; without this, the mapping's
+      // fallback `multiline: { drop: true }` prop action would silently strip
+      // a dynamic `multiline` the moment kind/align themselves are dynamic.
+      return { handledProps: ['multiline'] };
     }
 
-    for (const attr of [kindAttr, alignAttr, multilineAttr]) {
+    // `multiline` is a value, not just presence: a falsy literal drops it
+    // (same as it being absent) and a dynamic value must survive on the
+    // element — so, unlike `kind`/`align`, it's only stripped once resolved.
+    const multilineResolved = multilineAttr
+      ? resolveBooleanish(multilineAttr)
+      : null;
+    const multilineDynamic = multilineResolved === 'expression';
+    const multilineTruthy = multilineResolved === 'truthy';
+
+    const kindOrAlignPresent = Boolean(kindAttr || alignAttr);
+    for (const attr of [kindAttr, alignAttr]) {
       if (attr) removeAttr(element, attr);
     }
-    ctx.dirty = true;
+    if (multilineAttr && !multilineDynamic) {
+      removeAttr(element, multilineAttr);
+    }
+    if (kindOrAlignPresent || (multilineAttr && !multilineDynamic)) {
+      ctx.dirty = true;
+    }
 
     const alignValue =
       align && align.kind === 'string'
         ? { center: 'centered', right: 'right' }[align.value]
         : undefined;
 
+    if (multilineDynamic) {
+      addTodo(
+        ctx,
+        path,
+        'prop:multiline',
+        '`multiline` has a dynamic value; resolve the bestax `grouped`/`hasAddons` combination by hand'
+      );
+    }
+
     if (kind && kind.kind === 'string' && kind.value === 'addons') {
       addAttr(element, makeAttr(ctx.j, 'hasAddons', alignValue));
-      if (multilineAttr) {
+      if (multilineTruthy) {
         addTodo(
           ctx,
           path,
@@ -504,10 +534,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
           "`multiline` only combines with kind='group' in Bulma; dropped from this addons Field"
         );
       }
-      return {};
+      return { handledProps: ['multiline'] };
     }
     // kind='group' (or a stray multiline/align without kind)
-    if (multilineAttr) {
+    if (multilineTruthy) {
       addAttr(element, makeAttr(ctx.j, 'grouped', 'multiline'));
       if (alignValue) {
         addTodo(
@@ -518,10 +548,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
             alignValue
         );
       }
-    } else {
+    } else if (kindOrAlignPresent) {
       addAttr(element, makeAttr(ctx.j, 'grouped', alignValue));
     }
-    return {};
+    return { handledProps: ['multiline'] };
   },
 
   /** Form.Label → plain <label className="label">. */
@@ -707,21 +737,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
     const activeAttr = findAttr(element, 'active');
     let className: string | undefined;
     if (activeAttr) {
-      const literal = literalValueOf(activeAttr);
-      if (literal.kind === 'boolean' && literal.value === true) {
+      const resolved = resolveBooleanish(activeAttr);
+      if (resolved === 'truthy') {
         className = 'is-active';
-        removeAttr(element, activeAttr);
-      } else if (literal.kind === 'boolean') {
-        removeAttr(element, activeAttr);
-      } else {
+      } else if (resolved === 'expression') {
         addTodo(
           ctx,
           path,
           'prop:active',
           "dynamic Panel.Tabs.Tab active; set className={active ? 'is-active' : undefined} by hand"
         );
-        removeAttr(element, activeAttr);
       }
+      removeAttr(element, activeAttr);
     }
     className = mergeClassName(ctx, path, element, className, 'Panel.Tabs.Tab');
     const rest = stripModifierProps(
@@ -743,10 +770,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
     const activeAttr = findAttr(element, 'active');
     let liClass: string | undefined;
     if (activeAttr) {
-      const literal = literalValueOf(activeAttr);
-      if (literal.kind === 'boolean' && literal.value === true)
-        liClass = 'is-active';
-      else if (literal.kind !== 'boolean') {
+      const resolved = resolveBooleanish(activeAttr);
+      if (resolved === 'truthy') liClass = 'is-active';
+      else if (resolved === 'expression') {
         addTodo(
           ctx,
           path,
