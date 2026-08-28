@@ -92,14 +92,27 @@ jobs:
             release-assets.githubusercontent.com:443
             nodejs.org:443
 
-      # harden-runner writes its EFFECTIVE config here, after every policy
-      # decision its pre-step makes, so this asserts what is in force rather than
-      # what the block above asked for. A missing file means the pre-step bailed
-      # before installing the agent and nothing is monitoring egress, so jq
-      # failing on it is the direction we want (#487). Linux-only path (macOS
-      # writes /opt/step-security/agent.json); every runner here is ubuntu-latest.
+      # Two assertions, because either one alone is a false pass.
+      #
+      # agent.json holds the policy the pre-step DECIDED, serialized after every
+      # policy decision it makes — so it catches a downgrade, which is what #487
+      # was: `block` silently meaning `audit` for two months, announced by a
+      # single core.info line.
+      #
+      # agent.status is written only once the firewall rules are installed. It is
+      # needed because agent.json is written BEFORE the agent starts: if the agent
+      # then fails to come up, the pre-step logs `timed out`, reverts its changes
+      # and still exits 0 — leaving `block` in agent.json and no firewall at all.
+      # Not hypothetical: it happened on this PR, caused by an unresolvable host
+      # in this very allowlist.
+      #
+      # A missing file, the wrong policy, or an agent that never initialized all
+      # fail the job. Linux-only paths (macOS uses /opt/step-security); every
+      # runner here is ubuntu-latest.
       - name: Assert egress policy is enforced
-        run: jq -e '.egress_policy == "block"' /home/agent/agent.json
+        run: |
+          jq -e '.egress_policy == "block"' /home/agent/agent.json
+          grep -qx Initialized /home/agent/agent.status
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
