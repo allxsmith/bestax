@@ -274,7 +274,7 @@ sharpest operational rule here:
 > `timed out`, suspect the allowlist before anything else.
 
 Where the state actually stands, since "which jobs enforce" was mis-stated repeatedly during
-#487 and the distinction is load-bearing:
+issue #487 and the distinction is load-bearing:
 
 - **Enforcing and asserted** — `ai-scan`, `claude-repro`, `ai-triage`, `deploy-worker`,
   `supply-chain` (`consumer-sbom` and `sign-sbom`), `security-txt-expiry`.

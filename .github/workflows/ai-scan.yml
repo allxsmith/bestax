@@ -31,11 +31,13 @@ name: AI Security Scan
 # free-text) is surfaced, to avoid an evasion oracle.
 #
 # EGRESS IS ENFORCED HERE (#487). harden-runner used to degrade `block` to
-# `audit` on every run in this repo — arming block needed an Actions cache
+# `audit` on every run of THIS workflow — arming block needed an Actions cache
 # entry, GitHub made that cache read-only for untrusted triggers, and the miss
-# failed OPEN. v2.21.0 removed that downgrade path, and the step after
-# harden-runner asserts the EFFECTIVE policy, so a regression fails this job
-# instead of degrading in silence.
+# failed OPEN. Scope that precisely: it hit the issue- and PR-triggered jobs
+# only. Workflows on `schedule`, `workflow_dispatch` or `release` were never in
+# that class and did enforce. v2.21.0 removed the downgrade path, and the step
+# after harden-runner asserts the EFFECTIVE policy, so a regression fails this
+# job instead of degrading in silence.
 #
 # Be precise about what that adds: it bounds where the OAuth token can be sent
 # if the tool allowlist is ever defeated. It does not replace the allowlist —

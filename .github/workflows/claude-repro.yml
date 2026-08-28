@@ -134,10 +134,11 @@ jobs:
     steps:
       # Egress-block is defense-in-depth here (Claude has no tool that opens a
       # socket) and it is now in effect: harden-runner used to degrade `block` to
-      # `audit` on every run in this repo (#487), which v2.21.0 fixed, and the
-      # step below asserts the effective policy. The allowlist is additive to
-      # harden-runner's GitHub Actions baseline and is measured from a real run
-      # rather than guessed.
+      # `audit` on every run of this issue-triggered workflow (#487 — it hit the
+      # untrusted-trigger jobs only, never the scheduled ones), which v2.21.0
+      # fixed, and the step below asserts the effective policy. The allowlist is
+      # additive to harden-runner's GitHub Actions baseline and is measured from
+      # a real run rather than guessed.
       #
       # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
       # path — the action curls the installer from the first and pulls the binary
