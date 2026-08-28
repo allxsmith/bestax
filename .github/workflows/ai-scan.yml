@@ -234,10 +234,20 @@ jobs:
           fi
 
           # Hand the charge step what it needs so it does not re-read the marker.
-          # This does NOT make the counter atomic — two concurrent runs still read
-          # the same COUNT and both write COUNT+1. The workflow-level concurrency
-          # group is what serializes them; splitting the step changes when the
-          # write happens, not how it races.
+          #
+          # This does NOT make the counter atomic, and nothing else here does
+          # either — do not repeat the claim an earlier revision of this comment
+          # made, that the concurrency group serializes it. THIS workflow's group
+          # is per item (`ai-scan-<number>`, see the top of the file), chosen so a
+          # burst of opened items cannot evict a pending scan. Two items opened
+          # together therefore read the same COUNT and both write COUNT+1. That is
+          # ai-triage.yml's global single-flight group, not this one, and its
+          # header says so explicitly.
+          #
+          # Splitting read from write changes WHEN the write happens, not how it
+          # races, and it does widen the window by the assertion's duration (up to
+          # ~30s on the polling path). Accepted: the counter is a soft cost cap,
+          # and losing a count to a race over-scans, which is the safe direction.
           out budget_comment_id "$COMMENT_ID"
           out budget_next "$((COUNT + 1))"
           out budget_limit "$LIMIT"

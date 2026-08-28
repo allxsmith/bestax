@@ -1001,9 +1001,9 @@ jobs:
       # pre-split job carried is dropped rather than inherited by habit.
       issues: write # remove ai-triage (issues API covers PRs)
     steps:
-      # Rule 10 again: new job, ships at `block` (which does not enforce — see
-      # #487). One API call, but a job that runs on every labeled item should
-      # not be the exception that quietly opts out.
+      # Rule 10 again: `block`, and ENFORCED as of #487. One API call, but a job
+      # that runs on every labeled item should not be the exception that quietly
+      # opts out.
       #
       # continue-on-error because this step must not be able to PREVENT the
       # cleanup it precedes. This job exists to guarantee the label never

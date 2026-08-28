@@ -150,12 +150,14 @@ green and every AI review thread is resolved.
   consequence of configuration rather than a property of the action: the validation lives on
   the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
   a `github_token` input is supplied — the same early return `ai-triage.yml` already documents
-  for #312. Omitting the input is necessary but not sufficient: `claude-pr-loop.yml`'s `verify`
-  omits one too and is unaffected, because that workflow runs on `workflow_run` /
-  `workflow_dispatch` / `schedule`, which the action does not treat as a PR context, so the
-  workflow-validation path is never reached. `claude-review.yml` and `claude.yml` are the jobs
-  that both omit the input **and** run on a PR-context trigger, which is why they alone are
-  affected. Supplying `GITHUB_TOKEN` would
+  for #312. `claude-review.yml` and `claude.yml` are where this bites in practice, but they are
+  not the only jobs that omit the input: `claude-pr-loop.yml`'s `verify` omits one too. Its
+  usual triggers (`workflow_run` / `workflow_dispatch` / `schedule`) are not PR contexts, so the
+  validation path is not reached on them — but that workflow also fires on
+  `pull_request_review`, and its gate can select `verify` on that event, so a PR modifying
+  `claude-pr-loop.yml` can hit the same silent skip on the review-triggered path. Treat
+  "omits `github_token` **and** can run in a PR context" as the test, not the workflow name.
+  Supplying `GITHUB_TOKEN` would
   restore the review, at the cost of moving the posting identity away from `claude`, which the
   loop's gate and the `<!-- claude-deep-review -->` convention rely on. Weigh that before
   changing it.
