@@ -33,14 +33,14 @@ name: Claude Repro
 #
 #       harden-runner's egress block enforces again as of #487 (it used to
 #       degrade to audit on every run), and the step after it asserts the
-#       effective policy. Resist calling it a third leg of I1, because on the
-#       exfil path I1 is actually about it contributes nothing: that path is
-#       `Write` plus the `publish` job, and `publish` has no harden-runner and no
-#       allowlist — `author`'s policy cannot bound what a later job does. Nor does
-#       it help inside `author`, which has no socket-opening tool to begin with.
-#       Egress-block is a genuine control on this job's OAuth-token surface and
-#       nothing more. I1 still rests on the same two legs: no execution primitive,
-#       and the token never sharing a job with the publish step.
+#       effective policy. Do NOT call it a third leg of I1. The exfil path I1
+#       exists to close is `Write` plus the `publish` job — and `publish` carries
+#       no harden-runner and no allowlist, so this job's egress policy cannot
+#       bound anything `publish` does. It does not help inside `author` either,
+#       which has no socket-opening tool to begin with. Egress-block is a real
+#       control on this job's OAuth-token surface and nothing more. I1 still
+#       rests on the same two legs: no execution primitive, and the token never
+#       sharing a job with the publish step.
 #   I2  No attacker- or Claude-authored free text reaches a comment un-neutralized
 #       AND with a re-trigger-capable identity. The `publish` job deterministically
 #       defangs machine markers / @mentions in the drafted test, then posts it via

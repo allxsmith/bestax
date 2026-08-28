@@ -290,6 +290,14 @@ a guarantee for the life of a 30-60 minute session. There is no step-level check
 if a session behaves oddly, read the StepSecurity run report for `Reverted changes` rather than
 trusting the green step.
 
+**Do not "fix" this by adding a liveness check**, and this note exists because review has now
+proposed it twice. Asserting `systemctl is-active agent` would only cover the fraction of a second
+between the agent initializing and this step running; the revert that matters happens minutes
+later, mid-session, where no step-level check reaches. In exchange it would hard-code an internal
+unit name **and** bind every block job to the TLS-path binary selection described in rule 1 — so a
+StepSecurity outage would turn all of them red at once. The gap is real and is stated here
+deliberately rather than papered over with a check that does not close it.
+
 That second failure is not theoretical. The PR that introduced this assertion shipped with only
 the `jq` line and passed green on a job where the firewall had reverted. Which leads to the
 sharpest operational rule here:
