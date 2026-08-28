@@ -1385,6 +1385,35 @@ test('an unresolvable publishing identity warns instead of failing silently', as
   }
 });
 
+test('a plain 403 is not retried — only one carrying rate-limit evidence is', async () => {
+  // GitHub uses 403 for ordinary permission denials, and one of those is a
+  // documented path here: `GET /user` 403s for a GitHub App installation token.
+  // Retrying every 403 made that sleep through the fallback twice — 60s per
+  // comment in production, and 60s of real wall clock in the test above.
+  const realFetch = globalThis.fetch;
+  process.env.GITHUB_TOKEN = 'x';
+  try {
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls++;
+      return {
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        headers: new Map(), // no Retry-After, no exhausted rate-limit budget
+        text: async () => 'forbidden',
+        json: async () => ({}),
+      };
+    };
+    const started = Date.now();
+    assert.equal(await main(publishArgs(bodyFileWith())), 1);
+    assert.equal(calls, 1, 'a permission 403 must not be retried');
+    assert.ok(Date.now() - started < 5000, 'must not sleep through a backoff');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 test('--dry-run makes no request at all in publish mode', async () => {
   // It used to be accepted and never read, so a dry run issued a live PATCH.
   const realFetch = globalThis.fetch;

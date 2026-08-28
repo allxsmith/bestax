@@ -120,11 +120,13 @@ connection, and `--mode=publish --dry-run` stops before its first request.
 
 ## Size limits
 
-The whole payload must stay under **8000 bytes** or the run fails, so report
-your best candidates rather than everything you saw: at most **5** items. Keep
-`title` under **256** characters and `reason` under **400** — one line each,
-no markdown, no HTML. The renderer escapes both, so formatting is wasted
-effort.
+Keep `title` under **256** characters and `reason` under **400** — one line
+each, no markdown, no HTML (the renderer escapes both, so formatting is
+wasted effort). Report at most **5** items.
+
+Obeying those is sufficient. The renderer also enforces a byte cap, but it is
+sized to clear the largest payload these limits allow, so a compliant report is
+never rejected for size — you do not need to count bytes.
 
 ## Hard rules
 

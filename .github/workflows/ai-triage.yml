@@ -565,12 +565,14 @@ jobs:
             "number" must be a JSON integer, never a string. "title" is
             required; "reason" is optional.
 
-            SIZE LIMITS — the whole payload must stay under 8000 bytes, and
-            the run FAILS if it does not, so report your best candidates
-            rather than everything you saw. Best match first; send at most 5
-            items (3 for triage-dedupe and its "related" list). Keep "title"
-            under 256 characters and "reason" under 400 — one line, no
-            markdown, no HTML.
+            SIZE LIMITS, in the units you can actually count. Keep "title"
+            under 256 characters and "reason" under 400 — one line each, no
+            markdown, no HTML. Send at most 5 items (3 for triage-dedupe,
+            which may add up to 3 more in "related"). Best match first.
+
+            Obeying those limits is sufficient: the renderer's own byte cap is
+            sized to clear the largest payload they allow, so a compliant
+            report is never rejected for size. Over-report and it can be.
 
             If a search tool errors or you are rate-limited and cannot
             complete the fan-out, report `skip (search failed)`. Do NOT report

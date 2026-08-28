@@ -67,13 +67,21 @@ import {
 const API_BASE = 'https://api.github.com';
 const FETCH_TIMEOUT_MS = 30_000;
 
-// A BYTE bound, while every limit the model is given (prompt and all three
-// command files) is in CHARACTERS. Sized so the two can never disagree: the
-// largest compliant payload is 5 items x (256 + 400) chars, and at UTF-8's
-// worst case of 4 bytes per character that is ~13KB. At 8000 a wholly
-// compliant CJK payload (3401 chars / 9801 bytes) was rejected before it was
-// even parsed, failing the run for a session that had counted exactly what it
-// was told to count.
+// A BYTE bound, while every limit the model is given is in CHARACTERS — so it
+// must be sized so the two can never disagree, and the arithmetic has to count
+// the LARGEST legal payload, not the most obvious one.
+//
+// That is triage-dedupe, whose optional `related` list makes it 3 + 3 entries
+// rather than triage-find-issues' 5: 6 x (256-char title + 400-char reason) is
+// 4205 UTF-16 units, and measured as all-CJK (the worst realistic case, 3 UTF-8
+// bytes per unit) that is 12,077 bytes. Astral characters are not worse — a
+// surrogate pair is 2 units for 4 bytes.
+//
+// 16,000 therefore clears every compliant payload with room to spare. The
+// previous 8000 did not: it rejected a wholly compliant CJK payload before even
+// parsing it, failing the run for a session that had counted exactly what it
+// was told to count. Anything the model can legally send must fit here, or the
+// limits it is given are a lie.
 export const MAX_PAYLOAD_BYTES = 16_000;
 export const MAX_TITLE_CHARS = 256; // GitHub's own issue-title limit
 export const MAX_REASON_CHARS = 400;
@@ -661,10 +669,18 @@ async function api(pathOrUrl, { method = 'GET', body } = {}) {
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
-    if (
-      (res.status === 403 || res.status === 429) &&
-      attempt < RATE_LIMIT_RETRIES
-    ) {
+    // Retry only a 403 that carries RATE-LIMIT evidence. GitHub uses 403 for
+    // ordinary permission denials too, and one of those is a documented, load-
+    // bearing path here: `GET /user` 403s for a GitHub App installation token,
+    // which runPublish handles as a normal identity outcome. Retrying every 403
+    // made that case sleep through the full fallback twice — 60s per comment in
+    // production, and 60s of real wall clock in the test that covers it.
+    const rateLimited =
+      res.status === 429 ||
+      (res.status === 403 &&
+        (retryAfterMs(res.headers) !== null ||
+          res.headers.get('x-ratelimit-remaining') === '0'));
+    if (rateLimited && attempt < RATE_LIMIT_RETRIES) {
       const delayMs = retryAfterMs(res.headers) ?? RETRY_AFTER_FALLBACK_MS;
       console.log(
         `${method} ${url}: HTTP ${res.status} (rate limited?), retrying in ${Math.round(delayMs / 1000)}s (attempt ${attempt + 1}/${RATE_LIMIT_RETRIES})`
