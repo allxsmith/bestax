@@ -9,8 +9,23 @@ Find likely duplicates of the target issue and post EXACTLY ONE comment (or
 nothing — see pre-checks). Context comes from the caller (the ai-triage
 workflow prompt, or the user when run locally): `REPO` (owner/repo), `NUMBER`
 (the target issue), `TRIGGER` (`opened` or `labeled`; assume `labeled` when
-run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally). If
-`NUMBER` is missing, ask — never guess.
+run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally — in
+CI it is not passed to the session at all, see below). If `NUMBER` is
+missing, ask — never guess.
+
+## In CI (ai-triage.yml)
+
+The workflow session must NOT post or edit comments — its tool allowlist is
+GET-only and every `gh … comment` attempt is denied. Run the pre-checks,
+search, and filter pass below unchanged, then, instead of the Post section,
+report the result as the `TRIAGE-PAYLOAD:` line the workflow prompt specifies:
+`"action":"skip"` for a pre-check exit, `"action":"post"` with an empty
+`duplicates` array when nothing credible remains, `"action":"post"` with the
+entries otherwise. A deterministic step
+(`scripts/render-triage-comments.mjs`) renders the format below from that
+payload and upserts the comment by marker as bestaxbot. Everything in this
+file about `gh … comment`, `--edit-last`, and the AUTOCLOSE notice therefore
+applies to LOCAL runs only.
 
 ## Pre-checks (in order; each exit is SILENT — post nothing)
 
@@ -23,7 +38,8 @@ run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally). If
    claude[bot].)
    - `TRIGGER=opened` and marker present → stop (already triaged).
    - `TRIGGER=labeled` and marker present → continue; at the end REFRESH
-     that comment instead of posting a new one. Use
+     that comment instead of posting a new one. In CI the publish step does
+     that refresh by marker, so just report fresh findings; locally, use
      `gh issue comment NUMBER --repo REPO --edit-last --body ...` ONLY when
      your most recent comment on the issue is itself the
      `<!-- ai-triage:dedupe -->` comment: `--edit-last` selects by author,
@@ -78,8 +94,10 @@ Read the top candidates with `gh issue view` when unsure.
 
 ## Post ONE comment
 
-Via `gh issue comment NUMBER --repo REPO --body ...` (or the refresh path
-from pre-check 2), formatted exactly like this:
+Local runs post this via `gh issue comment NUMBER --repo REPO --body ...` (or
+the refresh path from pre-check 2). In CI the renderer produces this exact
+format from your payload — `scripts/render-triage-comments.mjs` is the source
+of truth for the posted body, and this section documents what it emits:
 
 ```markdown
 ### AI triage
@@ -100,16 +118,22 @@ Duplicate of #N
 
 - The line `Duplicate of #N` — with N the single best duplicate — must use
   THIS EXACT FORMAT on its own line: the auto-close cron machine-parses it.
-  Include it only when you found at least one credible duplicate.
+  Include it only when you found at least one credible duplicate. In CI the
+  renderer emits this line from the payload's `duplicateOf` — report that
+  field, and never put the line inside a payload string.
 - If `AUTOCLOSE=active`, add this sentence directly after the
   `Duplicate of #N` line: "This issue may be auto-closed in 14 days unless
-  someone objects (comment or 👎)." If `AUTOCLOSE=off`, omit it.
+  someone objects (comment or 👎)." If `AUTOCLOSE=off`, omit it. In CI the
+  renderer decides this from the workflow's own AUTOCLOSE value; the session
+  is not told it.
 - The marker `<!-- ai-triage:dedupe -->` goes on its own line at the end.
 - No credible duplicates → post "No duplicates found." under the heading,
   plus the marker, WITHOUT any `Duplicate of #N` line or auto-close notice.
+  In CI that is an empty `duplicates` array, not a skip.
 
 ## Hard rules
 
 Never apply or remove labels; never close, merge, push, or resolve
 anything; never write "@claude" or "@coderabbitai" in any text; post at
-most one comment and nothing else.
+most one comment and nothing else — and in CI, post none: report the
+payload.

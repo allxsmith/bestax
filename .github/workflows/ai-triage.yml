@@ -6,8 +6,12 @@ name: AI Triage
 # One sonnet session per run reads and follows the repo's triage command
 # files (.claude/commands/triage-*.md): issues get triage-dedupe; PRs get
 # triage-find-issues + triage-find-duplicate-prs. Each command fans out
-# parallel read-only search sub-agents and posts at most ONE marker-tagged
-# comment, so re-runs are idempotent.
+# parallel read-only search sub-agents and REPORTS its findings as a
+# structured TRIAGE-PAYLOAD line; the session posts nothing (#457). A
+# deterministic step validates those payloads fail-closed and renders the
+# comment bodies (scripts/render-triage-comments.mjs), and a separate step
+# upserts at most ONE marker-tagged comment per command as bestaxbot, so
+# re-runs are idempotent.
 #
 # MODES (repo variable AI_TRIAGE_MODE; string-compared, unset ⇒ `label`):
 #   auto  | `opened` events triage automatically (budget-capped below);
@@ -30,10 +34,11 @@ name: AI Triage
 # DEPENDS on the global single-flight concurrency group below — do not
 # re-scope the group per item.
 #
-# AI_TRIAGE_AUTOCLOSE (`on` / `dry-run` / unset ⇒ `off`) is passed through
-# to the session: when active, dedupe comments that name a duplicate include
-# the 14-day auto-close notice consumed by the auto-close cron (PR B of
-# #289), which parses the `Duplicate of #N` line those comments carry.
+# AI_TRIAGE_AUTOCLOSE (`on` / `dry-run` / unset ⇒ `off`) is passed to the
+# RENDER step, not the session (#457): when active, a dedupe comment that
+# names a duplicate gets the 14-day auto-close notice appended
+# deterministically, after the `Duplicate of #N` line that the auto-close
+# cron (PR B of #289) parses. The model never writes either line.
 #
 # SECURITY:
 #   - labeled runs re-verify the labeler's LIVE role (triage+) via the
@@ -58,27 +63,36 @@ name: AI Triage
 #   - This never checks out PR head code — only the base repo's default
 #     branch (defense in depth, and it keeps the job honest if the fork
 #     guard is ever loosened). The Claude tool allowlist is GET-only gh
-#     commands + the two comment commands + Task (the fan-out sub-agents)
-#     — no `gh api`, which could also POST/PATCH/DELETE, and no
+#     commands + Task (the fan-out sub-agents) — no comment commands
+#     (#457), no `gh api`, which could also POST/PATCH/DELETE, and no
 #     file-editing tools, because the session ingests untrusted issue/PR
-#     text. That allowlist is what confines the bestaxbot PAT the session
-#     holds (so triage comments are credited to bestaxbot, see the Claude
-#     step): a prompt-injected session can at worst post a comment as
-#     bestaxbot — it cannot push, label, close, or call the raw API.
+#     text.
+#   - The session holds NO PAT. Since #457 bestaxbot's AI_LOOP_PAT lives
+#     only in the deterministic publish step, so no model session shares an
+#     environment with a re-trigger-capable identity — reading an env var
+#     is not a write, so the allowlist never guarded that anyway. The
+#     session's own token is the job's write-scoped GITHUB_TOKEN (the gate
+#     and label removal need it); the allowlist admitting nothing that
+#     writes is what confines it, so treat that allowlist as
+#     security-critical (.github/CLAUDE.md rule 2). Worst case for a
+#     prompt-injected session is now a malicious PAYLOAD, and the
+#     fail-closed validator plus the field sanitizer stand between that and
+#     any comment.
 #
 # SILENT NO-OPS (#317, #338): the action reports step success even when the
-# session did no useful work, so the "Fail on silent session error" step
-# checks the execution file. Two known shapes: an is_error result record
-# (#317 — API/auth failure on the first call), and a CLEAN result record
-# from a session that ended its turn while background Task sub-agents were
-# still running (#338 — a CLI update made Task background-by-default; an
-# ended turn kills the headless session and orphans the agents). The prompt
+# session did no useful work, so the "Validate triage payload" step checks
+# the execution file. Two known shapes: an is_error result record (#317 —
+# API/auth failure on the first call), and a CLEAN result record from a
+# session that ended its turn while background Task sub-agents were still
+# running (#338 — a CLI update made Task background-by-default; an ended
+# turn kills the headless session and orphans the agents). The prompt
 # therefore forbids backgrounded sub-agents AND requires a final
-# `TRIAGE-RESULT:` sentinel line per command; the watchdog fails the job
-# unless the result text ENDS with exactly one such line per expected
-# command (one for issues, two for PRs — so finishing the first PR
-# command and bailing during the second still fails; leading narration
-# is tolerated).
+# `TRIAGE-PAYLOAD:` line per command; the validator fails the job unless the
+# result text ENDS with exactly one such line per expected command (one for
+# issues, two for PRs — so finishing the first PR command and bailing during
+# the second still fails; leading narration is tolerated). Since #457 that
+# check is scripts/render-triage-comments.mjs rather than inline jq (rule 9),
+# so its fail-closed matrix is pinned by a test sibling.
 #
 # KILL SWITCHES (per-surface):
 #   - AI_LOOP_ENABLED=false → stops ALL Claude spend repo-wide (this workflow,
@@ -152,15 +166,16 @@ jobs:
       contents: read # checkout of the base default branch
       pull-requests: write # remove the ai-triage label from PRs
       issues: write # budget marker on the tracking issue; remove the label
-      # Triage comments themselves post via bestaxbot's PAT (see the Claude
-      # step), not GITHUB_TOKEN — these grants only cover the gate and
-      # label-removal steps.
+      # Triage comments themselves post via bestaxbot's PAT (see the publish
+      # step; the Claude step holds only this job's GITHUB_TOKEN), not
+      # GITHUB_TOKEN — these grants only cover the gate and label-removal
+      # steps.
       # No id-token: the Claude step gets github_token explicitly, which
       # short-circuits the action's OIDC→app-token exchange (#312).
     steps:
-      # Egress monitoring on the job that holds bestaxbot's PAT and ingests
-      # untrusted issue/PR text. The session's tools are GET-only gh + the two
-      # comment commands (it cannot open arbitrary sockets), so this is
+      # Egress monitoring on the job that ingests untrusted issue/PR text and
+      # whose publish step holds bestaxbot's PAT. The session's tools are
+      # GET-only gh (it cannot open arbitrary sockets), so this is
       # defense-in-depth on the PAT / OAuth-token surface.
       #
       # AUDIT (not block) deliberately: this is a live, working workflow, and the
@@ -321,9 +336,10 @@ jobs:
       # Check out ONLY the base repo's default branch — never the PR head
       # (untrusted PR code stays out of the workspace; the triage agent
       # reads PR content via read-only gh commands). The checkout also
-      # provides the .claude/commands/ triage commands the session runs.
-      # No pnpm/node setup and no dependency install: this job never runs
-      # project code.
+      # provides the .claude/commands/ triage commands the session runs and
+      # the scripts/ payload validator the later steps call. No pnpm/node
+      # setup and no dependency install: the only project code this job runs
+      # is that dependency-free validator, on the runner's system Node.
       - name: Checkout base default branch
         if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -338,33 +354,34 @@ jobs:
         with:
           # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
           # passed explicitly so the action skips its OIDC→app token
-          # exchange (#312). It is bestaxbot's PAT (AI_LOOP_PAT — the same
-          # machine account claude-implement.yml and the PR loop use), so
-          # triage comments are credited to bestaxbot instead of the
-          # anonymous github-actions[bot] that GITHUB_TOKEN produced
-          # before (and claude[bot] before #312). bestaxbot is a machine
-          # USER account, not a Bot-type app: anything probing for triage
-          # comments must match the marker + (bestaxbot OR a Bot-type
-          # author) — auto-close-duplicates.mjs and the marker checks in
-          # .claude/commands/triage-*.md do exactly that; never probe one
-          # specific login. Trade-off vs GITHUB_TOKEN: PAT-authored
-          # comments DO emit issue_comment events that can re-trigger
-          # workflows — every comment-triggered workflow already gates
-          # bestaxbot out (bestaxbot-reply.yml excludes it as sender;
-          # claude.yml requires a literal "@claude", which the HARD RULES
-          # below forbid writing), and the tool allowlist below confines
-          # the PAT to GET-only reads plus the two comment commands.
+          # exchange (#312) — any explicit token does that, so this is the
+          # job's GITHUB_TOKEN since #457, NOT bestaxbot's PAT.
+          #
+          # Why the PAT moved out: it is full repo write and the same
+          # credential claude-implement.yml pushes with, so a leak means
+          # revoking the whole loop's identity — and it is durable, where
+          # GITHUB_TOKEN dies with the job and is scoped to this repo. This
+          # session has Bash and Task and reads attacker-controlled text,
+          # and READING an env var is not a write, so the allowlist below
+          # never guarded that credential at all. Comments are still
+          # credited to bestaxbot: the publish step posts them.
+          #
+          # The token here IS still write-scoped (the gate and the label
+          # removal need it) and the allowlist admitting nothing that writes
+          # is the control — treat it as security-critical (rule 2).
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.AI_LOOP_PAT }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           # Full session output in the public job log (#317): the session
           # only ever sees public issue/PR text and GET-only gh output, so
           # nothing sensitive can leak, and without it a session that ends
           # early (e.g. on permission denials) is indistinguishable from a
           # healthy one.
           show_full_output: true
-          # Task is required for the commands' fan-out search sub-agents
-          # (they inherit this same allowlist). Still no `gh api` and no
-          # Edit/Write — the session ingests untrusted issue/PR text.
+          # GET-only. Task is required for the commands' fan-out search
+          # sub-agents (they inherit this same allowlist). No comment
+          # commands since #457 — the session reports a payload and never
+          # posts — no `gh api`, which could also POST/PATCH/DELETE, and no
+          # Edit/Write, because the session ingests untrusted issue/PR text.
           # Read/Glob/Grep are read-only and always available — the prompt
           # relies on Read for the command files. --disallowedTools is
           # defense-in-depth on top of the allowlist: it hard-blocks the
@@ -373,14 +390,13 @@ jobs:
           claude_args: |
             --max-turns 50
             --model claude-sonnet-5
-            --allowedTools "Task,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh search:*),Bash(gh pr comment:*),Bash(gh issue comment:*)"
+            --allowedTools "Task,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh search:*)"
             --disallowedTools "Edit,Write,MultiEdit,NotebookEdit,SlashCommand,WebFetch,WebSearch"
           prompt: |
             REPO: ${{ github.repository }}
             NUMBER: ${{ steps.gate.outputs.number }}
             IS_PR: ${{ steps.gate.outputs.is_pr }}
             TRIGGER: ${{ github.event.action }}
-            AUTOCLOSE: ${{ (vars.AI_TRIAGE_AUTOCLOSE == 'on' || vars.AI_TRIAGE_AUTOCLOSE == 'dry-run') && 'active' || 'off' }}
 
             You are the TRIAGE agent for this repository. Your entire job is
             to carry out this repo's triage procedures against the item
@@ -392,10 +408,10 @@ jobs:
               then .claude/commands/triage-find-duplicate-prs.md
 
             Open the matching file(s) with the Read tool and follow their
-            instructions exactly — they consume the REPO / NUMBER / TRIGGER /
-            AUTOCLOSE context lines above. Do NOT invoke them as slash
-            commands and do NOT use the SlashCommand tool — it is not
-            permitted in this session and every attempt will be denied.
+            instructions exactly — they consume the REPO / NUMBER / TRIGGER
+            context lines above. Do NOT invoke them as slash commands and do
+            NOT use the SlashCommand tool — it is not permitted in this
+            session and every attempt will be denied.
 
             Sub-agents run SYNCHRONOUSLY (#338): every Task call MUST pass
             run_in_background: false. If the runtime backgrounds them
@@ -405,36 +421,66 @@ jobs:
             comment posted. Keep collecting results until every sub-agent
             has returned, then finish the command's filter/post steps.
 
-            FINAL MESSAGE (machine-checked; the job FAILS without it): your
-            last output message must consist of exactly one line per
-            command listed above — ONE line when IS_PR is false, TWO lines
-            when IS_PR is true (the job verifies the count, so a run that
+            YOU DO NOT POST COMMENTS. This session has no comment tool and
+            no tool that can write anything; a deterministic workflow step
+            renders and posts (or refreshes) the comment from what you
+            report below. Wherever
+            a command file says to post or refresh a comment, REPORT that
+            command's result instead — never attempt `gh issue comment` or
+            `gh pr comment`, every attempt is denied. The commands'
+            pre-checks still apply: on TRIGGER=opened, a command whose
+            marker comment already exists reports action "skip" (already
+            triaged); on TRIGGER=labeled it runs again and reports fresh
+            findings, and the publish step refreshes that comment by marker.
+
+            FINAL MESSAGE (machine-parsed; the job FAILS without it): your
+            last output message must END with exactly one line per command
+            listed above, in that order — ONE line when IS_PR is false, TWO
+            when IS_PR is true (the count is verified, so a run that
             finishes the first command but bails during the second cannot
-            pass) — each of the form
-              TRIAGE-RESULT: <command> commented | refreshed | skipped (<reason>)
-            e.g. `TRIAGE-RESULT: triage-dedupe commented` or
-            `TRIAGE-RESULT: triage-find-duplicate-prs skipped (no credible
-            duplicates)` — and nothing else. A command's silent exit is
-            still reported here as `skipped (<reason>)`; "silent" means no
-            comment on the item, not no sentinel.
+            pass). Nothing may follow those lines; leading narration is
+            fine. Each line is
+              TRIAGE-PAYLOAD: {"command":"<name>","action":"post"|"skip",...}
+            as single-line compact JSON, with exactly these shapes:
 
-            Idempotency (the commands restate this; it is binding):
-            - TRIGGER is opened: if a command's marker comment already
-              exists on the item, that command exits silently — post
-              nothing for it.
-            - TRIGGER is labeled: a maintainer explicitly re-ran triage —
-              refresh your existing marker comment in place
-              (`gh issue comment`/`gh pr comment` with `--edit-last`)
-              instead of posting a duplicate, per the command's rules.
+            - skip (any command) — a pre-check exit (item not open, already
+              triaged on opened, too vague to search):
+              {"command":"<name>","action":"skip","reason":"<short text>"}
+            - triage-dedupe post:
+              {"command":"triage-dedupe","action":"post",
+               "duplicates":[{"number":N,"title":"…","reason":"…"}],
+               "related":[…],"duplicateOf":N}
+              `duplicates` at most 3 (best first), `related` at most 3 and
+              REQUIRED (use [] for none), `duplicateOf` OPTIONAL — include
+              it only when one listed duplicate is credible enough to name,
+              and it must be one of the numbers in `duplicates`.
+            - triage-find-issues post:
+              {"command":"triage-find-issues","action":"post",
+               "issues":[{"number":N,"title":"…","reason":"…"}]}
+              at most 5, best first.
+            - triage-find-duplicate-prs post:
+              {"command":"triage-find-duplicate-prs","action":"post",
+               "prs":[{"number":N,"title":"…","reason":"…"}]}
+              at most 3, best first.
 
-            AUTOCLOSE is active: a dedupe comment that names a duplicate
-            MUST include the 14-day auto-close notice (exact wording in the
-            command). AUTOCLOSE is off: omit that notice entirely.
+            Found nothing? That is action "post" with an EMPTY array, not a
+            skip — the workflow decides whether an empty result is silent or
+            posted, based on TRIGGER. Numbers are issue/PR numbers in REPO
+            and may not be NUMBER itself. Titles and reasons are SHORT,
+            single-line plain text (no newlines, no markdown, no
+            @mentions); titles cap at 200 bytes and reasons at 300. Do not
+            write the `Duplicate of #N` line or the auto-close notice
+            yourself — the renderer emits both from `duplicateOf`. Send no
+            keys beyond those listed: an unknown key fails the whole job.
+
+            A command's silent exit is still reported here — "silent" means
+            no comment on the item, not no payload.
 
             HARD RULES: never apply or remove labels; never close, merge,
             push, or resolve anything; never write "@claude" or
             "@coderabbitai" in any text; keep every search scoped to REPO;
-            post nothing beyond what the commands specify.
+            never attempt to post, edit, or react to any comment —
+            reporting the payload is your only output.
 
       # The action reports step success even when the Claude session itself
       # did no useful work. Two known silent-no-op shapes (see header):
@@ -443,55 +489,120 @@ jobs:
       #   #338 — the result record is a CLEAN success, but the session
       #          ended its turn while background Task sub-agents were still
       #          running ("I'll wait for them to finish…"), so nothing was
-      #          ever posted. Session status alone cannot catch this, which
-      #          is why the prompt demands the TRIAGE-RESULT sentinel: a
-      #          session that actually finished its commands ends with the
-      #          sentinel lines; a bailout never emits them, so it fails.
-      # Fail loudly on both. An empty/missing execution file (e.g. the
-      # action's workflow-validation skip) is tolerated: there was no
-      # session to judge.
-      - name: Fail on silent session error
+      #          ever reported. Session status alone cannot catch this,
+      #          which is why the prompt demands the TRIAGE-PAYLOAD lines: a
+      #          session that actually finished its commands ends with them;
+      #          a bailout never emits them, so it fails.
+      # The check itself is scripts/render-triage-comments.mjs (rule 9 — it
+      # replaced inline jq, and its test sibling pins the fail-closed matrix
+      # plus the rendered bodies byte-for-byte). It validates the payloads
+      # AND renders the comment bodies in one pass, printing a JSON envelope
+      # the publish step iterates; any defect exits non-zero with empty
+      # stdout, so nothing posts. An empty/missing execution file (e.g. the
+      # action's workflow-validation skip) is tolerated HERE rather than in
+      # the script: that judgment is about the action having run no session
+      # at all, not about session content, which keeps the script's own
+      # default direction closed.
+      #
+      # Deliberately no setup-node: the script imports node: builtins only
+      # (plus its parse-scan-verdict.mjs sibling) and every GitHub-hosted
+      # runner ships a Node — same call ai-scan.yml makes. A setup-node
+      # fetch would add a failure mode and an egress host this job does not
+      # need.
+      - name: Validate triage payload and render comments (fail-closed)
+        id: payload
         if: steps.claude.outcome == 'success'
         env:
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
           IS_PR: ${{ steps.gate.outputs.is_pr }}
+          NUMBER: ${{ steps.gate.outputs.number }}
+          TRIGGER: ${{ github.event.action }}
+          AUTOCLOSE: ${{ (vars.AI_TRIAGE_AUTOCLOSE == 'on' || vars.AI_TRIAGE_AUTOCLOSE == 'dry-run') && 'active' || 'off' }}
         run: |
           set -euo pipefail
           if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
-            echo "no execution file — the action ran no session; skipping check"
+            echo "no execution file — the action ran no session; nothing to publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Fail closed: accept a JSON array or NDJSON, and require a final
-          # result record whose is_error is exactly false AND whose result
-          # text ENDS with the TRIAGE-RESULT sentinel lines — exactly one
-          # per expected command (issues run one command, PRs run two), as
-          # the LAST non-empty lines, and none anywhere else. The exact
-          # count means a session that finishes the first PR command but
-          # bails during the second cannot pass on one sentinel; requiring
-          # them last means a bailout message can't follow them. Leading
-          # narration is tolerated (the first live run, 29794090279,
-          # false-failed an otherwise-correct skip because the session
-          # prefixed one explanatory line — the review's predicted
-          # chatter false-positive). Malformed JSON, a missing result
-          # record, or a mid-task bailout (which never emits sentinels)
-          # still fails the job.
-          if [ "$IS_PR" = "true" ]; then EXPECTED=2; else EXPECTED=1; fi
-          if jq -es --argjson n "$EXPECTED" \
-                    '[.[] | if type == "array" then .[] else . end]
-                     | map(select(type == "object" and .type == "result"))
-                     | last
-                     | (.is_error == false)
-                       and ((.result // "") | split("\n")
-                            | map(select(length > 0))
-                            | (length >= $n)
-                              and ([.[] | select(startswith("TRIAGE-RESULT:"))] | length == $n)
-                              and (.[- $n:] | all(startswith("TRIAGE-RESULT:"))))' \
-              "$EXEC_FILE" >/dev/null 2>&1; then
-            echo "session ended cleanly with $EXPECTED TRIAGE-RESULT sentinel(s) — triage completed"
-          else
-            echo "::error::Claude triage session did not complete its commands (is_error true, wrong sentinel count for the item type, non-sentinel final message, or unparsable execution file — see #317/#338). The item likely got no (or incomplete) triage. See the session output above."
+          if [ "$IS_PR" = "true" ]; then MODE=pr; else MODE=issue; fi
+          FILE="$RUNNER_TEMP/triage-envelope.json"
+          if ! node scripts/render-triage-comments.mjs \
+                 --exec-file="$EXEC_FILE" --mode="$MODE" --trigger="$TRIGGER" \
+                 --autoclose="$AUTOCLOSE" --self="$NUMBER" > "$FILE"; then
+            echo "::error::Claude triage session did not report a valid TRIAGE-PAYLOAD (missing, malformed, wrong count for the item type, or a schema violation — see #317/#338). The item got no triage. See the session output above."
             exit 1
           fi
+          # An exit-0-with-empty-stdout would otherwise publish nothing while
+          # reporting success (the claude-repro.yml publish guard's lesson).
+          if [ ! -s "$FILE" ]; then
+            echo "::error::payload validator exited 0 with empty output — refusing to publish"
+            exit 1
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          jq -r '.comments[] | "\(.command): \(.disposition)\(.cause // "" | if . == "" then "" else " (" + . + ")" end)"' "$FILE"
+
+      # The ONLY step holding bestaxbot's PAT (AI_LOOP_PAT), so comments stay
+      # credited to bestaxbot (#361) while no model session shares an
+      # environment with a re-trigger-capable identity (#457, invariant I2).
+      # Everything here is deterministic: the bodies were rendered by the
+      # validated-payload renderer above, which builds them from a trusted
+      # skeleton and neutralizes @mentions, markers and fences in the model's
+      # strings (rule 5). It also owns the trigger policy (an empty result is
+      # silent on `opened` for the PR commands, posted on `labeled`) and the
+      # AUTOCLOSE notice wording, so nothing below decides anything.
+      #
+      # Upsert is scoped by marker + (bestaxbot OR a Bot-type author), never
+      # `--edit-last` (rule 6): bestaxbot is a machine USER account, and
+      # pre-#361 triage comments are Bot-type (github-actions[bot],
+      # claude[bot]), so both arms are needed and a login-only probe would
+      # break the next time the identity changes. Markers sit at the END of
+      # these bodies, so probe with `contains`, not `startswith`.
+      #
+      # `gh api` PATCH/POST is fine in a deterministic step — rule 2 forbids
+      # it for model sessions; claude-repro.yml's publish is the precedent.
+      - name: Publish triage comments (bestaxbot)
+        if: steps.payload.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.AI_LOOP_PAT }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ steps.gate.outputs.number }}
+          ENVELOPE: ${{ steps.payload.outputs.file }}
+        run: |
+          set -euo pipefail
+          COUNT=$(jq '.comments | length' "$ENVELOPE")
+          for i in $(seq 0 $((COUNT - 1))); do
+            CMD=$(jq -r ".comments[$i].command" "$ENVELOPE")
+            if [ "$(jq -r ".comments[$i].disposition" "$ENVELOPE")" != "post" ]; then
+              echo "$CMD: no comment ($(jq -r ".comments[$i].cause" "$ENVELOPE"))"
+              continue
+            fi
+            MARKER=$(jq -r ".comments[$i].marker" "$ENVELOPE")
+            export MARKER
+            BODY="$RUNNER_TEMP/triage-$CMD.md"
+            jq -r ".comments[$i].body" "$ENVELOPE" > "$BODY"
+            if [ ! -s "$BODY" ]; then
+              echo "::error::empty rendered body for $CMD — refusing to publish"
+              exit 1
+            fi
+            # --paginate applies --jq per page, so take the last id across all
+            # pages rather than trusting a per-page `last` (the gate's budget
+            # probe documents the same trap).
+            EXISTING=$(gh api --paginate "repos/$REPO/issues/$NUMBER/comments?per_page=100" \
+              --jq '.[] | select(((.user.login == "bestaxbot") or (.user.type == "Bot"))
+                                 and (.body | contains(env.MARKER))) | .id' \
+              | tail -n 1)
+            if [ -n "$EXISTING" ]; then
+              gh api -X PATCH "repos/$REPO/issues/comments/$EXISTING" \
+                -F body=@"$BODY" >/dev/null
+              echo "$CMD: refreshed comment $EXISTING"
+            else
+              gh api -X POST "repos/$REPO/issues/$NUMBER/comments" \
+                -F body=@"$BODY" >/dev/null
+              echo "$CMD: posted new comment"
+            fi
+          done
 
       # Always remove the trigger label on labeled runs — even when the
       # Claude step failed or the gate said no — so the label stays a

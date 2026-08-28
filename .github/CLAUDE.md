@@ -78,6 +78,13 @@ regardless of how convenient it is.
   **do**. So a drafted reproduction is sanitized deterministically and posted via
   `GITHUB_TOKEN`, and every comment-triggered workflow independently gates out bestaxbot.
 
+  Triage holds it by construction since #457: the session emits a validated structured
+  payload, a deterministic step renders the body from a trusted skeleton, and only that
+  step holds bestaxbot's PAT — which also means no model session shares an environment
+  with a durable full-repo-write credential, since reading an env var is not a write and
+  no allowlist ever guarded it. The sender gating stays as defense in depth, not the sole
+  control.
+
 ## Hard requirements
 
 ### 1. Pin every third-party action to a full commit SHA — the same SHA everywhere
@@ -107,10 +114,10 @@ reviewer to notice** — the `permissions:` block looks identical before and aft
 Two sessions where the allowlist is the _only_ thing between untrusted text and repository
 write:
 
-| Workflow        | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                           |
-| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ai-triage.yml` | `AI_LOOP_PAT` (bestaxbot)                                        | Full repo write. Confined to GET-only `gh` reads plus the two comment commands.                                                                                                                              |
-| `ai-scan.yml`   | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes. |
+| Workflow        | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                                                                                            |
+| --------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai-triage.yml` | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges the budget marker and the label removal needs write. The session's allowlist is GET-only `gh` reads — nothing that writes. bestaxbot's `AI_LOOP_PAT` is no longer in this job's session at all — since #457 it lives only in the deterministic publish step. |
+| `ai-scan.yml`   | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes.                                                                  |
 
 Concrete rules:
 
@@ -195,10 +202,12 @@ The two #454 parsers are extracted: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
 the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
-tests together. Smaller instances of the same shape remain inline (the exec-file sentinel
-checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
-one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported
-helpers rather than growing the YAML.
+tests together. #457 added a third, `scripts/render-triage-comments.mjs` (called by
+`ai-triage.yml`), which took the same route the rule prescribes: its predecessor was that
+workflow's inline sentinel jq, and rather than grow the YAML it reuses
+`parse-scan-verdict.mjs`'s exported helpers. Smaller instances of the same shape remain
+inline (the exec-file sentinel checks in `claude-review.yml` and `claude-repro.yml`'s author
+job); when one of those next needs an edit, extract it the same way.
 
 **Extraction has a bootstrap gap: a new script flags its own introducing PR.** A workflow runs
 the YAML from the PR merge ref, but the jobs here deliberately check out the default branch

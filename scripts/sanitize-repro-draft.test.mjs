@@ -77,6 +77,12 @@ test('sentinels at line start gain a space before the colon; elsewhere untouched
     sanitizeText('REPRO-RESULT: pass\nREPRO-DRAFT: drafted'),
     'REPRO-RESULT : pass\nREPRO-DRAFT : drafted'
   );
+  // A published draft echoing a triage payload line must not leave a
+  // ready-made one in a thread the triage session reads (#457).
+  assert.equal(
+    sanitizeText('TRIAGE-PAYLOAD: {"command":"triage-dedupe"}'),
+    'TRIAGE-PAYLOAD : {"command":"triage-dedupe"}'
+  );
   // Mid-line and lowercase occurrences are not sentinel positions.
   assert.equal(
     sanitizeText('see SECURITY-SCAN: clean'),

@@ -10,6 +10,19 @@ default: when nothing credible turns up, post NOTHING. Context from the
 caller: `REPO`, `NUMBER` (the target PR), `TRIGGER` (`opened`/`labeled`;
 assume `labeled` locally). If `NUMBER` is missing, ask.
 
+## In CI (ai-triage.yml)
+
+The workflow session must NOT post or edit comments — its tool allowlist is
+GET-only and every `gh … comment` attempt is denied. Run the pre-checks,
+search, and filter pass below unchanged, then, instead of the Post section,
+report the result as the `TRIAGE-PAYLOAD:` line the workflow prompt
+specifies: `"action":"skip"` for a pre-check exit, `"action":"post"` with an
+empty `prs` array when nothing credible remains, `"action":"post"` with the
+entries otherwise. A deterministic step
+(`scripts/render-triage-comments.mjs`) renders the format below from that
+payload and upserts the comment by marker as bestaxbot. Everything in this
+file about `gh … comment` and `--edit-last` applies to LOCAL runs only.
+
 ## Pre-checks (each exit is SILENT)
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,files,comments` —
@@ -21,7 +34,8 @@ assume `labeled` locally). If `NUMBER` is missing, ask.
    claude[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment with
+     that comment. In CI the publish step does that by marker, so just
+     report fresh findings; locally, refresh with
      `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
      your most recent comment on the PR is itself the
      `<!-- ai-triage:find-duplicate-prs -->` comment. `--edit-last` selects
@@ -64,11 +78,16 @@ files alone is NOT enough. Compare diffs (`gh pr diff`) when unsure. Drop
 weak matches. Zero credible duplicates: on `TRIGGER=opened`, stop SILENTLY
 — no comment, no marker; on `TRIGGER=labeled` (an explicit human request),
 post/refresh the comment with the single line "No duplicate PRs found."
-plus the marker (matches the pre-check refresh path).
+plus the marker (matches the pre-check refresh path). In CI, just report an
+empty `prs` array — the renderer applies this opened-silent/labeled-post
+rule itself, so the rule cannot be forgotten.
 
 ## Post ONE comment (when duplicates exist, or on a labeled rerun)
 
-Via `gh pr comment NUMBER --repo REPO --body ...` (or the refresh path):
+Local runs post this via `gh pr comment NUMBER --repo REPO --body ...` (or
+the refresh path). In CI the renderer produces this exact format from your
+payload — `scripts/render-triage-comments.mjs` is the source of truth for the
+posted body, and this section documents what it emits:
 
 ```markdown
 ### AI triage — possible duplicate PRs
@@ -85,4 +104,5 @@ the end.
 
 Never apply or remove labels; never close, merge, push, or resolve
 anything; never write "@claude" or "@coderabbitai" in any text; post at
-most one comment, and none at all when nothing was found.
+most one comment, and none at all when nothing was found — and in CI, post
+none: report the payload.

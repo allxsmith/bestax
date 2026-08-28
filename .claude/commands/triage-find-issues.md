@@ -10,6 +10,19 @@ EXACTLY ONE comment (or nothing). Context from the caller: `REPO`, `NUMBER`
 (the target PR), `TRIGGER` (`opened`/`labeled`; assume `labeled` locally),
 `AUTOCLOSE` (unused here). If `NUMBER` is missing, ask.
 
+## In CI (ai-triage.yml)
+
+The workflow session must NOT post or edit comments — its tool allowlist is
+GET-only and every `gh … comment` attempt is denied. Run the pre-checks,
+search, and filter pass below unchanged, then, instead of the Post section,
+report the result as the `TRIAGE-PAYLOAD:` line the workflow prompt
+specifies: `"action":"skip"` for a pre-check exit, `"action":"post"` with an
+empty `issues` array when nothing credible remains, `"action":"post"` with the
+entries otherwise. A deterministic step
+(`scripts/render-triage-comments.mjs`) renders the format below from that
+payload and upserts the comment by marker as bestaxbot. Everything in this
+file about `gh … comment` and `--edit-last` applies to LOCAL runs only.
+
 ## Pre-checks (each exit is SILENT)
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,comments` — if the
@@ -21,7 +34,8 @@ EXACTLY ONE comment (or nothing). Context from the caller: `REPO`, `NUMBER`
    claude[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment with
+     that comment. In CI the publish step does that by marker, so just
+     report fresh findings; locally, refresh with
      `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
      your most recent comment on the PR is itself the
      `<!-- ai-triage:find-issues -->` comment. `--edit-last` selects by
@@ -70,11 +84,16 @@ credible remains: on `TRIGGER=opened`, stop SILENTLY — no comment, no
 marker; on `TRIGGER=labeled` (an explicit human request — silence would
 read as a malfunction), post/refresh the comment with the single line
 "No open issues found that this PR resolves." plus the marker (matches
-pre-check 2's refresh path).
+pre-check 2's refresh path). In CI, just report an empty `issues` array —
+the renderer applies this opened-silent/labeled-post rule itself, so the
+rule cannot be forgotten.
 
 ## Post ONE comment
 
-Via `gh pr comment NUMBER --repo REPO --body ...` (or the refresh path):
+Local runs post this via `gh pr comment NUMBER --repo REPO --body ...` (or
+the refresh path). In CI the renderer produces this exact format from your
+payload — `scripts/render-triage-comments.mjs` is the source of truth for the
+posted body, and this section documents what it emits:
 
 ````markdown
 ### AI triage — issues this PR may resolve
@@ -97,4 +116,5 @@ The marker `<!-- ai-triage:find-issues -->` goes on its own line at the end.
 
 Never apply or remove labels; never close, merge, push, or resolve
 anything; never edit the PR body yourself — only suggest; never write
-"@claude" or "@coderabbitai" in any text; post at most one comment.
+"@claude" or "@coderabbitai" in any text; post at most one comment — and in
+CI, post none: report the payload.

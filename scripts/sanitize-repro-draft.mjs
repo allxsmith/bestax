@@ -22,9 +22,13 @@
  *    trusts that line from automation authors — github-actions[bot] included.
  *    The test sibling imports that consumer's MARKER/DUPLICATE_RE and asserts
  *    sanitized output can never satisfy them; the two files must stay in step.
- * 4. `TRIAGE-RESULT:`/`SECURITY-SCAN:`/`REPRO-RESULT:`/`REPRO-DRAFT:` at line
- *    start get a space before the colon, so the *-RESULT/SECURITY-SCAN
- *    watchdog parsers cannot read a smuggled sentinel.
+ * 4. `TRIAGE-RESULT:`/`TRIAGE-PAYLOAD:`/`SECURITY-SCAN:`/`REPRO-RESULT:`/
+ *    `REPRO-DRAFT:` at line start get a space before the colon, so the
+ *    watchdog and payload parsers cannot read a smuggled sentinel. Published
+ *    repro drafts live in the same issue threads the triage session reads, so
+ *    a draft that echoed a well-formed `TRIAGE-PAYLOAD:` line would otherwise
+ *    hand a confused session a ready-made payload to copy — defanging it here
+ *    is depth behind render-triage-comments.mjs's own end-anchoring (#457).
  * 5. Runs of 3+ backticks or tildes at line start collapse to three `&#96;`
  *    entities. The draft is wrapped in a ```tsx block by the caller, so a
  *    fence inside it would close that block early and render the rest as
@@ -59,7 +63,10 @@ const RULES = [
   [/<!--/g, '&lt;!--'],
   [/(--!?)>/g, '$1&gt;'],
   [/(Duplicate of) #/gi, '$1 &#35;'],
-  [/^(TRIAGE-RESULT|SECURITY-SCAN|REPRO-RESULT|REPRO-DRAFT):/gm, '$1 :'],
+  [
+    /^(TRIAGE-RESULT|TRIAGE-PAYLOAD|SECURITY-SCAN|REPRO-RESULT|REPRO-DRAFT):/gm,
+    '$1 :',
+  ],
   [/^([ \t]*)(`{3,}|~{3,})/gm, '$1&#96;&#96;&#96;'],
 ];
 
