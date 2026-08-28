@@ -473,12 +473,16 @@ jobs:
           # it: the renderer's credential scan guards the COMMENT, which is a
           # different sink.
           #
-          # The debuggability #317 wanted is now covered without it. "Fail on
-          # silent session error" reads the execution file and fails the job with
-          # a specific diagnosis for both known silent-no-op shapes, and the
-          # render step reports per-command outcomes — so an early-ending session
-          # is no longer indistinguishable from a healthy one, which was the
-          # whole reason full output was turned on.
+          # What #317 actually needed is still covered. "Fail on silent session
+          # error" reads the execution file and FAILS the job on both known
+          # silent-no-op shapes, naming the candidate causes, and the render step
+          # reports per-command outcomes — so an early-ending session is no
+          # longer indistinguishable from a healthy one, which was the whole
+          # reason full output was turned on. Be precise about what that is and
+          # is not: it is a reliable signal plus a short list of causes, not a
+          # per-run diagnosis, and it does not reconstruct the transcript. That
+          # is the deliberate trade — a transcript that can carry the model token
+          # into a public log is not worth the extra detail.
           #
           # The execution file still exists for a maintainer debugging a run; it
           # is simply not published to the log by default.
@@ -648,7 +652,7 @@ jobs:
               "$EXEC_FILE" >/dev/null 2>&1; then
             echo "session ended cleanly with $EXPECTED TRIAGE-RESULT sentinel(s) — triage completed"
           else
-            echo "::error::Claude triage session did not complete its commands (is_error true, wrong sentinel count for the item type, non-sentinel final message, or unparsable execution file — see #317/#338). The item likely got no (or incomplete) triage. See the session output above."
+            echo "::error::Claude triage session did not complete its commands, so the item got no (or incomplete) triage. One of: the session errored (is_error true), it emitted the wrong number of TRIAGE-RESULT sentinels for this item type, its final message was not the sentinels, or the execution file was unparsable — see #317/#338. The transcript is deliberately NOT published (see the Run Claude step), so this list is the diagnosis; the render step's per-command lines below cover what was and was not produced."
             exit 1
           fi
 

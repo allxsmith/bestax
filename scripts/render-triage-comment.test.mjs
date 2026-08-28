@@ -1357,6 +1357,67 @@ test('a RETRACTION is patched in place, so the cron sees the target removed', as
   }
 });
 
+test('newly promising an auto-close reposts, so the window is not backdated', async () => {
+  // Enabling AI_TRIAGE_AUTOCLOSE and re-labelling an item whose comment already
+  // named the same target used to PATCH the notice onto a months-old
+  // created_at — the cron then closes immediately, the promised 14 days having
+  // elapsed before the promise was ever made. The notice appearing is itself a
+  // new obligation, so it restarts the clock.
+  const realFetch = globalThis.fetch;
+  process.env.GITHUB_TOKEN = 'x';
+  try {
+    const calls = stubFetch([
+      {
+        id: 11,
+        created_at: '2026-01-01T00:00:00Z',
+        user: { login: 'bestaxbot', type: 'User' },
+        // Same target, but written while auto-close was off: no notice.
+        body: `Duplicate of #5\n\n${MARKER}`,
+      },
+    ]);
+    const dir = tmp();
+    const path = join(dir, 'body.md');
+    writeFileSync(
+      path,
+      dedupe({ items: [{ number: 5, title: 't' }] }, { autoclose: 'active' })
+        .body
+    );
+    assert.equal(await main(publishArgs(path)), 0);
+    assert.equal(calls.filter(c => c.method === 'PATCH').length, 0);
+    assert.equal(calls.filter(c => c.method === 'POST').length, 1);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('an already-warned comment with the same target still refreshes in place', async () => {
+  // The mirror of the case above: no new obligation, so no repost — reposting
+  // would discard the objection veto for nothing.
+  const realFetch = globalThis.fetch;
+  process.env.GITHUB_TOKEN = 'x';
+  try {
+    const calls = stubFetch([
+      {
+        id: 11,
+        created_at: '2026-01-01T00:00:00Z',
+        user: { login: 'bestaxbot', type: 'User' },
+        body: `Duplicate of #5\n\n${AUTOCLOSE_SENTENCE}\n\n${MARKER}`,
+      },
+    ]);
+    const dir = tmp();
+    const path = join(dir, 'body.md');
+    writeFileSync(
+      path,
+      dedupe({ items: [{ number: 5, title: 't' }] }, { autoclose: 'active' })
+        .body
+    );
+    assert.equal(await main(publishArgs(path)), 0);
+    assert.equal(calls.filter(c => c.method === 'PATCH').length, 1);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 test('an UNCHANGED verdict still refreshes in place', async () => {
   const realFetch = globalThis.fetch;
   process.env.GITHUB_TOKEN = 'x';

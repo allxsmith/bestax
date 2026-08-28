@@ -61,6 +61,7 @@ import { sanitizeText } from './sanitize-repro-draft.mjs';
 import {
   AUTOCLOSE_SENTENCE,
   MARKER,
+  hasNoticeLine,
   isAutomationAuthor,
 } from './auto-close-duplicates.mjs';
 
@@ -1081,8 +1082,17 @@ async function runPublish(opts) {
   //                               place is what removes the target the cron reads)
   const previousTarget = existing?.body?.match(/Duplicate of #(\d+)/)?.[1];
   const nextTarget = dupe?.[1];
+  // The notice APPEARING is itself a new promise, and it starts a window the
+  // reader has not yet been given. Enabling AI_TRIAGE_AUTOCLOSE and re-labelling
+  // an item whose comment already named the same target left verdictChanged
+  // false, so the notice was PATCHed onto a months-old created_at and the cron
+  // could close immediately — the promised 14 days having elapsed before the
+  // promise was ever made. Any transition that creates an obligation reposts.
+  const previousWarned = hasNoticeLine(existing?.body);
+  const nextWarned = hasNoticeLine(body);
   const verdictChanged =
-    nextTarget !== undefined && previousTarget !== nextTarget;
+    (nextTarget !== undefined && previousTarget !== nextTarget) ||
+    (nextWarned && !previousWarned);
   if (verdictChanged) {
     console.log(
       `${opts.command}: duplicate target is new (${previousTarget ? `#${previousTarget}` : 'none'} -> #${nextTarget}) — posting fresh so the objection window restarts`
@@ -1114,7 +1124,11 @@ async function runPublish(opts) {
   const sameDedupeVerdict =
     previousTarget !== undefined &&
     nextTarget !== undefined &&
-    previousTarget === nextTarget;
+    previousTarget === nextTarget &&
+    // Same target is not the same comment if one warns and the other does not:
+    // leaving a legacy comment in place would withhold a notice we now owe, or
+    // keep one we no longer mean.
+    previousWarned === nextWarned;
   if (existing && sameDedupeVerdict && !isOurs) {
     console.log(
       `${opts.command}: identical verdict already published as comment ${existing.id} by another identity — leaving it, rather than superseding a live objection.`

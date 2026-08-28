@@ -192,8 +192,13 @@ export function findMarkerComment(comments) {
   return null;
 }
 
-/** True when the objection notice appears as its own line. See findMarkerComment. */
-function hasNoticeLine(body) {
+/**
+ * True when the objection notice appears as its own line. See findMarkerComment
+ * for why a substring will not do. Exported because render-triage-comment.mjs
+ * needs the identical predicate: the notice APPEARING is the moment the promise
+ * is made, so the publisher has to detect the same transition this file acts on.
+ */
+export function hasNoticeLine(body) {
   return String(body ?? '')
     .split('\n')
     .some(line => line.trim() === AUTOCLOSE_SENTENCE);
