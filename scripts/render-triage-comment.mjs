@@ -144,12 +144,27 @@ export const COMMANDS = {
 
 /**
  * Deliberately stricter than the watchdog's `startswith("TRIAGE-RESULT:")`: no
- * leading or trailing slack, no doubled spaces, no CR. A line the watchdog
+ * leading or trailing slack, no doubled spaces. A line the watchdog
  * tolerates but this rejects fails the render loudly rather than publishing
  * something only half understood.
+ *
+ * DOT-ALL, and that flag is load-bearing rather than cosmetic. JS `.` excludes
+ * U+2028 and U+2029 as well as \n and \r, but both separators are legal
+ * unescaped inside a JSON string and `JSON.stringify` does not escape them — so
+ * a candidate title carrying one produced a payload this regex could not match,
+ * `parseSentinels` returned null, and the whole run failed closed publishing
+ * nothing. The watchdog passed it happily, because it splits on \n only. That
+ * made one invisible character in an issue title a denial of service against
+ * every triage run citing it.
+ *
+ * The `s` flag costs no strictness: the caller has already split the result
+ * into physical \n lines, so no line can contain one, and the captured payload
+ * is JSON-parsed and schema-validated immediately afterwards. Separators that
+ * survive into a field are flattened by sanitizeField, which is where they were
+ * always meant to be handled — the bug was that parsing never got that far.
  */
 export const SENTINEL_RE =
-  /^TRIAGE-RESULT: ([a-z][a-z-]{0,39}) (publish|skip)(?: (.*))?$/;
+  /^TRIAGE-RESULT: ([a-z][a-z-]{0,39}) (publish|skip)(?: (.*))?$/s;
 
 /**
  * Credential shapes worth refusing on sight; see findCredentialLeak.
@@ -401,7 +416,13 @@ export function parseSentinels(execText, expectedCommands) {
   if (lines.length !== expectedCommands.length) return null;
 
   const found = new Map();
-  for (const line of lines) {
+  for (const raw of lines) {
+    // A lone trailing CR is a line-terminator artifact, not slack: the watchdog
+    // splits on \n, so a CRLF transcript leaves one on every line. Stripping it
+    // here keeps the regex strict about CONTENT (leading space, a missing or
+    // doubled space, an unknown verb all still fail) without failing an entire
+    // run over a line ending. The payload capture never contains it either way.
+    const line = raw.replace(/\r$/, '');
     const match = SENTINEL_RE.exec(line);
     if (match === null) return null;
     const [, command, status, json] = match;

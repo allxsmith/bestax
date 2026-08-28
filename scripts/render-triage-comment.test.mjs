@@ -150,7 +150,6 @@ test('sentinel matching is stricter than the watchdog: slack fails closed', () =
     'TRIAGE-RESULT:triage-dedupe publish {}',
     'TRIAGE-RESULT:  triage-dedupe publish {}',
     'TRIAGE-RESULT: triage-dedupe published {}',
-    'TRIAGE-RESULT: triage-dedupe publish {}\r',
     ' TRIAGE-RESULT: triage-dedupe publish {}',
   ]) {
     assert.equal(
@@ -159,6 +158,45 @@ test('sentinel matching is stricter than the watchdog: slack fails closed', () =
       `should have failed closed: ${JSON.stringify(line)}`
     );
   }
+});
+
+test('a Unicode line separator in a payload does not kill the run', () => {
+  // U+2028/U+2029 are legal unescaped inside a JSON string and JSON.stringify
+  // does not escape them, but JS `.` excludes them — so without the `s` flag a
+  // candidate title carrying one made SENTINEL_RE fail, parseSentinels return
+  // null, and the entire run publish nothing. The watchdog passes it (it splits
+  // on \n only), so one invisible character in an issue title was a denial of
+  // service against every triage run citing that issue.
+  for (const sep of ['\u2028', '\u2029']) {
+    const payload = `{"items":[{"number":456,"title":"before${sep}after"}]}`;
+    assert.doesNotThrow(
+      () => JSON.parse(payload),
+      'fixture must be valid JSON'
+    );
+    const found = parseSentinels(
+      execText(`TRIAGE-RESULT: triage-dedupe publish ${payload}`),
+      ['triage-dedupe']
+    );
+    assert.notEqual(found, null, `${JSON.stringify(sep)} broke extraction`);
+    // ...and the separator is flattened where it was always meant to be.
+    const { body } = dedupe(parsePayload(found.get('triage-dedupe').json));
+    assert.ok(!body.includes(sep));
+    assert.ok(body.includes('before after'));
+  }
+});
+
+test('a CRLF line ending is tolerated, because it is not slack', () => {
+  // The watchdog splits on \n, so a CRLF transcript leaves a CR on every line.
+  // Rejecting that failed an entire run over a line ending, while the content
+  // rules above still catch real slack.
+  const found = parseSentinels(
+    execText('TRIAGE-RESULT: triage-dedupe publish {"items":[]}\r'),
+    ['triage-dedupe']
+  );
+  assert.notEqual(found, null);
+  assert.deepEqual(parsePayload(found.get('triage-dedupe').json), {
+    items: [],
+  });
 });
 
 test('an errored or missing result record fails closed', () => {
