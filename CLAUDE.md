@@ -144,11 +144,17 @@ green and every AI review thread is resolved.
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
-  against current code. **A PR that modifies `claude-review.yml` cannot be deep-reviewed:**
-  the action refuses to run when the workflow file differs from the default branch's copy
-  (a guard against a PR rewriting its own reviewer), logging `Skipping action due to
-workflow validation` and posting nothing. The job still goes green, so check for the
-  review comment rather than the job's conclusion.
+  against current code. **Today a PR that modifies `claude-review.yml` is not deep-reviewed:**
+  the run logs `Skipping action due to workflow validation` and posts nothing while the job
+  still goes green — so check for the review comment, never the job's conclusion. That is a
+  consequence of configuration rather than a property of the action: the validation lives on
+  the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
+  a `github_token` input is supplied. `claude-review.yml` and `claude.yml` are the only
+  claude-code-action jobs here that omit one, which is why they alone are affected — the same
+  early return `ai-triage.yml` already documents for #312. Supplying `GITHUB_TOKEN` would
+  restore the review, at the cost of moving the posting identity away from `claude`, which the
+  loop's gate and the `<!-- claude-deep-review -->` convention rely on. Weigh that before
+  changing it.
 - **Reviewer mechanics:** CodeRabbit reviews incrementally and rate-limits on OSS. After it
   posts "review limit reached" it will not retry on its own; once the window resets, push a
   commit or comment `@coderabbitai review`. Copilot also auto-reviews PRs and re-reviews on

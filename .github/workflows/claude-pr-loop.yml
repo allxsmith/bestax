@@ -333,8 +333,8 @@ jobs:
       # audit mode reports every endpoint the run touches without refusing any,
       # which is what produces the list a block flip needs. That flip is the
       # follow-up rule 10 owes (#578) — audit is a starting point here, not a
-      # resting place, and this is one of the two jobs that runs repo code
-      # alongside the token, so it is the one that most wants the flip.
+      # resting place. Six jobs run repo code alongside the model token (rule 10
+      # lists them); this is one of them, not the only one.
       #
       # The sibling sweep/gate/handoff/halt jobs make GitHub API calls only and
       # carry no harden-runner; only `fix` and `verify` execute repo code.

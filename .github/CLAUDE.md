@@ -77,10 +77,13 @@ regardless of how convenient it is.
   policy. Saying I1 covers those jobs would be the exact overstatement the checklist at the
   bottom of this file ends on. It covers the pipeline that was designed around it.
 
-  The third leg, harden-runner's egress block, is real again as of #487 — `block` used to
-  degrade silently to `audit`, and now enforces and is asserted (rule 10). Be exact about what
-  it adds, because the tempting misreading is the dangerous one: it bounds **where** a session
-  can send data, not **what** it can do with the hosts it is allowed. `api.github.com` is
+  harden-runner's egress block enforces again as of #487 — `block` used to degrade silently to
+  `audit`, and now enforces and is asserted (rule 10). **Do not promote it to a third leg of
+  I1**, which an earlier draft of this file did while `claude-repro.yml` said the opposite: on
+  the exfil path I1 exists to close — `Write` plus a later publishing job — the drafting job's
+  egress policy bounds nothing, because the publishing job has no policy of its own. Be exact
+  about what it does add: it bounds **where** a session can send data, not **what** it can do
+  with the hosts it is allowed. `api.github.com` is
   necessarily allow-listed in every one of these jobs, so egress-block cannot stop a write
   issued through a tool. Never trade away a tool restriction on the grounds that "egress is
   blocked anyway" — the two controls cover different things, which is the whole reason both
@@ -104,11 +107,17 @@ Current pin: `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7` (t
 When bumping, bump every occurrence in a single commit and verify there is exactly one:
 
 ```bash
-grep -rho "actions/checkout@[a-f0-9]\{40\}" .github/workflows/ | sort | uniq -c   # expect one line
+grep -rho "actions/checkout@[a-f0-9]\{40\}" .github/ | sort | uniq -c   # expect one line
 ```
 
-That grep is the whole verification — nothing in CI reads `.github/**`. Two consequences worth
-holding on to:
+Note the grep covers `.github/`, not `.github/workflows/`: `.github/actions/verified-commit/`
+pins `actions/github-script` too, and the narrower grep cannot see it — it would print exactly
+the "one line" this rule tells you to expect while the composite action sat on a stale SHA.
+
+That grep is the whole verification. **No CI gate checks workflow _content_** — `format:check`
+does lint `.github` markdown and `.mjs`, and `ci.yml` runs `.github/scripts/pin-react.mjs`, so
+the directory is not untouched by CI, but nothing verifies a pin, a policy or a permission.
+Three consequences worth holding on to:
 
 - **Do not move a pin out of `.github/workflows/`.** Wrapping a step in a local composite action
   under `.github/actions/` would make the grep match zero lines and pass silently, which is the
@@ -255,14 +264,38 @@ first, because flipping straight to block risks breaking it if the action's runt
 an un-allow-listed host — but that is a temporary state that owes a follow-up issue, not a
 resting place.
 
-**Every block-mode job must carry the assertion step immediately after harden-runner:**
+**Every block-mode job must carry the assertion step** (placement rules below the snippet):
 
 ```yaml
 - name: Assert egress policy is enforced
   run: |
-    jq -e '.egress_policy == "block"' /home/agent/agent.json
-    grep -qx Initialized /home/agent/agent.status
+    set -uo pipefail
+    [ -e /home/agent/agent.json ] || { echo "::error::harden-runner installed no agent"; exit 1; }
+    jq -e '.egress_policy == "block"' /home/agent/agent.json || exit 1
+    for _ in $(seq 1 30); do
+      grep -q '^Initialized' /home/agent/agent.status 2>/dev/null && exit 0
+      sleep 1
+    done
+    exit 1
 ```
+
+Copy the full version from any block job — the three shapes above are each load-bearing:
+
+- **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
+  and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or
+  slim runner). Without it a vendor outage fails all seven jobs with a bare `jq: could not open
+file`. It still fails — a job holding a credential must not run unprotected — but it says why.
+- **The status check polls** rather than testing once. The pre-step waits only for the file to
+  _exist_ and gives up after ~9s, while the agent resolves every allow-listed host before writing
+  its status, so a cold resolver or a long list can leave it absent or empty at this point.
+- **`^Initialized`, not `-qx`.** `writeStatus` appends without a trailing newline, so a second
+  status would concatenate onto the same line and an exact-line match would stop matching.
+
+**Placement:** after harden-runner, **and** after any gate whose outputs an `always()`-guarded
+fail-closed step depends on. `ai-scan` is the live example — putting it immediately after
+harden-runner there would abort before the gate sets `run`, skip the fail-closed labeler, and let
+items go unscanned _and_ unflagged, which is the rule-4 fail-open a fail-closed check must not
+introduce. Gate first in that shape.
 
 **Both lines are required; either alone is a false pass.** `agent.json` holds the policy the
 pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is
@@ -284,6 +317,19 @@ initialization tears the firewall down while `agent.status` still reads `Initial
 Separately, `refreshDNSEntries` re-resolves every 30s and on failure only logs
 `failed to insert new ipaddress in firewall` (:357), so an allow-listed host whose IPs rotate can
 quietly stop being reachable.
+
+Two further false-pass modes are known and not covered, both latent for this repo but worth
+knowing before anyone leans harder on the check:
+
+- **A private repo or fork without an active StepSecurity subscription.** The agent re-decides
+  the policy in-process (`if config.Private && !isActive` → audit) and writes `Initialized`
+  outside every policy branch, while `agent.json` — written by the pre-step — still reads
+  `block`. Both lines pass, audit rules are installed. bestax is public, so this does not bite
+  here; a private mirror would inherit a green check asserting the opposite.
+- **`denied-endpoints`**, new in v2.21.0. Set beside `allowed-endpoints` it is dropped with a
+  `core.info`; set alone on a non-enterprise org the tier gate drops it too, leaving block with
+  an empty allow list _and_ an empty deny list behind a `core.warning`. Both files still read as
+  armed. We do not use the input; do not adopt it without re-reading this rule.
 
 Take the assertion for exactly what it is: proof that enforcement was **armed at that step**, not
 a guarantee for the life of a 30-60 minute session. There is no step-level check for the latter —
@@ -320,9 +366,15 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
 - **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
   `claude-pr-loop` (`fix` and `verify`), `claude-review`, `bestaxbot-reply`. These run repo code
   with a model token; their block flip is the follow-up this rule owes, tracked in #578.
-- **No harden-runner at all** — `auto-close-duplicates`; `claude-repro`'s `prepare`, `publish`
-  and `cleanup`; and the API-only jobs (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`,
-  `supply-chain`'s `sbom`/`attach-sbom`/`verify-provenance`).
+- **No harden-runner at all** — `auto-close-duplicates`, `on-slop`, `auto-label-claude-prs`,
+  `close-stale-bestaxbot-prs`, `stale`; `claude-repro`'s `prepare`, `publish` and `cleanup`; and
+  the API-only jobs (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`, `supply-chain`'s
+  `sbom`/`attach-sbom`/`verify-provenance`).
+
+  `on-slop` and `auto-label-claude-prs` are the two to look at first if this group is ever
+  worked: both run on `pull_request_target` — the highest-privilege trigger class here — with
+  write scopes. They hold no model token, which is why they are not in the group above, but they
+  are not "API-only" in the harmless sense either.
 
 `claude-repro` deserves the emphasis: only its `author` job is hardened. **`publish` — the job
 that runs the sanitizer over attacker-influenced text and holds `issues: write` — has no egress
