@@ -202,10 +202,15 @@ The two #454 parsers are extracted: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
 the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
-tests together. #457 added a third, `scripts/render-triage-comments.mjs` (called by
-`ai-triage.yml`), which took the same route the rule prescribes: its predecessor was that
-workflow's inline sentinel jq, and rather than grow the YAML it reuses
-`parse-scan-verdict.mjs`'s exported helpers. Smaller instances of the same shape remain
+tests together. #457 added two more, both called by `ai-triage.yml` and both taking the
+route this rule prescribes rather than growing the YAML:
+`scripts/render-triage-comments.mjs` (which replaced that workflow's inline sentinel jq and
+reuses `parse-scan-verdict.mjs`'s helpers) and `scripts/pick-triage-upsert.mjs` (which
+replaced the publish step's comment-selection jq and reuses
+`auto-close-duplicates.mjs`'s `isAutomationAuthor`, so the two consumers of the triage
+markers cannot drift on the author-class test rule 6 mandates — the jq it replaced had
+already drifted, testing only `login == "bestaxbot" or type == "Bot"`). Reusing an existing
+tested helper beats re-deriving one in jq every time. Smaller instances of the same shape remain
 inline (the exec-file sentinel checks in `claude-review.yml` and `claude-repro.yml`'s author
 job); when one of those next needs an edit, extract it the same way.
 

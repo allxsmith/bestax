@@ -579,20 +579,26 @@ jobs:
               continue
             fi
             MARKER=$(jq -r ".comments[$i].marker" "$ENVELOPE")
-            export MARKER
             BODY="$RUNNER_TEMP/triage-$CMD.md"
             jq -r ".comments[$i].body" "$ENVELOPE" > "$BODY"
             if [ ! -s "$BODY" ]; then
               echo "::error::empty rendered body for $CMD — refusing to publish"
               exit 1
             fi
-            # --paginate applies --jq per page, so take the last id across all
-            # pages rather than trusting a per-page `last` (the gate's budget
-            # probe documents the same trap).
-            EXISTING=$(gh api --paginate "repos/$REPO/issues/$NUMBER/comments?per_page=100" \
-              --jq '.[] | select(((.user.login == "bestaxbot") or (.user.type == "Bot"))
-                                 and (.body | contains(env.MARKER))) | .id' \
-              | tail -n 1)
+            # Which comment to refresh is decided by a tested script, not by
+            # jq here (rule 9): it reuses auto-close-duplicates.mjs's
+            # isAutomationAuthor, so the two consumers of these markers cannot
+            # drift on the author-class test that rule 6 mandates. `--jq`
+            # projects only the fields it needs, and `--paginate` applies that
+            # per page — the script flattens the resulting one-array-per-line
+            # stream, which is the trap a per-page `last` or a naive
+            # `tail -n 1` only accidentally survives.
+            COMMENTS="$RUNNER_TEMP/comments-$CMD.json"
+            gh api --paginate "repos/$REPO/issues/$NUMBER/comments?per_page=100" \
+              --jq '[.[] | {id, user: {login: .user.login, type: .user.type}, body}]' \
+              > "$COMMENTS"
+            EXISTING=$(node scripts/pick-triage-upsert.mjs \
+              --comments-file="$COMMENTS" --marker="$MARKER")
             if [ -n "$EXISTING" ]; then
               gh api -X PATCH "repos/$REPO/issues/comments/$EXISTING" \
                 -F body=@"$BODY" >/dev/null
