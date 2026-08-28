@@ -60,13 +60,22 @@ red-team found the failure it prevents. Where a rule has a documented origin, it
 Every AI workflow here is built to preserve these. If a change breaks one, the change is wrong,
 regardless of how convenient it is.
 
-- **I1 — the model-auth token never shares a job with code execution.** `CLAUDE_CODE_OAUTH_TOKEN`
-  pays for a session; anything that can run code in the same job can read it out of the
-  environment. `claude-repro.yml` splits drafting from publishing for exactly this reason: the
-  drafting job has no `Bash`, no `Task`, no network tool, so it cannot read env, fetch, or
-  execute. Note the direction of the guarantee — it raises the cost of exfiltration, it is not a
-  proof. The credential-shape check in `Collect draft` (literal, base64, and hex forms) is a
-  backstop for the same reason, and is documented as one.
+- **I1 — in the publishing pipeline, the model-auth token never shares a job with code
+  execution.** `CLAUDE_CODE_OAUTH_TOKEN` pays for a session; anything that can run code in the
+  same job can read it out of the environment. `claude-repro.yml` splits drafting from publishing
+  for exactly this reason: the drafting job has no `Bash`, no `Task`, no network tool, so it
+  cannot read env, fetch, or execute. Note the direction of the guarantee — it raises the cost of
+  exfiltration, it is not a proof. The credential-shape check in `Collect draft` (literal,
+  base64, and hex forms) is a backstop for the same reason, and is documented as one.
+
+  **Read the scope precisely, because the unqualified version is false.** This is a property
+  `claude-repro` is _built_ to preserve, not a repo-wide fact. `claude-implement`,
+  `claude-pr-loop` (`fix`/`verify`), `claude-review`, `claude` and `bestaxbot-reply` all check
+  out a branch and run repository code in the same job as that token, and they must — fixing and
+  reviewing code is the job. What holds them is a different, weaker set: the tool allowlist, the
+  protected-path deny rules, the trusted-labeler gates, and (once #578 lands) an enforced egress
+  policy. Saying I1 covers those jobs would be the exact overstatement the checklist at the
+  bottom of this file ends on. It covers the pipeline that was designed around it.
 
   The third leg, harden-runner's egress block, is real again as of #487 — `block` used to
   degrade silently to `audit`, and now enforces and is asserted (rule 10). Be exact about what
@@ -242,16 +251,27 @@ resting place.
 
 ```yaml
 - name: Assert egress policy is enforced
-  run: jq -e '.egress_policy == "block"' /home/agent/agent.json
+  run: |
+    jq -e '.egress_policy == "block"' /home/agent/agent.json
+    grep -qx Initialized /home/agent/agent.status
 ```
 
-harden-runner's pre-step serializes its **effective** config there after every policy decision,
-so this checks what is in force rather than what the YAML asked for. A missing file means the
-pre-step bailed before installing the agent, and failing on that is correct: no file, no
-monitoring. This is not ceremony — it exists because of #487, where `block` silently meant
-`audit` on every untrusted trigger for two months and the only announcement was one `core.info`
-line. harden-runner v2.21.0 removed that fail-open path; the assertion is what stops the next
-one being invisible.
+**Both lines are required; either alone is a false pass.** `agent.json` holds the policy the
+pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is
+what #487 was. `agent.status` is written only once the firewall rules are actually installed,
+and it is the line that catches the other failure: `agent.json` is written _before_ the agent
+starts, so if the agent fails to come up, the pre-step logs `timed out`, reverts its changes and
+**still exits 0**, leaving `block` in the config and no firewall.
+
+That second failure is not theoretical. The PR that introduced this assertion shipped with only
+the `jq` line and passed green on a job where the firewall had reverted. Which leads to the
+sharpest operational rule here:
+
+> **An unresolvable host in `allowed-endpoints` disables the entire policy.** harden-runner's
+> agent aborts and reverts when it cannot resolve an allow-listed domain. A dead entry is not
+> inert — `statsig.anthropic.com` had gone NXDOMAIN, and its presence silently turned the
+> firewall off. Before adding a host, resolve it; when a run reports `Reverted changes` or
+> `timed out`, suspect the allowlist before anything else.
 
 Where the state actually stands, since "which jobs enforce" was mis-stated repeatedly during
 #487 and the distinction is load-bearing:
@@ -259,11 +279,15 @@ Where the state actually stands, since "which jobs enforce" was mis-stated repea
 - **Enforcing and asserted** — `ai-scan`, `claude-repro`, `ai-triage`, `deploy-worker`,
   `supply-chain` (`consumer-sbom` and `sign-sbom`), `security-txt-expiry`.
 - **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
-  `claude-pr-loop` (`fix` and `verify`), `claude-review`. These run repo code with a model token;
-  their block flip is the follow-up this rule owes, tracked in #578.
+  `claude-pr-loop` (`fix` and `verify`), `claude-review`, `bestaxbot-reply`. These run repo code
+  with a model token; their block flip is the follow-up this rule owes, tracked in #578.
 - **No harden-runner at all** — `auto-close-duplicates` and the API-only jobs
   (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`, `supply-chain`'s `sbom`/`attach-sbom`/
   `verify-provenance`).
+
+Keep that inventory correct when you add a job. Its first version omitted `bestaxbot-reply`,
+which is squarely in the second group — a table that quietly misses a model-token job is worse
+than no table, for the same reason a comment that overstates its mechanism is.
 
 Citing egress-block as a control is now legitimate **for the first group only**, and only for
 what it actually does: it bounds where data can go, not what a session can do with an
