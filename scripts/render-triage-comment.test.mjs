@@ -1000,7 +1000,7 @@ test('render handles the two-command PR path end to end', async () => {
   assert.ok(!existsSync(join(dir, 'triage-find-duplicate-prs.md')));
 });
 
-test('one bad payload does not discard its sibling command s comment', async () => {
+test("one bad payload does not discard its sibling command's comment", async () => {
   // Failing the whole step looked like the loud, safe choice and was not: the
   // sibling's rendered comment was thrown away and `cleanup` spends the label
   // regardless, so the PR ended with NO comment and nothing to retry from.

@@ -78,7 +78,11 @@ export const MAX_PAYLOAD_BYTES = 16_000;
 export const MAX_TITLE_CHARS = 256; // GitHub's own issue-title limit
 export const MAX_REASON_CHARS = 400;
 export const MAX_BODY_BYTES = 60_000; // GitHub caps comment bodies at 65536
-export const MAX_ITEMS_HARD = 50; // reject absurd arrays before per-item work
+// A WORK bound, not a rejection: a longer array is sliced to this before the
+// per-entry loop. It used to return null and fail the run, which reddened
+// triage for a session that had broken no instruction it was given — nothing
+// the model is told mentions 50.
+export const MAX_ITEMS_HARD = 50;
 
 export const AUTOCLOSE_SENTENCE =
   `This issue may be auto-closed in ${DEFAULT_WAIT_DAYS} days unless someone ` +
@@ -358,12 +362,13 @@ export function findCredentialLeak(body, secrets = []) {
  * contract at all, so no payload in the message can be attributed with
  * confidence.
  *
- * A well-formed set with ONE bad payload is isolated inside this script — the
- * other commands still render — but that is not the end state: runRender still
- * exits non-zero, and the workflow step runs under `set -euo pipefail`, so the
- * run fails and NOTHING is published. That is deliberate (a half-triaged item
- * that looks complete is worse than a loud failure); the per-command isolation
- * here only keeps the error messages specific.
+ * A well-formed set with ONE bad payload is isolated per command: the others
+ * still render, runRender exits 0, and their comments ARE published, with the
+ * failure surfaced as an ::error:: annotation. See runRender for why — failing
+ * the step discarded an already-validated sibling comment while the label was
+ * spent regardless. Fail-closed here governs what may be PUBLISHED (a body
+ * that fails validation is never written); it is not a promise that one bad
+ * payload voids the whole run.
  */
 export function parseSentinels(execText, expectedCommands) {
   const record = lastResultRecord(parseExecutionRecords(execText));
@@ -416,11 +421,15 @@ const isValidNumber = n =>
   typeof n === 'number' && Number.isSafeInteger(n) && n >= 1;
 
 /**
- * Validate one list of candidates. Returns { kept, rawCount }, or null when
- * the list itself is unusable (not an array, or absurdly long).
+ * Validate one list of candidates. Returns { kept, rawCount, invalid }, or
+ * null ONLY when `raw` is not an array — callers distinguish the two, so the
+ * null case has to stay that narrow.
  *
- * Caps are noise limits rather than security boundaries, so an over-long list
- * truncates instead of failing. Everything else drops the individual entry.
+ * Caps are noise limits rather than security boundaries: an over-long list is
+ * truncated, never rejected. `MAX_ITEMS_HARD` bounds the work before the loop,
+ * `cap` bounds what is kept, and a non-positive `cap` keeps nothing. Every
+ * other problem drops the individual entry and counts it in `invalid`, which
+ * is what lets the caller tell a broken payload from an empty result.
  */
 export function validateItems(raw, { cap, exclude = new Set() } = {}) {
   if (!Array.isArray(raw)) return null;

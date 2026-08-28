@@ -356,7 +356,23 @@ jobs:
   # ---------------------------------------------------------------------------
   triage:
     needs: gate
-    if: needs.gate.outputs.run == 'true'
+    # The kill switches are REPEATED here, not just inherited from `gate`.
+    # "Re-run failed jobs" does not re-run an already-green gate — it replays
+    # its cached outputs — so a condition that only read
+    # needs.gate.outputs.run would start a Claude session on re-run even after
+    # a maintainer set AI_LOOP_ENABLED=false or moved AI_TRIAGE_MODE off
+    # `auto`. Before the #457 split this was free: the single job re-evaluated
+    # its own `if` every time. Rule 3 requires anything that spends model usage
+    # to gate on its own opt-in, and this is the job that spends it.
+    # ai-scan.yml carries the identical guard for the identical reason.
+    #
+    # Only the switches are repeated. The fork guard and the event-shape terms
+    # in `gate` cannot change on a re-run — the event payload is the same one.
+    if: |
+      needs.gate.outputs.run == 'true' &&
+      vars.AI_LOOP_ENABLED == 'true' &&
+      vars.AI_TRIAGE_MODE != 'off' &&
+      (github.event.action == 'labeled' || vars.AI_TRIAGE_MODE == 'auto')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -632,9 +648,21 @@ jobs:
       # gap looks like on the PR that introduces the script — see the PR
       # description. Do not add a path that posts unrendered text.
       #
-      # A non-zero exit fails the whole run even when only one of a PR's two
-      # commands had a bad payload: a half-triaged item that looks complete is
-      # worse than a loud failure.
+      # Partial publication IS the contract, and the earlier note here claiming
+      # the opposite was written before the behavior was corrected. When one of
+      # a PR's two commands has a bad payload, the renderer still writes the
+      # sibling's body and exits 0, so the good comment publishes; the failure
+      # surfaces as an ::error:: annotation on the run. Only a render that
+      # produces NOTHING exits non-zero and kills the step.
+      #
+      # That is not a softening of the fail-closed stance, which is about what
+      # may be PUBLISHED: a body that fails validation is still never written.
+      # It is about blast radius. Failing the step on any per-command error
+      # threw away an already-rendered, fully-validated comment, while
+      # `cleanup` removes the `ai-triage` label under always() regardless — so
+      # the item ended with no comment and the human-metered button spent, with
+      # nothing to retry from. That is the same unrecoverable half-triaged state
+      # the publish step's deliberate `set -uo pipefail` exists to avoid.
       - name: Render triage comments
         id: render
         env:
