@@ -116,14 +116,31 @@ export function lastResultRecord(records) {
 }
 
 /**
- * Last non-empty line of a result payload. Filters on length, NOT trim: a
- * whitespace-only line is a line (jq `select(length > 0)` parity), so
- * trailing spaces after a sentinel still push it off the final position.
+ * The last `n` non-empty lines of a result payload, in document order.
+ * Filters on length, NOT trim: a whitespace-only line is a line (jq
+ * `select(length > 0)` parity), so trailing spaces after a sentinel still push
+ * it off the final position.
+ *
+ * Returns FEWER than `n` lines when the payload has fewer — never padded.
+ * render-triage-comment.mjs depends on that: it compares the returned count
+ * against the number of commands it expected, so padding would let a session
+ * that emitted one sentinel satisfy a two-sentinel check. Non-positive or
+ * non-integer `n` yields [].
  */
-export function lastNonEmptyLine(result) {
+export function lastNonEmptyLines(result, n) {
+  if (!Number.isSafeInteger(n) || n <= 0) return [];
   const text = typeof result === 'string' ? result : '';
   const lines = text.split('\n').filter(line => line.length > 0);
-  return lines.length > 0 ? lines[lines.length - 1] : '';
+  return lines.slice(-n);
+}
+
+/**
+ * Last non-empty line of a result payload, or '' when there is none. Thin
+ * wrapper so the jq-parity line semantics live in exactly one place, shared
+ * with the ai-triage watchdog's multi-sentinel reader.
+ */
+export function lastNonEmptyLine(result) {
+  return lastNonEmptyLines(result, 1)[0] ?? '';
 }
 
 /**

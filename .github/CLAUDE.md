@@ -75,8 +75,27 @@ regardless of how convenient it is.
 
 - **I2 — no untrusted or model-authored free text reaches a re-trigger-capable identity.**
   Comments posted with `GITHUB_TOKEN` do not emit workflow events. Comments posted with a PAT
-  **do**. So a drafted reproduction is sanitized deterministically and posted via
-  `GITHUB_TOKEN`, and every comment-triggered workflow independently gates out bestaxbot.
+  **do**. Two shapes address this, and only one of them is airtight — be precise about which
+  you are relying on.
+
+  `claude-repro.yml` changes the IDENTITY: the drafted reproduction is sanitized
+  deterministically and posted via `GITHUB_TOKEN`, whose comments emit no events at all. That
+  is structural — no text can re-trigger anything, whatever it says.
+
+  `ai-triage.yml` keeps the PAT identity (#361 wanted it) and narrows the TEXT instead. Since
+  #457 the session posts nothing; a deterministic renderer owns every structural string (the
+  markers, `Duplicate of #N`, `Fixes #N`, the auto-close notice) and every issue reference is
+  a validated integer. But the published body still carries two bounded model-authored fields,
+  a candidate's title and a one-line reason, escaped and defanged against the KNOWN
+  re-trigger vectors — mentions, markers, autolinks, machine sentinels. It cannot defang a
+  trigger token nobody has invented yet: a literal `/retest` in a title survives into the
+  comment today. So for that residual class rule 8's sender exclusions are still **the** layer,
+  not a second one, and a future comment-triggered workflow that forgets them reopens it.
+
+  Publishing the two fields is a deliberate, revisitable trade — a prose-free comment (bare
+  `#N` references, or a renderer-owned enum in place of the reason) would make this structural
+  too, at the cost of the signal a human reads the comment for. Do not describe the triage path
+  as closing I2 by construction; describe it as narrowing the surface and keeping rule 8.
 
 ## Hard requirements
 
@@ -105,14 +124,14 @@ not a convenience list, and widening it grants capability with **no permissions 
 reviewer to notice** — the `permissions:` block looks identical before and after.
 
 Two sessions where the allowlist is the _only_ thing between untrusted text and a credential.
-Read the third column for **which** credential — since #455 they are no longer the same
-answer, and "the session can't write to the repo any more" is not the same claim as "the
-allowlist stopped mattering":
+Read the third column for **which** credential — since #455 and #457 neither session can
+reach repository write any more, and "the session can't write to the repo" is not the same
+claim as "the allowlist stopped mattering":
 
-| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ai-triage.yml` | `AI_LOOP_PAT` (bestaxbot)                                                                                         | Full repo write. Confined to GET-only `gh` reads plus the two comment commands.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is still the only thing standing between an injected session and reading that token out of the environment — and egress is not enforced (rule 10). Narrow, not retired. |
+| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired. |
+| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is still the only thing standing between an injected session and reading that token out of the environment — and egress is not enforced (rule 10). Narrow, not retired.                                                                                                                                                                                    |
 
 Concrete rules:
 
@@ -129,6 +148,14 @@ Concrete rules:
   read-only. The allowlist did not change; what changed is that it is no longer the only
   thing standing behind it. When a session's job holds a write scope for the benefit of some
   _other_ step, that is the shape to look for.
+- #457 is the same move against the harder case, and worth reading second: `ai-triage`'s
+  session did not merely sit near a write credential, it **held** one — the Claude action
+  installs its `github_token` as the session's `GH_TOKEN`, so passing `AI_LOOP_PAT` handed an
+  untrusted-text-ingesting session full repo write. Splitting the job was the only way to get
+  it a genuinely read-only credential without minting a new secret, because `GITHUB_TOKEN` is
+  job-scoped and the budget marker needs `issues: write` somewhere. The lesson to carry: when
+  a session's credential is passed _to the action_ rather than merely present in the job,
+  narrowing the allowlist cannot reach it at all — only moving the work can.
 
 ### 3. Opt in explicitly for anything that spends model usage
 
@@ -197,11 +224,16 @@ writing the trigger string at all.
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
 non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
 `node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
-The two #454 parsers are extracted: the scan-verdict parser
+Three extractions exist. The two from #454: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
 the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
-tests together. Smaller instances of the same shape remain inline (the exec-file sentinel
+tests together. Then #457's triage renderer/publisher
+(`scripts/render-triage-comment.mjs`, called twice by `ai-triage.yml` — once per mode), which
+is the largest and the one to read first: it validates a model-authored payload, renders the
+comment from renderer-owned constants, and upserts it by marker. Its test sibling runs the
+real `auto-close-duplicates.mjs` consumer over rendered output, so the two cannot drift.
+Smaller instances of the same shape remain inline (the exec-file sentinel
 checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
 one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported
 helpers rather than growing the YAML.

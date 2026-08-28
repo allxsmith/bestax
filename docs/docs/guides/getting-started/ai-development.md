@@ -66,8 +66,13 @@ PRs authored by the loop move through a small label lifecycle:
 New issues and PRs can get an automatic triage comment: likely duplicates (issues), the open
 issues a PR probably resolves, and overlapping PRs. Triage comments are posted by the
 `bestaxbot` machine account (the same account that authors the loop's PRs; older triage
-comments were posted by `github-actions[bot]` or `claude[bot]`). **Only same-repo PRs are
-triaged** — PRs opened from forks are always
+comments were posted by `github-actions[bot]` or `claude[bot]`). The Claude session that does
+the searching never writes the comment itself — it reports what it found as structured data,
+and a deterministic renderer builds the body from that. Everything structural (the headings,
+the machine-read `Duplicate of #N`, the auto-close notice) is written by the renderer from
+validated issue numbers; the candidate titles and one-line reasons are still the session's
+words, escaped and stripped of anything that could mention, link or re-trigger.
+**Only same-repo PRs are triaged** — PRs opened from forks are always
 skipped, automatic and label alike (the workflow deliberately avoids GitHub's
 `pull_request_target` trigger, so fork-originated events can never run with repository
 secrets); issues have no such restriction. Three repository variables control it:

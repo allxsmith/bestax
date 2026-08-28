@@ -46,6 +46,30 @@ import { pathToFileURL } from 'node:url';
 export const MARKER = '<!-- ai-triage:dedupe -->';
 export const DUPLICATE_RE = /Duplicate of #(\d+)/;
 
+/**
+ * The objection window, in days. This file owns it because this file enforces
+ * it; render-triage-comment.mjs imports it to build the notice.
+ */
+export const DEFAULT_WAIT_DAYS = 14;
+
+/**
+ * The exact notice a dedupe comment must carry before this cron will act on
+ * it. Owned here, imported by the renderer, for the same reason as the day
+ * count: the promise and its enforcement have to be one string.
+ *
+ * Requiring it is a safety property, not bookkeeping — NEVER close an issue
+ * whose triage comment did not warn. Without this check the closer acted on
+ * any aged marker naming a duplicate, so a comment written while
+ * AI_TRIAGE_AUTOCLOSE was `off` or `dry-run` (no notice) became instantly
+ * closeable the moment the variable was flipped to `on`, 14 days having
+ * already elapsed and its readers never once told a close was coming. The age
+ * gate then measures from the comment that carried the warning, so the window
+ * a reader was shown is the window they actually get.
+ */
+export const AUTOCLOSE_SENTENCE =
+  `This issue may be auto-closed in ${DEFAULT_WAIT_DAYS} days unless someone ` +
+  'objects (comment or \u{1F44E}).';
+
 const API_BASE = 'https://api.github.com';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RATE_LIMIT_FLOOR = 20;
@@ -60,7 +84,7 @@ const RATE_LIMIT_RETRIES = 2;
 /** Parse argv into { repo, mode, waitDays }; throws Error(message) on misuse. */
 export function parseArgs(argv) {
   let repo, mode;
-  let waitDays = 14;
+  let waitDays = DEFAULT_WAIT_DAYS;
   for (const arg of argv) {
     if (arg.startsWith('--repo=')) repo = arg.slice('--repo='.length);
     else if (arg.startsWith('--mode=')) mode = arg.slice('--mode='.length);
@@ -72,8 +96,16 @@ export function parseArgs(argv) {
     throw new Error('--repo=owner/name is required');
   if (mode !== 'dry-run' && mode !== 'on')
     throw new Error('--mode=dry-run|on is required');
-  if (!Number.isInteger(waitDays) || waitDays < 1)
-    throw new Error('--wait-days must be a positive integer');
+  // The floor is the PROMISE, not 1. The notice is written at triage time and
+  // always says DEFAULT_WAIT_DAYS, so a shorter window closes an issue before
+  // the date its own comment gave the reporter — `--wait-days=1` would close
+  // after a day against a 14-day promise. Longer is fine: closing later than
+  // promised breaks nothing.
+  if (!Number.isInteger(waitDays) || waitDays < DEFAULT_WAIT_DAYS)
+    throw new Error(
+      `--wait-days must be an integer >= ${DEFAULT_WAIT_DAYS} (the window the ` +
+        'triage comment promises); a shorter window would close issues early'
+    );
   return { repo, mode, waitDays };
 }
 
@@ -93,28 +125,95 @@ const MACHINE_USERS = new Set(['bestaxbot']);
 /** True for any automation author: Bot-type, `[bot]` suffix, or a machine user. */
 export function isAutomationAuthor(user) {
   if (!user) return false;
-  return isBot(user) || MACHINE_USERS.has(user.login ?? '');
+  // Lowercased: GitHub logins are case-insensitive, so `BestaxBot` is the same
+  // account and must not read as a human objection.
+  return isBot(user) || MACHINE_USERS.has((user.login ?? '').toLowerCase());
 }
 
 /**
- * Find the LATEST automation-authored comment that carries the dedupe
- * marker and a parseable `Duplicate of #N`. Matched by marker + author
- * class, never one specific login: the triage workflow posts as the
- * bestaxbot machine account today, posted as github-actions[bot] while it
- * used GITHUB_TOKEN (#312 → this change), and as claude[bot] before #312.
- * Returns { comment, target } or null. `comments` must be in ascending
- * created order (the REST API default for issue comments).
+ * Read the CURRENT triage verdict: find the LATEST automation-authored comment
+ * carrying the dedupe marker, and return its `Duplicate of #N` — or null when
+ * that comment names none.
+ *
+ * Note the shape, because it is not "search back for the newest comment that
+ * has a target". The latest marker comment is authoritative and the scan stops
+ * there either way: a retraction ("No duplicates found.") therefore returns
+ * null rather than falling through to an older comment that still names one.
+ * Do not reintroduce that fall-through — it let a retraction resurrect the
+ * target it retracted, with no possible veto, since the retraction is itself
+ * automation-authored. See the test sibling for the case.
+ *
+ * Matched by marker + author class, never one specific login: the triage
+ * workflow posts as the bestaxbot machine account today, posted as
+ * github-actions[bot] while it used GITHUB_TOKEN (#312 → this change), and as
+ * claude[bot] before #312. Returns { comment, target } or null. `comments`
+ * must be in ascending created order (the REST API default for issue
+ * comments).
  */
 export function findMarkerComment(comments) {
   for (let i = comments.length - 1; i >= 0; i--) {
     const c = comments[i];
     if (!isAutomationAuthor(c.user)) continue;
-    if (!c.body?.includes(MARKER)) continue;
+    // The marker must be the LAST non-empty line, not merely present. A bare
+    // `includes` matched any automation comment that QUOTED a triage comment —
+    // and bestaxbot-reply.yml hands a session `gh issue comment` under the same
+    // PAT with no deterministic sanitizer, so a reply explaining a verdict
+    // carries the marker verbatim. That reply would then become the verdict
+    // here: its created_at restarts the 14-day clock, and objections made
+    // after the REAL marker comment stop counting. render-triage-comment.mjs
+    // selects on this same property, and every marker comment in this repo
+    // (including the pre-bestaxbot ones) already satisfies it, because the
+    // renderer emits the marker last by construction.
+    if (lastNonEmptyLine(c.body) !== MARKER) continue;
+    // The LATEST marker comment IS the current verdict — if it names no
+    // duplicate, there is no duplicate. Skipping past it to an older comment
+    // that does name one made a retraction resurrect the target it retracted:
+    // triage says "Duplicate of #100", a re-run later publishes "No duplicates
+    // found." as a NEW comment (which is what happens whenever the older
+    // comment belongs to a different automation identity — 29 of the marker
+    // comments in this repo predate the move to bestaxbot), and this loop then
+    // read straight past the retraction and closed the issue against #100.
+    // `humanCommentAfter` cannot veto it either, because the retraction is
+    // itself automation-authored.
     const m = c.body.match(DUPLICATE_RE);
-    if (!m) continue;
+    if (!m) return null;
+    // A verdict that never warned is not actionable. See AUTOCLOSE_SENTENCE.
+    //
+    // Matched as its OWN line, never as a substring. Every model-supplied field
+    // is embedded mid-line inside a `- #N — ` bullet, so it can never form one —
+    // whereas `includes` was satisfied by a title that merely quoted the notice,
+    // which made a comment written with auto-close OFF (no renderer-emitted
+    // notice at all) actionable the moment the variable was turned on. That is
+    // precisely the no-warning-window path this guard exists to close, reopened
+    // by anyone who can write an issue title.
+    if (!hasNoticeLine(c.body)) return null;
     return { comment: c, target: Number(m[1]) };
   }
   return null;
+}
+
+/**
+ * True when the objection notice appears as its own line. See findMarkerComment
+ * for why a substring will not do. Exported because render-triage-comment.mjs
+ * needs the identical predicate: the notice APPEARING is the moment the promise
+ * is made, so the publisher has to detect the same transition this file acts on.
+ */
+export function hasNoticeLine(body) {
+  return String(body ?? '')
+    .split('\n')
+    .some(line => line.trim() === AUTOCLOSE_SENTENCE);
+}
+
+/**
+ * Last non-empty line of a comment body. Local rather than imported: this
+ * cron deliberately depends on nothing but node: builtins.
+ */
+function lastNonEmptyLine(body) {
+  const lines = String(body ?? '')
+    .split('\n')
+    .map(line => line.trimEnd())
+    .filter(line => line.length > 0);
+  return lines.at(-1) ?? '';
 }
 
 /** Whole days elapsed since the ISO timestamp. */

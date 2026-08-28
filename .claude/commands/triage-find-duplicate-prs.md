@@ -1,33 +1,41 @@
 ---
 description: Find open PRs that duplicate a PR with 3 parallel search agents; silent when none found
-allowed-tools: Task, Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr list:*), Bash(gh search:*), Bash(gh pr comment:*)
+allowed-tools: Task, Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr list:*), Bash(gh search:*)
 ---
 
 # /triage-find-duplicate-prs — overlapping-work check for a PR
 
-Find OPEN, unmerged PRs that duplicate or overlap the target PR. SILENT by
-default: when nothing credible turns up, post NOTHING. Context from the
-caller: `REPO`, `NUMBER` (the target PR), `TRIGGER` (`opened`/`labeled`;
-assume `labeled` locally). If `NUMBER` is missing, ask.
+Find OPEN, unmerged PRs that duplicate or overlap the target PR, and REPORT
+them. Context from the caller: `REPO`, `NUMBER` (the target PR), and `TRIGGER`
+(`opened`/`labeled`). If `NUMBER` is missing, ask.
 
-## Pre-checks (each exit is SILENT)
+**You do not post anything.** You have no comment tool. Your findings go out as
+a structured payload on this command's `TRIAGE-RESULT:` line, and
+`scripts/render-triage-comment.mjs` renders and publishes the comment — it owns
+the marker and the decision to comment at all, including this command's
+silent-by-default behavior.
+
+## Pre-checks (each exit is a `skip`, never a comment)
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,files,comments` —
-   if the PR is not open, stop.
+   if the PR is not open, stop and report `skip (not open)`.
 2. Marker check — a comment authored by bestaxbot or a bot account
-   containing `<!-- ai-triage:find-duplicate-prs -->` (match marker + that
+   whose LAST non-empty line is `<!-- ai-triage:find-duplicate-prs -->` (match marker + that
    author class, never one specific login — the workflow posts as
    bestaxbot today; older comments are from github-actions[bot] or
    claude[bot]):
-   - `TRIGGER=opened` and marker present → stop.
-   - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment with
-     `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
-     your most recent comment on the PR is itself the
-     `<!-- ai-triage:find-duplicate-prs -->` comment. `--edit-last` selects
-     by author, not by marker, and the other triage commands post as the
-     same account — so a newer `find-issues` marker is what it would
-     overwrite. Otherwise post fresh. See `.github/CLAUDE.md` rule 6.
+   A comment COUNTS only when the marker is its LAST non-empty line — the same
+   predicate the publisher and the auto-close cron use. Matching it here
+   matters: a bot reply that merely QUOTES a triage comment carries the marker
+   verbatim, so a looser "contains" test would report `already triaged` and
+   skip the search while the publisher saw no triage comment at all, leaving
+   the item silently un-triaged.
+   - `TRIGGER=opened` and marker present → stop, report
+     `skip (already triaged)`. This is a cost gate that saves the fan-out
+     below; the publisher independently refuses to overwrite an existing
+     triage comment on an `opened` run.
+   - `TRIGGER=labeled` → continue regardless; the publisher refreshes its
+     own marker comment in place.
 
 ## Search — 3 parallel agents
 
@@ -38,7 +46,7 @@ Sub-agents run SYNCHRONOUSLY: every Task call MUST pass
 `run_in_background: false`. If the runtime backgrounds them anyway, NEVER
 end your turn while any sub-agent is still pending — in the headless CI
 session an ended turn terminates the session immediately, orphaning the
-agents before any comment is posted (#338). Collect every agent's result,
+agents before anything is reported (#338). Collect every agent's result,
 then continue with the filter pass.
 
 The three strategies:
@@ -61,28 +69,68 @@ justification.
 
 A duplicate solves the same problem or implements the same feature — same
 files alone is NOT enough. Compare diffs (`gh pr diff`) when unsure. Drop
-weak matches. Zero credible duplicates: on `TRIGGER=opened`, stop SILENTLY
-— no comment, no marker; on `TRIGGER=labeled` (an explicit human request),
-post/refresh the comment with the single line "No duplicate PRs found."
-plus the marker (matches the pre-check refresh path).
+weak matches.
 
-## Post ONE comment (when duplicates exist, or on a labeled rerun)
+If nothing credible remains, report an EMPTY `items` list — do not report
+`skip`. The two mean different things, and the renderer needs the difference:
+an empty result stays silent on an `opened` run and posts "No duplicate PRs
+found." on a `labeled` one (an explicit human request). `skip` means a
+pre-check stopped you before you searched at all.
 
-Via `gh pr comment NUMBER --repo REPO --body ...` (or the refresh path):
+## Report
 
-```markdown
-### AI triage — possible duplicate PRs
+Emit this command's sentinel line, best match first:
 
-- #N — <title>: <one-line reason> (at most 3, best match first)
-
-<!-- ai-triage:find-duplicate-prs -->
+```
+TRIAGE-RESULT: triage-find-duplicate-prs publish {"items":[{"number":123,"title":"…","reason":"…"}]}
 ```
 
-The marker `<!-- ai-triage:find-duplicate-prs -->` goes on its own line at
-the end.
+- `items` — REQUIRED, may be `[]` (see the filter pass). The renderer keeps
+  at most 3.
+- `number` must be a JSON integer, never a string. `title` is required;
+  `reason` is a short one-liner and is optional.
+- Compact JSON on ONE line. A pretty-printed payload fails the job.
+- If a search tool errors, or you are rate-limited and cannot complete the
+  fan-out, report `skip (search failed)`. Do NOT report an empty list in that
+  case — empty means "I searched and found nothing", which is a claim a failed
+  search has not earned.
+- Do NOT write markers or headings into a field — the renderer emits them
+  from its own constants, and structural text inside a field is defanged,
+  not honored.
+
+## Running this locally
+
+The workflow supplies `REPO`, `NUMBER` and `TRIGGER`; run by hand, assume
+`TRIGGER=labeled` and ask for `NUMBER` rather than guessing. Locally the
+sentinel line is the whole output — nothing publishes it, and that is the
+point: you get to read the payload before it ever becomes a comment. To see
+the comment it would produce, pipe the line into the renderer's dry run:
+
+```bash
+# with the TRIAGE-RESULT line saved to /tmp/result.txt
+printf '[{"type":"result","is_error":false,"result":%s}]' \
+  "$(jq -Rs . </tmp/result.txt)" > /tmp/exec.json
+node scripts/render-triage-comment.mjs --mode=render \
+  --exec-file=/tmp/exec.json --expect=triage-find-duplicate-prs --number=<n> \
+  --is-pr=true \
+  --trigger=labeled --autoclose=off --out-dir=/tmp/out --dry-run
+```
+
+Nothing in that path can post: `--mode=render` never opens a network
+connection, and `--mode=publish --dry-run` stops before its first request.
+
+## Size limits
+
+Keep `title` under **256** characters and `reason` under **400** — one line
+each, no markdown, no HTML (the renderer escapes both, so formatting is
+wasted effort). Report at most **3** items.
+
+Obeying those is sufficient. The renderer also enforces a byte cap, but it is
+sized to clear the largest payload these limits allow, so a compliant report is
+never rejected for size — you do not need to count bytes.
 
 ## Hard rules
 
 Never apply or remove labels; never close, merge, push, or resolve
-anything; never write "@claude" or "@coderabbitai" in any text; post at
-most one comment, and none at all when nothing was found.
+anything; never write "@claude" or "@coderabbitai" in any text. You have no
+comment tool — report your findings and stop.
