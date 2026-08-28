@@ -21,8 +21,18 @@ name: AI Triage
 # between model free text and a re-triggered workflow was every
 # comment-triggered workflow independently excluding bestaxbot as sender —
 # correct, but defense by enumeration, and silently reopened by the next
-# workflow whose author forgets. Those sender exclusions REMAIN (rule 8);
-# they are now a second layer rather than the only one.
+# workflow whose author forgets. Those sender exclusions REMAIN (rule 8) and
+# are still load-bearing — do not read this change as retiring them.
+#
+# What it delivers, exactly: every structural string is renderer-owned and every
+# issue reference is a validated integer, so a payload cannot forge a marker, a
+# duplicate verdict or an auto-close promise. What it does NOT deliver: the body
+# still carries two bounded model-authored fields (a candidate's title and a
+# one-line reason), defanged against the KNOWN re-trigger vectors — mentions,
+# markers, autolinks, sentinels — but not against a trigger token nobody has
+# invented yet. A literal `/retest` in an issue title reaches the comment. For
+# that class the sender exclusions are the ONLY layer, which is why rule 8 still
+# matters and why a prose-free body stays on the table (#457 discussion).
 #
 # JOBS — the split exists to separate two credentials that used to share one
 # job, and is modeled on claude-repro.yml:

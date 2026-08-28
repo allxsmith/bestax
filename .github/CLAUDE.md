@@ -75,14 +75,27 @@ regardless of how convenient it is.
 
 - **I2 — no untrusted or model-authored free text reaches a re-trigger-capable identity.**
   Comments posted with `GITHUB_TOKEN` do not emit workflow events. Comments posted with a PAT
-  **do**. Two shapes satisfy this. `claude-repro.yml` changes the IDENTITY: the drafted
-  reproduction is sanitized deterministically and posted via `GITHUB_TOKEN`, whose comments
-  emit no events. `ai-triage.yml` keeps the PAT identity (#361 wanted it) and changes the
-  TEXT instead: since #457 the session emits a structured payload and posts nothing, and
-  `scripts/render-triage-comment.mjs` builds the body from renderer-owned constants and
-  validated integers. Either is acceptable; publishing model prose under a PAT is not.
-  Every comment-triggered workflow independently gates out bestaxbot regardless — that
-  layer stays (rule 8), it is simply no longer the only one.
+  **do**. Two shapes address this, and only one of them is airtight — be precise about which
+  you are relying on.
+
+  `claude-repro.yml` changes the IDENTITY: the drafted reproduction is sanitized
+  deterministically and posted via `GITHUB_TOKEN`, whose comments emit no events at all. That
+  is structural — no text can re-trigger anything, whatever it says.
+
+  `ai-triage.yml` keeps the PAT identity (#361 wanted it) and narrows the TEXT instead. Since
+  #457 the session posts nothing; a deterministic renderer owns every structural string (the
+  markers, `Duplicate of #N`, `Fixes #N`, the auto-close notice) and every issue reference is
+  a validated integer. But the published body still carries two bounded model-authored fields,
+  a candidate's title and a one-line reason, escaped and defanged against the KNOWN
+  re-trigger vectors — mentions, markers, autolinks, machine sentinels. It cannot defang a
+  trigger token nobody has invented yet: a literal `/retest` in a title survives into the
+  comment today. So for that residual class rule 8's sender exclusions are still **the** layer,
+  not a second one, and a future comment-triggered workflow that forgets them reopens it.
+
+  Publishing the two fields is a deliberate, revisitable trade — a prose-free comment (bare
+  `#N` references, or a renderer-owned enum in place of the reason) would make this structural
+  too, at the cost of the signal a human reads the comment for. Do not describe the triage path
+  as closing I2 by construction; describe it as narrowing the surface and keeping rule 8.
 
 ## Hard requirements
 
