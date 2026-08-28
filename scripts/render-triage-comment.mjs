@@ -190,12 +190,19 @@ export function sanitizeField(raw, maxChars) {
   //    it sees fully assembled tokens, and must not join with ''.
   s = s.replace(/[\r\n\u0085\u2028\u2029]+/g, ' ');
   // 4. Escape markup. A field is prose inside a list item, never markup, and
-  //    raw HTML is honored in GitHub comments: a title of
-  //    `<details><summary>more context</summary>` renders as a collapsed
-  //    widget that hides `Duplicate of #N` and the auto-close notice from
-  //    the very reader whose objection is the only veto. `<img>` beacons and
-  //    disguised links ride the same gap, published under bestaxbot.
+  //    both HTML and Markdown structure are honored in GitHub comments: a
+  //    title of `<details><summary>more context</summary>` renders as a
+  //    collapsed widget that hides `Duplicate of #N` and the auto-close
+  //    notice from the very reader whose objection is the only veto, and
+  //    `[click](…)` / `![](…)` render a live link or a tracking beacon under
+  //    bestaxbot.
+  //
+  //    Backslashes are escaped FIRST, before the delimiters below. Escaping
+  //    `[` to `\[` without it is self-defeating: model text of `\[` becomes
+  //    `\\[`, which renders as a literal backslash followed by a LIVE `[`.
+  s = s.replace(/\\/g, '\\\\');
   s = s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s = s.replace(/([[\]])/g, '\\$1');
   // 5. Defang every issue/PR reference. `&#35;123` renders as `#123` for a
   //    reader but is not an autolink and cannot be matched by any `#(\d+)`
   //    consumer, which is what lets assertRenderedInvariants insist that every
@@ -212,18 +219,32 @@ export function sanitizeField(raw, maxChars) {
   // 7. Break URL autolinking. A quoted `https://github.com/o/r/issues/999`
   //    autolinks and records a 'referenced' event on #999 from bestaxbot, so
   //    step 5 alone did not deliver the cross-reference silence it claims.
+  //    This entity is NOT sufficient by itself and must not be described as
+  //    if it were: CommonMark decodes character references inside an explicit
+  //    link destination, so `[click](https&#58;//evil.example)` would still
+  //    render a live link. Step 4 escaping the `[` `]` delimiters is what
+  //    closes that; this step covers the BARE-URL autolink, which is a raw
+  //    text scan and does not decode entities. GFM's `www.` form needs the
+  //    same treatment for the same reason.
   s = s.replace(/:\/\//g, '&#58;//');
+  s = s.replace(/\bwww\./gi, m => `${m.slice(0, 3)}&#46;`);
   // 8. Same for GitHub's other issue shorthand, `GH-123`. Entity-encoding the
   //    first digit renders identically and links nothing.
   s = s.replace(
     /\b(GH-)(\d)/gi,
     (_, prefix, digit) => `${prefix}&#${digit.charCodeAt(0)};`
   );
-  // 9. Defang a credential-shaped string so the published comment can never
-  //    carry a working token. findCredentialLeak still REFUSES outright on
-  //    the job's own secrets; this only covers shapes it cannot compare
-  //    against, and defanging beats publishing them intact.
-  s = s.replace(CREDENTIAL_SHAPE_RE, m => m.replace(/_/g, '&#95;'));
+  // 9. Credentials are deliberately NOT touched here. An earlier version
+  //    entity-encoded the underscore in a credential-shaped match, which was
+  //    worse than doing nothing on both counts: GitHub renders `&#95;` back
+  //    to `_`, so the token stayed readable AND copyable, while the encoding
+  //    hid it from findCredentialLeak — whose exact-value comparison then
+  //    stopped matching the job's own live token. Sanitizing a secret is the
+  //    wrong instinct anyway: the caller REFUSES to publish a body carrying
+  //    one (claude-repro.yml makes the same call, and for the same reason —
+  //    quietly publishing a scrubbed version destroys the only signal that
+  //    the session went somewhere it should not have). Leaving the value
+  //    intact through this function is what keeps that check able to see it.
   // 10. The shared defang rules (`Duplicate of #`, line-start sentinels,
   //     fences). Mentions and comment delimiters are already handled above.
   s = sanitizeText(s);

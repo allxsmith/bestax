@@ -403,8 +403,18 @@ jobs:
       # reads PR content via read-only gh commands). The checkout provides
       # both the .claude/commands/ triage commands the session runs and
       # scripts/render-triage-comment.mjs.
-      # No pnpm/node setup and no dependency install: this job never runs
-      # project code, and the renderer is node: builtins only.
+      #
+      # State the boundary exactly, because this job DOES run repository code:
+      # the render step below executes scripts/render-triage-comment.mjs while
+      # both CLAUDE_CODE_OAUTH_TOKEN and the job token are in scope. What holds
+      # is narrower than "no project code runs here" — the code that runs is
+      # pinned to the DEFAULT BRANCH, so it is reviewed, human-merged code, and
+      # no PR author can substitute their own. Nothing from the triggering
+      # item's head is ever fetched, checked out, or executed.
+      #
+      # No pnpm and no dependency install: the renderer imports node: builtins
+      # only, so it needs no third-party code and no setup-node (which would
+      # add a nodejs.org fetch to the job holding the model token).
       - name: Checkout base default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

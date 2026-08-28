@@ -750,14 +750,47 @@ test('prose ABOUT tokens is not a credential — an outsider cannot red the run'
   }
 });
 
-test('a credential shape inside a field is defanged rather than published', () => {
-  // findCredentialLeak still REFUSES on the job's own secrets; this covers the
-  // shapes it cannot compare against, where defanging beats publishing intact.
-  const { body } = dedupe({
-    items: [{ number: 5, title: `leaked ghp_${'z'.repeat(36)}` }],
-  });
-  assert.ok(!body.includes(`ghp_${'z'.repeat(36)}`));
-  assert.ok(body.includes('ghp&#95;'));
+test('a credential in a field stays VISIBLE to the check, so it is refused', () => {
+  // Regression: an earlier version entity-encoded the underscore in a
+  // credential-shaped match. That was worse than doing nothing on both counts
+  // — GitHub renders `&#95;` back to `_`, so the token stayed readable and
+  // copyable, while the encoding hid it from findCredentialLeak, whose
+  // exact-value comparison then stopped matching the job's own live token.
+  // Sanitizing a secret is the wrong instinct: the caller refuses to publish a
+  // body carrying one, and that only works if the value survives intact here.
+  const secret = `ghs_${'A'.repeat(36)}`;
+  const { body } = dedupe({ items: [{ number: 5, title: `token ${secret}` }] });
+  assert.ok(body.includes(secret), 'the raw value must reach the check');
+  assert.match(findCredentialLeak(body, [secret]) ?? '', /live credential/);
+  // ...and it is caught by shape alone even when the value is unknown here.
+  assert.match(findCredentialLeak(body, []) ?? '', /shaped/);
+});
+
+test('a field cannot render a Markdown link, image or bare-www autolink', () => {
+  // Entity-encoding `://` is not sufficient on its own: CommonMark decodes
+  // character references inside an explicit link destination, so
+  // `[click](https&#58;//evil.example)` would still render a live link and,
+  // as an image, a tracking beacon under bestaxbot.
+  const bullet = title =>
+    dedupe({ items: [{ number: 5, title }] })
+      .body.split('\n')
+      .find(l => l.startsWith('- '));
+  // An unescaped `](` is what forms a link; every delimiter must be escaped.
+  const rendersLink = line => /(^|[^\\])\]\(/.test(line);
+
+  assert.ok(!rendersLink(bullet('[click](https://evil.example)')));
+  assert.ok(!rendersLink(bullet('![x](https://evil.example/a.png)')));
+  // Escaping `[` without escaping backslashes first is self-defeating: model
+  // text of `\[` would become `\\[`, rendering a literal backslash and a LIVE
+  // delimiter. Backslashes are escaped first, so this stays inert.
+  assert.ok(!rendersLink(bullet('\\[click\\](https://evil.example)')));
+  // GFM autolinks a bare `www.` host too, and that scan does not decode
+  // entities, so it needs its own break.
+  assert.ok(!/(^|[^&])www\./.test(bullet('visit www.evil.example now')));
+  // An ordinary bracketed title still reads correctly once rendered.
+  assert.ok(
+    bullet('[Refactor] Extract the parsers').includes('\\[Refactor\\]')
+  );
 });
 
 test('a clean body passes, and empty secrets never false-positive', () => {

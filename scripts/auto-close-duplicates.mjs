@@ -105,13 +105,24 @@ export function isAutomationAuthor(user) {
 }
 
 /**
- * Find the LATEST automation-authored comment that carries the dedupe
- * marker and a parseable `Duplicate of #N`. Matched by marker + author
- * class, never one specific login: the triage workflow posts as the
- * bestaxbot machine account today, posted as github-actions[bot] while it
- * used GITHUB_TOKEN (#312 → this change), and as claude[bot] before #312.
- * Returns { comment, target } or null. `comments` must be in ascending
- * created order (the REST API default for issue comments).
+ * Read the CURRENT triage verdict: find the LATEST automation-authored comment
+ * carrying the dedupe marker, and return its `Duplicate of #N` — or null when
+ * that comment names none.
+ *
+ * Note the shape, because it is not "search back for the newest comment that
+ * has a target". The latest marker comment is authoritative and the scan stops
+ * there either way: a retraction ("No duplicates found.") therefore returns
+ * null rather than falling through to an older comment that still names one.
+ * Do not reintroduce that fall-through — it let a retraction resurrect the
+ * target it retracted, with no possible veto, since the retraction is itself
+ * automation-authored. See the test sibling for the case.
+ *
+ * Matched by marker + author class, never one specific login: the triage
+ * workflow posts as the bestaxbot machine account today, posted as
+ * github-actions[bot] while it used GITHUB_TOKEN (#312 → this change), and as
+ * claude[bot] before #312. Returns { comment, target } or null. `comments`
+ * must be in ascending created order (the REST API default for issue
+ * comments).
  */
 export function findMarkerComment(comments) {
   for (let i = comments.length - 1; i >= 0; i--) {
