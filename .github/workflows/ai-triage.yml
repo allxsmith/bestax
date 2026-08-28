@@ -178,6 +178,14 @@ jobs:
       # `audit` on untrusted triggers (#487) — so the policy takes effect instead
       # of being an aspirational label, and the step below asserts it.
       #
+      # release-assets.githubusercontent.com is where GitHub redirects release-asset
+      # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,
+      # which fetches bun from a GitHub release. It is absent from no other block job
+      # in this repo. Do not remove it because a run seemed fine without it: setup-bun
+      # restores bun from the Actions cache when it can, and these untrusted-trigger
+      # jobs can only READ that cache (#487's root cause), so an eviction turns a
+      # cached restore into a download this list has to permit.
+      #
       # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
       # path — the action curls the installer from the first and pulls the binary
       # from the second. Without them this job fails before the session starts.
@@ -205,6 +213,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             registry.npmjs.org:443
 
       # Asserts the policy the pre-step decided (agent.json) AND that the agent

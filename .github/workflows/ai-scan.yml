@@ -119,6 +119,14 @@ jobs:
       # harden-runner's GitHub Actions baseline; the set below is measured from a
       # real run (#487), not guessed.
       #
+      # release-assets.githubusercontent.com is where GitHub redirects release-asset
+      # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,
+      # which fetches bun from a GitHub release. It is absent from no other block job
+      # in this repo. Do not remove it because a run seemed fine without it: setup-bun
+      # restores bun from the Actions cache when it can, and these untrusted-trigger
+      # jobs can only READ that cache (#487's root cause), so an eviction turns a
+      # cached restore into a download this list has to permit.
+      #
       # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
       # path — the action curls the installer from the first and pulls the binary
       # from the second. Without them this job fails before the session starts.
@@ -147,24 +155,8 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             registry.npmjs.org:443
-
-      # Asserts the policy the pre-step decided (agent.json) AND that the agent
-      # actually came up (agent.status, written only once the firewall rules are
-      # installed). Either alone is a false pass: #487 was the first kind, and an
-      # unresolvable host in this allowlist was the second, on this PR's own run.
-      #
-      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
-      # NOT prove the policy stays armed — the agent writes `Initialized` and then
-      # serves, and a later runtime error makes it revert the firewall with both
-      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
-      # carries the mechanism and what to check when a session looks wrong.
-      #
-      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
-      - name: Assert egress policy is enforced
-        run: |
-          jq -e '.egress_policy == "block"' /home/agent/agent.json
-          grep -qx Initialized /home/agent/agent.status
 
       # Skip bot/automation authors, then charge the daily budget (fail-open).
       - name: Gate (skip bots; charge budget)
@@ -227,6 +219,32 @@ jobs:
           fi
           out run true
           echo "scan budget charged: $NEXT/$LIMIT for $TODAY — scanning #$NUMBER"
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
+      #
+      # ORDER MATTERS: this sits AFTER the gate, not before it. The fail-closed
+      # labeler at the end of this job is guarded by
+      # `always() && steps.gate.outputs.run == 'true'`, so an abort before the gate
+      # would leave `run` unset, skip the labeler, and let the item go both
+      # unscanned AND unflagged — a fail-OPEN on the verdict path (rule 4)
+      # introduced by a fail-CLOSED check. Gate first, and a failed assertion still
+      # leaves `needs-security-review` applied. The Claude session is what this
+      # protects, and it comes after both.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          jq -e '.egress_policy == "block"' /home/agent/agent.json
+          grep -qx Initialized /home/agent/agent.status
 
       # Base default branch only — never PR head code. The scanner reads issue/PR
       # content via read-only gh, not from the workspace.

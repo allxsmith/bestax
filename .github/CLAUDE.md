@@ -301,20 +301,29 @@ sharpest operational rule here:
 > `timed out`, suspect the allowlist before anything else.
 
 Where the state actually stands, since "which jobs enforce" was mis-stated repeatedly during
-issue #487 and the distinction is load-bearing:
+issue #487 and the distinction is load-bearing. **Scope: this covers the AI/automation workflows
+and the jobs adjacent to them, per job, not every job in the directory** — the ordinary build
+jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story-screenshots.yml`,
+`scorecard.yml`, `dependency-review.yml`) carry no harden-runner and are out of scope here.
 
-- **Enforcing and asserted** — `ai-scan`, `claude-repro`, `ai-triage`, `deploy-worker`,
-  `supply-chain` (`consumer-sbom` and `sign-sbom`), `security-txt-expiry`.
+- **Enforcing and asserted** — `ai-scan` (`scan`), `claude-repro` (`author` **only**),
+  `ai-triage` (`triage`), `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and
+  `sign-sbom`), `security-txt-expiry` (`check`).
 - **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
   `claude-pr-loop` (`fix` and `verify`), `claude-review`, `bestaxbot-reply`. These run repo code
   with a model token; their block flip is the follow-up this rule owes, tracked in #578.
-- **No harden-runner at all** — `auto-close-duplicates` and the API-only jobs
-  (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`, `supply-chain`'s `sbom`/`attach-sbom`/
-  `verify-provenance`).
+- **No harden-runner at all** — `auto-close-duplicates`; `claude-repro`'s `prepare`, `publish`
+  and `cleanup`; and the API-only jobs (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`,
+  `supply-chain`'s `sbom`/`attach-sbom`/`verify-provenance`).
 
-Keep that inventory correct when you add a job. Its first version omitted `bestaxbot-reply`,
-which is squarely in the second group — a table that quietly misses a model-token job is worse
-than no table, for the same reason a comment that overstates its mechanism is.
+`claude-repro` deserves the emphasis: only its `author` job is hardened. **`publish` — the job
+that runs the sanitizer over attacker-influenced text and holds `issues: write` — has no egress
+policy at all.** Anyone citing "claude-repro enforces egress" is overstating it by three jobs.
+
+Keep this inventory correct when you add a job, and qualify per job rather than per workflow. Its
+first version omitted `bestaxbot-reply` and named `claude-repro` unqualified — a table that
+quietly misses a model-token job, or implies coverage a workflow only partly has, is worse than
+no table, for the same reason a comment that overstates its mechanism is.
 
 Citing egress-block as a control is now legitimate **for the first group only**, and only for
 what it actually does: it bounds where data can go, not what a session can do with an

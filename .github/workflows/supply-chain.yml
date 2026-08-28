@@ -130,9 +130,10 @@ jobs:
             slug: bestax-mcp
 
     steps:
-      # Rule 10: a new job ships at `block`. The three sibling jobs predate that
-      # rule and are grandfathered by its "existing live job" clause; this one
-      # is not.
+      # Rule 10: a new job ships at `block`. This file has five jobs; the three
+      # that carry no harden-runner (`sbom`, `attach-sbom`, `verify-provenance`)
+      # predate the rule and are grandfathered by its "existing live job" clause.
+      # This one and `sign-sbom` are not, and both enforce.
       #
       # Egress-block IS an enforced control on this job, and the step after
       # harden-runner asserts it rather than leaving it to inference. The
@@ -493,8 +494,11 @@ jobs:
       # egress policy in this repository into something close to open egress. If
       # a real run ever shows a blocked blob endpoint, add that exact host.
       #
-      # The three sibling jobs predate rule 10 and are grandfathered by its
-      # "existing live job" clause; this one does not get that.
+      # Of this file's four other jobs, three (`sbom`, `attach-sbom`,
+      # `verify-provenance`) predate rule 10 and are grandfathered by its
+      # "existing live job" clause. `consumer-sbom` is not grandfathered and
+      # enforces, same as this job — do not read the grandfather clause as
+      # covering it.
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
@@ -521,6 +525,14 @@ jobs:
       # serves, and a later runtime error makes it revert the firewall with both
       # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
       # carries the mechanism and what to check when a session looks wrong.
+      #
+      # One more scope limit, because rule 10's "fails the job instead of degrading
+      # in silence" is true of the JOB and not the pipeline: `attach-sbom` needs
+      # this job but gates on `!cancelled()` and only requires `sbom` to have
+      # succeeded, so a failed assertion here does not stop the release — the SBOMs
+      # attach unsigned with a ::warning::, indistinguishable from the Fulcio/Rekor
+      # outage that gating was written for. Deliberate (nothing here may fail a
+      # release), but do not read a green release as proof this assertion passed.
       #
       # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
       - name: Assert egress policy is enforced
