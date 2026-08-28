@@ -130,7 +130,17 @@ export function findMarkerComment(comments) {
   for (let i = comments.length - 1; i >= 0; i--) {
     const c = comments[i];
     if (!isAutomationAuthor(c.user)) continue;
-    if (!c.body?.includes(MARKER)) continue;
+    // The marker must be the LAST non-empty line, not merely present. A bare
+    // `includes` matched any automation comment that QUOTED a triage comment —
+    // and bestaxbot-reply.yml hands a session `gh issue comment` under the same
+    // PAT with no deterministic sanitizer, so a reply explaining a verdict
+    // carries the marker verbatim. That reply would then become the verdict
+    // here: its created_at restarts the 14-day clock, and objections made
+    // after the REAL marker comment stop counting. render-triage-comment.mjs
+    // selects on this same property, and every marker comment in this repo
+    // (including the pre-bestaxbot ones) already satisfies it, because the
+    // renderer emits the marker last by construction.
+    if (lastNonEmptyLine(c.body) !== MARKER) continue;
     // The LATEST marker comment IS the current verdict — if it names no
     // duplicate, there is no duplicate. Skipping past it to an older comment
     // that does name one made a retraction resurrect the target it retracted:
@@ -145,6 +155,18 @@ export function findMarkerComment(comments) {
     return m ? { comment: c, target: Number(m[1]) } : null;
   }
   return null;
+}
+
+/**
+ * Last non-empty line of a comment body. Local rather than imported: this
+ * cron deliberately depends on nothing but node: builtins.
+ */
+function lastNonEmptyLine(body) {
+  const lines = String(body ?? '')
+    .split('\n')
+    .map(line => line.trimEnd())
+    .filter(line => line.length > 0);
+  return lines.at(-1) ?? '';
 }
 
 /** Whole days elapsed since the ISO timestamp. */

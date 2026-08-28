@@ -29,7 +29,10 @@ const comment = (id, login, body, createdAt, type = 'User') => ({
   created_at: createdAt,
 });
 
-const dedupe = n => `${MARKER}\nDuplicate of #${n}`;
+// Real triage comments end WITH the marker — the renderer emits it as the last
+// line by construction, and every live marker comment in the repo satisfies
+// that. findMarkerComment now requires it, so the fixture must match reality.
+const dedupe = n => `Duplicate of #${n}\n\n${MARKER}`;
 
 // --- author classification ---------------------------------------------------
 
@@ -136,7 +139,7 @@ test('the marker and the Duplicate line are both required', () => {
   );
 });
 
-test('an automation comment quoting a duplicate line still parses', () => {
+test('a smuggled duplicate line in a real marker comment still parses', () => {
   // Documents the coupling with sanitize-repro-draft.mjs (claude-repro.yml's
   // publish sanitizer), which defangs "Duplicate of #" in drafted tests
   // precisely because github-actions[bot] is an author this parser trusts. If
@@ -147,12 +150,28 @@ test('an automation comment quoting a duplicate line still parses', () => {
     comment(
       1,
       'github-actions[bot]',
-      `${MARKER}\nsome text\nDuplicate of #42\nmore`,
+      `some text\nDuplicate of #42\nmore\n\n${MARKER}`,
       '2026-01-01T00:00:00Z',
       'Bot'
     ),
   ]);
   assert.equal(found.target, 42);
+});
+
+test('an automation comment merely QUOTING a triage comment is not the verdict', () => {
+  // bestaxbot-reply.yml hands a session `gh issue comment` under the same PAT
+  // with no deterministic sanitizer, so a reply explaining a verdict carries the
+  // marker verbatim. Treating it as the verdict would restart the 14-day clock
+  // from the reply's created_at and stop counting objections made after the
+  // real marker comment. The renderer selects on the same last-line property.
+  const real = comment(1, 'bestaxbot', dedupe(42), '2026-01-01T00:00:00Z');
+  const quoting = comment(
+    2,
+    'bestaxbot',
+    `As explained above (${MARKER}), #42 looks like the original.`,
+    '2026-02-01T00:00:00Z'
+  );
+  assert.equal(findMarkerComment([real, quoting]).comment.id, 1);
 });
 
 // --- the objection veto ------------------------------------------------------

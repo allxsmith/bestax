@@ -462,12 +462,26 @@ jobs:
           # roughly 30 searches plus ~20 views, which fits.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Full session output in the public job log (#317): the session
-          # only ever sees public issue/PR text and GET-only gh output, so
-          # nothing sensitive can leak, and without it a session that ends
-          # early (e.g. on permission denials) is indistinguishable from a
-          # healthy one.
-          show_full_output: true
+          # NOT enabled. This was `true` for #317, on the reasoning that "the
+          # session only ever sees public issue/PR text and GET-only gh output,
+          # so nothing sensitive can leak". That premise is false: `Read` is
+          # always available to the session and is NOT confined to the workspace
+          # (`/proc/self/environ`, `~/.claude/.credentials.json`), so an injected
+          # session can put the OAuth token — encoded, or split across calls —
+          # into a tool result. With full output on, that result is written to a
+          # PUBLIC job log on a public repository, and no later check can retract
+          # it: the renderer's credential scan guards the COMMENT, which is a
+          # different sink.
+          #
+          # The debuggability #317 wanted is now covered without it. "Fail on
+          # silent session error" reads the execution file and fails the job with
+          # a specific diagnosis for both known silent-no-op shapes, and the
+          # render step reports per-command outcomes — so an early-ending session
+          # is no longer indistinguishable from a healthy one, which was the
+          # whole reason full output was turned on.
+          #
+          # The execution file still exists for a maintainer debugging a run; it
+          # is simply not published to the log by default.
           # Task is required for the commands' fan-out search sub-agents
           # (they inherit this same allowlist). GET-only: no `gh api` (a
           # general-purpose write primitive wearing a read-shaped name), no

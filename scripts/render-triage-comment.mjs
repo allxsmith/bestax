@@ -1081,9 +1081,25 @@ async function runPublish(opts) {
   // clock must restart, and that is argued above.)
   const isOurs =
     (existing?.user?.login ?? '').toLowerCase() === self.toLowerCase();
-  if (existing && !verdictChanged && !isOurs) {
+  // `!verdictChanged` is NOT the same as "the rendered verdict is unchanged":
+  // it only tracks a newly PRESENT dedupe target. Keying the skip on it threw
+  // away two real publications — a RETRACTION against a legacy
+  // `Duplicate of #100` comment (nextTarget is undefined, so nothing posted and
+  // #100 stayed live and closeable), and BOTH PR commands, which never emit a
+  // target at all, so every labeled re-run against a legacy-identity comment
+  // silently published nothing.
+  //
+  // Preserve another identity's comment only when the dedupe verdict is
+  // genuinely identical — the one case where reposting gains nothing and costs
+  // the objection veto and the clock. Everything else posts the new
+  // authoritative comment.
+  const sameDedupeVerdict =
+    previousTarget !== undefined &&
+    nextTarget !== undefined &&
+    previousTarget === nextTarget;
+  if (existing && sameDedupeVerdict && !isOurs) {
     console.log(
-      `${opts.command}: unchanged verdict already published as comment ${existing.id} by another identity — leaving it, rather than superseding a live objection.`
+      `${opts.command}: identical verdict already published as comment ${existing.id} by another identity — leaving it, rather than superseding a live objection.`
     );
     return 0;
   }
