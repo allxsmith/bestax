@@ -46,6 +46,14 @@ import { pathToFileURL } from 'node:url';
 export const MARKER = '<!-- ai-triage:dedupe -->';
 export const DUPLICATE_RE = /Duplicate of #(\d+)/;
 
+/**
+ * The objection window, in days. Exported because render-triage-comment.mjs
+ * builds the "may be auto-closed in N days" sentence that this cron then
+ * enforces — the number has to be single-sourced or the comment can promise a
+ * window the closer does not honor.
+ */
+export const DEFAULT_WAIT_DAYS = 14;
+
 const API_BASE = 'https://api.github.com';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RATE_LIMIT_FLOOR = 20;
@@ -60,7 +68,7 @@ const RATE_LIMIT_RETRIES = 2;
 /** Parse argv into { repo, mode, waitDays }; throws Error(message) on misuse. */
 export function parseArgs(argv) {
   let repo, mode;
-  let waitDays = 14;
+  let waitDays = DEFAULT_WAIT_DAYS;
   for (const arg of argv) {
     if (arg.startsWith('--repo=')) repo = arg.slice('--repo='.length);
     else if (arg.startsWith('--mode=')) mode = arg.slice('--mode='.length);
@@ -110,9 +118,18 @@ export function findMarkerComment(comments) {
     const c = comments[i];
     if (!isAutomationAuthor(c.user)) continue;
     if (!c.body?.includes(MARKER)) continue;
+    // The LATEST marker comment IS the current verdict — if it names no
+    // duplicate, there is no duplicate. Skipping past it to an older comment
+    // that does name one made a retraction resurrect the target it retracted:
+    // triage says "Duplicate of #100", a re-run later publishes "No duplicates
+    // found." as a NEW comment (which is what happens whenever the older
+    // comment belongs to a different automation identity — 29 of the marker
+    // comments in this repo predate the move to bestaxbot), and this loop then
+    // read straight past the retraction and closed the issue against #100.
+    // `humanCommentAfter` cannot veto it either, because the retraction is
+    // itself automation-authored.
     const m = c.body.match(DUPLICATE_RE);
-    if (!m) continue;
-    return { comment: c, target: Number(m[1]) };
+    return m ? { comment: c, target: Number(m[1]) } : null;
   }
   return null;
 }

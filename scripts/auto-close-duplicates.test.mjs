@@ -85,6 +85,34 @@ test('any of the three historical triage identities is accepted', () => {
   }
 });
 
+test('a retraction is final — it never falls through to a superseded target', () => {
+  // The newest marker comment IS the verdict. Skipping past one that names no
+  // duplicate let "No duplicates found." resurrect the target it retracted, and
+  // humanCommentAfter cannot veto that because the retraction is itself
+  // automation-authored. This happens for real whenever the older comment
+  // belongs to a different automation identity (pre-bestaxbot comments are
+  // still live on open issues), because the retraction is then POSTed fresh
+  // rather than edited over the top.
+  assert.equal(
+    findMarkerComment([
+      comment(
+        1,
+        'github-actions[bot]',
+        dedupe(100),
+        '2026-01-01T00:00:00Z',
+        'Bot'
+      ),
+      comment(
+        2,
+        'bestaxbot',
+        `### AI triage\n\nNo duplicates found.\n\n${MARKER}`,
+        '2026-02-01T00:00:00Z'
+      ),
+    ]),
+    null
+  );
+});
+
 test('a human cannot forge a close by writing the marker themselves', () => {
   assert.equal(
     findMarkerComment([
