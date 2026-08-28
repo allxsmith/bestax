@@ -180,8 +180,8 @@ jobs:
       # in this very allowlist.
       #
       # A missing file, the wrong policy, or an agent that never initialized all
-      # fail the job. Linux-only paths (macOS uses /opt/step-security); every
-      # runner here is ubuntu-latest.
+      # fail the job. Runs once per matrix leg. Linux-only paths (macOS uses
+      # /opt/step-security); every runner here is ubuntu-latest.
       - name: Assert egress policy is enforced
         run: |
           jq -e '.egress_policy == "block"' /home/agent/agent.json
