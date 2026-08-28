@@ -78,12 +78,27 @@ export const RELEASE_SCOPES = [
 ];
 
 /**
- * `type(scope)!: subject` — the same shape commitlint parses. The trailing
- * space is load-bearing: conventional-commits-parser requires `: `, so
- * `feat:x` yields type=undefined and semantic-release releases nothing from
- * it. Flagging it as a scope problem would name the wrong defect.
+ * `type(scope)!: subject`, mirroring the presets that decide releases here.
+ *
+ * Two details are load-bearing and both come from the real parsers rather
+ * than from the documented shape:
+ *
+ * - The scope capture is GREEDY (`.*`, not `[^)]*`). Both the angular preset
+ *   semantic-release runs (`/^(\w*)(?:\((.*)\))?: (.*)$/`) and the
+ *   conventionalcommits preset commitlint runs capture it that way, so
+ *   `feat(foo)): x` parses as type `feat` with the invalid scope `foo)` and
+ *   really would release. A non-greedy class silently misses it.
+ * - The trailing space is required. Both presets demand `: `, so `feat:x`
+ *   yields type=undefined and releases nothing; calling that a scope problem
+ *   would name the wrong defect.
+ *
+ * `!?` is tolerated even though the angular preset does not parse it (see the
+ * BREAKING CHANGE notes in each release.config.js). That over-approximates
+ * deliberately: commitlint's preset does parse `feat!: x` and would reject an
+ * unscoped one, and warning about a title that releases nothing is harmless
+ * where staying silent about one that releases everything is not.
  */
-const CONVENTIONAL_HEADER = /^([a-z]+)(?:\(([^)]*)\))?!?: /;
+const CONVENTIONAL_HEADER = /^([a-z]+)(?:\((.*)\))?!?: /;
 
 /**
  * True when the PR title would release a package but names no valid scope —

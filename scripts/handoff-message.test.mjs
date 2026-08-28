@@ -349,6 +349,17 @@ test('needsScopeWarning fires only on a real releasing header', () => {
     );
   }
 
+  // Greedy scope capture, matching both presets: these DO parse as a
+  // releasing type with an invalid scope, so they must warn.
+  for (const title of [
+    'feat(foo)): x',
+    'feat((x)): y',
+    'fix(bulma-ui)): x',
+    'revert(a)(b): x',
+    'feat(bulma ui): x',
+  ])
+    assert.equal(needsScopeWarning(title), true, `invalid scope: ${title}`);
+
   // No space after the colon is not a conventional header either:
   // conventional-commits-parser requires `: `, so these release nothing and
   // must not be reported as a scope problem.
