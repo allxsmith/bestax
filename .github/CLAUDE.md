@@ -110,18 +110,34 @@ When bumping, bump every occurrence in a single commit and verify there is exact
 grep -rho "actions/checkout@[a-f0-9]\{40\}" .github/ | sort | uniq -c   # expect one line
 ```
 
-Note the grep covers `.github/`, not `.github/workflows/`: `.github/actions/verified-commit/`
-pins `actions/github-script` too, and the narrower grep cannot see it — it would print exactly
+That one is scoped to the action you are bumping. Nothing scopes the rule that way, so also run
+the repo-wide form, which names **any** action carrying more than one SHA:
+
+```bash
+grep -rhoE "[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[a-f0-9]{40}" .github/ \
+  | sort -u | cut -d@ -f1 | uniq -d          # expect NO output
+```
+
+The per-action grep only ever sees the action you thought to type, so a second action left on a
+stale SHA by an earlier bump stays invisible to it however many times you run it.
+
+Note both greps cover `.github/`, not `.github/workflows/`: `.github/actions/verified-commit/`
+pins `actions/github-script` too, and the narrower path cannot see it — it would print exactly
 the "one line" this rule tells you to expect while the composite action sat on a stale SHA.
 
-That grep is the whole verification. **No CI gate checks workflow _content_** — `format:check`
+Those greps are the whole verification. **No CI gate checks workflow _content_** — `format:check`
 does lint `.github` markdown and `.mjs`, and `ci.yml` runs `.github/scripts/pin-react.mjs`, so
 the directory is not untouched by CI, but nothing verifies a pin, a policy or a permission.
 Three consequences worth holding on to:
 
-- **Do not move a pin out of `.github/workflows/`.** Wrapping a step in a local composite action
-  under `.github/actions/` would make the grep match zero lines and pass silently, which is the
-  same shape of failure as #487 itself.
+- **Do not move a security-relevant step into a local composite action.** Not for the pin's
+  sake — both greps recurse over `.github/`, so a pin under `.github/actions/` still matches, and
+  an earlier draft of this bullet claimed the opposite. The reason is that reading the job **is**
+  the whole review signal here, and `harden-runner` is the case that matters: its `egress-policy`
+  and `allowed-endpoints` are argued per job against the credential in _that_ job (rule 2), and
+  rule 10's inventory is checked by reading each one. Behind a wrapper, a job's egress posture is
+  no longer visible where the job is, and a shared wrapper collapses those separate allowlists
+  into one — a widening with no `permissions:` diff, which is the hazard at the top of this file.
 - **`harden-runner` has an assertion tied to its pin.** Every block-mode job asserts the
   effective policy out of `/home/agent/agent.json` (rule 10). That path is an internal detail of
   the action with no compatibility guarantee, so a bump that moves or renames it fails every
@@ -292,10 +308,21 @@ file`. It still fails — a job holding a credential must not run unprotected �
   status would concatenate onto the same line and an exact-line match would stop matching.
 
 **Placement:** after harden-runner, **and** after any gate whose outputs an `always()`-guarded
-fail-closed step depends on. `ai-scan` is the live example — putting it immediately after
-harden-runner there would abort before the gate sets `run`, skip the fail-closed labeler, and let
-items go unscanned _and_ unflagged, which is the rule-4 fail-open a fail-closed check must not
-introduce. Gate first in that shape.
+fail-closed step depends on, **and** before any step that spends a metered budget. `ai-scan` is
+the live example of both halves:
+
+- _After_ its gate — putting the assertion immediately after harden-runner would abort before the
+  gate sets `run`, skip the fail-closed labeler, and let items go unscanned _and_ unflagged, which
+  is the rule-4 fail-open a fail-closed check must not introduce.
+- _Before_ its charge — which is why that gate reads the budget and a separate later step writes
+  it. A gate that both decided and charged would spend a slot on every run that then failed to
+  prove enforcement, and `AI_SCAN_DAILY_LIMIT` such failures in one UTC day (a StepSecurity outage
+  reaches every incoming item at once) put the gate back to `run=false`, which skips that same
+  labeler. The fail-open returns by the back door, so keep the read and the write in separate
+  steps with the assertion between them.
+
+The general shape: a fail-closed check must not be able to consume the resource that keeps the
+fail-closed path reachable.
 
 **Both lines are required; either alone is a false pass.** `agent.json` holds the policy the
 pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is

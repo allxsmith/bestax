@@ -46,19 +46,22 @@ name: AI Security Scan
 # other does not.
 #
 # Be precise about where "read-only" comes from: the job's GITHUB_TOKEN is
-# WRITE-scoped (issues/pull-requests), because the gate charges the budget marker
-# and the labeler applies needs-security-review. The session cannot use it only
-# because the Bash allowlist admits nothing that writes. That is one control, not
+# WRITE-scoped (issues/pull-requests), because a later step charges the budget
+# marker and the labeler applies needs-security-review. The session cannot use it
+# only because the Bash allowlist admits nothing that writes. That is one control, not
 # two — widening `allowedTools` hands the session write access silently, with no
 # permission change to notice in review. Splitting the labeler into its own job so
 # this one can drop to `contents: read` is tracked separately; until then, treat
 # the allowlist as security-critical rather than cosmetic.
 #
 # The verdict fails CLOSED (a crashed or unparsable session flags), but the GATE
-# fails OPEN: if the budget read/charge on the tracking issue errors, or the daily
-# limit is spent, the item is simply not scanned — no scan and no flag. Deliberate,
-# so a counter problem cannot wedge every incoming issue, but it means an unscanned
-# item is indistinguishable from a clean one downstream.
+# fails OPEN: if the budget read on the tracking issue errors, or the daily limit
+# is spent, the item is simply not scanned — no scan and no flag. Deliberate, so a
+# counter problem cannot wedge every incoming issue, but it means an unscanned item
+# is indistinguishable from a clean one downstream. (The charge is separate and
+# best-effort in the other direction: a failed write over-scans, never under-scans.
+# It is also the reason the charge sits after the egress assertion — see both
+# steps' headers.)
 #
 # SEPARATE from ai-triage.yml ON PURPOSE: a per-item concurrency group here means a
 # burst of opened items cannot evict a pending scan (workflow-level concurrency in a
@@ -158,8 +161,19 @@ jobs:
             release-assets.githubusercontent.com:443
             registry.npmjs.org:443
 
-      # Skip bot/automation authors, then charge the daily budget (fail-open).
-      - name: Gate (skip bots; charge budget)
+      # Skip bot/automation authors, then READ the daily budget (fail-open).
+      #
+      # This step DECIDES; it does not charge. The marker write lives in its own
+      # step after the assertion below, and the split is load-bearing rather than
+      # tidiness: the assertion has to sit after this gate (see its header), so a
+      # gate that charged would spend a slot on every run that then failed to
+      # prove enforcement. LIMIT such failures in one UTC day — a StepSecurity
+      # outage is enough, and it hits every incoming item at once — and this gate
+      # starts returning run=false, which skips the `always()`-guarded labeler
+      # below and leaves later items unscanned AND unflagged. That is the same
+      # rule-4 fail-open the assertion's placement exists to avoid, one step
+      # removed, so charge only for a run that actually reaches the session.
+      - name: Gate (skip bots; read budget)
         id: gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -207,18 +221,17 @@ jobs:
             exit 0
           fi
 
-          NEXT=$((COUNT + 1))
-          BODY="<!-- ai-scan-budget date=$TODAY count=$NEXT -->
-          **AI security-scan budget**: $NEXT/$LIMIT auto scans on $TODAY (UTC). Managed by ai-scan.yml — never reformat the first line; a new UTC day resets the count."
-          # Charging is best-effort (|| true): a failed marker write must not block
-          # the scan itself — the counter is a soft cost cap, never a security gate.
-          if [ -n "$COMMENT_ID" ]; then
-            gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$BODY" >/dev/null || true
-          else
-            gh api "repos/$REPO/issues/$TRACKING_ISSUE/comments" -f body="$BODY" >/dev/null || true
-          fi
+          # Hand the charge step what it needs so it does not re-read the marker.
+          # This does NOT make the counter atomic — two concurrent runs still read
+          # the same COUNT and both write COUNT+1, exactly as they did when read
+          # and write shared a step. Splitting the step changes when the write
+          # happens, not how it races.
+          out budget_comment_id "$COMMENT_ID"
+          out budget_next "$((COUNT + 1))"
+          out budget_limit "$LIMIT"
+          out budget_date "$TODAY"
           out run true
-          echo "scan budget charged: $NEXT/$LIMIT for $TODAY — scanning #$NUMBER"
+          echo "scan budget available ($COUNT/$LIMIT for $TODAY) — scanning #$NUMBER"
 
       # Asserts the policy the pre-step decided (agent.json) AND that the agent
       # actually came up (agent.status, written only once the firewall rules are
@@ -239,6 +252,10 @@ jobs:
       # introduced by a fail-CLOSED check. Gate first, and a failed assertion still
       # leaves `needs-security-review` applied. The Claude session is what this
       # protects, and it comes after both.
+      #
+      # It also sits BEFORE the charge step, which is the other half of that
+      # ordering: after the gate so the labeler survives, before the charge so a
+      # failure here cannot spend the budget that keeps the labeler reachable.
       #
       # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
       #
@@ -276,6 +293,35 @@ jobs:
           done
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
+
+      # Charge the budget only once enforcement is proven, so an aborted run does
+      # not spend a slot (see the gate's header for what spending one costs). Still
+      # BEFORE the session: a crashed or timed-out scan must count, or a session
+      # that reliably dies is free to run all day. The window this leaves is the
+      # checkout below.
+      - name: Charge the daily scan budget
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ steps.gate.outputs.budget_comment_id }}
+          NEXT: ${{ steps.gate.outputs.budget_next }}
+          LIMIT: ${{ steps.gate.outputs.budget_limit }}
+          TODAY: ${{ steps.gate.outputs.budget_date }}
+        run: |
+          set -euo pipefail
+          BODY="<!-- ai-scan-budget date=$TODAY count=$NEXT -->
+          **AI security-scan budget**: $NEXT/$LIMIT auto scans on $TODAY (UTC). Managed by ai-scan.yml — never reformat the first line; a new UTC day resets the count."
+          # Charging is best-effort (|| true): a failed marker write must not block
+          # the scan itself — the counter is a soft cost cap, never a security gate.
+          # Note the asymmetry with the step above, which is deliberate: failing to
+          # charge over-scans, failing to enforce runs a credentialed session naked.
+          if [ -n "$COMMENT_ID" ]; then
+            gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$BODY" >/dev/null || true
+          else
+            gh api "repos/$REPO/issues/$TRACKING_ISSUE/comments" -f body="$BODY" >/dev/null || true
+          fi
+          echo "scan budget charged: $NEXT/$LIMIT for $TODAY"
 
       # Base default branch only — never PR head code. The scanner reads issue/PR
       # content via read-only gh, not from the workspace.
