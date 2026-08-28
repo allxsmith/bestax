@@ -222,15 +222,46 @@ jobs:
       # Rule 10: a new job ships at `block`. This one holds an `issues: write`
       # token and does the budget read-modify-write, so it does not get to be
       # the job that quietly loses egress monitoring when the old single job
-      # was split. Note `block` does NOT enforce — harden-runner degrades it to
-      # audit on every run in this repo (#487).
+      # was split. ENFORCED as of #487, and asserted below.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+
+      # Before the gate step, which is where this job's budget write happens.
+      # Rule 10's placement rule wants the assertion ahead of anything that
+      # spends a metered budget, so a run that could not prove enforcement does
+      # not consume a slot.
+      #
+      # Note the difference from ai-scan's gate, where the same ordering is
+      # load-bearing for a SECURITY reason: there, an exhausted budget skips a
+      # fail-closed labeler. Nothing here is fail-closed on the budget — an
+      # unspent triage is a missing comment, not a missing verdict — so this
+      # ordering is about not burning quota on a run that never triaged.
+      # `cleanup` runs on `always()` and tolerates a `failure` here, so a red
+      # assertion cannot wedge the trigger label.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds issues: write and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       # Two shapes:
       #   labeled → GitHub already restricts labeling to triage+; re-verify
@@ -394,35 +425,85 @@ jobs:
       find_issues_body: ${{ steps.bodies.outputs.find_issues_body }}
       find_duplicate_prs_body: ${{ steps.bodies.outputs.find_duplicate_prs_body }}
     steps:
-      # Egress monitoring on the job that runs the model session and ingests
+      # Egress enforcement on the job that runs the model session and ingests
       # untrusted issue/PR text.
       #
-      # AUDIT (not block) deliberately: this is a live, working workflow, and the
-      # Claude action's full runtime egress was not cleanly documented. Audit mode
-      # reports every endpoint the run touches without blocking any, so it cannot
-      # break triage.
+      # AUDIT → BLOCK as of #487. It was introduced at `audit` deliberately —
+      # a live workflow whose runtime egress was not cleanly documented — and
+      # that caution was justified: the audit run is what produced the measured
+      # list below, and flipping early would have broken triage at the CLI
+      # download. Both preconditions now hold (the list is measured, and
+      # v2.21.0 removed the silent block→audit downgrade), so it flips, and the
+      # assertion below fails the job rather than degrading in silence.
       #
-      # That caution was justified. A real run measured nine hosts (#487 has the
-      # table), and the list below is missing three of them — claude.ai,
-      # downloads.claude.ai and the Claude CLI's telemetry endpoint — so flipping
-      # to block would have broken triage at the CLI download.
+      # release-assets.githubusercontent.com is where GitHub redirects
+      # release-asset downloads, and claude-code-action's first composite step is
+      # oven-sh/setup-bun, which fetches bun from a GitHub release. Do not remove
+      # it because a run seemed fine without it: setup-bun restores bun from the
+      # Actions cache when it can, and untrusted-trigger jobs can only READ that
+      # cache (#487's root cause), so an eviction turns a cached restore into a
+      # download this list has to permit.
       #
-      # Do NOT flip this to `block` expecting an effect. claude-repro.yml and
-      # ai-scan.yml both declare block and neither enforces it: harden-runner
-      # degrades block to audit on every run in this repo (#487). Until that is
-      # fixed, `audit` here is an honest label for what all three jobs do, and the
-      # flip is a no-op that would only make this comment wrong again.
+      # claude.ai and downloads.claude.ai are the CLI's distribution path — the
+      # action curls the installer from the first and the binary from the second.
+      #
+      # statsig.anthropic.com is REMOVED, and this is a correctness fix: the
+      # domain no longer resolves (NXDOMAIN), and the agent aborts and reverts
+      # its firewall when an allow-listed host fails to resolve — leaving `block`
+      # in the config and nothing enforcing. A dead allowlist entry is not inert;
+      # it disables the whole policy. The telemetry switch on the session covers
+      # what it was for (feature-flag evaluation).
+      #
+      # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
+      # deliberately ABSENT rather than allow-listed: not a functional
+      # dependency, and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
+      # so nothing attempts it. Denying and silencing beat allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
           allowed-endpoints: >
             api.anthropic.com:443
-            statsig.anthropic.com:443
+            claude.ai:443
+            downloads.claude.ai:443
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             registry.npmjs.org:443
+
+      # Immediately after harden-runner: this job spends the budget nowhere (the
+      # gate already charged it) and nothing downstream is fail-closed on its
+      # result — `cleanup` runs on `always()` and tolerates a `failure` here, so
+      # a red assertion cannot wedge the trigger label.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has deliberate "install nothing, exit 0" paths (a
+          # StepSecurity outage, the skip-harden-runner repo property, a
+          # container or slim runner). None writes agent.json, so name that case
+          # rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds the model credential and ingests untrusted text; it will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       # Check out ONLY the base repo's default branch — never the PR head
       # (untrusted PR code stays out of the workspace; the triage agent
@@ -449,6 +530,20 @@ jobs:
 
       - name: Run Claude (triage)
         id: claude
+        # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
+        # host stays off the allowlist above AND the CLI is told not to emit it,
+        # so the block policy has nothing to refuse (#487). This also covers
+        # feature-flag evaluation, which is why statsig.anthropic.com is gone.
+        #
+        # A step `env:` rather than the action's `settings:` input: `settings:`
+        # is written to the USER-level ~/.claude/settings.json, which a
+        # project-level .claude/settings.json in the workspace can override. A
+        # process environment variable cannot be. This job checks out the base
+        # default branch, never PR head, so nothing here is attacker-controlled —
+        # but a control that depends on which branch got checked out is one
+        # rebase away from being wrong.
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
@@ -779,19 +874,48 @@ jobs:
     permissions:
       contents: read # checkout, to run the publisher; the PAT does the writing
     steps:
-      # The hardening follows the credential: this job now holds the PAT that
-      # used to live in the (hardened) session job, so the monitoring moves
-      # with it rather than quietly disappearing. Declared `block` per rule 10
-      # for a new job, but note it does NOT enforce — harden-runner degrades
-      # block to audit on every run in this repo (#487).
+      # The hardening follows the credential: this job holds the PAT that used
+      # to live in the (hardened) session job, so the monitoring moves with it
+      # rather than quietly disappearing. Block per rule 10, and ENFORCED as of
+      # #487.
+      #
+      # Note what enforcement does NOT buy on this job: api.github.com is
+      # necessarily allow-listed, so egress-block cannot stop a write issued
+      # through the PAT. What holds that is the publisher re-asserting each
+      # body's invariants below, and the marker-scoped upsert.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+
+      # Ahead of the checkout and the PAT-holding publish step. Nothing
+      # downstream is fail-closed on this job's result: `cleanup` runs on
+      # `always()` and tolerates a `failure` here, so a red assertion cannot
+      # wedge the trigger label — it just means the comment is not posted, which
+      # is the safe direction for a job that writes as bestaxbot.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds AI_LOOP_PAT and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       - name: Checkout base default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -877,9 +1001,9 @@ jobs:
       # pre-split job carried is dropped rather than inherited by habit.
       issues: write # remove ai-triage (issues API covers PRs)
     steps:
-      # Rule 10 again: new job, ships at `block` (which does not enforce — see
-      # #487). One API call, but a job that runs on every labeled item should
-      # not be the exception that quietly opts out.
+      # Rule 10 again: `block`, and ENFORCED as of #487. One API call, but a job
+      # that runs on every labeled item should not be the exception that quietly
+      # opts out.
       #
       # continue-on-error because this step must not be able to PREVENT the
       # cleanup it precedes. This job exists to guarantee the label never
@@ -887,10 +1011,17 @@ jobs:
       # download or init failure — defeats that guarantee outright, and the
       # pre-split design could not, because label removal was a step under
       # `always()`. ai-scan.yml's write job is non-blocking for the same
-      # reason. Nothing is given up: the policy is not enforced today anyway.
+      # reason.
+      #
+      # #487 removed the sentence that used to close this paragraph — "nothing
+      # is given up: the policy is not enforced today anyway". It IS enforced
+      # now, so the give-up is real and is paid for below rather than skipped:
+      # the assertion runs AFTER the DELETE. A job that unwedged the label and
+      # then discovered nothing was enforcing still goes red; a job that could
+      # not unwedge it at all was never an acceptable trade.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -912,3 +1043,31 @@ jobs:
         run: |
           # The issues labels API covers both issues and PRs.
           gh api -X DELETE "repos/$REPO/issues/$NUMBER/labels/ai-triage" || true
+
+      # AFTER the DELETE, for the reason in the harden-runner comment above:
+      # this job's whole purpose is that the label cannot wedge, so nothing that
+      # can fail is allowed to precede it. Asserting here keeps both properties
+      # — the label is already removed, and a job that ran unprotected is still
+      # reported. `always()` so a failed DELETE cannot mask an enforcement
+      # failure (the DELETE itself is `|| true`, but the step could still die on
+      # an auth error before it).
+      - name: Assert egress policy is enforced
+        if: always()
+        run: |
+          set -uo pipefail
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing was enforcing egress while this job held issues: write. This check deliberately runs AFTER the label-removal step (see the harden-runner comment), so it did not prevent it — read that step's own result rather than assuming from this error that the label came off. Usual causes: a StepSecurity outage, the skip-harden-runner repo property, or a container/slim runner (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1

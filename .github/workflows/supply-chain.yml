@@ -130,39 +130,30 @@ jobs:
             slug: bestax-mcp
 
     steps:
-      # Rule 10: a new job ships at `block`. The three sibling jobs predate that
-      # rule and are grandfathered by its "existing live job" clause; this one
-      # is not.
+      # Rule 10: a new job ships at `block`. This file has five jobs; the three
+      # that carry no harden-runner (`sbom`, `attach-sbom`, `verify-provenance`)
+      # predate the rule and are grandfathered by its "existing live job" clause.
+      # This one and `sign-sbom` are not, and both enforce.
       #
-      # This comment does NOT claim that egress-block is an enforced control.
-      # Rule 10 forbids citing it as one until #487 closes, and invariant I1
-      # states plainly that no job here enforces egress — so asserting the
-      # opposite in a comment, while a sibling comment 250 lines below still
-      # says "nothing in this repository has been observed to enforce egress",
-      # would leave the file contradicting itself and the contract.
-      #
-      # What IS on the record, as an observation and nothing more: run
-      # 32088629752 (a workflow_dispatch on this branch) reported
+      # Egress-block IS an enforced control on this job, and the step after
+      # harden-runner asserts it rather than leaving it to inference. The
+      # observation this comment used to record as a bare datapoint is now the
+      # documented behaviour: run 32088629752 (a workflow_dispatch) reported
       # `EgressPolicy:block` and refused a connection — `domain not allowed:
-      # raw.githubusercontent.com` — failing the job with ECONNREFUSED. That
-      # matches the hypothesis the sign-sbom comment raises and declines to
-      # assert: #487's root cause is the Actions cache going read-only for
-      # *untrusted* triggers, and this job runs on release, schedule and
-      # dispatch, none of which are in that class.
+      # raw.githubusercontent.com` — failing the job with ECONNREFUSED. #487's
+      # root cause was the Actions cache going read-only for *untrusted*
+      # triggers; this job runs on release, schedule and dispatch, none of which
+      # are in that class, so the probe succeeded here even before v2.21.0
+      # removed the fail-open entirely.
       #
-      # One observation on one trigger is not the measurement #487 needs, and
-      # promoting it to a control belongs in .github/CLAUDE.md — updating I1 and
-      # rule 10 together — not in a workflow comment. Until then, treat this
-      # list as unenforced.
-      #
-      # The list below is therefore measured, not guessed: raw.githubusercontent
+      # The list below is measured, not guessed: raw.githubusercontent
       # .com is here because sbom-action fetches syft's install script from it,
       # which no amount of reading the action would have made obvious. The cache
       # host (productionresultssa12.blob.core.windows.net) is absent on purpose
       # — harden-runner's probe discovers and adds it itself, as the sign-sbom
       # comment already claimed and this run confirms.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -174,6 +165,47 @@ jobs:
             registry.npmjs.org:443
             nodejs.org:443
             raw.githubusercontent.com:443
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
+      #
+      # Runs once per matrix leg. Linux-only paths (macOS uses /opt/step-security);
+      # all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       # nodejs.org is in the list above because `setup-node` falls back to
       # downloading from nodejs.org/dist when the runner's tool cache misses the
@@ -446,31 +478,22 @@ jobs:
     steps:
       # Rule 10: a new job ships at `block`.
       #
-      # This comment does NOT claim that buys enforcement, because rule 10 says
-      # not to until #487 closes and because nobody has measured it. Nothing in
-      # this repository has been observed to enforce egress: harden-runner fails
-      # open to `audit` when its Actions-cache probe misses.
+      # Egress-block enforces here, and the step after harden-runner asserts it.
+      # What used to be a hypothesis in this comment is now settled twice over:
+      # #487's root cause was the Actions cache going read-only for **untrusted
+      # triggers** (`issues`, `issue_comment`, `pull_request`) and this job runs
+      # on `release`, which is not in that class — and harden-runner v2.21.0
+      # removed the fail-open path altogether.
       #
-      # There is an argument that this job differs from the ones #487 was
-      # written about. That issue's root cause is the Actions cache going
-      # read-only for **untrusted triggers** (`issues`, `issue_comment`,
-      # `pull_request`); this job runs on `release`, which is not in that class,
-      # so the probe may succeed and the policy may actually arm. That is
-      # inference from #487's write-up, not an observation — no one has read an
-      # effective `EgressPolicy:` off a real run of this job. Treat it as a
-      # hypothesis to confirm on the first release (harden-runner's post-step
-      # prints the effective policy), and do not promote it to a control in a
-      # comment, a PR description or a review argument before then. Assuming
-      # block was working is the exact mistake #487 documents.
-      #
-      # The list below is therefore written as if it will be enforced, while
-      # nothing depends on it being enforced. It is NOT from a measured run: the
-      # job only fires on `release: published` and cannot be exercised from a
-      # PR. If the policy does arm and a host is missing, the cost is a
-      # signature rather than a release — `attach-sbom` no longer depends on
-      # this job succeeding, so the failure mode is "SBOMs attach unsigned plus
-      # a ::warning::". Widen the list from the first real run's StepSecurity
-      # report rather than by guessing again.
+      # One thing genuinely remains unmeasured, so do not read more into the
+      # above than it says: this job only fires on `release: published` and
+      # cannot be exercised from a PR or a dispatch, so its allowlist has never
+      # seen a real run. It is written as if enforced — which it now is — but it
+      # was assembled by reading the actions, not from a StepSecurity report. If
+      # a host is missing the cost is a signature rather than a release:
+      # `attach-sbom` no longer depends on this job succeeding, so the failure
+      # mode is "SBOMs attach unsigned plus a ::warning::". Widen the list from
+      # the first real run's report rather than by guessing again.
       #
       # Sigstore hosts are the four in its published signing config
       # (tuf-repo-cdn serves that config; fulcio issues the cert; rekor logs it;
@@ -485,16 +508,22 @@ jobs:
       # .com`, `productionresultssa9.blob.core.windows.net`) already covered by
       # harden-runner's built-in Actions baseline, so allow-listing them is
       # unnecessary. In block mode harden-runner also runs a probe whose whole
-      # purpose is to discover the per-run blob backend host and add it itself.
+      # purpose is to discover the per-run blob backend host and add it itself —
+      # since v2.21.0 that probe is allowed to come up empty without changing the
+      # policy, because the agent admits the cache endpoints implicitly and the
+      # probe is defense-in-depth on top of that.
       # The wildcard is the specific thing to avoid: every Azure storage account
       # in existence lives under that suffix, so it would turn the tightest
       # egress policy in this repository into something close to open egress. If
       # a real run ever shows a blocked blob endpoint, add that exact host.
       #
-      # The three sibling jobs predate rule 10 and are grandfathered by its
-      # "existing live job" clause; this one does not get that.
+      # Of this file's four other jobs, three (`sbom`, `attach-sbom`,
+      # `verify-provenance`) predate rule 10 and are grandfathered by its
+      # "existing live job" clause. `consumer-sbom` is not grandfathered and
+      # enforces, same as this job — do not read the grandfather clause as
+      # covering it.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -508,6 +537,54 @@ jobs:
             rekor.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443
             timestamp.sigstore.dev:443
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
+      #
+      # One more scope limit, because rule 10's "fails the job instead of degrading
+      # in silence" is true of the JOB and not the pipeline: `attach-sbom` needs
+      # this job but gates on `!cancelled()` and only requires `sbom` to have
+      # succeeded, so a failed assertion here does not stop the release — the SBOMs
+      # attach unsigned with a ::warning::, indistinguishable from the Fulcio/Rekor
+      # outage that gating was written for. Deliberate (nothing here may fail a
+      # release), but do not read a green release as proof this assertion passed.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       # `bestax-*sbom*` rather than `bestax-sbom.*`: the consumer SBOMs are
       # named apart from the repository pair on purpose (nobody should confuse

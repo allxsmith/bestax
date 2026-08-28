@@ -144,7 +144,23 @@ green and every AI review thread is resolved.
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
-  against current code.
+  against current code. **Today a PR that modifies `claude-review.yml` is not deep-reviewed:**
+  the run logs `Skipping action due to workflow validation` and posts nothing while the job
+  still goes green — so check for the review comment, never the job's conclusion. That is a
+  consequence of configuration rather than a property of the action: the validation lives on
+  the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
+  a `github_token` input is supplied — the same early return `ai-triage.yml` already documents
+  for #312. `claude-review.yml` and `claude.yml` are where this bites in practice, but they are
+  not the only jobs that omit the input: `claude-pr-loop.yml`'s `verify` omits one too. Its
+  usual triggers (`workflow_run` / `workflow_dispatch` / `schedule`) are not PR contexts, so the
+  validation path is not reached on them — but that workflow also fires on
+  `pull_request_review`, and its gate can select `verify` on that event, so a PR modifying
+  `claude-pr-loop.yml` can hit the same silent skip on the review-triggered path. Treat
+  "omits `github_token` **and** can run in a PR context" as the test, not the workflow name.
+  Supplying `GITHUB_TOKEN` would
+  restore the review, at the cost of moving the posting identity away from `claude`, which the
+  loop's gate and the `<!-- claude-deep-review -->` convention rely on. Weigh that before
+  changing it.
 - **Reviewer mechanics:** CodeRabbit reviews incrementally and rate-limits on OSS. After it
   posts "review limit reached" it will not retry on its own; once the window resets, push a
   commit or comment `@coderabbitai review`. Copilot also auto-reviews PRs and re-reviews on

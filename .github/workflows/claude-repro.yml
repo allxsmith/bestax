@@ -31,11 +31,16 @@ name: Claude Repro
 #       step, with the credential check as the last line rather than the first. Do
 #       not weaken either of those on the grounds that the check exists.
 #
-#       That list used to name harden-runner's egress block as a third leg. It is
-#       not one, and never has been: the policy declared below silently degrades
-#       to audit on every run in this repo (#487). I1 rests on two controls today,
-#       not three. Both are real and both still hold, which is why #487 is a
-#       defense-in-depth regression rather than an open exfil path.
+#       harden-runner's egress block enforces again as of #487 (it used to
+#       degrade to audit on every run), and the step after it asserts the
+#       effective policy. Do NOT call it a third leg of I1. The exfil path I1
+#       exists to close is `Write` plus the `publish` job — and `publish` carries
+#       no harden-runner and no allowlist, so this job's egress policy cannot
+#       bound anything `publish` does. It does not help inside `author` either,
+#       which has no socket-opening tool to begin with. Egress-block is a real
+#       control on this job's OAuth-token surface and nothing more. I1 still
+#       rests on the same two legs: no execution primitive, and the token never
+#       sharing a job with the publish step.
 #   I2  No attacker- or Claude-authored free text reaches a comment un-neutralized
 #       AND with a re-trigger-capable identity. The `publish` job deterministically
 #       defangs machine markers / @mentions in the drafted test, then posts it via
@@ -127,24 +132,94 @@ jobs:
       result: ${{ steps.draft.outputs.result }}
       test: ${{ steps.draft.outputs.test }}
     steps:
-      # Egress-block would be defense-in-depth here (Claude has no tool that opens
-      # a socket), but it is not in effect: harden-runner degrades `block` to
-      # `audit` on every run in this repo (#487). Left declared so the intent stays
-      # recorded and closing #487 needs no change here. The allowlist is additive
-      # to harden-runner's GitHub Actions baseline and is NOT currently complete:
-      # a real session reaches three hosts it does not list (#487 has the set), so
-      # it must be widened before enforcement is switched on.
+      # Egress-block is defense-in-depth here (Claude has no tool that opens a
+      # socket) and it is now in effect: harden-runner used to degrade `block` to
+      # `audit` on every run of this issue-triggered workflow (#487 — it hit the
+      # untrusted-trigger jobs only, never the scheduled ones), which v2.21.0
+      # fixed, and the step below asserts the effective policy. The allowlist is
+      # additive to harden-runner's GitHub Actions baseline and is measured from
+      # a real run rather than guessed.
+      #
+      # release-assets.githubusercontent.com is where GitHub redirects release-asset
+      # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,
+      # which fetches bun from a GitHub release. Every block job that RUNS
+      # claude-code-action lists it; the API-only block jobs (ai-scan's gate/label,
+      # ai-triage's gate/publish/cleanup) do not need it and correctly omit it —
+      # this is not a host every allowlist wants. Do not remove it because a run
+      # seemed fine without it: setup-bun
+      # restores bun from the Actions cache when it can, and these untrusted-trigger
+      # jobs can only READ that cache (#487's root cause), so an eviction turns a
+      # cached restore into a download this list has to permit.
+      #
+      # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
+      # path — the action curls the installer from the first and pulls the binary
+      # from the second. Without them this job fails before the session starts.
+      #
+      # statsig.anthropic.com is REMOVED, and this is a correctness fix, not
+      # tidying: the domain no longer resolves (NXDOMAIN), and harden-runner's
+      # agent aborts and reverts its firewall when an allow-listed host fails to
+      # resolve — leaving `block` in its config and nothing enforcing it. That
+      # happened on this PR's first run. A dead allowlist entry is not inert; it
+      # silently disables the whole policy. #487 measured that it was never
+      # contacted anyway, and the telemetry switch below covers feature flags.
+      #
+      # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
+      # deliberately ABSENT rather than allow-listed: it is not a functional
+      # dependency, and the session below sets
+      # CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing attempts it.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
             api.anthropic.com:443
-            statsig.anthropic.com:443
+            claude.ai:443
+            downloads.claude.ai:443
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             registry.npmjs.org:443
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       - name: Checkout base default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -167,6 +242,22 @@ jobs:
 
       - name: Run Claude (draft repro; no execution)
         id: claude
+        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
+        # stays off every allowlist in this repo AND the CLI is told not to emit
+        # it (#487). It also covers feature-flag evaluation, which is why
+        # statsig.anthropic.com is gone.
+        #
+        # A step `env:` rather than the action's `settings:` input. `settings:` is
+        # written to the USER-level ~/.claude/settings.json, which a project-level
+        # .claude/settings.json in the workspace overrides. This job does NOT check
+        # out PR-branch code, so nothing in its workspace is attacker-controlled
+        # today — state that accurately rather than borrowing a sibling's threat
+        # model. The env form is used so the control does not DEPEND on that:
+        # claude-review.yml and claude-pr-loop.yml do check out PR branches and
+        # share this shape, and a checkout change here would silently move this job
+        # into their class. Do not move this back under `with:`.
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -174,6 +265,11 @@ jobs:
           # exchange. No PAT anywhere in this workflow.
           github_token: ${{ secrets.GITHUB_TOKEN }}
           show_full_output: true
+          # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
+          # host stays off the egress allowlist above AND the CLI is told not to
+          # emit it, so the block policy has nothing to refuse (#487). This also
+          # covers feature-flag evaluation, which is why statsig.anthropic.com
+          # is no longer needed in the allowlist above.
           # I1: no Bash / Task / web tools, so the session cannot execute code,
           # read env (the OAuth token), fetch, or reach another issue. It can only
           # read the checkout + the pre-fetched issue and write ONE test file.
@@ -278,9 +374,11 @@ jobs:
             # can never be complete — chunked, reversed, rot13 or arithmetic
             # encodings all defeat it. The real control is the tool restriction
             # (no Bash/gh/Task); this catches the naive path and turns it into a
-            # failed build instead of a public comment. Egress-block was named
-            # here as the second real control and it is not in effect (#487),
-            # which leaves the tool restriction carrying that weight alone.
+            # failed build instead of a public comment. Egress-block is the
+            # second real control and enforces again since #487, but note it
+            # cannot help on this particular path: the exfil route this check
+            # guards is the drafted file itself, published by a later job, not
+            # an outbound connection from the drafting session.
             for secret in "$OAUTH_TOKEN" "$JOB_TOKEN"; do
               [ -n "$secret" ] || continue
               B64=$(printf '%s' "$secret" | base64 | tr -d '\n=')

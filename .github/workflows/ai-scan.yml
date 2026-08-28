@@ -30,12 +30,20 @@ name: AI Security Scan
 # detection logic, so `show_full_output` is deliberately OFF and only a coarse
 # category (never free-text) is surfaced, to avoid an evasion oracle.
 #
-# EGRESS IS NOT ENFORCED HERE, despite the `egress-policy: block` below.
-# harden-runner silently degrades it to `audit` on every run in this repo
-# (#487): arming block needs an Actions cache entry, GitHub made that cache
-# read-only for untrusted triggers, and the resulting miss fails OPEN. So the
-# job permissions and the tool allowlist are what confine this session. Do not
-# count egress-block as a control until #487 closes.
+# EGRESS IS ENFORCED HERE (#487). harden-runner used to degrade `block` to
+# `audit` on runs of THIS workflow — arming block needed an Actions cache entry,
+# GitHub made that cache read-only for untrusted triggers, and the miss failed
+# OPEN. Scope that precisely: it hit the issue- and PR-triggered jobs only.
+# Workflows on `schedule`, `workflow_dispatch` or `release` were never in that
+# class and did enforce. v2.21.0 removed the downgrade path, and every job below
+# asserts the EFFECTIVE policy, so a regression fails the job instead of
+# degrading in silence.
+#
+# Be precise about what that adds: it bounds where the OAuth token can be sent
+# if the tool allowlist is ever defeated. It does not replace the allowlist —
+# `gh` reaches api.github.com, which is allow-listed, so egress-block would not
+# stop a write issued through a tool. Two controls, each covering what the
+# other does not.
 #
 # THREE JOBS, one credential boundary each (#455 — the claude-repro.yml
 # author/publish pattern, and test-deploy.yml since #442). The write steps
@@ -64,12 +72,28 @@ name: AI Security Scan
 # way (its labeler step also carried `always()`), so this is a property to know
 # about, not a change this split introduced.
 #
-# The GATE still fails OPEN, and the split adds two conditions on `label` to
-# keep it that way — see that job's comment. If the budget read/charge errors,
-# the daily limit is spent, or the gate job itself fails, the item is simply
-# not scanned: no scan and no flag. Deliberate, so a counter problem cannot
-# wedge every incoming issue, but it means an unscanned item is
-# indistinguishable from a clean one downstream.
+# The GATE still fails OPEN on its DECISION — budget read errors or a spent
+# daily limit mean the item is simply not scanned: no scan and no flag.
+# Deliberate, so a counter problem cannot wedge every incoming issue, but it
+# means an unscanned item is indistinguishable from a clean one downstream.
+#
+# It does NOT fail open on ENFORCEMENT, and that distinction is what #487 added.
+# Each job asserts its effective policy, and each assertion is placed so that
+# failing it cannot skip the fail-closed labeler:
+#   gate   decide -> assert -> charge. The decision step emits `run` BEFORE the
+#          assertion, so a failed assertion still reaches `label` (whose guard
+#          admits `gate.result == 'failure'`), and the charge sits after it, so
+#          a run that never scanned does not spend a slot. Charging first would
+#          exhaust the budget on a StepSecurity outage — which hits every
+#          incoming item at once — and a spent budget sets run=false, which
+#          skips `label`. That is the same fail-open by the back door.
+#   scan   assert immediately after harden-runner. A failure here is
+#          fail-CLOSED already: `scan.result` is `failure`, not `skipped`, so
+#          `label` runs and an empty verdict hits its enum default.
+#   label  the labeling call runs FIRST and the assertion AFTER it. This job IS
+#          the fail-closed path; a check that can fail ahead of the write would
+#          discard a computed `flagged` verdict, which rule 4 does not permit.
+#          Asserting afterwards still reds the job if nothing was enforcing.
 #
 # One real consequence of splitting the budget charge away from the session:
 # `gate` charges the marker and finishes, so a `scan` job that is never
@@ -143,14 +167,31 @@ jobs:
       run: ${{ steps.gate.outputs.run }}
       is_pr: ${{ steps.gate.outputs.is_pr }}
       number: ${{ steps.gate.outputs.number }}
+      enforcement: ${{ steps.enforcement.outputs.enforcement }}
     steps:
-      # Declared block per rule 10; not in effect (#487, see the header). The
-      # endpoint list is the repo-uniform one rather than a hand-trimmed pair:
-      # this job plausibly reaches only GitHub, but that is unmeasured, and a
-      # list that diverges from every sibling for no operational gain is one
-      # more thing #487's fix must chase.
+      # Block per rule 10, and ENFORCED as of #487. The endpoint list is the
+      # repo-uniform one rather than a hand-trimmed pair: this job plausibly
+      # reaches only GitHub, but that is unmeasured, and a list that diverges
+      # from every sibling for no operational gain is one more thing to chase.
+      #
+      # continue-on-error for the same family of reason as `label`'s, one step
+      # earlier in the chain. If the ACTION itself fails — download, bootstrap,
+      # a StepSecurity outage that errors rather than no-opping — this step is
+      # step 0, so the job dies before the gate emits anything. `label` requires
+      # `needs.gate.outputs.run == 'true'`, so an empty `run` skips the
+      # fail-closed labeler and the item goes unscanned AND unflagged. That is
+      # the rule-4 fail-open this PR exists to close, reachable by a vendor
+      # outage rather than by anything an attacker does — but reachable.
+      #
+      # Non-blocking here does NOT mean unprotected-and-ignored: the assertion
+      # below still runs, finds no agent.json, records `enforcement=failed` and
+      # fails the job, which is exactly what activates the labeler. What the
+      # flag buys is that the gate step gets to emit `run` first. The cost is
+      # honest and bounded: one authenticated READ of the tracking issue runs
+      # with no firewall. `label` already accepts the same trade for a WRITE.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        continue-on-error: true
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -158,7 +199,10 @@ jobs:
             github.com:443
             objects.githubusercontent.com:443
 
-      - name: Gate (skip bots; charge budget)
+      # DECIDES only — the marker write is a separate step after the assertion.
+      # Emitting `run` here rather than after the assertion is deliberate: it is
+      # what lets a failed assertion still reach `label` (see the header).
+      - name: Gate (skip bots; read budget)
         id: gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -206,26 +250,105 @@ jobs:
             exit 0
           fi
 
-          NEXT=$((COUNT + 1))
+          # Hand the charge step what it needs so it does not re-read the marker.
+          #
+          # This does NOT make the counter atomic, and nothing else here does
+          # either — do not repeat the claim an earlier revision of this comment
+          # made, that the concurrency group serializes it. THIS workflow's group
+          # is per item (`ai-scan-<number>`, see the top of the file), chosen so a
+          # burst of opened items cannot evict a pending scan. Two items opened
+          # together therefore read the same COUNT and both write COUNT+1. That is
+          # ai-triage.yml's global single-flight group, not this one, and its
+          # header says so explicitly.
+          #
+          # Splitting read from write changes WHEN the write happens, not how it
+          # races, and it does widen the window by the assertion's duration (up to
+          # ~30s on the polling path). Accepted: the counter is a soft cost cap,
+          # and losing a count to a race over-scans, which is the safe direction.
+          out budget_comment_id "$COMMENT_ID"
+          out budget_next "$((COUNT + 1))"
+          out budget_limit "$LIMIT"
+          out budget_date "$TODAY"
+          out run true
+          echo "scan budget available ($COUNT/$LIMIT for $TODAY) — scanning #$NUMBER"
+
+      # Between the decision and the charge, per rule 10. See the header for why
+      # both sides of that placement are load-bearing.
+      #
+      # It records `enforcement=failed` BEFORE exiting non-zero, and `label`'s
+      # guard reads that output. Without it this assertion would be a fail-OPEN:
+      # `label` requires `gate.result == 'success'`, deliberately, so that a
+      # counter or infra failure in this job leaves the item unscanned and
+      # UNLABELED (see that job's comment — gate trouble must not flag). An
+      # enforcement failure is not that category: it means a credentialed job
+      # ran with no firewall, which is the one thing #487 says must never pass
+      # silently. Distinguishing the two here keeps both directions right
+      # instead of trading one for the other.
+      #
+      # Gated like the charge below: on the bot-author and budget-spent paths
+      # the gate sets run=false, this job makes no write and nothing downstream
+      # runs, so there is nothing for egress to bound. A check that fails
+      # routinely on runs with no security content is one people learn to
+      # ignore. `label` requires run=true too, so the paths stay consistent.
+      - name: Assert egress policy is enforced
+        id: enforcement
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -uo pipefail
+          fail() {
+            echo "enforcement=failed" >> "$GITHUB_OUTPUT"
+            echo "::error::$1"
+            exit 1
+          }
+          if [ ! -e /home/agent/agent.json ]; then
+            fail "harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds issues: write and will not run unprotected (#487)."
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            fail "effective egress policy is not block — harden-runner downgraded it (#487)."
+          fi
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          fail "agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+
+      # Charge only once enforcement is proven, so an aborted run does not spend
+      # a slot. Still ahead of `scan`, so a crashed session still counts.
+      - name: Charge the daily scan budget
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ steps.gate.outputs.budget_comment_id }}
+          NEXT: ${{ steps.gate.outputs.budget_next }}
+          LIMIT: ${{ steps.gate.outputs.budget_limit }}
+          TODAY: ${{ steps.gate.outputs.budget_date }}
+        run: |
+          set -euo pipefail
           BODY="<!-- ai-scan-budget date=$TODAY count=$NEXT -->
           **AI security-scan budget**: $NEXT/$LIMIT auto scans on $TODAY (UTC). Managed by ai-scan.yml — never reformat the first line; a new UTC day resets the count."
           # Charging is best-effort (|| true): a failed marker write must not block
           # the scan itself — the counter is a soft cost cap, never a security gate.
+          # The asymmetry with the step above is deliberate: failing to charge
+          # over-scans, failing to enforce runs a credentialed job unprotected.
           if [ -n "$COMMENT_ID" ]; then
             gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$BODY" >/dev/null || true
           else
             gh api "repos/$REPO/issues/$TRACKING_ISSUE/comments" -f body="$BODY" >/dev/null || true
           fi
-          out run true
-          echo "scan budget charged: $NEXT/$LIMIT for $TODAY — scanning #$NUMBER"
+          echo "scan budget charged: $NEXT/$LIMIT for $TODAY"
 
   # The model session. READ-ONLY grants (#455): its GITHUB_TOKEN cannot write
   # to the repository, so widening the Bash allowlist can no longer hand an
   # injected session issue/PR write. That is the whole win, and it is narrower
   # than "the allowlist no longer matters": this job still carries
   # CLAUDE_CODE_OAUTH_TOKEN alongside Bash, so by I1 the allowlist remains the
-  # only control against reading that credential out of the environment, and
-  # egress is not enforced (#487). Keep it narrow (rule 2).
+  # only control against reading that credential out of the environment. Egress
+  # is enforced as of #487, but it bounds WHERE data can go, not what a tool can
+  # do with an allow-listed host — api.github.com is on the list. Keep the
+  # allowlist narrow (rule 2); the two controls cover different things.
   #
   # The read grants are explicit rather than implied by
   # the public-repo fallback, so `gh issue view` / `gh pr diff` work because a
@@ -254,23 +377,82 @@ jobs:
       verdict: ${{ steps.verdict.outputs.verdict }}
     steps:
       # Defense-in-depth: the session's only tools are read-only gh (which reaches
-      # only GitHub), so it cannot open arbitrary sockets. Block mode would bound
-      # the OAuth-token surface regardless, but it is not in effect (#487, see the
-      # header). Left declared so the intent stays recorded and closing #487 needs
-      # no change here. The allowlist is additive to harden-runner's GitHub Actions
-      # baseline and is NOT currently complete: a real session reaches three hosts
-      # it does not list (#487 has the measured set).
+      # only GitHub), so it cannot open arbitrary sockets. Block bounds the
+      # OAuth-token surface regardless, and as of #487 it is ENFORCED and asserted
+      # below. The list is additive to harden-runner's GitHub Actions baseline and
+      # is the set measured on a real run (#487), not a guess.
+      #
+      # release-assets.githubusercontent.com is where GitHub redirects release-asset
+      # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,
+      # which fetches bun from a GitHub release. Do not remove it because a run
+      # seemed fine without it: setup-bun restores bun from the Actions cache when
+      # it can, and these untrusted-trigger jobs can only READ that cache (#487's
+      # root cause), so an eviction turns a cached restore into a download this
+      # list has to permit.
+      #
+      # claude.ai and downloads.claude.ai are the Claude Code CLI's distribution
+      # path — the action curls the installer from the first and pulls the binary
+      # from the second. Without them this job fails before the session starts.
+      #
+      # statsig.anthropic.com is REMOVED, and this is a correctness fix, not
+      # tidying: the domain no longer resolves (NXDOMAIN), and harden-runner's
+      # agent aborts and reverts its firewall when an allow-listed host fails to
+      # resolve — leaving `block` in its config and nothing enforcing it. A dead
+      # allowlist entry is not inert; it silently disables the whole policy. #487
+      # measured that it was never contacted anyway, and the telemetry switch on
+      # the session below covers feature-flag evaluation.
+      #
+      # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
+      # deliberately ABSENT rather than allow-listed: not a functional dependency,
+      # and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing
+      # attempts it. Denying and silencing are a tighter pair than allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
             api.anthropic.com:443
-            statsig.anthropic.com:443
+            claude.ai:443
+            downloads.claude.ai:443
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             registry.npmjs.org:443
+
+      # Immediately after harden-runner here: this job has no gate to sequence
+      # behind and spends no budget, and a failure is already fail-CLOSED — the
+      # job's result is `failure`, not `skipped`, so `label` still runs and an
+      # empty verdict hits its enum default.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None writes agent.json, so name that case
+          # rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds the model credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       # Base default branch only — never PR head code. The scanner reads issue/PR
       # content via read-only gh, not from the workspace. The checkout also
@@ -283,6 +465,21 @@ jobs:
 
       - name: Run Claude (security scan)
         id: claude
+        # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
+        # host stays off the allowlist above AND the CLI is told not to emit it,
+        # so the block policy has nothing to refuse (#487). This also covers
+        # feature-flag evaluation, which is why statsig.anthropic.com is gone.
+        #
+        # Set as a step `env:` rather than through the action's `settings:` input.
+        # `settings:` is written to the USER-level ~/.claude/settings.json, which
+        # a project-level .claude/settings.json in the workspace can override; a
+        # process environment variable cannot be. This job checks out the base
+        # default branch, never PR head, so nothing here is attacker-controlled —
+        # but the sibling jobs that DO check out a PR branch share this shape, and
+        # a control that depends on which branch got checked out is one rebase
+        # away from being wrong.
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -390,25 +587,38 @@ jobs:
   # still flags — the enum below is the only thing that admits a category
   # string, and its defaults are what an empty verdict falls to.
   #
-  # The two extra `needs` conditions keep `always()` from over-reaching, and
-  # each one guards a direction:
+  # The extra `needs` conditions keep `always()` from over-reaching, and each
+  # one guards a direction:
   #   gate.result == 'success' — a gate that wrote run=true and THEN failed
-  #     (its harden-runner post-step, say) skips `scan` but would otherwise
-  #     run this job against an empty verdict and flag an item nothing ever
-  #     scanned. Gate trouble is a counter/infra path and must fail OPEN
-  #     (rule 4): no scan, no label.
+  #     (its budget write, say) skips `scan` but would otherwise run this job
+  #     against an empty verdict and flag an item nothing ever scanned. Gate
+  #     trouble is a counter/infra path and must fail OPEN (rule 4): no scan,
+  #     no label.
   #   scan.result != 'skipped' — `scan` skips when a kill switch was flipped
   #     off before a re-run. That must not read as a failed scan and flag.
   #   Anything else (scan failed, cancelled, or produced no verdict) still
   #     reaches the flagged/other default, which is the fail-CLOSED direction
   #     the verdict path owes.
+  #
+  # The `enforcement == 'failed'` arm is the ONE exception carved out of the
+  # first rule, added with #487. A gate that failed its egress assertion is not
+  # counter/infra trouble: it means a job holding `issues: write` ran with no
+  # firewall, and the item is then unscanned. Letting that fall through the
+  # fail-OPEN arm would leave it unscanned and unflagged — indistinguishable
+  # from clean to every downstream consumer, which is precisely what #487
+  # exists to stop. So that one case flags, and every other gate failure still
+  # does not. Both directions preserved rather than one traded for the other.
+  # Do not collapse this expression into `gate.result != 'skipped'`: that would
+  # flag on ordinary counter trouble too.
   label:
     needs: [gate, scan]
     if: |
       always() &&
-      needs.gate.result == 'success' &&
       needs.gate.outputs.run == 'true' &&
-      needs.scan.result != 'skipped'
+      (
+        (needs.gate.result == 'success' && needs.scan.result != 'skipped') ||
+        needs.gate.outputs.enforcement == 'failed'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -418,11 +628,10 @@ jobs:
       # write-holding job is exactly what rule 2 warns about.
       issues: write # apply needs-security-review (issues API covers PRs)
     steps:
-      # Declared block per rule 10; not in effect (#487, see the header). The
-      # endpoint list is the repo-uniform one rather than a hand-trimmed pair:
-      # this job plausibly reaches only GitHub, but that is unmeasured, and
-      # #487 is where the measured set lives — a list that diverges from every
-      # sibling for no operational gain is one more thing its fix must chase.
+      # Block per rule 10, ENFORCED as of #487. The endpoint list is the
+      # repo-uniform one rather than a hand-trimmed pair: this job plausibly
+      # reaches only GitHub, but that is unmeasured, and a list that diverges
+      # from every sibling for no operational gain is one more thing to chase.
       #
       # continue-on-error because this step must not be able to LOSE a flag.
       # It runs ahead of the labeling call, so an action-download failure
@@ -430,10 +639,17 @@ jobs:
       # genuinely malicious item unlabeled — a fail-OPEN path on the verdict
       # side, which rule 4 does not permit. The pre-split design could not
       # lose the label this way (harden-runner ran once, before the scan).
-      # Nothing is given up: the policy is not enforced today anyway.
+      #
+      # #487 removed the sentence that used to close this paragraph — "nothing
+      # is given up: the policy is not enforced today anyway". It IS enforced
+      # now, so the give-up is real and is paid for below instead: the
+      # assertion moves AFTER the labeling call rather than being skipped. A
+      # job that labelled the item and then discovered nothing was enforcing
+      # still goes red; a job that could not label at all was never the trade
+      # rule 4 permits.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -446,7 +662,11 @@ jobs:
           SCAN_VERDICT: ${{ needs.scan.outputs.verdict }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          NUMBER: ${{ needs.gate.outputs.number }}
+          # Event-context fallback, not belt-and-braces: this job now also runs
+          # on the gate's enforcement-failure path, and a failed job's outputs
+          # are not a contract worth betting a fail-closed label on. The event
+          # payload is the same number the gate itself derived it from.
+          NUMBER: ${{ needs.gate.outputs.number || github.event.pull_request.number || github.event.issue.number }}
         run: |
           set -euo pipefail
           VERDICT="flagged"   # fail-closed default
@@ -475,3 +695,34 @@ jobs:
           # the step's non-zero exit is what surfaces it.
           gh api -X POST "repos/$REPO/issues/$NUMBER/labels" \
             -f "labels[]=needs-security-review" >/dev/null
+
+      # AFTER the write, and the only assertion in this repo placed that way.
+      # Rule 10's default is "immediately after harden-runner", but this job is
+      # the fail-closed path itself: a check that can fail ahead of the labeling
+      # call would discard a computed `flagged` verdict, which is the fail-OPEN
+      # rule 4 forbids — the same reason harden-runner above is
+      # continue-on-error. Asserting here keeps both: the label is already
+      # applied, and a job that ran unprotected still goes red.
+      #
+      # `always()` so a failed labeling call cannot mask an enforcement failure;
+      # each surfaces on its own.
+      - name: Assert egress policy is enforced
+        if: always()
+        run: |
+          set -uo pipefail
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing was enforcing egress while this job held issues: write. This check deliberately runs AFTER the labeling step (see the job comment), so it did not prevent it — read that step's own result for whether a label was applied, and do not read this error as saying one was: on a clean verdict there is no label to apply. Usual causes: a StepSecurity outage, the skip-harden-runner repo property, or a container/slim runner (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1

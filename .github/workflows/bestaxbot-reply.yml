@@ -77,6 +77,19 @@ jobs:
       issues: write # issue-comment replies
       id-token: write # OIDC exchange for the subscription token
     steps:
+      # AUDIT, not block, and rule 10's "existing live job" clause is why: this
+      # job checks out code, installs dependencies and runs a Claude session
+      # holding both bestaxbot's PAT and the OAuth token, and none of that egress
+      # has ever been measured. A guessed allowlist would break replies on the
+      # first miss; audit mode reports every endpoint the run touches without
+      # refusing any, which is what produces the list a block flip needs. That
+      # flip is the follow-up rule 10 owes (#578) — audit is a starting point
+      # here, not a resting place.
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
       # Layer 2 (authoritative): author_association can be COLLABORATOR with
       # only read access. Re-check the LIVE role and require write/triage+.
       - name: Check trigger permission
@@ -157,6 +170,27 @@ jobs:
 
       - name: Run Claude (respond as bestaxbot)
         if: steps.perm.outputs.allowed == 'true'
+        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
+        # stays off every allowlist in this repo AND the CLI is told not to emit
+        # it (#487). It also covers feature-flag evaluation, which is why
+        # statsig.anthropic.com is gone.
+        #
+        # On this `audit` job the point is the MEASUREMENT: audit mode exists to
+        # produce the endpoint list a block flip will use (#578), and leaving
+        # telemetry on would put the Datadog host in that report, inviting whoever
+        # reads it to allow-list a host we have just decided to deny.
+        #
+        # A step `env:` rather than the action's `settings:` input. `settings:` is
+        # written to the USER-level ~/.claude/settings.json, which a project-level
+        # .claude/settings.json in the workspace overrides. This job does NOT check
+        # out PR-branch code, so nothing in its workspace is attacker-controlled
+        # today — state that accurately rather than borrowing a sibling's threat
+        # model. The env form is used so the control does not DEPEND on that:
+        # claude-review.yml and claude-pr-loop.yml do check out PR branches and
+        # share this shape, and a checkout change here would silently move this job
+        # into their class. Do not move this back under `with:`.
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           # Respond as the bestaxbot machine account so replies/commits come
