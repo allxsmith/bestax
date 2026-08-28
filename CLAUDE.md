@@ -144,7 +144,11 @@ green and every AI review thread is resolved.
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
-  against current code.
+  against current code. **A PR that modifies `claude-review.yml` cannot be deep-reviewed:**
+  the action refuses to run when the workflow file differs from the default branch's copy
+  (a guard against a PR rewriting its own reviewer), logging `Skipping action due to
+workflow validation` and posting nothing. The job still goes green, so check for the
+  review comment rather than the job's conclusion.
 - **Reviewer mechanics:** CodeRabbit reviews incrementally and rate-limits on OSS. After it
   posts "review limit reached" it will not retry on its own; once the window resets, push a
   commit or comment `@coderabbitai review`. Copilot also auto-reviews PRs and re-reviews on
