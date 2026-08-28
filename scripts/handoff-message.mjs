@@ -77,8 +77,13 @@ export const RELEASE_SCOPES = [
   'bestax-mcp',
 ];
 
-/** `type(scope)!: subject` — the same shape commitlint parses. */
-const CONVENTIONAL_HEADER = /^([a-z]+)(?:\(([^)]*)\))?!?:/;
+/**
+ * `type(scope)!: subject` — the same shape commitlint parses. The trailing
+ * space is load-bearing: conventional-commits-parser requires `: `, so
+ * `feat:x` yields type=undefined and semantic-release releases nothing from
+ * it. Flagging it as a scope problem would name the wrong defect.
+ */
+const CONVENTIONAL_HEADER = /^([a-z]+)(?:\(([^)]*)\))?!?: /;
 
 /**
  * True when the PR title would release a package but names no valid scope —

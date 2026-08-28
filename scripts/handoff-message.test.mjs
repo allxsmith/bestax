@@ -349,6 +349,19 @@ test('needsScopeWarning fires only on a real releasing header', () => {
     );
   }
 
+  // No space after the colon is not a conventional header either:
+  // conventional-commits-parser requires `: `, so these release nothing and
+  // must not be reported as a scope problem.
+  for (const title of [
+    'feat:x',
+    'revert:x',
+    'fix(bulma-ui):x',
+    'feat(nope):x',
+    'feat',
+    'feat(bulma-ui)',
+  ])
+    assert.equal(needsScopeWarning(title), false, `not a header: ${title}`);
+
   // Documented residual, matching commitlint.config.js: a git-style revert is
   // not a conventional header, so neither commitlint nor this flags it.
   assert.equal(needsScopeWarning('Revert "feat(bulma-ui): x"'), false);
