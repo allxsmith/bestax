@@ -47,6 +47,7 @@ import {
   draw,
   needsScopeWarning,
   parseArgs,
+  writesBotTrigger,
 } from './handoff-message.mjs';
 
 const SCRIPT = join(
@@ -147,10 +148,21 @@ test('each slot pool carries the job that slot exists to do', () => {
 test('no fragment writes a bot trigger string (.github/CLAUDE.md rule 8)', () => {
   // contains() matches raw substrings, and this body is posted with a PAT, so
   // a mention here would re-enter a write-capable session.
-  for (const { body } of ALL) {
-    assert.ok(!body.includes('@claude'), body);
-    assert.ok(!body.includes('@coderabbitai'), body);
-  }
+  for (const { body } of ALL) assert.equal(writesBotTrigger(body), false, body);
+
+  // The guard has to be at least as permissive as the matcher it stands in
+  // for: Actions `contains()` ignores case, so a case-sensitive check would
+  // wave `@Claude` through while the workflow still fired on it.
+  for (const variant of [
+    'ping @Claude please',
+    'ping @CLAUDE please',
+    'ask @CodeRabbitAI to look',
+    'ask @coderabbitai to look',
+    '@claude',
+  ])
+    assert.equal(writesBotTrigger(variant), true, variant);
+  for (const safe of ['@allxsmith, squash-merge it', 'no mentions here'])
+    assert.equal(writesBotTrigger(safe), false, safe);
 });
 
 test('every assembled body is two flush-left paragraphs', () => {

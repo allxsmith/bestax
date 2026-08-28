@@ -220,6 +220,21 @@ export function chooseSlots(pr) {
   };
 }
 
+/**
+ * True when text carries a mention that would re-enter a write-capable
+ * session (.github/CLAUDE.md rule 8).
+ *
+ * Case-INSENSITIVE on purpose: the real matcher is GitHub Actions
+ * `contains(github.event.comment.body, '@claude')` in claude.yml, and Actions
+ * string comparison ignores case — so `@Claude` re-triggers just as `@claude`
+ * does. A case-sensitive guard here would be weaker than the thing it stands
+ * in for, which is the one way this check must never fail.
+ */
+export function writesBotTrigger(text) {
+  const lower = text.toLowerCase();
+  return lower.includes('@claude') || lower.includes('@coderabbitai');
+}
+
 export function buildBody({ pr, iter }) {
   return assemble({ ...chooseSlots(pr), iter });
 }
