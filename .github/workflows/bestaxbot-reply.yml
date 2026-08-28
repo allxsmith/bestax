@@ -186,7 +186,7 @@ jobs:
         # .claude/settings.json in the workspace OVERRIDES.
         #
         # Be exact about why that matters here, because two earlier revisions of
-        # this comment were not. The checkout below passes no `ref:`, so it takes
+        # this comment were not. The checkout above passes no `ref:`, so it takes
         # `github.ref` — and on this workflow's `pull_request_review` and
         # `pull_request_review_comment` triggers that resolves to
         # `refs/pull/N/merge`. The workspace therefore holds PR-CONTROLLED code on
