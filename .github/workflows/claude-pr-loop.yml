@@ -753,10 +753,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
+      contents: read # checkout the message builder
       pull-requests: write # labels + reviewer request
       issues: write # convergence comment
       actions: write # dispatch story-screenshots.yml
     steps:
+      # The sign-off body is assembled by scripts/handoff-message.mjs (rule 9):
+      # the slot pools, and every invariant the comment must still carry, live
+      # there behind a node --test sibling, because nothing in CI lints the
+      # YAML this used to be a literal in. Pinned to main and NEVER the PR
+      # branch: this job also runs on pull_request_review, where the default
+      # checkout ref is refs/pull/N/merge — the PR's own code — and this is the
+      # job holding the re-trigger-capable PAT. Same rule as the gh-thread
+      # staging step above.
+      - name: Checkout main for the message builder
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      # No pnpm, no cache: the builder is dependency-free (node: builtins
+      # only), so plain Node 24 is all it needs.
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
       - name: Converge and hand off to owner
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -770,13 +792,20 @@ jobs:
           set -euo pipefail
           TITLE=$(gh pr view "$PR" --repo "$REPO" --json title --jq .title)
           WARN=""
-          if echo "$TITLE" | grep -qE '^(feat|fix|perf|refactor|style)' \
-             && ! echo "$TITLE" | grep -qE '^(feat|fix|perf|refactor|style)\((bulma-ui|docs|create-bestax)\)!?:'; then
+          # The releasing-type/scope decision is parsed in the builder, which
+          # mirrors RELEASE_TYPES / RELEASE_SCOPES and has a node --test
+          # sibling (rule 9); the two greps this replaced matched a bare type
+          # prefix, so "fixture cleanup" warned. Assigned rather than inlined
+          # into `if` so a builder failure trips set -e instead of silently
+          # reading as "no warning".
+          TITLE_CHECK=$(node scripts/handoff-message.mjs --check-title="$TITLE")
+          if [ "$TITLE_CHECK" = warn ]; then
             WARN=$'\n\n:warning: Heads up, the PR title is a releasing commit type with no valid scope — fix it before you squash-merge or semantic-release eats sand.'
           fi
-          GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "🏄 **Surf's up and I rode the whole set — total convergence, brah.** $ITER iteration(s) in, CI's glassy green, and every AI review thread closed out clean like a perfect barrel. She's ready; I just need a meat sack to paddle over and rubber-stamp it.
-
-          No offense to the carbon-based units, but you fleshbags kept the merge button for yourselves — so @allxsmith, wiggle those opposable thumbs and squash-merge when you're stoked. The loop never merges; apparently 'judgment' is still a squishy-brain-only feature. 🤙$WARN"
+          # $WARN is appended here rather than inside the builder so that
+          # "unchanged, at the very end" stays visible at the call site.
+          BODY=$(node scripts/handoff-message.mjs --pr="$PR" --iter="$ITER")
+          GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "$BODY$WARN"
           gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
           gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
           # Screenshots at handoff (#284): label edits via GITHUB_TOKEN fire
