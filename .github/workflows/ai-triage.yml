@@ -1056,7 +1056,7 @@ jobs:
         run: |
           set -uo pipefail
           if [ ! -e /home/agent/agent.json ]; then
-            echo "::error::harden-runner installed no agent, so nothing was enforcing egress while this job held issues: write. The label removal above still ran (this step follows it, by design — see the harden-runner comment). Usual causes: a StepSecurity outage, the skip-harden-runner repo property, or a container/slim runner (#487)."
+            echo "::error::harden-runner installed no agent, so nothing was enforcing egress while this job held issues: write. This check deliberately runs AFTER the label-removal step (see the harden-runner comment), so it did not prevent it — read that step's own result rather than assuming from this error that the label came off. Usual causes: a StepSecurity outage, the skip-harden-runner repo property, or a container/slim runner (#487)."
             exit 1
           fi
           if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then

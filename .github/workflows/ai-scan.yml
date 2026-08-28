@@ -711,7 +711,7 @@ jobs:
         run: |
           set -uo pipefail
           if [ ! -e /home/agent/agent.json ]; then
-            echo "::error::harden-runner installed no agent, so nothing was enforcing egress while this job held issues: write. The label above was still applied (this step runs after it, by design — see the job comment). Usual causes: a StepSecurity outage, the skip-harden-runner repo property, or a container/slim runner (#487)."
+            echo "::error::harden-runner installed no agent, so nothing was enforcing egress while this job held issues: write. This check deliberately runs AFTER the labeling step (see the job comment), so it did not prevent it — read that step's own result for whether a label was applied, and do not read this error as saying one was: on a clean verdict there is no label to apply. Usual causes: a StepSecurity outage, the skip-harden-runner repo property, or a container/slim runner (#487)."
             exit 1
           fi
           if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then

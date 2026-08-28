@@ -465,21 +465,34 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   with a model token; their block flip is the follow-up this rule owes, tracked in #578.
 - **No harden-runner at all**, and these are two different groups — do not merge them into one
   "API-only" line, which understates the second:
-  - _Genuinely API-only_ — `auto-close-duplicates`, `on-slop`, `auto-label-claude-prs`,
-    `close-stale-bestaxbot-prs`, `stale`; `claude-repro`'s `prepare`, `publish` and `cleanup`;
-    and `claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`. These call the GitHub API and run no
-    build.
-  - _Grandfathered, and they DO execute code_ — `supply-chain`'s `sbom` (installs the monorepo
-    and runs SBOM generators), `attach-sbom` (downloads and uploads release artifacts) and
-    `verify-provenance` (installs published packages and runs verification scripts). Calling
-    these API-only, as this list did until review caught it, understates the unmonitored
-    execution and egress surface in the one inventory meant to state it precisely.
+  - _Genuinely API-only_ — no checkout, no repository code: `on-slop`, `auto-label-claude-prs`,
+    `close-stale-bestaxbot-prs`, `stale`; `claude-repro`'s `prepare` and `cleanup`;
+    `claude-pr-loop`'s `sweep`, `gate` and `halt`; `supply-chain`'s `attach-sbom` (it moves
+    release artifacts and runs nothing).
+  - _They check out and EXECUTE repository code_ — `auto-close-duplicates`
+    (`scripts/auto-close-duplicates.mjs`), `claude-repro`'s `publish`
+    (`scripts/sanitize-repro-draft.mjs`, over attacker-influenced text while holding
+    `issues: write`), `claude-pr-loop`'s `handoff` (`scripts/handoff-message.mjs`), and
+    `supply-chain`'s `sbom` (installs the monorepo, runs SBOM generators) and
+    `verify-provenance` (installs published packages, runs verification scripts). Calling any of
+    these API-only — as this list did twice — understates the unmonitored execution and egress
+    surface in the one inventory meant to state it precisely.
 
-Do not maintain the first bullet by hand — it was wrong twice. Regenerate it:
+Do not maintain any of this by hand; it has now been wrong three times, and each time the error
+moved a code-executing job into the harmless-looking group. Derive it:
 
 ```bash
-grep -rl "harden-runner@" .github/workflows/ | sort   # which files, then read the jobs
+# every job with a harden-runner, and its policy
+grep -rl "harden-runner@" .github/workflows/ | sort
+
+# candidate code-executing jobs: a checkout is the tell, since nothing here
+# runs repo code without one
+grep -rln "actions/checkout@" .github/workflows/ | sort
 ```
+
+Then read the jobs — and read them, rather than grepping for `node`, because a `node -e` inside a
+**comment** is enough to misclassify a job (`claude-pr-loop`'s `gate` has exactly that and runs no
+code at all).
 
 The authoritative check is that no `block` job lacks the assertion; parse the YAML rather than
 eyeballing it, because the two are in different jobs and sometimes several steps apart.
