@@ -792,12 +792,14 @@ jobs:
           set -euo pipefail
           TITLE=$(gh pr view "$PR" --repo "$REPO" --json title --jq .title)
           WARN=""
-          # Types and scopes mirror RELEASE_TYPES / RELEASE_SCOPES in
-          # commitlint.config.js. Keep `revert` in both alternations:
-          # commitlint's default ignores skip git-style `Revert "..."`
-          # messages, so this warning is the only net under that title.
-          if echo "$TITLE" | grep -qE '^(feat|fix|perf|refactor|style|revert)' \
-             && ! echo "$TITLE" | grep -qE '^(feat|fix|perf|refactor|style|revert)\((bulma-ui|docs|create-bestax|bestax-migrate|bestax-mcp)\)!?:'; then
+          # The releasing-type/scope decision is parsed in the builder, which
+          # mirrors RELEASE_TYPES / RELEASE_SCOPES and has a node --test
+          # sibling (rule 9); the two greps this replaced matched a bare type
+          # prefix, so "fixture cleanup" warned. Assigned rather than inlined
+          # into `if` so a builder failure trips set -e instead of silently
+          # reading as "no warning".
+          TITLE_CHECK=$(node scripts/handoff-message.mjs --check-title="$TITLE")
+          if [ "$TITLE_CHECK" = warn ]; then
             WARN=$'\n\n:warning: Heads up, the PR title is a releasing commit type with no valid scope — fix it before you squash-merge or semantic-release eats sand.'
           fi
           # $WARN is appended here rather than inside the builder so that

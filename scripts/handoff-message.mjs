@@ -45,6 +45,7 @@
  *
  * CLI contract (the YAML wrapper depends on every clause):
  *   node scripts/handoff-message.mjs --pr=<number> --iter=<number>
+ *   node scripts/handoff-message.mjs --check-title=<pr title>   -> warn | ok
  * - Prints the assembled body on stdout and nothing else. The workflow appends
  *   its own `$WARN` after; that is deliberately NOT this script's business, so
  *   "unchanged, at the very end" stays visible at the call site.
@@ -58,6 +59,49 @@ import { pathToFileURL } from 'node:url';
 
 /** Placeholder the status fragments carry, substituted by applyIter(). */
 export const ITER_TOKEN = '$ITER';
+
+/** Mirrors RELEASE_TYPES / RELEASE_SCOPES in commitlint.config.js. */
+export const RELEASE_TYPES = [
+  'feat',
+  'fix',
+  'perf',
+  'refactor',
+  'style',
+  'revert',
+];
+export const RELEASE_SCOPES = [
+  'bulma-ui',
+  'docs',
+  'create-bestax',
+  'bestax-migrate',
+  'bestax-mcp',
+];
+
+/** `type(scope)!: subject` — the same shape commitlint parses. */
+const CONVENTIONAL_HEADER = /^([a-z]+)(?:\(([^)]*)\))?!?:/;
+
+/**
+ * True when the PR title would release a package but names no valid scope —
+ * i.e. when the hand-off comment should carry its :warning:.
+ *
+ * Anchored on the whole conventional header rather than a bare type prefix:
+ * matching `^(feat|fix|...)` alone also flags ordinary prose like "fixture
+ * cleanup" or "reverted flaky change", which semantic-release never parses as
+ * a release at all.
+ *
+ * Residual, the same one commitlint.config.js already documents: a git-style
+ * `Revert "..."` title is not a conventional header, so it is not flagged
+ * here either — yet commit-analyzer's default `{ revert: true, release:
+ * 'patch' }` would still patch-release every package. Reverts have to be kept
+ * conventional and scoped by hand.
+ */
+export function needsScopeWarning(title) {
+  const match = CONVENTIONAL_HEADER.exec(title);
+  if (!match) return false;
+  const [, type, scope] = match;
+  if (!RELEASE_TYPES.includes(type)) return false;
+  return !RELEASE_SCOPES.includes(scope ?? '');
+}
 
 export const SURF = {
   name: 'surf',
@@ -163,7 +207,8 @@ export function buildBody({ pr, iter }) {
 /** Parse argv into { pr, iter }; throws Error(message) on misuse. */
 export function parseArgs(argv) {
   for (const arg of argv)
-    if (!/^--(pr|iter)=/.test(arg)) throw new Error(`Unknown argument: ${arg}`);
+    if (!/^--(pr|iter|check-title)=/.test(arg))
+      throw new Error(`Unknown argument: ${arg}`);
   const flag = name =>
     argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
   const int = (name, min) => {
@@ -172,12 +217,22 @@ export function parseArgs(argv) {
     if (!/^\d+$/.test(raw))
       throw new Error(`--${name} must be a number, got "${raw}"`);
     const value = Number(raw);
+    // A long enough digit run parses to Infinity, and anything past
+    // MAX_SAFE_INTEGER collapses distinct PR numbers onto the same draw.
+    if (!Number.isSafeInteger(value))
+      throw new Error(`--${name} is not a safe integer: "${raw}"`);
     if (value < min)
       throw new Error(`--${name} must be >= ${min}, got ${value}`);
     return value;
   };
+  const title = flag('check-title');
+  if (title !== undefined) {
+    if (argv.length !== 1)
+      throw new Error('--check-title= takes no other arguments');
+    return { mode: 'check-title', title };
+  }
   // iter may legitimately be 0: a PR can converge before the loop ever pushed.
-  return { pr: int('pr', 1), iter: int('iter', 0) };
+  return { mode: 'body', pr: int('pr', 1), iter: int('iter', 0) };
 }
 
 export function main(argv = process.argv.slice(2)) {
@@ -187,9 +242,14 @@ export function main(argv = process.argv.slice(2)) {
   } catch (err) {
     console.error(`handoff-message: ${err.message}`);
     console.error(
-      'usage: node scripts/handoff-message.mjs --pr=<number> --iter=<number>'
+      'usage: node scripts/handoff-message.mjs --pr=<number> --iter=<number>\n' +
+        '       node scripts/handoff-message.mjs --check-title=<pr title>'
     );
     process.exit(2);
+  }
+  if (opts.mode === 'check-title') {
+    console.log(needsScopeWarning(opts.title) ? 'warn' : 'ok');
+    return;
   }
   console.log(buildBody(opts));
 }

@@ -26,6 +26,7 @@
  * no package of their own, matching auto-close-duplicates.test.mjs.
  */
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -34,6 +35,8 @@ import {
   ASKS,
   ITER_TOKEN,
   KICKERS,
+  RELEASE_SCOPES,
+  RELEASE_TYPES,
   SNOW,
   SURF,
   THEMES,
@@ -42,6 +45,7 @@ import {
   buildBody,
   chooseSlots,
   draw,
+  needsScopeWarning,
   parseArgs,
 } from './handoff-message.mjs';
 
@@ -113,6 +117,14 @@ test('each slot pool carries the job that slot exists to do', () => {
       assert.ok(
         /AI review thread/.test(status),
         `states thread resolution: ${status}`
+      );
+      // Naming CI and the threads is not the same as claiming they are good:
+      // "CI is red and every AI review thread is unresolved" would satisfy
+      // the two checks above. Block the vocabulary that would invert it.
+      assert.doesNotMatch(
+        status,
+        /\b(red|failing|failed|broken|unresolved|pending|still open)\b/i,
+        `states a GREEN, resolved outcome: ${status}`
       );
     }
   }
@@ -247,8 +259,20 @@ test('the draw decorrelates slots and both themes get used', () => {
 });
 
 test('parseArgs enforces the contract the workflow relies on', () => {
-  assert.deepEqual(parseArgs(['--pr=576', '--iter=3']), { pr: 576, iter: 3 });
-  assert.deepEqual(parseArgs(['--iter=0', '--pr=1']), { pr: 1, iter: 0 });
+  assert.deepEqual(parseArgs(['--pr=576', '--iter=3']), {
+    mode: 'body',
+    pr: 576,
+    iter: 3,
+  });
+  assert.deepEqual(parseArgs(['--iter=0', '--pr=1']), {
+    mode: 'body',
+    pr: 1,
+    iter: 0,
+  });
+  assert.deepEqual(parseArgs(['--check-title=feat: x']), {
+    mode: 'check-title',
+    title: 'feat: x',
+  });
   for (const argv of [
     [],
     ['--pr=576'],
@@ -259,6 +283,10 @@ test('parseArgs enforces the contract the workflow relies on', () => {
     ['--pr=576', '--iter=x'],
     ['--pr=576', '--iter=3', '--bogus'],
     ['--pr', '576'],
+    // Digit-only is not the same as usable: this one parses to Infinity.
+    [`--pr=${'9'.repeat(400)}`, '--iter=3'],
+    ['--pr=576', `--iter=${Number.MAX_SAFE_INTEGER + 2}`],
+    ['--check-title=feat: x', '--pr=576'],
   ]) {
     assert.throws(
       () => parseArgs(argv),
@@ -283,4 +311,80 @@ test('the CLI prints exactly the built body and fails loudly on bad input', () =
   assert.notEqual(bad.status, 0);
   assert.equal(bad.stdout, '');
   assert.match(bad.stderr, /missing --iter/);
+});
+
+test('needsScopeWarning fires only on a real releasing header', () => {
+  // Anchored on the conventional header, not a bare type prefix: the greps
+  // this replaced flagged any title merely STARTING with a releasing type.
+  for (const title of [
+    'fixture cleanup',
+    'reverted flaky change',
+    'styleguide update',
+    'performance notes',
+    'refactoring notes for later',
+  ])
+    assert.equal(needsScopeWarning(title), false, `prose: ${title}`);
+
+  for (const title of ['ci: x', 'chore(deps): x', 'docs: x', 'test: x', ''])
+    assert.equal(needsScopeWarning(title), false, `non-releasing: ${title}`);
+
+  for (const scope of RELEASE_SCOPES)
+    for (const type of RELEASE_TYPES) {
+      assert.equal(needsScopeWarning(`${type}(${scope}): x`), false);
+      assert.equal(needsScopeWarning(`${type}(${scope})!: x`), false);
+    }
+
+  for (const type of RELEASE_TYPES) {
+    assert.equal(needsScopeWarning(`${type}: x`), true, `unscoped ${type}`);
+    assert.equal(needsScopeWarning(`${type}!: x`), true, `breaking ${type}`);
+    assert.equal(
+      needsScopeWarning(`${type}(nope): x`),
+      true,
+      `bad scope ${type}`
+    );
+    assert.equal(
+      needsScopeWarning(`${type}(): x`),
+      true,
+      `empty scope ${type}`
+    );
+  }
+
+  // Documented residual, matching commitlint.config.js: a git-style revert is
+  // not a conventional header, so neither commitlint nor this flags it.
+  assert.equal(needsScopeWarning('Revert "feat(bulma-ui): x"'), false);
+});
+
+test('the mirrored release lists match commitlint.config.js', () => {
+  const config = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '..', 'commitlint.config.js'),
+    'utf8'
+  );
+  for (const [name, values] of [
+    ['RELEASE_TYPES', RELEASE_TYPES],
+    ['RELEASE_SCOPES', RELEASE_SCOPES],
+  ]) {
+    const tail = config.slice(config.indexOf(`const ${name} = [`));
+    const declared = [
+      ...tail.slice(0, tail.indexOf('];')).matchAll(/'([^']+)'/g),
+    ].map(m => m[1]);
+    assert.deepEqual(values, declared, `${name} drifted from commitlint`);
+  }
+});
+
+test('the CLI title check prints exactly warn or ok', () => {
+  for (const [title, expected] of [
+    ['feat(bulma-ui): x', 'ok'],
+    ['feat: x', 'warn'],
+    ['fixture cleanup', 'ok'],
+  ]) {
+    const run = spawnSync(
+      process.execPath,
+      [SCRIPT, `--check-title=${title}`],
+      {
+        encoding: 'utf8',
+      }
+    );
+    assert.equal(run.status, 0, run.stderr);
+    assert.equal(run.stdout, `${expected}\n`);
+  }
 });
