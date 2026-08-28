@@ -169,23 +169,18 @@ jobs:
             objects.githubusercontent.com:443
             registry.npmjs.org:443
 
-      # Two assertions, because either one alone is a false pass.
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in this allowlist was the second, on this PR's own run.
       #
-      # agent.json holds the policy the pre-step DECIDED, serialized after every
-      # policy decision it makes — so it catches a downgrade, which is what #487
-      # was: `block` silently meaning `audit` for two months, announced by a
-      # single core.info line.
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
       #
-      # agent.status is written only once the firewall rules are installed. It is
-      # needed because agent.json is written BEFORE the agent starts: if the agent
-      # then fails to come up, the pre-step logs `timed out`, reverts its changes
-      # and still exits 0 — leaving `block` in agent.json and no firewall at all.
-      # Not hypothetical: it happened on this PR, caused by an unresolvable host
-      # in this very allowlist.
-      #
-      # A missing file, the wrong policy, or an agent that never initialized all
-      # fail the job. Linux-only paths (macOS uses /opt/step-security); every
-      # runner here is ubuntu-latest.
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
       - name: Assert egress policy is enforced
         run: |
           jq -e '.egress_policy == "block"' /home/agent/agent.json

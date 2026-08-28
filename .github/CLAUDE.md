@@ -118,6 +118,14 @@ holding on to:
   the action with no compatibility guarantee, so a bump that moves or renames it fails every
   block job at once. That is the intended direction, but check it when bumping rather than being
   surprised by it.
+- **The pin does not fully determine which agent binary runs.** Before installing, the pre-step
+  calls `isTLSEnabled(owner)`, a 3-second probe of a StepSecurity endpoint that **fails open** —
+  on any error or timeout it logs `Unable to check TLS_STATUS. Defaulting to TLS enabled.` and
+  returns true, selecting `agent-ebpf` instead of `agent`. Only the latter is source-available,
+  so the paths and status strings rule 10 asserts can only be verified against that one. Today
+  this org's endpoint answers 403 (`TLS_NOT_ENABLED`), so the verifiable binary is what runs; a
+  StepSecurity outage would swap it with no diff and no pin change. If every block job goes red
+  at once with no workflow change, check this before anything else.
 
 Origin: #361 shipped two new workflows pinned to `9c091bb…` (v7.0.0, twelve commits behind)
 while nineteen other usages were on v7.0.1 — and both were commented `# v7`, so the drift was
@@ -260,8 +268,27 @@ resting place.
 pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is
 what #487 was. `agent.status` is written only once the firewall rules are actually installed,
 and it is the line that catches the other failure: `agent.json` is written _before_ the agent
-starts, so if the agent fails to come up, the pre-step logs `timed out`, reverts its changes and
+starts, so if the agent fails to come up, the pre-step logs `timed out`, prints the agent log and
 **still exits 0**, leaving `block` in the config and no firewall.
+
+Note the actor there, because it is easy to state wrongly: **the pre-step never reverts
+anything** — it contains no revert call at all (`grep -c RevertChanges src/setup.ts` → 0). Every
+revert is the agent's; the pre-step only makes one visible by printing `agent.log`. When
+debugging a red assertion, `Reverted changes` is in the agent's output, not harden-runner's.
+
+**What the pair does NOT prove is that the policy stays armed.** In `step-security/agent`, the
+sequence is `writeStatus("Initialized")` (agent.go:307) and then a serve loop whose
+`case e := <-errc:` (:313) calls `RevertChanges` (:315). So any runtime error after
+initialization tears the firewall down while `agent.status` still reads `Initialized` and
+`agent.json` still reads `block` — **both assertion lines pass, nothing is enforcing.**
+Separately, `refreshDNSEntries` re-resolves every 30s and on failure only logs
+`failed to insert new ipaddress in firewall` (:357), so an allow-listed host whose IPs rotate can
+quietly stop being reachable.
+
+Take the assertion for exactly what it is: proof that enforcement was **armed at that step**, not
+a guarantee for the life of a 30-60 minute session. There is no step-level check for the latter —
+if a session behaves oddly, read the StepSecurity run report for `Reverted changes` rather than
+trusting the green step.
 
 That second failure is not theoretical. The PR that introduced this assertion shipped with only
 the `jq` line and passed green on a job where the firewall had reverted. Which leads to the
