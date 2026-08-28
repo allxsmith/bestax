@@ -2,9 +2,14 @@
 /**
  * Fail-closed verdict parser for the AI security scan (#454, rule 9).
  *
- * ai-scan.yml's labeler step calls this over the Claude action's
- * execution_file and applies `needs-security-review` on anything that is not
- * positively clean. The default verdict is FLAGGED: only a session whose last
+ * ai-scan.yml's `scan` job calls this over the Claude action's execution_file
+ * and reduces it to a coarse enum, which crosses to the separate `label` job
+ * as a step output; that job applies `needs-security-review` on anything that
+ * is not positively clean. It runs in the scan job rather than the labeling
+ * one because execution_file is a runner-local path AND its contents are the
+ * scanner's reasoning, which must not be published (#455).
+ *
+ * The default verdict is FLAGGED: only a session whose last
  * result record has `is_error: false` AND whose final non-empty output line is
  * exactly `SECURITY-SCAN: clean` leaves the label off. A crashed, empty,
  * truncated, unparsable or inconclusive session flags rather than passes —
@@ -29,7 +34,12 @@
  *   print contract fails closed where an exit-code contract would not: Node's
  *   default exit status is 0, so a forgotten code path under an exit-code
  *   contract would read as clean, while here it prints nothing that matches
- *   and the wrapper keeps its flagged/other default.
+ *   and the caller keeps its flagged/other default. Since #455 that default
+ *   lives one job away: this script's stdout becomes the scan job's `verdict`
+ *   output, and the label job's `case` enum is what turns an empty or
+ *   unrecognized value into flagged/other. Do not "simplify" that default
+ *   away on the grounds that this file guarantees a verdict — it guarantees
+ *   the STRING, not that the string survives the job boundary.
  * - Log hygiene: no input-derived text is ever written to stdout or stderr.
  *   JSON parse errors embed input snippets, and the workflow header promises
  *   the execution file stays off the public job log (evasion-oracle risk), so

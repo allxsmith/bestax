@@ -104,20 +104,15 @@ invisible to a reader. Copilot caught it; nothing in CI would have.
 not a convenience list, and widening it grants capability with **no permissions diff for a
 reviewer to notice** — the `permissions:` block looks identical before and after.
 
-The session where the allowlist is the _only_ thing between untrusted text and repository
-write:
+Two sessions where the allowlist is the _only_ thing between untrusted text and a credential.
+Read the third column for **which** credential — since #455 and #457 neither session can
+reach repository write any more, and "the session can't write to the repo" is not the same
+claim as "the allowlist stopped mattering":
 
-| Workflow      | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                           |
-| ------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ai-scan.yml` | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes. |
-
-`ai-triage.yml` used to be the second row, and how it stopped being one is the worked example
-for the last bullet below. Its session held `AI_LOOP_PAT` — full repo write, unscoped by the
-job's `permissions:` block — confined only by a GET-only `gh` allowlist plus two comment
-commands. #457 split the workflow so the session posts nothing: it emits a structured payload,
-a deterministic renderer builds the comment, and a separate job holding the PAT publishes it.
-The session's own token is now the job `GITHUB_TOKEN`, scoped `contents`/`issues`/
-`pull-requests: read`. The allowlist there still matters, but it is no longer the only control.
+| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired. |
+| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is still the only thing standing between an injected session and reading that token out of the environment — and egress is not enforced (rule 10). Narrow, not retired.                                                                                                                                                                                    |
 
 Concrete rules:
 
@@ -128,8 +123,20 @@ Concrete rules:
 - Never add `Edit`, `Write`, `MultiEdit`, or `Task` to `ai-scan.yml`.
 - `--disallowedTools` is defense in depth, and its deny rules do take precedence over the
   allows — but do not lean on it as the primary control. Narrow the allowlist.
-- Prefer removing the need for the boundary over hardening it. Splitting `ai-scan`'s labeler
-  into its own job so the model session can drop to `contents: read` is tracked in #455.
+- Prefer removing the need for the boundary over hardening it. #455 is the worked example:
+  `ai-scan.yml` was one job whose write scopes the model session merely happened not to use,
+  and it became three (`gate` / `scan` / `label`) so the session's own job grants are
+  read-only. The allowlist did not change; what changed is that it is no longer the only
+  thing standing behind it. When a session's job holds a write scope for the benefit of some
+  _other_ step, that is the shape to look for.
+- #457 is the same move against the harder case, and worth reading second: `ai-triage`'s
+  session did not merely sit near a write credential, it **held** one — the Claude action
+  installs its `github_token` as the session's `GH_TOKEN`, so passing `AI_LOOP_PAT` handed an
+  untrusted-text-ingesting session full repo write. Splitting the job was the only way to get
+  it a genuinely read-only credential without minting a new secret, because `GITHUB_TOKEN` is
+  job-scoped and the budget marker needs `issues: write` somewhere. The lesson to carry: when
+  a session's credential is passed _to the action_ rather than merely present in the job,
+  narrowing the allowlist cannot reach it at all — only moving the work can.
 
 ### 3. Opt in explicitly for anything that spends model usage
 

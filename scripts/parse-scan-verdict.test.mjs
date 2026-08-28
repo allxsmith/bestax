@@ -2,7 +2,14 @@
  * Guards on the fail-closed verdict parser (parse-scan-verdict.mjs).
  *
  * This is the deterministic half of the AI security scan: whatever the model
- * session did, THIS decides whether an item gets `needs-security-review`. Its
+ * session did, THIS reduces it to the verdict enum that decides whether an
+ * item gets `needs-security-review`. Since #455 it is not the last word —
+ * this script runs in ai-scan.yml's `scan` job and its stdout crosses to the
+ * `label` job, whose `case` enum supplies the flagged/other default when the
+ * value is empty or unrecognized. So these tests cover one of two links: the
+ * YAML plumbing between them has no test anywhere (check:conformance
+ * deliberately excludes `.github/**`), which is worth knowing before assuming
+ * a change to the label job's enum is covered here. Its
  * one invariant is direction — every degenerate input must flag, never pass.
  * The original shell was traced by hand across seven input shapes at review
  * time (#454); these tests are that trace made permanent, so the next edit to
