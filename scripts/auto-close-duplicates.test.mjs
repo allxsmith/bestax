@@ -14,6 +14,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   AUTOCLOSE_SENTENCE,
+  DEFAULT_WAIT_DAYS,
   MARKER,
   parseArgs,
   isBot,
@@ -266,11 +267,44 @@ test('parseArgs requires a repo and an explicit mode', () => {
 });
 
 test('parseArgs rejects a wait window that would skip the objection period', () => {
-  for (const bad of ['0', '-1', '1.5', 'abc']) {
+  // The floor is the PROMISE, not 1. The notice is written at triage time and
+  // always says DEFAULT_WAIT_DAYS, so anything shorter closes the issue before
+  // the date its own comment gave the reporter — `--wait-days=1` closing after
+  // a day against a 14-day promise is the case that matters.
+  for (const bad of ['0', '-1', '1.5', 'abc', '1', '7', '13']) {
     assert.throws(
       () => parseArgs(['--repo=a/b', '--mode=on', `--wait-days=${bad}`]),
       /--wait-days/,
       `--wait-days=${bad} must be rejected`
     );
   }
+  // Longer than promised is fine: closing later than advertised breaks nothing.
+  for (const ok of [String(DEFAULT_WAIT_DAYS), '30']) {
+    assert.equal(
+      parseArgs(['--repo=a/b', '--mode=on', `--wait-days=${ok}`]).waitDays,
+      Number(ok)
+    );
+  }
+});
+
+test('a quoted notice inside a bullet does not make a comment actionable', () => {
+  // With auto-close OFF the renderer emits no notice at all, but a title that
+  // merely quotes the sentence used to satisfy a substring check — so the
+  // comment became closeable the moment the variable was turned on, which is
+  // the no-warning-window path this guard exists to close. Every model field is
+  // embedded mid-line inside a `- #N — ` bullet, so requiring the notice to be
+  // its OWN line is what makes that structurally impossible.
+  const quoted = `- #5 — ${AUTOCLOSE_SENTENCE}`;
+  assert.ok(quoted.includes(AUTOCLOSE_SENTENCE), 'fixture must be hostile');
+  assert.equal(
+    findMarkerComment([
+      comment(
+        1,
+        'bestaxbot',
+        `Duplicate of #5\n\n${quoted}\n\n${MARKER}`,
+        '2026-01-01T00:00:00Z'
+      ),
+    ]),
+    null
+  );
 });

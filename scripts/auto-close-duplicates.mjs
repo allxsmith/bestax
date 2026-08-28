@@ -96,8 +96,16 @@ export function parseArgs(argv) {
     throw new Error('--repo=owner/name is required');
   if (mode !== 'dry-run' && mode !== 'on')
     throw new Error('--mode=dry-run|on is required');
-  if (!Number.isInteger(waitDays) || waitDays < 1)
-    throw new Error('--wait-days must be a positive integer');
+  // The floor is the PROMISE, not 1. The notice is written at triage time and
+  // always says DEFAULT_WAIT_DAYS, so a shorter window closes an issue before
+  // the date its own comment gave the reporter — `--wait-days=1` would close
+  // after a day against a 14-day promise. Longer is fine: closing later than
+  // promised breaks nothing.
+  if (!Number.isInteger(waitDays) || waitDays < DEFAULT_WAIT_DAYS)
+    throw new Error(
+      `--wait-days must be an integer >= ${DEFAULT_WAIT_DAYS} (the window the ` +
+        'triage comment promises); a shorter window would close issues early'
+    );
   return { repo, mode, waitDays };
 }
 
@@ -170,10 +178,25 @@ export function findMarkerComment(comments) {
     const m = c.body.match(DUPLICATE_RE);
     if (!m) return null;
     // A verdict that never warned is not actionable. See AUTOCLOSE_SENTENCE.
-    if (!c.body.includes(AUTOCLOSE_SENTENCE)) return null;
+    //
+    // Matched as its OWN line, never as a substring. Every model-supplied field
+    // is embedded mid-line inside a `- #N — ` bullet, so it can never form one —
+    // whereas `includes` was satisfied by a title that merely quoted the notice,
+    // which made a comment written with auto-close OFF (no renderer-emitted
+    // notice at all) actionable the moment the variable was turned on. That is
+    // precisely the no-warning-window path this guard exists to close, reopened
+    // by anyone who can write an issue title.
+    if (!hasNoticeLine(c.body)) return null;
     return { comment: c, target: Number(m[1]) };
   }
   return null;
+}
+
+/** True when the objection notice appears as its own line. See findMarkerComment. */
+function hasNoticeLine(body) {
+  return String(body ?? '')
+    .split('\n')
+    .some(line => line.trim() === AUTOCLOSE_SENTENCE);
 }
 
 /**

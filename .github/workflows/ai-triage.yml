@@ -856,13 +856,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      issues: write
-      pull-requests: write
+      # `issues: write` alone. The DELETE below is the ISSUES labels endpoint,
+      # which covers pull requests too — ai-scan.yml's label job documents and
+      # relies on exactly that. A spare write scope on a write-holding job is
+      # what rule 2 warns about, so the `pull-requests: write` that the
+      # pre-split job carried is dropped rather than inherited by habit.
+      issues: write # remove ai-triage (issues API covers PRs)
     steps:
       # Rule 10 again: new job, ships at `block` (which does not enforce — see
       # #487). One API call, but a job that runs on every labeled item should
       # not be the exception that quietly opts out.
+      #
+      # continue-on-error because this step must not be able to PREVENT the
+      # cleanup it precedes. This job exists to guarantee the label never
+      # wedges "on"; a step that can fail ahead of the DELETE — an action
+      # download or init failure — defeats that guarantee outright, and the
+      # pre-split design could not, because label removal was a step under
+      # `always()`. ai-scan.yml's write job is non-blocking for the same
+      # reason. Nothing is given up: the policy is not enforced today anyway.
       - name: Harden runner
+        continue-on-error: true
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: block
