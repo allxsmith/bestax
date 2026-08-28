@@ -43,12 +43,14 @@ name: AI Security Scan
 #   gate  — issues: write. Skips bot authors and charges the daily budget
 #           marker. Runs no repo code and no model.
 #   scan  — contents/issues/pull-requests: READ. The Claude session. Its
-#           GITHUB_TOKEN cannot write anything, so the Bash allowlist is now
-#           defense in depth rather than the ONE control standing between an
-#           injected session and repository write. It is still
-#           security-critical (rule 2) — keep it narrow.
-#   label — issues + pull-requests: write. Applies needs-security-review from
-#           the coarse verdict enum. Runs no repo code and no model.
+#           GITHUB_TOKEN cannot write to the repository, so the Bash allowlist
+#           is no longer the ONE control standing between an injected session
+#           and repository write. It IS still the only control on the model
+#           credential this job carries (see the job comment) — security-
+#           critical either way (rule 2), so keep it narrow.
+#   label — issues: write ONLY. Applies needs-security-review from the coarse
+#           verdict enum; PR labels go through the issues API, so no
+#           pull-requests scope is needed. Runs no repo code and no model.
 # Only that enum crosses a job boundary. The execution file stays on the scan
 # runner: it is a runner-local path, and publishing it as an artifact would hand
 # out the scanner's reasoning to anyone with read access — the exact evasion
