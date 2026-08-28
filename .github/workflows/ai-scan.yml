@@ -291,10 +291,17 @@ jobs:
           # #455 "read-only" is the token's actual scope, not just what the
           # allowlist happens to permit.
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # DELIBERATELY NO show_full_output: unlike the triage sibling, the
-          # scanner's reasoning IS the detection logic. Publishing it to the public
-          # job log would be an evasion oracle. The sentinel is parsed from the
-          # execution_file (a runner-local path), which stays off the public log.
+          # DELIBERATELY NO show_full_output. Two independent reasons now, and
+          # they are worth keeping separate because either alone is sufficient:
+          # the scanner's reasoning IS the detection logic, so publishing it to
+          # the public job log would be an evasion oracle; and any session whose
+          # job holds a model token can put that token into a tool result, which
+          # full output would then publish irretrievably (#457 turned it off in
+          # ai-triage.yml for that second reason, so this is no longer the
+          # divergent sibling it used to be).
+          # The sentinel is parsed from the execution_file (a runner-local path),
+          # which stays off the public log either way — that output does not
+          # depend on show_full_output.
           claude_args: |
             --max-turns 30
             --model claude-sonnet-5
