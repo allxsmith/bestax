@@ -104,13 +104,20 @@ invisible to a reader. Copilot caught it; nothing in CI would have.
 not a convenience list, and widening it grants capability with **no permissions diff for a
 reviewer to notice** — the `permissions:` block looks identical before and after.
 
-Two sessions where the allowlist is the _only_ thing between untrusted text and repository
+The session where the allowlist is the _only_ thing between untrusted text and repository
 write:
 
-| Workflow        | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                           |
-| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ai-triage.yml` | `AI_LOOP_PAT` (bestaxbot)                                        | Full repo write. Confined to GET-only `gh` reads plus the two comment commands.                                                                                                                              |
-| `ai-scan.yml`   | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes. |
+| Workflow      | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                           |
+| ------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ai-scan.yml` | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes. |
+
+`ai-triage.yml` used to be the second row, and how it stopped being one is the worked example
+for the last bullet below. Its session held `AI_LOOP_PAT` — full repo write, unscoped by the
+job's `permissions:` block — confined only by a GET-only `gh` allowlist plus two comment
+commands. #457 split the workflow so the session posts nothing: it emits a structured payload,
+a deterministic renderer builds the comment, and a separate job holding the PAT publishes it.
+The session's own token is now the job `GITHUB_TOKEN`, scoped `contents`/`issues`/
+`pull-requests: read`. The allowlist there still matters, but it is no longer the only control.
 
 Concrete rules:
 
@@ -191,11 +198,16 @@ writing the trigger string at all.
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
 non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
 `node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
-The two #454 parsers are extracted: the scan-verdict parser
+Three extractions exist. The two from #454: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
 the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
-tests together. Smaller instances of the same shape remain inline (the exec-file sentinel
+tests together. Then #457's triage renderer/publisher
+(`scripts/render-triage-comment.mjs`, called twice by `ai-triage.yml` — once per mode), which
+is the largest and the one to read first: it validates a model-authored payload, renders the
+comment from renderer-owned constants, and upserts it by marker. Its test sibling runs the
+real `auto-close-duplicates.mjs` consumer over rendered output, so the two cannot drift.
+Smaller instances of the same shape remain inline (the exec-file sentinel
 checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
 one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported
 helpers rather than growing the YAML.

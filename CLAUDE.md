@@ -166,8 +166,11 @@ empty, `off` or a typo all mean off, and deleting a variable never enables anyth
 `AI_TRIAGE_MODE` is the exception: its label path is `!= 'off'`, so unset still allows
 label-triggered triage.
 
-**Triage.** `ai-triage` runs a one-shot sonnet triage session that comments with related
-issues/duplicates: automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
+**Triage.** `ai-triage` runs a one-shot sonnet triage session that searches for related
+issues/duplicates and reports them as a structured payload; the session itself posts nothing
+(#457), and a separate job renders the comment deterministically via
+`scripts/render-triage-comment.mjs` and publishes it as bestaxbot. Triage is
+automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
 capped at `AI_TRIAGE_DAILY_LIMIT`/day via a counter comment on issue #290; items opened by
 triage+ collaborators are uncapped), or on demand via the label (triage+ only,
 budget-exempt; auto-removed after the run). Fork PRs are never triaged (same-repo
