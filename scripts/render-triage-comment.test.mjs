@@ -935,8 +935,10 @@ test('publish PATCHes the MARKER comment, not merely the newest one', async () =
       {
         id: 11,
         created_at: '2026-01-01T00:00:00Z',
+        // Same verdict as the body being published, so this exercises the
+        // PATCH path rather than the new-verdict repost covered above.
+        body: `old triage\nDuplicate of #5\n${MARKER}`,
         user: { login: 'bestaxbot', type: 'User' },
-        body: `old triage\n${MARKER}`,
       },
       {
         id: 22,
@@ -1053,6 +1055,56 @@ test('a changed duplicate verdict is REPOSTED, so the objection clock restarts',
     assert.equal(await main(publishArgs(bodyFileWith(200))), 0);
     assert.equal(calls.filter(c => c.method === 'PATCH').length, 0);
     assert.equal(calls.filter(c => c.method === 'POST').length, 1);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('a FIRST verdict on an aged comment is reposted too, not patched in', async () => {
+  // The edge an earlier predicate missed: promoting "No duplicates found." to
+  // `Duplicate of #N` leaves no previous target to differ from, so requiring
+  // both sides to be defined PATCHed a months-old comment and handed the cron a
+  // clock that had already run out — the same stale-window bug as a changed
+  // target, reached from the other side.
+  const realFetch = globalThis.fetch;
+  process.env.GITHUB_TOKEN = 'x';
+  try {
+    const calls = stubFetch([
+      {
+        id: 11,
+        created_at: '2026-01-01T00:00:00Z',
+        user: { login: 'bestaxbot', type: 'User' },
+        body: `### AI triage\n\nNo duplicates found.\n\n${MARKER}`,
+      },
+    ]);
+    assert.equal(await main(publishArgs(bodyFileWith(200))), 0);
+    assert.equal(calls.filter(c => c.method === 'PATCH').length, 0);
+    assert.equal(calls.filter(c => c.method === 'POST').length, 1);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('a RETRACTION is patched in place, so the cron sees the target removed', async () => {
+  // The opposite direction must NOT repost: a retraction carries no clock, and
+  // editing in place is what strips the `Duplicate of #N` the cron reads.
+  const realFetch = globalThis.fetch;
+  process.env.GITHUB_TOKEN = 'x';
+  try {
+    const calls = stubFetch([
+      {
+        id: 11,
+        created_at: '2026-01-01T00:00:00Z',
+        user: { login: 'bestaxbot', type: 'User' },
+        body: `old verdict\nDuplicate of #100\n${MARKER}`,
+      },
+    ]);
+    const dir = tmp();
+    const path = join(dir, 'body.md');
+    writeFileSync(path, dedupe({ items: [] }).body);
+    assert.equal(await main(publishArgs(path)), 0);
+    assert.equal(calls.filter(c => c.method === 'PATCH').length, 1);
+    assert.equal(calls.filter(c => c.method === 'POST').length, 0);
   } finally {
     globalThis.fetch = realFetch;
   }

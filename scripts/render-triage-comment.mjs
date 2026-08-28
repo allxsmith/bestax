@@ -852,22 +852,31 @@ async function runPublish(opts) {
     self = '';
   }
 
-  // A CHANGED dedupe verdict must start a new objection window. The auto-close
+  // Any NEW dedupe verdict must start a new objection window. The auto-close
   // cron measures the 14 days from the comment's created_at, and a PATCH
-  // preserves it — so refreshing a 30-day-old comment with a NEW
-  // `Duplicate of #N` would hand the cron an already-expired clock and close
-  // the issue against a target nobody has had a chance to object to, while the
-  // body it just wrote promises 14 days. Reposting resets the clock honestly,
-  // and findMarkerComment reads the LATEST marker comment, so the new one wins.
+  // preserves it — so refreshing a 30-day-old comment with a `Duplicate of #N`
+  // it did not previously carry hands the cron an already-expired clock and
+  // closes the issue against a target nobody has had a chance to object to,
+  // while the body it just wrote promises 14 days. Reposting resets the clock
+  // honestly, and findMarkerComment reads the LATEST marker comment, so the new
+  // one wins.
+  //
+  // The predicate keys on the NEW target alone, which covers both directions
+  // that matter — an earlier version required both sides to be defined and so
+  // missed the "No duplicates found." -> `Duplicate of #N` promotion, which is
+  // the same stale-clock bug wearing different clothes:
+  //   undefined -> #N   repost   (a first verdict on an aged comment)
+  //   #100      -> #200 repost   (a changed verdict)
+  //   #100      -> #100 PATCH    (same verdict; the clock legitimately runs on)
+  //   #100      -> none  PATCH   (a retraction carries no clock, and editing in
+  //                               place is what removes the target the cron reads)
   const previousTarget = existing?.body?.match(/Duplicate of #(\d+)/)?.[1];
   const nextTarget = dupe?.[1];
   const verdictChanged =
-    previousTarget !== undefined &&
-    nextTarget !== undefined &&
-    previousTarget !== nextTarget;
+    nextTarget !== undefined && previousTarget !== nextTarget;
   if (verdictChanged) {
     console.log(
-      `${opts.command}: duplicate target changed (#${previousTarget} -> #${nextTarget}) — posting fresh so the objection window restarts`
+      `${opts.command}: duplicate target is new (${previousTarget ? `#${previousTarget}` : 'none'} -> #${nextTarget}) — posting fresh so the objection window restarts`
     );
   }
 
