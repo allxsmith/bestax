@@ -482,9 +482,13 @@ test('attacker-controlled fields cannot satisfy the real auto-close consumer', (
   assert.ok(/@claude/i.test(hostileTitle));
   assert.ok(DUPLICATE_RE.test(hostileReason));
 
-  const { body } = dedupe({
-    items: [{ number: 456, title: hostileTitle, reason: hostileReason }],
-  });
+  // autoclose active, because findMarkerComment now requires the notice before
+  // it will treat a comment as actionable — without it the assertion below
+  // would pass for the wrong reason.
+  const { body } = dedupe(
+    { items: [{ number: 456, title: hostileTitle, reason: hostileReason }] },
+    { autoclose: 'active' }
+  );
 
   // Run the consumer for real: it must resolve OUR number, never a forged one.
   const found = findMarkerComment([
@@ -751,6 +755,36 @@ test('a payload obeying the documented CHARACTER limits is never too big', () =>
     'fixture must exceed the old cap'
   );
   assert.notEqual(parsePayload(compliant), null);
+});
+
+test('a compliant payload is accepted in its most VERBOSE legal encoding', () => {
+  // The cap is checked on the JSON source before parsing, and JSON may escape
+  // any character as a six-byte \\uXXXX sequence. Sizing against UTF-8 alone
+  // rejected the escaped form of a payload that was fully within the documented
+  // character limits — and both encodings parse to the identical object, so the
+  // session had no way to know which one would be refused.
+  const entry = () => ({
+    number: 999999,
+    title: '\u6f22'.repeat(MAX_TITLE_CHARS - 6),
+    reason: '\u6f22'.repeat(400),
+  });
+  const compliant = {
+    items: [entry(), entry(), entry()],
+    related: [entry(), entry(), entry()],
+  };
+  const plain = JSON.stringify(compliant);
+  const escaped = plain.replace(
+    // eslint-disable-next-line no-control-regex -- the ASCII range is the point
+    /[^\x00-\x7F]/g,
+    c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`
+  );
+  assert.ok(
+    Buffer.byteLength(escaped) > Buffer.byteLength(plain) * 1.5,
+    'fixture must actually exercise the verbose encoding'
+  );
+  assert.deepEqual(JSON.parse(escaped), JSON.parse(plain));
+  assert.notEqual(parsePayload(plain), null);
+  assert.notEqual(parsePayload(escaped), null);
 });
 
 test('a skip must name a pre-check reason, never a post-search outcome', () => {

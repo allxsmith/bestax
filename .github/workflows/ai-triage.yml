@@ -686,14 +686,25 @@ jobs:
           NUMBER: ${{ needs.gate.outputs.number }}
           IS_PR: ${{ needs.gate.outputs.is_pr }}
           TRIGGER: ${{ github.event.action }}
-          # `on` ONLY. `dry-run` deliberately does NOT arm the notice: in that
-          # mode auto-close-duplicates.mjs logs `WOULD CLOSE` and closes nothing,
-          # so mapping it to `active` made every dedupe comment publicly promise
-          # a close that could never happen — and dry-run is the intended rollout
-          # step, so that is the state the repo would sit in while evaluating.
-          # Single-sourcing the day COUNT does not make the PROMISE true; this
-          # mapping is what decides that.
-          AUTOCLOSE: ${{ vars.AI_TRIAGE_AUTOCLOSE == 'on' && 'active' || 'off' }}
+          # `dry-run` DOES arm the notice, and that is deliberate — it was
+          # briefly changed to `on`-only and that was worse.
+          #
+          # The reasoning for `on`-only was that dry-run closes nothing, so the
+          # notice promised something that could not happen. True, but the
+          # closer selects on an aged marker naming a duplicate; it does not
+          # care when the variable changed. So comments written during a
+          # dry-run rollout carried NO notice, and the moment the variable was
+          # flipped to `on` every one of them older than the window became
+          # instantly closeable — 14 days already elapsed, their readers never
+          # once told a close was coming. Silently closing beats over-promising
+          # is the wrong trade.
+          #
+          # The promise is made honest at the enforcing end instead:
+          # auto-close-duplicates.mjs now requires AUTOCLOSE_SENTENCE to be
+          # present before it will act, so only a comment that actually warned
+          # is closeable, and the window runs from that comment. During dry-run
+          # the notice is shown and nothing closes, which is what "may be" says.
+          AUTOCLOSE: ${{ (vars.AI_TRIAGE_AUTOCLOSE == 'on' || vars.AI_TRIAGE_AUTOCLOSE == 'dry-run') && 'active' || 'off' }}
           # BOTH secrets this job holds are compared against the rendered body,
           # in literal/base64/hex form, before anything is written. Passing only
           # the OAuth token left the job token covered by nothing but the

@@ -47,12 +47,28 @@ export const MARKER = '<!-- ai-triage:dedupe -->';
 export const DUPLICATE_RE = /Duplicate of #(\d+)/;
 
 /**
- * The objection window, in days. Exported because render-triage-comment.mjs
- * builds the "may be auto-closed in N days" sentence that this cron then
- * enforces — the number has to be single-sourced or the comment can promise a
- * window the closer does not honor.
+ * The objection window, in days. This file owns it because this file enforces
+ * it; render-triage-comment.mjs imports it to build the notice.
  */
 export const DEFAULT_WAIT_DAYS = 14;
+
+/**
+ * The exact notice a dedupe comment must carry before this cron will act on
+ * it. Owned here, imported by the renderer, for the same reason as the day
+ * count: the promise and its enforcement have to be one string.
+ *
+ * Requiring it is a safety property, not bookkeeping — NEVER close an issue
+ * whose triage comment did not warn. Without this check the closer acted on
+ * any aged marker naming a duplicate, so a comment written while
+ * AI_TRIAGE_AUTOCLOSE was `off` or `dry-run` (no notice) became instantly
+ * closeable the moment the variable was flipped to `on`, 14 days having
+ * already elapsed and its readers never once told a close was coming. The age
+ * gate then measures from the comment that carried the warning, so the window
+ * a reader was shown is the window they actually get.
+ */
+export const AUTOCLOSE_SENTENCE =
+  `This issue may be auto-closed in ${DEFAULT_WAIT_DAYS} days unless someone ` +
+  'objects (comment or \u{1F44E}).';
 
 const API_BASE = 'https://api.github.com';
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -152,7 +168,10 @@ export function findMarkerComment(comments) {
     // `humanCommentAfter` cannot veto it either, because the retraction is
     // itself automation-authored.
     const m = c.body.match(DUPLICATE_RE);
-    return m ? { comment: c, target: Number(m[1]) } : null;
+    if (!m) return null;
+    // A verdict that never warned is not actionable. See AUTOCLOSE_SENTENCE.
+    if (!c.body.includes(AUTOCLOSE_SENTENCE)) return null;
+    return { comment: c, target: Number(m[1]) };
   }
   return null;
 }

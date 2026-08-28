@@ -59,30 +59,36 @@ import {
 } from './parse-scan-verdict.mjs';
 import { sanitizeText } from './sanitize-repro-draft.mjs';
 import {
-  DEFAULT_WAIT_DAYS,
+  AUTOCLOSE_SENTENCE,
   MARKER,
   isAutomationAuthor,
 } from './auto-close-duplicates.mjs';
+
+// Re-exported so the notice has one import site for consumers and tests, while
+// auto-close-duplicates.mjs remains its owner — that file enforces it.
+export { AUTOCLOSE_SENTENCE };
 
 const API_BASE = 'https://api.github.com';
 const FETCH_TIMEOUT_MS = 30_000;
 
 // A BYTE bound, while every limit the model is given is in CHARACTERS — so it
-// must be sized so the two can never disagree, and the arithmetic has to count
-// the LARGEST legal payload, not the most obvious one.
+// must be sized so the two can never disagree. Two subtleties, and getting
+// either wrong rejects a payload the session was told it could send:
 //
-// That is triage-dedupe, whose optional `related` list makes it 3 + 3 entries
-// rather than triage-find-issues' 5: 6 x (256-char title + 400-char reason) is
-// 4205 UTF-16 units, and measured as all-CJK (the worst realistic case, 3 UTF-8
-// bytes per unit) that is 12,077 bytes. Astral characters are not worse — a
-// surrogate pair is 2 units for 4 bytes.
+// 1. The largest legal payload is triage-dedupe, whose optional `related` list
+//    makes it 3 + 3 entries rather than triage-find-issues' 5:
+//    6 x (256-char title + 400-char reason) is 4205 UTF-16 units.
+// 2. This is checked on the JSON SOURCE, before parsing — and JSON may encode
+//    any character as a six-byte `\uXXXX` escape. That, not UTF-8, is the
+//    worst case: the same compliant payload is 12,077 bytes as raw CJK and
+//    23,885 bytes fully escaped, and both parse to the identical object.
+//    Sizing against UTF-8 alone (3 bytes/unit) rejected the escaped form.
 //
-// 16,000 therefore clears every compliant payload with room to spare. The
-// previous 8000 did not: it rejected a wholly compliant CJK payload before even
-// parsing it, failing the run for a session that had counted exactly what it
-// was told to count. Anything the model can legally send must fit here, or the
-// limits it is given are a lie.
-export const MAX_PAYLOAD_BYTES = 16_000;
+// 32,000 clears 4205 units x 6 bytes plus structure, with headroom. It stays a
+// real bound — it still stops an absurd payload being parsed — but anything the
+// model can legally send fits, in any encoding, or the limits it is given are a
+// lie.
+export const MAX_PAYLOAD_BYTES = 32_000;
 export const MAX_TITLE_CHARS = 256; // GitHub's own issue-title limit
 export const MAX_REASON_CHARS = 400;
 export const MAX_BODY_BYTES = 60_000; // GitHub caps comment bodies at 65536
@@ -91,10 +97,6 @@ export const MAX_BODY_BYTES = 60_000; // GitHub caps comment bodies at 65536
 // triage for a session that had broken no instruction it was given — nothing
 // the model is told mentions 50.
 export const MAX_ITEMS_HARD = 50;
-
-export const AUTOCLOSE_SENTENCE =
-  `This issue may be auto-closed in ${DEFAULT_WAIT_DAYS} days unless someone ` +
-  'objects (comment or \u{1F44E}).';
 
 /**
  * Everything structural, per command. NOTHING here may come from the payload:

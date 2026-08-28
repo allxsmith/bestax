@@ -20,10 +20,16 @@ silent-by-default behavior.
 1. `gh pr view NUMBER --repo REPO --json state,title,body,files,comments` —
    if the PR is not open, stop and report `skip (not open)`.
 2. Marker check — a comment authored by bestaxbot or a bot account
-   containing `<!-- ai-triage:find-duplicate-prs -->` (match marker + that
+   whose LAST non-empty line is `<!-- ai-triage:find-duplicate-prs -->` (match marker + that
    author class, never one specific login — the workflow posts as
    bestaxbot today; older comments are from github-actions[bot] or
    claude[bot]):
+   A comment COUNTS only when the marker is its LAST non-empty line — the same
+   predicate the publisher and the auto-close cron use. Matching it here
+   matters: a bot reply that merely QUOTES a triage comment carries the marker
+   verbatim, so a looser "contains" test would report `already triaged` and
+   skip the search while the publisher saw no triage comment at all, leaving
+   the item silently un-triaged.
    - `TRIGGER=opened` and marker present → stop, report
      `skip (already triaged)`. This is a cost gate that saves the fan-out
      below; the publisher independently refuses to overwrite an existing

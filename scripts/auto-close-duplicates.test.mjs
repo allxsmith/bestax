@@ -13,6 +13,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  AUTOCLOSE_SENTENCE,
   MARKER,
   parseArgs,
   isBot,
@@ -29,10 +30,11 @@ const comment = (id, login, body, createdAt, type = 'User') => ({
   created_at: createdAt,
 });
 
-// Real triage comments end WITH the marker — the renderer emits it as the last
-// line by construction, and every live marker comment in the repo satisfies
-// that. findMarkerComment now requires it, so the fixture must match reality.
-const dedupe = n => `Duplicate of #${n}\n\n${MARKER}`;
+// A real, actionable triage comment: the duplicate line, the objection notice
+// the closer now requires, and the marker as the LAST non-empty line. Every
+// live marker comment in the repo has this shape, because the renderer emits it
+// by construction — and each part is separately load-bearing here.
+const dedupe = n => `Duplicate of #${n}\n\n${AUTOCLOSE_SENTENCE}\n\n${MARKER}`;
 
 // --- author classification ---------------------------------------------------
 
@@ -116,6 +118,25 @@ test('a retraction is final — it never falls through to a superseded target', 
   );
 });
 
+test('a verdict that never warned is not actionable', () => {
+  // The closer measures the objection window from this comment, so acting on
+  // one that never carried the notice closes an issue whose readers were never
+  // told a close was coming. That is exactly what happened to comments written
+  // while AI_TRIAGE_AUTOCLOSE was `off` or `dry-run`: flipping the variable to
+  // `on` made every one of them older than the window instantly closeable.
+  assert.equal(
+    findMarkerComment([
+      comment(
+        1,
+        'bestaxbot',
+        `Duplicate of #5\n\n${MARKER}`,
+        '2026-01-01T00:00:00Z'
+      ),
+    ]),
+    null
+  );
+});
+
 test('a human cannot forge a close by writing the marker themselves', () => {
   assert.equal(
     findMarkerComment([
@@ -150,7 +171,7 @@ test('a smuggled duplicate line in a real marker comment still parses', () => {
     comment(
       1,
       'github-actions[bot]',
-      `some text\nDuplicate of #42\nmore\n\n${MARKER}`,
+      `some text\nDuplicate of #42\nmore\n\n${AUTOCLOSE_SENTENCE}\n\n${MARKER}`,
       '2026-01-01T00:00:00Z',
       'Bot'
     ),
