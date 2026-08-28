@@ -373,6 +373,26 @@ Both exceptions were previously "resolved" by simply leaving the assertion off t
 go back to that: an unasserted block job is indistinguishable from an enforcing one, which is the
 whole failure #487 was.
 
+**A related trap, one step earlier: harden-runner is step 0, so if the ACTION fails the job dies
+before emitting anything.** In `ai-scan` that skipped the fail-closed labeler, because its guard
+reads `needs.gate.outputs.run`. A vendor outage, not an attacker, and the assertion cannot help —
+it never runs. The fix is `continue-on-error: true` on that harden-runner so the gate step still
+emits its outputs, with the assertion immediately after to fail the job and set
+`enforcement=failed`. Non-blocking there is not "unprotected and ignored": the job still goes red,
+it just gets to record why first. Whenever a downstream `always()` job keys off an upstream job's
+**outputs** rather than only its `result`, check what happens if step 0 dies.
+
+Worth tracing the whole matrix when touching any of this, because five of these paths look alike
+and only three should flag:
+
+| What fails in `ai-scan`      | `label` runs?                              | Correct outcome                                    |
+| ---------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| harden-runner action (gate)  | yes, via `enforcement=failed`              | flag — nothing was enforcing                       |
+| the assertion (gate or scan) | yes                                        | flag — nothing was enforcing                       |
+| the `scan` job               | yes (`result` is `failure`, not `skipped`) | flag — empty verdict hits the enum default         |
+| the gate's budget read       | no                                         | **no flag** — counter trouble fails open (rule 4)  |
+| budget spent, or bot author  | no                                         | no flag — nothing was scanned and nothing is wrong |
+
 **Both lines are required; either alone is a false pass.** `agent.json` holds the policy the
 pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is
 what #487 was. `agent.status` is written only once the firewall rules are actually installed,

@@ -173,7 +173,24 @@ jobs:
       # repo-uniform one rather than a hand-trimmed pair: this job plausibly
       # reaches only GitHub, but that is unmeasured, and a list that diverges
       # from every sibling for no operational gain is one more thing to chase.
+      #
+      # continue-on-error for the same family of reason as `label`'s, one step
+      # earlier in the chain. If the ACTION itself fails — download, bootstrap,
+      # a StepSecurity outage that errors rather than no-opping — this step is
+      # step 0, so the job dies before the gate emits anything. `label` requires
+      # `needs.gate.outputs.run == 'true'`, so an empty `run` skips the
+      # fail-closed labeler and the item goes unscanned AND unflagged. That is
+      # the rule-4 fail-open this PR exists to close, reachable by a vendor
+      # outage rather than by anything an attacker does — but reachable.
+      #
+      # Non-blocking here does NOT mean unprotected-and-ignored: the assertion
+      # below still runs, finds no agent.json, records `enforcement=failed` and
+      # fails the job, which is exactly what activates the labeler. What the
+      # flag buys is that the gate step gets to emit `run` first. The cost is
+      # honest and bounded: one authenticated READ of the tracking issue runs
+      # with no firewall. `label` already accepts the same trade for a WRITE.
       - name: Harden runner
+        continue-on-error: true
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
