@@ -101,7 +101,9 @@ const MACHINE_USERS = new Set(['bestaxbot']);
 /** True for any automation author: Bot-type, `[bot]` suffix, or a machine user. */
 export function isAutomationAuthor(user) {
   if (!user) return false;
-  return isBot(user) || MACHINE_USERS.has(user.login ?? '');
+  // Lowercased: GitHub logins are case-insensitive, so `BestaxBot` is the same
+  // account and must not read as a human objection.
+  return isBot(user) || MACHINE_USERS.has((user.login ?? '').toLowerCase());
 }
 
 /**

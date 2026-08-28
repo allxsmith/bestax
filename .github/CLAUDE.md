@@ -75,8 +75,14 @@ regardless of how convenient it is.
 
 - **I2 — no untrusted or model-authored free text reaches a re-trigger-capable identity.**
   Comments posted with `GITHUB_TOKEN` do not emit workflow events. Comments posted with a PAT
-  **do**. So a drafted reproduction is sanitized deterministically and posted via
-  `GITHUB_TOKEN`, and every comment-triggered workflow independently gates out bestaxbot.
+  **do**. Two shapes satisfy this. `claude-repro.yml` changes the IDENTITY: the drafted
+  reproduction is sanitized deterministically and posted via `GITHUB_TOKEN`, whose comments
+  emit no events. `ai-triage.yml` keeps the PAT identity (#361 wanted it) and changes the
+  TEXT instead: since #457 the session emits a structured payload and posts nothing, and
+  `scripts/render-triage-comment.mjs` builds the body from renderer-owned constants and
+  validated integers. Either is acceptable; publishing model prose under a PAT is not.
+  Every comment-triggered workflow independently gates out bestaxbot regardless — that
+  layer stays (rule 8), it is simply no longer the only one.
 
 ## Hard requirements
 

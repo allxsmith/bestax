@@ -43,6 +43,8 @@ import {
   COMMANDS,
   MAX_PAYLOAD_BYTES,
   MAX_TITLE_CHARS,
+  SKIP_REASONS,
+  normalizeSkipReason,
   assertRenderedInvariants,
   findCredentialLeak,
   findTriageComment,
@@ -232,19 +234,37 @@ test('issue numbers are never coerced — every non-integer drops its item', () 
   );
 });
 
-test('an unusable list is null, but an over-long one truncates', () => {
+test('only a non-array is unusable; every over-long list truncates', () => {
   assert.equal(validateItems('nope', { cap: 3 }), null);
   assert.equal(validateItems(undefined, { cap: 3 }), null);
-  const many = Array.from({ length: 100 }, (_, i) => ({
-    number: i + 1,
-    title: 't',
-  }));
-  assert.equal(validateItems(many, { cap: 3 }), null); // past MAX_ITEMS_HARD
+
   const some = Array.from({ length: 10 }, (_, i) => ({
     number: i + 1,
     title: 't',
   }));
   assert.equal(validateItems(some, { cap: 3 }).kept.length, 3);
+
+  // MAX_ITEMS_HARD bounds the work; it must not fail the run. 51 well-formed
+  // entries fit the payload cap easily, and nothing the model is told mentions
+  // 50 — so returning null here reddened the run for a session that had broken
+  // no instruction it was given, and took the sibling command's comment with it.
+  const many = Array.from({ length: 100 }, (_, i) => ({
+    number: i + 1,
+    title: 't',
+  }));
+  assert.equal(validateItems(many, { cap: 3 }).kept.length, 3);
+  assert.doesNotThrow(() => dedupe({ items: many }));
+});
+
+test('a non-positive cap yields nothing rather than silently ignoring the cap', () => {
+  // `if (kept.length === cap) break` was checked only after a push, so cap:0
+  // returned every entry.
+  const two = [
+    { number: 1, title: 'a' },
+    { number: 2, title: 'b' },
+  ];
+  assert.equal(validateItems(two, { cap: 0 }).kept.length, 0);
+  assert.equal(validateItems(two, { cap: -1 }).kept.length, 0);
 });
 
 test('self-references and duplicates are dropped, best match first', () => {
@@ -671,6 +691,82 @@ test('issue references inside model text are defanged but still readable', () =>
   assert.ok(!body.replace(/&#\d+;/g, '').includes('#361'));
 });
 
+test('a stray # can never be spliced back into a fabricated reference', () => {
+  // Three characters in a title used to red every triage run citing the issue:
+  // `#@2x` kept its `#` (the next char is not a digit), step 6 defanged the `@`
+  // into `&#64;`, and invariant 6 — which strips entities before scanning —
+  // spliced the survivors into `#2`. Any outside author could plant it.
+  for (const title of [
+    'blurry at #@2x scale',
+    'see ##1 there',
+    'x &##5 y',
+    '# 3 and #',
+  ]) {
+    assert.doesNotThrow(
+      () => dedupe({ items: [{ number: 456, title }] }),
+      `"${title}" fabricated a reference`
+    );
+  }
+  // The renderer's own reference is still the only raw one in the body.
+  const { body } = dedupe({ items: [{ number: 456, title: 'see ##1' }] });
+  assert.deepEqual(
+    [...body.replace(/&#\d+;/g, ' ').matchAll(/#(\d+)/g)].map(m => m[1]),
+    ['456', '456']
+  );
+});
+
+test('GFM delimiters are not JS word boundaries — `_` must still defang', () => {
+  // `\b` does not fire after `_`, but GFM's www-autolink and issue shorthand
+  // both accept `_` as a preceding delimiter, so `_www.host` was published as a
+  // live link and `_GH-999` as a live cross-reference.
+  // GFM's delimiter set, `_` included — the one `\b` silently skipped.
+  for (const prefix of [' ', '_', '*', '~', '(']) {
+    assert.ok(
+      !sanitizeField(`x${prefix}www.evil.example`, 256).includes('www.'),
+      `www. survived after ${JSON.stringify(prefix)}`
+    );
+    assert.ok(
+      !/GH-\d/.test(sanitizeField(`x${prefix}GH-999`, 256)),
+      `GH-N survived after ${JSON.stringify(prefix)}`
+    );
+  }
+  // Mid-word is genuinely not a boundary, and GFM does not autolink it either,
+  // so leaving it alone is correct rather than a gap.
+  assert.ok(sanitizeField('xwww.evil.example', 256).includes('www.'));
+});
+
+test('a payload obeying the documented CHARACTER limits is never too big', () => {
+  // The cap is in bytes while every limit the model is given is in characters,
+  // so a fully compliant CJK payload (3401 chars / 9801 bytes) was rejected
+  // before it was even parsed.
+  const compliant = JSON.stringify({
+    items: Array.from({ length: 5 }, (_, i) => ({
+      number: 100 + i,
+      title: '漢'.repeat(MAX_TITLE_CHARS - 6),
+      reason: '漢'.repeat(400),
+    })),
+  });
+  assert.ok(
+    Buffer.byteLength(compliant) > 8000,
+    'fixture must exceed the old cap'
+  );
+  assert.notEqual(parsePayload(compliant), null);
+});
+
+test('a skip must name a pre-check reason, never a post-search outcome', () => {
+  for (const raw of [
+    '(not open)',
+    '(already triaged)',
+    '(too vague)',
+    '(search failed)',
+  ]) {
+    assert.ok(SKIP_REASONS.has(normalizeSkipReason(raw)), raw);
+  }
+  // The deleted prompt's own worked example was a POST-search skip. Accepting
+  // it let a dedupe run that must always speak go silent with every job green.
+  assert.ok(!SKIP_REASONS.has(normalizeSkipReason('(no credible duplicates)')));
+});
+
 // --- the backstop, in isolation ---------------------------------------------
 
 test('assertRenderedInvariants rejects what a weakened sanitizer would pass', () => {
@@ -866,6 +962,87 @@ test('render writes one body per command that has something to say', async () =>
   );
 });
 
+test('render handles the two-command PR path end to end', async () => {
+  // The configuration used for EVERY pull request had no end-to-end coverage:
+  // the only render-mode builder hardcoded a single issue command, so
+  // multi-sentinel extraction, per-command isolation and the multi-file output
+  // that `Collect rendered bodies` reads were all untested.
+  const dir = tmp();
+  const file = join(dir, 'exec.json');
+  writeFileSync(
+    file,
+    execText(
+      [
+        sentinel('triage-find-issues', {
+          items: [{ number: 11, title: 'an issue this PR resolves' }],
+        }),
+        sentinel('triage-find-duplicate-prs', { items: [] }),
+      ].join('\n')
+    )
+  );
+  const code = await main([
+    '--mode=render',
+    `--exec-file=${file}`,
+    '--expect=triage-find-issues,triage-find-duplicate-prs',
+    '--number=42',
+    '--is-pr=true',
+    '--trigger=opened',
+    '--autoclose=off',
+    `--out-dir=${dir}`,
+  ]);
+  assert.equal(code, 0);
+  // One body written, one silent: the empty result stays quiet on `opened`.
+  assert.ok(
+    readFileSync(join(dir, 'triage-find-issues.md'), 'utf8').includes(
+      'Fixes #11'
+    )
+  );
+  assert.ok(!existsSync(join(dir, 'triage-find-duplicate-prs.md')));
+});
+
+test('one bad payload does not discard its sibling command s comment', async () => {
+  // Failing the whole step looked like the loud, safe choice and was not: the
+  // sibling's rendered comment was thrown away and `cleanup` spends the label
+  // regardless, so the PR ended with NO comment and nothing to retry from.
+  const dir = tmp();
+  const file = join(dir, 'exec.json');
+  writeFileSync(
+    file,
+    execText(
+      [
+        sentinel('triage-find-issues', {
+          items: [{ number: 11, title: 'a real find' }],
+        }),
+        'TRIAGE-RESULT: triage-find-duplicate-prs publish {"items":[{"number":"77"}]}',
+      ].join('\n')
+    )
+  );
+  const code = await main([
+    '--mode=render',
+    `--exec-file=${file}`,
+    '--expect=triage-find-issues,triage-find-duplicate-prs',
+    '--number=42',
+    '--is-pr=true',
+    '--trigger=labeled',
+    '--autoclose=off',
+    `--out-dir=${dir}`,
+  ]);
+  assert.equal(code, 0, 'the good comment must still publish');
+  assert.ok(existsSync(join(dir, 'triage-find-issues.md')));
+  assert.ok(!existsSync(join(dir, 'triage-find-duplicate-prs.md')));
+});
+
+test('a run where NOTHING renders still fails loudly', async () => {
+  const dir = tmp();
+  const file = join(dir, 'exec.json');
+  writeFileSync(
+    file,
+    execText('TRIAGE-RESULT: triage-dedupe publish {"items":[{"number":"77"}]}')
+  );
+  assert.equal(await main(renderArgs(dir, file)), 1);
+  assert.ok(!existsSync(join(dir, 'triage-dedupe.md')));
+});
+
 test('render writes nothing and exits 0 when there is no execution file', async () => {
   const dir = tmp();
   assert.equal(await main(renderArgs(dir, join(dir, 'absent.json'))), 0);
@@ -931,6 +1108,9 @@ const publishArgs = (bodyFile, extra = []) => [
   '--command=triage-dedupe',
   '--repo=allxsmith/bestax',
   '--number=1',
+  // The item-type pin binds the publish job too, not just render — that is the
+  // job that can actually write.
+  '--is-pr=false',
   '--trigger=labeled',
   `--body-file=${bodyFile}`,
   ...extra,

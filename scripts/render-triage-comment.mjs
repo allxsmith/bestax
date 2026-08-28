@@ -49,7 +49,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import process from 'node:process';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { retryAfterMs } from './lib/fetch-retry.mjs';
 import {
   lastNonEmptyLines,
   lastResultRecord,
@@ -65,7 +67,14 @@ import {
 const API_BASE = 'https://api.github.com';
 const FETCH_TIMEOUT_MS = 30_000;
 
-export const MAX_PAYLOAD_BYTES = 8000;
+// A BYTE bound, while every limit the model is given (prompt and all three
+// command files) is in CHARACTERS. Sized so the two can never disagree: the
+// largest compliant payload is 5 items x (256 + 400) chars, and at UTF-8's
+// worst case of 4 bytes per character that is ~13KB. At 8000 a wholly
+// compliant CJK payload (3401 chars / 9801 bytes) was rejected before it was
+// even parsed, failing the run for a session that had counted exactly what it
+// was told to count.
+export const MAX_PAYLOAD_BYTES = 16_000;
 export const MAX_TITLE_CHARS = 256; // GitHub's own issue-title limit
 export const MAX_REASON_CHARS = 400;
 export const MAX_BODY_BYTES = 60_000; // GitHub caps comment bodies at 65536
@@ -141,6 +150,33 @@ export const SENTINEL_RE =
 const CREDENTIAL_SHAPE_RE =
   /(sk-ant-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/;
 
+/**
+ * The only reasons a command may skip, normalized (lowercased, spaces and
+ * underscores folded to hyphens) so the command files can read naturally.
+ *
+ * Every one is a PRE-check exit. That is the whole point: a skip means "I did
+ * not search", and the alternative — an empty `items` list — means "I searched
+ * and found nothing". Conflating them is silent, because `triage-dedupe` is
+ * `silentWhenEmptyOnOpened: false` precisely so it always speaks once it has
+ * searched: a post-search `skip (no credible duplicates)` produced a green run
+ * and NO comment where the old flow always posted "No duplicates found.".
+ */
+export const SKIP_REASONS = new Set([
+  'not-open',
+  'already-triaged',
+  'too-vague',
+  'search-failed',
+]);
+
+/** Normalize a sentinel skip reason for lookup in SKIP_REASONS. */
+export function normalizeSkipReason(raw) {
+  return String(raw ?? '')
+    .replace(/^\(|\)$/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-');
+}
+
 const isPlainObject = v =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -177,7 +213,7 @@ export function sanitizeField(raw, maxChars) {
   //    autolink across the joiner either — but preventing exactly that is
   //    why this step runs first.
   s = s.replace(
-    /[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g,
+    /[\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g,
     ''
   );
   // 2. Other C0/C1 controls become spaces (never removed — removal could join
@@ -203,13 +239,23 @@ export function sanitizeField(raw, maxChars) {
   s = s.replace(/\\/g, '\\\\');
   s = s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
   s = s.replace(/([[\]])/g, '\\$1');
-  // 5. Defang every issue/PR reference. `&#35;123` renders as `#123` for a
-  //    reader but is not an autolink and cannot be matched by any `#(\d+)`
-  //    consumer, which is what lets assertRenderedInvariants insist that every
-  //    raw `#N` left in the body is one the renderer itself emitted. Must run
-  //    BEFORE the entity-producing steps below, whose own `#NN` would be
-  //    re-encoded into nonsense.
-  s = s.replace(/#(?=\d)/g, '&#35;');
+  // 5. Defang EVERY `#`, not just one before a digit. `&#35;` renders as `#`
+  //    for a reader but is not an autolink and cannot be matched by any
+  //    `#(\d+)` consumer, which is what lets assertRenderedInvariants insist
+  //    that every raw `#N` left in the body is one the renderer emitted.
+  //
+  //    The `(?=\d)` lookahead that used to guard this was a denial of service
+  //    an outside author could plant in three characters. A title of
+  //    `blurry at #@2x scale` kept its `#` (the next char is not a digit),
+  //    step 6 then turned the `@` into `&#64;`, and invariant 6 — which strips
+  //    entities before scanning — spliced the survivors into `#2`, a reference
+  //    to an issue nobody named. The whole run then died. `##1` and `&##5` did
+  //    the same. Defanging unconditionally removes the class rather than the
+  //    three known spellings.
+  //
+  //    Must run BEFORE the entity-producing steps below, whose own `#NN` would
+  //    otherwise be re-encoded into nonsense.
+  s = s.replace(/#/g, '&#35;');
   // 6. Defang EVERY mention, not just the three re-trigger targets. sanitizeText
   //    handles @claude/@coderabbitai/@bestaxbot; a triage comment quoting
   //    `cc @allxsmith` still pinged a human, and `@copilot` is actionable in
@@ -227,11 +273,19 @@ export function sanitizeField(raw, maxChars) {
   //    text scan and does not decode entities. GFM's `www.` form needs the
   //    same treatment for the same reason.
   s = s.replace(/:\/\//g, '&#58;//');
-  s = s.replace(/\bwww\./gi, m => `${m.slice(0, 3)}&#46;`);
+  //    `\b` is the wrong boundary here and was a real hole: it does not fire
+  //    after `_`, because `_` is a JS word character — but GFM's www-autolink
+  //    explicitly ACCEPTS `_` as a preceding delimiter, so `_www.host` was
+  //    published as a live link to attacker-controlled infrastructure. The
+  //    lookbehind matches on what GFM actually treats as a boundary.
+  s = s.replace(/(?<![A-Za-z0-9])www\./gi, m => `${m.slice(0, 3)}&#46;`);
   // 8. Same for GitHub's other issue shorthand, `GH-123`. Entity-encoding the
   //    first digit renders identically and links nothing.
+  //    Same boundary bug as step 7, and worse here: invariant 6 scans only for
+  //    `#N` and never `GH-N`, so this is the one reference class nothing
+  //    downstream re-verifies.
   s = s.replace(
-    /\b(GH-)(\d)/gi,
+    /(?<![A-Za-z0-9])(GH-)(\d)/gi,
     (_, prefix, digit) => `${prefix}&#${digit.charCodeAt(0)};`
   );
   // 9. Credentials are deliberately NOT touched here. An earlier version
@@ -369,11 +423,21 @@ const isValidNumber = n =>
  * truncates instead of failing. Everything else drops the individual entry.
  */
 export function validateItems(raw, { cap, exclude = new Set() } = {}) {
-  if (!Array.isArray(raw) || raw.length > MAX_ITEMS_HARD) return null;
+  if (!Array.isArray(raw)) return null;
+  if (!Number.isSafeInteger(cap) || cap <= 0) {
+    return { kept: [], rawCount: raw.length, invalid: 0 };
+  }
   const kept = [];
   const seen = new Set(exclude);
   let invalid = 0;
-  for (const entry of raw) {
+  // MAX_ITEMS_HARD bounds the WORK, it does not fail the run — the docstring
+  // said as much while the guard above returned null, which renderComment
+  // turned into a throw. 51 well-formed entries fit the payload cap easily, so
+  // a session that over-listed (exactly what `cap` exists to absorb) reddened
+  // the run having broken no instruction it was ever given: nothing in the
+  // prompt or the command files mentions 50.
+  for (const entry of raw.slice(0, MAX_ITEMS_HARD)) {
+    if (kept.length >= cap) break;
     if (seen.has(entry?.number)) continue; // excluded, NOT malformed
     if (!isPlainObject(entry) || !isValidNumber(entry.number)) {
       invalid++;
@@ -390,7 +454,6 @@ export function validateItems(raw, { cap, exclude = new Set() } = {}) {
       title,
       reason: sanitizeField(entry.reason, MAX_REASON_CHARS),
     });
-    if (kept.length === cap) break;
   }
   return { kept, rawCount: raw.length, invalid };
 }
@@ -543,7 +606,12 @@ export function assertRenderedInvariants(
   }
   // 6. Every raw `#N` left is one we emitted. Entities are stripped first:
   //    `'&#35;'.match(/#(\d+)/)` matches `#35`, which would false-positive.
-  const deEntitied = body.replace(/&#\d+;/g, '');
+  //    Stripped to a SPACE, never to '': an empty replacement splices the
+  //    characters on either side together, which is how `#&#64;2` became the
+  //    reference `#2` and killed the run. Step 5 now defangs every `#` so no
+  //    survivor should remain, but this scanner must not be the thing that
+  //    manufactures one.
+  const deEntitied = body.replace(/&#\d+;/g, ' ');
   for (const [, n] of deEntitied.matchAll(/#(\d+)/g)) {
     if (!numbers.has(Number(n))) fail(`an unvalidated reference #${n}`);
   }
@@ -553,33 +621,57 @@ export function assertRenderedInvariants(
 }
 
 // ---------------------------------------------------------------------------
-// GitHub REST (small, local: this makes 1-3 calls, so it needs none of
-// auto-close-duplicates.mjs's cron-scale rate-limit budgeting).
+// GitHub REST. Small, but NOT retry-free: this is the only PAT-authored write
+// path in the repository, and the reasoning that skipped retries here ('1-3
+// calls') was about call VOLUME, which is not what GitHub's secondary limits
+// key on — they key on write cadence, and the workflow-level concurrency group
+// deliberately serializes runs into bursts. One 403 with a Retry-After used to
+// throw, leave the comment unposted, and let `cleanup` spend the label anyway:
+// a transient throttle cost a whole sonnet session with nothing to retry from.
+// Mirrors the client in auto-close-duplicates.mjs; the header parsing is
+// scripts/lib/fetch-retry.mjs's, so the two cannot drift.
 // ---------------------------------------------------------------------------
+
+const RATE_LIMIT_RETRIES = 2;
+const RETRY_AFTER_FALLBACK_MS = 30_000;
 
 async function api(pathOrUrl, { method = 'GET', body } = {}) {
   const url = pathOrUrl.startsWith('https://')
     ? pathOrUrl
     : `${API_BASE}${pathOrUrl}`;
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'bestax-render-triage-comment',
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(
-      `${method} ${url} failed: ${res.status} ${res.statusText} ${text.slice(0, 200)}`
-    );
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'bestax-render-triage-comment',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (
+      (res.status === 403 || res.status === 429) &&
+      attempt < RATE_LIMIT_RETRIES
+    ) {
+      const delayMs = retryAfterMs(res.headers) ?? RETRY_AFTER_FALLBACK_MS;
+      console.log(
+        `${method} ${url}: HTTP ${res.status} (rate limited?), retrying in ${Math.round(delayMs / 1000)}s (attempt ${attempt + 1}/${RATE_LIMIT_RETRIES})`
+      );
+      await res.text().catch(() => {}); // drain before retrying
+      await sleep(delayMs);
+      continue;
+    }
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(
+        `${method} ${url} failed: ${res.status} ${res.statusText} ${text.slice(0, 200)}`
+      );
+    }
+    return res;
   }
-  return res;
 }
 
 async function getAllPages(path) {
@@ -608,7 +700,14 @@ export function findTriageComment(comments, marker) {
   for (let i = comments.length - 1; i >= 0; i--) {
     const c = comments[i];
     if (!isAutomationAuthor(c.user)) continue;
-    if (c.body?.includes(marker)) return c;
+    // Marker must be the LAST non-empty line, which is invariant 1 — the
+    // property the renderer actually guarantees. A loose `includes` matched any
+    // automation comment that merely QUOTED a triage comment, and
+    // bestaxbot-reply.yml hands a session `gh issue comment` under the same PAT
+    // with no deterministic sanitizer, so a reply explaining a verdict carries
+    // the marker verbatim. That reply then became both this publisher's PATCH
+    // target (destroying it) and, for the cron, the current verdict.
+    if (lastNonEmptyLines(c.body ?? '', 1)[0] === marker) return c;
   }
   return null;
 }
@@ -650,33 +749,41 @@ export function parseArgs(argv) {
   if (opts.trigger !== 'opened' && opts.trigger !== 'labeled') {
     throw new Error('--trigger=opened|labeled is required');
   }
+  // The item-type pin binds BOTH modes. Enforcing it only where the render
+  // happens put the whole guarantee in the job that cannot write, while the
+  // job holding AI_LOOP_PAT invoked all three commands and checked nothing —
+  // so a mis-mapped body would publish a `Duplicate of #N` and a 14-day
+  // auto-close promise onto a pull request the cron never reads, leaving a
+  // promise that can be neither kept nor retracted. Every publish-side
+  // invariant would pass, because all of them are derived from that same body.
+  if (opts.isPr !== 'true' && opts.isPr !== 'false') {
+    throw new Error('--is-pr=true|false is required');
+  }
+  const itemKind = opts.isPr === 'true' ? 'pr' : 'issue';
+  const pin = command => {
+    if (!COMMANDS[command]) throw new Error(`unknown command: ${command}`);
+    if (COMMANDS[command].expectFor !== itemKind) {
+      throw new Error(
+        `${command} is only valid on ${COMMANDS[command].expectFor} items, not ${itemKind}`
+      );
+    }
+  };
   if (opts.mode === 'render') {
     if (!opts.expect?.length)
       throw new Error('--expect=<command,...> is required');
-    if (opts.isPr !== 'true' && opts.isPr !== 'false') {
-      throw new Error('--is-pr=true|false is required for --mode=render');
-    }
-    const itemKind = opts.isPr === 'true' ? 'pr' : 'issue';
-    for (const command of opts.expect) {
-      if (!COMMANDS[command])
-        throw new Error(`--expect names an unknown command: ${command}`);
-      if (COMMANDS[command].expectFor !== itemKind) {
-        throw new Error(
-          `${command} is only valid on ${COMMANDS[command].expectFor} items, not ${itemKind}`
-        );
-      }
-    }
+    opts.expect.forEach(pin);
     if (!opts.outDir)
       throw new Error('--out-dir=<dir> is required for --mode=render');
     if (opts.autoclose !== 'active' && opts.autoclose !== 'off') {
       throw new Error('--autoclose=active|off is required for --mode=render');
     }
   } else {
-    if (!opts.command || !COMMANDS[opts.command]) {
+    if (!opts.command) {
       throw new Error(
         '--command=<known command> is required for --mode=publish'
       );
     }
+    pin(opts.command);
     if (!opts.repo || !/^[^/\s]+\/[^/\s]+$/.test(opts.repo)) {
       throw new Error('--repo=owner/name is required');
     }
@@ -731,12 +838,39 @@ function runRender(opts) {
     process.env.CLAUDE_CODE_OAUTH_TOKEN,
     process.env.GITHUB_TOKEN,
   ];
+  // Say so when the exact-value arm is not armed. findCredentialLeak skips a
+  // falsy secret, so with both unset it silently degrades to shape-matching —
+  // and a base64-encoded token then renders, exits 0 and publishes, with
+  // nothing in the log to distinguish that from a clean run. Both values are
+  // step-scoped `env:` in ai-triage.yml, so a moved node call, a split step or
+  // a rotation that leaves one unset removes the coverage without touching
+  // this file. An unlogged fallback is indistinguishable from success.
+  if (!secrets.some(Boolean)) {
+    console.log(
+      "::warning::no job secrets in scope — the credential check is running on shape alone, so an encoded token would not be caught. Expected CLAUDE_CODE_OAUTH_TOKEN and/or GITHUB_TOKEN in this step's env."
+    );
+  }
   let exit = 0;
+  let published = 0;
 
   for (const command of opts.expect) {
     const { status, json } = sentinels.get(command);
     if (status === 'skip') {
-      console.log(`${command}: session reported skip — nothing to publish`);
+      // A skip means "I did not search". An empty `items` list means "I
+      // searched and found nothing". Accepting an unrecognized reason let the
+      // second masquerade as the first: a post-search
+      // `skip (no credible duplicates)` passed the watchdog, logged a skip and
+      // published nothing, so a dedupe run that must always speak once it has
+      // searched went silent with every job green.
+      const reason = normalizeSkipReason(json);
+      if (!SKIP_REASONS.has(reason)) {
+        console.error(
+          `::error::${command}: skip names no known pre-check reason (expected one of ${[...SKIP_REASONS].join(', ')}). An empty items list, not a skip, is how "I searched and found nothing" is reported.`
+        );
+        exit = 1;
+        continue;
+      }
+      console.log(`${command}: skipped at a pre-check (${reason})`);
       continue;
     }
     const payload = parsePayload(json);
@@ -780,6 +914,22 @@ function runRender(opts) {
       `${command}: rendered ${Buffer.byteLength(rendered.body)} bytes`
     );
     if (opts.dryRun) console.log(rendered.body);
+    published++;
+  }
+  // Exit non-zero ONLY when nothing at all was rendered. Failing the step on
+  // any per-command error looked like the loud, safe choice and was not: on a
+  // PR it threw away the sibling command's already-rendered comment, and
+  // `cleanup` removes the `ai-triage` label under always() regardless, so the
+  // item ended with NO comment and the human-metered button spent, with
+  // nothing to retry from. That is the same unrecoverable half-triaged state
+  // the publish step's deliberate `set -uo pipefail` was written to avoid.
+  // A per-command failure still surfaces as an ::error:: annotation on the
+  // run, so it is visible without being destructive.
+  if (exit !== 0 && published > 0) {
+    console.log(
+      `::warning::${published} comment(s) rendered; the run is green so they publish, but at least one command failed above and its comment is missing.`
+    );
+    return 0;
   }
   return exit;
 }
@@ -860,6 +1010,17 @@ async function runPublish(opts) {
   let self;
   try {
     self = (await (await api('/user')).json()).login ?? '';
+    if (self === '') {
+      // A 200 with no `login` (a proxy, a scoped-down token, an API shape
+      // change) reaches none of the catch below, so this used to degrade in
+      // total silence: every labeled run POSTs instead of refreshing, piling up
+      // marker comments and — per the objection-veto note above — discarding a
+      // live veto and restarting the clock each time, while the log reads
+      // exactly like a legitimate first post.
+      console.log(
+        `::warning::${opts.command}: the identity endpoint returned no login; posting a fresh comment instead of refreshing.`
+      );
+    }
   } catch (err) {
     // Falling back to a fresh POST is the safe direction, but it must not be
     // SILENT: an unlogged failure here is byte-identical to a legitimate
@@ -901,7 +1062,24 @@ async function runPublish(opts) {
     );
   }
 
-  if (existing && !verdictChanged && existing.user?.login === self) {
+  // Posting a SECOND marker comment is not free: auto-close-duplicates.mjs
+  // reads the human-objection veto and the 👎 reaction only from the newest
+  // marker comment, so a fresh POST discards a live objection and restarts the
+  // 14-day clock from zero. When the verdict has not changed there is nothing
+  // to gain from that — the existing comment already says the right thing — so
+  // leave it alone rather than superseding it just because it belongs to a
+  // legacy identity we cannot PATCH. (A CHANGED verdict still reposts: the
+  // clock must restart, and that is argued above.)
+  const isOurs =
+    (existing?.user?.login ?? '').toLowerCase() === self.toLowerCase();
+  if (existing && !verdictChanged && !isOurs) {
+    console.log(
+      `${opts.command}: unchanged verdict already published as comment ${existing.id} by another identity — leaving it, rather than superseding a live objection.`
+    );
+    return 0;
+  }
+
+  if (existing && !verdictChanged && isOurs) {
     await api(`/repos/${opts.repo}/issues/comments/${existing.id}`, {
       method: 'PATCH',
       body: { body },

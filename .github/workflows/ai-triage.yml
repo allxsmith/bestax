@@ -510,7 +510,15 @@ jobs:
             pass) — and NOTHING else. Each line is one of:
 
               TRIAGE-RESULT: <command> publish <compact-json>
-              TRIAGE-RESULT: <command> skip (<short reason>)
+              TRIAGE-RESULT: <command> skip (<reason>)
+
+            `<reason>` must be ONE of exactly these, and nothing else:
+            `not open`, `already triaged`, `too vague`, `search failed`.
+            Every one of them is a PRE-check exit — a skip means "I did not
+            search". Any other reason fails the run, deliberately: reporting a
+            post-search outcome as a skip (`skip (no credible duplicates)`)
+            would publish nothing while every job stayed green, and for
+            triage-dedupe that silently replaces a comment it always owes.
 
             `publish` reports your findings; `skip` is for a pre-check exit
             (issue not open, already triaged, too vague to search). "Silent"
@@ -634,7 +642,14 @@ jobs:
           NUMBER: ${{ needs.gate.outputs.number }}
           IS_PR: ${{ needs.gate.outputs.is_pr }}
           TRIGGER: ${{ github.event.action }}
-          AUTOCLOSE: ${{ (vars.AI_TRIAGE_AUTOCLOSE == 'on' || vars.AI_TRIAGE_AUTOCLOSE == 'dry-run') && 'active' || 'off' }}
+          # `on` ONLY. `dry-run` deliberately does NOT arm the notice: in that
+          # mode auto-close-duplicates.mjs logs `WOULD CLOSE` and closes nothing,
+          # so mapping it to `active` made every dedupe comment publicly promise
+          # a close that could never happen — and dry-run is the intended rollout
+          # step, so that is the state the repo would sit in while evaluating.
+          # Single-sourcing the day COUNT does not make the PROMISE true; this
+          # mapping is what decides that.
+          AUTOCLOSE: ${{ vars.AI_TRIAGE_AUTOCLOSE == 'on' && 'active' || 'off' }}
           # BOTH secrets this job holds are compared against the rendered body,
           # in literal/base64/hex form, before anything is written. Passing only
           # the OAuth token left the job token covered by nothing but the
@@ -730,6 +745,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.AI_LOOP_PAT }}
           REPO: ${{ github.repository }}
           NUMBER: ${{ needs.gate.outputs.number }}
+          # The item-type pin binds this job too. Enforcing it only in the render
+          # job put the guarantee in the job that cannot write, while this one
+          # holds the PAT and invokes all three commands.
+          IS_PR: ${{ needs.gate.outputs.is_pr }}
           TRIGGER: ${{ github.event.action }}
           DEDUPE_BODY: ${{ needs.triage.outputs.dedupe_body }}
           FIND_ISSUES_BODY: ${{ needs.triage.outputs.find_issues_body }}
@@ -754,7 +773,8 @@ jobs:
             printf '%s' "$2" > "$file"
             if ! node scripts/render-triage-comment.mjs \
               --mode=publish --command="$1" --repo="$REPO" \
-              --number="$NUMBER" --trigger="$TRIGGER" --body-file="$file"; then
+              --number="$NUMBER" --is-pr="$IS_PR" \
+              --trigger="$TRIGGER" --body-file="$file"; then
               echo "::error::$1: publish failed — see above"
               rc=1
             fi
