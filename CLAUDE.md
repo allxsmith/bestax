@@ -149,9 +149,13 @@ green and every AI review thread is resolved.
   still goes green — so check for the review comment, never the job's conclusion. That is a
   consequence of configuration rather than a property of the action: the validation lives on
   the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
-  a `github_token` input is supplied. `claude-review.yml` and `claude.yml` are the only
-  claude-code-action jobs here that omit one, which is why they alone are affected — the same
-  early return `ai-triage.yml` already documents for #312. Supplying `GITHUB_TOKEN` would
+  a `github_token` input is supplied — the same early return `ai-triage.yml` already documents
+  for #312. Omitting the input is necessary but not sufficient: `claude-pr-loop.yml`'s `verify`
+  omits one too and is unaffected, because that workflow runs on `workflow_run` /
+  `workflow_dispatch` / `schedule`, which the action does not treat as a PR context, so the
+  workflow-validation path is never reached. `claude-review.yml` and `claude.yml` are the jobs
+  that both omit the input **and** run on a PR-context trigger, which is why they alone are
+  affected. Supplying `GITHUB_TOKEN` would
   restore the review, at the cost of moving the posting identity away from `claude`, which the
   loop's gate and the `<!-- claude-deep-review -->` convention rely on. Weigh that before
   changing it.
@@ -176,8 +180,12 @@ empty, `off` or a typo all mean off, and deleting a variable never enables anyth
 `AI_TRIAGE_MODE` is the exception: its label path is `!= 'off'`, so unset still allows
 label-triggered triage.
 
-**Triage.** `ai-triage` runs a one-shot sonnet triage session that comments with related
-issues/duplicates: automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
+**Triage.** `ai-triage` runs a one-shot sonnet triage session that searches for related
+issues/duplicates and reports them as a structured payload; the session itself posts nothing
+(#457). `scripts/render-triage-comment.mjs` renders the comment deterministically
+from that payload in the session's own job, and a separate job — holding the PAT and
+running no model — publishes it as bestaxbot. Triage is
+automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
 capped at `AI_TRIAGE_DAILY_LIMIT`/day via a counter comment on issue #290; items opened by
 triage+ collaborators are uncapped), or on demand via the label (triage+ only,
 budget-exempt; auto-removed after the run). Fork PRs are never triaged (same-repo

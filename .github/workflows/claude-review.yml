@@ -261,16 +261,26 @@ jobs:
       - name: Run Claude (deep review)
         id: claude
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
+        # stays off every allowlist in this repo AND the CLI is told not to emit
+        # it (#487). It also covers feature-flag evaluation, which is why
+        # statsig.anthropic.com is gone. On an `audit` job the point is the
+        # MEASUREMENT: audit mode exists here to produce the endpoint list a block
+        # flip will use (#578), and leaving telemetry on would put the Datadog host
+        # in that report, inviting whoever reads it to allow-list a host we have
+        # decided to deny.
+        #
+        # A step `env:` rather than the action's `settings:` input. `settings:` is
+        # written to the USER-level ~/.claude/settings.json, which a project-level
+        # .claude/settings.json in the WORKSPACE overrides — and the jobs in this
+        # file check out PR-branch code, so that file is attacker-controlled. A
+        # process environment variable is not overridable that way. Do not move
+        # this back under `with:`.
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Telemetry off here even though this job is `audit` and blocks nothing.
-          # The point of audit mode on this job is to MEASURE the endpoint list a
-          # block flip will use (#578); leaving telemetry on would put the CLI's
-          # Datadog intake host in that measurement, and whoever reads the report
-          # would allow-list a host we have decided to deny (see ai-scan.yml).
-          settings: |
-            {"env": {"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}}
           # On loop PRs the opener/labeler is claude[bot] (the implementer)
           # by design.
           allowed_bots: 'claude'

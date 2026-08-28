@@ -2,7 +2,14 @@
  * Guards on the fail-closed verdict parser (parse-scan-verdict.mjs).
  *
  * This is the deterministic half of the AI security scan: whatever the model
- * session did, THIS decides whether an item gets `needs-security-review`. Its
+ * session did, THIS reduces it to the verdict enum that decides whether an
+ * item gets `needs-security-review`. Since #455 it is not the last word —
+ * this script runs in ai-scan.yml's `scan` job and its stdout crosses to the
+ * `label` job, whose `case` enum supplies the flagged/other default when the
+ * value is empty or unrecognized. So these tests cover one of two links: the
+ * YAML plumbing between them has no test anywhere (check:conformance
+ * deliberately excludes `.github/**`), which is worth knowing before assuming
+ * a change to the label job's enum is covered here. Its
  * one invariant is direction — every degenerate input must flag, never pass.
  * The original shell was traced by hand across seven input shapes at review
  * time (#454); these tests are that trace made permanent, so the next edit to
@@ -22,6 +29,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {
   lastNonEmptyLine,
+  lastNonEmptyLines,
   lastResultRecord,
   parseExecutionRecords,
   parseVerdict,
@@ -246,6 +254,29 @@ test('lastNonEmptyLine of empty-ish payloads is the empty string', () => {
   assert.equal(lastNonEmptyLine(''), '');
   assert.equal(lastNonEmptyLine('\n\n'), '');
   assert.equal(lastNonEmptyLine(undefined), '');
+});
+
+test('lastNonEmptyLines returns the final n lines in document order', () => {
+  assert.deepEqual(lastNonEmptyLines('a\nb\nc', 2), ['b', 'c']);
+  assert.deepEqual(lastNonEmptyLines('a\n\n\nb\n\n', 2), ['a', 'b']);
+  // Whitespace-only lines are lines (jq `select(length > 0)` parity), so they
+  // still push a sentinel off the final position.
+  assert.deepEqual(lastNonEmptyLines('a\n \n', 1), [' ']);
+});
+
+test('lastNonEmptyLines never pads a short payload', () => {
+  // render-triage-comment.mjs compares the returned count against the number
+  // of commands it expected; padding would let a session that emitted one
+  // sentinel satisfy a two-sentinel check.
+  assert.deepEqual(lastNonEmptyLines('only', 3), ['only']);
+  assert.deepEqual(lastNonEmptyLines('', 2), []);
+  assert.deepEqual(lastNonEmptyLines(undefined, 2), []);
+});
+
+test('lastNonEmptyLines rejects a non-positive or non-integer count', () => {
+  for (const n of [0, -1, 1.5, NaN, Infinity, '2', undefined]) {
+    assert.deepEqual(lastNonEmptyLines('a\nb', n), [], `n = ${String(n)}`);
+  }
 });
 
 // --- CLI contract -----------------------------------------------------------

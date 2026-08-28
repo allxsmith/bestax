@@ -13,6 +13,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  AUTOCLOSE_SENTENCE,
+  DEFAULT_WAIT_DAYS,
   MARKER,
   parseArgs,
   isBot,
@@ -29,7 +31,11 @@ const comment = (id, login, body, createdAt, type = 'User') => ({
   created_at: createdAt,
 });
 
-const dedupe = n => `${MARKER}\nDuplicate of #${n}`;
+// A real, actionable triage comment: the duplicate line, the objection notice
+// the closer now requires, and the marker as the LAST non-empty line. Every
+// live marker comment in the repo has this shape, because the renderer emits it
+// by construction — and each part is separately load-bearing here.
+const dedupe = n => `Duplicate of #${n}\n\n${AUTOCLOSE_SENTENCE}\n\n${MARKER}`;
 
 // --- author classification ---------------------------------------------------
 
@@ -85,6 +91,53 @@ test('any of the three historical triage identities is accepted', () => {
   }
 });
 
+test('a retraction is final — it never falls through to a superseded target', () => {
+  // The newest marker comment IS the verdict. Skipping past one that names no
+  // duplicate let "No duplicates found." resurrect the target it retracted, and
+  // humanCommentAfter cannot veto that because the retraction is itself
+  // automation-authored. This happens for real whenever the older comment
+  // belongs to a different automation identity (pre-bestaxbot comments are
+  // still live on open issues), because the retraction is then POSTed fresh
+  // rather than edited over the top.
+  assert.equal(
+    findMarkerComment([
+      comment(
+        1,
+        'github-actions[bot]',
+        dedupe(100),
+        '2026-01-01T00:00:00Z',
+        'Bot'
+      ),
+      comment(
+        2,
+        'bestaxbot',
+        `### AI triage\n\nNo duplicates found.\n\n${MARKER}`,
+        '2026-02-01T00:00:00Z'
+      ),
+    ]),
+    null
+  );
+});
+
+test('a verdict that never warned is not actionable', () => {
+  // The closer measures the objection window from this comment, so acting on
+  // one that never carried the notice closes an issue whose readers were never
+  // told a close was coming. That is exactly what happened to comments written
+  // while AI_TRIAGE_AUTOCLOSE was `off` or `dry-run`: flipping the variable to
+  // `on` made every one of them older than the window instantly closeable.
+  assert.equal(
+    findMarkerComment([
+      comment(
+        1,
+        'bestaxbot',
+        `Duplicate of #5\n\n${MARKER}`,
+        '2026-01-01T00:00:00Z'
+      ),
+    ]),
+    null
+  );
+});
+
 test('a human cannot forge a close by writing the marker themselves', () => {
   assert.equal(
     findMarkerComment([
@@ -108,7 +161,7 @@ test('the marker and the Duplicate line are both required', () => {
   );
 });
 
-test('an automation comment quoting a duplicate line still parses', () => {
+test('a smuggled duplicate line in a real marker comment still parses', () => {
   // Documents the coupling with sanitize-repro-draft.mjs (claude-repro.yml's
   // publish sanitizer), which defangs "Duplicate of #" in drafted tests
   // precisely because github-actions[bot] is an author this parser trusts. If
@@ -119,12 +172,28 @@ test('an automation comment quoting a duplicate line still parses', () => {
     comment(
       1,
       'github-actions[bot]',
-      `${MARKER}\nsome text\nDuplicate of #42\nmore`,
+      `some text\nDuplicate of #42\nmore\n\n${AUTOCLOSE_SENTENCE}\n\n${MARKER}`,
       '2026-01-01T00:00:00Z',
       'Bot'
     ),
   ]);
   assert.equal(found.target, 42);
+});
+
+test('an automation comment merely QUOTING a triage comment is not the verdict', () => {
+  // bestaxbot-reply.yml hands a session `gh issue comment` under the same PAT
+  // with no deterministic sanitizer, so a reply explaining a verdict carries the
+  // marker verbatim. Treating it as the verdict would restart the 14-day clock
+  // from the reply's created_at and stop counting objections made after the
+  // real marker comment. The renderer selects on the same last-line property.
+  const real = comment(1, 'bestaxbot', dedupe(42), '2026-01-01T00:00:00Z');
+  const quoting = comment(
+    2,
+    'bestaxbot',
+    `As explained above (${MARKER}), #42 looks like the original.`,
+    '2026-02-01T00:00:00Z'
+  );
+  assert.equal(findMarkerComment([real, quoting]).comment.id, 1);
 });
 
 // --- the objection veto ------------------------------------------------------
@@ -198,11 +267,44 @@ test('parseArgs requires a repo and an explicit mode', () => {
 });
 
 test('parseArgs rejects a wait window that would skip the objection period', () => {
-  for (const bad of ['0', '-1', '1.5', 'abc']) {
+  // The floor is the PROMISE, not 1. The notice is written at triage time and
+  // always says DEFAULT_WAIT_DAYS, so anything shorter closes the issue before
+  // the date its own comment gave the reporter — `--wait-days=1` closing after
+  // a day against a 14-day promise is the case that matters.
+  for (const bad of ['0', '-1', '1.5', 'abc', '1', '7', '13']) {
     assert.throws(
       () => parseArgs(['--repo=a/b', '--mode=on', `--wait-days=${bad}`]),
       /--wait-days/,
       `--wait-days=${bad} must be rejected`
     );
   }
+  // Longer than promised is fine: closing later than advertised breaks nothing.
+  for (const ok of [String(DEFAULT_WAIT_DAYS), '30']) {
+    assert.equal(
+      parseArgs(['--repo=a/b', '--mode=on', `--wait-days=${ok}`]).waitDays,
+      Number(ok)
+    );
+  }
+});
+
+test('a quoted notice inside a bullet does not make a comment actionable', () => {
+  // With auto-close OFF the renderer emits no notice at all, but a title that
+  // merely quotes the sentence used to satisfy a substring check — so the
+  // comment became closeable the moment the variable was turned on, which is
+  // the no-warning-window path this guard exists to close. Every model field is
+  // embedded mid-line inside a `- #N — ` bullet, so requiring the notice to be
+  // its OWN line is what makes that structurally impossible.
+  const quoted = `- #5 — ${AUTOCLOSE_SENTENCE}`;
+  assert.ok(quoted.includes(AUTOCLOSE_SENTENCE), 'fixture must be hostile');
+  assert.equal(
+    findMarkerComment([
+      comment(
+        1,
+        'bestaxbot',
+        `Duplicate of #5\n\n${quoted}\n\n${MARKER}`,
+        '2026-01-01T00:00:00Z'
+      ),
+    ]),
+    null
+  );
 });

@@ -102,10 +102,12 @@ Measures active in this repository and its release pipeline:
   engineering. Anything not positively clean is labeled `needs-security-review`,
   which every AI entry point we control refuses until a maintainer clears it.
   Three properties make it worth trusting: it **fails closed** (a crashed or
-  unparsable scan flags rather than passes), the session holds **no write tools
-  and no PAT** so an injected scan cannot post or act, and its reasoning is never
-  published — only a coarse category — so a flag cannot be used as an oracle for
-  tuning an evasion. A clean verdict covers the text as it stood when the item
+  unparsable scan flags rather than passes), the session holds **no write tools,
+  no PAT, and no write-scoped token** so an injected scan cannot post to or
+  otherwise write to this repository — the labeling runs in a separate job,
+  with its own credentials, that the session never executes in — and its
+  reasoning is never published, only a coarse category, so a flag cannot be
+  used as an oracle for tuning an evasion. A clean verdict covers the text as it stood when the item
   opened, not edits made afterwards.
 
 Consumers can verify provenance themselves: the npm package pages show the

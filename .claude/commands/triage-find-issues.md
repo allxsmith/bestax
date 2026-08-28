@@ -1,33 +1,40 @@
 ---
-description: Find open issues a PR likely resolves with 5 parallel search agents and post one triage comment
-allowed-tools: Task, Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh search:*), Bash(gh pr comment:*)
+description: Find open issues a PR likely resolves with 5 parallel search agents and report them for publication
+allowed-tools: Task, Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh search:*)
 ---
 
 # /triage-find-issues — link a PR to the issues it resolves
 
-Find OPEN issues the target PR likely resolves or relates to, and post
-EXACTLY ONE comment (or nothing). Context from the caller: `REPO`, `NUMBER`
-(the target PR), `TRIGGER` (`opened`/`labeled`; assume `labeled` locally),
-`AUTOCLOSE` (unused here). If `NUMBER` is missing, ask.
+Find OPEN issues the target PR likely resolves or relates to, and REPORT them.
+Context from the caller: `REPO`, `NUMBER` (the target PR), and `TRIGGER`
+(`opened`/`labeled`). If `NUMBER` is missing, ask.
 
-## Pre-checks (each exit is SILENT)
+**You do not post anything.** You have no comment tool. Your findings go out as
+a structured payload on this command's `TRIAGE-RESULT:` line, and
+`scripts/render-triage-comment.mjs` renders and publishes the comment — it owns
+the marker, the `Fixes #N` block, and the decision to comment at all.
+
+## Pre-checks (each exit is a `skip`, never a comment)
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,comments` — if the
-   PR is not open, stop.
+   PR is not open, stop and report `skip (not open)`.
 2. Marker check — a comment authored by bestaxbot or a bot account
-   containing `<!-- ai-triage:find-issues -->` (match marker + that
+   whose LAST non-empty line is `<!-- ai-triage:find-issues -->` (match marker + that
    author class, never one specific login — the workflow posts as
    bestaxbot today; older comments are from github-actions[bot] or
    claude[bot]):
-   - `TRIGGER=opened` and marker present → stop.
-   - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment with
-     `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
-     your most recent comment on the PR is itself the
-     `<!-- ai-triage:find-issues -->` comment. `--edit-last` selects by
-     author, not by marker, and the other triage commands post as the same
-     account — so a newer `find-duplicate-prs` marker is what it would
-     overwrite. Otherwise post fresh. See `.github/CLAUDE.md` rule 6.
+   A comment COUNTS only when the marker is its LAST non-empty line — the same
+   predicate the publisher and the auto-close cron use. Matching it here
+   matters: a bot reply that merely QUOTES a triage comment carries the marker
+   verbatim, so a looser "contains" test would report `already triaged` and
+   skip the search while the publisher saw no triage comment at all, leaving
+   the item silently un-triaged.
+   - `TRIGGER=opened` and marker present → stop, report
+     `skip (already triaged)`. This is a cost gate that saves the fan-out
+     below; the publisher independently refuses to overwrite an existing
+     triage comment on an `opened` run.
+   - `TRIGGER=labeled` → continue regardless; the publisher refreshes its
+     own marker comment in place.
 3. Note every issue already referenced in the PR body (`#N`, `Fixes #N`,
    `Closes #N`, full URLs) — those are EXCLUDED from the results.
 
@@ -41,7 +48,7 @@ Sub-agents run SYNCHRONOUSLY: every Task call MUST pass
 `run_in_background: false`. If the runtime backgrounds them anyway, NEVER
 end your turn while any sub-agent is still pending — in the headless CI
 session an ended turn terminates the session immediately, orphaning the
-agents before any comment is posted (#338). Collect every agent's result,
+agents before anything is reported (#338). Collect every agent's result,
 then continue with the filter pass.
 
 The five strategies:
@@ -65,36 +72,71 @@ one-line justification.
 
 Keep only issues this PR plausibly resolves (the diff addresses the issue's
 root cause) or directly relates to. Exclude everything already linked in
-the PR body (pre-check 3). Drop weak keyword-only matches. If nothing
-credible remains: on `TRIGGER=opened`, stop SILENTLY — no comment, no
-marker; on `TRIGGER=labeled` (an explicit human request — silence would
-read as a malfunction), post/refresh the comment with the single line
-"No open issues found that this PR resolves." plus the marker (matches
-pre-check 2's refresh path).
+the PR body (pre-check 3). Drop weak keyword-only matches.
 
-## Post ONE comment
+If nothing credible remains, report an EMPTY `items` list — do not report
+`skip`. The two mean different things, and the renderer needs the difference:
+an empty result stays silent on an `opened` run and posts "No open issues
+found that this PR resolves." on a `labeled` one (an explicit human request,
+where silence would read as a malfunction). `skip` means a pre-check stopped
+you before you searched at all.
 
-Via `gh pr comment NUMBER --repo REPO --body ...` (or the refresh path):
+## Report
 
-````markdown
-### AI triage — issues this PR may resolve
-
-- #N — <title>: <one-line reason> (best match first, at most 5)
-
-If this PR resolves one of these, add the line below to the PR description
-so the issue closes on merge:
+Emit this command's sentinel line, best match first — the first `items` entry
+becomes the published `Fixes #N` suggestion:
 
 ```
-Fixes #N
+TRIAGE-RESULT: triage-find-issues publish {"items":[{"number":123,"title":"…","reason":"…"}]}
 ```
 
-<!-- ai-triage:find-issues -->
-````
+- `items` — REQUIRED, may be `[]` (see the filter pass). The renderer keeps
+  at most 5.
+- `number` must be a JSON integer, never a string. `title` is required;
+  `reason` is a short one-liner and is optional.
+- Compact JSON on ONE line. A pretty-printed payload fails the job.
+- If a search tool errors, or you are rate-limited and cannot complete the
+  fan-out, report `skip (search failed)`. Do NOT report an empty list in that
+  case — empty means "I searched and found nothing", which is a claim a failed
+  search has not earned.
+- Do NOT write markers, `Fixes #N`, or any heading into a field — the
+  renderer emits them from its own constants, and structural text inside a
+  field is defanged, not honored.
 
-The marker `<!-- ai-triage:find-issues -->` goes on its own line at the end.
+## Running this locally
+
+The workflow supplies `REPO`, `NUMBER` and `TRIGGER`; run by hand, assume
+`TRIGGER=labeled` and ask for `NUMBER` rather than guessing. Locally the
+sentinel line is the whole output — nothing publishes it, and that is the
+point: you get to read the payload before it ever becomes a comment. To see
+the comment it would produce, pipe the line into the renderer's dry run:
+
+```bash
+# with the TRIAGE-RESULT line saved to /tmp/result.txt
+printf '[{"type":"result","is_error":false,"result":%s}]' \
+  "$(jq -Rs . </tmp/result.txt)" > /tmp/exec.json
+node scripts/render-triage-comment.mjs --mode=render \
+  --exec-file=/tmp/exec.json --expect=triage-find-issues --number=<n> \
+  --is-pr=true \
+  --trigger=labeled --autoclose=off --out-dir=/tmp/out --dry-run
+```
+
+Nothing in that path can post: `--mode=render` never opens a network
+connection, and `--mode=publish --dry-run` stops before its first request.
+
+## Size limits
+
+Keep `title` under **256** characters and `reason` under **400** — one line
+each, no markdown, no HTML (the renderer escapes both, so formatting is
+wasted effort). Report at most **5** items.
+
+Obeying those is sufficient. The renderer also enforces a byte cap, but it is
+sized to clear the largest payload these limits allow, so a compliant report is
+never rejected for size — you do not need to count bytes.
 
 ## Hard rules
 
 Never apply or remove labels; never close, merge, push, or resolve
-anything; never edit the PR body yourself — only suggest; never write
-"@claude" or "@coderabbitai" in any text; post at most one comment.
+anything; never edit the PR body yourself — the published comment only
+suggests; never write "@claude" or "@coderabbitai" in any text. You have no
+comment tool — report your findings and stop.

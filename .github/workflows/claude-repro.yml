@@ -239,6 +239,23 @@ jobs:
 
       - name: Run Claude (draft repro; no execution)
         id: claude
+        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
+        # stays off every allowlist in this repo AND the CLI is told not to emit
+        # it (#487). It also covers feature-flag evaluation, which is why
+        # statsig.anthropic.com is gone. On an `audit` job the point is the
+        # MEASUREMENT: audit mode exists here to produce the endpoint list a block
+        # flip will use (#578), and leaving telemetry on would put the Datadog host
+        # in that report, inviting whoever reads it to allow-list a host we have
+        # decided to deny.
+        #
+        # A step `env:` rather than the action's `settings:` input. `settings:` is
+        # written to the USER-level ~/.claude/settings.json, which a project-level
+        # .claude/settings.json in the WORKSPACE overrides — and the jobs in this
+        # file check out PR-branch code, so that file is attacker-controlled. A
+        # process environment variable is not overridable that way. Do not move
+        # this back under `with:`.
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -251,8 +268,6 @@ jobs:
           # emit it, so the block policy has nothing to refuse (#487). This also
           # covers feature-flag evaluation, which is why statsig.anthropic.com
           # is no longer needed in the allowlist above.
-          settings: |
-            {"env": {"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}}
           # I1: no Bash / Task / web tools, so the session cannot execute code,
           # read env (the OAuth token), fetch, or reach another issue. It can only
           # read the checkout + the pre-fetched issue and write ONE test file.

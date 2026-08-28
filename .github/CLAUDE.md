@@ -91,8 +91,27 @@ regardless of how convenient it is.
 
 - **I2 — no untrusted or model-authored free text reaches a re-trigger-capable identity.**
   Comments posted with `GITHUB_TOKEN` do not emit workflow events. Comments posted with a PAT
-  **do**. So a drafted reproduction is sanitized deterministically and posted via
-  `GITHUB_TOKEN`, and every comment-triggered workflow independently gates out bestaxbot.
+  **do**. Two shapes address this, and only one of them is airtight — be precise about which
+  you are relying on.
+
+  `claude-repro.yml` changes the IDENTITY: the drafted reproduction is sanitized
+  deterministically and posted via `GITHUB_TOKEN`, whose comments emit no events at all. That
+  is structural — no text can re-trigger anything, whatever it says.
+
+  `ai-triage.yml` keeps the PAT identity (#361 wanted it) and narrows the TEXT instead. Since
+  #457 the session posts nothing; a deterministic renderer owns every structural string (the
+  markers, `Duplicate of #N`, `Fixes #N`, the auto-close notice) and every issue reference is
+  a validated integer. But the published body still carries two bounded model-authored fields,
+  a candidate's title and a one-line reason, escaped and defanged against the KNOWN
+  re-trigger vectors — mentions, markers, autolinks, machine sentinels. It cannot defang a
+  trigger token nobody has invented yet: a literal `/retest` in a title survives into the
+  comment today. So for that residual class rule 8's sender exclusions are still **the** layer,
+  not a second one, and a future comment-triggered workflow that forgets them reopens it.
+
+  Publishing the two fields is a deliberate, revisitable trade — a prose-free comment (bare
+  `#N` references, or a renderer-owned enum in place of the reason) would make this structural
+  too, at the cost of the signal a human reads the comment for. Do not describe the triage path
+  as closing I2 by construction; describe it as narrowing the surface and keeping rule 8.
 
 ## Hard requirements
 
@@ -162,13 +181,15 @@ invisible to a reader. Copilot caught it; nothing in CI would have.
 not a convenience list, and widening it grants capability with **no permissions diff for a
 reviewer to notice** — the `permissions:` block looks identical before and after.
 
-Two sessions where the allowlist is the _only_ thing between untrusted text and repository
-write:
+Two sessions where the allowlist is the _only_ thing between untrusted text and a credential.
+Read the third column for **which** credential — since #455 and #457 neither session can
+reach repository write any more, and "the session can't write to the repo" is not the same
+claim as "the allowlist stopped mattering":
 
-| Workflow        | Credential in the job                                            | What the allowlist is holding back                                                                                                                                                                           |
-| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ai-triage.yml` | `AI_LOOP_PAT` (bestaxbot)                                        | Full repo write. Confined to GET-only `gh` reads plus the two comment commands.                                                                                                                              |
-| `ai-scan.yml`   | job `GITHUB_TOKEN`, **write**-scoped (`issues`, `pull-requests`) | The gate charges a budget marker and the labeler applies `needs-security-review`, so the token must be write-scoped. The session cannot use it _only_ because the Bash allowlist admits nothing that writes. |
+| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired. |
+| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is still the only thing standing between an injected session and reading that token out of the environment — and egress is not enforced (rule 10). Narrow, not retired.                                                                                                                                                                                    |
 
 Concrete rules:
 
@@ -179,8 +200,20 @@ Concrete rules:
 - Never add `Edit`, `Write`, `MultiEdit`, or `Task` to `ai-scan.yml`.
 - `--disallowedTools` is defense in depth, and its deny rules do take precedence over the
   allows — but do not lean on it as the primary control. Narrow the allowlist.
-- Prefer removing the need for the boundary over hardening it. Splitting `ai-scan`'s labeler
-  into its own job so the model session can drop to `contents: read` is tracked in #455.
+- Prefer removing the need for the boundary over hardening it. #455 is the worked example:
+  `ai-scan.yml` was one job whose write scopes the model session merely happened not to use,
+  and it became three (`gate` / `scan` / `label`) so the session's own job grants are
+  read-only. The allowlist did not change; what changed is that it is no longer the only
+  thing standing behind it. When a session's job holds a write scope for the benefit of some
+  _other_ step, that is the shape to look for.
+- #457 is the same move against the harder case, and worth reading second: `ai-triage`'s
+  session did not merely sit near a write credential, it **held** one — the Claude action
+  installs its `github_token` as the session's `GH_TOKEN`, so passing `AI_LOOP_PAT` handed an
+  untrusted-text-ingesting session full repo write. Splitting the job was the only way to get
+  it a genuinely read-only credential without minting a new secret, because `GITHUB_TOKEN` is
+  job-scoped and the budget marker needs `issues: write` somewhere. The lesson to carry: when
+  a session's credential is passed _to the action_ rather than merely present in the job,
+  narrowing the allowlist cannot reach it at all — only moving the work can.
 
 ### 3. Opt in explicitly for anything that spends model usage
 
@@ -249,11 +282,16 @@ writing the trigger string at all.
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
 non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
 `node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
-The two #454 parsers are extracted: the scan-verdict parser
+Three extractions exist. The two from #454: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
 the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
-tests together. Smaller instances of the same shape remain inline (the exec-file sentinel
+tests together. Then #457's triage renderer/publisher
+(`scripts/render-triage-comment.mjs`, called twice by `ai-triage.yml` — once per mode), which
+is the largest and the one to read first: it validates a model-authored payload, renders the
+comment from renderer-owned constants, and upserts it by marker. Its test sibling runs the
+real `auto-close-duplicates.mjs` consumer over rendered output, so the two cannot drift.
+Smaller instances of the same shape remain inline (the exec-file sentinel
 checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
 one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported
 helpers rather than growing the YAML.
@@ -307,22 +345,30 @@ file`. It still fails — a job holding a credential must not run unprotected �
 - **`^Initialized`, not `-qx`.** `writeStatus` appends without a trailing newline, so a second
   status would concatenate onto the same line and an exact-line match would stop matching.
 
-**Placement:** after harden-runner, **and** after any gate whose outputs an `always()`-guarded
-fail-closed step depends on, **and** before any step that spends a metered budget. `ai-scan` is
-the live example of both halves:
+**Placement.** The default is immediately after harden-runner, and most jobs use it. Two things
+override it, both derived from one rule:
 
-- _After_ its gate — putting the assertion immediately after harden-runner would abort before the
-  gate sets `run`, skip the fail-closed labeler, and let items go unscanned _and_ unflagged, which
-  is the rule-4 fail-open a fail-closed check must not introduce.
-- _Before_ its charge — which is why that gate reads the budget and a separate later step writes
-  it. A gate that both decided and charged would spend a slot on every run that then failed to
-  prove enforcement, and `AI_SCAN_DAILY_LIMIT` such failures in one UTC day (a StepSecurity outage
-  reaches every incoming item at once) put the gate back to `run=false`, which skips that same
-  labeler. The fail-open returns by the back door, so keep the read and the write in separate
-  steps with the assertion between them.
+> A fail-closed check must not be able to consume, skip, or precede the thing that keeps the
+> fail-closed path reachable.
 
-The general shape: a fail-closed check must not be able to consume the resource that keeps the
-fail-closed path reachable.
+- **After any gate an `always()`-guarded fail-closed step depends on, and before any step that
+  spends a metered budget.** `ai-scan`'s `gate` is the live example, and it needs both: putting
+  the assertion first would abort before `run` is set and skip the labeler; letting the same step
+  read _and_ charge the budget would spend a slot on every run that failed to prove enforcement,
+  and `AI_SCAN_DAILY_LIMIT` such failures in a UTC day (a StepSecurity outage reaches every
+  incoming item at once) set `run=false`, which skips that same labeler. So: decide → assert →
+  charge. That job also records `enforcement=failed` before exiting, because `label` deliberately
+  fails OPEN on ordinary gate trouble and must fail CLOSED on this one — see its comment.
+- **After the write, when the job _is_ the fail-closed path.** `ai-scan`'s `label` and
+  `ai-triage`'s `cleanup` exist to guarantee a label is applied and removed respectively; a check
+  that can fail ahead of that call defeats the guarantee outright, which is also why their
+  harden-runner steps are `continue-on-error`. Assert afterwards under `always()`: the write has
+  happened, and a job that ran unprotected still goes red. These two are the only assertions in
+  the repo placed after their job's work — if you add a third, say why here.
+
+Both exceptions were previously "resolved" by simply leaving the assertion off those jobs. Do not
+go back to that: an unasserted block job is indistinguishable from an enforcing one, which is the
+whole failure #487 was.
 
 **Both lines are required; either alone is a false pass.** `agent.json` holds the policy the
 pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is
@@ -387,21 +433,38 @@ and the jobs adjacent to them, per job, not every job in the directory** — the
 jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story-screenshots.yml`,
 `scorecard.yml`, `dependency-review.yml`) carry no harden-runner and are out of scope here.
 
-- **Enforcing and asserted** — `ai-scan` (`scan`), `claude-repro` (`author` **only**),
-  `ai-triage` (`triage`), `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and
-  `sign-sbom`), `security-txt-expiry` (`check`).
+- **Enforcing and asserted** — all three `ai-scan` jobs (`gate`, `scan`, `label`), all four
+  `ai-triage` jobs (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
+  `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
+  `security-txt-expiry` (`check`). Twelve jobs; the command below is the check.
 - **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
   `claude-pr-loop` (`fix` and `verify`), `claude-review`, `bestaxbot-reply`. These run repo code
   with a model token; their block flip is the follow-up this rule owes, tracked in #578.
-- **No harden-runner at all** — `auto-close-duplicates`, `on-slop`, `auto-label-claude-prs`,
-  `close-stale-bestaxbot-prs`, `stale`; `claude-repro`'s `prepare`, `publish` and `cleanup`; and
-  the API-only jobs (`claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`, `supply-chain`'s
-  `sbom`/`attach-sbom`/`verify-provenance`).
+- **No harden-runner at all**, and these are two different groups — do not merge them into one
+  "API-only" line, which understates the second:
+  - _Genuinely API-only_ — `auto-close-duplicates`, `on-slop`, `auto-label-claude-prs`,
+    `close-stale-bestaxbot-prs`, `stale`; `claude-repro`'s `prepare`, `publish` and `cleanup`;
+    and `claude-pr-loop`'s `sweep`/`gate`/`handoff`/`halt`. These call the GitHub API and run no
+    build.
+  - _Grandfathered, and they DO execute code_ — `supply-chain`'s `sbom` (installs the monorepo
+    and runs SBOM generators), `attach-sbom` (downloads and uploads release artifacts) and
+    `verify-provenance` (installs published packages and runs verification scripts). Calling
+    these API-only, as this list did until review caught it, understates the unmonitored
+    execution and egress surface in the one inventory meant to state it precisely.
 
-  `on-slop` and `auto-label-claude-prs` are the two to look at first if this group is ever
-  worked: both run on `pull_request_target` — the highest-privilege trigger class here — with
-  write scopes. They hold no model token, which is why they are not in the group above, but they
-  are not "API-only" in the harmless sense either.
+Do not maintain the first bullet by hand — it was wrong twice. Regenerate it:
+
+```bash
+grep -rl "harden-runner@" .github/workflows/ | sort   # which files, then read the jobs
+```
+
+The authoritative check is that no `block` job lacks the assertion; parse the YAML rather than
+eyeballing it, because the two are in different jobs and sometimes several steps apart.
+
+`on-slop` and `auto-label-claude-prs` are the two to look at first if this group is ever
+worked: both run on `pull_request_target` — the highest-privilege trigger class here — with
+write scopes. They hold no model token, which is why they are not in the group above, but they
+are not "API-only" in the harmless sense either.
 
 `claude-repro` deserves the emphasis: only its `author` job is hardened. **`publish` — the job
 that runs the sanitizer over attacker-influenced text and holds `issues: write` — has no egress
@@ -427,9 +490,13 @@ prints the effective `EgressPolicy:`.
 - [ ] Does model or issue text reach a comment body? Through what sanitizer?
 - [ ] Is the posting identity `GITHUB_TOKEN` (inert) or a PAT (re-triggering)?
 - [ ] New repository variable? Gate is `== 'on'`-shaped, and the docs table lists its unset default.
-- [ ] Action SHAs match the repo-wide pin, and the version comment is truthful.
-- [ ] New `block` job carries the effective-policy assertion (rule 10); no pin left outside
-      `.github/workflows/`.
+- [ ] Action SHAs match the repo-wide pin, and the version comment is truthful — run **both**
+      greps in rule 1, including the repo-wide one that covers every action rather than the one
+      you thought to type.
+- [ ] New `block` job carries the effective-policy assertion (rule 10), placed per that rule's
+      placement section; security-relevant steps stay in the workflow rather than moving behind a
+      local composite action (rule 1 — pins under `.github/actions/` are fine and one exists, so
+      this is about per-job review, not pin location).
 - [ ] New verdict path fails closed; new counter path fails open.
 - [ ] Security comments claim exactly what the mechanism delivers — no more.
 
