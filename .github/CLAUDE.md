@@ -373,25 +373,37 @@ Both exceptions were previously "resolved" by simply leaving the assertion off t
 go back to that: an unasserted block job is indistinguishable from an enforcing one, which is the
 whole failure #487 was.
 
-**A related trap, one step earlier: harden-runner is step 0, so if the ACTION fails the job dies
-before emitting anything.** In `ai-scan` that skipped the fail-closed labeler, because its guard
-reads `needs.gate.outputs.run`. A vendor outage, not an attacker, and the assertion cannot help —
-it never runs. The fix is `continue-on-error: true` on that harden-runner so the gate step still
-emits its outputs, with the assertion immediately after to fail the job and set
+**A related trap, one step earlier: harden-runner is step 0, so if it fails the job can die before
+emitting anything.** In `ai-scan` that skipped the fail-closed labeler, because its guard reads
+`needs.gate.outputs.run`. The fix is `continue-on-error: true` on that harden-runner so the gate
+step still emits its outputs, with the assertion immediately after to fail the job and set
 `enforcement=failed`. Non-blocking there is not "unprotected and ignored": the job still goes red,
 it just gets to record why first. Whenever a downstream `always()` job keys off an upstream job's
 **outputs** rather than only its `result`, check what happens if step 0 dies.
 
-Worth tracing the whole matrix when touching any of this, because five of these paths look alike
-and only three should flag:
+**That fix covers RUNTIME failure only, and the distinction is not pedantic.** Action resolution
+and download happen during **job initialization**, before any step is added to the job. A failure
+there fails the job with no step ever running, so `continue-on-error` — a step property — never
+applies and the assertion never executes. Do not describe the flag as covering "download" or
+"bootstrap" failures; an earlier revision of this section did, and it was wrong.
 
-| What fails in `ai-scan`      | `label` runs?                              | Correct outcome                                    |
-| ---------------------------- | ------------------------------------------ | -------------------------------------------------- |
-| harden-runner action (gate)  | yes, via `enforcement=failed`              | flag — nothing was enforcing                       |
-| the assertion (gate or scan) | yes                                        | flag — nothing was enforcing                       |
-| the `scan` job               | yes (`result` is `failure`, not `skipped`) | flag — empty verdict hits the enum default         |
-| the gate's budget read       | no                                         | **no flag** — counter trouble fails open (rule 4)  |
-| budget spent, or bot author  | no                                         | no flag — nothing was scanned and nothing is wrong |
+> **Residual, stated rather than papered over.** If `harden-runner` cannot be prepared at all, the
+> item goes unscanned and unflagged, and **no guard can fix it**: every job that would carry the
+> flag pins the same action, so `label` fails initialization too. This is vendor-availability
+> shaped rather than attacker-reachable — the pin is a SHA served from GitHub's own CDN — but it
+> is a genuine hole in the fail-closed path and it should be named when the posture is described.
+
+Worth tracing the whole matrix when touching any of this, because these paths look alike and only
+some should flag:
+
+| What fails in `ai-scan`         | `label` runs?                              | Correct outcome                                    |
+| ------------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| harden-runner at runtime (gate) | yes, via `enforcement=failed`              | flag — nothing was enforcing                       |
+| harden-runner **preparation**   | no — `label` cannot initialize either      | residual above; nothing reaches it                 |
+| the assertion (gate or scan)    | yes                                        | flag — nothing was enforcing                       |
+| the `scan` job                  | yes (`result` is `failure`, not `skipped`) | flag — empty verdict hits the enum default         |
+| the gate's budget read          | no                                         | **no flag** — counter trouble fails open (rule 4)  |
+| budget spent, or bot author     | no                                         | no flag — nothing was scanned and nothing is wrong |
 
 **Both lines are required; either alone is a false pass.** `agent.json` holds the policy the
 pre-step _decided_, serialized after every policy decision, so it catches a downgrade — which is
