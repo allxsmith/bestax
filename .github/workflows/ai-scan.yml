@@ -150,7 +150,7 @@ jobs:
       # list that diverges from every sibling for no operational gain is one
       # more thing #487's fix must chase.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -261,7 +261,7 @@ jobs:
       # baseline and is NOT currently complete: a real session reaches three hosts
       # it does not list (#487 has the measured set).
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -433,7 +433,7 @@ jobs:
       # Nothing is given up: the policy is not enforced today anyway.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >

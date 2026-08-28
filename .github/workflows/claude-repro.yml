@@ -135,7 +135,7 @@ jobs:
       # a real session reaches three hosts it does not list (#487 has the set), so
       # it must be widened before enforcement is switched on.
       - name: Harden runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
