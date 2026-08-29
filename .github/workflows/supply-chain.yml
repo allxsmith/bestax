@@ -207,6 +207,31 @@ jobs:
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
 
+      # New in #530: this job now runs two scripts from scripts/, per rule 9 —
+      # the install/stamp logic and the closure guard — so it needs the
+      # repository on disk. That adds a third-party action to a job that had
+      # none, which is the honest cost rather than something to elide: it is on
+      # the repo-wide pin (rule 1) and `persist-credentials: false` means no
+      # token reaches the runner's git config. The job's `allowed-endpoints`
+      # needs no change — checkout reaches github.com, api.github.com and
+      # objects.githubusercontent.com, all already listed above.
+      #
+      # The EVENT ref, deliberately, and NOT `ref: main` as `verify-provenance`
+      # uses. That job reads a verifier which must not come from the tag it is
+      # verifying; this one asserts a property of a document THIS JOB JUST
+      # GENERATED, so there is no third party whose claim the checked-out code
+      # could be made to rubber-stamp. The reasoning does not transfer.
+      #
+      # It also matters practically: this job is only ever exercised by a
+      # `workflow_dispatch` on a branch (it never runs on a PR), and pinning to
+      # `main` would read the guard from `main` — which, for the PR introducing
+      # it, does not have one. That is rule 9's bootstrap gap, and here it would
+      # make the change unverifiable by the only means available.
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
       # nodejs.org is in the list above because `setup-node` falls back to
       # downloading from nodejs.org/dist when the runner's tool cache misses the
       # requested version — exactly the kind of host a guessed allowlist omits.
@@ -283,34 +308,62 @@ jobs:
       # that exists nowhere. Naming it for what it is makes the root entry
       # self-evidently the scan container instead of a phantom dependency.
       #
-      # The install resolves the mutable `latest` dist-tag, and the version it
-      # lands on is recorded as a step output so it can be stamped into the
-      # artifact name. Without that stamp an SBOM attached to a release would
-      # not say which version it describes, and a later publish would make the
-      # document silently disagree with the release it hangs off.
+      # WHICH VERSION gets installed is decided by consumer-sbom-meta.mjs
+      # (#530 item 1), not by resolving `latest` for all four legs as this
+      # step used to.
       #
-      # An earlier version of this comment said pinning to the release's own
-      # version is "not possible". That was too strong. `release.tag_name` is
-      # `<pkg>@X.Y.Z` (VERSIONING.md), so for the ONE package a release names,
-      # the exact version is available and pinnable. What is not possible is
-      # pinning the other three, which that release says nothing about.
+      # For the ONE package a release names, `release.tag_name` is `<pkg>@X.Y.Z`
+      # (VERSIONING.md, and the `tagFormat` in each release.config.js), so the
+      # exact version is available and is pinned. Two failure modes that fixes,
+      # both real rather than theoretical:
       #
-      # Two failure modes follow from resolving `latest` for the released
-      # package, and they are real rather than theoretical: the event fires
-      # immediately after `npm publish`, so a CDN-cached packument can resolve
-      # the PREVIOUS version and stamp the SBOM with it; and a re-run days later
-      # resolves a newer `latest`, producing a different filename that
-      # `--clobber` cannot replace, leaving the release carrying two
-      # contradictory consumer SBOMs for the same package.
+      #   - `release: published` fires immediately after `npm publish`, so a
+      #     CDN-cached packument could resolve the PREVIOUS version and stamp
+      #     release 5.12.0 with an SBOM describing 5.11.1.
+      #   - A re-run days later resolved a newer `latest` and produced a
+      #     different filename, which `gh release upload --clobber` cannot
+      #     replace — leaving the release permanently carrying two
+      #     contradictory consumer SBOMs for the same package.
       #
-      # Tracked rather than fixed here: doing it properly means matching the tag
-      # to its matrix leg and pinning only that one, which is a behaviour change
-      # worth its own review rather than a drive-by in this PR.
+      # The other three legs necessarily stay on `latest`: a release says
+      # nothing about them, and a consumer SBOM describes what a consumer
+      # installs today. That asymmetry is why the decision is a script with a
+      # test rather than an expression here — the tag has to be matched to its
+      # matrix leg, and only that leg pinned.
+      #
+      # The read-back and its validation moved to the same script (rule 9).
+      # The validation is the reason: it guards a value that comes out of a
+      # published tarball — the one input here an attacker would control if a
+      # package were compromised — and that value flows into $GITHUB_OUTPUT and
+      # into the syft config heredoc below, where a newline would define
+      # arbitrary extra step outputs and inject config keys. That is logic worth
+      # testing, and it could not be tested where it lived.
+      #
+      # `--expect` is new leverage the pin buys: when a version was asked for,
+      # the tree must carry it, or the job fails rather than quietly describing
+      # a different release than the one it is attached to.
+      - name: Decide which version to install
+        id: spec
+        env:
+          PACKAGE: ${{ matrix.package }}
+          EVENT: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+        # Writes `spec` and `expect` itself. `expect` is empty for the three
+        # legs no release names, and the workflow does no parsing of its own —
+        # deriving the version from the spec here would reimplement the
+        # last-`@` split in untested YAML, one character from being wrong for
+        # the one scoped package.
+        run: |
+          node scripts/consumer-sbom-meta.mjs spec \
+            --package "$PACKAGE" --event "$EVENT" --tag "$TAG"
+
       - name: Install the published package as a consumer would
         id: install
         env:
           PACKAGE: ${{ matrix.package }}
           SLUG: ${{ matrix.slug }}
+          SPEC: ${{ steps.spec.outputs.spec }}
+          EXPECT: ${{ steps.spec.outputs.expect }}
         run: |
           mkdir -p "$RUNNER_TEMP/consumer"
           cd "$RUNNER_TEMP/consumer"
@@ -322,35 +375,35 @@ jobs:
             "description": "Scan container: the installed closure of $PACKAGE"
           }
           JSON
-          npm install --ignore-scripts "$PACKAGE"
 
-          # Read back what was installed rather than re-resolving it, so the
-          # stamp cannot disagree with the tree that was scanned.
-          version=$(jq -r .version "node_modules/$PACKAGE/package.json")
-
-          # Validated against semver rather than merely checked for emptiness.
-          # This value comes out of a published tarball — the one input here
-          # that an attacker would control if a package were compromised — and
-          # it flows into $GITHUB_OUTPUT and into a YAML heredoc below. A value
-          # containing a newline would define arbitrary extra step outputs and
-          # inject syft config keys, which could silently re-shape the very
-          # document this job exists to produce. npm will not publish a
-          # non-semver version, so this should never fire; it costs one regex
-          # to not depend on that.
-          case "$version" in
-            [0-9]*.[0-9]*.[0-9]*) ;;
-            *)
-              echo "::error::$PACKAGE reported an implausible version: '$version'"
+          # Retried, and only because of the pin. Resolving `latest` always had
+          # SOMETHING to resolve; asking for an exact version seconds after
+          # `npm publish` can 404 while the packument propagates. Without this,
+          # item 1 would trade "the SBOM names the wrong version" for "the
+          # released package has no SBOM at all", which is a worse deal — the
+          # released leg is the one the release actually cares about.
+          for attempt in 1 2 3; do
+            if npm install --ignore-scripts "$SPEC"; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              echo "::error::npm install $SPEC failed three times"
               exit 1
-              ;;
-          esac
-          if printf '%s' "$version" | grep -qv '^[0-9A-Za-z.+-]*$'; then
-            echo "::error::$PACKAGE version contains unexpected characters"
-            exit 1
-          fi
+            fi
+            echo "npm install $SPEC failed (attempt $attempt); retrying"
+            sleep $((attempt * 10))
+          done
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "resolved $PACKAGE@$version"
+          cd "$GITHUB_WORKSPACE"
+          if [ -n "$EXPECT" ]; then
+            node scripts/consumer-sbom-meta.mjs stamp \
+              --package "$PACKAGE" --slug "$SLUG" \
+              --dir "$RUNNER_TEMP/consumer" --expect "$EXPECT"
+          else
+            node scripts/consumer-sbom-meta.mjs stamp \
+              --package "$PACKAGE" --slug "$SLUG" \
+              --dir "$RUNNER_TEMP/consumer"
+          fi
 
       # Three problems the first real run surfaced, all fixed by one syft
       # config. None were visible without reading a generated document — which
@@ -399,14 +452,21 @@ jobs:
           default-catalogers:
             - javascript-lock-cataloger
           # The lock cataloger globs **/package-lock.json, **/yarn.lock and
-          # **/pnpm-lock.yaml, so without this it also reads lockfiles that
+          # **/pnpm-lock.yaml, so a directory scan also reads lockfiles that
           # dependencies ship inside their own tarballs. npm always excludes
           # package-lock.json from a tarball but NOT yarn.lock, so one dep
           # publishing without a `files:` field would inject its entire dev
-          # closure into this document. That is the third instance of this
-          # failure class on this branch, after the github-actions cataloger
-          # and the javascript group; restricting the cataloger does not close
-          # it, only excluding the tree does.
+          # closure into this document. That was the third instance of this
+          # failure class on #529's branch, after the github-actions cataloger
+          # and the javascript group.
+          #
+          # As of #530 item 5 the scan targets the lockfile directly rather
+          # than the directory, which makes this exclusion STRUCTURALLY
+          # unnecessary rather than merely correct — there is no tree left to
+          # walk. It stays because it costs nothing and because the failure
+          # class above is worth keeping written down next to the thing that
+          # closes it; if the path ever goes back to being a directory, this is
+          # already right.
           exclude:
             - './node_modules/**'
           source:
@@ -415,26 +475,72 @@ jobs:
           YAML
           cat "$RUNNER_TEMP/syft.yaml"
 
+      # `path` is the LOCKFILE, not the directory (#530 item 5). Pointed at the
+      # tree, syft recursively walked every file under node_modules — thousands
+      # of them for bestax-migrate's 98-package closure, twice per matrix leg —
+      # to satisfy a cataloger that only ever reads the root lockfile.
+      #
+      # `artifact-name` and `output-file` come from one step output rather than
+      # being spelled out four times (#530 item 4). Be precise about what that
+      # fixes: `sign-sbom` and `attach-sbom` glob on these names from their own
+      # jobs and cannot read a step output across a job boundary, so this
+      # collapses four occurrences to one, not eight. What keeps those globs
+      # honest is that the prefix is now a single exported constant
+      # (ARTIFACT_PREFIX in scripts/consumer-sbom-meta.mjs) pinned by a test.
       - name: Generate SPDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          path: ${{ runner.temp }}/consumer
+          path: ${{ runner.temp }}/consumer/package-lock.json
           format: spdx-json
           config: ${{ runner.temp }}/syft.yaml
-          artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
-          output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.spdx.json
+          artifact-name: ${{ steps.install.outputs.basename }}.spdx.json
+          output-file: ${{ steps.install.outputs.basename }}.spdx.json
           # Same reason as the repository SBOM: one deterministic uploader.
           upload-release-assets: false
 
       - name: Generate CycloneDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          path: ${{ runner.temp }}/consumer
+          path: ${{ runner.temp }}/consumer/package-lock.json
           format: cyclonedx-json
           config: ${{ runner.temp }}/syft.yaml
-          artifact-name: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
-          output-file: bestax-consumer-sbom-${{ matrix.slug }}-${{ steps.install.outputs.version }}.cdx.json
+          artifact-name: ${{ steps.install.outputs.basename }}.cdx.json
+          output-file: ${{ steps.install.outputs.basename }}.cdx.json
           upload-release-assets: false
+
+      # The guard #529 deferred (#530 item 2). Nothing asserted anything about
+      # the generated document, so a syft, cataloger or exporter change — or a
+      # dependency that starts shipping a lockfile — shipped silently green.
+      # Every defect #529 fixed was found by dispatching this workflow and
+      # reading the JSON, never by a green job; this is that read, automated.
+      #
+      # Deliberately NOT a count. The first attempt compared `!==` against
+      # counts hardcoded in the matrix (5/12/98/94) and was reverted in
+      # 48c57d5: those are live registry closures that drift whenever any
+      # transitive dependency publishes, so the job would go red on somebody
+      # else's release having found nothing wrong — the cry-wolf failure this
+      # repository has already fixed twice (#391, #525).
+      #
+      # What it asserts instead: every catalogued package resolves to
+      # registry.npmjs.org (catches inflation by its cause — a github-actions
+      # entry or a nested yarn.lock dev closure has no npm download location),
+      # plus a floor that catches the document collapsing to nothing. Neither
+      # knows a count, so growth never reds this. Rule 9: the logic and its
+      # reasoning live in scripts/check-consumer-sbom.mjs with a node --test
+      # sibling that replays both #529 regressions.
+      #
+      # SPDX only. The two documents describe the same closure from the same
+      # syft run, and downloadLocation is the SPDX field the lock cataloger's
+      # `resolved` maps to.
+      - name: Assert the document is still a consumer closure
+        env:
+          PACKAGE: ${{ matrix.package }}
+          SLUG: ${{ matrix.slug }}
+          BASENAME: ${{ steps.install.outputs.basename }}
+        run: |
+          node scripts/check-consumer-sbom.mjs \
+            --file "$BASENAME.spdx.json" \
+            --package "$PACKAGE" --slug "$SLUG"
 
   # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
   # else. The npm provenance we already publish is invisible to it, so releases
