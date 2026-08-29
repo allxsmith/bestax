@@ -92,6 +92,26 @@ import { pathToFileURL } from 'node:url';
 export const ARTIFACT_PREFIX = 'bestax-consumer-sbom-';
 
 /**
+ * Render an untrusted value for a log line.
+ *
+ * Rejecting a value is not enough if the rejection MESSAGE hands it straight
+ * back to the runner. Every error here is printed as `::error::<message>`, and
+ * a GitHub Actions workflow command is terminated by a newline — so a version
+ * of `1.0.0\n::error::…` was blocked from $GITHUB_OUTPUT by assertVersion and
+ * then re-entered through assertVersion's own complaint about it, emitting a
+ * second, forged workflow command. The guard was reporting the attack by
+ * performing it.
+ *
+ * JSON.stringify is the whole fix: it escapes newlines, carriage returns,
+ * quotes, backslashes and every other control character, so the value can only
+ * ever be one line of inert text. Use it for ANYTHING that came out of a
+ * published tarball, a generated document, or argv — never a bare `"${value}"`.
+ */
+export function forLog(value) {
+  return JSON.stringify(String(value ?? ''));
+}
+
+/**
  * Split a release tag into the package it names and the version it carries.
  *
  * Split on the LAST `@`, not the first: `@allxsmith/bestax-bulma@5.12.0` has
@@ -136,7 +156,7 @@ export function installSpec({ package: pkg, eventName, tagName } = {}) {
   const parsed = parseReleaseTag(tagName);
   if (!parsed || parsed.package !== pkg) return pkg;
 
-  assertVersion(parsed.version, `release tag ${tagName}`);
+  assertVersion(parsed.version, `release tag ${forLog(tagName)}`);
   return `${pkg}@${parsed.version}`;
 }
 
@@ -177,10 +197,12 @@ export const SEMVER =
 export function assertVersion(version, source = 'version') {
   const value = String(version ?? '');
   if (!/^[0-9A-Za-z.+-]+$/.test(value)) {
-    throw new Error(`${source} contains unexpected characters: "${value}"`);
+    throw new Error(
+      `${source} contains unexpected characters: ${forLog(value)}`
+    );
   }
   if (!SEMVER.test(value)) {
-    throw new Error(`${source} is not a semver version: "${value}"`);
+    throw new Error(`${source} is not a semver version: ${forLog(value)}`);
   }
   return value;
 }
@@ -213,11 +235,15 @@ export function readInstalledVersion(dir, pkg) {
   }
   let parsed;
   try {
+    // The parser echoes the offending input in its message, so a tarball whose
+    // package.json is deliberately malformed gets a newline into the log the
+    // same way a malformed version would.
     parsed = JSON.parse(raw);
   } catch (err) {
-    throw new Error(`${pkg} has an unparsable package.json: ${err.message}`, {
-      cause: err,
-    });
+    throw new Error(
+      `${pkg} has an unparsable package.json: ${forLog(err.message)}`,
+      { cause: err }
+    );
   }
   return assertVersion(parsed.version, `${pkg} package.json version`);
 }
@@ -302,9 +328,9 @@ export function main(argv = process.argv.slice(2), env = process.env) {
     // which is the failure mode the read-back existed for in the first place.
     if (args.expect && args.expect !== version) {
       throw new Error(
-        `asked npm for ${args.package}@${args.expect} but the tree carries ` +
-          `${version}. The document would describe a different release than ` +
-          `the one it is attached to.`
+        `asked npm for ${args.package}@${forLog(args.expect)} but the tree ` +
+          `carries ${forLog(version)}. The document would describe a ` +
+          `different release than the one it is attached to.`
       );
     }
 

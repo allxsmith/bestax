@@ -36,6 +36,7 @@ import {
   artifactBasename,
   readInstalledVersion,
   parseArgs,
+  forLog,
   main,
 } from './consumer-sbom-meta.mjs';
 
@@ -411,4 +412,53 @@ test('main emits an empty expect for an unpinned leg', () => {
   );
   assert.equal(code, 0);
   assert.equal(fs.readFileSync(out, 'utf8'), 'spec=bestax-migrate\nexpect=\n');
+});
+
+// --- log injection through the rejection message -----------------------------
+
+test('a rejected version cannot forge an Actions workflow command', () => {
+  // The value is blocked from $GITHUB_OUTPUT, and then the complaint about it
+  // used to hand the same newline straight back to the runner inside
+  // `::error::…`, emitting a second forged command. Rejecting is not enough if
+  // the rejection message re-introduces the value verbatim.
+  const attacks = [
+    '1.0.0\n::error::FORGED',
+    '1.0.0\r\n::add-mask::secret',
+    '1.0.0\n::notice::x',
+  ];
+  for (const v of attacks) {
+    assert.throws(
+      () => assertVersion(v),
+      err => {
+        assert.ok(
+          !err.message.includes('\n'),
+          `raw newline in: ${err.message}`
+        );
+        assert.ok(!/^::/m.test(err.message), `command in: ${err.message}`);
+        return true;
+      }
+    );
+  }
+});
+
+test('forLog neutralises anything bound for a log line', () => {
+  assert.equal(forLog('1.0.0\n::error::x'), '"1.0.0\\n::error::x"');
+  assert.equal(forLog('a\r\nb'), '"a\\r\\nb"');
+  assert.equal(forLog(undefined), '""');
+  assert.ok(!forLog('x\ny').includes('\n'));
+});
+
+test('the tarball read-back cannot forge one either', () => {
+  const dir = tree('evil', '0.0.0');
+  fs.writeFileSync(
+    path.join(dir, 'node_modules', 'evil', 'package.json'),
+    JSON.stringify({ name: 'evil', version: '1.0.0\n::error::FORGED' })
+  );
+  assert.throws(
+    () => readInstalledVersion(dir, 'evil'),
+    err => {
+      assert.ok(!err.message.includes('\n'));
+      return true;
+    }
+  );
 });

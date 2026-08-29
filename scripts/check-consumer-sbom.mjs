@@ -127,6 +127,24 @@ import { pathToFileURL } from 'node:url';
 /** Where every package in a consumer closure must have come from (SPDX). */
 export const REGISTRY_PREFIX = 'https://registry.npmjs.org/';
 
+/**
+ * Render an untrusted value for a log line.
+ *
+ * Everything in these documents is derived from published tarball metadata, so
+ * an entry name or version is attacker-influenced in exactly the way this
+ * job's own version string is. Problems are printed under `::error::`, and a
+ * GitHub Actions workflow command ends at a newline — so naming a bad entry
+ * with a bare `"${name}"` lets that entry emit a second, forged workflow
+ * command through the very message reporting it.
+ *
+ * JSON.stringify escapes newlines, carriage returns, quotes and control
+ * characters, so the value can only be one line of inert text. Use it for
+ * every value read out of a document.
+ */
+export function forLog(value) {
+  return JSON.stringify(String(value ?? ''));
+}
+
 /** The same claim in CycloneDX's vocabulary. */
 export const NPM_PURL_PREFIX = 'pkg:npm/';
 
@@ -271,8 +289,8 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     const origin = e.origin;
     if (typeof origin !== 'string' || !origin.startsWith(norm.originPrefix)) {
       problems.push(
-        `"${e.name ?? '(unnamed)'}" has ${norm.originField} ` +
-          `${JSON.stringify(origin ?? null)}, which is not under ` +
+        `${forLog(e.name ?? '(unnamed)')} has ${norm.originField} ` +
+          `${forLog(origin)}, which is not under ` +
           `${norm.originPrefix}. Usually that means a cataloger is reading ` +
           `files it should not, or the scan source is leaking into the ` +
           `document (#529, #530). If instead we have genuinely taken a ` +
@@ -303,7 +321,7 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   } else if (version && !matches.some(e => e.version === version)) {
     problems.push(
       `"${pkg}" is present at ` +
-        `${matches.map(e => JSON.stringify(e.version ?? null)).join(', ')} ` +
+        `${matches.map(e => forLog(e.version)).join(', ')} ` +
         `but the install stamped ${version}. The document and its filename ` +
         `disagree about which release this describes.`
     );
@@ -329,14 +347,14 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
 
   if (subject?.name !== expected) {
     problems.push(
-      `${where} names ${JSON.stringify(subject?.name ?? null)}, expected ` +
+      `${where} names ${forLog(subject?.name)}, expected ` +
         `"${expected}". The document does not say which package it describes, ` +
         `or it is naming a filesystem path (#529).`
     );
   }
   if (version && subject?.version !== version) {
     problems.push(
-      `${where} carries version ${JSON.stringify(subject?.version ?? null)}, ` +
+      `${where} carries version ${forLog(subject?.version)}, ` +
         `expected "${version}". The document would identify a different ` +
         `release than the one its filename and closure describe.`
     );
@@ -357,7 +375,7 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     const cleaned = name.replace(/^\.\//, '');
     if (cleaned.includes('/') || cleaned.includes('\\')) {
       problems.push(
-        `the files array names ${JSON.stringify(name)}, which carries a path. ` +
+        `the files array names ${forLog(name)}, which carries a path. ` +
           `That is the runner's filesystem layout, which a published document ` +
           `must not disclose (#529, #530). The only expected entry is a bare ` +
           `"package-lock.json".`
@@ -395,7 +413,7 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
       `::warning::${norm.format}: ${dupes.length} package(s) listed more than ` +
         `once (${dupes
           .slice(0, 5)
-          .map(([id, n]) => `${id} x${n}`)
+          .map(([id, n]) => `${forLog(id)} x${n}`)
           .join(', ')}${dupes.length > 5 ? ', …' : ''}). npm can place the ` +
         `same version at two paths, so this is not failed — but if MOST of ` +
         `the closure is duplicated, a second cataloger is running (#529).`

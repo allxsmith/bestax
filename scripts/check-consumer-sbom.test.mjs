@@ -37,6 +37,7 @@ import {
   inspect,
   identities,
   crossCheck,
+  forLog,
   parseArgs,
   main,
 } from './check-consumer-sbom.mjs';
@@ -588,4 +589,30 @@ test('main separates usage and read errors from assertion failures', () => {
   // Exit 2 must not be readable as "the SBOM is wrong".
   assert.equal(main([]), 2);
   assert.equal(main(cli('/nope/missing.json', writeDoc(healthyCdx()))), 2);
+});
+
+// --- log injection through the rejection message -----------------------------
+
+test('a rejected value cannot forge an Actions workflow command', () => {
+  // The sharp version of this defect: the guard rejects the entry, and then
+  // hands the attacker's newline straight back to the runner inside its own
+  // `::error::` complaint, emitting a second forged command. Rejecting is not
+  // enough if the rejection message re-introduces the value verbatim.
+  const doc = healthySpdx();
+  doc.packages.push({
+    name: 'evil\n::error::FORGED',
+    versionInfo: '1.0.0\n::notice::ALSO FORGED',
+    downloadLocation: 'NOASSERTION',
+  });
+  for (const p of inspect(doc, TARGET)) {
+    assert.ok(!p.includes('\n'), `problem carries a raw newline: ${p}`);
+    assert.ok(!/^::/m.test(p), `problem could start a workflow command: ${p}`);
+  }
+});
+
+test('forLog neutralises every value read out of a document', () => {
+  assert.equal(forLog('1.0.0\n::error::x'), '"1.0.0\\n::error::x"');
+  assert.equal(forLog('a\r\nb'), '"a\\r\\nb"');
+  assert.equal(forLog(undefined), '""');
+  assert.ok(!forLog('x\ny').includes('\n'));
 });
