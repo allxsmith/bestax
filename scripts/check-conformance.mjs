@@ -2471,17 +2471,27 @@ async function checkBypassExpiry() {
 
   // Per block, not merely in total: one block going silent while the other two
   // keep the count nonzero is the same fail-open the parser guards against.
+  //
+  // This is also where a whole-block FLOW mapping lands (`allowBuilds: { pkg:
+  // true }`): the parser reads line-oriented block style only, so a flow form
+  // matches neither `header` nor `empty` and the block reads as absent. That is
+  // the right outcome — red, nothing policed silently — but the message has to
+  // name it, or the one authoring mistake that triggers it sends you looking for
+  // a rename that never happened.
   const missing = BYPASS_BLOCKS.filter(b => !blocksSeen.has(b.key));
   if (missing.length) {
     return missing.map(
       b =>
         `pnpm-workspace.yaml: the \`${b.label}\` block was not found, so ` +
-        `nothing in it is policed. If it moved or was renamed, fix its ` +
-        `pattern in scripts/lib/bypass-annotations.mjs. If you pruned its ` +
-        `last entry, keep the key and write \`${b.emptyLiteral}\` rather than ` +
-        `deleting it — dropping a block from BYPASS_BLOCKS unpolices that ` +
-        `surface permanently, so entries would sail through unannotated if ` +
-        `the list ever came back.`
+        `nothing in it is policed. Three things do this. If you wrote it in ` +
+        `FLOW style (\`${b.key}: { … }\` or \`[ … ]\` on one line), use block ` +
+        `style instead — this parser is line-oriented and cannot read the flow ` +
+        `form. If it moved or was renamed, fix its pattern in ` +
+        `scripts/lib/bypass-annotations.mjs. If you pruned its last entry, keep ` +
+        `the key and write \`${b.emptyLiteral}\` rather than deleting it — ` +
+        `dropping a block from BYPASS_BLOCKS unpolices that surface ` +
+        `permanently, so entries would sail through unannotated if the list ` +
+        `ever came back.`
     );
   }
 
