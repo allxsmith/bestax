@@ -176,21 +176,42 @@ allowBuilds:
   assert.equal(byName(entries, 'granted').permanent, false);
 });
 
-test('YAML boolean aliases are grants, not silently non-bypasses', () => {
-  // `=== 'true'` would read every one of these as NOT a bypass, leaving a live
-  // grant unannotated and unpoliced — the fail-open this classifier exists for.
-  for (const value of ['true', 'TRUE', 'True', 'yes', 'on']) {
-    const { entries } = parseBypassEntries(
+test('only the literal true and false are classified', () => {
+  const grant = parseBypassEntries('allowBuilds:\n  somepkg: true\n');
+  assert.equal(grant.entries.length, 1);
+  const denial = parseBypassEntries('allowBuilds:\n  somepkg: false\n');
+  assert.deepEqual(denial.entries, []);
+  assert.deepEqual(denial.problems, []);
+});
+
+test('YAML 1.1 boolean habits are reported, never read as denials', () => {
+  // These four were accepted as aliases in the first version of this parser,
+  // and that was a fail-open. pnpm reads this file as YAML 1.2, where `no` is
+  // the STRING "no" — truthy, so pnpm grants the build. Calling it a denial
+  // would wave through, with no annotation, an entry that is live in pnpm.
+  // `TRUE`/`False` are the same story: strings, and the uppercase one is
+  // truthy.
+  for (const value of ['yes', 'no', 'on', 'off', 'TRUE', 'False']) {
+    const { entries, problems } = parseBypassEntries(
       `allowBuilds:\n  somepkg: ${value}\n`
     );
-    assert.equal(entries.length, 1, `${value} should be a grant`);
+    assert.deepEqual(entries, [], `${value} must not be classified`);
+    assert.equal(problems.length, 1, `${value} must be reported`);
   }
-  for (const value of ['false', 'FALSE', 'no', 'off']) {
-    const { entries } = parseBypassEntries(
-      `allowBuilds:\n  somepkg: ${value}\n`
-    );
-    assert.deepEqual(entries, [], `${value} should be a denial`);
-  }
+});
+
+test('a value glued to a # is the whole scalar, not a value plus a comment', () => {
+  // YAML opens an inline comment only at ` #`, so `false#note` is the single
+  // string "false#note" — truthy, and a live grant in pnpm. Matching the
+  // `#note` as a comment handed the classifier a tidy "false" and the gate
+  // asked for no annotation: a fail-open on a grant.
+  const { entries, problems } = parseBypassEntries(`
+allowBuilds:
+  somepkg: false#note
+`);
+  assert.deepEqual(entries, []);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0].why, /false#note/);
 });
 
 test('an unrecognised allowBuilds value is reported, not assumed', () => {

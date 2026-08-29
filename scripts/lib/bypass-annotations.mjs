@@ -39,17 +39,20 @@
  * demanding a marker for one would make the gate noise — which trains people to
  * add markers reflexively, and a reflexive marker is worth less than none.
  *
- * Unrecognized values are `null` rather than falling back to either verdict,
- * and that is the whole reason this is a function instead of `v === 'true'`.
- * YAML's boolean vocabulary is wider than one word: under a `=== 'true'` test
- * `esbuild: yes` reads as NOT-a-bypass, so a live grant would sit unannotated
- * and unpoliced — a silent fail-open in the gate whose entire job is failing
- * closed. Anything unrecognized is reported instead, so a typo is loud.
+ * ONLY the literal `true` and `false` are recognised. Everything else — a typo,
+ * or a YAML 1.1 habit like `yes`/`no`/`on`/`off` — is `null` and gets reported.
+ *
+ * Treating those four as aliases was the first version of this function and it
+ * was a fail-open, which is worth recording so nobody helpfully adds them back.
+ * pnpm reads this file as YAML 1.2, where the boolean vocabulary is exactly
+ * `true`/`false` and `no` is the plain STRING "no" — and a non-empty string is
+ * truthy, so pnpm grants the build. Classifying `no` as a denial would have had
+ * the gate wave through, unannotated, an entry that is live in pnpm. The safe
+ * reading of an unrecognised value is not "probably a denial", it is "stop".
  */
 const classifyAllowBuild = value => {
-  const v = value.toLowerCase();
-  if (v === 'true' || v === 'yes' || v === 'on') return 'bypass';
-  if (v === 'false' || v === 'no' || v === 'off') return 'denial';
+  if (value === 'true') return 'bypass';
+  if (value === 'false') return 'denial';
   return null;
 };
 
@@ -65,12 +68,16 @@ export const BYPASS_BLOCKS = [
     empty: /^allowBuilds:[ \t]*\{[ \t]*\}[ \t]*$/,
     emptyLiteral: 'allowBuilds: {}',
     // Group 2 is the VALUE, which only this block needs: `classify` reads it to
-    // tell a grant from a denial. The `(?:#.*)?` tail keeps an inline comment
-    // out of the captured value — without it `esbuild: true # note` captures
-    // "true" only because `\S+` stops at the space, which is luck rather than
-    // intent, and `esbuild: true# note` would capture "true#" and classify as
-    // null.
-    entry: /^\s+(.+?):[ \t]*(\S+?)[ \t]*(?:#.*)?$/,
+    // tell a grant from a denial.
+    //
+    // The comment tail requires LEADING WHITESPACE, which is not cosmetic. YAML
+    // starts an inline comment only at ` #`, so `pkg: false#note` is the single
+    // scalar string "false#note" — truthy, and therefore a live grant in pnpm.
+    // An earlier `(?:#.*)?` here matched the `#note` as a comment and handed
+    // `classify` a tidy "false", so the gate called it a denial and asked for no
+    // annotation: a fail-open on a grant. Now the whole malformed scalar reaches
+    // `classify`, fails to match either literal, and is reported.
+    entry: /^\s+(.+?):[ \t]*(\S+)(?:[ \t]+#.*)?[ \t]*$/,
     list: false,
     label: 'allowBuilds',
     classify: classifyAllowBuild,
