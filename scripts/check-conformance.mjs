@@ -3374,17 +3374,21 @@ export function isSkippedDocsUrlPath(rel) {
  */
 export function docsUrlViolations(rel, src) {
   const violations = [];
-  // `<x>/<x>`, plus the index/README folder-index forms Docusaurus
-  // collapses the same way.
+  // Mirror docsRoute exactly: the collapsing segment must END the path, and
+  // it may sit under any number of category segments (form/datetime/... is a
+  // live nested category). Anchoring to the first segment after /api both
+  // missed real nested collapses and flagged valid paths like /api/a/a/card,
+  // where the repeat is not trailing.
   const re =
-    /bestax\.io\/docs\/api\/([a-z0-9-]+)\/(\1|index|readme)(?![a-z0-9-])/gi;
+    /bestax\.io\/docs\/api\/((?:[a-z0-9-]+\/)*?)([a-z0-9-]+)\/(\2|index|readme)(?![a-z0-9\-/])/gi;
   src.split(/\r?\n/).forEach((line, i) => {
     for (const m of line.matchAll(re)) {
       violations.push(
-        `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}/${m[2]}, ` +
-          `which 404s: Docusaurus serves docs/docs/api/${m[1]}/${m[2]}.md at ` +
-          `/docs/api/${m[1]}. Drop the repeated segment. If this file is ` +
-          `generated, fix it via scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
+        `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}${m[2]}/${m[3]}, ` +
+          `which 404s: Docusaurus serves ` +
+          `docs/docs/api/${m[1]}${m[2]}/${m[3]}.md at /docs/api/${m[1]}${m[2]}. ` +
+          `Drop the trailing segment. If this file is generated, fix it via ` +
+          `scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
       );
     }
   });

@@ -69,6 +69,38 @@ test('flags the index and README folder-index forms too', () => {
   assert.match(v[0], /\/docs\/api\/grid\b/);
 });
 
+test('matches the trailing pair under a nested category', () => {
+  const v = docsUrlViolations(
+    'x.md',
+    'https://bestax.io/docs/api/form/datetime/datetime'
+  );
+  assert.equal(v.length, 1);
+  assert.match(v[0], /at \/docs\/api\/form\/datetime\./);
+});
+
+test('leaves a nested path whose repeat is not trailing alone', () => {
+  assert.deepEqual(
+    docsUrlViolations('x.md', 'https://bestax.io/docs/api/a/a/card'),
+    []
+  );
+  assert.deepEqual(
+    docsUrlViolations(
+      'x.md',
+      'https://bestax.io/docs/api/form/datetime/dateinput'
+    ),
+    []
+  );
+});
+
+test('collapses only the trailing pair, agreeing with docsRoute', () => {
+  const v = docsUrlViolations(
+    'x.md',
+    'https://bestax.io/docs/api/grid/grid/grid'
+  );
+  assert.equal(v.length, 1);
+  assert.match(v[0], /at \/docs\/api\/grid\/grid\./);
+});
+
 test('skips the gitignored copies of skills/, and nothing else', () => {
   assert.ok(isSkippedDocsUrlPath('bestax-mcp/data/skills'));
   assert.ok(
