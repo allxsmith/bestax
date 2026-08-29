@@ -12,14 +12,23 @@
  * absolute and live in other packages, so nothing resolves them at build time.
  */
 
+// Docusaurus treats three filenames as a folder's index: `<folder>.md`,
+// `index.md` and `README.md`. All three serve at the folder's own route.
+// Verified locally for the index form: docs/docs/guides/llms/index.md builds to
+// build/docs/guides/llms.html with no nested index.html.
+const FOLDER_INDEX_NAMES = new Set(['index', 'readme']);
+
 /**
- * Collapse a duplicated trailing path segment.
+ * Collapse a trailing folder-index segment.
  *
  *   docsRoute('grid/grid')       // 'grid'
+ *   docsRoute('grid/index')      // 'grid'
  *   docsRoute('components/card') // 'components/card'
  *
- * Only the last pair collapses, matching Docusaurus: the rule is about a file
- * named after its own directory, not about repeated names further up the path.
+ * Only the last segment collapses, matching Docusaurus: the rule is about a
+ * file that indexes its own directory, not about repeated names further up the
+ * path. No API page uses the index or README form today, so that half is
+ * covering the shape rather than a live URL.
  *
  * @param {string} slug Route-ish path with no extension, `/`-separated.
  * @returns {string} The path Docusaurus actually serves.
@@ -27,6 +36,10 @@
 export function docsRoute(slug) {
   const parts = String(slug).split('/').filter(Boolean);
   const n = parts.length;
-  if (n >= 2 && parts[n - 1] === parts[n - 2]) parts.pop();
+  if (n < 2) return parts.join('/');
+  const last = parts[n - 1];
+  if (last === parts[n - 2] || FOLDER_INDEX_NAMES.has(last.toLowerCase())) {
+    parts.pop();
+  }
   return parts.join('/');
 }

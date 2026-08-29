@@ -19,6 +19,16 @@ test('collapses only the trailing pair, not repeats further up', () => {
   assert.equal(docsRoute('a/b/a'), 'a/b/a');
 });
 
+test('collapses the index and README folder-index forms', () => {
+  assert.equal(docsRoute('grid/index'), 'grid');
+  assert.equal(docsRoute('grid/README'), 'grid');
+  assert.equal(docsRoute('components/index'), 'components');
+});
+
+test('does not collapse index further up the path', () => {
+  assert.equal(docsRoute('index/card'), 'index/card');
+});
+
 test('handles degenerate input without throwing', () => {
   assert.equal(docsRoute('grid'), 'grid');
   assert.equal(docsRoute(''), '');

@@ -59,6 +59,16 @@ test('finds every occurrence, including two on one line', () => {
   assert.equal(v.filter(m => m.startsWith('x.md:2 ')).length, 1);
 });
 
+test('flags the index and README folder-index forms too', () => {
+  const src = [
+    'https://bestax.io/docs/api/grid/index',
+    'https://bestax.io/docs/api/columns/README',
+  ].join('\n');
+  const v = docsUrlViolations('x.md', src);
+  assert.equal(v.length, 2);
+  assert.match(v[0], /\/docs\/api\/grid\b/);
+});
+
 test('skips the gitignored copies of skills/, and nothing else', () => {
   assert.ok(isSkippedDocsUrlPath('bestax-mcp/data/skills'));
   assert.ok(

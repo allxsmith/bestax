@@ -3374,12 +3374,15 @@ export function isSkippedDocsUrlPath(rel) {
  */
 export function docsUrlViolations(rel, src) {
   const violations = [];
-  const re = /bestax\.io\/docs\/api\/([a-z0-9-]+)\/\1(?![a-z0-9-])/g;
+  // `<x>/<x>`, plus the index/README folder-index forms Docusaurus
+  // collapses the same way.
+  const re =
+    /bestax\.io\/docs\/api\/([a-z0-9-]+)\/(\1|index|readme)(?![a-z0-9-])/gi;
   src.split(/\r?\n/).forEach((line, i) => {
     for (const m of line.matchAll(re)) {
       violations.push(
-        `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}/${m[1]}, ` +
-          `which 404s: Docusaurus serves docs/docs/api/${m[1]}/${m[1]}.md at ` +
+        `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}/${m[2]}, ` +
+          `which 404s: Docusaurus serves docs/docs/api/${m[1]}/${m[2]}.md at ` +
           `/docs/api/${m[1]}. Drop the repeated segment. If this file is ` +
           `generated, fix it via scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
       );
