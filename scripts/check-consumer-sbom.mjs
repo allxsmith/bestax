@@ -434,6 +434,27 @@ export function main(argv = process.argv.slice(2)) {
     }
   }
 
+  // The flags are a CLAIM about each file; normalize() detects the format from
+  // the document's own shape. Those are two different things, and until they
+  // are compared the flags are decoration: hand this the CycloneDX file twice
+  // and every per-document assertion passes, assertion 4 trivially agrees with
+  // itself, and the release ships a file called `.spdx.json` that is not SPDX.
+  // A `format:` typo on either sbom-action step produces exactly that.
+  for (const [flag, expected] of [
+    ['spdx', 'spdx'],
+    ['cdx', 'cyclonedx'],
+  ]) {
+    const detected = normalize(docs[flag])?.format ?? null;
+    if (detected !== expected) {
+      console.error(
+        `::error::${args[flag]} was passed as --${flag} but its contents are ` +
+          `${JSON.stringify(detected)}, not ${expected}. The asset's name and ` +
+          `its format disagree.`
+      );
+      return 1;
+    }
+  }
+
   const target = {
     package: args.package,
     slug: args.slug,

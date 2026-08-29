@@ -470,6 +470,22 @@ test('main fails when the two documents disagree, though each is clean alone', (
   assert.equal(main(cli(writeDoc(healthySpdx()), writeDoc(c))), 1);
 });
 
+test('main rejects a document whose contents contradict its flag', () => {
+  // The flags are a claim about each file; normalize() reads the format off
+  // the document. Until those are compared the flags are decoration — the same
+  // CycloneDX file passed twice satisfies every per-document assertion and
+  // agrees with itself, while the release ships a `.spdx.json` that is not
+  // SPDX. A `format:` typo on either sbom-action step produces exactly that.
+  const cdx = writeDoc(healthyCdx());
+  assert.equal(main(cli(cdx, cdx)), 1);
+
+  const spdx = writeDoc(healthySpdx());
+  assert.equal(main(cli(spdx, spdx)), 1);
+
+  // Swapped, each individually well-formed.
+  assert.equal(main(cli(cdx, spdx)), 1);
+});
+
 test('main separates usage and read errors from assertion failures', () => {
   // Exit 2 must not be readable as "the SBOM is wrong".
   assert.equal(main([]), 2);
