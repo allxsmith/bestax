@@ -76,6 +76,13 @@ Measures active in this repository and its release pipeline:
   `codeql.yml` in `.github/workflows/`.
 - **OpenSSF Scorecard** — `.github/workflows/scorecard.yml` scores this
   repository's supply-chain posture weekly and publishes the result publicly.
+- **OpenSSF Best Practices** — bestax holds the OpenSSF (formerly CII) Best
+  Practices badge at the **passing** level
+  ([project 14361](https://www.bestpractices.dev/projects/14361)). The
+  questionnaire covers the documented contribution process, vulnerability
+  reporting, automated testing, static analysis, secure delivery, and release
+  practice; each answer is public and cites the evidence in this repository.
+  Where Scorecard measures repository mechanics, this covers process.
 - **Dependency review** — a workflow blocks PRs that introduce dependencies
   with known advisories.
 - **Dependabot** — weekly, grouped dependency update PRs.
