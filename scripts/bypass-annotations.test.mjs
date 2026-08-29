@@ -592,6 +592,34 @@ publicHoistPattern:
   );
 });
 
+test('a nested allowBuilds key does not satisfy the top-level block', () => {
+  // Raised on review as a fail-open, and it is not one today — `^allowBuilds:`
+  // is already anchored to column zero, so an indented decoy cannot mark the
+  // block seen. Pinned anyway, because the invariant is one keystroke from
+  // being broken: relaxing the header to `/^\s*allowBuilds:\s*$/` — the kind of
+  // "be lenient about indentation" change that looks harmless — would let the
+  // decoy satisfy blocksSeen while a real top-level flow mapping stays
+  // unparsed, and the gate would go green over a live unannotated grant.
+  //
+  // The flow mapping matches neither `header` nor `empty`, which is correct:
+  // an unsupported shape must leave the block UNSEEN so the missing-block
+  // check fires, rather than being read as an empty one.
+  const { entries, problems, blocksSeen } = parseBypassEntries(`
+otherConfig:
+  allowBuilds:
+    harmless: false
+
+allowBuilds: { unannotated-grant: true }
+`);
+  assert.equal(
+    blocksSeen.has('allowBuilds'),
+    false,
+    'a nested decoy must not mark the block as seen'
+  );
+  assert.deepEqual(entries, []);
+  assert.deepEqual(problems, []);
+});
+
 test('an explicitly emptied block counts as seen, per collection type', () => {
   // Pruning the last entry must not require editing BYPASS_BLOCKS: removing a
   // block definition would unpolice that surface permanently, so an entry
