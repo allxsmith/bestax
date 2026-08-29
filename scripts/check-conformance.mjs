@@ -3358,11 +3358,21 @@ const DOCS_URL_BINARY_EXTS = new Set([
 // Build output and vendored trees. `bestax-mcp/data/skills` and
 // `create-bestax/templates/skills` are gitignored copies of `skills/`, so the
 // source is scanned and the artifact skipped rather than reported twice.
+// Named generated and vendored trees only. Hidden directories are NOT skipped
+// as a class: .husky, .github, .vscode and bulma-ui/.storybook are tracked
+// source a URL can live in, so a blanket dot-skip left real holes.
+// `.claude` is excluded because it is untracked and holds whole worktree
+// copies of this repo, which would report stale findings from another branch.
 const DOCS_URL_EXCLUDED_DIRS = new Set([
   'node_modules',
   '.git',
   '.turbo',
   '.e2e-tmp',
+  '.docusaurus',
+  '.cache',
+  '.next',
+  '.claude',
+  '.sync-skills',
   'dist',
   'build',
   'coverage',
@@ -3419,7 +3429,6 @@ export function docsUrlViolations(rel, src) {
 
 async function docsUrlFiles(dir, root, out = []) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (entry.name.startsWith('.') && entry.name !== '.github') continue;
     const full = join(dir, entry.name);
     const rel = relative(root, full).split('\\').join('/');
     if (entry.isDirectory()) {
