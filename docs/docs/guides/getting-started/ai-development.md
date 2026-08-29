@@ -150,17 +150,17 @@ marker), because an inline thread is an actionable work item and advisories must
 loop.
 
 One consequence is worth knowing before reading a run's job list: **a deep review that reports
-`0 blocking` files no inline threads**, and most reviews do land at zero blocking — so an absent
+`0 blocking` posts no inline threads**, and most reviews do land at zero blocking — so an absent
 `verify` job is usually just that, not a stalled loop.
 
 It is not the only cause, though, and the gate's decision line (it logs `fail=`, `pend=`,
-`actionable=`, `verify=` and `rebut=` counts) is what tells the cases apart. The gate reads the
-PR's whole set of unresolved threads rather than the latest review's output, so a re-run deep
-review that finds nothing can still meet an open thread from an earlier pass and route to
-`verify` on that. And it picks a single mode per run: red or pending CI and threads still
-awaiting the fixer outrank `verify`. A paused loop stops it outright, since the gate requires
-the `ai-loop` label — but the iteration cap does not, because the cap only rewrites
-`fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at iteration 4 still runs.
+`actionable=`, `verify=` and `rebut=` counts) is what tells the cases apart. The gate classifies
+the unresolved threads on the PR (the first 100 it reads) rather than the latest review's
+output, so a re-run deep review that finds nothing can still meet an open thread from an earlier
+pass and route to `verify` on that. And it picks a single mode per run: red or pending CI and
+threads still awaiting the fixer outrank `verify`. A paused loop stops it outright, since the
+gate requires the `ai-loop` label — but the iteration cap does not, because the cap only
+rewrites `fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at iteration 4 still runs.
 
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
