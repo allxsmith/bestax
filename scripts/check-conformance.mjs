@@ -2507,11 +2507,15 @@ async function checkBypassExpiry() {
   // the wrong check is worse than telling them nothing.
   const remediation = label =>
     label === 'allowBuilds'
-      ? `. For each: set it to \`false\`, run \`pnpm install\` and then the ` +
-        `full build and test gate — a grant is only droppable if the package ` +
-        `resolves a prebuilt binary for every platform we build on, so a clean ` +
-        `install here is the evidence, not \`pnpm audit\`. Still needed? Push ` +
-        `its \`# bestax:review\` date out and say why in the same comment.`
+      ? `. For each: set it to \`false\`, then reinstall FROM SCRATCH — remove ` +
+        `node_modules and run \`pnpm install --frozen-lockfile\` — and run the ` +
+        `full build and test gate. Installing in place proves nothing: ` +
+        `node_modules still holds what the package built while the grant was ` +
+        `live, so the build can pass over artifacts a fresh machine would ` +
+        `never have. A grant is only droppable if the package resolves a ` +
+        `prebuilt binary on every platform we build on, which is why CI is the ` +
+        `real check here and \`pnpm audit\` is not. Still needed? Push its ` +
+        `\`# bestax:review\` date out and say why in the same comment.`
       : `. For each: drop it, re-resolve, and leave it out if the resolved ` +
         `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
         `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
