@@ -36,7 +36,7 @@ pnpm dlx bestax-migrate react-bulma-components src/
 
 `npx bestax-migrate` and `yarn dlx bestax-migrate` work the same way. The codemod needs Node 22 or newer, which is a fact about the machine running it, not about your app: your source is read as text and never executed.
 
-Then run your formatter. The codemod emits correct code, not pretty code, and every snippet in this post is shown the way prettier leaves it.
+Then run your formatter. The codemod rewrites syntax, it doesn't style it, and every snippet in this post is shown the way prettier leaves it.
 
 The rest of the flag surface is small:
 
@@ -144,7 +144,7 @@ Three of the four breakpoint objects flattened cleanly. The fourth, `touch`, has
 
 Every one of those comments also lands in the run's report, grouped by rule and sorted by how often it fired. Here's a slice of a real run against the project's own kitchen-sink fixture app:
 
-```
+```text
 bestax-migrate — react-bulma-components (v4) → @allxsmith/bestax-bulma (dry run)
 10 file(s) scanned, 10 transformed, 31 TODO(s) left
 
@@ -198,7 +198,7 @@ After:
 }
 ```
 
-Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag picks the target. `bestax`, the default, points at the one bundle that carries Bulma v1 and the bestax extras together. `bulma` swaps in stock Bulma if you'd rather keep the original look, and adds the extras alongside it, because the themed Radio and Checkbox need them. `keep` is the minimal option: it leaves your stylesheet choices where they are, apart from react-bulma-components' own bundle, which no longer exists at all, so that one becomes Bulma v1 with a TODO attached.
+Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag picks the target. `bestax`, the default, points at the one bundle that carries Bulma v1 and the bestax extras together. `bulma` gives you stock Bulma if you'd rather keep the original look, and in a plain CSS import it pulls the extras in alongside, because the themed Radio and Checkbox need them. `keep` is the minimal option: it leaves your stylesheet choices where they are, apart from react-bulma-components' own bundle, which no longer exists at all, so that one becomes Bulma v1 with a TODO attached.
 
 Your `package.json` gets the same treatment. The old library comes out, bestax-bulma goes in, Bulma moves up to v1, and the long-dead `node-sass` is swapped for dart `sass`. The codemod never runs an install, so nothing reaches the network on your behalf and the next step is always yours. It even sniffs your existing indentation before writing, so the diff stays limited to the dependencies that actually changed.
 
@@ -224,7 +224,7 @@ The codemod does the mechanical part and hands you a list. Two things are built 
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ```
 
-**The MCP server**, which serves that same skill as a prompt, and adds the thing a half-migrated file actually makes you want: the target API, on demand. What props does `Navbar.Brand` take now? Which CSS variables does this component read? It answers offline from an index built for one specific release, and it checks which version your project actually resolved, so when the two drift apart it says so instead of confidently describing props you don't have.
+**The MCP server**, which serves that same skill as a prompt, and adds the thing a half-migrated file actually makes you want: the target API, on demand. What props does `Navbar.Brand` take now? Which CSS variables does this component read? It answers offline from an index built for one specific release, and it checks which version your project actually resolved, so when the two drift far enough apart to matter, a minor or a major, it says so instead of confidently describing props you don't have.
 
 ```bash
 claude mcp add bestax -- npx -y bestax-mcp@1
