@@ -280,7 +280,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Bestax.  <br/>Source code licensed <a href="https://opensource.org/licenses/mit-license.php">MIT</a>. Website content licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>)`,
+        copyright: `Copyright © ${new Date().getFullYear()} Bestax. <br/>Source code licensed <a href="https://opensource.org/licenses/mit-license.php">MIT</a>. Website content licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>.<br/>Built with <a href="https://docusaurus.io/">Docusaurus</a>.`,
       },
       prism: {
         theme: prismThemes.github,
