@@ -273,7 +273,28 @@ test('readInstalledVersion validates what the tarball claims', () => {
 test('parseArgs requires a known mode', () => {
   assert.throws(() => parseArgs([]), /spec\|stamp/);
   assert.throws(() => parseArgs(['stampede']), /spec\|stamp/);
-  assert.equal(parseArgs(['spec', '--package', 'x']).package, 'x');
+  assert.equal(
+    parseArgs(['spec', '--package', 'x', '--event', 'release']).package,
+    'x'
+  );
+});
+
+test('spec requires --event, because its absence disables the pin silently', () => {
+  // installSpec treats an absent event as "not a release", so without this a
+  // malformed invocation exits 0 and resolves `latest` — turning item 1 OFF
+  // with nothing anywhere reporting it. A workflow edit dropping the flag is
+  // the realistic way that happens.
+  assert.throws(
+    () => parseArgs(['spec', '--package', 'x']),
+    /spec requires --event/
+  );
+  assert.equal(main(['spec', '--package', 'x'], {}), 2);
+
+  // --tag stays optional: schedule and dispatch legitimately have none.
+  assert.equal(
+    parseArgs(['spec', '--package', 'x', '--event', 'schedule']).tag,
+    undefined
+  );
 });
 
 test('parseArgs rejects a flag with no value', () => {

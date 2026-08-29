@@ -190,7 +190,10 @@ export function readDocument(file) {
   try {
     return JSON.parse(raw);
   } catch (err) {
-    throw new Error(`${file} is not valid JSON: ${err.message}`, {
+    // SyntaxError.message embeds a snippet of the offending source, newlines
+    // and all, and this is printed under `::error::`. Same defect as the
+    // version validator's: the complaint re-introduces what it rejected.
+    throw new Error(`${file} is not valid JSON: ${forLog(err.message)}`, {
       cause: err,
     });
   }
@@ -476,10 +479,13 @@ export function crossCheck(spdxDoc, cdxDoc, target) {
     list.reduce((m, x) => m.set(x, (m.get(x) ?? 0) + 1), new Map());
   const ta = tally(a);
   const tb = tally(b);
+  // forLog on the identity, not just at the print site: these are `name@version`
+  // strings built straight out of a document, so an entry present in only one
+  // format reaches the log through this list.
   const excess = (x, y) =>
     [...x].flatMap(([id, n]) => {
       const d = n - (y.get(id) ?? 0);
-      return d > 0 ? [d > 1 ? `${id} (x${d} extra)` : id] : [];
+      return d > 0 ? [d > 1 ? `${forLog(id)} (x${d} extra)` : forLog(id)] : [];
     });
   const onlySpdx = excess(ta, tb);
   const onlyCdx = excess(tb, ta);

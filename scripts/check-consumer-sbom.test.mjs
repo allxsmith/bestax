@@ -616,3 +616,57 @@ test('forLog neutralises every value read out of a document', () => {
   assert.equal(forLog(undefined), '""');
   assert.ok(!forLog('x\ny').includes('\n'));
 });
+
+test('NO message path can emit a raw newline, swept exhaustively', () => {
+  // Written as a sweep rather than a list because eyeballing the call sites is
+  // exactly what missed `readDocument`'s parser message and `crossCheck`'s
+  // identity list after a previous pass claimed the file was clean. Every
+  // string-valued field a document can carry gets the payload, and every
+  // problem string from both entry points is checked.
+  const EVIL = 'x\n::error::FORGED';
+  const collect = [];
+
+  const poison = doc => {
+    const d = JSON.parse(JSON.stringify(doc));
+    for (const e of d.packages ?? d.components ?? []) {
+      if (e.name) e.name = EVIL;
+      if (e.versionInfo) e.versionInfo = EVIL;
+      if (e.version) e.version = EVIL;
+      if (e.downloadLocation) e.downloadLocation = EVIL;
+      if (e.purl) e.purl = EVIL;
+    }
+    if (d.metadata?.component) {
+      d.metadata.component.name = EVIL;
+      d.metadata.component.version = EVIL;
+    }
+    d.files = [{ fileName: EVIL }];
+    return d;
+  };
+
+  const ps = poison(healthySpdx());
+  const pc = poison(healthyCdx());
+  collect.push(...inspect(ps, TARGET), ...inspect(pc, TARGET));
+  collect.push(...crossCheck(ps, pc, TARGET));
+  collect.push(...crossCheck(healthySpdx(), pc, TARGET));
+  collect.push(...crossCheck(ps, healthyCdx(), TARGET));
+
+  assert.ok(collect.length > 0, 'the sweep must actually produce problems');
+  for (const p of collect) {
+    assert.ok(!p.includes('\n'), `raw newline in: ${JSON.stringify(p)}`);
+    assert.ok(!p.includes('\r'), `raw CR in: ${JSON.stringify(p)}`);
+  }
+});
+
+test('readDocument does not echo a malformed source snippet verbatim', () => {
+  // SyntaxError.message quotes the offending input, newlines included.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-consumer-sbom-'));
+  const f = path.join(dir, 'bad.json');
+  fs.writeFileSync(f, '{"a":\n::error::FORGED\n}');
+  assert.throws(
+    () => readDocument(f),
+    err => {
+      assert.ok(!err.message.includes('\n'), `raw newline: ${err.message}`);
+      return true;
+    }
+  );
+});

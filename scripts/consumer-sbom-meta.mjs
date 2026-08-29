@@ -270,7 +270,13 @@ export function parseArgs(argv) {
   // the assertion path, which returns 1 — and 1 is what a caller reads as "the
   // published package is wrong". Keeping the codes distinct is the whole
   // reason there are two of them.
-  const required = mode === 'spec' ? ['package'] : ['package', 'slug', 'dir'];
+  // `event` is required for spec, and its absence is the dangerous case rather
+  // than a cosmetic one: installSpec treats an absent event as "not a release",
+  // so a malformed invocation would exit 0, resolve `latest`, and silently turn
+  // OFF the release pin this script exists to apply. A workflow edit dropping
+  // the flag would disable item 1 with nothing anywhere reporting it.
+  const required =
+    mode === 'spec' ? ['package', 'event'] : ['package', 'slug', 'dir'];
   for (const name of required) {
     if (!flags[name]) throw new Error(`${mode} requires --${name}`);
   }
