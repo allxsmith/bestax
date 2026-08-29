@@ -202,9 +202,12 @@ test('rejects the runner-path file component a file: source emits (#530)', () =>
     hashes: [{ alg: 'SHA-256', content: 'c3f5' }],
   });
   const problems = inspect(doc, TARGET);
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /home\/runner/);
-  assert.match(problems[0], /not under pkg:npm\//);
+  // Two problems, not one: a file component has neither a purl nor a version.
+  assert.equal(problems.length, 2);
+  assert.ok(
+    problems.some(p => /home\/runner/.test(p) && /not under pkg:npm\//.test(p))
+  );
+  assert.ok(problems.some(p => /no usable version/.test(p)));
 });
 
 test("SPDX's files array tolerates a bare name and rejects anything with a path", () => {
@@ -446,7 +449,7 @@ test('rejects a document that collapsed to the structural entries', () => {
     structuralNames({ package: PKG, slug: SLUG }).has(p.name)
   );
   const problems = inspect(doc, TARGET);
-  assert.match(problems[0], /only 0 catalogued package/);
+  assert.match(problems[0], /only 0 distinct catalogued package/);
 });
 
 test('rejects an empty document in both formats', () => {
@@ -454,11 +457,11 @@ test('rejects an empty document in both formats', () => {
   // which the floor must catch rather than the format detection.
   assert.match(
     inspect({ spdxVersion: 'SPDX-2.3', packages: [] }, TARGET)[0],
-    /only 0 catalogued/
+    /only 0 distinct catalogued/
   );
   assert.match(
     inspect({ bomFormat: 'CycloneDX', components: [] }, TARGET)[0],
-    /only 0 catalogued/
+    /only 0 distinct catalogued/
   );
 });
 
@@ -481,7 +484,7 @@ test('the floor counts catalogued packages, not entries', () => {
       spdxDep('only-one'),
     ],
   };
-  assert.match(inspect(doc, TARGET)[0], /only 1 catalogued package/);
+  assert.match(inspect(doc, TARGET)[0], /only 1 distinct catalogued package/);
 });
 
 // --- exemptions and normalization --------------------------------------------
@@ -492,6 +495,7 @@ test('the structural entries are exempt by NAME, not by a missing origin', () =>
   const doc = healthySpdx();
   doc.packages[0] = {
     name: 'bestax-consumer-closure-WRONG',
+    versionInfo: '0.0.0',
     downloadLocation: 'NOASSERTION',
   };
   const problems = inspect(doc, TARGET);
@@ -669,4 +673,88 @@ test('readDocument does not echo a malformed source snippet verbatim', () => {
       return true;
     }
   );
+});
+
+// --- the floor counts identities, not entries --------------------------------
+
+test('symmetric duplicates cannot satisfy the floor', () => {
+  // Duplicates only warn, so counting ENTRIES let three copies of one package
+  // clear a floor of three while the closure had collapsed to a single
+  // package — and symmetric copies pass origin, target, subject and the
+  // multiset cross-check too, so nothing else would have caught it.
+  const s = healthySpdx();
+  s.packages = s.packages.filter(
+    p => !p.downloadLocation.startsWith(REGISTRY_PREFIX)
+  );
+  s.packages.push(
+    spdxDep(PKG, VERSION),
+    spdxDep(PKG, VERSION),
+    spdxDep(PKG, VERSION)
+  );
+
+  const c = healthyCdx();
+  c.components = [
+    cdxDep(`bestax-consumer-closure-${SLUG}`, '0.0.0'),
+    cdxDep(PKG, VERSION),
+    cdxDep(PKG, VERSION),
+    cdxDep(PKG, VERSION),
+  ];
+
+  // Each document is internally consistent and the two agree with each other.
+  assert.deepEqual(crossCheck(s, c, TARGET), []);
+  // The floor is the only thing standing between this and a green run.
+  assert.match(inspect(s, TARGET)[0], /only 1 distinct catalogued package/);
+  assert.match(inspect(c, TARGET)[0], /only 1 distinct catalogued package/);
+});
+
+test('the floor still passes a real closure with a legitimate duplicate', () => {
+  // Tightening to distinct names must not red a closure that merely carries
+  // the same version at two paths.
+  const s = healthySpdx();
+  s.packages.push(spdxDep('bulma', '1.0.4'));
+  assert.deepEqual(inspect(s, TARGET), []);
+});
+
+// --- an entry must actually identify something -------------------------------
+
+test('rejects catalogued entries with no name or no version, in both formats', () => {
+  // An entry with a plausible origin but no identity produced no problem, and
+  // identities() rendered a missing version as `?` — so when both syft runs
+  // omitted the same metadata, the floor and the cross-check agreed with each
+  // other and a malformed document shipped.
+  const s = healthySpdx();
+  s.packages.push({
+    versionInfo: '1.0.0',
+    downloadLocation: `${REGISTRY_PREFIX}x/-/x-1.0.0.tgz`,
+  });
+  assert.ok(inspect(s, TARGET).some(p => /no usable name/.test(p)));
+
+  const s2 = healthySpdx();
+  s2.packages.push({
+    name: 'no-version',
+    downloadLocation: `${REGISTRY_PREFIX}x/-/x-1.0.0.tgz`,
+  });
+  assert.ok(inspect(s2, TARGET).some(p => /no usable version/.test(p)));
+
+  const c = healthyCdx();
+  c.components.push({ version: '1.0.0', purl: `${NPM_PURL_PREFIX}x@1.0.0` });
+  assert.ok(inspect(c, TARGET).some(p => /no usable name/.test(p)));
+
+  const c2 = healthyCdx();
+  c2.components.push({ name: 'no-version', purl: `${NPM_PURL_PREFIX}x@1.0.0` });
+  assert.ok(inspect(c2, TARGET).some(p => /no usable version/.test(p)));
+});
+
+test('a missing version is not laundered into an agreeing `?` identity', () => {
+  // Both documents omitting the same field used to agree with each other.
+  const s = healthySpdx();
+  s.packages.push({
+    name: 'ghost',
+    downloadLocation: `${REGISTRY_PREFIX}g/-/g-1.tgz`,
+  });
+  const c = healthyCdx();
+  c.components.push({ name: 'ghost', purl: `${NPM_PURL_PREFIX}g@1` });
+  assert.deepEqual(crossCheck(s, c, TARGET), []); // they do still agree...
+  assert.ok(inspect(s, TARGET).length > 0); // ...but each is now rejected
+  assert.ok(inspect(c, TARGET).length > 0);
 });

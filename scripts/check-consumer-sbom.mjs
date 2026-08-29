@@ -277,18 +277,53 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   const structural = structuralNames({ package: pkg, slug });
   const catalogued = norm.entries.filter(e => !structural.has(e.name));
 
-  // The floor counts catalogued entries, not all of them. Counting everything
-  // would let a document consisting only of the structural names pass a floor
-  // of two, which is exactly the collapse being guarded against.
-  if (catalogued.length < minPackages) {
+  // The floor counts DISTINCT NAMES, not entries, and not merely
+  // non-structural entries. Both narrowings were needed, one at a time:
+  //
+  //   - counting everything let a document of just the structural names pass a
+  //     floor of two;
+  //   - counting entries let DUPLICATES satisfy it. Duplicates are only warned
+  //     about below (npm can legitimately place a version at two paths), so
+  //     three copies of the target package cleared a floor of three while the
+  //     closure had in fact collapsed to a single package — and if both
+  //     documents carried those copies, origin, target, subject and the
+  //     multiset cross-check all passed too.
+  //
+  // Distinct names is what "the document collapsed" actually means. Measured
+  // before tightening: the smallest real closure has 5 distinct names
+  // (run 33263381732), so the floor of 3 keeps its headroom.
+  const distinctNames = new Set(catalogued.map(e => e.name)).size;
+  if (distinctNames < minPackages) {
     problems.push(
-      `only ${catalogued.length} catalogued package(s), expected at least ` +
-        `${minPackages}. This is a floor, not a count — the document has ` +
-        `collapsed, not merely shrunk.`
+      `only ${distinctNames} distinct catalogued package(s) across ` +
+        `${catalogued.length} entr${catalogued.length === 1 ? 'y' : 'ies'}, ` +
+        `expected at least ${minPackages}. This is a floor, not a count — the ` +
+        `document has collapsed, not merely shrunk.`
     );
   }
 
   for (const e of catalogued) {
+    // A name and a version are what makes an entry an inventory record at all.
+    // Without this an entry carrying a plausible origin but no identity
+    // produced no problem, and identities() rendered its missing version as
+    // `?` — so when both syft runs omitted the same metadata the floor and the
+    // cross-check agreed with each other and a malformed document shipped.
+    // Measured before requiring it: 428 entries across the four closures, none
+    // missing either field.
+    if (typeof e.name !== 'string' || e.name === '') {
+      problems.push(
+        `an entry has no usable name (${forLog(e.name)}). An inventory record ` +
+          `without an identity is not evidence of anything.`
+      );
+    }
+    if (typeof e.version !== 'string' || e.version === '') {
+      problems.push(
+        `${forLog(e.name ?? '(unnamed)')} has no usable version ` +
+          `(${forLog(e.version)}). A closure entry that does not say which ` +
+          `version it is cannot be checked against anything.`
+      );
+    }
+
     const origin = e.origin;
     if (typeof origin !== 'string' || !origin.startsWith(norm.originPrefix)) {
       problems.push(
