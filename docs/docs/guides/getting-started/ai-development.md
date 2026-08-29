@@ -137,6 +137,21 @@ re-verify their own findings against the pushed code (nothing is closed on the f
 alone) → after at most 4 fix rounds, the PR either converges (CI green, all review threads
 resolved) or is handed to a human with the open disagreements listed.
 
+**How deep-review findings reach the fixer.** The deep review posts on two channels, and which
+one a finding takes decides whether the loop acts on it. Blocking findings (🔴 Critical, 🟠
+Major, 🟡 Minor) are filed as **inline review comments** on the lines they concern; those
+threads are the fix agent's work items, and it answers each with `Fixed in <sha>` and
+deliberately does not resolve it — the reviewer re-checks that claim in its `verify` pass and
+resolves only what is genuinely fixed. 🔵 Advisory findings never go inline: they appear only as
+rows in the summary review (the one carrying the `<!-- claude-deep-review -->` marker), because
+an inline thread is an actionable work item and advisories must not spin the loop.
+
+One consequence is worth knowing before reading a run's job list: **a deep review that reports
+`0 blocking` creates no threads, so the `verify` pass has nothing to check and does not run.**
+That is the design working rather than a stalled loop — most reviews do land at zero blocking.
+`verify` missing from a run means the review found nothing that blocks, not that verification
+was skipped.
+
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
 stories affected by the PR's changed files — once light, once dark — and posts them to the PR
