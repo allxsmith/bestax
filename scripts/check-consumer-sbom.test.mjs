@@ -197,6 +197,22 @@ test('rejects the runner-path file component a file: source emits (#530)', () =>
   assert.match(problems[0], /not under pkg:npm\//);
 });
 
+test("SPDX's files array tolerates a relative name and rejects an absolute one", () => {
+  // syft writes these relative today, which leaks nothing — a real document
+  // from run 33262407242 carries a bare `package-lock.json` and must pass.
+  const ok = healthySpdx();
+  ok.files = [{ fileName: 'package-lock.json', SPDXID: 'SPDXRef-File-1' }];
+  assert.deepEqual(inspect(ok, TARGET), []);
+
+  // The same array is where an absolute path would land if the file config
+  // changed, so it is checked rather than assumed to stay relative.
+  const bad = healthySpdx();
+  bad.files = [{ fileName: '/home/runner/work/_temp/scan/package-lock.json' }];
+  const problems = inspect(bad, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /an absolute path/);
+});
+
 test('rejects a CycloneDX subject naming a filesystem path (#529)', () => {
   // The metadata.component half of the same failure class.
   const doc = healthyCdx();

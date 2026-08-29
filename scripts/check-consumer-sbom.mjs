@@ -260,6 +260,22 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     }
   }
 
+  // SPDX keeps file entries in their own `files` array rather than among the
+  // packages, so the origin loop above cannot see them. syft writes those
+  // names RELATIVE to the source today — a bare `package-lock.json`, which
+  // leaks nothing and is left alone. An ABSOLUTE one is the SPDX shape of the
+  // leak that shipped in every .cdx.json from #529 until #530, so it is
+  // rejected rather than trusted to stay relative.
+  for (const f of Array.isArray(doc?.files) ? doc.files : []) {
+    if (typeof f?.fileName === 'string' && f.fileName.startsWith('/')) {
+      problems.push(
+        `the files array names ${JSON.stringify(f.fileName)}, an absolute ` +
+          `path. That is the runner's filesystem layout, which a published ` +
+          `document must not carry (#529, #530).`
+      );
+    }
+  }
+
   // The scratch project root should be present in both formats. Not a failure
   // on its own — the document is still an honest closure without it — but its
   // absence means the scan container changed, and the exemption above is then
