@@ -137,6 +137,31 @@ re-verify their own findings against the pushed code (nothing is closed on the f
 alone) → after at most 4 fix rounds, the PR either converges (CI green, all review threads
 resolved) or is handed to a human with the open disagreements listed.
 
+**How deep-review findings reach the fixer.** The deep review posts on two channels, and which
+one a finding takes decides whether the loop acts on it. Blocking findings (🔴 Critical, 🟠
+Major, 🟡 Minor) are filed as **inline review comments** on the lines they concern, and those
+threads are the fix agent's work items. It answers each either with `Fixed in <sha>` when it
+makes the fix, or with a refutation when it judges the finding wrong — and in neither case does
+it resolve the thread. The reviewer picks it up from there in its `verify` pass: it re-checks a
+`Fixed in` claim and resolves only what is genuinely fixed, and answers a refutation with one
+rebuttal-or-concede round before a human rules. 🔵 Advisory findings never go inline: they
+appear only as rows in the summary review (the one carrying the `<!-- claude-deep-review -->`
+marker), because an inline thread is an actionable work item and advisories must not spin the
+loop.
+
+One consequence is worth knowing before reading a run's job list: **a deep review that reports
+`0 blocking` posts no inline threads**, and most reviews do land at zero blocking — so an absent
+`verify` job is usually just that, not a stalled loop.
+
+It is not the only cause, though, and the gate's decision line (it logs `fail=`, `pend=`,
+`actionable=`, `verify=` and `rebut=` counts) is what tells the cases apart. The gate classifies
+the unresolved threads on the PR (the first 100 it reads) rather than the latest review's
+output, so a re-run deep review that finds nothing can still meet an open thread from an earlier
+pass and route to `verify` on that. And it picks a single mode per run: red or pending CI and
+threads still awaiting the fixer outrank `verify`. A paused loop stops it outright, since the
+gate requires the `ai-loop` label — but the iteration cap does not, because the cap only
+rewrites `fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at iteration 4 still runs.
+
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
 stories affected by the PR's changed files — once light, once dark — and posts them to the PR
