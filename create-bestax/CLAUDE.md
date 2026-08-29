@@ -34,8 +34,8 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
   else (`{ scope: '!(create-bestax)', release: false }`), and the bundled copy under
   `templates/skills` is a gitignored build artifact, so it carries no tracked diff that
   could trigger one. A fix landed as `fix(bestax-migrate)` therefore ships to that CLI's
-  users and to the MCP server while scaffolded apps keep the old text until an unrelated
-  release happens by. When a `skills/` change corrects something users would otherwise
+  users and to the MCP server while scaffolded apps keep the old text until some unrelated
+  create-bestax release comes along. When a `skills/` change corrects something users would otherwise
   keep receiving, land a `fix(create-bestax)` commit with it (#597).
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check
