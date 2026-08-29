@@ -29,6 +29,14 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
   `SKILL_ROSTERS` in `scripts/check-conformance.mjs` is the authoritative list, and its failure
   names each file you missed. **Never edit the bundled copy** — change `skills/` at the repo
   root; the build re-syncs.
+- **A correction to a skill's _content_ does not reach `npm create bestax` until this
+  package itself releases.** `release.config.js` refuses every commit scoped to something
+  else (`{ scope: '!(create-bestax)', release: false }`), and the bundled copy under
+  `templates/skills` is a gitignored build artifact, so it carries no tracked diff that
+  could trigger one. A fix landed as `fix(bestax-migrate)` therefore ships to that CLI's
+  users and to the MCP server while scaffolded apps keep the old text until an unrelated
+  release happens by. When a `skills/` change corrects something users would otherwise
+  keep receiving, land a `fix(create-bestax)` commit with it (#597).
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check
   whether this template must change too.
