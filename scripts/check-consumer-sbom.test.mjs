@@ -273,6 +273,37 @@ test('crossCheck is silent when the two agree', () => {
   assert.deepEqual(crossCheck(healthySpdx(), healthyCdx(), TARGET), []);
 });
 
+test('crossCheck compares multisets, not sets', () => {
+  // With `Array.includes`, a package listed twice on one side and once on the
+  // other looked identical to both listing it once, so asymmetric duplicate
+  // inflation passed silently.
+  const c = healthyCdx();
+  c.components.push(cdxDep('bulma', '1.0.4'));
+  const problems = crossCheck(healthySpdx(), c, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /bulma@1\.0\.4/);
+
+  // And the count is reported when more than one copy is extra.
+  const c2 = healthyCdx();
+  c2.components.push(cdxDep('bulma', '1.0.4'), cdxDep('bulma', '1.0.4'));
+  assert.match(crossCheck(healthySpdx(), c2, TARGET)[0], /x2 extra/);
+});
+
+test('symmetric duplicates warn but do not fail', () => {
+  // npm can place the same name@version at two paths when it cannot hoist, so
+  // a duplicate is a real closure shape rather than a defect. Failing on it
+  // would be the false-red generator 48c57d5 reverted (#391, #525).
+  const s = healthySpdx();
+  const c = healthyCdx();
+  s.packages.push(spdxDep('bulma', '1.0.4'));
+  c.components.push(cdxDep('bulma', '1.0.4'));
+
+  assert.deepEqual(inspect(s, TARGET), []);
+  assert.deepEqual(inspect(c, TARGET), []);
+  // Symmetric, so the two documents still agree with each other.
+  assert.deepEqual(crossCheck(s, c, TARGET), []);
+});
+
 test('identities excludes the structural entries from the comparison', () => {
   // SPDX carries the subject as an entry and CycloneDX does not, so comparing
   // raw entry lists would report a permanent, meaningless disagreement.

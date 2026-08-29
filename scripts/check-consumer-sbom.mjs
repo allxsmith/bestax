@@ -324,6 +324,43 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     }
   }
 
+  // Duplicate identities: a WARNING, deliberately, not a failure.
+  //
+  // The doubled-catalogers regression (#529) listed every package twice. It
+  // reds today only because the second copy came from the package.json
+  // cataloger and carried no registry origin — so a future duplication that
+  // kept a valid origin in both documents would pass every assertion here,
+  // since growth is explicitly allowed and the cross-check compares the two
+  // documents to each other rather than to an expectation.
+  //
+  // Not asserted, because npm can legitimately place the same name@version at
+  // two paths when it cannot hoist, and a lockfile with that shape is a real
+  // closure rather than a defect. Failing on it would be the false-red
+  // generator 48c57d5 reverted and #391/#525 are about — reddening somebody
+  // else's release for a dependency-tree shape nobody chose.
+  //
+  // A warning names the count and the offenders, which is enough for a human
+  // reading a dispatch to recognise "every package is listed twice" instantly,
+  // and cannot fail a release on its own. Measured: zero duplicates across all
+  // 208 catalogued entries in the four closures of run 33263381732.
+  const seen = new Map();
+  for (const e of catalogued) {
+    const id = `${e.name}@${e.version ?? '?'}`;
+    seen.set(id, (seen.get(id) ?? 0) + 1);
+  }
+  const dupes = [...seen].filter(([, n]) => n > 1);
+  if (dupes.length > 0) {
+    console.error(
+      `::warning::${norm.format}: ${dupes.length} package(s) listed more than ` +
+        `once (${dupes
+          .slice(0, 5)
+          .map(([id, n]) => `${id} x${n}`)
+          .join(', ')}${dupes.length > 5 ? ', …' : ''}). npm can place the ` +
+        `same version at two paths, so this is not failed — but if MOST of ` +
+        `the closure is duplicated, a second cataloger is running (#529).`
+    );
+  }
+
   // The scratch project root should be present in both formats. Not a failure
   // on its own — the document is still an honest closure without it — but its
   // absence means the scan container changed, and the exemption above is then
@@ -365,12 +402,28 @@ export function identities(doc, { package: pkg, slug }) {
  * for any other reason. They are separate invocations, so nothing makes them
  * agree by construction, and the #529-to-#530 leak is the proof: present in
  * every CycloneDX document, absent from every SPDX one.
+ *
+ * Compared as MULTISETS, not as sets. An earlier version used
+ * `Array.includes`, which asks only "does this identity appear at all" — so a
+ * package listed twice in one document and once in the other looked identical
+ * to both being listed once, and asymmetric duplicate inflation passed
+ * silently. Counting is the same work and answers the question actually being
+ * asked.
  */
 export function crossCheck(spdxDoc, cdxDoc, target) {
   const a = identities(spdxDoc, target);
   const b = identities(cdxDoc, target);
-  const onlySpdx = a.filter(x => !b.includes(x));
-  const onlyCdx = b.filter(x => !a.includes(x));
+  const tally = list =>
+    list.reduce((m, x) => m.set(x, (m.get(x) ?? 0) + 1), new Map());
+  const ta = tally(a);
+  const tb = tally(b);
+  const excess = (x, y) =>
+    [...x].flatMap(([id, n]) => {
+      const d = n - (y.get(id) ?? 0);
+      return d > 0 ? [d > 1 ? `${id} (x${d} extra)` : id] : [];
+    });
+  const onlySpdx = excess(ta, tb);
+  const onlyCdx = excess(tb, ta);
   const problems = [];
 
   if (onlySpdx.length) {
