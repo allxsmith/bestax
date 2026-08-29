@@ -92,7 +92,8 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
 - Install/postinstall scripts are **blocked by default** — new native deps need an `allowBuilds` entry.
 - `minimumReleaseAge` cooldown: versions younger than 3 days won't install.
-- **Every bypass carries an expiry.** Entries in `overrides`, `minimumReleaseAgeExclude` and
+- **Every bypass carries an expiry.** Entries in `allowBuilds` (grants only — a `pkg: false`
+  denial restates the default and is exempt), `overrides`, `minimumReleaseAgeExclude` and
   `auditConfig.ignoreGhsas` need `# bestax:review YYYY-MM-DD — why` (or `# bestax:permanent — why`
   for standing policy) in the comment above them. `check:conformance --only=bypass-expiry` fails
   on a missing annotation and again once a date arrives, so a temporary bypass can't silently

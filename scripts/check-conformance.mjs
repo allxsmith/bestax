@@ -2445,11 +2445,15 @@ async function checkPublishableManifests() {
 }
 
 /**
- * Supply-chain bypasses expire (#391). `overrides`, `minimumReleaseAgeExclude`
- * and `auditConfig.ignoreGhsas` each weaken a default we otherwise hold, and
- * every one of them is written as temporary — but nothing made that observable,
- * so entries outlived their stated reason until an unrelated PR happened to
- * audit the file.
+ * Supply-chain bypasses expire (#391). `allowBuilds`, `overrides`,
+ * `minimumReleaseAgeExclude` and `auditConfig.ignoreGhsas` each weaken a
+ * default we otherwise hold, and every one of them is written as temporary —
+ * but nothing made that observable, so entries outlived their stated reason
+ * until an unrelated PR happened to audit the file.
+ *
+ * In `allowBuilds` only `pkg: true` counts (#516): a `false` entry restates the
+ * block-by-default rule rather than weakening it. The parser makes that call —
+ * see `classifyAllowBuild` in scripts/lib/bypass-annotations.mjs.
  *
  * Two failure modes, and the second is what gives this teeth: a review date
  * that has arrived, and an entry with no annotation at all. Without the latter,
@@ -2467,17 +2471,27 @@ async function checkBypassExpiry() {
 
   // Per block, not merely in total: one block going silent while the other two
   // keep the count nonzero is the same fail-open the parser guards against.
+  //
+  // This is also where a whole-block FLOW mapping lands (`allowBuilds: { pkg:
+  // true }`): the parser reads line-oriented block style only, so a flow form
+  // matches neither `header` nor `empty` and the block reads as absent. That is
+  // the right outcome — red, nothing policed silently — but the message has to
+  // name it, or the one authoring mistake that triggers it sends you looking for
+  // a rename that never happened.
   const missing = BYPASS_BLOCKS.filter(b => !blocksSeen.has(b.key));
   if (missing.length) {
     return missing.map(
       b =>
         `pnpm-workspace.yaml: the \`${b.label}\` block was not found, so ` +
-        `nothing in it is policed. If it moved or was renamed, fix its ` +
-        `pattern in scripts/lib/bypass-annotations.mjs. If you pruned its ` +
-        `last entry, keep the key and write \`${b.emptyLiteral}\` rather than ` +
-        `deleting it — dropping a block from BYPASS_BLOCKS unpolices that ` +
-        `surface permanently, so entries would sail through unannotated if ` +
-        `the list ever came back.`
+        `nothing in it is policed. Three things do this. If you wrote it in ` +
+        `FLOW style (\`${b.key}: { … }\` or \`[ … ]\` on one line), use block ` +
+        `style instead — this parser is line-oriented and cannot read the flow ` +
+        `form. If it moved or was renamed, fix its pattern in ` +
+        `scripts/lib/bypass-annotations.mjs. If you pruned its last entry, keep ` +
+        `the key and write \`${b.emptyLiteral}\` rather than deleting it — ` +
+        `dropping a block from BYPASS_BLOCKS unpolices that surface ` +
+        `permanently, so entries would sail through unannotated if the list ` +
+        `ever came back.`
     );
   }
 
@@ -2503,10 +2517,7 @@ async function checkBypassExpiry() {
         due.length === 1 ? 'y is' : 'ies are'
       } due for review as of ${today} — ` +
         due.map(e => `${e.name} (line ${e.line}, ${e.review})`).join(', ') +
-        `. For each: drop it, re-resolve, and leave it out if the resolved ` +
-        `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
-        `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
-        `say why in the same comment.`
+        expiryRemediation(label)
     );
   }
 
@@ -2523,6 +2534,35 @@ async function checkBypassExpiry() {
 
   return violations;
 }
+
+/**
+ * What to actually DO about an expired bypass, which differs by surface.
+ *
+ * The generic advice is actively wrong for `allowBuilds`: dropping a
+ * lifecycle-script grant changes no resolution and no audit output, so
+ * "re-resolve and check audit" passes cleanly while the install or a fallback
+ * native build is broken. Telling someone to run the wrong check is worse than
+ * telling them nothing, because they will believe the answer.
+ *
+ * Exported, and separated from `checkBypassExpiry`, so the branch is testable:
+ * this message is the entire product of an expiry firing, and a wrong one
+ * retires a live grant on false evidence.
+ */
+export const expiryRemediation = label =>
+  label === 'allowBuilds'
+    ? `. For each: set it to \`false\`, then reinstall FROM SCRATCH — remove ` +
+      `node_modules and run \`pnpm install --frozen-lockfile\` — and run the ` +
+      `full build and test gate. Installing in place proves nothing: ` +
+      `node_modules still holds what the package built while the grant was ` +
+      `live, so the build can pass over artifacts a fresh machine would ` +
+      `never have. A grant is only droppable if the package resolves a ` +
+      `prebuilt binary on every platform we build on, which is why CI is the ` +
+      `real check here and \`pnpm audit\` is not. Still needed? Push its ` +
+      `\`# bestax:review\` date out and say why in the same comment.`
+    : `. For each: drop it, re-resolve, and leave it out if the resolved ` +
+      `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
+      `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
+      `say why in the same comment.`;
 
 // --- skills-roster -----------------------------------------------------------
 

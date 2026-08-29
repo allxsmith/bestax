@@ -1,13 +1,20 @@
 /**
  * Parse the dated annotations on pnpm-workspace.yaml's supply-chain bypasses.
  *
- * Three lists in that file weaken a default we otherwise hold: `overrides`
- * forces a transitive version, `minimumReleaseAgeExclude` waives the cooldown,
- * and `auditConfig.ignoreGhsas` waives the audit gate itself. Each entry is
- * meant to be temporary — it stops being load-bearing once the ecosystem
- * catches up — but nothing made that expiry observable, so entries outlived
- * their own stated reason and were only ever noticed by an unrelated PR that
- * happened to audit the file (#391).
+ * Four lists in that file weaken a default we otherwise hold: `allowBuilds`
+ * re-enables install/postinstall lifecycle scripts, `overrides` forces a
+ * transitive version, `minimumReleaseAgeExclude` waives the cooldown, and
+ * `auditConfig.ignoreGhsas` waives the audit gate itself.
+ *
+ * Each entry is meant to be temporary — it stops being load-bearing once the
+ * ecosystem catches up — but nothing made that expiry observable, so entries
+ * outlived their own stated reason and were only ever noticed by an unrelated
+ * PR that happened to audit the file (#391).
+ *
+ * `allowBuilds` is the odd one, and why it arrived a release later than the
+ * other three (#516): its entries carry a value, and only `pkg: true` is a
+ * bypass. A `pkg: false` entry restates the block-by-default rule, so requiring
+ * a marker on one would be noise. See `classifyAllowBuild`.
  *
  * The contract this parser reads: every entry carries either
  *
@@ -23,8 +30,70 @@
  * one to police the cooldown would itself be subject to the cooldown.
  */
 
+/**
+ * Which `allowBuilds` values are grants, which are denials, and which are
+ * neither. Returns 'bypass' | 'denial' | null.
+ *
+ * `allowBuilds` is the one block whose entries are not uniformly bypasses:
+ * `pkg: false` RESTATES the block-by-default rule rather than weakening it, and
+ * demanding a marker for one would make the gate noise — which trains people to
+ * add markers reflexively, and a reflexive marker is worth less than none.
+ *
+ * ONLY the literal lowercase `true` and `false` are recognised. Everything else
+ * — a typo, an uppercase `TRUE`, or a YAML 1.1 habit like `yes`/`no`/`on`/`off`
+ * — is `null` and gets reported. This is a CANONICAL-SPELLING rule, and the two
+ * things it catches are different, so do not collapse them:
+ *
+ * - `TRUE`/`True` (and `FALSE`/`False`) are real booleans: YAML 1.2's core
+ *   schema resolves all three capitalisations, so `esbuild: TRUE` is a genuine,
+ *   live grant. Reporting it is what stops a live grant going unannotated.
+ * - `yes`/`no`/`on`/`off` are plain STRINGS under YAML 1.2, and pnpm's
+ *   `createAllowBuildFunction` switches on the actual booleans — `case true:` /
+ *   `case false:`, nothing else — so a string matches neither arm and the entry
+ *   is simply DROPPED. It is inert: it neither grants nor denies, and whatever
+ *   the author meant by it silently did not happen.
+ *
+ * That second half corrects what an earlier revision of this comment claimed.
+ * It said a string value is truthy and therefore grants the build. It does not:
+ * pnpm never coerces it, and an entry it cannot read is one it ignores. The
+ * reason to reject those spellings is that an ignored entry is a policy not in
+ * force with nothing to tell you, not that it is a live bypass. Verified in the
+ * pinned pnpm 11.9.0 rather than assumed — see the switch in dist/pnpm.mjs.
+ */
+const classifyAllowBuild = value => {
+  if (value === 'true') return 'bypass';
+  if (value === 'false') return 'denial';
+  return null;
+};
+
 /** Lists we police, in file order, with the vocabulary each violation uses. */
 export const BYPASS_BLOCKS = [
+  {
+    key: 'allowBuilds',
+    // First in this array because the array is file order and `allowBuilds:`
+    // sits above `overrides:`. Nothing depends on the order, but a reader
+    // checking coverage against the file should not have to jump around.
+    header: /^allowBuilds:\s*$/,
+    // A mapping, so `{}` — see the note on `overrides` below.
+    empty: /^allowBuilds:[ \t]*\{[ \t]*\}[ \t]*$/,
+    emptyLiteral: 'allowBuilds: {}',
+    // Group 2 is the VALUE, which only this block needs: `classify` reads it to
+    // tell a grant from a denial.
+    //
+    // The comment tail requires LEADING WHITESPACE, which is not cosmetic. YAML
+    // starts an inline comment only at ` #`, so `pkg: false#note` is the single
+    // scalar string "false#note" — not the boolean `false` plus a note. An
+    // earlier `(?:#.*)?` here matched the `#note` as a comment and handed
+    // `classify` a tidy "false", so the gate read the line as a denial and asked
+    // for no annotation, while pnpm reads a string it cannot switch on and drops
+    // the entry entirely. The gate said "policy, deliberate"; the file said
+    // nothing at all. Now the whole malformed scalar reaches `classify` and is
+    // reported.
+    entry: /^\s+(.+?):[ \t]*(\S+)(?:[ \t]+#.*)?[ \t]*$/,
+    list: false,
+    label: 'allowBuilds',
+    classify: classifyAllowBuild,
+  },
   {
     key: 'overrides',
     // `overrides:` sits at column 0; its entries are `key: value` pairs. The
@@ -279,6 +348,42 @@ export function parseBypassEntries(yaml) {
       // onto the following entry and report the wrong defect there.
       comments = [];
       continue;
+    }
+
+    // Value-dependent blocks (`allowBuilds`): only a grant is a bypass. Blocks
+    // without `classify` keep the original contract — every entry is one.
+    //
+    // BOTH early exits below clear `comments`, and that is load-bearing rather
+    // than tidiness. A comment block belongs to exactly one entry (see above),
+    // so leaving it set would let the prose above `core-js: false` — or above a
+    // typo'd line — carry down onto the NEXT entry, and an unannotated grant
+    // beneath a denial would read as annotated. That is the same leak the
+    // unparsed-line path guards against below, and it fails open.
+    if (active.classify) {
+      const verdict = active.classify(item[2] ?? '');
+      if (verdict === null) {
+        problems.push({
+          line: i + 1,
+          why:
+            `inside \`${active.label}\`, ${JSON.stringify(
+              unquote(item[1].trim())
+            )} has the unrecognised value ${JSON.stringify(item[2] ?? '')}. ` +
+            `Write lowercase \`true\` or \`false\`. pnpm switches on the real ` +
+            `booleans and drops anything else, so this entry is inert — it ` +
+            `neither grants nor denies, and nothing reports that whatever you ` +
+            `meant by it did not happen. (\`TRUE\` is the exception that makes ` +
+            `this fail closed rather than merely tidy: YAML resolves it to a ` +
+            `real boolean, so it IS a live grant.)`,
+        });
+        comments = [];
+        continue;
+      }
+      if (verdict === 'denial') {
+        // A denial restates the safe default; it needs no annotation and is
+        // deliberately absent from `entries` rather than merely unflagged.
+        comments = [];
+        continue;
+      }
     }
 
     entries.push({

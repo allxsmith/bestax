@@ -21,6 +21,7 @@ import {
   parseBypassEntries,
   findExpired,
 } from './lib/bypass-annotations.mjs';
+import { expiryRemediation } from './check-conformance.mjs';
 
 const REPO = join(import.meta.dirname, '..');
 const byName = (entries, name) => entries.find(e => e.name === name);
@@ -75,8 +76,11 @@ overrides:
   assert.equal(entries[0].review, null);
 });
 
-test('covers all three bypass lists, including the nested one', () => {
+test('covers all four bypass lists, including the nested one', () => {
   const { entries } = parseBypassEntries(`
+allowBuilds:
+  # bestax:permanent — native builder
+  somebuilder: true
 minimumReleaseAgeExclude:
   # bestax:permanent — deterministic formatting
   - prettier
@@ -90,10 +94,154 @@ auditConfig:
 `);
   assert.deepEqual(
     entries.map(e => e.label),
-    ['minimumReleaseAgeExclude', 'overrides', 'auditConfig.ignoreGhsas']
+    [
+      'allowBuilds',
+      'minimumReleaseAgeExclude',
+      'overrides',
+      'auditConfig.ignoreGhsas',
+    ]
   );
+  assert.equal(byName(entries, 'somebuilder').permanent, true);
   assert.equal(byName(entries, 'prettier').permanent, true);
   assert.equal(byName(entries, 'GHSA-aaaa-bbbb-cccc').review, '2026-11-13');
+});
+
+// --- allowBuilds (#516). The only block whose entries carry a value, so it is
+// the only one where the parser has to decide what IS a bypass. Every test
+// below pins a way that decision could fail open: a grant that needs a marker
+// slipping through as a denial, or a denial's comment leaking onto a grant.
+
+test('an allowBuilds grant with no marker is unannotated', () => {
+  const { entries } = parseBypassEntries(`
+allowBuilds:
+  somepkg: true
+`);
+  assert.equal(entries.length, 1);
+  const { unannotated } = findExpired(entries, '2026-08-28');
+  assert.deepEqual(
+    unannotated.map(e => e.name),
+    ['somepkg']
+  );
+});
+
+test('an allowBuilds denial needs no marker, and is not an entry at all', () => {
+  // Absent from `entries` rather than merely unflagged: a `false` entry
+  // restates the block-by-default rule, so it is not a bypass to police.
+  // Reporting it would make the gate noise, and noise trains reflexive markers.
+  const { entries, problems } = parseBypassEntries(`
+allowBuilds:
+  somepkg: false
+`);
+  assert.deepEqual(entries, []);
+  assert.deepEqual(problems, []);
+});
+
+test('flipping a grant to a denial stops requiring a marker', () => {
+  const granted = parseBypassEntries('allowBuilds:\n  somepkg: true\n');
+  assert.equal(
+    findExpired(granted.entries, '2026-08-28').unannotated.length,
+    1
+  );
+
+  const denied = parseBypassEntries('allowBuilds:\n  somepkg: false\n');
+  assert.equal(findExpired(denied.entries, '2026-08-28').unannotated.length, 0);
+});
+
+test('a denial does not pass its comment block down to the next grant', () => {
+  // The fail-open specific to this block. A denial is skipped, and skipping it
+  // WITHOUT consuming its comment block would let that block annotate the next
+  // entry — so an unannotated grant beneath a commented denial would read as
+  // annotated, and the gate would go green over a live unexplained bypass.
+  const { entries } = parseBypassEntries(`
+allowBuilds:
+  # bestax:permanent — why this package is denied
+  denied: false
+  granted: true
+`);
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['granted']
+  );
+  assert.equal(byName(entries, 'granted').permanent, false);
+  assert.equal(byName(entries, 'granted').review, null);
+});
+
+test('an unparseable line in allowBuilds does not leak its comment either', () => {
+  const { entries, problems } = parseBypassEntries(`
+allowBuilds:
+  # bestax:permanent — belongs to the broken line, not to what follows
+  : nonsense
+  granted: true
+`);
+  assert.equal(problems.length, 1);
+  assert.equal(byName(entries, 'granted').permanent, false);
+});
+
+test('only the literal true and false are classified', () => {
+  const grant = parseBypassEntries('allowBuilds:\n  somepkg: true\n');
+  assert.equal(grant.entries.length, 1);
+  const denial = parseBypassEntries('allowBuilds:\n  somepkg: false\n');
+  assert.deepEqual(denial.entries, []);
+  assert.deepEqual(denial.problems, []);
+});
+
+test('noncanonical boolean spellings are reported, not classified', () => {
+  // Canonical-spelling rule, and the two halves fail differently — an earlier
+  // version of this comment claimed both were live grants, which was wrong:
+  //
+  // - `TRUE`/`False` ARE real booleans (YAML 1.2 resolves all three
+  //   capitalisations), so `TRUE` is a genuine live grant. Reporting it is what
+  //   keeps a live grant from going unannotated.
+  // - `yes`/`no`/`on`/`off` are plain strings, and pnpm's allowBuild switch has
+  //   only `case true:` / `case false:` — a string matches neither, so the
+  //   entry is DROPPED. Inert rather than dangerous, but an ignored entry is a
+  //   policy not in force with nothing to tell you, which is its own problem.
+  for (const value of ['yes', 'no', 'on', 'off', 'TRUE', 'False']) {
+    const { entries, problems } = parseBypassEntries(
+      `allowBuilds:\n  somepkg: ${value}\n`
+    );
+    assert.deepEqual(entries, [], `${value} must not be classified`);
+    assert.equal(problems.length, 1, `${value} must be reported`);
+  }
+});
+
+test('a value glued to a # is the whole scalar, not a value plus a comment', () => {
+  // YAML opens an inline comment only at ` #`, so `false#note` is the single
+  // string "false#note", not the boolean `false` plus a note. Matching the
+  // `#note` as a comment handed the classifier a tidy "false", so the gate
+  // called the line a deliberate denial while pnpm — which switches on real
+  // booleans — dropped the entry as unreadable. Two different readings of the
+  // same line, and neither party says so.
+  const { entries, problems } = parseBypassEntries(`
+allowBuilds:
+  somepkg: false#note
+`);
+  assert.deepEqual(entries, []);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0].why, /false#note/);
+});
+
+test('an unrecognised allowBuilds value is reported, not assumed', () => {
+  // Neither verdict is safe for a value the parser does not understand, and
+  // guessing "denial" would be the fail-open. Report it and let the run go red.
+  const { entries, problems } = parseBypassEntries(`
+allowBuilds:
+  somepkg: mabye
+`);
+  assert.deepEqual(entries, []);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0].why, /unrecognised value/);
+  assert.match(problems[0].why, /somepkg/);
+});
+
+test('an inline comment is not read as part of the value', () => {
+  const { entries } = parseBypassEntries(`
+allowBuilds:
+  # bestax:permanent — a real reason
+  somepkg: true # still a grant
+`);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].permanent, true);
 });
 
 test('does not mistake a later top-level key for a bypass entry', () => {
@@ -449,6 +597,82 @@ publicHoistPattern:
     ['thing@1'],
     'publicHoistPattern entries must not be mistaken for bypasses'
   );
+});
+
+// --- The remediation message. This is the entire product of an expiry firing:
+// the whole mechanism exists to put these words in front of someone on the day
+// the date arrives. A wrong one sends them to run a check that cannot see the
+// thing it is meant to prove, and they believe the answer.
+
+test('an expired allowBuilds grant gets install evidence, not audit advice', () => {
+  const msg = expiryRemediation('allowBuilds');
+  // The from-scratch requirement is the load-bearing half: an in-place install
+  // reuses what the package built while the grant was live, so the build can
+  // pass over artifacts a fresh machine would never have, and the entry gets
+  // retired on evidence that proves nothing.
+  assert.match(msg, /FROM SCRATCH/);
+  assert.match(msg, /node_modules/);
+  assert.match(msg, /--frozen-lockfile/);
+  assert.match(msg, /every platform we build on/);
+  // And it must NOT hand over the dependency-resolution advice: dropping a
+  // lifecycle grant changes no resolution and no audit output, so a clean
+  // `pnpm audit` here is not evidence of anything.
+  assert.doesNotMatch(msg, /re-resolve/);
+  assert.doesNotMatch(msg, /audit-level=high/);
+});
+
+test('every other surface keeps the original re-resolve remediation', () => {
+  // The branch must not leak the allowBuilds wording onto the three blocks
+  // #514 shipped — for those, re-resolving and a clean audit ARE the evidence.
+  for (const label of [
+    'overrides',
+    'minimumReleaseAgeExclude',
+    'auditConfig.ignoreGhsas',
+  ]) {
+    const msg = expiryRemediation(label);
+    assert.match(msg, /re-resolve/, `${label} keeps the resolution advice`);
+    assert.match(msg, /audit-level=high/, `${label} keeps the audit advice`);
+    assert.doesNotMatch(msg, /FROM SCRATCH/, `${label} is not an install case`);
+  }
+});
+
+test('every policed block has a remediation that names a real check', () => {
+  // Guards the branch against a block being added later and silently falling
+  // through to advice that does not apply to it — the defect this pair of
+  // messages was split apart to fix.
+  for (const block of BYPASS_BLOCKS) {
+    const msg = expiryRemediation(block.label);
+    assert.match(msg, /bestax:review/, `${block.label} says how to defer`);
+    assert.ok(msg.length > 80, `${block.label} says what to actually do`);
+  }
+});
+
+test('a nested allowBuilds key does not satisfy the top-level block', () => {
+  // Raised on review as a fail-open, and it is not one today — `^allowBuilds:`
+  // is already anchored to column zero, so an indented decoy cannot mark the
+  // block seen. Pinned anyway, because the invariant is one keystroke from
+  // being broken: relaxing the header to `/^\s*allowBuilds:\s*$/` — the kind of
+  // "be lenient about indentation" change that looks harmless — would let the
+  // decoy satisfy blocksSeen while a real top-level flow mapping stays
+  // unparsed, and the gate would go green over a live unannotated grant.
+  //
+  // The flow mapping matches neither `header` nor `empty`, which is correct:
+  // an unsupported shape must leave the block UNSEEN so the missing-block
+  // check fires, rather than being read as an empty one.
+  const { entries, problems, blocksSeen } = parseBypassEntries(`
+otherConfig:
+  allowBuilds:
+    harmless: false
+
+allowBuilds: { unannotated-grant: true }
+`);
+  assert.equal(
+    blocksSeen.has('allowBuilds'),
+    false,
+    'a nested decoy must not mark the block as seen'
+  );
+  assert.deepEqual(entries, []);
+  assert.deepEqual(problems, []);
 });
 
 test('an explicitly emptied block counts as seen, per collection type', () => {

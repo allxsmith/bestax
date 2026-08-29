@@ -100,6 +100,13 @@ the build if an entry has no annotation, and fails again once a review date arri
 reminder to drop it, re-resolve, and leave it out if nothing changed. A standing policy that is not
 debt (the `prettier` pin) uses `# bestax:permanent — why` instead and never expires.
 
+The same annotation is required when you **grant a package its install scripts** — a `pkg: true`
+entry under `allowBuilds` re-enables the single most consequential default this repo turns off, so
+say why. Only grants need one: a `pkg: false` entry restates the block-by-default rule and
+the gate leaves it alone. Before granting, check whether the package ships a prebuilt binary for
+your platform as an `optionalDependency` — several here do, which can make the build script
+redundant (see the `@swc/core` entry, denied for exactly that reason).
+
 Note that `pnpm all` does **not** run the conformance checks; CI does. Run
 `pnpm check:conformance` yourself after editing `pnpm-workspace.yaml`.
 

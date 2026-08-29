@@ -12,8 +12,22 @@ packages:
 # scripts. Allow the genuine native builders; deny core-js (its postinstall
 # only prints a funding banner — no build needed).
 allowBuilds:
+  # bestax:review 2026-11-13 — quarterly sweep; grant predates the
+  # platform-binding argument we apply to @swc/core below. esbuild ships 26
+  # prebuilt @esbuild/<platform> packages as optionalDependencies and its
+  # `node install.js` is the fallback that fetches one when none matched, so
+  # this may be droppable. Verify before dropping: unlike @swc/core, install.js
+  # also validates the binary it resolved.
   esbuild: true
+  # bestax:review 2026-11-13 — quarterly sweep; same question as esbuild. The
+  # script is literally `scripts/build-from-source.js` and 13 prebuilt
+  # @parcel/watcher-<platform> packages ship as optionalDependencies, which is
+  # the @swc/core argument almost verbatim.
   '@parcel/watcher': true
+  # bestax:review 2026-11-13 — quarterly sweep; the strongest drop candidate of
+  # the three. `node postinstall.js` is napi-postinstall's generic fallback and
+  # 22 prebuilt @unrs/resolver-binding-<platform> packages ship as
+  # optionalDependencies — the @swc/core reasoning with nothing else added.
   unrs-resolver: true
   core-js: false
   # wrangler (CI-only Cloudflare Pages deploy) pulls these native builds; the
@@ -25,10 +39,11 @@ allowBuilds:
   # (@swc/core-darwin-arm64 etc.), so no script needs to run.
   '@swc/core': false
 
-# Every entry in the three bypass lists below (overrides, the cooldown
-# exclusions, and auditConfig.ignoreGhsas) must carry one of these markers in
-# the comment directly above it — `check:conformance --only=bypass-expiry`
-# fails the build without one, and again once a review date arrives (#391):
+# Every entry in this file's four bypass lists — allowBuilds above, plus
+# overrides, the cooldown exclusions, and auditConfig.ignoreGhsas — must carry
+# one of these markers in the comment directly above it —
+# `check:conformance --only=bypass-expiry` fails the build without one, and
+# again once a review date arrives (#391):
 #
 #   # bestax:review YYYY-MM-DD — why this date
 #   # bestax:permanent — why this is not debt
@@ -36,6 +51,11 @@ allowBuilds:
 # The date is a review-by, not a deadline: when it lands, re-check whether the
 # entry still earns its place, then drop it or push the date out with a reason.
 # CONTRIBUTING.md has the runbook for adding one during a live advisory.
+#
+# allowBuilds is the exception to "every entry": only `pkg: true` needs a
+# marker. A `pkg: false` entry restates the block-by-default rule rather than
+# weakening it, so the gate leaves denials alone — a marker demanded for one
+# would be noise, and reflexive markers are worth less than none.
 #
 # The entries below deliberately share ONE sweep date rather than staggered
 # ones. Staggering would spread the same work over more red-gate events, and
