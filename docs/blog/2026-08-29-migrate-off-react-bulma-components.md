@@ -198,7 +198,7 @@ After:
 }
 ```
 
-Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag picks the target. `bestax`, the default, points at the one bundle that carries Bulma v1 and the bestax extras together. `bulma` gives you stock Bulma if you'd rather keep the original look, and in a plain CSS import it pulls the extras in alongside, because the themed Radio and Checkbox need them. `keep` is the minimal option: it leaves your stylesheet choices where they are, apart from react-bulma-components' own bundle, which no longer exists at all, so that one becomes Bulma v1 with a TODO attached.
+Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag picks the target. `bestax`, the default, is what you just saw in Sass: Bulma v1 and the bestax extras as two `@use` lines. A plain CSS import gets the same pairing as the single `bestax.css` bundle instead. `bulma` gives you stock Bulma if you'd rather keep the original look, and in a plain CSS import it pulls the extras in alongside, because the themed Radio and Checkbox need them. `keep` is the minimal option: it leaves your stylesheet choices where they are, apart from react-bulma-components' own bundle, which no longer exists at all, so that one becomes Bulma v1 with a TODO attached.
 
 Your `package.json` gets the same treatment. The old library comes out, bestax-bulma goes in, Bulma moves up to v1, and the long-dead `node-sass` is swapped for dart `sass`. The codemod never runs an install, so nothing reaches the network on your behalf and the next step is always yours. It even sniffs your existing indentation before writing, so the diff stays limited to the dependencies that actually changed.
 
@@ -212,7 +212,7 @@ That takes some doing, because you can't map an API you can't see. The answer is
 
 There's a second check that runs against the real world. The old library's own Storybook stories are MIT licensed, so the project fetches them at a pinned commit, as text, and runs the codemod over all of them to see what breaks. It's a nice detail that the pinned commit is from January 2024, which tells you plenty about the state of the library on its own. That check deliberately isn't part of CI, because CI shouldn't be reaching out to third-party repositories on every pull request. It's a gate that gets run locally before releases and after any change to the mapping table.
 
-The tool itself ships with signed provenance and publishes through short-lived credentials, so there's no long-lived token sitting around to be stolen. And it can send a single anonymous event about the shape of a run, only if you opt in when it asks, with `--no-telemetry`, `BESTAX_TELEMETRY=0`, and `DO_NOT_TRACK=1` all turning it off.
+The tool itself ships with signed provenance and publishes through short-lived credentials, so there's no long-lived token sitting around to be stolen. And it can send a single anonymous event about the shape of a run, only if you opt in when it asks. `--no-telemetry` switches it off, and so do `DO_NOT_TRACK=1` and `BESTAX_TELEMETRY=0` as long as you haven't passed a flag, because an explicit flag on the command line is resolved before either of them.
 
 ## Finish the Job
 
