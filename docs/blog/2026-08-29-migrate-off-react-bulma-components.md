@@ -16,7 +16,7 @@ So you've got a React app built on react-bulma-components. It works. It also has
 
 <!-- truncate -->
 
-Here's the good news: most of that rewrite is mechanical. bestax-bulma is our React component library for Bulma v1, and it covers the same ground the old library did, component for component. Same Bulma, newer Bulma. So the work is mostly renaming things, and renaming things is what computers are for.
+Here's the good news: most of that rewrite is mechanical. bestax-bulma is our React component library for Bulma v1, and it covers nearly all of the same component surface. Same Bulma, newer Bulma. So the work is mostly renaming things, and renaming things is what computers are for.
 
 That's `bestax-migrate`: a codemod that reads your source, rewrites what it can prove, and tells you about everything it can't. This post walks a real migration, including the parts the tool refuses to do for you.
 
@@ -198,7 +198,7 @@ After:
 }
 ```
 
-Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag decides the target: `bestax` pulls in Bulma v1 plus the bestax extras, `bulma` gives you stock Bulma if you'd rather keep the original look, and `keep` leaves your stylesheet imports alone entirely.
+Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag picks the target. `bestax`, the default, points at the one bundle that carries Bulma v1 and the bestax extras together. `bulma` swaps in stock Bulma if you'd rather keep the original look, and adds the extras alongside it, because the themed Radio and Checkbox need them. `keep` is the minimal option: it leaves your stylesheet choices where they are, apart from react-bulma-components' own bundle, which no longer exists at all, so that one becomes Bulma v1 with a TODO attached.
 
 Your `package.json` gets the same treatment. The old library comes out, bestax-bulma goes in, Bulma moves up to v1, and the long-dead `node-sass` is swapped for dart `sass`. The codemod never runs an install, so nothing reaches the network on your behalf and the next step is always yours. It even sniffs your existing indentation before writing, so the diff stays limited to the dependencies that actually changed.
 
