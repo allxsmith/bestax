@@ -8,10 +8,17 @@ packages:
 
 # --- Supply-chain hardening ---
 
-# Block-by-default: only these dependencies may run install/build lifecycle
-# scripts. Allow the genuine native builders; deny core-js (its postinstall
-# only prints a funding banner — no build needed).
+# Block-by-default: no dependency here may run install/build lifecycle scripts.
+# Every entry is a denial, and #588 retired the last three grants — esbuild,
+# @parcel/watcher and unrs-resolver — after showing each one resolves a prebuilt
+# platform binary with its script blocked. The list is not redundant with the
+# default: each entry records *why* that package's script is unnecessary, so the
+# next person to hit `pnpm approve-builds` finds the argument already made. A
+# new grant is still possible, and would need a marker (see below); it should
+# also have to explain why the platform-binding argument used here does not
+# apply to it.
 allowBuilds:
+  # core-js: its postinstall only prints a funding banner — no build needed.
   core-js: false
   # sass → @parcel/watcher: its `install` script wraps its entire body in
   # `if (process.env.npm_config_build_from_source === 'true')`, which we never
