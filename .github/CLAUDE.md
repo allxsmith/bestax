@@ -73,9 +73,13 @@ regardless of how convenient it is.
   `claude-pr-loop` (`fix`/`verify`), `claude-review`, `claude` and `bestaxbot-reply` all check
   out a branch and run repository code in the same job as that token, and they must — fixing and
   reviewing code is the job. What holds them is a different, weaker set: the tool allowlist, the
-  protected-path deny rules, the trusted-labeler gates, and (once #578 lands) an enforced egress
-  policy. Saying I1 covers those jobs would be the exact overstatement the checklist at the
-  bottom of this file ends on. It covers the pipeline that was designed around it.
+  protected-path deny rules, the trusted-labeler gates, and an enforced egress policy — which as
+  of #578 covers `claude`, `claude-implement` and `bestaxbot-reply`, while `claude-review` and
+  `claude-pr-loop`'s `fix`/`verify` are still at `audit` and so have that last leg only in name.
+  Check the rule 10 inventory before citing it for a specific job rather than reading this
+  sentence as a group claim. Saying I1 covers those jobs would be the exact overstatement the
+  checklist at the bottom of this file ends on. It covers the pipeline that was designed around
+  it.
 
   harden-runner's egress block enforces again as of #487 — `block` used to degrade silently to
   `audit`, and now enforces and is asserted (rule 10). **Do not promote it to a third leg of
@@ -337,13 +341,13 @@ Copy the full version from any block job — the three shapes above are each loa
 
 - **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
   and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or
-  slim runner). Without it a vendor outage fails every block job at once — thirteen of them as of
+  slim runner). Without it a vendor outage fails every block job at once — sixteen of them as of
   the inventory below, not the seven this line said before the `ai-scan`/`ai-triage` job splits —
   with a bare `jq: could not open file`. It still fails, because a job holding a credential must
   not run unprotected, but it says why. Do not hand-maintain that number: it is the count of
   block-mode jobs, and it has been wrong once already. Derive it, and grep for the **key** rather
   than the string — `grep -rn "^ *egress-policy: block$"`. A plain `grep egress-policy: block`
-  returns fourteen: `deploy-worker.yml` names the policy in a comment, which is the same way a
+  returns seventeen: `deploy-worker.yml` names the policy in a comment, which is the same way a
   `node -e` in a comment misclassifies a job below.
 - **The status check polls** rather than testing once. The pre-step waits only for the file to
   _exist_ and gives up after ~9s, while the agent resolves every allow-listed host before writing
@@ -474,11 +478,14 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
 - **Enforcing and asserted** — all three `ai-scan` jobs (`gate`, `scan`, `label`), all four
   `ai-triage` jobs (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
-  `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`). Thirteen jobs; the
-  command below is the check.
-- **Audit, deliberately, pending a measured allowlist** — `claude`, `claude-implement`,
-  `claude-pr-loop` (`fix` and `verify`), `claude-review`, `bestaxbot-reply`. These run repo code
-  with a model token; their block flip is the follow-up this rule owes, tracked in #578.
+  `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
+  `claude-implement` (`implement`), `bestaxbot-reply` (`respond`). Sixteen jobs; the command
+  below is the check.
+- **Audit, deliberately, pending a measured allowlist** — `claude-pr-loop` (`fix` and `verify`)
+  and `claude-review`. These run repo code with a model token; their block flip is the remainder
+  of the follow-up this rule owes, tracked in #578. `fix` and `review` are measured and waiting
+  only on their own PR; `verify` is the one job with no measurement yet, because it runs only
+  when a deep review files a blocking inline finding (#593).
 - **No harden-runner at all**, and these are two different groups — do not merge them into one
   "API-only" line, which understates the second:
   - _Genuinely API-only_ — no checkout, no repository code: `on-slop`, `auto-label-claude-prs`,
@@ -535,6 +542,39 @@ allow-listed host (see I1). Widening an allowlist remains a security change unde
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
+
+#### Measuring an allowlist
+
+An audit-mode run's endpoints are in the **run log**, not only the StepSecurity web UI — the
+`Post Harden runner` step dumps the agent log, which records every DNS resolution and connection.
+So this is a command rather than a transcription exercise, and it is the answer to "where does
+the list come from" wherever this rule says a list must be measured:
+
+```bash
+gh run view <run-id> --log \
+  | grep -oE 'domain: [a-z0-9.-]+\., pid' \
+  | sed 's/domain: //; s/\., pid//' | sort -u
+```
+
+Two things about reading its output, both learned assembling the #578 lists:
+
+- **Runner infrastructure appears in that log and must never be allow-listed.**
+  `results-receiver.actions.githubusercontent.com`,
+  `productionresultssa<N>.blob.core.windows.net`,
+  `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
+  are the runner talking to its own control plane. The blob host cannot be pinned even in
+  principle — its name rotates per run (sa3, sa6, sa7, sa9 and sa11 across five runs). Run
+  33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
+  with the five-host list observed only `api.github.com` and `github.com`, and completed all
+  fifteen of its API calls under the firewall. The visible cost is an Actions cache miss, which
+  degrades rather than fails.
+- **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from four
+  runs and present in the fifth — `telemetry.vercel.com` (turbo) showed up exactly once across
+  the five #578 runs. Prefer denying telemetry at the source (`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`,
+  `TURBO_TELEMETRY_DISABLED`) over allow-listing a host you would rather not talk to; that is the
+  standing call here, and it also keeps the next audit report clean for whoever reads it.
+
+Then resolve every host before it goes in the list, per the rule above.
 
 ## Review checklist for a workflow change
 
