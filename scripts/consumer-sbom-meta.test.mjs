@@ -278,9 +278,49 @@ test('main fails when the tree disagrees with the pinned version', () => {
 });
 
 test('main separates usage errors from assertion failures', () => {
-  // Exit 2 must not be readable as a supply-chain failure.
-  assert.equal(main(['stamp', '--package', SCOPED], {}), 1);
+  // Exit 2 must not be readable as a supply-chain failure, and the converse:
+  // a mistyped invocation must not be reported as one. A missing --slug is a
+  // usage error, so parseArgs owns it and the code is 2, not 1.
   assert.equal(main(['nonsense'], {}), 2);
+  assert.equal(main(['stamp', '--package', SCOPED], {}), 2);
+  assert.equal(main(['stamp', '--package', SCOPED, '--slug', 'x'], {}), 2);
+  assert.equal(main(['spec'], {}), 2);
+
+  // 1 is reserved for a real assertion failure — here, a tree that does not
+  // contain the package it was asked about.
+  assert.equal(
+    main(
+      [
+        'stamp',
+        '--package',
+        'absent-pkg',
+        '--slug',
+        'x',
+        '--dir',
+        tree(SCOPED, '5.12.0'),
+      ],
+      {}
+    ),
+    1
+  );
+});
+
+test('parseArgs owns the required flags for each mode', () => {
+  assert.throws(() => parseArgs(['spec']), /spec requires --package/);
+  assert.throws(
+    () => parseArgs(['stamp', '--package', SCOPED]),
+    /stamp requires --slug/
+  );
+  assert.throws(
+    () => parseArgs(['stamp', '--package', SCOPED, '--slug', 'x']),
+    /stamp requires --dir/
+  );
+  // --expect stays optional: only a pinned leg passes one.
+  assert.equal(
+    parseArgs(['stamp', '--package', SCOPED, '--slug', 'x', '--dir', '/t'])
+      .expect,
+    undefined
+  );
 });
 
 test('main emits spec and expect when the release names this leg', () => {

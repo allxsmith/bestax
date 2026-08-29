@@ -403,6 +403,24 @@ jobs:
             sleep $((attempt * 10))
           done
 
+          # A scan directory holding ONLY the lockfile (#530 item 5). syft used
+          # to be pointed at the consumer tree and recursively walked every file
+          # under node_modules — thousands of them for bestax-migrate's
+          # 98-package closure, twice per matrix leg — to satisfy a cataloger
+          # that reads the root lockfile and nothing else.
+          #
+          # A copied directory rather than the lockfile itself, and that is not
+          # fussiness. Passing the lockfile as sbom-action's `file` input DOES
+          # work and DOES remove the walk, but it changes the source type, and a
+          # file source made syft emit the scanned file as a component of its
+          # own: every CycloneDX document came out carrying
+          # `/home/runner/work/_temp/consumer/package-lock.json`. That is the
+          # exact runner-path leak #529 fixed for SPDX, reintroduced in the
+          # other format. Scanning a directory keeps the document shape #529
+          # measured and validated; the directory just has nothing else in it.
+          mkdir -p "$RUNNER_TEMP/scan"
+          cp package-lock.json "$RUNNER_TEMP/scan/package-lock.json"
+
           cd "$GITHUB_WORKSPACE"
           if [ -n "$EXPECT" ]; then
             node scripts/consumer-sbom-meta.mjs stamp \
@@ -469,13 +487,11 @@ jobs:
           # failure class on #529's branch, after the github-actions cataloger
           # and the javascript group.
           #
-          # As of #530 item 5 the scan targets the lockfile directly rather
-          # than the directory, which makes this exclusion STRUCTURALLY
-          # unnecessary rather than merely correct — there is no tree left to
-          # walk. It stays because it costs nothing and because the failure
-          # class above is worth keeping written down next to the thing that
-          # closes it; if the path ever goes back to being a directory, this is
-          # already right.
+          # As of #530 item 5 the scan directory holds only a copy of the
+          # lockfile, so this exclusion is STRUCTURALLY unnecessary rather than
+          # merely correct — there is no node_modules under it to walk. It
+          # stays because it costs nothing and because the failure class above
+          # is worth keeping written down next to the thing that closes it.
           exclude:
             - './node_modules/**'
           source:
@@ -484,16 +500,18 @@ jobs:
           YAML
           cat "$RUNNER_TEMP/syft.yaml"
 
-      # `file:`, not `path:` — the LOCKFILE rather than the directory (#530
-      # item 5). Pointed at the tree, syft recursively walked every file under
-      # node_modules — thousands of them for bestax-migrate's 98-package
-      # closure, twice per matrix leg — to satisfy a cataloger that only ever
-      # reads the root lockfile.
+      # `path` is the lockfile-only scan directory built in the install step,
+      # not the consumer tree (#530 item 5) — see that step for why it is a
+      # copied directory rather than the lockfile itself.
       #
-      # It has to be the `file` input specifically, and this cost a dispatch to
-      # learn: sbom-action prefixes whatever `path` receives with syft's `dir:`
-      # scheme, so a lockfile passed there fails with `not a directory source`
-      # rather than being scanned. Do not "simplify" this back to `path`.
+      # Two dead ends this cost two dispatches to rule out, recorded so nobody
+      # re-walks them:
+      #   - `path: …/package-lock.json` fails outright. sbom-action prefixes
+      #     whatever `path` receives with syft's `dir:` scheme, so a file
+      #     produces `not a directory source` on every matrix leg.
+      #   - `file: …/package-lock.json` works and is the input built for it,
+      #     but a file source makes syft emit the scanned file as a component,
+      #     putting the runner's absolute path into every CycloneDX document.
       #
       # `artifact-name` and `output-file` come from one step output rather than
       # being spelled out four times (#530 item 4). Be precise about what that
@@ -505,7 +523,7 @@ jobs:
       - name: Generate SPDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          file: ${{ runner.temp }}/consumer/package-lock.json
+          path: ${{ runner.temp }}/scan
           format: spdx-json
           config: ${{ runner.temp }}/syft.yaml
           artifact-name: ${{ steps.install.outputs.basename }}.spdx.json
@@ -516,7 +534,7 @@ jobs:
       - name: Generate CycloneDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          file: ${{ runner.temp }}/consumer/package-lock.json
+          path: ${{ runner.temp }}/scan
           format: cyclonedx-json
           config: ${{ runner.temp }}/syft.yaml
           artifact-name: ${{ steps.install.outputs.basename }}.cdx.json
@@ -536,26 +554,33 @@ jobs:
       # else's release having found nothing wrong — the cry-wolf failure this
       # repository has already fixed twice (#391, #525).
       #
-      # What it asserts instead: every catalogued package resolves to
-      # registry.npmjs.org (catches inflation by its cause — a github-actions
-      # entry or a nested yarn.lock dev closure has no npm download location),
-      # plus a floor that catches the document collapsing to nothing. Neither
-      # knows a count, so growth never reds this. Rule 9: the logic and its
-      # reasoning live in scripts/check-consumer-sbom.mjs with a node --test
-      # sibling that replays both #529 regressions.
+      # What it asserts instead: every catalogued entry came from the npm
+      # registry (SPDX says so with a downloadLocation, CycloneDX with a
+      # `pkg:npm/` purl — a github-actions entry, a nested yarn.lock dev
+      # closure and a bare file component all fail it), that the package the
+      # document names is actually in it at the stamped version, and a floor.
+      # None knows a count, so growth never reds this. Rule 9: the logic and
+      # its reasoning live in scripts/check-consumer-sbom.mjs with a node
+      # --test sibling that replays all three regressions.
       #
-      # SPDX only. The two documents describe the same closure from the same
-      # syft run, and downloadLocation is the SPDX field the lock cataloger's
-      # `resolved` maps to.
-      - name: Assert the document is still a consumer closure
+      # BOTH documents, not just SPDX, and that is not belt-and-braces. They
+      # come from two separate sbom-action invocations, and an SPDX-only guard
+      # has already passed a broken CycloneDX document on this branch: a file
+      # source put `/home/runner/work/_temp/consumer/package-lock.json` into
+      # every .cdx.json while every .spdx.json checked out clean. Both get
+      # signed and attached, so both get read.
+      - name: Assert the documents are still a consumer closure
         env:
           PACKAGE: ${{ matrix.package }}
           SLUG: ${{ matrix.slug }}
+          VERSION: ${{ steps.install.outputs.version }}
           BASENAME: ${{ steps.install.outputs.basename }}
         run: |
-          node scripts/check-consumer-sbom.mjs \
-            --file "$BASENAME.spdx.json" \
-            --package "$PACKAGE" --slug "$SLUG"
+          for format in spdx cdx; do
+            node scripts/check-consumer-sbom.mjs \
+              --file "$BASENAME.$format.json" \
+              --package "$PACKAGE" --slug "$SLUG" --version "$VERSION"
+          done
 
   # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
   # else. The npm provenance we already publish is invisible to it, so releases

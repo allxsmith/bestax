@@ -22,8 +22,15 @@
  *   - Selecting the whole `javascript` cataloger group enabled both javascript
  *     catalogers, listing every package twice — bestax-migrate at 200.
  *
- * Both were found by dispatching the workflow and reading the JSON. Neither
- * was visible from a green job. That is what this script is for.
+ * And a third time on THIS branch, which is why the check reads both formats
+ * rather than SPDX alone: pointing syft at the lockfile as a `file:` source put
+ * a `type: file` component named `/home/runner/work/_temp/consumer/
+ * package-lock.json` into every CycloneDX document — the same runner-path leak
+ * #529 fixed for SPDX, in the format nothing was reading. An SPDX-only guard
+ * passed it, and the leaked document was signed and attached.
+ *
+ * All three were found by generating a document and reading it. None was
+ * visible from a green job. That is what this script is for.
  *
  * ## Why there is no expected count here
  *
@@ -35,26 +42,33 @@
  * repository has already fixed twice (#391, #525), and re-shipping it would be
  * worse than having no guard.
  *
- * So: two assertions, neither of which knows a count.
+ * So: three assertions, none of which knows a count.
  *
- *   1. REGISTRY-URL — every catalogued package resolves to registry.npmjs.org.
- *      This is the one that matters, because it catches inflation by its cause
- *      rather than by its size. A github-actions entry has no npm download
- *      location; neither does a package catalogued out of a dependency's own
- *      yarn.lock. It would have caught both #529 regressions, and it stays
- *      correct as the closure grows.
+ *   1. ORIGIN — every catalogued entry came from the npm registry. SPDX says
+ *      that with a `downloadLocation` under registry.npmjs.org; CycloneDX says
+ *      it with a `pkg:npm/` purl. This is the one that matters, because it
+ *      catches inflation by its cause rather than by its size: a
+ *      github-actions entry, a package catalogued out of a dependency's own
+ *      yarn.lock, and a bare file component all fail it, and it stays correct
+ *      as the closure grows.
  *
- *   2. FLOOR — as MIN_EXPECTED_URLS does in check-pointer-urls.mjs. A floor,
- *      not a count: it catches "the document collapsed to nothing" (an
- *      exporter change, a cataloger that stopped matching) without caring
- *      which packages are in it. Adding or removing a dependency never
+ *   2. TARGET — the package the document claims to describe is actually in it,
+ *      at the version the stamp step recorded. Without this the check passes a
+ *      document that is a perfectly well-formed closure OF SOMETHING ELSE: a
+ *      wrong install spec or a cataloger dropping the direct dependency would
+ *      be approved as long as the transitive packages remained.
+ *
+ *   3. FLOOR — as MIN_EXPECTED_URLS does in check-pointer-urls.mjs. A floor,
+ *      not a count: it catches "the document collapsed to nothing" without
+ *      caring which packages are in it. Adding or removing a dependency never
  *      requires touching the number.
  *
  * Design mirrors check-pointer-urls.mjs: plain node, zero npm deps, pure
  * helpers exported, main only runs when executed directly.
  *
  * Usage:
- *   node scripts/check-consumer-sbom.mjs --file <spdx.json> --package <pkg> --slug <slug>
+ *   node scripts/check-consumer-sbom.mjs --file <sbom.json> --package <pkg> \
+ *                                        --slug <slug> --version <version>
  *
  * Exit codes: 0 the document checks out,
  *             1 an assertion failed,
@@ -64,29 +78,32 @@ import fs from 'node:fs';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-/** Where every package in a consumer closure must have come from. */
+/** Where every package in a consumer closure must have come from (SPDX). */
 export const REGISTRY_PREFIX = 'https://registry.npmjs.org/';
+
+/** The same claim in CycloneDX's vocabulary. */
+export const NPM_PURL_PREFIX = 'pkg:npm/';
 
 /**
  * Fail below this many packages. A FLOOR, not the current count — bulma-ui has
  * the smallest real closure at five, so three leaves room for a dependency to
  * be dropped without touching this file, while still catching a document that
- * collapsed to the two structural entries or to nothing at all.
+ * collapsed to the structural entries or to nothing at all.
  */
 export const MIN_EXPECTED_PACKAGES = 3;
 
 /**
- * The two entries that are legitimately NOT dependencies, named exactly.
+ * The entries that are legitimately NOT dependencies, named exactly.
  *
- * A directory scan adds the scratch project the lockfile records as its root;
- * syft additionally emits the configured source as a package of its own. Both
- * are ours, both are named deliberately in supply-chain.yml, and neither has a
- * registry URL.
+ * The scratch project the lockfile records as its root appears in both
+ * formats. The configured source appears as an SPDX package, but CycloneDX
+ * puts it in `metadata.component` instead — where it is checked separately,
+ * rather than being exempted and forgotten.
  *
- * Exempted BY NAME rather than by allowing NOASSERTION generally. A blanket
- * "packages without a download location are fine" exemption would readmit
- * precisely the github-actions entries this check exists to catch — they carry
- * NOASSERTION too. If syft stops emitting one of these, the name simply stops
+ * Exempted BY NAME rather than by allowing a missing origin generally. A
+ * blanket "entries without an origin are fine" exemption would readmit
+ * precisely the github-actions entries and file components this check exists
+ * to catch. If syft stops emitting one of these, the name simply stops
  * matching and nothing is weakened.
  */
 export function structuralNames({ package: pkg, slug }) {
@@ -96,7 +113,7 @@ export function structuralNames({ package: pkg, slug }) {
   ]);
 }
 
-/** Read and parse an SPDX document, throwing a message that names the file. */
+/** Read and parse an SBOM, throwing a message that names the file. */
 export function readDocument(file) {
   let raw;
   try {
@@ -116,29 +133,70 @@ export function readDocument(file) {
 }
 
 /**
+ * Flatten either format into one shape: { format, entries, subject }.
+ *
+ * Both are generated from the same syft run and describe the same closure, so
+ * they are checked by the same assertions rather than by two parallel
+ * implementations that could drift into disagreeing about what is acceptable.
+ *
+ * `subject` is what the document says it describes — CycloneDX's
+ * `metadata.component`. SPDX carries the equivalent as an ordinary package
+ * entry, so it has none here and is checked through the structural names.
+ */
+export function normalize(doc) {
+  if (Array.isArray(doc?.packages)) {
+    return {
+      format: 'spdx',
+      originField: 'downloadLocation',
+      originPrefix: REGISTRY_PREFIX,
+      entries: doc.packages.map(p => ({
+        name: p?.name,
+        version: p?.versionInfo,
+        origin: p?.downloadLocation,
+      })),
+      subject: null,
+    };
+  }
+  if (Array.isArray(doc?.components)) {
+    return {
+      format: 'cyclonedx',
+      originField: 'purl',
+      originPrefix: NPM_PURL_PREFIX,
+      entries: doc.components.map(c => ({
+        name: c?.name,
+        version: c?.version,
+        origin: c?.purl,
+      })),
+      subject: doc?.metadata?.component ?? null,
+    };
+  }
+  return null;
+}
+
+/**
  * The problems with a document, as a list of strings. Empty means it checks
  * out.
  *
  * Returns every problem rather than the first: a reader who has to dispatch
  * the workflow to see this at all should get the whole picture from one run.
  */
-export function inspect(doc, { package: pkg, slug, minPackages }) {
-  const problems = [];
-  const packages = Array.isArray(doc?.packages) ? doc.packages : null;
-
-  if (!packages) {
+export function inspect(doc, { package: pkg, slug, version, minPackages }) {
+  const norm = normalize(doc);
+  if (!norm) {
     return [
-      `the document has no \`packages\` array. Either the exporter changed ` +
-        `shape or this is not an SPDX document.`,
+      `the document has neither a \`packages\` array (SPDX) nor a ` +
+        `\`components\` array (CycloneDX). Either an exporter changed shape ` +
+        `or this is not an SBOM.`,
     ];
   }
 
+  const problems = [];
   const structural = structuralNames({ package: pkg, slug });
-  const catalogued = packages.filter(p => !structural.has(p?.name));
+  const catalogued = norm.entries.filter(e => !structural.has(e.name));
 
-  // The floor counts catalogued packages, not entries. Counting entries would
-  // let a document consisting only of the two structural names pass a floor of
-  // two, which is exactly the collapse being guarded against.
+  // The floor counts catalogued entries, not all of them. Counting everything
+  // would let a document consisting only of the structural names pass a floor
+  // of two, which is exactly the collapse being guarded against.
   if (catalogued.length < minPackages) {
     problems.push(
       `only ${catalogued.length} catalogued package(s), expected at least ` +
@@ -147,30 +205,69 @@ export function inspect(doc, { package: pkg, slug, minPackages }) {
     );
   }
 
-  for (const p of catalogued) {
-    const location = p?.downloadLocation;
-    if (typeof location !== 'string' || !location.startsWith(REGISTRY_PREFIX)) {
+  for (const e of catalogued) {
+    const origin = e.origin;
+    if (typeof origin !== 'string' || !origin.startsWith(norm.originPrefix)) {
       problems.push(
-        `"${p?.name ?? '(unnamed)'}" has downloadLocation ` +
-          `${JSON.stringify(location ?? null)}, which is not under ` +
-          `${REGISTRY_PREFIX}. It is not something a consumer installs from ` +
-          `npm — a cataloger is reading files it should not (#529).`
+        `"${e.name ?? '(unnamed)'}" has ${norm.originField} ` +
+          `${JSON.stringify(origin ?? null)}, which is not under ` +
+          `${norm.originPrefix}. It is not something a consumer installs from ` +
+          `npm — a cataloger is reading files it should not, or the scan ` +
+          `source is leaking into the document (#529, #530).`
       );
     }
   }
 
-  // Both structural entries should be present. Not a failure on its own — the
-  // document is still an honest closure without them — but their absence means
-  // the source configuration changed, and the exemptions above are then
-  // exempting nothing while looking like they still work.
-  for (const name of structural) {
-    if (!packages.some(p => p?.name === name)) {
-      console.error(
-        `::warning::expected structural entry "${name}" is absent; the syft ` +
-          `source config in supply-chain.yml and the exemptions in ` +
-          `check-consumer-sbom.mjs have drifted apart.`
+  // The document must contain the thing it claims to describe. A closure that
+  // is well-formed but is a closure of something else — a wrong install spec,
+  // a cataloger that dropped the direct dependency — passes every other
+  // assertion here.
+  const target = catalogued.find(e => e.name === pkg);
+  if (!target) {
+    problems.push(
+      `"${pkg}" is not in its own closure. The document is well-formed but ` +
+        `describes something else.`
+    );
+  } else if (version && target.version !== version) {
+    problems.push(
+      `"${pkg}" is present at ${JSON.stringify(target.version ?? null)} but ` +
+        `the install stamped ${version}. The document and its filename ` +
+        `disagree about which release this describes.`
+    );
+  }
+
+  // CycloneDX states its subject in metadata.component rather than as an
+  // entry, so it is checked here rather than exempted by name and forgotten.
+  if (norm.format === 'cyclonedx') {
+    const expected = `consumer-closure:${pkg}`;
+    if (norm.subject?.name !== expected) {
+      problems.push(
+        `metadata.component.name is ` +
+          `${JSON.stringify(norm.subject?.name ?? null)}, expected ` +
+          `"${expected}". The document does not say which package it ` +
+          `describes, or it is naming a filesystem path (#529).`
       );
     }
+    if (version && norm.subject?.version !== version) {
+      problems.push(
+        `metadata.component.version is ` +
+          `${JSON.stringify(norm.subject?.version ?? null)}, expected ` +
+          `"${version}".`
+      );
+    }
+  }
+
+  // The scratch project root should be present in both formats. Not a failure
+  // on its own — the document is still an honest closure without it — but its
+  // absence means the scan container changed, and the exemption above is then
+  // exempting nothing while looking like it still works.
+  const root = `bestax-consumer-closure-${slug}`;
+  if (!norm.entries.some(e => e.name === root)) {
+    console.error(
+      `::warning::expected structural entry "${root}" is absent from this ` +
+        `${norm.format} document; the scan container in supply-chain.yml and ` +
+        `the exemptions in check-consumer-sbom.mjs have drifted apart.`
+    );
   }
 
   return problems;
@@ -185,7 +282,7 @@ export function parseArgs(argv) {
     if (i + 1 >= argv.length) throw new Error(`${key} needs a value`);
     flags[key.slice(2)] = argv[i + 1];
   }
-  for (const required of ['file', 'package', 'slug']) {
+  for (const required of ['file', 'package', 'slug', 'version']) {
     if (!flags[required]) throw new Error(`--${required} is required`);
   }
   return flags;
@@ -198,7 +295,8 @@ export function main(argv = process.argv.slice(2)) {
   } catch (err) {
     console.error(
       `::error::${err.message}\n` +
-        `usage: check-consumer-sbom.mjs --file <spdx.json> --package <pkg> --slug <slug>`
+        `usage: check-consumer-sbom.mjs --file <sbom.json> --package <pkg> ` +
+        `--slug <slug> --version <version>`
     );
     return 2;
   }
@@ -214,6 +312,7 @@ export function main(argv = process.argv.slice(2)) {
   const problems = inspect(doc, {
     package: args.package,
     slug: args.slug,
+    version: args.version,
     minPackages: MIN_EXPECTED_PACKAGES,
   });
 
@@ -225,10 +324,11 @@ export function main(argv = process.argv.slice(2)) {
     return 1;
   }
 
-  const total = Array.isArray(doc.packages) ? doc.packages.length : 0;
+  const norm = normalize(doc);
   console.log(
-    `check-consumer-sbom: ${args.file} — ${total} entries, every catalogued ` +
-      `package resolves to ${REGISTRY_PREFIX}`
+    `check-consumer-sbom: ${args.file} — ${norm.entries.length} ${norm.format} ` +
+      `entries, ${args.package}@${args.version} present, every catalogued ` +
+      `package under ${norm.originPrefix}`
   );
   return 0;
 }

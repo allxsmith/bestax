@@ -1,18 +1,20 @@
 /**
  * Guards on check-consumer-sbom.mjs.
  *
- * The two cases that matter most are regressions that really happened, on
- * #529's own branch, and were found only by dispatching the workflow and
- * reading the JSON:
+ * The cases that matter most are regressions that really happened and were
+ * found only by generating a document and reading it:
  *
  *   - a github-actions cataloger entry, from `.github/workflows` YAML shipped
- *     inside an upstream npm tarball;
+ *     inside an upstream npm tarball (#529);
  *   - every package listed twice, from selecting the whole `javascript`
- *     cataloger group.
+ *     cataloger group (#529);
+ *   - a `type: file` component named with the runner's absolute path, from
+ *     scanning the lockfile as a `file:` source — present in every CycloneDX
+ *     document while every SPDX document was clean (#530).
  *
- * Both are reproduced below as documents this check must reject. If either
- * test is ever relaxed, the corresponding syft config in supply-chain.yml is
- * the thing to look at first.
+ * All three are reproduced below as documents this check must reject. The
+ * third is why `inspect` reads both formats: the guard that existed when it
+ * happened read SPDX only and passed the leak.
  *
  * The negative case is just as important: a document that has merely GROWN
  * must pass. The first version of this guard compared against hardcoded counts
@@ -27,8 +29,10 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   REGISTRY_PREFIX,
+  NPM_PURL_PREFIX,
   MIN_EXPECTED_PACKAGES,
   structuralNames,
+  normalize,
   readDocument,
   inspect,
   parseArgs,
@@ -37,62 +41,103 @@ import {
 
 const PKG = '@allxsmith/bestax-bulma';
 const SLUG = 'allxsmith-bestax-bulma';
-const TARGET = { package: PKG, slug: SLUG, minPackages: MIN_EXPECTED_PACKAGES };
+const VERSION = '5.11.4';
+const TARGET = {
+  package: PKG,
+  slug: SLUG,
+  version: VERSION,
+  minPackages: MIN_EXPECTED_PACKAGES,
+};
 
-const dep = (name, version = '1.0.0') => ({
+// --- fixtures, shaped after the real run-33260691933 documents ---------------
+
+const spdxDep = (name, version = '1.0.0') => ({
   name,
   versionInfo: version,
   downloadLocation: `${REGISTRY_PREFIX}${name}/-/${name}-${version}.tgz`,
 });
 
-/** The two entries syft legitimately adds that are not dependencies. */
-const structural = [
-  { name: `bestax-consumer-closure-${SLUG}`, downloadLocation: 'NOASSERTION' },
-  { name: `consumer-closure:${PKG}`, downloadLocation: 'NOASSERTION' },
-];
-
-/** A healthy bulma-ui closure: five packages plus the two structural entries. */
-const healthy = () => ({
+/** SPDX: five closure packages plus the two structural entries. */
+const healthySpdx = () => ({
   packages: [
-    ...structural,
-    dep('bulma', '1.0.4'),
-    dep('react'),
-    dep('react-dom'),
-    dep('scheduler'),
-    dep('loose-envify'),
+    {
+      name: `bestax-consumer-closure-${SLUG}`,
+      versionInfo: '0.0.0',
+      downloadLocation: 'NOASSERTION',
+    },
+    {
+      name: `consumer-closure:${PKG}`,
+      versionInfo: VERSION,
+      downloadLocation: 'NOASSERTION',
+    },
+    spdxDep(PKG, VERSION),
+    spdxDep('bulma', '1.0.4'),
+    spdxDep('react', '19.2.8'),
+    spdxDep('react-dom', '19.2.8'),
+    spdxDep('scheduler', '0.27.0'),
+  ],
+});
+
+const cdxDep = (name, version = '1.0.0') => ({
+  name,
+  version,
+  purl: `${NPM_PURL_PREFIX}${name}@${version}`,
+});
+
+/** CycloneDX: the same closure, with the subject in metadata.component. */
+const healthyCdx = () => ({
+  bomFormat: 'CycloneDX',
+  metadata: {
+    component: {
+      type: 'directory',
+      name: `consumer-closure:${PKG}`,
+      version: VERSION,
+    },
+  },
+  components: [
+    cdxDep(`bestax-consumer-closure-${SLUG}`, '0.0.0'),
+    cdxDep(PKG, VERSION),
+    cdxDep('bulma', '1.0.4'),
+    cdxDep('react', '19.2.8'),
+    cdxDep('react-dom', '19.2.8'),
+    cdxDep('scheduler', '0.27.0'),
   ],
 });
 
 function writeDoc(doc) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-consumer-sbom-'));
-  const file = path.join(dir, 'sbom.spdx.json');
+  const file = path.join(dir, 'sbom.json');
   fs.writeFileSync(file, JSON.stringify(doc));
   return file;
 }
 
 // --- the happy path ----------------------------------------------------------
 
-test('a clean closure has no problems', () => {
-  assert.deepEqual(inspect(healthy(), TARGET), []);
+test('a clean SPDX closure has no problems', () => {
+  assert.deepEqual(inspect(healthySpdx(), TARGET), []);
 });
 
-test('a closure that merely GREW still passes', () => {
+test('a clean CycloneDX closure has no problems', () => {
+  assert.deepEqual(inspect(healthyCdx(), TARGET), []);
+});
+
+test('a closure that merely GREW still passes, in both formats', () => {
   // The whole reason there is no expected count. A transitive dependency
   // publishing must never red this job.
-  const doc = healthy();
-  for (let i = 0; i < 200; i += 1) doc.packages.push(dep(`transitive-${i}`));
-  assert.deepEqual(inspect(doc, TARGET), []);
+  const s = healthySpdx();
+  const c = healthyCdx();
+  for (let i = 0; i < 200; i += 1) {
+    s.packages.push(spdxDep(`transitive-${i}`));
+    c.components.push(cdxDep(`transitive-${i}`));
+  }
+  assert.deepEqual(inspect(s, TARGET), []);
+  assert.deepEqual(inspect(c, TARGET), []);
 });
 
-test('a closure that merely SHRANK, but is still a closure, passes', () => {
-  const doc = { packages: [...structural, dep('a'), dep('b'), dep('c')] };
-  assert.deepEqual(inspect(doc, TARGET), []);
-});
-
-// --- the two real regressions ------------------------------------------------
+// --- the three real regressions ----------------------------------------------
 
 test('rejects a github-actions cataloger entry (#529)', () => {
-  const doc = healthy();
+  const doc = healthySpdx();
   doc.packages.push({
     name: 'actions/checkout',
     versionInfo: 'v4',
@@ -104,12 +149,12 @@ test('rejects a github-actions cataloger entry (#529)', () => {
   assert.match(problems[0], /not under https:\/\/registry\.npmjs\.org\//);
 });
 
-test("rejects a dependency's own yarn.lock dev closure leaking in", () => {
+test("rejects a dependency's own yarn.lock dev closure leaking in (#529)", () => {
   // npm always excludes package-lock.json from a tarball but NOT yarn.lock, so
   // one dependency publishing without a `files:` field would inject its whole
   // dev tree. Those entries resolve to the yarn registry, a git URL, or
   // nothing — never to registry.npmjs.org via our lockfile's `resolved`.
-  const doc = healthy();
+  const doc = healthySpdx();
   doc.packages.push({
     name: 'some-dev-tool',
     versionInfo: '2.0.0',
@@ -120,51 +165,121 @@ test("rejects a dependency's own yarn.lock dev closure leaking in", () => {
     versionInfo: '0.0.0',
     downloadLocation: 'git+https://github.com/someone/thing.git',
   });
-  const problems = inspect(doc, TARGET);
-  assert.equal(problems.length, 2);
+  assert.equal(inspect(doc, TARGET).length, 2);
 });
 
-test('the doubled-catalogers regression is not silently tolerated', () => {
+test('rejects the doubled-catalogers regression (#529)', () => {
   // Selecting the `javascript` GROUP enabled both javascript catalogers and
   // listed every package twice — bestax-migrate at 200. The package.json
   // cataloger carries no `resolved`, so the duplicates arrive with no registry
   // URL and are caught by the same assertion that catches everything else.
-  const doc = healthy();
+  const doc = healthySpdx();
   doc.packages.push({ name: 'bulma', versionInfo: '1.0.4' });
   const problems = inspect(doc, TARGET);
   assert.equal(problems.length, 1);
   assert.match(problems[0], /"bulma"/);
 });
 
+test('rejects the runner-path file component a file: source emits (#530)', () => {
+  // The exact document run 33260691933 produced. Every SPDX document was
+  // clean, so the SPDX-only guard this replaces passed it, and the leaked
+  // CycloneDX file was signed and attached.
+  const doc = healthyCdx();
+  doc.components.push({
+    'bom-ref': 'fd71c2238fc07657',
+    type: 'file',
+    name: '/home/runner/work/_temp/consumer/package-lock.json',
+    hashes: [{ alg: 'SHA-256', content: 'c3f5' }],
+  });
+  const problems = inspect(doc, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /home\/runner/);
+  assert.match(problems[0], /not under pkg:npm\//);
+});
+
+test('rejects a CycloneDX subject naming a filesystem path (#529)', () => {
+  // The metadata.component half of the same failure class.
+  const doc = healthyCdx();
+  doc.metadata.component = {
+    type: 'directory',
+    name: '/home/runner/work/_temp/consumer',
+  };
+  const problems = inspect(doc, TARGET);
+  assert.ok(problems.some(p => /metadata\.component\.name/.test(p)));
+});
+
+// --- the target must be in its own closure -----------------------------------
+
+test('rejects a well-formed closure of something else', () => {
+  // Copilot's finding on #594: every other assertion passes on a document that
+  // simply does not contain the package it claims to describe.
+  const doc = healthySpdx();
+  doc.packages = doc.packages.filter(p => p.name !== PKG);
+  const problems = inspect(doc, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /is not in its own closure/);
+});
+
+test('rejects a target present at the wrong version', () => {
+  // Catches the document and its filename disagreeing about the release.
+  const doc = healthySpdx();
+  doc.packages.find(p => p.name === PKG).versionInfo = '5.11.1';
+  const problems = inspect(doc, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /present at "5\.11\.1".*stamped 5\.11\.4/);
+});
+
+test('rejects a CycloneDX subject at the wrong version', () => {
+  const doc = healthyCdx();
+  doc.metadata.component.version = '5.11.1';
+  assert.ok(
+    inspect(doc, TARGET).some(p => /metadata\.component\.version/.test(p))
+  );
+});
+
 // --- the floor ---------------------------------------------------------------
 
 test('rejects a document that collapsed to the structural entries', () => {
-  const problems = inspect({ packages: structural }, TARGET);
+  const doc = healthySpdx();
+  doc.packages = doc.packages.filter(p =>
+    structuralNames({ package: PKG, slug: SLUG }).has(p.name)
+  );
+  const problems = inspect(doc, TARGET);
   assert.match(problems[0], /only 0 catalogued package/);
 });
 
-test('rejects an empty document', () => {
+test('rejects an empty document in both formats', () => {
   assert.match(inspect({ packages: [] }, TARGET)[0], /only 0 catalogued/);
+  assert.match(inspect({ components: [] }, TARGET)[0], /only 0 catalogued/);
 });
 
-test('rejects a document with no packages array at all', () => {
-  assert.match(inspect({}, TARGET)[0], /no `packages` array/);
-  assert.match(inspect(null, TARGET)[0], /no `packages` array/);
+test('rejects a document that is neither format', () => {
+  assert.match(inspect({}, TARGET)[0], /neither a `packages` array/);
+  assert.match(inspect(null, TARGET)[0], /neither a `packages` array/);
 });
 
 test('the floor counts catalogued packages, not entries', () => {
-  // A floor of 3 against ENTRIES would pass a document holding only the two
+  // A floor of 3 against ALL entries would pass a document holding only the
   // structural names plus one real package, which is the collapse this is for.
-  const doc = { packages: [...structural, dep('only-one')] };
+  const doc = {
+    packages: [
+      {
+        name: `bestax-consumer-closure-${SLUG}`,
+        downloadLocation: 'NOASSERTION',
+      },
+      { name: `consumer-closure:${PKG}`, downloadLocation: 'NOASSERTION' },
+      spdxDep('only-one'),
+    ],
+  };
   assert.match(inspect(doc, TARGET)[0], /only 1 catalogued package/);
 });
 
-// --- exemptions --------------------------------------------------------------
+// --- exemptions and normalization --------------------------------------------
 
-test('the structural entries are exempt by NAME, not by NOASSERTION', () => {
-  // A blanket "no download location is fine" exemption would readmit every
-  // github-actions entry. Prove the exemption is name-scoped by renaming one.
-  const doc = healthy();
+test('the structural entries are exempt by NAME, not by a missing origin', () => {
+  // A blanket "no origin is fine" exemption would readmit every github-actions
+  // entry and every file component. Prove it is name-scoped by renaming one.
+  const doc = healthySpdx();
   doc.packages[0] = {
     name: 'bestax-consumer-closure-WRONG',
     downloadLocation: 'NOASSERTION',
@@ -183,6 +298,12 @@ test('structuralNames matches what supply-chain.yml configures', () => {
   );
 });
 
+test('normalize picks the format off the document, not a flag', () => {
+  assert.equal(normalize(healthySpdx()).format, 'spdx');
+  assert.equal(normalize(healthyCdx()).format, 'cyclonedx');
+  assert.equal(normalize({}), null);
+});
+
 // --- CLI ---------------------------------------------------------------------
 
 test('readDocument names the file it could not read', () => {
@@ -192,32 +313,50 @@ test('readDocument names the file it could not read', () => {
   assert.throws(() => readDocument(bad), /not valid JSON/);
 });
 
-test('parseArgs requires all three flags', () => {
+test('parseArgs requires all four flags', () => {
   assert.throws(() => parseArgs([]), /--file is required/);
   assert.throws(
-    () => parseArgs(['--file', 'x', '--package', 'y']),
-    /--slug is required/
+    () => parseArgs(['--file', 'x', '--package', 'y', '--slug', 'z']),
+    /--version is required/
   );
 });
 
-test('main returns 0 on a clean document and 1 on a dirty one', () => {
-  const clean = writeDoc(healthy());
-  assert.equal(main(['--file', clean, '--package', PKG, '--slug', SLUG]), 0);
+test('main returns 0 on clean documents and 1 on a dirty one', () => {
+  const args = f => [
+    '--file',
+    f,
+    '--package',
+    PKG,
+    '--slug',
+    SLUG,
+    '--version',
+    VERSION,
+  ];
+  assert.equal(main(args(writeDoc(healthySpdx()))), 0);
+  assert.equal(main(args(writeDoc(healthyCdx()))), 0);
 
-  const doc = healthy();
+  const doc = healthySpdx();
   doc.packages.push({
     name: 'actions/checkout',
     downloadLocation: 'NOASSERTION',
   });
-  const dirty = writeDoc(doc);
-  assert.equal(main(['--file', dirty, '--package', PKG, '--slug', SLUG]), 1);
+  assert.equal(main(args(writeDoc(doc))), 1);
 });
 
 test('main separates usage and read errors from assertion failures', () => {
   // Exit 2 must not be readable as "the SBOM is wrong".
   assert.equal(main([]), 2);
   assert.equal(
-    main(['--file', '/nope/missing.json', '--package', PKG, '--slug', SLUG]),
+    main([
+      '--file',
+      '/nope/missing.json',
+      '--package',
+      PKG,
+      '--slug',
+      SLUG,
+      '--version',
+      VERSION,
+    ]),
     2
   );
 });

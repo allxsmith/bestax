@@ -218,6 +218,15 @@ export function parseArgs(argv) {
     if (i + 1 >= rest.length) throw new Error(`${key} needs a value`);
     flags[key.slice(2)] = rest[i + 1];
   }
+  // Required flags are validated HERE, not in main, so a mistyped invocation
+  // exits 2 like every other usage error. Checking them in main put them on
+  // the assertion path, which returns 1 — and 1 is what a caller reads as "the
+  // published package is wrong". Keeping the codes distinct is the whole
+  // reason there are two of them.
+  const required = mode === 'spec' ? ['package'] : ['package', 'slug', 'dir'];
+  for (const name of required) {
+    if (!flags[name]) throw new Error(`${mode} requires --${name}`);
+  }
   return { mode, ...flags };
 }
 
@@ -240,7 +249,6 @@ export function main(argv = process.argv.slice(2), env = process.env) {
 
   try {
     if (args.mode === 'spec') {
-      if (!args.package) throw new Error('spec requires --package');
       const spec = installSpec({
         package: args.package,
         eventName: args.event,
@@ -264,10 +272,6 @@ export function main(argv = process.argv.slice(2), env = process.env) {
       );
       return 0;
     }
-
-    if (!args.package) throw new Error('stamp requires --package');
-    if (!args.slug) throw new Error('stamp requires --slug');
-    if (!args.dir) throw new Error('stamp requires --dir');
 
     const version = readInstalledVersion(args.dir, args.package);
 
