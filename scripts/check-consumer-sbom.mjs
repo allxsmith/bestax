@@ -211,9 +211,12 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
       problems.push(
         `"${e.name ?? '(unnamed)'}" has ${norm.originField} ` +
           `${JSON.stringify(origin ?? null)}, which is not under ` +
-          `${norm.originPrefix}. It is not something a consumer installs from ` +
-          `npm — a cataloger is reading files it should not, or the scan ` +
-          `source is leaking into the document (#529, #530).`
+          `${norm.originPrefix}. Usually that means a cataloger is reading ` +
+          `files it should not, or the scan source is leaking into the ` +
+          `document (#529, #530). If instead we have genuinely taken a ` +
+          `runtime dependency that resolves from git, a tarball URL or an ` +
+          `npm: alias, that is worth knowing about on its own — decide ` +
+          `whether to keep the dependency before widening this check.`
       );
     }
   }

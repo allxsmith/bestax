@@ -543,21 +543,35 @@ jobs:
       #     but a file source makes syft emit the scanned file as a component,
       #     putting the runner's absolute path into every CycloneDX document.
       #
-      # `artifact-name` and `output-file` come from one step output rather than
-      # being spelled out four times (#530 item 4). Be precise about what that
-      # fixes: `sign-sbom` and `attach-sbom` glob on these names from their own
-      # jobs and cannot read a step output across a job boundary, so this
-      # collapses four occurrences to one, not eight. What keeps those globs
-      # honest is that the prefix is now a single exported constant
-      # (ARTIFACT_PREFIX in scripts/consumer-sbom-meta.mjs) pinned by a test.
+      # `output-file` comes from one step output rather than being spelled out
+      # four times (#530 item 4). `sign-sbom` and `attach-sbom` still glob these
+      # names from their own jobs and cannot read a step output across a job
+      # boundary — what keeps those globs honest is that the prefix is a single
+      # exported constant (ARTIFACT_PREFIX in scripts/consumer-sbom-meta.mjs)
+      # pinned by a test.
+      #
+      # `upload-artifact: false` on BOTH, with one explicit upload after the
+      # guard. This is what makes the guard a GATE rather than a detector, and
+      # the distinction is not academic: the action generates and uploads in a
+      # single step, so with its default the artifact existed before anything
+      # had looked at it — and `sign-sbom`/`attach-sbom` deliberately do not
+      # require `consumer-sbom` to have succeeded, so on a real release they
+      # would download that artifact by glob and sign and permanently attach a
+      # document the guard had already rejected. The run went red and the bad
+      # SBOM shipped anyway.
+      #
+      # Deferring the upload preserves the degradation #529 designed for: a leg
+      # that fails, for any reason, simply produces no artifact, the globs
+      # downstream expand to nothing, and `attach-sbom` emits its ::warning::
+      # while the repository SBOMs still ship.
       - name: Generate SPDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: ${{ runner.temp }}/scan
           format: spdx-json
           config: ${{ runner.temp }}/syft.yaml
-          artifact-name: ${{ steps.install.outputs.basename }}.spdx.json
           output-file: ${{ steps.install.outputs.basename }}.spdx.json
+          upload-artifact: false
           # Same reason as the repository SBOM: one deterministic uploader.
           upload-release-assets: false
 
@@ -567,8 +581,8 @@ jobs:
           path: ${{ runner.temp }}/scan
           format: cyclonedx-json
           config: ${{ runner.temp }}/syft.yaml
-          artifact-name: ${{ steps.install.outputs.basename }}.cdx.json
           output-file: ${{ steps.install.outputs.basename }}.cdx.json
+          upload-artifact: false
           upload-release-assets: false
 
       # The guard #529 deferred (#530 item 2). Nothing asserted anything about
@@ -595,10 +609,14 @@ jobs:
       #
       # BOTH documents, not just SPDX, and that is not belt-and-braces. They
       # come from two separate sbom-action invocations, and an SPDX-only guard
-      # has already passed a broken CycloneDX document on this branch: a file
-      # source put `/home/runner/work/_temp/consumer/package-lock.json` into
-      # every .cdx.json while every .spdx.json checked out clean. Both get
-      # signed and attached, so both get read.
+      # demonstrably passes a broken CycloneDX one: every published .cdx.json
+      # since #529 carried `/home/runner/work/_temp/consumer/package-lock.json`
+      # while every .spdx.json checked out clean (run 32706731377, a scheduled
+      # run on main). Both get signed and attached, so both get read.
+      #
+      # This step runs BEFORE the upload below, which is what makes it a gate.
+      # A failure here means no artifact is ever published, so nothing
+      # downstream can sign or attach a document that did not check out.
       - name: Assert the documents are still a consumer closure
         env:
           PACKAGE: ${{ matrix.package }}
@@ -611,6 +629,26 @@ jobs:
               --file "$BASENAME.$format.json" \
               --package "$PACKAGE" --slug "$SLUG" --version "$VERSION"
           done
+
+      # One artifact per matrix leg carrying both formats, replacing the two
+      # the action used to upload for itself. The NAME has to keep matching
+      # `bestax-*sbom*`, which is what `sign-sbom` and `attach-sbom` pass to
+      # download-artifact — the basename does, by construction. The file names
+      # inside are unchanged, so the globs in those jobs need no change either.
+      #
+      # No `if:`, deliberately. This step is reached only when every step above
+      # it succeeded, which is exactly the gate described above.
+      - name: Upload the consumer SBOMs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ${{ steps.install.outputs.basename }}
+          path: |
+            ${{ steps.install.outputs.basename }}.spdx.json
+            ${{ steps.install.outputs.basename }}.cdx.json
+          # Fail rather than warn: reaching this step means the documents
+          # checked out, so a missing file is a bug in this job and not a
+          # degradation to absorb quietly.
+          if-no-files-found: error
 
   # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
   # else. The npm provenance we already publish is invisible to it, so releases
