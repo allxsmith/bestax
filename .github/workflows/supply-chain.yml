@@ -475,6 +475,13 @@ jobs:
           PACKAGE: ${{ matrix.package }}
           VERSION: ${{ steps.install.outputs.version }}
         run: |
+          # NO BACKTICKS BELOW THIS LINE. The heredoc is unquoted, because it
+          # interpolates $PACKAGE and $VERSION, so backticks are command
+          # substitution rather than punctuation. Until #530 the comment about
+          # yarn.lock said "a files: field" in backticks and the runner
+          # cheerfully executed 'files:' and pasted the empty result — the
+          # generated config read "publishing without  field". Harmless inside
+          # a YAML comment, but the next phrase somebody backticks might not be.
           cat > "$RUNNER_TEMP/syft.yaml" <<YAML
           default-catalogers:
             - javascript-lock-cataloger
@@ -482,7 +489,7 @@ jobs:
           # **/pnpm-lock.yaml, so a directory scan also reads lockfiles that
           # dependencies ship inside their own tarballs. npm always excludes
           # package-lock.json from a tarball but NOT yarn.lock, so one dep
-          # publishing without a `files:` field would inject its entire dev
+          # publishing without a files: field would inject its entire dev
           # closure into this document. That was the third instance of this
           # failure class on #529's branch, after the github-actions cataloger
           # and the javascript group.
@@ -494,6 +501,29 @@ jobs:
           # is worth keeping written down next to the thing that closes it.
           exclude:
             - './node_modules/**'
+          # No file cataloging. Not an optimisation — it closes a leak that has
+          # been shipping since #529, and that the guard below caught on its
+          # first run reading CycloneDX.
+          #
+          # File metadata is cataloged independently of default-catalogers,
+          # which is why restricting that to the lock cataloger did not stop
+          # it. syft emitted the scanned lockfile as an artifact in its own
+          # right, and the two exporters disagreed about how to name it: SPDX
+          # put a RELATIVE package-lock.json in its files array, while
+          # CycloneDX put a type: file component named with the ABSOLUTE path.
+          # So every published .cdx.json carried
+          # /home/runner/work/_temp/consumer/package-lock.json — the same
+          # runner-path leak #529 fixed for SPDX, in the format nobody read.
+          #
+          # Pre-existing, not introduced here: confirmed against run
+          # 32706731377, a scheduled run on main from before this branch.
+          #
+          # Nothing is lost. The file entry describes the scan container, not
+          # the closure; the evidence this document exists to carry is the
+          # package list and its registry URLs.
+          file:
+            metadata:
+              selection: none
           source:
             name: "consumer-closure:$PACKAGE"
             version: "$VERSION"
