@@ -1,13 +1,20 @@
 /**
  * Parse the dated annotations on pnpm-workspace.yaml's supply-chain bypasses.
  *
- * Three lists in that file weaken a default we otherwise hold: `overrides`
- * forces a transitive version, `minimumReleaseAgeExclude` waives the cooldown,
- * and `auditConfig.ignoreGhsas` waives the audit gate itself. Each entry is
- * meant to be temporary — it stops being load-bearing once the ecosystem
- * catches up — but nothing made that expiry observable, so entries outlived
- * their own stated reason and were only ever noticed by an unrelated PR that
- * happened to audit the file (#391).
+ * Four lists in that file weaken a default we otherwise hold: `allowBuilds`
+ * re-enables install/postinstall lifecycle scripts, `overrides` forces a
+ * transitive version, `minimumReleaseAgeExclude` waives the cooldown, and
+ * `auditConfig.ignoreGhsas` waives the audit gate itself.
+ *
+ * Each entry is meant to be temporary — it stops being load-bearing once the
+ * ecosystem catches up — but nothing made that expiry observable, so entries
+ * outlived their own stated reason and were only ever noticed by an unrelated
+ * PR that happened to audit the file (#391).
+ *
+ * `allowBuilds` is the odd one, and why it arrived a release later than the
+ * other three (#516): its entries carry a value, and only `pkg: true` is a
+ * bypass. A `pkg: false` entry restates the block-by-default rule, so requiring
+ * a marker on one would be noise. See `classifyAllowBuild`.
  *
  * The contract this parser reads: every entry carries either
  *
@@ -23,8 +30,51 @@
  * one to police the cooldown would itself be subject to the cooldown.
  */
 
+/**
+ * Which `allowBuilds` values are grants, which are denials, and which are
+ * neither. Returns 'bypass' | 'denial' | null.
+ *
+ * `allowBuilds` is the one block whose entries are not uniformly bypasses:
+ * `pkg: false` RESTATES the block-by-default rule rather than weakening it, and
+ * demanding a marker for one would make the gate noise — which trains people to
+ * add markers reflexively, and a reflexive marker is worth less than none.
+ *
+ * Unrecognized values are `null` rather than falling back to either verdict,
+ * and that is the whole reason this is a function instead of `v === 'true'`.
+ * YAML's boolean vocabulary is wider than one word: under a `=== 'true'` test
+ * `esbuild: yes` reads as NOT-a-bypass, so a live grant would sit unannotated
+ * and unpoliced — a silent fail-open in the gate whose entire job is failing
+ * closed. Anything unrecognized is reported instead, so a typo is loud.
+ */
+const classifyAllowBuild = value => {
+  const v = value.toLowerCase();
+  if (v === 'true' || v === 'yes' || v === 'on') return 'bypass';
+  if (v === 'false' || v === 'no' || v === 'off') return 'denial';
+  return null;
+};
+
 /** Lists we police, in file order, with the vocabulary each violation uses. */
 export const BYPASS_BLOCKS = [
+  {
+    key: 'allowBuilds',
+    // First in this array because the array is file order and `allowBuilds:`
+    // sits above `overrides:`. Nothing depends on the order, but a reader
+    // checking coverage against the file should not have to jump around.
+    header: /^allowBuilds:\s*$/,
+    // A mapping, so `{}` — see the note on `overrides` below.
+    empty: /^allowBuilds:[ \t]*\{[ \t]*\}[ \t]*$/,
+    emptyLiteral: 'allowBuilds: {}',
+    // Group 2 is the VALUE, which only this block needs: `classify` reads it to
+    // tell a grant from a denial. The `(?:#.*)?` tail keeps an inline comment
+    // out of the captured value — without it `esbuild: true # note` captures
+    // "true" only because `\S+` stops at the space, which is luck rather than
+    // intent, and `esbuild: true# note` would capture "true#" and classify as
+    // null.
+    entry: /^\s+(.+?):[ \t]*(\S+?)[ \t]*(?:#.*)?$/,
+    list: false,
+    label: 'allowBuilds',
+    classify: classifyAllowBuild,
+  },
   {
     key: 'overrides',
     // `overrides:` sits at column 0; its entries are `key: value` pairs. The
@@ -279,6 +329,39 @@ export function parseBypassEntries(yaml) {
       // onto the following entry and report the wrong defect there.
       comments = [];
       continue;
+    }
+
+    // Value-dependent blocks (`allowBuilds`): only a grant is a bypass. Blocks
+    // without `classify` keep the original contract — every entry is one.
+    //
+    // BOTH early exits below clear `comments`, and that is load-bearing rather
+    // than tidiness. A comment block belongs to exactly one entry (see above),
+    // so leaving it set would let the prose above `core-js: false` — or above a
+    // typo'd line — carry down onto the NEXT entry, and an unannotated grant
+    // beneath a denial would read as annotated. That is the same leak the
+    // unparsed-line path guards against below, and it fails open.
+    if (active.classify) {
+      const verdict = active.classify(item[2] ?? '');
+      if (verdict === null) {
+        problems.push({
+          line: i + 1,
+          why:
+            `inside \`${active.label}\`, ${JSON.stringify(
+              unquote(item[1].trim())
+            )} has the unrecognised value ${JSON.stringify(item[2] ?? '')}. ` +
+            `Write \`true\` or \`false\` — a value this parser cannot classify ` +
+            `is treated as neither a grant nor a denial, which would leave a ` +
+            `live grant unpoliced.`,
+        });
+        comments = [];
+        continue;
+      }
+      if (verdict === 'denial') {
+        // A denial restates the safe default; it needs no annotation and is
+        // deliberately absent from `entries` rather than merely unflagged.
+        comments = [];
+        continue;
+      }
     }
 
     entries.push({

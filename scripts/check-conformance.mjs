@@ -2445,11 +2445,15 @@ async function checkPublishableManifests() {
 }
 
 /**
- * Supply-chain bypasses expire (#391). `overrides`, `minimumReleaseAgeExclude`
- * and `auditConfig.ignoreGhsas` each weaken a default we otherwise hold, and
- * every one of them is written as temporary — but nothing made that observable,
- * so entries outlived their stated reason until an unrelated PR happened to
- * audit the file.
+ * Supply-chain bypasses expire (#391). `allowBuilds`, `overrides`,
+ * `minimumReleaseAgeExclude` and `auditConfig.ignoreGhsas` each weaken a
+ * default we otherwise hold, and every one of them is written as temporary —
+ * but nothing made that observable, so entries outlived their stated reason
+ * until an unrelated PR happened to audit the file.
+ *
+ * In `allowBuilds` only `pkg: true` counts (#516): a `false` entry restates the
+ * block-by-default rule rather than weakening it. The parser makes that call —
+ * see `classifyAllowBuild` in scripts/lib/bypass-annotations.mjs.
  *
  * Two failure modes, and the second is what gives this teeth: a review date
  * that has arrived, and an entry with no annotation at all. Without the latter,
