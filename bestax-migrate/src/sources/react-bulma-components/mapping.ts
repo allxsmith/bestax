@@ -780,7 +780,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   Tile: {
     status: 'todo',
-    todo: `Bulma v1 replaced tiles with the Grid/Cell components — see ${DOCS}/api/grid/grid and the migration guide ${DOCS}/guides/getting-started/migration/bulma-0-9-to-1`,
+    todo: `Bulma v1 replaced tiles with the Grid/Cell components — see ${DOCS}/api/grid and the migration guide ${DOCS}/guides/getting-started/migration/bulma-0-9-to-1`,
   },
 };
 
