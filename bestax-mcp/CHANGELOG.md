@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.2.0...bestax-mcp@1.2.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* collapse the duplicated docs route segment so Grid and Columns URLs resolve ([#598](https://github.com/allxsmith/bestax/issues/598)) ([a11333b](https://github.com/allxsmith/bestax/commit/a11333b7bbc0b444dd45f6d3bb6f4335153d4e89)), closes [#597](https://github.com/allxsmith/bestax/issues/597)
+
 # [1.2.0](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.1.2...bestax-mcp@1.2.0) (2026-08-27)
 
 
