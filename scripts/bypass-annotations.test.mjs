@@ -184,13 +184,17 @@ test('only the literal true and false are classified', () => {
   assert.deepEqual(denial.problems, []);
 });
 
-test('YAML 1.1 boolean habits are reported, never read as denials', () => {
-  // These four were accepted as aliases in the first version of this parser,
-  // and that was a fail-open. pnpm reads this file as YAML 1.2, where `no` is
-  // the STRING "no" — truthy, so pnpm grants the build. Calling it a denial
-  // would wave through, with no annotation, an entry that is live in pnpm.
-  // `TRUE`/`False` are the same story: strings, and the uppercase one is
-  // truthy.
+test('noncanonical boolean spellings are reported, not classified', () => {
+  // Canonical-spelling rule, and the two halves fail differently — an earlier
+  // version of this comment claimed both were live grants, which was wrong:
+  //
+  // - `TRUE`/`False` ARE real booleans (YAML 1.2 resolves all three
+  //   capitalisations), so `TRUE` is a genuine live grant. Reporting it is what
+  //   keeps a live grant from going unannotated.
+  // - `yes`/`no`/`on`/`off` are plain strings, and pnpm's allowBuild switch has
+  //   only `case true:` / `case false:` — a string matches neither, so the
+  //   entry is DROPPED. Inert rather than dangerous, but an ignored entry is a
+  //   policy not in force with nothing to tell you, which is its own problem.
   for (const value of ['yes', 'no', 'on', 'off', 'TRUE', 'False']) {
     const { entries, problems } = parseBypassEntries(
       `allowBuilds:\n  somepkg: ${value}\n`
@@ -202,9 +206,11 @@ test('YAML 1.1 boolean habits are reported, never read as denials', () => {
 
 test('a value glued to a # is the whole scalar, not a value plus a comment', () => {
   // YAML opens an inline comment only at ` #`, so `false#note` is the single
-  // string "false#note" — truthy, and a live grant in pnpm. Matching the
-  // `#note` as a comment handed the classifier a tidy "false" and the gate
-  // asked for no annotation: a fail-open on a grant.
+  // string "false#note", not the boolean `false` plus a note. Matching the
+  // `#note` as a comment handed the classifier a tidy "false", so the gate
+  // called the line a deliberate denial while pnpm — which switches on real
+  // booleans — dropped the entry as unreadable. Two different readings of the
+  // same line, and neither party says so.
   const { entries, problems } = parseBypassEntries(`
 allowBuilds:
   somepkg: false#note

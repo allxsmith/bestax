@@ -39,16 +39,26 @@
  * demanding a marker for one would make the gate noise — which trains people to
  * add markers reflexively, and a reflexive marker is worth less than none.
  *
- * ONLY the literal `true` and `false` are recognised. Everything else — a typo,
- * or a YAML 1.1 habit like `yes`/`no`/`on`/`off` — is `null` and gets reported.
+ * ONLY the literal lowercase `true` and `false` are recognised. Everything else
+ * — a typo, an uppercase `TRUE`, or a YAML 1.1 habit like `yes`/`no`/`on`/`off`
+ * — is `null` and gets reported. This is a CANONICAL-SPELLING rule, and the two
+ * things it catches are different, so do not collapse them:
  *
- * Treating those four as aliases was the first version of this function and it
- * was a fail-open, which is worth recording so nobody helpfully adds them back.
- * pnpm reads this file as YAML 1.2, where the boolean vocabulary is exactly
- * `true`/`false` and `no` is the plain STRING "no" — and a non-empty string is
- * truthy, so pnpm grants the build. Classifying `no` as a denial would have had
- * the gate wave through, unannotated, an entry that is live in pnpm. The safe
- * reading of an unrecognised value is not "probably a denial", it is "stop".
+ * - `TRUE`/`True` (and `FALSE`/`False`) are real booleans: YAML 1.2's core
+ *   schema resolves all three capitalisations, so `esbuild: TRUE` is a genuine,
+ *   live grant. Reporting it is what stops a live grant going unannotated.
+ * - `yes`/`no`/`on`/`off` are plain STRINGS under YAML 1.2, and pnpm's
+ *   `createAllowBuildFunction` switches on the actual booleans — `case true:` /
+ *   `case false:`, nothing else — so a string matches neither arm and the entry
+ *   is simply DROPPED. It is inert: it neither grants nor denies, and whatever
+ *   the author meant by it silently did not happen.
+ *
+ * That second half corrects what an earlier revision of this comment claimed.
+ * It said a string value is truthy and therefore grants the build. It does not:
+ * pnpm never coerces it, and an entry it cannot read is one it ignores. The
+ * reason to reject those spellings is that an ignored entry is a policy not in
+ * force with nothing to tell you, not that it is a live bypass. Verified in the
+ * pinned pnpm 11.9.0 rather than assumed — see the switch in dist/pnpm.mjs.
  */
 const classifyAllowBuild = value => {
   if (value === 'true') return 'bypass';
@@ -72,11 +82,13 @@ export const BYPASS_BLOCKS = [
     //
     // The comment tail requires LEADING WHITESPACE, which is not cosmetic. YAML
     // starts an inline comment only at ` #`, so `pkg: false#note` is the single
-    // scalar string "false#note" — truthy, and therefore a live grant in pnpm.
-    // An earlier `(?:#.*)?` here matched the `#note` as a comment and handed
-    // `classify` a tidy "false", so the gate called it a denial and asked for no
-    // annotation: a fail-open on a grant. Now the whole malformed scalar reaches
-    // `classify`, fails to match either literal, and is reported.
+    // scalar string "false#note" — not the boolean `false` plus a note. An
+    // earlier `(?:#.*)?` here matched the `#note` as a comment and handed
+    // `classify` a tidy "false", so the gate read the line as a denial and asked
+    // for no annotation, while pnpm reads a string it cannot switch on and drops
+    // the entry entirely. The gate said "policy, deliberate"; the file said
+    // nothing at all. Now the whole malformed scalar reaches `classify` and is
+    // reported.
     entry: /^\s+(.+?):[ \t]*(\S+)(?:[ \t]+#.*)?[ \t]*$/,
     list: false,
     label: 'allowBuilds',
@@ -356,9 +368,12 @@ export function parseBypassEntries(yaml) {
             `inside \`${active.label}\`, ${JSON.stringify(
               unquote(item[1].trim())
             )} has the unrecognised value ${JSON.stringify(item[2] ?? '')}. ` +
-            `Write \`true\` or \`false\` — a value this parser cannot classify ` +
-            `is treated as neither a grant nor a denial, which would leave a ` +
-            `live grant unpoliced.`,
+            `Write lowercase \`true\` or \`false\`. pnpm switches on the real ` +
+            `booleans and drops anything else, so this entry is inert — it ` +
+            `neither grants nor denies, and nothing reports that whatever you ` +
+            `meant by it did not happen. (\`TRUE\` is the exception that makes ` +
+            `this fail closed rather than merely tidy: YAML resolves it to a ` +
+            `real boolean, so it IS a live grant.)`,
         });
         comments = [];
         continue;
