@@ -141,25 +141,46 @@ export function installSpec({ package: pkg, eventName, tagName } = {}) {
 }
 
 /**
+ * semver.org's official grammar, anchored at both ends.
+ *
+ * Anchored at BOTH ends is the point. This started as `/^\d+\.\d+\.\d+/`,
+ * which only checks a semver-looking prefix — so `1.2.3garbage`, `1.2.3.4`
+ * and `01.2.3` all satisfied it while the function's own error message said
+ * "is not a semver version". A validator that accepts what it says it rejects
+ * is the comment-overstates-its-mechanism failure .github/CLAUDE.md ends its
+ * checklist on.
+ *
+ * Prerelease and build metadata are in the grammar rather than waved through:
+ * `1.2.3-rc.1` and `1.2.3+build.4` are legitimately publishable, and a regex
+ * that failed a real release would be worse than the loose one it replaced.
+ */
+export const SEMVER =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+/**
  * Validate a version string, throwing with a message naming where it came from.
  *
- * Two checks rather than one, and both earn their place. The shape test is the
- * plausibility check — npm will not publish a non-semver version, so it should
- * never fire. The character test is the injection guard, and it is the one
- * that matters: it is what stops a newline, a `$`, or a quote reaching
- * $GITHUB_OUTPUT and syft's YAML heredoc.
+ * Two checks, and the ORDER is deliberate. SEMVER alone would reject
+ * everything the character test rejects, so running it first would make the
+ * character test unreachable — dead code wearing the label of the control that
+ * matters most here. Running the character test first keeps both live and,
+ * more usefully, makes each error name the actual problem: a value carrying a
+ * newline is reported as an injection attempt, not as a formatting quibble.
  *
- * Kept permissive on purpose beyond those two: prerelease and build-metadata
- * versions (`1.2.3-rc.1`, `1.2.3+build.4`) are legitimately publishable and a
- * stricter regex would fail a real release rather than catch an attack.
+ * The character test is the security-relevant one. This value reaches
+ * $GITHUB_OUTPUT and syft's YAML heredoc, where a newline defines arbitrary
+ * extra step outputs and a `$` or a quote reshapes the config. SEMVER is the
+ * correctness one: it catches `1.2.3.4` and `01.2.3`, which are harmless but
+ * are not versions, and which the loose prefix test this replaced accepted
+ * while claiming otherwise.
  */
 export function assertVersion(version, source = 'version') {
   const value = String(version ?? '');
-  if (!/^\d+\.\d+\.\d+/.test(value)) {
-    throw new Error(`${source} is not a semver version: "${value}"`);
-  }
   if (!/^[0-9A-Za-z.+-]+$/.test(value)) {
     throw new Error(`${source} contains unexpected characters: "${value}"`);
+  }
+  if (!SEMVER.test(value)) {
+    throw new Error(`${source} is not a semver version: "${value}"`);
   }
   return value;
 }

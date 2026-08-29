@@ -148,19 +148,68 @@ test('installSpec refuses a release tag carrying a junk version', () => {
 // --- version validation ------------------------------------------------------
 
 test('assertVersion accepts prerelease and build metadata', () => {
-  for (const v of ['5.12.0', '1.0.0-rc.1', '1.0.0+build.4', '1.0.0-rc.1+b.2']) {
+  // These are legitimately publishable, so the grammar must not reject them —
+  // a validator that reds a real release is worse than a loose one.
+  for (const v of [
+    '5.12.0',
+    '0.0.0',
+    '1.0.0-rc.1',
+    '1.0.0+build.4',
+    '1.0.0-rc.1+b.2',
+    '1.0.0-0.3.7',
+    '1.0.0-x.7.z.92',
+    '10.20.30',
+  ]) {
     assert.equal(assertVersion(v), v);
   }
 });
 
+test('assertVersion is anchored at BOTH ends', () => {
+  // The grammar used to be a prefix test, so every one of these passed while
+  // the error message claimed the opposite. None is a valid semver version,
+  // and all are made of legal characters — so the SEMVER test is what has to
+  // catch them, which is exactly what a prefix test could not do.
+  for (const v of [
+    '1.2.3garbage',
+    '1.2.3.4',
+    '01.2.3',
+    '1.02.3',
+    '1.2.3-',
+    '1.2.3+',
+    '1.2',
+    'v1.2.3',
+  ]) {
+    assert.throws(
+      () => assertVersion(v),
+      /not a semver version/,
+      `expected "${v}" to be rejected as non-semver`
+    );
+  }
+
+  // Trailing whitespace is not a legal character, so it is turned away one
+  // check earlier. Asserted rather than lumped in above, because "rejected"
+  // for the wrong reason is how the prefix-test bug survived review.
+  assert.throws(() => assertVersion('1.2.3 '), /unexpected/);
+});
+
 test('assertVersion rejects the injection shapes it exists for', () => {
   // This is the reason the read-back moved out of YAML: each of these flows
-  // into $GITHUB_OUTPUT and then into syft's config heredoc.
+  // into $GITHUB_OUTPUT and then into syft's config heredoc. They are expected
+  // to trip the CHARACTER test specifically — it runs first precisely so the
+  // error names the injection rather than the formatting.
   assert.throws(() => assertVersion('1.0.0\nbasename=evil'), /unexpected/);
   assert.throws(() => assertVersion('1.0.0"; rm -rf /'), /unexpected/);
   assert.throws(() => assertVersion('1.0.0 $(id)'), /unexpected/);
-  assert.throws(() => assertVersion(''), /not a semver/);
-  assert.throws(() => assertVersion(undefined), /not a semver/);
+  assert.throws(() => assertVersion('1.0.0`id`'), /unexpected/);
+  assert.throws(() => assertVersion('1.0.0;id'), /unexpected/);
+});
+
+test('assertVersion rejects empty and non-numeric values', () => {
+  // Empty and nullish carry no characters at all, so the character test is
+  // what turns them away; `latest` is well-formed text that is not a version.
+  assert.throws(() => assertVersion(''), /unexpected/);
+  assert.throws(() => assertVersion(undefined), /unexpected/);
+  assert.throws(() => assertVersion(null), /unexpected/);
   assert.throws(() => assertVersion('latest'), /not a semver/);
 });
 
