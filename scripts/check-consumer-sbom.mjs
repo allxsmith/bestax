@@ -87,6 +87,25 @@
  *      through has to appear in SPDX too, where the strong test is waiting.
  *      It also catches format-specific inflation of any other kind.
  *
+ * ## What this does NOT defend, and what does
+ *
+ * This guard is the SECOND line against inflation, not the first, and reading
+ * it as the first is the way to quietly reopen everything above.
+ *
+ * The registry-origin assertion catches entries that are not npm packages —
+ * github-actions entries, file components, a dependency's own yarn.lock dev
+ * tree. It cannot catch a genuine npm package that resolves from
+ * registry.npmjs.org and appears identically in both documents: that passes
+ * origin, passes the floor (growth is deliberately allowed), and passes the
+ * cross-check (which compares the two documents to each other, not to an
+ * expectation).
+ *
+ * What actually prevents that class is the SCAN SHAPE — supply-chain.yml
+ * scans a directory holding only the root lockfile, so there is no
+ * dependency-shipped lockfile anywhere for a cataloger to find. Weakening the
+ * scan back to the installed tree on the grounds that "the guard will catch
+ * it" would be a mistake: it would not.
+ *
  * Design mirrors check-pointer-urls.mjs: plain node, zero npm deps, pure
  * helpers exported, main only runs when executed directly.
  *
@@ -180,7 +199,13 @@ export function readDocument(file) {
  * package name is known.
  */
 export function normalize(doc) {
-  if (Array.isArray(doc?.packages)) {
+  // Keyed on each format's REQUIRED top-level identifier, not on the shape of
+  // an array. Shape alone is a guess: any object carrying a `packages` array
+  // read as SPDX, so an exporter result that had lost `spdxVersion` — no
+  // longer a valid SPDX document, and not what the asset's name promises —
+  // satisfied the --spdx/--cdx role check and shipped. The array is still
+  // required, but it is now a second condition rather than the whole test.
+  if (typeof doc?.spdxVersion === 'string' && Array.isArray(doc?.packages)) {
     return {
       format: 'spdx',
       originField: 'downloadLocation',
@@ -193,7 +218,7 @@ export function normalize(doc) {
       subject: null,
     };
   }
-  if (Array.isArray(doc?.components)) {
+  if (doc?.bomFormat === 'CycloneDX' && Array.isArray(doc?.components)) {
     return {
       format: 'cyclonedx',
       originField: 'purl',
@@ -220,9 +245,10 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   const norm = normalize(doc);
   if (!norm) {
     return [
-      `the document has neither a \`packages\` array (SPDX) nor a ` +
-        `\`components\` array (CycloneDX). Either an exporter changed shape ` +
-        `or this is not an SBOM.`,
+      `the document is neither SPDX (a \`spdxVersion\` plus a \`packages\` ` +
+        `array) nor CycloneDX (\`bomFormat: "CycloneDX"\` plus a ` +
+        `\`components\` array). Either an exporter changed shape, dropped its ` +
+        `format marker, or this is not an SBOM.`,
     ];
   }
 
@@ -261,16 +287,24 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   // is well-formed but is a closure of something else — a wrong install spec,
   // a cataloger that dropped the direct dependency — passes every other
   // assertion here.
-  const target = catalogued.find(e => e.name === pkg);
-  if (!target) {
+  //
+  // ANY matching entry, not the first. npm can carry more than one version of
+  // a package in a closure, and nothing orders the document by depth, so a
+  // nested older copy emitted before the direct one made `find` report a
+  // mismatch while the stamped version was sitting right there — a false red
+  // on a perfectly good release, which is the failure mode this whole guard is
+  // written to avoid (48c57d5, #391, #525).
+  const matches = catalogued.filter(e => e.name === pkg);
+  if (matches.length === 0) {
     problems.push(
       `"${pkg}" is not in its own closure. The document is well-formed but ` +
         `describes something else.`
     );
-  } else if (version && target.version !== version) {
+  } else if (version && !matches.some(e => e.version === version)) {
     problems.push(
-      `"${pkg}" is present at ${JSON.stringify(target.version ?? null)} but ` +
-        `the install stamped ${version}. The document and its filename ` +
+      `"${pkg}" is present at ` +
+        `${matches.map(e => JSON.stringify(e.version ?? null)).join(', ')} ` +
+        `but the install stamped ${version}. The document and its filename ` +
         `disagree about which release this describes.`
     );
   }
@@ -309,17 +343,24 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   }
 
   // SPDX keeps file entries in their own `files` array rather than among the
-  // packages, so the origin loop above cannot see them. syft writes those
-  // names RELATIVE to the source today — a bare `package-lock.json`, which
-  // leaks nothing and is left alone. An ABSOLUTE one is the SPDX shape of the
-  // leak that shipped in every .cdx.json from #529 until #530, so it is
-  // rejected rather than trusted to stay relative.
+  // packages, so the origin loop above cannot see them.
+  //
+  // Rejects any name carrying a PATH, not just an absolute one. The scan
+  // directory holds exactly one file, so syft's only legitimate entry is the
+  // bare `package-lock.json` it writes today; anything with a separator is
+  // describing a directory structure. Testing only `startsWith('/')` let a
+  // relative-but-still-leaking name through — `work/_temp/scan/…` discloses
+  // the same layout as the absolute form it was written to catch.
   for (const f of Array.isArray(doc?.files) ? doc.files : []) {
-    if (typeof f?.fileName === 'string' && f.fileName.startsWith('/')) {
+    const name = f?.fileName;
+    if (typeof name !== 'string') continue;
+    const cleaned = name.replace(/^\.\//, '');
+    if (cleaned.includes('/') || cleaned.includes('\\')) {
       problems.push(
-        `the files array names ${JSON.stringify(f.fileName)}, an absolute ` +
-          `path. That is the runner's filesystem layout, which a published ` +
-          `document must not carry (#529, #530).`
+        `the files array names ${JSON.stringify(name)}, which carries a path. ` +
+          `That is the runner's filesystem layout, which a published document ` +
+          `must not disclose (#529, #530). The only expected entry is a bare ` +
+          `"package-lock.json".`
       );
     }
   }

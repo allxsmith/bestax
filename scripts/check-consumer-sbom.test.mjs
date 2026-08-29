@@ -59,8 +59,15 @@ const spdxDep = (name, version = '1.0.0') => ({
   downloadLocation: `${REGISTRY_PREFIX}${name}/-/${name}-${version}.tgz`,
 });
 
-/** SPDX: five closure packages plus the two structural entries. */
+/**
+ * SPDX: five closure packages plus the two structural entries.
+ *
+ * `spdxVersion` is present because a real document has it and normalize() now
+ * requires it — shape alone was a guess, and a document that had lost its
+ * format marker is not the thing its filename promises.
+ */
 const healthySpdx = () => ({
+  spdxVersion: 'SPDX-2.3',
   packages: [
     {
       name: `bestax-consumer-closure-${SLUG}`,
@@ -199,12 +206,23 @@ test('rejects the runner-path file component a file: source emits (#530)', () =>
   assert.match(problems[0], /not under pkg:npm\//);
 });
 
-test("SPDX's files array tolerates a relative name and rejects an absolute one", () => {
-  // syft writes these relative today, which leaks nothing — a real document
-  // from run 33262407242 carries a bare `package-lock.json` and must pass.
+test("SPDX's files array tolerates a bare name and rejects anything with a path", () => {
+  // syft writes a bare relative name today, which leaks nothing — a real
+  // document from run 33262407242 carries `package-lock.json` and must pass.
   const ok = healthySpdx();
   ok.files = [{ fileName: 'package-lock.json', SPDXID: 'SPDXRef-File-1' }];
   assert.deepEqual(inspect(ok, TARGET), []);
+
+  // `./name` is the same bare name and must also pass.
+  const dotted = healthySpdx();
+  dotted.files = [{ fileName: './package-lock.json' }];
+  assert.deepEqual(inspect(dotted, TARGET), []);
+
+  // A RELATIVE name that still discloses layout. Only absolute names were
+  // rejected before, and `work/_temp/scan/…` leaks the same structure.
+  const rel = healthySpdx();
+  rel.files = [{ fileName: 'work/_temp/scan/package-lock.json' }];
+  assert.match(inspect(rel, TARGET)[0], /carries a path/);
 
   // The same array is where an absolute path would land if the file config
   // changed, so it is checked rather than assumed to stay relative.
@@ -212,7 +230,47 @@ test("SPDX's files array tolerates a relative name and rejects an absolute one",
   bad.files = [{ fileName: '/home/runner/work/_temp/scan/package-lock.json' }];
   const problems = inspect(bad, TARGET);
   assert.equal(problems.length, 1);
-  assert.match(problems[0], /an absolute path/);
+  assert.match(problems[0], /carries a path/);
+});
+
+test('a closure carrying two versions of the target is not a mismatch', () => {
+  // npm can carry more than one version of a package, and nothing orders the
+  // document by depth. Checking only the FIRST entry with the target name
+  // reported a mismatch while the stamped version sat further down the list —
+  // a false red on a good release, which is the failure this guard exists to
+  // avoid (48c57d5, #391, #525).
+  const doc = healthySpdx();
+  doc.packages.splice(2, 0, spdxDep(PKG, '5.10.0'));
+  assert.deepEqual(inspect(doc, TARGET), []);
+
+  // Still a mismatch when NO copy carries the stamped version, and the message
+  // lists what was actually found.
+  const wrong = healthySpdx();
+  wrong.packages = wrong.packages.filter(p => p.name !== PKG);
+  wrong.packages.push(spdxDep(PKG, '5.10.0'), spdxDep(PKG, '5.9.0'));
+  const problems = inspect(wrong, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /"5\.10\.0", "5\.9\.0"/);
+});
+
+test("normalize requires each format's own identifier, not just an array", () => {
+  // A malformed exporter result that dropped its format marker is no longer
+  // the thing its filename promises, and used to satisfy the --spdx/--cdx
+  // role check on array shape alone.
+  const noMarker = healthySpdx();
+  delete noMarker.spdxVersion;
+  assert.equal(normalize(noMarker), null);
+
+  const noBomFormat = healthyCdx();
+  delete noBomFormat.bomFormat;
+  assert.equal(normalize(noBomFormat), null);
+
+  // And the marker alone is not enough either — the array is still required.
+  assert.equal(normalize({ spdxVersion: 'SPDX-2.3' }), null);
+  assert.equal(normalize({ bomFormat: 'CycloneDX' }), null);
+
+  assert.equal(normalize(healthySpdx()).format, 'spdx');
+  assert.equal(normalize(healthyCdx()).format, 'cyclonedx');
 });
 
 test('rejects a CycloneDX subject naming a filesystem path (#529)', () => {
@@ -391,19 +449,28 @@ test('rejects a document that collapsed to the structural entries', () => {
 });
 
 test('rejects an empty document in both formats', () => {
-  assert.match(inspect({ packages: [] }, TARGET)[0], /only 0 catalogued/);
-  assert.match(inspect({ components: [] }, TARGET)[0], /only 0 catalogued/);
+  // Markers present, arrays empty: a real document that catalogued nothing,
+  // which the floor must catch rather than the format detection.
+  assert.match(
+    inspect({ spdxVersion: 'SPDX-2.3', packages: [] }, TARGET)[0],
+    /only 0 catalogued/
+  );
+  assert.match(
+    inspect({ bomFormat: 'CycloneDX', components: [] }, TARGET)[0],
+    /only 0 catalogued/
+  );
 });
 
 test('rejects a document that is neither format', () => {
-  assert.match(inspect({}, TARGET)[0], /neither a `packages` array/);
-  assert.match(inspect(null, TARGET)[0], /neither a `packages` array/);
+  assert.match(inspect({}, TARGET)[0], /neither SPDX .* nor CycloneDX/);
+  assert.match(inspect(null, TARGET)[0], /neither SPDX .* nor CycloneDX/);
 });
 
 test('the floor counts catalogued packages, not entries', () => {
   // A floor of 3 against ALL entries would pass a document holding only the
   // structural names plus one real package, which is the collapse this is for.
   const doc = {
+    spdxVersion: 'SPDX-2.3',
     packages: [
       {
         name: `bestax-consumer-closure-${SLUG}`,
