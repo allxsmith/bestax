@@ -38,6 +38,8 @@
  *                        package that actually releases (#536)
  *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
  *                        the same thing in all three deliberate copies
+ *   docs-api-urls        no absolute docs URL repeats a path segment, which
+ *                        404s because Docusaurus collapses <x>/<x>.md (#597)
  *                        (CLAUDE_MD template + both JSX-generating skills),
  *                        and names only props that really exist
  *   publishable-manifests  no published package ships a specifier consumers
@@ -3312,6 +3314,69 @@ export async function checkTelemetryAllowlists() {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Docusaurus serves `docs/docs/api/<x>/<x>.md` at `/docs/api/<x>`: a page named
+ * after its own folder collapses. An absolute URL that repeats the segment is
+ * therefore a 404, and nothing else here would notice — `onBrokenLinks: 'throw'`
+ * only resolves links inside the site, and check:urls covers two files in
+ * bulma-ui. That is how dead Grid and Columns links shipped in the migrate
+ * skill, the component catalog, the MCP index and the README (#597).
+ *
+ * The generators collapse it now (scripts/lib/docs-url.mjs); this catches the
+ * hand-written copies. The pattern is structural rather than a list of the two
+ * pages that qualify today, so a future one is covered on arrival.
+ */
+const DOCS_URL_ROOTS = [
+  ['README.md', null],
+  ['skills', '.md'],
+  ['bestax-migrate/src', '.ts'],
+  ['bestax-mcp/data', '.json'],
+  ['docs/docs', '.md'],
+];
+
+// Synced copies of `skills/`, both gitignored build artifacts. The source they
+// are copied from is scanned instead, so a hit here would only be a duplicate.
+const DOCS_URL_SKIP = ['bestax-mcp/data/skills', 'create-bestax/templates/skills'];
+
+async function checkDocsApiUrls() {
+  const violations = [];
+  for (const [root, ext] of DOCS_URL_ROOTS) {
+    const abs = join(REPO, root);
+    let files;
+    if (ext === null) {
+      files = [abs];
+    } else {
+      try {
+        files = await walk(abs, ext);
+      } catch {
+        continue; // a root that does not exist is not a violation
+      }
+    }
+    for (const file of files) {
+      const rel = relative(REPO, file).split('\\').join('/');
+      if (DOCS_URL_SKIP.some(skip => rel.startsWith(`${skip}/`))) continue;
+      let src;
+      try {
+        src = await readFile(file, 'utf8');
+      } catch {
+        continue;
+      }
+      const re = /bestax\.io\/docs\/api\/([a-z0-9-]+)\/\1(?![a-z0-9-])/g;
+      src.split(/\r?\n/).forEach((line, i) => {
+        for (const m of line.matchAll(re)) {
+          violations.push(
+            `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}/${m[1]}, ` +
+              `which 404s: Docusaurus serves docs/docs/api/${m[1]}/${m[1]}.md at ` +
+              `/docs/api/${m[1]}. Drop the repeated segment. If this file is ` +
+              `generated, fix it via scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
+          );
+        }
+      });
+    }
+  }
+  return violations;
+}
+
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
@@ -3330,6 +3395,7 @@ const CHECKS = {
   'bypass-expiry': checkBypassExpiry,
   'telemetry-core': checkTelemetryCore,
   'telemetry-allowlists': checkTelemetryAllowlists,
+  'docs-api-urls': checkDocsApiUrls,
   'inline-style': null, // handled below (takes the flag)
 };
 
