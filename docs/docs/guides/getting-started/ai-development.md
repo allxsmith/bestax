@@ -158,7 +158,9 @@ It is not the only cause, though, and the gate's decision line (it logs `fail=`,
 PR's whole set of unresolved threads rather than the latest review's output, so a re-run deep
 review that finds nothing can still meet an open thread from an earlier pass and route to
 `verify` on that. And it picks a single mode per run: red or pending CI and threads still
-awaiting the fixer outrank `verify`, while a capped or paused loop stops before it.
+awaiting the fixer outrank `verify`. A paused loop stops it outright, since the gate requires
+the `ai-loop` label — but the iteration cap does not, because the cap only rewrites
+`fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at iteration 4 still runs.
 
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
