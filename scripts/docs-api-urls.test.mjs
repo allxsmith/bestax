@@ -101,6 +101,28 @@ test('collapses only the trailing pair, agreeing with docsRoute', () => {
   assert.match(v[0], /at \/docs\/api\/grid\/grid\./);
 });
 
+test('does not fire on a host that merely ends with bestax.io', () => {
+  assert.deepEqual(
+    docsUrlViolations('x.md', 'https://notbestax.io/docs/api/grid/grid'),
+    []
+  );
+  assert.deepEqual(
+    docsUrlViolations('x.md', 'https://docs.bestax.io/docs/api/grid/grid'),
+    []
+  );
+});
+
+test('still catches the bare and http forms of the real host', () => {
+  assert.equal(
+    docsUrlViolations('x.md', 'http://bestax.io/docs/api/grid/grid').length,
+    1
+  );
+  assert.equal(
+    docsUrlViolations('x.md', 'see bestax.io/docs/api/grid/grid').length,
+    1
+  );
+});
+
 test('skips the gitignored copies of skills/, and nothing else', () => {
   assert.ok(isSkippedDocsUrlPath('bestax-mcp/data/skills'));
   assert.ok(
