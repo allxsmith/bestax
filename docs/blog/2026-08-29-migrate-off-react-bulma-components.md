@@ -22,7 +22,7 @@ That's `bestax-migrate`: a codemod that reads your source, rewrites what it can 
 
 ## One Command
 
-Start with the dry run. It writes nothing.
+Start with the dry run. It doesn't touch a single file in your project.
 
 ```bash
 pnpm dlx bestax-migrate react-bulma-components src/ --dry
@@ -200,7 +200,7 @@ After:
 
 Your overrides moved from loose `$var` declarations into the `with (...)` configuration clause, where v1 expects them, and your own rules came along untouched. The `--css` flag picks the target. `bestax`, the default, is what you just saw in Sass: Bulma v1 and the bestax extras as two `@use` lines. A plain CSS import gets the same pairing as the single `bestax.css` bundle instead. `bulma` gives you stock Bulma if you'd rather keep the original look, and in a plain CSS import it pulls the extras in alongside, because the themed Radio and Checkbox need them. `keep` is the minimal option: it leaves your stylesheet choices where they are, apart from react-bulma-components' own bundle, which no longer exists at all, so that one becomes Bulma v1 with a TODO attached.
 
-Your `package.json` gets the same treatment. The old library comes out, bestax-bulma goes in, Bulma moves up to v1, and the long-dead `node-sass` is swapped for dart `sass`. The codemod never runs an install, so nothing reaches the network on your behalf and the next step is always yours. It even sniffs your existing indentation before writing, so the diff stays limited to the dependencies that actually changed.
+Your `package.json` gets the same treatment. The old library comes out, bestax-bulma goes in, Bulma moves up to v1, and the long-dead `node-sass` is swapped for dart `sass`. The codemod never runs an install, so no package manager goes and fetches anything on your behalf, and the next step is always yours. It even sniffs your existing indentation before writing, so the diff stays limited to the dependencies that actually changed.
 
 ## Safe by Design
 
