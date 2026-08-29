@@ -3336,7 +3336,10 @@ const DOCS_URL_ROOTS = [
 
 // Synced copies of `skills/`, both gitignored build artifacts. The source they
 // are copied from is scanned instead, so a hit here would only be a duplicate.
-const DOCS_URL_SKIP = ['bestax-mcp/data/skills', 'create-bestax/templates/skills'];
+const DOCS_URL_SKIP = [
+  'bestax-mcp/data/skills',
+  'create-bestax/templates/skills',
+];
 
 async function checkDocsApiUrls() {
   const violations = [];
