@@ -38,15 +38,16 @@ pnpm dlx bestax-migrate react-bulma-components src/
 
 Then run your formatter. The codemod emits correct code, not pretty code, and every snippet in this post is shown the way prettier leaves it.
 
-Five flags cover the rest:
+The rest of the flag surface is small:
 
-| Flag                 | What it does                                                |
-| -------------------- | ----------------------------------------------------------- |
-| `--dry`, `-d`        | Report what would change without writing files              |
-| `--print`, `-p`      | Echo transformed sources to stdout                          |
-| `--extensions`, `-e` | Which files to consider (default `js,jsx,ts,tsx,scss,sass`) |
-| `--css <mode>`       | Stylesheet target: `bestax` (default), `bulma`, or `keep`   |
-| `--no-deps`          | Skip the `package.json` update                              |
+| Flag                            | What it does                                                |
+| ------------------------------- | ----------------------------------------------------------- |
+| `--dry`, `-d`                   | Report what would change without writing files              |
+| `--print`, `-p`                 | Echo transformed sources to stdout                          |
+| `--extensions`, `-e`            | Which files to consider (default `js,jsx,ts,tsx,scss,sass`) |
+| `--css <mode>`                  | Stylesheet target: `bestax` (default), `bulma`, or `keep`   |
+| `--no-deps`                     | Skip the `package.json` update                              |
+| `--telemetry`, `--no-telemetry` | Turn the opt-in anonymous usage event on or off             |
 
 One thing worth knowing up front: the run exits 0 even when it leaves work behind. Leftover TODOs are the expected output of a careful migration, not a failure, and your CI shouldn't treat them as one.
 
@@ -160,8 +161,8 @@ bestax-migrate — react-bulma-components (v4) → @allxsmith/bestax-bulma (dry 
 
 The same restraint shows up everywhere it matters:
 
-- **Components with no replacement keep working.** `Element` and `Tile` have nothing to migrate to, so the codemod leaves a trimmed import of the old library behind, carrying just those two, with a TODO on it. Your app still builds and still runs while you work through the list, which is the difference between a migration and a big-bang rewrite.
-- **Dynamic values are yours to resolve.** A prop whose value is an expression rather than a literal gets flagged at the call site, because the codemod can't see what the expression evaluates to and won't pretend otherwise.
+- **Components with no replacement are kept, not dropped.** `Element` and `Tile` have nothing to migrate to, so the codemod leaves a trimmed import of the old library behind, carrying just those two, with a TODO on it. That's what makes this a migration instead of a big-bang rewrite. One wrinkle worth knowing: the same run drops `react-bulma-components` from your `package.json`, so a clean install won't resolve that retained import. Clear those two TODOs before you install, or hold the manifest back with `--no-deps` until you have.
+- **Dynamic values go through where they safely can.** A pure rename carries an expression straight across, so `loading={busy}` comes out as `isLoading={busy}`. The codemod only stops when the conversion depends on what the value actually _is_: when the prop decides which component you end up with, or which modifier lands, an expression it can't evaluate earns a TODO rather than a guess.
 - **Files it can't parse are reported, not skipped.** An `.astro`, `.vue`, `.svelte`, or `.mdx` file that imports the old library shows up in the report as `unsupported-file`. It never gets quietly passed over.
 - **Computed Sass stays put.** A variable defined by a function call rather than a literal is preserved with a TODO instead of being folded into a config it might break.
 
@@ -223,7 +224,7 @@ The codemod does the mechanical part and hands you a list. Two things are built 
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ```
 
-**The MCP server**, which serves that same skill as a prompt, and adds the thing a half-migrated file actually makes you want: the target API, on demand. What props does `Navbar.Brand` take now? Which CSS variables does this component read? It answers offline, from an index pinned to the version of the library you have installed, so it can't confidently describe props you don't have.
+**The MCP server**, which serves that same skill as a prompt, and adds the thing a half-migrated file actually makes you want: the target API, on demand. What props does `Navbar.Brand` take now? Which CSS variables does this component read? It answers offline from an index built for one specific release, and it checks which version your project actually resolved, so when the two drift apart it says so instead of confidently describing props you don't have.
 
 ```bash
 claude mcp add bestax -- npx -y bestax-mcp@1
