@@ -84,8 +84,8 @@ jobs:
       # and API-only too, so the list covers both.
       #
       # Do not upgrade that to "these five always resolve" — the list is derived
-      # reach plus observed runs, not a guarantee, and the two failure modes are
-      # not symmetric. A host that fails to resolve at STARTUP makes the agent
+      # from documented reach and confirmed by observed runs, which is not a
+      # guarantee about future ones, and the two failure modes are not symmetric. A host that fails to resolve at STARTUP makes the agent
       # revert the firewall and never write `Initialized`, so the assertion below
       # catches it and the job goes red. A host that stops resolving AFTER
       # initialization does not: `refreshDNSEntries` re-resolves every 30s and on
