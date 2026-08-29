@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { reactBulmaComponents } from '../src/sources/react-bulma-components/index.js';
 import { runTransform } from '../src/runner.js';
 import type { TodoEntry } from '../src/types.js';
+import { compileMigratedScss } from './support/compile-scss.js';
 
 const packageRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -151,6 +152,30 @@ describe('kitchen-sink e2e', () => {
     expect(scss).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
     expect(scss).not.toContain('@import');
     expect(scss).toContain('.app-shell');
+  });
+
+  it('compiles the migrated SCSS entry with Dart Sass (bestax css mode)', () => {
+    const scss = fs.readFileSync(
+      path.join(tmpDir, 'src', 'styles.scss'),
+      'utf8'
+    );
+    const { status, diagnostics } = compileMigratedScss(scss);
+    expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
+  });
+
+  it('compiles the migrated SCSS entry with Dart Sass (bulma css mode)', () => {
+    const original = fs.readFileSync(
+      path.join(fixtureDir, 'src', 'styles.scss'),
+      'utf8'
+    );
+    const scss = reactBulmaComponents.transformStyles!(
+      'styles.scss',
+      original,
+      { add: () => {} },
+      { cssMode: 'bulma' }
+    );
+    const { status, diagnostics } = compileMigratedScss(scss ?? original);
+    expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
   });
 
   it('migrates the package.json dependency set', () => {
