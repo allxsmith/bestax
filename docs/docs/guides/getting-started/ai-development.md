@@ -139,18 +139,23 @@ resolved) or is handed to a human with the open disagreements listed.
 
 **How deep-review findings reach the fixer.** The deep review posts on two channels, and which
 one a finding takes decides whether the loop acts on it. Blocking findings (🔴 Critical, 🟠
-Major, 🟡 Minor) are filed as **inline review comments** on the lines they concern; those
-threads are the fix agent's work items, and it answers each with `Fixed in <sha>` and
-deliberately does not resolve it — the reviewer re-checks that claim in its `verify` pass and
-resolves only what is genuinely fixed. 🔵 Advisory findings never go inline: they appear only as
-rows in the summary review (the one carrying the `<!-- claude-deep-review -->` marker), because
-an inline thread is an actionable work item and advisories must not spin the loop.
+Major, 🟡 Minor) are filed as **inline review comments** on the lines they concern, and those
+threads are the fix agent's work items. It answers each either with `Fixed in <sha>` when it
+makes the fix, or with a refutation when it judges the finding wrong — and in neither case does
+it resolve the thread. The reviewer picks it up from there in its `verify` pass: it re-checks a
+`Fixed in` claim and resolves only what is genuinely fixed, and answers a refutation with one
+rebuttal-or-concede round before a human rules. 🔵 Advisory findings never go inline: they
+appear only as rows in the summary review (the one carrying the `<!-- claude-deep-review -->`
+marker), because an inline thread is an actionable work item and advisories must not spin the
+loop.
 
 One consequence is worth knowing before reading a run's job list: **a deep review that reports
-`0 blocking` creates no threads, so the `verify` pass has nothing to check and does not run.**
-That is the design working rather than a stalled loop — most reviews do land at zero blocking.
-`verify` missing from a run means the review found nothing that blocks, not that verification
-was skipped.
+`0 blocking` creates no threads, so the `verify` pass has nothing to check.** Most reviews do
+land at zero blocking, which makes this the usual reason `verify` is absent from a run — but it
+is not the only one. The gate picks a single mode per run, and red or pending CI and threads
+still awaiting the fixer all outrank `verify`; a capped or paused loop stops before it too. So
+an absent `verify` is normal rather than a stalled loop, and the gate's decision line (it logs
+`fail=`, `pend=`, `actionable=`, `verify=` and `rebut=` counts) says which case applied.
 
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
