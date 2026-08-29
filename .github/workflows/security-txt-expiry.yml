@@ -78,10 +78,19 @@ jobs:
       #
       # The list itself is still derived from what the steps below documentedly
       # reach rather than from a measured run; widen it from a StepSecurity
-      # report if one is ever refused. Note the nearest sibling
-      # (auto-close-duplicates.yml, also a scheduled issue-writer) carries no
-      # harden-runner at all; it predates the rule and is tracked in #578 rather
-      # than settled here.
+      # report if one is ever refused. The nearest sibling
+      # (auto-close-duplicates.yml, also a scheduled issue-writer) now carries
+      # the same policy and the same five hosts — its script is dependency-free
+      # and API-only too, so the list covers both.
+      #
+      # Do not upgrade that to "these five always resolve" — the list is derived
+      # reach plus observed runs, not a guarantee, and the two failure modes are
+      # not symmetric. A host that fails to resolve at STARTUP makes the agent
+      # revert the firewall and never write `Initialized`, so the assertion below
+      # catches it and the job goes red. A host that stops resolving AFTER
+      # initialization does not: `refreshDNSEntries` re-resolves every 30s and on
+      # failure only logs, leaving both assertion lines passing. Rule 10 carries
+      # the mechanism.
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block

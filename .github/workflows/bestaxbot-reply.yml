@@ -180,15 +180,19 @@ jobs:
         # telemetry on would put the Datadog host in that report, inviting whoever
         # reads it to allow-list a host we have just decided to deny.
         #
-        # A step `env:` rather than the action's `settings:` input. `settings:` is
-        # written to the USER-level ~/.claude/settings.json, which a project-level
-        # .claude/settings.json in the workspace overrides. This job does NOT check
-        # out PR-branch code, so nothing in its workspace is attacker-controlled
-        # today — state that accurately rather than borrowing a sibling's threat
-        # model. The env form is used so the control does not DEPEND on that:
-        # claude-review.yml and claude-pr-loop.yml do check out PR branches and
-        # share this shape, and a checkout change here would silently move this job
-        # into their class. Do not move this back under `with:`.
+        # A step `env:` rather than the action's `settings:` input, and here that
+        # is load-bearing rather than tidiness: `settings:` is written to the
+        # USER-level ~/.claude/settings.json, which a project-level
+        # .claude/settings.json in the workspace OVERRIDES.
+        #
+        # Be exact about why that matters here, because two earlier revisions of
+        # this comment were not. The checkout above passes no `ref:`, so it takes
+        # `github.ref` — and on this workflow's `pull_request_review` and
+        # `pull_request_review_comment` triggers that resolves to
+        # `refs/pull/N/merge`. The workspace therefore holds PR-CONTROLLED code on
+        # those events, and that file is attacker-controlled. A process environment
+        # variable is not overridable that way. Do not move this back under
+        # `with:`.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
