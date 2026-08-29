@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 17442
+          "bytes": 17429
         },
         {
           "id": "library-contributor",
@@ -99,7 +99,7 @@
         {
           "id": "unmappables",
           "file": "references/unmappables.md",
-          "bytes": 4866
+          "bytes": 4861
         }
       ],
       "examples": []

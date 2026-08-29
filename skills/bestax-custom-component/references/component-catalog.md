@@ -123,12 +123,12 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 ## Columns
 
 - [Column](https://bestax.io/docs/api/columns/column) — The `Column` component provides a single responsive layout column using Bulma's flexbox-based column system.
-- [Columns](https://bestax.io/docs/api/columns/columns) — The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components.
+- [Columns](https://bestax.io/docs/api/columns) — The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components.
 
 ## Grid
 
 - [Cell](https://bestax.io/docs/api/grid/cell) — The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.
-- [Grid](https://bestax.io/docs/api/grid/grid) — The `Grid` component provides Bulma's advanced CSS Grid layout for complex, modern layouts.
+- [Grid](https://bestax.io/docs/api/grid) — The `Grid` component provides Bulma's advanced CSS Grid layout for complex, modern layouts.
 
 ## Layout
 

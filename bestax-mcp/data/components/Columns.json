@@ -3,7 +3,7 @@
   "kind": "component",
   "category": "columns",
   "slug": "columns/columns",
-  "docsUrl": "https://bestax.io/docs/api/columns/columns",
+  "docsUrl": "https://bestax.io/docs/api/columns",
   "examples": [
     {
       "title": "Basic Columns",

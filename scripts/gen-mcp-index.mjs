@@ -43,6 +43,7 @@ import { createRequire } from 'node:module';
 
 import { sectionSpans, sectionBody, firstSentence } from './lib/api-page.mjs';
 import { readSkillNames } from './lib/skills.mjs';
+import { docsRoute } from './lib/docs-url.mjs';
 import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
@@ -469,7 +470,9 @@ export async function build() {
       const find = re => sections.find(s => re.test(s.heading));
       const purpose = purposeOf(fm, sections, lines);
       const slug = relPath.replace(/\.md$/, '');
-      const docsUrl = `${DOCS_BASE}/api/${slug}`;
+      // `slug` stays the file-path identity; the URL takes the route
+      // Docusaurus actually serves, which collapses `grid/grid` (#597).
+      const docsUrl = `${DOCS_BASE}/api/${docsRoute(slug)}`;
 
       // `helpers/` documents hooks and utilities: four of its six pages use
       // `## API` with a signature block and have no props interface at all.

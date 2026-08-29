@@ -3,7 +3,7 @@
   "kind": "component",
   "category": "grid",
   "slug": "grid/grid",
-  "docsUrl": "https://bestax.io/docs/api/grid/grid",
+  "docsUrl": "https://bestax.io/docs/api/grid",
   "examples": [
     {
       "title": "Smart Grid",
