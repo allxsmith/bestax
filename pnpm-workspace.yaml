@@ -8,28 +8,43 @@ packages:
 
 # --- Supply-chain hardening ---
 
-# Block-by-default: only these dependencies may run install/build lifecycle
-# scripts. Allow the genuine native builders; deny core-js (its postinstall
-# only prints a funding banner — no build needed).
+# Block-by-default: no dependency here may run install/build lifecycle scripts.
+# Every entry is a denial, and #588 retired the last three grants — esbuild,
+# @parcel/watcher and unrs-resolver — after showing each one resolves a prebuilt
+# platform binary with its script blocked. The list is not redundant with the
+# default: each entry records *why* that package's script is unnecessary, so the
+# next person to hit `pnpm approve-builds` finds the argument already made. A
+# new grant is still possible, and would need a marker (see below); it should
+# also have to explain why the platform-binding argument used here does not
+# apply to it.
 allowBuilds:
-  # bestax:review 2026-11-13 — quarterly sweep; grant predates the
-  # platform-binding argument we apply to @swc/core below. esbuild ships 26
-  # prebuilt @esbuild/<platform> packages as optionalDependencies and its
-  # `node install.js` is the fallback that fetches one when none matched, so
-  # this may be droppable. Verify before dropping: unlike @swc/core, install.js
-  # also validates the binary it resolved.
-  esbuild: true
-  # bestax:review 2026-11-13 — quarterly sweep; same question as esbuild. The
-  # script is literally `scripts/build-from-source.js` and 13 prebuilt
-  # @parcel/watcher-<platform> packages ship as optionalDependencies, which is
-  # the @swc/core argument almost verbatim.
-  '@parcel/watcher': true
-  # bestax:review 2026-11-13 — quarterly sweep; the strongest drop candidate of
-  # the three. `node postinstall.js` is napi-postinstall's generic fallback and
-  # 22 prebuilt @unrs/resolver-binding-<platform> packages ship as
-  # optionalDependencies — the @swc/core reasoning with nothing else added.
-  unrs-resolver: true
+  # core-js: its postinstall only prints a funding banner — no build needed.
   core-js: false
+  # sass → @parcel/watcher: its `install` script wraps its entire body in
+  # `if (process.env.npm_config_build_from_source === 'true')`, which we never
+  # set, so the script is a no-op rather than a build. index.js requires the
+  # prebuilt @parcel/watcher-<platform> package (13 ship as optionalDependencies)
+  # and only falls back to a locally compiled build/Release/watcher.node, which
+  # nothing here produces. Grant dropped in #588.
+  '@parcel/watcher': false
+  # jest-resolve → unrs-resolver: `node postinstall.js` is a three-line delegate
+  # to napi-postinstall's generic checkAndPreparePackage, whose only job is
+  # fetching a platform binding when none resolved. index.js tries a locally
+  # built ./resolver.<platform>.node first and then the prebuilt
+  # @unrs/resolver-binding-<platform> package (22 ship as optionalDependencies);
+  # we have never produced the former. Grant dropped in #588.
+  unrs-resolver: false
+  # vite/webpack/storybook/ts-jest → esbuild: `node install.js` does three
+  # things, none of them required. It resolves a prebuilt @esbuild/<platform>
+  # package (26 ship as optionalDependencies), renames that binary over the JS
+  # shim at bin/esbuild — a process-startup optimisation, not correctness, since
+  # lib/main.js resolves the platform package at runtime either way — and runs
+  # the binary once to check its version. Its remaining paths are fallbacks for
+  # when no platform package matched: downloadDirectlyFromNPM() fetches a
+  # tarball over HTTPS and installUsingNPM() shells out to npm. An install-time
+  # script that can reach the network is the thing this list exists to stop, so
+  # the grant was costing more than the startup it saved. Grant dropped in #588.
+  esbuild: false
   # wrangler (CI-only Cloudflare Pages deploy) pulls these native builds; the
   # `pages deploy` static upload doesn't need them, so keep them blocked.
   sharp: false
