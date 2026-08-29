@@ -21,6 +21,7 @@ import {
   parseBypassEntries,
   findExpired,
 } from './lib/bypass-annotations.mjs';
+import { expiryRemediation } from './check-conformance.mjs';
 
 const REPO = join(import.meta.dirname, '..');
 const byName = (entries, name) => entries.find(e => e.name === name);
@@ -596,6 +597,54 @@ publicHoistPattern:
     ['thing@1'],
     'publicHoistPattern entries must not be mistaken for bypasses'
   );
+});
+
+// --- The remediation message. This is the entire product of an expiry firing:
+// the whole mechanism exists to put these words in front of someone on the day
+// the date arrives. A wrong one sends them to run a check that cannot see the
+// thing it is meant to prove, and they believe the answer.
+
+test('an expired allowBuilds grant gets install evidence, not audit advice', () => {
+  const msg = expiryRemediation('allowBuilds');
+  // The from-scratch requirement is the load-bearing half: an in-place install
+  // reuses what the package built while the grant was live, so the build can
+  // pass over artifacts a fresh machine would never have, and the entry gets
+  // retired on evidence that proves nothing.
+  assert.match(msg, /FROM SCRATCH/);
+  assert.match(msg, /node_modules/);
+  assert.match(msg, /--frozen-lockfile/);
+  assert.match(msg, /every platform we build on/);
+  // And it must NOT hand over the dependency-resolution advice: dropping a
+  // lifecycle grant changes no resolution and no audit output, so a clean
+  // `pnpm audit` here is not evidence of anything.
+  assert.doesNotMatch(msg, /re-resolve/);
+  assert.doesNotMatch(msg, /audit-level=high/);
+});
+
+test('every other surface keeps the original re-resolve remediation', () => {
+  // The branch must not leak the allowBuilds wording onto the three blocks
+  // #514 shipped — for those, re-resolving and a clean audit ARE the evidence.
+  for (const label of [
+    'overrides',
+    'minimumReleaseAgeExclude',
+    'auditConfig.ignoreGhsas',
+  ]) {
+    const msg = expiryRemediation(label);
+    assert.match(msg, /re-resolve/, `${label} keeps the resolution advice`);
+    assert.match(msg, /audit-level=high/, `${label} keeps the audit advice`);
+    assert.doesNotMatch(msg, /FROM SCRATCH/, `${label} is not an install case`);
+  }
+});
+
+test('every policed block has a remediation that names a real check', () => {
+  // Guards the branch against a block being added later and silently falling
+  // through to advice that does not apply to it — the defect this pair of
+  // messages was split apart to fix.
+  for (const block of BYPASS_BLOCKS) {
+    const msg = expiryRemediation(block.label);
+    assert.match(msg, /bestax:review/, `${block.label} says how to defer`);
+    assert.ok(msg.length > 80, `${block.label} says what to actually do`);
+  }
 });
 
 test('a nested allowBuilds key does not satisfy the top-level block', () => {

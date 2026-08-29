@@ -2510,27 +2510,6 @@ async function checkBypassExpiry() {
     );
   }
 
-  // The remediation differs by surface, and the generic one is actively wrong
-  // for `allowBuilds`: dropping a lifecycle-script grant changes no resolution
-  // and no audit output, so "re-resolve and check audit" passes cleanly while
-  // the install or a fallback native build is broken. Telling someone to run
-  // the wrong check is worse than telling them nothing.
-  const remediation = label =>
-    label === 'allowBuilds'
-      ? `. For each: set it to \`false\`, then reinstall FROM SCRATCH — remove ` +
-        `node_modules and run \`pnpm install --frozen-lockfile\` — and run the ` +
-        `full build and test gate. Installing in place proves nothing: ` +
-        `node_modules still holds what the package built while the grant was ` +
-        `live, so the build can pass over artifacts a fresh machine would ` +
-        `never have. A grant is only droppable if the package resolves a ` +
-        `prebuilt binary on every platform we build on, which is why CI is the ` +
-        `real check here and \`pnpm audit\` is not. Still needed? Push its ` +
-        `\`# bestax:review\` date out and say why in the same comment.`
-      : `. For each: drop it, re-resolve, and leave it out if the resolved ` +
-        `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
-        `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
-        `say why in the same comment.`;
-
   for (const label of new Set(expired.map(e => e.label))) {
     const due = expired.filter(e => e.label === label);
     violations.push(
@@ -2538,7 +2517,7 @@ async function checkBypassExpiry() {
         due.length === 1 ? 'y is' : 'ies are'
       } due for review as of ${today} — ` +
         due.map(e => `${e.name} (line ${e.line}, ${e.review})`).join(', ') +
-        remediation(label)
+        expiryRemediation(label)
     );
   }
 
@@ -2555,6 +2534,35 @@ async function checkBypassExpiry() {
 
   return violations;
 }
+
+/**
+ * What to actually DO about an expired bypass, which differs by surface.
+ *
+ * The generic advice is actively wrong for `allowBuilds`: dropping a
+ * lifecycle-script grant changes no resolution and no audit output, so
+ * "re-resolve and check audit" passes cleanly while the install or a fallback
+ * native build is broken. Telling someone to run the wrong check is worse than
+ * telling them nothing, because they will believe the answer.
+ *
+ * Exported, and separated from `checkBypassExpiry`, so the branch is testable:
+ * this message is the entire product of an expiry firing, and a wrong one
+ * retires a live grant on false evidence.
+ */
+export const expiryRemediation = label =>
+  label === 'allowBuilds'
+    ? `. For each: set it to \`false\`, then reinstall FROM SCRATCH — remove ` +
+      `node_modules and run \`pnpm install --frozen-lockfile\` — and run the ` +
+      `full build and test gate. Installing in place proves nothing: ` +
+      `node_modules still holds what the package built while the grant was ` +
+      `live, so the build can pass over artifacts a fresh machine would ` +
+      `never have. A grant is only droppable if the package resolves a ` +
+      `prebuilt binary on every platform we build on, which is why CI is the ` +
+      `real check here and \`pnpm audit\` is not. Still needed? Push its ` +
+      `\`# bestax:review\` date out and say why in the same comment.`
+    : `. For each: drop it, re-resolve, and leave it out if the resolved ` +
+      `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
+      `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
+      `say why in the same comment.`;
 
 // --- skills-roster -----------------------------------------------------------
 
