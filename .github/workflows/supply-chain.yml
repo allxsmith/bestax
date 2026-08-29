@@ -598,14 +598,23 @@ jobs:
       # else's release having found nothing wrong — the cry-wolf failure this
       # repository has already fixed twice (#391, #525).
       #
-      # What it asserts instead: every catalogued entry came from the npm
-      # registry (SPDX says so with a downloadLocation, CycloneDX with a
-      # `pkg:npm/` purl — a github-actions entry, a nested yarn.lock dev
-      # closure and a bare file component all fail it), that the package the
-      # document names is actually in it at the stamped version, and a floor.
-      # None knows a count, so growth never reds this. Rule 9: the logic and
-      # its reasoning live in scripts/check-consumer-sbom.mjs with a node
-      # --test sibling that replays all three regressions.
+      # What it asserts instead: that every catalogued entry came from the npm
+      # registry, that the package the document names is in it at the stamped
+      # version and its subject agrees, a floor, and that the two documents
+      # list the same closure. None knows a count, so growth never reds this.
+      # Rule 9: the logic and its reasoning live in
+      # scripts/check-consumer-sbom.mjs with a node --test sibling that
+      # replays every regression this job has actually had.
+      #
+      # The registry claim is carried very unequally by the two formats, and
+      # the script says so at length rather than implying parity. SPDX maps the
+      # lockfile's `resolved` to downloadLocation, so it is real provenance.
+      # CycloneDX builds `pkg:npm/name@version` from the name and version and
+      # records `resolved` nowhere at all, so there it is only an ECOSYSTEM
+      # test — enough to catch a github-actions entry or a bare file component,
+      # not a git or tarball dependency. The same-closure assertion is what
+      # closes that gap: anything the weaker test would admit must also appear
+      # in SPDX, where the strong one is waiting.
       #
       # BOTH documents, not just SPDX, and that is not belt-and-braces. They
       # come from two separate sbom-action invocations, and an SPDX-only guard
@@ -624,11 +633,10 @@ jobs:
           VERSION: ${{ steps.install.outputs.version }}
           BASENAME: ${{ steps.install.outputs.basename }}
         run: |
-          for format in spdx cdx; do
-            node scripts/check-consumer-sbom.mjs \
-              --file "$BASENAME.$format.json" \
-              --package "$PACKAGE" --slug "$SLUG" --version "$VERSION"
-          done
+          node scripts/check-consumer-sbom.mjs \
+            --spdx "$BASENAME.spdx.json" \
+            --cdx "$BASENAME.cdx.json" \
+            --package "$PACKAGE" --slug "$SLUG" --version "$VERSION"
 
       # One artifact per matrix leg carrying both formats, replacing the two
       # the action used to upload for itself. The NAME has to keep matching

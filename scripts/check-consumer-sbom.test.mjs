@@ -35,6 +35,8 @@ import {
   normalize,
   readDocument,
   inspect,
+  identities,
+  crossCheck,
   parseArgs,
   main,
 } from './check-consumer-sbom.mjs';
@@ -225,6 +227,61 @@ test('rejects a CycloneDX subject naming a filesystem path (#529)', () => {
   );
 });
 
+// --- the purl test is weaker than the downloadLocation test ------------------
+
+test('a git dependency passes the CycloneDX purl test — by design, documented', () => {
+  // syft builds `pkg:npm/name@version` from the name and version alone and
+  // records `resolved` nowhere in a CycloneDX document, so the purl is an
+  // ECOSYSTEM claim, not a provenance one. Asserted rather than assumed,
+  // because the comments used to describe it as provenance and that is the
+  // kind of overstatement that stops the next reader checking.
+  const c = healthyCdx();
+  c.components.push(cdxDep('a-git-dep', '0.0.0'));
+  assert.deepEqual(inspect(c, TARGET), []);
+
+  // The same dependency in SPDX carries its real origin and is rejected.
+  const s = healthySpdx();
+  s.packages.push({
+    name: 'a-git-dep',
+    versionInfo: '0.0.0',
+    downloadLocation: 'git+https://github.com/someone/thing.git',
+  });
+  assert.equal(inspect(s, TARGET).length, 1);
+});
+
+test('the same-closure check is what stops the weak purl test being a hole', () => {
+  // A git dep that syft put in BOTH documents is caught by SPDX. One that
+  // somehow appeared only in CycloneDX — where nothing can origin-check it —
+  // is caught by the disagreement instead. Neither path lets it through.
+  const c = healthyCdx();
+  c.components.push(cdxDep('a-git-dep', '0.0.0'));
+  const problems = crossCheck(healthySpdx(), c, TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /CycloneDX document but not the SPDX one/);
+  assert.match(problems[0], /a-git-dep@0\.0\.0/);
+});
+
+test('crossCheck reports a package missing from CycloneDX too', () => {
+  const s = healthySpdx();
+  s.packages.push(spdxDep('only-in-spdx', '1.0.0'));
+  const problems = crossCheck(s, healthyCdx(), TARGET);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /SPDX document but not the CycloneDX one/);
+});
+
+test('crossCheck is silent when the two agree', () => {
+  assert.deepEqual(crossCheck(healthySpdx(), healthyCdx(), TARGET), []);
+});
+
+test('identities excludes the structural entries from the comparison', () => {
+  // SPDX carries the subject as an entry and CycloneDX does not, so comparing
+  // raw entry lists would report a permanent, meaningless disagreement.
+  const ids = identities(healthySpdx(), TARGET);
+  assert.ok(!ids.some(i => i.startsWith('consumer-closure:')));
+  assert.ok(!ids.some(i => i.startsWith('bestax-consumer-closure-')));
+  assert.deepEqual(ids, identities(healthyCdx(), TARGET));
+});
+
 // --- the subject is checked in BOTH formats ----------------------------------
 
 test('rejects an SPDX subject at the wrong version', () => {
@@ -367,50 +424,54 @@ test('readDocument names the file it could not read', () => {
   assert.throws(() => readDocument(bad), /not valid JSON/);
 });
 
-test('parseArgs requires all four flags', () => {
-  assert.throws(() => parseArgs([]), /--file is required/);
+test('parseArgs requires both documents and the target', () => {
+  assert.throws(() => parseArgs([]), /--spdx is required/);
+  assert.throws(() => parseArgs(['--spdx', 'a']), /--cdx is required/);
   assert.throws(
-    () => parseArgs(['--file', 'x', '--package', 'y', '--slug', 'z']),
+    () =>
+      parseArgs(['--spdx', 'a', '--cdx', 'b', '--package', 'y', '--slug', 'z']),
     /--version is required/
   );
 });
 
-test('main returns 0 on clean documents and 1 on a dirty one', () => {
-  const args = f => [
-    '--file',
-    f,
-    '--package',
-    PKG,
-    '--slug',
-    SLUG,
-    '--version',
-    VERSION,
-  ];
-  assert.equal(main(args(writeDoc(healthySpdx()))), 0);
-  assert.equal(main(args(writeDoc(healthyCdx()))), 0);
+const cli = (spdx, cdx) => [
+  '--spdx',
+  spdx,
+  '--cdx',
+  cdx,
+  '--package',
+  PKG,
+  '--slug',
+  SLUG,
+  '--version',
+  VERSION,
+];
+
+test('main returns 0 on a clean pair and 1 on a dirty one', () => {
+  assert.equal(main(cli(writeDoc(healthySpdx()), writeDoc(healthyCdx()))), 0);
 
   const doc = healthySpdx();
   doc.packages.push({
     name: 'actions/checkout',
     downloadLocation: 'NOASSERTION',
   });
-  assert.equal(main(args(writeDoc(doc))), 1);
+  assert.equal(main(cli(writeDoc(doc), writeDoc(healthyCdx()))), 1);
+});
+
+test('main fails when the two documents disagree, though each is clean alone', () => {
+  // The case two separate invocations could not catch: both documents satisfy
+  // every per-document assertion and still describe different closures. This
+  // is the shape a git dependency takes in CycloneDX, where nothing can
+  // origin-check it.
+  const c = healthyCdx();
+  c.components.push(cdxDep('ghost-package', '9.9.9'));
+  assert.deepEqual(inspect(healthySpdx(), TARGET), []);
+  assert.deepEqual(inspect(c, TARGET), []);
+  assert.equal(main(cli(writeDoc(healthySpdx()), writeDoc(c))), 1);
 });
 
 test('main separates usage and read errors from assertion failures', () => {
   // Exit 2 must not be readable as "the SBOM is wrong".
   assert.equal(main([]), 2);
-  assert.equal(
-    main([
-      '--file',
-      '/nope/missing.json',
-      '--package',
-      PKG,
-      '--slug',
-      SLUG,
-      '--version',
-      VERSION,
-    ]),
-    2
-  );
+  assert.equal(main(cli('/nope/missing.json', writeDoc(healthyCdx()))), 2);
 });

@@ -42,33 +42,60 @@
  * repository has already fixed twice (#391, #525), and re-shipping it would be
  * worse than having no guard.
  *
- * So: three assertions, none of which knows a count.
+ * So: four assertions, none of which knows a count.
  *
- *   1. ORIGIN — every catalogued entry came from the npm registry. SPDX says
- *      that with a `downloadLocation` under registry.npmjs.org; CycloneDX says
- *      it with a `pkg:npm/` purl. This is the one that matters, because it
- *      catches inflation by its cause rather than by its size: a
- *      github-actions entry, a package catalogued out of a dependency's own
- *      yarn.lock, and a bare file component all fail it, and it stays correct
- *      as the closure grows.
+ *   1. ORIGIN — every catalogued entry came from the npm registry. This is the
+ *      one that catches inflation by its cause rather than by its size, and
+ *      the two formats support it VERY unequally, which is worth stating
+ *      precisely rather than glossing:
+ *
+ *      SPDX carries the real thing. syft maps the lockfile's `resolved` to
+ *      `downloadLocation`, so "under registry.npmjs.org" is a genuine
+ *      provenance claim: a git, tarball, private-registry or aliased
+ *      dependency fails it.
+ *
+ *      CycloneDX does NOT. syft's lock cataloger builds `pkg:npm/name@version`
+ *      from the name and version alone and carries `resolved` nowhere in the
+ *      document — no `externalReferences`, not in `properties` (verified
+ *      against a real artifact, run 33262407242). So the `pkg:npm/` test is an
+ *      ECOSYSTEM test, not a provenance one. It still does real work — a
+ *      github-actions entry is `pkg:githubactions/…` and a bare file component
+ *      has no purl at all, which is exactly the leak class — but a git
+ *      dependency would sail through it. Do not describe it as provenance; an
+ *      earlier version of this comment did, and that is the
+ *      comment-overstates-its-mechanism failure .github/CLAUDE.md ends on.
+ *
+ *      Assertion 4 is what stops that asymmetry becoming a hole.
  *
  *   2. TARGET — the package the document claims to describe is actually in it,
- *      at the version the stamp step recorded. Without this the check passes a
- *      document that is a perfectly well-formed closure OF SOMETHING ELSE: a
- *      wrong install spec or a cataloger dropping the direct dependency would
- *      be approved as long as the transitive packages remained.
+ *      at the version the stamp step recorded, and the document's own subject
+ *      says the same. Without this the check passes a document that is a
+ *      perfectly well-formed closure OF SOMETHING ELSE: a wrong install spec
+ *      or a cataloger dropping the direct dependency would be approved as long
+ *      as the transitive packages remained.
  *
  *   3. FLOOR — as MIN_EXPECTED_URLS does in check-pointer-urls.mjs. A floor,
  *      not a count: it catches "the document collapsed to nothing" without
  *      caring which packages are in it. Adding or removing a dependency never
  *      requires touching the number.
  *
+ *   4. AGREEMENT — the two documents list exactly the same name@version set.
+ *      They come from two separate syft runs, so nothing makes them agree by
+ *      construction; the leak that shipped from #529 until #530 was in every
+ *      CycloneDX document and no SPDX one. This is what carries the registry
+ *      claim across to CycloneDX: anything the weaker purl test would let
+ *      through has to appear in SPDX too, where the strong test is waiting.
+ *      It also catches format-specific inflation of any other kind.
+ *
  * Design mirrors check-pointer-urls.mjs: plain node, zero npm deps, pure
  * helpers exported, main only runs when executed directly.
  *
  * Usage:
- *   node scripts/check-consumer-sbom.mjs --file <sbom.json> --package <pkg> \
- *                                        --slug <slug> --version <version>
+ *   node scripts/check-consumer-sbom.mjs --spdx <file> --cdx <file> \
+ *          --package <pkg> --slug <slug> --version <version>
+ *
+ * Both documents in ONE invocation, because assertion 4 compares them against
+ * each other. Two separate runs could each pass while disagreeing.
  *
  * Exit codes: 0 the document checks out,
  *             1 an assertion failed,
@@ -313,6 +340,59 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   return problems;
 }
 
+/** The catalogued `name@version` identities in a document, sorted. */
+export function identities(doc, { package: pkg, slug }) {
+  const norm = normalize(doc);
+  if (!norm) return [];
+  const structural = structuralNames({ package: pkg, slug });
+  return norm.entries
+    .filter(e => !structural.has(e.name))
+    .map(e => `${e.name}@${e.version ?? '?'}`)
+    .sort();
+}
+
+/**
+ * Assert the two documents describe the same closure.
+ *
+ * This is what carries the registry claim across to CycloneDX. The purl test
+ * there is an ecosystem test — syft builds `pkg:npm/name@version` from the
+ * name and version and puts `resolved` nowhere in the document — so a git or
+ * tarball dependency would pass it. It cannot pass this: the same package has
+ * to appear in the SPDX document, where `downloadLocation` carries the real
+ * origin and the strong test is waiting.
+ *
+ * It is also the only thing that would notice the two syft runs disagreeing
+ * for any other reason. They are separate invocations, so nothing makes them
+ * agree by construction, and the #529-to-#530 leak is the proof: present in
+ * every CycloneDX document, absent from every SPDX one.
+ */
+export function crossCheck(spdxDoc, cdxDoc, target) {
+  const a = identities(spdxDoc, target);
+  const b = identities(cdxDoc, target);
+  const onlySpdx = a.filter(x => !b.includes(x));
+  const onlyCdx = b.filter(x => !a.includes(x));
+  const problems = [];
+
+  if (onlySpdx.length) {
+    problems.push(
+      `${onlySpdx.length} package(s) are in the SPDX document but not the ` +
+        `CycloneDX one: ${onlySpdx.slice(0, 5).join(', ')}` +
+        `${onlySpdx.length > 5 ? ', …' : ''}. The two syft runs disagree ` +
+        `about the closure.`
+    );
+  }
+  if (onlyCdx.length) {
+    problems.push(
+      `${onlyCdx.length} package(s) are in the CycloneDX document but not the ` +
+        `SPDX one: ${onlyCdx.slice(0, 5).join(', ')}` +
+        `${onlyCdx.length > 5 ? ', …' : ''}. CycloneDX carries no registry ` +
+        `URL, so an entry only present there has never been origin-checked ` +
+        `by anything.`
+    );
+  }
+  return problems;
+}
+
 /** Parse `--flag value` argv; throws Error on misuse. */
 export function parseArgs(argv) {
   const flags = {};
@@ -322,7 +402,7 @@ export function parseArgs(argv) {
     if (i + 1 >= argv.length) throw new Error(`${key} needs a value`);
     flags[key.slice(2)] = argv[i + 1];
   }
-  for (const required of ['file', 'package', 'slug', 'version']) {
+  for (const required of ['spdx', 'cdx', 'package', 'slug', 'version']) {
     if (!flags[required]) throw new Error(`--${required} is required`);
   }
   return flags;
@@ -335,40 +415,63 @@ export function main(argv = process.argv.slice(2)) {
   } catch (err) {
     console.error(
       `::error::${err.message}\n` +
-        `usage: check-consumer-sbom.mjs --file <sbom.json> --package <pkg> ` +
-        `--slug <slug> --version <version>`
+        `usage: check-consumer-sbom.mjs --spdx <file> --cdx <file> ` +
+        `--package <pkg> --slug <slug> --version <version>`
     );
     return 2;
   }
 
-  let doc;
-  try {
-    doc = readDocument(args.file);
-  } catch (err) {
-    console.error(`::error::${err.message}`);
-    return 2;
+  // Both documents in one invocation, because assertion 4 compares them. Two
+  // separate invocations could each pass while disagreeing with each other,
+  // which is the case the CycloneDX purl test cannot cover on its own.
+  const docs = {};
+  for (const format of ['spdx', 'cdx']) {
+    try {
+      docs[format] = readDocument(args[format]);
+    } catch (err) {
+      console.error(`::error::${err.message}`);
+      return 2;
+    }
   }
 
-  const problems = inspect(doc, {
+  const target = {
     package: args.package,
     slug: args.slug,
     version: args.version,
     minPackages: MIN_EXPECTED_PACKAGES,
-  });
+  };
 
-  if (problems.length > 0) {
+  let failed = 0;
+  for (const format of ['spdx', 'cdx']) {
+    const problems = inspect(docs[format], target);
+    if (problems.length === 0) continue;
+    failed += 1;
     console.error(
-      `::error::${args.file} is not a clean consumer closure (${problems.length} problem(s))`
+      `::error::${args[format]} is not a clean consumer closure ` +
+        `(${problems.length} problem(s))`
     );
     for (const p of problems) console.error(`  - ${p}`);
-    return 1;
   }
 
-  const norm = normalize(doc);
+  const disagreements = crossCheck(docs.spdx, docs.cdx, target);
+  if (disagreements.length > 0) {
+    failed += 1;
+    console.error(
+      `::error::the two documents do not describe the same closure`
+    );
+    for (const p of disagreements) console.error(`  - ${p}`);
+  }
+
+  if (failed > 0) return 1;
+
+  const counts = ['spdx', 'cdx']
+    .map(f => `${normalize(docs[f]).entries.length} ${f}`)
+    .join(' / ');
   console.log(
-    `check-consumer-sbom: ${args.file} — ${norm.entries.length} ${norm.format} ` +
-      `entries, ${args.package}@${args.version} present, every catalogued ` +
-      `package under ${norm.originPrefix}`
+    `check-consumer-sbom: ${args.package}@${args.version} — ${counts} entries, ` +
+      `subject and target correct in both, every catalogued package under ` +
+      `${REGISTRY_PREFIX} in SPDX, and the two agree on ` +
+      `${identities(docs.spdx, target).length} packages`
   );
   return 0;
 }
