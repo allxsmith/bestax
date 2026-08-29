@@ -116,7 +116,7 @@ The published packages are versioned and released independently.
 - **[Components](https://bestax.io/docs/api/components/modal)** — Navbar, Modal, Card, Dropdown, Menu, Message, Pagination, Panel, Tabs, Breadcrumb, Toast, Tooltip, Steps, Sidebar, Carousel, Collapse, Dialog, Loading
 - **[Form](https://bestax.io/docs/api/form/input)** — Field/Control, Input, Select, TextArea, Checkbox(es), Radio(s), Switch, Slider, Rate, File, Numberinput, Autocomplete, Taginput, and DateInput / TimeInput / DateTimeInput pickers
 - **[Layout](https://bestax.io/docs/api/layout/container)** — Container, Section, Hero, Level, Media, Footer
-- **[Columns](https://bestax.io/docs/api/columns/columns)** & **[Grid](https://bestax.io/docs/api/grid/grid)** — classic 12-column flexbox columns and the Bulma v1 CSS Grid
+- **[Columns](https://bestax.io/docs/api/columns)** & **[Grid](https://bestax.io/docs/api/grid)** — classic 12-column flexbox columns and the Bulma v1 CSS Grid
 - **[Helpers](https://bestax.io/docs/api/helpers/theme)** — `Theme`, `ConfigProvider`, `useBulmaClasses`, `classNames`
 
 > Migrating from v2? Snackbar was merged into [Toast](https://bestax.io/docs/api/components/toast) in v3 — see the [migration guides](https://bestax.io/docs/guides/getting-started/migration).

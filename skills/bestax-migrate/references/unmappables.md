@@ -32,7 +32,7 @@ matches the usage, or plain JSX with classes:
 ## `Tile` — Bulma v1 replaced tiles with Grid
 
 Convert ancestor/parent/child tile trees to `Grid`/`Cell` (docs:
-https://bestax.io/docs/api/grid/grid):
+https://bestax.io/docs/api/grid):
 
 ```tsx
 // Before

@@ -40,6 +40,8 @@
  *                        the same thing in all three deliberate copies
  *                        (CLAUDE_MD template + both JSX-generating skills),
  *                        and names only props that really exist
+ *   docs-api-urls        no absolute docs URL repeats a path segment, which
+ *                        404s because Docusaurus collapses <x>/<x>.md (#597)
  *   publishable-manifests  no published package ships a specifier consumers
  *                        cannot resolve (#412). Which packages publish with
  *                        `pnpm publish` is declared, not inferred (#436,
@@ -54,7 +56,7 @@
  *                        (templates, flavors, icons, sources, css modes, PMs)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname, isAbsolute } from 'node:path';
+import { join, relative, dirname, isAbsolute, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // The registration parser lives in lib/ so the API-docs generator shares it —
@@ -3312,6 +3314,157 @@ export async function checkTelemetryAllowlists() {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Docusaurus serves `docs/docs/api/<x>/<x>.md` at `/docs/api/<x>`: a page named
+ * after its own folder collapses. An absolute URL that repeats the segment is
+ * therefore a 404, and nothing else here would notice — `onBrokenLinks: 'throw'`
+ * only resolves links inside the site, and check:urls covers two files in
+ * bulma-ui. That is how dead Grid and Columns links shipped in the migrate
+ * skill, the component catalog, the MCP index and the README (#597).
+ *
+ * The generators collapse it now (scripts/lib/docs-url.mjs); this catches the
+ * hand-written copies. The pattern is structural rather than a list of the two
+ * pages that qualify today, so a future one is covered on arrival.
+ */
+// Inverted deliberately. An allowlist of "extensions that can carry a URL"
+// was wrong twice: it missed package READMEs and then .jsx, which
+// create-bestax ships as a scaffold template. Anything that is not a known
+// binary is text a URL can hide in, so the rule scans it.
+const DOCS_URL_BINARY_EXTS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.ico',
+  '.icns',
+  '.woff',
+  '.woff2',
+  '.ttf',
+  '.otf',
+  '.eot',
+  '.pdf',
+  '.mp4',
+  '.webm',
+  '.mov',
+  '.zip',
+  '.gz',
+  '.tgz',
+  '.br',
+  '.node',
+  '.wasm',
+]);
+
+// Build output and vendored trees. `bestax-mcp/data/skills` and
+// `create-bestax/templates/skills` are gitignored copies of `skills/`, so the
+// source is scanned and the artifact skipped rather than reported twice.
+// Named generated and vendored trees only. Hidden directories are NOT skipped
+// as a class: .husky, .github, .vscode and bulma-ui/.storybook are tracked
+// source a URL can live in, so a blanket dot-skip left real holes.
+// `.claude` is excluded because it is untracked and holds whole worktree
+// copies of this repo, which would report stale findings from another branch.
+const DOCS_URL_EXCLUDED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  '.turbo',
+  '.e2e-tmp',
+  '.docusaurus',
+  '.cache',
+  '.next',
+  '.claude',
+  '.sync-skills',
+  'dist',
+  'build',
+  'coverage',
+  'storybook-static',
+]);
+const DOCS_URL_SKIP_PATHS = [
+  'bestax-mcp/data/skills',
+  'create-bestax/templates/skills',
+  // This rule's own failing-case fixtures. A detector's test has to contain
+  // the string it detects, so scanning it would make the suite unrunnable.
+  'scripts/docs-api-urls.test.mjs',
+];
+
+/** True for a repo-relative path whose URLs are a copy of another file's. */
+export function isSkippedDocsUrlPath(rel) {
+  return DOCS_URL_SKIP_PATHS.some(
+    skip => rel === skip || rel.startsWith(`${skip}/`)
+  );
+}
+
+/**
+ * Violations for one file. Exported so the failing case has real coverage: the
+ * tree is clean by construction, so without this the rule's own violation
+ * branch would never execute in CI and could rot into a no-op.
+ */
+export function docsUrlViolations(rel, src) {
+  const violations = [];
+  // The leading lookbehind pins the host: without it `notbestax.io` matches
+  // and gets reported as a broken bestax.io link. A lookbehind rather than a
+  // literal `https://` so the bare and http forms are still caught.
+  // A single terminal slash is allowed before the boundary check:
+  // .../grid/grid/ is just as dead, and rejecting it let a hand-written
+  // variant walk past the guard.
+  // Mirror docsRoute exactly: the collapsing segment must END the path, and
+  // it may sit under any number of category segments (form/datetime/... is a
+  // live nested category). Anchoring to the first segment after /api both
+  // missed real nested collapses and flagged valid paths like /api/a/a/card,
+  // where the repeat is not trailing.
+  const re =
+    /(?<![a-z0-9.-])bestax\.io\/docs\/api\/((?:[a-z0-9-]+\/)*?)([a-z0-9-]+)\/(\2|index|readme)\/?(?![a-z0-9\-/])/gi;
+  src.split(/\r?\n/).forEach((line, i) => {
+    for (const m of line.matchAll(re)) {
+      violations.push(
+        `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}${m[2]}/${m[3]}, ` +
+          `which 404s: Docusaurus serves ` +
+          `docs/docs/api/${m[1]}${m[2]}/${m[3]}.md at /docs/api/${m[1]}${m[2]}. ` +
+          `Drop the trailing segment. If this file is generated, fix it via ` +
+          `scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
+      );
+    }
+  });
+  return violations;
+}
+
+async function docsUrlFiles(dir, root, out = []) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    const rel = relative(root, full).split('\\').join('/');
+    if (entry.isDirectory()) {
+      if (DOCS_URL_EXCLUDED_DIRS.has(entry.name)) continue;
+      if (isSkippedDocsUrlPath(rel)) continue;
+      await docsUrlFiles(full, root, out);
+    } else if (
+      !DOCS_URL_BINARY_EXTS.has(extname(entry.name).toLowerCase()) &&
+      !isSkippedDocsUrlPath(rel)
+    ) {
+      out.push(rel);
+    }
+  }
+  return out;
+}
+
+/**
+ * Exported with an injectable root so the traversal has end-to-end coverage.
+ * Testing only the detector left the walker able to regress to scanning zero
+ * files with this suite and the clean-tree run both green, which is the exact
+ * vacuous-guard failure this rule exists to prevent.
+ */
+export async function checkDocsApiUrls(root = REPO) {
+  const violations = [];
+  for (const rel of await docsUrlFiles(root, root)) {
+    let src;
+    try {
+      src = await readFile(join(root, rel), 'utf8');
+    } catch {
+      continue;
+    }
+    violations.push(...docsUrlViolations(rel, src));
+  }
+  return violations;
+}
+
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
@@ -3330,6 +3483,7 @@ const CHECKS = {
   'bypass-expiry': checkBypassExpiry,
   'telemetry-core': checkTelemetryCore,
   'telemetry-allowlists': checkTelemetryAllowlists,
+  'docs-api-urls': checkDocsApiUrls,
   'inline-style': null, // handled below (takes the flag)
 };
 

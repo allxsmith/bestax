@@ -30,6 +30,8 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { docsRoute } from './lib/docs-url.mjs';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
 const API_DIR = join(REPO, 'docs', 'docs', 'api');
@@ -214,7 +216,7 @@ async function main() {
     total += rows.length;
     const lines = rows.map(
       r =>
-        `- [${r.title}](${DOCS_BASE}/${r.slug})` +
+        `- [${r.title}](${DOCS_BASE}/${docsRoute(r.slug)})` +
         (r.purpose ? ` — ${r.purpose}` : '')
     );
     sections.push(`## ${label}\n\n${lines.join('\n')}`);
