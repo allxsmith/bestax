@@ -555,7 +555,19 @@ export function parseArgs(argv) {
     if (i + 1 >= argv.length) throw new Error(`${key} needs a value`);
     flags[key.slice(2)] = argv[i + 1];
   }
-  for (const required of ['spdx', 'cdx', 'package', 'slug', 'version']) {
+  // Unknown flags rejected rather than ignored, same as the sibling script. No
+  // flag here is optional today, so a typo would be caught by the required
+  // check below — but that is a property of today's flag list, not a guarantee,
+  // and the first optional flag added would silently reopen it.
+  const known = ['spdx', 'cdx', 'package', 'slug', 'version'];
+  for (const name of Object.keys(flags)) {
+    if (!known.includes(name)) {
+      throw new Error(
+        `unknown flag --${name} (expected ${known.map(k => `--${k}`).join(', ')})`
+      );
+    }
+  }
+  for (const required of known) {
     if (!flags[required]) throw new Error(`--${required} is required`);
   }
   return flags;

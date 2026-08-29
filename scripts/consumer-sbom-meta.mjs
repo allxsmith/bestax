@@ -270,6 +270,26 @@ export function parseArgs(argv) {
   // the assertion path, which returns 1 — and 1 is what a caller reads as "the
   // published package is wrong". Keeping the codes distinct is the whole
   // reason there are two of them.
+  // Unknown flags are REJECTED, not ignored, and this is the same hazard as
+  // the required-flag check below rather than tidiness. Every optional flag
+  // here disables a safeguard by being absent: `--tagg` makes a release leg
+  // resolve `latest` (no pin), `--exepct` skips the installed-version
+  // assertion. Ignoring the typo means both exit 0 having quietly turned off
+  // the thing this script exists to do.
+  const known =
+    mode === 'spec'
+      ? ['package', 'event', 'tag']
+      : ['package', 'slug', 'dir', 'expect'];
+  for (const name of Object.keys(flags)) {
+    if (!known.includes(name)) {
+      throw new Error(
+        `${mode} does not take --${name} (expected ${known
+          .map(k => `--${k}`)
+          .join(', ')})`
+      );
+    }
+  }
+
   // `event` is required for spec, and its absence is the dangerous case rather
   // than a cosmetic one: installSpec treats an absent event as "not a release",
   // so a malformed invocation would exit 0, resolve `latest`, and silently turn

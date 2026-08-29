@@ -758,3 +758,28 @@ test('a missing version is not laundered into an agreeing `?` identity', () => {
   assert.ok(inspect(s, TARGET).length > 0); // ...but each is now rejected
   assert.ok(inspect(c, TARGET).length > 0);
 });
+
+test('an unknown flag is rejected here too', () => {
+  // No flag is optional in this script today, so a typo would be caught by the
+  // required check anyway — but that is a property of today's flag list rather
+  // than a guarantee, and the sibling script shows what happens when an
+  // optional flag meets a permissive parser.
+  assert.throws(
+    () =>
+      parseArgs([
+        '--spdx',
+        'a',
+        '--cdx',
+        'b',
+        '--package',
+        'p',
+        '--slug',
+        's',
+        '--version',
+        '1.0.0',
+        '--bogus',
+        'z',
+      ]),
+    /unknown flag --bogus/
+  );
+});

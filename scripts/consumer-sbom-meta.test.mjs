@@ -483,3 +483,56 @@ test('the tarball read-back cannot forge one either', () => {
     }
   );
 });
+
+test('an unknown flag is rejected, not ignored', () => {
+  // Every optional flag here disables a safeguard by being absent, so a typo
+  // that is silently ignored turns the safeguard off and exits 0. `--tagg`
+  // makes a release leg resolve `latest` — no pin at all — and `--exepct`
+  // skips the installed-version assertion.
+  assert.throws(
+    () =>
+      parseArgs([
+        'spec',
+        '--package',
+        'p',
+        '--event',
+        'release',
+        '--tagg',
+        'p@1.0.0',
+      ]),
+    /spec does not take --tagg/
+  );
+  assert.throws(
+    () =>
+      parseArgs([
+        'stamp',
+        '--package',
+        'p',
+        '--slug',
+        's',
+        '--dir',
+        '/t',
+        '--exepct',
+        '1.0.0',
+      ]),
+    /stamp does not take --exepct/
+  );
+  // And a flag valid for the OTHER mode is still wrong for this one.
+  assert.throws(
+    () =>
+      parseArgs([
+        'spec',
+        '--package',
+        'p',
+        '--event',
+        'release',
+        '--dir',
+        '/t',
+      ]),
+    /spec does not take --dir/
+  );
+  assert.equal(
+    main(['spec', '--package', 'p', '--event', 'release', '--tagg', 'x'], {}),
+    2
+  );
+});
