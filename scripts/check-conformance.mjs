@@ -38,10 +38,10 @@
  *                        package that actually releases (#536)
  *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
  *                        the same thing in all three deliberate copies
- *   docs-api-urls        no absolute docs URL repeats a path segment, which
- *                        404s because Docusaurus collapses <x>/<x>.md (#597)
  *                        (CLAUDE_MD template + both JSX-generating skills),
  *                        and names only props that really exist
+ *   docs-api-urls        no absolute docs URL repeats a path segment, which
+ *                        404s because Docusaurus collapses <x>/<x>.md (#597)
  *   publishable-manifests  no published package ships a specifier consumers
  *                        cannot resolve (#412). Which packages publish with
  *                        `pnpm publish` is declared, not inferred (#436,
@@ -3326,56 +3326,97 @@ export async function checkTelemetryAllowlists() {
  * hand-written copies. The pattern is structural rather than a list of the two
  * pages that qualify today, so a future one is covered on arrival.
  */
-const DOCS_URL_ROOTS = [
-  ['README.md', null],
-  ['skills', '.md'],
-  ['bestax-migrate/src', '.ts'],
-  ['bestax-mcp/data', '.json'],
-  ['docs/docs', '.md'],
+// Extensions that can carry a published URL. Everything else (lockfiles,
+// images, SCSS) either cannot hold one or is not a surface users read.
+const DOCS_URL_EXTS = [
+  '.md',
+  '.mdx',
+  '.ts',
+  '.tsx',
+  '.js',
+  '.mjs',
+  '.json',
+  '.txt',
 ];
 
-// Synced copies of `skills/`, both gitignored build artifacts. The source they
-// are copied from is scanned instead, so a hit here would only be a duplicate.
-const DOCS_URL_SKIP = [
+// Build output and vendored trees. `bestax-mcp/data/skills` and
+// `create-bestax/templates/skills` are gitignored copies of `skills/`, so the
+// source is scanned and the artifact skipped rather than reported twice.
+const DOCS_URL_EXCLUDED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  '.turbo',
+  '.e2e-tmp',
+  'dist',
+  'build',
+  'coverage',
+  'storybook-static',
+]);
+const DOCS_URL_SKIP_PATHS = [
   'bestax-mcp/data/skills',
   'create-bestax/templates/skills',
+  // This rule's own failing-case fixtures. A detector's test has to contain
+  // the string it detects, so scanning it would make the suite unrunnable.
+  'scripts/docs-api-urls.test.mjs',
 ];
 
-async function checkDocsApiUrls() {
+/** True for a repo-relative path whose URLs are a copy of another file's. */
+export function isSkippedDocsUrlPath(rel) {
+  return DOCS_URL_SKIP_PATHS.some(
+    skip => rel === skip || rel.startsWith(`${skip}/`)
+  );
+}
+
+/**
+ * Violations for one file. Exported so the failing case has real coverage: the
+ * tree is clean by construction, so without this the rule's own violation
+ * branch would never execute in CI and could rot into a no-op.
+ */
+export function docsUrlViolations(rel, src) {
   const violations = [];
-  for (const [root, ext] of DOCS_URL_ROOTS) {
-    const abs = join(REPO, root);
-    let files;
-    if (ext === null) {
-      files = [abs];
-    } else {
-      try {
-        files = await walk(abs, ext);
-      } catch {
-        continue; // a root that does not exist is not a violation
-      }
+  const re = /bestax\.io\/docs\/api\/([a-z0-9-]+)\/\1(?![a-z0-9-])/g;
+  src.split(/\r?\n/).forEach((line, i) => {
+    for (const m of line.matchAll(re)) {
+      violations.push(
+        `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}/${m[1]}, ` +
+          `which 404s: Docusaurus serves docs/docs/api/${m[1]}/${m[1]}.md at ` +
+          `/docs/api/${m[1]}. Drop the repeated segment. If this file is ` +
+          `generated, fix it via scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
+      );
     }
-    for (const file of files) {
-      const rel = relative(REPO, file).split('\\').join('/');
-      if (DOCS_URL_SKIP.some(skip => rel.startsWith(`${skip}/`))) continue;
-      let src;
-      try {
-        src = await readFile(file, 'utf8');
-      } catch {
-        continue;
-      }
-      const re = /bestax\.io\/docs\/api\/([a-z0-9-]+)\/\1(?![a-z0-9-])/g;
-      src.split(/\r?\n/).forEach((line, i) => {
-        for (const m of line.matchAll(re)) {
-          violations.push(
-            `${rel}:${i + 1} links https://bestax.io/docs/api/${m[1]}/${m[1]}, ` +
-              `which 404s: Docusaurus serves docs/docs/api/${m[1]}/${m[1]}.md at ` +
-              `/docs/api/${m[1]}. Drop the repeated segment. If this file is ` +
-              `generated, fix it via scripts/lib/docs-url.mjs and re-run \`pnpm gen\`.`
-          );
-        }
-      });
+  });
+  return violations;
+}
+
+async function docsUrlFiles(dir, root, out = []) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.') && entry.name !== '.github') continue;
+    const full = join(dir, entry.name);
+    const rel = relative(root, full).split('\\').join('/');
+    if (entry.isDirectory()) {
+      if (DOCS_URL_EXCLUDED_DIRS.has(entry.name)) continue;
+      if (isSkippedDocsUrlPath(rel)) continue;
+      await docsUrlFiles(full, root, out);
+    } else if (
+      DOCS_URL_EXTS.some(ext => entry.name.endsWith(ext)) &&
+      !isSkippedDocsUrlPath(rel)
+    ) {
+      out.push(rel);
     }
+  }
+  return out;
+}
+
+async function checkDocsApiUrls(root = REPO) {
+  const violations = [];
+  for (const rel of await docsUrlFiles(root, root)) {
+    let src;
+    try {
+      src = await readFile(join(root, rel), 'utf8');
+    } catch {
+      continue;
+    }
+    violations.push(...docsUrlViolations(rel, src));
   }
   return violations;
 }
