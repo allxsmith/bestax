@@ -220,8 +220,44 @@ test('rejects a CycloneDX subject naming a filesystem path (#529)', () => {
     type: 'directory',
     name: '/home/runner/work/_temp/consumer',
   };
+  assert.ok(
+    inspect(doc, TARGET).some(p => /metadata\.component names/.test(p))
+  );
+});
+
+// --- the subject is checked in BOTH formats ----------------------------------
+
+test('rejects an SPDX subject at the wrong version', () => {
+  // SPDX states its subject as an ordinary package entry, which was exempted
+  // by name and never validated — so the document could identify a different
+  // release than its filename and closure while every dependency entry was
+  // correct.
+  const doc = healthySpdx();
+  doc.packages.find(p => p.name === `consumer-closure:${PKG}`).versionInfo =
+    '5.11.1';
   const problems = inspect(doc, TARGET);
-  assert.ok(problems.some(p => /metadata\.component\.name/.test(p)));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /carries version "5\.11\.1", expected "5\.11\.4"/);
+});
+
+test('rejects an SPDX document with no subject entry at all', () => {
+  const doc = healthySpdx();
+  doc.packages = doc.packages.filter(p => p.name !== `consumer-closure:${PKG}`);
+  assert.ok(
+    inspect(doc, TARGET).some(p => /does not say which package/.test(p))
+  );
+});
+
+test('the subject check is symmetric across the two formats', () => {
+  // Same defect, same detection, whichever document it lands in — the
+  // asymmetry is what let the SPDX side go unchecked.
+  const s = healthySpdx();
+  s.packages.find(p => p.name === `consumer-closure:${PKG}`).versionInfo =
+    '9.9.9';
+  const c = healthyCdx();
+  c.metadata.component.version = '9.9.9';
+  assert.equal(inspect(s, TARGET).length, 1);
+  assert.equal(inspect(c, TARGET).length, 1);
 });
 
 // --- the target must be in its own closure -----------------------------------
@@ -249,7 +285,9 @@ test('rejects a CycloneDX subject at the wrong version', () => {
   const doc = healthyCdx();
   doc.metadata.component.version = '5.11.1';
   assert.ok(
-    inspect(doc, TARGET).some(p => /metadata\.component\.version/.test(p))
+    inspect(doc, TARGET).some(p =>
+      /metadata\.component carries version/.test(p)
+    )
   );
 });
 

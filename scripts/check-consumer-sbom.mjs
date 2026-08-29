@@ -135,13 +135,22 @@ export function readDocument(file) {
 /**
  * Flatten either format into one shape: { format, entries, subject }.
  *
- * Both are generated from the same syft run and describe the same closure, so
- * they are checked by the same assertions rather than by two parallel
- * implementations that could drift into disagreeing about what is acceptable.
+ * The two documents describe the same closure from the same scan directory and
+ * the same syft config, but they are produced by TWO SEPARATE `sbom-action`
+ * invocations — two syft runs, not one. That is not pedantry, it is the whole
+ * reason each is inspected independently rather than one being taken as proof
+ * of the other: the leak that shipped from #529 until #530 was present in
+ * every CycloneDX document and absent from every SPDX one, which cannot happen
+ * if they are two renderings of a single result.
  *
- * `subject` is what the document says it describes — CycloneDX's
- * `metadata.component`. SPDX carries the equivalent as an ordinary package
- * entry, so it has none here and is checked through the structural names.
+ * Normalizing them means the shared assertions are written once rather than as
+ * two implementations that could drift into disagreeing about what is
+ * acceptable. Where the formats genuinely differ, they differ here rather than
+ * at the call site.
+ *
+ * `subject` is CycloneDX's `metadata.component`. SPDX states the same thing as
+ * an ordinary package entry, so it is resolved by name in `inspect`, where the
+ * package name is known.
  */
 export function normalize(doc) {
   if (Array.isArray(doc?.packages)) {
@@ -239,25 +248,37 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     );
   }
 
-  // CycloneDX states its subject in metadata.component rather than as an
-  // entry, so it is checked here rather than exempted by name and forgotten.
-  if (norm.format === 'cyclonedx') {
-    const expected = `consumer-closure:${pkg}`;
-    if (norm.subject?.name !== expected) {
-      problems.push(
-        `metadata.component.name is ` +
-          `${JSON.stringify(norm.subject?.name ?? null)}, expected ` +
-          `"${expected}". The document does not say which package it ` +
-          `describes, or it is naming a filesystem path (#529).`
-      );
-    }
-    if (version && norm.subject?.version !== version) {
-      problems.push(
-        `metadata.component.version is ` +
-          `${JSON.stringify(norm.subject?.version ?? null)}, expected ` +
-          `"${version}".`
-      );
-    }
+  // The document's own claim about what it describes, checked in BOTH formats.
+  //
+  // The two state it in different places — CycloneDX in metadata.component,
+  // SPDX as an ordinary package entry — and for a while only CycloneDX was
+  // checked. That left the SPDX subject exempted by name and never validated,
+  // so an SPDX document could name the wrong version, or omit the claim
+  // entirely, while its dependency entries were perfectly correct. The subject
+  // is the document's identity, not a structural detail to skip past.
+  const expected = `consumer-closure:${pkg}`;
+  const where =
+    norm.format === 'cyclonedx'
+      ? 'metadata.component'
+      : `the "${expected}" entry`;
+  const subject =
+    norm.format === 'cyclonedx'
+      ? norm.subject
+      : (norm.entries.find(e => e.name === expected) ?? null);
+
+  if (subject?.name !== expected) {
+    problems.push(
+      `${where} names ${JSON.stringify(subject?.name ?? null)}, expected ` +
+        `"${expected}". The document does not say which package it describes, ` +
+        `or it is naming a filesystem path (#529).`
+    );
+  }
+  if (version && subject?.version !== version) {
+    problems.push(
+      `${where} carries version ${JSON.stringify(subject?.version ?? null)}, ` +
+        `expected "${version}". The document would identify a different ` +
+        `release than the one its filename and closure describe.`
+    );
   }
 
   // SPDX keeps file entries in their own `files` array rather than among the
