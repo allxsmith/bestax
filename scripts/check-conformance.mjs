@@ -56,7 +56,7 @@
  *                        (templates, flavors, icons, sources, css modes, PMs)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname, isAbsolute } from 'node:path';
+import { join, relative, dirname, isAbsolute, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // The registration parser lives in lib/ so the API-docs generator shares it —
@@ -3326,18 +3326,34 @@ export async function checkTelemetryAllowlists() {
  * hand-written copies. The pattern is structural rather than a list of the two
  * pages that qualify today, so a future one is covered on arrival.
  */
-// Extensions that can carry a published URL. Everything else (lockfiles,
-// images, SCSS) either cannot hold one or is not a surface users read.
-const DOCS_URL_EXTS = [
-  '.md',
-  '.mdx',
-  '.ts',
-  '.tsx',
-  '.js',
-  '.mjs',
-  '.json',
-  '.txt',
-];
+// Inverted deliberately. An allowlist of "extensions that can carry a URL"
+// was wrong twice: it missed package READMEs and then .jsx, which
+// create-bestax ships as a scaffold template. Anything that is not a known
+// binary is text a URL can hide in, so the rule scans it.
+const DOCS_URL_BINARY_EXTS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.ico',
+  '.icns',
+  '.woff',
+  '.woff2',
+  '.ttf',
+  '.otf',
+  '.eot',
+  '.pdf',
+  '.mp4',
+  '.webm',
+  '.mov',
+  '.zip',
+  '.gz',
+  '.tgz',
+  '.br',
+  '.node',
+  '.wasm',
+]);
 
 // Build output and vendored trees. `bestax-mcp/data/skills` and
 // `create-bestax/templates/skills` are gitignored copies of `skills/`, so the
@@ -3411,7 +3427,7 @@ async function docsUrlFiles(dir, root, out = []) {
       if (isSkippedDocsUrlPath(rel)) continue;
       await docsUrlFiles(full, root, out);
     } else if (
-      DOCS_URL_EXTS.some(ext => entry.name.endsWith(ext)) &&
+      !DOCS_URL_BINARY_EXTS.has(extname(entry.name).toLowerCase()) &&
       !isSkippedDocsUrlPath(rel)
     ) {
       out.push(rel);
