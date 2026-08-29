@@ -475,10 +475,16 @@ jobs:
           YAML
           cat "$RUNNER_TEMP/syft.yaml"
 
-      # `path` is the LOCKFILE, not the directory (#530 item 5). Pointed at the
-      # tree, syft recursively walked every file under node_modules — thousands
-      # of them for bestax-migrate's 98-package closure, twice per matrix leg —
-      # to satisfy a cataloger that only ever reads the root lockfile.
+      # `file:`, not `path:` — the LOCKFILE rather than the directory (#530
+      # item 5). Pointed at the tree, syft recursively walked every file under
+      # node_modules — thousands of them for bestax-migrate's 98-package
+      # closure, twice per matrix leg — to satisfy a cataloger that only ever
+      # reads the root lockfile.
+      #
+      # It has to be the `file` input specifically, and this cost a dispatch to
+      # learn: sbom-action prefixes whatever `path` receives with syft's `dir:`
+      # scheme, so a lockfile passed there fails with `not a directory source`
+      # rather than being scanned. Do not "simplify" this back to `path`.
       #
       # `artifact-name` and `output-file` come from one step output rather than
       # being spelled out four times (#530 item 4). Be precise about what that
@@ -490,7 +496,7 @@ jobs:
       - name: Generate SPDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          path: ${{ runner.temp }}/consumer/package-lock.json
+          file: ${{ runner.temp }}/consumer/package-lock.json
           format: spdx-json
           config: ${{ runner.temp }}/syft.yaml
           artifact-name: ${{ steps.install.outputs.basename }}.spdx.json
@@ -501,7 +507,7 @@ jobs:
       - name: Generate CycloneDX consumer SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          path: ${{ runner.temp }}/consumer/package-lock.json
+          file: ${{ runner.temp }}/consumer/package-lock.json
           format: cyclonedx-json
           config: ${{ runner.temp }}/syft.yaml
           artifact-name: ${{ steps.install.outputs.basename }}.cdx.json
