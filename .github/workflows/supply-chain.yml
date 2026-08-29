@@ -80,24 +80,33 @@ jobs:
   # question procurement actually asks — "what enters my dependency tree if I
   # install this?" — which is a different and much smaller set (#424).
   #
-  # How much smaller, measured rather than asserted:
+  # How much smaller, measured rather than asserted — read out of the documents
+  # produced by run 33260691933 (2026-08-29), not carried forward:
   #
   #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)
   #   create-bestax            12             (14)
   #   bestax-migrate           98             (100)
-  #   bestax-mcp               94             (95)
+  #   bestax-mcp               93             (95)
   #
   # The first column is the closure; the second is what the document actually
-  # contains, because a directory scan adds two entries that are not
-  # dependencies: the scratch project the lockfile records as its root, and the
-  # configured source syft emits as a package. Both are named so a reader can
-  # tell what they are. Stated in both columns because a procurement reader
-  # counts entries in the SBOM, not in this comment.
+  # contains, because the scan adds two entries that are not dependencies: the
+  # scratch project the lockfile records as its root, and the configured source
+  # syft emits as a package. Both are named so a reader can tell what they are,
+  # and check-consumer-sbom.mjs exempts them by those exact names. Stated in
+  # both columns because a procurement reader counts entries in the SBOM, not
+  # in this comment.
   #
-  # against a repository SBOM covering the whole dev toolchain. Reading the repo
-  # SBOM as a consumer closure overstates our footprint by about two orders of
-  # magnitude, and the genuinely tiny runtime closure is a selling point that
-  # obscures.
+  # These are LIVE REGISTRY closures and they drift whenever any transitive
+  # dependency publishes, so treat them as a scale, not a checksum — bestax-mcp
+  # read 94 here until it was re-measured, against 95 entries it could never
+  # have been consistent with. Nothing enforces them, deliberately: pinning
+  # counts as a gate is what 48c57d5 reverted. Re-measure from a dispatch when
+  # touching this job rather than editing the numbers to taste.
+  #
+  # Compare against a repository SBOM covering the whole dev toolchain: reading
+  # the repo SBOM as a consumer closure overstates our footprint by about two
+  # orders of magnitude, and obscures a genuinely tiny runtime closure that is
+  # a selling point.
   #
   # Per package, not one combined tree. Installing all four together resolves to
   # 204 packages, which would bury bulma-ui's five-package closure under the
