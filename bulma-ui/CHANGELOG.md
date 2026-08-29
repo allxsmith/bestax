@@ -1,3 +1,15 @@
+## [5.11.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.4...@allxsmith/bestax-bulma@5.11.5) (2026-08-29)
+
+
+### Bug Fixes
+
+* collapse the duplicated docs route segment so Grid and Columns URLs resolve ([#598](https://github.com/allxsmith/bestax/issues/598)) ([a11333b](https://github.com/allxsmith/bestax/commit/a11333b7bbc0b444dd45f6d3bb6f4335153d4e89)), closes [#597](https://github.com/allxsmith/bestax/issues/597)
+
+
+### Features
+
+* **bestax-mcp:** surface CSS variables from get_component's default answer ([0ab98cc](https://github.com/allxsmith/bestax/commit/0ab98ccf56636945f14c5fcb8f1c07dd9091b7a9)), closes [#501](https://github.com/allxsmith/bestax/issues/501)
+
 ## [5.11.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.3...@allxsmith/bestax-bulma@5.11.4) (2026-08-27)
 
 
