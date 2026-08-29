@@ -3445,7 +3445,13 @@ async function docsUrlFiles(dir, root, out = []) {
   return out;
 }
 
-async function checkDocsApiUrls(root = REPO) {
+/**
+ * Exported with an injectable root so the traversal has end-to-end coverage.
+ * Testing only the detector left the walker able to regress to scanning zero
+ * files with this suite and the clean-tree run both green, which is the exact
+ * vacuous-guard failure this rule exists to prevent.
+ */
+export async function checkDocsApiUrls(root = REPO) {
   const violations = [];
   for (const rel of await docsUrlFiles(root, root)) {
     let src;

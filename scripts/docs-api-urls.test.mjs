@@ -9,7 +9,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+
 import {
+  checkDocsApiUrls,
   docsUrlViolations,
   isSkippedDocsUrlPath,
 } from './check-conformance.mjs';
@@ -152,4 +157,32 @@ test('skips the gitignored copies of skills/, and nothing else', () => {
     isSkippedDocsUrlPath('bestax-mcp/data/components/Grid.json'),
     false
   );
+});
+
+test('walks a real tree: reports violations and honours every exclusion', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'docs-api-urls-'));
+  const write = async (rel, body) => {
+    await mkdir(join(root, dirname(rel)), { recursive: true });
+    await writeFile(join(root, rel), body);
+  };
+  const dead = 'https://bestax.io/docs/api/grid/grid\n';
+
+  await write('README.md', dead);
+  await write('pkg/src/App.jsx', `// ${dead}`);
+  await write('pkg/ok.md', 'https://bestax.io/docs/api/grid\n');
+  await write('node_modules/dep/readme.md', dead);
+  await write('pkg/dist/bundle.js', dead);
+  await write('.claude/worktrees/other/README.md', dead);
+  await write('bestax-mcp/data/skills/s/SKILL.md', dead);
+  await write('assets/logo.png', dead);
+  await write('.storybook/preview.ts', dead);
+
+  const violations = await checkDocsApiUrls(root);
+  const files = violations.map(v => v.split(':')[0]).sort();
+
+  assert.deepEqual(files, [
+    '.storybook/preview.ts',
+    'README.md',
+    'pkg/src/App.jsx',
+  ]);
 });
