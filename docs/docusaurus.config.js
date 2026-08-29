@@ -254,7 +254,7 @@ const config = {
               },
               {
                 label: 'X',
-                href: 'https://x.com/asmith62378',
+                href: 'https://x.com/allxsmith',
               },
             ],
           },
