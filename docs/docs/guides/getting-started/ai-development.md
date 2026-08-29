@@ -150,12 +150,15 @@ marker), because an inline thread is an actionable work item and advisories must
 loop.
 
 One consequence is worth knowing before reading a run's job list: **a deep review that reports
-`0 blocking` creates no threads, so the `verify` pass has nothing to check.** Most reviews do
-land at zero blocking, which makes this the usual reason `verify` is absent from a run — but it
-is not the only one. The gate picks a single mode per run, and red or pending CI and threads
-still awaiting the fixer all outrank `verify`; a capped or paused loop stops before it too. So
-an absent `verify` is normal rather than a stalled loop, and the gate's decision line (it logs
-`fail=`, `pend=`, `actionable=`, `verify=` and `rebut=` counts) says which case applied.
+`0 blocking` files no inline threads**, and most reviews do land at zero blocking — so an absent
+`verify` job is usually just that, not a stalled loop.
+
+It is not the only cause, though, and the gate's decision line (it logs `fail=`, `pend=`,
+`actionable=`, `verify=` and `rebut=` counts) is what tells the cases apart. The gate reads the
+PR's whole set of unresolved threads rather than the latest review's output, so a re-run deep
+review that finds nothing can still meet an open thread from an earlier pass and route to
+`verify` on that. And it picks a single mode per run: red or pending CI and threads still
+awaiting the fixer outrank `verify`, while a capped or paused loop stops before it.
 
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
