@@ -75,10 +75,18 @@ export function compileMigratedScss(scss: string): CompileResult {
       encoding: 'utf8',
       env: { ...process.env, BESTAX_MIGRATE_COMPILE_SCSS: scssFile },
     });
-    return {
-      status: result.status,
-      diagnostics: (result.stderr ?? '').trim(),
-    };
+    // A launch failure (bad cwd, ENOENT, resource limit) surfaces through
+    // `result.error`/`result.signal`, not stderr — without these a spawn that
+    // never ran would fail the assertion with an empty, unactionable message.
+    const diagnostics = [
+      result.error ? `spawn failed: ${result.error.message}` : '',
+      result.signal ? `terminated by signal ${result.signal}` : '',
+      result.stderr ?? '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+    return { status: result.status, diagnostics };
   } finally {
     fs.rmSync(scssPath, { recursive: true, force: true });
   }
