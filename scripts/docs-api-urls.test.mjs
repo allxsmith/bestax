@@ -123,6 +123,21 @@ test('still catches the bare and http forms of the real host', () => {
   );
 });
 
+test('catches the trailing-slash spelling, and still allows a valid one', () => {
+  assert.equal(
+    docsUrlViolations('x.md', 'https://bestax.io/docs/api/grid/grid/').length,
+    1
+  );
+  assert.equal(
+    docsUrlViolations('x.md', 'https://bestax.io/docs/api/grid/index/').length,
+    1
+  );
+  assert.deepEqual(
+    docsUrlViolations('x.md', 'https://bestax.io/docs/api/grid/'),
+    []
+  );
+});
+
 test('skips the gitignored copies of skills/, and nothing else', () => {
   assert.ok(isSkippedDocsUrlPath('bestax-mcp/data/skills'));
   assert.ok(

@@ -3377,13 +3377,16 @@ export function docsUrlViolations(rel, src) {
   // The leading lookbehind pins the host: without it `notbestax.io` matches
   // and gets reported as a broken bestax.io link. A lookbehind rather than a
   // literal `https://` so the bare and http forms are still caught.
+  // A single terminal slash is allowed before the boundary check:
+  // .../grid/grid/ is just as dead, and rejecting it let a hand-written
+  // variant walk past the guard.
   // Mirror docsRoute exactly: the collapsing segment must END the path, and
   // it may sit under any number of category segments (form/datetime/... is a
   // live nested category). Anchoring to the first segment after /api both
   // missed real nested collapses and flagged valid paths like /api/a/a/card,
   // where the repeat is not trailing.
   const re =
-    /(?<![a-z0-9.-])bestax\.io\/docs\/api\/((?:[a-z0-9-]+\/)*?)([a-z0-9-]+)\/(\2|index|readme)(?![a-z0-9\-/])/gi;
+    /(?<![a-z0-9.-])bestax\.io\/docs\/api\/((?:[a-z0-9-]+\/)*?)([a-z0-9-]+)\/(\2|index|readme)\/?(?![a-z0-9\-/])/gi;
   src.split(/\r?\n/).forEach((line, i) => {
     for (const m of line.matchAll(re)) {
       violations.push(
