@@ -522,6 +522,26 @@ If you haven't started your project yet, `pnpm create bestax@latest` will instal
 
 ---
 
+## Icon-Only Buttons
+
+Toolbars and card actions often want a button whose whole label is an icon. Nest the `Icon` directly inside the `Button` — no wrapper element is needed, and the button's own padding keeps the glyph centred:
+
+```tsx live
+import { Button, Icon } from '@allxsmith/bestax-bulma';
+
+function IconOnlyExample() {
+  return (
+    <Button color="danger">
+      <Icon name="trash" />
+    </Button>
+  );
+}
+```
+
+This works the same way in every library on this page — swap the `library` prop and the icon `name` to match. See the [Icon API](/docs/api/elements/icon) for the full prop list.
+
+---
+
 ## Choosing the Right Icon Library
 
 | Library                   | Icons Count | File Size | Best For                        |
