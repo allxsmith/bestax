@@ -524,7 +524,7 @@ If you haven't started your project yet, `pnpm create bestax@latest` will instal
 
 ## Icon-Only Buttons
 
-Every example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
+Every button example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
 
 Put the name on the `Button` with `aria-label`, and hide the `Icon` from assistive technology with `aria-hidden`:
 
