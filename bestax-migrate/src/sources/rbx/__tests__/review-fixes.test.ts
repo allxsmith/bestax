@@ -418,18 +418,26 @@ describe('badge/tooltip wrapping and React keys', () => {
 });
 
 describe('a namespace binding still used as a value', () => {
-  it.each([
-    ['in a prop', '<rbx.Box as={rbx.Block}>x</rbx.Box>'],
-    ['bare', '<rbx.Box>{String(rbx)}</rbx.Box>'],
-  ])('survives the rewrite when referenced %s', (_how, jsx) => {
-    // JSX names like <rbx.Box> are rewritten away, but a value reference is
-    // not — and pruning the import under one leaves `rbx is not defined`.
-    // Reachable even when every component maps, so `retained` is empty.
+  it('survives when the namespace itself is referenced', () => {
+    // JSX names like <rbx.Box> are rewritten away, but a bare reference to
+    // the namespace is not — and pruning the import under one leaves
+    // `rbx is not defined`. Reachable even when every component maps.
     const { output } = migrate(
-      `import * as rbx from "rbx";\nexport const A = () => ${jsx};`
+      'import * as rbx from "rbx";\nexport const A = () => <rbx.Box>{String(rbx)}</rbx.Box>;'
     );
     expect(output).toContain('import * as rbx from "rbx"');
     expect(output).toContain('<Box');
+  });
+
+  it('is pruned once its member references are migrated', () => {
+    // `rbx.Block` is a mappable component, so it becomes `Block` and the
+    // namespace has nothing left to bind — retaining it here would leave a
+    // dead import of a package deps.ts removes.
+    const { output } = migrate(
+      'import * as rbx from "rbx";\nexport const A = () => <rbx.Box as={rbx.Block}>x</rbx.Box>;'
+    );
+    expect(output).toContain('as={Block}');
+    expect(output).not.toContain('from "rbx"');
   });
 
   it('is still pruned when nothing references it', () => {
@@ -693,5 +701,47 @@ describe('the innerRef remediation is achievable', () => {
     const msg = todos.find(t => t.rule === 'prop:innerRef')?.message ?? '';
     expect(msg).toMatch(/forwards no ref/);
     expect(msg).not.toMatch(/rename .*to `ref`/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round 7: the first deep review to read the current head (0 blocking).
+// ---------------------------------------------------------------------------
+
+describe('component references through a namespace import', () => {
+  it('migrates a mappable one instead of silently skipping it', () => {
+    // `const C = rbx.Button` kept working (the import is pinned) but was
+    // never migrated and never flagged — a silent skip, which this package
+    // does not do.
+    const { output, todos } = migrate(
+      'import * as rbx from "rbx";\nconst C = rbx.Button;\nexport const A = () => <C>x</C>;'
+    );
+    expect(output).toContain('const C = Button;');
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+    expect(output).not.toContain('from "rbx"');
+    expect(todos).toHaveLength(0);
+  });
+
+  it('resolves a compound to its flat bestax target', () => {
+    const { output } = migrate(
+      'import * as rbx from "rbx";\nconst C = rbx.Tag.Group;\nexport const A = () => <C>x</C>;'
+    );
+    expect(output).toContain('const C = Tags;');
+  });
+
+  it('flags an unmappable one and keeps the namespace import', () => {
+    const { output, todos } = migrate(
+      'import * as rbx from "rbx";\nconst C = rbx.Tile;\nexport const A = () => <C>x</C>;'
+    );
+    expect(output).toContain('import * as rbx from "rbx"');
+    expect(todos.some(t => t.rule === 'value-reference')).toBe(true);
+  });
+
+  it('still pins the import for a bare namespace reference', () => {
+    const { output } = migrate(
+      'import * as rbx from "rbx";\nexport const A = () => <rbx.Box>{String(rbx)}</rbx.Box>;'
+    );
+    expect(output).toContain('import * as rbx from "rbx"');
+    expect(output).toContain('<Box>');
   });
 });

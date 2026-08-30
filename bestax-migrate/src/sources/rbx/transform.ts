@@ -567,9 +567,19 @@ export default function transform(
     ) {
       return;
     }
-    if (imported === '*') {
-      // Reached only from a real value position — the guards above filter out
-      // import specifiers and JSX names, which the element walker rewrites.
+    // A namespace binding in a real value position. `rbx.Button` is still a
+    // mappable component reference, so fall through to the member-expression
+    // branch below with an empty prefix (the namespace itself is not part of
+    // the rbx path). Anything else — a bare `rbx` — just pins the import.
+    const isNamespace = imported === '*';
+    if (
+      isNamespace &&
+      !(
+        parentType === 'MemberExpression' &&
+        parentNode.object === path.node &&
+        !parentNode.computed
+      )
+    ) {
       namespaceStillReferenced = true;
       return;
     }
@@ -594,7 +604,7 @@ export default function transform(
       // `Card.Footer` with a stray `.Item`. Resolving only the first level
       // left the tail pointing at a compound bestax does not have
       // (bestax exposes `Card.FooterItem`).
-      const memberPath = [imported];
+      const memberPath = isNamespace ? [] : [imported];
       let outer: any = path.parent;
       while (
         outer?.node?.type === 'MemberExpression' &&
@@ -621,6 +631,20 @@ export default function transform(
         !memberMapping.special
       ) {
         if (memberMapping.target === dotted) {
+          if (isNamespace) {
+            // `rbx.Button` → `Button`: the namespace prefix has to go, so
+            // rebuild the chain from the target rather than renaming the
+            // namespace identifier in place (there is no MAPPING['*'] root
+            // to rename it to).
+            const [root, ...rest] = memberMapping.target.split('.');
+            let rebuilt: any = j.identifier(ctx.reserve(root));
+            for (const part of rest) {
+              rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+            }
+            outer.replace(rebuilt);
+            ctx.dirty = true;
+            return;
+          }
           const rootMapping = MAPPING[imported];
           if (rootMapping?.target) {
             const local = ctx.reserve(rootMapping.target);
@@ -653,9 +677,10 @@ export default function transform(
         ctx,
         outer,
         'value-reference',
-        `\`${dotted}\` is referenced as a value; migrate this usage by hand`
+        `\`${isNamespace ? `${name}.` : ''}${dotted}\` is referenced as a value; migrate this usage by hand`
       );
-      ctx.retained.add(imported);
+      if (isNamespace) namespaceStillReferenced = true;
+      else ctx.retained.add(imported);
       return;
     }
     if (
