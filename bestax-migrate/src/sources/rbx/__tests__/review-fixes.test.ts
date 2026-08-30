@@ -603,3 +603,26 @@ describe('shorthand object properties are keys as well as references', () => {
     expect(output).toContain('Textarea: TextArea');
   });
 });
+
+describe('the universal `responsive` prop on a plain-element rewrite', () => {
+  it.each([
+    [
+      'Heading',
+      '<Heading responsive={{ tablet: { hide: { value: true } } }}>x</Heading>',
+    ],
+    [
+      'Help',
+      '<Help responsive={{ mobile: { hide: { value: true } } }}>x</Help>',
+    ],
+  ])('is stripped from a replaced %s', (name, jsx) => {
+    // responsive.ts would have consumed it, but a `replaced: true` special
+    // skips that pass, and it is deliberately absent from UNIVERSAL_PROPS so
+    // stripModifierProps misses it too. Left behind it is an object literal
+    // on an intrinsic element — which does not compile.
+    const { output, todos } = migrate(
+      `import { ${name} } from "rbx";\nexport const A = () => ${jsx};`
+    );
+    expect(codeOf(output)).not.toContain('responsive=');
+    expect(todos.some(t => t.rule === 'plain-element')).toBe(true);
+  });
+});

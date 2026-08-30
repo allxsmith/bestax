@@ -81,6 +81,12 @@ function modifierClass(
 }
 
 /**
+ * Also strips the universal `responsive` object: responsive.ts would have
+ * consumed it, but a `replaced: true` special skips that pass too, and it is
+ * deliberately absent from UNIVERSAL_PROPS so stripModifierProps misses it.
+ * Left behind it is an object literal on an intrinsic element — which does
+ * not compile, unlike the badge/tooltip case which merely warns.
+ *
  * rbx's badge/tooltip helper props become wrapping components in
  * transform.ts, but that pass runs after the rename step — which a
  * `replaced: true` special skips. So a plain-element rewrite has to account
@@ -96,7 +102,10 @@ function stripHelperComponentProps(
   const dropped: string[] = [];
   for (const attr of attrs) {
     const name = attr?.name?.name;
-    if (name && (name in BADGE_PROPS || name in TOOLTIP_PROPS)) {
+    if (
+      name &&
+      (name in BADGE_PROPS || name in TOOLTIP_PROPS || name === 'responsive')
+    ) {
       dropped.push(name);
     } else {
       kept.push(attr);
@@ -111,7 +120,7 @@ function stripHelperComponentProps(
         .map(d => `\`${d}\``)
         .join(
           ', '
-        )} helper prop(s) were dropped — wrap it in \`<Badge>\` or \`<Tooltip>\` by hand`
+        )} helper prop(s) were dropped — re-apply by hand (badge/tooltip as a wrapping \`<Badge>\`/\`<Tooltip>\`, responsive settings as classes)`
     );
   }
   return kept;

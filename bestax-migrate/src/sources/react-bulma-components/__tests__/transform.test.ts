@@ -607,6 +607,23 @@ describe('react-bulma-components transform fixtures', () => {
     });
   });
 
+  describe('shared helpers that changed under the rbx work', () => {
+    // `_shared/specials-utils.ts` is used by both sources, so a fix made for
+    // rbx changes react-bulma-components output too. These lock in the two
+    // that did, which no RBC fixture previously covered.
+    it('does not read a Font Awesome modifier as the icon name', () => {
+      const source = [
+        "import { Icon } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <Icon><i className="fas fa-rotate-90 fa-home" /></Icon>',
+        ');',
+      ].join('\n');
+      const { output } = runTransform(transform, 'icon-modifier.tsx', source);
+      expect(output).toContain('name="home"');
+      expect(output).not.toContain('rotate-90"');
+    });
+  });
+
   describe('stylesheet imports', () => {
     const RBC_CSS =
       "import 'react-bulma-components/dist/react-bulma-components.min.css';\n";
