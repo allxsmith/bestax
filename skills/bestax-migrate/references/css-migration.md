@@ -1,9 +1,11 @@
-# Stylesheets: Bulma 0.9 → Bulma v1 + bestax
+# Stylesheets: pre-1 Bulma → Bulma v1 + bestax
 
-The libraries `bestax-migrate` migrates from all style with pre-1 Bulma —
-react-bulma-components with 0.9.x, rbx with 0.7.5 — and bestax-bulma targets Bulma v1. The
-codemod automates most of this layer — this reference explains what it did and how to
-finish what it flagged.
+Every library `bestax-migrate` migrates from is pinned to a pre-1 Bulma: react-bulma-components
+to 0.9.x, rbx to 0.7.5. bestax-bulma targets Bulma v1. The codemod automates most of that
+stylesheet layer; this reference explains what it did and how to finish what it flagged.
+
+Coming from rbx you are crossing **two** Bulma majors rather than one, so expect more visual
+drift than the 0.9 → 1 notes below describe on their own.
 
 ## What the codemod already did (default `--css bestax`)
 

@@ -284,3 +284,135 @@ describe('Field multiline follows rbx runtime semantics', () => {
     expect(output).toContain('grouped="multiline"');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round 3: Copilot's second pass on PR #613.
+// ---------------------------------------------------------------------------
+
+describe('rbx Loader keeps rendering', () => {
+  it('emits the plain .loader element, not an inactive Loading', () => {
+    // rbx's Loader always renders `div.loader`. bestax's Loading is a
+    // different component — an overlay that defaults `active` to false and
+    // returns null — so mapping straight onto it made every migrated loader
+    // disappear with no diagnostic at all.
+    const { output } = migrate(
+      'import { Loader } from "rbx";\nexport const A = () => <Loader />;'
+    );
+    expect(output).toContain('className="loader"');
+    expect(output).not.toContain('Loading');
+  });
+
+  it('still maps PageLoader onto Loading, which is an overlay', () => {
+    const { output } = migrate(
+      'import { PageLoader } from "rbx";\nexport const A = () => <PageLoader active />;'
+    );
+    expect(output).toContain('<Loading active isFullPage />');
+  });
+});
+
+describe('an existing namespace import of bestax-bulma', () => {
+  it('gets a separate declaration rather than an invalid merge', () => {
+    // `import * as X, { Y } from '…'` is not valid JavaScript: a namespace
+    // specifier cannot share a declaration with named ones.
+    const { output } = migrate(
+      'import * as Bestax from "@allxsmith/bestax-bulma";\nimport { Button } from "rbx";\nexport const A = () => <div>{String(Bestax)}<Button>x</Button></div>;'
+    );
+    expect(output).not.toMatch(/import \* as \w+, \{/);
+    expect(output).toContain(
+      'import * as Bestax from "@allxsmith/bestax-bulma"'
+    );
+    expect(output).toContain(
+      'import { Button } from "@allxsmith/bestax-bulma"'
+    );
+  });
+
+  it('still merges into an existing NAMED bestax import', () => {
+    const { output } = migrate(
+      'import { Box } from "@allxsmith/bestax-bulma";\nimport { Button } from "rbx";\nexport const A = () => <Box><Button>x</Button></Box>;'
+    );
+    // recast preserves the existing declaration's quote style.
+    expect(output).toMatch(
+      /import \{ Box, Button \} from ["']@allxsmith\/bestax-bulma["']/
+    );
+  });
+});
+
+describe('a non-literal `responsive` value', () => {
+  it('is removed, not merely reported', () => {
+    // bestax's own `responsive` is `'mobile' | 'narrow'`, so leaving a
+    // dynamic rbx object behind is a guaranteed type error.
+    const { output, todos } = migrate(
+      'import { Box } from "rbx";\nexport const A = (p: any) => <Box responsive={p.layout}>x</Box>;'
+    );
+    expect(codeOf(output)).not.toContain('responsive=');
+    expect(todos.some(t => t.rule === 'responsive')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round 4: CodeRabbit's first pass and the deep review's second.
+// ---------------------------------------------------------------------------
+
+describe('Font Awesome modifier classes are not read as the icon name', () => {
+  it.each([
+    ['fas fa-rotate-90 fa-home', 'home'],
+    ['fas fa-flip-horizontal fa-star', 'star'],
+    ['fas fa-lg fa-spin fa-cog', 'cog'],
+    ['far fa-border fa-bell', 'bell'],
+  ])('%s → name="%s"', (className, expected) => {
+    // Class order is not guaranteed, so the modifier filter has to be
+    // exhaustive rather than positional.
+    const { output } = migrate(
+      `import { Icon } from "rbx";\nexport const A = () => (<Icon><i className="${className}" /></Icon>);`
+    );
+    expect(output).toContain(`name="${expected}"`);
+  });
+
+  it('keeps fa-rotate-left, which is an icon and not a modifier', () => {
+    const { output } = migrate(
+      'import { Icon } from "rbx";\nexport const A = () => (<Icon><i className="fas fa-rotate-left" /></Icon>);'
+    );
+    expect(output).toContain('name="rotate-left"');
+  });
+});
+
+describe('Field multiline without a kind', () => {
+  it('renders plain, because rbx applies multiline only to kind="group"', () => {
+    // rbx: `[`${k}-multiline`]: k === "is-grouped" && multiline === true`.
+    // With no `kind`, `k` is undefined and multiline is a no-op — treating it
+    // as group turned a plain block field into a grouped flex row.
+    const { output } = migrate(
+      'import { Field } from "rbx";\nexport const A = () => <Field multiline>x</Field>;'
+    );
+    expect(codeOf(output)).not.toContain('grouped');
+    expect(codeOf(output)).not.toContain('multiline');
+  });
+
+  it('TODOs a dynamic kind rather than deciding for it', () => {
+    const { todos } = migrate(
+      'import { Field } from "rbx";\nexport const A = (p: any) => <Field kind={p.k} multiline>x</Field>;'
+    );
+    expect(todos.some(t => t.rule === 'prop:multiline')).toBe(true);
+  });
+});
+
+describe('badge/tooltip wrapping and React keys', () => {
+  it('moves `key` to the wrapper, which is now the array member', () => {
+    // Left on the inner element, React sees a keyless child: a console
+    // warning plus index reconciliation that mis-reuses DOM on reorder.
+    const { output } = migrate(
+      'import { Button } from "rbx";\nexport const A = (items: any[]) => <>{items.map(i => <Button key={i.id} badge={i.n}>x</Button>)}</>;'
+    );
+    expect(output).toMatch(/<Badge key=\{i\.id\}/);
+    expect(output).not.toMatch(/<Button key=/);
+  });
+
+  it('moves `key` to the outermost wrapper when both badge and tooltip apply', () => {
+    const { output } = migrate(
+      'import { Button } from "rbx";\nexport const A = (items: any[]) => <>{items.map(i => <Button key={i.id} badge={i.n} tooltip="t">x</Button>)}</>;'
+    );
+    expect(output).toMatch(/<Tooltip key=\{i\.id\}/);
+    expect(output).not.toMatch(/<Badge key=/);
+    expect(output).not.toMatch(/<Button key=/);
+  });
+});

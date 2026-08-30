@@ -129,12 +129,18 @@ function flattenResponsiveHelper(
 
   const objectExpr = objectExpressionOf(attr.value);
   if (!objectExpr) {
+    // Still remove it. bestax's `responsive` is an unrelated string union
+    // (`'mobile' | 'narrow'`), so leaving a dynamic rbx value behind is a
+    // guaranteed type error, not a leftover — the same contract the
+    // convertible path keeps.
     addTodo(
       ctx,
       path,
       'responsive',
-      '`responsive` must be an inline object literal to flatten to bestax per-viewport props; convert it by hand (note bestax has its own unrelated `responsive` prop)'
+      'dropped the `responsive` prop: it must be an inline object literal to flatten to bestax per-viewport props, and bestax has its own unrelated `responsive` prop, so it could not be left in place — reapply it by hand'
     );
+    removeAttr(element, attr);
+    ctx.dirty = true;
     return;
   }
 

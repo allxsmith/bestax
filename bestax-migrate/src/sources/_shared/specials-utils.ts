@@ -153,9 +153,14 @@ export function parseIconClasses(
     fad: 'duotone',
   };
   const faStyle = tokens.find(t => faVariant[t]);
-  const faName = tokens.find(
-    t => /^fa-/.test(t) && !/^fa-(lg|xs|sm|\dx|fw|spin|pulse)$/.test(t)
-  );
+  // Every `fa-*` that is a MODIFIER rather than an icon name. The old list
+  // covered only sizing and spin, so a class string that puts a modifier
+  // first — `fas fa-rotate-90 fa-home`, which Font Awesome's own docs show —
+  // yielded name="rotate-90". Ordering is not guaranteed, so the filter has
+  // to be exhaustive rather than positional.
+  const FA_MODIFIER =
+    /^fa-(?:xs|sm|lg|xl|2xl|\d{1,2}x|fw|ul|li|border|inverse|stack|stack-1x|stack-2x|pull-(?:left|right)|spin|spin-pulse|spin-reverse|pulse|beat|fade|beat-fade|bounce|flash|shake|swap-opacity|rotate-(?:90|180|270|by)|flip-(?:horizontal|vertical|both))$/;
+  const faName = tokens.find(t => /^fa-/.test(t) && !FA_MODIFIER.test(t));
   if (faStyle && faName) {
     return {
       name: faName.replace(/^fa-/, ''),

@@ -43,7 +43,7 @@ export const Form = () => (
     <Radio />
     <Image src="/a.png" size="64x64" isRounded />
     <Loading active color="info" direction="right-to-left" isFullPage />
-    <Loading />
+    <div className="loader"></div>
     <Divider color="primary" vertical>OR</Divider>
     <Delete size="small" />
   </>

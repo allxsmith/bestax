@@ -321,6 +321,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { target: 'Image', handledProps: ['size'] };
   },
 
+  /**
+   * rbx's `Loader` is Bulma's plain `.loader` spinner, which always renders.
+   * bestax's `Loading` is a different thing — a dismissible overlay that
+   * returns null unless `active` — so this emits the element rbx did.
+   */
+  loader(ctx, path, element) {
+    return replaceWithPlain(ctx, path, element, 'div', 'loader', 'Loader');
+  },
+
   /** rbx's full-screen PageLoader is bestax's Loading with isFullPage. */
   'page-loader'(ctx, _path, element) {
     if (!findAttr(element, 'isFullPage')) {
@@ -351,7 +360,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
       const kindLiteral = kindAttr ? literalValueOf(kindAttr) : undefined;
       const isGroup =
         kindLiteral?.kind === 'string' && kindLiteral.value === 'group';
-      if (!kindAttr || isGroup) {
+      // Note `!kindAttr` is NOT grouped in here: with no `kind` at all, rbx's
+      // `k` is undefined, so `multiline` renders nothing and the field stays a
+      // plain block. Treating it as group turned it into a flex row.
+      if (isGroup) {
         if (kindAttr) removeAttr(element, kindAttr);
         const existing = findAttr(element, 'grouped');
         if (existing) removeAttr(element, existing);
@@ -359,8 +371,17 @@ const SPECIALS: Record<string, SpecialHandler> = {
         ctx.dirty = true;
         return { handledProps: ['multiline', 'kind'] };
       }
-      // kind="addons" (or a dynamic kind): rbx ignores multiline here, so the
-      // codemod does too, and `kind` is left for the mapping table.
+      // kind="addons", a dynamic kind, or no kind at all: rbx ignores
+      // multiline in every one of those, so the codemod does too and leaves
+      // `kind` for the mapping table.
+      if (kindAttr && kindLiteral?.kind === 'expression') {
+        addTodo(
+          ctx,
+          path,
+          'prop:multiline',
+          'dynamic Field `kind` alongside `multiline`; rbx applies multiline only when kind is "group" — set `grouped="multiline"` by hand if that branch is reachable'
+        );
+      }
       ctx.dirty = true;
       return { handledProps: ['multiline'] };
     }

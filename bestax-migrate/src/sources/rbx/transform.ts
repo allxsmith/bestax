@@ -305,9 +305,18 @@ export default function transform(
   ctx.reserve = makeReserve(ctx, bound);
 
   // Merge with an existing bestax import: reuse its locals verbatim.
+  // Only a declaration that already uses NAMED specifiers can absorb more of
+  // them. `import * as Bestax from '…'` cannot: a namespace specifier may not
+  // share a declaration with named ones, and appending to it emits a file
+  // that does not parse.
   const existingBestax = root
     .find(j.ImportDeclaration, { source: { value: BESTAX } })
-    .paths()[0];
+    .paths()
+    .find(p =>
+      (p.node.specifiers ?? []).every(
+        (spec: any) => spec.type === 'ImportSpecifier'
+      )
+    );
   const preExistingImports = new Set<string>();
   if (existingBestax) {
     for (const spec of existingBestax.node.specifiers ?? []) {
@@ -373,6 +382,16 @@ export default function transform(
       // node carries over untouched under its new name.
       attr.name = j.jsxIdentifier(target);
       wrapperAttrs.push(attr);
+    }
+
+    // `key` is only meaningful in the parent's child position, and the
+    // wrapper is what becomes the array member now. Leaving it on the inner
+    // element gives React a keyless child: a console warning, and index-based
+    // reconciliation that mis-reuses DOM on reorder.
+    const keyAttr = findAttr(child, 'key');
+    if (keyAttr) {
+      removeAttr(child, keyAttr);
+      wrapperAttrs.unshift(keyAttr);
     }
 
     const local = ctx.reserve(componentName);

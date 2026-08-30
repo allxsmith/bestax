@@ -94,15 +94,14 @@ const { default: transform } = await import(distTransform);
 const { runTransform } = await import(distRunner);
 
 /**
- * Pull the `<Playground>…</Playground>` bodies out of one MDX page. Brace and
- * tag depth are tracked together so a nested `<Playground>` inside a string or
- * a render-prop body cannot end the block early.
+ * Pull the `<Playground>…</Playground>` bodies out of one MDX page. Nesting is
+ * tracked by `<Playground>` tag depth, so a block containing another one
+ * cannot be ended early by the inner closing tag.
  */
 function extractPlaygrounds(source) {
   const blocks = [];
   const open = /<Playground>/g;
-  let match;
-  while ((match = open.exec(source))) {
+  while (open.exec(source) !== null) {
     const start = open.lastIndex;
     let depth = 1;
     let i = start;

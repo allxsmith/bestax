@@ -258,7 +258,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'todo',
     todo: '`Numeric` (locale number formatting) has no bestax equivalent; use Intl.NumberFormat directly',
   },
-  Loader: { status: 'mapped', target: 'Loading' },
+  // NOT `Loading`: rbx's Loader always renders `div.loader`, while bestax's
+  // Loading is an overlay that defaults `active` to false and returns null —
+  // so a direct map made every migrated loader disappear. Bulma's `.loader`
+  // is a plain element, and the react-bulma-components source already
+  // emits exactly that for its own `Loader`.
+  Loader: { status: 'mapped', special: 'loader' },
   PageLoader: {
     status: 'mapped',
     target: 'Loading',
