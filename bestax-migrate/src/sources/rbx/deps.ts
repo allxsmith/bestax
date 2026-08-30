@@ -112,6 +112,21 @@ export const updateDependencies: DependenciesUpdate = (
     );
   }
 
+  // The transform deliberately keeps a trimmed rbx import for components
+  // with no bestax equivalent (Tile, Generic, List, …) so a partially
+  // migrated app still runs. Removing the package from the manifest strands
+  // exactly those imports once the user runs the install the report asks for,
+  // so say so rather than letting them find out at build time.
+  if (removed.includes('rbx') && options.sourceStillImported) {
+    collector?.add({
+      file: filePath,
+      line: null,
+      rule: 'deps',
+      message:
+        'rbx was removed from package.json, but some files still import it for components with no bestax equivalent — resolve those `TODO(bestax-migrate)` imports before installing, or re-add rbx until you have',
+    });
+  }
+
   // The headline: say the count out loud so it lands in the run summary.
   if (removed.length > 1) {
     collector?.add({

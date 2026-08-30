@@ -104,8 +104,12 @@ function migrateFiles(
   reporter: Reporter,
   io: CliIo,
   options: RunOptions
-): boolean {
+): { bulmaReferenced: boolean; sourceStillImported: boolean } {
   let bulmaReferenced = false;
+  let sourceStillImported = false;
+  const sourceImportRe = new RegExp(
+    `from\\s*['"]${source.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`
+  );
   for (const file of files) {
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
@@ -132,13 +136,16 @@ function migrateFiles(
     if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
       bulmaReferenced = true;
     }
+    if (sourceImportRe.test(output ?? sourceText)) {
+      sourceStillImported = true;
+    }
     if (output !== null) {
       if (options.print) io.log(output);
       if (!options.dry) fs.writeFileSync(file, output);
     }
     reporter.finishFile(file, output !== null, collector.entries);
   }
-  return bulmaReferenced;
+  return { bulmaReferenced, sourceStillImported };
 }
 
 /**
@@ -179,7 +186,7 @@ function migrateDependencies(
   reporter: Reporter,
   io: CliIo,
   options: RunOptions,
-  bulmaReferenced: boolean
+  deps: { bulmaReferenced: boolean; sourceStillImported: boolean }
 ): void {
   if (!options.deps || !source.updateDependencies) return;
   for (const pkgPath of findPackageJsons(targets)) {
@@ -190,7 +197,8 @@ function migrateDependencies(
       const pkg = JSON.parse(raw);
       const next = source.updateDependencies(pkgPath, pkg, collector, {
         cssMode: options.cssMode,
-        bulmaReferenced,
+        bulmaReferenced: deps.bulmaReferenced,
+        sourceStillImported: deps.sourceStillImported,
       });
       if (next !== null) {
         changed = true;
@@ -389,13 +397,7 @@ export function createCLI(
       };
 
       const reporter = new Reporter();
-      const bulmaReferenced = migrateFiles(
-        source,
-        files,
-        reporter,
-        io,
-        runOptions
-      );
+      const depSignals = migrateFiles(source, files, reporter, io, runOptions);
       reportUnsupportedFiles(source, targets, reporter, extensions);
       migrateDependencies(
         source,
@@ -403,7 +405,7 @@ export function createCLI(
         reporter,
         io,
         runOptions,
-        bulmaReferenced
+        depSignals
       );
 
       io.log(

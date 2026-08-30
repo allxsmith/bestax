@@ -309,6 +309,20 @@ export default function transform(
 
   // ---- 1c. Collect local bindings so new imports never collide -----------
   const bound = collectBoundNames(j, root, RBX);
+  // Seed the reserved set with the local names of rbx imports that CANNOT be
+  // migrated, so a bestax import never claims one of them. Without this, an
+  // unmappable component aliased to a name bestax also wants
+  // (`import { Tile as Button }`) had its retained specifier dropped on the
+  // collision — and its `<Button>` JSX then silently resolved to the bestax
+  // Button. A component quietly became a different component.
+  //
+  // Keyed on the mapping status so only genuinely unmappable names force an
+  // alias; the common case (`Button` → `Button`) stays un-aliased.
+  for (const [local, imported] of imports) {
+    if (imported === '*') continue;
+    const entry = MAPPING[imported];
+    if (!entry || entry.status === 'todo') bound.add(local);
+  }
   ctx.reserve = makeReserve(ctx, bound);
 
   // Merge with an existing bestax import: reuse its locals verbatim.
@@ -560,7 +574,28 @@ export default function transform(
       parentNode.object === path.node &&
       !parentNode.computed
     ) {
-      const memberPath = [imported, nameOf(parentNode.property)];
+      // Walk the full chain: `Card.Footer.Item` is one path, not
+      // `Card.Footer` with a stray `.Item`. Resolving only the first level
+      // left the tail pointing at a compound bestax does not have
+      // (bestax exposes `Card.FooterItem`).
+      const memberPath = [imported];
+      let outer: any = path.parent;
+      while (
+        outer?.node?.type === 'MemberExpression' &&
+        !outer.node.computed &&
+        outer.node.property?.type === 'Identifier'
+      ) {
+        memberPath.push(nameOf(outer.node.property));
+        const next = outer.parent;
+        if (
+          next?.node?.type === 'MemberExpression' &&
+          next.node.object === outer.node
+        ) {
+          outer = next;
+        } else {
+          break;
+        }
+      }
       const memberMapping = resolveMapping(memberPath);
       const dotted = memberPath.join('.');
       if (
@@ -579,16 +614,28 @@ export default function transform(
           return;
         }
         if (!memberMapping.target.includes('.')) {
-          // Flat target (Column.Group → Columns): swap the member expression.
+          // Flat target (Column.Group → Columns): swap the whole chain.
           const local = ctx.reserve(memberMapping.target);
-          path.parent.replace(j.identifier(local));
+          outer.replace(j.identifier(local));
           ctx.dirty = true;
           return;
         }
+        // Dotted target that differs from the source chain
+        // (Card.Footer.Item → Card.FooterItem): rebuild the chain against the
+        // bestax path rather than flagging something the table can answer.
+        const [targetRoot, ...targetRest] = memberMapping.target.split('.');
+        const rootLocal = ctx.reserve(targetRoot);
+        let rebuilt: any = j.identifier(rootLocal);
+        for (const part of targetRest) {
+          rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+        }
+        outer.replace(rebuilt);
+        ctx.dirty = true;
+        return;
       }
       addTodo(
         ctx,
-        path.parent,
+        outer,
         'value-reference',
         `\`${dotted}\` is referenced as a value; migrate this usage by hand`
       );
@@ -671,6 +718,20 @@ export default function transform(
           path.insertBefore(bestaxImport);
         }
         inserted = true;
+      }
+      const droppedOnCollision = (node.specifiers ?? []).filter(
+        (spec: any) =>
+          spec.type === 'ImportSpecifier' &&
+          ctx.retained.has(nameOf(spec.imported)) &&
+          bestaxLocals.has(nameOf(spec.local))
+      );
+      for (const spec of droppedOnCollision) {
+        addTodo(
+          ctx,
+          path,
+          'imports',
+          `\`${nameOf(spec.imported)}\` is retained but its local name \`${nameOf(spec.local)}\` is also a bestax import in this file; rename one of them by hand — its JSX would otherwise resolve to the bestax component`
+        );
       }
       if (keepSpecifiers.length > 0) {
         node.specifiers = keepSpecifiers;

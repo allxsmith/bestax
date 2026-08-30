@@ -439,3 +439,61 @@ describe('a namespace binding still used as a value', () => {
     expect(output).not.toContain('from "rbx"');
   });
 });
+
+describe('value references walk the whole member chain', () => {
+  it('rewrites Card.Footer.Item to bestax Card.FooterItem', () => {
+    // Resolving only the first level treated `Card.Footer` as unchanged and
+    // left `.Item` dangling on a compound bestax does not have.
+    const { output, todos } = migrate(
+      'import { Card } from "rbx";\nconst X = Card.Footer.Item;\nexport const A = () => <X>x</X>;'
+    );
+    expect(output).toContain('const X = Card.FooterItem;');
+    expect(output).not.toContain('from "rbx"');
+    expect(todos).toHaveLength(0);
+  });
+});
+
+describe('a retained rbx binding never loses its name to a bestax import', () => {
+  it('aliases the bestax local instead of dropping the retained specifier', () => {
+    // `Tile as Button` is unmappable and retained; another rbx component
+    // wants bestax's `Button`. Dropping the retained specifier made
+    // `<Button>` — which was a Tile — silently render a bestax Button.
+    const { output } = migrate(
+      'import { Tile as Button, Button as RealButton } from "rbx";\nexport const A = () => <><Button>tile</Button><RealButton>btn</RealButton></>;'
+    );
+    expect(output).toContain('import { Tile as Button } from "rbx"');
+    expect(output).toMatch(/Button as Bulma\w+/);
+    // The Tile usage still points at the retained rbx binding.
+    expect(output).toContain('<Button>tile</Button>');
+  });
+});
+
+describe('removing the source package while imports remain', () => {
+  it('warns rather than silently stranding the retained imports', async () => {
+    const { rbx } = await import('../index.js');
+    const todos: TodoEntry[] = [];
+    rbx.updateDependencies!(
+      'package.json',
+      { dependencies: { rbx: '^2.2.0' } },
+      { add: e => todos.push(e) },
+      { cssMode: 'bestax', sourceStillImported: true }
+    );
+    expect(
+      todos.some(t =>
+        /still import it for components with no bestax/.test(t.message)
+      )
+    ).toBe(true);
+  });
+
+  it('stays quiet when nothing still imports it', async () => {
+    const { rbx } = await import('../index.js');
+    const todos: TodoEntry[] = [];
+    rbx.updateDependencies!(
+      'package.json',
+      { dependencies: { rbx: '^2.2.0' } },
+      { add: e => todos.push(e) },
+      { cssMode: 'bestax', sourceStillImported: false }
+    );
+    expect(todos.some(t => /still import it/.test(t.message))).toBe(false);
+  });
+});
