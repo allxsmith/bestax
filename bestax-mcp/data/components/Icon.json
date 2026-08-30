@@ -50,7 +50,7 @@
       "code": "<Icon library=\"ion\" name=\"settings\" ariaLabel=\"Ionicons settings icon\" />"
     }
   ],
-  "accessibility": "- **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default `'icon'`).\n- **Keyboard:** Icon is decorative by default. If interactive, use with `Button` or `a` and add ARIA as needed.\n- **Color and size:** Use `textColor`, `bgColor`, and `size` for accessible, themeable icons.\n\n:::note\nFor purely decorative icons, you can use `aria-hidden=\"true\"` via the `...rest` props.\n:::",
+  "accessibility": "- **ARIA label:** `ariaLabel` defaults to `'icon'` and is applied to the container span **unconditionally** — an `Icon` that never sets it still renders `aria-label=\"icon\"`. For an icon-only control, put the real `aria-label` on the control (e.g. `Button`) and set `aria-hidden` on the `Icon`; for a decorative icon beside visible text, set `aria-hidden` on the `Icon` so it doesn't add `\"icon\"` to the accessible name.\n- **Keyboard:** If interactive, use with `Button` or `a` and put the ARIA (`aria-label`, roles) on that control.\n- **Color and size:** Use `textColor`, `bgColor`, and `size` for accessible, themeable icons.\n\n:::note\nFor purely decorative icons, you can use `aria-hidden=\"true\"` via the `...rest` props.\n:::",
   "related": ["Button", "Card", "IconText", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-icon--default",
   "summary": "The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons, Google Material Icons, Material Symbols, etc.).",
@@ -168,7 +168,7 @@
           "name": "ariaLabel",
           "type": "string",
           "default": "'icon'",
-          "description": "ARIA label for accessibility (default: 'icon').",
+          "description": "ARIA label for accessibility. Applied unconditionally to the container span, so an icon that never sets it still renders `aria-label=\"icon\"`. For an icon-only control, put the real `aria-label` on the control (e.g. `Button`) and set `aria-hidden` here instead — otherwise the control's accessible name is announced as just \"icon\". For a decorative icon beside visible text, set `aria-hidden` here rather than leaving the default, so it doesn't add \"icon\" to the text's accessible name.",
           "required": false,
           "inherited": false,
           "deprecated": false
