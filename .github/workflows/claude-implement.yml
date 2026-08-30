@@ -45,7 +45,7 @@ jobs:
     timeout-minutes: 60
     steps:
       # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
-      # audit run was 33230068020; all five runs the flip is built on are recorded
+      # audit run was 33230068020; all six runs the flip is built on are recorded
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
@@ -77,7 +77,7 @@ jobs:
       # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
       # here; it was wrong, and measuring it is what showed that.
       #
-      # The third is specific to this job, the only one of the five that touched it:
+      # The third is specific to this job, the only one of the six that touched it:
       # private-user-images.githubusercontent.com, the session fetching an image
       # embedded in an issue body. The cost of leaving it out is real and small — a
       # `claude-fix` issue carrying a screenshot degrades, because the session
@@ -198,10 +198,17 @@ jobs:
         # it (#487). It also covers feature-flag evaluation, which is why
         # statsig.anthropic.com is gone.
         #
-        # On this `audit` job the point is the MEASUREMENT: audit mode exists to
-        # produce the endpoint list a block flip will use (#578), and leaving
-        # telemetry on would put the Datadog host in that report, inviting whoever
-        # reads it to allow-list a host we have just decided to deny.
+        # This job now enforces `block` (#578), so the denial is doing two jobs at
+        # once and both matter. The allowlist above refuses the Datadog host, and
+        # this setting stops the CLI trying to reach it, which keeps a denied call
+        # out of the run rather than merely blocked. Leaving telemetry on and
+        # relying on the allowlist alone would fill the logs with refused traffic
+        # and invite the next reader to "fix" it by allow-listing the host.
+        #
+        # It also earned the allowlist: this was set during the audit phase
+        # precisely so the endpoint list the flip was built from reflected the
+        # intended end state, rather than recording a host we had already decided
+        # to deny.
         #
         # A step `env:` rather than the action's `settings:` input. `settings:` is
         # written to the USER-level ~/.claude/settings.json, which a project-level
