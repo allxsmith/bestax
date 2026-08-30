@@ -50,7 +50,7 @@
     "url": "https://github.com/allxsmith/bestax/issues"
   },
   "dependencies": {
-    "@babel/parser": "^7.26.0",
+    "@babel/parser": "^7.29.8",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
     "jscodeshift": "^17.3.0"
@@ -60,9 +60,9 @@
     "@jest/globals": "^30.0.0",
     "@types/jest": "^30.0.0",
     "@types/jscodeshift": "^17.3.0",
-    "@types/node": "^26.1.2",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/node": "^26.3.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
     "jest": "^30.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
