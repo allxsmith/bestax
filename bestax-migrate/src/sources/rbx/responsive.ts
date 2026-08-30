@@ -50,6 +50,16 @@ function literalOf(node: any): string | number | boolean | undefined {
   return undefined;
 }
 
+/**
+ * Reuse a value node as a JSX attribute value: a string literal can sit bare
+ * (`size="one-third"`), anything else needs an expression container.
+ */
+function attrValue(j: any, node: any): any {
+  return node?.type === 'StringLiteral'
+    ? j.stringLiteral(node.value)
+    : j.jsxExpressionContainer(node);
+}
+
 function propKey(prop: any): string | undefined {
   const key = prop.key?.name ?? prop.key?.value;
   return typeof key === 'string' ? key : undefined;
@@ -89,10 +99,12 @@ function readCell(cell: any): { value: any; only: boolean } | undefined {
 /**
  * Pass 1 — the universal `responsive={{ <breakpoint>: { … } }}` prop.
  *
- * The whole prop must go: bestax has an unrelated `responsive` prop
- * (`'mobile' | 'narrow'`), so anything left behind would be a type error
- * rather than a leftover. When a cell cannot be converted the prop is kept
- * intact and a TODO explains why.
+ * The whole prop always goes, even when some cells could not be converted.
+ * bestax has an unrelated `responsive` prop (`'mobile' | 'narrow'`), so a
+ * partially-emptied rbx object left behind is not a harmless leftover — it is
+ * a guaranteed type error on every migrated component. Each cell that could
+ * not be carried over gets its own TODO naming it, which is where that
+ * information belongs.
  */
 function flattenResponsiveHelper(
   ctx: TransformContext,
@@ -116,11 +128,11 @@ function flattenResponsiveHelper(
     return;
   }
 
-  const remainingBreakpoints: any[] = [];
+  const remainingBreakpoints: string[] = [];
   for (const bpProp of objectExpr.properties) {
     const breakpoint = propKey(bpProp);
     if (breakpoint === undefined || !(breakpoint in RESPONSIVE_BREAKPOINTS)) {
-      remainingBreakpoints.push(bpProp);
+      remainingBreakpoints.push(String(breakpoint));
       addTodo(
         ctx,
         path,
@@ -132,7 +144,7 @@ function flattenResponsiveHelper(
 
     const suffix = RESPONSIVE_BREAKPOINTS[breakpoint];
     if (suffix === null) {
-      remainingBreakpoints.push(bpProp);
+      remainingBreakpoints.push(breakpoint);
       addTodo(
         ctx,
         path,
@@ -144,7 +156,7 @@ function flattenResponsiveHelper(
 
     const cells = objectExpressionOf(bpProp.value) ?? bpProp.value;
     if (cells?.type !== 'ObjectExpression') {
-      remainingBreakpoints.push(bpProp);
+      remainingBreakpoints.push(breakpoint);
       addTodo(
         ctx,
         path,
@@ -235,16 +247,21 @@ function flattenResponsiveHelper(
     }
 
     if (remainingCells.length > 0) {
-      cells.properties = remainingCells;
-      remainingBreakpoints.push(bpProp);
+      remainingBreakpoints.push(breakpoint);
     }
   }
 
-  if (remainingBreakpoints.length === 0) {
-    removeAttr(element, attr);
-  } else {
-    objectExpr.properties = remainingBreakpoints;
+  if (remainingBreakpoints.length > 0) {
+    addTodo(
+      ctx,
+      path,
+      'responsive',
+      `dropped the \`responsive\` prop; the ${remainingBreakpoints
+        .map(b => `\`${b}\``)
+        .join(', ')} settings above could not be converted and bestax's own \`responsive\` prop is unrelated (\`'mobile' | 'narrow'\`)`
+    );
   }
+  removeAttr(element, attr);
   ctx.dirty = true;
 }
 
@@ -297,7 +314,7 @@ function flattenColumnBreakpoints(
           element,
           j.jsxAttribute(
             j.jsxIdentifier(`${key}${suffix}`),
-            j.jsxExpressionContainer(prop.value)
+            attrValue(j, prop.value)
           )
         );
       } else if (kind === 'column' && key === 'narrow') {
@@ -319,7 +336,7 @@ function flattenColumnBreakpoints(
           element,
           j.jsxAttribute(
             j.jsxIdentifier(`gap${suffix}`),
-            j.jsxExpressionContainer(prop.value)
+            attrValue(j, prop.value)
           )
         );
       } else {

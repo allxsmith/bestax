@@ -318,6 +318,7 @@ export default function transform(
   function buildWrapper(
     path: any,
     element: any,
+    child: any,
     propMap: Record<string, string | null>,
     componentName: string,
     triggerProp: string
@@ -367,7 +368,7 @@ export default function transform(
     const wrapper = j.jsxElement(
       j.jsxOpeningElement(j.jsxIdentifier(local), wrapperAttrs, false),
       j.jsxClosingElement(j.jsxIdentifier(local)),
-      [element]
+      [child]
     );
     ctx.dirty = true;
     return wrapper;
@@ -448,14 +449,25 @@ export default function transform(
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
 
     // ---- 2a. badge/tooltip helper props → wrapping components ------------
-    // Last, so the inner element is already fully migrated. Tooltip goes
-    // outside Badge when both are present: the badge is positioned against
-    // the element it decorates, and the tooltip covers the pair.
+    // Last, so the inner element is already fully migrated. Both families are
+    // read off `element` — the props live there whichever wrapper is built
+    // first — while each wrapper takes the current outermost node as its
+    // child. Tooltip ends up outside Badge when both are present: the badge
+    // is positioned against the element it decorates, and the tooltip covers
+    // the pair.
     let wrapped: any = element;
-    const badge = buildWrapper(path, element, BADGE_PROPS, 'Badge', 'badge');
+    const badge = buildWrapper(
+      path,
+      element,
+      wrapped,
+      BADGE_PROPS,
+      'Badge',
+      'badge'
+    );
     if (badge) wrapped = badge;
     const tooltip = buildWrapper(
       path,
+      element,
       wrapped,
       TOOLTIP_PROPS,
       'Tooltip',

@@ -93,6 +93,48 @@ function replaceWithPlain(
   return { replaced: true };
 }
 
+/**
+ * rbx wraps several components in a `*.Container` that owns the modifiers,
+ * where bestax's component renders that wrapper itself. Move the container's
+ * (already-converted) attributes onto its single child and replace the
+ * container with it — otherwise both would rename to the same bestax
+ * component and nest, which is invalid.
+ *
+ * Returns null when the element isn't the single-JSX-child shape, so the
+ * caller can fall back to keeping the container.
+ */
+function collapseOntoChild(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  where: string
+): SpecialResult | null {
+  const children = (element.children ?? []).filter(
+    (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+  );
+  if (children.length !== 1 || children[0].type !== 'JSXElement') return null;
+  const child = children[0];
+
+  for (const attr of [...attributesOf(element)]) {
+    const name: string = attr.name.name;
+    if (findAttr(child, name)) {
+      addTodo(
+        ctx,
+        path,
+        `prop:${name}`,
+        `\`${where}\` folded into its child, but both set \`${name}\`; the child's value was kept — reconcile by hand`
+      );
+      continue;
+    }
+    removeAttr(element, attr);
+    addAttr(child, attr);
+  }
+
+  path.replace(child);
+  ctx.dirty = true;
+  return { replaced: true };
+}
+
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * rbx's `Heading` is Bulma's `.heading` label (small caps), not a title —
@@ -225,6 +267,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       // A string literal is already a ratio like "16by9" — pass it through.
     }
+    const collapsed = collapseOntoChild(ctx, path, element, 'Image.Container');
+    if (collapsed) return collapsed;
+    // No single child to fold into — keep the container as the Image itself.
     return { target: 'Image', handledProps: ['size'] };
   },
 
@@ -331,6 +376,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       ctx.dirty = true;
     }
+    const collapsed = collapseOntoChild(ctx, path, element, 'Select.Container');
+    if (collapsed) return collapsed;
+    // No single child to fold into — keep the container as the Select itself.
     return {
       target: 'Select',
       handledProps: ['fullwidth', 'rounded', 'state'],

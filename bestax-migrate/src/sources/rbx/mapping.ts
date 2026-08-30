@@ -708,8 +708,10 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Column',
     special: 'column',
     props: {
-      size: numeric,
-      offset: numeric,
+      // bestax's BulmaColumnSize accepts numbers as well as the named
+      // strings, so rbx's numeric sizes carry over untouched.
+      size: {},
+      offset: {},
       narrow: { booleanToProp: { name: 'isNarrow' } },
     },
     subs: {
