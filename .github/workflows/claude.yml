@@ -73,10 +73,19 @@ jobs:
       #
       # The eight hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
-      # strict subset of it: objects.githubusercontent.com and
-      # release-assets.githubusercontent.com never appeared, because the Node 24
-      # toolcache hit on every run. They stay for the toolcache-miss path, exactly
-      # as those three jobs already carry them.
+      # strict subset of it: objects.githubusercontent.com,
+      # release-assets.githubusercontent.com and nodejs.org never appeared, because
+      # the Node 24 toolcache hit on every run. All three stay for the
+      # toolcache-miss path, and they are not interchangeable: the first two carry
+      # the actions/node-versions manifest and its release assets, while nodejs.org
+      # is setup-node v7 own fallback when that lookup misses.
+      #
+      # nodejs.org is the one host NOT in the Claude-session set copied above, and
+      # the reason is worth stating so it does not get trimmed back out: none of
+      # ai-scan/scan, ai-triage/triage or claude-repro/author runs setup-node at
+      # all, so that set never needed it. This job does. Every block job in this
+      # repo that runs setup-node allows it (auto-close-duplicates,
+      # security-txt-expiry, deploy-worker, supply-chain/consumer-sbom).
       #
       # Two observed hosts are deliberately absent. telemetry.vercel.com is turbo's
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
@@ -106,6 +115,7 @@ jobs:
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
             registry.npmjs.org:443
+            nodejs.org:443
 
       # Asserts the policy the pre-step decided (agent.json) AND that the agent
       # actually came up (agent.status, written only once the firewall rules are
