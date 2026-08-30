@@ -145,9 +145,17 @@ green and every AI review thread is resolved.
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
-  against current code. **Today a PR that modifies `claude-review.yml` is not deep-reviewed:**
-  the run logs `Skipping action due to workflow validation` and posts nothing while the job
-  still goes green — so check for the review comment, never the job's conclusion. That is a
+  against current code. **Today a PR whose copy of `claude-review.yml` differs from the default
+  branch's is not deep-reviewed:** the run logs `Skipping action due to workflow validation` and
+  posts nothing while the job still goes green — so check for the review comment, never the job's
+  conclusion. Read that condition as written, because the narrower version ("a PR that _modifies_
+  `claude-review.yml`") is what this line said until it bit. The workflow runs from the **PR
+  head's** copy, so a branch that merely PREDATES a change to that file is equally stale and
+  equally silent. #578's flip changed the file, and every PR opened before it inherited a
+  skipped review; #605 reproduced it (`"egress_policy":"audit"` from the branch's own old copy,
+  session skipped) and merging `main` into the branch fixed it. Expect this after any edit to
+  `claude-review.yml`, and bring a branch up to date before trusting a green deep-review job on
+  it. That is a
   consequence of configuration rather than a property of the action: the validation lives on
   the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
   a `github_token` input is supplied — the same early return `ai-triage.yml` already documents

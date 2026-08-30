@@ -482,7 +482,13 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `claude-pr-loop` (`fix` and `verify`). Nineteen jobs; the command below is the check.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
   group by measuring all six of its members instead of guessing for them, and all six landed on
-  the same eight hosts the Claude-session jobs above already used. Keep the group here rather
+  the same nine hosts: the eight the Claude-session jobs above already used, plus `nodejs.org`.
+  That ninth is the interesting one, and it is why "measured" is not the same as "complete". None
+  of `ai-scan`/`scan`, `ai-triage`/`triage` or `claude-repro`/`author` runs `actions/setup-node`,
+  so their eight-host list never needed it; all six of #578's jobs do run it, and setup-node falls
+  back to `nodejs.org/dist` when the toolcache misses and the `actions/node-versions` lookup fails.
+  Six audit runs could not surface that, because the toolcache hit every time and an unexercised
+  path leaves no endpoint in any log. Review caught it, not measurement. Keep the group here rather
   than deleting it: audit remains the correct starting point for an **existing** live job whose
   egress has never been observed, and the recipe under this rule is what keeps it a short state
   rather than an open-ended one. What it is not is a resting place, which is the whole reason
@@ -564,7 +570,8 @@ Two things about reading its output, both learned assembling the #578 lists:
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
   are the runner talking to its own control plane. The blob host cannot be pinned even in
-  principle — its name rotates per run (sa3, sa6, sa7, sa9, sa11 and sa13 across six runs). Run
+  principle — its name rotates per run (sa3, sa6, sa7, sa9, sa11, sa13 and sa17 so far, and the
+  list keeps growing every time anyone looks). Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
   with the five-host list observed only `api.github.com` and `github.com`, and completed all
   fifteen of its API calls under the firewall.
