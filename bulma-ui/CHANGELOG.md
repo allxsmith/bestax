@@ -1,3 +1,10 @@
+## [5.11.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.6...@allxsmith/bestax-bulma@5.11.7) (2026-08-30)
+
+
+### Bug Fixes
+
+* **bulma-ui:** admit material-symbols 0.46 in the peer range ([1d5c1d4](https://github.com/allxsmith/bestax/commit/1d5c1d4040bc7ff01fb826999f792638bfacd97f))
+
 ## [5.11.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.5...@allxsmith/bestax-bulma@5.11.6) (2026-08-30)
 
 
