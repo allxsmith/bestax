@@ -522,6 +522,59 @@ If you haven't started your project yet, `pnpm create bestax@latest` will instal
 
 ---
 
+## Icon-Only Buttons
+
+Every example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
+
+Put the name on the `Button` with `aria-label`, and hide the `Icon` from assistive technology with `aria-hidden`:
+
+```tsx live
+import { Button, Icon } from '@allxsmith/bestax-bulma';
+
+function IconOnlyExample() {
+  return (
+    <Button color="danger" aria-label="Delete item">
+      <Icon name="trash" aria-hidden="true" />
+    </Button>
+  );
+}
+```
+
+Both halves matter, and the second one is easy to miss:
+
+- **`aria-label` on the `Button`** is what a screen reader announces. Make it name the action ("Delete item"), not the picture ("Trash icon").
+- **`aria-hidden` on the `Icon`** stops it contributing a second, competing name. `Icon` sets `aria-label="icon"` by default, so an icon-only button without this announces the literal word "icon".
+
+The same pattern applies to every library on this page. Only the `library` prop and the icon `name` change:
+
+```tsx live
+import { Button, Buttons, Icon } from '@allxsmith/bestax-bulma';
+
+function IconOnlyLibraries() {
+  return (
+    <Buttons>
+      <Button color="primary" aria-label="Edit profile">
+        <Icon library="mdi" name="pencil" aria-hidden="true" />
+      </Button>
+      <Button color="info" aria-label="Open settings">
+        <Icon library="ion" name="settings" aria-hidden="true" />
+      </Button>
+      <Button color="success" aria-label="Add to favorites">
+        <Icon library="material-icons" name="favorite" aria-hidden="true" />
+      </Button>
+    </Buttons>
+  );
+}
+```
+
+:::tip Icons alongside text
+When the button already has visible text, the icon is decorative and needs only `aria-hidden` — no `aria-label` on the button, since the visible text is already the name. Adding `aria-hidden` there stops the default `"icon"` label being announced next to the word it duplicates.
+:::
+
+See [Button Accessibility](/docs/api/elements/button#accessibility) and the [Icon API](/docs/api/elements/icon) for the full prop lists.
+
+---
+
 ## Choosing the Right Icon Library
 
 | Library                   | Icons Count | File Size | Best For                        |
