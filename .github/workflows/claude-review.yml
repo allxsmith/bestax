@@ -82,8 +82,13 @@ jobs:
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
       # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa3/6/7/9/11/13 across six runs), so a cache miss
-      # is accepted and degrades to a registry.npmjs.org refetch.
+      # per run (productionresultssa3/6/7/9/11/13 across six runs). It does not need
+      # to be, and this job is where that was proven: run 33286967625 ran it at
+      # block on a branch, with neither that host nor
+      # results-receiver.actions.githubusercontent.com allow-listed, and setup-node
+      # still restored the pnpm cache before pnpm install --frozen-lockfile
+      # completed. harden-runner does not gate the runner's own control-plane
+      # traffic.
       #
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is

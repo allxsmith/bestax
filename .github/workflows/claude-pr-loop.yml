@@ -348,8 +348,12 @@ jobs:
       # `pnpm run` on nearly every iteration, so turbo is invoked constantly, and
       # turbo samples its telemetry. The Actions cache blob host cannot be pinned
       # at all: its name rotates per run (productionresultssa3/6/7/9/11/13 across
-      # six runs), so a cache miss is accepted and degrades to a
-      # registry.npmjs.org refetch.
+      # six runs). It does not need to be — harden-runner does not gate the
+      # runner's own control-plane traffic, and run 33286967625 showed
+      # claude-review at block restoring its pnpm cache and completing
+      # pnpm install --frozen-lockfile with neither that host nor
+      # results-receiver.actions.githubusercontent.com allow-listed. This job
+      # runs the same checkout/setup/install sequence.
       #
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is
