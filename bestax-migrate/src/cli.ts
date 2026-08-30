@@ -130,6 +130,12 @@ function migrateFiles(
       }
     } catch (error) {
       io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
+      // Read the signals off the ORIGINAL text before bailing. A parse
+      // failure in the only file importing the source library would
+      // otherwise let the manifest pass remove the package with no warning —
+      // the file still imports it, we just couldn't rewrite it.
+      if (/['"](?:~?bulma\/)/.test(sourceText)) bulmaReferenced = true;
+      if (sourceImportRe.test(sourceText)) sourceStillImported = true;
       reporter.finishFile(file, false, collector.entries);
       continue;
     }

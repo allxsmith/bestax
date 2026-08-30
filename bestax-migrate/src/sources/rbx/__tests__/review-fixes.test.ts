@@ -568,3 +568,38 @@ describe('`as` is checked against the target a handler actually picked', () => {
     }
   );
 });
+
+describe('shorthand object properties are keys as well as references', () => {
+  it('expands rather than rewriting the public key', () => {
+    // `{ Textarea }` is `{ Textarea: <component> }`. Renaming in place
+    // changed the object's own key to `TextArea`, silently altering the API
+    // its callers use.
+    const { output } = migrate(
+      'import { Textarea } from "rbx";\nexport const registry = { Textarea };'
+    );
+    expect(output).toContain('{ Textarea: TextArea }');
+  });
+
+  it('leaves a shorthand alone when the name does not change', () => {
+    const { output } = migrate(
+      'import { Box } from "rbx";\nexport const registry = { Box };'
+    );
+    expect(output).toContain('{ Box }');
+  });
+
+  it('flags an unmappable component in shorthand rather than renaming it', () => {
+    const { output, todos } = migrate(
+      'import { Tile } from "rbx";\nexport const registry = { Tile };'
+    );
+    expect(output).toContain('{ Tile }');
+    expect(todos.some(t => t.rule === 'value-reference')).toBe(true);
+  });
+
+  it('does not touch a non-shorthand key that happens to match', () => {
+    const { output } = migrate(
+      'import { Textarea } from "rbx";\nexport const registry = { Textarea: Textarea };'
+    );
+    // The key stays; only the value reference migrates.
+    expect(output).toContain('Textarea: TextArea');
+  });
+});

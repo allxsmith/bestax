@@ -649,6 +649,39 @@ export default function transform(
     ) {
       return;
     }
+    // A shorthand property is both the key and the reference. Renaming the
+    // node in place rewrote the object's PUBLIC key
+    // (`{ Textarea }` → `{ TextArea }`), so expand it instead: the key keeps
+    // the name callers use, the value points at the migrated binding.
+    if (
+      (parentType === 'ObjectProperty' || parentType === 'Property') &&
+      parentNode.shorthand
+    ) {
+      const shorthandMapping = MAPPING[imported];
+      if (
+        shorthandMapping &&
+        shorthandMapping.status !== 'todo' &&
+        shorthandMapping.target &&
+        !shorthandMapping.target.includes('.')
+      ) {
+        const local = ctx.reserve(shorthandMapping.target);
+        if (local !== name) {
+          parentNode.shorthand = false;
+          parentNode.key = j.identifier(name);
+          parentNode.value = j.identifier(local);
+          ctx.dirty = true;
+        }
+      } else {
+        ctx.retained.add(imported);
+        addTodo(
+          ctx,
+          path,
+          'value-reference',
+          `\`${name}\` is referenced as a value; migrate this usage by hand`
+        );
+      }
+      return;
+    }
     const mapping = MAPPING[imported];
     if (
       mapping &&
