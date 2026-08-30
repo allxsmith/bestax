@@ -58,7 +58,7 @@
     ]
   },
   "engines": {
-    "node": ">=18.0"
+    "node": ">=22"
   },
   "author": "Alex Smith",
   "license": "MIT",
