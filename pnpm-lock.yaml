@@ -129,8 +129,8 @@ importers:
   bestax-migrate:
     dependencies:
       '@babel/parser':
-        specifier: ^7.26.0
-        version: 7.29.7
+        specifier: ^7.29.8
+        version: 7.29.8
       chalk:
         specifier: ^6.0.0
         version: 6.0.0
@@ -260,8 +260,8 @@ importers:
         specifier: ^10.5.5
         version: 10.5.5(eslint@10.8.0(jiti@2.6.1))(storybook@10.5.5(@types/react@19.2.17)(prettier@3.9.6)(react@19.2.7))(typescript@6.0.3)
       ionicons:
-        specifier: ^8.0.13
-        version: 8.0.13
+        specifier: ^8.1.0
+        version: 8.1.0
       jest:
         specifier: ^30.2.0
         version: 30.4.2(@types/node@26.1.2)
@@ -272,8 +272,8 @@ importers:
         specifier: ^1.13.14
         version: 1.13.14
       material-symbols:
-        specifier: ^0.45.9
-        version: 0.45.9
+        specifier: ^0.46.0
+        version: 0.46.0
       playwright:
         specifier: ^1.62.0
         version: 1.62.0
@@ -396,14 +396,14 @@ importers:
         specifier: ^2.0.0
         version: 2.1.1
       ionicons:
-        specifier: ^8.0.13
-        version: 8.0.13
+        specifier: ^8.1.0
+        version: 8.1.0
       material-icons:
         specifier: ^1.13.14
         version: 1.13.14
       material-symbols:
-        specifier: ^0.45.9
-        version: 0.45.9
+        specifier: ^0.46.0
+        version: 0.46.0
       prism-react-renderer:
         specifier: ^2.3.0
         version: 2.4.1(react@19.2.8)
@@ -667,6 +667,11 @@ packages:
 
   '@babel/parser@7.29.7':
     resolution: {integrity: sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/parser@7.29.8':
+    resolution: {integrity: sha512-E8lTAYNB1KW+FH+VGJuZM1ioAx2E6oVlvQFRrf5P8ZZmsiJXYAD9vTFV7yyEURNzgh1dFqMZuO6tUwcARbqFCA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -1229,6 +1234,10 @@ packages:
 
   '@babel/types@7.29.7':
     resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/types@7.29.8':
+    resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
 
   '@bcoe/v8-coverage@0.2.3':
@@ -6621,8 +6630,8 @@ packages:
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
 
-  ionicons@8.0.13:
-    resolution: {integrity: sha512-2QQVyG2P4wszne79jemMjWYLp0DBbDhr4/yFroPCxvPP1wtMxgdIV3l5n+XZ5E9mgoXU79w7yTWpm2XzJsISxQ==}
+  ionicons@8.1.0:
+    resolution: {integrity: sha512-XSM2gYWTXxSYTwjmKWAoy4yR7AbAFDjpc5ZIivAiGXskM0fe5CdMPfs6InQRUcrYtVb2WZ/0HQ1/jeh3JW78SA==}
 
   ip-address@10.4.0:
     resolution: {integrity: sha512-oSK96Grm3aP6OrS263xVxbNDGVL7rzBtYdpGqlDG8iQdoenDoTs/nkki+DflYbAEE8Xl6o5YxhxlrKvI3nqKXQ==}
@@ -7375,8 +7384,8 @@ packages:
   material-icons@1.13.14:
     resolution: {integrity: sha512-kZOfc7xCC0rAT8Q3DQixYAeT+tBqZnxkseQtp2bxBxz7q5pMAC+wmit7vJn1g/l7wRU+HEPq23gER4iPjGs5Cg==}
 
-  material-symbols@0.45.9:
-    resolution: {integrity: sha512-CuNJwHm/c13L2NDGvap4k90iFBZFoMQrjBU+GHO/9bh9sUOe5tm3WHFPLa3BEWukMw6dAxwu5PvtlfWh3NppYA==}
+  material-symbols@0.46.0:
+    resolution: {integrity: sha512-YxmTXwOhLOI6EupAwFfxFERbaDe61dG/tveOSy2HecndGKqvJ74WqXrrXLNWpIGDkk6TDpieuQPDS+hA7+z3Ig==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -10797,6 +10806,10 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.7
 
+  '@babel/parser@7.29.8':
+    dependencies:
+      '@babel/types': 7.29.8
+
   '@babel/plugin-bugfix-firefox-class-in-computed-class-key@7.29.7(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
@@ -11490,6 +11503,11 @@ snapshots:
       - supports-color
 
   '@babel/types@7.29.7':
+    dependencies:
+      '@babel/helper-string-parser': 7.29.7
+      '@babel/helper-validator-identifier': 7.29.7
+
+  '@babel/types@7.29.8':
     dependencies:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
@@ -18165,7 +18183,7 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  ionicons@8.0.13:
+  ionicons@8.1.0:
     dependencies:
       '@stencil/core': 4.43.5
 
@@ -18787,7 +18805,7 @@ snapshots:
   jscodeshift@17.4.0(@babel/preset-env@7.29.7(@babel/core@7.29.7)):
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.7
+      '@babel/parser': 7.29.8
       '@babel/plugin-transform-class-properties': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-modules-commonjs': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-nullish-coalescing-operator': 7.29.7(@babel/core@7.29.7)
@@ -19082,7 +19100,7 @@ snapshots:
 
   material-icons@1.13.14: {}
 
-  material-symbols@0.45.9: {}
+  material-symbols@0.46.0: {}
 
   math-intrinsics@1.1.0: {}
 
