@@ -243,6 +243,17 @@ export default function transform(
   // variables, function params); importing the bestax component under the
   // same name would redeclare it, so those imports get a Bulma* alias.
   const bound = collectBoundNames(j, root, RBC);
+  // Seed the reserved set with the locals of RBC imports that CANNOT be
+  // migrated, so a bestax import never claims one of them. Without this, an
+  // unmappable component aliased to a name bestax also wants
+  // (`import { Element as Button }`) had its retained specifier dropped on
+  // the collision, and its `<Button>` JSX then silently resolved to the
+  // bestax Button — one component quietly becoming another.
+  for (const [local, imported] of imports) {
+    if (imported === '*') continue;
+    const entry = MAPPING[imported];
+    if (!entry || entry.status === 'todo') bound.add(local);
+  }
 
   ctx.reserve = makeReserve(ctx, bound);
 

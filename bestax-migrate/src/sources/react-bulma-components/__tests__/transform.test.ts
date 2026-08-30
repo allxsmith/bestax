@@ -607,6 +607,26 @@ describe('react-bulma-components transform fixtures', () => {
     });
   });
 
+  describe('a retained RBC binding never loses its name to a bestax import', () => {
+    it('aliases the bestax local instead of dropping the retained specifier', () => {
+      // `Element as Button` is unmappable and retained; another RBC component
+      // wants bestax's `Button`. Dropping the retained specifier made
+      // `<Button>` — which was an Element — silently render a bestax Button.
+      const source = [
+        "import { Element as Button, Button as RealButton } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <><Button>element</Button><RealButton>button</RealButton></>',
+        ');',
+      ].join('\n');
+      const { output } = runTransform(transform, 'alias.tsx', source);
+      expect(output).toContain(
+        "import { Element as Button } from 'react-bulma-components'"
+      );
+      expect(output).toMatch(/Button as Bulma\w+/);
+      expect(output).toContain('<Button>element</Button>');
+    });
+  });
+
   describe('shared helpers that changed under the rbx work', () => {
     // `_shared/specials-utils.ts` is used by both sources, so a fix made for
     // rbx changes react-bulma-components output too. These lock in the two
