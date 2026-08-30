@@ -77,7 +77,9 @@ function objectExpressionOf(value: any): any | null {
  * inner `value` node, or undefined when the cell isn't the expected shape.
  * `only: true` is reported as a TODO by the caller.
  */
-function readCell(cell: any): { value: any; only: boolean } | undefined {
+function readCell(
+  cell: any
+): { value: any; only: boolean | 'dynamic' } | undefined {
   const obj =
     cell?.type === 'ObjectExpression'
       ? cell
@@ -87,11 +89,19 @@ function readCell(cell: any): { value: any; only: boolean } | undefined {
         : null;
   if (!obj) return undefined;
   let value: any;
-  let only = false;
+  let only: boolean | 'dynamic' = false;
   for (const prop of obj.properties) {
     const key = propKey(prop);
-    if (key === 'value') value = prop.value;
-    else if (key === 'only') only = literalOf(prop.value) === true;
+    if (key === 'value') {
+      value = prop.value;
+    } else if (key === 'only') {
+      // A dynamic `only` is a third state, not `false`: collapsing it to
+      // false silently converted `{ value: 'flex', only: cond }` into an
+      // unconditional `displayTablet="flex"`, dropping the conditional
+      // `-only` behaviour with no TODO.
+      const literal = literalOf(prop.value);
+      only = typeof literal === 'boolean' ? literal : 'dynamic';
+    }
   }
   return value === undefined ? undefined : { value, only };
 }
@@ -186,7 +196,9 @@ function flattenResponsiveHelper(
           ctx,
           path,
           'responsive',
-          `\`responsive.${breakpoint}.${helper}.only\` (Bulma's \`-only\` classes) has no bestax prop; use className`
+          cell.only === 'dynamic'
+            ? `\`responsive.${breakpoint}.${helper}.only\` has a dynamic value; Bulma's \`-only\` classes have no bestax prop, so apply it with className by hand`
+            : `\`responsive.${breakpoint}.${helper}.only\` (Bulma's \`-only\` classes) has no bestax prop; use className`
         );
         continue;
       }

@@ -342,13 +342,27 @@ const SPECIALS: Record<string, SpecialHandler> = {
     const resolved = resolveBooleanish(multilineAttr);
     removeAttr(element, multilineAttr);
     if (resolved === 'truthy') {
+      // rbx applies `is-grouped-multiline` only when kind === "group"
+      // (`[`${k}-multiline`]: k === "is-grouped" && multiline === true`), so
+      // consuming `kind` unconditionally dropped `has-addons` from
+      // `<Field kind="addons" multiline>` and added a modifier rbx would not
+      // have rendered.
       const kindAttr = findAttr(element, 'kind');
-      if (kindAttr) removeAttr(element, kindAttr);
-      const existing = findAttr(element, 'grouped');
-      if (existing) removeAttr(element, existing);
-      addAttr(element, makeAttr(ctx.j, 'grouped', 'multiline'));
+      const kindLiteral = kindAttr ? literalValueOf(kindAttr) : undefined;
+      const isGroup =
+        kindLiteral?.kind === 'string' && kindLiteral.value === 'group';
+      if (!kindAttr || isGroup) {
+        if (kindAttr) removeAttr(element, kindAttr);
+        const existing = findAttr(element, 'grouped');
+        if (existing) removeAttr(element, existing);
+        addAttr(element, makeAttr(ctx.j, 'grouped', 'multiline'));
+        ctx.dirty = true;
+        return { handledProps: ['multiline', 'kind'] };
+      }
+      // kind="addons" (or a dynamic kind): rbx ignores multiline here, so the
+      // codemod does too, and `kind` is left for the mapping table.
       ctx.dirty = true;
-      return { handledProps: ['multiline', 'kind'] };
+      return { handledProps: ['multiline'] };
     }
     if (resolved === 'expression') {
       addTodo(
@@ -380,8 +394,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
     let className = modifierClass(ctx, path, element, 'size', 'label', 'Label');
     const disabledAttr = findAttr(element, 'disabled');
     if (disabledAttr) {
+      // By value, not by presence: `disabled={false}` must not become a
+      // permanent `is-disabled`, and a dynamic value cannot be baked into a
+      // static class string.
+      const resolved = resolveBooleanish(disabledAttr);
       removeAttr(element, disabledAttr);
-      className = `${className} is-disabled`;
+      if (resolved === 'truthy') {
+        className = `${className} is-disabled`;
+      } else if (resolved === 'expression') {
+        addTodo(
+          ctx,
+          path,
+          'prop:disabled',
+          "dynamic Label `disabled`; set className={disabled ? 'label is-disabled' : 'label'} by hand"
+        );
+      }
       ctx.dirty = true;
     }
     return replaceWithPlain(ctx, path, element, 'label', className, 'Label');
@@ -473,10 +500,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    const anchorAttrs = stripModifierProps(
+    // This handler builds its <a> by hand rather than going through
+    // replaceWithPlain, so it has to layer the helper-prop strip itself —
+    // otherwise rbx's badge*/tooltip* ride onto the intrinsic <a>.
+    const anchorAttrs = stripHelperComponentProps(
       ctx,
       path,
-      attributesOf(element),
+      stripModifierProps(ctx, path, attributesOf(element), 'Breadcrumb.Item'),
       'Breadcrumb.Item'
     );
     const children = element.children ?? [];
@@ -549,9 +579,16 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
   },
 
-  /** rbx Media.Item align=content|left|right → bestax Media.{Content,Left,Right}. */
+  /**
+   * rbx Media.Item align=content|left|right → bestax Media.{Content,Left,Right}.
+   *
+   * Only `MediaLeftProps` declares `as` ('figure' | 'div'); Content and Right
+   * do not. rbx puts `as` on every component, so it has to be resolved here,
+   * against the target the align value actually selected, rather than opted
+   * into once in the mapping table.
+   */
   'media-item'(ctx, path, element) {
-    return alignTarget(
+    const result = alignTarget(
       ctx,
       path,
       element,
@@ -563,6 +600,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
       },
       'Media.Content'
     );
+    const asAttr = findAttr(element, 'as');
+    if (asAttr && result.target !== 'Media.Left') {
+      removeAttr(element, asAttr);
+      addTodo(
+        ctx,
+        path,
+        'prop:as',
+        `bestax's \`${result.target}\` has no \`as\` prop (only \`Media.Left\` does); render the tag directly or restructure`
+      );
+      ctx.dirty = true;
+    }
+    return { ...result, handledProps: ['align', 'as'] };
   },
 
   /** rbx Modal.Container is the modal itself in bestax. */
@@ -575,15 +624,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * splits across Navbar.Item and Navbar.Dropdown.
    */
   'navbar-item'(ctx, path, element) {
+    // Resolve the target FIRST, then fall through to the cleanup loop —
+    // returning early here left `<Navbar.Item dropdown up>` as
+    // `<Navbar.Dropdown up>`, with `up` neither removed nor flagged.
+    let target: string | undefined;
     const dropdownAttr = findAttr(element, 'dropdown');
     if (dropdownAttr) {
       const resolved = resolveBooleanish(dropdownAttr);
       removeAttr(element, dropdownAttr);
       ctx.dirty = true;
       if (resolved === 'truthy') {
-        return { target: 'Navbar.Dropdown', handledProps: ['dropdown'] };
-      }
-      if (resolved === 'expression') {
+        target = 'Navbar.Dropdown';
+      } else if (resolved === 'expression') {
         addTodo(
           ctx,
           path,
@@ -605,6 +657,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
     }
     return {
+      target,
       handledProps: [
         'dropdown',
         'up',

@@ -162,6 +162,43 @@ test('the skills roster is read from the directory, not a hardcoded list', () =>
   assert.ok(theming.references.some(r => r.id === 'css-variables'));
 });
 
+test('references nested one level per subject still reach the index', () => {
+  // A skill that serves more than one subject groups its references into
+  // subdirectories. A flat readdir dropped every one of those silently — the
+  // file stopped being served while the staleness gate stayed green, because
+  // the output it compared was consistently wrong. Keyed by path so two
+  // subjects can each have a `component-map`.
+  const migrate = skills.skills.find(s => s.name === 'bestax-migrate');
+  assert.ok(migrate, 'bestax-migrate skill missing');
+  for (const id of [
+    'rbx-component-map',
+    'rbx-prop-map',
+    'rbx-unmappables',
+    'react-bulma-components-component-map',
+    'react-bulma-components-prop-map',
+    'react-bulma-components-unmappables',
+  ]) {
+    const ref = migrate.references.find(r => r.id === id);
+    assert.ok(ref, `${id} is not indexed`);
+    assert.match(ref.file, /^references\/[^/]+\/[^/]+\.md$/);
+    assert.ok(ref.bytes > 0, `${id} indexed as empty`);
+  }
+  // `id` is the lookup key behind bestax://skills/{name}/references/{ref},
+  // so a slash in it would not resolve.
+  for (const s of skills.skills) {
+    for (const r of [...s.references, ...s.examples]) {
+      assert.ok(!r.id.includes('/'), `${s.name}/${r.id} has a slash in its id`);
+    }
+  }
+});
+
+test('every skill reference id is unique within its skill', () => {
+  for (const s of skills.skills) {
+    const ids = [...s.references, ...s.examples].map(r => r.id);
+    assert.equal(new Set(ids).size, ids.length, `${s.name} has duplicate ids`);
+  }
+});
+
 test('output is deterministic and code-point sorted', () => {
   const names = catalog.components.map(c => c.name);
   assert.deepEqual(

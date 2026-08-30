@@ -86,6 +86,31 @@ rbx has three shapes; all three flatten to bestax's per-viewport props.
 
 rbx's `forwardRefAs` puts `as` on **every** component. bestax declares it on a smaller set, and
 several of those narrow it to specific tags (`Footer` is `'footer' | 'div'`, `Control` is
-`'div'`). The codemod passes `as` through on the components that accept it —
-`Button`, `Title`/`SubTitle`, `Image`, `Footer`, `Media`, `Media.Item`, `Level.Item`, `Control`,
-`Menu.Item`, `Dropdown`, `Navbar`, `Navbar.Item` — and TODOs it everywhere else.
+`'div'`). The codemod passes `as` through only where bestax really accepts it, and TODOs it
+everywhere else:
+
+| bestax component             | `as` accepts               |
+| ---------------------------- | -------------------------- |
+| `Button`                     | any element type           |
+| `Title`, `SubTitle`          | `h1`–`h6`, `p`             |
+| `Image`                      | `'figure' \| 'div' \| 'p'` |
+| `Footer`                     | `'footer' \| 'div'`        |
+| `Media`                      | `'article' \| 'div'`       |
+| `Media.Left`                 | `'figure' \| 'div'`        |
+| `Level.Item`                 | `'div' \| 'p' \| 'a'`      |
+| `Control`                    | `'div'`                    |
+| `Menu.Item`                  | any element type           |
+| `Dropdown.Item`              | `'a' \| 'div' \| 'button'` |
+| `Navbar.Item`, `Navbar.Link` | any element type           |
+
+Three traps worth naming, because rbx supplies `as` universally and the obvious guesses are
+wrong:
+
+- The **`Dropdown` and `Navbar` roots do not take `as`** — only their `.Item` / `.Link`
+  sub-components do.
+- **`Media.Item` depends on its `align`.** It resolves to `Media.Left`, `Media.Content` or
+  `Media.Right`, and only `Media.Left` declares `as`; the codemod drops it with a TODO on the
+  other two.
+- Several of the accepted props are **narrow literal unions**, so `as={SomeComponent}` still
+  fails to typecheck even where `as` is allowed — which is deliberate: a visible type error
+  beats a silent rewrite.

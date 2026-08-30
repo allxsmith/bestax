@@ -494,7 +494,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
       hoverable: {},
       up: {},
       align: { valueMap: { right: 'right' }, valueToProp: true },
-      as: AS_OK,
       managed: {
         todo: 'bestax `Dropdown` is uncontrolled by default; use `active` + `onActiveChange` for controlled behaviour',
       },
@@ -510,7 +509,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
       Item: {
         status: 'mapped',
         target: 'Dropdown.Item',
-        props: { active: {}, onClick: {} },
+        // `as` lives on DropdownItemProps ('a' | 'div' | 'button'), not on
+        // the Dropdown root.
+        props: { as: AS_OK, active: {}, onClick: {} },
       },
       Divider: { status: 'mapped', target: 'Dropdown.Divider' },
       Context: {
@@ -554,7 +555,10 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Media',
     props: { as: AS_OK },
     subs: {
-      Item: { status: 'mapped', special: 'media-item', props: { as: AS_OK } },
+      // `as` is NOT opted in here: Media.Item resolves to Media.Left,
+      // Media.Content or Media.Right by its `align` value, and only
+      // MediaLeftProps declares `as`. The special decides per target.
+      Item: { status: 'mapped', special: 'media-item' },
     },
   },
   Menu: {
@@ -657,7 +661,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
       innerRef: {
         todo: 'bestax components take a plain `ref`; rename `innerRef` to `ref`',
       },
-      as: AS_OK,
     },
     subs: {
       Brand: { status: 'mapped', target: 'Navbar.Brand' },
@@ -668,6 +671,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         status: 'mapped',
         target: 'Navbar.Link',
         props: {
+          as: AS_OK,
           arrowless: {},
           onClick: {},
         },

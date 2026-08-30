@@ -108,6 +108,8 @@ export default function transform(
    * `isExtensionCss` branch for why they cannot be attached where they arise.
    */
   const droppedStylesheets: string[] = [];
+  /** Whether any rbx import declaration carried a (broken) default binding. */
+  let sawDefaultImport = false;
 
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
@@ -119,7 +121,10 @@ export default function transform(
         } else if (spec.type === 'ImportNamespaceSpecifier' && spec.local) {
           imports.set(nameOf(spec.local), '*');
         } else if (spec.type === 'ImportDefaultSpecifier') {
-          // rbx has no default export; leave it and flag it.
+          // rbx has no default export, so this binding is already broken —
+          // but it may still be referenced, and dropping it turns a bad
+          // import into `X is not defined`. Flag it and keep it.
+          sawDefaultImport = true;
           addTodo(
             ctx,
             path,
@@ -616,6 +621,8 @@ export default function transform(
         if (spec.type === 'ImportNamespaceSpecifier') {
           return ctx.retained.size > 0;
         }
+        // Keep a default binding rather than stranding its references.
+        if (spec.type === 'ImportDefaultSpecifier') return sawDefaultImport;
         return (
           spec.type === 'ImportSpecifier' &&
           ctx.retained.has(nameOf(spec.imported)) &&
@@ -635,12 +642,17 @@ export default function transform(
       }
       if (keepSpecifiers.length > 0) {
         node.specifiers = keepSpecifiers;
-        node.comments = node.comments ?? [];
-        const text = ` TODO(bestax-migrate): ${retainedNames.join(', ')} ${
-          retainedNames.length === 1 ? 'has' : 'have'
-        } no bestax-bulma equivalent yet — migrate and remove this import`;
-        if (!node.comments.some((c: any) => c.value === text)) {
-          node.comments.push(j.commentLine(text, true, false));
+        // Only when named/namespace bindings are being retained. An import
+        // kept solely for a broken default binding has no names to list, and
+        // already carries its own "rbx has no default export" TODO.
+        if (retainedNames.length > 0) {
+          node.comments = node.comments ?? [];
+          const text = ` TODO(bestax-migrate): ${retainedNames.join(', ')} ${
+            retainedNames.length === 1 ? 'has' : 'have'
+          } no bestax-bulma equivalent yet — migrate and remove this import`;
+          if (!node.comments.some((c: any) => c.value === text)) {
+            node.comments.push(j.commentLine(text, true, false));
+          }
         }
       } else {
         path.prune();
