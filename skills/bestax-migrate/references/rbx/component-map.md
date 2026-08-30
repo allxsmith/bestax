@@ -70,7 +70,7 @@ test holds to rbx's own export surface in both directions.
 | `Level.Item`               | _structural_          | mapped  |
 | `List`                     | — _(see unmappables)_ | todo    |
 | `List.Item`                | — _(see unmappables)_ | todo    |
-| `Loader`                   | `Loading`             | mapped  |
+| `Loader`                   | _structural_          | mapped  |
 | `Media`                    | `Media`               | mapped  |
 | `Media.Item`               | _structural_          | mapped  |
 | `Menu`                     | `Menu`                | mapped  |
@@ -142,20 +142,21 @@ test holds to rbx's own export surface in both directions.
 
 ## The renames worth memorising
 
-| rbx                                | bestax-bulma                             |
-| ---------------------------------- | ---------------------------------------- |
-| `Tag.Group`                        | `Tags`                                   |
-| `Button.Group`                     | `Buttons`                                |
-| `Column.Group`                     | `Columns`                                |
-| `Card.Footer.Item`                 | `Card.FooterItem`                        |
-| `Table.Head` / `.Body` / `.Foot`   | `Table.Thead` / `.Tbody` / `.Tfoot`      |
-| `Table.Row` / `.Cell` / `.Heading` | `Table.Tr` / `.Td` / `.Th`               |
-| `Textarea`                         | `TextArea`                               |
-| `Loader`, `PageLoader`             | `Loading` (the latter with `isFullPage`) |
-| `Menu.List.Item`                   | `Menu.Item`                              |
-| `Tab` / `Tab.Group`                | `Tabs.Item` / `Tabs`                     |
-| `Panel.Tab.Group`                  | `Panel.Tabs`                             |
-| `Title subtitle`                   | `SubTitle`                               |
+| rbx                                | bestax-bulma                                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `Tag.Group`                        | `Tags`                                                                                                     |
+| `Button.Group`                     | `Buttons`                                                                                                  |
+| `Column.Group`                     | `Columns`                                                                                                  |
+| `Card.Footer.Item`                 | `Card.FooterItem`                                                                                          |
+| `Table.Head` / `.Body` / `.Foot`   | `Table.Thead` / `.Tbody` / `.Tfoot`                                                                        |
+| `Table.Row` / `.Cell` / `.Heading` | `Table.Tr` / `.Td` / `.Th`                                                                                 |
+| `Textarea`                         | `TextArea`                                                                                                 |
+| `PageLoader`                       | `Loading` with `isFullPage`                                                                                |
+| `Loader`                           | a plain `<div className="loader">` — bestax's `Loading` is an overlay that renders nothing unless `active` |
+| `Menu.List.Item`                   | `Menu.Item`                                                                                                |
+| `Tab` / `Tab.Group`                | `Tabs.Item` / `Tabs`                                                                                       |
+| `Panel.Tab.Group`                  | `Panel.Tabs`                                                                                               |
+| `Title subtitle`                   | `SubTitle`                                                                                                 |
 
 ## Value-chosen targets
 

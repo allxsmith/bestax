@@ -49,7 +49,8 @@ in place:
   pointer to bestax's `Theme` and `ConfigProvider`.
 - **Components** — every rbx export and its dot-notation compounds are mapped, e.g.
   `Card.Footer.Item` → `Card.FooterItem`, `Tag.Group` → `Tags`, `Column.Group` → `Columns`,
-  `Table.Cell` → `Table.Td`, `PageLoader`/`Loader` → `Loading`, `Level.Item align="right"` →
+  `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
+  which `<Navbar.Item dropdown>` becomes), `Level.Item align="right"` →
   `Level.Right`, `Navbar.Segment align="end"` → `Navbar.End`, and `Title subtitle` → `SubTitle`.
 - **Props** — bare boolean modifiers gain their bestax prefixes (`outlined` → `isOutlined`,
   `rounded` → `isRounded`), `state="loading"` → `isLoading`, and the Bulma v1 spacing helpers

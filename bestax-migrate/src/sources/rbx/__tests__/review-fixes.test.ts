@@ -497,3 +497,74 @@ describe('removing the source package while imports remain', () => {
     expect(todos.some(t => /still import it/.test(t.message))).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round 4: Copilot's third pass — target-dependent `as`, and the Navbar
+// dropdown container/menu distinction.
+// ---------------------------------------------------------------------------
+
+describe('rbx Navbar.Dropdown is the MENU, not the container', () => {
+  it('maps it to Navbar.DropdownMenu inside the Item-derived container', () => {
+    // bestax `Navbar.Dropdown` renders `navbar-item has-dropdown` (the outer
+    // container, which rbx's `<Navbar.Item dropdown>` becomes);
+    // `Navbar.DropdownMenu` renders `navbar-dropdown` (the menu, which rbx
+    // calls Navbar.Dropdown). Targeting the wrong one nested two containers
+    // and emitted no menu at all.
+    const { output } = migrate(
+      [
+        'import { Navbar } from "rbx";',
+        'export const A = () => (',
+        '  <Navbar.Item dropdown><Navbar.Link>M</Navbar.Link>',
+        '    <Navbar.Dropdown align="right"><Navbar.Item>one</Navbar.Item></Navbar.Dropdown>',
+        '  </Navbar.Item>);',
+      ].join('\n')
+    );
+    expect(output).toContain('<Navbar.Dropdown>');
+    expect(output).toContain('<Navbar.DropdownMenu right>');
+  });
+
+  it('TODOs `boxed`, which bestax has no prop for', () => {
+    const { todos } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = () => <Navbar.Dropdown boxed>x</Navbar.Dropdown>;'
+    );
+    expect(todos.some(t => t.rule === 'prop:boxed')).toBe(true);
+  });
+});
+
+describe('`as` is checked against the target a handler actually picked', () => {
+  it.each([
+    ['Level', '<Level.Item align="left" as="a">x</Level.Item>', 'Level.Left'],
+    [
+      'Navbar',
+      '<Navbar.Item dropdown as="div">x</Navbar.Item>',
+      'Navbar.Dropdown',
+    ],
+    [
+      'Media',
+      '<Media.Item align="right" as="div">x</Media.Item>',
+      'Media.Right',
+    ],
+  ])('drops `as` when %s resolves to %s', (name, jsx, expectedTarget) => {
+    const { output, todos } = migrate(
+      `import { ${name} } from "rbx";\nexport const A = () => ${jsx};`
+    );
+    expect(output).toContain(`<${expectedTarget}`);
+    expect(codeOf(output)).not.toMatch(/\sas="/);
+    expect(todos.some(t => t.rule === 'prop:as')).toBe(true);
+  });
+
+  it.each([
+    ['Level', '<Level.Item as="a">x</Level.Item>'],
+    ['Navbar', '<Navbar.Item as="a">x</Navbar.Item>'],
+    ['Media', '<Media.Item align="left" as="figure">x</Media.Item>'],
+  ])(
+    'keeps `as` when %s resolves to a target that declares it',
+    (name, jsx) => {
+      const { output, todos } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = () => ${jsx};`
+      );
+      expect(output).toMatch(/\sas="/);
+      expect(todos.some(t => t.rule === 'prop:as')).toBe(false);
+    }
+  );
+});

@@ -117,6 +117,35 @@ function stripHelperComponentProps(
   return kept;
 }
 
+/**
+ * rbx puts `as` on every component, but a handler that chooses its target from
+ * a prop value can land on a bestax component that has no `as` — Media.Item
+ * resolves to Left/Content/Right where only Left declares one, Level.Item to
+ * Left/Right/Item where only Item does, Navbar.Item to Item/Dropdown where
+ * only Item does. Opting into `as` in the mapping table cannot express that,
+ * so the target has to be checked after it is picked.
+ */
+function restrictAsToTargets(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string | undefined,
+  allowed: string[]
+): void {
+  const asAttr = findAttr(element, 'as');
+  if (!asAttr || (target && allowed.includes(target))) return;
+  removeAttr(element, asAttr);
+  addTodo(
+    ctx,
+    path,
+    'prop:as',
+    `bestax's \`${target}\` has no \`as\` prop (of the targets this can resolve to, only ${allowed
+      .map(a => `\`${a}\``)
+      .join(' / ')} does); render the tag directly or restructure`
+  );
+  ctx.dirty = true;
+}
+
 /** Replace the element with a plain HTML tag carrying `className`. */
 function replaceWithPlain(
   ctx: TransformContext,
@@ -590,7 +619,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
   /** rbx Level.Item align=left|right → bestax Level.Left / Level.Right. */
   'level-item'(ctx, path, element) {
-    return alignTarget(
+    const result = alignTarget(
       ctx,
       path,
       element,
@@ -598,6 +627,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
       { left: 'Level.Left', right: 'Level.Right' },
       'Level.Item'
     );
+    restrictAsToTargets(ctx, path, element, result.target, ['Level.Item']);
+    return { ...result, handledProps: ['align', 'as'] };
   },
 
   /**
@@ -621,17 +652,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       },
       'Media.Content'
     );
-    const asAttr = findAttr(element, 'as');
-    if (asAttr && result.target !== 'Media.Left') {
-      removeAttr(element, asAttr);
-      addTodo(
-        ctx,
-        path,
-        'prop:as',
-        `bestax's \`${result.target}\` has no \`as\` prop (only \`Media.Left\` does); render the tag directly or restructure`
-      );
-      ctx.dirty = true;
-    }
+    restrictAsToTargets(ctx, path, element, result.target, ['Media.Left']);
     return { ...result, handledProps: ['align', 'as'] };
   },
 
@@ -677,9 +698,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       ctx.dirty = true;
     }
+    restrictAsToTargets(ctx, path, element, target ?? 'Navbar.Item', [
+      'Navbar.Item',
+    ]);
     return {
       target,
       handledProps: [
+        'as',
         'dropdown',
         'up',
         'tab',
@@ -701,7 +726,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return {};
   },
 
-  /** rbx Navbar.Dropdown boxed → bestax has no boxed variant. */
+  /**
+   * rbx's `Navbar.Dropdown` is the MENU (`div.navbar-dropdown`); bestax calls
+   * that `Navbar.DropdownMenu` and reserves `Navbar.Dropdown` for the outer
+   * `navbar-item has-dropdown` container — which is what rbx's
+   * `<Navbar.Item dropdown>` becomes. Targeting `Navbar.Dropdown` here nested
+   * two containers and emitted no menu at all. The react-bulma-components
+   * source already makes this distinction for the same reason.
+   */
   'navbar-dropdown'(ctx, path, element) {
     const boxedAttr = findAttr(element, 'boxed');
     if (boxedAttr) {
@@ -710,11 +742,30 @@ const SPECIALS: Record<string, SpecialHandler> = {
         ctx,
         path,
         'prop:boxed',
-        'bestax `Navbar.Dropdown` has no `boxed` prop; add className="is-boxed"'
+        'bestax `Navbar.DropdownMenu` has no `boxed` prop; add className="is-boxed"'
       );
       ctx.dirty = true;
     }
-    return { target: 'Navbar.Dropdown', handledProps: ['boxed'] };
+    const alignAttr = findAttr(element, 'align');
+    if (alignAttr) {
+      const literal = literalValueOf(alignAttr);
+      removeAttr(element, alignAttr);
+      if (literal.kind === 'string' && literal.value === 'right') {
+        addAttr(element, makeAttr(ctx.j, 'right'));
+      } else if (literal.kind !== 'string') {
+        addTodo(
+          ctx,
+          path,
+          'prop:align',
+          'dynamic `Navbar.Dropdown` align; set the bestax `right` boolean by hand'
+        );
+      }
+      ctx.dirty = true;
+    }
+    return {
+      target: 'Navbar.DropdownMenu',
+      handledProps: ['boxed', 'align'],
+    };
   },
 
   /** rbx Navbar.Segment align=start|end → bestax Navbar.Start / Navbar.End. */
