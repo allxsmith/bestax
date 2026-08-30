@@ -25,6 +25,12 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import {
+  collectBoundNames,
+  makeReserve,
+  nameOf,
+  prefersTabs,
+} from '../_shared/imports.js';
 import { flattenResponsiveProps } from './responsive.js';
 import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 
@@ -77,8 +83,6 @@ export default function transform(
   const aliases = new Map<string, string[]>();
 
   const rbcImportPaths: any[] = [];
-  const nameOf = (node: any): string =>
-    typeof node === 'string' ? node : String(node?.name ?? '');
 
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
@@ -238,66 +242,9 @@ export default function transform(
   // A file may already bind names like `Field` or `Control` (components,
   // variables, function params); importing the bestax component under the
   // same name would redeclare it, so those imports get a Bulma* alias.
-  const bound = new Set<string>();
-  const collectPattern = (node: any): void => {
-    if (!node) return;
-    switch (node.type) {
-      case 'Identifier':
-        bound.add(node.name);
-        break;
-      case 'ObjectPattern':
-        for (const prop of node.properties ?? []) {
-          collectPattern(prop.value ?? prop.argument);
-        }
-        break;
-      case 'ArrayPattern':
-        for (const el of node.elements ?? []) collectPattern(el);
-        break;
-      case 'RestElement':
-        collectPattern(node.argument);
-        break;
-      case 'AssignmentPattern':
-        collectPattern(node.left);
-        break;
-    }
-  };
-  root.find(j.VariableDeclarator).forEach(path => collectPattern(path.node.id));
-  root.find(j.FunctionDeclaration).forEach(path => {
-    if (path.node.id) bound.add(nameOf(path.node.id));
-    for (const param of path.node.params ?? []) collectPattern(param);
-  });
-  root
-    .find(j.ClassDeclaration)
-    .forEach(path => path.node.id && bound.add(nameOf(path.node.id)));
-  root.find(j.FunctionExpression).forEach(path => {
-    for (const param of path.node.params ?? []) collectPattern(param);
-  });
-  root.find(j.ArrowFunctionExpression).forEach(path => {
-    for (const param of path.node.params ?? []) collectPattern(param);
-  });
-  root.find(j.ImportDeclaration).forEach(path => {
-    if (String(path.node.source.value) === RBC) return; // pruned later
-    for (const spec of path.node.specifiers ?? []) {
-      if (spec.local) bound.add(nameOf(spec.local));
-    }
-  });
+  const bound = collectBoundNames(j, root, RBC);
 
-  ctx.reserve = (importedName: string): string => {
-    const existing = ctx.needed.get(importedName);
-    if (existing) return existing;
-    let local = importedName;
-    if (bound.has(local)) {
-      local = `Bulma${importedName}`;
-      let suffix = 2;
-      const locals = new Set(ctx.needed.values());
-      while (bound.has(local) || locals.has(local)) {
-        local = `Bulma${importedName}${suffix}`;
-        suffix += 1;
-      }
-    }
-    ctx.needed.set(importedName, local);
-    return local;
-  };
+  ctx.reserve = makeReserve(ctx, bound);
 
   // Merge with an existing bestax import: reuse its locals verbatim.
   const existingBestax = root
@@ -557,12 +504,3 @@ export default function transform(
   });
 }
 
-function prefersTabs(source: string): boolean {
-  let tabs = 0;
-  let spaces = 0;
-  for (const line of source.split('\n')) {
-    if (line.startsWith('\t')) tabs += 1;
-    else if (line.startsWith(' ')) spaces += 1;
-  }
-  return tabs > spaces;
-}
