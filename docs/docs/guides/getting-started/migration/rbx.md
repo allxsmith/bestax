@@ -61,6 +61,10 @@ in place:
   `responsive={{ tablet: { display: { value: 'flex' } } }}` → `displayTablet="flex"`,
   `<Column tablet={{ size: 6 }}>` → `sizeTablet={6}`, and
   `<Column.Group tablet={{ gapSize: 2 }}>` → `gapTablet={2}`.
+- **`Loader`** — becomes a plain `<div className="loader">`, **not** bestax's `Loading`. They
+  are different components: rbx's `Loader` is Bulma's inline spinner and always renders, while
+  `Loading` is a dismissible overlay that renders nothing unless `active`. (`PageLoader` _is_
+  `Loading`, with `isFullPage`.)
 - **Structure** — rbx's badge and tooltip _helper props_ become real wrapping components
   (`<Button tooltip="Hi" />` → `<Tooltip label="Hi"><Button /></Tooltip>`), `Select.Container`
   and `Image.Container` fold onto the component they wrap, and `Help`/`Label` become the plain
