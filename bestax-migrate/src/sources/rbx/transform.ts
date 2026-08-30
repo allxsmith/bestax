@@ -110,6 +110,13 @@ export default function transform(
   const droppedStylesheets: string[] = [];
   /** Whether any rbx import declaration carried a (broken) default binding. */
   let sawDefaultImport = false;
+  /**
+   * Whether a namespace binding (`import * as rbx`) is still referenced as a
+   * VALUE after the JSX pass. JSX names like `<rbx.Box>` are rewritten away,
+   * but `as={rbx.Block}` or a bare `String(rbx)` are not — and pruning the
+   * import under them leaves `rbx is not defined`.
+   */
+  let namespaceStillReferenced = false;
 
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
@@ -517,7 +524,7 @@ export default function transform(
     if (path.node.type !== 'Identifier') return;
     const name = path.node.name;
     const imported = imports.get(name);
-    if (imported === undefined || imported === '*') return;
+    if (imported === undefined) return;
     const parentNode = path.parent?.node;
     const parentType = parentNode?.type;
     if (
@@ -528,6 +535,12 @@ export default function transform(
       parentType === 'JSXClosingElement' ||
       parentType === 'JSXMemberExpression'
     ) {
+      return;
+    }
+    if (imported === '*') {
+      // Reached only from a real value position — the guards above filter out
+      // import specifiers and JSX names, which the element walker rewrites.
+      namespaceStillReferenced = true;
       return;
     }
     // Non-reference positions: member property names and object keys.
@@ -638,7 +651,7 @@ export default function transform(
         // survive whenever ANY component is retained — the JSX still says
         // `<rbx.Tile>`, and pruning the import leaves `rbx is not defined`.
         if (spec.type === 'ImportNamespaceSpecifier') {
-          return ctx.retained.size > 0;
+          return ctx.retained.size > 0 || namespaceStillReferenced;
         }
         // Keep a default binding rather than stranding its references.
         if (spec.type === 'ImportDefaultSpecifier') return sawDefaultImport;

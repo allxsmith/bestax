@@ -416,3 +416,26 @@ describe('badge/tooltip wrapping and React keys', () => {
     expect(output).not.toMatch(/<Button key=/);
   });
 });
+
+describe('a namespace binding still used as a value', () => {
+  it.each([
+    ['in a prop', '<rbx.Box as={rbx.Block}>x</rbx.Box>'],
+    ['bare', '<rbx.Box>{String(rbx)}</rbx.Box>'],
+  ])('survives the rewrite when referenced %s', (_how, jsx) => {
+    // JSX names like <rbx.Box> are rewritten away, but a value reference is
+    // not — and pruning the import under one leaves `rbx is not defined`.
+    // Reachable even when every component maps, so `retained` is empty.
+    const { output } = migrate(
+      `import * as rbx from "rbx";\nexport const A = () => ${jsx};`
+    );
+    expect(output).toContain('import * as rbx from "rbx"');
+    expect(output).toContain('<Box');
+  });
+
+  it('is still pruned when nothing references it', () => {
+    const { output } = migrate(
+      'import * as rbx from "rbx";\nexport const A = () => <rbx.Box>x</rbx.Box>;'
+    );
+    expect(output).not.toContain('from "rbx"');
+  });
+});
