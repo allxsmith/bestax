@@ -54,7 +54,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0.24.1
         with:
           path: .
           format: spdx-json
@@ -68,7 +68,7 @@ jobs:
       # Both formats on purpose: SPDX is the ISO standard procurement asks for,
       # CycloneDX is what most scanning tools ingest natively.
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0.24.1
         with:
           path: .
           format: cyclonedx-json
@@ -565,7 +565,7 @@ jobs:
       # downstream expand to nothing, and `attach-sbom` emits its ::warning::
       # while the repository SBOMs still ship.
       - name: Generate SPDX consumer SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0.24.1
         with:
           path: ${{ runner.temp }}/scan
           format: spdx-json
@@ -576,7 +576,7 @@ jobs:
           upload-release-assets: false
 
       - name: Generate CycloneDX consumer SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0.24.1
         with:
           path: ${{ runner.temp }}/scan
           format: cyclonedx-json
