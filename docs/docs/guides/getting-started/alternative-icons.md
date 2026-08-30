@@ -522,6 +522,61 @@ If you haven't started your project yet, `pnpm create bestax@latest` will instal
 
 ---
 
+## Icon-Only Buttons
+
+Every button example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
+
+Put the name on the `Button` with `aria-label`, and hide the `Icon` from assistive technology with `aria-hidden`:
+
+```tsx live
+import { Button, Icon } from '@allxsmith/bestax-bulma';
+
+function IconOnlyExample() {
+  return (
+    <Button color="danger" aria-label="Delete item">
+      <Icon name="trash" aria-hidden="true" />
+    </Button>
+  );
+}
+```
+
+The two attributes do different jobs, and only the first one names the button:
+
+- **`aria-label` on the `Button`** is the accessible name. It takes precedence over anything inside the button, so it alone supplies the name a screen reader reads out (alongside the "button" role and any state, which come from the element itself). Make it name the action ("Delete item"), not the picture ("Trash icon").
+- **`aria-hidden` on the `Icon`** does not change that name. It keeps the icon out of the accessibility tree entirely, so assistive technology never exposes a stray `"icon"` node when moving through the page element by element. Correct decorative markup, not part of the naming.
+
+Leave the `aria-label` off and the name falls back to the button's contents, which is where `Icon` bites: it sets `aria-label="icon"` by default, so the button ends up announcing the single word "icon".
+
+The same pattern applies to every library on this page. Only the `library` prop and the icon `name` change:
+
+```tsx live
+import { Button, Buttons, Icon } from '@allxsmith/bestax-bulma';
+
+function IconOnlyLibraries() {
+  return (
+    <Buttons>
+      <Button color="primary" aria-label="Edit profile">
+        <Icon library="mdi" name="pencil" aria-hidden="true" />
+      </Button>
+      <Button color="info" aria-label="Open settings">
+        <Icon library="ion" name="settings" aria-hidden="true" />
+      </Button>
+      <Button color="success" aria-label="Add to favorites">
+        <Icon library="material-icons" name="favorite" aria-hidden="true" />
+      </Button>
+    </Buttons>
+  );
+}
+```
+
+:::tip Icons alongside text
+When the button already has visible text, the icon is decorative and needs only `aria-hidden` — no `aria-label` on the button, since the visible text is already the name. Adding `aria-hidden` there stops the default `"icon"` label being announced next to the word it duplicates.
+:::
+
+See [Button Accessibility](/docs/api/elements/button#accessibility) and the [Icon API](/docs/api/elements/icon) for the full prop lists.
+
+---
+
 ## Choosing the Right Icon Library
 
 | Library                   | Icons Count | File Size | Best For                        |
