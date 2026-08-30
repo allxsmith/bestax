@@ -145,9 +145,19 @@ green and every AI review thread is resolved.
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
-  against current code. **Today a PR that modifies `claude-review.yml` is not deep-reviewed:**
-  the run logs `Skipping action due to workflow validation` and posts nothing while the job
-  still goes green — so check for the review comment, never the job's conclusion. That is a
+  against current code. **Today a PR whose copy of `claude-review.yml` differs from the default
+  branch's is not deep-reviewed:** the run logs `Skipping action due to workflow validation` and
+  posts nothing while the job still goes green — so check for the review comment, never the job's
+  conclusion. Read that condition as written, because the narrower version ("a PR that _modifies_
+  `claude-review.yml`") is what this line said until it bit. The workflow runs from the **PR
+  head's** copy, so what matters is only whether that copy still matches the default branch —
+  never the branch's age, and never whether the PR touched the file. An old branch that has since
+  merged or rebased the current version is fine; a branch opened five minutes ago off a stale
+  base is not. #578's flip changed the file, so every PR still carrying the pre-flip copy
+  inherited a skipped review; #605 reproduced it (`"egress_policy":"audit"` read from the branch's
+  own retained copy, session skipped) and merging `main` in fixed it. Expect this after any edit
+  to `claude-review.yml`, and confirm the head's copy matches before trusting a green
+  deep-review job. That is a
   consequence of configuration rather than a property of the action: the validation lives on
   the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
   a `github_token` input is supplied — the same early return `ai-triage.yml` already documents

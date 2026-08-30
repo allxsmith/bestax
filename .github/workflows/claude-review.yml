@@ -531,9 +531,16 @@ jobs:
       # usage-limit failure on the very first call). The PR then silently
       # gets no review while the run shows green, and the AI loop's
       # deep-review gate waits on a review that never comes. Fail loudly.
-      # An empty/missing execution file is tolerated: the action skips
-      # without a session when the PR modifies this workflow file (its
-      # OIDC exchange requires the file to match the default branch).
+      # An empty/missing execution file is tolerated: the action skips without
+      # a session whenever the PR HEAD's copy of this file differs from the
+      # default branch's (its OIDC exchange requires them to match).
+      #
+      # Read that as written. It is NOT "when the PR modifies this file" — that
+      # narrower version is what CLAUDE.md said until #578's own flip changed
+      # this workflow and every PR still carrying the pre-flip copy started
+      # getting silently skipped reviews. The branch never touched the file;
+      # it just had not caught up. Age is not the criterion either: a branch
+      # that has since merged or rebased the current version is fine.
       - name: Fail on silent session error
         if: steps.claude.outcome == 'success'
         env:
