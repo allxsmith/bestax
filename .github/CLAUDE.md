@@ -481,9 +481,11 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`). Nineteen jobs; the command below is the check.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
-  group by measuring all six of its members instead of guessing for them, and all six landed on
-  the same nine hosts: the eight the Claude-session jobs above already used, plus `nodejs.org`.
-  That ninth is the interesting one, and it is why "measured" is not the same as "complete". None
+  group by measuring all six of its members instead of guessing for them. All six now **use** the
+  same nine-host allowlist, and the gap between that and what the measurement produced is the part
+  worth keeping: the runs surfaced six application hosts, a strict subset of the eight the
+  Claude-session jobs above already used, and `nodejs.org` appeared in no run at all. It is on the
+  list anyway, and that ninth host is why "measured" is not the same as "complete". None
   of `ai-scan`/`scan`, `ai-triage`/`triage` or `claude-repro`/`author` runs `actions/setup-node`,
   so their eight-host list never needed it; all six of #578's jobs do run it, and setup-node falls
   back to `nodejs.org/dist` when the toolcache misses and the `actions/node-versions` lookup fails.

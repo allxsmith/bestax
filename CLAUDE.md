@@ -150,12 +150,14 @@ green and every AI review thread is resolved.
   posts nothing while the job still goes green — so check for the review comment, never the job's
   conclusion. Read that condition as written, because the narrower version ("a PR that _modifies_
   `claude-review.yml`") is what this line said until it bit. The workflow runs from the **PR
-  head's** copy, so a branch that merely PREDATES a change to that file is equally stale and
-  equally silent. #578's flip changed the file, and every PR opened before it inherited a
-  skipped review; #605 reproduced it (`"egress_policy":"audit"` from the branch's own old copy,
-  session skipped) and merging `main` into the branch fixed it. Expect this after any edit to
-  `claude-review.yml`, and bring a branch up to date before trusting a green deep-review job on
-  it. That is a
+  head's** copy, so what matters is only whether that copy still matches the default branch —
+  never the branch's age, and never whether the PR touched the file. An old branch that has since
+  merged or rebased the current version is fine; a branch opened five minutes ago off a stale
+  base is not. #578's flip changed the file, so every PR still carrying the pre-flip copy
+  inherited a skipped review; #605 reproduced it (`"egress_policy":"audit"` read from the branch's
+  own retained copy, session skipped) and merging `main` in fixed it. Expect this after any edit
+  to `claude-review.yml`, and confirm the head's copy matches before trusting a green
+  deep-review job. That is a
   consequence of configuration rather than a property of the action: the validation lives on
   the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
   a `github_token` input is supplied — the same early return `ai-triage.yml` already documents
