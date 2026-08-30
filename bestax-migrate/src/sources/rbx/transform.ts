@@ -34,6 +34,7 @@ import {
   attributesOf,
   findAttr,
   jsxNameParts,
+  literalValueOf,
   removeAttr,
   renameElement,
   type TransformContext,
@@ -399,9 +400,24 @@ export default function transform(
         );
         continue;
       }
-      // `badge={3}` is a number in rbx; bestax renders any ReactNode, so the
-      // node carries over untouched under its new name.
       attr.name = j.jsxIdentifier(target);
+      // rbx types both `badge` and `tooltip` as `number | string`. bestax's
+      // `Badge.content` is a ReactNode and takes either, but `Tooltip.label`
+      // is `string` — so a numeric tooltip has to be stringified or it fails
+      // to typecheck after migration.
+      if (target === 'label') {
+        const literal = literalValueOf(attr);
+        if (literal.kind === 'number') {
+          attr.value = j.stringLiteral(String(literal.value));
+        } else if (literal.kind === 'expression') {
+          addTodo(
+            ctx,
+            path,
+            `prop:${name}`,
+            "`tooltip` is `number | string` in rbx but bestax's `label` takes a string; wrap a dynamic value in String(...) if it can be numeric"
+          );
+        }
+      }
       wrapperAttrs.push(attr);
     }
 

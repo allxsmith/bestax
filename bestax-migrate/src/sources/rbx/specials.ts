@@ -190,13 +190,20 @@ function collapseOntoChild(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
-  where: string
+  where: string,
+  expected: string
 ): SpecialResult | null {
   const children = (element.children ?? []).filter(
     (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
   );
   if (children.length !== 1 || children[0].type !== 'JSXElement') return null;
   const child = children[0];
+  // The child must be the component this container exists to wrap. rbx lets
+  // both of these containers hold something else — an `<iframe>` for a ratio
+  // box, a native `<select>` — and folding onto that put Bulma modifier props
+  // on an intrinsic element and dropped the wrapper the markup needs.
+  const childPath = ctx.resolve?.(child.openingElement?.name);
+  if (!childPath || childPath.join('.') !== expected) return null;
 
   for (const attr of [...attributesOf(element)]) {
     const name: string = attr.name.name;
@@ -353,7 +360,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       // A string literal is already a ratio like "16by9" — pass it through.
     }
-    const collapsed = collapseOntoChild(ctx, path, element, 'Image.Container');
+    const collapsed = collapseOntoChild(
+      ctx,
+      path,
+      element,
+      'Image.Container',
+      'Image'
+    );
     if (collapsed) return collapsed;
     // No single child to fold into — keep the container as the Image itself.
     return { target: 'Image', handledProps: ['size'] };
@@ -519,7 +532,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       ctx.dirty = true;
     }
-    const collapsed = collapseOntoChild(ctx, path, element, 'Select.Container');
+    const collapsed = collapseOntoChild(
+      ctx,
+      path,
+      element,
+      'Select.Container',
+      'Select'
+    );
     if (collapsed) return collapsed;
     // No single child to fold into — keep the container as the Select itself.
     return {

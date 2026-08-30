@@ -503,7 +503,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         todo: 'bestax `Dropdown` is uncontrolled by default; use `active` + `onActiveChange` for controlled behaviour',
       },
       innerRef: {
-        todo: 'bestax components take a plain `ref`; rename `innerRef` to `ref`',
+        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
       },
     },
     subs: {
@@ -621,7 +621,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
       containerClassName: { rename: 'className' },
       innerRef: {
-        todo: 'bestax components take a plain `ref`; rename `innerRef` to `ref`',
+        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
       },
     },
     subs: {
@@ -664,7 +664,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
       document: { todo: 'bestax `Navbar` has no `document` prop; drop it' },
       innerRef: {
-        todo: 'bestax components take a plain `ref`; rename `innerRef` to `ref`',
+        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
       },
     },
     subs: {

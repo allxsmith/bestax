@@ -94,18 +94,18 @@ which breakpoints did not carry.
 
 ## Props with no counterpart
 
-| TODO                                               | What to do                                                                                          |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `prop:closeOnEsc`, `prop:closeOnBlur` on `Modal`   | bestax's Modal always closes on Escape and on background click; drop them or handle it in `onClose` |
-| `prop:selected`, `prop:text` on `Button`           | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                              |
-| `prop:size` on `Button.Group` / `Tags` / `Message` | set `size` on each child instead                                                                    |
-| `prop:gradient` on `Hero`                          | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                               |
-| `prop:color`, `prop:vertical` on `Divider`         | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                       |
-| `prop:direction` on `PageLoader`                   | no directional variant; drop it or add a class                                                      |
-| `prop:innerRef`                                    | bestax components take a plain `ref`                                                                |
-| `prop:managed`, `prop:document`                    | bestax components are uncontrolled and render into the default document                             |
-| `badgeOutlined`, `badgeRounded`, `badgeSize`       | bestax's `Badge` has no outline, pill or size variant                                               |
-| `tooltipResponsive`                                | bestax's `Tooltip` has one `position` for all viewports                                             |
+| TODO                                               | What to do                                                                                                                                                      |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prop:closeOnEsc`, `prop:closeOnBlur` on `Modal`   | bestax's Modal always closes on Escape and on background click; drop them or handle it in `onClose`                                                             |
+| `prop:selected`, `prop:text` on `Button`           | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                          |
+| `prop:size` on `Button.Group` / `Tags` / `Message` | set `size` on each child instead                                                                                                                                |
+| `prop:gradient` on `Hero`                          | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                           |
+| `prop:color`, `prop:vertical` on `Divider`         | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                   |
+| `prop:direction` on `PageLoader`                   | no directional variant; drop it or add a class                                                                                                                  |
+| `prop:innerRef`                                    | the affected roots (`Dropdown`, `Modal`, `Navbar`) are plain function components and forward no ref — drop it, or put the ref on a wrapping element you control |
+| `prop:managed`, `prop:document`                    | bestax components are uncontrolled and render into the default document                                                                                         |
+| `badgeOutlined`, `badgeRounded`, `badgeSize`       | bestax's `Badge` has no outline, pill or size variant                                                                                                           |
+| `tooltipResponsive`                                | bestax's `Tooltip` has one `position` for all viewports                                                                                                         |
 
 ## `prop:textColor="white-ter"` / `"white-bis"`
 

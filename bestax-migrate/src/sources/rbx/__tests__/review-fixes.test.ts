@@ -626,3 +626,72 @@ describe('the universal `responsive` prop on a plain-element rewrite', () => {
     expect(todos.some(t => t.rule === 'plain-element')).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round 6: CodeRabbit's first complete pass, and Copilot's fourth.
+// ---------------------------------------------------------------------------
+
+describe('containers collapse only onto the component they wrap', () => {
+  it('keeps the Image wrapper around a non-Image child', () => {
+    // rbx's Image.Container is also the ratio box for arbitrary children.
+    // Folding onto an <iframe> put `size` on an intrinsic element and lost
+    // the container the markup needs.
+    const { output } = migrate(
+      'import { Image } from "rbx";\nexport const A = () => <Image.Container size="16by9"><iframe src="/v" /></Image.Container>;'
+    );
+    expect(output).toContain('<Image size="16by9">');
+    expect(output).toContain('<iframe src="/v" />');
+  });
+
+  it('keeps the Select wrapper around a native select', () => {
+    // rbx explicitly allows Select.Container to wrap a native <select>.
+    const { output } = migrate(
+      'import { Select } from "rbx";\nexport const A = () => <Select.Container fullwidth><select><option>a</option></select></Select.Container>;'
+    );
+    expect(output).toContain('<Select isFullwidth>');
+    expect(output).toContain('<select>');
+  });
+
+  it('still collapses when the child IS the wrapped component', () => {
+    const { output } = migrate(
+      'import { Image } from "rbx";\nexport const A = () => <Image.Container size={64}><Image src="/a.png" /></Image.Container>;'
+    );
+    expect(output).toContain('<Image src="/a.png" size="64x64" />');
+  });
+});
+
+describe('rbx types tooltip and badge as `number | string`', () => {
+  it('stringifies a numeric tooltip, since bestax label is a string', () => {
+    const { output } = migrate(
+      'import { Button } from "rbx";\nexport const A = () => <Button tooltip={7}>x</Button>;'
+    );
+    expect(output).toContain('label="7"');
+  });
+
+  it('leaves a numeric badge alone, since content is a ReactNode', () => {
+    const { output } = migrate(
+      'import { Button } from "rbx";\nexport const A = () => <Button badge={7}>x</Button>;'
+    );
+    expect(output).toContain('content={7}');
+  });
+
+  it('TODOs a dynamic tooltip that could be numeric', () => {
+    const { todos } = migrate(
+      'import { Button } from "rbx";\nexport const A = (p: any) => <Button tooltip={p.t}>x</Button>;'
+    );
+    expect(todos.some(t => /takes a string/.test(t.message))).toBe(true);
+  });
+});
+
+describe('the innerRef remediation is achievable', () => {
+  it('does not tell users to rename innerRef to ref', () => {
+    // bestax Dropdown/Modal/Navbar are plain function components: following
+    // "rename it to ref" just replaces a TODO with a type error.
+    const { todos } = migrate(
+      'import { Dropdown } from "rbx";\nexport const A = (r: any) => <Dropdown innerRef={r}>x</Dropdown>;'
+    );
+    const msg = todos.find(t => t.rule === 'prop:innerRef')?.message ?? '';
+    expect(msg).toMatch(/forwards no ref/);
+    expect(msg).not.toMatch(/rename .*to `ref`/);
+  });
+});
