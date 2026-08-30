@@ -1,3 +1,13 @@
+## [2.1.6](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.5...bestax-migrate@2.1.6) (2026-08-30)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** add the README badge block and regenerate the index ([58d4974](https://github.com/allxsmith/bestax/commit/58d4974c4f7949bc303afef27d678c6e54882a1a))
+* **bestax-migrate:** add the OpenSSF Best Practices badge to the README ([0f35c2e](https://github.com/allxsmith/bestax/commit/0f35c2e6cece9b76a274023224b87fb2d903da0e))
+* **bulma-ui:** add the OpenSSF Best Practices badge to the README ([de746d4](https://github.com/allxsmith/bestax/commit/de746d43c0b99f70500745267648dcf1a5425fba))
+* **create-bestax:** add the OpenSSF Best Practices badge to the README ([baad987](https://github.com/allxsmith/bestax/commit/baad987d592cf91eceb5d59f1da302fca8049270))
+
 ## [2.1.5](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.4...bestax-migrate@2.1.5) (2026-08-29)
 
 

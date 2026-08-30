@@ -77,18 +77,100 @@ jobs:
       issues: write # issue-comment replies
       id-token: write # OIDC exchange for the subscription token
     steps:
-      # AUDIT, not block, and rule 10's "existing live job" clause is why: this
-      # job checks out code, installs dependencies and runs a Claude session
-      # holding both bestaxbot's PAT and the OAuth token, and none of that egress
-      # has ever been measured. A guessed allowlist would break replies on the
-      # first miss; audit mode reports every endpoint the run touches without
-      # refusing any, which is what produces the list a block flip needs. That
-      # flip is the follow-up rule 10 owes (#578) — audit is a starting point
-      # here, not a resting place.
+      # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
+      # audit run was 33231488110; all six runs the flip is built on are recorded
+      # on that issue, each read out of its own `Post Harden runner` log rather
+      # than transcribed from the StepSecurity UI.
+      #
+      # The eight hosts are the set already enforcing on ai-scan/scan,
+      # ai-triage/triage and claude-repro/author, and the measurement came out a
+      # strict subset of it: objects.githubusercontent.com,
+      # release-assets.githubusercontent.com and nodejs.org never appeared, because
+      # the Node 24 toolcache hit on every run. All three stay for the
+      # toolcache-miss path, and they are not interchangeable: the first two carry
+      # the actions/node-versions manifest and its release assets, while nodejs.org
+      # is setup-node v7 own fallback when that lookup misses.
+      #
+      # nodejs.org is the one host NOT in the Claude-session set copied above, and
+      # the reason is worth stating so it does not get trimmed back out: none of
+      # ai-scan/scan, ai-triage/triage or claude-repro/author runs setup-node at
+      # all, so that set never needed it. This job does. Every block job in this
+      # repo that runs setup-node allows it (auto-close-duplicates,
+      # security-txt-expiry, deploy-worker, supply-chain/consumer-sbom).
+      #
+      # Two observed hosts are deliberately absent. telemetry.vercel.com is turbo's
+      # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
+      # allow-listed — the same call this repo already makes for the CLI's Datadog
+      # host. The Actions cache blob host cannot be pinned at all: its name rotates
+      # per run (productionresultssa3/6/7/9/11/13 across six runs). It does not need
+      # to be. harden-runner does not gate the runner own control-plane traffic, and
+      # run 33286967625 is the proof rather than the assumption: claude-review at
+      # block, with neither that host nor results-receiver.actions.githubusercontent.com
+      # allow-listed, restored its pnpm cache and completed pnpm install
+      # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
+      # here; it was wrong, and measuring it is what showed that.
+      #
+      # Resolve any host before adding it here. An unresolvable entry is not inert:
+      # the agent reverts the firewall while the pre-step still exits 0, which is
+      # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            api.anthropic.com:443
+            claude.ai:443
+            downloads.claude.ai:443
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            registry.npmjs.org:443
+            nodejs.org:443
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in an allowlist is the second.
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
+      #
+      # Placement is rule 10's default (immediately after harden-runner): nothing
+      # `always()`-guarded keys off this job's outputs, and the job is not itself
+      # a fail-closed path, so neither placement exception applies.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds bestaxbot's PAT and a model token, and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
 
       # Layer 2 (authoritative): author_association can be COLLABORATOR with
       # only read access. Re-check the LIVE role and require write/triage+.
@@ -175,10 +257,17 @@ jobs:
         # it (#487). It also covers feature-flag evaluation, which is why
         # statsig.anthropic.com is gone.
         #
-        # On this `audit` job the point is the MEASUREMENT: audit mode exists to
-        # produce the endpoint list a block flip will use (#578), and leaving
-        # telemetry on would put the Datadog host in that report, inviting whoever
-        # reads it to allow-list a host we have just decided to deny.
+        # This job now enforces `block` (#578), so the denial is doing two jobs at
+        # once and both matter. The allowlist above refuses the Datadog host, and
+        # this setting stops the CLI trying to reach it, which keeps a denied call
+        # out of the run rather than merely blocked. Leaving telemetry on and
+        # relying on the allowlist alone would fill the logs with refused traffic
+        # and invite the next reader to "fix" it by allow-listing the host.
+        #
+        # It also earned the allowlist: this was set during the audit phase
+        # precisely so the endpoint list the flip was built from reflected the
+        # intended end state, rather than recording a host we had already decided
+        # to deny.
         #
         # A step `env:` rather than the action's `settings:` input, and here that
         # is load-bearing rather than tidiness: `settings:` is written to the
@@ -195,6 +284,12 @@ jobs:
         # `with:`.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
+          # Same call, second vendor: turbo phones telemetry.vercel.com from the
+          # pnpm commands this session runs. It appeared in only one of the six
+          # audit runs because turbo samples, which is precisely the intermittent
+          # that reddens a block job weeks after a flip. Denied, not allow-listed
+          # (#578).
+          TURBO_TELEMETRY_DISABLED: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           # Respond as the bestaxbot machine account so replies/commits come
@@ -202,7 +297,7 @@ jobs:
           github_token: ${{ secrets.AI_LOOP_PAT }}
           ssh_signing_key: ${{ secrets.AI_LOOP_SSH_SIGNING_KEY }}
           bot_name: bestaxbot
-          bot_id: "300268469"
+          bot_id: '300268469'
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_commit_signing: true
           # Per-turn tool calls + denials in the log (the artifact blob host is

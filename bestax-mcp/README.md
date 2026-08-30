@@ -1,5 +1,14 @@
 # bestax-mcp
 
+[![npm version](https://img.shields.io/npm/v/bestax-mcp.svg)](https://www.npmjs.com/package/bestax-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/bestax-mcp.svg)](https://www.npmjs.com/package/bestax-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/bestax-mcp)](https://socket.dev/npm/package/bestax-mcp/overview)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14361/badge)](https://www.bestpractices.dev/projects/14361)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/bestax-mcp#provenance)
+[![Security policy](https://img.shields.io/badge/security-policy-blue.svg)](https://github.com/allxsmith/bestax/blob/main/SECURITY.md)
+
 The official [MCP](https://modelcontextprotocol.io) server for
 [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) —
 React components for Bulma v1.

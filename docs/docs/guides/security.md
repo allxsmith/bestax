@@ -71,6 +71,30 @@ The monorepo applies defense-in-depth against supply-chain attacks:
   gate blocks PRs that introduce dependencies with known advisories; grouped
   Dependabot PRs keep the tree current on a weekly cadence.
 
+## OpenSSF assessments
+
+Two OpenSSF programs cover this repository, and both publish their results
+publicly:
+
+- **[OpenSSF Best Practices](https://www.bestpractices.dev/projects/14361)** —
+  bestax holds the **passing** badge. The questionnaire behind it covers the
+  documented contribution process, vulnerability reporting, automated testing,
+  static analysis, secure delivery, and unique versioning with release notes.
+  Every answer is public and cites the evidence in this repository, so each
+  claim can be checked against what is actually here rather than taken on
+  faith.
+- **[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)** —
+  an automated scan that runs weekly from
+  [`.github/workflows/scorecard.yml`](https://github.com/allxsmith/bestax/blob/main/.github/workflows/scorecard.yml)
+  and publishes to the public viewer. It reads branch protection, pinned
+  dependencies, token permissions, code review, signed releases, and known
+  vulnerabilities straight out of the repository and scores them.
+
+Both badges are at the top of the
+[README](https://github.com/allxsmith/bestax#bestax) and of the README of each
+published package. The npm package pages pick them up on each package's next
+release.
+
 ## Reporting a vulnerability
 
 Please report privately — don't open a public issue:
