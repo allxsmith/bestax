@@ -503,4 +503,3 @@ export default function transform(
     useTabs: prefersTabs(fileInfo.source),
   });
 }
-

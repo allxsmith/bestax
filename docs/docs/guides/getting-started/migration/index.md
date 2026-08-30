@@ -48,3 +48,9 @@ The HTML stays identical between Bulma 0.9 and 1, but Bulma v1 swaps Node Sass f
 Coming from the (unmaintained) `react-bulma-components` library? The **`bestax-migrate`** codemod converts imports, component names, props, and responsive objects to bestax-bulma automatically, and flags everything it can't convert with `TODO(bestax-migrate)` comments plus a report. An [Agent Skill](/docs/skills/migrate) packages the whole workflow for coding agents.
 
 [Read the react-bulma-components guide →](./react-bulma-components.md)
+
+## [Migrating from rbx](./rbx.md)
+
+Coming from the (abandoned since 2019) `rbx` library? The **`bestax-migrate`** codemod handles it too — and here it does more than rename things: rbx pinned `bulma@0.7.5` as a direct dependency plus four Bulma extensions, so migrating **deletes five dependencies** and finally lets your app choose its own Bulma version. It also unblocks React 19, which removed the `defaultProps` rbx is built on.
+
+[Read the rbx guide →](./rbx.md)

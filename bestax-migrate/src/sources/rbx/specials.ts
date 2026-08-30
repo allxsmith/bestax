@@ -86,9 +86,7 @@ function replaceWithPlain(
 ): SpecialResult {
   const merged = mergeClassName(ctx, path, element, className, where);
   const rest = stripModifierProps(ctx, path, attributesOf(element), where);
-  path.replace(
-    plainElement(ctx.j, tag, merged, rest, element.children ?? [])
-  );
+  path.replace(plainElement(ctx.j, tag, merged, rest, element.children ?? []));
   ctx.dirty = true;
   return { replaced: true };
 }
@@ -319,20 +317,20 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
   /** bestax has no Help component; Bulma's markup is a plain <p class="help">. */
   help(ctx, path, element) {
-    const className = modifierClass(ctx, path, element, 'color', 'help', 'Help');
+    const className = modifierClass(
+      ctx,
+      path,
+      element,
+      'color',
+      'help',
+      'Help'
+    );
     return replaceWithPlain(ctx, path, element, 'p', className, 'Help');
   },
 
   /** bestax has no standalone Label; Bulma's markup is <label class="label">. */
   label(ctx, path, element) {
-    let className = modifierClass(
-      ctx,
-      path,
-      element,
-      'size',
-      'label',
-      'Label'
-    );
+    let className = modifierClass(ctx, path, element, 'size', 'label', 'Label');
     const disabledAttr = findAttr(element, 'disabled');
     if (disabledAttr) {
       removeAttr(element, disabledAttr);
@@ -560,7 +558,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
     }
     return {
-      handledProps: ['dropdown', 'up', 'tab', 'expanded', 'hoverable', 'managed'],
+      handledProps: [
+        'dropdown',
+        'up',
+        'tab',
+        'expanded',
+        'hoverable',
+        'managed',
+      ],
     };
   },
 

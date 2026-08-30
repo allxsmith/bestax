@@ -1,13 +1,15 @@
 # Stylesheets: Bulma 0.9 → Bulma v1 + bestax
 
-react-bulma-components apps style with Bulma 0.9.x; bestax-bulma targets Bulma v1. The
+The libraries `bestax-migrate` migrates from all style with pre-1 Bulma —
+react-bulma-components with 0.9.x, rbx with 0.7.5 — and bestax-bulma targets Bulma v1. The
 codemod automates most of this layer — this reference explains what it did and how to
 finish what it flagged.
 
 ## What the codemod already did (default `--css bestax`)
 
 - **CSS imports**: `bulma/css/bulma(.min).css` and v3-era
-  `react-bulma-components/dist/*.css` imports became the recommended combined bundle
+  the source library's own CSS imports (`react-bulma-components/dist/*.css`,
+  `rbx/index.css`) became the recommended combined bundle
   `@allxsmith/bestax-bulma/bestax.css` (Bulma v1 + the bestax extras that themed
   Radio/Checkbox and the advanced form controls need). A separate `extras.css` import
   next to it is collapsed.
@@ -43,9 +45,9 @@ finish what it flagged.
   **dart-sass ≥ 1.79** — the codemod's node-sass replacement installs that, but check
   bundler-pinned older versions (Parcel's sass transformer pins 1.66).
 
-  react-bulma-components' own stylesheet — any `react-bulma-components/…` specifier,
+  the source library's own stylesheet — any `react-bulma-components/…` or `rbx/…` specifier,
   bare, `~`-prefixed, or a relative `node_modules/` path, covering the documented v3
-  entry points (`src/index.sass`, `dist/react-bulma-components(.min).css`) as well as
+  entry points (`src/index.sass`, `dist/react-bulma-components(.min).css`, `rbx/rbx`) as well as
   deep partials and extensionless forms — is not a third-party extension; it's the
   library being migrated away from. It targets Bulma 0.9, not the v1 your components now
   use, and (unless `--no-deps` is passed) `package.json` no longer lists it, so the
@@ -68,7 +70,8 @@ finish what it flagged.
   given partial's styles, so it gets a `// TODO(bestax-migrate)` and a report entry
   ("port any styles it carried beyond Bulma's own by hand") rather than vanishing silently.
 
-- **package.json**: `react-bulma-components` removed, `@allxsmith/bestax-bulma` added,
+- **package.json**: the source library removed (for rbx, along with the four `bulma-*`
+  extensions it pinned), `@allxsmith/bestax-bulma` added,
   `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),
   and dead `node-sass` replaced with dart `sass`. Run the package manager's install
   afterwards — the codemod never installs anything.
@@ -93,7 +96,7 @@ elements,form,components,grid,layout,helpers,themes}` with leaf partials like
   compatibility. Class-based usage (`className="is-checkradio"`) keeps needing the
   extension; usage that migrated to bestax components (Radio, Checkbox, the advanced
   form controls) is already styled by the bestax extras, so the import can go.
-  react-bulma-components' own stylesheet is never flagged this way (see above) — only
+  the source library's own stylesheet is never flagged this way (see above) — only
   packages actually named `bulma-*` are.
 
 ## Choosing a CSS flavor (optional)

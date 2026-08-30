@@ -45,7 +45,13 @@ const distTransform = path.join(
   'transform.js'
 );
 const distRunner = path.join(packageRoot, 'dist', 'runner.js');
-const distMapping = path.join(packageRoot, 'dist', 'sources', 'rbx', 'mapping.js');
+const distMapping = path.join(
+  packageRoot,
+  'dist',
+  'sources',
+  'rbx',
+  'mapping.js'
+);
 
 function fail(message) {
   console.error(`✖ ${message}`);
@@ -151,12 +157,16 @@ for (const file of docsFiles) {
   const parts = [];
   blocks.forEach((body, index) => {
     for (const n of referencedExports(body)) imported.add(n);
-    parts.push(`export const Example${index + 1} = () => (\n<>\n${body}\n</>\n);`);
+    parts.push(
+      `export const Example${index + 1} = () => (\n<>\n${body}\n</>\n);`
+    );
   });
   const source =
     (imported.size > 0
       ? `import { ${[...imported].sort().join(', ')} } from "rbx";\n\n`
-      : '') + parts.join('\n\n') + '\n';
+      : '') +
+    parts.join('\n\n') +
+    '\n';
 
   const todos = [];
   let output;

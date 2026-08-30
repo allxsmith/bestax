@@ -81,25 +81,14 @@
     },
     {
       "name": "bestax-migrate",
-      "description": "Migrate an existing app from react-bulma-components (v4) to @allxsmith/bestax-bulma on Bulma v1 — run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the mapping references. Use when a repo imports react-bulma-components and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.",
+      "description": "Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4) or rbx (v2) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components or rbx and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.",
       "promptName": "migrate",
       "dir": "bestax-migrate",
       "references": [
         {
-          "id": "component-map",
-          "file": "references/component-map.md",
-          "bytes": 13190
-        },
-        {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 7999
-        },
-        { "id": "prop-map", "file": "references/prop-map.md", "bytes": 6363 },
-        {
-          "id": "unmappables",
-          "file": "references/unmappables.md",
-          "bytes": 4861
+          "bytes": 8207
         }
       ],
       "examples": []

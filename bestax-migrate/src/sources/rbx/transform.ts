@@ -212,7 +212,9 @@ export default function transform(
           .some(p => EXTRAS_CSS_SPECIFIERS.has(String(p.node.source.value)));
         if (!hasExtras) {
           // Themed Radio/Checkbox need the bestax extras next to plain Bulma.
-          path.insertAfter(j.importDeclaration([], j.stringLiteral(EXTRAS_CSS)));
+          path.insertAfter(
+            j.importDeclaration([], j.stringLiteral(EXTRAS_CSS))
+          );
           ctx.dirty = true;
         }
       }
@@ -338,7 +340,9 @@ export default function transform(
         `prop:${triggerProp}`,
         `\`${present
           .map((a: any) => a.name.name)
-          .join('`, `')}\` set without \`${triggerProp}\`; bestax's \`<${componentName}>\` needs content — dropped`
+          .join(
+            '`, `'
+          )}\` set without \`${triggerProp}\`; bestax's \`<${componentName}>\` needs content — dropped`
       );
       ctx.dirty = true;
       return null;

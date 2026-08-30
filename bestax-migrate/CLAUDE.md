@@ -2,19 +2,37 @@
 
 jscodeshift-based CLI (`pnpm dlx bestax-migrate <source> <paths…>`) that migrates existing
 apps from other React Bulma libraries to `@allxsmith/bestax-bulma`. Multi-source by design:
-each source library registers in `src/sources/registry.ts`; the first is
-`react-bulma-components` (v4 only).
+each source library registers in `src/sources/registry.ts`. Two are shipped —
+`react-bulma-components` (v4 only) and `rbx` (v2 only).
 
 ## Hard rules
 
-- **react-bulma-components is NEVER installed anywhere in this repo** (supply-chain
-  policy). Fixtures are read as _text_ (`__testfixtures__`, `fixtures/kitchen-sink`); the
-  migration _input_ is never typechecked or executed. Validation typechecks the migrated
-  _output_ against the workspace `@allxsmith/bestax-bulma`.
-- Mapping-table first: `src/sources/react-bulma-components/mapping.ts` is the single source
-  of truth. Every RBC v4 export must have an entry (`mapped`/`partial`/`todo`) — the
-  `mapping-coverage` test walks the vendored `RBC_EXPORTS` list against it. New coverage is
-  a table edit (plus a `special` handler in `specials.ts` when structure changes).
+- **No source library is EVER installed anywhere in this repo** (supply-chain policy) —
+  not react-bulma-components, not rbx. Fixtures are read as _text_ (`__testfixtures__`,
+  `fixtures/kitchen-sink`, `fixtures/rbx-kitchen-sink`); the migration _input_ is never
+  typechecked or executed. Validation typechecks the migrated _output_ against the
+  workspace `@allxsmith/bestax-bulma`.
+- Mapping-table first: each source's `mapping.ts` is its single source of truth. Every
+  export of that library must have an entry (`mapped`/`partial`/`todo`) — the
+  `mapping-coverage` test walks the vendored `RBC_EXPORTS` / `RBX_EXPORTS` list against it,
+  in both directions, so the table cannot grow an entry for something the library never
+  exported either. New coverage is a table edit (plus a `special` handler in `specials.ts`
+  when structure changes).
+- **A new source is a directory plus one registry line.** `src/sources/_shared/` holds
+  everything library-agnostic: `jsx-utils.ts` (AST helpers + `TransformContext`),
+  `props.ts` (the `PropAction` interpreter — its universal table is a parameter, not an
+  import), `imports.ts` (binding collection and import aliasing), `specials-utils.ts`
+  (`alignTarget`, `mergeClassName`, `parseIconClasses`, and the `stripModifierProps`
+  factory), and `make-styles-transform.ts` (the whole Bulma 0.9→v1 stylesheet transform,
+  parameterised by the source package's own specifiers). What stays per-source is the data
+  — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a `transform.ts` that
+  orchestrates them.
+- `'<source>'` must be added to `MIGRATE_SOURCE_VALUES` in `telemetry-worker/src/schema.ts`
+  or its events are dropped at ingest; `check:conformance --only=telemetry-allowlists`
+  fails until it is. That worker deploys to production on merge, so the two land together.
+  The same check regex-scrapes each source's `index.ts` for
+  `: MigrationSource = { … name: '…' }` — a declaration that doesn't match that shape is a
+  hard violation, not a skip.
 - Anything unsafe gets a `// TODO(bestax-migrate): <hint>` comment on the enclosing
   statement + a report entry — never a silent skip, never a best-guess rewrite of dynamic
   values.
@@ -58,12 +76,20 @@ each source library registers in `src/sources/registry.ts`; the first is
   supported ones go in the other fixture files, which must stay TODO-free.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
-- Real-world corpus: `pnpm --filter bestax-migrate validate:corpus` fetches the
-  react-bulma-components repo's own MIT-licensed Storybook stories (pinned SHA, text only,
-  into `.e2e-tmp/`) and scores the transform over them — fails on any crash or
-  unknown-component TODO. Deliberately NOT in CI (no third-party fetches in the pipeline);
-  run it before releases and after mapping changes, and eyeball the before/after diffs it
-  writes to `.e2e-tmp/corpus-out/`.
+- Real-world corpus, one script per source, both fetching a pinned SHA as text only into
+  `.e2e-tmp/` and failing on any crash or unknown-component TODO. Deliberately NOT in CI
+  (no third-party fetches in the pipeline); run them before releases and after mapping
+  changes, and eyeball the before/after diffs they write:
+  - `validate:corpus` — react-bulma-components' own MIT Storybook stories →
+    `.e2e-tmp/corpus-out/`.
+  - `validate:corpus:rbx` — rbx's own MIT docs. rbx used **docz**, not Storybook, so the
+    script extracts the `<Playground>` blocks out of its 43 `*.docs.mdx` pages (254 blocks)
+    and rebuilds each page as one synthetic module written the way a consumer writes rbx.
+    Output lands in `.e2e-tmp/corpus-out-rbx/`.
+
+  The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
+  sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught six
+  mapping errors that 254 clean Playgrounds had not.
 
 ## Releases
 

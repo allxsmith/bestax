@@ -13,9 +13,12 @@ Codemods that migrate existing React apps to [`@allxsmith/bestax-bulma`](https:/
 
 Currently supported source libraries:
 
-| Source                                                                           | Status                                                            |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [`react-bulma-components`](https://github.com/couds/react-bulma-components) (v4) | ✅ All 32 components mapped (a few patterns are flagged as TODOs) |
+| Source                                                                           | Status                                                              |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [`react-bulma-components`](https://github.com/couds/react-bulma-components) (v4) | ✅ All 32 components mapped (a few patterns are flagged as TODOs)   |
+| [`rbx`](https://github.com/dfee/rbx) (v2)                                        | ✅ Full export surface mapped (a few patterns are flagged as TODOs) |
+
+Pass the source library as the first argument: `bestax-migrate <source> <paths…>`.
 
 ## Requirements
 
@@ -30,6 +33,8 @@ the app being migrated — the source is read as text and is never executed.
 ```bash
 # Preview what would change (no writes)
 pnpm dlx bestax-migrate react-bulma-components src/ --dry
+# …or, for an rbx app
+pnpm dlx bestax-migrate rbx src/ --dry
 
 # Apply the migration
 pnpm dlx bestax-migrate react-bulma-components src/
@@ -39,15 +44,15 @@ npm and yarn work too: `npx bestax-migrate …` / `yarn dlx bestax-migrate …`.
 
 The codemod uses [jscodeshift](https://github.com/facebook/jscodeshift) to:
 
-- rewrite `react-bulma-components` imports to `@allxsmith/bestax-bulma` (including `const { Input } = Form` destructuring and namespace imports)
+- rewrite the source library's imports to `@allxsmith/bestax-bulma` (including destructuring and namespace imports)
 - rename components and compound sub-components (`Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` → `Hero.Foot`, …)
 - convert props (`renderAs` → `as`, `loading` → `isLoading`, numeric spacing/text sizes → string unions, `textAlign="center"` → `textAlign="centered"`, …)
 - flatten responsive breakpoint objects (`mobile={{ size: 4 }}` → `sizeMobile={4}`)
 - restructure patterns bestax models differently (`Table.Container`, Navbar dropdowns, `Form.Help`, icon-font children → `<Icon name=…>`)
 - migrate stylesheets: CSS imports converge on `@allxsmith/bestax-bulma/bestax.css`, and SCSS files move from Bulma 0.9's `@import` + `$var !default` overrides to `@use 'bulma/sass' with (…)` plus `@use '@allxsmith/bestax-bulma/scss/extras'`
-- update `package.json`: remove `react-bulma-components`, add `@allxsmith/bestax-bulma`, bump `bulma` to `^1`, and swap the dead `node-sass` for dart `sass` (no install is ever run)
+- update `package.json`: remove the source library, add `@allxsmith/bestax-bulma`, bump `bulma` to `^1`, and swap the dead `node-sass` for dart `sass` (no install is ever run). Migrating **rbx** removes five dependencies, not one — it pinned `bulma@0.7.5` as a direct dependency plus `bulma-badge`, `bulma-divider`, `bulma-pageloader` and `bulma-tooltip`, so an rbx app could not choose its own Bulma version at all
 
-Anything without a safe automatic conversion is left in place with a `// TODO(bestax-migrate): …` comment, and the run ends with a report of every TODO by file and line. TODOs are expected output, not errors — resolve them with the [migration guide](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components), or let the [`bestax-migrate` Agent Skill](https://bestax.io/docs/skills/intro) walk them for you:
+Anything without a safe automatic conversion is left in place with a `// TODO(bestax-migrate): …` comment, and the run ends with a report of every TODO by file and line. TODOs are expected output, not errors — resolve them with the migration guide ([react-bulma-components](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components), [rbx](https://bestax.io/docs/guides/getting-started/migration/rbx)), or let the [`bestax-migrate` Agent Skill](https://bestax.io/docs/skills/intro) walk them for you:
 
 ```bash
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
@@ -69,7 +74,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 2. Search for `TODO(bestax-migrate)` and resolve each comment
 3. Typecheck/build and review the rendered app
 
-Full walkthrough: [react-bulma-components migration guide](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components).
+Full walkthrough: [react-bulma-components migration guide](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components) · [rbx migration guide](https://bestax.io/docs/guides/getting-started/migration/rbx).
 
 ## Hardened by default
 

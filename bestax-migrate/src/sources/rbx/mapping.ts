@@ -754,11 +754,14 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { mobile: 'isMobile', desktop: 'isDesktop' },
             valueToProp: true,
             valueTodo: {
-              tablet: 'bestax `Columns` supports only the mobile and desktop breakpoints',
+              tablet:
+                'bestax `Columns` supports only the mobile and desktop breakpoints',
               widescreen:
                 'bestax `Columns` supports only the mobile and desktop breakpoints',
-              fullhd: 'bestax `Columns` supports only the mobile and desktop breakpoints',
-              touch: 'bestax `Columns` supports only the mobile and desktop breakpoints',
+              fullhd:
+                'bestax `Columns` supports only the mobile and desktop breakpoints',
+              touch:
+                'bestax `Columns` supports only the mobile and desktop breakpoints',
             },
           },
         },

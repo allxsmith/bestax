@@ -258,7 +258,9 @@ function flattenResponsiveHelper(
       'responsive',
       `dropped the \`responsive\` prop; the ${remainingBreakpoints
         .map(b => `\`${b}\``)
-        .join(', ')} settings above could not be converted and bestax's own \`responsive\` prop is unrelated (\`'mobile' | 'narrow'\`)`
+        .join(
+          ', '
+        )} settings above could not be converted and bestax's own \`responsive\` prop is unrelated (\`'mobile' | 'narrow'\`)`
     );
   }
   removeAttr(element, attr);
