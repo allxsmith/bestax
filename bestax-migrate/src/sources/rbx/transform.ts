@@ -22,7 +22,13 @@
 
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
-import { MAPPING, UNIVERSAL_PROPS, resolveMapping } from './mapping.js';
+import {
+  BADGE_PROPS,
+  MAPPING,
+  TOOLTIP_PROPS,
+  UNIVERSAL_PROPS,
+  resolveMapping,
+} from './mapping.js';
 import {
   addTodo,
   attributesOf,
@@ -71,27 +77,6 @@ const EXTRAS_CSS_SPECIFIERS = new Set([
  */
 const RBX_EXTENSION_CSS = /^bulma-(badge|divider|pageloader|tooltip)(\/|$)/;
 
-/** rbx badge helper props → bestax `<Badge>` props. */
-const BADGE_PROPS: Record<string, string | null> = {
-  badge: 'content',
-  badgeColor: 'color',
-  // bestax's Badge has no outline, pill or size variants.
-  badgeOutlined: null,
-  badgeRounded: null,
-  badgeSize: null,
-};
-
-/** rbx tooltip helper props → bestax `<Tooltip>` props. */
-const TOOLTIP_PROPS: Record<string, string | null> = {
-  tooltip: 'label',
-  tooltipActive: 'active',
-  tooltipColor: 'color',
-  tooltipMultiline: 'multiline',
-  tooltipPosition: 'position',
-  // A breakpoint→position object; bestax has one position for all viewports.
-  tooltipResponsive: null,
-};
-
 export default function transform(
   fileInfo: FileInfo,
   api: API,
@@ -118,6 +103,11 @@ export default function transform(
   const aliases = new Map<string, string[]>();
 
   const rbxImportPaths: any[] = [];
+  /**
+   * Dropped-stylesheet notes, attached after the import rewrite — see the
+   * `isExtensionCss` branch for why they cannot be attached where they arise.
+   */
+  const droppedStylesheets: string[] = [];
 
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
@@ -175,13 +165,25 @@ export default function transform(
 
     if (isExtensionCss) {
       // Always dead once the components are migrated, in every css mode.
+      //
+      // The comment cannot ride on this node: `addTodo` hangs it on the
+      // nearest enclosing declaration, which for an import IS this node, and
+      // it is about to be pruned. Nor can it ride on a sibling import — the
+      // rewrite below prunes the rbx one and inserts a fresh node in its
+      // place. So it is deferred to the end of the run, once the import block
+      // has settled; otherwise the stylesheet vanishes from the user's editor
+      // with only a report line to explain it.
+      const message =
+        `dropped \`${source}\`: bestax ships Badge, Tooltip, Loading and ` +
+        `Divider, so rbx's Bulma extensions are no longer needed`;
+      droppedStylesheets.push(message);
+      ctx.collector?.add({
+        file: fileInfo.path,
+        line: path.node?.loc?.start?.line ?? null,
+        rule: 'css',
+        message,
+      });
       path.prune();
-      addTodo(
-        ctx,
-        path,
-        'css',
-        `dropped \`${source}\`: bestax ships Badge, Tooltip, Loading and Divider, so rbx's Bulma extensions are no longer needed`
-      );
       ctx.dirty = true;
       return;
     }
@@ -607,12 +609,19 @@ export default function transform(
     const bestaxLocals = new Set(ctx.needed.values());
     for (const path of rbxImportPaths) {
       const node = path.node;
-      const keepSpecifiers = (node.specifiers ?? []).filter(
-        (spec: any) =>
+      const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {
+        // `import * as rbx` reaches every export at once, so it has to
+        // survive whenever ANY component is retained — the JSX still says
+        // `<rbx.Tile>`, and pruning the import leaves `rbx is not defined`.
+        if (spec.type === 'ImportNamespaceSpecifier') {
+          return ctx.retained.size > 0;
+        }
+        return (
           spec.type === 'ImportSpecifier' &&
           ctx.retained.has(nameOf(spec.imported)) &&
           !bestaxLocals.has(nameOf(spec.local))
-      );
+        );
+      });
       if (!inserted) {
         if (existingBestax && bestaxImport) {
           existingBestax.node.specifiers = [
@@ -635,6 +644,23 @@ export default function transform(
         }
       } else {
         path.prune();
+      }
+      ctx.dirty = true;
+    }
+  }
+
+  // Flush the deferred stylesheet notes onto the first node that survived the
+  // import rewrite, so the drop is visible in the file and not only the report.
+  if (droppedStylesheets.length > 0) {
+    const body: any[] = root.get().node.program?.body ?? [];
+    const anchor = body[0];
+    if (anchor) {
+      anchor.comments = anchor.comments ?? [];
+      for (const message of droppedStylesheets) {
+        const text = ` TODO(bestax-migrate): ${message}`;
+        if (!anchor.comments.some((c: any) => c.value === text)) {
+          anchor.comments.push(j.commentLine(text, true, false));
+        }
       }
       ctx.dirty = true;
     }

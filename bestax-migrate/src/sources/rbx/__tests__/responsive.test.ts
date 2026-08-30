@@ -152,28 +152,36 @@ describe('Column and Column.Group breakpoint props', () => {
     expect(output).not.toContain('isNarrowTablet');
   });
 
-  it('TODOs a dynamic narrow', () => {
-    const { todos } = migrate(column('tablet={{ narrow: p.n as never }}'));
-    expect(todos.some(t => /dynamic value/.test(t.message))).toBe(true);
+  it('drops a dynamic narrow, naming it', () => {
+    const { output, todos } = migrate(
+      column('tablet={{ narrow: p.n as never }}')
+    );
+    expect(output).not.toContain('tablet={{');
+    expect(todos.some(t => /narrow \(dynamic value\)/.test(t.message))).toBe(
+      true
+    );
   });
 
-  it('TODOs the touch breakpoint on a Column', () => {
-    const { todos } = migrate(column('touch={{ size: 12 }}'));
-    expect(
-      todos.some(t => /no bestax-bulma column variants/.test(t.message))
-    ).toBe(true);
+  it('drops a touch size, which bestax has no column variant for', () => {
+    const { output, todos } = migrate(column('touch={{ size: 12 }}'));
+    expect(output).not.toContain('touch=');
+    // bestax has `isNarrowTouch` but no `sizeTouch`, so the key is named
+    // rather than the whole breakpoint being written off.
+    expect(todos.some(t => /dropped `touch\.size`/.test(t.message))).toBe(true);
   });
 
-  it('TODOs a non-object breakpoint on a Column', () => {
-    const { todos } = migrate(column('tablet={p.t as never}'));
+  it('drops a non-object breakpoint on a Column', () => {
+    const { output, todos } = migrate(column('tablet={p.t as never}'));
+    expect(output).not.toContain('tablet=');
     expect(
       todos.some(t => /must be an inline object literal/.test(t.message))
     ).toBe(true);
   });
 
-  it('TODOs a key it cannot flatten on a Column', () => {
-    const { todos } = migrate(column('tablet={{ nope: 1 }}'));
-    expect(todos.some(t => /could not be flattened/.test(t.message))).toBe(
+  it('drops a key it cannot flatten on a Column, naming it', () => {
+    const { output, todos } = migrate(column('tablet={{ nope: 1 }}'));
+    expect(output).not.toContain('tablet={{');
+    expect(todos.some(t => /dropped `tablet\.nope`/.test(t.message))).toBe(
       true
     );
   });
@@ -184,9 +192,10 @@ describe('Column and Column.Group breakpoint props', () => {
     expect(output).toContain('gap={4}');
   });
 
-  it('TODOs a key it cannot flatten on a Column.Group', () => {
-    const { todos } = migrate(group('tablet={{ nope: 1 }}'));
-    expect(todos.some(t => /could not be flattened/.test(t.message))).toBe(
+  it('drops a key it cannot flatten on a Column.Group, naming it', () => {
+    const { output, todos } = migrate(group('tablet={{ nope: 1 }}'));
+    expect(output).not.toContain('tablet={{');
+    expect(todos.some(t => /dropped `tablet\.nope`/.test(t.message))).toBe(
       true
     );
   });

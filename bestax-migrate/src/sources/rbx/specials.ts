@@ -15,7 +15,12 @@
  */
 
 import type { ASTPath } from 'jscodeshift';
-import { RESPONSIVE_BREAKPOINTS, UNIVERSAL_PROPS } from './mapping.js';
+import {
+  BADGE_PROPS,
+  RESPONSIVE_BREAKPOINTS,
+  TOOLTIP_PROPS,
+  UNIVERSAL_PROPS,
+} from './mapping.js';
 import {
   addAttr,
   addTodo,
@@ -75,6 +80,43 @@ function modifierClass(
   return base;
 }
 
+/**
+ * rbx's badge/tooltip helper props become wrapping components in
+ * transform.ts, but that pass runs after the rename step — which a
+ * `replaced: true` special skips. So a plain-element rewrite has to account
+ * for them itself, or they ride onto the HTML tag as unknown DOM attributes.
+ */
+function stripHelperComponentProps(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  attrs: any[],
+  where: string
+): any[] {
+  const kept: any[] = [];
+  const dropped: string[] = [];
+  for (const attr of attrs) {
+    const name = attr?.name?.name;
+    if (name && (name in BADGE_PROPS || name in TOOLTIP_PROPS)) {
+      dropped.push(name);
+    } else {
+      kept.push(attr);
+    }
+  }
+  if (dropped.length > 0) {
+    addTodo(
+      ctx,
+      path,
+      'plain-element',
+      `${where} became a plain element, so the ${dropped
+        .map(d => `\`${d}\``)
+        .join(
+          ', '
+        )} helper prop(s) were dropped — wrap it in \`<Badge>\` or \`<Tooltip>\` by hand`
+    );
+  }
+  return kept;
+}
+
 /** Replace the element with a plain HTML tag carrying `className`. */
 function replaceWithPlain(
   ctx: TransformContext,
@@ -85,7 +127,12 @@ function replaceWithPlain(
   where: string
 ): SpecialResult {
   const merged = mergeClassName(ctx, path, element, className, where);
-  const rest = stripModifierProps(ctx, path, attributesOf(element), where);
+  const rest = stripHelperComponentProps(
+    ctx,
+    path,
+    stripModifierProps(ctx, path, attributesOf(element), where),
+    where
+  );
   path.replace(plainElement(ctx.j, tag, merged, rest, element.children ?? []));
   ctx.dirty = true;
   return { replaced: true };

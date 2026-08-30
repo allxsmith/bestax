@@ -242,10 +242,19 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
   // Already regex fragments — see StylesConfig.
   const roots = config.rootStylesheetSuffixes.join('|');
 
-  /** Any @import of the source package's own stylesheets. */
+  /**
+   * Any @import of the source package's own stylesheets. The path after the
+   * package name is optional: `@import '~rbx'` resolves through the package's
+   * `style`/`sass` field and is a plausible spelling for a short package name,
+   * and SOURCE_ROOT_STYLESHEET below already accepts that bare form — so
+   * requiring the slash here made the bare case unreachable.
+   */
   const SOURCE_STYLE_IMPORT = new RegExp(
-    `^(\\s*)@import\\s+(['"])((?:\\.\\.?/)+node_modules/|~)?${pkg}/[^'"]*\\2\\s*;?\\s*$`
+    `^(\\s*)@import\\s+(['"])((?:\\.\\.?/)+node_modules/|~)?${pkg}(?:/[^'"]*)?\\2\\s*;?\\s*$`
   );
+  /** Cheap "is this file even about us?" pre-filter (see the guard below). */
+  const SOURCE_MENTION = new RegExp(pkg);
+
   /** …narrowed to the ones that stand in for a whole Bulma root. */
   const SOURCE_ROOT_STYLESHEET = new RegExp(
     `^\\s*@import\\s+(['"])(?:(?:\\.\\.?/)+node_modules/|~)?${pkg}${roots ? `(?:${roots})?` : ''}\\1\\s*;?\\s*$`
@@ -258,7 +267,13 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
     options
   ) => {
     const cssMode = options.cssMode ?? 'bestax';
-    if (!/bulma/.test(source)) return null;
+    // Cheap pre-filter. It must accept a file that names only the SOURCE
+    // package: rbx's documented Sass entry is `@import '~rbx/rbx'` and rbx
+    // pulls Bulma in itself, so such a file contains no "bulma" substring at
+    // all. Bailing on it left a dead import behind with no TODO and no report
+    // entry while deps.ts deleted the package in the same run — a silent
+    // build break, which is exactly what this package promises never to do.
+    if (!/bulma/.test(source) && !SOURCE_MENTION.test(source)) return null;
 
     // Indented-syntax files: flag only — rewriting without a parser is unsafe.
     if (path.extname(filePath) === '.sass') {

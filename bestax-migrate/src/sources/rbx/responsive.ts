@@ -283,34 +283,44 @@ function flattenColumnBreakpoints(
     const name: string = attr.name.name;
     if (!(name in RESPONSIVE_BREAKPOINTS)) continue;
 
-    const suffix = RESPONSIVE_BREAKPOINTS[name];
-    if (suffix === null) {
-      addTodo(
-        ctx,
-        path,
-        'responsive',
-        `no bestax-bulma column variants for the \`${name}\` breakpoint; restyle with CSS or drop it`
-      );
-      continue;
-    }
+    // bestax's viewport-suffixed helper props have no `touch` variant — but
+    // Column is the one exception: `isNarrowTouch` does exist. So the column
+    // pass resolves `touch` itself rather than taking the shared table's
+    // `null`, and only the keys that genuinely have no counterpart
+    // (`sizeTouch`, `offsetTouch`, `gapTouch`) become TODOs.
+    const suffix = name === 'touch' ? 'Touch' : RESPONSIVE_BREAKPOINTS[name];
+    const touchOnlyNarrow = name === 'touch';
 
     const objectExpr = objectExpressionOf(attr.value);
-    if (!objectExpr) {
+    if (suffix === null || !objectExpr) {
+      // Nothing can be salvaged from this attribute, and leaving it behind is
+      // not harmless: `ColumnProps` spreads unrecognised props onto the
+      // `<div>`, so a leftover is both a TS excess-property error and a React
+      // unknown-attribute warning. Drop it and say so — the same contract
+      // `flattenResponsiveHelper` keeps.
       addTodo(
         ctx,
         path,
         'responsive',
-        `\`${name}\` must be an inline object literal to flatten to bestax per-viewport props; convert it by hand`
+        objectExpr
+          ? `dropped \`${name}\`: bestax has no column variants for the \`${name}\` breakpoint — restyle with CSS`
+          : `dropped \`${name}\`: it must be an inline object literal to flatten to bestax per-viewport props — convert it by hand`
       );
+      removeAttr(element, attr);
+      ctx.dirty = true;
       continue;
     }
 
-    const remaining: any[] = [];
+    const unconverted: string[] = [];
     for (const prop of objectExpr.properties) {
       const key = propKey(prop);
       const literal = literalOf(prop.value);
 
-      if (kind === 'column' && (key === 'size' || key === 'offset')) {
+      if (
+        kind === 'column' &&
+        (key === 'size' || key === 'offset') &&
+        !touchOnlyNarrow
+      ) {
         // Column sizes take numbers and named strings alike; reuse the node.
         addAttr(
           element,
@@ -323,16 +333,13 @@ function flattenColumnBreakpoints(
         if (literal === true) {
           addAttr(element, makeAttr(j, `isNarrow${suffix}`));
         } else if (literal !== false) {
-          remaining.push(prop);
-          addTodo(
-            ctx,
-            path,
-            'responsive',
-            `\`${name}.narrow\` has a dynamic value; set \`isNarrow${suffix}\` conditionally by hand`
-          );
-          continue;
+          unconverted.push(`${key} (dynamic value)`);
         }
-      } else if (kind === 'column-group' && key === 'gapSize') {
+      } else if (
+        kind === 'column-group' &&
+        key === 'gapSize' &&
+        !touchOnlyNarrow
+      ) {
         // bestax `gap*` supersedes the deprecated `gapSize*`, same 0-8 scale.
         addAttr(
           element,
@@ -342,22 +349,19 @@ function flattenColumnBreakpoints(
           )
         );
       } else {
-        remaining.push(prop);
-        addTodo(
-          ctx,
-          path,
-          'responsive',
-          `\`${name}.${String(key)}\` could not be flattened to a bestax per-viewport prop`
-        );
-        continue;
+        unconverted.push(String(key));
       }
     }
 
-    if (remaining.length === 0) {
-      removeAttr(element, attr);
-    } else {
-      objectExpr.properties = remaining;
+    if (unconverted.length > 0) {
+      addTodo(
+        ctx,
+        path,
+        'responsive',
+        `dropped \`${name}.${unconverted.join('`, `' + name + '.')}\`: no bestax per-viewport equivalent — set it by hand`
+      );
     }
+    removeAttr(element, attr);
     ctx.dirty = true;
   }
 }

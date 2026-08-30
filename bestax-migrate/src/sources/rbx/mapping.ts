@@ -97,6 +97,27 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   as: AS_TODO,
 };
 
+/** rbx badge helper props → bestax `<Badge>` props. */
+export const BADGE_PROPS: Record<string, string | null> = {
+  badge: 'content',
+  badgeColor: 'color',
+  // bestax's Badge has no outline, pill or size variants.
+  badgeOutlined: null,
+  badgeRounded: null,
+  badgeSize: null,
+};
+
+/** rbx tooltip helper props → bestax `<Tooltip>` props. */
+export const TOOLTIP_PROPS: Record<string, string | null> = {
+  tooltip: 'label',
+  tooltipActive: 'active',
+  tooltipColor: 'color',
+  tooltipMultiline: 'multiline',
+  tooltipPosition: 'position',
+  // A breakpoint→position object; bestax has one position for all viewports.
+  tooltipResponsive: null,
+};
+
 /**
  * rbx breakpoints → the suffix bestax uses on its viewport-aware helper props
  * (`displayTablet`, `textSizeDesktop`, …). `null` means bestax has no

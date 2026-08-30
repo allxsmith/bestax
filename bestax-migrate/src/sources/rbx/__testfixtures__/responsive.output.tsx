@@ -3,13 +3,13 @@ import { Box, Column, Columns } from "@allxsmith/bestax-bulma";
 // TODO(bestax-migrate): Generic has no bestax-bulma equivalent yet — migrate and remove this import
 import { Generic } from "rbx";
 
-// TODO(bestax-migrate): no bestax-bulma column variants for the `touch` breakpoint; restyle with CSS or drop it
+// TODO(bestax-migrate): dropped `touch.size`: no bestax per-viewport equivalent — set it by hand
 export const Responsive = () => (
   <Columns gap={4} gapTablet={2} isCentered isMultiline>
     <Column size={4} offset={1} sizeTablet={6} isNarrowTablet>
       one
     </Column>
-    <Column touch={{ size: 12 }} sizeDesktop="one-third" isNarrow>
+    <Column sizeDesktop="one-third" isNarrow>
       two
     </Column>
   </Columns>
