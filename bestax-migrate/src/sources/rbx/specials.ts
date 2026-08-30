@@ -232,11 +232,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
         }
       }
     }
+    // rbx's own docs teach `<Icon><FontAwesomeIcon icon={faHome} /></Icon>`,
+    // so this is the shape most rbx code is in. There is no icon name to read
+    // out of a component reference, and `name` is required on bestax's Icon.
     addTodo(
       ctx,
       path,
       'component:Icon',
-      'bestax `Icon` takes `name`/`library`/`variant` instead of an icon-font child; set them by hand'
+      'bestax `Icon` takes a required `name` (plus optional `library`/`variant`) instead of an icon child — e.g. `<FontAwesomeIcon icon={faHome} />` becomes `<Icon name="home" library="fa" variant="solid" />`'
     );
     return {};
   },

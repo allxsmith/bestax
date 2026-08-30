@@ -41,8 +41,16 @@ const FILE_PART_TODO = `bestax's \`<File>\` renders the whole file structure fro
 const AS_TODO: PropAction = {
   todo: `bestax declares \`as\` on only some components, and this is not one of them; restructure the element or render the tag directly (${DOCS}/api)`,
 };
-/** Components whose bestax counterpart really does accept `as`. */
-const AS_OK: PropAction = { rename: 'as' };
+/**
+ * Components whose bestax counterpart really does accept `as`. An empty
+ * action passes the prop through untouched; its job is to claim the name so
+ * the universal `AS_TODO` never sees it.
+ *
+ * Several of these narrow `as` to a literal union (`Footer` is
+ * `'footer' | 'div'`, `Control` is `'div'`), so an `as={SomeComponent}` still
+ * surfaces — as a type error the user can see, rather than a silent rewrite.
+ */
+const AS_OK: PropAction = {};
 
 /**
  * Helper props rbx mixes into every component via `HelpersProps`. Applied
@@ -213,7 +221,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Image: {
     status: 'mapped',
     target: 'Image',
-    props: { rounded: { booleanToProp: { name: 'isRounded' } } },
+    props: { as: AS_OK, rounded: { booleanToProp: { name: 'isRounded' } } },
     subs: {
       // rbx nests <Image> inside <Image.Container>; bestax's Image renders the
       // figure itself, so the container collapses into it.
@@ -296,7 +304,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
     },
   },
-  Title: { status: 'mapped', special: 'title' },
+  Title: { status: 'mapped', special: 'title', props: { as: AS_OK } },
   Tile: {
     status: 'todo',
     todo: `Bulma v1 replaced tiles with the Grid/Cell components — see ${DOCS}/api/grid and the migration guide ${DOCS}/guides/getting-started/migration/bulma-0-9-to-1`,
@@ -308,6 +316,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Control',
     props: {
+      as: AS_OK,
       expanded: {},
       loading: {},
       size: {},
@@ -503,7 +512,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
         },
       },
     },
-    subs: { Item: { status: 'mapped', special: 'level-item' } },
+    subs: {
+      Item: { status: 'mapped', special: 'level-item', props: { as: AS_OK } },
+    },
   },
   List: {
     status: 'todo',
@@ -518,7 +529,10 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Media: {
     status: 'mapped',
     target: 'Media',
-    subs: { Item: { status: 'mapped', special: 'media-item' } },
+    props: { as: AS_OK },
+    subs: {
+      Item: { status: 'mapped', special: 'media-item', props: { as: AS_OK } },
+    },
   },
   Menu: {
     status: 'mapped',
@@ -533,6 +547,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             status: 'mapped',
             target: 'Menu.Item',
             props: {
+              as: AS_OK,
               active: {},
               menu: {
                 todo: 'bestax `Menu.Item` has no `menu` prop; nest a `<Menu.List>` as a child instead',
@@ -745,7 +760,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
 
   // ---- layout -------------------------------------------------------------
-  Footer: { status: 'mapped', target: 'Footer' },
+  Footer: { status: 'mapped', target: 'Footer', props: { as: AS_OK } },
   Hero: {
     status: 'mapped',
     target: 'Hero',
