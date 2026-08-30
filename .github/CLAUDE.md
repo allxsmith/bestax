@@ -567,8 +567,17 @@ Two things about reading its output, both learned assembling the #578 lists:
   principle — its name rotates per run (sa3, sa6, sa7, sa9, sa11 and sa13 across six runs). Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
   with the five-host list observed only `api.github.com` and `github.com`, and completed all
-  fifteen of its API calls under the firewall. The visible cost is an Actions cache miss, which
-  degrades rather than fails.
+  fifteen of its API calls under the firewall.
+
+  **Leaving them out costs nothing, and that is measured rather than assumed.** harden-runner
+  does not gate the runner's own control-plane traffic, so the Actions cache keeps working:
+  run 33286967625 ran `claude-review` at `block` with neither the blob host nor
+  `results-receiver` allow-listed, and its `setup-node` step restored the pnpm cache
+  successfully before `pnpm install --frozen-lockfile` completed. Worth stating plainly
+  because the first revision of this bullet predicted a cache miss and called it an accepted
+  cost. That was a guess, it was wrong, and the run is what showed it. If you catch yourself
+  writing down what a policy will cost, go and read a run instead.
+
 - **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from four
   runs and present in the fifth — `telemetry.vercel.com` (turbo) showed up exactly once across
   the six #578 runs. Prefer denying telemetry at the source (`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`,
