@@ -36,6 +36,8 @@ const numeric: PropAction = { numberToString: true };
  * TODO, and the components that really do accept `as` opt in with `AS_OK` in
  * their own prop map, which runs first and wins.
  */
+const FILE_PART_TODO = `bestax's \`<File>\` renders the whole file structure from its own props — drop this element and set \`label\`, \`hasName\`, \`isBoxed\` etc. on \`<File>\` (${DOCS}/api/form/file)`;
+
 const AS_TODO: PropAction = {
   todo: `bestax declares \`as\` on only some components, and this is not one of them; restructure the element or render the tag directly (${DOCS}/api)`,
 };
@@ -353,12 +355,16 @@ export const MAPPING: Record<string, ComponentMapping> = {
         valueToProp: true,
       },
     },
+    // bestax's `<File>` renders the whole Bulma file structure itself from
+    // props (`label`, `hasName`, `isBoxed`, …), so rbx's structural pieces
+    // have no counterpart to become. Collapsing them automatically would mean
+    // guessing which prop each one was standing in for.
     subs: {
-      CTA: { status: 'mapped', special: 'file-part' },
-      Icon: { status: 'mapped', special: 'file-part' },
-      Input: { status: 'mapped', special: 'file-part' },
-      Label: { status: 'mapped', special: 'file-part' },
-      Name: { status: 'mapped', special: 'file-part' },
+      CTA: { status: 'todo', todo: FILE_PART_TODO },
+      Icon: { status: 'todo', todo: FILE_PART_TODO },
+      Input: { status: 'todo', todo: FILE_PART_TODO },
+      Label: { status: 'todo', todo: FILE_PART_TODO },
+      Name: { status: 'todo', todo: FILE_PART_TODO },
     },
   },
   Help: { status: 'mapped', special: 'help' },
@@ -521,7 +527,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       Label: { status: 'mapped', target: 'Menu.Label' },
       List: {
         status: 'mapped',
-        special: 'menu-list',
+        target: 'Menu.List',
         subs: {
           Item: {
             status: 'mapped',

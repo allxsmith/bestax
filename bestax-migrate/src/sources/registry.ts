@@ -5,9 +5,11 @@
 
 import type { MigrationSource } from '../types.js';
 import { reactBulmaComponents } from './react-bulma-components/index.js';
+import { rbx } from './rbx/index.js';
 
 export const SOURCES: Record<string, MigrationSource> = {
   [reactBulmaComponents.name]: reactBulmaComponents,
+  [rbx.name]: rbx,
 };
 
 export function getSource(name: string): MigrationSource | undefined {
