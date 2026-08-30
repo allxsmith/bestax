@@ -542,7 +542,7 @@ function IconOnlyExample() {
 
 The two attributes do different jobs, and only the first one names the button:
 
-- **`aria-label` on the `Button`** is the accessible name. It takes precedence over anything inside the button, so this is the whole of what a screen reader announces. Make it name the action ("Delete item"), not the picture ("Trash icon").
+- **`aria-label` on the `Button`** is the accessible name. It takes precedence over anything inside the button, so it alone supplies the name a screen reader reads out (alongside the "button" role and any state, which come from the element itself). Make it name the action ("Delete item"), not the picture ("Trash icon").
 - **`aria-hidden` on the `Icon`** does not change that name. It keeps the icon out of the accessibility tree entirely, so assistive technology never exposes a stray `"icon"` node when moving through the page element by element. Correct decorative markup, not part of the naming.
 
 Leave the `aria-label` off and the name falls back to the button's contents, which is where `Icon` bites: it sets `aria-label="icon"` by default, so the button ends up announcing the single word "icon".
