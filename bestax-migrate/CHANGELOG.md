@@ -1,3 +1,10 @@
+## [2.1.5](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.4...bestax-migrate@2.1.5) (2026-08-29)
+
+
+### Bug Fixes
+
+* collapse the duplicated docs route segment so Grid and Columns URLs resolve ([#598](https://github.com/allxsmith/bestax/issues/598)) ([a11333b](https://github.com/allxsmith/bestax/commit/a11333b7bbc0b444dd45f6d3bb6f4335153d4e89)), closes [#597](https://github.com/allxsmith/bestax/issues/597)
+
 ## [2.1.4](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.3...bestax-migrate@2.1.4) (2026-08-27)
 
 
