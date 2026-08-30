@@ -16,15 +16,15 @@
 
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
-import { MAPPING, resolveMapping } from './mapping.js';
+import { MAPPING, UNIVERSAL_PROPS, resolveMapping } from './mapping.js';
 import {
   addTodo,
   attributesOf,
   jsxNameParts,
   renameElement,
   type TransformContext,
-} from './jsx-utils.js';
-import { applyPropAction, applyUniversalProps } from './props.js';
+} from '../_shared/jsx-utils.js';
+import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import { flattenResponsiveProps } from './responsive.js';
 import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 
@@ -384,7 +384,7 @@ export default function transform(
         applyPropAction(ctx, path, element, attr, action);
       }
     }
-    applyUniversalProps(ctx, path, element, handled);
+    applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
   });
 
   // ---- 2b. Value references to RBC components ---------------------------

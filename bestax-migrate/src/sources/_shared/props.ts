@@ -1,11 +1,14 @@
 /**
  * Prop-level conversion: applies a PropAction to a single attribute, plus the
  * universal modifier-prop pass shared by every mapped component.
+ *
+ * Source-agnostic — the universal table is passed in by the caller rather than
+ * imported, so each source keeps its own `UNIVERSAL_PROPS` in its `mapping.ts`
+ * while sharing this interpreter.
  */
 
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
-import { UNIVERSAL_PROPS } from './mapping.js';
 import {
   addAttr,
   addTodo,
@@ -22,8 +25,8 @@ import {
 
 /**
  * Add a converted attribute unless the target name is already present — two
- * RBC props can map onto one bestax prop (e.g. `textTransform` + `italic`),
- * and a silent duplicate would be invalid JSX.
+ * source props can map onto one bestax prop (e.g. RBC's `textTransform` +
+ * `italic`), and a silent duplicate would be invalid JSX.
  */
 function addConverted(
   ctx: TransformContext,
@@ -180,19 +183,21 @@ export function applyPropAction(
 }
 
 /**
- * Apply the universal RBC modifier-prop conversions to every attribute that
- * was not already handled by the component's own prop map.
+ * Apply the source library's universal modifier-prop conversions to every
+ * attribute that was not already handled by the component's own prop map.
+ * `universalProps` is the calling source's `UNIVERSAL_PROPS` table.
  */
 export function applyUniversalProps(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
-  handled: Set<string>
+  handled: Set<string>,
+  universalProps: Record<string, PropAction>
 ): void {
   for (const attr of [...attributesOf(element)]) {
     const name: string = attr.name.name;
     if (handled.has(name)) continue;
-    const action = UNIVERSAL_PROPS[name];
+    const action = universalProps[name];
     if (!action) continue;
     applyPropAction(ctx, path, element, attr, action);
   }

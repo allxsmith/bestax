@@ -1,7 +1,11 @@
 /**
- * Small AST helpers shared by the react-bulma-components transform passes.
- * All functions operate on the babel/tsx AST that jscodeshift's `tsx` parser
- * produces, via the `j` builder API.
+ * Small AST helpers shared by every source's transform passes. All functions
+ * operate on the babel/tsx AST that jscodeshift's `tsx` parser produces, via
+ * the `j` builder API.
+ *
+ * Nothing here may know which source library is being migrated — this module
+ * is imported by all of them (`react-bulma-components`, `rbx`, …), so any
+ * library-specific table belongs in that source's own `mapping.ts`.
  */
 
 import type { JSCodeshift } from 'jscodeshift';
@@ -16,7 +20,7 @@ export interface TransformContext {
   j: JSCodeshift;
   file: string;
   collector: TodoCollector | undefined;
-  /** RBC top-level import names that must survive the import rewrite. */
+  /** Source-library top-level import names that must survive the rewrite. */
   retained: Set<string>;
   /** bestax-bulma imports: imported name → local name (aliased on conflict). */
   needed: Map<string, string>;
@@ -32,7 +36,10 @@ export interface TransformContext {
    * Navbar.Item becomes Navbar.DropdownMenu).
    */
   overrides: WeakMap<object, string>;
-  /** Resolves a JSX name node to its canonical RBC path (set by transform). */
+  /**
+   * Resolves a JSX name node to its canonical source-library path (set by the
+   * source's transform).
+   */
   resolve?: (name: any) => string[] | null;
   dirty: boolean;
 }
@@ -119,13 +126,14 @@ export function literalValueOf(attr: any): LiteralValue {
 export type Booleanish = 'truthy' | 'falsy' | 'expression';
 
 /**
- * Classify a JSX attribute by the truthiness RBC evaluates it with at
- * runtime (`!!value`): every statically-known literal (boolean, string, or
- * number) resolves to `'truthy'`/`'falsy'`; only a genuine expression is
- * `'expression'`. This is the single place the six call sites that branch on
- * a "booleanish" prop (Button `remove`, Heading `heading`/`subtitle`,
- * `booleanToProp`, the `active` ladders, Field `multiline`) agree on what
- * counts as resolvable, so they can't drift out of sync with each other.
+ * Classify a JSX attribute by the truthiness the source library evaluates it
+ * with at runtime (`!!value`): every statically-known literal (boolean,
+ * string, or number) resolves to `'truthy'`/`'falsy'`; only a genuine
+ * expression is `'expression'`. This is the single place every call site that
+ * branches on a "booleanish" prop (RBC's Button `remove`, Heading
+ * `heading`/`subtitle`, `booleanToProp`, the `active` ladders, Field
+ * `multiline`; rbx's bare-boolean modifiers) agrees on what counts as
+ * resolvable, so they can't drift out of sync with each other.
  */
 export function resolveBooleanish(attr: any): Booleanish {
   const literal = literalValueOf(attr);
