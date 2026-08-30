@@ -5,7 +5,7 @@ export const Compounds = () => (
   <>
     <Card>
       <Card.Header>
-        <Card.Header.Title isCentered>Title</Card.Header.Title>
+        <Card.Header.Title centered>Title</Card.Header.Title>
         <Card.Header.Icon>i</Card.Header.Icon>
       </Card.Header>
       <Card.Content>body</Card.Content>

@@ -317,9 +317,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Control',
     props: {
       as: AS_OK,
-      expanded: {},
-      loading: {},
       size: {},
+      expanded: { booleanToProp: { name: 'isExpanded' } },
+      loading: { booleanToProp: { name: 'isLoading' } },
+      // rbx's iconLeft/iconRight are booleans; bestax's same-named props take
+      // an IconProps object, so they map onto the has* booleans instead.
       iconLeft: { booleanToProp: { name: 'hasIconsLeft' } },
       iconRight: { booleanToProp: { name: 'hasIconsRight' } },
     },
@@ -336,7 +338,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         todo: "rbx's `align` on a Field is Bulma's grouped alignment; set `isGrouped` plus the matching alignment class by hand",
       },
       kind: {
-        valueMap: { addons: 'hasAddons', group: 'isGrouped' },
+        valueMap: { addons: 'hasAddons', group: 'grouped' },
         valueToProp: true,
       },
       multiline: {},
@@ -447,7 +449,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             target: 'Card.Header.Title',
             props: {
               align: {
-                valueMap: { centered: 'isCentered' },
+                valueMap: { centered: 'centered' },
                 valueToProp: true,
               },
             },
@@ -578,7 +580,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       active: {},
       onClose: {},
-      closeOnEsc: {},
+      closeOnEsc: {
+        todo: 'bestax `Modal` always closes on Escape; drop this prop or intercept the key yourself',
+      },
       closeOnBlur: {
         todo: 'bestax `Modal` closes on background click by default; drop this or handle it in `onClose`',
       },
@@ -693,8 +697,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
   },
   Tab: {
+    // bestax's `Tabs.Tab` is the controlled API and requires an `index` that
+    // cannot be derived from rbx's markup; `Tabs.Item` is the plain <li> that
+    // rbx's `Tab` actually is.
     status: 'mapped',
-    target: 'Tabs.Tab',
+    target: 'Tabs.Item',
     props: { active: {} },
     subs: {
       Group: {

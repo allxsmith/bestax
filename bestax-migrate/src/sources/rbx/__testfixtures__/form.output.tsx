@@ -24,14 +24,14 @@ export const Form = () => (
         <label className="label is-small">Name</label>
       </Field.Label>
       <Field.Body>
-        <Control expanded loading hasIconsLeft>
+        <Control isExpanded hasIconsLeft isLoading>
           <Input type="text" color="danger" size="small" isRounded isFocused />
           <Icon size="small" align="left" name="user" library="fa" variant="solid" />
         </Control>
         <p className="help is-danger">Required</p>
       </Field.Body>
     </Field>
-    <Field isGroupedMultiline isGrouped>
+    <Field grouped="multiline">
       <Control>
         <Select size="medium" isFullwidth isRounded isLoading>
           <option value="a">A</option>

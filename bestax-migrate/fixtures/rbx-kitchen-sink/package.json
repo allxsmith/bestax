@@ -1,0 +1,20 @@
+{
+  "name": "rbx-kitchen-sink",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "bulma": "0.7.5",
+    "bulma-badge": "^3.0.1",
+    "bulma-divider": "^0.2.0",
+    "bulma-pageloader": "^2.1.0",
+    "bulma-tooltip": "^2.0.2",
+    "rbx": "^2.2.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "@fortawesome/react-fontawesome": "^0.1.4",
+    "@fortawesome/free-solid-svg-icons": "^5.9.0"
+  },
+  "devDependencies": {
+    "node-sass": "^4.12.0"
+  }
+}

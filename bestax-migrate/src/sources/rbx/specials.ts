@@ -286,8 +286,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * rbx's Field `horizontal` maps straight across, but its `multiline` only
-   * exists alongside `kind="group"`; bestax models that as isGroupedMultiline.
+   * rbx's Field `multiline` only means anything alongside `kind="group"`, and
+   * bestax folds both into one prop: `grouped="multiline"`. So this has to
+   * win over the `kind` mapping rather than sit beside it — `grouped` set
+   * twice would be invalid JSX.
    */
   field(ctx, path, element) {
     const multilineAttr = findAttr(element, 'multiline');
@@ -295,13 +297,20 @@ const SPECIALS: Record<string, SpecialHandler> = {
     const resolved = resolveBooleanish(multilineAttr);
     removeAttr(element, multilineAttr);
     if (resolved === 'truthy') {
-      addAttr(element, makeAttr(ctx.j, 'isGroupedMultiline'));
-    } else if (resolved === 'expression') {
+      const kindAttr = findAttr(element, 'kind');
+      if (kindAttr) removeAttr(element, kindAttr);
+      const existing = findAttr(element, 'grouped');
+      if (existing) removeAttr(element, existing);
+      addAttr(element, makeAttr(ctx.j, 'grouped', 'multiline'));
+      ctx.dirty = true;
+      return { handledProps: ['multiline', 'kind'] };
+    }
+    if (resolved === 'expression') {
       addTodo(
         ctx,
         path,
         'prop:multiline',
-        'dynamic Field `multiline`; set `isGroupedMultiline` conditionally by hand'
+        'dynamic Field `multiline`; set `grouped="multiline"` conditionally by hand'
       );
     }
     ctx.dirty = true;
