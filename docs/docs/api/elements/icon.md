@@ -184,8 +184,8 @@ Modern icon library with web components support, perfect for mobile-first applic
 
 ## Accessibility
 
-- **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default `'icon'`).
-- **Keyboard:** Icon is decorative by default. If interactive, use with `Button` or `a` and add ARIA as needed.
+- **ARIA label:** `ariaLabel` defaults to `'icon'` and is applied to the container span **unconditionally** — an `Icon` that never sets it still renders `aria-label="icon"`. For an icon-only control, put the real `aria-label` on the control (e.g. `Button`) and set `aria-hidden` on the `Icon`; for a decorative icon beside visible text, set `aria-hidden` on the `Icon` so it doesn't add `"icon"` to the accessible name.
+- **Keyboard:** If interactive, use with `Button` or `a` and put the ARIA (`aria-label`, roles) on that control.
 - **Color and size:** Use `textColor`, `bgColor`, and `size` for accessible, themeable icons.
 
 :::note
