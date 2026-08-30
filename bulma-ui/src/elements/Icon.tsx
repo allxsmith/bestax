@@ -64,7 +64,15 @@ export interface IconProps
   libraryFeatures?: string | string[]; // DEPRECATED: backward compatibility
   /** Size modifier for the icon container. */
   size?: 'small' | 'medium' | 'large';
-  /** ARIA label for accessibility (default: 'icon'). */
+  /**
+   * ARIA label for accessibility. Applied unconditionally to the container span, so an
+   * icon that never sets it still renders `aria-label="icon"`. For an icon-only control,
+   * put the real `aria-label` on the control (e.g. `Button`) and set `aria-hidden` here
+   * instead — otherwise the control's accessible name is announced as just "icon". For a
+   * decorative icon beside visible text, set `aria-hidden` here rather than leaving the
+   * default, so it doesn't add "icon" to the text's accessible name.
+   * @defaultValue 'icon'
+   */
   ariaLabel?: string;
   /** Inline style object. */
   style?: React.CSSProperties;
