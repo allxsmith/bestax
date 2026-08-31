@@ -83,6 +83,12 @@ export default function transform(
   const aliases = new Map<string, string[]>();
 
   const rbcImportPaths: any[] = [];
+  /**
+   * Whether a namespace binding (`import * as RBC`) is still referenced after
+   * the JSX pass — either by a retained component (`<RBC.Tile>`) or as a bare
+   * value. Pruning the import under one leaves `RBC is not defined`.
+   */
+  let namespaceStillReferenced = false;
 
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
@@ -355,7 +361,21 @@ export default function transform(
     if (path.node.type !== 'Identifier') return;
     const name = path.node.name;
     const imported = imports.get(name);
-    if (imported === undefined || imported === '*') return;
+    if (imported === undefined) return;
+    if (imported === '*') {
+      // A namespace in a value position (the guards below filter out import
+      // specifiers and JSX names, which the element walker rewrites).
+      const parent = path.parent?.node?.type;
+      if (
+        parent !== 'ImportNamespaceSpecifier' &&
+        parent !== 'JSXOpeningElement' &&
+        parent !== 'JSXClosingElement' &&
+        parent !== 'JSXMemberExpression'
+      ) {
+        namespaceStillReferenced = true;
+      }
+      return;
+    }
     const parentNode = path.parent?.node;
     const parentType = parentNode?.type;
     if (
@@ -472,12 +492,19 @@ export default function transform(
     const bestaxLocals = new Set(ctx.needed.values());
     for (const path of rbcImportPaths) {
       const node = path.node;
-      const keepSpecifiers = (node.specifiers ?? []).filter(
-        (spec: any) =>
+      const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {
+        // `import * as RBC` reaches every export at once, so it must survive
+        // whenever a component is retained (`<RBC.Tile>` stays in the JSX) or
+        // the namespace is referenced as a value.
+        if (spec.type === 'ImportNamespaceSpecifier') {
+          return ctx.retained.size > 0 || namespaceStillReferenced;
+        }
+        return (
           spec.type === 'ImportSpecifier' &&
           ctx.retained.has(nameOf(spec.imported)) &&
           !bestaxLocals.has(nameOf(spec.local))
-      );
+        );
+      });
       if (!inserted) {
         if (existingBestax && bestaxImport) {
           existingBestax.node.specifiers = [

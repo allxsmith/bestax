@@ -211,6 +211,17 @@ describe('the source-still-imported warning', () => {
     );
   });
 
+  it('fires for a bindingless side-effect import', async () => {
+    // `import 'rbx';` has nothing to rewrite, so the transform leaves the
+    // file alone — but the reference is still live, and removing the
+    // package from the manifest would strand it.
+    const dir = projectWith('App.tsx', "import 'rbx';\nexport const A = 1;\n");
+    const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
+    expect(logs.join('\n')).toMatch(
+      /still import it for components with no bestax/
+    );
+  });
+
   it('does not fire for a lookalike package name', async () => {
     const dir = projectWith(
       'App.tsx',

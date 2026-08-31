@@ -109,14 +109,16 @@ function migrateFiles(
   let sourceStillImported = false;
   // Match the source package at a specifier boundary, in every form a
   // retained reference can take: a root or DEEP JavaScript import
-  // (`from 'rbx'`, `from 'rbx/base/theme'` — deep ones are kept with a TODO)
+  // (`from 'rbx'`, `from 'rbx/base/theme'` — deep ones are kept with a TODO),
+  // a bindingless side-effect `import 'rbx'` (which the transform leaves
+  // untouched because there is nothing to rewrite),
   // and the Sass forms the stylesheet transform preserves in indented `.sass`
   // files (`@import '~rbx/rbx'`). Matching only `from '<pkg>'` meant a file
   // whose ONLY remaining reference was a deep or Sass import let the manifest
   // pass drop the package with no warning.
   const escaped = source.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const sourceImportRe = new RegExp(
-    `(?:from|@import)\\s*['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`
+    `(?:from|@import|import)\\s*['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`
   );
   for (const file of files) {
     const sourceText = fs.readFileSync(file, 'utf8');

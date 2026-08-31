@@ -607,6 +607,40 @@ describe('react-bulma-components transform fixtures', () => {
     });
   });
 
+  describe('a namespace import survives when something still needs it', () => {
+    it('keeps it when a retained component references it', () => {
+      // `<RBC.Tile>` stays in the JSX (Tile is unmappable), so pruning the
+      // import leaves `RBC is not defined`.
+      const source = [
+        "import * as RBC from 'react-bulma-components';",
+        'export const A = () => <RBC.Tile><RBC.Box>x</RBC.Box></RBC.Tile>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'ns.tsx', source);
+      expect(output).toContain("import * as RBC from 'react-bulma-components'");
+      expect(output).toContain('<RBC.Tile>');
+      expect(output).toContain('<Box>');
+    });
+
+    it('keeps it when the namespace is referenced as a value', () => {
+      const source = [
+        "import * as RBC from 'react-bulma-components';",
+        'export const A = () => <RBC.Box>{String(RBC)}</RBC.Box>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'ns-value.tsx', source);
+      expect(output).toContain("import * as RBC from 'react-bulma-components'");
+    });
+
+    it('still prunes it when nothing does', () => {
+      const source = [
+        "import * as RBC from 'react-bulma-components';",
+        'export const A = () => <RBC.Box>x</RBC.Box>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'ns-clean.tsx', source);
+      expect(output).not.toContain('react-bulma-components');
+      expect(output).toContain('<Box>x</Box>');
+    });
+  });
+
   describe('a retained RBC binding never loses its name to a bestax import', () => {
     it('aliases the bestax local instead of dropping the retained specifier', () => {
       // `Element as Button` is unmappable and retained; another RBC component
