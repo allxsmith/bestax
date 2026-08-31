@@ -72,6 +72,22 @@ structure collapses to one.
 </Dropdown>
 ```
 
+## `Navbar.Item dropdown` — open/close state is not carried over
+
+The structural rewrite is automatic (`<Navbar.Item dropdown>` becomes
+`<Navbar.Dropdown>`, and rbx's `<Navbar.Dropdown>` becomes `<Navbar.DropdownMenu>`), but the
+**behaviour is not the same**. rbx's dropdown owns its own click and outside-click state; bestax's
+`Navbar.Dropdown` is presentational and opens from `hoverable` or a controlled `active`.
+
+So a migrated dropdown renders correctly and does nothing on click. Pick one:
+
+```jsx
+<Navbar.Dropdown hoverable>…</Navbar.Dropdown>          // opens on hover
+<Navbar.Dropdown active={open}>…</Navbar.Dropdown>      // you own the state
+```
+
+Nothing flags this — the markup is valid either way — so audit your navbars after migrating.
+
 ## `component:List` — the bulma-list extension
 
 Bulma v1 does not ship it. Use `<UnorderedList>`/`<UnorderedList.Item>` for a plain list, or

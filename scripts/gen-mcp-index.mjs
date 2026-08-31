@@ -363,6 +363,14 @@ async function readSkills() {
     // so it has to stay unique and free of slashes: a nested file is keyed by
     // its path with separators replaced (`rbx-component-map`). Top-level files
     // keep exactly the id they had.
+    //
+    // Moving a file INTO a subdirectory therefore changes its id — when
+    // bestax-migrate's references were split per source, `component-map`
+    // became `react-bulma-components-component-map`. That is unavoidable once
+    // two subjects each have a `component-map`, and it is a real (small) break
+    // for anyone who pinned the old resource URI. Nothing in this repo pins
+    // one, and agents discover ids through `get_skill` rather than hardcoding
+    // them, so the rename is accepted rather than aliased.
     const listing = async sub => {
       const root = join(SKILLS_DIR, name, sub);
       if (!existsSync(root)) return [];

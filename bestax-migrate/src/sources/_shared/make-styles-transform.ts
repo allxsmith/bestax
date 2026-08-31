@@ -299,7 +299,16 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
     // that starts from RBC and one that starts from a bulma @import converge on
     // the identical shape. A pre-existing `@use` root means we create no new one.
     const rootImportIndex = lines.findIndex(line => ROOT_IMPORT.test(line));
-    const rbcRootIndex = lines.findIndex(
+    // DELIBERATELY any source specifier, not just the root stylesheet. A
+    // reviewer flagged that a lone deep partial (`~rbx/base/helpers/badge`) is
+    // rewritten into a full `@use 'bulma/sass'` as though it were the whole
+    // framework. That is the intended behaviour, and it predates rbx: the
+    // react-bulma-components suite asserts it by name ("regardless of
+    // specifier shape"). The reasoning holds for both sources — every one of
+    // these imports is dead once deps.ts removes the package, and a file that
+    // styled itself from the library needs SOME Bulma root afterwards, so
+    // emitting one beats dropping it and leaving the file unstyled.
+    const sourceRootIndex = lines.findIndex(
       line => SOURCE_STYLE_IMPORT.test(line) && !line.includes(TODO)
     );
     const hasUseBulmaRoot = lines.some(line => USE_BULMA_ROOT.test(line));
@@ -307,7 +316,7 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
       ? -1
       : rootImportIndex !== -1
         ? rootImportIndex
-        : rbcRootIndex;
+        : sourceRootIndex;
     const foldableVars: Array<{ index: number; name: string; value: string }> =
       [];
     const unsafeVarLines: number[] = [];
@@ -442,7 +451,11 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
       if (sourceStyle && !line.includes(TODO)) {
         const indent = sourceStyle[1];
         const prefix = keptPrefix(sourceStyle[3]);
-        if (i === rbcRootIndex && rootImportIndex === -1 && !hasUseBulmaRoot) {
+        if (
+          i === sourceRootIndex &&
+          rootImportIndex === -1 &&
+          !hasUseBulmaRoot
+        ) {
           // The library's own stylesheet never resolves post-migration (deps.ts
           // removes react-bulma-components in the same run), and it is this
           // file's only Bulma root, so rewrite it into one — the same shape the
