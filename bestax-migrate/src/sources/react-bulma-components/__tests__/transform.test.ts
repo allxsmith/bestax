@@ -624,6 +624,20 @@ describe('react-bulma-components transform fixtures', () => {
     });
   });
 
+  describe('a destructured alias used as a bare value', () => {
+    it('resolves a dotted target to a member expression', () => {
+      const source = [
+        "import { Card } from 'react-bulma-components';",
+        'const { Header } = Card;',
+        'const V = Header;',
+        'export const A = () => <Header>{String(V)}</Header>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'bare-alias.tsx', source);
+      expect(output).toContain('const V = Card.Header;');
+      expect(output).not.toContain('react-bulma-components');
+    });
+  });
+
   describe('a namespace import survives when something still needs it', () => {
     it('keeps it when a retained component references it', () => {
       // `<RBC.Tile>` stays in the JSX (Tile is unmappable), so pruning the

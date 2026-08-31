@@ -890,3 +890,24 @@ describe('shorthand properties bound by destructuring', () => {
     expect(todos.map(t => t.rule)).toEqual([]);
   });
 });
+
+describe('a destructured alias used as a bare value', () => {
+  it('resolves a dotted target to a member expression', () => {
+    // `const { Content } = Card` is deleted by the destructuring pass, so a
+    // bare `Content` reference has nothing to bind to. The flat-rename path
+    // could not express `Card.Content`, so it fell through to a TODO.
+    const { output, todos } = migrate(
+      'import { Card } from "rbx";\nconst { Content } = Card;\nconst V = Content;\nexport const A = () => <Content>{String(V)}</Content>;'
+    );
+    expect(output).toContain('const V = Card.Content;');
+    expect(output).toContain('<Card.Content>');
+    expect(todos).toHaveLength(0);
+  });
+
+  it('still renames when the target is flat', () => {
+    const { output } = migrate(
+      'import { Tag } from "rbx";\nconst { Group } = Tag;\nconst V = Group;\nexport const A = () => <V>x</V>;'
+    );
+    expect(output).toContain('const V = Tags;');
+  });
+});

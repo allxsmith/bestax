@@ -469,10 +469,23 @@ export default function transform(
       mapping &&
       mapping.status !== 'todo' &&
       mapping.target &&
-      !mapping.target.includes('.')
+      !mapping.special
     ) {
-      const local = ctx.reserve(mapping.target);
-      if (local !== name) path.node.name = local;
+      const [root, ...rest] = mapping.target.split('.');
+      const local = ctx.reserve(root);
+      if (rest.length > 0) {
+        // A dotted target needs a member expression, not a rename — otherwise
+        // a destructured alias used as a bare value (`const { Header } = Card;
+        // const V = Header`) fell through to the TODO branch, left referencing
+        // a binding the destructuring pass had already deleted.
+        let value: any = j.identifier(local);
+        for (const part of rest) {
+          value = j.memberExpression(value, j.identifier(part));
+        }
+        path.replace(value);
+      } else if (local !== name) {
+        path.node.name = local;
+      }
       ctx.dirty = true;
     } else {
       ctx.retained.add(imported);
