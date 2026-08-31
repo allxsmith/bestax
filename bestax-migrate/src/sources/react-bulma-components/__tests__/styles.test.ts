@@ -502,3 +502,16 @@ describe('shared styles factory changes from the rbx work', () => {
     expect(out).not.toContain('react-bulma-components');
   });
 });
+
+describe('a trailing line comment on a source import', () => {
+  it('does not defeat the full-line match', () => {
+    const out = transformStyles(
+      'styles.scss',
+      '@import "react-bulma-components"; // legacy root\n',
+      { add: () => {} },
+      { cssMode: 'bestax' }
+    );
+    expect(out).toContain("@use 'bulma/sass'");
+    expect(out).not.toContain('react-bulma-components');
+  });
+});

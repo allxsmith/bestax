@@ -232,9 +232,10 @@ describe('Navbar.Item still cleans up after picking a target', () => {
     const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = () => <Navbar.Item dropdown up>x</Navbar.Item>;'
     );
-    expect(output).toContain('<Navbar.Dropdown>');
-    expect(codeOf(output)).not.toMatch(/\bup\b/);
-    expect(todos.some(t => t.rule === 'prop:up')).toBe(true);
+    // `up` and `hoverable` exist on bestax's NavbarDropdownProps, so they
+    // carry over; only the props with no home are flagged.
+    expect(output).toContain('<Navbar.Dropdown up>');
+    expect(todos.some(t => t.rule === 'prop:up')).toBe(false);
   });
 });
 
@@ -978,5 +979,39 @@ describe('the extras stylesheet dedup is order-independent', () => {
     );
     expect(output).toContain('bestax.css');
     expect(output).not.toContain('extras.css');
+  });
+});
+
+describe('findings that arrived during the backlog pass', () => {
+  it('carries up/hoverable onto Navbar.Dropdown, which declares both', () => {
+    const { output, todos } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = () => <Navbar.Item dropdown up hoverable>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Dropdown up hoverable>');
+    expect(todos).toHaveLength(0);
+  });
+
+  it('TODOs Container breakpoints bestax does not have', () => {
+    // bestax's ContainerBreakpoint is tablet|desktop|widescreen; rbx takes
+    // all six, so the other three were silent type errors.
+    for (const bp of ['mobile', 'fullhd', 'touch']) {
+      const { todos } = migrate(
+        `import { Container } from "rbx";\nexport const A = () => <Container breakpoint="${bp}">x</Container>;`
+      );
+      expect({
+        bp,
+        flagged: todos.some(t => t.rule === 'prop:breakpoint'),
+      }).toEqual({ bp, flagged: true });
+    }
+  });
+
+  it('passes through the Container breakpoints bestax does have', () => {
+    for (const bp of ['tablet', 'desktop', 'widescreen']) {
+      const { output, todos } = migrate(
+        `import { Container } from "rbx";\nexport const A = () => <Container breakpoint="${bp}">x</Container>;`
+      );
+      expect(output).toContain(`breakpoint="${bp}"`);
+      expect(todos).toHaveLength(0);
+    }
   });
 });

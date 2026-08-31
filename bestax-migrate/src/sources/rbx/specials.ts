@@ -493,6 +493,46 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * bestax Select renders its own wrapper, so the container collapses onto it.
    */
   'select-container'(ctx, path, element) {
+    // Decide the plain-markup fallback FIRST, while the props are still rbx's
+    // own — converting them to bestax booleans and then emitting a <div>
+    // stranded things like `isRounded` on an intrinsic element.
+    const allKids = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    if (allKids.length !== 1) {
+      // bestax's `Select` renders exactly one `<select>`, so a container
+      // holding several has no direct equivalent. rbx's own markup — a
+      // `div.select` wrapper — is valid whatever the children are.
+      let cls = 'select';
+      for (const prop of ['size', 'color', 'state'] as const) {
+        cls = modifierClass(ctx, path, element, prop, cls, 'Select.Container');
+      }
+      for (const [prop, klass] of [
+        ['fullwidth', 'is-fullwidth'],
+        ['rounded', 'is-rounded'],
+      ] as const) {
+        const attr = findAttr(element, prop);
+        if (!attr) continue;
+        if (resolveBooleanish(attr) === 'truthy') cls = `${cls} ${klass}`;
+        removeAttr(element, attr);
+        ctx.dirty = true;
+      }
+      addTodo(
+        ctx,
+        path,
+        'component:Select.Container',
+        "bestax's `Select` renders a single `<select>`, so a container holding more than one has no direct equivalent; emitted the plain Bulma wrapper instead"
+      );
+      return replaceWithPlain(
+        ctx,
+        path,
+        element,
+        'div',
+        cls,
+        'Select.Container'
+      );
+    }
+
     // A dynamic value must not simply disappear: rename it so the condition
     // survives, rather than dropping the modifier along with its expression.
     for (const [from, to] of [
@@ -563,8 +603,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       element.children = native.children ?? [];
       ctx.dirty = true;
+      return {
+        target: 'Select',
+        handledProps: ['fullwidth', 'rounded', 'state'],
+      };
     }
-    // No single child to fold into — keep the container as the Select itself.
+
     return {
       target: 'Select',
       handledProps: ['fullwidth', 'rounded', 'state'],
@@ -738,7 +782,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
         );
       }
     }
-    for (const prop of ['up', 'tab', 'expanded', 'hoverable', 'managed']) {
+    // `up` and `hoverable` exist on bestax's NavbarDropdownProps, so when the
+    // dropdown target was selected they carry straight over; discarding them
+    // lost working modifiers. On a plain Navbar.Item they have no home.
+    const unsupported =
+      target === 'Navbar.Dropdown'
+        ? ['tab', 'expanded', 'managed']
+        : ['up', 'tab', 'expanded', 'hoverable', 'managed'];
+    for (const prop of unsupported) {
       const attr = findAttr(element, prop);
       if (!attr) continue;
       removeAttr(element, attr);

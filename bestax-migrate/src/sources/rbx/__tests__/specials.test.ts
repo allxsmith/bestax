@@ -151,12 +151,17 @@ describe('rbx container collapsing', () => {
     expect(output).not.toMatch(/<Select[^/>]*>\s*<Select/);
   });
 
-  it('keeps Select.Container as the Select when there is no single child', () => {
-    const { output } = migrate(
+  it('falls back to plain Bulma markup when there is not a single child', () => {
+    // bestax's Select renders exactly one <select>, so a container holding
+    // several cannot become one; emit rbx's own div.select wrapper instead,
+    // with the modifiers as classes rather than props on an intrinsic tag.
+    const { output, rules } = migrate(
       imp('Select') +
         'export const A = () => (<Select.Container rounded><Select /><Select /></Select.Container>);'
     );
-    expect(output).toContain('<Select isRounded>');
+    expect(output).toContain('className="select is-rounded"');
+    expect(output).not.toMatch(/<div[^>]*\sisRounded/);
+    expect(rules).toContain('component:Select.Container');
   });
 
   it('flags a prop the child already sets when folding', () => {

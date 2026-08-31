@@ -198,7 +198,18 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Container',
     props: {
       fluid: {},
-      breakpoint: { rename: 'breakpoint' },
+      // bestax's ContainerBreakpoint is 'tablet' | 'desktop' | 'widescreen';
+      // rbx accepts all six, so the other three are type errors if passed on.
+      breakpoint: {
+        valueTodo: {
+          mobile:
+            "bestax's Container has no mobile breakpoint (Bulma containers start at tablet); drop it",
+          fullhd:
+            "bestax's Container breakpoint stops at widescreen; use `isMax` or a custom class for fullhd",
+          touch:
+            "bestax's Container has no touch breakpoint; drop it or use a custom class",
+        },
+      },
     },
   },
   Content: {

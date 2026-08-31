@@ -250,14 +250,14 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
    * requiring the slash here made the bare case unreachable.
    */
   const SOURCE_STYLE_IMPORT = new RegExp(
-    `^(\\s*)@import\\s+(['"])((?:\\.\\.?/)+node_modules/|~)?${pkg}(?:/[^'"]*)?\\2\\s*;?\\s*$`
+    `^(\\s*)@import\\s+(['"])((?:\\.\\.?/)+node_modules/|~)?${pkg}(?:/[^'"]*)?\\2\\s*;?\\s*(?://[^\\n]*)?\\s*$`
   );
   /** Cheap "is this file even about us?" pre-filter (see the guard below). */
   const SOURCE_MENTION = new RegExp(pkg);
 
   /** …narrowed to the ones that stand in for a whole Bulma root. */
   const SOURCE_ROOT_STYLESHEET = new RegExp(
-    `^\\s*@import\\s+(['"])(?:(?:\\.\\.?/)+node_modules/|~)?${pkg}${roots ? `(?:${roots})?` : ''}\\1\\s*;?\\s*$`
+    `^\\s*@import\\s+(['"])(?:(?:\\.\\.?/)+node_modules/|~)?${pkg}${roots ? `(?:${roots})?` : ''}\\1\\s*;?\\s*(?://[^\\n]*)?\\s*$`
   );
 
   const transformStyles: StylesTransform = (
