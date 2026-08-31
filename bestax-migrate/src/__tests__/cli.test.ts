@@ -222,6 +222,26 @@ describe('the source-still-imported warning', () => {
     );
   });
 
+  it('fires for an unsupported file that imports the source', async () => {
+    // .vue/.astro files are reported but never rewritten, so the reference
+    // survives the run and the package must not be removed under it.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-unsup-'));
+    tempDirs.push(dir);
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'src', 'App.vue'),
+      "<script>import { Box } from 'rbx';</script>\n"
+    );
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      `${JSON.stringify({ name: 'a', dependencies: { rbx: '^2.2.0' } }, null, 2)}\n`
+    );
+    const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
+    expect(logs.join('\n')).toMatch(
+      /still import it for components with no bestax/
+    );
+  });
+
   it('does not fire for a lookalike package name', async () => {
     const dir = projectWith(
       'App.tsx',

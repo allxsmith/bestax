@@ -322,7 +322,15 @@ export default function transform(
   for (const [local, imported] of imports) {
     if (imported === '*') continue;
     const entry = MAPPING[imported];
-    if (!entry || entry.status === 'todo') bound.add(local);
+    // Unmappable roots, plus ANY aliased import. A root can be retained by an
+    // unknown or `todo` child even when the root itself maps (`Icon` is
+    // `partial`, but `<Icon.Unknown>` retains it), and when the local name
+    // differs from the imported one that retained binding can collide with a
+    // bestax local for a completely different component. An unaliased import
+    // is safe: its name already means the same component on both sides.
+    if (!entry || entry.status === 'todo' || local !== imported) {
+      bound.add(local);
+    }
   }
   ctx.reserve = makeReserve(ctx, bound);
 
@@ -553,7 +561,12 @@ export default function transform(
     // were already handled by the element walker above.
     if (path.node.type !== 'Identifier') return;
     const name = path.node.name;
-    const imported = imports.get(name);
+    // A name bound by `const { Footer } = Card` is in `aliases`, not
+    // `imports` — and the destructuring pass has already deleted the
+    // declaration that bound it. Skipping those left `Footer.Item` in the
+    // output with its `Card` import pruned: a reference to nothing.
+    const aliasPath = aliases.get(name);
+    const imported = aliasPath ? aliasPath[0] : imports.get(name);
     if (imported === undefined) return;
     const parentNode = path.parent?.node;
     const parentType = parentNode?.type;
@@ -604,7 +617,7 @@ export default function transform(
       // `Card.Footer` with a stray `.Item`. Resolving only the first level
       // left the tail pointing at a compound bestax does not have
       // (bestax exposes `Card.FooterItem`).
-      const memberPath = isNamespace ? [] : [imported];
+      const memberPath = isNamespace ? [] : [...(aliasPath ?? [imported])];
       let outer: any = path.parent;
       while (
         outer?.node?.type === 'MemberExpression' &&
@@ -723,7 +736,7 @@ export default function transform(
       }
       return;
     }
-    const mapping = MAPPING[imported];
+    const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
     if (
       mapping &&
       mapping.status !== 'todo' &&

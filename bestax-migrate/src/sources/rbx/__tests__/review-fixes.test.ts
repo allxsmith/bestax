@@ -794,3 +794,68 @@ describe('the three specifier retention rules interact correctly', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round 8: CodeRabbit's second complete pass.
+// ---------------------------------------------------------------------------
+
+describe('an aliased rbx import never loses its name, whatever its status', () => {
+  it('protects a `partial` root retained through an unknown child', () => {
+    // `Icon` is status `partial`, so the earlier seeding skipped it — but
+    // `<Button.Unknown>` retains the root, and dropping `Icon as Button` made
+    // that JSX resolve to the bestax `Button` import instead.
+    const { output } = migrate(
+      'import { Icon as Button, Button as RbxButton } from "rbx";\nexport const A = () => <><Button.Unknown/><RbxButton>b</RbxButton></>;'
+    );
+    expect(output).toContain('import { Icon as Button } from "rbx"');
+    expect(output).toMatch(/Button as Bulma\w+/);
+    expect(output).toContain('<Button.Unknown/>');
+  });
+
+  it('leaves an unaliased import unaliased', () => {
+    // local === imported means the name already denotes the same component
+    // on both sides, so there is nothing to protect against.
+    const { output } = migrate(
+      'import { Button } from "rbx";\nexport const A = () => <Button>x</Button>;'
+    );
+    expect(output).toContain(
+      'import { Button } from "@allxsmith/bestax-bulma"'
+    );
+  });
+});
+
+describe('names bound by destructuring are value references too', () => {
+  it('resolves a member chain through the alias', () => {
+    // The destructuring pass deletes `const { Footer } = Card`, so skipping
+    // `Footer` here left `Footer.Item` referencing nothing.
+    const { output, todos } = migrate(
+      'import { Card } from "rbx";\nconst { Footer } = Card;\nconst value = Footer.Item;\nexport const A = () => <>{String(value)}</>;'
+    );
+    expect(output).toContain('const value = Card.FooterItem;');
+    expect(output).not.toContain('from "rbx"');
+    expect(todos).toHaveLength(0);
+  });
+
+  it('resolves a bare alias reference', () => {
+    const { output } = migrate(
+      'import { Tag } from "rbx";\nconst { Group } = Tag;\nconst V = Group;\nexport const A = () => <V>x</V>;'
+    );
+    expect(output).toContain('const V = Tags;');
+  });
+
+  it('still migrates destructured names used in JSX', () => {
+    const { output } = migrate(
+      'import { Card } from "rbx";\nconst { Content } = Card;\nexport const A = () => <Content>x</Content>;'
+    );
+    expect(output).toContain('<Card.Content>x</Card.Content>');
+  });
+});
+
+describe('Font Awesome sizing classes', () => {
+  it('treats fa-2xs as a modifier, not an icon name', () => {
+    const { output } = migrate(
+      'import { Icon } from "rbx";\nexport const A = () => (<Icon><i className="fas fa-2xs fa-home" /></Icon>);'
+    );
+    expect(output).toContain('name="home"');
+  });
+});

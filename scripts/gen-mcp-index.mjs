@@ -385,6 +385,20 @@ async function readSkills() {
         }
       };
       await walk('');
+      // `a-b/x.md` and `a/b-x.md` both flatten to `a-b-x`, and `id` is the
+      // MCP resource lookup key — two files answering to one key would make
+      // the served content depend on ordering. No such pair exists today;
+      // fail loudly rather than let one appear silently.
+      const seen = new Map();
+      for (const f of files) {
+        if (seen.has(f.id)) {
+          throw new Error(
+            `[gen-mcp-index] duplicate reference id "${f.id}" in ${name}/${sub}: ` +
+              `${seen.get(f.id)} and ${f.file} flatten to the same key`
+          );
+        }
+        seen.set(f.id, f.file);
+      }
       return files.sort((a, b) => byCodePoint(a.id, b.id));
     };
     out.push({

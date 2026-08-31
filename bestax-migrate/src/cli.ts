@@ -173,14 +173,19 @@ function reportUnsupportedFiles(
   targets: string[],
   reporter: Reporter,
   extensions: string[]
-): void {
+): boolean {
   const unsupported = UNSUPPORTED_EXTENSIONS.filter(
     ext => !extensions.includes(ext)
   );
-  if (unsupported.length === 0) return;
+  if (unsupported.length === 0) return false;
+  // Whether any unsupported file still references the source package. These
+  // are reported but never rewritten, so the reference survives the run —
+  // and the manifest pass must not remove the package out from under it.
+  let stillImported = false;
   for (const file of collectFiles(targets, unsupported)) {
     const text = fs.readFileSync(file, 'utf8');
     if (!text.includes(source.name)) continue;
+    stillImported = true;
     const collector = reporter.startFile();
     const line =
       text.split('\n').findIndex(l => l.includes(source.name)) + 1 || null;
@@ -194,6 +199,7 @@ function reportUnsupportedFiles(
     });
     reporter.finishFile(file, false, collector.entries);
   }
+  return stillImported;
 }
 
 function migrateDependencies(
@@ -414,7 +420,13 @@ export function createCLI(
 
       const reporter = new Reporter();
       const depSignals = migrateFiles(source, files, reporter, io, runOptions);
-      reportUnsupportedFiles(source, targets, reporter, extensions);
+      const unsupportedImports = reportUnsupportedFiles(
+        source,
+        targets,
+        reporter,
+        extensions
+      );
+      if (unsupportedImports) depSignals.sourceStillImported = true;
       migrateDependencies(
         source,
         targets,

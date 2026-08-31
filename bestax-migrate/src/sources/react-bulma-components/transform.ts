@@ -258,7 +258,15 @@ export default function transform(
   for (const [local, imported] of imports) {
     if (imported === '*') continue;
     const entry = MAPPING[imported];
-    if (!entry || entry.status === 'todo') bound.add(local);
+    // Unmappable roots, plus ANY aliased import. A root can be retained by an
+    // unknown or `todo` child even when the root itself maps (`Icon` is
+    // `partial`, but `<Icon.Unknown>` retains it), and when the local name
+    // differs from the imported one that retained binding can collide with a
+    // bestax local for a completely different component. An unaliased import
+    // is safe: its name already means the same component on both sides.
+    if (!entry || entry.status === 'todo' || local !== imported) {
+      bound.add(local);
+    }
   }
 
   ctx.reserve = makeReserve(ctx, bound);
