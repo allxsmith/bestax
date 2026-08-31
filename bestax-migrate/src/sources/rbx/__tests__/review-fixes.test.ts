@@ -859,3 +859,34 @@ describe('Font Awesome sizing classes', () => {
     expect(output).toContain('name="home"');
   });
 });
+
+describe('shorthand properties bound by destructuring', () => {
+  it('resolves through the alias path, not its root', () => {
+    // `const { Footer } = Card` makes `{ Footer }` mean `Card.Footer`.
+    // Reading the ROOT's mapping emitted `{ Footer: Card }` — the wrong
+    // component under the right key.
+    const { output, todos } = migrate(
+      'import { Card } from "rbx";\nconst { Footer } = Card;\nexport const reg = { Footer };'
+    );
+    expect(output).toContain('{ Footer: Card.Footer }');
+    expect(todos).toHaveLength(0);
+  });
+
+  it('resolves an alias whose target is flat', () => {
+    const { output } = migrate(
+      'import { Tag } from "rbx";\nconst { Group } = Tag;\nexport const reg = { Group };'
+    );
+    expect(output).toContain('{ Group: Tags }');
+  });
+
+  it('emits no spurious value-reference TODO', () => {
+    // ast-types keeps distinct key and value nodes even when `shorthand` is
+    // true, so the walker reaches the property twice; the second visit used
+    // to fall through to the generic branch and both warn and mark the root
+    // retained.
+    const { todos } = migrate(
+      'import { Card } from "rbx";\nconst { Footer } = Card;\nexport const reg = { Footer };'
+    );
+    expect(todos.map(t => t.rule)).toEqual([]);
+  });
+});

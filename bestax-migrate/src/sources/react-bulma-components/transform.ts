@@ -368,7 +368,12 @@ export default function transform(
     // were already handled by the element walker above.
     if (path.node.type !== 'Identifier') return;
     const name = path.node.name;
-    const imported = imports.get(name);
+    // A name bound by `const { Field } = Form` lives in `aliases`, not
+    // `imports`, and the destructuring pass has already deleted the
+    // declaration that bound it. Skipping those left `Field.Label` in the
+    // output with its `Form` import pruned: a reference to nothing.
+    const aliasPath = aliases.get(name);
+    const imported = aliasPath ? aliasPath[0] : imports.get(name);
     if (imported === undefined) return;
     if (imported === '*') {
       // A namespace in a value position (the guards below filter out import
@@ -413,7 +418,10 @@ export default function transform(
       parentNode.object === path.node &&
       !parentNode.computed
     ) {
-      const memberPath = [imported, nameOf(parentNode.property)];
+      const memberPath = [
+        ...(aliasPath ?? [imported]),
+        nameOf(parentNode.property),
+      ];
       const memberMapping = resolveMapping(memberPath);
       const dotted = memberPath.join('.');
       if (
@@ -456,7 +464,7 @@ export default function transform(
     ) {
       return;
     }
-    const mapping = MAPPING[imported];
+    const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
     if (
       mapping &&
       mapping.status !== 'todo' &&

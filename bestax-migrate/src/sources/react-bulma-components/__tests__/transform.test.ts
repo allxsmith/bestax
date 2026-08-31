@@ -607,6 +607,23 @@ describe('react-bulma-components transform fixtures', () => {
     });
   });
 
+  describe('names bound by destructuring are value references too', () => {
+    it('resolves a member chain through the alias', () => {
+      // `const { Field } = Form` is deleted by the destructuring pass, so
+      // skipping `Field` here left `Field.Label` referencing nothing once the
+      // Form import was pruned.
+      const source = [
+        "import { Form } from 'react-bulma-components';",
+        'const { Field } = Form;',
+        'const value = Field.Label;',
+        'export const A = () => <>{String(value)}</>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'alias-value.tsx', source);
+      expect(output).toContain('const value = FieldLabel;');
+      expect(output).not.toContain('react-bulma-components');
+    });
+  });
+
   describe('a namespace import survives when something still needs it', () => {
     it('keeps it when a retained component references it', () => {
       // `<RBC.Tile>` stays in the JSX (Tile is unmappable), so pruning the

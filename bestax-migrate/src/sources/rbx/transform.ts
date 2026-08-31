@@ -556,10 +556,18 @@ export default function transform(
   // Components can be referenced as plain values too (`as={Block}`, passed to
   // helpers, …). JSX usages were renamed above; map the leftover identifier
   // references so the pruned rbx import doesn't strand them.
+  // A shorthand property's key and value are the SAME node, so the walker
+  // reaches it twice. The first visit rewrites it and detaches the original;
+  // the second then matched neither key nor value and fell through to the
+  // generic "referenced as a value" branch, emitting a spurious TODO and
+  // marking the root retained when it was not.
+  const handledValueRefs = new WeakSet<object>();
+
   root.find(j.Identifier).forEach(path => {
     // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
     // were already handled by the element walker above.
     if (path.node.type !== 'Identifier') return;
+    if (handledValueRefs.has(path.node)) return;
     const name = path.node.name;
     // A name bound by `const { Footer } = Card` is in `aliases`, not
     // `imports` — and the destructuring pass has already deleted the
@@ -711,18 +719,35 @@ export default function transform(
       (parentType === 'ObjectProperty' || parentType === 'Property') &&
       parentNode.shorthand
     ) {
-      const shorthandMapping = MAPPING[imported];
+      // Resolve through the alias path when there is one: `const { Footer } =
+      // Card` makes `{ Footer }` mean `Card.Footer`, not `Card`. Reading the
+      // root's mapping here emitted `{ Footer: Card }` — the wrong component
+      // under the right key.
+      const shorthandMapping = aliasPath
+        ? resolveMapping(aliasPath)
+        : MAPPING[imported];
       if (
         shorthandMapping &&
         shorthandMapping.status !== 'todo' &&
         shorthandMapping.target &&
-        !shorthandMapping.target.includes('.')
+        !shorthandMapping.special
       ) {
-        const local = ctx.reserve(shorthandMapping.target);
-        if (local !== name) {
+        const [root, ...rest] = shorthandMapping.target.split('.');
+        const local = ctx.reserve(root);
+        let value: any = j.identifier(local);
+        for (const part of rest) {
+          value = j.memberExpression(value, j.identifier(part));
+        }
+        if (rest.length > 0 || local !== name) {
+          // ast-types keeps DISTINCT key and value nodes even when
+          // `shorthand` is true, so both positions are visited. Mark both, or
+          // the second visit sees a node that matches neither the (new) key
+          // nor the (new) value and falls through to the generic branch.
+          handledValueRefs.add(parentNode.key);
+          handledValueRefs.add(parentNode.value);
           parentNode.shorthand = false;
           parentNode.key = j.identifier(name);
-          parentNode.value = j.identifier(local);
+          parentNode.value = value;
           ctx.dirty = true;
         }
       } else {
