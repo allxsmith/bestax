@@ -745,3 +745,52 @@ describe('component references through a namespace import', () => {
     expect(output).toContain('<Box>');
   });
 });
+
+describe('the three specifier retention rules interact correctly', () => {
+  // Named, default and namespace specifiers each have their own retention
+  // rule, added in three separate rounds. Nothing covered them TOGETHER, and
+  // an rbx import declaration can legally carry more than one.
+  it('keeps a default and a namespace in one valid declaration', () => {
+    const { output } = migrate(
+      'import RBX, * as rbx from "rbx";\nexport const A = () => <rbx.Box>{String(RBX)}{String(rbx)}</rbx.Box>;'
+    );
+    expect(output).toContain('import RBX, * as rbx from "rbx"');
+    expect(output).toContain('<Box>');
+  });
+
+  it('drops the namespace but keeps the default when only the default is used', () => {
+    const { output } = migrate(
+      'import RBX, * as rbx from "rbx";\nexport const A = () => <rbx.Box>{String(RBX)}</rbx.Box>;'
+    );
+    expect(output).toContain('import RBX from "rbx"');
+    expect(output).not.toContain('* as rbx');
+  });
+
+  it('handles a namespace retained alongside an alias collision', () => {
+    const { output } = migrate(
+      'import * as rbx from "rbx";\nimport { Tile as Button, Button as Real } from "rbx";\nexport const A = () => <><rbx.Tile/><Button/><Real/></>;'
+    );
+    expect(output).toContain('import * as rbx from "rbx"');
+    expect(output).toContain('import { Tile as Button } from "rbx"');
+    expect(output).toMatch(/Button as Bulma\w+/);
+    expect(output).toContain('<rbx.Tile/>');
+  });
+
+  it('keeps two separate rbx declarations independent', () => {
+    const { output } = migrate(
+      'import { Box } from "rbx";\nimport { Tile } from "rbx";\nexport const A = () => <Box><Tile>x</Tile></Box>;'
+    );
+    expect(output).toContain('import { Tile } from "rbx"');
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+  });
+
+  it('prunes everything when nothing needs retaining', () => {
+    const { output } = migrate(
+      'import { Box, Button } from "rbx";\nexport const A = () => <Box><Button>x</Button></Box>;'
+    );
+    expect(output).not.toContain('from "rbx"');
+    expect(output).toContain(
+      'import { Box, Button } from "@allxsmith/bestax-bulma";'
+    );
+  });
+});
