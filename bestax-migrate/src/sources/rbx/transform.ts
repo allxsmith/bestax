@@ -166,6 +166,21 @@ export default function transform(
     .paths()
     .some(p => BESTAX_CSS_SPECIFIERS.has(String(p.node.source.value)));
 
+  // Whether some import in this file will become bestax.css, regardless of
+  // where it sits relative to an existing extras import.
+  const willAdoptBestaxCss =
+    cssMode === 'bestax' &&
+    root
+      .find(j.ImportDeclaration)
+      .paths()
+      .some(p => {
+        const v = String(p.node.source.value);
+        return (
+          (v.startsWith(`${RBX}/`) && v.endsWith('.css')) ||
+          BULMA_CSS_SPECIFIERS.has(v)
+        );
+      });
+
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
     const isRbxCss = source.startsWith(`${RBX}/`) && source.endsWith('.css');
@@ -210,8 +225,11 @@ export default function transform(
           sawBestaxCss = true;
         }
         ctx.dirty = true;
-      } else if (isExtrasCss && sawBestaxCss) {
-        // bestax.css already contains the extras.
+      } else if (isExtrasCss && (sawBestaxCss || willAdoptBestaxCss)) {
+        // bestax.css already contains the extras. `willAdoptBestaxCss` covers
+        // the case where the extras import comes FIRST in the file and the
+        // bulma/rbx import that becomes bestax.css has not been visited yet —
+        // previously the extras survived alongside it and double-loaded.
         path.prune();
         ctx.dirty = true;
       }
@@ -883,8 +901,12 @@ export default function transform(
   // Flush the deferred stylesheet notes onto the first node that survived the
   // import rewrite, so the drop is visible in the file and not only the report.
   if (droppedStylesheets.length > 0) {
-    const body: any[] = root.get().node.program?.body ?? [];
-    const anchor = body[0];
+    const program = root.get().node.program;
+    const body: any[] = program?.body ?? [];
+    // Pruning can empty the file entirely (a stylesheet-only module whose one
+    // import was an extension CSS file). With no statement left to carry it,
+    // hang the note on the Program itself so the drop is still visible.
+    const anchor = body[0] ?? program;
     if (anchor) {
       anchor.comments = anchor.comments ?? [];
       for (const message of droppedStylesheets) {

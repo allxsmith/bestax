@@ -358,7 +358,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
     special: 'field',
     props: {
       horizontal: {},
-      expanded: {},
+      // rbx accepts `expanded` on the Field, but Bulma's `is-expanded` is a
+      // Control modifier and bestax follows Bulma: `FieldProps` has no such
+      // prop, so passing it through was a silent type error.
+      expanded: {
+        todo: 'bestax follows Bulma in putting `is-expanded` on the Control, not the Field; move this to the `<Control isExpanded>` inside it',
+      },
       narrow: {},
       align: {
         todo: "rbx's `align` on a Field is Bulma's grouped alignment; set `isGrouped` plus the matching alignment class by hand",
@@ -736,6 +741,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     subs: {
       Group: {
         status: 'mapped',
+        special: 'tab-group',
         target: 'Tabs',
         props: {
           align: {},

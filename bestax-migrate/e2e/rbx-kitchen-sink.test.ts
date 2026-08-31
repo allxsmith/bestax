@@ -170,29 +170,28 @@ describe('rbx kitchen-sink e2e', () => {
     expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
   });
 
-  it('deletes rbx and all four Bulma extensions from package.json', () => {
+  it('deletes rbx, bumps Bulma, and reports the extensions', () => {
     const pkg = JSON.parse(
       fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies.rbx).toBeUndefined();
-    expect(pkg.dependencies['bulma-badge']).toBeUndefined();
-    expect(pkg.dependencies['bulma-divider']).toBeUndefined();
-    expect(pkg.dependencies['bulma-pageloader']).toBeUndefined();
-    expect(pkg.dependencies['bulma-tooltip']).toBeUndefined();
+    // The four extensions are reported, not deleted: a manifest entry is a
+    // deliberate declaration and the app's own Sass may import them.
+    expect(pkg.dependencies['bulma-badge']).toBe('^3.0.1');
+    expect(pkg.dependencies['bulma-tooltip']).toBe('^2.0.2');
     expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');
   });
 
-  it('reports the five-dependency deletion and the React 16 peer gap', () => {
+  it('reports the dependency changes and the React 16 peer gap', () => {
     const messages = app.depTodos.map(t => `${t.rule}: ${t.message}`);
     expect(
-      messages.some(m =>
-        /^deps: removed 5 dependencies \(rbx, bulma-badge, bulma-divider, bulma-pageloader, bulma-tooltip\)/.test(
-          m
-        )
-      )
+      messages.some(m => /^deps: removed rbx and bumped bulma/.test(m))
+    ).toBe(true);
+    expect(
+      messages.some(m => /are Bulma extensions rbx depended on/.test(m))
     ).toBe(true);
     expect(messages.some(m => m.startsWith('peer-deps: react ^16.8.6'))).toBe(
       true

@@ -264,8 +264,14 @@ describe('rbx stylesheet imports', () => {
     const { output } = runTransform(transform, 'ext.ts', source, {
       add: entry => todos.push(entry),
     });
-    expect(output).not.toContain('bulma-tooltip');
-    expect(output).not.toContain('bulma-badge');
+    // The IMPORTS go; the TODO comments naming them stay, so assert on the
+    // emitted code rather than the whole output.
+    const code = (output ?? '')
+      .split('\n')
+      .filter(l => !l.trim().startsWith('// TODO(bestax-migrate)'))
+      .join('\n');
+    expect(code).not.toContain('bulma-tooltip');
+    expect(code).not.toContain('bulma-badge');
     expect(todos.filter(t => t.rule === 'css')).toHaveLength(2);
   });
 

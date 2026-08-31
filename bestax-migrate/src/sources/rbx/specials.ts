@@ -24,8 +24,10 @@ import {
 import {
   addAttr,
   addTodo,
+  buildJsxName,
   attributesOf,
   findAttr,
+  jsxNameParts,
   literalValueOf,
   makeAttr,
   plainElement,
@@ -491,21 +493,22 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * bestax Select renders its own wrapper, so the container collapses onto it.
    */
   'select-container'(ctx, path, element) {
-    const fullwidthAttr = findAttr(element, 'fullwidth');
-    if (fullwidthAttr) {
-      const resolved = resolveBooleanish(fullwidthAttr);
-      removeAttr(element, fullwidthAttr);
+    // A dynamic value must not simply disappear: rename it so the condition
+    // survives, rather than dropping the modifier along with its expression.
+    for (const [from, to] of [
+      ['fullwidth', 'isFullwidth'],
+      ['rounded', 'isRounded'],
+    ] as const) {
+      const attr = findAttr(element, from);
+      if (!attr) continue;
+      const resolved = resolveBooleanish(attr);
       if (resolved === 'truthy') {
-        addAttr(element, makeAttr(ctx.j, 'isFullwidth'));
-      }
-      ctx.dirty = true;
-    }
-    const roundedAttr = findAttr(element, 'rounded');
-    if (roundedAttr) {
-      const resolved = resolveBooleanish(roundedAttr);
-      removeAttr(element, roundedAttr);
-      if (resolved === 'truthy') {
-        addAttr(element, makeAttr(ctx.j, 'isRounded'));
+        removeAttr(element, attr);
+        addAttr(element, makeAttr(ctx.j, to));
+      } else if (resolved === 'falsy') {
+        removeAttr(element, attr);
+      } else {
+        attr.name = ctx.j.jsxIdentifier(to);
       }
       ctx.dirty = true;
     }
@@ -540,6 +543,27 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'Select'
     );
     if (collapsed) return collapsed;
+
+    // rbx also lets the container wrap a NATIVE <select>. bestax's Select
+    // renders its own <select>, so keeping both nested one inside the other.
+    // Fold the native element's attributes and options up instead.
+    const kids = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    const native =
+      kids.length === 1 &&
+      kids[0].type === 'JSXElement' &&
+      kids[0].openingElement?.name?.type === 'JSXIdentifier' &&
+      kids[0].openingElement.name.name === 'select'
+        ? kids[0]
+        : null;
+    if (native) {
+      for (const attr of attributesOf(native)) {
+        if (!findAttr(element, attr.name.name)) addAttr(element, attr);
+      }
+      element.children = native.children ?? [];
+      ctx.dirty = true;
+    }
     // No single child to fold into — keep the container as the Select itself.
     return {
       target: 'Select',
@@ -841,6 +865,39 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     return replaceWithPlain(ctx, path, element, 'a', className, 'Panel.Tab');
+  },
+
+  /**
+   * rbx's `Tab.Group` renders `div.tabs > ul > li`; bestax's `Tabs` renders
+   * only the `div.tabs` and leaves the `<ul>` to `Tabs.List`. Renaming
+   * straight across put the `<li>` items directly inside the div, which is
+   * not valid Bulma tabs markup. Wrap the children in a `Tabs.List`.
+   */
+  'tab-group'(ctx, _path, element) {
+    const children = element.children ?? [];
+    const solid = children.filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    // Already wrapped by hand, or nothing to wrap.
+    const alreadyList =
+      solid.length === 1 &&
+      solid[0].type === 'JSXElement' &&
+      /(^|\.)List$/.test(
+        (jsxNameParts(solid[0].openingElement?.name) ?? []).join('.')
+      );
+    if (solid.length === 0 || alreadyList) return { target: 'Tabs' };
+
+    const local = ctx.reserve('Tabs');
+    const listName = `${local}.List`;
+    element.children = [
+      ctx.j.jsxElement(
+        ctx.j.jsxOpeningElement(buildJsxName(ctx.j, listName), [], false),
+        ctx.j.jsxClosingElement(buildJsxName(ctx.j, listName)),
+        children
+      ),
+    ];
+    ctx.dirty = true;
+    return { target: 'Tabs' };
   },
 
   /** Marks the element for the column breakpoint pass in responsive.ts. */

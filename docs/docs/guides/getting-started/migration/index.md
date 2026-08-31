@@ -51,6 +51,6 @@ Coming from the (unmaintained) `react-bulma-components` library? The **`bestax-m
 
 ## [Migrating from rbx](./rbx.md)
 
-Coming from the (abandoned since 2019) `rbx` library? The **`bestax-migrate`** codemod handles it too — and here it does more than rename things: rbx pinned `bulma@0.7.5` as a direct dependency plus four Bulma extensions, so migrating **deletes five dependencies** and finally lets your app choose its own Bulma version. It also unblocks React 19, which removed the `defaultProps` rbx is built on.
+Coming from the (abandoned since 2019) `rbx` library? The **`bestax-migrate`** codemod handles it too — and here it does more than rename things: rbx pinned `bulma@0.7.5` as a _direct_ dependency, so migrating finally lets your app choose its own Bulma version — and it flags the four Bulma extensions rbx dragged along, all of which bestax now replaces. It also unblocks React 19, which removed the `defaultProps` rbx is built on.
 
 [Read the rbx guide →](./rbx.md)

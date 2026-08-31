@@ -20,7 +20,11 @@ function run(pkg: Record<string, unknown>, bulmaReferenced = false) {
 }
 
 describe('rbx deps', () => {
-  it('removes rbx and all four extensions, and says how many', () => {
+  it('removes rbx and bumps Bulma, but only REPORTS the extensions', () => {
+    // rbx declares the four extensions as its own dependencies, so an app
+    // gets them through the lockfile. Their presence in the app's manifest
+    // means the author declared them deliberately — possibly to import their
+    // Sass directly — so deleting them would be a best-guess rewrite.
     const { next, messages } = run({
       dependencies: {
         rbx: '^2.2.0',
@@ -32,20 +36,26 @@ describe('rbx deps', () => {
       },
     });
     expect(next!.dependencies.rbx).toBeUndefined();
-    expect(next!.dependencies['bulma-badge']).toBeUndefined();
     expect(next!.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
     expect(next!.dependencies.bulma).toBe('^1.0.4');
+    // Reported, still present.
+    expect(next!.dependencies['bulma-badge']).toBe('^3.0.1');
     expect(
-      messages.some(m => m.startsWith('removed 5 dependencies (rbx,'))
+      messages.some(m => /are Bulma extensions rbx depended on/.test(m))
     ).toBe(true);
+    expect(messages.some(m => /removed rbx and bumped bulma/.test(m))).toBe(
+      true
+    );
   });
 
-  it('leaves the extensions alone when rbx was never there', () => {
+  it('says nothing about the extensions when rbx was never there', () => {
     const { next, messages } = run({
       dependencies: { 'bulma-tooltip': '^2.0.2', bulma: '^1.0.4' },
     });
     expect(next?.dependencies['bulma-tooltip']).toBe('^2.0.2');
-    expect(messages.some(m => /removed \d+ dependencies/.test(m))).toBe(false);
+    expect(
+      messages.some(m => /are Bulma extensions rbx depended on/.test(m))
+    ).toBe(false);
   });
 
   it('adds bulma only when sources reference it directly', () => {

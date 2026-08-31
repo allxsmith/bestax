@@ -8,7 +8,9 @@
  * react-bulma-components, which peer-depends on Bulma and lets the app pick a
  * version, rbx ships `bulma@0.7.5` as a *direct* dependency plus four Bulma
  * extensions — so an rbx app cannot move to Bulma v1 at all while rbx is
- * installed. Migrating deletes five dependencies outright, and the report
+ * installed. Removing rbx is what frees that, and the report says so; its
+ * four Bulma extensions are reported for the user to remove, not deleted —
+ * see the note on that below.
  * says so by name.
  */
 
@@ -64,21 +66,32 @@ export const updateDependencies: DependenciesUpdate = (
     }
   }
 
-  // …and so do the four Bulma extensions it pulled in. These are only ever
-  // removed alongside rbx itself: an app that added `bulma-tooltip` on its own
-  // may still be using it outside rbx components.
+  // The four Bulma extensions are REPORTED, not removed.
+  //
+  // rbx declares them as its own dependencies, so an app gets them
+  // transitively through the lockfile — they do not appear in the app's
+  // manifest unless the author put them there deliberately. A manifest entry
+  // is therefore a direct declaration, and an app may well be importing
+  // `bulma-tooltip`'s Sass on its own, outside anything rbx rendered.
+  // Deleting it because rbx happens to be present is precisely the
+  // best-guess rewrite this package refuses to make.
+  const extensions: string[] = [];
   if (removed.includes('rbx')) {
     for (const name of DEP_SECTIONS) {
       const deps = section(name);
       if (!deps) continue;
       for (const extension of RBX_STYLE_DEPS) {
-        if (extension in deps) {
-          delete deps[extension];
-          removed.push(extension);
-          note(`removed ${extension} from ${name} (rbx pulled it in)`);
-        }
+        if (extension in deps) extensions.push(extension);
       }
     }
+  }
+  if (extensions.length > 0) {
+    collector?.add({
+      file: filePath,
+      line: null,
+      rule: 'deps',
+      message: `${extensions.join(', ')} ${extensions.length === 1 ? 'is a Bulma extension' : 'are Bulma extensions'} rbx depended on, and bestax ships ${extensions.length === 1 ? 'its' : 'their'} equivalent${extensions.length === 1 ? '' : 's'} (Badge, Divider, Loading, Tooltip). Declared in this manifest, so removing ${extensions.length === 1 ? 'it' : 'them'} is your call — drop ${extensions.length === 1 ? 'it' : 'them'} unless your own Sass imports ${extensions.length === 1 ? 'it' : 'them'} directly`,
+    });
   }
 
   // @allxsmith/bestax-bulma comes in (runtime dependency).
@@ -127,13 +140,14 @@ export const updateDependencies: DependenciesUpdate = (
     });
   }
 
-  // The headline: say the count out loud so it lands in the run summary.
-  if (removed.length > 1) {
+  // The headline result: rbx pinned Bulma 0.7.5 as a DIRECT dependency, so
+  // removing rbx is what frees the app to choose its own Bulma version.
+  if (removed.includes('rbx')) {
     collector?.add({
       file: filePath,
       line: null,
       rule: 'deps',
-      message: `removed ${removed.length} dependencies (${removed.join(', ')}) — rbx pinned Bulma 0.7.5 and its extensions, so the app can now choose its own Bulma v1`,
+      message: `removed rbx and bumped bulma to ${BULMA_RANGE} — rbx pinned Bulma 0.7.5 as a direct dependency, so the app can now choose its own Bulma version${extensions.length > 0 ? `; ${extensions.length} Bulma extension(s) are reported above for you to remove` : ''}`,
     });
   }
 

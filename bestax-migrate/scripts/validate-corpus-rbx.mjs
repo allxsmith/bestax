@@ -5,7 +5,7 @@
  *
  * rbx's docs are docz, not Storybook: each `*.docs.mdx` page embeds its
  * examples in `<Playground>` blocks. At the pinned SHA there are 43 such
- * pages carrying 256 blocks, which is the closest thing to a real-world rbx
+ * pages carrying 254 blocks, which is the closest thing to a real-world rbx
  * corpus that exists under a licence we can use.
  *
  * The corpus is fetched as TEXT at a pinned commit into the gitignored

@@ -651,13 +651,16 @@ describe('containers collapse only onto the component they wrap', () => {
     expect(output).toContain('<iframe src="/v" />');
   });
 
-  it('keeps the Select wrapper around a native select', () => {
-    // rbx explicitly allows Select.Container to wrap a native <select>.
+  it('folds a native select INTO the bestax Select', () => {
+    // rbx allows Select.Container to wrap a native <select>, but bestax's
+    // Select renders its own — keeping both nested one inside the other, so
+    // the native element's attributes and options move up instead.
     const { output } = migrate(
-      'import { Select } from "rbx";\nexport const A = () => <Select.Container fullwidth><select><option>a</option></select></Select.Container>;'
+      'import { Select } from "rbx";\nexport const A = () => <Select.Container fullwidth><select name="x"><option>a</option></select></Select.Container>;'
     );
-    expect(output).toContain('<Select isFullwidth>');
-    expect(output).toContain('<select>');
+    expect(output).toContain('<Select isFullwidth name="x">');
+    expect(output).toContain('<option>a</option>');
+    expect(output).not.toMatch(/<select[\s>]/);
   });
 
   it('still collapses when the child IS the wrapped component', () => {
@@ -909,5 +912,71 @@ describe('a destructured alias used as a bare value', () => {
       'import { Tag } from "rbx";\nconst { Group } = Tag;\nconst V = Group;\nexport const A = () => <V>x</V>;'
     );
     expect(output).toContain('const V = Tags;');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round 12: the Copilot backlog I had not been draining.
+// ---------------------------------------------------------------------------
+
+describe('Field expanded is a Control modifier in Bulma', () => {
+  it('TODOs it rather than passing it to a prop bestax has not got', () => {
+    const { todos } = migrate(
+      'import { Field } from "rbx";\nexport const A = () => <Field expanded>x</Field>;'
+    );
+    expect(todos.find(t => t.rule === 'prop:expanded')?.message).toMatch(
+      /on the Control, not the Field/
+    );
+  });
+});
+
+describe('Tab.Group needs the list bestax does not render itself', () => {
+  it('wraps the items in Tabs.List', () => {
+    // rbx renders div.tabs > ul > li; bestax's Tabs renders only the div and
+    // leaves the ul to Tabs.List, so a straight rename put <li> directly
+    // inside the div.
+    const { output } = migrate(
+      'import { Tab } from "rbx";\nexport const A = () => (<Tab.Group><Tab active>One</Tab></Tab.Group>);'
+    );
+    expect(output).toContain('<Tabs><Tabs.List>');
+    expect(output).toContain('<Tabs.Item active>One</Tabs.Item>');
+  });
+
+  it('does not double-wrap when a list is already present', () => {
+    const { output } = migrate(
+      'import { Tab } from "rbx";\nexport const A = () => (<Tab.Group><Tab>One</Tab><Tab>Two</Tab></Tab.Group>);'
+    );
+    expect((output.match(/Tabs\.List/g) ?? []).length).toBe(2); // open + close
+  });
+});
+
+describe('Select.Container modifiers with dynamic values', () => {
+  it('renames rather than dropping the condition', () => {
+    const { output } = migrate(
+      'import { Select } from "rbx";\nexport const A = (w: any) => <Select.Container fullwidth={w}><Select/></Select.Container>;'
+    );
+    expect(output).toContain('isFullwidth={w}');
+  });
+});
+
+describe('the dropped-stylesheet note survives an emptied file', () => {
+  it('is emitted even when nothing else is left', () => {
+    // Pruning the only import leaves no statement to hang the comment on;
+    // it now goes on the Program.
+    const { output, todos } = migrate(
+      'import "bulma-tooltip/dist/css/bulma-tooltip.min.css";\n'
+    );
+    expect(output).toContain('TODO(bestax-migrate)');
+    expect(todos.some(t => t.rule === 'css')).toBe(true);
+  });
+});
+
+describe('the extras stylesheet dedup is order-independent', () => {
+  it('collapses extras that appear BEFORE the bulma import', () => {
+    const { output } = migrate(
+      'import "@allxsmith/bestax-bulma/extras.css";\nimport "bulma/css/bulma.min.css";\nexport const A = 1;'
+    );
+    expect(output).toContain('bestax.css');
+    expect(output).not.toContain('extras.css');
   });
 });

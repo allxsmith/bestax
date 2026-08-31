@@ -87,7 +87,7 @@ code per the references, or deliberately keep the old markup with `className` st
 
 - **react-bulma-components**: all 32 v4 components are mapped. `Element` and `Tile` have no
   bestax equivalent; `renderAs` becomes `as` where supported.
-- **rbx**: migrating deletes **five dependencies** — rbx pinned `bulma@0.7.5` as a direct
+- **rbx**: migrating removes rbx itself — it pinned `bulma@0.7.5` as a direct
   dependency plus `bulma-badge`, `bulma-divider`, `bulma-pageloader` and `bulma-tooltip`, so
   the app can finally choose its own Bulma version. rbx's badge and tooltip _helper props_
   become real wrapping `<Badge>` / `<Tooltip>` components. Its `as` is universal, bestax's is

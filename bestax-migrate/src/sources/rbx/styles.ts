@@ -2,9 +2,15 @@
  * Stylesheet migration for rbx apps.
  *
  * Same shared factory as every other source — the Bulma 0.9 → v1 rewriting is
- * identical, and it already retires the `bulma-*` extension imports, which is
- * exactly the stylesheet half of rbx's five-dependency cleanup
- * (`bulma-badge`, `bulma-divider`, `bulma-pageloader`, `bulma-tooltip`).
+ * identical.
+ *
+ * Note what it does NOT do: a `bulma-*` extension import in Sass is left in
+ * place with a TODO, not removed. Only the JS/CSS-import side of rbx's
+ * extension cleanup is automatic (transform.ts prunes
+ * `bulma-badge`/`bulma-divider`/`bulma-pageloader`/`bulma-tooltip` CSS
+ * imports outright, since bestax ships all four as components). A Sass
+ * `@import` of one may be pulling in customisation the codemod cannot see,
+ * so it is flagged for a human instead.
  *
  * rbx's own stylesheet is `rbx/rbx` (its Sass entry, usually imported as
  * `~rbx/rbx` after `~bulma/bulma`) or the prebuilt `rbx/index.css`. Both

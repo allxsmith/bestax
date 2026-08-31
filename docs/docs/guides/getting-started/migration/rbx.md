@@ -18,8 +18,11 @@ rbx users are stuck in a way most legacy-library users are not, for two reasons:
 - **React 19 removed `defaultProps` on function components**, which is what rbx's
   `forwardRefAs` base is built on.
 
-Migrating clears both at once. The codemod deletes **five dependencies** — rbx and all four of
-its Bulma extensions — and replaces them with `@allxsmith/bestax-bulma` and Bulma v1.
+Migrating clears both at once. The codemod removes **rbx** and moves you to Bulma v1 with
+`@allxsmith/bestax-bulma`. It also **reports** the four Bulma extensions rbx pulled in —
+`bulma-badge`, `bulma-divider`, `bulma-pageloader`, `bulma-tooltip` — which bestax replaces with
+real components; those it flags rather than deletes, because a manifest entry is something you
+declared and your own Sass may still import it.
 
 :::tip See how they compare
 For a capability-by-capability comparison of bestax against the other major React libraries, see
