@@ -1047,6 +1047,18 @@ describe('rbx Modal behaviours bestax does not implement', () => {
   });
 });
 
+describe('shorthand value-reference reporting', () => {
+  it('reports an unmappable shorthand once, not once per AST position', () => {
+    // The key and the value are distinct nodes, so the walker reaches the
+    // property twice. The AST comment dedupes, which hid the second report
+    // in the output while the collector still counted it twice.
+    const { todos } = migrate(
+      `import { Tile } from 'rbx';\nconst m = { Tile };\n`
+    );
+    expect(todos.filter(t => t.rule === 'value-reference')).toHaveLength(1);
+  });
+});
+
 describe('a dynamic modifier in the Select.Container fallback', () => {
   it('is reported rather than dropped with its expression', () => {
     const { todos } = migrate(

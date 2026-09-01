@@ -110,18 +110,47 @@ which breakpoints did not carry.
 
 ## Props with no counterpart
 
-| TODO                                               | What to do                                                                                                                                                      |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prop:closeOnEsc`, `prop:closeOnBlur` on `Modal`   | bestax's Modal always closes on Escape and on background click; drop them or handle it in `onClose`                                                             |
-| `prop:selected`, `prop:text` on `Button`           | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                          |
-| `prop:size` on `Button.Group` / `Tags` / `Message` | set `size` on each child instead                                                                                                                                |
-| `prop:gradient` on `Hero`                          | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                           |
-| `prop:color`, `prop:vertical` on `Divider`         | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                   |
-| `prop:direction` on `PageLoader`                   | no directional variant; drop it or add a class                                                                                                                  |
-| `prop:innerRef`                                    | the affected roots (`Dropdown`, `Modal`, `Navbar`) are plain function components and forward no ref — drop it, or put the ref on a wrapping element you control |
-| `prop:managed`, `prop:document`                    | bestax components are uncontrolled and render into the default document                                                                                         |
-| `badgeOutlined`, `badgeRounded`, `badgeSize`       | bestax's `Badge` has no outline, pill or size variant                                                                                                           |
-| `tooltipResponsive`                                | bestax's `Tooltip` has one `position` for all viewports                                                                                                         |
+| TODO                                               | What to do                                                                                                                                                               |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `prop:closeOnEsc` on `Modal`                       | bestax implements no Escape handling at all; add your own keydown listener, or drop the prop                                                                             |
+| `prop:closeOnBlur` on `Modal`                      | the migrated compound form renders `Modal.Background` as you wrote it; wire its `onClick` to your `onClose`                                                              |
+| `prop:selected`, `prop:text` on `Button`           | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                                   |
+| `prop:size` on `Button.Group` / `Tags` / `Message` | set `size` on each child instead                                                                                                                                         |
+| `prop:gradient` on `Hero`                          | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                                    |
+| `prop:color`, `prop:vertical` on `Divider`         | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                            |
+| `prop:direction` on `PageLoader`                   | no directional variant; drop it or add a class                                                                                                                           |
+| `prop:innerRef`                                    | the affected roots (`Dropdown`, `Modal`, `Navbar`) are plain function components and forward no ref — drop it, or put the ref on a wrapping element you control          |
+| `prop:managed`                                     | bestax components are uncontrolled; drive the `Modal` with `active` and `onClose`                                                                                        |
+| `prop:document` on `Modal`                         | bestax renders the Modal inline rather than portalling into any document — see [Modal behaviours bestax does not implement](#modal-behaviours-bestax-does-not-implement) |
+| `prop:document` on `Navbar`                        | bestax's `Navbar` has no `document` prop; drop it                                                                                                                        |
+| `badgeOutlined`, `badgeRounded`, `badgeSize`       | bestax's `Badge` has no outline, pill or size variant                                                                                                                    |
+| `tooltipResponsive`                                | bestax's `Tooltip` has one `position` for all viewports                                                                                                                  |
+
+## Modal behaviours bestax does not implement
+
+`component:Modal` — emitted on **every** Modal the codemod converts, whether or not you passed
+any of the props above.
+
+rbx's Modal did three things by default that bestax's does not do at all:
+
+| rbx default                      | bestax                                              |
+| -------------------------------- | --------------------------------------------------- |
+| portals into `document.body`     | renders inline, exactly where you place it          |
+| closes on Escape                 | no keydown handling of any kind                     |
+| clips document scroll while open | no scroll locking; the page behind stays scrollable |
+
+The markup migrates cleanly, so nothing fails to compile and nothing looks wrong in a
+screenshot — which is why this one is flagged unconditionally rather than left to review. Re-add
+whichever your UI actually relied on:
+
+- **Portal** — wrap the render in `createPortal(…, document.body)` yourself. This matters most if
+  an ancestor has `overflow: hidden`, `filter`, or a `transform`, any of which will now clip or
+  re-parent the modal that used to escape them.
+- **Escape** — add a `keydown` listener while the modal is open and call your `onClose`.
+- **Scroll lock** — Bulma still ships `.is-clipped`; put it on `<html>` while the modal is open.
+
+Background click is the one that does carry over, but only because you write it: the migrated
+compound form renders your `Modal.Background`, so wire its `onClick` to the same `onClose`.
 
 ## `prop:textColor="white-ter"` / `"white-bis"`
 

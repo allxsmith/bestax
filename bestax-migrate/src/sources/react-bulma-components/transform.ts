@@ -363,10 +363,18 @@ export default function transform(
   // Components can be referenced as plain values too (`renderAs={Block}`,
   // passed to helpers, …). JSX usages were renamed above; map the leftover
   // identifier references so the pruned RBC import doesn't strand them.
+  // A shorthand property's key and value are distinct nodes, so the walker
+  // reaches the property twice. The first visit rewrites it and detaches the
+  // original; the second then matched neither key nor value and fell through
+  // to the generic "referenced as a value" branch, emitting a spurious TODO
+  // and marking the root retained when it was not.
+  const handledValueRefs = new WeakSet<object>();
+
   root.find(j.Identifier).forEach(path => {
     // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
     // were already handled by the element walker above.
     if (path.node.type !== 'Identifier') return;
+    if (handledValueRefs.has(path.node)) return;
     const name = path.node.name;
     // A name bound by `const { Field } = Form` lives in `aliases`, not
     // `imports`, and the destructuring pass has already deleted the
@@ -375,20 +383,6 @@ export default function transform(
     const aliasPath = aliases.get(name);
     const imported = aliasPath ? aliasPath[0] : imports.get(name);
     if (imported === undefined) return;
-    if (imported === '*') {
-      // A namespace in a value position (the guards below filter out import
-      // specifiers and JSX names, which the element walker rewrites).
-      const parent = path.parent?.node?.type;
-      if (
-        parent !== 'ImportNamespaceSpecifier' &&
-        parent !== 'JSXOpeningElement' &&
-        parent !== 'JSXClosingElement' &&
-        parent !== 'JSXMemberExpression'
-      ) {
-        namespaceStillReferenced = true;
-      }
-      return;
-    }
     const parentNode = path.parent?.node;
     const parentType = parentNode?.type;
     if (
@@ -399,6 +393,24 @@ export default function transform(
       parentType === 'JSXClosingElement' ||
       parentType === 'JSXMemberExpression'
     ) {
+      return;
+    }
+    // A namespace binding in a real value position. `RBC.Box` is still a
+    // mappable component reference, so fall through to the member-expression
+    // branch below with an empty prefix (the namespace itself is not part of
+    // the RBC path). Anything else — a bare `RBC` — just pins the import.
+    // Treating every namespace member as opaque left `const C = RBC.Box`
+    // referencing an import that dependency migration then removed.
+    const isNamespace = imported === '*';
+    if (
+      isNamespace &&
+      !(
+        parentType === 'MemberExpression' &&
+        parentNode.object === path.node &&
+        !parentNode.computed
+      )
+    ) {
+      namespaceStillReferenced = true;
       return;
     }
     // Non-reference positions: member property names and object keys.
@@ -418,10 +430,28 @@ export default function transform(
       parentNode.object === path.node &&
       !parentNode.computed
     ) {
-      const memberPath = [
-        ...(aliasPath ?? [imported]),
-        nameOf(parentNode.property),
-      ];
+      // Walk the full chain: `Card.Footer.Item` is one path, not
+      // `Card.Footer` with a stray `.Item`. Resolving only the first level
+      // left the tail pointing at a compound bestax does not have
+      // (bestax exposes `Card.FooterItem`).
+      const memberPath = isNamespace ? [] : [...(aliasPath ?? [imported])];
+      let outer: any = path.parent;
+      while (
+        outer?.node?.type === 'MemberExpression' &&
+        !outer.node.computed &&
+        outer.node.property?.type === 'Identifier'
+      ) {
+        memberPath.push(nameOf(outer.node.property));
+        const next = outer.parent;
+        if (
+          next?.node?.type === 'MemberExpression' &&
+          next.node.object === outer.node
+        ) {
+          outer = next;
+        } else {
+          break;
+        }
+      }
       const memberMapping = resolveMapping(memberPath);
       const dotted = memberPath.join('.');
       if (
@@ -431,6 +461,20 @@ export default function transform(
         !memberMapping.special
       ) {
         if (memberMapping.target === dotted) {
+          if (isNamespace) {
+            // `RBC.Card.Header` → `Card.Header`: the namespace prefix has to
+            // go, so rebuild the chain from the target rather than renaming
+            // the namespace identifier in place (there is no MAPPING['*']
+            // root to rename it to).
+            const [root, ...rest] = memberMapping.target.split('.');
+            let rebuilt: any = j.identifier(ctx.reserve(root));
+            for (const part of rest) {
+              rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+            }
+            outer.replace(rebuilt);
+            ctx.dirty = true;
+            return;
+          }
           // Same compound exists on the bestax component at runtime.
           const rootMapping = MAPPING[imported];
           if (rootMapping?.target) {
@@ -441,20 +485,33 @@ export default function transform(
           return;
         }
         if (!memberMapping.target.includes('.')) {
-          // Flat target (Icon.Text → IconText): swap the member expression.
+          // Flat target (Icon.Text → IconText): swap the whole chain.
           const local = ctx.reserve(memberMapping.target);
-          path.parent.replace(j.identifier(local));
+          outer.replace(j.identifier(local));
           ctx.dirty = true;
           return;
         }
+        // Dotted target that differs from the source chain
+        // (Card.Footer.Item → Card.FooterItem): rebuild the chain against the
+        // bestax path rather than flagging something the table can answer.
+        const [targetRoot, ...targetRest] = memberMapping.target.split('.');
+        const rootLocal = ctx.reserve(targetRoot);
+        let rebuilt: any = j.identifier(rootLocal);
+        for (const part of targetRest) {
+          rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+        }
+        outer.replace(rebuilt);
+        ctx.dirty = true;
+        return;
       }
       addTodo(
         ctx,
-        path.parent,
+        outer,
         'value-reference',
-        `\`${dotted}\` is referenced as a value; migrate this usage by hand`
+        `\`${isNamespace ? `${name}.` : ''}${dotted}\` is referenced as a value; migrate this usage by hand`
       );
-      ctx.retained.add(imported);
+      if (isNamespace) namespaceStillReferenced = true;
+      else ctx.retained.add(imported);
       return;
     }
     if (
@@ -462,6 +519,62 @@ export default function transform(
       parentNode.key === path.node &&
       !parentNode.shorthand
     ) {
+      return;
+    }
+    // A shorthand property is both the key and the reference. Renaming the
+    // node in place rewrote the object's PUBLIC key
+    // (`{ Textarea }` → `{ TextArea }`), so expand it instead: the key keeps
+    // the name callers use, the value points at the migrated binding.
+    if (
+      (parentType === 'ObjectProperty' || parentType === 'Property') &&
+      parentNode.shorthand
+    ) {
+      // Resolve through the alias path when there is one: `const { Footer } =
+      // Card` makes `{ Footer }` mean `Card.Footer`, not `Card`. Reading the
+      // root's mapping here emitted `{ Footer: Card }` — the wrong component
+      // under the right key.
+      const shorthandMapping = aliasPath
+        ? resolveMapping(aliasPath)
+        : MAPPING[imported];
+      if (
+        shorthandMapping &&
+        shorthandMapping.status !== 'todo' &&
+        shorthandMapping.target &&
+        !shorthandMapping.special
+      ) {
+        const [root, ...rest] = shorthandMapping.target.split('.');
+        const local = ctx.reserve(root);
+        let value: any = j.identifier(local);
+        for (const part of rest) {
+          value = j.memberExpression(value, j.identifier(part));
+        }
+        if (rest.length > 0 || local !== name) {
+          // ast-types keeps DISTINCT key and value nodes even when
+          // `shorthand` is true, so both positions are visited. Mark both, or
+          // the second visit sees a node that matches neither the (new) key
+          // nor the (new) value and falls through to the generic branch.
+          handledValueRefs.add(parentNode.key);
+          handledValueRefs.add(parentNode.value);
+          parentNode.shorthand = false;
+          parentNode.key = j.identifier(name);
+          parentNode.value = value;
+          ctx.dirty = true;
+        }
+      } else {
+        // Mark both positions before reporting: the key and the value are
+        // distinct nodes, so an unmarked branch reports the same property
+        // twice. The AST comment dedupes, which hid this in the output while
+        // the report still double-counted it.
+        handledValueRefs.add(parentNode.key);
+        handledValueRefs.add(parentNode.value);
+        ctx.retained.add(imported);
+        addTodo(
+          ctx,
+          path,
+          'value-reference',
+          `\`${name}\` is referenced as a value; migrate this usage by hand`
+        );
+      }
       return;
     }
     const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];

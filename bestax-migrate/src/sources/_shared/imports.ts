@@ -6,7 +6,7 @@
  * Source-agnostic: nothing here knows which library is being migrated.
  */
 
-import type { Collection, JSCodeshift } from 'jscodeshift';
+import type { ASTPath, Collection, JSCodeshift } from 'jscodeshift';
 import type { TransformContext } from './jsx-utils.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -60,6 +60,25 @@ export function collectBoundNames(
   root
     .find(j.ClassDeclaration)
     .forEach(path => path.node.id && bound.add(nameOf(path.node.id)));
+  // TypeScript declaration forms that occupy a name an import would collide
+  // with. An `enum Button` next to a generated `import { Button }` is a
+  // duplicate-identifier build break, and the alias pass could not see it.
+  // Interfaces and type aliases share the declaration space with an imported
+  // binding of the same name too, so they reserve as well — an unnecessary
+  // alias costs nothing, a missed one does not compile.
+  for (const kind of [
+    'TSEnumDeclaration',
+    'TSModuleDeclaration',
+    'TSInterfaceDeclaration',
+    'TSTypeAliasDeclaration',
+  ]) {
+    root.find(j[kind as 'TSEnumDeclaration']).forEach((path: ASTPath<any>) => {
+      const id = path.node.id;
+      if (id && (id.type === 'Identifier' || id.type === 'StringLiteral')) {
+        bound.add(nameOf(id));
+      }
+    });
+  }
   root.find(j.FunctionExpression).forEach(path => {
     for (const param of path.node.params ?? []) collectPattern(param);
   });

@@ -151,15 +151,28 @@ export function parseIconClasses(
     fab: 'brands',
     fal: 'light',
     fad: 'duotone',
+    fat: 'thin',
+    // Font Awesome 6 spells the style out, and has been the default since
+    // 2022 — matching only the v5 short forms meant the common case fell
+    // through to the "migrate this icon by hand" TODO.
+    'fa-solid': 'solid',
+    'fa-regular': 'regular',
+    'fa-brands': 'brands',
+    'fa-light': 'light',
+    'fa-duotone': 'duotone',
+    'fa-thin': 'thin',
   };
   const faStyle = tokens.find(t => faVariant[t]);
-  // Every `fa-*` that is a MODIFIER rather than an icon name. The old list
+  // Every `fa-*` that is a MODIFIER rather than an icon name — including
+  // v6's spelled-out style and family words, which are `fa-` prefixed and
+  // would otherwise be read as the icon (`fa-solid fa-home` → name="solid").
+  // The old list
   // covered only sizing and spin, so a class string that puts a modifier
   // first — `fas fa-rotate-90 fa-home`, which Font Awesome's own docs show —
   // yielded name="rotate-90". Ordering is not guaranteed, so the filter has
   // to be exhaustive rather than positional.
   const FA_MODIFIER =
-    /^fa-(?:2xs|xs|sm|lg|xl|2xl|\d{1,2}x|fw|ul|li|border|inverse|stack|stack-1x|stack-2x|pull-(?:left|right)|spin|spin-pulse|spin-reverse|pulse|beat|fade|beat-fade|bounce|flash|shake|swap-opacity|rotate-(?:90|180|270|by)|flip-(?:horizontal|vertical|both))$/;
+    /^fa-(?:solid|regular|brands|light|duotone|thin|sharp|classic|2xs|xs|sm|lg|xl|2xl|\d{1,2}x|fw|ul|li|border|inverse|stack|stack-1x|stack-2x|pull-(?:left|right)|spin|spin-pulse|spin-reverse|pulse|beat|fade|beat-fade|bounce|flash|shake|swap-opacity|rotate-(?:90|180|270|by)|flip-(?:horizontal|vertical|both))$/;
   const faName = tokens.find(t => /^fa-/.test(t) && !FA_MODIFIER.test(t));
   if (faStyle && faName) {
     return {

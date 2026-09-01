@@ -228,6 +228,54 @@ describe('rbx kitchen-sink e2e', () => {
     expect(migrated).toMatch(/from ["']rbx["']/);
   });
 
+  it('documents every TODO rule it emits in the skill reference', () => {
+    // A rule with no recipe is a dead end for the user reading the report.
+    // `component:Modal` shipped exactly that way — emitted on every Modal
+    // conversion, documented nowhere — and only a reviewer caught it.
+    const skillDir = path.join(packageRoot, '..', 'skills', 'bestax-migrate');
+    const refsDir = path.join(skillDir, 'references', 'rbx');
+    const refs = [
+      ...fs
+        .readdirSync(refsDir)
+        .filter(f => f.endsWith('.md'))
+        .map(f => path.join(refsDir, f)),
+      path.join(skillDir, 'SKILL.md'),
+    ]
+      .map(f => fs.readFileSync(f, 'utf8'))
+      .join('\n');
+
+    const emitted = new Set<string>();
+    for (const todos of app.todosByFile.values()) {
+      for (const todo of todos) emitted.add(todo.rule);
+    }
+    for (const todo of app.depTodos) emitted.add(todo.rule);
+    expect(emitted.size).toBeGreaterThan(0);
+
+    // The reference documents a rule under its own literal, and a dotted
+    // component rule may instead be covered by its parent's section
+    // (`component:File.*` covers `component:File.CTA`, and the Dropdown
+    // section covers its parts). A prop rule may be written bare in a row
+    // that names the component beside it.
+    const documented = (rule: string): boolean => {
+      if (refs.includes(rule)) return true;
+      if (rule.startsWith('component:')) {
+        const parent = rule.slice('component:'.length).split('.')[0];
+        return (
+          refs.includes(`component:${parent}.*`) ||
+          refs.includes(`component:${parent}\``) ||
+          refs.includes(`component:${parent} `)
+        );
+      }
+      if (rule.startsWith('prop:')) {
+        return refs.includes(`\`${rule.slice('prop:'.length)}\``);
+      }
+      return false;
+    };
+
+    const undocumented = [...emitted].sort().filter(r => !documented(r));
+    expect(undocumented).toEqual([]);
+  });
+
   it('typechecks the migrated output against @allxsmith/bestax-bulma', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'global.d.ts'),

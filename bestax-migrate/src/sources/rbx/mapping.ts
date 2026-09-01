@@ -634,7 +634,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         todo: "bestax `Modal` has no built-in background-click close; wire it through `Modal.Background`'s onClick and `onClose`",
       },
       document: {
-        todo: 'bestax `Modal` renders into the default document; drop this prop',
+        todo: 'bestax `Modal` renders inline where you place it rather than portalling into a document at all; drop this prop, and see the advisory the codemod adds on every Modal',
       },
       containerClassName: { rename: 'className' },
       innerRef: {

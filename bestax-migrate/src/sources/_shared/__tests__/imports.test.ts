@@ -102,3 +102,39 @@ describe('collectBoundNames sees every binding form', () => {
     expect(out).toContain('import { Button } from "@allxsmith/bestax-bulma"');
   });
 });
+
+describe('TypeScript declaration bindings', () => {
+  // A TS declaration occupies the name an added import would use. The alias
+  // pass could not see any of these forms, so a generated
+  // `import { Button }` landed beside an existing `enum Button` — a
+  // duplicate-identifier error that only surfaced at build time, well after
+  // the codemod reported success.
+  it.each([
+    ['enum', 'enum Button { A }'],
+    ['const enum', 'const enum Button { A }'],
+    ['namespace', 'namespace Button { export const a = 1; }'],
+    ['interface', 'interface Button { a: number }'],
+    ['type alias', 'type Button = { a: number };'],
+  ])('aliases around a %s named Button', (_label, decl) => {
+    const out = migrate(
+      [
+        'import { Button as RbxBtn } from "rbx";',
+        decl,
+        'export const A = () => <RbxBtn>x</RbxBtn>;',
+      ].join('\n')
+    );
+    expect(out).toMatch(/Button as Bulma\w+/);
+    expect(out).not.toMatch(/import \{ Button \} from "@allxsmith/);
+  });
+
+  it('does not alias when the declaration uses an unrelated name', () => {
+    const out = migrate(
+      [
+        'import { Button as RbxBtn } from "rbx";',
+        'enum Other { A }',
+        'export const A = () => <RbxBtn>x</RbxBtn>;',
+      ].join('\n')
+    );
+    expect(out).toContain('import { Button } from "@allxsmith/bestax-bulma"');
+  });
+});

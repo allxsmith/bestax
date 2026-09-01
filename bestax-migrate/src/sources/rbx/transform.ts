@@ -769,6 +769,12 @@ export default function transform(
           ctx.dirty = true;
         }
       } else {
+        // Mark both positions before reporting: the key and the value are
+        // distinct nodes, so an unmarked branch reports the same property
+        // twice. The AST comment dedupes, which hid this in the output while
+        // the report still double-counted it.
+        handledValueRefs.add(parentNode.key);
+        handledValueRefs.add(parentNode.value);
         ctx.retained.add(imported);
         addTodo(
           ctx,

@@ -98,6 +98,34 @@ interface RunOptions {
   cssMode: CssMode;
 }
 
+/**
+ * Matches an import of `name` at a specifier boundary, in every form a
+ * retained reference can take: a root or DEEP JavaScript import
+ * (`from 'rbx'`, `from 'rbx/base/theme'` — deep ones are kept with a TODO), a
+ * bindingless side-effect `import 'rbx'` (which the transform leaves untouched
+ * because there is nothing to rewrite), the CommonJS / dynamic forms
+ * `require('rbx')` and `import('rbx')` — neither of which the jscodeshift
+ * transform rewrites, so both survive the run as live references — and the
+ * Sass forms the stylesheet transform preserves in indented `.sass` files
+ * (`@import '~rbx/rbx'`).
+ *
+ * Matching only `from '<pkg>'` meant a file whose ONLY remaining reference was
+ * a deep or Sass import let the manifest pass drop the package with no
+ * warning. Matching a bare substring is the opposite error, and worse for a
+ * name as short as `rbx`: prose and a sibling package like `rbx-utils` both
+ * counted as imports.
+ *
+ * Comments are allowed wherever whitespace is, because a webpack magic comment
+ * sits exactly there: `import(/* webpackChunkName: "x" *\/ 'rbx')`.
+ */
+export function makeSourceImportRe(name: string): RegExp {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const gap = String.raw`(?:\s|/\*[\s\S]*?\*/|//[^\n]*\n)*`;
+  return new RegExp(
+    `(?:from|@import|import|require)${gap}\\(?${gap}['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`
+  );
+}
+
 function migrateFiles(
   source: MigrationSource,
   files: string[],
@@ -107,22 +135,7 @@ function migrateFiles(
 ): { bulmaReferenced: boolean; sourceStillImported: boolean } {
   let bulmaReferenced = false;
   let sourceStillImported = false;
-  // Match the source package at a specifier boundary, in every form a
-  // retained reference can take: a root or DEEP JavaScript import
-  // (`from 'rbx'`, `from 'rbx/base/theme'` — deep ones are kept with a TODO),
-  // a bindingless side-effect `import 'rbx'` (which the transform leaves
-  // untouched because there is nothing to rewrite), and the CommonJS /
-  // dynamic forms `require('rbx')` and `import('rbx')` — neither of which the
-  // jscodeshift transform rewrites, so both survive the run as live
-  // references,
-  // and the Sass forms the stylesheet transform preserves in indented `.sass`
-  // files (`@import '~rbx/rbx'`). Matching only `from '<pkg>'` meant a file
-  // whose ONLY remaining reference was a deep or Sass import let the manifest
-  // pass drop the package with no warning.
-  const escaped = source.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const sourceImportRe = new RegExp(
-    `(?:from|@import|import|require)\\s*\\(?\\s*['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`
-  );
+  const sourceImportRe = makeSourceImportRe(source.name);
   for (const file of files) {
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
@@ -185,13 +198,17 @@ function reportUnsupportedFiles(
   // are reported but never rewritten, so the reference survives the run —
   // and the manifest pass must not remove the package out from under it.
   let stillImported = false;
+  const importRe = makeSourceImportRe(source.name);
   for (const file of collectFiles(targets, unsupported)) {
     const text = fs.readFileSync(file, 'utf8');
-    if (!text.includes(source.name)) continue;
+    // A substring match is not evidence of an import. `rbx` is three
+    // characters: prose in an .mdx file and a sibling package like
+    // `rbx-utils` both matched, which reported a file that imports nothing
+    // and pinned the dependency the manifest pass would otherwise remove.
+    if (!importRe.test(text)) continue;
     stillImported = true;
     const collector = reporter.startFile();
-    const line =
-      text.split('\n').findIndex(l => l.includes(source.name)) + 1 || null;
+    const line = text.split('\n').findIndex(l => importRe.test(l)) + 1 || null;
     collector.add({
       file,
       line,
