@@ -114,3 +114,43 @@ describe('rbx deps', () => {
     expect(next!.dependencies['@allxsmith/bestax-bulma']).toBeUndefined();
   });
 });
+
+describe('the headline describes what actually happened to bulma', () => {
+  // The report is the tool's primary deliverable, and this line claimed a
+  // manifest pin the user would not find. In the COMMON rbx-app shape bulma
+  // is neither bumped nor added -- it arrives transitively via bestax-bulma.
+  const headline = (messages: string[]) =>
+    messages.find(m => /^removed rbx( and| —)/.test(m)) ?? '';
+
+  it('claims no bump when bulma is neither declared nor referenced', () => {
+    const { next, messages } = run({ dependencies: { rbx: '^2.2.0' } });
+    expect(next?.dependencies.bulma).toBeUndefined();
+    expect(headline(messages)).toContain('arrives transitively');
+    expect(headline(messages)).not.toContain('bumped');
+  });
+
+  it('says bumped only when a pre-1.0 range was actually raised', () => {
+    const { next, messages } = run({
+      dependencies: { rbx: '^2.2.0', bulma: '^0.9.4' },
+    });
+    expect(next?.dependencies.bulma).toBe('^1.0.4');
+    expect(headline(messages)).toContain('bumped bulma');
+  });
+
+  it('says added when bulma was absent but sources import it', () => {
+    const { next, messages } = run({ dependencies: { rbx: '^2.2.0' } }, true);
+    expect(next?.dependencies.bulma).toBe('^1.0.4');
+    expect(headline(messages)).toContain('added bulma');
+    expect(headline(messages)).not.toContain('bumped');
+  });
+
+  it('does not claim a bump when the declared range is already v1', () => {
+    const { next, messages } = run({
+      dependencies: { rbx: '^2.2.0', bulma: '^1.0.2' },
+    });
+    // Left alone: the app already chose a v1 range.
+    expect(next?.dependencies.bulma).toBe('^1.0.2');
+    expect(headline(messages)).not.toContain('bumped');
+    expect(headline(messages)).toContain('left your declared bulma range');
+  });
+});

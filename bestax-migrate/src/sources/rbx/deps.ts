@@ -108,18 +108,22 @@ export const updateDependencies: DependenciesUpdate = (
   // fires. Add it back only when sources still reference bulma/… directly —
   // otherwise it arrives transitively via bestax-bulma.
   let bulmaDeclared = false;
+  let bulmaBumped = false;
+  let bulmaAdded = false;
   for (const name of DEP_SECTIONS) {
     const deps = section(name);
     if (deps?.bulma) {
       bulmaDeclared = true;
       if (isPreV1(deps.bulma)) {
         deps.bulma = BULMA_RANGE;
+        bulmaBumped = true;
         note(`bumped bulma to ${BULMA_RANGE} in ${name} (was pre-1.0)`);
       }
     }
   }
   if (!bulmaDeclared && options.bulmaReferenced) {
     dependencies.bulma = BULMA_RANGE;
+    bulmaAdded = true;
     note(
       `added bulma ${BULMA_RANGE} to dependencies (sources import bulma/… directly)`
     );
@@ -142,12 +146,26 @@ export const updateDependencies: DependenciesUpdate = (
 
   // The headline result: rbx pinned Bulma 0.7.5 as a DIRECT dependency, so
   // removing rbx is what frees the app to choose its own Bulma version.
+  //
+  // What it must NOT claim is a manifest change that did not happen. In the
+  // common rbx-app shape — `{ "dependencies": { "rbx": "^2.2.0" } }` with no
+  // direct `bulma/…` imports — bulma is neither bumped nor added, because it
+  // arrives transitively via bestax-bulma. Saying "bumped bulma" there
+  // described a pin the user would not find in their manifest.
   if (removed.includes('rbx')) {
     collector?.add({
       file: filePath,
       line: null,
       rule: 'deps',
-      message: `removed rbx and bumped bulma to ${BULMA_RANGE} — rbx pinned Bulma 0.7.5 as a direct dependency, so the app can now choose its own Bulma version${extensions.length > 0 ? `; ${extensions.length} Bulma extension(s) are reported above for you to remove` : ''}`,
+      message: `removed rbx ${
+        bulmaBumped
+          ? `and bumped bulma to ${BULMA_RANGE}`
+          : bulmaAdded
+            ? `and added bulma ${BULMA_RANGE}`
+            : bulmaDeclared
+              ? 'and left your declared bulma range alone (already v1)'
+              : '— bulma now arrives transitively via @allxsmith/bestax-bulma'
+      } — rbx pinned Bulma 0.7.5 as a direct dependency, so the app can now choose its own Bulma version${extensions.length > 0 ? `; ${extensions.length} Bulma extension(s) are reported above for you to remove` : ''}`,
     });
   }
 
