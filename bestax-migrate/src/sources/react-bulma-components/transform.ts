@@ -189,7 +189,46 @@ export default function transform(
   // The scope each binding was collected in, so a reference can be checked
   // against the binding it actually resolves to rather than matched by name.
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
-  const aliasScopes = new Map<string, unknown>();
+  // Aliases are keyed by the AST node that owns the declaring scope, not by
+  // bare name. Two functions can each destructure `Header` from a different
+  // component; a name-keyed map let the second overwrite the first, and both
+  // declarations were then pruned while both `<Header…>` references were left
+  // resolving to nothing.
+  //
+  // Resolution walks the reference's ANCESTORS rather than consulting
+  // `scope.lookup`, because by the time references are rewritten the alias
+  // pass has already pruned the declaration -- so the binding is gone from
+  // the scope table, and `path.scope` objects are not identity-stable across
+  // traversals either.
+  const aliasesByOwner = new Map<unknown, Map<string, string[]>>();
+  const ownersFor = (name: string): unknown[] => {
+    const owners: unknown[] = [];
+    for (const [owner, perScope] of aliasesByOwner) {
+      if (perScope.has(name)) owners.push(owner);
+    }
+    return owners;
+  };
+  const aliasAt = (name: string, at?: unknown): string[] | undefined => {
+    const owners = ownersFor(name);
+    if (owners.length === 0) return undefined;
+    // The overwhelmingly common case: one declaration, no ambiguity to
+    // resolve. Kept as a direct hit so the ancestor walk cannot change
+    // behaviour for it.
+    if (owners.length === 1) {
+      return aliasesByOwner.get(owners[0])!.get(name);
+    }
+    type Anc = { parent?: Anc; node?: unknown };
+    let cursor = at as Anc | undefined;
+    while (cursor) {
+      if (cursor.node !== undefined) {
+        const hit = aliasesByOwner.get(cursor.node)?.get(name);
+        if (hit) return hit;
+      }
+      cursor = cursor.parent;
+    }
+    return undefined;
+  };
+  const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
 
   // ---- 1b. Resolve `const { Input, Field: F } = Form` destructuring -----
   root.find(j.VariableDeclarator).forEach(path => {
@@ -197,11 +236,13 @@ export default function transform(
     if (node.id?.type !== 'ObjectPattern' || node.init?.type !== 'Identifier')
       return;
     const base = node.init.name;
-    const imported = imports.get(base) ?? aliases.get(base)?.join('.');
+    const baseAlias = aliasAt(base, path);
+    const imported = imports.get(base) ?? baseAlias?.join('.');
     if (!imported || imported === '*') return;
+    if (!imports.has(base) && !baseAlias) return;
     const basePath = imports.has(base)
       ? [imports.get(base) as string]
-      : aliases.get(base)!;
+      : (baseAlias as string[]);
 
     let allResolved = true;
     for (const prop of node.id.properties) {
@@ -210,8 +251,32 @@ export default function transform(
         prop.key?.type === 'Identifier' &&
         prop.value?.type === 'Identifier'
       ) {
-        aliases.set(prop.value.name, [...basePath, prop.key.name]);
-        aliasScopes.set(prop.value.name, path.scope);
+        const owner = (path.scope as unknown as { path?: { node?: unknown } })
+          ?.path?.node;
+        let perScope = aliasesByOwner.get(owner);
+        if (!perScope) {
+          perScope = new Map<string, string[]>();
+          aliasesByOwner.set(owner, perScope);
+        }
+        const target = [...basePath, prop.key.name];
+        perScope.set(prop.value.name, target);
+        aliases.set(prop.value.name, target);
+        // Pruning the declaration is only safe if every use of the alias will
+        // actually be rewritten. For a name the table cannot map, the JSX is
+        // left as written -- so dropping `const { Header } = Panel` left
+        // `<Header/>` referencing nothing at all.
+        // A `special` handler rewrites the element without naming a plain
+        // target (`Form.Label` becomes a bare <label>), so it counts as
+        // resolved just as a target does. Requiring `target` alone kept every
+        // declaration that mentioned one.
+        const targetMapping = resolveMapping(target);
+        if (
+          !targetMapping ||
+          targetMapping.status === 'todo' ||
+          !(targetMapping.target || targetMapping.special)
+        ) {
+          allResolved = false;
+        }
       } else {
         allResolved = false;
       }
@@ -238,11 +303,15 @@ export default function transform(
   });
 
   /** Resolve a JSX name into a canonical RBC component path, or null. */
-  function resolveJsxPath(name: any): string[] | null {
+  function resolveJsxPath(name: any, at?: unknown): string[] | null {
     const parts = jsxNameParts(name);
     if (!parts) return null;
     const [head, ...rest] = parts;
-    if (aliases.has(head)) return [...aliases.get(head)!, ...rest];
+    const alias = aliasAt(head, at);
+    if (alias) return [...alias, ...rest];
+    // An alias exists under this name but not for THIS reference's binding,
+    // so the reference is not ours to rewrite.
+    if (anyAlias(head) && !imports.has(head)) return null;
     const imported = imports.get(head);
     if (imported === undefined) return null;
     if (imported === '*') return rest.length > 0 ? rest : null;
@@ -276,6 +345,24 @@ export default function transform(
     }
   }
 
+  // A root that DOES map can still be retained by a child the table cannot
+  // (`Icon` is `partial`, but `<Icon.Unknown>` keeps the source import alive).
+  // The status check above misses that case whenever the local name equals the
+  // imported one, so the bestax import took the plain local, the retained
+  // specifier was dropped on the collision, and `<Icon.Unknown>` silently
+  // resolved to the bestax component instead.
+  //
+  // Scanned rather than reserved wholesale: adding every partial root to
+  // `bound` would alias them in every file that uses one, whether or not
+  // anything is actually retained.
+  root.find(j.JSXElement).forEach(path => {
+    const head = jsxNameParts(path.node.openingElement.name)?.[0];
+    if (!head || !imports.has(head)) return;
+    const parts = resolveJsxPath(path.node.openingElement.name, path);
+    const mapping = parts ? resolveMapping(parts) : undefined;
+    if (!mapping || mapping.status === 'todo') bound.add(head);
+  });
+
   ctx.reserve = makeReserve(ctx, bound);
 
   // Merge with an existing bestax import: reuse its locals verbatim.
@@ -305,7 +392,7 @@ export default function transform(
   // ---- 2. Transform JSX elements ----------------------------------------
   root.find(j.JSXElement).forEach(path => {
     const element = path.node;
-    const rbcPath = resolveJsxPath(element.openingElement.name);
+    const rbcPath = resolveJsxPath(element.openingElement.name, path);
     if (!rbcPath) return;
     // Resolve by BINDING, not by name. `function F({ Card })` shadows the
     // import with the caller's object, and rewriting its JSX to bestax's
@@ -316,7 +403,7 @@ export default function transform(
       !resolvesToBinding(
         path,
         jsxHead,
-        aliases.has(jsxHead) ? aliasScopes.get(jsxHead) : programScope
+        anyAlias(jsxHead) ? undefined : programScope
       )
     ) {
       return;
@@ -411,19 +498,13 @@ export default function transform(
     // `imports`, and the destructuring pass has already deleted the
     // declaration that bound it. Skipping those left `Field.Label` in the
     // output with its `Form` import pruned: a reference to nothing.
-    const aliasPath = aliases.get(name);
+    const aliasPath = aliasAt(name, path);
     const imported = aliasPath ? aliasPath[0] : imports.get(name);
     if (imported === undefined) return;
     // Resolve by BINDING, not by name: a local that shadows the import is a
     // different object, and rewriting it repoints the code at bestax's
     // component.
-    if (
-      !resolvesToBinding(
-        path,
-        name,
-        aliasPath ? aliasScopes.get(name) : programScope
-      )
-    ) {
+    if (!resolvesToBinding(path, name, aliasPath ? undefined : programScope)) {
       return;
     }
     const parentNode = path.parent?.node;

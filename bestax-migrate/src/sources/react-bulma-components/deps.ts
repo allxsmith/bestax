@@ -35,12 +35,30 @@ export const updateDependencies: DependenciesUpdate = (
   };
 
   // react-bulma-components goes away entirely.
+  let removedSource = false;
   for (const name of DEP_SECTIONS) {
     const deps = section(name);
     if (deps && 'react-bulma-components' in deps) {
       delete deps['react-bulma-components'];
+      removedSource = true;
       note(`removed react-bulma-components from ${name}`);
     }
+  }
+
+  // The transform deliberately RETAINS imports for components with no bestax
+  // equivalent (Element, Tile) so a partially migrated app still runs.
+  // Removing the package from the manifest strands exactly those imports once
+  // the user runs the install the report asks for, so say so rather than
+  // letting them find out at build time. rbx has carried this warning since
+  // it shipped; this source retains imports the same way and did not.
+  if (removedSource && options.sourceStillImported) {
+    collector?.add({
+      file: filePath,
+      line: null,
+      rule: 'deps',
+      message:
+        'react-bulma-components was removed from package.json, but some files still import it for components with no bestax equivalent — resolve those `TODO(bestax-migrate)` imports before installing, or re-add react-bulma-components until you have',
+    });
   }
 
   // @allxsmith/bestax-bulma comes in (runtime dependency).

@@ -200,3 +200,31 @@ describe('bestax import assembly', () => {
     );
   });
 });
+
+describe('alias scoping and retained partial roots', () => {
+  it('keeps two same-named aliases in separate scopes apart', () => {
+    const { output } = migrate(
+      [
+        `import { Card, Panel } from 'react-bulma-components';`,
+        'export function A(){ const { Header } = Card; return <Header.Title/>; }',
+        'export function B(){ const { Header } = Panel; return <Header/>; }',
+      ].join('\n')
+    );
+    expect(output).toContain('Card.Header.Title');
+    expect(output).toContain('Panel.Heading');
+  });
+
+  it('aliases the bestax root when a partial root is retained', () => {
+    const { output } = migrate(
+      [
+        `import { Icon } from 'react-bulma-components';`,
+        'export const a = <Icon/>;',
+        'export const b = <Icon.Unknown/>;',
+      ].join('\n')
+    );
+    expect(output).toMatch(/Icon as Bulma\w+/);
+    expect(output).toMatch(
+      /import \{ Icon \} from ["']react-bulma-components["']/
+    );
+  });
+});

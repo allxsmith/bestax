@@ -117,3 +117,31 @@ describe('updateDependencies', () => {
     expect(next).toBeNull();
   });
 });
+
+describe('retained-import warning', () => {
+  // The transform retains Element/Tile imports so a partly migrated app still
+  // runs, while this updater removes the package -- so the install the report
+  // asks for strands exactly those imports. rbx has warned about this since it
+  // shipped; this source retains imports the same way and did not.
+  it('warns when files still import the source after removal', () => {
+    const todos: TodoEntry[] = [];
+    updateDependencies(
+      'package.json',
+      { name: 'a', dependencies: { 'react-bulma-components': '^4.1.0' } },
+      { add: e => todos.push(e) },
+      { cssMode: 'bestax', bulmaReferenced: false, sourceStillImported: true }
+    );
+    expect(todos.map(t => t.message).join('\n')).toMatch(/still import it/);
+  });
+
+  it('stays quiet when nothing still imports it', () => {
+    const todos: TodoEntry[] = [];
+    updateDependencies(
+      'package.json',
+      { name: 'a', dependencies: { 'react-bulma-components': '^4.1.0' } },
+      { add: e => todos.push(e) },
+      { cssMode: 'bestax', bulmaReferenced: false, sourceStillImported: false }
+    );
+    expect(todos.map(t => t.message).join('\n')).not.toMatch(/still import it/);
+  });
+});

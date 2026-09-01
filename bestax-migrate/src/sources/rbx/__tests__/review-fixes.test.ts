@@ -1115,3 +1115,56 @@ describe('binding resolution and import assembly', () => {
     expect(output).not.toMatch(/import \* as \w+,/);
   });
 });
+
+describe('alias scoping and retained partial roots', () => {
+  it('keeps two same-named aliases in separate scopes apart', () => {
+    // A name-keyed alias map let the second declaration overwrite the first;
+    // both were then pruned and both `<Header…>` references left resolving to
+    // nothing at all -- a ReferenceError, not a type error.
+    const { output } = migrate(
+      [
+        `import { Card, Panel } from 'rbx';`,
+        'export function A(){ const { Header } = Card; return <Header.Title/>; }',
+        'export function B(){ const { Header } = Panel; return <Header/>; }',
+      ].join('\n')
+    );
+    expect(output).toContain('Card.Header.Title');
+    // B's alias is unmappable, so its declaration must survive rather than
+    // leaving `<Header/>` dangling.
+    expect(output).toContain('const { Header } = Panel');
+  });
+
+  it('keeps the declaration when an alias cannot be mapped', () => {
+    const { output } = migrate(
+      [
+        `import { Panel } from 'rbx';`,
+        'const { Header } = Panel;',
+        'export const x = <Header/>;',
+      ].join('\n')
+    );
+    expect(output).toContain('const { Header } = Panel');
+  });
+
+  it('aliases the bestax root when a partial root is retained', () => {
+    // `Icon` maps, but `<Icon.Unknown>` retains the rbx import. Letting the
+    // bestax import take the plain local dropped the retained specifier on
+    // the collision, silently repointing `<Icon.Unknown>` at bestax's Icon.
+    const { output } = migrate(
+      [
+        `import { Icon } from 'rbx';`,
+        'export const a = <Icon/>;',
+        'export const b = <Icon.Unknown/>;',
+      ].join('\n')
+    );
+    expect(output).toMatch(/Icon as Bulma\w+/);
+    expect(output).toMatch(/import \{ Icon \} from ["']rbx["']/);
+  });
+
+  it('does not alias a partial root that is not retained', () => {
+    const { output } = migrate(
+      [`import { Icon } from 'rbx';`, 'export const a = <Icon/>;'].join('\n')
+    );
+    expect(output).toContain('import { Icon } from "@allxsmith/bestax-bulma"');
+    expect(output).not.toContain('BulmaIcon');
+  });
+});

@@ -6,10 +6,11 @@
  * forever; too tight and the package is removed out from under a live import.
  */
 
-import { makeSourceImportRe } from '../cli.js';
+import { blankComments, makeSourceImportRe } from '../cli.js';
 
 describe('makeSourceImportRe', () => {
-  const matches = (src: string) => makeSourceImportRe('rbx').test(src);
+  const matches = (src: string) =>
+    makeSourceImportRe('rbx').test(blankComments(src));
 
   it.each([
     ['named import', `import { Box } from 'rbx';`],
@@ -75,3 +76,55 @@ describe('makeSourceImportRe', () => {
     );
   });
 });
+
+describe('blankComments', () => {
+  // No lookbehind can do this job: `// import … from 'rbx'` is not an import,
+  // while the `//` inside `'http://x'` is not a comment.
+  it('blanks a line comment but keeps offsets and line breaks', () => {
+    const src = "a\n// import { Box } from 'rbx';\nb";
+    const out = blankComments(src);
+    expect(out).toHaveLength(src.length);
+    expect(out.split('\n')).toHaveLength(3);
+    expect(out).not.toContain('rbx');
+  });
+
+  it('blanks a block comment', () => {
+    expect(blankComments("/* import { Box } from 'rbx'; */")).not.toContain(
+      'rbx'
+    );
+  });
+
+  it('leaves a // inside a string alone', () => {
+    const out = blankComments("const u = 'http://x//y';");
+    expect(out).toContain("'http://x//y'");
+  });
+
+  it('handles an escaped quote without ending the string early', () => {
+    const out = blankComments("const s = 'a\\'b'; // gone");
+    expect(out).toContain("'a\\'b'");
+    expect(out).not.toContain('gone');
+  });
+
+  it('leaves code with no comments byte-identical', () => {
+    const src = "import { Box } from 'rbx';\nconst x = 1;";
+    expect(blankComments(src)).toBe(src);
+  });
+});
+
+describe('comment handling in the matcher', () => {
+  it('matches through a line comment inside a dynamic import', () => {
+    expect(matchesSrc("const p = import(\n// chunk\n'rbx');")).toBe(true);
+  });
+
+  it('matches a require after a string containing //', () => {
+    expect(matchesSrc("const u = 'http://x//y'; require('rbx')")).toBe(true);
+  });
+
+  it('does not match an import inside a block comment', () => {
+    expect(matchesSrc("/* import { Box } from 'rbx'; */")).toBe(false);
+  });
+});
+
+function matchesSrc(src: string): boolean {
+  return makeSourceImportRe('rbx').test(blankComments(src));
+}

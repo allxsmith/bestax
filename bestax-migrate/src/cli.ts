@@ -118,31 +118,105 @@ interface RunOptions {
  * Comments are allowed wherever whitespace is, because a webpack magic comment
  * sits exactly there: `import(/* webpackChunkName: "x" *\/ 'rbx')`.
  */
+/**
+ * Blank out comments while preserving strings, offsets, and line breaks.
+ *
+ * The import matcher needs to know whether a keyword is real code, and no
+ * lookbehind can tell it: `// import { Box } from 'rbx'` is not an import,
+ * while the `//` inside `const u = 'http://x'; require('rbx')` is not a
+ * comment. Comment bytes become spaces rather than being deleted so the
+ * caller's line lookup still lines up with the original text.
+ *
+ * Deliberately small: this is not a JavaScript lexer. It tracks quotes and the
+ * two comment forms, which is what the matcher needs, and it is applied to
+ * `.sass` and `.vue` files too, where `//` is also a comment.
+ */
+export function blankComments(text: string): string {
+  let out = '';
+  let quote: string | null = null;
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    const next = text[i + 1];
+    if (quote) {
+      if (c === '\\' && i + 1 < text.length) {
+        out += c + next;
+        i += 2;
+        continue;
+      }
+      if (c === quote) quote = null;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') {
+      quote = c;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '/' && next === '/') {
+      while (i < text.length && text[i] !== '\n') {
+        out += ' ';
+        i += 1;
+      }
+      continue;
+    }
+    if (c === '/' && next === '*') {
+      out += '  ';
+      i += 2;
+      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) {
+        out += text[i] === '\n' ? '\n' : ' ';
+        i += 1;
+      }
+      if (i < text.length) {
+        out += '  ';
+        i += 2;
+      }
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  return out;
+}
+
+/**
+ * Matches an import of `name` at a specifier boundary, in every form a
+ * retained reference can take: a root or DEEP JavaScript import
+ * (`from 'rbx'`, `from 'rbx/base/theme'`), a bindingless side-effect
+ * `import 'rbx'`, a re-export, the CommonJS and dynamic forms `require('rbx')`
+ * and `import('rbx')` — none of which the jscodeshift transform rewrites, so
+ * all survive the run as live references — and the Sass form the stylesheet
+ * transform preserves in indented `.sass` files (`@import '~rbx/rbx'`).
+ *
+ * Run it over `blankComments(text)`, not the raw text: the keyword alternatives
+ * carry no comment awareness of their own by design, because that job needs a
+ * scanner rather than a lookbehind.
+ *
+ * Matching only `from '<pkg>'` meant a file whose ONLY remaining reference was
+ * a deep or Sass import let the manifest pass drop the package with no warning.
+ * Matching a bare substring is the opposite error, and worse for a name as
+ * short as `rbx`: prose and a sibling package like `rbx-utils` both counted.
+ */
 export function makeSourceImportRe(name: string): RegExp {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Block comments count as whitespace, because a webpack magic comment sits
-  // exactly where whitespace would: `import(/* webpackChunkName: "x" */ 'rbx')`.
-  const gap = String.raw`(?:\s|/\*[\s\S]*?\*/)*`;
   const spec = `['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`;
-  // Not inside a line comment, and not the tail of a longer identifier:
-  // `// import { Box } from 'rbx'` is not a live import and
-  // `myrequire('rbx')` is not a require. Anchoring to the start of the line
-  // would do the first job but breaks single-file components, where the
-  // import shares a line with the tag (`<script>import { Box } from 'rbx';`).
-  const lead = String.raw`(?<!//[^\n]*)(?<![\w$.])`;
+  // Not the tail of a longer identifier: `myrequire('rbx')` is not a require,
+  // and `foo.import(...)` is not an import.
+  const lead = String.raw`(?<![\w$.])`;
   return new RegExp(
     [
-      // A static import or re-export. The `import`/`export` keyword is what
-      // separates a real specifier from a bare `from` in prose ("Migrated
-      // from 'rbx' in 2019"). `[^;]` spans the newlines of a multi-line
-      // specifier list without running past the statement.
-      `${lead}(?:import|export)\\b[^;]*?\\bfrom${gap}${spec}`,
-      // A bindingless side-effect import, and the Sass form the stylesheet
-      // transform preserves in indented `.sass` files.
-      `${lead}import${gap}${spec}`,
-      `(?<!//[^\\n]*)@import${gap}${spec}`,
+      // A static import or re-export. The keyword is what separates a real
+      // specifier from a bare `from` in prose ("Migrated from 'rbx' in 2019").
+      // `[^;]` spans the newlines of a multi-line specifier list without
+      // running past the statement.
+      `${lead}(?:import|export)\\b[^;]*?\\bfrom\\s*${spec}`,
+      // A bindingless side-effect import, and the Sass form.
+      `${lead}import\\s*${spec}`,
+      `@import\\s*${spec}`,
       // The dynamic and CommonJS forms, which appear mid-expression.
-      `${lead}(?:import|require)${gap}\\(${gap}${spec}`,
+      `${lead}(?:import|require)\\s*\\(\\s*${spec}`,
     ].join('|')
   );
 }
@@ -182,14 +256,15 @@ function migrateFiles(
       // otherwise let the manifest pass remove the package with no warning —
       // the file still imports it, we just couldn't rewrite it.
       if (/['"](?:~?bulma\/)/.test(sourceText)) bulmaReferenced = true;
-      if (sourceImportRe.test(sourceText)) sourceStillImported = true;
+      if (sourceImportRe.test(blankComments(sourceText)))
+        sourceStillImported = true;
       reporter.finishFile(file, false, collector.entries);
       continue;
     }
     if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
       bulmaReferenced = true;
     }
-    if (sourceImportRe.test(output ?? sourceText)) {
+    if (sourceImportRe.test(blankComments(output ?? sourceText))) {
       sourceStillImported = true;
     }
     if (output !== null) {
@@ -226,10 +301,12 @@ function reportUnsupportedFiles(
     // characters: prose in an .mdx file and a sibling package like
     // `rbx-utils` both matched, which reported a file that imports nothing
     // and pinned the dependency the manifest pass would otherwise remove.
-    if (!importRe.test(text)) continue;
+    const scanned = blankComments(text);
+    if (!importRe.test(scanned)) continue;
     stillImported = true;
     const collector = reporter.startFile();
-    const line = text.split('\n').findIndex(l => importRe.test(l)) + 1 || null;
+    const line =
+      scanned.split('\n').findIndex(l => importRe.test(l)) + 1 || null;
     collector.add({
       file,
       line,
