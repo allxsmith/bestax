@@ -943,11 +943,20 @@ describe('Tab.Group needs the list bestax does not render itself', () => {
     expect(output).toContain('<Tabs.Item active>One</Tabs.Item>');
   });
 
-  it('does not double-wrap when a list is already present', () => {
+  it('inserts exactly one list for bare Tab children', () => {
     const { output } = migrate(
       'import { Tab } from "rbx";\nexport const A = () => (<Tab.Group><Tab>One</Tab><Tab>Two</Tab></Tab.Group>);'
     );
     expect((output.match(/Tabs\.List/g) ?? []).length).toBe(2); // open + close
+  });
+
+  it('does not wrap again when a list is already there', () => {
+    // The previous version of this test used bare <Tab> children, so it never
+    // exercised the already-wrapped path it claimed to cover.
+    const { output } = migrate(
+      'import { Tabs } from "@allxsmith/bestax-bulma";\nimport { Tab } from "rbx";\nexport const A = () => (<Tab.Group><Tabs.List><Tab>One</Tab></Tabs.List></Tab.Group>);'
+    );
+    expect((output.match(/Tabs\.List/g) ?? []).length).toBe(2);
   });
 });
 
@@ -1013,5 +1022,36 @@ describe('findings that arrived during the backlog pass', () => {
       expect(output).toContain(`breakpoint="${bp}"`);
       expect(todos).toHaveLength(0);
     }
+  });
+});
+
+describe('rbx Modal behaviours bestax does not implement', () => {
+  it('flags every conversion, since none of them fail loudly', () => {
+    // rbx portals into document.body, closes on Escape and clips scroll by
+    // default; bestax does none of the three, so an unmodified Modal migrates
+    // to something that looks right and behaves differently.
+    const { todos } = migrate(
+      'import { Modal } from "rbx";\nexport const A = () => <Modal active><Modal.Content>x</Modal.Content></Modal>;'
+    );
+    expect(todos.find(t => t.rule === 'component:Modal')?.message).toMatch(
+      /portalling into document\.body/
+    );
+  });
+
+  it('does not claim bestax closes on Escape', () => {
+    const { todos } = migrate(
+      'import { Modal } from "rbx";\nexport const A = () => <Modal active closeOnEsc>x</Modal>;'
+    );
+    const msg = todos.find(t => t.rule === 'prop:closeOnEsc')?.message ?? '';
+    expect(msg).toMatch(/no Escape handling at all/);
+  });
+});
+
+describe('a dynamic modifier in the Select.Container fallback', () => {
+  it('is reported rather than dropped with its expression', () => {
+    const { todos } = migrate(
+      'import { Select } from "rbx";\nexport const A = (w: any) => (<Select.Container fullwidth={w}><Select/><Select/></Select.Container>);'
+    );
+    expect(todos.some(t => t.rule === 'prop:fullwidth')).toBe(true);
   });
 });

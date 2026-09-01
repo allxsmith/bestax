@@ -513,7 +513,19 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ] as const) {
         const attr = findAttr(element, prop);
         if (!attr) continue;
-        if (resolveBooleanish(attr) === 'truthy') cls = `${cls} ${klass}`;
+        const resolved = resolveBooleanish(attr);
+        if (resolved === 'truthy') {
+          cls = `${cls} ${klass}`;
+        } else if (resolved === 'expression') {
+          // A plain element cannot carry the condition, so say so rather than
+          // dropping the styling along with its expression.
+          addTodo(
+            ctx,
+            path,
+            `prop:${prop}`,
+            `dynamic \`${prop}\` on a Select.Container that became plain markup; apply \`${klass}\` conditionally via className by hand`
+          );
+        }
         removeAttr(element, attr);
         ctx.dirty = true;
       }
@@ -750,6 +762,24 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
     restrictAsToTargets(ctx, path, element, result.target, ['Media.Left']);
     return { ...result, handledProps: ['align', 'as'] };
+  },
+
+  /**
+   * The markup maps cleanly, but three rbx behaviours do not exist in bestax
+   * and none of them fail loudly: rbx portals the modal into `document.body`,
+   * closes it on Escape by default, and clips document scroll while it is
+   * open. bestax renders inline and implements none of the three. An
+   * unmodified `<Modal>` therefore migrates to something that looks right and
+   * behaves differently, so every conversion is flagged.
+   */
+  modal(ctx, path, _element) {
+    addTodo(
+      ctx,
+      path,
+      'component:Modal',
+      'bestax `Modal` renders inline rather than portalling into document.body, and implements neither Escape-to-close nor scroll locking — rbx did all three by default. Re-add whichever your UI relied on'
+    );
+    return {};
   },
 
   /** rbx Modal.Container is the modal itself in bestax. */

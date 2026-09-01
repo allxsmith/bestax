@@ -621,16 +621,17 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
   },
   Modal: {
-    status: 'mapped',
+    status: 'partial',
     target: 'Modal',
+    special: 'modal',
     props: {
       active: {},
       onClose: {},
       closeOnEsc: {
-        todo: 'bestax `Modal` always closes on Escape; drop this prop or intercept the key yourself',
+        todo: 'bestax `Modal` implements no Escape handling at all; add your own keydown listener, or drop the prop if the behaviour is not needed',
       },
       closeOnBlur: {
-        todo: 'bestax `Modal` closes on background click by default; drop this or handle it in `onClose`',
+        todo: "bestax `Modal` has no built-in background-click close; wire it through `Modal.Background`'s onClick and `onClose`",
       },
       document: {
         todo: 'bestax `Modal` renders into the default document; drop this prop',

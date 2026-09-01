@@ -80,7 +80,7 @@ test holds to rbx's own export surface in both directions.
 | `Message`                  | `Message`             | mapped  |
 | `Message.Body`             | `Message.Body`        | mapped  |
 | `Message.Header`           | `Message.Header`      | mapped  |
-| `Modal`                    | `Modal`               | mapped  |
+| `Modal`                    | `Modal`               | partial |
 | `Modal.Background`         | `Modal.Background`    | mapped  |
 | `Modal.Close`              | `Modal.Close`         | mapped  |
 | `Modal.Content`            | `Modal.Content`       | mapped  |
