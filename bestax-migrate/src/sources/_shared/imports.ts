@@ -135,3 +135,32 @@ export function prefersTabs(source: string): boolean {
   }
   return tabs > spaces;
 }
+
+/**
+ * True when the identifier `name` at `path` really resolves to the binding
+ * the import/alias passes recorded, rather than a local that shadows it.
+ *
+ * Both passes key on identifier TEXT, so a nested `function F({ Card })`
+ * parameter looked exactly like the source library's `Card`: its JSX was
+ * rewritten to bestax's `Card.FooterItem` and the destructured parameter was
+ * renamed alongside it, silently repointing the code at a different object.
+ *
+ * `expected` is the scope the binding was collected in — the program scope for
+ * an import (they are always top-level), or the declaring scope of a
+ * `const { Item } = Card` alias, which the alias pass records because it walks
+ * declarators at any depth.
+ */
+export function resolvesToBinding(
+  path: ASTPath<any>,
+  name: string,
+  expected: unknown
+): boolean {
+  if (!expected) return true;
+  const declaring = (
+    path as unknown as { scope?: { lookup(n: string): unknown } }
+  ).scope?.lookup(name);
+  // An unresolvable name keeps the old behaviour rather than silently
+  // skipping work: a miss here means no rewrite at all, which is worse than
+  // the shadowing case it guards against.
+  return !declaring || declaring === expected;
+}

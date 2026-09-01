@@ -1067,3 +1067,51 @@ describe('a dynamic modifier in the Select.Container fallback', () => {
     expect(todos.some(t => t.rule === 'prop:fullwidth')).toBe(true);
   });
 });
+
+describe('binding resolution and import assembly', () => {
+  it('leaves a local that shadows the rbx import alone', () => {
+    const { output } = migrate(
+      [
+        `import { Card } from 'rbx';`,
+        'function F({ Card }) { return <Card.Footer.Item/>; }',
+        'export const G = () => <Card.Footer.Item/>;',
+      ].join('\n')
+    );
+    expect(output).toContain(
+      'function F({ Card }) { return <Card.Footer.Item/>; }'
+    );
+    expect(output).toMatch(/<Bulma?Card\.FooterItem\/>/);
+  });
+
+  it('still migrates an alias destructured inside a function', () => {
+    const { output } = migrate(
+      [
+        `import { Card } from 'rbx';`,
+        'export function F(){ const { Header } = Card; return <Header.Title/>; }',
+      ].join('\n')
+    );
+    expect(output).toContain('Card.Header.Title');
+  });
+
+  it('rebuilds the full chain through a destructured alias', () => {
+    const { output } = migrate(
+      [
+        `import { Card } from 'rbx';`,
+        'const { Header } = Card;',
+        'const T = Header.Title;',
+      ].join('\n')
+    );
+    expect(output).toContain('const T = Card.Header.Title;');
+  });
+
+  it('does not merge named specifiers into a namespace bestax import', () => {
+    const { output } = migrate(
+      [
+        `import * as Bulma from '@allxsmith/bestax-bulma';`,
+        `import { Box } from 'rbx';`,
+        'export const x = <><Bulma.Button/><Box/></>;',
+      ].join('\n')
+    );
+    expect(output).not.toMatch(/import \* as \w+,/);
+  });
+});

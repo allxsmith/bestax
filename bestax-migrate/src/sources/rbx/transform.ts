@@ -45,6 +45,7 @@ import {
   makeReserve,
   nameOf,
   prefersTabs,
+  resolvesToBinding,
 } from '../_shared/imports.js';
 import { flattenResponsiveProps, RESPONSIVE_KINDS } from './responsive.js';
 import { runSpecial } from './specials.js';
@@ -267,6 +268,11 @@ export default function transform(
     return undefined;
   }
 
+  // The scope each binding was collected in, so a reference can be checked
+  // against the binding it actually resolves to rather than matched by name.
+  const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
+  const aliasScopes = new Map<string, unknown>();
+
   // ---- 1b. Resolve `const { Item } = Card` destructuring -----------------
   root.find(j.VariableDeclarator).forEach(path => {
     const node = path.node;
@@ -287,6 +293,7 @@ export default function transform(
         prop.value?.type === 'Identifier'
       ) {
         aliases.set(prop.value.name, [...basePath, prop.key.name]);
+        aliasScopes.set(prop.value.name, path.scope);
       } else {
         allResolved = false;
       }
@@ -472,6 +479,20 @@ export default function transform(
     const element = path.node;
     const rbxPath = resolveJsxPath(element.openingElement.name);
     if (!rbxPath) return;
+    // Resolve by BINDING, not by name. `function F({ Card })` shadows the
+    // import with the caller's object, and rewriting its JSX to bestax's
+    // `Card.FooterItem` changed which component rendered.
+    const jsxHead = jsxNameParts(element.openingElement.name)?.[0];
+    if (
+      jsxHead &&
+      !resolvesToBinding(
+        path,
+        jsxHead,
+        aliases.has(jsxHead) ? aliasScopes.get(jsxHead) : programScope
+      )
+    ) {
+      return;
+    }
 
     const mapping = resolveMapping(rbxPath);
     const dotted = rbxPath.join('.');
@@ -594,6 +615,18 @@ export default function transform(
     const aliasPath = aliases.get(name);
     const imported = aliasPath ? aliasPath[0] : imports.get(name);
     if (imported === undefined) return;
+    // Resolve by BINDING, not by name: a local that shadows the import is a
+    // different object, and rewriting it repoints the code at bestax's
+    // component.
+    if (
+      !resolvesToBinding(
+        path,
+        name,
+        aliasPath ? aliasScopes.get(name) : programScope
+      )
+    ) {
+      return;
+    }
     const parentNode = path.parent?.node;
     const parentType = parentNode?.type;
     if (
@@ -678,6 +711,21 @@ export default function transform(
             const [root, ...rest] = memberMapping.target.split('.');
             let rebuilt: any = j.identifier(ctx.reserve(root));
             for (const part of rest) {
+              rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+            }
+            outer.replace(rebuilt);
+            ctx.dirty = true;
+            return;
+          }
+          if (aliasPath) {
+            // A destructured alias stands for MORE than one segment of the
+            // chain (`const { Header } = Card` makes `Header` mean
+            // `Card.Header`), so renaming the identifier drops every segment
+            // but the last: `Header.Title` became `Card.Title`. Rebuild the
+            // whole chain from the target instead.
+            const [aliasRoot, ...aliasRest] = memberMapping.target.split('.');
+            let rebuilt: any = j.identifier(ctx.reserve(aliasRoot));
+            for (const part of aliasRest) {
               rebuilt = j.memberExpression(rebuilt, j.identifier(part));
             }
             outer.replace(rebuilt);

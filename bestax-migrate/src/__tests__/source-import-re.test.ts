@@ -49,6 +49,24 @@ describe('makeSourceImportRe', () => {
     expect(matches(src)).toBe(false);
   });
 
+  it.each([
+    ['a commented-out import', `// import { Box } from 'rbx';`],
+    ['a commented-out require', `  // const x = require('rbx');`],
+    ['an identifier ending in require', `const x = myrequire('rbx');`],
+  ])('does not match %s', (_label, src) => {
+    expect(matches(src)).toBe(false);
+  });
+
+  it('matches an import that shares its line with a tag', () => {
+    // Single-file components put the import inside `<script>`, so anchoring
+    // to the start of the line would miss every .vue and .astro file.
+    expect(matches(`<script>import { Box } from 'rbx';</script>`)).toBe(true);
+  });
+
+  it('matches a multi-line specifier list', () => {
+    expect(matches(`import {\n  Box,\n  Button\n} from 'rbx';`)).toBe(true);
+  });
+
   it('escapes regex metacharacters in the package name', () => {
     const re = makeSourceImportRe('react-bulma-components');
     expect(re.test(`import { Box } from 'react-bulma-components';`)).toBe(true);

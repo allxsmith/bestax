@@ -114,3 +114,89 @@ describe('object shorthand properties', () => {
     expect(output).toContain('{ Box: 1 }');
   });
 });
+
+describe('binding resolution', () => {
+  it('leaves a local that shadows the import alone', () => {
+    // Resolving by identifier text rewrote a shadowing parameter as though it
+    // were the library's component, repointing the code at a different
+    // object -- and renamed the destructured parameter alongside it.
+    const { output } = migrate(
+      [
+        `import { Card } from 'react-bulma-components';`,
+        'function F({ Card }) { return <Card.Footer.Item/>; }',
+        'export const G = () => <Card.Footer.Item/>;',
+      ].join('\n')
+    );
+    expect(output).toContain(
+      'function F({ Card }) { return <Card.Footer.Item/>; }'
+    );
+    // The module-level reference still migrates.
+    expect(output).toMatch(/<Bulma?Card\.FooterItem\/>/);
+  });
+
+  it('leaves a shadowing local const alone', () => {
+    const { output } = migrate(
+      [
+        `import { Box } from 'react-bulma-components';`,
+        'function F() { const Box = 1; return Box; }',
+        'export const G = () => <Box/>;',
+      ].join('\n')
+    );
+    expect(output).toContain('const Box = 1;');
+  });
+
+  it('still migrates an alias destructured inside a function', () => {
+    // The alias pass walks declarators at any depth, so the scope guard must
+    // compare against the scope the alias was collected in, not the module.
+    const { output } = migrate(
+      [
+        `import { Card } from 'react-bulma-components';`,
+        'export function F(){ const { Header } = Card; return <Header.Title/>; }',
+      ].join('\n')
+    );
+    expect(output).toContain('Card.Header.Title');
+  });
+
+  it('rebuilds the full chain through a destructured alias', () => {
+    // The equal-target branch renamed `Header` to `Card`, so `Header.Title`
+    // collapsed to `Card.Title` -- a segment silently dropped.
+    const { output } = migrate(
+      [
+        `import { Card } from 'react-bulma-components';`,
+        'const { Header } = Card;',
+        'const T = Header.Title;',
+      ].join('\n')
+    );
+    expect(output).toContain('const T = Card.Header.Title;');
+  });
+});
+
+describe('bestax import assembly', () => {
+  it('does not merge named specifiers into a namespace import', () => {
+    // `import * as Bulma, { Box } from ...` is not valid JavaScript, so the
+    // whole file stopped parsing after a migration that reported success.
+    const { output } = migrate(
+      [
+        `import * as Bulma from '@allxsmith/bestax-bulma';`,
+        `import * as RBC from 'react-bulma-components';`,
+        'const C = RBC.Box;',
+        'export const x = <Bulma.Button/>;',
+      ].join('\n')
+    );
+    expect(output).not.toMatch(/import \* as \w+,/);
+    expect(output).toContain('const C = Box;');
+  });
+
+  it('still merges into an existing all-named bestax import', () => {
+    const { output } = migrate(
+      [
+        `import { Button } from '@allxsmith/bestax-bulma';`,
+        `import { Box } from 'react-bulma-components';`,
+        'export const x = <><Button/><Box/></>;',
+      ].join('\n')
+    );
+    expect(output.match(/from ["']@allxsmith\/bestax-bulma["']/g)).toHaveLength(
+      1
+    );
+  });
+});

@@ -120,9 +120,30 @@ interface RunOptions {
  */
 export function makeSourceImportRe(name: string): RegExp {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const gap = String.raw`(?:\s|/\*[\s\S]*?\*/|//[^\n]*\n)*`;
+  // Block comments count as whitespace, because a webpack magic comment sits
+  // exactly where whitespace would: `import(/* webpackChunkName: "x" */ 'rbx')`.
+  const gap = String.raw`(?:\s|/\*[\s\S]*?\*/)*`;
+  const spec = `['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`;
+  // Not inside a line comment, and not the tail of a longer identifier:
+  // `// import { Box } from 'rbx'` is not a live import and
+  // `myrequire('rbx')` is not a require. Anchoring to the start of the line
+  // would do the first job but breaks single-file components, where the
+  // import shares a line with the tag (`<script>import { Box } from 'rbx';`).
+  const lead = String.raw`(?<!//[^\n]*)(?<![\w$.])`;
   return new RegExp(
-    `(?:from|@import|import|require)${gap}\\(?${gap}['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`
+    [
+      // A static import or re-export. The `import`/`export` keyword is what
+      // separates a real specifier from a bare `from` in prose ("Migrated
+      // from 'rbx' in 2019"). `[^;]` spans the newlines of a multi-line
+      // specifier list without running past the statement.
+      `${lead}(?:import|export)\\b[^;]*?\\bfrom${gap}${spec}`,
+      // A bindingless side-effect import, and the Sass form the stylesheet
+      // transform preserves in indented `.sass` files.
+      `${lead}import${gap}${spec}`,
+      `(?<!//[^\\n]*)@import${gap}${spec}`,
+      // The dynamic and CommonJS forms, which appear mid-expression.
+      `${lead}(?:import|require)${gap}\\(${gap}${spec}`,
+    ].join('|')
   );
 }
 

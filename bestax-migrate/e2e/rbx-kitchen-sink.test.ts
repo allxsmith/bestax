@@ -251,25 +251,36 @@ describe('rbx kitchen-sink e2e', () => {
     for (const todo of app.depTodos) emitted.add(todo.rule);
     expect(emitted.size).toBeGreaterThan(0);
 
-    // The reference documents a rule under its own literal, and a dotted
-    // component rule may instead be covered by its parent's section
-    // (`component:File.*` covers `component:File.CTA`, and the Dropdown
-    // section covers its parts). A prop rule may be written bare in a row
-    // that names the component beside it.
+    // Match documented rule TOKENS, not substrings. `refs.includes(rule)`
+    // let `component:List` pass off the text of `component:List.Item`, and
+    // the prop fallback matched any backticked occurrence of the word
+    // anywhere in prose — so the guard could pass while the rule it was
+    // meant to pin went undocumented.
+    const tokens = new Set(
+      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+    );
+    // A prop rule may instead be written bare in a row that names the
+    // component beside it (`| \`expanded\` on \`Field\` |`).
+    const backticked = new Set(
+      [...refs.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1])
+    );
+
     const documented = (rule: string): boolean => {
-      if (refs.includes(rule)) return true;
+      if (tokens.has(rule)) return true;
       if (rule.startsWith('component:')) {
+        // A dotted part may be covered by its parent's section, which the
+        // reference writes as `component:File.*` or as a section for the
+        // parent component itself.
         const parent = rule.slice('component:'.length).split('.')[0];
         return (
-          refs.includes(`component:${parent}.*`) ||
-          refs.includes(`component:${parent}\``) ||
-          refs.includes(`component:${parent} `)
+          tokens.has(`component:${parent}.*`) ||
+          tokens.has(`component:${parent}`)
         );
       }
       if (rule.startsWith('prop:')) {
-        return refs.includes(`\`${rule.slice('prop:'.length)}\``);
+        return backticked.has(rule.slice('prop:'.length));
       }
-      return false;
+      return backticked.has(rule);
     };
 
     const undocumented = [...emitted].sort().filter(r => !documented(r));

@@ -50,6 +50,14 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    npm install   # or pnpm/yarn
    ```
 
+   The report groups its entries by rule. `deps` covers every package.json edit —
+   what was removed, added, or left for you to decide; `imports` covers a source
+   import the codemod could not rewrite and left in place; `unsupported-file` names
+   a file type it cannot parse (`.vue`, `.astro`) that still imports the source;
+   `value-reference` marks a component used as a value rather than as JSX. Rules
+   named `component:X` and `prop:y` are per-component and per-prop, and each is
+   documented in the per-source `references/` pages.
+
    The report's `peer-deps` entries predict install failures: bestax-bulma needs
    **React 18/19** (react-bulma-components also ran on 17, and rbx peer-depended on
    **React 16** — upgrade react/react-dom first) and its optional Font Awesome peer wants
