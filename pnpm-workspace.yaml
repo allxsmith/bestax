@@ -123,6 +123,17 @@ overrides:
   # matched nothing and the entry had quietly stopped being load-bearing. A
   # version-bounded selector expires itself the moment the ecosystem passes it.
   'postcss@8': '>=8.5.23 <9'
+  # bestax:review 2026-12-01 — drop once the jest/babel chain resolves to
+  # >=4.28.7 itself; re-resolve and leave it out if the version is unchanged.
+  # Force patched browserslist (transitive via ts-jest>jest>@babel/core and the
+  # Docusaurus/vite build chains — 100 paths, nothing declares it directly).
+  # Two high advisories, both fixed in the same release: GHSA-c83g-rgw3-j3cx
+  # and GHSA-73wf-gq98-2v4g (uncaught crash / prototype write via an untrusted
+  # browserslist-stats.json in normalizeStats). One patched floor covers the
+  # whole 4.x line, so this uses the unbounded-lower selector the runbook
+  # prescribes for that case rather than pinning whichever major the lockfile
+  # holds today.
+  'browserslist@<4.28.7': '>=4.28.7'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched brace-expansion per major — high advisories
   # GHSA-mh99-v99m-4gvg (unbounded expansion length, OOM) and its follow-up
