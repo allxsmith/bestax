@@ -321,6 +321,8 @@ export interface DropdownItemProps
   className?: string;
   /** The element type to render. */
   as?: 'a' | 'div' | 'button';
+  /** Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. */
+  disabled?: boolean;
   /** Item content. */
   children?: React.ReactNode;
 }

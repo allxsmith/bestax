@@ -425,7 +425,7 @@
       "slug": "components/dropdown",
       "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 16,
+      "propCount": 17,
       "exampleCount": 7
     },
     {

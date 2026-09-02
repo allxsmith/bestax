@@ -230,13 +230,14 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 ### Dropdown.Item
 
-| Prop        | Type                                                | Default | Description                                       |
-| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------- |
-| `active`    | `boolean`                                           | `false` | Whether the item is active.                       |
-| `className` | `string`                                            | —       | Additional CSS classes.                           |
-| `as`        | `'a'` \| `'div'` \| `'button'`                      | `'a'`   | The element type to render.                       |
-| `children`  | `React.ReactNode`                                   | —       | Item content.                                     |
-| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                | Default | Description                                                                                                                                                                      |
+| ----------- | --------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `active`    | `boolean`                                           | `false` | Whether the item is active.                                                                                                                                                      |
+| `className` | `string`                                            | —       | Additional CSS classes.                                                                                                                                                          |
+| `as`        | `'a'` \| `'div'` \| `'button'`                      | `'a'`   | The element type to render.                                                                                                                                                      |
+| `disabled`  | `boolean`                                           | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. |
+| `children`  | `React.ReactNode`                                   | —       | Item content.                                                                                                                                                                    |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                |
 
 <!-- /bestax:generated props -->
 

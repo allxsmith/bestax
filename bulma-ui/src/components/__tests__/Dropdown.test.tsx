@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  createEvent,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   Dropdown,
@@ -961,6 +967,25 @@ describe('Dropdown keyboard navigation', () => {
     expect(onActiveChange).toHaveBeenCalledWith(false);
   });
 
+  test('Tab from a focused item closes the menu without blocking native focus movement', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    screen.getByText('First').focus();
+    const tab = createEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'Tab',
+    });
+    fireEvent(screen.getByTestId('dropdown-menu'), tab);
+    // The menu closes...
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    // ...but Tab is not preventDefault()'d, so the browser moves focus to the
+    // next control naturally (jsdom does not simulate that focus move itself).
+    expect(tab.defaultPrevented).toBe(false);
+  });
+
   test('other keys within the menu do nothing', () => {
     render(
       <Dropdown label="Menu" active>
@@ -1008,6 +1033,19 @@ describe('Dropdown keyboard navigation', () => {
     );
     fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'Tab' });
     expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
+  test('forwards the typed disabled prop to the rendered item element', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem as="button" disabled>
+          Disabled
+        </DropdownItem>
+      </Dropdown>
+    );
+    const item = screen.getByText('Disabled');
+    expect(item.tagName).toBe('BUTTON');
+    expect(item).toBeDisabled();
   });
 
   test('skips disabled items when navigating with arrow keys', () => {

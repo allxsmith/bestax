@@ -193,6 +193,15 @@
           "deprecated": false
         },
         {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as=\"button\"` for a native disabled control, or pair with `aria-disabled` on a link.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
