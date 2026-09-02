@@ -1,3 +1,15 @@
+## [2.2.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.2.0...bestax-migrate@2.2.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** share the bulma range parser so RBC bumps comparator ranges too ([#629](https://github.com/allxsmith/bestax/issues/629)) ([491847c](https://github.com/allxsmith/bestax/commit/491847c2ab9f9a91f62241075f8942f240ad6b23))
+
+
+### Features
+
+* **bulma-ui:** add group size modifier to Buttons, Tags, Message ([90f6edb](https://github.com/allxsmith/bestax/commit/90f6edb7bd9ea8ac3365566164ee1ab4edc78eba)), closes [#620](https://github.com/allxsmith/bestax/issues/620)
+
 # [2.2.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.1.6...bestax-migrate@2.2.0) (2026-09-02)
 
 
