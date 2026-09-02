@@ -136,7 +136,7 @@ export const ItemsNavLinksAndDropdown: Story = {
           <Navbar.Item href="#">Home</Navbar.Item>
           <Navbar.Item href="#">Docs</Navbar.Item>
           <Navbar.Dropdown hoverable>
-            <Navbar.Item as="a">More</Navbar.Item>
+            <Navbar.Link>More</Navbar.Link>
             <Navbar.DropdownMenu>
               <Navbar.Item href="#">About</Navbar.Item>
               <Navbar.Item href="#">Jobs</Navbar.Item>
@@ -168,7 +168,7 @@ export const Dropdown: Story = {
       <Navbar.Menu active>
         <Navbar.Start>
           <Navbar.Dropdown hoverable>
-            <Navbar.Item as="a">Dropdown</Navbar.Item>
+            <Navbar.Link>Dropdown</Navbar.Link>
             <Navbar.DropdownMenu>
               <Navbar.Item href="#">First</Navbar.Item>
               <Navbar.Item href="#">Second</Navbar.Item>
@@ -188,7 +188,7 @@ export const DropdownRight: Story = {
       <Navbar.Menu active>
         <Navbar.End>
           <Navbar.Dropdown hoverable right>
-            <Navbar.Item as="a">Right Dropdown</Navbar.Item>
+            <Navbar.Link>Right Dropdown</Navbar.Link>
             <Navbar.DropdownMenu right>
               <Navbar.Item href="#">Profile</Navbar.Item>
               <Navbar.Item href="#">Settings</Navbar.Item>
@@ -207,7 +207,7 @@ export const Dropup: Story = {
       <Navbar.Menu active>
         <Navbar.Start>
           <Navbar.Dropdown hoverable up>
-            <Navbar.Item as="a">Dropup</Navbar.Item>
+            <Navbar.Link>Dropup</Navbar.Link>
             <Navbar.DropdownMenu up>
               <Navbar.Item href="#">Up1</Navbar.Item>
               <Navbar.Item href="#">Up2</Navbar.Item>
@@ -226,7 +226,7 @@ export const DropdownNoArrow: Story = {
       <Navbar.Menu active>
         <Navbar.Start>
           <Navbar.Dropdown hoverable className="no-arrow">
-            <Navbar.Item as="a">No Arrow</Navbar.Item>
+            <Navbar.Link>No Arrow</Navbar.Link>
             <Navbar.DropdownMenu>
               <Navbar.Item href="#">A</Navbar.Item>
               <Navbar.Item href="#">B</Navbar.Item>
@@ -245,7 +245,7 @@ export const ActiveDropdownItem: Story = {
       <Navbar.Menu active>
         <Navbar.Start>
           <Navbar.Dropdown active>
-            <Navbar.Item as="a">Active Dropdown</Navbar.Item>
+            <Navbar.Link>Active Dropdown</Navbar.Link>
             <Navbar.DropdownMenu>
               <Navbar.Item href="#">A1</Navbar.Item>
               <Navbar.Item href="#">A2</Navbar.Item>
@@ -264,7 +264,7 @@ export const DropdownWithDivider: Story = {
       <Navbar.Menu active>
         <Navbar.Start>
           <Navbar.Dropdown hoverable>
-            <Navbar.Item as="a">With Divider</Navbar.Item>
+            <Navbar.Link>With Divider</Navbar.Link>
             <Navbar.DropdownMenu>
               <Navbar.Item href="#">One</Navbar.Item>
               <Navbar.Item href="#">Two</Navbar.Item>
@@ -276,6 +276,35 @@ export const DropdownWithDivider: Story = {
       </Navbar.Menu>
     </Navbar>
   ),
+};
+
+// Keyboard-accessible dropdown: focus "More" and press Enter/Space to toggle,
+// Escape to close. Works without hovering.
+export const KeyboardAccessibleDropdown: Story = {
+  render: () => (
+    <Navbar>
+      <Navbar.Menu active>
+        <Navbar.Start>
+          <Navbar.Dropdown hoverable>
+            <Navbar.Link>Focus me, then press Enter</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#">About</Navbar.Item>
+              <Navbar.Item href="#">Jobs</Navbar.Item>
+              <Navbar.Item href="#">Contact</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        </Navbar.Start>
+      </Navbar.Menu>
+    </Navbar>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Navbar.Link renders aria-haspopup/aria-expanded from the Navbar.Dropdown it is nested in, and Enter/Space toggle it open even without a mouse hover; Escape closes it and keeps focus on the link.',
+      },
+    },
+  },
 };
 
 // Color modifier stories

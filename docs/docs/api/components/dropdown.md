@@ -163,8 +163,22 @@ function example() {
 - Menu items are focusable and use `role="menuitem"`.
 - Clicking outside closes the dropdown in most cases.
 
+`Dropdown` implements the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)
+out of the box:
+
+- On the trigger: <kbd>ArrowDown</kbd> or <kbd>Enter</kbd>/<kbd>Space</kbd> open the menu and
+  focus the first item; <kbd>ArrowUp</kbd> opens the menu and focuses the last item;
+  <kbd>Escape</kbd> closes an open menu.
+- Inside the menu: <kbd>ArrowDown</kbd>/<kbd>ArrowUp</kbd> move between items and wrap around;
+  <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu
+  and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue
+  naturally.
+- Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
+  `aria-disabled="true"`) and dividers are skipped during arrow-key navigation.
+
 :::note
-For custom keyboard navigation or focus management, add handlers as needed.
+There is no typeahead and no built-in outside-click handling inside the menu beyond the
+existing click-outside-to-close behavior — add those yourself if your use case needs them.
 :::
 
 ---
@@ -216,13 +230,14 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 ### Dropdown.Item
 
-| Prop        | Type                                                | Default | Description                                       |
-| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------- |
-| `active`    | `boolean`                                           | `false` | Whether the item is active.                       |
-| `className` | `string`                                            | —       | Additional CSS classes.                           |
-| `as`        | `'a'` \| `'div'` \| `'button'`                      | `'a'`   | The element type to render.                       |
-| `children`  | `React.ReactNode`                                   | —       | Item content.                                     |
-| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                | Default | Description                                                                                                                                                                      |
+| ----------- | --------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `active`    | `boolean`                                           | `false` | Whether the item is active.                                                                                                                                                      |
+| `className` | `string`                                            | —       | Additional CSS classes.                                                                                                                                                          |
+| `as`        | `'a'` \| `'div'` \| `'button'`                      | `'a'`   | The element type to render.                                                                                                                                                      |
+| `disabled`  | `boolean`                                           | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. |
+| `children`  | `React.ReactNode`                                   | —       | Item content.                                                                                                                                                                    |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                |
 
 <!-- /bestax:generated props -->
 

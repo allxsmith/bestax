@@ -425,7 +425,7 @@
       "slug": "components/dropdown",
       "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 16,
+      "propCount": 17,
       "exampleCount": 7
     },
     {
@@ -656,7 +656,7 @@
       "slug": "components/navbar",
       "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 54,
+      "propCount": 55,
       "exampleCount": 16
     },
     {

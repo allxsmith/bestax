@@ -419,10 +419,20 @@ function example() {
 
 - The root `Navbar` renders as `<nav role="navigation" aria-label="main navigation">`.
 - Use semantic links (`<a>`) and buttons, and provide clear `aria-label` and `aria-expanded` for the burger toggle.
-- Dropdowns and menus follow Bulma's structure for keyboard and screen reader accessibility.
+- `Navbar.Link` inside a `Navbar.Dropdown` automatically gets `aria-haspopup="true"` and
+  `aria-expanded` synced to the dropdown's open state — no manual wiring required.
+  <kbd>Enter</kbd>/<kbd>Space</kbd> toggle the dropdown open/closed, and <kbd>Escape</kbd>
+  closes it and keeps focus on the link. When the link has no `href` and isn't rendered with
+  `as="button"`, it also gets `role="button"` and `tabIndex={0}` so it's reachable and
+  operable by keyboard, and a mouse/touch click on it toggles the dropdown too (a
+  caller-supplied `onClick` still runs, and can `preventDefault()` to opt out).
+- `hoverable` dropdowns keep working with a mouse (hover-to-open); the keyboard path above
+  opens and closes them independently of hover.
 
 :::note
-For full accessibility in dropdowns, ensure that focus, keyboard navigation, and ARIA attributes are managed where needed.
+There's no arrow-key roving between navbar items and no outside-click handling for
+`Navbar.Dropdown` — Bulma navbar dropdowns are hover/click surfaces, so this is intentionally
+kept simple.
 :::
 
 ---
@@ -555,15 +565,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Dropdown
 
-| Prop        | Type                            | Default | Description              |
-| ----------- | ------------------------------- | ------- | ------------------------ |
-| `className` | `string`                        | —       | Additional CSS classes.  |
-| `right`     | `boolean`                       | `false` | Dropdown aligned right.  |
-| `up`        | `boolean`                       | `false` | Dropdown opens upwards.  |
-| `hoverable` | `boolean`                       | `false` | Dropdown opens on hover. |
-| `active`    | `boolean`                       | `false` | Dropdown is open.        |
-| `children`  | `React.ReactNode`               | —       | Dropdown content.        |
-| `...`       | All standard `<div>` attributes | —       |                          |
+| Prop             | Type                            | Default | Description                                  |
+| ---------------- | ------------------------------- | ------- | -------------------------------------------- |
+| `className`      | `string`                        | —       | Additional CSS classes.                      |
+| `right`          | `boolean`                       | `false` | Dropdown aligned right.                      |
+| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                      |
+| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover.                     |
+| `active`         | `boolean`                       | `false` | Dropdown is open.                            |
+| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes. |
+| `children`       | `React.ReactNode`               | —       | Dropdown content.                            |
+| `...`            | All standard `<div>` attributes | —       |                                              |
 
 ### Navbar.DropdownMenu
 

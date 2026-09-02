@@ -377,6 +377,97 @@ describe('Navbar.Dropdown', () => {
     expect(divider.tagName).toBe('HR');
     expect(divider).toHaveClass('navbar-divider');
   });
+
+  it('starts closed by default and can be controlled externally via active', () => {
+    const { rerender } = render(
+      <Navbar.Dropdown data-testid="dropdown">
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    expect(screen.getByTestId('dropdown')).not.toHaveClass('is-active');
+    rerender(
+      <Navbar.Dropdown active data-testid="dropdown">
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    expect(screen.getByTestId('dropdown')).toHaveClass('is-active');
+  });
+
+  it('toggles active state via its Navbar.Link trigger and calls onActiveChange', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange} data-testid="dropdown">
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const trigger = screen.getByText('More');
+    expect(screen.getByTestId('dropdown')).not.toHaveClass('is-active');
+
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(onActiveChange).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId('dropdown')).toHaveClass('is-active');
+
+    fireEvent.keyDown(trigger, { key: ' ' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(screen.getByTestId('dropdown')).not.toHaveClass('is-active');
+  });
+
+  it('Escape closes the dropdown and keeps focus on the link', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown
+        active
+        onActiveChange={onActiveChange}
+        data-testid="dropdown"
+      >
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const trigger = screen.getByText('More');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(trigger).toHaveFocus();
+  });
+
+  it('Escape does nothing when already closed', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange} data-testid="dropdown">
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.keyDown(screen.getByText('More'), { key: 'Escape' });
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  it('other keys on the trigger are ignored', () => {
+    render(
+      <Navbar.Dropdown data-testid="dropdown">
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.keyDown(screen.getByText('More'), { key: 'a' });
+    expect(screen.getByTestId('dropdown')).not.toHaveClass('is-active');
+  });
 });
 
 describe('Navbar.Link', () => {
@@ -456,6 +547,166 @@ describe('Navbar.Link', () => {
     );
     const link = screen.getByTestId('navlink');
     expect(link).toHaveClass('bulma-navbar-link');
+  });
+
+  it('does not add dropdown ARIA attributes when rendered outside Navbar.Dropdown', () => {
+    render(<Navbar.Link data-testid="navlink">Standalone</Navbar.Link>);
+    const link = screen.getByTestId('navlink');
+    expect(link).not.toHaveAttribute('aria-haspopup');
+    expect(link).not.toHaveAttribute('aria-expanded');
+    expect(link).not.toHaveAttribute('role');
+  });
+
+  it('adds aria-haspopup/aria-expanded and role="button"/tabIndex when it has no href', () => {
+    render(
+      <Navbar.Dropdown>
+        <Navbar.Link data-testid="navlink">More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const link = screen.getByTestId('navlink');
+    expect(link).toHaveAttribute('aria-haspopup', 'true');
+    expect(link).toHaveAttribute('aria-expanded', 'false');
+    expect(link).toHaveAttribute('role', 'button');
+    expect(link).toHaveAttribute('tabIndex', '0');
+  });
+
+  it('omits role/tabIndex when it has an href (already natively interactive)', () => {
+    render(
+      <Navbar.Dropdown active>
+        <Navbar.Link href="/more" data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const link = screen.getByTestId('navlink');
+    expect(link).toHaveAttribute('aria-haspopup', 'true');
+    expect(link).toHaveAttribute('aria-expanded', 'true');
+    expect(link).not.toHaveAttribute('role');
+    expect(link).not.toHaveAttribute('tabIndex');
+  });
+
+  it('omits role/tabIndex when rendered as a button (already natively interactive)', () => {
+    render(
+      <Navbar.Dropdown>
+        <Navbar.Link as="button" data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const link = screen.getByTestId('navlink');
+    expect(link).not.toHaveAttribute('role');
+    expect(link).not.toHaveAttribute('tabIndex');
+  });
+
+  it('calls a caller-supplied onKeyDown alongside the dropdown toggle behavior', () => {
+    const onKeyDown = jest.fn();
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange}>
+        <Navbar.Link onKeyDown={onKeyDown} data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('navlink'), { key: 'Enter' });
+    expect(onKeyDown).toHaveBeenCalled();
+    expect(onActiveChange).toHaveBeenCalledWith(true);
+  });
+
+  it('respects a caller-supplied onKeyDown that calls preventDefault', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange}>
+        <Navbar.Link onKeyDown={e => e.preventDefault()} data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('navlink'), { key: 'Enter' });
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  it('opens the dropdown on click when it has no href (touch/mouse users)', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange}>
+        <Navbar.Link data-testid="navlink">More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const link = screen.getByTestId('navlink');
+    fireEvent.click(link);
+    expect(onActiveChange).toHaveBeenCalledWith(true);
+    expect(link).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(link);
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
+  it('calls a caller-supplied onClick alongside the dropdown toggle', () => {
+    const onClick = jest.fn();
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange}>
+        <Navbar.Link onClick={onClick} data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.click(screen.getByTestId('navlink'));
+    expect(onClick).toHaveBeenCalled();
+    expect(onActiveChange).toHaveBeenCalledWith(true);
+  });
+
+  it('respects a caller-supplied onClick that calls preventDefault', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange}>
+        <Navbar.Link onClick={e => e.preventDefault()} data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.click(screen.getByTestId('navlink'));
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  it('does not hijack click when natively interactive (href)', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Navbar.Dropdown onActiveChange={onActiveChange}>
+        <Navbar.Link href="/more" data-testid="navlink">
+          More
+        </Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    fireEvent.click(screen.getByTestId('navlink'));
+    expect(onActiveChange).not.toHaveBeenCalled();
   });
 });
 

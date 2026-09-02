@@ -1,4 +1,11 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { useState } from 'react';
+import {
+  render,
+  screen,
+  fireEvent,
+  createEvent,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   Dropdown,
@@ -698,6 +705,388 @@ describe('Dropdown', () => {
 
     // Should remain not active due to the disabled guard path executing
     expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+});
+
+describe('Dropdown keyboard navigation', () => {
+  test('ArrowDown on trigger opens the menu and focuses the first item', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'ArrowDown' });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('ArrowUp on trigger opens the menu and focuses the last item', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'ArrowUp' });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('Second')).toHaveFocus();
+  });
+
+  test('Enter on trigger opens the menu and focuses the first item, then closes on Enter again', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'Enter' });
+    expect(onActiveChange).toHaveBeenCalledWith(true);
+    expect(screen.getByText('First')).toHaveFocus();
+
+    fireEvent.keyDown(button, { key: 'Enter' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
+  test('Space on trigger opens the menu and focuses the first item', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: ' ' });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('ArrowDown while open moves focus to the first item', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'ArrowDown' });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('ArrowUp while open moves focus to the last item', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'ArrowUp' });
+    expect(screen.getByText('Second')).toHaveFocus();
+  });
+
+  test('Escape on trigger closes the menu', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'Escape' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
+  test('Escape on a closed trigger is a no-op', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
+      key: 'Escape',
+    });
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  test('other keys on trigger do nothing', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'a' });
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test('disabled trigger ignores key presses', () => {
+    render(
+      <Dropdown label="Menu" disabled>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'ArrowDown' });
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test('ArrowDown/ArrowUp within the menu move focus and wrap around', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+        <DropdownItem>Third</DropdownItem>
+      </Dropdown>
+    );
+    const first = screen.getByText('First');
+    const second = screen.getByText('Second');
+    const third = screen.getByText('Third');
+
+    first.focus();
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'ArrowDown',
+    });
+    expect(second).toHaveFocus();
+
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'ArrowDown',
+    });
+    expect(third).toHaveFocus();
+
+    // wraps to first
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'ArrowDown',
+    });
+    expect(first).toHaveFocus();
+
+    // wraps backward to last
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'ArrowUp',
+    });
+    expect(third).toHaveFocus();
+  });
+
+  test('ArrowDown/ArrowUp within the menu default to an edge item when nothing is focused', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'ArrowDown',
+    });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('ArrowUp within the menu defaults to the last item when nothing is focused', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'ArrowUp',
+    });
+    expect(screen.getByText('Second')).toHaveFocus();
+  });
+
+  test('ArrowDown on the trigger opening an empty menu does not throw', () => {
+    render(<Dropdown label="Menu">{null}</Dropdown>);
+    const button = screen.getByRole('button', { name: /menu/i });
+    expect(() => fireEvent.keyDown(button, { key: 'ArrowDown' })).not.toThrow();
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('ArrowDown on the trigger of an already-open, empty menu is a no-op', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {null}
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    expect(() => fireEvent.keyDown(button, { key: 'ArrowDown' })).not.toThrow();
+  });
+
+  test('ArrowUp on the trigger of an already-open, empty menu is a no-op', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {null}
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    expect(() => fireEvent.keyDown(button, { key: 'ArrowUp' })).not.toThrow();
+  });
+
+  test('Home and End jump to the first and last item', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+        <DropdownItem>Third</DropdownItem>
+      </Dropdown>
+    );
+    const menu = screen.getByTestId('dropdown-menu');
+    screen.getByText('Second').focus();
+    fireEvent.keyDown(menu, { key: 'End' });
+    expect(screen.getByText('Third')).toHaveFocus();
+    fireEvent.keyDown(menu, { key: 'Home' });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('Escape within the menu closes it and restores focus to the trigger', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const item = screen.getByText('First');
+    item.focus();
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'Escape',
+    });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(screen.getByRole('button', { name: /menu/i })).toHaveFocus();
+  });
+
+  test('Tab within the menu closes it', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'Tab' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
+  test('Tab from a focused item closes the menu without blocking native focus movement', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    screen.getByText('First').focus();
+    const tab = createEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+      key: 'Tab',
+    });
+    fireEvent(screen.getByTestId('dropdown-menu'), tab);
+    // The menu closes...
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    // ...but Tab is not preventDefault()'d, so the browser moves focus to the
+    // next control naturally (jsdom does not simulate that focus move itself).
+    expect(tab.defaultPrevented).toBe(false);
+  });
+
+  test('other keys within the menu do nothing', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    screen.getByText('First').focus();
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'a' });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('menu keydown is a no-op when there are no menu items', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {null}
+      </Dropdown>
+    );
+    expect(() =>
+      fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
+        key: 'ArrowDown',
+      })
+    ).not.toThrow();
+  });
+
+  test('Escape closes the menu even when it has no focusable items', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        {null}
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'Escape' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(screen.getByRole('button', { name: /menu/i })).toHaveFocus();
+  });
+
+  test('Tab closes the menu when every item is disabled', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem as="button" disabled>
+          Disabled
+        </DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'Tab' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
+  test('forwards the typed disabled prop to the rendered item element', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem as="button" disabled>
+          Disabled
+        </DropdownItem>
+      </Dropdown>
+    );
+    const item = screen.getByText('Disabled');
+    expect(item.tagName).toBe('BUTTON');
+    expect(item).toBeDisabled();
+  });
+
+  test('skips disabled items when navigating with arrow keys', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem as="button" disabled>
+          Disabled
+        </DropdownItem>
+        <DropdownItem>Third</DropdownItem>
+      </Dropdown>
+    );
+    const menu = screen.getByTestId('dropdown-menu');
+    screen.getByText('First').focus();
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('Third')).toHaveFocus();
+  });
+
+  test('controlled dropdown supports keyboard open and reports via onActiveChange', () => {
+    const onActiveChange = jest.fn();
+    function Controlled() {
+      const [open, setOpen] = useState(false);
+      return (
+        <Dropdown
+          label="Menu"
+          active={open}
+          onActiveChange={active => {
+            setOpen(active);
+            onActiveChange(active);
+          }}
+        >
+          <DropdownItem>First</DropdownItem>
+        </Dropdown>
+      );
+    }
+    render(<Controlled />);
+    const button = screen.getByRole('button', { name: /menu/i });
+    fireEvent.keyDown(button, { key: 'ArrowDown' });
+    expect(onActiveChange).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('First')).toHaveFocus();
   });
 });
 

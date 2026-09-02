@@ -59,6 +59,23 @@ export const Up = () => (
   </>
 );
 
+export const KeyboardAccessible = () => (
+  <Dropdown label="Focus me, then press ArrowDown or Enter">
+    <Dropdown.Item>First Item</Dropdown.Item>
+    <Dropdown.Item>Second Item</Dropdown.Item>
+    <Dropdown.Divider />
+    <Dropdown.Item>Third Item</Dropdown.Item>
+  </Dropdown>
+);
+KeyboardAccessible.parameters = {
+  docs: {
+    description: {
+      story:
+        'Implements the WAI-ARIA Menu Button pattern: ArrowDown/Enter/Space open the menu and focus the first item, ArrowUp opens and focuses the last item, ArrowDown/ArrowUp wrap between items, Home/End jump to the first/last item, and Escape closes the menu and returns focus to the trigger.',
+    },
+  },
+};
+
 export const CompoundUsage = () => (
   <Dropdown label="Compound Dropdown" active>
     <Dropdown.Item>First Item</Dropdown.Item>

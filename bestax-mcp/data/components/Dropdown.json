@@ -34,7 +34,7 @@
       "code": "<Dropdown label=\"Dropdown Menu\" active>\n  <Dropdown.Item>First Item</Dropdown.Item>\n  <Dropdown.Item>Second Item</Dropdown.Item>\n  <Dropdown.Divider />\n  <Dropdown.Item>Third Item</Dropdown.Item>\n</Dropdown>"
     }
   ],
-  "accessibility": "- The dropdown root is a `<div class=\"dropdown\">` with ARIA roles/attributes for menu and trigger.\n- The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.\n- Menu items are focusable and use `role=\"menuitem\"`.\n- Clicking outside closes the dropdown in most cases.\n\n:::note\nFor custom keyboard navigation or focus management, add handlers as needed.\n:::",
+  "accessibility": "- The dropdown root is a `<div class=\"dropdown\">` with ARIA roles/attributes for menu and trigger.\n- The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.\n- Menu items are focusable and use `role=\"menuitem\"`.\n- Clicking outside closes the dropdown in most cases.\n\n`Dropdown` implements the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)\nout of the box:\n\n- On the trigger: <kbd>ArrowDown</kbd> or <kbd>Enter</kbd>/<kbd>Space</kbd> open the menu and\n  focus the first item; <kbd>ArrowUp</kbd> opens the menu and focuses the last item;\n  <kbd>Escape</kbd> closes an open menu.\n- Inside the menu: <kbd>ArrowDown</kbd>/<kbd>ArrowUp</kbd> move between items and wrap around;\n  <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu\n  and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue\n  naturally.\n- Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or\n  `aria-disabled=\"true\"`) and dividers are skipped during arrow-key navigation.\n\n:::note\nThere is no typeahead and no built-in outside-click handling inside the menu beyond the\nexisting click-outside-to-close behavior — add those yourself if your use case needs them.\n:::",
   "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-dropdown--default",
   "summary": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
@@ -188,6 +188,15 @@
           "type": "'a' | 'div' | 'button'",
           "default": "'a'",
           "description": "The element type to render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as=\"button\"` for a native disabled control, or pair with `aria-disabled` on a link.",
           "required": false,
           "inherited": false,
           "deprecated": false
