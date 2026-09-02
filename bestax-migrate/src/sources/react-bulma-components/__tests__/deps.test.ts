@@ -160,6 +160,8 @@ describe('pre-1.0 bulma range detection', () => {
     '<1',
     '0.7.0 - 0.9.4',
     '^0.9 || ^0.8',
+    '<1.0.0-0',
+    '>=0.9.0 <1.0.0-0',
   ])('bumps %s', range => {
     const { next } = run({
       dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },

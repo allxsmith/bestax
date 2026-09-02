@@ -48,8 +48,12 @@ function setIsPreV1(set: string): boolean {
         if (major >= 1) return false;
         break;
       case '<':
-        // `<1`, `<1.0`, `<1.0.0` exclude every v1; `<0.9` does too.
-        if (major === 0 || (major === 1 && /^1(\.0)*$/.test(version))) {
+        // `<1`, `<1.0`, `<1.0.0` exclude every v1, and so does npm's canonical
+        // `<1.0.0-0` (below the lowest 1.0.0 prerelease); `<0.9` does too.
+        if (
+          major === 0 ||
+          (major === 1 && /^1(\.0){0,2}(-0)?$/.test(version))
+        ) {
           cappedBelowOne = true;
         } else {
           return false;
