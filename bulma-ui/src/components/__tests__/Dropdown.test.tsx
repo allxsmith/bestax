@@ -985,6 +985,31 @@ describe('Dropdown keyboard navigation', () => {
     ).not.toThrow();
   });
 
+  test('Escape closes the menu even when it has no focusable items', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        {null}
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'Escape' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(screen.getByRole('button', { name: /menu/i })).toHaveFocus();
+  });
+
+  test('Tab closes the menu when every item is disabled', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <DropdownItem as="button" disabled>
+          Disabled
+        </DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByTestId('dropdown-menu'), { key: 'Tab' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
   test('skips disabled items when navigating with arrow keys', () => {
     render(
       <Dropdown label="Menu" active>

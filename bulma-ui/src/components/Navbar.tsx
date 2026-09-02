@@ -461,6 +461,17 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
     }
   };
 
+  // When the link is not natively interactive (no `href`, not a `<button>`) it
+  // renders as `role="button"`, so a mouse/touch click has no default action to
+  // open the dropdown. Compose the caller's handler and toggle the dropdown
+  // unless the caller prevented the default. Native links/buttons keep their own
+  // click semantics (navigation / the caller's handler).
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    rest.onClick?.(e);
+    if (!dropdownContext || isNativeInteractive || e.defaultPrevented) return;
+    dropdownContext.toggle();
+  };
+
   return (
     <Component
       className={classNames(
@@ -475,7 +486,11 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
         'aria-haspopup': 'true',
         'aria-expanded': dropdownContext.active,
         onKeyDown: handleKeyDown,
-        ...(!isNativeInteractive && { role: 'button', tabIndex: 0 }),
+        ...(!isNativeInteractive && {
+          role: 'button',
+          tabIndex: 0,
+          onClick: handleClick,
+        }),
       })}
     >
       {children}

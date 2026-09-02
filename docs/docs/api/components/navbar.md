@@ -424,7 +424,8 @@ function example() {
   <kbd>Enter</kbd>/<kbd>Space</kbd> toggle the dropdown open/closed, and <kbd>Escape</kbd>
   closes it and keeps focus on the link. When the link has no `href` and isn't rendered with
   `as="button"`, it also gets `role="button"` and `tabIndex={0}` so it's reachable and
-  operable by keyboard.
+  operable by keyboard, and a mouse/touch click on it toggles the dropdown too (a
+  caller-supplied `onClick` still runs, and can `preventDefault()` to opt out).
 - `hoverable` dropdowns keep working with a mouse (hover-to-open); the keyboard path above
   opens and closes them independently of hover.
 

@@ -204,6 +204,21 @@ const DropdownComponent: React.FC<DropdownProps> = ({
   };
 
   const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Escape and Tab close the menu regardless of whether it has any focusable
+    // items — an empty or all-disabled menu must still honor the close contract.
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setActive(false);
+      onActiveChange?.(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (e.key === 'Tab') {
+      setActive(false);
+      onActiveChange?.(false);
+      return;
+    }
+
     const items = getMenuItems();
     if (!items.length) return;
     const currentIndex = items.indexOf(document.activeElement as HTMLElement);
@@ -230,16 +245,6 @@ const DropdownComponent: React.FC<DropdownProps> = ({
       case 'End':
         e.preventDefault();
         items[items.length - 1].focus();
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setActive(false);
-        onActiveChange?.(false);
-        triggerRef.current?.focus();
-        break;
-      case 'Tab':
-        setActive(false);
-        onActiveChange?.(false);
         break;
       default:
         break;
