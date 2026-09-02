@@ -61,6 +61,30 @@ describe('useFlexboxClasses', () => {
     ).toBe('is-flex-wrap-wrap');
   });
 
+  it.each([
+    ['displayTouch', 'flex'],
+    ['displayTabletOnly', 'inline-flex'],
+    ['displayDesktopOnly', 'flex'],
+    ['displayWidescreenOnly', 'inline-flex'],
+  ] as const)('opens the container gate via %s %s', (prop, value) => {
+    expect(
+      renderUseFlexboxClasses({
+        [prop]: value,
+        flexDirection: 'row',
+      })
+    ).toBe('is-flex-direction-row');
+  });
+
+  it('keeps the container gate closed for a non-flex -only/touch display', () => {
+    expect(
+      renderUseFlexboxClasses({
+        displayTouch: 'block',
+        displayTabletOnly: 'grid',
+        flexDirection: 'row',
+      })
+    ).toBe('');
+  });
+
   it('emits flex item classes without any display prop', () => {
     expect(
       renderUseFlexboxClasses({

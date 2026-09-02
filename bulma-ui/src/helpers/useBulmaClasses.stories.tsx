@@ -1772,8 +1772,10 @@ export const TouchAndOnlyViewports: Story = {
       <Block>
         <Title size="6">displayTabletOnly</Title>
         <Box displayTabletOnly="block" bgColor="warning" colorShade="05" p="4">
-          Only rendered as block on tablet (769px - 1023px); hidden by default
-          outside that range.
+          <code>is-block-tablet-only</code> sets <code>display: block</code>{' '}
+          only inside the tablet-only range (769px - 1023px). A Box is already
+          block by default, so outside that range it keeps its normal block
+          display — the <code>-only</code> class does not hide it elsewhere.
         </Box>
       </Block>
 
