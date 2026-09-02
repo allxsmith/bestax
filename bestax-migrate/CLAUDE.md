@@ -11,7 +11,11 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   not react-bulma-components, not rbx. Fixtures are read as _text_ (`__testfixtures__`,
   `fixtures/kitchen-sink`, `fixtures/rbx-kitchen-sink`); the migration _input_ is never
   typechecked or executed. Validation typechecks the migrated _output_ against the
-  workspace `@allxsmith/bestax-bulma`.
+  workspace `@allxsmith/bestax-bulma`. The two kitchen-sink manifests are named
+  `package.input.json`, not `package.json`: Dependabot's alert graph treats any file with
+  that name as a real manifest whatever the lockfile says, and opened a security-update PR
+  against the rbx fixture's deliberately-old `node-sass` (#615). The e2e renames its copy
+  back inside `.e2e-tmp`, so the pass under test still sees a genuine `package.json`.
 - Mapping-table first: each source's `mapping.ts` is its single source of truth. Every
   export of that library must have an entry (`mapped`/`partial`/`todo`) — the
   `mapping-coverage` test walks the vendored `RBC_EXPORTS` / `RBX_EXPORTS` list against it,
