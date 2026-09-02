@@ -145,3 +145,35 @@ describe('retained-import warning', () => {
     expect(todos.map(t => t.message).join('\n')).not.toMatch(/still import it/);
   });
 });
+
+describe('pre-1.0 bulma range detection', () => {
+  // The regex this pass used matched a leading `0` and nothing else, so a
+  // range written as comparators (`>=0.9.0 <1`) was neither bumped nor
+  // reported. The parser is now shared with the rbx source, which had already
+  // been fixed; this pins the port.
+  it.each([
+    '^0.9.4',
+    '~0.7.5',
+    '0.7.x',
+    '>=0.7 <1',
+    '>= 0.7.0 < 1.0.0',
+    '<1',
+    '0.7.0 - 0.9.4',
+    '^0.9 || ^0.8',
+  ])('bumps %s', range => {
+    const { next } = run({
+      dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
+    });
+    expect((next?.dependencies as Record<string, string>).bulma).toBe('^1.0.4');
+  });
+
+  it.each(['^1.0.2', '>=0.9 <2', '^0.9 || ^1.0', '*', '>=0.9', '<=1.0.0'])(
+    'leaves %s alone because it admits a v1',
+    range => {
+      const { next } = run({
+        dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
+      });
+      expect((next?.dependencies as Record<string, string>).bulma).toBe(range);
+    }
+  );
+});

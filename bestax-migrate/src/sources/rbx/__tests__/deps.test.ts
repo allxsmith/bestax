@@ -1,8 +1,8 @@
 /**
- * package.json updater. The behaviour worth pinning down is the guard on the
- * four Bulma extensions: they are only removed *alongside* rbx, because an
- * app that added `bulma-tooltip` on its own may still be using it outside rbx
- * components.
+ * package.json updater. The behaviour worth pinning down is the four Bulma
+ * extensions: they are reported for the user to remove, never deleted, because
+ * an app that added `bulma-tooltip` on its own may still be using it outside
+ * rbx components.
  */
 
 import { updateDependencies } from '../deps.js';

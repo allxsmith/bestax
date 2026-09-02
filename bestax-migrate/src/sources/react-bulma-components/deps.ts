@@ -6,6 +6,7 @@
  */
 
 import type { DependenciesUpdate } from '../../types.js';
+import { isPreV1 } from '../_shared/semver-range.js';
 
 const BESTAX_RANGE = '^5';
 const BULMA_RANGE = '^1.0.4';
@@ -13,10 +14,6 @@ const BULMA_RANGE = '^1.0.4';
 const SASS_RANGE = '^1.79.0';
 
 const DEP_SECTIONS = ['dependencies', 'devDependencies'] as const;
-
-function isPreV1(range: string): boolean {
-  return /^[~^]?0[.x]/.test(range.trim());
-}
 
 export const updateDependencies: DependenciesUpdate = (
   filePath,
