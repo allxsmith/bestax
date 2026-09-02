@@ -28,6 +28,7 @@ const meta: Meta<typeof Buttons> = {
     isCentered: { control: 'boolean' },
     isRight: { control: 'boolean' },
     hasAddons: { control: 'boolean' },
+    size: { control: 'select', options: ['small', 'medium', 'large'] },
   },
   parameters: {
     docs: {
@@ -92,6 +93,34 @@ export const RightAligned: Story = {
     docs: {
       description: {
         story: 'Buttons wrapper with right alignment using is-right.',
+      },
+    },
+  },
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <>
+      <Buttons size="small">
+        <Button>Small</Button>
+        <Button color="info">Small</Button>
+      </Buttons>
+      <Buttons size="medium">
+        <Button>Medium</Button>
+        <Button color="info">Medium</Button>
+      </Buttons>
+      <Buttons size="large">
+        <Button>Large</Button>
+        <Button color="info">Large</Button>
+      </Buttons>
+    </>
+  ),
+  args: {},
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Buttons wrapper with the group size modifier (are-small/are-medium/are-large) applied to all buttons at once.',
       },
     },
   },

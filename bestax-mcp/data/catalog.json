@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.11.7"
+    "version": "5.12.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -216,8 +216,8 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 52,
-      "exampleCount": 7
+      "propCount": 53,
+      "exampleCount": 8
     },
     {
       "name": "Card",
@@ -634,7 +634,7 @@
       "slug": "components/message",
       "import": "import { Message } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 11,
+      "propCount": 12,
       "exampleCount": 8
     },
     {
@@ -953,8 +953,8 @@
       "slug": "elements/tags",
       "import": "import { Tags } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 13,
-      "exampleCount": 7
+      "propCount": 14,
+      "exampleCount": 8
     },
     {
       "name": "TextArea",

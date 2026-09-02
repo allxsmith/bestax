@@ -74,6 +74,23 @@ Tags wrap onto multiple lines by default, keeping long lists responsive without 
 </Tags>
 ```
 
+### Group Size
+
+Set the `size` prop (`'medium'`, `'large'`) on `Tags` to size every tag in the group at once, instead of setting `size` on each `Tag` individually. Bulma has no `.tags.are-small` class, so `'small'` is not a valid value here.
+
+```tsx live
+<>
+  <Tags size="medium">
+    <Tag color="primary">Medium</Tag>
+    <Tag color="info">Medium</Tag>
+  </Tags>
+  <Tags size="large">
+    <Tag color="primary">Large</Tag>
+    <Tag color="info">Large</Tag>
+  </Tags>
+</>
+```
+
 ### With Margin
 
 You can use Bulma helper props like `m="4"` to add margin around the tag group for spacing within layouts.
@@ -170,6 +187,7 @@ Use `hasAddons` for tightly grouped tags (no space between them).
 | `className`   | `string`                                               | —       | Additional CSS classes to apply.                                                                                                                                                                                                     |
 | `hasAddons`   | `boolean`                                              | `false` | Group tags together as add-ons (no spacing).                                                                                                                                                                                         |
 | `isMultiline` | `boolean`                                              | `false` | **Deprecated.** Bulma's `.tags` wraps by default (no shipped `are-multiline` CSS exists for it) — this prop has never had a visual effect and will be removed in the next major version. No-op retained for backwards compatibility. |
+| `size`        | `'medium'` \| `'large'`                                | —       | Size of every tag in the group.                                                                                                                                                                                                      |
 | `children`    | `React.ReactNode`                                      | —       | Tag elements to render inside the container.                                                                                                                                                                                         |
 | `...`         | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                    |
 

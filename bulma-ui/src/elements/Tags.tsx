@@ -4,13 +4,19 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Tag } from './Tag';
 
+const validTagsSizes = ['medium', 'large'] as const;
+/**
+ * Valid size values for the Tags component (Bulma tag group sizes).
+ */
+export type TagsSize = (typeof validTagsSizes)[number];
+
 /**
  * Props for the Tags component.
  */
 export interface TagsProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
-    Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+    Omit<BulmaClassesProps, 'backgroundColor' | 'color' | 'size'> {
   /** Additional CSS classes to apply. */
   className?: string;
   /** Group tags together as add-ons (no spacing). */
@@ -23,6 +29,8 @@ export interface TagsProps
    * removed in the next major version.
    */
   isMultiline?: boolean;
+  /** Size of every tag in the group. */
+  size?: TagsSize;
   /** Tag elements to render inside the container. */
   children?: React.ReactNode;
 }
@@ -40,6 +48,7 @@ const TagsComponent: React.FC<TagsProps> = ({
   hasAddons,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- accepted for backwards compatibility, deprecated no-op (no `are-multiline` CSS ships)
   isMultiline,
+  size,
   children,
   ...props
 }) => {
@@ -50,6 +59,7 @@ const TagsComponent: React.FC<TagsProps> = ({
 
   const bulmaClasses = usePrefixedClassNames('tags', {
     'has-addons': hasAddons,
+    [`are-${size}`]: size && validTagsSizes.includes(size),
   });
 
   const tagsClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
