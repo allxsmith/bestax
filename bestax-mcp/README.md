@@ -96,4 +96,4 @@ One per skill, so a task can start from the library's own guidance:
 - [Documentation](https://bestax.io)
 - [GitHub](https://github.com/allxsmith/bestax)
 
-MIT © Alex Smith
+Source code licensed MIT
