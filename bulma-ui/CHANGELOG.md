@@ -1,3 +1,17 @@
+# [5.13.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.12.0...@allxsmith/bestax-bulma@5.13.0) (2026-09-02)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** share the bulma range parser so RBC bumps comparator ranges too ([#629](https://github.com/allxsmith/bestax/issues/629)) ([491847c](https://github.com/allxsmith/bestax/commit/491847c2ab9f9a91f62241075f8942f240ad6b23))
+* **bulma-ui:** add keyboard and focus support to Dropdown and Navbar.Dropdown ([#628](https://github.com/allxsmith/bestax/issues/628)) ([381f22d](https://github.com/allxsmith/bestax/commit/381f22d6403b8a95d3e3ee6b4efabb495e1210aa))
+* **bulma-ui:** stop emitting are-multiline from Tags, deprecate isMultiline ([#624](https://github.com/allxsmith/bestax/issues/624)) ([0f97eac](https://github.com/allxsmith/bestax/commit/0f97eac1123bf7be11756cfc222cd215ea2b6f68))
+
+
+### Features
+
+* **bulma-ui:** add touch/-only responsive viewports and grid display ([#627](https://github.com/allxsmith/bestax/issues/627)) ([8973adc](https://github.com/allxsmith/bestax/commit/8973adc1c41e9eef07c04e05c66bd187ad22833b))
+
 # [5.12.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.11.7...@allxsmith/bestax-bulma@5.12.0) (2026-09-02)
 
 
