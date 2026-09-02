@@ -216,7 +216,9 @@ export function makeSourceImportRe(name: string): RegExp {
       `${lead}import\\s*${spec}`,
       `@import\\s*${spec}`,
       // The dynamic and CommonJS forms, which appear mid-expression.
-      `${lead}(?:import|require)\\s*\\(\\s*${spec}`,
+      // `require.resolve('rbx')` is as live a reference as `require('rbx')`
+      // and is just as unrewritten by the transform.
+      `${lead}(?:import|require(?:\\.resolve)?)\\s*\\(\\s*${spec}`,
     ].join('|')
   );
 }

@@ -235,6 +235,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Divider: {
     status: 'partial',
     target: 'Divider',
+    special: 'divider',
     props: {
       color: {
         todo: 'bestax `Divider` takes only `bgColor`; set that or a custom class',

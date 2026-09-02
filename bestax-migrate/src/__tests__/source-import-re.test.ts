@@ -64,6 +64,12 @@ describe('makeSourceImportRe', () => {
     expect(matches(`<script>import { Box } from 'rbx';</script>`)).toBe(true);
   });
 
+  it('matches require.resolve, which is as live as require', () => {
+    expect(matches(`const p = require.resolve('rbx');`)).toBe(true);
+    expect(matches(`require.resolve('rbx/index.sass')`)).toBe(true);
+    expect(matches(`myrequire.resolve('rbx')`)).toBe(false);
+  });
+
   it('matches a multi-line specifier list', () => {
     expect(matches(`import {\n  Box,\n  Button\n} from 'rbx';`)).toBe(true);
   });

@@ -1168,3 +1168,22 @@ describe('alias scoping and retained partial roots', () => {
     expect(output).not.toContain('BulmaIcon');
   });
 });
+
+describe('labelled Divider', () => {
+  it('flags children, which bestax Divider (a void <hr>) cannot take', () => {
+    // rbx rendered the children as a centred label through `data-content`.
+    // Passing them straight through put children on an <hr>, which React
+    // rejects at runtime, with no TODO reporting the lost label.
+    const { todos } = migrate(
+      `import { Divider } from 'rbx';\nexport const a = <Divider>OR</Divider>;\n`
+    );
+    expect(todos.some(t => t.rule === 'component:Divider')).toBe(true);
+  });
+
+  it('leaves a bare Divider alone', () => {
+    const { todos } = migrate(
+      `import { Divider } from 'rbx';\nexport const a = <Divider/>;\n`
+    );
+    expect(todos.some(t => t.rule === 'component:Divider')).toBe(false);
+  });
+});

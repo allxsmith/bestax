@@ -15,6 +15,7 @@ import {
 } from "@allxsmith/bestax-bulma";
 
 // TODO(bestax-migrate): `direction` — bestax `Loading` has no directional variant; drop it or add a custom class
+// TODO(bestax-migrate): rbx `Divider` rendered its children as a centred label; bestax `Divider` is a bare `<hr>` and takes no children — move the label into surrounding markup, or drop it
 // TODO(bestax-migrate): `color` — bestax `Divider` takes only `bgColor`; set that or a custom class
 // TODO(bestax-migrate): `vertical` — bestax `Divider` has no vertical variant; use a bordered Column or custom CSS
 export const Form = () => (

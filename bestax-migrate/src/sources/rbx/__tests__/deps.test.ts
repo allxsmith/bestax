@@ -154,3 +154,31 @@ describe('the headline describes what actually happened to bulma', () => {
     expect(headline(messages)).toContain('left your declared bulma range');
   });
 });
+
+describe('pre-1.0 bulma range detection', () => {
+  // The first version matched a leading `0` and nothing else, so a range
+  // written as comparators (`>=0.7 <1`) stayed on 0.x and was then reported
+  // as already v1. Conservative on purpose: anything it cannot prove is
+  // exclusively pre-v1 is left alone.
+  it.each([
+    '^0.9.4',
+    '~0.7.5',
+    '0.7.x',
+    '>=0.7 <1',
+    '>=0.7.0 <1.0.0',
+    '<1',
+    '0.7.0 - 0.9.4',
+    '^0.9 || ^0.8',
+  ])('bumps %s', range => {
+    const { next } = run({ dependencies: { rbx: '^2.2.0', bulma: range } });
+    expect(next?.dependencies.bulma).toBe('^1.0.4');
+  });
+
+  it.each(['^1.0.2', '>=0.9 <2', '^0.9 || ^1.0', '*', '>=0.9', '<=1.0.0'])(
+    'leaves %s alone because it admits a v1',
+    range => {
+      const { next } = run({ dependencies: { rbx: '^2.2.0', bulma: range } });
+      expect(next?.dependencies.bulma).toBe(range);
+    }
+  );
+});

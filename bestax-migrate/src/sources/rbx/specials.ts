@@ -337,6 +337,29 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
+   * rbx's Divider rendered its children as a centred label (`div.is-divider`
+   * with the text in `data-content`). bestax's Divider is a bare `<hr>` and
+   * takes no children -- React rejects children on a void element at runtime,
+   * so passing them through produced a crash with no TODO naming the lost
+   * label. The children are left in place so nothing is discarded silently;
+   * the TODO tells the user where the label has to go instead.
+   */
+  divider(ctx, path, element) {
+    const children = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    if (children.length > 0) {
+      addTodo(
+        ctx,
+        path,
+        'component:Divider',
+        'rbx `Divider` rendered its children as a centred label; bestax `Divider` is a bare `<hr>` and takes no children — move the label into surrounding markup, or drop it'
+      );
+    }
+    return {};
+  },
+
+  /**
    * rbx nests <Image> inside <Image.Container>, which carries the size; the
    * bestax Image renders the <figure> itself, so the container collapses and
    * hands its size down.

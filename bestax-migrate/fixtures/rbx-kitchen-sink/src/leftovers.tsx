@@ -5,6 +5,7 @@
 // TODO rules instead.
 import React from "react";
 import {
+  Divider,
   Dropdown,
   Fieldset,
   File,
@@ -68,10 +69,13 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
       </Dropdown.Menu>
     </Dropdown>
 
-    {/* bestax's Modal always closes on Escape; there is no prop to carry */}
+    {/* bestax's Modal has no Escape handling, portal, or scroll lock; every conversion is flagged */}
     <Modal active closeOnEsc closeOnBlur>
       <Modal.Content>body</Modal.Content>
     </Modal>
+
+    {/* rbx rendered the children as a label; bestax's Divider is a void <hr> */}
+    <Divider>OR</Divider>
 
     {/* dynamic values are never best-guessed */}
     <Generic as="div" textAlign={where === "left" ? "left" : "right"} />
