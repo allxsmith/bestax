@@ -1,3 +1,44 @@
+## [4.2.4](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.3...create-bestax@4.2.4) (2026-09-02)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** address the PR [#613](https://github.com/allxsmith/bestax/issues/613) review round ([7faf2d8](https://github.com/allxsmith/bestax/commit/7faf2d86ee564e92e17c1cacd51f685471e517f9))
+* **bestax-migrate:** address the second review round on PR [#613](https://github.com/allxsmith/bestax/issues/613) ([df222c3](https://github.com/allxsmith/bestax/commit/df222c3ea924900842d209e8165c3071c2f8b110))
+* **bestax-migrate:** address the third review round on PR [#613](https://github.com/allxsmith/bestax/issues/613) ([92fc2a0](https://github.com/allxsmith/bestax/commit/92fc2a04b55d6b2c1c2083b3cf951300c41bbfcb))
+* **bestax-migrate:** close seven defects found reviewing the rbx source ([c2147d9](https://github.com/allxsmith/bestax/commit/c2147d9935e45c8a59344ed2a95fc390fa2e94f9))
+* **bestax-migrate:** correct the Navbar dropdown target and doc drift ([dee9f08](https://github.com/allxsmith/bestax/commit/dee9f08640e34046446d5dd9157f10e96810ac70))
+* **bestax-migrate:** drain the Copilot backlog — 9 findings ([34b75ad](https://github.com/allxsmith/bestax/commit/34b75ade0f06ff90b13c48d8d9ab9a22964d8c49))
+* **bestax-migrate:** fix the alias collision in react-bulma-components too ([9d8219b](https://github.com/allxsmith/bestax/commit/9d8219bb906e86a12249d979dc9af9fe64124f7e))
+* **bestax-migrate:** flag labelled dividers, parse pre-1.0 ranges, match require.resolve ([794e0a7](https://github.com/allxsmith/bestax/commit/794e0a726731384fd6c4b2ce632b1bf46d558450))
+* **bestax-migrate:** flag the Modal behaviours bestax does not implement ([5f37135](https://github.com/allxsmith/bestax/commit/5f371355aa50be600e9e66cd47fbecf1638cf886))
+* **bestax-migrate:** four more findings that arrived mid-pass ([d637083](https://github.com/allxsmith/bestax/commit/d637083378c0ba7d7f0195ca0d9e681f6afdcf30))
+* **bestax-migrate:** keep a namespace import referenced as a value ([2feca47](https://github.com/allxsmith/bestax/commit/2feca47aff22b211f6c6d6b6d84844aa74b122c5)), closes [#4](https://github.com/allxsmith/bestax/issues/4)
+* **bestax-migrate:** key aliases by scope and reserve retained partial roots ([402a950](https://github.com/allxsmith/bestax/commit/402a950e6a997bfcb2072e9ff759df358727b32e))
+* **bestax-migrate:** let a nearer binding win over a shadowed alias ([0c45ff3](https://github.com/allxsmith/bestax/commit/0c45ff3c8f8c71e5df57b6c9e6999bf506e7d111))
+* **bestax-migrate:** migrate component references through a namespace import ([aaef103](https://github.com/allxsmith/bestax/commit/aaef10347f6c451870e7385d0085bb9eaa802f81))
+* **bestax-migrate:** port four value-reference fixes to the RBC source ([bc0096a](https://github.com/allxsmith/bestax/commit/bc0096a6b4db73ed5b22a4a26a9aa07f04ab225a))
+* **bestax-migrate:** port namespace-import retention to react-bulma-components ([1c35319](https://github.com/allxsmith/bestax/commit/1c35319b1f446f0afe93f1f7c7d4882bd1850b05))
+* **bestax-migrate:** preserve shorthand object keys, and read deps signals on parse failure ([9dd22df](https://github.com/allxsmith/bestax/commit/9dd22df61e04f0d9662c8d1d09db81dd9e59ddcc))
+* **bestax-migrate:** read spaced comparators and stop calling non-semver bulma "v1" ([ea287b6](https://github.com/allxsmith/bestax/commit/ea287b68936c53134e672c9037423bb3a17fe9f6))
+* **bestax-migrate:** refresh the MCP index after the reference edits ([443829f](https://github.com/allxsmith/bestax/commit/443829ff5ff5882cd1e0e16526050936eb0916e6))
+* **bestax-migrate:** report what actually happened to bulma, not a fixed line ([a208436](https://github.com/allxsmith/bestax/commit/a20843691ccdfc66fe2ff8920f87144e6ddeedbc))
+* **bestax-migrate:** resolve aliases by location, reserve value-retained roots, keep extension CSS ([1f02e12](https://github.com/allxsmith/bestax/commit/1f02e1284180f3a7eb526c35f998f3c57f481bf5))
+* **bestax-migrate:** resolve component references by binding, not by name ([0722674](https://github.com/allxsmith/bestax/commit/072267461d8214c76bdf45a80e66ba000957b586))
+* **bestax-migrate:** resolve destructured aliases and protect aliased imports ([58b14cf](https://github.com/allxsmith/bestax/commit/58b14cfcafaa74f495be6935c6aef9ac93a54865))
+* **bestax-migrate:** resolve dotted targets for bare alias references ([3f53bea](https://github.com/allxsmith/bestax/commit/3f53beaf0ac1fe0d53bd62253c6b7b2877325f2e))
+* **bestax-migrate:** resolve shorthand and destructured aliases correctly ([9c0dea8](https://github.com/allxsmith/bestax/commit/9c0dea832b21e63c09b423ae1f4f367f94035ebf))
+* **bestax-migrate:** stop collapsing containers onto children they don't wrap ([e659ed8](https://github.com/allxsmith/bestax/commit/e659ed8e25481ae4e496c105d2f33385b7850e28))
+* **bestax-migrate:** strip `responsive` from plain elements, cover the shared RBC changes ([f12c3a3](https://github.com/allxsmith/bestax/commit/f12c3a3921905207fc79a80f77dc77309044661e))
+* **bulma-ui:** admit material-symbols 0.46 in the peer range ([1d5c1d4](https://github.com/allxsmith/bestax/commit/1d5c1d4040bc7ff01fb826999f792638bfacd97f))
+* **create-bestax:** name rbx in the scaffolded CLAUDE.md skill roster ([fcf11dc](https://github.com/allxsmith/bestax/commit/fcf11dc40502421a51904e1a90a09719f5f37647))
+
+
+### Features
+
+* **bestax-migrate:** add rbx as a migration source ([ef95b94](https://github.com/allxsmith/bestax/commit/ef95b943401ca28607cd3b38c2828994c51957b4))
+* **bestax-migrate:** validate rbx against its own documentation corpus ([c749a44](https://github.com/allxsmith/bestax/commit/c749a4497a3ba94a31a92d06a323cb337a6e1bde))
+
 ## [4.2.3](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.2...create-bestax@4.2.3) (2026-08-30)
 
 
