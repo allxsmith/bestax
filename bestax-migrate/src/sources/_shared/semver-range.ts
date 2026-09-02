@@ -75,23 +75,23 @@ function setIsPreV1(set: string): boolean {
         // `<1`, `<1.0`, `<1.0.0` (build metadata carries no precedence, so
         // `<1.0.0+build.1` is the same) exclude every stable v1, as does a
         // prerelease of 1.0.0 (`<1.0.0-0`, `<1.0.0-rc.1`); `<0.9` does too.
+        // A higher upper bound (`<2` in `<1 <2`) never widens the set, so it
+        // is neutral rather than disqualifying; the result still needs some
+        // other comparator to cap it. Alone, `<2` therefore stays unbumped.
         if (
           major === 0 ||
           (major === 1 && /^1(\.0){0,2}(\+[0-9A-Za-z.-]+)?$/.test(plain)) ||
           isPrereleaseOfOne(version)
         ) {
           cappedBelowOne = true;
-        } else {
-          return false;
         }
         break;
       case '<=':
         // `<=1.0.0-0` caps at the lowest 1.0.0 prerelease, so it excludes
-        // every stable v1 just as `<1.0.0-0` does.
+        // every stable v1 just as `<1.0.0-0` does. A higher inclusive bound
+        // is neutral for the same reason as above.
         if (major === 0 || isPrereleaseOfOne(version)) {
           cappedBelowOne = true;
-        } else {
-          return false;
         }
         break;
       default:

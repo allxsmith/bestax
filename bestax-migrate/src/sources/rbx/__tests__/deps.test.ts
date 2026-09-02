@@ -179,6 +179,9 @@ describe('pre-1.0 bulma range detection', () => {
     'v1.0.0-rc.1',
     '<v1.0.0',
     '>=1.0.0-rc.1 <1.0.0',
+    '<1 <2',
+    '<1 <=2',
+    '>=0.7 <1 <3',
   ])('bumps %s', range => {
     const { next } = run({ dependencies: { rbx: '^2.2.0', bulma: range } });
     expect(next?.dependencies.bulma).toBe('^1.0.4');
@@ -211,6 +214,8 @@ describe('pre-1.0 bulma range detection', () => {
     '>=0.9',
     '<=1.0.0',
     '^1.0.0-rc.1',
+    '<2',
+    '<=2',
   ])('leaves %s alone because it admits a v1', range => {
     const { next } = run({ dependencies: { rbx: '^2.2.0', bulma: range } });
     expect(next?.dependencies.bulma).toBe(range);
