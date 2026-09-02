@@ -155,11 +155,15 @@ overrides:
   'brace-expansion@5': '>=5.0.9 <6'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
-  # schema-utils, and the eslint toolchain) — high advisory
-  # GHSA-7p8r-x3mc-p8w7: host confusion via a backslash authority introducer.
-  # Scoped to the affected 3.x major. Prune once the ajv chain resolves to
-  # >=3.1.5 on its own.
-  'fast-uri@3': '>=3.1.5 <4'
+  # schema-utils, the eslint toolchain and the MCP SDK) — five high advisories
+  # now: GHSA-7p8r-x3mc-p8w7 (host confusion via a backslash authority
+  # introducer) plus GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc,
+  # GHSA-fph4-wmhf-6fwf and GHSA-jqff-g426-hqxp (host confusion via skipped
+  # IDN and percent-encoded scheme normalization, and SSRF). The floor was
+  # >=3.1.5 for the first advisory; the four new ones are only patched in
+  # 3.1.6. Scoped to the affected 3.x major. Prune once the ajv chain resolves
+  # to >=3.1.6 on its own.
+  'fast-uri@3': '>=3.1.6 <4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched undici 7.x (transitive via semantic-release/github and
   # wrangler>miniflare — release and CI-deploy tooling, never published
