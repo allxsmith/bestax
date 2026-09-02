@@ -4,8 +4,20 @@
  * Not a semver implementation: the workspace deliberately carries no `semver`
  * dependency for this, and the two questions the passes ask are narrow. Both
  * are answered conservatively, so an unrecognised shape is left alone rather
- * than guessed at.
+ * than guessed at. The one thing this file must never do is rewrite a value it
+ * does not understand, so every accepting path below goes through one grammar.
  */
+
+const NUMERIC = String.raw`(?:0|[1-9]\d*)`;
+const WILD = String.raw`(?:x|X|\*)`;
+/**
+ * A plain version or x-range: `N`, `N.N`, `N.N.N[-pre][+build]`, `N.x`,
+ * `N.x.x`, `N.N.x`. SemVer forbids leading zeros in numeric parts, and once a
+ * component is a wildcard everything after it must be a wildcard or omitted.
+ */
+const VERSION = new RegExp(
+  `^(${NUMERIC})(?:\\.(?:${NUMERIC}(?:\\.(?:${WILD}|${NUMERIC}(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?))?|${WILD}(?:\\.${WILD})?))?$`
+);
 
 /**
  * True only when `range` PROVABLY admits no version >= 1.0.0.
@@ -34,34 +46,38 @@ function setIsPreV1(set: string): boolean {
   if (text === '' || /^(\*|x|X|latest)$/.test(text)) return false;
   const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
   if (hyphen) {
-    // Both endpoints must be tokens this parser reads; `not-a-range - 0.9.4`
-    // was accepted on its upper bound alone and overwritten.
-    const lower = majorOf(hyphen[1]);
-    const upper = majorOf(hyphen[2]);
+    // Both endpoints must be plain versions; `not-a-range - 0.9.4` was
+    // accepted on its upper bound alone and overwritten.
+    const lower = versionMajor(hyphen[1]);
+    const upper = versionMajor(hyphen[2]);
     if (lower === null || upper === null) return false;
     return upper === 0 || (upper === 1 && isPrereleaseOfOne(hyphen[2]));
   }
 
   let cappedBelowOne = false;
   for (const token of text.split(/\s+/)) {
-    // Prefix handling (`v`, `^`, `~`, `=`) lives in majorOf alone; stripping a
-    // `v` here too let `vv0.9.4` through as two single strips.
     const match = token.match(/^(>=|<=|>|<|=)?(.*)$/);
     if (!match) return false;
     const [, op = '', version] = match;
-    const major = majorOf(version);
+    // After a comparator only a plain version may follow: `==0.9.4` and
+    // `<^0.9` were each read by stripping a second operator, then overwritten.
+    const major = op ? versionMajor(version) : majorOf(version);
     if (major === null) return false;
+    const plain = version.replace(/^v/, '');
     switch (op) {
       case '>':
       case '>=':
-        if (major >= 1) return false;
+        // A lower bound on a 1.0.0 prerelease (`>=1.0.0-rc.1`) does not open
+        // the range at a stable v1; keep scanning for an upper cap.
+        if (major >= 1 && !isPrereleaseOfOne(version)) return false;
         break;
       case '<':
-        // `<1`, `<1.0`, `<1.0.0` exclude every v1, and so does npm's canonical
-        // `<1.0.0-0` (below the lowest 1.0.0 prerelease); `<0.9` does too.
+        // `<1`, `<1.0`, `<1.0.0` (build metadata carries no precedence, so
+        // `<1.0.0+build.1` is the same) exclude every stable v1, as does a
+        // prerelease of 1.0.0 (`<1.0.0-0`, `<1.0.0-rc.1`); `<0.9` does too.
         if (
           major === 0 ||
-          (major === 1 && /^1(\.0){0,2}(\+[0-9A-Za-z.-]+)?$/.test(version)) ||
+          (major === 1 && /^1(\.0){0,2}(\+[0-9A-Za-z.-]+)?$/.test(plain)) ||
           isPrereleaseOfOne(version)
         ) {
           cappedBelowOne = true;
@@ -70,8 +86,8 @@ function setIsPreV1(set: string): boolean {
         }
         break;
       case '<=':
-        // `<=1.0.0-0` caps at the lowest 1.0.0 prerelease, so it excludes every
-        // stable v1 just as `<1.0.0-0` does.
+        // `<=1.0.0-0` caps at the lowest 1.0.0 prerelease, so it excludes
+        // every stable v1 just as `<1.0.0-0` does.
         if (major === 0 || isPrereleaseOfOne(version)) {
           cappedBelowOne = true;
         } else {
@@ -82,10 +98,16 @@ function setIsPreV1(set: string): boolean {
         // `0.9.4`, `=0.9.4`, `^0.9`, `~0.7.5`, `0.x`: caret and tilde never
         // cross a major, so major 0 stays below 1. An exact `1.0.0-rc.1` pins
         // a prerelease and admits no stable v1 either; `^1.0.0-rc.1` does.
-        if (major === 0) cappedBelowOne = true;
-        else if (!/^[~^]/.test(version) && isPrereleaseOfOne(version)) {
+        if (major === 0) {
           cappedBelowOne = true;
-        } else return false;
+        } else if (
+          !/^[~^]/.test(version) &&
+          isPrereleaseOfOne(version.replace(/^=/, ''))
+        ) {
+          cappedBelowOne = true;
+        } else {
+          return false;
+        }
     }
   }
   return cappedBelowOne;
@@ -97,10 +119,9 @@ function setIsPreV1(set: string): boolean {
  * Three numeric parts only, matching semver; `1.0-beta` is not a token this
  * parser reads and is left alone. A caret or tilde on one is different
  * (`^1.0.0-rc.1` admits 1.0.4), which is why the callers check the operator.
+ * Accepts the same optional `v` that the version grammar does.
  */
 function isPrereleaseOfOne(version: string): boolean {
-  // `majorOf` accepts a leading `v`, so this must too, or `v1.0.0-rc.1` is
-  // read as a v1 pin and left alone while `1.0.0-rc.1` is bumped.
   return /^v?1\.0\.0-/.test(version);
 }
 
@@ -122,29 +143,36 @@ export function isRecognisedRange(range: string): boolean {
       if (/^(\*|x|X)$/.test(text)) return true;
       const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
       if (hyphen) {
-        return majorOf(hyphen[1]) !== null && majorOf(hyphen[2]) !== null;
+        return (
+          versionMajor(hyphen[1]) !== null && versionMajor(hyphen[2]) !== null
+        );
       }
-      return text
-        .split(/\s+/)
-        .every(tok => majorOf(tok.replace(/^(>=|<=|>|<|=)/, '')) !== null);
+      return text.split(/\s+/).every(tok => {
+        const m = tok.match(/^(>=|<=|>|<|=)?(.*)$/);
+        if (!m) return false;
+        const [, op = '', v] = m;
+        return (op ? versionMajor(v) : majorOf(v)) !== null;
+      });
     });
 }
 
 /**
- * The major of a COMPLETE semver token, or null. Reading only the numeric
- * prefix accepted a dist-tag like `0.next` as major 0, and the manifest was
- * then overwritten with `^1.0.4`, which is the one thing this parser must
- * never do to a value it does not understand. A prerelease or build suffix is
- * accepted only after three numeric parts, matching semver itself; x-ranges
- * (`0.x`, `0.7.*`) are accepted in the minor and patch positions.
+ * The major of a COMPLETE plain version or x-range, or null. npm's optional
+ * leading `v` is the only prefix allowed here. Reading a numeric prefix alone
+ * accepted a dist-tag like `0.next` as major 0, and the manifest was then
+ * overwritten with `^1.0.4`, which is the one thing this parser must never do
+ * to a value it does not understand.
  */
-function majorOf(version: string): number | null {
-  // At most one of `^`, `~`, `=` and at most one `v`: stripping any run of
-  // them accepted `^^0.9.4` and `vv0.9.4` as major 0 and overwrote them.
-  const m = version.replace(/^(?:[~^=]v?|v)?/, '').match(
-    // Numeric parts are `0|[1-9]\d*`: SemVer forbids leading zeros, and
-    // `00.9.4` / `0.07.0` were being read as major 0 and overwritten.
-    /^(0|[1-9]\d*)(?:\.(?:0|[1-9]\d*|x|X|\*)(?:\.(?:x|X|\*|(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?))?)?$/
-  );
+function versionMajor(version: string): number | null {
+  const m = version.replace(/^v/, '').match(VERSION);
   return m ? Number(m[1]) : null;
+}
+
+/**
+ * The major of a BARE token, which may carry exactly one range prefix (`^`,
+ * `~`, `=`) before the version. Stripping any run of prefix characters
+ * accepted `^^0.9.4` and `vv0.9.4` as major 0 and overwrote them.
+ */
+function majorOf(token: string): number | null {
+  return versionMajor(token.replace(/^[~^=]/, ''));
 }
