@@ -10,13 +10,19 @@
 
 const NUMERIC = String.raw`(?:0|[1-9]\d*)`;
 const WILD = String.raw`(?:x|X|\*)`;
+// SemVer's own identifier grammar: dot-separated, non-empty, no leading zero on
+// a numeric prerelease identifier. Looser fragments accepted `0.9.0-alpha..1`,
+// `0.9.0-01` and `0.9.0+foo..bar` as complete versions and overwrote them.
+const PRE_ID = String.raw`(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)`;
+const PRERELEASE = String.raw`-${PRE_ID}(?:\.${PRE_ID})*`;
+const BUILD = String.raw`\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*`;
 /**
  * A plain version or x-range: `N`, `N.N`, `N.N.N[-pre][+build]`, `N.x`,
  * `N.x.x`, `N.N.x`. SemVer forbids leading zeros in numeric parts, and once a
  * component is a wildcard everything after it must be a wildcard or omitted.
  */
 const VERSION = new RegExp(
-  `^(${NUMERIC})(?:\\.(?:${NUMERIC}(?:\\.(?:${WILD}|${NUMERIC}(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?))?|${WILD}(?:\\.${WILD})?))?$`
+  `^(${NUMERIC})(?:\\.(?:${NUMERIC}(?:\\.(?:${WILD}|${NUMERIC}(?:${PRERELEASE})?(?:${BUILD})?))?|${WILD}(?:\\.${WILD})?))?$`
 );
 
 /**
@@ -80,7 +86,8 @@ function setIsPreV1(set: string): boolean {
         // other comparator to cap it. Alone, `<2` therefore stays unbumped.
         if (
           major === 0 ||
-          (major === 1 && /^1(\.0){0,2}(\+[0-9A-Za-z.-]+)?$/.test(plain)) ||
+          (major === 1 &&
+            new RegExp(`^1(\\.0){0,2}(?:${BUILD})?$`).test(plain)) ||
           isPrereleaseOfOne(version)
         ) {
           cappedBelowOne = true;

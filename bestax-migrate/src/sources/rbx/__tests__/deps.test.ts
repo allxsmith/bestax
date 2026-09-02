@@ -176,6 +176,8 @@ describe('pre-1.0 bulma range detection', () => {
     '<1.0.0-rc.1',
     '0.9.0 - 1.0.0-0',
     '<1.0.0+build.1',
+    '0.9.0-alpha.1',
+    '0.9.0+build.7',
     'v1.0.0-rc.1',
     '<v1.0.0',
     '>=1.0.0-rc.1 <1.0.0',
@@ -199,6 +201,9 @@ describe('pre-1.0 bulma range detection', () => {
     '==0.9.4',
     '<^0.9',
     '0.x.1',
+    '0.9.0-alpha..1',
+    '0.9.0-01',
+    '0.9.0+foo..bar',
   ])('leaves %s alone because it is not a range this parser reads', range => {
     // Not "admits a v1": these are left untouched because the parser cannot
     // read them, which the rbx report words differently from an actual v1.
