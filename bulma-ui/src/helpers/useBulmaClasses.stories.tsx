@@ -66,7 +66,17 @@ const meta: Meta<typeof UseBulmaClassesDemo> = {
     },
     viewport: {
       control: 'select',
-      options: ['mobile', 'tablet', 'desktop', 'widescreen', 'fullhd'],
+      options: [
+        'mobile',
+        'tablet',
+        'tablet-only',
+        'touch',
+        'desktop',
+        'desktop-only',
+        'widescreen',
+        'widescreen-only',
+        'fullhd',
+      ],
     },
     skeleton: {
       control: 'boolean',
@@ -1721,6 +1731,87 @@ export const ViewportSpecificVisibility: Story = {
     </Box>
   ),
   name: 'Viewport-Specific Visibility',
+};
+
+export const TouchAndOnlyViewports: Story = {
+  render: () => (
+    <Box>
+      <Title size="5">Touch and &quot;-only&quot; Viewports</Title>
+      <SubTitle size="6">
+        Resize your browser to see the effect — <code>touch</code> covers mobile
+        + tablet, while the <code>-only</code> variants isolate a single
+        breakpoint band.
+      </SubTitle>
+
+      <Block>
+        <Title size="6">displayTouch / displayDesktopOnly</Title>
+        <Box
+          displayTouch="none"
+          displayDesktopOnly="flex"
+          bgColor="info"
+          colorShade="00"
+          p="4"
+        >
+          Hidden on mobile + tablet (<code>displayTouch=&quot;none&quot;</code>
+          ), shown as flex on desktop only (
+          <code>displayDesktopOnly=&quot;flex&quot;</code>).
+        </Box>
+      </Block>
+
+      <Block>
+        <Title size="6">visibilityTouch / visibilityWidescreenOnly</Title>
+        <Buttons>
+          <Button visibilityTouch="hidden">Hidden on mobile + tablet</Button>
+          <Button visibilityWidescreenOnly="invisible">
+            Invisible on widescreen only
+          </Button>
+          <Button>Always visible</Button>
+        </Buttons>
+      </Block>
+
+      <Block>
+        <Title size="6">displayTabletOnly</Title>
+        <Box displayTabletOnly="block" bgColor="warning" colorShade="05" p="4">
+          <code>is-block-tablet-only</code> sets <code>display: block</code>{' '}
+          only inside the tablet-only range (769px - 1023px). A Box is already
+          block by default, so outside that range it keeps its normal block
+          display — the <code>-only</code> class does not hide it elsewhere.
+        </Box>
+      </Block>
+
+      <Content>
+        <strong>Generated classes:</strong>
+        <code>
+          {' '}
+          is-hidden-touch is-flex-desktop-only is-hidden-touch
+          is-invisible-widescreen-only is-block-tablet-only
+        </code>
+      </Content>
+    </Box>
+  ),
+  name: 'Touch and -only Viewports',
+};
+
+export const GridDisplay: Story = {
+  render: () => (
+    <Box>
+      <Title size="5">Grid Display</Title>
+      <SubTitle size="6">
+        <code>display=&quot;grid&quot;</code> emits <code>is-grid</code>
+      </SubTitle>
+      <Box display="grid">
+        <Notification color="primary" m="1">
+          Cell 1
+        </Notification>
+        <Notification color="info" m="1">
+          Cell 2
+        </Notification>
+        <Notification color="success" m="1">
+          Cell 3
+        </Notification>
+      </Box>
+    </Box>
+  ),
 };
 
 export const ViewportSpecificCombined: Story = {

@@ -83,6 +83,50 @@ function example() {
 
 ---
 
+### Touch and `-only` Viewports
+
+Beyond the five breakpoint props, `display`/`visibility` also take `touch` (mobile + tablet combined — the breakpoint most often used to hide desktop-only chrome) and the `-only` variants (`tablet-only`, `desktop-only`, `widescreen-only`), each isolating a single breakpoint band:
+
+```tsx live
+function example() {
+  const { bulmaHelperClasses } = useBulmaClasses({
+    displayTouch: 'none',
+    displayDesktopOnly: 'flex',
+  });
+  return JSON.stringify({ bulmaHelperClasses });
+  // bulmaHelperClasses: 'is-hidden-touch is-flex-desktop-only'
+}
+```
+
+```tsx live
+<Buttons>
+  <Button visibilityTouch="hidden">Hidden on mobile + tablet</Button>
+  <Button visibilityDesktopOnly="invisible">Invisible on desktop only</Button>
+  <Button>Always visible</Button>
+</Buttons>
+```
+
+The legacy `viewport` prop widens to all nine values too, so `useBulmaClasses({ display: 'flex', viewport: 'touch' })` produces `is-flex-touch`. One exception: Bulma ships no `is-size-*` classes for the three `-only` bands, so `textSize` combined with a `tablet-only`/`desktop-only`/`widescreen-only` `viewport` degrades to the base `is-size-N` (rather than emitting a dead `is-size-N-tablet-only`); `touch` and the five breakpoints are unaffected.
+
+---
+
+### Grid Display
+
+`display` also accepts `'grid'`, emitting `is-grid`:
+
+```tsx live
+<Box display="grid">
+  <Notification color="primary" m="1">
+    Cell 1
+  </Notification>
+  <Notification color="info" m="1">
+    Cell 2
+  </Notification>
+</Box>
+```
+
+---
+
 ### With Flexbox Helpers
 
 Flexbox properties are divided into two categories:
@@ -795,15 +839,15 @@ const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 
 `useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of seven composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string (except `useColorStyles`, which returns an inline style object or `undefined`), which you can combine with the [`classNames`](./classnames.md) utility.
 
-| Hook                   | Props Covered                                                                                                                                  | Returns                                                                                                                                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                               | Text and background color classes, including palette shades                                                                                                                             |
-| `useColorStyles`       | `backgroundColor` (scheme values)                                                                                                              | `{ backgroundColor: 'var(--bulma-scheme-*)' }` for a scheme background, `undefined` otherwise — the source of `bulmaHelperStyles`                                                       |
-| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                               | Margin and padding classes                                                                                                                                                              |
-| `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}` | Typography classes, including responsive size/alignment variants                                                                                                                        |
-| `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile..Fullhd}`, `visibility{Mobile..Fullhd}`                                              | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
-| `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                             | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
-| `useOtherClasses`      | `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `relative`, `fullHeight`    | Miscellaneous utility classes                                                                                                                                                           |
+| Hook                   | Props Covered                                                                                                                                                                                                                               | Returns                                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                                                                                                                            | Text and background color classes, including palette shades                                                                                                                             |
+| `useColorStyles`       | `backgroundColor` (scheme values)                                                                                                                                                                                                           | `{ backgroundColor: 'var(--bulma-scheme-*)' }` for a scheme background, `undefined` otherwise — the source of `bulmaHelperStyles`                                                       |
+| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                                                                                            | Margin and padding classes                                                                                                                                                              |
+| `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}`                                                                                              | Typography classes, including responsive size/alignment variants                                                                                                                        |
+| `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}`, `visibility{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}` | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
+| `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                                                                                                                          | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
+| `useOtherClasses`      | `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `relative`, `fullHeight`                                                                                                 | Miscellaneous utility classes                                                                                                                                                           |
 
 All seven hooks (plus `classNames` and `mergeBulmaStyles`) are exported from the package root:
 
@@ -896,7 +940,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                                                                 |
 | `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                                                                      |
 | `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                                                                       |
-| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'none'`                                                                                                                                                                         | `is-flex`, `is-inline-block`, `is-hidden`                                                                   |
+| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'grid'`, `'none'`                                                                                                                                                               | `is-flex`, `is-inline-block`, `is-grid`, `is-hidden`                                                        |
 | `visibility`           | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                                                                                                                                               | `is-hidden`, `is-sr-only`, `is-invisible`                                                                   |
 | `flexDirection`        | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                                                                     |
 | `flexWrap`             | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                                                                       |
@@ -914,7 +958,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `radius`               | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                                                                             |
 | `shadow`               | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                                                                             |
 | `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                                                                    |
-| `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'`                                                                                                                                                                                      | Adds viewport suffix to supported properties                                                                |
+| `viewport`             | `'mobile'`, `'tablet'`, `'tablet-only'`, `'touch'`, `'desktop'`, `'desktop-only'`, `'widescreen'`, `'widescreen-only'`, `'fullhd'`                                                                                                                   | Adds viewport suffix to supported properties                                                                |
 | `skeleton`             | `true`                                                                                                                                                                                                                                               | `is-skeleton`                                                                                               |
 | `clearfix`             | `true`                                                                                                                                                                                                                                               | `is-clearfix`                                                                                               |
 | `relative`             | `true`                                                                                                                                                                                                                                               | `is-relative`                                                                                               |
@@ -924,32 +968,40 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 
 The following properties allow you to set different values for each viewport breakpoint:
 
-| Prop                   | Type / Example Value                                            | Effect / Example Class                                                     |
-| ---------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `displayMobile`        | `'block'`, `'flex'`, `'inline'`, `'none'`, etc.                 | `is-block-mobile`, `is-flex-mobile`, `is-hidden-mobile`                    |
-| `displayTablet`        | Same as above                                                   | `is-block-tablet`, `is-flex-tablet`, `is-hidden-tablet`                    |
-| `displayDesktop`       | Same as above                                                   | `is-block-desktop`, `is-flex-desktop`, `is-hidden-desktop`                 |
-| `displayWidescreen`    | Same as above                                                   | `is-block-widescreen`, `is-flex-widescreen`                                |
-| `displayFullhd`        | Same as above                                                   | `is-block-fullhd`, `is-flex-fullhd`                                        |
-| `textSizeMobile`       | `'1'..'7'`                                                      | `is-size-3-mobile`, `is-size-5-mobile`                                     |
-| `textSizeTablet`       | `'1'..'7'`                                                      | `is-size-3-tablet`, `is-size-5-tablet`                                     |
-| `textSizeDesktop`      | `'1'..'7'`                                                      | `is-size-3-desktop`, `is-size-5-desktop`                                   |
-| `textSizeWidescreen`   | `'1'..'7'`                                                      | `is-size-3-widescreen`, `is-size-5-widescreen`                             |
-| `textSizeFullhd`       | `'1'..'7'`                                                      | `is-size-3-fullhd`, `is-size-5-fullhd`                                     |
-| `textAlignMobile`      | `'centered'`, `'left'`, `'right'`, `'justified'`                | `has-text-centered-mobile`, `has-text-left-mobile`                         |
-| `textAlignTablet`      | Same as above                                                   | `has-text-centered-tablet`, `has-text-left-tablet`                         |
-| `textAlignDesktop`     | Same as above                                                   | `has-text-centered-desktop`, `has-text-left-desktop`                       |
-| `textAlignWidescreen`  | Same as above                                                   | `has-text-centered-widescreen`, `has-text-left-widescreen`                 |
-| `textAlignFullhd`      | Same as above                                                   | `has-text-centered-fullhd`, `has-text-left-fullhd`                         |
-| `visibilityMobile`     | `'hidden'`, `'sr-only'`, `'invisible'`                          | `is-hidden-mobile`, `is-sr-only-mobile`, `is-invisible-mobile`             |
-| `visibilityTablet`     | Same as above                                                   | `is-hidden-tablet`, `is-sr-only-tablet`, `is-invisible-tablet`             |
-| `visibilityDesktop`    | Same as above                                                   | `is-hidden-desktop`, `is-sr-only-desktop`, `is-invisible-desktop`          |
-| `visibilityWidescreen` | Same as above                                                   | `is-hidden-widescreen`, `is-sr-only-widescreen`, `is-invisible-widescreen` |
-| `visibilityFullhd`     | Same as above                                                   | `is-hidden-fullhd`, `is-sr-only-fullhd`, `is-invisible-fullhd`             |
-| `responsive`           | `'mobile'`, `'narrow'`                                          | `is-mobile`, `is-narrow`                                                   |
-| `clearfix`             | `true`                                                          | `is-clearfix`                                                              |
-| `relative`             | `true`                                                          | `is-relative`                                                              |
-| `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`                                    |
+| Prop                       | Type / Example Value                                                                                                               | Effect / Example Class                                                                    |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `displayMobile`            | `'block'`, `'flex'`, `'inline'`, `'grid'`, `'none'`, etc.                                                                          | `is-block-mobile`, `is-flex-mobile`, `is-hidden-mobile`                                   |
+| `displayTablet`            | Same as above                                                                                                                      | `is-block-tablet`, `is-flex-tablet`, `is-hidden-tablet`                                   |
+| `displayTabletOnly`        | Same as above                                                                                                                      | `is-block-tablet-only`, `is-flex-tablet-only`, `is-hidden-tablet-only`                    |
+| `displayTouch`             | Same as above                                                                                                                      | `is-block-touch`, `is-flex-touch`, `is-hidden-touch`                                      |
+| `displayDesktop`           | Same as above                                                                                                                      | `is-block-desktop`, `is-flex-desktop`, `is-hidden-desktop`                                |
+| `displayDesktopOnly`       | Same as above                                                                                                                      | `is-block-desktop-only`, `is-flex-desktop-only`, `is-hidden-desktop-only`                 |
+| `displayWidescreen`        | Same as above                                                                                                                      | `is-block-widescreen`, `is-flex-widescreen`                                               |
+| `displayWidescreenOnly`    | Same as above                                                                                                                      | `is-block-widescreen-only`, `is-flex-widescreen-only`                                     |
+| `displayFullhd`            | Same as above                                                                                                                      | `is-block-fullhd`, `is-flex-fullhd`                                                       |
+| `textSizeMobile`           | `'1'..'7'`                                                                                                                         | `is-size-3-mobile`, `is-size-5-mobile`                                                    |
+| `textSizeTablet`           | `'1'..'7'`                                                                                                                         | `is-size-3-tablet`, `is-size-5-tablet`                                                    |
+| `textSizeDesktop`          | `'1'..'7'`                                                                                                                         | `is-size-3-desktop`, `is-size-5-desktop`                                                  |
+| `textSizeWidescreen`       | `'1'..'7'`                                                                                                                         | `is-size-3-widescreen`, `is-size-5-widescreen`                                            |
+| `textSizeFullhd`           | `'1'..'7'`                                                                                                                         | `is-size-3-fullhd`, `is-size-5-fullhd`                                                    |
+| `textAlignMobile`          | `'centered'`, `'left'`, `'right'`, `'justified'`                                                                                   | `has-text-centered-mobile`, `has-text-left-mobile`                                        |
+| `textAlignTablet`          | Same as above                                                                                                                      | `has-text-centered-tablet`, `has-text-left-tablet`                                        |
+| `textAlignDesktop`         | Same as above                                                                                                                      | `has-text-centered-desktop`, `has-text-left-desktop`                                      |
+| `textAlignWidescreen`      | Same as above                                                                                                                      | `has-text-centered-widescreen`, `has-text-left-widescreen`                                |
+| `textAlignFullhd`          | Same as above                                                                                                                      | `has-text-centered-fullhd`, `has-text-left-fullhd`                                        |
+| `visibilityMobile`         | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                             | `is-hidden-mobile`, `is-sr-only-mobile`, `is-invisible-mobile`                            |
+| `visibilityTablet`         | Same as above                                                                                                                      | `is-hidden-tablet`, `is-sr-only-tablet`, `is-invisible-tablet`                            |
+| `visibilityTabletOnly`     | Same as above                                                                                                                      | `is-hidden-tablet-only`, `is-sr-only-tablet-only`, `is-invisible-tablet-only`             |
+| `visibilityTouch`          | Same as above                                                                                                                      | `is-hidden-touch`, `is-sr-only-touch`, `is-invisible-touch`                               |
+| `visibilityDesktop`        | Same as above                                                                                                                      | `is-hidden-desktop`, `is-sr-only-desktop`, `is-invisible-desktop`                         |
+| `visibilityDesktopOnly`    | Same as above                                                                                                                      | `is-hidden-desktop-only`, `is-sr-only-desktop-only`, `is-invisible-desktop-only`          |
+| `visibilityWidescreen`     | Same as above                                                                                                                      | `is-hidden-widescreen`, `is-sr-only-widescreen`, `is-invisible-widescreen`                |
+| `visibilityWidescreenOnly` | Same as above                                                                                                                      | `is-hidden-widescreen-only`, `is-sr-only-widescreen-only`, `is-invisible-widescreen-only` |
+| `visibilityFullhd`         | Same as above                                                                                                                      | `is-hidden-fullhd`, `is-sr-only-fullhd`, `is-invisible-fullhd`                            |
+| `responsive`               | `'mobile'`, `'narrow'`                                                                                                             | `is-mobile`, `is-narrow`                                                                  |
+| `clearfix`                 | `true`                                                                                                                             | `is-clearfix`                                                                             |
+| `relative`                 | `true`                                                                                                                             | `is-relative`                                                                             |
+| `viewport`                 | `'mobile'`, `'tablet'`, `'tablet-only'`, `'touch'`, `'desktop'`, `'desktop-only'`, `'widescreen'`, `'widescreen-only'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`, `-touch`, `-tablet-only`                         |
 
 ---
 
@@ -968,10 +1020,24 @@ export interface BulmaClassesProps
     BulmaOtherProps {}
 
 export type BulmaViewportProps =
-  'mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd';
+  | 'mobile'
+  | 'tablet'
+  | 'tablet-only'
+  | 'touch'
+  | 'desktop'
+  | 'desktop-only'
+  | 'widescreen'
+  | 'widescreen-only'
+  | 'fullhd';
 
 export type BulmaDisplayProps =
-  'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  | 'block'
+  | 'flex'
+  | 'inline'
+  | 'inline-block'
+  | 'inline-flex'
+  | 'grid'
+  | 'none';
 
 export interface BulmaColorProps {
   color?:
@@ -1085,13 +1151,21 @@ export interface BulmaVisibilityProps {
   viewport?: BulmaViewportProps;
   displayMobile?: BulmaDisplayProps;
   displayTablet?: BulmaDisplayProps;
+  displayTabletOnly?: BulmaDisplayProps;
+  displayTouch?: BulmaDisplayProps;
   displayDesktop?: BulmaDisplayProps;
+  displayDesktopOnly?: BulmaDisplayProps;
   displayWidescreen?: BulmaDisplayProps;
+  displayWidescreenOnly?: BulmaDisplayProps;
   displayFullhd?: BulmaDisplayProps;
   visibilityMobile?: 'hidden' | 'sr-only' | 'invisible';
   visibilityTablet?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityTabletOnly?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityTouch?: 'hidden' | 'sr-only' | 'invisible';
   visibilityDesktop?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityDesktopOnly?: 'hidden' | 'sr-only' | 'invisible';
   visibilityWidescreen?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityWidescreenOnly?: 'hidden' | 'sr-only' | 'invisible';
   visibilityFullhd?: 'hidden' | 'sr-only' | 'invisible';
 }
 
@@ -1193,10 +1267,16 @@ const { bulmaHelperClasses } = useBulmaClasses({
 Bulma's responsive breakpoints:
 
 - **mobile**: up to 768px
-- **tablet**: 769px - 1023px
-- **desktop**: 1024px - 1215px
-- **widescreen**: 1216px - 1407px
+- **tablet**: 769px and above
+- **tablet-only**: 769px - 1023px (excludes desktop and above)
+- **touch**: up to 1023px (mobile + tablet combined — the breakpoint most often used to hide desktop-only chrome)
+- **desktop**: 1024px and above
+- **desktop-only**: 1024px - 1215px (excludes widescreen and above)
+- **widescreen**: 1216px and above
+- **widescreen-only**: 1216px - 1407px (excludes fullhd)
 - **fullhd**: 1408px and above
+
+`display`/`visibility` are the only property families with `*Touch`/`*TabletOnly`/`*DesktopOnly`/`*WidescreenOnly` props; other viewport-aware properties (`textSize*`, `textAlign*`) only go through `mobile`/`tablet`/`desktop`/`widescreen`/`fullhd`, though the generic `viewport` prop itself accepts all nine values for any property that reads it.
 
 ### Properties That Support Viewport Modifiers
 
@@ -1206,8 +1286,8 @@ Only certain properties support responsive variants:
 
 - Text size (`textSize`, `textSizeMobile`, `textSizeTablet`, etc.)
 - Text alignment (`textAlign`, `textAlignMobile`, `textAlignTablet`, etc.)
-- Display (`display`, `displayMobile`, `displayTablet`, etc.)
-- Visibility (`visibility`, `visibilityMobile`, `visibilityTablet`, etc.)
+- Display (`display`, `displayMobile`, `displayTablet`, `displayTabletOnly`, `displayTouch`, `displayDesktop`, `displayDesktopOnly`, `displayWidescreen`, `displayWidescreenOnly`, `displayFullhd`)
+- Visibility (`visibility`, `visibilityMobile`, `visibilityTablet`, `visibilityTabletOnly`, `visibilityTouch`, `visibilityDesktop`, `visibilityDesktopOnly`, `visibilityWidescreen`, `visibilityWidescreenOnly`, `visibilityFullhd`)
 
 **❌ Do NOT Support Viewport Modifiers:**
 
