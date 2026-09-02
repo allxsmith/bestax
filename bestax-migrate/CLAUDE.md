@@ -36,6 +36,23 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
 - Anything unsafe gets a `// TODO(bestax-migrate): <hint>` comment on the enclosing
   statement + a report entry — never a silent skip, never a best-guess rewrite of dynamic
   values.
+- **A TODO message is a claim about bestax; read the component before writing it.** Four
+  shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`).
+  The rbx e2e fails on an undocumented rule (RBC's does not); nothing checks the guidance is true.
+- **A defect in one source's `transform.ts` is almost certainly in the other.** Nine fixes were
+  ported RBC↔rbx on #613 and review kept finding the unported half. Fix the sibling in the same
+  commit, or move the logic into `_shared/`.
+- **Resolve references by binding, not by identifier text.** Every serious bug on #613 came
+  from a name-keyed map (`function F(Header)` became `F(Card.Header)`). Use `aliasAt` in each
+  `transform.ts` (duplicated; hoist it): ancestors decide ownership, `scope.lookup` vetoes a nearer binding.
+- **The report may only describe what actually happened.** The manifest headline said "bumped
+  bulma" in most manifest shapes where nothing was bumped. Track each mutation; phrase from it.
+- **The stylesheet and manifest passes must agree on what is removable.** Both report rather
+  than remove `bulma-*` extensions, since markup outside the source may still use their classes.
+  rbx enumerates its four in `deps.ts` and `transform.ts`; the shared Sass pass flags any `bulma-*`.
+- **Never change `bulma-ui` to make a migration cleaner.** Map onto the library as it is and
+  emit a TODO otherwise. A gap earns a `bulma-ui` issue only if it is a bestax defect or the
+  source is genuinely better, not merely different (#616 to #622 are the worked example).
 
 ## Architecture
 
@@ -44,12 +61,12 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   in-process runner (NOT jscodeshift's worker Runner: fragile from ESM, hides per-file
   stats). `src/runner.ts` is shared by CLI and tests. `--css bestax|bulma|keep` picks the
   stylesheet target; `--no-deps` skips the manifest step.
-- `src/sources/react-bulma-components/`: `transform.ts` (orchestration: imports + css →
-  per-element special/rename/responsive/props → import rewrite), `mapping.ts` (data),
-  `specials.ts` (structural handlers), `props.ts` (PropAction interpreter), `responsive.ts`
-  (breakpoint-object flattening), `styles.ts` (line-based SCSS/SASS transform — Sass has
-  no jscodeshift parser, so it only rewrites provably-safe patterns), `deps.ts`
-  (package.json updater; never runs an install), `jsx-utils.ts` (AST helpers).
+- `src/sources/react-bulma-components/` (and `rbx/`, same shape): `transform.ts`
+  (orchestration: imports + css → per-element special/rename/responsive/props → import
+  rewrite), `mapping.ts` (data), `specials.ts` (structural handlers), `responsive.ts`
+  (breakpoint-object flattening), `styles.ts` (a thin call into `_shared/make-styles-transform.ts`,
+  line-based because Sass has no jscodeshift parser), `deps.ts` (package.json updater; never
+  runs an install). The PropAction interpreter and AST helpers live in `_shared/`.
 - Components with no bestax equivalent (Element, Tile) keep a trimmed, TODO-annotated RBC
   import so the code still runs during gradual migration.
 - `src/telemetry-core.ts` is a byte-for-byte copy of
@@ -90,6 +107,10 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught six
   mapping errors that 254 clean Playgrounds had not.
+
+- After editing a test file, check the total test count did not drop: a range replacement
+  between two non-adjacent `describe` blocks deleted 868 lines on #613 and the suite stayed green
+  at 699 instead of 781. Compare the `Tests:` line from `pnpm test` (bare `jest` miscounts on ESM).
 
 ## Releases
 

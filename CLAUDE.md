@@ -44,6 +44,10 @@ pnpm storybook      # Storybook dev server :6006
 pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
 ```
 
+- Run `pnpm format` before `pnpm lint`: lint includes prettier (`eslint-plugin-prettier`), so an
+  unformatted tree fails lint while typecheck and tests pass, and `pnpm all` runs lint before
+  `format:check` without formatting, so it fails there too. A multi-task `turbo run` buries the cause.
+
 ## Quality gates
 
 Enforced by CI (`.github/workflows/ci.yml`):
