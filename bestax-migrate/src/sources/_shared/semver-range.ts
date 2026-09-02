@@ -60,8 +60,13 @@ function setIsPreV1(set: string): boolean {
         }
         break;
       case '<=':
-        if (major === 0) cappedBelowOne = true;
-        else return false;
+        // `<=1.0.0-0` caps at the lowest 1.0.0 prerelease, so it excludes every
+        // stable v1 just as `<1.0.0-0` does.
+        if (major === 0 || (major === 1 && /^1(\.0){0,2}-0$/.test(version))) {
+          cappedBelowOne = true;
+        } else {
+          return false;
+        }
         break;
       default:
         // `0.9.4`, `=0.9.4`, `^0.9`, `~0.7.5`, `0.x`: caret and tilde never
