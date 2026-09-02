@@ -46,10 +46,11 @@ function migrateKitchenSink(): MigratedApp {
   fs.cpSync(fixtureDir, tmpDir, { recursive: true });
 
   // The fixture manifest is not named `package.json` on disk: Dependabot treats
-  // any file with that name as a real manifest and opened a security-update PR
-  // against this one (#615), even though it is codemod input that is never
-  // installed. Restore the real name in the scratch copy so the pass under test
-  // still sees a genuine manifest.
+  // any file with that name as a real manifest, whatever the lockfile says, and
+  // opened a security-update PR against the sibling rbx fixture's node-sass
+  // (#615). This fixture has the same exposure and its own deliberately-old
+  // node-sass, so both are renamed. Restore the real name in the scratch copy
+  // so the pass under test still sees a genuine manifest.
   fs.renameSync(
     path.join(tmpDir, 'package.input.json'),
     path.join(tmpDir, 'package.json')
