@@ -17,6 +17,15 @@ const PRE_ID = String.raw`(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)`;
 const PRERELEASE = String.raw`-${PRE_ID}(?:\.${PRE_ID})*`;
 const BUILD = String.raw`\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*`;
 /**
+ * An exclusive upper bound that sits exactly at 1.0.0: `1`, `1.0`, `1.0.0`,
+ * and the x-ranges that desugar to it (`1.x`, `1.0.x`, `1.*`), optionally with
+ * build metadata, which carries no precedence. `1.1.x` desugars to 1.1.0 and
+ * still admits 1.0.x, so it is deliberately not here.
+ */
+const STABLE_ONE_BOUND = new RegExp(
+  `^1(?:\\.(?:0|${WILD}))?(?:\\.(?:0|${WILD}))?(?:${BUILD})?$`
+);
+/**
  * A plain version or x-range: `N`, `N.N`, `N.N.N[-pre][+build]`, `N.x`,
  * `N.x.x`, `N.N.x`. SemVer forbids leading zeros in numeric parts, and once a
  * component is a wildcard everything after it must be a wildcard or omitted.
@@ -86,8 +95,7 @@ function setIsPreV1(set: string): boolean {
         // other comparator to cap it. Alone, `<2` therefore stays unbumped.
         if (
           major === 0 ||
-          (major === 1 &&
-            new RegExp(`^1(\\.0){0,2}(?:${BUILD})?$`).test(plain)) ||
+          (major === 1 && STABLE_ONE_BOUND.test(plain)) ||
           isPrereleaseOfOne(version)
         ) {
           cappedBelowOne = true;
@@ -133,7 +141,9 @@ function isPrereleaseOfOne(version: string): boolean {
 }
 
 function glueOperators(set: string): string {
-  return set.trim().replace(/(>=|<=|>|<|=)\s+/g, '$1');
+  // Only when what follows starts a plain version. Gluing unconditionally
+  // turned the invalid `> =0.7` into a valid `>=0.7`, which was then bumped.
+  return set.trim().replace(/(>=|<=|>|<|=)\s+(?=[0-9vxX*])/g, '$1');
 }
 
 /**
