@@ -14,8 +14,8 @@
       "code": "<Tags hasAddons>\n  <Tag color=\"primary\">Package</Tag>\n  <Tag color=\"success\">Ready</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
     },
     {
-      "title": "Multiline",
-      "code": "<Tags isMultiline>\n  <Tag color=\"primary\">Bulma</Tag>\n  <Tag color=\"success\">React</Tag>\n  <Tag color=\"warning\">Typescript</Tag>\n  <Tag color=\"danger\">Library</Tag>\n  <Tag color=\"link\">UI</Tag>\n</Tags>"
+      "title": "Wrapping (Default)",
+      "code": "<Tags>\n  <Tag color=\"primary\">Bulma</Tag>\n  <Tag color=\"success\">React</Tag>\n  <Tag color=\"warning\">Typescript</Tag>\n  <Tag color=\"danger\">Library</Tag>\n  <Tag color=\"link\">UI</Tag>\n</Tags>"
     },
     {
       "title": "Group Size",
@@ -27,7 +27,7 @@
     },
     {
       "title": "Mixed Tags",
-      "code": "function example() {\n  const [show, setShow] = useState();\n\n  return (\n    <Tags isMultiline>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
+      "code": "function example() {\n  const [show, setShow] = useState();\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
     },
     {
       "title": "Add-ons with Delete Tag",
@@ -38,17 +38,17 @@
       "code": "<Tags>\n  <Tags.Tag color=\"primary\">React</Tags.Tag>\n  <Tags.Tag color=\"info\">TypeScript</Tags.Tag>\n</Tags>"
     }
   ],
-  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** If using delete tags, ensure each has an accessible label.\n- **Multiline:** `isMultiline` ensures tags wrap for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
+  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** If using delete tags, ensure each has an accessible label.\n- **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
   "related": ["Delete", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
-  "summary": "The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.",
+  "summary": "The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.",
   "import": "import { Tags } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Tags.tsx",
   "rootClass": "tags",
   "parts": [
     {
       "path": "Tags",
-      "summary": "The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.",
+      "summary": "The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.",
       "component": null,
       "props": [
         {
@@ -73,10 +73,11 @@
           "name": "isMultiline",
           "type": "boolean",
           "default": "false",
-          "description": "Allow tags to wrap onto multiple lines.",
+          "description": "No-op retained for backwards compatibility.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "Bulma's `.tags` wraps by default (no shipped `are-multiline` CSS exists for it) — this prop has never had a visual effect and will be removed in the next major version."
         },
         {
           "name": "size",

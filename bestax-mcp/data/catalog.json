@@ -949,7 +949,7 @@
       "name": "Tags",
       "kind": "component",
       "category": "elements",
-      "purpose": "The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.",
+      "purpose": "The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.",
       "slug": "elements/tags",
       "import": "import { Tags } from '@allxsmith/bestax-bulma';",
       "compound": true,

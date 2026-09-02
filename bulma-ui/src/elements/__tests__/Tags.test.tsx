@@ -22,10 +22,11 @@ describe('Tags Component', () => {
     expect(tags).toHaveClass('tags has-addons');
   });
 
-  test('applies multiline class', () => {
+  test('does not emit are-multiline for the deprecated isMultiline prop (no Bulma CSS backs it)', () => {
     render(<Tags {...defaultProps} isMultiline />);
     const tags = screen.getByText('Test Tag').parentElement;
-    expect(tags).toHaveClass('tags are-multiline');
+    expect(tags).toHaveClass('tags');
+    expect(tags).not.toHaveClass('are-multiline');
   });
 
   test.each(['medium', 'large'] as const)(
@@ -134,7 +135,7 @@ describe('Tags Component', () => {
       const tags = screen.getByText('Tag 1').parentElement;
       expect(tags).toHaveClass('bulma-tags');
       expect(tags).toHaveClass('bulma-has-addons');
-      expect(tags).toHaveClass('bulma-are-multiline');
+      expect(tags).not.toHaveClass('bulma-are-multiline');
       expect(tags).toHaveClass('bulma-m-2');
     });
 
