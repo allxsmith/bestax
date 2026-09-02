@@ -33,7 +33,9 @@ function setIsPreV1(set: string): boolean {
   const text = glueOperators(set);
   if (text === '' || /^(\*|x|X|latest)$/.test(text)) return false;
   const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
-  if (hyphen) return majorOf(hyphen[2]) === 0;
+  if (hyphen) {
+    return majorOf(hyphen[2]) === 0 || isPrereleaseOfOne(hyphen[2]);
+  }
 
   let cappedBelowOne = false;
   for (const token of text.split(/\s+/)) {
@@ -52,7 +54,8 @@ function setIsPreV1(set: string): boolean {
         // `<1.0.0-0` (below the lowest 1.0.0 prerelease); `<0.9` does too.
         if (
           major === 0 ||
-          (major === 1 && /^1(\.0){0,2}(-0)?$/.test(version))
+          (major === 1 && /^1(\.0){0,2}$/.test(version)) ||
+          isPrereleaseOfOne(version)
         ) {
           cappedBelowOne = true;
         } else {
@@ -62,7 +65,7 @@ function setIsPreV1(set: string): boolean {
       case '<=':
         // `<=1.0.0-0` caps at the lowest 1.0.0 prerelease, so it excludes every
         // stable v1 just as `<1.0.0-0` does.
-        if (major === 0 || (major === 1 && /^1(\.0){0,2}-0$/.test(version))) {
+        if (major === 0 || isPrereleaseOfOne(version)) {
           cappedBelowOne = true;
         } else {
           return false;
@@ -70,12 +73,25 @@ function setIsPreV1(set: string): boolean {
         break;
       default:
         // `0.9.4`, `=0.9.4`, `^0.9`, `~0.7.5`, `0.x`: caret and tilde never
-        // cross a major, so major 0 stays below 1.
+        // cross a major, so major 0 stays below 1. An exact `1.0.0-rc.1` pins
+        // a prerelease and admits no stable v1 either; `^1.0.0-rc.1` does.
         if (major === 0) cappedBelowOne = true;
-        else return false;
+        else if (!/^[~^]/.test(version) && isPrereleaseOfOne(version)) {
+          cappedBelowOne = true;
+        } else return false;
     }
   }
   return cappedBelowOne;
+}
+
+/**
+ * `1.0.0-0`, `1.0.0-rc.1`, `1.0-beta`: a prerelease of exactly 1.0.0 orders
+ * below every stable 1.x, so as an upper bound or an exact pin it admits no
+ * usable v1. A caret or tilde on one is different (`^1.0.0-rc.1` admits
+ * 1.0.4), which is why the callers check the operator first.
+ */
+function isPrereleaseOfOne(version: string): boolean {
+  return /^1(\.0){0,2}-/.test(version);
 }
 
 function glueOperators(set: string): string {

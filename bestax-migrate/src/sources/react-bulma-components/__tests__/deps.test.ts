@@ -163,6 +163,9 @@ describe('pre-1.0 bulma range detection', () => {
     '<1.0.0-0',
     '>=0.9.0 <1.0.0-0',
     '<=1.0.0-0',
+    '1.0.0-rc.1',
+    '<1.0.0-rc.1',
+    '0.9.0 - 1.0.0-0',
   ])('bumps %s', range => {
     const { next } = run({
       dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
@@ -170,13 +173,18 @@ describe('pre-1.0 bulma range detection', () => {
     expect((next?.dependencies as Record<string, string>).bulma).toBe('^1.0.4');
   });
 
-  it.each(['^1.0.2', '>=0.9 <2', '^0.9 || ^1.0', '*', '>=0.9', '<=1.0.0'])(
-    'leaves %s alone because it admits a v1',
-    range => {
-      const { next } = run({
-        dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
-      });
-      expect((next?.dependencies as Record<string, string>).bulma).toBe(range);
-    }
-  );
+  it.each([
+    '^1.0.2',
+    '>=0.9 <2',
+    '^0.9 || ^1.0',
+    '*',
+    '>=0.9',
+    '<=1.0.0',
+    '^1.0.0-rc.1',
+  ])('leaves %s alone because it admits a v1', range => {
+    const { next } = run({
+      dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
+    });
+    expect((next?.dependencies as Record<string, string>).bulma).toBe(range);
+  });
 });
