@@ -142,7 +142,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   forwardRefAs: {
     status: 'todo',
-    todo: '`forwardRefAs` is rbx-internal; bestax components forward refs natively — use React.forwardRef',
+    todo: '`forwardRefAs` is rbx-internal and has no counterpart. Only the bestax form controls and a few components (Dialog, Sidebar, Toast, Carousel) forward refs; most, Button and Box included, are plain function components that do not — put the ref on a wrapping element you control',
   },
 
   // ---- elements -----------------------------------------------------------

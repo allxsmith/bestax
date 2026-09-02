@@ -228,3 +228,18 @@ describe('alias scoping and retained partial roots', () => {
     );
   });
 });
+
+describe('an alias shadowed by a nearer binding', () => {
+  it('leaves a parameter that shadows a module-level alias alone', () => {
+    const { output } = migrate(
+      [
+        `import { Card } from 'react-bulma-components';`,
+        'const { Header } = Card;',
+        'export const A = () => <Header.Title/>;',
+        'export function F(Header) { return <Header.Title/>; }',
+      ].join('\n')
+    );
+    expect(output).toContain('<Card.Header.Title/>');
+    expect(output).toContain('function F(Header) { return <Header.Title/>; }');
+  });
+});

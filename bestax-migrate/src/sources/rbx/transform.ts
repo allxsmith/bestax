@@ -298,7 +298,31 @@ export default function transform(
     while (cursor) {
       if (cursor.node !== undefined) {
         const hit = aliasesByOwner.get(cursor.node)?.get(name);
-        if (hit) return hit;
+        if (hit) {
+          // The walk finds the nearest OWNER, but a binding can intervene
+          // between the reference and that owner: `function F(Header)` under
+          // a module-level `const { Header } = Card` shadows the alias, and
+          // resolving through it rewrote the parameter itself to
+          // `F(Card.Header)`. If the scope table still binds the name
+          // somewhere other than the owner, that nearer binding wins. (After
+          // the alias declaration is pruned the lookup returns nothing for
+          // the alias itself, which is the case this must keep allowing.)
+          const declaring = (
+            at as {
+              scope?: {
+                lookup(n: string): { path?: { node?: unknown } } | null;
+              };
+            }
+          ).scope?.lookup(name)?.path?.node;
+          if (
+            declaring !== undefined &&
+            declaring !== null &&
+            declaring !== cursor.node
+          ) {
+            return undefined;
+          }
+          return hit;
+        }
       }
       cursor = cursor.parent;
     }

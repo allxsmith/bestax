@@ -1188,3 +1188,21 @@ describe('labelled Divider', () => {
     expect(todos.some(t => t.rule === 'component:Divider')).toBe(false);
   });
 });
+
+describe('an alias shadowed by a nearer binding', () => {
+  it('leaves a parameter that shadows a module-level alias alone', () => {
+    // The ancestor walk found the module-level owner from inside F and
+    // rewrote the PARAMETER to `F(Card.Header)` -- invalid syntax. A nearer
+    // binding must win over the alias it shadows.
+    const { output } = migrate(
+      [
+        `import { Card } from 'rbx';`,
+        'const { Header } = Card;',
+        'export const A = () => <Header.Title/>;',
+        'export function F(Header) { return <Header.Title/>; }',
+      ].join('\n')
+    );
+    expect(output).toContain('<Card.Header.Title/>');
+    expect(output).toContain('function F(Header) { return <Header.Title/>; }');
+  });
+});
