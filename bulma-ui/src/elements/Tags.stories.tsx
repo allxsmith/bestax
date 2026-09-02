@@ -32,7 +32,6 @@ const meta: Meta<typeof Tags> = {
   tags: ['autodocs'],
   argTypes: {
     hasAddons: { control: 'boolean' },
-    isMultiline: { control: 'boolean' },
     m: {
       control: 'select',
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],
@@ -69,9 +68,16 @@ export const Addons: Story = {
   },
 };
 
-export const Multiline: Story = {
+export const ManyTags: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Tags wrap onto multiple lines by default — no prop is needed to enable it.',
+      },
+    },
+  },
   args: {
-    isMultiline: true,
     children: (
       <>
         {Array.from({ length: 100 }, (_, i) => (
@@ -96,7 +102,7 @@ export const WithMargin: Story = {
 
 export const MixedTags: Story = {
   render: args => (
-    <Tags {...args} isMultiline hasAddons={false}>
+    <Tags {...args} hasAddons={false}>
       <Tag color="primary" size="medium">
         Primary Medium
       </Tag>

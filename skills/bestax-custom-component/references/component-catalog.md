@@ -69,7 +69,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [SubTitle](https://bestax.io/docs/api/elements/subtitle) — The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`…
 - [Table](https://bestax.io/docs/api/elements/table) — The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.
 - [Tag](https://bestax.io/docs/api/elements/tag) — The `Tag` component renders a Bulma-styled label or badge.
-- [Tags](https://bestax.io/docs/api/elements/tags) — The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
+- [Tags](https://bestax.io/docs/api/elements/tags) — The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.
 - [Title](https://bestax.io/docs/api/elements/title) — The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`…
 - [UnorderedList](https://bestax.io/docs/api/elements/unorderedlist) — The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration.
 

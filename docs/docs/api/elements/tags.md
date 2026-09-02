@@ -1,7 +1,7 @@
 ---
 title: Tags
 sidebar_label: Tags
-description: The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
+description: The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.
 ---
 
 # Tags
@@ -10,14 +10,14 @@ description: The `Tags` component groups multiple `Tag` components together in a
 
 <!-- bestax:generated overview -->
 
-The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
+The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.
 
 <!-- /bestax:generated overview -->
 
 Use it for tag clouds, keyword lists, multi-select UIs, or displaying collections of dismissible tokens.
 
 :::info
-Use `Tags` to organize tags with add-on and multiline layouts for a clean, compact UI.
+Use `Tags` to organize tags with add-on layouts for a clean, compact UI. Wrapping onto multiple lines is the default behavior — no prop is needed to enable it.
 :::
 
 ---
@@ -60,12 +60,12 @@ Set the `hasAddons` prop to group tags together as add-ons, removing spacing bet
 </Tags>
 ```
 
-### Multiline
+### Wrapping (Default)
 
-Use the `isMultiline` prop to allow tags to wrap onto multiple lines, making the tag group responsive for long lists.
+Tags wrap onto multiple lines by default, keeping long lists responsive without any extra prop.
 
 ```tsx live
-<Tags isMultiline>
+<Tags>
   <Tag color="primary">Bulma</Tag>
   <Tag color="success">React</Tag>
   <Tag color="warning">Typescript</Tag>
@@ -86,14 +86,14 @@ You can use Bulma helper props like `m="4"` to add margin around the tag group f
 
 ### Mixed Tags
 
-Combine props such as `isMultiline`, `size`, `isRounded`, and `isDelete` to create flexible, interactive tag groups for advanced UIs.
+Combine props such as `size`, `isRounded`, and `isDelete` to create flexible, interactive tag groups for advanced UIs.
 
 ```tsx live
 function example() {
   const [show, setShow] = useState();
 
   return (
-    <Tags isMultiline>
+    <Tags>
       <Tag color="primary" size="medium">
         Primary Medium
       </Tag>
@@ -138,7 +138,7 @@ You can combine `hasAddons` with a delete tag to create a tightly grouped, dismi
 
 - **Grouping:** The container is a `<div class="tags">`, which is semantically neutral.
 - **Delete buttons:** If using delete tags, ensure each has an accessible label.
-- **Multiline:** `isMultiline` ensures tags wrap for better readability on small screens.
+- **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.
 
 :::tip
 Use `hasAddons` for tightly grouped tags (no space between them).
@@ -165,13 +165,13 @@ Use `hasAddons` for tightly grouped tags (no space between them).
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                   | Default | Description                                       |
-| ------------- | ------------------------------------------------------ | ------- | ------------------------------------------------- |
-| `className`   | `string`                                               | —       | Additional CSS classes to apply.                  |
-| `hasAddons`   | `boolean`                                              | `false` | Group tags together as add-ons (no spacing).      |
-| `isMultiline` | `boolean`                                              | `false` | Allow tags to wrap onto multiple lines.           |
-| `children`    | `React.ReactNode`                                      | —       | Tag elements to render inside the container.      |
-| `...`         | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop          | Type                                                   | Default | Description                                                                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                               | —       | Additional CSS classes to apply.                                                                                                                                                                                                 |
+| `hasAddons`   | `boolean`                                              | `false` | Group tags together as add-ons (no spacing).                                                                                                                                                                                     |
+| `isMultiline` | `boolean`                                              | `false` | **Deprecated.** Bulma's `.tags` wraps by default (no shipped `are-multiline` CSS exists for it) — this prop has never had a visual effect and will be removed in the next major version. Allow tags to wrap onto multiple lines. |
+| `children`    | `React.ReactNode`                                      | —       | Tag elements to render inside the container.                                                                                                                                                                                     |
+| `...`         | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                |
 
 **Subcomponents:**
 

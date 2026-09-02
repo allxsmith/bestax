@@ -15,14 +15,20 @@ export interface TagsProps
   className?: string;
   /** Group tags together as add-ons (no spacing). */
   hasAddons?: boolean;
-  /** Allow tags to wrap onto multiple lines. */
+  /**
+   * Allow tags to wrap onto multiple lines.
+   *
+   * @deprecated Bulma's `.tags` wraps by default (no shipped `are-multiline`
+   * CSS exists for it) — this prop has never had a visual effect and will be
+   * removed in the next major version.
+   */
   isMultiline?: boolean;
   /** Tag elements to render inside the container. */
   children?: React.ReactNode;
 }
 
 /**
- * The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
+ * The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.
  *
  * @function
  * @param {TagsProps} props - Props for the Tags component.
@@ -32,6 +38,7 @@ export interface TagsProps
 const TagsComponent: React.FC<TagsProps> = ({
   className,
   hasAddons,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- accepted for backwards compatibility, deprecated no-op (no `are-multiline` CSS ships)
   isMultiline,
   children,
   ...props
@@ -43,7 +50,6 @@ const TagsComponent: React.FC<TagsProps> = ({
 
   const bulmaClasses = usePrefixedClassNames('tags', {
     'has-addons': hasAddons,
-    'are-multiline': isMultiline,
   });
 
   const tagsClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
