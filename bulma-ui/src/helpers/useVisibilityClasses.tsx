@@ -21,10 +21,18 @@ export interface BulmaVisibilityProps
   visibilityMobile?: (typeof validVisibilities)[number];
   /** Visibility for tablet viewport (769px - 1023px). */
   visibilityTablet?: (typeof validVisibilities)[number];
+  /** Visibility for tablet-only viewport (769px - 1023px, excludes desktop+). */
+  visibilityTabletOnly?: (typeof validVisibilities)[number];
+  /** Visibility for touch viewport (up to 1023px; mobile + tablet). */
+  visibilityTouch?: (typeof validVisibilities)[number];
   /** Visibility for desktop viewport (1024px - 1215px). */
   visibilityDesktop?: (typeof validVisibilities)[number];
+  /** Visibility for desktop-only viewport (1024px - 1215px, excludes widescreen+). */
+  visibilityDesktopOnly?: (typeof validVisibilities)[number];
   /** Visibility for widescreen viewport (1216px - 1407px). */
   visibilityWidescreen?: (typeof validVisibilities)[number];
+  /** Visibility for widescreen-only viewport (1216px - 1407px, excludes fullhd). */
+  visibilityWidescreenOnly?: (typeof validVisibilities)[number];
   /** Visibility for fullhd viewport (1408px and above). */
   visibilityFullhd?: (typeof validVisibilities)[number];
 }
@@ -52,14 +60,22 @@ export const useVisibilityClasses = (props: BulmaVisibilityProps): string => {
     visibility,
     visibilityMobile,
     visibilityTablet,
+    visibilityTabletOnly,
+    visibilityTouch,
     visibilityDesktop,
+    visibilityDesktopOnly,
     visibilityWidescreen,
+    visibilityWidescreenOnly,
     visibilityFullhd,
     display,
     displayMobile,
     displayTablet,
+    displayTabletOnly,
+    displayTouch,
     displayDesktop,
+    displayDesktopOnly,
     displayWidescreen,
+    displayWidescreenOnly,
     displayFullhd,
     viewport,
   } = props;
@@ -86,8 +102,15 @@ export const useVisibilityClasses = (props: BulmaVisibilityProps): string => {
 
     addViewportSpecificVisibilityClass(visibilityMobile, '-mobile');
     addViewportSpecificVisibilityClass(visibilityTablet, '-tablet');
+    addViewportSpecificVisibilityClass(visibilityTabletOnly, '-tablet-only');
+    addViewportSpecificVisibilityClass(visibilityTouch, '-touch');
     addViewportSpecificVisibilityClass(visibilityDesktop, '-desktop');
+    addViewportSpecificVisibilityClass(visibilityDesktopOnly, '-desktop-only');
     addViewportSpecificVisibilityClass(visibilityWidescreen, '-widescreen');
+    addViewportSpecificVisibilityClass(
+      visibilityWidescreenOnly,
+      '-widescreen-only'
+    );
     addViewportSpecificVisibilityClass(visibilityFullhd, '-fullhd');
 
     // Visibility and Display
@@ -110,16 +133,24 @@ export const useVisibilityClasses = (props: BulmaVisibilityProps): string => {
     // Apply viewport-specific display classes
     addDisplayClass(displayMobile, '-mobile');
     addDisplayClass(displayTablet, '-tablet');
+    addDisplayClass(displayTabletOnly, '-tablet-only');
+    addDisplayClass(displayTouch, '-touch');
     addDisplayClass(displayDesktop, '-desktop');
+    addDisplayClass(displayDesktopOnly, '-desktop-only');
     addDisplayClass(displayWidescreen, '-widescreen');
+    addDisplayClass(displayWidescreenOnly, '-widescreen-only');
     addDisplayClass(displayFullhd, '-fullhd');
 
     // Apply legacy display/viewport combination if no viewport-specific display props are set
     const hasViewportSpecificDisplay = !!(
       displayMobile ||
       displayTablet ||
+      displayTabletOnly ||
+      displayTouch ||
       displayDesktop ||
+      displayDesktopOnly ||
       displayWidescreen ||
+      displayWidescreenOnly ||
       displayFullhd
     );
 
@@ -155,14 +186,22 @@ export const useVisibilityClasses = (props: BulmaVisibilityProps): string => {
     visibility,
     visibilityMobile,
     visibilityTablet,
+    visibilityTabletOnly,
+    visibilityTouch,
     visibilityDesktop,
+    visibilityDesktopOnly,
     visibilityWidescreen,
+    visibilityWidescreenOnly,
     visibilityFullhd,
     display,
     displayMobile,
     displayTablet,
+    displayTabletOnly,
+    displayTouch,
     displayDesktop,
+    displayDesktopOnly,
     displayWidescreen,
+    displayWidescreenOnly,
     displayFullhd,
     viewport,
   ]);

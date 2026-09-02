@@ -96,8 +96,12 @@ describe('useVisibilityClasses', () => {
     );
   });
 
+  it('applies display grid class', () => {
+    expect(renderUseVisibilityClasses({ display: 'grid' })).toBe('is-grid');
+  });
+
   it('ignores invalid display values', () => {
-    expect(renderUseVisibilityClasses({ display: 'grid' as any })).toBe('');
+    expect(renderUseVisibilityClasses({ display: 'flexbox' as any })).toBe('');
   });
 
   it('ignores invalid visibility values', () => {
@@ -116,5 +120,89 @@ describe('useVisibilityClasses', () => {
         'bulma-'
       )
     ).toBe('bulma-is-hidden-mobile bulma-is-flex');
+  });
+
+  it('maps displayTouch none to is-hidden-touch', () => {
+    expect(renderUseVisibilityClasses({ displayTouch: 'none' })).toBe(
+      'is-hidden-touch'
+    );
+  });
+
+  it('applies displayTouch class', () => {
+    expect(renderUseVisibilityClasses({ displayTouch: 'flex' })).toBe(
+      'is-flex-touch'
+    );
+  });
+
+  it('applies displayTabletOnly class', () => {
+    expect(renderUseVisibilityClasses({ displayTabletOnly: 'block' })).toBe(
+      'is-block-tablet-only'
+    );
+  });
+
+  it('applies displayDesktopOnly class', () => {
+    expect(renderUseVisibilityClasses({ displayDesktopOnly: 'flex' })).toBe(
+      'is-flex-desktop-only'
+    );
+  });
+
+  it('applies displayWidescreenOnly class', () => {
+    expect(
+      renderUseVisibilityClasses({ displayWidescreenOnly: 'inline-flex' })
+    ).toBe('is-inline-flex-widescreen-only');
+  });
+
+  it('applies visibilityTouch hidden as is-hidden-touch', () => {
+    expect(renderUseVisibilityClasses({ visibilityTouch: 'hidden' })).toBe(
+      'is-hidden-touch'
+    );
+  });
+
+  it('applies visibilityTabletOnly invisible as is-invisible-tablet-only', () => {
+    expect(
+      renderUseVisibilityClasses({ visibilityTabletOnly: 'invisible' })
+    ).toBe('is-invisible-tablet-only');
+  });
+
+  it('applies visibilityDesktopOnly sr-only as is-sr-only-desktop-only', () => {
+    expect(
+      renderUseVisibilityClasses({ visibilityDesktopOnly: 'sr-only' })
+    ).toBe('is-sr-only-desktop-only');
+  });
+
+  it('applies visibilityWidescreenOnly hidden as is-hidden-widescreen-only', () => {
+    expect(
+      renderUseVisibilityClasses({ visibilityWidescreenOnly: 'hidden' })
+    ).toBe('is-hidden-widescreen-only');
+  });
+
+  it('suffixes display with touch and -only viewports via the legacy viewport prop', () => {
+    expect(
+      renderUseVisibilityClasses({ display: 'flex', viewport: 'touch' })
+    ).toBe('is-flex-touch');
+    expect(
+      renderUseVisibilityClasses({ display: 'block', viewport: 'tablet-only' })
+    ).toBe('is-block-tablet-only');
+    expect(
+      renderUseVisibilityClasses({ display: 'block', viewport: 'desktop-only' })
+    ).toBe('is-block-desktop-only');
+    expect(
+      renderUseVisibilityClasses({
+        display: 'block',
+        viewport: 'widescreen-only',
+      })
+    ).toBe('is-block-widescreen-only');
+  });
+
+  it('suffixes visibility with touch and -only viewports via the legacy viewport prop', () => {
+    expect(
+      renderUseVisibilityClasses({ visibility: 'hidden', viewport: 'touch' })
+    ).toBe('is-hidden-touch');
+    expect(
+      renderUseVisibilityClasses({
+        visibility: 'invisible',
+        viewport: 'desktop-only',
+      })
+    ).toBe('is-invisible-desktop-only');
   });
 });

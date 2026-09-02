@@ -1064,7 +1064,7 @@
       "import": "import { useBulmaClasses } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
-      "exampleCount": 40
+      "exampleCount": 43
     },
     {
       "name": "usePrefixedClassNames",

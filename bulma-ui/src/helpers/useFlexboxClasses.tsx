@@ -73,8 +73,12 @@ export const useFlexboxClasses = (props: BulmaFlexboxProps): string => {
     display,
     displayMobile,
     displayTablet,
+    displayTabletOnly,
+    displayTouch,
     displayDesktop,
+    displayDesktopOnly,
     displayWidescreen,
+    displayWidescreenOnly,
     displayFullhd,
   } = props;
 
@@ -90,10 +94,18 @@ export const useFlexboxClasses = (props: BulmaFlexboxProps): string => {
       displayMobile === 'inline-flex' ||
       displayTablet === 'flex' ||
       displayTablet === 'inline-flex' ||
+      displayTabletOnly === 'flex' ||
+      displayTabletOnly === 'inline-flex' ||
+      displayTouch === 'flex' ||
+      displayTouch === 'inline-flex' ||
       displayDesktop === 'flex' ||
       displayDesktop === 'inline-flex' ||
+      displayDesktopOnly === 'flex' ||
+      displayDesktopOnly === 'inline-flex' ||
       displayWidescreen === 'flex' ||
       displayWidescreen === 'inline-flex' ||
+      displayWidescreenOnly === 'flex' ||
+      displayWidescreenOnly === 'inline-flex' ||
       displayFullhd === 'flex' ||
       displayFullhd === 'inline-flex';
 
@@ -134,8 +146,12 @@ export const useFlexboxClasses = (props: BulmaFlexboxProps): string => {
     display,
     displayMobile,
     displayTablet,
+    displayTabletOnly,
+    displayTouch,
     displayDesktop,
+    displayDesktopOnly,
     displayWidescreen,
+    displayWidescreenOnly,
     displayFullhd,
   ]);
 };

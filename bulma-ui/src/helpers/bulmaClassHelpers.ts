@@ -140,6 +140,7 @@ export const validDisplays = [
   'inline',
   'inline-block',
   'inline-flex',
+  'grid',
 ] as const;
 
 /**
@@ -237,8 +238,12 @@ export const validFlexGrowShrink = ['0', '1', '2', '3', '4', '5'] as const;
 export const validViewports = [
   'mobile',
   'tablet',
+  'tablet-only',
+  'touch',
   'desktop',
+  'desktop-only',
   'widescreen',
+  'widescreen-only',
   'fullhd',
 ] as const;
 
@@ -261,10 +266,18 @@ export interface BulmaDisplayProps {
   displayMobile?: (typeof validDisplays)[number] | 'none';
   /** Display type for tablet viewport (769px - 1023px). */
   displayTablet?: (typeof validDisplays)[number] | 'none';
+  /** Display type for tablet-only viewport (769px - 1023px, excludes desktop+). */
+  displayTabletOnly?: (typeof validDisplays)[number] | 'none';
+  /** Display type for touch viewport (up to 1023px; mobile + tablet). */
+  displayTouch?: (typeof validDisplays)[number] | 'none';
   /** Display type for desktop viewport (1024px - 1215px). */
   displayDesktop?: (typeof validDisplays)[number] | 'none';
+  /** Display type for desktop-only viewport (1024px - 1215px, excludes widescreen+). */
+  displayDesktopOnly?: (typeof validDisplays)[number] | 'none';
   /** Display type for widescreen viewport (1216px - 1407px). */
   displayWidescreen?: (typeof validDisplays)[number] | 'none';
+  /** Display type for widescreen-only viewport (1216px - 1407px, excludes fullhd). */
+  displayWidescreenOnly?: (typeof validDisplays)[number] | 'none';
   /** Display type for fullhd viewport (1408px and above). */
   displayFullhd?: (typeof validDisplays)[number] | 'none';
 }
