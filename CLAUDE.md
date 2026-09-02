@@ -44,9 +44,10 @@ pnpm storybook      # Storybook dev server :6006
 pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
 ```
 
-Run `pnpm format` before `pnpm lint` when running a subset by hand: lint includes prettier
-(`eslint-plugin-prettier`), so an unformatted tree fails lint while typecheck and tests pass, and
-turbo reports "1 of 3 successful" with the cause several screens up. `pnpm all` orders them.
+Run `pnpm format` before `pnpm lint`: lint includes prettier (`eslint-plugin-prettier`), so an
+unformatted tree fails lint while typecheck and tests pass. `pnpm all` runs lint before
+`format:check` and never formats, so it fails the same way. In a multi-task `turbo run` the
+summary reads ` Tasks: 1 successful, 3 total` with the cause several screens up.
 
 ## Quality gates
 

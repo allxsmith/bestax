@@ -38,20 +38,21 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   values.
 - **A TODO message is a claim about bestax; read the component before writing it.** Four
   shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`,
-  which does not exist). The e2e fails on an undocumented rule; nothing checks the guidance is true.
+  which does not exist). The rbx e2e fails on an undocumented rule (the RBC e2e has no such
+  check); nothing checks that the guidance is true.
 - **A defect in one source's `transform.ts` is almost certainly in the other.** Nine fixes were
   ported RBC↔rbx on #613 and review kept finding the unported half. Fix the sibling in the same
   commit, or move the logic into `_shared/`.
-- **Resolve references by binding, not by identifier text.** Name-keyed maps produced every
-  serious bug on #613 (a shadowing parameter rewritten to `F(Card.Header)`; two scopes
-  destructuring one name). Use the alias/scope machinery in `_shared/imports.ts`. `path.scope`
-  is not identity-stable and a pruned declaration vanishes from `scope.lookup`, which is why
-  ownership is keyed by the owner node and resolved by walking the reference's ancestors.
+- **Resolve references by binding, not by identifier text.** Every serious bug on #613 came
+  from a name-keyed map (`function F(Header)` rewritten to `F(Card.Header)`). Use the owner-keyed
+  `aliasAt` resolver in each `transform.ts` (duplicated; hoist to `_shared/` before a third
+  source): ancestors decide ownership, then `scope.lookup` vetoes a nearer binding.
 - **The report may only describe what actually happened.** The manifest headline said "bumped
-  bulma" in three of four shapes where nothing was bumped. Track each mutation; phrase from it.
+  bulma" in most manifest shapes where nothing was bumped. Track each mutation; phrase from it.
 - **The stylesheet pass and the manifest pass must agree on what is removable.** Both report
   rather than remove the `bulma-*` extensions, since markup outside the source may still use
-  their classes. One policy for both.
+  their classes. The set is defined three times (`rbx/deps.ts`, `rbx/transform.ts`,
+  `_shared/make-styles-transform.ts`); keep them agreeing, and RBC's manifest pass has none.
 - **Never change `bulma-ui` to make a migration cleaner.** Map onto the library as it is and
   emit a TODO otherwise. A gap earns a `bulma-ui` issue only if it is a bestax defect or the
   source is genuinely better, not merely different (#616 to #622 are the worked example).
@@ -63,12 +64,12 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   in-process runner (NOT jscodeshift's worker Runner: fragile from ESM, hides per-file
   stats). `src/runner.ts` is shared by CLI and tests. `--css bestax|bulma|keep` picks the
   stylesheet target; `--no-deps` skips the manifest step.
-- `src/sources/react-bulma-components/`: `transform.ts` (orchestration: imports + css →
-  per-element special/rename/responsive/props → import rewrite), `mapping.ts` (data),
-  `specials.ts` (structural handlers), `props.ts` (PropAction interpreter), `responsive.ts`
-  (breakpoint-object flattening), `styles.ts` (line-based SCSS/SASS transform — Sass has
-  no jscodeshift parser, so it only rewrites provably-safe patterns), `deps.ts`
-  (package.json updater; never runs an install), `jsx-utils.ts` (AST helpers).
+- `src/sources/react-bulma-components/` (and `rbx/`, same shape): `transform.ts`
+  (orchestration: imports + css → per-element special/rename/responsive/props → import
+  rewrite), `mapping.ts` (data), `specials.ts` (structural handlers), `responsive.ts`
+  (breakpoint-object flattening), `styles.ts` (a thin call into `_shared/make-styles-transform.ts`,
+  line-based because Sass has no jscodeshift parser), `deps.ts` (package.json updater; never
+  runs an install). The PropAction interpreter and AST helpers live in `_shared/`.
 - Components with no bestax equivalent (Element, Tile) keep a trimmed, TODO-annotated RBC
   import so the code still runs during gradual migration.
 - `src/telemetry-core.ts` is a byte-for-byte copy of
@@ -112,7 +113,8 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
 
 - After editing a test file, check the total test count did not drop. A range replacement
   between two `describe` blocks that were not adjacent deleted 868 lines on #613 and the suite
-  stayed green at 699 tests instead of 781. Green alone does not catch it; the count does.
+  stayed green at 699 tests instead of 781. Compare the `Tests:` line from `pnpm test` in
+  `bestax-migrate/` (bare `jest` breaks on ESM and reports a different count).
 
 ## Releases
 
