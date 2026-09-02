@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
@@ -6,6 +6,22 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+
+/**
+ * Shared state a `Navbar.Dropdown` exposes to its `Navbar.Link` trigger so the
+ * trigger needs no hand-wired ARIA or keyboard handling.
+ */
+interface NavbarDropdownContextValue {
+  /** Whether the dropdown is currently open. */
+  active: boolean;
+  /** Flips the open state. */
+  toggle: () => void;
+  /** Closes the dropdown (no-op if already closed). */
+  close: () => void;
+}
+
+const NavbarDropdownContext =
+  React.createContext<NavbarDropdownContextValue | null>(null);
 
 /**
  * Props for the Navbar component.
@@ -429,6 +445,22 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
     ...props,
   });
 
+  const dropdownContext = useContext(NavbarDropdownContext);
+  const hasHref = (rest as { href?: string }).href !== undefined;
+  const isNativeInteractive = Component === 'button' || hasHref;
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    rest.onKeyDown?.(e);
+    if (!dropdownContext || e.defaultPrevented) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      dropdownContext.toggle();
+    } else if (e.key === 'Escape' && dropdownContext.active) {
+      e.preventDefault();
+      dropdownContext.close();
+    }
+  };
+
   return (
     <Component
       className={classNames(
@@ -439,6 +471,12 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
         className
       )}
       {...rest}
+      {...(dropdownContext && {
+        'aria-haspopup': 'true',
+        'aria-expanded': dropdownContext.active,
+        onKeyDown: handleKeyDown,
+        ...(!isNativeInteractive && { role: 'button', tabIndex: 0 }),
+      })}
     >
       {children}
     </Component>
@@ -459,6 +497,8 @@ export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement
   hoverable?: boolean;
   /** Dropdown is open. */
   active?: boolean;
+  /** Callback when dropdown active state changes. */
+  onActiveChange?: (active: boolean) => void;
   /** Dropdown content. */
   children?: React.ReactNode;
 }
@@ -475,25 +515,54 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
   right,
   up,
   hoverable,
-  active,
+  active: activeProp,
+  onActiveChange,
   children,
   ...props
-}) => (
-  <div
-    className={classNames(
-      usePrefixedClassNames('navbar-item', 'has-dropdown', {
-        'has-dropdown-up': up,
-        'is-right': right,
-        'is-hoverable': hoverable,
-        'is-active': active,
-      }),
-      className
-    )}
-    {...props}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const [active, setActive] = useState<boolean>(!!activeProp);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
+    if (typeof activeProp === 'boolean') setActive(activeProp);
+  }, [activeProp]);
+
+  const toggle = () => {
+    setActive(prev => {
+      const next = !prev;
+      onActiveChange?.(next);
+      return next;
+    });
+  };
+
+  const close = () => {
+    setActive(prev => {
+      /* istanbul ignore next: close() is only invoked once already active */
+      if (!prev) return prev;
+      onActiveChange?.(false);
+      return false;
+    });
+  };
+
+  return (
+    <NavbarDropdownContext.Provider value={{ active, toggle, close }}>
+      <div
+        className={classNames(
+          usePrefixedClassNames('navbar-item', 'has-dropdown', {
+            'has-dropdown-up': up,
+            'is-right': right,
+            'is-hoverable': hoverable,
+            'is-active': active,
+          }),
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    </NavbarDropdownContext.Provider>
+  );
+};
 
 /**
  * Props for the NavbarDropdownMenu component.

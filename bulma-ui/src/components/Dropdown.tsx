@@ -70,6 +70,8 @@ const DropdownComponent: React.FC<DropdownProps> = ({
 }) => {
   const [active, setActive] = useState<boolean>(!!activeProp);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const pendingFocusRef = useRef<'first' | 'last' | null>(null);
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
@@ -125,6 +127,125 @@ const DropdownComponent: React.FC<DropdownProps> = ({
     }
   };
 
+  const getMenuItems = (): HTMLElement[] => {
+    /* istanbul ignore next: dropdownRef.current is never null once mounted */
+    if (!dropdownRef.current) return [];
+    return Array.from(
+      dropdownRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    ).filter(
+      el =>
+        !el.hasAttribute('disabled') &&
+        el.getAttribute('aria-disabled') !== 'true'
+    );
+  };
+
+  // Focus the pending menu item once the menu becomes visible; the item is
+  // unfocusable while `display: none` applies, so this must wait for the
+  // `is-active` class to actually land in the DOM.
+  useEffect(() => {
+    if (!active || !pendingFocusRef.current) return;
+    const items = getMenuItems();
+    if (items.length) {
+      const index = pendingFocusRef.current === 'first' ? 0 : items.length - 1;
+      items[index].focus();
+    }
+    pendingFocusRef.current = null;
+  }, [active]);
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        pendingFocusRef.current = 'first';
+        if (!active) {
+          setActive(true);
+          onActiveChange?.(true);
+        } else {
+          const items = getMenuItems();
+          if (items.length) items[0].focus();
+          pendingFocusRef.current = null;
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        pendingFocusRef.current = 'last';
+        if (!active) {
+          setActive(true);
+          onActiveChange?.(true);
+        } else {
+          const items = getMenuItems();
+          if (items.length) items[items.length - 1].focus();
+          pendingFocusRef.current = null;
+        }
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (!active) {
+          pendingFocusRef.current = 'first';
+          setActive(true);
+          onActiveChange?.(true);
+        } else {
+          setActive(false);
+          onActiveChange?.(false);
+        }
+        break;
+      case 'Escape':
+        if (active) {
+          e.preventDefault();
+          setActive(false);
+          onActiveChange?.(false);
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const items = getMenuItems();
+    if (!items.length) return;
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault();
+        const next = currentIndex >= 0 ? (currentIndex + 1) % items.length : 0;
+        items[next].focus();
+        break;
+      }
+      case 'ArrowUp': {
+        e.preventDefault();
+        const prev =
+          currentIndex >= 0
+            ? (currentIndex - 1 + items.length) % items.length
+            : items.length - 1;
+        items[prev].focus();
+        break;
+      }
+      case 'Home':
+        e.preventDefault();
+        items[0].focus();
+        break;
+      case 'End':
+        e.preventDefault();
+        items[items.length - 1].focus();
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setActive(false);
+        onActiveChange?.(false);
+        triggerRef.current?.focus();
+        break;
+      case 'Tab':
+        setActive(false);
+        onActiveChange?.(false);
+        break;
+      default:
+        break;
+    }
+  };
+
   const dropdownClasses = classNames(
     bulmaClasses,
     bulmaHelperClasses,
@@ -141,11 +262,13 @@ const DropdownComponent: React.FC<DropdownProps> = ({
     >
       <div className={usePrefixedClassNames('dropdown-trigger')}>
         <button
+          ref={triggerRef}
           className={buttonClass}
           aria-haspopup="true"
           aria-controls={id ? `${id}-menu` : undefined}
           aria-expanded={active}
           onClick={handleToggle}
+          onKeyDown={handleTriggerKeyDown}
           disabled={disabled}
           type="button"
         >
@@ -166,6 +289,7 @@ const DropdownComponent: React.FC<DropdownProps> = ({
         id={id ? `${id}-menu` : undefined}
         role="menu"
         data-testid="dropdown-menu"
+        onKeyDown={handleMenuKeyDown}
       >
         <div
           className={usePrefixedClassNames('dropdown-content')}

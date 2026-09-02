@@ -70,7 +70,7 @@
       "code": "<Navbar>\n  <Navbar.Brand>\n    <Navbar.Item href=\"#\">\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n    <Navbar.Burger aria-label=\"menu\" />\n  </Navbar.Brand>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n      <Navbar.Item href=\"#\">Docs</Navbar.Item>\n    </Navbar.Start>\n    <Navbar.End>\n      <Navbar.Item href=\"#\">Log in</Navbar.Item>\n    </Navbar.End>\n  </Navbar.Menu>\n</Navbar>"
     }
   ],
-  "accessibility": "- The root `Navbar` renders as `<nav role=\"navigation\" aria-label=\"main navigation\">`.\n- Use semantic links (`<a>`) and buttons, and provide clear `aria-label` and `aria-expanded` for the burger toggle.\n- Dropdowns and menus follow Bulma's structure for keyboard and screen reader accessibility.\n\n:::note\nFor full accessibility in dropdowns, ensure that focus, keyboard navigation, and ARIA attributes are managed where needed.\n:::",
+  "accessibility": "- The root `Navbar` renders as `<nav role=\"navigation\" aria-label=\"main navigation\">`.\n- Use semantic links (`<a>`) and buttons, and provide clear `aria-label` and `aria-expanded` for the burger toggle.\n- `Navbar.Link` inside a `Navbar.Dropdown` automatically gets `aria-haspopup=\"true\"` and\n  `aria-expanded` synced to the dropdown's open state — no manual wiring required.\n  <kbd>Enter</kbd>/<kbd>Space</kbd> toggle the dropdown open/closed, and <kbd>Escape</kbd>\n  closes it and keeps focus on the link. When the link has no `href` and isn't rendered with\n  `as=\"button\"`, it also gets `role=\"button\"` and `tabIndex={0}` so it's reachable and\n  operable by keyboard.\n- `hoverable` dropdowns keep working with a mouse (hover-to-open); the keyboard path above\n  opens and closes them independently of hover.\n\n:::note\nThere's no arrow-key roving between navbar items and no outside-click handling for\n`Navbar.Dropdown` — Bulma navbar dropdowns are hover/click surfaces, so this is intentionally\nkept simple.\n:::",
   "related": ["Button", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-navbar--default",
   "summary": "The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.",
@@ -611,6 +611,15 @@
           "type": "boolean",
           "default": "false",
           "description": "Dropdown is open.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onActiveChange",
+          "type": "(active: boolean) => void",
+          "default": null,
+          "description": "Callback when dropdown active state changes.",
           "required": false,
           "inherited": false,
           "deprecated": false
