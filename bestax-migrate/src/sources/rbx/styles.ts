@@ -5,11 +5,11 @@
  * identical.
  *
  * Note what it does NOT do: a `bulma-*` extension import in Sass is left in
- * place with a TODO, not removed. Only the JS/CSS-import side of rbx's
- * extension cleanup is automatic (transform.ts prunes
- * `bulma-badge`/`bulma-divider`/`bulma-pageloader`/`bulma-tooltip` CSS
- * imports outright, since bestax ships all four as components). A Sass
- * `@import` of one may be pulling in customisation the codemod cannot see,
+ * place with a TODO, not removed. The JS/CSS-import side in transform.ts does
+ * the same for `bulma-badge`/`bulma-divider`/`bulma-pageloader`/`bulma-tooltip`
+ * (kept, with a TODO), and the manifest pass reports rather than removes the
+ * packages, since markup outside rbx may still use the extension's classes. A
+ * Sass `@import` of one may be pulling in customisation the codemod cannot see,
  * so it is flagged for a human instead.
  *
  * rbx's own stylesheet is `rbx/rbx` (its Sass entry, usually imported as

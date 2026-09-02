@@ -145,3 +145,89 @@ describe('retained-import warning', () => {
     expect(todos.map(t => t.message).join('\n')).not.toMatch(/still import it/);
   });
 });
+
+describe('pre-1.0 bulma range detection', () => {
+  // The regex this pass used matched a leading `0` and nothing else, so a
+  // range written as comparators (`>=0.9.0 <1`) was neither bumped nor
+  // reported. The parser is now shared with the rbx source, which had already
+  // been fixed; this pins the port.
+  it.each([
+    '^0.9.4',
+    '~0.7.5',
+    '0.7.x',
+    '>=0.7 <1',
+    '>= 0.7.0 < 1.0.0',
+    '<1',
+    '0.7.0 - 0.9.4',
+    '^0.9 || ^0.8',
+    '<1.0.0-0',
+    '>=0.9.0 <1.0.0-0',
+    '<=1.0.0-0',
+    '1.0.0-rc.1',
+    '<1.0.0-rc.1',
+    '0.9.0 - 1.0.0-0',
+    '<1.0.0+build.1',
+    '0.9.0-alpha.1',
+    '0.9.0+build.7',
+    'v1.0.0-rc.1',
+    '<v1.0.0',
+    '>=1.0.0-rc.1 <1.0.0',
+    '<1 <2',
+    '<1 <=2',
+    '>=0.7 <1 <3',
+    '<1.x',
+    '<1.0.x',
+    '<1.*',
+    '~ 0.7.5',
+    '^ 0.9.4',
+  ])('bumps %s', range => {
+    const { next } = run({
+      dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
+    });
+    expect((next?.dependencies as Record<string, string>).bulma).toBe('^1.0.4');
+  });
+
+  it.each([
+    '0.next',
+    '1.0-beta',
+    '0.7.x-foo',
+    '^^0.9.4',
+    'vv0.9.4',
+    'not-a-range - 0.9.4',
+    '00.9.4',
+    '0.07.0',
+    '==0.9.4',
+    '<^0.9',
+    '0.x.1',
+    '0.9.0-alpha..1',
+    '0.9.0-01',
+    '0.9.0+foo..bar',
+    '> =0.7 <1',
+  ])('leaves %s alone because it is not a range this parser reads', range => {
+    // Not "admits a v1": these are left untouched because the parser cannot
+    // read them, which the rbx report words differently from an actual v1.
+    const { next } = run({
+      dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
+    });
+    expect((next?.dependencies as Record<string, string>).bulma).toBe(range);
+  });
+
+  it.each([
+    '^1.0.2',
+    '>=0.9 <2',
+    '^0.9 || ^1.0',
+    '*',
+    '>=0.9',
+    '<=1.0.0',
+    '^1.0.0-rc.1',
+    '<2',
+    '<=2',
+    '<1.1.x',
+    '<=1.x',
+  ])('leaves %s alone because it admits a v1', range => {
+    const { next } = run({
+      dependencies: { 'react-bulma-components': '^4.1.0', bulma: range },
+    });
+    expect((next?.dependencies as Record<string, string>).bulma).toBe(range);
+  });
+});
