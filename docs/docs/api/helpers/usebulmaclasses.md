@@ -106,7 +106,7 @@ function example() {
 </Buttons>
 ```
 
-The legacy `viewport` prop widens to all nine values too, so `useBulmaClasses({ display: 'flex', viewport: 'touch' })` produces `is-flex-touch`.
+The legacy `viewport` prop widens to all nine values too, so `useBulmaClasses({ display: 'flex', viewport: 'touch' })` produces `is-flex-touch`. One exception: Bulma ships no `is-size-*` classes for the three `-only` bands, so `textSize` combined with a `tablet-only`/`desktop-only`/`widescreen-only` `viewport` degrades to the base `is-size-N` (rather than emitting a dead `is-size-N-tablet-only`); `touch` and the five breakpoints are unaffected.
 
 ---
 

@@ -12,6 +12,20 @@ import {
 } from './bulmaClassHelpers';
 
 /**
+ * Viewports Bulma generates `is-size-*` classes for. Unlike text alignment,
+ * text size ships no `-only` bands (`tablet-only`/`desktop-only`/`widescreen-only`),
+ * so the `viewport` prop's suffix is limited to these on the `is-size` path.
+ */
+const sizeSupportedViewports = [
+  'mobile',
+  'tablet',
+  'touch',
+  'desktop',
+  'widescreen',
+  'fullhd',
+] as const;
+
+/**
  * Props for applying Bulma typography helper classes.
  */
 export interface BulmaTypographyProps extends BulmaViewportProps {
@@ -88,8 +102,11 @@ export const useTypographyClasses = (props: BulmaTypographyProps): string => {
       createBulmaClassHelpers(classPrefix, viewport);
 
     // Typography
-    addClass('is-size', textSize, validTextSizes, true); // supports viewport
-    addClass('has-text', textAlign, validAlignments, true); // supports viewport
+    // Bulma emits `is-size-*` for the six main/`touch` breakpoints but not the
+    // three `-only` bands, so restrict the viewport suffix to the ones it ships
+    // — otherwise `viewport="tablet-only"` would render a dead `is-size-N-tablet-only`.
+    addClass('is-size', textSize, validTextSizes, true, sizeSupportedViewports); // supports viewport (no `-only` bands)
+    addClass('has-text', textAlign, validAlignments, true); // supports viewport (all bands)
     addClassNoViewport('is', textTransform, validTextTransforms); // no viewport support
     addClassNoViewport('has-text-weight', textWeight, validTextWeights); // no viewport support
     addClassNoViewport('is-family', fontFamily, validFontFamilies); // no viewport support

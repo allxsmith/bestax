@@ -304,15 +304,24 @@ export const createBulmaClassHelpers = (
   };
 
   // Helper to add class with optional viewport
+  //
+  // `supportedViewports` narrows which viewports may be suffixed onto this
+  // class. It defaults to every viewport, but a few Bulma helper families
+  // (notably `is-size-*`, which ships no `-only` bands) support only a subset,
+  // so passing the emitting set keeps us from producing dead classes.
   const addClass = (
     prefix: string,
     value: string | undefined,
     validValues: readonly string[],
-    supportsViewport = false
+    supportsViewport = false,
+    supportedViewports: readonly string[] = validViewports
   ) => {
     if (value && validValues.includes(value)) {
       const className =
-        supportsViewport && viewport && validViewports.includes(viewport)
+        supportsViewport &&
+        viewport &&
+        validViewports.includes(viewport) &&
+        supportedViewports.includes(viewport)
           ? `${prefix}-${value}-${viewport}`
           : `${prefix}-${value}`;
       addPrefixedClass(className);

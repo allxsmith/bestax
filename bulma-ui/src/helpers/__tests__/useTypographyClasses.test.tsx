@@ -52,6 +52,29 @@ describe('useTypographyClasses', () => {
     ).toBe('is-size-3-tablet has-text-centered-tablet is-uppercase');
   });
 
+  it('suffixes textSize with touch (a size-supported viewport)', () => {
+    expect(
+      renderUseTypographyClasses({
+        textSize: '3',
+        textAlign: 'left',
+        viewport: 'touch',
+      })
+    ).toBe('is-size-3-touch has-text-left-touch');
+  });
+
+  it.each(['tablet-only', 'desktop-only', 'widescreen-only'] as const)(
+    'drops the %s suffix from textSize (Bulma ships no is-size-*-only) while keeping it on textAlign',
+    viewport => {
+      expect(
+        renderUseTypographyClasses({
+          textSize: '3',
+          textAlign: 'left',
+          viewport,
+        })
+      ).toBe(`is-size-3 has-text-left-${viewport}`);
+    }
+  );
+
   it('ignores an invalid viewport (no suffix applied)', () => {
     expect(
       renderUseTypographyClasses({
