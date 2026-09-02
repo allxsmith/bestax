@@ -352,18 +352,60 @@ async function readSkills() {
     const skillFile = join(SKILLS_DIR, name, 'SKILL.md');
     const src = await readFile(skillFile, 'utf8');
     const fm = frontmatter(src);
+    // Walks nested directories, not just the top level. A skill that serves
+    // more than one subject groups its references per subject
+    // (`references/rbx/component-map.md`), and a flat readdir dropped every
+    // one of those from the index silently — the file simply stopped being
+    // served, with `gen:mcp:check` still green because the output it compared
+    // was consistently wrong.
+    //
+    // `id` is the lookup key behind `bestax://skills/{name}/references/{ref}`,
+    // so it has to stay unique and free of slashes: a nested file is keyed by
+    // its path with separators replaced (`rbx-component-map`). Top-level files
+    // keep exactly the id they had.
+    //
+    // Moving a file INTO a subdirectory therefore changes its id — when
+    // bestax-migrate's references were split per source, `component-map`
+    // became `react-bulma-components-component-map`. That is unavoidable once
+    // two subjects each have a `component-map`, and it is a real (small) break
+    // for anyone who pinned the old resource URI. Nothing in this repo pins
+    // one, and agents discover ids through `get_skill` rather than hardcoding
+    // them, so the rename is accepted rather than aliased.
     const listing = async sub => {
-      const dir = join(SKILLS_DIR, name, sub);
-      if (!existsSync(dir)) return [];
-      const entries = await readdir(dir, { withFileTypes: true });
+      const root = join(SKILLS_DIR, name, sub);
+      if (!existsSync(root)) return [];
       const files = [];
-      for (const e of entries.filter(x => x.isFile())) {
-        const body = await readFile(join(dir, e.name), 'utf8');
-        files.push({
-          id: basename(e.name, extname(e.name)),
-          file: `${sub}/${e.name}`,
-          bytes: Buffer.byteLength(body),
-        });
+      const walk = async rel => {
+        const entries = await readdir(join(root, rel), { withFileTypes: true });
+        for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
+          const next = rel ? `${rel}/${e.name}` : e.name;
+          if (e.isDirectory()) {
+            await walk(next);
+            continue;
+          }
+          if (!e.isFile()) continue;
+          const body = await readFile(join(root, next), 'utf8');
+          files.push({
+            id: next.replace(extname(e.name), '').replace(/\//g, '-'),
+            file: `${sub}/${next}`,
+            bytes: Buffer.byteLength(body),
+          });
+        }
+      };
+      await walk('');
+      // `a-b/x.md` and `a/b-x.md` both flatten to `a-b-x`, and `id` is the
+      // MCP resource lookup key — two files answering to one key would make
+      // the served content depend on ordering. No such pair exists today;
+      // fail loudly rather than let one appear silently.
+      const seen = new Map();
+      for (const f of files) {
+        if (seen.has(f.id)) {
+          throw new Error(
+            `[gen-mcp-index] duplicate reference id "${f.id}" in ${name}/${sub}: ` +
+              `${seen.get(f.id)} and ${f.file} flatten to the same key`
+          );
+        }
+        seen.set(f.id, f.file);
       }
       return files.sort((a, b) => byCodePoint(a.id, b.id));
     };

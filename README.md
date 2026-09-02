@@ -248,4 +248,4 @@ Bulma framework!_
 
 ## License
 
-MIT © [Alex Smith](https://github.com/allxsmith)
+Source code licensed MIT

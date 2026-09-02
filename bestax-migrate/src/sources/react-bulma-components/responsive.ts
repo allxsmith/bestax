@@ -20,7 +20,7 @@ import {
   makeAttr,
   removeAttr,
   type TransformContext,
-} from './jsx-utils.js';
+} from '../_shared/jsx-utils.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

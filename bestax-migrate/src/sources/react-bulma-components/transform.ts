@@ -16,15 +16,22 @@
 
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
-import { MAPPING, resolveMapping } from './mapping.js';
+import { MAPPING, UNIVERSAL_PROPS, resolveMapping } from './mapping.js';
 import {
   addTodo,
   attributesOf,
   jsxNameParts,
   renameElement,
   type TransformContext,
-} from './jsx-utils.js';
-import { applyPropAction, applyUniversalProps } from './props.js';
+} from '../_shared/jsx-utils.js';
+import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import {
+  collectBoundNames,
+  makeReserve,
+  nameOf,
+  prefersTabs,
+  resolvesToBinding,
+} from '../_shared/imports.js';
 import { flattenResponsiveProps } from './responsive.js';
 import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 
@@ -77,8 +84,12 @@ export default function transform(
   const aliases = new Map<string, string[]>();
 
   const rbcImportPaths: any[] = [];
-  const nameOf = (node: any): string =>
-    typeof node === 'string' ? node : String(node?.name ?? '');
+  /**
+   * Whether a namespace binding (`import * as RBC`) is still referenced after
+   * the JSX pass — either by a retained component (`<RBC.Tile>`) or as a bare
+   * value. Pruning the import under one leaves `RBC is not defined`.
+   */
+  let namespaceStillReferenced = false;
 
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
@@ -175,17 +186,92 @@ export default function transform(
     return undefined;
   }
 
+  // The scope each binding was collected in, so a reference can be checked
+  // against the binding it actually resolves to rather than matched by name.
+  const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
+  // Aliases are keyed by the AST node that owns the declaring scope, not by
+  // bare name. Two functions can each destructure `Header` from a different
+  // component; a name-keyed map let the second overwrite the first, and both
+  // declarations were then pruned while both `<Header…>` references were left
+  // resolving to nothing.
+  //
+  // Resolution walks the reference's ANCESTORS rather than consulting
+  // `scope.lookup`, because by the time references are rewritten the alias
+  // pass has already pruned the declaration -- so the binding is gone from
+  // the scope table, and `path.scope` objects are not identity-stable across
+  // traversals either.
+  const aliasesByOwner = new Map<unknown, Map<string, string[]>>();
+  const ownersFor = (name: string): unknown[] => {
+    const owners: unknown[] = [];
+    for (const [owner, perScope] of aliasesByOwner) {
+      if (perScope.has(name)) owners.push(owner);
+    }
+    return owners;
+  };
+  const aliasAt = (name: string, at?: unknown): string[] | undefined => {
+    const owners = ownersFor(name);
+    if (owners.length === 0) return undefined;
+    // Without a reference location there is nothing to walk, so the only
+    // owner is the best answer available. WITH one, always walk: an unrelated
+    // `Header` parameter in another function must not resolve to the alias
+    // merely because the alias is the only one by that name. A single-owner
+    // shortcut here rewrote such a parameter to `{ Header: Card.Header }`,
+    // which is not even valid syntax.
+    if (at === undefined) {
+      return owners.length === 1
+        ? aliasesByOwner.get(owners[0])!.get(name)
+        : undefined;
+    }
+    type Anc = { parent?: Anc; node?: unknown };
+    let cursor = at as Anc | undefined;
+    while (cursor) {
+      if (cursor.node !== undefined) {
+        const hit = aliasesByOwner.get(cursor.node)?.get(name);
+        if (hit) {
+          // The walk finds the nearest OWNER, but a binding can intervene
+          // between the reference and that owner: `function F(Header)` under
+          // a module-level `const { Header } = Card` shadows the alias, and
+          // resolving through it rewrote the parameter itself to
+          // `F(Card.Header)`. If the scope table still binds the name
+          // somewhere other than the owner, that nearer binding wins. (After
+          // the alias declaration is pruned the lookup returns nothing for
+          // the alias itself, which is the case this must keep allowing.)
+          const declaring = (
+            at as {
+              scope?: {
+                lookup(n: string): { path?: { node?: unknown } } | null;
+              };
+            }
+          ).scope?.lookup(name)?.path?.node;
+          if (
+            declaring !== undefined &&
+            declaring !== null &&
+            declaring !== cursor.node
+          ) {
+            return undefined;
+          }
+          return hit;
+        }
+      }
+      cursor = cursor.parent;
+    }
+    return undefined;
+  };
+  const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
+
   // ---- 1b. Resolve `const { Input, Field: F } = Form` destructuring -----
   root.find(j.VariableDeclarator).forEach(path => {
     const node = path.node;
     if (node.id?.type !== 'ObjectPattern' || node.init?.type !== 'Identifier')
       return;
     const base = node.init.name;
-    const imported = imports.get(base) ?? aliases.get(base)?.join('.');
+    const baseAlias = aliasAt(base, path);
+    const imported = imports.get(base) ?? baseAlias?.join('.');
     if (!imported || imported === '*') return;
+    if (!imports.has(base) && !baseAlias) return;
     const basePath = imports.has(base)
       ? [imports.get(base) as string]
-      : aliases.get(base)!;
+      : (baseAlias as string[]);
 
     let allResolved = true;
     for (const prop of node.id.properties) {
@@ -194,7 +280,32 @@ export default function transform(
         prop.key?.type === 'Identifier' &&
         prop.value?.type === 'Identifier'
       ) {
-        aliases.set(prop.value.name, [...basePath, prop.key.name]);
+        const owner = (path.scope as unknown as { path?: { node?: unknown } })
+          ?.path?.node;
+        let perScope = aliasesByOwner.get(owner);
+        if (!perScope) {
+          perScope = new Map<string, string[]>();
+          aliasesByOwner.set(owner, perScope);
+        }
+        const target = [...basePath, prop.key.name];
+        perScope.set(prop.value.name, target);
+        aliases.set(prop.value.name, target);
+        // Pruning the declaration is only safe if every use of the alias will
+        // actually be rewritten. For a name the table cannot map, the JSX is
+        // left as written -- so dropping `const { Header } = Panel` left
+        // `<Header/>` referencing nothing at all.
+        // A `special` handler rewrites the element without naming a plain
+        // target (`Form.Label` becomes a bare <label>), so it counts as
+        // resolved just as a target does. Requiring `target` alone kept every
+        // declaration that mentioned one.
+        const targetMapping = resolveMapping(target);
+        if (
+          !targetMapping ||
+          targetMapping.status === 'todo' ||
+          !(targetMapping.target || targetMapping.special)
+        ) {
+          allResolved = false;
+        }
       } else {
         allResolved = false;
       }
@@ -221,11 +332,15 @@ export default function transform(
   });
 
   /** Resolve a JSX name into a canonical RBC component path, or null. */
-  function resolveJsxPath(name: any): string[] | null {
+  function resolveJsxPath(name: any, at?: unknown): string[] | null {
     const parts = jsxNameParts(name);
     if (!parts) return null;
     const [head, ...rest] = parts;
-    if (aliases.has(head)) return [...aliases.get(head)!, ...rest];
+    const alias = aliasAt(head, at);
+    if (alias) return [...alias, ...rest];
+    // An alias exists under this name but not for THIS reference's binding,
+    // so the reference is not ours to rewrite.
+    if (anyAlias(head) && !imports.has(head)) return null;
     const imported = imports.get(head);
     if (imported === undefined) return null;
     if (imported === '*') return rest.length > 0 ? rest : null;
@@ -238,71 +353,98 @@ export default function transform(
   // A file may already bind names like `Field` or `Control` (components,
   // variables, function params); importing the bestax component under the
   // same name would redeclare it, so those imports get a Bulma* alias.
-  const bound = new Set<string>();
-  const collectPattern = (node: any): void => {
-    if (!node) return;
-    switch (node.type) {
-      case 'Identifier':
-        bound.add(node.name);
-        break;
-      case 'ObjectPattern':
-        for (const prop of node.properties ?? []) {
-          collectPattern(prop.value ?? prop.argument);
-        }
-        break;
-      case 'ArrayPattern':
-        for (const el of node.elements ?? []) collectPattern(el);
-        break;
-      case 'RestElement':
-        collectPattern(node.argument);
-        break;
-      case 'AssignmentPattern':
-        collectPattern(node.left);
-        break;
+  const bound = collectBoundNames(j, root, RBC);
+  // Seed the reserved set with the locals of RBC imports that CANNOT be
+  // migrated, so a bestax import never claims one of them. Without this, an
+  // unmappable component aliased to a name bestax also wants
+  // (`import { Element as Button }`) had its retained specifier dropped on
+  // the collision, and its `<Button>` JSX then silently resolved to the
+  // bestax Button — one component quietly becoming another.
+  for (const [local, imported] of imports) {
+    if (imported === '*') continue;
+    const entry = MAPPING[imported];
+    // Unmappable roots, plus ANY aliased import. A root can be retained by an
+    // unknown or `todo` child even when the root itself maps (`Icon` is
+    // `partial`, but `<Icon.Unknown>` retains it), and when the local name
+    // differs from the imported one that retained binding can collide with a
+    // bestax local for a completely different component. An unaliased import
+    // is safe: its name already means the same component on both sides.
+    if (!entry || entry.status === 'todo' || local !== imported) {
+      bound.add(local);
     }
-  };
-  root.find(j.VariableDeclarator).forEach(path => collectPattern(path.node.id));
-  root.find(j.FunctionDeclaration).forEach(path => {
-    if (path.node.id) bound.add(nameOf(path.node.id));
-    for (const param of path.node.params ?? []) collectPattern(param);
-  });
-  root
-    .find(j.ClassDeclaration)
-    .forEach(path => path.node.id && bound.add(nameOf(path.node.id)));
-  root.find(j.FunctionExpression).forEach(path => {
-    for (const param of path.node.params ?? []) collectPattern(param);
-  });
-  root.find(j.ArrowFunctionExpression).forEach(path => {
-    for (const param of path.node.params ?? []) collectPattern(param);
-  });
-  root.find(j.ImportDeclaration).forEach(path => {
-    if (String(path.node.source.value) === RBC) return; // pruned later
-    for (const spec of path.node.specifiers ?? []) {
-      if (spec.local) bound.add(nameOf(spec.local));
-    }
-  });
+  }
 
-  ctx.reserve = (importedName: string): string => {
-    const existing = ctx.needed.get(importedName);
-    if (existing) return existing;
-    let local = importedName;
-    if (bound.has(local)) {
-      local = `Bulma${importedName}`;
-      let suffix = 2;
-      const locals = new Set(ctx.needed.values());
-      while (bound.has(local) || locals.has(local)) {
-        local = `Bulma${importedName}${suffix}`;
-        suffix += 1;
+  // A root that DOES map can still be retained by a child the table cannot
+  // (`Icon` is `partial`, but `<Icon.Unknown>` keeps the source import alive).
+  // The status check above misses that case whenever the local name equals the
+  // imported one, so the bestax import took the plain local, the retained
+  // specifier was dropped on the collision, and `<Icon.Unknown>` silently
+  // resolved to the bestax component instead.
+  //
+  // Scanned rather than reserved wholesale: adding every partial root to
+  // `bound` would alias them in every file that uses one, whether or not
+  // anything is actually retained.
+  root.find(j.JSXElement).forEach(path => {
+    const head = jsxNameParts(path.node.openingElement.name)?.[0];
+    if (!head || !imports.has(head)) return;
+    const parts = resolveJsxPath(path.node.openingElement.name, path);
+    const mapping = parts ? resolveMapping(parts) : undefined;
+    if (!mapping || mapping.status === 'todo') bound.add(head);
+  });
+  // The same root can be retained by a VALUE chain -- `const X = Icon.Unknown`
+  // -- which only the value-reference pass discovers, after `reserve` has
+  // already handed the plain local to bestax. Scan those chains here too.
+  root.find(j.Identifier).forEach(path => {
+    if (path.node.type !== 'Identifier') return;
+    const head: string = path.node.name;
+    const imported = imports.get(head);
+    if (imported === undefined || imported === '*') return;
+    const parent = path.parent?.node;
+    if (
+      parent?.type !== 'MemberExpression' ||
+      parent.object !== path.node ||
+      parent.computed
+    ) {
+      return;
+    }
+    const chain = [imported];
+    let outer: any = path.parent;
+    while (
+      outer?.node?.type === 'MemberExpression' &&
+      !outer.node.computed &&
+      outer.node.property?.type === 'Identifier'
+    ) {
+      chain.push(nameOf(outer.node.property));
+      const next = outer.parent;
+      if (
+        next?.node?.type === 'MemberExpression' &&
+        next.node.object === outer.node
+      ) {
+        outer = next;
+      } else {
+        break;
       }
     }
-    ctx.needed.set(importedName, local);
-    return local;
-  };
+    const mapping = resolveMapping(chain);
+    if (!mapping || mapping.status === 'todo') bound.add(head);
+  });
+
+  ctx.reserve = makeReserve(ctx, bound);
 
   // Merge with an existing bestax import: reuse its locals verbatim.
+  // Only a declaration made entirely of NAMED specifiers can be merged into.
+  // `import * as Bulma from '@allxsmith/bestax-bulma'` matches the source too,
+  // and appending named specifiers to it emitted
+  // `import * as Bulma, { Box } from …` — not valid JavaScript, so the whole
+  // file failed to parse after a migration that reported success.
   const existingBestax = root
     .find(j.ImportDeclaration, { source: { value: BESTAX } })
-    .paths()[0];
+    .paths()
+    .find(path =>
+      (path.node.specifiers ?? []).every(
+        (spec: any) => spec.type === 'ImportSpecifier'
+      )
+    );
   const preExistingImports = new Set<string>();
   if (existingBestax) {
     for (const spec of existingBestax.node.specifiers ?? []) {
@@ -316,8 +458,22 @@ export default function transform(
   // ---- 2. Transform JSX elements ----------------------------------------
   root.find(j.JSXElement).forEach(path => {
     const element = path.node;
-    const rbcPath = resolveJsxPath(element.openingElement.name);
+    const rbcPath = resolveJsxPath(element.openingElement.name, path);
     if (!rbcPath) return;
+    // Resolve by BINDING, not by name. `function F({ Card })` shadows the
+    // import with the caller's object, and rewriting its JSX to bestax's
+    // `Card.FooterItem` changed which component rendered.
+    const jsxHead = jsxNameParts(element.openingElement.name)?.[0];
+    if (
+      jsxHead &&
+      !resolvesToBinding(
+        path,
+        jsxHead,
+        anyAlias(jsxHead) ? undefined : programScope
+      )
+    ) {
+      return;
+    }
 
     const mapping = resolveMapping(rbcPath);
     const dotted = rbcPath.join('.');
@@ -384,20 +540,39 @@ export default function transform(
         applyPropAction(ctx, path, element, attr, action);
       }
     }
-    applyUniversalProps(ctx, path, element, handled);
+    applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
   });
 
   // ---- 2b. Value references to RBC components ---------------------------
   // Components can be referenced as plain values too (`renderAs={Block}`,
   // passed to helpers, …). JSX usages were renamed above; map the leftover
   // identifier references so the pruned RBC import doesn't strand them.
+  // A shorthand property's key and value are distinct nodes, so the walker
+  // reaches the property twice. The first visit rewrites it and detaches the
+  // original; the second then matched neither key nor value and fell through
+  // to the generic "referenced as a value" branch, emitting a spurious TODO
+  // and marking the root retained when it was not.
+  const handledValueRefs = new WeakSet<object>();
+
   root.find(j.Identifier).forEach(path => {
     // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
     // were already handled by the element walker above.
     if (path.node.type !== 'Identifier') return;
+    if (handledValueRefs.has(path.node)) return;
     const name = path.node.name;
-    const imported = imports.get(name);
-    if (imported === undefined || imported === '*') return;
+    // A name bound by `const { Field } = Form` lives in `aliases`, not
+    // `imports`, and the destructuring pass has already deleted the
+    // declaration that bound it. Skipping those left `Field.Label` in the
+    // output with its `Form` import pruned: a reference to nothing.
+    const aliasPath = aliasAt(name, path);
+    const imported = aliasPath ? aliasPath[0] : imports.get(name);
+    if (imported === undefined) return;
+    // Resolve by BINDING, not by name: a local that shadows the import is a
+    // different object, and rewriting it repoints the code at bestax's
+    // component.
+    if (!resolvesToBinding(path, name, aliasPath ? undefined : programScope)) {
+      return;
+    }
     const parentNode = path.parent?.node;
     const parentType = parentNode?.type;
     if (
@@ -408,6 +583,24 @@ export default function transform(
       parentType === 'JSXClosingElement' ||
       parentType === 'JSXMemberExpression'
     ) {
+      return;
+    }
+    // A namespace binding in a real value position. `RBC.Box` is still a
+    // mappable component reference, so fall through to the member-expression
+    // branch below with an empty prefix (the namespace itself is not part of
+    // the RBC path). Anything else — a bare `RBC` — just pins the import.
+    // Treating every namespace member as opaque left `const C = RBC.Box`
+    // referencing an import that dependency migration then removed.
+    const isNamespace = imported === '*';
+    if (
+      isNamespace &&
+      !(
+        parentType === 'MemberExpression' &&
+        parentNode.object === path.node &&
+        !parentNode.computed
+      )
+    ) {
+      namespaceStillReferenced = true;
       return;
     }
     // Non-reference positions: member property names and object keys.
@@ -427,7 +620,28 @@ export default function transform(
       parentNode.object === path.node &&
       !parentNode.computed
     ) {
-      const memberPath = [imported, nameOf(parentNode.property)];
+      // Walk the full chain: `Card.Footer.Item` is one path, not
+      // `Card.Footer` with a stray `.Item`. Resolving only the first level
+      // left the tail pointing at a compound bestax does not have
+      // (bestax exposes `Card.FooterItem`).
+      const memberPath = isNamespace ? [] : [...(aliasPath ?? [imported])];
+      let outer: any = path.parent;
+      while (
+        outer?.node?.type === 'MemberExpression' &&
+        !outer.node.computed &&
+        outer.node.property?.type === 'Identifier'
+      ) {
+        memberPath.push(nameOf(outer.node.property));
+        const next = outer.parent;
+        if (
+          next?.node?.type === 'MemberExpression' &&
+          next.node.object === outer.node
+        ) {
+          outer = next;
+        } else {
+          break;
+        }
+      }
       const memberMapping = resolveMapping(memberPath);
       const dotted = memberPath.join('.');
       if (
@@ -437,7 +651,36 @@ export default function transform(
         !memberMapping.special
       ) {
         if (memberMapping.target === dotted) {
+          if (isNamespace) {
+            // `RBC.Card.Header` → `Card.Header`: the namespace prefix has to
+            // go, so rebuild the chain from the target rather than renaming
+            // the namespace identifier in place (there is no MAPPING['*']
+            // root to rename it to).
+            const [root, ...rest] = memberMapping.target.split('.');
+            let rebuilt: any = j.identifier(ctx.reserve(root));
+            for (const part of rest) {
+              rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+            }
+            outer.replace(rebuilt);
+            ctx.dirty = true;
+            return;
+          }
           // Same compound exists on the bestax component at runtime.
+          if (aliasPath) {
+            // A destructured alias stands for MORE than one segment of the
+            // chain (`const { Header } = Card` makes `Header` mean
+            // `Card.Header`), so renaming the identifier drops every segment
+            // but the last: `Header.Title` became `Card.Title`. Rebuild the
+            // whole chain from the target instead.
+            const [aliasRoot, ...aliasRest] = memberMapping.target.split('.');
+            let rebuilt: any = j.identifier(ctx.reserve(aliasRoot));
+            for (const part of aliasRest) {
+              rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+            }
+            outer.replace(rebuilt);
+            ctx.dirty = true;
+            return;
+          }
           const rootMapping = MAPPING[imported];
           if (rootMapping?.target) {
             const local = ctx.reserve(rootMapping.target);
@@ -447,20 +690,33 @@ export default function transform(
           return;
         }
         if (!memberMapping.target.includes('.')) {
-          // Flat target (Icon.Text → IconText): swap the member expression.
+          // Flat target (Icon.Text → IconText): swap the whole chain.
           const local = ctx.reserve(memberMapping.target);
-          path.parent.replace(j.identifier(local));
+          outer.replace(j.identifier(local));
           ctx.dirty = true;
           return;
         }
+        // Dotted target that differs from the source chain
+        // (Card.Footer.Item → Card.FooterItem): rebuild the chain against the
+        // bestax path rather than flagging something the table can answer.
+        const [targetRoot, ...targetRest] = memberMapping.target.split('.');
+        const rootLocal = ctx.reserve(targetRoot);
+        let rebuilt: any = j.identifier(rootLocal);
+        for (const part of targetRest) {
+          rebuilt = j.memberExpression(rebuilt, j.identifier(part));
+        }
+        outer.replace(rebuilt);
+        ctx.dirty = true;
+        return;
       }
       addTodo(
         ctx,
-        path.parent,
+        outer,
         'value-reference',
-        `\`${dotted}\` is referenced as a value; migrate this usage by hand`
+        `\`${isNamespace ? `${name}.` : ''}${dotted}\` is referenced as a value; migrate this usage by hand`
       );
-      ctx.retained.add(imported);
+      if (isNamespace) namespaceStillReferenced = true;
+      else ctx.retained.add(imported);
       return;
     }
     if (
@@ -470,15 +726,84 @@ export default function transform(
     ) {
       return;
     }
-    const mapping = MAPPING[imported];
+    // A shorthand property is both the key and the reference. Renaming the
+    // node in place rewrote the object's PUBLIC key
+    // (`{ Textarea }` → `{ TextArea }`), so expand it instead: the key keeps
+    // the name callers use, the value points at the migrated binding.
+    if (
+      (parentType === 'ObjectProperty' || parentType === 'Property') &&
+      parentNode.shorthand
+    ) {
+      // Resolve through the alias path when there is one: `const { Footer } =
+      // Card` makes `{ Footer }` mean `Card.Footer`, not `Card`. Reading the
+      // root's mapping here emitted `{ Footer: Card }` — the wrong component
+      // under the right key.
+      const shorthandMapping = aliasPath
+        ? resolveMapping(aliasPath)
+        : MAPPING[imported];
+      if (
+        shorthandMapping &&
+        shorthandMapping.status !== 'todo' &&
+        shorthandMapping.target &&
+        !shorthandMapping.special
+      ) {
+        const [root, ...rest] = shorthandMapping.target.split('.');
+        const local = ctx.reserve(root);
+        let value: any = j.identifier(local);
+        for (const part of rest) {
+          value = j.memberExpression(value, j.identifier(part));
+        }
+        if (rest.length > 0 || local !== name) {
+          // ast-types keeps DISTINCT key and value nodes even when
+          // `shorthand` is true, so both positions are visited. Mark both, or
+          // the second visit sees a node that matches neither the (new) key
+          // nor the (new) value and falls through to the generic branch.
+          handledValueRefs.add(parentNode.key);
+          handledValueRefs.add(parentNode.value);
+          parentNode.shorthand = false;
+          parentNode.key = j.identifier(name);
+          parentNode.value = value;
+          ctx.dirty = true;
+        }
+      } else {
+        // Mark both positions before reporting: the key and the value are
+        // distinct nodes, so an unmarked branch reports the same property
+        // twice. The AST comment dedupes, which hid this in the output while
+        // the report still double-counted it.
+        handledValueRefs.add(parentNode.key);
+        handledValueRefs.add(parentNode.value);
+        ctx.retained.add(imported);
+        addTodo(
+          ctx,
+          path,
+          'value-reference',
+          `\`${name}\` is referenced as a value; migrate this usage by hand`
+        );
+      }
+      return;
+    }
+    const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
     if (
       mapping &&
       mapping.status !== 'todo' &&
       mapping.target &&
-      !mapping.target.includes('.')
+      !mapping.special
     ) {
-      const local = ctx.reserve(mapping.target);
-      if (local !== name) path.node.name = local;
+      const [root, ...rest] = mapping.target.split('.');
+      const local = ctx.reserve(root);
+      if (rest.length > 0) {
+        // A dotted target needs a member expression, not a rename — otherwise
+        // a destructured alias used as a bare value (`const { Header } = Card;
+        // const V = Header`) fell through to the TODO branch, left referencing
+        // a binding the destructuring pass had already deleted.
+        let value: any = j.identifier(local);
+        for (const part of rest) {
+          value = j.memberExpression(value, j.identifier(part));
+        }
+        path.replace(value);
+      } else if (local !== name) {
+        path.node.name = local;
+      }
       ctx.dirty = true;
     } else {
       ctx.retained.add(imported);
@@ -514,12 +839,19 @@ export default function transform(
     const bestaxLocals = new Set(ctx.needed.values());
     for (const path of rbcImportPaths) {
       const node = path.node;
-      const keepSpecifiers = (node.specifiers ?? []).filter(
-        (spec: any) =>
+      const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {
+        // `import * as RBC` reaches every export at once, so it must survive
+        // whenever a component is retained (`<RBC.Tile>` stays in the JSX) or
+        // the namespace is referenced as a value.
+        if (spec.type === 'ImportNamespaceSpecifier') {
+          return ctx.retained.size > 0 || namespaceStillReferenced;
+        }
+        return (
           spec.type === 'ImportSpecifier' &&
           ctx.retained.has(nameOf(spec.imported)) &&
           !bestaxLocals.has(nameOf(spec.local))
-      );
+        );
+      });
       if (!inserted) {
         if (existingBestax && bestaxImport) {
           existingBestax.node.specifiers = [
@@ -555,14 +887,4 @@ export default function transform(
     quote: 'double',
     useTabs: prefersTabs(fileInfo.source),
   });
-}
-
-function prefersTabs(source: string): boolean {
-  let tabs = 0;
-  let spaces = 0;
-  for (const line of source.split('\n')) {
-    if (line.startsWith('\t')) tabs += 1;
-    else if (line.startsWith(' ')) spaces += 1;
-  }
-  return tabs > spaces;
 }

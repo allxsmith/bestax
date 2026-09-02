@@ -98,14 +98,141 @@ interface RunOptions {
   cssMode: CssMode;
 }
 
+/**
+ * Matches an import of `name` at a specifier boundary, in every form a
+ * retained reference can take: a root or DEEP JavaScript import
+ * (`from 'rbx'`, `from 'rbx/base/theme'` — deep ones are kept with a TODO), a
+ * bindingless side-effect `import 'rbx'` (which the transform leaves untouched
+ * because there is nothing to rewrite), the CommonJS / dynamic forms
+ * `require('rbx')` and `import('rbx')` — neither of which the jscodeshift
+ * transform rewrites, so both survive the run as live references — and the
+ * Sass forms the stylesheet transform preserves in indented `.sass` files
+ * (`@import '~rbx/rbx'`).
+ *
+ * Matching only `from '<pkg>'` meant a file whose ONLY remaining reference was
+ * a deep or Sass import let the manifest pass drop the package with no
+ * warning. Matching a bare substring is the opposite error, and worse for a
+ * name as short as `rbx`: prose and a sibling package like `rbx-utils` both
+ * counted as imports.
+ *
+ * Comments are allowed wherever whitespace is, because a webpack magic comment
+ * sits exactly there: `import(/* webpackChunkName: "x" *\/ 'rbx')`.
+ */
+/**
+ * Blank out comments while preserving strings, offsets, and line breaks.
+ *
+ * The import matcher needs to know whether a keyword is real code, and no
+ * lookbehind can tell it: `// import { Box } from 'rbx'` is not an import,
+ * while the `//` inside `const u = 'http://x'; require('rbx')` is not a
+ * comment. Comment bytes become spaces rather than being deleted so the
+ * caller's line lookup still lines up with the original text.
+ *
+ * Deliberately small: this is not a JavaScript lexer. It tracks quotes and the
+ * two comment forms, which is what the matcher needs, and it is applied to
+ * `.sass` and `.vue` files too, where `//` is also a comment.
+ */
+export function blankComments(text: string): string {
+  let out = '';
+  let quote: string | null = null;
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    const next = text[i + 1];
+    if (quote) {
+      if (c === '\\' && i + 1 < text.length) {
+        out += c + next;
+        i += 2;
+        continue;
+      }
+      if (c === quote) quote = null;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') {
+      quote = c;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '/' && next === '/') {
+      while (i < text.length && text[i] !== '\n') {
+        out += ' ';
+        i += 1;
+      }
+      continue;
+    }
+    if (c === '/' && next === '*') {
+      out += '  ';
+      i += 2;
+      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) {
+        out += text[i] === '\n' ? '\n' : ' ';
+        i += 1;
+      }
+      if (i < text.length) {
+        out += '  ';
+        i += 2;
+      }
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  return out;
+}
+
+/**
+ * Matches an import of `name` at a specifier boundary, in every form a
+ * retained reference can take: a root or DEEP JavaScript import
+ * (`from 'rbx'`, `from 'rbx/base/theme'`), a bindingless side-effect
+ * `import 'rbx'`, a re-export, the CommonJS and dynamic forms `require('rbx')`
+ * and `import('rbx')` — none of which the jscodeshift transform rewrites, so
+ * all survive the run as live references — and the Sass form the stylesheet
+ * transform preserves in indented `.sass` files (`@import '~rbx/rbx'`).
+ *
+ * Run it over `blankComments(text)`, not the raw text: the keyword alternatives
+ * carry no comment awareness of their own by design, because that job needs a
+ * scanner rather than a lookbehind.
+ *
+ * Matching only `from '<pkg>'` meant a file whose ONLY remaining reference was
+ * a deep or Sass import let the manifest pass drop the package with no warning.
+ * Matching a bare substring is the opposite error, and worse for a name as
+ * short as `rbx`: prose and a sibling package like `rbx-utils` both counted.
+ */
+export function makeSourceImportRe(name: string): RegExp {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const spec = `['"](?:~|(?:\\.\\.?/)+node_modules/)?${escaped}(?:/[^'"]*)?['"]`;
+  // Not the tail of a longer identifier: `myrequire('rbx')` is not a require,
+  // and `foo.import(...)` is not an import.
+  const lead = String.raw`(?<![\w$.])`;
+  return new RegExp(
+    [
+      // A static import or re-export. The keyword is what separates a real
+      // specifier from a bare `from` in prose ("Migrated from 'rbx' in 2019").
+      // `[^;]` spans the newlines of a multi-line specifier list without
+      // running past the statement.
+      `${lead}(?:import|export)\\b[^;]*?\\bfrom\\s*${spec}`,
+      // A bindingless side-effect import, and the Sass form.
+      `${lead}import\\s*${spec}`,
+      `@import\\s*${spec}`,
+      // The dynamic and CommonJS forms, which appear mid-expression.
+      // `require.resolve('rbx')` is as live a reference as `require('rbx')`
+      // and is just as unrewritten by the transform.
+      `${lead}(?:import|require(?:\\.resolve)?)\\s*\\(\\s*${spec}`,
+    ].join('|')
+  );
+}
+
 function migrateFiles(
   source: MigrationSource,
   files: string[],
   reporter: Reporter,
   io: CliIo,
   options: RunOptions
-): boolean {
+): { bulmaReferenced: boolean; sourceStillImported: boolean } {
   let bulmaReferenced = false;
+  let sourceStillImported = false;
+  const sourceImportRe = makeSourceImportRe(source.name);
   for (const file of files) {
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
@@ -126,11 +253,21 @@ function migrateFiles(
       }
     } catch (error) {
       io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
+      // Read the signals off the ORIGINAL text before bailing. A parse
+      // failure in the only file importing the source library would
+      // otherwise let the manifest pass remove the package with no warning —
+      // the file still imports it, we just couldn't rewrite it.
+      if (/['"](?:~?bulma\/)/.test(sourceText)) bulmaReferenced = true;
+      if (sourceImportRe.test(blankComments(sourceText)))
+        sourceStillImported = true;
       reporter.finishFile(file, false, collector.entries);
       continue;
     }
     if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
       bulmaReferenced = true;
+    }
+    if (sourceImportRe.test(blankComments(output ?? sourceText))) {
+      sourceStillImported = true;
     }
     if (output !== null) {
       if (options.print) io.log(output);
@@ -138,7 +275,7 @@ function migrateFiles(
     }
     reporter.finishFile(file, output !== null, collector.entries);
   }
-  return bulmaReferenced;
+  return { bulmaReferenced, sourceStillImported };
 }
 
 /**
@@ -150,17 +287,28 @@ function reportUnsupportedFiles(
   targets: string[],
   reporter: Reporter,
   extensions: string[]
-): void {
+): boolean {
   const unsupported = UNSUPPORTED_EXTENSIONS.filter(
     ext => !extensions.includes(ext)
   );
-  if (unsupported.length === 0) return;
+  if (unsupported.length === 0) return false;
+  // Whether any unsupported file still references the source package. These
+  // are reported but never rewritten, so the reference survives the run —
+  // and the manifest pass must not remove the package out from under it.
+  let stillImported = false;
+  const importRe = makeSourceImportRe(source.name);
   for (const file of collectFiles(targets, unsupported)) {
     const text = fs.readFileSync(file, 'utf8');
-    if (!text.includes(source.name)) continue;
+    // A substring match is not evidence of an import. `rbx` is three
+    // characters: prose in an .mdx file and a sibling package like
+    // `rbx-utils` both matched, which reported a file that imports nothing
+    // and pinned the dependency the manifest pass would otherwise remove.
+    const scanned = blankComments(text);
+    if (!importRe.test(scanned)) continue;
+    stillImported = true;
     const collector = reporter.startFile();
     const line =
-      text.split('\n').findIndex(l => l.includes(source.name)) + 1 || null;
+      scanned.split('\n').findIndex(l => importRe.test(l)) + 1 || null;
     collector.add({
       file,
       line,
@@ -171,6 +319,7 @@ function reportUnsupportedFiles(
     });
     reporter.finishFile(file, false, collector.entries);
   }
+  return stillImported;
 }
 
 function migrateDependencies(
@@ -179,7 +328,7 @@ function migrateDependencies(
   reporter: Reporter,
   io: CliIo,
   options: RunOptions,
-  bulmaReferenced: boolean
+  deps: { bulmaReferenced: boolean; sourceStillImported: boolean }
 ): void {
   if (!options.deps || !source.updateDependencies) return;
   for (const pkgPath of findPackageJsons(targets)) {
@@ -190,7 +339,8 @@ function migrateDependencies(
       const pkg = JSON.parse(raw);
       const next = source.updateDependencies(pkgPath, pkg, collector, {
         cssMode: options.cssMode,
-        bulmaReferenced,
+        bulmaReferenced: deps.bulmaReferenced,
+        sourceStillImported: deps.sourceStillImported,
       });
       if (next !== null) {
         changed = true;
@@ -389,21 +539,21 @@ export function createCLI(
       };
 
       const reporter = new Reporter();
-      const bulmaReferenced = migrateFiles(
+      const depSignals = migrateFiles(source, files, reporter, io, runOptions);
+      const unsupportedImports = reportUnsupportedFiles(
         source,
-        files,
+        targets,
         reporter,
-        io,
-        runOptions
+        extensions
       );
-      reportUnsupportedFiles(source, targets, reporter, extensions);
+      if (unsupportedImports) depSignals.sourceStillImported = true;
       migrateDependencies(
         source,
         targets,
         reporter,
         io,
         runOptions,
-        bulmaReferenced
+        depSignals
       );
 
       io.log(

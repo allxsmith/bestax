@@ -116,6 +116,14 @@ export interface DepsOptions {
   cssMode?: CssMode;
   /** True when migrated sources still reference `bulma/…` specifiers. */
   bulmaReferenced?: boolean;
+  /**
+   * True when at least one migrated file still imports the SOURCE library —
+   * the trimmed, TODO-annotated import the transform deliberately keeps for
+   * components with no bestax equivalent. Removing the package from the
+   * manifest while those remain leaves them unresolvable after the install
+   * step the report tells the user to run.
+   */
+  sourceStillImported?: boolean;
 }
 
 /** The standard jscodeshift transform contract. */

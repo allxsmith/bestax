@@ -486,3 +486,32 @@ describe('transformStyles (.sass indented syntax)', () => {
     expect(run('main.sass', first).output).toBeNull();
   });
 });
+
+describe('shared styles factory changes from the rbx work', () => {
+  it('rewrites a BARE react-bulma-components @import, not only `<pkg>/…`', () => {
+    // The shared factory made the path after the package name optional. That
+    // was added for `@import '~rbx'`, but it reaches RBC's bare form too and
+    // no RBC fixture covered it.
+    const out = transformStyles(
+      'styles.scss',
+      '@import "react-bulma-components";\n',
+      { add: () => {} },
+      { cssMode: 'bestax' }
+    );
+    expect(out).toContain("@use 'bulma/sass'");
+    expect(out).not.toContain('react-bulma-components');
+  });
+});
+
+describe('a trailing line comment on a source import', () => {
+  it('does not defeat the full-line match', () => {
+    const out = transformStyles(
+      'styles.scss',
+      '@import "react-bulma-components"; // legacy root\n',
+      { add: () => {} },
+      { cssMode: 'bestax' }
+    );
+    expect(out).toContain("@use 'bulma/sass'");
+    expect(out).not.toContain('react-bulma-components');
+  });
+});

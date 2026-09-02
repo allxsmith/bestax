@@ -180,6 +180,78 @@ describe('findPackageJsons', () => {
   });
 });
 
+describe('the source-still-imported warning', () => {
+  /** A project whose ONLY remaining rbx reference is the given file/content. */
+  function projectWith(name: string, content: string): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-deep-'));
+    tempDirs.push(dir);
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'src', name), content);
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      `${JSON.stringify({ name: 'a', dependencies: { rbx: '^2.2.0' } }, null, 2)}\n`
+    );
+    return dir;
+  }
+
+  it.each([
+    [
+      'a retained DEEP import',
+      'App.tsx',
+      "import { ThemeContext } from 'rbx/base/theme';\nexport const A = 1;\n",
+    ],
+    ['an indented-Sass import', 'a.sass', '@import "~rbx/rbx"\n'],
+  ])('fires for %s', async (_label, file, content) => {
+    // These are the two forms the transforms deliberately PRESERVE, so if one
+    // is the last reference the package must not be removed silently.
+    const dir = projectWith(file, content);
+    const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
+    expect(logs.join('\n')).toMatch(
+      /still import it for components with no bestax/
+    );
+  });
+
+  it('fires for a bindingless side-effect import', async () => {
+    // `import 'rbx';` has nothing to rewrite, so the transform leaves the
+    // file alone — but the reference is still live, and removing the
+    // package from the manifest would strand it.
+    const dir = projectWith('App.tsx', "import 'rbx';\nexport const A = 1;\n");
+    const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
+    expect(logs.join('\n')).toMatch(
+      /still import it for components with no bestax/
+    );
+  });
+
+  it('fires for an unsupported file that imports the source', async () => {
+    // .vue/.astro files are reported but never rewritten, so the reference
+    // survives the run and the package must not be removed under it.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-unsup-'));
+    tempDirs.push(dir);
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'src', 'App.vue'),
+      "<script>import { Box } from 'rbx';</script>\n"
+    );
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      `${JSON.stringify({ name: 'a', dependencies: { rbx: '^2.2.0' } }, null, 2)}\n`
+    );
+    const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
+    expect(logs.join('\n')).toMatch(
+      /still import it for components with no bestax/
+    );
+  });
+
+  it('does not fire for a lookalike package name', async () => {
+    const dir = projectWith(
+      'App.tsx',
+      "import { X } from 'rbx-other';\nexport const A = 1;\n"
+    );
+    const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
+    expect(logs.join('\n')).not.toMatch(/still import it for components/);
+  });
+});
+
 describe('CLI', () => {
   it('transforms files in place and reports', async () => {
     const dir = makeTempProject();
