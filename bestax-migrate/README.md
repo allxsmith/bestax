@@ -105,4 +105,4 @@ Full disclosure of every field and control: [Telemetry guide](https://bestax.io/
 
 ## License
 
-MIT © Alex Smith
+Source code licensed MIT
