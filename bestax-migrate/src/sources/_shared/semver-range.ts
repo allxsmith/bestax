@@ -34,7 +34,8 @@ function setIsPreV1(set: string): boolean {
   if (text === '' || /^(\*|x|X|latest)$/.test(text)) return false;
   const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
   if (hyphen) {
-    return majorOf(hyphen[2]) === 0 || isPrereleaseOfOne(hyphen[2]);
+    const upper = majorOf(hyphen[2]);
+    return upper === 0 || (upper === 1 && isPrereleaseOfOne(hyphen[2]));
   }
 
   let cappedBelowOne = false;
@@ -91,7 +92,7 @@ function setIsPreV1(set: string): boolean {
  * 1.0.4), which is why the callers check the operator first.
  */
 function isPrereleaseOfOne(version: string): boolean {
-  return /^1(\.0){0,2}-/.test(version);
+  return /^1\.0\.0-/.test(version);
 }
 
 function glueOperators(set: string): string {
@@ -120,7 +121,19 @@ export function isRecognisedRange(range: string): boolean {
     });
 }
 
+/**
+ * The major of a COMPLETE semver token, or null. Reading only the numeric
+ * prefix accepted a dist-tag like `0.next` as major 0, and the manifest was
+ * then overwritten with `^1.0.4`, which is the one thing this parser must
+ * never do to a value it does not understand. A prerelease or build suffix is
+ * accepted only after three numeric parts, matching semver itself; x-ranges
+ * (`0.x`, `0.7.*`) are accepted in the minor and patch positions.
+ */
 function majorOf(version: string): number | null {
-  const m = version.replace(/^[~^=v]+/, '').match(/^(\d+)(?:\.|$)/);
+  const m = version
+    .replace(/^[~^=v]+/, '')
+    .match(
+      /^(\d+)(?:\.(?:\d+|x|X|\*)(?:\.(?:x|X|\*|\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?))?)?$/
+    );
   return m ? Number(m[1]) : null;
 }
