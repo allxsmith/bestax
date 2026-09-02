@@ -34,13 +34,19 @@ function setIsPreV1(set: string): boolean {
   if (text === '' || /^(\*|x|X|latest)$/.test(text)) return false;
   const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
   if (hyphen) {
+    // Both endpoints must be tokens this parser reads; `not-a-range - 0.9.4`
+    // was accepted on its upper bound alone and overwritten.
+    const lower = majorOf(hyphen[1]);
     const upper = majorOf(hyphen[2]);
+    if (lower === null || upper === null) return false;
     return upper === 0 || (upper === 1 && isPrereleaseOfOne(hyphen[2]));
   }
 
   let cappedBelowOne = false;
   for (const token of text.split(/\s+/)) {
-    const match = token.match(/^(>=|<=|>|<|=)?\s*v?(.*)$/);
+    // Prefix handling (`v`, `^`, `~`, `=`) lives in majorOf alone; stripping a
+    // `v` here too let `vv0.9.4` through as two single strips.
+    const match = token.match(/^(>=|<=|>|<|=)?(.*)$/);
     if (!match) return false;
     const [, op = '', version] = match;
     const major = majorOf(version);
@@ -55,7 +61,7 @@ function setIsPreV1(set: string): boolean {
         // `<1.0.0-0` (below the lowest 1.0.0 prerelease); `<0.9` does too.
         if (
           major === 0 ||
-          (major === 1 && /^1(\.0){0,2}$/.test(version)) ||
+          (major === 1 && /^1(\.0){0,2}(\+[0-9A-Za-z.-]+)?$/.test(version)) ||
           isPrereleaseOfOne(version)
         ) {
           cappedBelowOne = true;
@@ -86,10 +92,11 @@ function setIsPreV1(set: string): boolean {
 }
 
 /**
- * `1.0.0-0`, `1.0.0-rc.1`, `1.0-beta`: a prerelease of exactly 1.0.0 orders
- * below every stable 1.x, so as an upper bound or an exact pin it admits no
- * usable v1. A caret or tilde on one is different (`^1.0.0-rc.1` admits
- * 1.0.4), which is why the callers check the operator first.
+ * `1.0.0-0`, `1.0.0-rc.1`: a prerelease of exactly 1.0.0 orders below every
+ * stable 1.x, so as an upper bound or an exact pin it admits no usable v1.
+ * Three numeric parts only, matching semver; `1.0-beta` is not a token this
+ * parser reads and is left alone. A caret or tilde on one is different
+ * (`^1.0.0-rc.1` admits 1.0.4), which is why the callers check the operator.
  */
 function isPrereleaseOfOne(version: string): boolean {
   return /^1\.0\.0-/.test(version);
@@ -130,8 +137,10 @@ export function isRecognisedRange(range: string): boolean {
  * (`0.x`, `0.7.*`) are accepted in the minor and patch positions.
  */
 function majorOf(version: string): number | null {
+  // At most one of `^`, `~`, `=` and at most one `v`: stripping any run of
+  // them accepted `^^0.9.4` and `vv0.9.4` as major 0 and overwrote them.
   const m = version
-    .replace(/^[~^=v]+/, '')
+    .replace(/^(?:[~^=]v?|v)?/, '')
     .match(
       /^(\d+)(?:\.(?:\d+|x|X|\*)(?:\.(?:x|X|\*|\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?))?)?$/
     );
