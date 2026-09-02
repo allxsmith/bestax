@@ -176,6 +176,7 @@ describe('pre-1.0 bulma range detection', () => {
     '<1.0.0-rc.1',
     '0.9.0 - 1.0.0-0',
     '<1.0.0+build.1',
+    'v1.0.0-rc.1',
   ])('bumps %s', range => {
     const { next } = run({ dependencies: { rbx: '^2.2.0', bulma: range } });
     expect(next?.dependencies.bulma).toBe('^1.0.4');
@@ -188,6 +189,8 @@ describe('pre-1.0 bulma range detection', () => {
     '^^0.9.4',
     'vv0.9.4',
     'not-a-range - 0.9.4',
+    '00.9.4',
+    '0.07.0',
   ])('leaves %s alone because it is not a range this parser reads', range => {
     // Not "admits a v1": these are left untouched because the parser cannot
     // read them, which the rbx report words differently from an actual v1.

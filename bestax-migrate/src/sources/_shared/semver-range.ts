@@ -99,7 +99,9 @@ function setIsPreV1(set: string): boolean {
  * (`^1.0.0-rc.1` admits 1.0.4), which is why the callers check the operator.
  */
 function isPrereleaseOfOne(version: string): boolean {
-  return /^1\.0\.0-/.test(version);
+  // `majorOf` accepts a leading `v`, so this must too, or `v1.0.0-rc.1` is
+  // read as a v1 pin and left alone while `1.0.0-rc.1` is bumped.
+  return /^v?1\.0\.0-/.test(version);
 }
 
 function glueOperators(set: string): string {
@@ -139,10 +141,10 @@ export function isRecognisedRange(range: string): boolean {
 function majorOf(version: string): number | null {
   // At most one of `^`, `~`, `=` and at most one `v`: stripping any run of
   // them accepted `^^0.9.4` and `vv0.9.4` as major 0 and overwrote them.
-  const m = version
-    .replace(/^(?:[~^=]v?|v)?/, '')
-    .match(
-      /^(\d+)(?:\.(?:\d+|x|X|\*)(?:\.(?:x|X|\*|\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?))?)?$/
-    );
+  const m = version.replace(/^(?:[~^=]v?|v)?/, '').match(
+    // Numeric parts are `0|[1-9]\d*`: SemVer forbids leading zeros, and
+    // `00.9.4` / `0.07.0` were being read as major 0 and overwritten.
+    /^(0|[1-9]\d*)(?:\.(?:0|[1-9]\d*|x|X|\*)(?:\.(?:x|X|\*|(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?))?)?$/
+  );
   return m ? Number(m[1]) : null;
 }
