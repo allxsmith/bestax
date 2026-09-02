@@ -69,7 +69,7 @@
           "name": "isMultiline",
           "type": "boolean",
           "default": "false",
-          "description": "Allow tags to wrap onto multiple lines.",
+          "description": "No-op retained for backwards compatibility.",
           "required": false,
           "inherited": false,
           "deprecated": true,

@@ -16,7 +16,7 @@ export interface TagsProps
   /** Group tags together as add-ons (no spacing). */
   hasAddons?: boolean;
   /**
-   * Allow tags to wrap onto multiple lines.
+   * No-op retained for backwards compatibility.
    *
    * @deprecated Bulma's `.tags` wraps by default (no shipped `are-multiline`
    * CSS exists for it) — this prop has never had a visual effect and will be
