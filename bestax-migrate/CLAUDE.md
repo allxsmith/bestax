@@ -37,22 +37,19 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   statement + a report entry — never a silent skip, never a best-guess rewrite of dynamic
   values.
 - **A TODO message is a claim about bestax; read the component before writing it.** Four
-  shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`,
-  which does not exist). The rbx e2e fails on an undocumented rule (the RBC e2e has no such
-  check); nothing checks that the guidance is true.
+  shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`).
+  The rbx e2e fails on an undocumented rule (RBC's does not); nothing checks the guidance is true.
 - **A defect in one source's `transform.ts` is almost certainly in the other.** Nine fixes were
   ported RBC↔rbx on #613 and review kept finding the unported half. Fix the sibling in the same
   commit, or move the logic into `_shared/`.
 - **Resolve references by binding, not by identifier text.** Every serious bug on #613 came
-  from a name-keyed map (`function F(Header)` rewritten to `F(Card.Header)`). Use the owner-keyed
-  `aliasAt` resolver in each `transform.ts` (duplicated; hoist to `_shared/` before a third
-  source): ancestors decide ownership, then `scope.lookup` vetoes a nearer binding.
+  from a name-keyed map (`function F(Header)` became `F(Card.Header)`). Use `aliasAt` in each
+  `transform.ts` (duplicated; hoist it): ancestors decide ownership, `scope.lookup` vetoes a nearer binding.
 - **The report may only describe what actually happened.** The manifest headline said "bumped
   bulma" in most manifest shapes where nothing was bumped. Track each mutation; phrase from it.
-- **The stylesheet pass and the manifest pass must agree on what is removable.** Both report
-  rather than remove the `bulma-*` extensions, since markup outside the source may still use
-  their classes. The set is defined three times (`rbx/deps.ts`, `rbx/transform.ts`,
-  `_shared/make-styles-transform.ts`); keep them agreeing, and RBC's manifest pass has none.
+- **The stylesheet and manifest passes must agree on what is removable.** Both report rather
+  than remove `bulma-*` extensions, since markup outside the source may still use their classes.
+  rbx enumerates its four in `deps.ts` and `transform.ts`; the shared Sass pass flags any `bulma-*`.
 - **Never change `bulma-ui` to make a migration cleaner.** Map onto the library as it is and
   emit a TODO otherwise. A gap earns a `bulma-ui` issue only if it is a bestax defect or the
   source is genuinely better, not merely different (#616 to #622 are the worked example).
@@ -111,10 +108,9 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught six
   mapping errors that 254 clean Playgrounds had not.
 
-- After editing a test file, check the total test count did not drop. A range replacement
-  between two `describe` blocks that were not adjacent deleted 868 lines on #613 and the suite
-  stayed green at 699 tests instead of 781. Compare the `Tests:` line from `pnpm test` in
-  `bestax-migrate/` (bare `jest` breaks on ESM and reports a different count).
+- After editing a test file, check the total test count did not drop: a range replacement
+  between two non-adjacent `describe` blocks deleted 868 lines on #613 and the suite stayed green
+  at 699 instead of 781. Compare the `Tests:` line from `pnpm test` (bare `jest` miscounts on ESM).
 
 ## Releases
 
