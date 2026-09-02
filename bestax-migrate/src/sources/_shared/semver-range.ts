@@ -143,7 +143,8 @@ function isPrereleaseOfOne(version: string): boolean {
 function glueOperators(set: string): string {
   // Only when what follows starts a plain version. Gluing unconditionally
   // turned the invalid `> =0.7` into a valid `>=0.7`, which was then bumped.
-  return set.trim().replace(/(>=|<=|>|<|=)\s+(?=[0-9vxX*])/g, '$1');
+  // node-semver normalises a spaced tilde or caret (`~ 0.7.5`) the same way.
+  return set.trim().replace(/(>=|<=|>|<|=|~|\^)\s+(?=[0-9vxX*])/g, '$1');
 }
 
 /**
