@@ -542,21 +542,19 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
     if (typeof activeProp === 'boolean') setActive(activeProp);
   }, [activeProp]);
 
+  // Keep `onActiveChange` out of the state updater (a pure function) so Strict
+  // Mode's double-invoked updaters don't double-fire it — mirrors `Dropdown`.
   const toggle = () => {
-    setActive(prev => {
-      const next = !prev;
-      onActiveChange?.(next);
-      return next;
-    });
+    const next = !active;
+    setActive(next);
+    onActiveChange?.(next);
   };
 
   const close = () => {
-    setActive(prev => {
-      /* istanbul ignore next: close() is only invoked once already active */
-      if (!prev) return prev;
-      onActiveChange?.(false);
-      return false;
-    });
+    /* istanbul ignore next: close() is only invoked once already active */
+    if (!active) return;
+    setActive(false);
+    onActiveChange?.(false);
   };
 
   return (
