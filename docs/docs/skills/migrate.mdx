@@ -14,7 +14,8 @@ skill teaches an agent to move an existing app off an unmaintained React Bulma l
   since 2022, Bulma 0.9.x —
   [guide](../guides/getting-started/migration/react-bulma-components.md)
 - [`rbx`](https://github.com/dfee/rbx) v2 — abandoned in 2019, and it pins `bulma@0.7.5` as a
-  direct dependency plus four Bulma extensions, so migrating deletes **five** dependencies —
+  direct dependency, so migrating is what frees an app to choose its own Bulma version. The
+  four Bulma extensions it pulled in are reported for you to remove, not deleted —
   [guide](../guides/getting-started/migration/rbx.md)
 
 It drives the `bestax-migrate` codemod and then resolves everything the codemod flags.

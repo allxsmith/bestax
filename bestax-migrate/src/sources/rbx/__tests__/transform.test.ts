@@ -256,7 +256,12 @@ describe('rbx stylesheet imports', () => {
     expect(output).not.toContain('extras.css');
   });
 
-  it('drops the Bulma extension stylesheets rbx pinned', () => {
+  it('keeps the Bulma extension stylesheets rbx pinned, with a TODO each', () => {
+    // Kept, not dropped: the rbx JSX that needed them becomes bestax
+    // components with their own styles, but markup outside rbx may use the
+    // extension classes directly, and the manifest pass reports rather than
+    // removes the same packages for that reason. Deleting the import here
+    // contradicted that and was a silent best-guess.
     const source =
       "import 'bulma-tooltip/dist/css/bulma-tooltip.min.css';\n" +
       "import 'bulma-badge/dist/css/bulma-badge.min.css';\n";
@@ -264,15 +269,16 @@ describe('rbx stylesheet imports', () => {
     const { output } = runTransform(transform, 'ext.ts', source, {
       add: entry => todos.push(entry),
     });
-    // The IMPORTS go; the TODO comments naming them stay, so assert on the
-    // emitted code rather than the whole output.
     const code = (output ?? '')
       .split('\n')
       .filter(l => !l.trim().startsWith('// TODO(bestax-migrate)'))
       .join('\n');
-    expect(code).not.toContain('bulma-tooltip');
-    expect(code).not.toContain('bulma-badge');
+    expect(code).toContain("'bulma-tooltip/dist/css/bulma-tooltip.min.css'");
+    expect(code).toContain("'bulma-badge/dist/css/bulma-badge.min.css'");
     expect(todos.filter(t => t.rule === 'css')).toHaveLength(2);
+    expect(todos.every(t => t.rule !== 'css' || /^kept /.test(t.message))).toBe(
+      true
+    );
   });
 
   it('bulma mode: rewrites the rbx css and adds the extras import', () => {

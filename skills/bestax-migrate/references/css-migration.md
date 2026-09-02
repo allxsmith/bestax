@@ -72,9 +72,11 @@ drift than the 0.9 → 1 notes below describe on their own.
   given partial's styles, so it gets a `// TODO(bestax-migrate)` and a report entry
   ("port any styles it carried beyond Bulma's own by hand") rather than vanishing silently.
 
-- **package.json**: the source library removed (for rbx, along with the four `bulma-*`
-  extensions it pinned), `@allxsmith/bestax-bulma` added,
-  `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),
+- **package.json**: the source library removed, `@allxsmith/bestax-bulma` added, a declared
+  pre-1.0 `bulma` raised to `^1.0.4` (or `bulma` added when sources still import `bulma/…`
+  directly). For rbx, the four `bulma-*` extensions it pinned are **reported** for you to
+  remove, not deleted — a manifest entry is a deliberate declaration, and the same goes for
+  their CSS imports in source files (kept, with a TODO each),
   and dead `node-sass` replaced with dart `sass`. Run the package manager's install
   afterwards — the codemod never installs anything.
 

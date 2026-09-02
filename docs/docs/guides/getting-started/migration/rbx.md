@@ -72,9 +72,11 @@ in place:
   (`<Button tooltip="Hi" />` → `<Tooltip label="Hi"><Button /></Tooltip>`), `Select.Container`
   and `Image.Container` fold onto the component they wrap, and `Help`/`Label` become the plain
   Bulma markup bestax expects.
-- **Stylesheets** — Bulma 0.9-era `@import` lines become `@use "bulma/sass" with (…)`, and the
-  `bulma-badge` / `bulma-divider` / `bulma-pageloader` / `bulma-tooltip` imports are dropped:
-  bestax ships `Badge`, `Divider`, `Loading` and `Tooltip` itself.
+- **Stylesheets** — Bulma 0.9-era `@import` lines become `@use "bulma/sass" with (…)`. The
+  `bulma-badge` / `bulma-divider` / `bulma-pageloader` / `bulma-tooltip` CSS imports are kept,
+  each with a TODO: bestax ships `Badge`, `Divider`, `Loading` and `Tooltip` with their own
+  styles, so the import is only still needed by markup outside rbx that uses the extension's
+  classes directly. Drop it once nothing does.
 
 ## The TODO report
 

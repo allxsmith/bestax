@@ -105,11 +105,6 @@ export default function transform(
   const aliases = new Map<string, string[]>();
 
   const rbxImportPaths: any[] = [];
-  /**
-   * Dropped-stylesheet notes, attached after the import rewrite — see the
-   * `isExtensionCss` branch for why they cannot be attached where they arise.
-   */
-  const droppedStylesheets: string[] = [];
   /** Whether any rbx import declaration carried a (broken) default binding. */
   let sawDefaultImport = false;
   /**
@@ -193,27 +188,21 @@ export default function transform(
     if (!isRbxCss && !isBulmaCss && !isExtrasCss && !isExtensionCss) return;
 
     if (isExtensionCss) {
-      // Always dead once the components are migrated, in every css mode.
-      //
-      // The comment cannot ride on this node: `addTodo` hangs it on the
-      // nearest enclosing declaration, which for an import IS this node, and
-      // it is about to be pruned. Nor can it ride on a sibling import — the
-      // rewrite below prunes the rbx one and inserts a fresh node in its
-      // place. So it is deferred to the end of the run, once the import block
-      // has settled; otherwise the stylesheet vanishes from the user's editor
-      // with only a report line to explain it.
-      const message =
-        `dropped \`${source}\`: bestax ships Badge, Tooltip, Loading and ` +
-        `Divider, so rbx's Bulma extensions are no longer needed`;
-      droppedStylesheets.push(message);
-      ctx.collector?.add({
-        file: fileInfo.path,
-        line: path.node?.loc?.start?.line ?? null,
-        rule: 'css',
-        message,
-      });
-      path.prune();
-      ctx.dirty = true;
+      // Kept, with a TODO, rather than dropped. The rbx JSX that needed this
+      // stylesheet becomes bestax components that carry their own styles, so
+      // for THAT markup it is dead -- but an app can also use the extension's
+      // classes directly (`has-tooltip-*`, `is-divider`) outside anything rbx
+      // rendered, and bestax's components style none of that. Deleting the
+      // import on the strength of a component mapping is the best-guess
+      // rewrite this package refuses to make, and it would contradict the
+      // manifest pass, which reports the same extensions rather than removing
+      // them for exactly this reason.
+      addTodo(
+        ctx,
+        path,
+        'css',
+        `kept \`${source}\`: bestax ships Badge, Tooltip, Loading and Divider with their own styles, so this is only still needed by markup outside rbx that uses the extension's classes directly — drop the import once nothing does`
+      );
       return;
     }
 
@@ -293,11 +282,16 @@ export default function transform(
   const aliasAt = (name: string, at?: unknown): string[] | undefined => {
     const owners = ownersFor(name);
     if (owners.length === 0) return undefined;
-    // The overwhelmingly common case: one declaration, no ambiguity to
-    // resolve. Kept as a direct hit so the ancestor walk cannot change
-    // behaviour for it.
-    if (owners.length === 1) {
-      return aliasesByOwner.get(owners[0])!.get(name);
+    // Without a reference location there is nothing to walk, so the only
+    // owner is the best answer available. WITH one, always walk: an unrelated
+    // `Header` parameter in another function must not resolve to the alias
+    // merely because the alias is the only one by that name. A single-owner
+    // shortcut here rewrote such a parameter to `{ Header: Card.Header }`,
+    // which is not even valid syntax.
+    if (at === undefined) {
+      return owners.length === 1
+        ? aliasesByOwner.get(owners[0])!.get(name)
+        : undefined;
     }
     type Anc = { parent?: Anc; node?: unknown };
     let cursor = at as Anc | undefined;
@@ -441,6 +435,43 @@ export default function transform(
     if (!head || !imports.has(head)) return;
     const parts = resolveJsxPath(path.node.openingElement.name, path);
     const mapping = parts ? resolveMapping(parts) : undefined;
+    if (!mapping || mapping.status === 'todo') bound.add(head);
+  });
+  // The same root can be retained by a VALUE chain -- `const X = Icon.Unknown`
+  // -- which only the value-reference pass discovers, after `reserve` has
+  // already handed the plain local to bestax. Scan those chains here too.
+  root.find(j.Identifier).forEach(path => {
+    if (path.node.type !== 'Identifier') return;
+    const head: string = path.node.name;
+    const imported = imports.get(head);
+    if (imported === undefined || imported === '*') return;
+    const parent = path.parent?.node;
+    if (
+      parent?.type !== 'MemberExpression' ||
+      parent.object !== path.node ||
+      parent.computed
+    ) {
+      return;
+    }
+    const chain = [imported];
+    let outer: any = path.parent;
+    while (
+      outer?.node?.type === 'MemberExpression' &&
+      !outer.node.computed &&
+      outer.node.property?.type === 'Identifier'
+    ) {
+      chain.push(nameOf(outer.node.property));
+      const next = outer.parent;
+      if (
+        next?.node?.type === 'MemberExpression' &&
+        next.node.object === outer.node
+      ) {
+        outer = next;
+      } else {
+        break;
+      }
+    }
+    const mapping = resolveMapping(chain);
     if (!mapping || mapping.status === 'todo') bound.add(head);
   });
 
@@ -1035,25 +1066,6 @@ export default function transform(
 
   // Flush the deferred stylesheet notes onto the first node that survived the
   // import rewrite, so the drop is visible in the file and not only the report.
-  if (droppedStylesheets.length > 0) {
-    const program = root.get().node.program;
-    const body: any[] = program?.body ?? [];
-    // Pruning can empty the file entirely (a stylesheet-only module whose one
-    // import was an extension CSS file). With no statement left to carry it,
-    // hang the note on the Program itself so the drop is still visible.
-    const anchor = body[0] ?? program;
-    if (anchor) {
-      anchor.comments = anchor.comments ?? [];
-      for (const message of droppedStylesheets) {
-        const text = ` TODO(bestax-migrate): ${message}`;
-        if (!anchor.comments.some((c: any) => c.value === text)) {
-          anchor.comments.push(j.commentLine(text, true, false));
-        }
-      }
-      ctx.dirty = true;
-    }
-  }
-
   if (!ctx.dirty) return undefined;
   // Double quotes match the dominant JSX-attribute convention; users run
   // their own formatter afterwards anyway. Tab-indented sources keep tabs so

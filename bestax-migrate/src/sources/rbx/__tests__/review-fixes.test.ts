@@ -114,16 +114,15 @@ describe('namespace imports', () => {
   });
 });
 
-describe('dropped extension stylesheets are visible in the file', () => {
-  it('leaves a TODO comment, not only a report entry', () => {
-    // The comment cannot ride on the pruned import, nor on a sibling import
-    // that the rewrite replaces — it has to be flushed after the import block
-    // settles.
+describe('retained extension stylesheets are flagged in the file', () => {
+  it('leaves the import in place with a TODO on it, not only a report entry', () => {
     const { output, todos } = migrate(
       'import "bulma-tooltip/dist/css/bulma-tooltip.min.css";\nimport { Box } from "rbx";\nexport const A = () => <Box />;'
     );
     expect(output).toContain('TODO(bestax-migrate)');
-    expect(output).toContain('bulma-tooltip');
+    expect(output).toContain(
+      'import "bulma-tooltip/dist/css/bulma-tooltip.min.css";'
+    );
     expect(todos.some(t => t.rule === 'css')).toBe(true);
   });
 });
@@ -969,14 +968,16 @@ describe('Select.Container modifiers with dynamic values', () => {
   });
 });
 
-describe('the dropped-stylesheet note survives an emptied file', () => {
-  it('is emitted even when nothing else is left', () => {
-    // Pruning the only import leaves no statement to hang the comment on;
-    // it now goes on the Program.
+describe('a file whose only import is the extension stylesheet', () => {
+  it('is still flagged, with the TODO riding on the kept import', () => {
+    // Previously the import was pruned and the note had to be hung on the
+    // Program to survive an emptied file; with the import kept, the TODO
+    // rides on the import itself.
     const { output, todos } = migrate(
       'import "bulma-tooltip/dist/css/bulma-tooltip.min.css";\n'
     );
     expect(output).toContain('TODO(bestax-migrate)');
+    expect(output).toContain('bulma-tooltip.min.css');
     expect(todos.some(t => t.rule === 'css')).toBe(true);
   });
 });

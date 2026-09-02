@@ -378,7 +378,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
       narrow: {},
       align: {
-        todo: "rbx's `align` on a Field is Bulma's grouped alignment; set `isGrouped` plus the matching alignment class by hand",
+        todo: 'rbx\'s `align` on a Field is Bulma\'s grouped alignment; bestax\'s `grouped` takes it as its value — use `grouped="centered"` or `grouped="right"`',
       },
       kind: {
         valueMap: { addons: 'hasAddons', group: 'grouped' },
@@ -663,7 +663,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
       Portal: {
         status: 'todo',
-        todo: '`Modal.Portal` is rbx-internal; bestax `<Modal>` portals on its own',
+        todo: '`Modal.Portal` is rbx-internal; bestax `<Modal>` renders inline and does not portal at all — wrap it in `createPortal` yourself if you relied on that (see the advisory the codemod adds on every Modal)',
       },
     },
   },

@@ -211,11 +211,16 @@ export default function transform(
   const aliasAt = (name: string, at?: unknown): string[] | undefined => {
     const owners = ownersFor(name);
     if (owners.length === 0) return undefined;
-    // The overwhelmingly common case: one declaration, no ambiguity to
-    // resolve. Kept as a direct hit so the ancestor walk cannot change
-    // behaviour for it.
-    if (owners.length === 1) {
-      return aliasesByOwner.get(owners[0])!.get(name);
+    // Without a reference location there is nothing to walk, so the only
+    // owner is the best answer available. WITH one, always walk: an unrelated
+    // `Header` parameter in another function must not resolve to the alias
+    // merely because the alias is the only one by that name. A single-owner
+    // shortcut here rewrote such a parameter to `{ Header: Card.Header }`,
+    // which is not even valid syntax.
+    if (at === undefined) {
+      return owners.length === 1
+        ? aliasesByOwner.get(owners[0])!.get(name)
+        : undefined;
     }
     type Anc = { parent?: Anc; node?: unknown };
     let cursor = at as Anc | undefined;
@@ -360,6 +365,43 @@ export default function transform(
     if (!head || !imports.has(head)) return;
     const parts = resolveJsxPath(path.node.openingElement.name, path);
     const mapping = parts ? resolveMapping(parts) : undefined;
+    if (!mapping || mapping.status === 'todo') bound.add(head);
+  });
+  // The same root can be retained by a VALUE chain -- `const X = Icon.Unknown`
+  // -- which only the value-reference pass discovers, after `reserve` has
+  // already handed the plain local to bestax. Scan those chains here too.
+  root.find(j.Identifier).forEach(path => {
+    if (path.node.type !== 'Identifier') return;
+    const head: string = path.node.name;
+    const imported = imports.get(head);
+    if (imported === undefined || imported === '*') return;
+    const parent = path.parent?.node;
+    if (
+      parent?.type !== 'MemberExpression' ||
+      parent.object !== path.node ||
+      parent.computed
+    ) {
+      return;
+    }
+    const chain = [imported];
+    let outer: any = path.parent;
+    while (
+      outer?.node?.type === 'MemberExpression' &&
+      !outer.node.computed &&
+      outer.node.property?.type === 'Identifier'
+    ) {
+      chain.push(nameOf(outer.node.property));
+      const next = outer.parent;
+      if (
+        next?.node?.type === 'MemberExpression' &&
+        next.node.object === outer.node
+      ) {
+        outer = next;
+      } else {
+        break;
+      }
+    }
+    const mapping = resolveMapping(chain);
     if (!mapping || mapping.status === 'todo') bound.add(head);
   });
 
