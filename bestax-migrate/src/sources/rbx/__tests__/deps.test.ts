@@ -182,3 +182,31 @@ describe('pre-1.0 bulma range detection', () => {
     }
   );
 });
+
+describe('range edge cases the deep review found', () => {
+  it.each(['>= 0.7.0 < 1.0.0', '>= 0.7 <1', '< 1'])(
+    'bumps a spaced-comparator range %s',
+    range => {
+      // npm allows whitespace between operator and version; tokenising on
+      // whitespace first made `>=` a token of its own and the range fell
+      // through as unrecognised -- then was reported as already v1.
+      const { next } = run({ dependencies: { rbx: '^2.2.0', bulma: range } });
+      expect(next?.dependencies.bulma).toBe('^1.0.4');
+    }
+  );
+
+  it.each(['latest', 'github:jgthms/bulma', 'file:../bulma'])(
+    'does not call the non-semver specifier %s "already v1"',
+    spec => {
+      const { next, messages } = run({
+        dependencies: { rbx: '^2.2.0', bulma: spec },
+      });
+      expect(next?.dependencies.bulma).toBe(spec);
+      // `( and| —)` skips the earlier `removed rbx from dependencies` note.
+      const headline =
+        messages.find(m => /^removed rbx( and| —)/.test(m)) ?? '';
+      expect(headline).not.toContain('already v1');
+      expect(headline).toContain('not a version range this tool can read');
+    }
+  );
+});

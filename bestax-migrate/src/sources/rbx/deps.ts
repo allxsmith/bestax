@@ -53,7 +53,10 @@ function isPreV1(range: string): boolean {
 }
 
 function setIsPreV1(set: string): boolean {
-  const text = set.trim();
+  // npm accepts whitespace between an operator and its version
+  // (`>= 0.7.0 < 1.0.0`); splitting on whitespace first made the operator a
+  // token of its own, so the range parsed as unrecognised and was left alone.
+  const text = glueOperators(set);
   if (text === '' || /^(\*|x|X|latest)$/.test(text)) return false;
   const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
   if (hyphen) return majorOf(hyphen[2]) === 0;
@@ -90,6 +93,32 @@ function setIsPreV1(set: string): boolean {
     }
   }
   return cappedBelowOne;
+}
+
+function glueOperators(set: string): string {
+  return set.trim().replace(/(>=|<=|>|<|=)\s+/g, '$1');
+}
+
+/**
+ * True when every comparator in every alternative parses to a semver major,
+ * so the headline can tell "already v1" apart from "not a version range at
+ * all" (`latest`, a git URL) rather than calling both v1.
+ */
+function isRecognisedRange(range: string): boolean {
+  return range
+    .trim()
+    .split(/\s*\|\|\s*/)
+    .every(alt => {
+      const text = glueOperators(alt);
+      if (/^(\*|x|X)$/.test(text)) return true;
+      const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
+      if (hyphen) {
+        return majorOf(hyphen[1]) !== null && majorOf(hyphen[2]) !== null;
+      }
+      return text
+        .split(/\s+/)
+        .every(tok => majorOf(tok.replace(/^(>=|<=|>|<|=)/, '')) !== null);
+    });
 }
 
 function majorOf(version: string): number | null {
@@ -166,12 +195,14 @@ export const updateDependencies: DependenciesUpdate = (
   // fires. Add it back only when sources still reference bulma/… directly —
   // otherwise it arrives transitively via bestax-bulma.
   let bulmaDeclared = false;
+  let declaredBulma = '';
   let bulmaBumped = false;
   let bulmaAdded = false;
   for (const name of DEP_SECTIONS) {
     const deps = section(name);
     if (deps?.bulma) {
       bulmaDeclared = true;
+      declaredBulma = deps.bulma;
       if (isPreV1(deps.bulma)) {
         deps.bulma = BULMA_RANGE;
         bulmaBumped = true;
@@ -221,7 +252,9 @@ export const updateDependencies: DependenciesUpdate = (
           : bulmaAdded
             ? `and added bulma ${BULMA_RANGE}`
             : bulmaDeclared
-              ? 'and left your declared bulma range alone (already v1)'
+              ? isRecognisedRange(declaredBulma)
+                ? 'and left your declared bulma range alone (already v1)'
+                : `and left your declared bulma specifier alone (${JSON.stringify(declaredBulma)} is not a version range this tool can read; make sure it resolves to Bulma 1.x)`
               : '— bulma now arrives transitively via @allxsmith/bestax-bulma'
       } — rbx pinned Bulma 0.7.5 as a direct dependency, so the app can now choose its own Bulma version${extensions.length > 0 ? `; ${extensions.length} Bulma extension(s) are reported above for you to remove` : ''}`,
     });
