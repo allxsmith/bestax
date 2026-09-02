@@ -33,6 +33,7 @@ const meta: Meta<typeof Tags> = {
   argTypes: {
     hasAddons: { control: 'boolean' },
     isMultiline: { control: 'boolean' },
+    size: { control: 'select', options: ['medium', 'large'] },
     m: {
       control: 'select',
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],
@@ -80,6 +81,21 @@ export const Multiline: Story = {
       </>
     ),
   },
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <>
+      <Tags size="medium">
+        <Tag color="primary">Medium</Tag>
+        <Tag color="info">Medium</Tag>
+      </Tags>
+      <Tags size="large">
+        <Tag color="primary">Large</Tag>
+        <Tag color="info">Large</Tag>
+      </Tags>
+    </>
+  ),
 };
 
 export const WithMargin: Story = {

@@ -59,6 +59,29 @@ describe('Buttons Component', () => {
     expect(buttons).toHaveClass('buttons has-addons');
   });
 
+  it.each(['small', 'medium', 'large'] as const)(
+    'applies are-%s when size is set',
+    size => {
+      render(
+        <Buttons size={size}>
+          <Button>Click Me</Button>
+        </Buttons>
+      );
+      const buttons = screen.getByText('Click Me').parentElement;
+      expect(buttons).toHaveClass(`are-${size}`);
+    }
+  );
+
+  it('does not apply a size class when size is unset', () => {
+    render(
+      <Buttons>
+        <Button>Click Me</Button>
+      </Buttons>
+    );
+    const buttons = screen.getByText('Click Me').parentElement;
+    expect(buttons?.className).not.toMatch(/\bare-/);
+  });
+
   it('applies textColor using useBulmaClasses', () => {
     render(
       <Buttons textColor="primary">

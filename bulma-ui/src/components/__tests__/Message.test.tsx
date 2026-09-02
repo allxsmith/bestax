@@ -15,6 +15,21 @@ describe('Message', () => {
     expect(screen.getByTestId('message')).toHaveClass('is-danger');
   });
 
+  it.each(['small', 'medium', 'large'] as const)(
+    'applies is-%s when size is set',
+    size => {
+      render(<Message size={size} title="Sized" />);
+      expect(screen.getByTestId('message')).toHaveClass(`is-${size}`);
+    }
+  );
+
+  it('does not apply a size class when size is unset', () => {
+    render(<Message title="Unsized" />);
+    expect(screen.getByTestId('message').className).not.toMatch(
+      /\bis-(small|medium|large)\b/
+    );
+  });
+
   it('calls onClose when close button clicked', () => {
     const onClose = jest.fn();
     render(

@@ -76,6 +76,27 @@ Demonstrates a group of buttons with different `size` props (`small`, `normal`, 
 </Buttons>
 ```
 
+### Group Size
+
+Set the `size` prop (`'small'`, `'medium'`, `'large'`) on `Buttons` to size every button in the group at once, instead of setting `size` on each `Button` individually.
+
+```tsx live
+<>
+  <Buttons size="small">
+    <Button color="primary">Small</Button>
+    <Button color="info">Small</Button>
+  </Buttons>
+  <Buttons size="medium">
+    <Button color="primary">Medium</Button>
+    <Button color="info">Medium</Button>
+  </Buttons>
+  <Buttons size="large">
+    <Button color="primary">Large</Button>
+    <Button color="info">Large</Button>
+  </Buttons>
+</>
+```
+
 ### Add-ons (No Spacing Between Buttons)
 
 The `hasAddons` prop removes spacing between buttons, making them appear as a single connected group. This is useful for segmented controls or tightly grouped actions.
@@ -165,6 +186,7 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 | `isCentered` | `boolean`                                                                       | `false` | Center the group of buttons.                                                                                                                                                                                                                                                   |
 | `isRight`    | `boolean`                                                                       | `false` | Align the group of buttons to the right.                                                                                                                                                                                                                                       |
 | `hasAddons`  | `boolean`                                                                       | `false` | Group buttons together as addons (removes spacing between them).                                                                                                                                                                                                               |
+| `size`       | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the button group.                                                                                                                                                                                                                                                      |
 | `children`   | `React.ReactNode`                                                               | —       | The button elements to render inside the group.                                                                                                                                                                                                                                |
 | `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                              |
 

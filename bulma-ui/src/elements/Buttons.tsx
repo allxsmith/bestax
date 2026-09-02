@@ -9,11 +9,19 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+const validButtonsSizes = ['small', 'medium', 'large'] as const;
+/**
+ * Valid size values for the Buttons component (Bulma button group sizes).
+ */
+export type ButtonsSize = (typeof validButtonsSizes)[number];
+
 /**
  * Props for the Buttons component.
  */
 interface ButtonsProps
-  extends React.HTMLAttributes<HTMLDivElement>, BulmaClassesProps {
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    Omit<BulmaClassesProps, 'size'> {
   /** Additional CSS classes to apply. */
   className?: string;
   /** Text color helper for the button group. */
@@ -33,6 +41,8 @@ interface ButtonsProps
   isRight?: boolean;
   /** Group buttons together as addons (removes spacing between them). */
   hasAddons?: boolean;
+  /** Size of the button group. */
+  size?: ButtonsSize;
   /** The button elements to render inside the group. */
   children: React.ReactNode;
 }
@@ -53,6 +63,7 @@ const ButtonsComponent: React.FC<ButtonsProps> = ({
   isCentered,
   isRight,
   hasAddons,
+  size,
   children,
   ...props
 }) => {
@@ -60,6 +71,7 @@ const ButtonsComponent: React.FC<ButtonsProps> = ({
     'is-centered': isCentered,
     'is-right': isRight,
     'has-addons': hasAddons,
+    [`are-${size}`]: size && validButtonsSizes.includes(size),
   });
 
   /**

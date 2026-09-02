@@ -19,7 +19,7 @@
     },
     {
       "title": "Sizes",
-      "code": "<>\n  <Message title=\"Default Size\">This is the default size message.</Message>\n  <Message title=\"Small\">This is a small message.</Message>\n  <Message title=\"Medium\">This is a medium message.</Message>\n  <Message title=\"Large\">This is a large message.</Message>\n</>"
+      "code": "<>\n  <Message title=\"Default Size\">This is the default size message.</Message>\n  <Message size=\"small\" title=\"Small\">\n    This is a small message.\n  </Message>\n  <Message size=\"medium\" title=\"Medium\">\n    This is a medium message.\n  </Message>\n  <Message size=\"large\" title=\"Large\">\n    This is a large message.\n  </Message>\n</>"
     },
     {
       "title": "Compound (dot-notation) usage",
@@ -97,6 +97,15 @@
           "inherited": false,
           "deprecated": false,
           "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
         },
         {
           "name": "onClose",

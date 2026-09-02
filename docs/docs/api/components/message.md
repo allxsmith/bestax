@@ -102,14 +102,20 @@ function example() {
 
 ### Sizes
 
-You can use Bulma size helpers or custom styles to adjust the size of the message box for different contexts.
+Use the `size` prop (`'small'`, `'medium'`, `'large'`) to adjust the size of the message box for different contexts.
 
 ```tsx live
 <>
   <Message title="Default Size">This is the default size message.</Message>
-  <Message title="Small">This is a small message.</Message>
-  <Message title="Medium">This is a medium message.</Message>
-  <Message title="Large">This is a large message.</Message>
+  <Message size="small" title="Small">
+    This is a small message.
+  </Message>
+  <Message size="medium" title="Medium">
+    This is a medium message.
+  </Message>
+  <Message size="large" title="Large">
+    This is a large message.
+  </Message>
 </>
 ```
 
@@ -222,6 +228,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Messa
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper).        |
 | `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.             |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper).  |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the message.                              |
 | `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button.              |
 | `children`  | `React.ReactNode`                                                               | —       | Body content for the message.                     |
 | `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md) |

@@ -18,6 +18,10 @@
       "code": "<Buttons>\n  {['small', 'normal', 'medium', 'large'].map(size => (\n    <Button key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
     },
     {
+      "title": "Group Size",
+      "code": "<>\n  <Buttons size=\"small\">\n    <Button color=\"primary\">Small</Button>\n    <Button color=\"info\">Small</Button>\n  </Buttons>\n  <Buttons size=\"medium\">\n    <Button color=\"primary\">Medium</Button>\n    <Button color=\"info\">Medium</Button>\n  </Buttons>\n  <Buttons size=\"large\">\n    <Button color=\"primary\">Large</Button>\n    <Button color=\"info\">Large</Button>\n  </Buttons>\n</>"
+    },
+    {
       "title": "Add-ons (No Spacing Between Buttons)",
       "code": "<Buttons hasAddons>\n  <Button color=\"primary\">Left</Button>\n  <Button color=\"primary\">Center</Button>\n  <Button color=\"primary\">Right</Button>\n</Buttons>"
     },
@@ -108,6 +112,15 @@
           "type": "boolean",
           "default": "false",
           "description": "Group buttons together as addons (removes spacing between them).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button group.",
           "required": false,
           "inherited": false,
           "deprecated": false
