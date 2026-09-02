@@ -18,6 +18,10 @@
       "code": "<Tags isMultiline>\n  <Tag color=\"primary\">Bulma</Tag>\n  <Tag color=\"success\">React</Tag>\n  <Tag color=\"warning\">Typescript</Tag>\n  <Tag color=\"danger\">Library</Tag>\n  <Tag color=\"link\">UI</Tag>\n</Tags>"
     },
     {
+      "title": "Group Size",
+      "code": "<>\n  <Tags size=\"medium\">\n    <Tag color=\"primary\">Medium</Tag>\n    <Tag color=\"info\">Medium</Tag>\n  </Tags>\n  <Tags size=\"large\">\n    <Tag color=\"primary\">Large</Tag>\n    <Tag color=\"info\">Large</Tag>\n  </Tags>\n</>"
+    },
+    {
       "title": "With Margin",
       "code": "<Tags m=\"4\">\n  <Tag color=\"primary\">With Margin</Tag>\n</Tags>"
     },
@@ -70,6 +74,15 @@
           "type": "boolean",
           "default": "false",
           "description": "Allow tags to wrap onto multiple lines.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'medium' | 'large'",
+          "default": null,
+          "description": "Size of every tag in the group.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -28,6 +28,21 @@ describe('Tags Component', () => {
     expect(tags).toHaveClass('tags are-multiline');
   });
 
+  test.each(['medium', 'large'] as const)(
+    'applies are-%s when size is set',
+    size => {
+      render(<Tags {...defaultProps} size={size} />);
+      const tags = screen.getByText('Test Tag').parentElement;
+      expect(tags).toHaveClass(`are-${size}`);
+    }
+  );
+
+  test('does not apply a size class when size is unset', () => {
+    render(<Tags {...defaultProps} />);
+    const tags = screen.getByText('Test Tag').parentElement;
+    expect(tags?.className).not.toMatch(/\bare-(medium|large)\b/);
+  });
+
   test('applies Bulma helper classes (e.g., margin)', () => {
     render(<Tags {...defaultProps} m="4" />);
     const tags = screen.getByText('Test Tag').parentElement;

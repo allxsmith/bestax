@@ -12,13 +12,19 @@ import {
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
 
+const validMessageSizes = ['small', 'medium', 'large'] as const;
+/**
+ * Valid size values for the Message component (Bulma message sizes).
+ */
+export type MessageSize = (typeof validMessageSizes)[number];
+
 /**
  * Props for the Message component.
  */
 export interface MessageProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, 'title'>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Additional CSS classes. */
   className?: string;
   /** Title string/node (renders header section). */
@@ -29,6 +35,8 @@ export interface MessageProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color for the message (Bulma helper). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Size of the message. */
+  size?: MessageSize;
   /** Callback for the close ("X") button. */
   onClose?: () => void;
   /** Body content for the message. */
@@ -49,6 +57,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   textColor,
   color,
   bgColor,
+  size,
   onClose,
   children,
   ...props
@@ -63,6 +72,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('message', {
     [`is-${color}`]: color,
+    [`is-${size}`]: size && validMessageSizes.includes(size),
   });
   const deleteClass = usePrefixedClassNames('delete');
 
