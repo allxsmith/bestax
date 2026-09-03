@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useSyncExternalStore } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   classNames,
@@ -14,6 +14,7 @@ import {
 import { useConfig } from '../helpers/Config';
 import { useScrollLock } from '../helpers/scrollLock';
 import { resolvePortalContainer } from '../helpers/portal';
+import { useIsHydrated } from '../helpers/useIsHydrated';
 
 /**
  * Every currently active modal, in the order they opened. Only the last entry
@@ -28,13 +29,20 @@ const activeModalStack: object[] = [];
  * outside the modal.
  */
 const FOCUSABLE_SELECTOR =
-  'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+  'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]';
 
-// "Are we past hydration?" as a store that never changes: the server snapshot
-// is used while server-rendering and hydrating, the client one from then on.
-const subscribeToNothing = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
+/**
+ * The modal's tab stops, in document order. The selector alone is not the
+ * tabbable set — `[href]` and `button` match regardless of `tabindex`, so an
+ * `<a href tabIndex={-1}>` would otherwise be treated as a tab stop and let
+ * Tab escape the modal when it sorts last. `el.tabIndex` is the browser's own
+ * resolved value, so filtering on it drops every negative index (not just
+ * `-1`) without a second selector to keep in sync.
+ */
+const getTabbable = (node: HTMLElement): HTMLElement[] =>
+  Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    el => el.tabIndex >= 0
+  );
 
 /**
  * Props for the Modal component.
@@ -378,12 +386,12 @@ const ModalRoot: React.FC<ModalProps> = ({
   const generatedTitleId = useId();
   // A portal has no server-rendered counterpart, so the server render and the
   // hydrating render have to stay inline and only move into the portal once
-  // we're on the client — which is exactly what the two snapshots give us.
-  const onClient = useSyncExternalStore(
-    subscribeToNothing,
-    getClientSnapshot,
-    getServerSnapshot
-  );
+  // we're past hydration.
+  const onClient = useIsHydrated();
+  // Moving into the portal remounts the modal's subtree, so any effect holding
+  // a DOM node from before the move is holding a detached one. Effects that
+  // touch the modal's nodes key on this so they re-run against the new tree.
+  const isPortaled = Boolean(portal) && onClient;
 
   useScrollLock(isModalActive && lockScroll);
 
@@ -419,9 +427,7 @@ const ModalRoot: React.FC<ModalProps> = ({
 
       // Keep Tab within the modal — `aria-modal` hides the rest of the page
       // from assistive technology, so the keyboard order has to agree.
-      const focusable = Array.from(
-        node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-      );
+      const focusable = getTabbable(node);
       const activeElement = document.activeElement;
       if (focusable.length === 0) {
         e.preventDefault();
@@ -453,7 +459,7 @@ const ModalRoot: React.FC<ModalProps> = ({
 
     previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
     const node = modalRootRef.current;
-    const focusable = node?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    const focusable = node ? getTabbable(node)[0] : undefined;
     (focusable ?? node)?.focus();
 
     return () => {
@@ -470,7 +476,12 @@ const ModalRoot: React.FC<ModalProps> = ({
       }
       previouslyFocusedRef.current?.focus?.();
     };
-  }, [isModalActive]);
+    // `isPortaled` flips once when a hydrated portal modal moves out of the
+    // inline tree; re-running rebinds focus onto the remounted nodes. The
+    // cleanup above restores focus to the pre-open element first (the detached
+    // subtree has left focus on <body>), so the re-run re-records the same
+    // element and restore-on-close still lands in the right place.
+  }, [isModalActive, isPortaled]);
 
   // Check if children contain compound components
   const hasCompoundComponents = React.Children.toArray(children).some(
@@ -605,7 +616,7 @@ const ModalRoot: React.FC<ModalProps> = ({
     );
   }
 
-  if (portal && onClient) {
+  if (isPortaled) {
     const target = resolvePortalContainer(
       typeof portal === 'boolean' ? undefined : portal
     );

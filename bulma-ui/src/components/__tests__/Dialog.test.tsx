@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { Dialog, DialogContainer, dialog } from '../Dialog';
 
 describe('Dialog', () => {
@@ -297,6 +299,32 @@ describe('Dialog', () => {
       const dialogEl = document.querySelector('[role="alertdialog"]');
       expect(dialogEl).not.toBeNull();
       expect(document.body.contains(dialogEl)).toBe(true);
+    });
+
+    it('focuses the confirm button after the hydration portal move', async () => {
+      // The portal move remounts the Modal subtree, so Dialog's own focus
+      // effect has to re-run — otherwise its confirm button never gets focus.
+      const dialogEl = (
+        <Dialog isOpen message="Hydrated" portal confirmText="Confirm" />
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(dialogEl);
+      document.body.appendChild(container);
+
+      let unmountRoot = () => {};
+      await act(async () => {
+        const root = hydrateRoot(container, dialogEl);
+        unmountRoot = () => root.unmount();
+      });
+
+      const confirm = document.body.querySelector<HTMLButtonElement>(
+        '[role="alertdialog"] .button.is-primary'
+      );
+      expect(confirm).not.toBeNull();
+      expect(confirm).toHaveFocus();
+
+      await act(async () => unmountRoot());
+      document.body.removeChild(container);
     });
   });
 
