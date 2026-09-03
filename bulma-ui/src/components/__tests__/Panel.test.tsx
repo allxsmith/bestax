@@ -213,6 +213,21 @@ describe('Panel.Icon', () => {
     const icon = screen.getByTestId('icon');
     expect(icon.querySelector('i')).toHaveClass('far', 'fa-star');
   });
+
+  it('renders a custom node from children instead of an <i> glyph', () => {
+    render(
+      <Panel.Block>
+        <Panel.Icon data-testid="icon">
+          <svg data-testid="custom-svg" />
+        </Panel.Icon>
+        Item
+      </Panel.Block>
+    );
+    const icon = screen.getByTestId('icon');
+    expect(icon).toHaveClass('panel-icon');
+    expect(icon.querySelector('i')).toBeNull();
+    expect(screen.getByTestId('custom-svg')).toBeInTheDocument();
+  });
 });
 
 describe('Panel.InputBlock', () => {

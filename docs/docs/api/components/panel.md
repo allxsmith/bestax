@@ -204,7 +204,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 - `Panel.Heading`: Main heading (renders as `<p class="panel-heading">`)
 - `Panel.Tabs`: Panel tabs (renders as `<p class="panel-tabs">`)
 - `Panel.Block`: Individual panel block (renders as `<a class="panel-block">`)
-- `Panel.Icon`: Icon wrapper with panel styling (renders as `<span class="panel-icon"><i/></span>`). Accepts all Icon props (`name`, `variant`, `features`, etc.)
+- `Panel.Icon`: Icon wrapper with panel styling (renders as `<span class="panel-icon">`, containing an `<i/>` when a `name` is given, or the custom node passed as `children`). Accepts all Icon props (`name`, `variant`, `features`, etc.), or `children` for a custom node.
 - `Panel.InputBlock`: Search input with icon (renders as `<div class="panel-block">`)
 - `Panel.CheckboxBlock`: Checkbox block (renders as `<label class="panel-block">`)
 - `Panel.ButtonBlock`: Call-to-action button (renders as `<div class="panel-block"><button /></div>`)
