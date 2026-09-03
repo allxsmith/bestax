@@ -30,6 +30,10 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"card\">\n        Modal card body (forced type=\"card\")\n      </Modal>\n    </>\n  );\n}"
     },
     {
+      "title": "Portal",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Portaled Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Rendered in document.body\"\n        portal\n      >\n        This modal is portaled, so it escapes any ancestor with an `overflow:\n        hidden` style.\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Card>\n          <Modal.Card.Head>\n            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>\n            <Modal.Close onClick={closeModal} />\n          </Modal.Card.Head>\n          <Modal.Card.Body>\n            This modal uses the compound components API for better control and\n            readability.\n          </Modal.Card.Body>\n          <Modal.Card.Foot>\n            <Buttons>\n              <Button color=\"success\" onClick={closeModal}>\n                Save\n              </Button>\n              <Button onClick={closeModal}>Cancel</Button>\n            </Buttons>\n          </Modal.Card.Foot>\n        </Modal.Card>\n      </Modal>\n    </>\n  );\n}"
     },
@@ -38,7 +42,7 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Content>\n          <Box>\n            <Title size=\"4\">Custom Content</Title>\n            <Paragraph>Using compound components for full control!</Paragraph>\n          </Box>\n        </Modal.Content>\n        <Modal.Close variant=\"floating\" onClick={closeModal} />\n      </Modal>\n    </>\n  );\n}"
     }
   ],
-  "accessibility": "- The modal root uses Bulma’s structure and ARIA roles for accessibility.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n- Keyboard/screen reader accessibility is supported, but for focus trap or escape key handling, implement those patterns in your app as needed.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
+  "accessibility": "- The modal root gets `role=\"dialog\"` and `aria-modal=\"true\"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role=\"presentation\"` on the `Modal` it wraps so its own `role=\"alertdialog\"` is the only one announced).\n- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`.\n- Body scroll is locked while the modal is active (ref-counted, so a `Dialog` rendering its own `Modal` doesn't fight another open modal for the unlock); opt out with `lockScroll={false}`.\n- Focus moves to the first focusable element (or the modal itself) on open, and is restored to the previously focused element on close.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n- No Tab-cycle focus trap is implemented — `aria-modal=\"true\"` already marks the rest of the page inert for assistive technology.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
   "related": ["Button", "Dialog", "Field", "Input", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-modal--modal-card",
   "summary": "The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.",
@@ -139,6 +143,33 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Modal body/content or compound components.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnEscape",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the modal when the Escape key is pressed (calls `onClose`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "lockScroll",
+          "type": "boolean",
+          "default": "true",
+          "description": "Lock body scroll while the modal is active. Ref-counted, so nesting a `Dialog` (which renders its own `Modal`) inside a `Modal` does not double-unlock when one closes before the other.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "false",
+          "description": "Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to `document.body`; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline when `document` is undefined (SSR).",
           "required": false,
           "inherited": false,
           "deprecated": false

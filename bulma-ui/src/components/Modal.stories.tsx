@@ -156,3 +156,29 @@ const CompoundModalContentComponent = () => {
 export const CompoundModalContent: StoryObj<ModalProps> = {
   render: () => <CompoundModalContentComponent />,
 };
+
+// Portal — renders into document.body instead of inline
+const PortalModalComponent = () => {
+  const [open, setOpen] = useState(true);
+  return (
+    <div style={{ overflow: 'hidden', height: 120, border: '1px dashed' }}>
+      <p>
+        This wrapper clips overflowing content — a non-portaled modal would be
+        cut off.
+      </p>
+      <button onClick={() => setOpen(true)}>Show Portaled Modal</button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        modalCardTitle="Rendered in document.body"
+        portal
+      >
+        {declarationLatin}
+      </Modal>
+    </div>
+  );
+};
+
+export const Portal: StoryObj<ModalProps> = {
+  render: () => <PortalModalComponent />,
+};

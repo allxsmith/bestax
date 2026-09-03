@@ -1,11 +1,7 @@
-import React, { forwardRef, useEffect, useCallback, useRef } from 'react';
+import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Modal } from './Modal';
-
-// Ref-counted body scroll lock for chained/overlapping dialogs
-let _scrollLockCount = 0;
-let _originalOverflow = '';
 
 /** Valid dialog type/color values. */
 export type DialogType = 'default' | 'success' | 'danger' | 'warning' | 'info';
@@ -43,6 +39,12 @@ export interface DialogProps
   focusCancel?: boolean;
   /** Custom icon to display. */
   icon?: React.ReactNode;
+  /**
+   * Renders the dialog into a portal target instead of inline. Forwarded to
+   * the underlying `Modal`; see its `portal` prop for the accepted values.
+   * @defaultValue false
+   */
+  portal?: boolean | string | HTMLElement;
 }
 
 /**
@@ -91,6 +93,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       canCancel = true,
       focusCancel = false,
       icon,
+      portal,
       className,
       ...props
     },
@@ -120,21 +123,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       }
     }, [canCancel, handleCancel]);
 
-    // Handle escape key
-    useEffect(() => {
-      if (!isOpen || !canCancel) return undefined;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          handleCancel();
-        }
-      };
-
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, canCancel, handleCancel]);
-
-    // Focus management
+    // Focus management — Dialog picks a specific button rather than the
+    // Modal's default (first focusable/root); this effect runs after the
+    // inner Modal's own focus-on-open effect, so it wins.
     useEffect(() => {
       if (isOpen) {
         const buttonToFocus =
@@ -142,24 +133,6 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         buttonToFocus?.focus();
       }
     }, [isOpen, focusCancel, showCancel]);
-
-    // Prevent body scroll (ref-counted so chained dialogs work correctly)
-    useEffect(() => {
-      if (isOpen) {
-        _scrollLockCount++;
-        if (_scrollLockCount === 1) {
-          _originalOverflow = document.body.style.overflow;
-          document.body.style.overflow = 'hidden';
-        }
-        return () => {
-          _scrollLockCount--;
-          if (_scrollLockCount === 0) {
-            document.body.style.overflow = _originalOverflow;
-          }
-        };
-      }
-      return undefined;
-    }, [isOpen]);
 
     // Use combined ref
     const combinedRef = useCallback(
@@ -262,7 +235,12 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     }
 
     return (
-      <Modal isActive={isOpen}>
+      <Modal
+        isActive={isOpen}
+        onClose={handleCancel}
+        role="presentation"
+        portal={portal}
+      >
         <Modal.Background onClick={handleBackgroundClick} />
         <div
           ref={combinedRef}
