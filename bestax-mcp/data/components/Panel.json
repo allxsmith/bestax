@@ -162,6 +162,24 @@
       "component": null,
       "props": [
         {
+          "name": "name",
+          "type": "string | undefined",
+          "default": null,
+          "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A custom node (an inline SVG, a `react-icons` component, …) rendered inside the `.icon` container in place of a class-based glyph. Mutually exclusive with `name`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
@@ -200,15 +218,6 @@
           "valuesRef": "helpers/valid-values"
         },
         {
-          "name": "name",
-          "type": "string",
-          "default": null,
-          "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`).",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
           "name": "icon",
           "type": "string",
           "default": null,
@@ -221,7 +230,7 @@
           "name": "library",
           "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
           "default": "'fa'",
-          "description": "The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.",
+          "description": "The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured. Ignored when `children` supplies the glyph instead of `name`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -230,7 +239,7 @@
           "name": "variant",
           "type": "string",
           "default": null,
-          "description": "Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`).",
+          "description": "Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`). Ignored when `children` supplies the glyph instead of `name`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -239,7 +248,7 @@
           "name": "features",
           "type": "string | string[]",
           "default": null,
-          "description": "Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`).",
+          "description": "Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). Ignored when `children` supplies the glyph instead of `name`.",
           "required": false,
           "inherited": true,
           "deprecated": false

@@ -513,8 +513,8 @@
       "slug": "elements/icon",
       "import": "import { Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 14,
-      "exampleCount": 11
+      "propCount": 15,
+      "exampleCount": 12
     },
     {
       "name": "IconText",
@@ -524,7 +524,7 @@
       "slug": "elements/icontext",
       "import": "import { IconText } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
+      "propCount": 22,
       "exampleCount": 11
     },
     {
@@ -711,7 +711,7 @@
       "slug": "components/panel",
       "import": "import { Panel } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 34,
+      "propCount": 35,
       "exampleCount": 3
     },
     {

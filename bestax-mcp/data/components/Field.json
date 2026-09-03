@@ -446,18 +446,18 @@
         },
         {
           "name": "iconLeft",
-          "type": "IconProps",
+          "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for left icon.",
+          "description": "Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.",
           "required": false,
           "inherited": true,
           "deprecated": false
         },
         {
           "name": "iconRight",
-          "type": "IconProps",
+          "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for right icon.",
+          "description": "Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.",
           "required": false,
           "inherited": true,
           "deprecated": false

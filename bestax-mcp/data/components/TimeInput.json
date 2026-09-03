@@ -221,7 +221,7 @@
         },
         {
           "name": "iconLeft",
-          "type": "IconProps",
+          "type": "IconProps | React.ReactNode",
           "default": null,
           "description": "Icon props for the left icon.",
           "required": false,
@@ -230,7 +230,7 @@
         },
         {
           "name": "iconRight",
-          "type": "IconProps",
+          "type": "IconProps | React.ReactNode",
           "default": null,
           "description": "Icon props for the right icon.",
           "required": false,
