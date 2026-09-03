@@ -202,7 +202,7 @@ function example() {
 
 ### Portal
 
-Set `portal` to render the dialog into `document.body` instead of inline — it's forwarded straight to the underlying [`Modal`](./modal.md), so it's ignored (renders inline) when `document` is undefined (SSR).
+Set `portal` to render the dialog into `document.body` instead of inline — it's forwarded straight to the underlying [`Modal`](./modal.md), which renders inline on the server and during hydration, then moves into the portal once the client takes over so hydration matches.
 
 ```tsx live
 function example() {
@@ -344,10 +344,12 @@ function example() {
 ## Accessibility
 
 - Uses `role="alertdialog"` for proper screen reader announcement
-- Has `aria-modal="true"` to indicate modal behavior
+- Has `aria-modal="true"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer
+- `title` is wired up as `aria-labelledby` and `message` as `aria-describedby`
 - Focus moves to the confirm (or cancel, with `focusCancel`) button when opened
-- Escape key closes the dialog (when `canCancel` is true) — handled by the underlying [`Modal`](./modal.md)
-- Body scroll is prevented when dialog is open
+- Escape key closes the dialog (when `canCancel` is true) — handled by the underlying [`Modal`](./modal.md), which routes it to the topmost open modal only
+- Tab and Shift+Tab cycle within the dialog while it is open — also from the underlying [`Modal`](./modal.md)
+- Body scroll is prevented when dialog is open, through the ref-counted lock shared with `Modal`, `Sidebar` and `Loading`
 - Confirm/cancel buttons are keyboard accessible
 
 ---
