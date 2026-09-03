@@ -720,6 +720,97 @@ describe('Dropdown', () => {
     expect(onActiveChange).toHaveBeenCalledWith(false);
   });
 
+  // The cleanup contract is honored identically on React 18 and 19 (the CI
+  // matrix), so neither of these branches on React.version.
+  test('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
+    const calls: (HTMLDivElement | null)[] = [];
+    const cleanup = jest.fn();
+    const callbackRef = (node: HTMLDivElement | null) => {
+      calls.push(node);
+      if (!node) return undefined;
+      return () => {
+        cleanup();
+      };
+    };
+
+    const { unmount } = render(
+      <Dropdown label="Ref Cleanup" ref={callbackRef}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(calls).toEqual([screen.getByTestId('dropdown-root')]);
+    expect(cleanup).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(1);
+  });
+
+  test('detaches a forwarded callback ref with null when it returns no cleanup', () => {
+    const calls: (HTMLDivElement | null)[] = [];
+    const callbackRef = (node: HTMLDivElement | null) => {
+      calls.push(node);
+    };
+
+    const { unmount } = render(
+      <Dropdown label="Ref Detach" ref={callbackRef}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(calls).toEqual([screen.getByTestId('dropdown-root')]);
+
+    unmount();
+
+    expect(calls[calls.length - 1]).toBeNull();
+  });
+
+  test('outside click still closes when the forwarded callback ref is swapped', () => {
+    const onActiveChange = jest.fn();
+    const seen: (HTMLDivElement | null)[] = [];
+    // Both identities return a cleanup, so React 19 detaches via that cleanup
+    // rather than a `null` call when the ref is swapped.
+    const makeRef = () => (node: HTMLDivElement | null) => {
+      seen.push(node);
+      if (!node) return undefined;
+      return () => {};
+    };
+    const first = makeRef();
+    const second = makeRef();
+
+    const Harness = () => {
+      const [swapped, setSwapped] = useState(false);
+      return (
+        <>
+          <Dropdown
+            label="Ref Swap"
+            onActiveChange={onActiveChange}
+            ref={swapped ? second : first}
+          >
+            <DropdownItem>Item</DropdownItem>
+          </Dropdown>
+          <button data-testid="swap-button" onClick={() => setSwapped(true)}>
+            Swap
+          </button>
+          <button data-testid="outside-button">Outside</button>
+        </>
+      );
+    };
+
+    render(<Harness />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ref swap/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    fireEvent.click(screen.getByTestId('swap-button'));
+    expect(seen[seen.length - 1]).toBe(screen.getByTestId('dropdown-root'));
+
+    fireEvent.mouseDown(screen.getByTestId('outside-button'));
+
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+  });
+
   test('executes disabled guard in handleToggle (branch coverage)', () => {
     render(
       <Dropdown label="Disabled Guard" disabled>

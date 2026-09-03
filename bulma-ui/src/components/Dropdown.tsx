@@ -85,12 +85,33 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
     const triggerRef = useRef<HTMLButtonElement>(null);
     const pendingFocusRef = useRef<'first' | 'last' | null>(null);
 
+    // Cleanup returned by a consumer's callback ref on attach, held until detach.
+    const consumerCleanupRef = useRef<(() => void) | null>(null);
+
     const setRefs = useCallback(
       (node: HTMLDivElement | null) => {
         (dropdownRef as React.MutableRefObject<HTMLDivElement | null>).current =
           node;
         if (typeof ref === 'function') {
-          ref(node);
+          // React 19 lets a callback ref return a cleanup function and detaches
+          // by running it instead of calling the ref with `null`; React 18
+          // discards the return value entirely. Returning it from here would be
+          // a React-19-only contract, so instead we hold the cleanup and run it
+          // ourselves on detach — a consumer's cleanup ref then behaves the same
+          // on both majors of the CI matrix.
+          if (node === null) {
+            const consumerCleanup = consumerCleanupRef.current;
+            consumerCleanupRef.current = null;
+            if (consumerCleanup) {
+              consumerCleanup();
+            } else {
+              ref(null);
+            }
+            return;
+          }
+          const cleanup: unknown = ref(node);
+          consumerCleanupRef.current =
+            typeof cleanup === 'function' ? (cleanup as () => void) : null;
         } else if (ref) {
           (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
         }
