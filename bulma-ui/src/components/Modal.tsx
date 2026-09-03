@@ -375,7 +375,7 @@ const ModalRoot: React.FC<ModalProps> = ({
     previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
     const node = modalRootRef.current;
     const focusable = node?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
     );
     (focusable ?? node)?.focus();
 
