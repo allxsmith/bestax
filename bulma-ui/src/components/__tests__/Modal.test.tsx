@@ -2,6 +2,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Modal } from '../Modal';
 import { ConfigProvider } from '../../helpers/Config';
 
+afterEach(() => {
+  document.body.style.overflow = '';
+});
+
 const latin =
   'Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.';
 
@@ -321,6 +325,213 @@ describe('Modal', () => {
       expect(screen.getByTestId('bg')).toHaveClass('custom-bg');
       expect(screen.getByTestId('card')).toHaveClass('custom-card');
       expect(screen.getByTestId('body')).toHaveClass('custom-body');
+    });
+  });
+
+  describe('Escape key', () => {
+    it('calls onClose on Escape by default when active', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          {latin}
+        </Modal>
+      );
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onClose on Escape when inactive', () => {
+      const onClose = jest.fn();
+      render(<Modal onClose={onClose}>{latin}</Modal>);
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does not call onClose on Escape when closeOnEscape is false', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose} closeOnEscape={false}>
+          {latin}
+        </Modal>
+      );
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does not call onClose for non-Escape keys', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          {latin}
+        </Modal>
+      );
+      fireEvent.keyDown(document, { key: 'Enter' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('tolerates a missing onClose prop on Escape', () => {
+      render(<Modal active>{latin}</Modal>);
+      expect(() =>
+        fireEvent.keyDown(document, { key: 'Escape' })
+      ).not.toThrow();
+    });
+  });
+
+  describe('Scroll lock', () => {
+    it('locks body scroll while active by default', () => {
+      const { unmount } = render(<Modal active>{latin}</Modal>);
+      expect(document.body.style.overflow).toBe('hidden');
+      unmount();
+      expect(document.body.style.overflow).toBe('');
+    });
+
+    it('does not lock body scroll when inactive', () => {
+      render(<Modal>{latin}</Modal>);
+      expect(document.body.style.overflow).not.toBe('hidden');
+    });
+
+    it('does not lock body scroll when lockScroll is false', () => {
+      render(
+        <Modal active lockScroll={false}>
+          {latin}
+        </Modal>
+      );
+      expect(document.body.style.overflow).not.toBe('hidden');
+    });
+  });
+
+  describe('role and aria-modal', () => {
+    it('defaults to role="dialog" and aria-modal="true" when active', () => {
+      render(<Modal active>{latin}</Modal>);
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveAttribute('role', 'dialog');
+      expect(modal).toHaveAttribute('aria-modal', 'true');
+    });
+
+    it('has no role or aria-modal when inactive', () => {
+      render(<Modal>{latin}</Modal>);
+      const modal = screen.getByTestId('modal');
+      expect(modal).not.toHaveAttribute('role');
+      expect(modal).not.toHaveAttribute('aria-modal');
+    });
+
+    it('lets a caller-supplied role win over the default', () => {
+      render(
+        <Modal active role="alertdialog">
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).toHaveAttribute(
+        'role',
+        'alertdialog'
+      );
+    });
+
+    it('skips the default aria-modal when role is presentation', () => {
+      render(
+        <Modal active role="presentation">
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveAttribute('role', 'presentation');
+      expect(modal).not.toHaveAttribute('aria-modal');
+    });
+
+    it('lets a caller-supplied aria-modal win over the default', () => {
+      render(
+        <Modal active aria-modal="false">
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).toHaveAttribute(
+        'aria-modal',
+        'false'
+      );
+    });
+  });
+
+  describe('Focus management', () => {
+    it('moves focus to the first focusable element on open', () => {
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Second</button>
+        </Modal>
+      );
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('falls back to focusing the modal root when nothing is focusable', () => {
+      render(<Modal active>{latin}</Modal>);
+      expect(screen.getByTestId('modal')).toHaveFocus();
+    });
+
+    it('restores focus to the previously focused element on close', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      outside.focus();
+      expect(outside).toHaveFocus();
+
+      const { rerender } = render(
+        <Modal active>
+          <button type="button">Inside</button>
+        </Modal>
+      );
+      expect(screen.getByText('Inside')).toHaveFocus();
+
+      rerender(<Modal active={false}>content</Modal>);
+      expect(outside).toHaveFocus();
+
+      document.body.removeChild(outside);
+    });
+  });
+
+  describe('Portal', () => {
+    it('renders inline when portal is false (default)', () => {
+      const { container } = render(<Modal active>{latin}</Modal>);
+      expect(container.querySelector('[data-testid="modal"]')).not.toBeNull();
+    });
+
+    it('renders into document.body when portal is true', () => {
+      const { container } = render(
+        <Modal active portal>
+          {latin}
+        </Modal>
+      );
+      expect(container.querySelector('[data-testid="modal"]')).toBeNull();
+      const modalEl = document.querySelector('[data-testid="modal"]');
+      expect(modalEl).not.toBeNull();
+      expect(modalEl?.parentElement).toBe(document.body);
+    });
+
+    it('renders into a custom selector string', () => {
+      const target = document.createElement('div');
+      target.id = 'modal-target';
+      document.body.appendChild(target);
+
+      render(
+        <Modal active portal="#modal-target">
+          {latin}
+        </Modal>
+      );
+      expect(target.querySelector('[data-testid="modal"]')).not.toBeNull();
+
+      document.body.removeChild(target);
+    });
+
+    it('renders into a given HTMLElement', () => {
+      const target = document.createElement('div');
+      document.body.appendChild(target);
+
+      render(
+        <Modal active portal={target}>
+          {latin}
+        </Modal>
+      );
+      expect(target.querySelector('[data-testid="modal"]')).not.toBeNull();
+
+      document.body.removeChild(target);
     });
   });
 });

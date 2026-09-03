@@ -265,6 +265,39 @@ describe('Dialog', () => {
       // Dialog should be rendered inline within the parent
       expect(dialogElement.closest('#app')).not.toBeNull();
     });
+
+    it('does not double up on aria-modal/dialog roles from the wrapping Modal', () => {
+      render(<Dialog isOpen message="Test" />);
+      // Only one alertdialog-rooted element — the wrapping Modal renders
+      // role="presentation" so it doesn't compete with Dialog's own role.
+      expect(screen.getAllByRole('alertdialog')).toHaveLength(1);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Portal', () => {
+    it('renders inline by default (no portal)', () => {
+      const { container } = render(
+        <div id="app">
+          <Dialog isOpen message="Test" />
+        </div>
+      );
+      expect(
+        container.querySelector('#app [role="alertdialog"]')
+      ).not.toBeNull();
+    });
+
+    it('forwards portal to the underlying Modal', () => {
+      const { container } = render(
+        <div id="app">
+          <Dialog isOpen message="Test" portal />
+        </div>
+      );
+      expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+      const dialogEl = document.querySelector('[role="alertdialog"]');
+      expect(dialogEl).not.toBeNull();
+      expect(document.body.contains(dialogEl)).toBe(true);
+    });
   });
 
   describe('Ref Forwarding', () => {

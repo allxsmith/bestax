@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   classNames,
   usePrefixedClassNames,
@@ -11,6 +12,8 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { useScrollLock } from '../helpers/scrollLock';
+import { resolvePortalContainer } from '../helpers/portal';
 
 /**
  * Props for the Modal component.
@@ -42,6 +45,27 @@ export interface ModalProps
   type?: 'card' | 'content';
   /** Modal body/content or compound components. */
   children?: React.ReactNode;
+  /**
+   * Close the modal when the Escape key is pressed (calls `onClose`).
+   * @defaultValue true
+   */
+  closeOnEscape?: boolean;
+  /**
+   * Lock body scroll while the modal is active. Ref-counted, so nesting a
+   * `Dialog` (which renders its own `Modal`) inside a `Modal` does not
+   * double-unlock when one closes before the other.
+   * @defaultValue true
+   */
+  lockScroll?: boolean;
+  /**
+   * Renders the modal into a portal target instead of inline, so it isn't
+   * clipped by an ancestor with `overflow: hidden`, `filter` or `transform`.
+   * `true` portals to `document.body`; a string is used as a
+   * `document.querySelector` selector; an element is used directly. Renders
+   * inline when `document` is undefined (SSR).
+   * @defaultValue false
+   */
+  portal?: boolean | string | HTMLElement;
 }
 
 /**
@@ -308,6 +332,11 @@ const ModalRoot: React.FC<ModalProps> = ({
   modalCardFoot,
   type,
   children,
+  closeOnEscape = true,
+  lockScroll = true,
+  portal = false,
+  role,
+  'aria-modal': ariaModalProp,
   ...props
 }) => {
   const { classPrefix } = useConfig();
@@ -319,6 +348,41 @@ const ModalRoot: React.FC<ModalProps> = ({
 
   // Support both active and isActive props
   const isModalActive = active ?? isActive ?? false;
+
+  const modalRootRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useScrollLock(isModalActive && lockScroll);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isModalActive || !closeOnEscape) return undefined;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isModalActive, closeOnEscape, onClose]);
+
+  // Move focus into the modal on open, restore it on close
+  useEffect(() => {
+    if (!isModalActive) return undefined;
+
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    const node = modalRootRef.current;
+    const focusable = node?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    (focusable ?? node)?.focus();
+
+    return () => {
+      previouslyFocusedRef.current?.focus?.();
+    };
+  }, [isModalActive]);
 
   // Check if children contain compound components
   const hasCompoundComponents = React.Children.toArray(children).some(
@@ -338,84 +402,123 @@ const ModalRoot: React.FC<ModalProps> = ({
 
   const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
+  const resolvedRole = role ?? (isModalActive ? 'dialog' : undefined);
+  const resolvedAriaModal =
+    ariaModalProp ??
+    (isModalActive && resolvedRole !== 'presentation' ? 'true' : undefined);
+
+  let modalElement: React.ReactElement;
+
   // If using compound components, render children as-is
   if (hasCompoundComponents) {
-    return (
-      <div className={modalClasses} {...rest} data-testid="modal">
+    modalElement = (
+      <div
+        className={modalClasses}
+        ref={modalRootRef}
+        role={resolvedRole}
+        aria-modal={resolvedAriaModal}
+        tabIndex={-1}
+        {...rest}
+        data-testid="modal"
+      >
         {children}
+      </div>
+    );
+  } else {
+    // Legacy API: EXPLICIT type wins; fallback to auto detection if not provided
+    let isModalCard: boolean;
+    if (type === 'card') isModalCard = true;
+    else if (type === 'content') isModalCard = false;
+    else isModalCard = !!modalCardTitle || !!modalCardFoot;
+
+    modalElement = (
+      <div
+        className={modalClasses}
+        ref={modalRootRef}
+        role={resolvedRole}
+        aria-modal={resolvedAriaModal}
+        tabIndex={-1}
+        {...rest}
+        data-testid="modal"
+      >
+        <div
+          className={prefixedClassNames(classPrefix, 'modal-background')}
+          onClick={onClose}
+          data-testid="modal-background"
+        />
+        {isModalCard ? (
+          <div className={prefixedClassNames(classPrefix, 'modal-card')}>
+            {modalCardTitle && (
+              <header
+                className={prefixedClassNames(classPrefix, 'modal-card-head')}
+              >
+                <p
+                  className={prefixedClassNames(
+                    classPrefix,
+                    'modal-card-title'
+                  )}
+                >
+                  {modalCardTitle}
+                </p>
+                {onClose && (
+                  <button
+                    className={deleteClass}
+                    aria-label="close"
+                    onClick={onClose}
+                    type="button"
+                    data-testid="modal-close"
+                  />
+                )}
+              </header>
+            )}
+            <section
+              className={prefixedClassNames(classPrefix, 'modal-card-body')}
+              data-testid="modal-body"
+            >
+              {children}
+            </section>
+            {modalCardFoot && (
+              <footer
+                className={prefixedClassNames(classPrefix, 'modal-card-foot')}
+              >
+                {modalCardFoot}
+              </footer>
+            )}
+          </div>
+        ) : (
+          <div
+            className={prefixedClassNames(classPrefix, 'modal-content')}
+            data-testid="modal-content"
+          >
+            {children}
+          </div>
+        )}
+        {/* Show floating close button for modal-content, or for modal-card when no header */}
+        {(!isModalCard || (!modalCardTitle && onClose)) && onClose && (
+          <button
+            className={prefixedClassNames(
+              classPrefix,
+              'modal-close',
+              'is-large'
+            )}
+            aria-label="close"
+            onClick={onClose}
+            type="button"
+            data-testid="modal-close-float"
+          />
+        )}
       </div>
     );
   }
 
-  // Legacy API: EXPLICIT type wins; fallback to auto detection if not provided
-  let isModalCard: boolean;
-  if (type === 'card') isModalCard = true;
-  else if (type === 'content') isModalCard = false;
-  else isModalCard = !!modalCardTitle || !!modalCardFoot;
+  if (portal && typeof document !== 'undefined') {
+    const target = resolvePortalContainer(
+      typeof portal === 'boolean' ? undefined : portal
+    );
+    return createPortal(modalElement, target);
+  }
 
-  return (
-    <div className={modalClasses} {...rest} data-testid="modal">
-      <div
-        className={prefixedClassNames(classPrefix, 'modal-background')}
-        onClick={onClose}
-        data-testid="modal-background"
-      />
-      {isModalCard ? (
-        <div className={prefixedClassNames(classPrefix, 'modal-card')}>
-          {modalCardTitle && (
-            <header
-              className={prefixedClassNames(classPrefix, 'modal-card-head')}
-            >
-              <p
-                className={prefixedClassNames(classPrefix, 'modal-card-title')}
-              >
-                {modalCardTitle}
-              </p>
-              {onClose && (
-                <button
-                  className={deleteClass}
-                  aria-label="close"
-                  onClick={onClose}
-                  type="button"
-                  data-testid="modal-close"
-                />
-              )}
-            </header>
-          )}
-          <section
-            className={prefixedClassNames(classPrefix, 'modal-card-body')}
-            data-testid="modal-body"
-          >
-            {children}
-          </section>
-          {modalCardFoot && (
-            <footer
-              className={prefixedClassNames(classPrefix, 'modal-card-foot')}
-            >
-              {modalCardFoot}
-            </footer>
-          )}
-        </div>
-      ) : (
-        <div
-          className={prefixedClassNames(classPrefix, 'modal-content')}
-          data-testid="modal-content"
-        >
-          {children}
-        </div>
-      )}
-      {/* Show floating close button for modal-content, or for modal-card when no header */}
-      {(!isModalCard || (!modalCardTitle && onClose)) && onClose && (
-        <button
-          className={prefixedClassNames(classPrefix, 'modal-close', 'is-large')}
-          aria-label="close"
-          onClick={onClose}
-          type="button"
-          data-testid="modal-close-float"
-        />
-      )}
-    </div>
-  );
+  return modalElement;
 };
 
 export const Modal = withSubComponents(

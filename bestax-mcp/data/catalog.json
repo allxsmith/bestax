@@ -403,8 +403,8 @@
       "slug": "components/dialog",
       "import": "import { Dialog, DialogContainer, dialog } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 12,
-      "exampleCount": 5
+      "propCount": 13,
+      "exampleCount": 6
     },
     {
       "name": "Divider",
@@ -645,8 +645,8 @@
       "slug": "components/modal",
       "import": "import { Modal } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 20,
-      "exampleCount": 8
+      "propCount": 23,
+      "exampleCount": 9
     },
     {
       "name": "Navbar",
