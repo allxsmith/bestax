@@ -316,3 +316,46 @@ export const CompoundUsage: Story = {
     </IconText>
   ),
 };
+
+export const CustomNode: Story = {
+  args: {
+    iconProps: (
+      <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+        <circle cx="8" cy="8" r="6" />
+      </svg>
+    ),
+    children: 'Custom node',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`iconProps` also accepts a plain node — an inline SVG, a `react-icons` component, `<FontAwesomeIcon />`, … — which is wrapped in an `Icon` so it still gets the `.icon` container. Pass an `IconProps` object instead to keep the class-based glyph.',
+      },
+    },
+  },
+};
+
+export const CustomNodeItems: Story = {
+  args: {
+    items: [
+      {
+        iconProps: (
+          <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+            <circle cx="8" cy="8" r="6" />
+          </svg>
+        ),
+        text: 'Custom node',
+      },
+      { iconProps: { name: 'star', ariaLabel: 'Star icon' }, text: 'Named' },
+    ],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The `items` array takes the same union per entry, so custom nodes and class-based glyphs can be mixed in one `IconText`.',
+      },
+    },
+  },
+};

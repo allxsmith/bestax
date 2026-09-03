@@ -172,9 +172,9 @@
         },
         {
           "name": "children",
-          "type": "React.ReactNode",
+          "type": "Exclude<React.ReactNode, undefined>",
           "default": null,
-          "description": "A custom node (an inline SVG, a `react-icons` component, …) rendered inside the `.icon` container in place of a class-based glyph. Mutually exclusive with `name`.",
+          "description": "A custom node (an inline SVG, a `react-icons` component, …) rendered inside the icon container in place of a class-based glyph. Mutually exclusive with `name`.",
           "required": false,
           "inherited": true,
           "deprecated": false
