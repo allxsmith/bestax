@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import {
   classNames,
@@ -14,6 +14,27 @@ import {
 import { useConfig } from '../helpers/Config';
 import { useScrollLock } from '../helpers/scrollLock';
 import { resolvePortalContainer } from '../helpers/portal';
+
+/**
+ * Every currently active modal, in the order they opened. Only the last entry
+ * — the topmost modal — reacts to Escape and Tab, so one keypress can't
+ * dismiss a whole stack (e.g. a `Dialog` opened on top of a `Modal`).
+ */
+const activeModalStack: object[] = [];
+
+/**
+ * Controls the modal can hand focus to. Disabled and hidden controls are
+ * excluded because `focus()` on them is a no-op, which would leave focus
+ * outside the modal.
+ */
+const FOCUSABLE_SELECTOR =
+  'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+// "Are we past hydration?" as a store that never changes: the server snapshot
+// is used while server-rendering and hydrating, the client one from then on.
+const subscribeToNothing = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 /**
  * Props for the Modal component.
@@ -46,14 +67,15 @@ export interface ModalProps
   /** Modal body/content or compound components. */
   children?: React.ReactNode;
   /**
-   * Close the modal when the Escape key is pressed (calls `onClose`).
+   * Close the modal when the Escape key is pressed (calls `onClose`). Only the
+   * topmost open modal responds, so Escape closes one layer at a time.
    * @defaultValue true
    */
   closeOnEscape?: boolean;
   /**
-   * Lock body scroll while the modal is active. Ref-counted, so nesting a
-   * `Dialog` (which renders its own `Modal`) inside a `Modal` does not
-   * double-unlock when one closes before the other.
+   * Lock body scroll while the modal is active. Ref-counted and shared with
+   * `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does
+   * not unlock the page underneath one that is still open.
    * @defaultValue true
    */
   lockScroll?: boolean;
@@ -62,7 +84,8 @@ export interface ModalProps
    * clipped by an ancestor with `overflow: hidden`, `filter` or `transform`.
    * `true` portals to `document.body`; a string is used as a
    * `document.querySelector` selector; an element is used directly. Renders
-   * inline when `document` is undefined (SSR).
+   * inline on the server and while hydrating, moving into the portal once the
+   * client takes over, so hydration matches.
    * @defaultValue false
    */
   portal?: boolean | string | HTMLElement;
@@ -351,16 +374,72 @@ const ModalRoot: React.FC<ModalProps> = ({
 
   const modalRootRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const stackTokenRef = useRef<object>({});
+  const generatedTitleId = useId();
+  // A portal has no server-rendered counterpart, so the server render and the
+  // hydrating render have to stay inline and only move into the portal once
+  // we're on the client — which is exactly what the two snapshots give us.
+  const onClient = useSyncExternalStore(
+    subscribeToNothing,
+    getClientSnapshot,
+    getServerSnapshot
+  );
 
   useScrollLock(isModalActive && lockScroll);
 
-  // Close on Escape
+  // Record open order so keyboard handling only applies to the topmost modal.
   useEffect(() => {
-    if (!isModalActive || !closeOnEscape) return undefined;
+    if (!isModalActive) return undefined;
+
+    const token = stackTokenRef.current;
+    activeModalStack.push(token);
+    return () => {
+      const index = activeModalStack.indexOf(token);
+      if (index !== -1) activeModalStack.splice(index, 1);
+    };
+  }, [isModalActive]);
+
+  // Escape closes; Tab cycles inside the modal. Both only for the topmost one.
+  useEffect(() => {
+    if (!isModalActive) return undefined;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const node = modalRootRef.current;
+      if (
+        activeModalStack[activeModalStack.length - 1] !== stackTokenRef.current
+      ) {
+        return;
+      }
+
       if (e.key === 'Escape') {
-        onClose?.();
+        if (closeOnEscape) onClose?.();
+        return;
+      }
+      if (e.key !== 'Tab' || !node) return;
+
+      // Keep Tab within the modal — `aria-modal` hides the rest of the page
+      // from assistive technology, so the keyboard order has to agree.
+      const focusable = Array.from(
+        node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      );
+      const activeElement = document.activeElement;
+      if (focusable.length === 0) {
+        e.preventDefault();
+        node.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const outside = !node.contains(activeElement);
+      if (e.shiftKey) {
+        if (outside || activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (outside || activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     };
 
@@ -374,12 +453,21 @@ const ModalRoot: React.FC<ModalProps> = ({
 
     previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
     const node = modalRootRef.current;
-    const focusable = node?.querySelector<HTMLElement>(
-      'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
-    );
+    const focusable = node?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
     (focusable ?? node)?.focus();
 
     return () => {
+      // Only hand focus back if this modal still owns it: closing a background
+      // modal must not pull focus out of one that is still open on top. A
+      // removed subtree leaves focus on <body>, which still counts as ours.
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        activeElement !== document.body &&
+        !node?.contains(activeElement)
+      ) {
+        return;
+      }
       previouslyFocusedRef.current?.focus?.();
     };
   }, [isModalActive]);
@@ -406,6 +494,10 @@ const ModalRoot: React.FC<ModalProps> = ({
   const resolvedAriaModal =
     ariaModalProp ??
     (isModalActive && resolvedRole !== 'presentation' ? 'true' : undefined);
+  // A dialog needs an accessible name: the legacy card title is wired up
+  // automatically, compound users pass their own aria-label/aria-labelledby
+  // (both arrive in `rest`, which is spread last and so wins).
+  const titleId = modalCardTitle ? generatedTitleId : undefined;
 
   let modalElement: React.ReactElement;
 
@@ -437,6 +529,7 @@ const ModalRoot: React.FC<ModalProps> = ({
         ref={modalRootRef}
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
+        aria-labelledby={titleId}
         tabIndex={-1}
         {...rest}
         data-testid="modal"
@@ -453,6 +546,7 @@ const ModalRoot: React.FC<ModalProps> = ({
                 className={prefixedClassNames(classPrefix, 'modal-card-head')}
               >
                 <p
+                  id={titleId}
                   className={prefixedClassNames(
                     classPrefix,
                     'modal-card-title'
@@ -511,7 +605,7 @@ const ModalRoot: React.FC<ModalProps> = ({
     );
   }
 
-  if (portal && typeof document !== 'undefined') {
+  if (portal && onClient) {
     const target = resolvePortalContainer(
       typeof portal === 'boolean' ? undefined : portal
     );

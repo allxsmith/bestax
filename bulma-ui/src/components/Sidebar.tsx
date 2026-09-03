@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { useScrollLock } from '../helpers/scrollLock';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -121,17 +122,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, escapeClose, handleClose]);
 
-    // Prevent body scroll when sidebar is open
-    useEffect(() => {
-      if (isOpen && overlay) {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-          document.body.style.overflow = originalOverflow;
-        };
-      }
-      return undefined;
-    }, [isOpen, overlay]);
+    // Prevent body scroll when sidebar is open. Ref-counted through the shared
+    // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
+    useScrollLock(isOpen && overlay);
 
     // Focus trap (basic - focus sidebar when opened)
     useEffect(() => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useScrollLock } from '../helpers/scrollLock';
 
 /**
  * Overlay opacity levels for the Loading background.
@@ -140,16 +141,10 @@ export const Loading: React.FC<LoadingProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [active, canCancel, onCancel]);
 
-  // Prevent body scroll when full page loading is active
-  React.useEffect(() => {
-    if (isFullPage && active) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
-    return undefined;
-  }, [isFullPage, active]);
+  // Prevent body scroll when full page loading is active. Ref-counted through
+  // the shared helper so an overlapping Modal/Dialog/Sidebar doesn't have its
+  // lock cleared when this one releases.
+  useScrollLock(isFullPage && active);
 
   if (!active) {
     return null;

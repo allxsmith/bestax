@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 
 // Ref-counted across every caller (e.g. a Dialog rendering its own Modal)
 // so overlapping/nested locks don't fight over which one restores `overflow`.
+// Every overlay that locks body scroll — Modal, Dialog, Sidebar, Loading —
+// goes through here; a component setting `document.body.style.overflow`
+// itself would clear a lock another overlay still needs.
 let lockCount = 0;
 let originalOverflow = '';
 

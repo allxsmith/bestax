@@ -1,5 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { Modal } from '../Modal';
+import { Loading } from '../Loading';
+import { Sidebar } from '../Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
 
 afterEach(() => {
@@ -375,6 +379,195 @@ describe('Modal', () => {
         fireEvent.keyDown(document, { key: 'Escape' })
       ).not.toThrow();
     });
+
+    it('closes only the topmost modal when several are open', () => {
+      const onCloseBackground = jest.fn();
+      const onCloseTop = jest.fn();
+      render(
+        <>
+          <Modal active onClose={onCloseBackground}>
+            Background
+          </Modal>
+          <Modal active onClose={onCloseTop}>
+            Top
+          </Modal>
+        </>
+      );
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onCloseTop).toHaveBeenCalledTimes(1);
+      expect(onCloseBackground).not.toHaveBeenCalled();
+    });
+
+    it('closes the next modal down once the topmost one has closed', () => {
+      const onCloseBackground = jest.fn();
+      const onCloseTop = jest.fn();
+      const { rerender } = render(
+        <>
+          <Modal active onClose={onCloseBackground}>
+            Background
+          </Modal>
+          <Modal active onClose={onCloseTop}>
+            Top
+          </Modal>
+        </>
+      );
+
+      rerender(
+        <>
+          <Modal active onClose={onCloseBackground}>
+            Background
+          </Modal>
+          <Modal active={false} onClose={onCloseTop}>
+            Top
+          </Modal>
+        </>
+      );
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onCloseBackground).toHaveBeenCalledTimes(1);
+      expect(onCloseTop).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Focus containment', () => {
+    it('cycles Tab from the last focusable back to the first', () => {
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+
+      screen.getByText('Last').focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('cycles Shift+Tab from the first focusable back to the last', () => {
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+
+      expect(screen.getByText('First')).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(screen.getByText('Last')).toHaveFocus();
+    });
+
+    it('pulls focus back in when Tab is pressed from outside the modal', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+
+      outside.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(screen.getByText('First')).toHaveFocus();
+
+      outside.focus();
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(screen.getByText('Last')).toHaveFocus();
+
+      document.body.removeChild(outside);
+    });
+
+    it('leaves Tab alone in the middle of the modal', () => {
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Middle</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+
+      const middle = screen.getByText('Middle');
+      middle.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(middle).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(middle).toHaveFocus();
+    });
+
+    it('focuses the modal root on Tab when nothing inside is focusable', () => {
+      render(<Modal active>{latin}</Modal>);
+      const modal = screen.getByTestId('modal');
+      modal.blur();
+      expect(modal).not.toHaveFocus();
+
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(modal).toHaveFocus();
+    });
+
+    it('contains Tab in the topmost modal only', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+
+      render(
+        <>
+          <Modal active>
+            <button type="button">Background control</button>
+          </Modal>
+          <Modal active>
+            <button type="button">Top control</button>
+          </Modal>
+        </>
+      );
+
+      outside.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(screen.getByText('Top control')).toHaveFocus();
+
+      document.body.removeChild(outside);
+    });
+  });
+
+  describe('Accessible name', () => {
+    it('labels the dialog with the modal-card title', () => {
+      render(
+        <Modal active modalCardTitle="Settings">
+          {latin}
+        </Modal>
+      );
+
+      const labelledBy =
+        screen.getByTestId('modal').getAttribute('aria-labelledby') ?? '';
+      expect(labelledBy).not.toBe('');
+      expect(document.getElementById(labelledBy)).toHaveTextContent('Settings');
+    });
+
+    it('has no aria-labelledby when there is no card title', () => {
+      render(<Modal active>{latin}</Modal>);
+      expect(screen.getByTestId('modal')).not.toHaveAttribute(
+        'aria-labelledby'
+      );
+    });
+
+    it('lets a caller-supplied aria-labelledby win over the card title', () => {
+      render(
+        <>
+          <h2 id="custom-title">Custom</h2>
+          <Modal
+            active
+            modalCardTitle="Settings"
+            aria-labelledby="custom-title"
+          >
+            {latin}
+          </Modal>
+        </>
+      );
+      expect(screen.getByTestId('modal')).toHaveAttribute(
+        'aria-labelledby',
+        'custom-title'
+      );
+    });
   });
 
   describe('Scroll lock', () => {
@@ -397,6 +590,38 @@ describe('Modal', () => {
         </Modal>
       );
       expect(document.body.style.overflow).not.toBe('hidden');
+    });
+
+    it('stays locked when an overlapping Loading closes first', () => {
+      const overlays = (loadingActive: boolean) => (
+        <>
+          <Modal active>{latin}</Modal>
+          <Loading active={loadingActive} isFullPage />
+        </>
+      );
+
+      const { rerender } = render(overlays(true));
+      expect(document.body.style.overflow).toBe('hidden');
+
+      rerender(overlays(false));
+      expect(document.body.style.overflow).toBe('hidden');
+    });
+
+    it('stays locked when an overlapping Sidebar closes first', () => {
+      const overlays = (sidebarOpen: boolean) => (
+        <>
+          <Modal active>{latin}</Modal>
+          <Sidebar isOpen={sidebarOpen} onClose={() => {}}>
+            <div>Sidebar content</div>
+          </Sidebar>
+        </>
+      );
+
+      const { rerender } = render(overlays(true));
+      expect(document.body.style.overflow).toBe('hidden');
+
+      rerender(overlays(false));
+      expect(document.body.style.overflow).toBe('hidden');
     });
   });
 
@@ -497,6 +722,33 @@ describe('Modal', () => {
 
       document.body.removeChild(outside);
     });
+
+    it('does not pull focus out of a modal that is still open on top', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      outside.focus();
+
+      const stack = (backgroundActive: boolean) => (
+        <>
+          <Modal active={backgroundActive}>
+            <button type="button">Background control</button>
+          </Modal>
+          <Modal active>
+            <button type="button">Top control</button>
+          </Modal>
+        </>
+      );
+
+      const { rerender } = render(stack(true));
+      expect(screen.getByText('Top control')).toHaveFocus();
+
+      // Closing the background modal must not restore the focus it saved.
+      rerender(stack(false));
+      expect(screen.getByText('Top control')).toHaveFocus();
+      expect(outside).not.toHaveFocus();
+
+      document.body.removeChild(outside);
+    });
   });
 
   describe('Portal', () => {
@@ -544,6 +796,39 @@ describe('Modal', () => {
       expect(target.querySelector('[data-testid="modal"]')).not.toBeNull();
 
       document.body.removeChild(target);
+    });
+
+    it('hydrates the server markup inline, then moves into the portal', async () => {
+      const modal = (
+        <Modal active portal>
+          Hydrated modal
+        </Modal>
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(modal);
+      document.body.appendChild(container);
+
+      // The server renders inline, so the markup must be there to hydrate.
+      expect(container.querySelector('[data-testid="modal"]')).not.toBeNull();
+
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let unmountRoot = () => {};
+      await act(async () => {
+        const root = hydrateRoot(container, modal);
+        unmountRoot = () => root.unmount();
+      });
+
+      // No hydration mismatch, and the modal has moved into document.body.
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(container.querySelector('[data-testid="modal"]')).toBeNull();
+      const portaled = document.body.querySelector('[data-testid="modal"]');
+      expect(portaled?.parentElement).toBe(document.body);
+
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
     });
   });
 });

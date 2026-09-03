@@ -366,7 +366,7 @@ When `canCancel` is true, the sidebar can be closed by:
 - Has `aria-modal="true"` when overlay is shown
 - Focus is trapped within the sidebar when open
 - Escape key closes the sidebar by default
-- Body scroll is prevented when sidebar is open
+- Body scroll is prevented when the sidebar is open with an overlay, through the ref-counted lock shared with `Modal`, `Dialog` and `Loading` — so closing one overlay never unlocks the page underneath another that is still open
 
 ---
 

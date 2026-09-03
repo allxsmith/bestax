@@ -1,13 +1,15 @@
 /**
  * @jest-environment node
  *
- * SSR coverage for Modal: when `typeof document === 'undefined'`, `portal`
- * must be ignored and the modal rendered inline instead of via
- * `createPortal` (which requires a DOM).
+ * SSR coverage for Modal: a portal has no server-rendered counterpart, so on
+ * the server `portal` must be ignored and the modal rendered inline. That is
+ * driven by the server snapshot of a `useSyncExternalStore` "are we on the
+ * client" flag — the client half of the contract (hydrating that inline markup
+ * without a mismatch) is covered in `Modal.test.tsx`.
  *
- * jsdom's `document` is a non-configurable getter on Window which cannot be
- * shadowed at runtime, so this branch must be exercised in a Node test
- * environment where `document` is naturally undefined.
+ * This runs in a Node environment, where `document` is genuinely undefined, so
+ * a regression that reached for the DOM during server render fails here
+ * instead of passing by accident under jsdom.
  */
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';

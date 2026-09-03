@@ -42,7 +42,7 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Content>\n          <Box>\n            <Title size=\"4\">Custom Content</Title>\n            <Paragraph>Using compound components for full control!</Paragraph>\n          </Box>\n        </Modal.Content>\n        <Modal.Close variant=\"floating\" onClick={closeModal} />\n      </Modal>\n    </>\n  );\n}"
     }
   ],
-  "accessibility": "- The modal root gets `role=\"dialog\"` and `aria-modal=\"true\"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role=\"presentation\"` on the `Modal` it wraps so its own `role=\"alertdialog\"` is the only one announced).\n- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`.\n- Body scroll is locked while the modal is active (ref-counted, so a `Dialog` rendering its own `Modal` doesn't fight another open modal for the unlock); opt out with `lockScroll={false}`.\n- Focus moves to the first focusable element (or the modal itself) on open, and is restored to the previously focused element on close.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n- No Tab-cycle focus trap is implemented — `aria-modal=\"true\"` already marks the rest of the page inert for assistive technology.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
+  "accessibility": "- The modal root gets `role=\"dialog\"` and `aria-modal=\"true\"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role=\"presentation\"` on the `Modal` it wraps so its own `role=\"alertdialog\"` is the only one announced).\n- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role=\"dialog\"` with no name is announced as just \"dialog\". An explicit `aria-labelledby` always wins over the generated one.\n- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. Only the topmost open modal responds, so Escape closes one layer at a time rather than dismissing a whole stack.\n- Body scroll is locked while the modal is active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.\n- Focus moves to the first enabled focusable element (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.\n- Tab and Shift+Tab cycle within the topmost modal while it is open, so the keyboard order agrees with what `aria-modal=\"true\"` tells assistive technology. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied — background content remains reachable by pointer and by browser UI such as find-in-page.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
   "related": ["Button", "Dialog", "Field", "Input", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-modal--modal-card",
   "summary": "The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.",
@@ -151,7 +151,7 @@
           "name": "closeOnEscape",
           "type": "boolean",
           "default": "true",
-          "description": "Close the modal when the Escape key is pressed (calls `onClose`).",
+          "description": "Close the modal when the Escape key is pressed (calls `onClose`). Only the topmost open modal responds, so Escape closes one layer at a time.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -160,7 +160,7 @@
           "name": "lockScroll",
           "type": "boolean",
           "default": "true",
-          "description": "Lock body scroll while the modal is active. Ref-counted, so nesting a `Dialog` (which renders its own `Modal`) inside a `Modal` does not double-unlock when one closes before the other.",
+          "description": "Lock body scroll while the modal is active. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -169,7 +169,7 @@
           "name": "portal",
           "type": "boolean | string | HTMLElement",
           "default": "false",
-          "description": "Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to `document.body`; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline when `document` is undefined (SSR).",
+          "description": "Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to `document.body`; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.",
           "required": false,
           "inherited": false,
           "deprecated": false
