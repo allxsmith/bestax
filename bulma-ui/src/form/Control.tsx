@@ -14,6 +14,19 @@ import { useConfig } from '../helpers/Config';
 import { ControlProvider } from './FormContext';
 
 /**
+ * Distinguishes an `IconProps` object from a plain custom node (an inline SVG, a `react-icons`
+ * component, …) passed to a slot that accepts either.
+ */
+function isIconProps(value: IconProps | React.ReactNode): value is IconProps {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !React.isValidElement(value) &&
+    ('name' in value || 'children' in value)
+  );
+}
+
+/**
  * Props for the Control component.
  */
 export interface ControlBaseProps
@@ -36,10 +49,10 @@ export interface ControlBaseProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Icon props for left icon. */
-  iconLeft?: IconProps;
-  /** Icon props for right icon. */
-  iconRight?: IconProps;
+  /** Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. */
+  iconLeft?: IconProps | React.ReactNode;
+  /** Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. */
+  iconRight?: IconProps | React.ReactNode;
   /** Shortcut for left icon name. */
   iconLeftName?: string;
   /** Shortcut for left icon size. */
@@ -143,27 +156,29 @@ export const Control = React.forwardRef<
     });
 
     // Prepare icon props for the shortcut
-    const leftIconProps: IconProps | undefined =
-      iconLeft ||
-      (iconLeftName
-        ? {
-            name: iconLeftName,
-            size: iconLeftSize,
-          }
-        : undefined);
+    const leftIconValue: IconProps | React.ReactNode | undefined =
+      iconLeft !== undefined
+        ? iconLeft
+        : iconLeftName
+          ? {
+              name: iconLeftName,
+              size: iconLeftSize,
+            }
+          : undefined;
 
-    const rightIconProps: IconProps | undefined =
-      iconRight ||
-      (iconRightName
-        ? {
-            name: iconRightName,
-            size: iconRightSize,
-          }
-        : undefined);
+    const rightIconValue: IconProps | React.ReactNode | undefined =
+      iconRight !== undefined
+        ? iconRight
+        : iconRightName
+          ? {
+              name: iconRightName,
+              size: iconRightSize,
+            }
+          : undefined;
 
     const mainClass = usePrefixedClassNames('control', {
-      'has-icons-left': hasIconsLeft || !!leftIconProps,
-      'has-icons-right': hasIconsRight || !!rightIconProps,
+      'has-icons-left': hasIconsLeft || leftIconValue !== undefined,
+      'has-icons-right': hasIconsRight || rightIconValue !== undefined,
       'is-loading': isLoading,
       'is-expanded': isExpanded,
       [`is-${size}`]: !!size,
@@ -180,18 +195,28 @@ export const Control = React.forwardRef<
           {...rest}
         >
           {children}
-          {leftIconProps && leftIconProps.name && (
-            <Icon
-              {...leftIconProps}
-              className={prefixedClassNames(classPrefix, 'is-left')}
-            />
-          )}
-          {rightIconProps && rightIconProps.name && (
-            <Icon
-              {...rightIconProps}
-              className={prefixedClassNames(classPrefix, 'is-right')}
-            />
-          )}
+          {leftIconValue !== undefined &&
+            (isIconProps(leftIconValue) ? (
+              <Icon
+                {...leftIconValue}
+                className={prefixedClassNames(classPrefix, 'is-left')}
+              />
+            ) : (
+              <Icon className={prefixedClassNames(classPrefix, 'is-left')}>
+                {leftIconValue}
+              </Icon>
+            ))}
+          {rightIconValue !== undefined &&
+            (isIconProps(rightIconValue) ? (
+              <Icon
+                {...rightIconValue}
+                className={prefixedClassNames(classPrefix, 'is-right')}
+              />
+            ) : (
+              <Icon className={prefixedClassNames(classPrefix, 'is-right')}>
+                {rightIconValue}
+              </Icon>
+            ))}
         </Component>
       </ControlProvider>
     );

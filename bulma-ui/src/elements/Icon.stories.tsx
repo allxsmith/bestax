@@ -220,3 +220,22 @@ export const MaterialIconsWithFeatures: Story = {
     ariaLabel: 'Material Icons with size feature',
   },
 };
+
+export const CustomNode: Story = {
+  args: {
+    children: (
+      <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+        <circle cx="8" cy="8" r="6" />
+      </svg>
+    ),
+    ariaLabel: 'Custom SVG icon',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Passing `children` instead of `name` renders any custom node — an inline SVG, a `react-icons` component, `<FontAwesomeIcon />`, … — in place of a class-based glyph, keeping the `.icon` container, sizing, and color helpers. `name` and `children` are mutually exclusive.',
+      },
+    },
+  },
+};
