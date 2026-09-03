@@ -444,6 +444,45 @@ describe('Modal', () => {
       expect(screen.getByText('First')).toHaveFocus();
     });
 
+    it('ignores a negative-tabIndex anchor when picking the last tab stop', () => {
+      // `[href]` matches regardless of tabindex, so without a tabbable filter
+      // this trailing anchor would be treated as the last tab stop and Tab
+      // from the real last control would escape the modal.
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+          <a href="#skip" tabIndex={-1}>
+            Not tabbable
+          </a>
+        </Modal>
+      );
+
+      screen.getByText('Last').focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(screen.getByText('First')).toHaveFocus();
+
+      screen.getByText('First').focus();
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+      expect(screen.getByText('Last')).toHaveFocus();
+    });
+
+    it('ignores tab indexes below -1 when picking tab stops', () => {
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+          <button type="button" tabIndex={-2}>
+            Skipped
+          </button>
+        </Modal>
+      );
+
+      screen.getByText('Last').focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
     it('cycles Shift+Tab from the first focusable back to the last', () => {
       render(
         <Modal active>
@@ -699,6 +738,18 @@ describe('Modal', () => {
       expect(screen.getByText('Enabled')).toHaveFocus();
     });
 
+    it('skips a negative-tabIndex first control when moving focus in', () => {
+      render(
+        <Modal active>
+          <a href="#skip" tabIndex={-1}>
+            Not tabbable
+          </a>
+          <button type="button">Enabled</button>
+        </Modal>
+      );
+      expect(screen.getByText('Enabled')).toHaveFocus();
+    });
+
     it('falls back to focusing the modal root when nothing is focusable', () => {
       render(<Modal active>{latin}</Modal>);
       expect(screen.getByTestId('modal')).toHaveFocus();
@@ -796,6 +847,44 @@ describe('Modal', () => {
       expect(target.querySelector('[data-testid="modal"]')).not.toBeNull();
 
       document.body.removeChild(target);
+    });
+
+    it('keeps focus in the modal across the hydration portal move, and restores it on close', async () => {
+      // The move from inline to portal remounts the subtree, so the focus
+      // effect has to re-run against the new nodes — otherwise focus is left
+      // on the detached node and close never restores it.
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      outside.focus();
+
+      const modal = (
+        <Modal active portal>
+          <button type="button">Inside</button>
+        </Modal>
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(modal);
+      document.body.appendChild(container);
+
+      let unmountRoot = () => {};
+      await act(async () => {
+        const root = hydrateRoot(container, modal);
+        unmountRoot = () => root.unmount();
+      });
+
+      // Focus followed the modal into the portal rather than staying behind.
+      const portaledButton = document.body.querySelector<HTMLButtonElement>(
+        '[data-testid="modal"] button'
+      );
+      expect(portaledButton).not.toBeNull();
+      expect(portaledButton).toHaveFocus();
+
+      // And the pre-open element is still the restore target after the move.
+      await act(async () => unmountRoot());
+      expect(outside).toHaveFocus();
+
+      document.body.removeChild(container);
+      document.body.removeChild(outside);
     });
 
     it('hydrates the server markup inline, then moves into the portal', async () => {

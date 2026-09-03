@@ -432,3 +432,36 @@ export const FormSubmission: Story = {
     );
   },
 };
+
+/**
+ * Portal rendering — the dialog escapes a clipping ancestor.
+ */
+export const Portal: Story = {
+  render: function PortalExample() {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+      <Section>
+        <Box className="is-clipped">
+          <Paragraph>
+            This wrapper clips overflowing content (Bulma&apos;s{' '}
+            <code>is-clipped</code>). Without <code>portal</code> the dialog
+            would be confined here; with it, the dialog mounts into{' '}
+            <code>document.body</code> instead.
+          </Paragraph>
+          <Button color="primary" onClick={() => setIsOpen(true)}>
+            Show Portaled Dialog
+          </Button>
+        </Box>
+        <Dialog
+          isOpen={isOpen}
+          title="Rendered in document.body"
+          message="This dialog is portaled, so the clipping ancestor above cannot cut it off."
+          portal
+          onConfirm={() => setIsOpen(false)}
+          onCancel={() => setIsOpen(false)}
+        />
+      </Section>
+    );
+  },
+};
