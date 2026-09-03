@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Modal } from '../Modal';
 import { ConfigProvider } from '../../helpers/Config';
@@ -321,6 +322,31 @@ describe('Modal', () => {
       expect(screen.getByTestId('bg')).toHaveClass('custom-bg');
       expect(screen.getByTestId('card')).toHaveClass('custom-card');
       expect(screen.getByTestId('body')).toHaveClass('custom-body');
+    });
+  });
+
+  describe('ref forwarding', () => {
+    it('forwards ref to the root .modal element (legacy API)', () => {
+      const ref = createRef<HTMLDivElement>();
+      render(
+        <Modal active ref={ref}>
+          {latin}
+        </Modal>
+      );
+      expect(ref.current).toBeInstanceOf(HTMLDivElement);
+      expect(ref.current).toBe(screen.getByTestId('modal'));
+    });
+
+    it('forwards ref to the root .modal element (compound API)', () => {
+      const ref = createRef<HTMLDivElement>();
+      render(
+        <Modal isActive ref={ref}>
+          <Modal.Background />
+          <Modal.Content>{latin}</Modal.Content>
+        </Modal>
+      );
+      expect(ref.current).toBeInstanceOf(HTMLDivElement);
+      expect(ref.current).toBe(screen.getByTestId('modal'));
     });
   });
 });

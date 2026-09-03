@@ -324,6 +324,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                       |
 | `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) |
 | `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                             |
+| `ref`            | `React.Ref<HTMLDivElement>`                                             | —       | Ref forwarded to the root `.modal` element.                                            |
 | `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                      |
 
 **Subcomponents:**

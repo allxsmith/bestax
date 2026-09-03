@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import {
   classNames,
   usePrefixedClassNames,
@@ -14,6 +14,7 @@ import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Modal component.
+ * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the root `.modal` element.
  */
 export interface ModalProps
   extends
@@ -274,6 +275,7 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @function
  * @param {ModalProps} props - Props for the Modal component.
+ * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the root `.modal` element.
  * @returns {JSX.Element} The rendered modal.
  *
  * @example
@@ -297,19 +299,22 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @see {@link https://bulma.io/documentation/components/modal/ | Bulma Modal documentation}
  */
-const ModalRoot: React.FC<ModalProps> = ({
-  active,
-  isActive,
-  onClose,
-  className,
-  textColor,
-  bgColor,
-  modalCardTitle,
-  modalCardFoot,
-  type,
-  children,
-  ...props
-}) => {
+const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
+  {
+    active,
+    isActive,
+    onClose,
+    className,
+    textColor,
+    bgColor,
+    modalCardTitle,
+    modalCardFoot,
+    type,
+    children,
+    ...props
+  },
+  ref
+) {
   const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
@@ -341,7 +346,7 @@ const ModalRoot: React.FC<ModalProps> = ({
   // If using compound components, render children as-is
   if (hasCompoundComponents) {
     return (
-      <div className={modalClasses} {...rest} data-testid="modal">
+      <div ref={ref} className={modalClasses} {...rest} data-testid="modal">
         {children}
       </div>
     );
@@ -354,7 +359,7 @@ const ModalRoot: React.FC<ModalProps> = ({
   else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
   return (
-    <div className={modalClasses} {...rest} data-testid="modal">
+    <div ref={ref} className={modalClasses} {...rest} data-testid="modal">
       <div
         className={prefixedClassNames(classPrefix, 'modal-background')}
         onClick={onClose}
@@ -416,7 +421,7 @@ const ModalRoot: React.FC<ModalProps> = ({
       )}
     </div>
   );
-};
+});
 
 export const Modal = withSubComponents(
   ModalRoot,

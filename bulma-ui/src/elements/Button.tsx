@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
@@ -8,6 +8,7 @@ import {
 
 /**
  * Props for the Button component.
+ * @extraProp {React.Ref<HTMLButtonElement | HTMLAnchorElement>} [ref] - Ref forwarded to the rendered button or anchor element.
  */
 export interface ButtonProps
   extends
@@ -82,36 +83,43 @@ const validButtonColors = [...validColors, 'text', 'ghost'] as const;
  *
  * @function
  * @param {ButtonProps} props - Props for the Button component.
+ * @param {React.Ref<HTMLButtonElement | HTMLAnchorElement>} ref - Forwarded ref to the rendered button or anchor element.
  * @returns {JSX.Element} The rendered button or anchor element.
  * @see {@link https://bulma.io/documentation/elements/button/ | Bulma Button documentation}
  */
 
-export const Button: React.FC<ButtonProps> = ({
-  color,
-  size,
-  isLight,
-  isRounded,
-  isLoading,
-  isStatic,
-  isFullwidth,
-  isFullWidth,
-  isOutlined,
-  isInverted,
-  isFocused,
-  isActive,
-  isHovered,
-  isDisabled,
-  className,
-  children,
-  textColor,
-  bgColor,
-  as: Component = 'button',
-  href,
-  onClick,
-  target,
-  rel,
-  ...props
-}) => {
+export const Button = forwardRef<
+  HTMLButtonElement | HTMLAnchorElement,
+  ButtonProps
+>(function Button(
+  {
+    color,
+    size,
+    isLight,
+    isRounded,
+    isLoading,
+    isStatic,
+    isFullwidth,
+    isFullWidth,
+    isOutlined,
+    isInverted,
+    isFocused,
+    isActive,
+    isHovered,
+    isDisabled,
+    className,
+    children,
+    textColor,
+    bgColor,
+    as: Component = 'button',
+    href,
+    onClick,
+    target,
+    rel,
+    ...props
+  },
+  ref
+) {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -161,6 +169,7 @@ export const Button: React.FC<ButtonProps> = ({
 
     return (
       <Component
+        ref={ref as React.Ref<HTMLAnchorElement>}
         className={buttonClasses}
         href={href}
         target={target}
@@ -182,6 +191,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      ref={ref as React.Ref<HTMLButtonElement>}
       className={buttonClasses}
       disabled={isDisabled}
       onClick={
@@ -192,6 +202,6 @@ export const Button: React.FC<ButtonProps> = ({
       {children}
     </button>
   );
-};
+});
 
 export default Button;

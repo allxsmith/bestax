@@ -469,6 +469,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background.      |
 | `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport. |
 | `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).           |
+| `ref`         | `React.Ref<HTMLElement>`                                                                                                           | —       | Ref forwarded to the root `<nav>` element.             |
 | `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)      |
 
 **Subcomponents:**
@@ -508,15 +509,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Link
 
-| Prop        | Type                                                                    | Default | Description                                       |
-| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes.                           |
-| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (default: 'a').      |
-| `arrowless` | `boolean`                                                               | `false` | Remove the dropdown arrow indicator.              |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
-| `children`  | `React.ReactNode`                                                       | —       | Link content.                                     |
-| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                    | Default | Description                                           |
+| ----------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes.                               |
+| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (default: 'a').          |
+| `arrowless` | `boolean`                                                               | `false` | Remove the dropdown arrow indicator.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                           |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                     |
+| `children`  | `React.ReactNode`                                                       | —       | Link content.                                         |
+| `ref`       | `React.Ref<HTMLAnchorElement \| HTMLButtonElement>`                     | —       | Ref forwarded to the rendered link or button element. |
+| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)     |
 
 ### Navbar.Burger
 
@@ -530,6 +532,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `aria-label`    | `string`                                                                        | —       | Aria label for accessibility.                     |
 | `aria-expanded` | `boolean`                                                                       | `false` | Aria expanded state.                              |
 | `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —       | Click handler.                                    |
+| `ref`           | `React.Ref<HTMLButtonElement>`                                                  | —       | Ref forwarded to the burger button element.       |
 | `...`           | All standard `<button>` attributes and Bulma helper props                       | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Navbar.Menu
@@ -565,16 +568,17 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Dropdown
 
-| Prop             | Type                            | Default | Description                                  |
-| ---------------- | ------------------------------- | ------- | -------------------------------------------- |
-| `className`      | `string`                        | —       | Additional CSS classes.                      |
-| `right`          | `boolean`                       | `false` | Dropdown aligned right.                      |
-| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                      |
-| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover.                     |
-| `active`         | `boolean`                       | `false` | Dropdown is open.                            |
-| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes. |
-| `children`       | `React.ReactNode`               | —       | Dropdown content.                            |
-| `...`            | All standard `<div>` attributes | —       |                                              |
+| Prop             | Type                            | Default | Description                                      |
+| ---------------- | ------------------------------- | ------- | ------------------------------------------------ |
+| `className`      | `string`                        | —       | Additional CSS classes.                          |
+| `right`          | `boolean`                       | `false` | Dropdown aligned right.                          |
+| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                          |
+| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover.                         |
+| `active`         | `boolean`                       | `false` | Dropdown is open.                                |
+| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes.     |
+| `children`       | `React.ReactNode`               | —       | Dropdown content.                                |
+| `ref`            | `React.Ref<HTMLDivElement>`     | —       | Ref forwarded to the dropdown container element. |
+| `...`            | All standard `<div>` attributes | —       |                                                  |
 
 ### Navbar.DropdownMenu
 

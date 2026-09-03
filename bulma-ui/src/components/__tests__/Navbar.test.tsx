@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 import type { ComponentProps } from 'react';
 import Navbar, {
   NavbarBrand,
@@ -145,6 +146,13 @@ describe('Navbar', () => {
       expect(navbar).toHaveClass('is-danger');
     });
   });
+
+  it('forwards ref to the root <nav> element', () => {
+    const ref = createRef<HTMLElement>();
+    render(<Navbar ref={ref}>Test</Navbar>);
+    expect(ref.current).toBeInstanceOf(HTMLElement);
+    expect(ref.current).toBe(screen.getByRole('navigation'));
+  });
 });
 
 describe('Navbar.Brand', () => {
@@ -276,6 +284,12 @@ describe('Navbar.Burger', () => {
     const burger = screen.getByTestId('burger');
     expect(burger).toHaveAttribute('aria-label', 'open menu');
     expect(burger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('forwards ref to the burger button element', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Navbar.Burger ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
 });
 
@@ -467,6 +481,20 @@ describe('Navbar.Dropdown', () => {
     );
     fireEvent.keyDown(screen.getByText('More'), { key: 'a' });
     expect(screen.getByTestId('dropdown')).not.toHaveClass('is-active');
+  });
+
+  it('forwards ref to the dropdown container element', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <Navbar.Dropdown ref={ref} data-testid="dropdown">
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+    expect(ref.current).toBe(screen.getByTestId('dropdown'));
   });
 });
 
@@ -707,6 +735,23 @@ describe('Navbar.Link', () => {
     );
     fireEvent.click(screen.getByTestId('navlink'));
     expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  it('forwards ref to the rendered <a> element by default', () => {
+    const ref = createRef<HTMLAnchorElement>();
+    render(<Navbar.Link ref={ref}>More</Navbar.Link>);
+    expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+    expect(ref.current).toBe(screen.getByText('More'));
+  });
+
+  it('forwards ref to the rendered <button> element when as="button"', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(
+      <Navbar.Link as="button" ref={ref}>
+        More
+      </Navbar.Link>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
 });
 

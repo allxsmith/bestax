@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 import {
   render,
   screen,
@@ -682,6 +682,42 @@ describe('Dropdown', () => {
     );
 
     addEventListenerSpy.mockRestore();
+  });
+
+  test('forwards ref to the root dropdown element', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <Dropdown label="Ref Forward" ref={ref}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+    expect(ref.current).toBe(screen.getByTestId('dropdown-root'));
+  });
+
+  test('outside click still closes the dropdown when a ref is forwarded', () => {
+    const ref = createRef<HTMLDivElement>();
+    const onActiveChange = jest.fn();
+    render(
+      <>
+        <Dropdown
+          label="Ref Outside Click"
+          onActiveChange={onActiveChange}
+          ref={ref}
+        >
+          <DropdownItem>Item</DropdownItem>
+        </Dropdown>
+        <button data-testid="outside-button">Outside</button>
+      </>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /ref outside click/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    fireEvent.mouseDown(screen.getByTestId('outside-button'));
+
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(onActiveChange).toHaveBeenCalledWith(false);
   });
 
   test('executes disabled guard in handleToggle (branch coverage)', () => {

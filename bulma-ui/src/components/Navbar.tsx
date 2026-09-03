@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
@@ -25,6 +25,7 @@ const NavbarDropdownContext =
 
 /**
  * Props for the Navbar component.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the root `<nav>` element.
  */
 export interface NavbarProps
   extends
@@ -61,45 +62,56 @@ export interface NavbarProps
  *
  * @function
  * @param {NavbarProps} props - Props for the Navbar component.
+ * @param {React.Ref<HTMLElement>} ref - Forwarded ref to the root `<nav>` element.
  * @returns {JSX.Element} The rendered navbar.
  * @see {@link https://bulma.io/documentation/components/navbar/ | Bulma Navbar documentation}
  */
-const NavbarComponent: React.FC<NavbarProps> = ({
-  className,
-  textColor,
-  bgColor,
-  color,
-  transparent,
-  fixed,
-  children,
-  ...props
-}) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
-    backgroundColor: bgColor,
-    ...props,
-  });
+const NavbarComponent = forwardRef<HTMLElement, NavbarProps>(
+  function NavbarComponent(
+    {
+      className,
+      textColor,
+      bgColor,
+      color,
+      transparent,
+      fixed,
+      children,
+      ...props
+    },
+    ref
+  ) {
+    const { bulmaHelperClasses, rest } = useBulmaClasses({
+      color: textColor,
+      backgroundColor: bgColor,
+      ...props,
+    });
 
-  // Generate Bulma classes with prefix
-  const bulmaClasses = usePrefixedClassNames('navbar', {
-    [`is-${color}`]: color,
-    'is-transparent': transparent,
-    [`is-fixed-${fixed}`]: fixed,
-  });
+    // Generate Bulma classes with prefix
+    const bulmaClasses = usePrefixedClassNames('navbar', {
+      [`is-${color}`]: color,
+      'is-transparent': transparent,
+      [`is-fixed-${fixed}`]: fixed,
+    });
 
-  const navbarClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
+    const navbarClasses = classNames(
+      bulmaClasses,
+      bulmaHelperClasses,
+      className
+    );
 
-  return (
-    <nav
-      className={navbarClasses}
-      role="navigation"
-      aria-label="main navigation"
-      {...rest}
-    >
-      {children}
-    </nav>
-  );
-};
+    return (
+      <nav
+        ref={ref}
+        className={navbarClasses}
+        role="navigation"
+        aria-label="main navigation"
+        {...rest}
+      >
+        {children}
+      </nav>
+    );
+  }
+);
 
 /**
  * Props for the NavbarBrand component.
@@ -213,6 +225,7 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
 
 /**
  * Props for the NavbarBurger component.
+ * @extraProp {React.Ref<HTMLButtonElement>} [ref] - Ref forwarded to the burger button element.
  */
 export interface NavbarBurgerProps
   extends
@@ -241,39 +254,38 @@ export interface NavbarBurgerProps
  *
  * @function
  * @param {NavbarBurgerProps} props - Props for the NavbarBurger component.
+ * @param {React.Ref<HTMLButtonElement>} ref - Forwarded ref to the burger button element.
  * @returns {JSX.Element} The rendered burger.
  */
-export const NavbarBurger: React.FC<NavbarBurgerProps> = ({
-  className,
-  active,
-  children,
-  ...props
-}) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
-    ...props,
-  });
+export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
+  function NavbarBurger({ className, active, children, ...props }, ref) {
+    const { bulmaHelperClasses, rest } = useBulmaClasses({
+      ...props,
+    });
 
-  return (
-    <button
-      type="button"
-      className={classNames(
-        usePrefixedClassNames('navbar-burger', {
-          'is-active': active,
-        }),
-        bulmaHelperClasses,
-        className
-      )}
-      aria-label={props['aria-label'] || 'menu'}
-      aria-expanded={props['aria-expanded'] ?? !!active}
-      {...rest}
-    >
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      {children}
-    </button>
-  );
-};
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={classNames(
+          usePrefixedClassNames('navbar-burger', {
+            'is-active': active,
+          }),
+          bulmaHelperClasses,
+          className
+        )}
+        aria-label={props['aria-label'] || 'menu'}
+        aria-expanded={props['aria-expanded'] ?? !!active}
+        {...rest}
+      >
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        {children}
+      </button>
+    );
+  }
+);
 
 /**
  * Props for the NavbarMenu component.
@@ -404,6 +416,7 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
 
 /**
  * Props for the NavbarLink component.
+ * @extraProp {React.Ref<HTMLAnchorElement | HTMLButtonElement>} [ref] - Ref forwarded to the rendered link or button element.
  */
 export interface NavbarLinkProps
   extends
@@ -428,17 +441,24 @@ export interface NavbarLinkProps
  *
  * @function
  * @param {NavbarLinkProps} props - Props for the NavbarLink component.
+ * @param {React.Ref<HTMLAnchorElement | HTMLButtonElement>} ref - Forwarded ref to the rendered link or button element.
  * @returns {JSX.Element} The rendered navbar link.
  */
-export const NavbarLink: React.FC<NavbarLinkProps> = ({
-  className,
-  as: Component = 'a',
-  arrowless,
-  textColor,
-  bgColor,
-  children,
-  ...props
-}) => {
+export const NavbarLink = forwardRef<
+  HTMLAnchorElement | HTMLButtonElement,
+  NavbarLinkProps
+>(function NavbarLink(
+  {
+    className,
+    as: Component = 'a',
+    arrowless,
+    textColor,
+    bgColor,
+    children,
+    ...props
+  },
+  ref
+) {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -474,6 +494,7 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
 
   return (
     <Component
+      ref={ref}
       className={classNames(
         usePrefixedClassNames('navbar-link', {
           'is-arrowless': arrowless,
@@ -496,10 +517,11 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
       {children}
     </Component>
   );
-};
+});
 
 /**
  * Props for the NavbarDropdown component.
+ * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the dropdown container element.
  */
 export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
@@ -523,59 +545,66 @@ export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement
  *
  * @function
  * @param {NavbarDropdownProps} props - Props for the NavbarDropdown component.
+ * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the dropdown container element.
  * @returns {JSX.Element} The rendered dropdown.
  */
-export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
-  className,
-  right,
-  up,
-  hoverable,
-  active: activeProp,
-  onActiveChange,
-  children,
-  ...props
-}) => {
-  const [active, setActive] = useState<boolean>(!!activeProp);
+export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
+  function NavbarDropdown(
+    {
+      className,
+      right,
+      up,
+      hoverable,
+      active: activeProp,
+      onActiveChange,
+      children,
+      ...props
+    },
+    ref
+  ) {
+    const [active, setActive] = useState<boolean>(!!activeProp);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
-    if (typeof activeProp === 'boolean') setActive(activeProp);
-  }, [activeProp]);
+    useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
+      if (typeof activeProp === 'boolean') setActive(activeProp);
+    }, [activeProp]);
 
-  // Keep `onActiveChange` out of the state updater (a pure function) so Strict
-  // Mode's double-invoked updaters don't double-fire it — mirrors `Dropdown`.
-  const toggle = () => {
-    const next = !active;
-    setActive(next);
-    onActiveChange?.(next);
-  };
+    // Keep `onActiveChange` out of the state updater (a pure function) so Strict
+    // Mode's double-invoked updaters don't double-fire it — mirrors `Dropdown`.
+    const toggle = () => {
+      const next = !active;
+      setActive(next);
+      onActiveChange?.(next);
+    };
 
-  const close = () => {
-    /* istanbul ignore next: close() is only invoked once already active */
-    if (!active) return;
-    setActive(false);
-    onActiveChange?.(false);
-  };
+    const close = () => {
+      /* istanbul ignore next: close() is only invoked once already active */
+      if (!active) return;
+      setActive(false);
+      onActiveChange?.(false);
+    };
 
-  return (
-    <NavbarDropdownContext.Provider value={{ active, toggle, close }}>
-      <div
-        className={classNames(
-          usePrefixedClassNames('navbar-item', 'has-dropdown', {
-            'has-dropdown-up': up,
-            'is-right': right,
-            'is-hoverable': hoverable,
-            'is-active': active,
-          }),
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    </NavbarDropdownContext.Provider>
-  );
-};
+    return (
+      <NavbarDropdownContext.Provider value={{ active, toggle, close }}>
+        <div
+          ref={ref}
+          className={classNames(
+            usePrefixedClassNames('navbar-item', 'has-dropdown', {
+              'has-dropdown-up': up,
+              'is-right': right,
+              'is-hoverable': hoverable,
+              'is-active': active,
+            }),
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </div>
+      </NavbarDropdownContext.Provider>
+    );
+  }
+);
 
 /**
  * Props for the NavbarDropdownMenu component.

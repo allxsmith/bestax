@@ -221,6 +221,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 | `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.      |
 | `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked.       |
 | `id`             | `string`                                               | —       | Root element ID (for aria-controls, etc).         |
+| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.       |
 | `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**
