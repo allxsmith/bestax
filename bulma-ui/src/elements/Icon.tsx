@@ -35,9 +35,10 @@ declare module 'react' {
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'; // 'fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols
 
 /**
- * Props for the Icon component.
+ * Shared props for the Icon component, independent of whether a class-based `name` or a
+ * custom `children` node supplies the glyph.
  */
-export interface IconProps
+interface IconBaseProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
   /** Additional CSS classes to apply. */
   className?: string;
@@ -47,18 +48,16 @@ export interface IconProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). */
-  name: string; // e.g., 'star', 'account', 'home-outline'
   /** DEPRECATED: Legacy prop, use `name` instead. */
   icon?: string; // DEPRECATED: legacy prop that should not be used
   /**
-   * The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.
+   * The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured. Ignored when `children` supplies the glyph instead of `name`.
    * @defaultValue 'fa'
    */
   library?: IconLibrary; // defaults to ConfigProvider iconLibrary or 'fa'
-  /** Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`). */
+  /** Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`). Ignored when `children` supplies the glyph instead of `name`. */
   variant?: string; // e.g., 'solid', 'outlined', 'rounded', 'sharp'
-  /** Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). */
+  /** Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). Ignored when `children` supplies the glyph instead of `name`. */
   features?: string | string[]; // e.g., 'fa-lg', 'fa-spin', 'is-size-1'
   /** **DEPRECATED:** Use `variant` and `features` instead. */
   libraryFeatures?: string | string[]; // DEPRECATED: backward compatibility
@@ -79,6 +78,33 @@ export interface IconProps
   /** Override the default `'icon'` container class (e.g., `'panel-icon'`). */
   containerClassName?: string; // Override the default 'icon' container class (e.g., 'panel-icon')
 }
+
+/**
+ * Props for `Icon` rendering a class-based glyph from an icon library.
+ */
+export interface IconNameProps extends IconBaseProps {
+  /** The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`. */
+  name: string; // e.g., 'star', 'account', 'home-outline'
+  /** A custom node (an inline SVG, a `react-icons` component, …) rendered inside the `.icon` container in place of a class-based glyph. Mutually exclusive with `name`. */
+  children?: never;
+}
+
+/**
+ * Props for `Icon` rendering a custom node (an inline SVG, a `react-icons` component, a Font
+ * Awesome React `<FontAwesomeIcon>`, …) in place of a class-based glyph.
+ */
+export interface IconChildrenProps extends IconBaseProps {
+  /** The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`. */
+  name?: undefined;
+  /** A custom node (an inline SVG, a `react-icons` component, …) rendered inside the `.icon` container in place of a class-based glyph. Mutually exclusive with `name`. */
+  children: React.ReactNode;
+}
+
+/**
+ * Props for the Icon component — a discriminated union of a class-based `name` and a custom
+ * `children` node.
+ */
+export type IconProps = IconNameProps | IconChildrenProps;
 
 /**
  * Strips a redundant leading library prefix from an icon name (e.g. `fa-check` -> `check`
@@ -205,33 +231,12 @@ export const Icon: React.FC<IconProps> = ({
   icon, // Capture and exclude the deprecated 'icon' prop from DOM
   color: _color, // Exclude 'color' prop if passed directly
   containerClassName,
+  children,
   ...restProps
 }) => {
-  // Handle deprecated 'icon' prop - parse it to extract the actual name
-  let finalName = name;
-  if (!name && icon) {
-    // If icon prop is provided instead of name, try to parse it
-    // e.g., "mdi mdi-rocket-launch" -> "rocket-launch"
-    if (typeof icon === 'string') {
-      const parts = icon.split(' ');
-      const lastPart = parts[parts.length - 1];
-      if (lastPart.startsWith('mdi-')) {
-        finalName = lastPart.substring(4); // Remove "mdi-" prefix
-      } else if (lastPart.startsWith('fa-')) {
-        finalName = lastPart.substring(3); // Remove "fa-" prefix
-      } else {
-        finalName = lastPart;
-      }
-    }
-  }
-
   // Get the default icon library from context, fallback to 'fa' if not set
   const defaultLibrary = useIconLibrary();
-  const finalLibrary = library || defaultLibrary || 'fa';
 
-  // Normalize a redundant leading library prefix (e.g. "fa-check" -> "check" when the
-  // library is 'fa'), so `name` behaves identically with or without the prefix.
-  finalName = stripRedundantLibraryPrefix(finalName, finalLibrary);
   /**
    * Generates Bulma helper classes and separates out remaining props.
    * Note: variant, features, and libraryFeatures are excluded from props spread
@@ -242,7 +247,7 @@ export const Icon: React.FC<IconProps> = ({
     ...restProps,
   });
 
-  // Hoisted unconditionally to respect rules-of-hooks; the ternaries below
+  // Hoisted unconditionally to respect rules-of-hooks; the branches below
   // pick which result to consume.
   const defaultIconClasses = usePrefixedClassNames('icon', {
     [`is-${size}`]: size,
@@ -261,6 +266,47 @@ export const Icon: React.FC<IconProps> = ({
     bulmaHelperClasses,
     className
   );
+
+  if (children !== undefined) {
+    // `IconChildrenProps`: render the caller's node (an inline SVG, a `react-icons`
+    // component, …) in place of a class-based glyph. Library/variant/features don't apply.
+    return (
+      <span
+        className={iconContainerClasses}
+        aria-label={ariaLabel}
+        style={style}
+        {...rest}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  // `name` is guaranteed once `children` is absent (`IconProps` is a discriminated union of
+  // the two) — the cast only matters for legacy callers that bypass the type and rely solely
+  // on the deprecated `icon` prop below.
+  let finalName = name as string;
+  if (!name && icon) {
+    // If icon prop is provided instead of name, try to parse it
+    // e.g., "mdi mdi-rocket-launch" -> "rocket-launch"
+    if (typeof icon === 'string') {
+      const parts = icon.split(' ');
+      const lastPart = parts[parts.length - 1];
+      if (lastPart.startsWith('mdi-')) {
+        finalName = lastPart.substring(4); // Remove "mdi-" prefix
+      } else if (lastPart.startsWith('fa-')) {
+        finalName = lastPart.substring(3); // Remove "fa-" prefix
+      } else {
+        finalName = lastPart;
+      }
+    }
+  }
+
+  const finalLibrary = library || defaultLibrary || 'fa';
+
+  // Normalize a redundant leading library prefix (e.g. "fa-check" -> "check" when the
+  // library is 'fa'), so `name` behaves identically with or without the prefix.
+  finalName = stripRedundantLibraryPrefix(finalName, finalLibrary);
 
   // Backward compatibility: if libraryFeatures is provided, parse it for variant and features
   let finalVariant = variant;

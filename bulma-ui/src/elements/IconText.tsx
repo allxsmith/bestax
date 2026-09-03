@@ -9,11 +9,24 @@ import {
 import { Icon, IconProps } from './Icon';
 
 /**
+ * Distinguishes an `IconProps` object from a plain custom node (an inline SVG, a `react-icons`
+ * component, …) passed to a slot that accepts either.
+ */
+function isIconProps(value: IconProps | React.ReactNode): value is IconProps {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !React.isValidElement(value) &&
+    ('name' in value || 'children' in value)
+  );
+}
+
+/**
  * Represents an item for the IconText component, containing icon props and optional text.
  */
 interface IconTextItem {
-  /** Props for the Icon component. */
-  iconProps: IconProps;
+  /** Props for the Icon component, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. */
+  iconProps: IconProps | React.ReactNode;
   /** Optional text to display next to the icon. */
   text?: string;
 }
@@ -36,8 +49,8 @@ interface IconTextProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Props for a single Icon component (for single icon mode). */
-  iconProps?: IconProps; // For single icon
+  /** Props for a single Icon component, or a custom node, for single icon mode. */
+  iconProps?: IconProps | React.ReactNode; // For single icon
   /** Text for a single icon (for single icon mode). */
   children?: React.ReactNode; // Text for single icon
   /** Array of icon/text pairs (for multiple icons mode). */
@@ -83,13 +96,22 @@ const IconTextComponent: React.FC<IconTextProps> = ({
       {items ? (
         items.map((item, index) => (
           <React.Fragment key={index}>
-            <Icon {...item.iconProps} />
+            {isIconProps(item.iconProps) ? (
+              <Icon {...item.iconProps} />
+            ) : (
+              <Icon>{item.iconProps}</Icon>
+            )}
             {item.text && <span>{item.text}</span>}
           </React.Fragment>
         ))
       ) : (
         <>
-          {iconProps && <Icon {...iconProps} />}
+          {iconProps !== undefined &&
+            (isIconProps(iconProps) ? (
+              <Icon {...iconProps} />
+            ) : (
+              <Icon>{iconProps}</Icon>
+            ))}
           {children && <span>{children}</span>}
         </>
       )}

@@ -506,4 +506,46 @@ describe('Icon', () => {
       expect(span).not.toHaveClass('icon');
     });
   });
+
+  describe('Custom node via children', () => {
+    it('renders an inline SVG in place of the class-based glyph', () => {
+      render(
+        <Icon ariaLabel="Custom icon">
+          <svg data-testid="custom-svg" viewBox="0 0 16 16" />
+        </Icon>
+      );
+      const span = screen.getByLabelText('Custom icon');
+      expect(span).toHaveClass('icon');
+      expect(screen.getByTestId('custom-svg')).toBeInTheDocument();
+      expect(span.querySelector('i')).not.toBeInTheDocument();
+    });
+
+    it('keeps size, textColor and containerClassName behaviour identical to the name path', () => {
+      render(
+        <Icon
+          size="large"
+          textColor="primary"
+          containerClassName="panel-icon"
+          ariaLabel="Custom icon"
+        >
+          <svg data-testid="custom-svg" />
+        </Icon>
+      );
+      const span = screen.getByLabelText('Custom icon');
+      expect(span).toHaveClass('panel-icon');
+      expect(span).toHaveClass('has-text-primary');
+      expect(span).not.toHaveClass('icon');
+    });
+
+    it('ignores library/variant/features when children is used', () => {
+      const { container } = render(
+        <Icon library="mdi" variant="solid" features="fa-spin" ariaLabel="X">
+          <span data-testid="node">Node</span>
+        </Icon>
+      );
+      expect(screen.getByTestId('node')).toBeInTheDocument();
+      expect(container.querySelector('i')).not.toBeInTheDocument();
+      expect(container.querySelector('ion-icon')).not.toBeInTheDocument();
+    });
+  });
 });

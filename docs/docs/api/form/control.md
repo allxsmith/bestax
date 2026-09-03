@@ -265,27 +265,27 @@ The `Control` component can also be used with radio buttons or checkboxes. This 
 
 <!-- bestax:generated props -->
 
-| Prop            | Type                                                                            | Default | Description                                       |
-| --------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `as`            | `'div'` \| `'p'`                                                                | `'div'` | Element type for the control (`div` by default).  |
-| `ref`           | `React.Ref<HTMLDivElement>` \| `React.Ref<HTMLParagraphElement>`                | —       | Ref for the control element.                      |
-| `hasIconsLeft`  | `boolean`                                                                       | `false` | Adds left icon container.                         |
-| `hasIconsRight` | `boolean`                                                                       | `false` | Adds right icon container.                        |
-| `isLoading`     | `boolean`                                                                       | `false` | Shows loading indicator.                          |
-| `isExpanded`    | `boolean`                                                                       | `false` | Makes the control expand to fill available space. |
-| `size`          | `'small'` \| `'medium'` \| `'large'`                                            | —       | Sets the control size.                            |
-| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Sets text color.                                  |
-| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the control.                      |
-| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                 |
-| `iconLeft`      | `IconProps`                                                                     | —       | Icon props for left icon.                         |
-| `iconRight`     | `IconProps`                                                                     | —       | Icon props for right icon.                        |
-| `iconLeftName`  | `string`                                                                        | —       | Shortcut for left icon name.                      |
-| `iconLeftSize`  | `'small'` \| `'medium'` \| `'large'`                                            | —       | Shortcut for left icon size.                      |
-| `iconRightName` | `string`                                                                        | —       | Shortcut for right icon name.                     |
-| `iconRightSize` | `'small'` \| `'medium'` \| `'large'`                                            | —       | Shortcut for right icon size.                     |
-| `className`     | `string`                                                                        | —       | Additional CSS classes to apply.                  |
-| `children`      | `React.ReactNode`                                                               | —       | Content inside the control.                       |
-| `...`           | All standard `<div>` / `<p>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop            | Type                                                                            | Default | Description                                                                                                                         |
+| --------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `as`            | `'div'` \| `'p'`                                                                | `'div'` | Element type for the control (`div` by default).                                                                                    |
+| `ref`           | `React.Ref<HTMLDivElement>` \| `React.Ref<HTMLParagraphElement>`                | —       | Ref for the control element.                                                                                                        |
+| `hasIconsLeft`  | `boolean`                                                                       | `false` | Adds left icon container.                                                                                                           |
+| `hasIconsRight` | `boolean`                                                                       | `false` | Adds right icon container.                                                                                                          |
+| `isLoading`     | `boolean`                                                                       | `false` | Shows loading indicator.                                                                                                            |
+| `isExpanded`    | `boolean`                                                                       | `false` | Makes the control expand to fill available space.                                                                                   |
+| `size`          | `'small'` \| `'medium'` \| `'large'`                                            | —       | Sets the control size.                                                                                                              |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Sets text color.                                                                                                                    |
+| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the control.                                                                                                        |
+| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                                                                                                   |
+| `iconLeft`      | `IconProps` \| `React.ReactNode`                                                | —       | Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.  |
+| `iconRight`     | `IconProps` \| `React.ReactNode`                                                | —       | Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. |
+| `iconLeftName`  | `string`                                                                        | —       | Shortcut for left icon name.                                                                                                        |
+| `iconLeftSize`  | `'small'` \| `'medium'` \| `'large'`                                            | —       | Shortcut for left icon size.                                                                                                        |
+| `iconRightName` | `string`                                                                        | —       | Shortcut for right icon name.                                                                                                       |
+| `iconRightSize` | `'small'` \| `'medium'` \| `'large'`                                            | —       | Shortcut for right icon size.                                                                                                       |
+| `className`     | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                    |
+| `children`      | `React.ReactNode`                                                               | —       | Content inside the control.                                                                                                         |
+| `...`           | All standard `<div>` / `<p>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                   |
 
 <!-- /bestax:generated props -->
 

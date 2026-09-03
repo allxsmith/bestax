@@ -2,7 +2,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { Icon, IconProps } from '../elements/Icon';
+import { Icon, IconChildrenProps, IconNameProps } from '../elements/Icon';
 
 /**
  * Props for the Panel component.
@@ -65,7 +65,9 @@ export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
  * Props for the PanelIcon component.
  * Extends IconProps but uses 'panel-icon' as the container class.
  */
-export type PanelIconProps = Omit<IconProps, 'containerClassName'>;
+export type PanelIconProps =
+  | Omit<IconNameProps, 'containerClassName'>
+  | Omit<IconChildrenProps, 'containerClassName'>;
 
 /**
  * Props for the PanelInputBlock component.

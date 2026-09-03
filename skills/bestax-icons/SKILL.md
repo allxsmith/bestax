@@ -59,6 +59,25 @@ don't rely on it.
 - `features` — extra library classes, string or array: `'fa-spin'`, `['fa-lg', 'fa-border']`.
 - Color via the helper props: `textColor="primary"`, `textColor="danger"`, etc.
 
+## Custom node (SVG, react-icons, FontAwesome React)
+
+`Icon` also accepts `children` instead of `name` — an inline SVG, a `react-icons` component, a
+Font Awesome React `<FontAwesomeIcon>`, … — rendered in place of a class-based glyph. `name`
+and `children` are mutually exclusive (the type rejects passing both, or neither). `size`,
+`textColor`, `bgColor`, `ariaLabel` and `containerClassName` behave identically; `library`,
+`variant`, `features` and `libraryFeatures` are ignored since there's no class-based glyph to
+style.
+
+```tsx
+<Icon ariaLabel="Custom icon">
+  <MyReactIconsComponent />
+</Icon>
+```
+
+`IconText`'s `iconProps` / `items[].iconProps` and `Control`'s `iconLeft`/`iconRight` accept
+the same escape hatch — pass a node directly (instead of an `IconProps` object) and it is
+wrapped in an `Icon` for you: `<IconText iconProps={<MySvg />}>Starred</IconText>`.
+
 ## Accessibility
 
 Every `Icon` renders `aria-label` (default `"icon"`), set via its camelCase `ariaLabel` prop.
