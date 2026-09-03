@@ -259,9 +259,11 @@ jobs:
           # 250 turns is ~27m at the observed 6.4s/turn, still well inside
           # timeout-minutes: 60.
           #
-          # Four allowlist entries were added for those denials. None of them
-          # can reach the remote or a credential, and two are only different
-          # spellings of something already allowed:
+          # Four allowlist entries were added for those denials. The property
+          # each one is claimed on is narrow and stated per entry below; the
+          # only thing true of all four is that none can MUTATE the remote.
+          # `git fetch` does reach it, read-only and authenticated with the
+          # ambient git credential, exactly as the checkout already is.
           #   - `git fetch` DOES write, but only locally: FETCH_HEAD and
           #     remote-tracking refs in this ephemeral checkout. It cannot
           #     mutate the remote, and `git push` — which can, and is already
