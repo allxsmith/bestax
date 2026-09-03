@@ -235,6 +235,30 @@ describe('IconText custom node icon', () => {
     expect(screen.getByText('One')).toBeInTheDocument();
     expect(screen.getByText('Two')).toBeInTheDocument();
   });
+
+  it('renders no icon span for a falsy single-mode iconProps', () => {
+    // `iconProps={cond && <Node/>}` yields `false` when off — it must not mount an empty
+    // `.icon` span in the a11y tree.
+    render(<IconText iconProps={false}>Star</IconText>);
+    const iconText = screen.getByText('Star').parentElement;
+    expect(iconText).toHaveClass('icon-text');
+    expect(iconText?.querySelector('.icon')).not.toBeInTheDocument();
+  });
+
+  it('skips a falsy iconProps entry in multiple icon mode but keeps its text', () => {
+    render(
+      <IconText
+        items={[
+          { iconProps: null, text: 'One' },
+          { iconProps: { name: 'fas fa-star' }, text: 'Two' },
+        ]}
+      />
+    );
+    // Only the truthy entry renders an icon; both texts still render.
+    expect(document.querySelectorAll('.icon')).toHaveLength(1);
+    expect(screen.getByText('One')).toBeInTheDocument();
+    expect(screen.getByText('Two')).toBeInTheDocument();
+  });
 });
 
 describe('IconText color text alias', () => {

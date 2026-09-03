@@ -155,30 +155,32 @@ export const Control = React.forwardRef<
       ...restProps,
     });
 
-    // Prepare icon props for the shortcut
+    // Prepare icon props for the shortcut. A truthiness test (not `!== undefined`)
+    // so a falsy node from the idiomatic `iconLeft={cond && <Node/>}` / `iconLeft={maybe ?? null}`
+    // pattern counts as "no icon" — otherwise `false`/`null` would reserve the icon column and
+    // mount an empty `.icon` span. A falsy `iconLeft` also correctly falls through to the
+    // `iconLeftName` shortcut, matching the pre-node behavior.
     const leftIconValue: IconProps | React.ReactNode | undefined =
-      iconLeft !== undefined
-        ? iconLeft
-        : iconLeftName
-          ? {
-              name: iconLeftName,
-              size: iconLeftSize,
-            }
-          : undefined;
+      iconLeft ||
+      (iconLeftName
+        ? {
+            name: iconLeftName,
+            size: iconLeftSize,
+          }
+        : undefined);
 
     const rightIconValue: IconProps | React.ReactNode | undefined =
-      iconRight !== undefined
-        ? iconRight
-        : iconRightName
-          ? {
-              name: iconRightName,
-              size: iconRightSize,
-            }
-          : undefined;
+      iconRight ||
+      (iconRightName
+        ? {
+            name: iconRightName,
+            size: iconRightSize,
+          }
+        : undefined);
 
     const mainClass = usePrefixedClassNames('control', {
-      'has-icons-left': hasIconsLeft || leftIconValue !== undefined,
-      'has-icons-right': hasIconsRight || rightIconValue !== undefined,
+      'has-icons-left': hasIconsLeft || !!leftIconValue,
+      'has-icons-right': hasIconsRight || !!rightIconValue,
       'is-loading': isLoading,
       'is-expanded': isExpanded,
       [`is-${size}`]: !!size,
@@ -195,7 +197,7 @@ export const Control = React.forwardRef<
           {...rest}
         >
           {children}
-          {leftIconValue !== undefined &&
+          {leftIconValue &&
             (isIconProps(leftIconValue) ? (
               <Icon
                 {...leftIconValue}
@@ -206,7 +208,7 @@ export const Control = React.forwardRef<
                 {leftIconValue}
               </Icon>
             ))}
-          {rightIconValue !== undefined &&
+          {rightIconValue &&
             (isIconProps(rightIconValue) ? (
               <Icon
                 {...rightIconValue}
