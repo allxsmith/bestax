@@ -78,6 +78,15 @@ style.
 the same escape hatch — pass a node directly (instead of an `IconProps` object) and it is
 wrapped in an `Icon` for you: `<IconText iconProps={<MySvg />}>Starred</IconText>`.
 
+`Panel.Icon` takes the same `children`, but its container is `panel-icon` rather than `icon` —
+it always overrides `containerClassName`, so style and query that class instead.
+
+⚠️ **`children` excludes `undefined`.** Write a conditional icon as `cond ? <MySvg /> : null`
+(or `cond && <MySvg />`), never `cond ? <MySvg /> : undefined` — the latter is a type error,
+because the renderer would fall through to the `name` path with no name. In the `IconText` and
+`Control` slots a falsy node counts as "no icon": nothing is rendered, and `Control` falls back
+to `iconLeftName`/`iconRightName` if one is given, otherwise leaving the icon column unreserved.
+
 ## Accessibility
 
 Every `Icon` renders `aria-label` (default `"icon"`), set via its camelCase `ariaLabel` prop.
