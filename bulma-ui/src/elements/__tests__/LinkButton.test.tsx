@@ -201,4 +201,24 @@ describe('LinkButton Component', () => {
       expect(button).toHaveClass('my-prefix-link-button-primary');
     });
   });
+
+  describe('ref forwarding', () => {
+    it('forwards ref to the underlying <button> element', () => {
+      const ref = React.createRef<HTMLButtonElement>();
+      render(<LinkButton ref={ref}>Click Me</LinkButton>);
+      expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+      expect(ref.current).toBe(screen.getByRole('button'));
+    });
+
+    it('forwards ref to the underlying <a> element when as="a"', () => {
+      const ref = React.createRef<HTMLAnchorElement>();
+      render(
+        <LinkButton as="a" href="https://example.com" ref={ref}>
+          Learn more
+        </LinkButton>
+      );
+      expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+      expect(ref.current).toBe(screen.getByRole('link'));
+    });
+  });
 });

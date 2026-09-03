@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Dropdown } from './Dropdown';
 
 export default {
@@ -42,6 +43,30 @@ export const Right = () => (
     <Dropdown.Item>Right 2</Dropdown.Item>
   </Dropdown>
 );
+
+// Forwarded ref — the root `.dropdown` div, here measured on mount. The ref is
+// merged with the internal one, so outside-click still closes the menu.
+export const ForwardedRef = () => {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    setWidth(dropdownRef.current?.getBoundingClientRect().width ?? null);
+  }, []);
+
+  return (
+    <>
+      <Dropdown ref={dropdownRef} label="Measured Dropdown" mb="3">
+        <Dropdown.Item>First Item</Dropdown.Item>
+        <Dropdown.Item>Second Item</Dropdown.Item>
+      </Dropdown>
+      <p>
+        Root width from the forwarded ref:{' '}
+        {width === null ? '—' : `${Math.round(width)}px`}
+      </p>
+    </>
+  );
+};
 
 export const Up = () => (
   <>
