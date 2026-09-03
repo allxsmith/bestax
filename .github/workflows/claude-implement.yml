@@ -259,13 +259,18 @@ jobs:
           # 250 turns is ~27m at the observed 6.4s/turn, still well inside
           # timeout-minutes: 60.
           #
-          # Four allowlist entries were added for those denials. Each either
-          # cannot write or is a different spelling of something already
-          # allowed: `git fetch` is a read-only transfer (and `git push` is
-          # already allowed, which is strictly stronger); `git stash` is local
-          # working-tree state only; `pnpm gen` is the alias form of the
-          # already-allowed `pnpm run gen`; `pnpm -w run` is the root-scoped
-          # form of the already-allowed `pnpm run`.
+          # Four allowlist entries were added for those denials. None of them
+          # can reach the remote or a credential, and two are only different
+          # spellings of something already allowed:
+          #   - `git fetch` DOES write, but only locally: FETCH_HEAD and
+          #     remote-tracking refs in this ephemeral checkout. It cannot
+          #     mutate the remote, and `git push` — which can, and is already
+          #     allowed — is strictly stronger.
+          #   - `git stash` writes local working-tree state only; no network.
+          #   - `pnpm gen` is the alias form of the already-allowed
+          #     `pnpm run gen`, so the capability is identical.
+          #   - `pnpm -w run` is the root-scoped form of the already-allowed
+          #     `pnpm run`.
           #
           # Considered and REFUSED, because this job holds AI_LOOP_PAT
           # (repository write) beside the model token: `Bash(gh api:*)`, a
