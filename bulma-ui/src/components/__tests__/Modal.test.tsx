@@ -462,6 +462,18 @@ describe('Modal', () => {
       expect(screen.getByText('First')).toHaveFocus();
     });
 
+    it('skips a disabled first control and focuses the first enabled one', () => {
+      render(
+        <Modal active>
+          <button type="button" disabled>
+            Disabled
+          </button>
+          <button type="button">Enabled</button>
+        </Modal>
+      );
+      expect(screen.getByText('Enabled')).toHaveFocus();
+    });
+
     it('falls back to focusing the modal root when nothing is focusable', () => {
       render(<Modal active>{latin}</Modal>);
       expect(screen.getByTestId('modal')).toHaveFocus();
