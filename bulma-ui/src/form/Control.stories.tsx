@@ -260,3 +260,28 @@ export const AsParagraph: Story = {
     </Control>
   ),
 };
+
+/**
+ * `iconLeft`/`iconRight` accept a plain node as well as an `IconProps` object — an
+ * inline SVG, a `react-icons` component, `<FontAwesomeIcon />`, … The node is wrapped
+ * in an `Icon`, so it still gets the `.icon is-left`/`is-right` container and the
+ * control still reserves the icon column.
+ */
+export const CustomNodeIcons: Story = {
+  render: () => (
+    <Control
+      iconLeft={
+        <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+          <circle cx="8" cy="8" r="6" />
+        </svg>
+      }
+      iconRight={
+        <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+          <rect x="3" y="3" width="10" height="10" rx="2" />
+        </svg>
+      }
+    >
+      <Input placeholder="Custom node icons" />
+    </Control>
+  ),
+};

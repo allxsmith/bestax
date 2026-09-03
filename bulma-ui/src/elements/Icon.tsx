@@ -85,7 +85,7 @@ interface IconBaseProps
 export interface IconNameProps extends IconBaseProps {
   /** The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`. */
   name: string; // e.g., 'star', 'account', 'home-outline'
-  /** A custom node (an inline SVG, a `react-icons` component, …) rendered inside the `.icon` container in place of a class-based glyph. Mutually exclusive with `name`. */
+  /** A custom node (an inline SVG, a `react-icons` component, …) rendered inside the icon container in place of a class-based glyph. Mutually exclusive with `name`. */
   children?: never;
 }
 
@@ -96,8 +96,12 @@ export interface IconNameProps extends IconBaseProps {
 export interface IconChildrenProps extends IconBaseProps {
   /** The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`. */
   name?: undefined;
-  /** A custom node (an inline SVG, a `react-icons` component, …) rendered inside the `.icon` container in place of a class-based glyph. Mutually exclusive with `name`. */
-  children: React.ReactNode;
+  /** A custom node (an inline SVG, a `react-icons` component, …) rendered inside the icon container in place of a class-based glyph. Mutually exclusive with `name`. */
+  // `undefined` is excluded deliberately: the renderer discriminates on `children !== undefined`,
+  // so `children={undefined}` would satisfy the type but fall through to the `name` path with no
+  // name and render an `fa-undefined` glyph. Excluding it keeps the advertised
+  // exactly-one-of-`name`-or-`children` constraint matching what actually renders.
+  children: Exclude<React.ReactNode, undefined>;
 }
 
 /**
@@ -283,8 +287,9 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   // `name` is guaranteed once `children` is absent (`IconProps` is a discriminated union of
-  // the two) — the cast only matters for legacy callers that bypass the type and rely solely
-  // on the deprecated `icon` prop below.
+  // the two, and `IconChildrenProps['children']` excludes `undefined` so `children={undefined}`
+  // can't slip past into this branch) — the cast only matters for legacy callers that bypass
+  // the type and rely solely on the deprecated `icon` prop below.
   let finalName = name as string;
   if (!name && icon) {
     // If icon prop is provided instead of name, try to parse it
@@ -307,6 +312,20 @@ export const Icon: React.FC<IconProps> = ({
   // Normalize a redundant leading library prefix (e.g. "fa-check" -> "check" when the
   // library is 'fa'), so `name` behaves identically with or without the prefix.
   finalName = stripRedundantLibraryPrefix(finalName, finalLibrary);
+
+  if (!finalName) {
+    // No glyph to name. Unreachable through the public type, but a plain-JS caller (or one
+    // that casts) can land here, and building a class off an absent name produced a bogus
+    // `fa-undefined` glyph. Render the bare container instead, matching the `children` branch.
+    return (
+      <span
+        className={iconContainerClasses}
+        aria-label={ariaLabel}
+        style={style}
+        {...rest}
+      />
+    );
+  }
 
   // Backward compatibility: if libraryFeatures is provided, parse it for variant and features
   let finalVariant = variant;

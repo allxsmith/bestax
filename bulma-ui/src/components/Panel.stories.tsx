@@ -378,3 +378,28 @@ export const CompoundUsage: Story = {
     </Panel>
   ),
 };
+
+/**
+ * `Panel.Icon` accepts a custom node via `children` in place of a class-based `name`.
+ * The node is rendered inside the `panel-icon` container (not `icon`) — `Panel.Icon`
+ * always overrides `containerClassName`.
+ */
+export const CustomNodeIcon: Story = {
+  render: () => (
+    <Panel>
+      <Panel.Heading>Continental Congress</Panel.Heading>
+      <Panel.Block>
+        <Panel.Icon ariaLabel="Custom SVG icon">
+          <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
+            <circle cx="8" cy="8" r="6" />
+          </svg>
+        </Panel.Icon>
+        John Adams
+      </Panel.Block>
+      <Panel.Block>
+        <Panel.Icon name="user" variant="solid" />
+        Benjamin Franklin
+      </Panel.Block>
+    </Panel>
+  ),
+};

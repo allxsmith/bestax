@@ -547,5 +547,26 @@ describe('Icon', () => {
       expect(container.querySelector('i')).not.toBeInTheDocument();
       expect(container.querySelector('ion-icon')).not.toBeInTheDocument();
     });
+
+    it('renders a bare container, not an `fa-undefined` glyph, when neither name nor children is given', () => {
+      // `IconChildrenProps['children']` excludes `undefined`, so the type already rejects
+      // `children={undefined}` and the neither-prop case. A plain-JS caller can still get
+      // here, and used to render `<i class="fas fa-undefined">`.
+      const { container } = render(
+        // @ts-expect-error children must not be undefined
+        <Icon ariaLabel="Empty" children={undefined} />
+      );
+      const span = screen.getByLabelText('Empty');
+      expect(span).toHaveClass('icon');
+      expect(container.querySelector('i')).not.toBeInTheDocument();
+    });
+
+    it('still renders a falsy node inside the container', () => {
+      // `null`/`false` are legal children — the caller asked for the container and its
+      // helper classes, so they are kept even though nothing paints inside.
+      const { container } = render(<Icon ariaLabel="Empty node">{null}</Icon>);
+      expect(screen.getByLabelText('Empty node')).toHaveClass('icon');
+      expect(container.querySelector('i')).not.toBeInTheDocument();
+    });
   });
 });
