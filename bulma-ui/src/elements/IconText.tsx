@@ -96,17 +96,18 @@ const IconTextComponent: React.FC<IconTextProps> = ({
       {items ? (
         items.map((item, index) => (
           <React.Fragment key={index}>
-            {isIconProps(item.iconProps) ? (
-              <Icon {...item.iconProps} />
-            ) : (
-              <Icon>{item.iconProps}</Icon>
-            )}
+            {item.iconProps &&
+              (isIconProps(item.iconProps) ? (
+                <Icon {...item.iconProps} />
+              ) : (
+                <Icon>{item.iconProps}</Icon>
+              ))}
             {item.text && <span>{item.text}</span>}
           </React.Fragment>
         ))
       ) : (
         <>
-          {iconProps !== undefined &&
+          {iconProps &&
             (isIconProps(iconProps) ? (
               <Icon {...iconProps} />
             ) : (
