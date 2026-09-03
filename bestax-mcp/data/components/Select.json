@@ -121,7 +121,7 @@
         },
         {
           "name": "iconLeft",
-          "type": "IconProps",
+          "type": "IconProps | React.ReactNode",
           "default": null,
           "description": "Icon props for left icon.",
           "required": false,
