@@ -252,11 +252,39 @@ jobs:
           # The prompt's protected-path exclusions are enforced here, not just
           # stated: --disallowedTools deny rules take precedence over the
           # Edit/MultiEdit/Write allows in --allowedTools.
+          #
+          # --max-turns was 150. Issue #622 stopped at `error_max_turns` with
+          # 151 turns, 16m of model time, and no commit — while burning turns
+          # on denial-and-retry loops for commands the prompt itself asks for.
+          # 250 turns is ~27m at the observed 6.4s/turn, still well inside
+          # timeout-minutes: 60.
+          #
+          # Four allowlist entries were added for those denials. The property
+          # each one is claimed on is narrow and stated per entry below; the
+          # only thing true of all four is that none can MUTATE the remote.
+          # `git fetch` does reach it, read-only and authenticated with the
+          # ambient git credential, exactly as the checkout already is.
+          #   - `git fetch` DOES write, but only locally: FETCH_HEAD and
+          #     remote-tracking refs in this ephemeral checkout. It cannot
+          #     mutate the remote, and `git push` — which can, and is already
+          #     allowed — is strictly stronger.
+          #   - `git stash` writes local working-tree state only; no network.
+          #   - `pnpm gen` is the alias form of the already-allowed
+          #     `pnpm run gen`, so the capability is identical.
+          #   - `pnpm -w run` is the root-scoped form of the already-allowed
+          #     `pnpm run`.
+          #
+          # Considered and REFUSED, because this job holds AI_LOOP_PAT
+          # (repository write) beside the model token: `Bash(gh api:*)`, a
+          # general-purpose write primitive that would bypass the narrow
+          # gh issue/gh pr verbs entirely, and `Bash(git -C:*)`, which would
+          # permit any git subcommand at any path and defeat the per-subcommand
+          # structure of this list. The prompt tells the session to avoid both.
           claude_args: |
-            --max-turns 150
+            --max-turns 250
             --model claude-sonnet-5
             --disallowedTools "Edit(.github/**),MultiEdit(.github/**),Write(.github/**),Edit(pnpm-workspace.yaml),MultiEdit(pnpm-workspace.yaml),Write(pnpm-workspace.yaml),Edit(.npmrc),MultiEdit(.npmrc),Write(.npmrc),Edit(.coderabbit.yaml),MultiEdit(.coderabbit.yaml),Write(.coderabbit.yaml),Edit(turbo.json),MultiEdit(turbo.json),Write(turbo.json),Edit(**/jest.config.*),MultiEdit(**/jest.config.*),Write(**/jest.config.*),Edit(commitlint.config.js),MultiEdit(commitlint.config.js),Write(commitlint.config.js),Edit(**/release.config.*),MultiEdit(**/release.config.*),Write(**/release.config.*),Edit(scripts/check-conformance.mjs),MultiEdit(scripts/check-conformance.mjs),Write(scripts/check-conformance.mjs),Edit(scripts/conformance-baseline.json),MultiEdit(scripts/conformance-baseline.json),Write(scripts/conformance-baseline.json)"
-            --allowedTools "Edit,MultiEdit,Write,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(awk:*),Bash(echo:*),Bash(printf:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
+            --allowedTools "Edit,MultiEdit,Write,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm gen:*),Bash(pnpm -w run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(awk:*),Bash(echo:*),Bash(printf:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git fetch:*),Bash(git stash:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
           prompt: |
             REPO: ${{ github.repository }}
             ISSUE NUMBER: ${{ github.event.issue.number }}
@@ -303,7 +331,15 @@ jobs:
                  comment on the issue explaining what you found, and stop.
                  (For feature/enhancement issues, add tests that exercise the
                  new behavior; a pre-fix failing test is not required.)
-            3. Before opening the PR, run the gates for what you touched:
+            3. Command forms matter: the tool allowlist matches on a command
+               prefix, so a spelling it does not recognise is denied and each
+               denial costs you two turns. Write `pnpm run gen:catalog`, never
+               `pnpm gen` with a colon-suffixed script and never `pnpm -w run
+               <script>`. Run ONE command per Bash call: a compound
+               `cd X && Y` is denied as a whole even when both halves would be
+               allowed on their own. Do not use `git -C <path>`; `cd` is not
+               allowed either, so work from the default directory.
+            4. Before opening the PR, run the gates for what you touched:
                `pnpm --filter <pkg> run lint`, `... typecheck`,
                `... test:coverage`, `pnpm run format:check`,
                `pnpm run gen:catalog:check`, `pnpm run check:conformance`;
@@ -313,7 +349,7 @@ jobs:
                bundle:stats, a high-severity audit, and a React 18/19
                compatibility matrix — write code that works on both React
                majors.
-            4. COMMIT + PUSH with the git CLI — create the branch and push it
+            5. COMMIT + PUSH with the git CLI — create the branch and push it
                yourself with plain git:
                  git checkout -b claude/issue-${{ github.event.issue.number }}-<short-timestamp>
                  git add -A
@@ -331,7 +367,7 @@ jobs:
                self-review checklist at the end of
                /CONTRIBUTING-COMPONENTS.md and fix every miss — each miss a
                reviewer catches costs one of the loop's 4 iterations.
-            5. Open the PR yourself. This is REQUIRED and is the definition
+            6. Open the PR yourself. This is REQUIRED and is the definition
                of "done" — the task is NOT complete until a real PR exists.
                Do NOT merely post a "Create a PR" / compare link; a link does
                not count and is an explicit failure of this step. You MUST
@@ -345,7 +381,7 @@ jobs:
                put that PR URL in your final comment. If `gh pr create` errors,
                report the exact error in your comment and STOP — never fall
                back to a compare link and never claim the PR step is done.
-            6. Never merge or close PRs, never enable auto-merge, never push
+            7. Never merge or close PRs, never enable auto-merge, never push
                to main, and never write "@claude" or "@coderabbitai" in any
                comment, commit message, or PR text.
 
