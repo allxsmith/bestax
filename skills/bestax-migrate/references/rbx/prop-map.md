@@ -120,9 +120,14 @@ wrong:
 rbx reaches a component's rendered element with `innerRef`. bestax uses a plain forwarded
 `ref` on the roots that support one, so the codemod renames the prop:
 
-| rbx                                                   | bestax-bulma | note                                |
-| ----------------------------------------------------- | ------------ | ----------------------------------- |
-| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element |
+| rbx                                                   | bestax-bulma | note                                     |
+| ----------------------------------------------------- | ------------ | ---------------------------------------- |
+| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element      |
+| `innerRef` on `Navbar.Burger`, `Navbar.Link`          | `ref`        | these two sub-components forward one too |
+
+`Navbar.Dropdown` is the exception that looks like it should be in that list: in rbx it is the
+menu itself (`div.navbar-dropdown`), so it maps to bestax's `Navbar.DropdownMenu`, which
+forwards no ref — not to `Navbar.Dropdown`.
 
 rbx puts `innerRef` on every component via `forwardRefAs`, but only these four bestax roots
 forward one today, so only these four are renamed. On any other component the codemod leaves

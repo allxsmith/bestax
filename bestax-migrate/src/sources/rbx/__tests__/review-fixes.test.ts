@@ -710,6 +710,28 @@ describe('the innerRef remediation is achievable', () => {
     }
   );
 
+  it.each([
+    ['Navbar.Burger', 'Navbar.Burger'],
+    ['Navbar.Link', 'Navbar.Link'],
+  ])('renames innerRef to ref on %s', (rbxName, bestaxName) => {
+    // NavbarBurger and NavbarLink forward a ref too, and the root's prop
+    // mapping does not reach sub-components.
+    const { output } = migrate(
+      `import { Navbar } from "rbx";\nexport const A = (r: any) => <${rbxName} innerRef={r} />;`
+    );
+    expect(output).toContain(`<${bestaxName} ref={r}`);
+    expect(output).not.toMatch(/innerRef/);
+  });
+
+  it('leaves innerRef alone on Navbar.Dropdown, which maps to the menu', () => {
+    // rbx's Navbar.Dropdown is the menu itself, so it maps to bestax's
+    // Navbar.DropdownMenu — a plain function component that forwards no ref.
+    const { output } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Dropdown innerRef={r}>x</Navbar.Dropdown>;'
+    );
+    expect(output).toMatch(/innerRef=\{r\}/);
+  });
+
   it('leaves innerRef alone on a root that forwards no ref', () => {
     // Card is not one of the four; renaming here would be a type error, so the
     // codemod must not touch it.

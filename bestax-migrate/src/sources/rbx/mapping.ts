@@ -682,7 +682,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
     subs: {
       Brand: { status: 'mapped', target: 'Navbar.Brand' },
-      Burger: { status: 'mapped', target: 'Navbar.Burger' },
+      Burger: {
+        status: 'mapped',
+        target: 'Navbar.Burger',
+        props: { innerRef: { rename: 'ref' } },
+      },
       Divider: { status: 'mapped', target: 'Navbar.Divider' },
       Menu: { status: 'mapped', target: 'Navbar.Menu' },
       Link: {
@@ -690,6 +694,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Navbar.Link',
         props: {
           as: AS_OK,
+          innerRef: { rename: 'ref' },
           arrowless: {},
           onClick: {},
         },
