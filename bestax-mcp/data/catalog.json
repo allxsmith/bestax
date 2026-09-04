@@ -645,7 +645,7 @@
       "slug": "components/modal",
       "import": "import { Modal } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 23,
+      "propCount": 24,
       "exampleCount": 9
     },
     {
