@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { Dialog, DialogContainer, dialog } from '../Dialog';
 
 describe('Dialog', () => {
@@ -264,6 +266,65 @@ describe('Dialog', () => {
       const dialogElement = screen.getByRole('alertdialog');
       // Dialog should be rendered inline within the parent
       expect(dialogElement.closest('#app')).not.toBeNull();
+    });
+
+    it('does not double up on aria-modal/dialog roles from the wrapping Modal', () => {
+      render(<Dialog isOpen message="Test" />);
+      // Only one alertdialog-rooted element — the wrapping Modal renders
+      // role="presentation" so it doesn't compete with Dialog's own role.
+      expect(screen.getAllByRole('alertdialog')).toHaveLength(1);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Portal', () => {
+    it('renders inline by default (no portal)', () => {
+      const { container } = render(
+        <div id="app">
+          <Dialog isOpen message="Test" />
+        </div>
+      );
+      expect(
+        container.querySelector('#app [role="alertdialog"]')
+      ).not.toBeNull();
+    });
+
+    it('forwards portal to the underlying Modal', () => {
+      const { container } = render(
+        <div id="app">
+          <Dialog isOpen message="Test" portal />
+        </div>
+      );
+      expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+      const dialogEl = document.querySelector('[role="alertdialog"]');
+      expect(dialogEl).not.toBeNull();
+      expect(document.body.contains(dialogEl)).toBe(true);
+    });
+
+    it('focuses the confirm button after the hydration portal move', async () => {
+      // The portal move remounts the Modal subtree, so Dialog's own focus
+      // effect has to re-run — otherwise its confirm button never gets focus.
+      const dialogEl = (
+        <Dialog isOpen message="Hydrated" portal confirmText="Confirm" />
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(dialogEl);
+      document.body.appendChild(container);
+
+      let unmountRoot = () => {};
+      await act(async () => {
+        const root = hydrateRoot(container, dialogEl);
+        unmountRoot = () => root.unmount();
+      });
+
+      const confirm = document.body.querySelector<HTMLButtonElement>(
+        '[role="alertdialog"] .button.is-primary'
+      );
+      expect(confirm).not.toBeNull();
+      expect(confirm).toHaveFocus();
+
+      await act(async () => unmountRoot());
+      document.body.removeChild(container);
     });
   });
 

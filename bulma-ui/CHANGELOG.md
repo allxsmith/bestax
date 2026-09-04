@@ -1,3 +1,17 @@
+# [5.14.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.13.0...@allxsmith/bestax-bulma@5.14.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** exclude undefined from Icon children and add node stories ([b607db1](https://github.com/allxsmith/bestax/commit/b607db1b5c4301ca17fa0351eaf7b5b7cd5032d7))
+* **bulma-ui:** treat falsy icon nodes as absent in Control and IconText ([c36f5b2](https://github.com/allxsmith/bestax/commit/c36f5b2728c1759c7b8cfdf5a847bf6af5114c09))
+* **create-bestax:** ship the custom-icon-node guidance to scaffolded apps ([e96b7b9](https://github.com/allxsmith/bestax/commit/e96b7b98acad80a77e9c6e316159e3032e2b0533)), closes [#597](https://github.com/allxsmith/bestax/issues/597)
+
+
+### Features
+
+* **bulma-ui:** allow Icon to render a custom node via children ([48747f4](https://github.com/allxsmith/bestax/commit/48747f43377e7e355507e622465991cd4541a266)), closes [#619](https://github.com/allxsmith/bestax/issues/619)
+
 # [5.13.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.12.0...@allxsmith/bestax-bulma@5.13.0) (2026-09-02)
 
 

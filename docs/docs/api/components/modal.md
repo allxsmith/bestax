@@ -200,6 +200,39 @@ function example() {
 
 ---
 
+### Portal
+
+Set `portal` to render the modal into `document.body` (or a custom target) instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. It's opt-in — omit it to keep the current inline behavior.
+
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Portaled Modal
+      </Button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        modalCardTitle="Rendered in document.body"
+        portal
+      >
+        This modal is portaled, so it escapes any ancestor with an `overflow:
+        hidden` style.
+      </Modal>
+    </>
+  );
+}
+```
+
+`portal` also accepts a `document.querySelector` selector string or an `HTMLElement` to target a specific container.
+
+It's SSR-safe: a portal has no server-rendered counterpart, so the modal renders inline on the server _and_ during hydration, then moves into the portal once the client takes over. Hydration matches instead of trading an SSR crash for a hydration mismatch.
+
+---
+
 ### Compound (dot-notation) usage
 
 #### Modal.Card with compound components
@@ -275,10 +308,14 @@ function example() {
 
 ## Accessibility
 
-- The modal root uses Bulma’s structure and ARIA roles for accessibility.
+- The modal root gets `role="dialog"` and `aria-modal="true"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role="presentation"` on the `Modal` it wraps so its own `role="alertdialog"` is the only one announced).
+- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role="dialog"` with no name is announced as just "dialog". An explicit `aria-labelledby` always wins over the generated one.
+- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. Only the topmost open modal responds, so Escape closes one layer at a time rather than dismissing a whole stack.
+- Body scroll is locked while the modal is active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.
+- Focus moves to the first enabled focusable element (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.
+- Tab and Shift+Tab cycle within the topmost modal while it is open, so the keyboard order agrees with what `aria-modal="true"` tells assistive technology. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied — background content remains reachable by pointer and by browser UI such as find-in-page.
 - The modal background closes the modal on click (`onClose` required).
 - Close buttons are provided for both modal-card and modal-content variants.
-- Keyboard/screen reader accessibility is supported, but for focus trap or escape key handling, implement those patterns in your app as needed.
 
 :::note
 Always provide an `onClose` handler for accessibility and to allow users to dismiss the modal.
@@ -312,20 +349,23 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                    | Default | Description                                                                            |
-| ---------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------- |
-| `active`         | `boolean`                                                               | `false` | Whether the modal is open/visible.                                                     |
-| `isActive`       | `boolean`                                                               | `false` | Alias for `active`. Whether the modal is open/visible.                                 |
-| `onClose`        | `() => void`                                                            | —       | Callback invoked to request modal close (background or close button).                  |
-| `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                  |
-| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                          |
-| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                    |
-| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                 |
-| `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                       |
-| `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) |
-| `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                             |
-| `ref`            | `React.Ref<HTMLDivElement>`                                             | —       | Ref forwarded to the root `.modal` element.                                            |
-| `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                      |
+| Prop             | Type                                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `active`         | `boolean`                                                               | `false` | Whether the modal is open/visible.                                                                                                                                                                                                                                                                                                                                                                 |
+| `isActive`       | `boolean`                                                               | `false` | Alias for `active`. Whether the modal is open/visible.                                                                                                                                                                                                                                                                                                                                             |
+| `onClose`        | `() => void`                                                            | —       | Callback invoked to request modal close (background or close button).                                                                                                                                                                                                                                                                                                                              |
+| `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                                                                                                                                                                                                                                                                                                                              |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                                                                                                                                                                                                                                                                                                                                      |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                                                                                                                                                                                                                                                                                                                                |
+| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                                                                                                                                                                                                                                                                                                                             |
+| `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                   |
+| `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)                                                                                                                                                                                                                                                                                                             |
+| `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                                                                                                                                                                                                                                                                                                                                         |
+| `closeOnEscape`  | `boolean`                                                               | `true`  | Close the modal when the Escape key is pressed (calls `onClose`). Only the topmost open modal responds, so Escape closes one layer at a time.                                                                                                                                                                                                                                                      |
+| `lockScroll`     | `boolean`                                                               | `true`  | Lock body scroll while the modal is active. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.                                                                                                                                                                                           |
+| `portal`         | `boolean` \| `string` \| `HTMLElement`                                  | `false` | Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to `document.body`; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. |
+| `ref`            | `React.Ref<HTMLDivElement>`                                             | —       | Ref forwarded to the root `.modal` element.                                                                                                                                                                                                                                                                                                                                                        |
+| `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                  |
 
 **Subcomponents:**
 

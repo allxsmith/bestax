@@ -196,6 +196,71 @@ describe('Compound components', () => {
   });
 });
 
+describe('IconText custom node icon', () => {
+  it('wraps a custom node in Icon for single icon mode', () => {
+    render(
+      <IconText iconProps={<svg data-testid="custom-svg" />}>Custom</IconText>
+    );
+    const iconText = screen.getByText('Custom').parentElement;
+    expect(iconText).toHaveClass('icon-text');
+    expect(screen.getByTestId('custom-svg')).toBeInTheDocument();
+    expect(iconText?.querySelector('.icon')).toBeInTheDocument();
+  });
+
+  it('wraps a plain string node in Icon', () => {
+    render(<IconText iconProps="★">Star</IconText>);
+    const iconText = screen.getByText('Star').parentElement;
+    expect(iconText?.querySelector('.icon')).toHaveTextContent('★');
+  });
+
+  it('spreads an IconProps object using `children` (no `name`) instead of wrapping it', () => {
+    render(
+      <IconText iconProps={{ children: <svg data-testid="custom-svg-2" /> }}>
+        Custom
+      </IconText>
+    );
+    expect(screen.getByTestId('custom-svg-2')).toBeInTheDocument();
+  });
+
+  it('wraps a custom node in Icon for each item in multiple icon mode', () => {
+    render(
+      <IconText
+        items={[
+          { iconProps: <svg data-testid="custom-svg-1" />, text: 'One' },
+          { iconProps: { name: 'fas fa-star' }, text: 'Two' },
+        ]}
+      />
+    );
+    expect(screen.getByTestId('custom-svg-1')).toBeInTheDocument();
+    expect(screen.getByText('One')).toBeInTheDocument();
+    expect(screen.getByText('Two')).toBeInTheDocument();
+  });
+
+  it('renders no icon span for a falsy single-mode iconProps', () => {
+    // `iconProps={cond && <Node/>}` yields `false` when off — it must not mount an empty
+    // `.icon` span in the a11y tree.
+    render(<IconText iconProps={false}>Star</IconText>);
+    const iconText = screen.getByText('Star').parentElement;
+    expect(iconText).toHaveClass('icon-text');
+    expect(iconText?.querySelector('.icon')).not.toBeInTheDocument();
+  });
+
+  it('skips a falsy iconProps entry in multiple icon mode but keeps its text', () => {
+    render(
+      <IconText
+        items={[
+          { iconProps: null, text: 'One' },
+          { iconProps: { name: 'fas fa-star' }, text: 'Two' },
+        ]}
+      />
+    );
+    // Only the truthy entry renders an icon; both texts still render.
+    expect(document.querySelectorAll('.icon')).toHaveLength(1);
+    expect(screen.getByText('One')).toBeInTheDocument();
+    expect(screen.getByText('Two')).toBeInTheDocument();
+  });
+});
+
 describe('IconText color text alias', () => {
   it('renders has-text-primary when only color is set', () => {
     const { container } = render(<IconText color="primary">Txt</IconText>);

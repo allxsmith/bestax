@@ -8,6 +8,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { resolvePortalContainer } from '../helpers/portal';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -205,18 +206,6 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       return null;
     }
 
-    const resolveContainer = (): HTMLElement => {
-      if (container) {
-        if (typeof container === 'string') {
-          return (
-            (document.querySelector(container) as HTMLElement) || document.body
-          );
-        }
-        return container;
-      }
-      return document.body;
-    };
-
     const setRef = (node: HTMLDivElement | null) => {
       toastRef.current = node;
       if (typeof ref === 'function') {
@@ -293,7 +282,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const toastContent = <div className={containerClasses}>{toastElement}</div>;
 
     if (typeof document !== 'undefined') {
-      return createPortal(toastContent, resolveContainer());
+      return createPortal(toastContent, resolvePortalContainer(container));
     }
 
     return null;

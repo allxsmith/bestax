@@ -103,6 +103,65 @@ describe('Control', () => {
     expect(screen.getByTestId('icon-right')).toHaveClass('is-right');
   });
 
+  it('renders a custom node for iconLeft/iconRight, wrapped in Icon', () => {
+    render(
+      <Control
+        iconLeft={<svg data-testid="custom-svg-left" />}
+        iconRight={<svg data-testid="custom-svg-right" />}
+        data-testid="control-root"
+      >
+        Icons
+      </Control>
+    );
+    expect(screen.getByTestId('custom-svg-left')).toBeInTheDocument();
+    expect(screen.getByTestId('custom-svg-right')).toBeInTheDocument();
+    expect(screen.getByTestId('control-root')).toHaveClass(
+      'has-icons-left',
+      'has-icons-right'
+    );
+  });
+
+  it('wraps a plain string iconLeft in Icon', () => {
+    render(<Control iconLeft="★">Icons</Control>);
+    expect(screen.getByTestId('icon-undefined')).toHaveTextContent('★');
+  });
+
+  it('spreads an iconLeft object using `children` (no `name`) instead of wrapping it', () => {
+    render(
+      <Control iconLeft={{ children: <svg data-testid="custom-svg-3" /> }}>
+        Icons
+      </Control>
+    );
+    expect(screen.getByTestId('custom-svg-3')).toBeInTheDocument();
+  });
+
+  it('treats a falsy conditional iconLeft/iconRight as absent (no empty icon span)', () => {
+    // The idiomatic `iconLeft={cond && <Node/>}` pattern yields `false` when off — it must
+    // not reserve the icon column or mount an empty icon span.
+    const { container } = render(
+      <Control iconLeft={false} iconRight={null} data-testid="control-root">
+        Icons
+      </Control>
+    );
+    const el = screen.getByTestId('control-root');
+    expect(el).not.toHaveClass('has-icons-left');
+    expect(el).not.toHaveClass('has-icons-right');
+    expect(
+      container.querySelector('[data-testid^="icon-"]')
+    ).not.toBeInTheDocument();
+  });
+
+  it('falls through to iconLeftName when iconLeft is falsy', () => {
+    render(
+      <Control iconLeft={false} iconLeftName="user" data-testid="control-root">
+        Icons
+      </Control>
+    );
+    const el = screen.getByTestId('control-root');
+    expect(el).toHaveClass('has-icons-left');
+    expect(screen.getByTestId('icon-user')).toBeInTheDocument();
+  });
+
   it('forwards ref to DOM element', () => {
     const ref = createRef<HTMLDivElement>();
     render(<Control ref={ref}>Ref Control</Control>);

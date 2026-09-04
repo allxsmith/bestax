@@ -1,3 +1,22 @@
+## [4.2.5](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.4...create-bestax@4.2.5) (2026-09-03)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** share the bulma range parser so RBC bumps comparator ranges too ([#629](https://github.com/allxsmith/bestax/issues/629)) ([491847c](https://github.com/allxsmith/bestax/commit/491847c2ab9f9a91f62241075f8942f240ad6b23))
+* **bulma-ui:** add keyboard and focus support to Dropdown and Navbar.Dropdown ([#628](https://github.com/allxsmith/bestax/issues/628)) ([381f22d](https://github.com/allxsmith/bestax/commit/381f22d6403b8a95d3e3ee6b4efabb495e1210aa))
+* **bulma-ui:** exclude undefined from Icon children and add node stories ([b607db1](https://github.com/allxsmith/bestax/commit/b607db1b5c4301ca17fa0351eaf7b5b7cd5032d7))
+* **bulma-ui:** stop emitting are-multiline from Tags, deprecate isMultiline ([#624](https://github.com/allxsmith/bestax/issues/624)) ([0f97eac](https://github.com/allxsmith/bestax/commit/0f97eac1123bf7be11756cfc222cd215ea2b6f68))
+* **bulma-ui:** treat falsy icon nodes as absent in Control and IconText ([c36f5b2](https://github.com/allxsmith/bestax/commit/c36f5b2728c1759c7b8cfdf5a847bf6af5114c09))
+* **create-bestax:** ship the custom-icon-node guidance to scaffolded apps ([e96b7b9](https://github.com/allxsmith/bestax/commit/e96b7b98acad80a77e9c6e316159e3032e2b0533)), closes [#597](https://github.com/allxsmith/bestax/issues/597)
+
+
+### Features
+
+* **bulma-ui:** add group size modifier to Buttons, Tags, Message ([90f6edb](https://github.com/allxsmith/bestax/commit/90f6edb7bd9ea8ac3365566164ee1ab4edc78eba)), closes [#620](https://github.com/allxsmith/bestax/issues/620)
+* **bulma-ui:** add touch/-only responsive viewports and grid display ([#627](https://github.com/allxsmith/bestax/issues/627)) ([8973adc](https://github.com/allxsmith/bestax/commit/8973adc1c41e9eef07c04e05c66bd187ad22833b))
+* **bulma-ui:** allow Icon to render a custom node via children ([48747f4](https://github.com/allxsmith/bestax/commit/48747f43377e7e355507e622465991cd4541a266)), closes [#619](https://github.com/allxsmith/bestax/issues/619)
+
 ## [4.2.4](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.3...create-bestax@4.2.4) (2026-09-02)
 
 

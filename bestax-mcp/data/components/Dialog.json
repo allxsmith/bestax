@@ -24,9 +24,13 @@
     {
       "title": "Non-cancelable Dialog",
       "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  return (\n    <Block>\n      <Button color=\"warning\" onClick={() => setShowDialog(true)}>\n        Show Required Action\n      </Button>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Required Action\"\n        message=\"You must complete this action to continue.\"\n        type=\"warning\"\n        canCancel={false}\n        showCancel={false}\n        confirmText=\"I Understand\"\n        onConfirm={() => setShowDialog(false)}\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Portal",
+      "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowDialog(true)}>Show Portaled Dialog</Button>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Rendered in document.body\"\n        message=\"This dialog is portaled, so it escapes any ancestor with overflow: hidden.\"\n        onConfirm={() => setShowDialog(false)}\n        showCancel={false}\n        portal\n      />\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"alertdialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` to indicate modal behavior\n- Focus is trapped within the dialog when open\n- Escape key closes the dialog (when `canCancel` is true)\n- Body scroll is prevented when dialog is open\n- Confirm/cancel buttons are keyboard accessible",
+  "accessibility": "- Uses `role=\"alertdialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer\n- `title` is wired up as `aria-labelledby` and `message` as `aria-describedby`\n- Focus moves to the confirm (or cancel, with `focusCancel`) button when opened\n- Escape key closes the dialog (when `canCancel` is true) — handled by the underlying [`Modal`](./modal.md), which routes it to the topmost open modal only\n- Tab and Shift+Tab cycle within the dialog while it is open — also from the underlying [`Modal`](./modal.md)\n- Body scroll is prevented when dialog is open, through the ref-counted lock shared with `Modal`, `Sidebar` and `Loading`\n- Confirm/cancel buttons are keyboard accessible",
   "related": ["Modal", "Toast"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-dialog",
   "summary": "The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.",
@@ -143,6 +147,15 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Custom icon to display.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "false",
+          "description": "Renders the dialog into a portal target instead of inline. Forwarded to the underlying `Modal`; see its `portal` prop for the accepted values.",
           "required": false,
           "inherited": false,
           "deprecated": false

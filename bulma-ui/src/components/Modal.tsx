@@ -1,4 +1,11 @@
-import React, { forwardRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+} from 'react';
+import { createPortal } from 'react-dom';
 import {
   classNames,
   usePrefixedClassNames,
@@ -11,10 +18,40 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { useScrollLock } from '../helpers/scrollLock';
+import { resolvePortalContainer } from '../helpers/portal';
+import { useIsHydrated } from '../helpers/useIsHydrated';
+
+/**
+ * Every currently active modal, in the order they opened. Only the last entry
+ * — the topmost modal — reacts to Escape and Tab, so one keypress can't
+ * dismiss a whole stack (e.g. a `Dialog` opened on top of a `Modal`).
+ */
+const activeModalStack: object[] = [];
+
+/**
+ * Controls the modal can hand focus to. Disabled and hidden controls are
+ * excluded because `focus()` on them is a no-op, which would leave focus
+ * outside the modal.
+ */
+const FOCUSABLE_SELECTOR =
+  'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]';
+
+/**
+ * The modal's tab stops, in document order. The selector alone is not the
+ * tabbable set — `[href]` and `button` match regardless of `tabindex`, so an
+ * `<a href tabIndex={-1}>` would otherwise be treated as a tab stop and let
+ * Tab escape the modal when it sorts last. `el.tabIndex` is the browser's own
+ * resolved value, so filtering on it drops every negative index (not just
+ * `-1`) without a second selector to keep in sync.
+ */
+const getTabbable = (node: HTMLElement): HTMLElement[] =>
+  Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    el => el.tabIndex >= 0
+  );
 
 /**
  * Props for the Modal component.
- * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the root `.modal` element.
  */
 export interface ModalProps
   extends
@@ -43,6 +80,29 @@ export interface ModalProps
   type?: 'card' | 'content';
   /** Modal body/content or compound components. */
   children?: React.ReactNode;
+  /**
+   * Close the modal when the Escape key is pressed (calls `onClose`). Only the
+   * topmost open modal responds, so Escape closes one layer at a time.
+   * @defaultValue true
+   */
+  closeOnEscape?: boolean;
+  /**
+   * Lock body scroll while the modal is active. Ref-counted and shared with
+   * `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does
+   * not unlock the page underneath one that is still open.
+   * @defaultValue true
+   */
+  lockScroll?: boolean;
+  /**
+   * Renders the modal into a portal target instead of inline, so it isn't
+   * clipped by an ancestor with `overflow: hidden`, `filter` or `transform`.
+   * `true` portals to `document.body`; a string is used as a
+   * `document.querySelector` selector; an element is used directly. Renders
+   * inline on the server and while hydrating, moving into the portal once the
+   * client takes over, so hydration matches.
+   * @defaultValue false
+   */
+  portal?: boolean | string | HTMLElement;
 }
 
 /**
@@ -275,7 +335,6 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @function
  * @param {ModalProps} props - Props for the Modal component.
- * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the root `.modal` element.
  * @returns {JSX.Element} The rendered modal.
  *
  * @example
@@ -311,6 +370,11 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     modalCardFoot,
     type,
     children,
+    closeOnEscape = true,
+    lockScroll = true,
+    portal = false,
+    role,
+    'aria-modal': ariaModalProp,
     ...props
   },
   ref
@@ -324,6 +388,126 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
   // Support both active and isActive props
   const isModalActive = active ?? isActive ?? false;
+
+  const modalRootRef = useRef<HTMLDivElement>(null);
+
+  // The forwarded ref and the internal one must both see the node: focus
+  // management, the scroll lock and the topmost-modal check all read
+  // `modalRootRef`, while consumers expect their own ref to resolve. Same
+  // pattern as `Dialog` (`Dialog.tsx:145`).
+  const combinedRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
+        node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    },
+    [ref]
+  );
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const stackTokenRef = useRef<object>({});
+  const generatedTitleId = useId();
+  // A portal has no server-rendered counterpart, so the server render and the
+  // hydrating render have to stay inline and only move into the portal once
+  // we're past hydration.
+  const onClient = useIsHydrated();
+  // Moving into the portal remounts the modal's subtree, so any effect holding
+  // a DOM node from before the move is holding a detached one. Effects that
+  // touch the modal's nodes key on this so they re-run against the new tree.
+  const isPortaled = Boolean(portal) && onClient;
+
+  useScrollLock(isModalActive && lockScroll);
+
+  // Record open order so keyboard handling only applies to the topmost modal.
+  useEffect(() => {
+    if (!isModalActive) return undefined;
+
+    const token = stackTokenRef.current;
+    activeModalStack.push(token);
+    return () => {
+      const index = activeModalStack.indexOf(token);
+      if (index !== -1) activeModalStack.splice(index, 1);
+    };
+  }, [isModalActive]);
+
+  // Escape closes; Tab cycles inside the modal. Both only for the topmost one.
+  useEffect(() => {
+    if (!isModalActive) return undefined;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const node = modalRootRef.current;
+      if (
+        activeModalStack[activeModalStack.length - 1] !== stackTokenRef.current
+      ) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        if (closeOnEscape) onClose?.();
+        return;
+      }
+      if (e.key !== 'Tab' || !node) return;
+
+      // Keep Tab within the modal — `aria-modal` hides the rest of the page
+      // from assistive technology, so the keyboard order has to agree.
+      const focusable = getTabbable(node);
+      const activeElement = document.activeElement;
+      if (focusable.length === 0) {
+        e.preventDefault();
+        node.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const outside = !node.contains(activeElement);
+      if (e.shiftKey) {
+        if (outside || activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (outside || activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isModalActive, closeOnEscape, onClose]);
+
+  // Move focus into the modal on open, restore it on close
+  useEffect(() => {
+    if (!isModalActive) return undefined;
+
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    const node = modalRootRef.current;
+    const focusable = node ? getTabbable(node)[0] : undefined;
+    (focusable ?? node)?.focus();
+
+    return () => {
+      // Only hand focus back if this modal still owns it: closing a background
+      // modal must not pull focus out of one that is still open on top. A
+      // removed subtree leaves focus on <body>, which still counts as ours.
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        activeElement !== document.body &&
+        !node?.contains(activeElement)
+      ) {
+        return;
+      }
+      previouslyFocusedRef.current?.focus?.();
+    };
+    // `isPortaled` flips once when a hydrated portal modal moves out of the
+    // inline tree; re-running rebinds focus onto the remounted nodes. The
+    // cleanup above restores focus to the pre-open element first (the detached
+    // subtree has left focus on <body>), so the re-run re-records the same
+    // element and restore-on-close still lands in the right place.
+  }, [isModalActive, isPortaled]);
 
   // Check if children contain compound components
   const hasCompoundComponents = React.Children.toArray(children).some(
@@ -343,84 +527,129 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
   const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
+  const resolvedRole = role ?? (isModalActive ? 'dialog' : undefined);
+  const resolvedAriaModal =
+    ariaModalProp ??
+    (isModalActive && resolvedRole !== 'presentation' ? 'true' : undefined);
+  // A dialog needs an accessible name: the legacy card title is wired up
+  // automatically, compound users pass their own aria-label/aria-labelledby
+  // (both arrive in `rest`, which is spread last and so wins).
+  const titleId = modalCardTitle ? generatedTitleId : undefined;
+
+  let modalElement: React.ReactElement;
+
   // If using compound components, render children as-is
   if (hasCompoundComponents) {
-    return (
-      <div ref={ref} className={modalClasses} {...rest} data-testid="modal">
+    modalElement = (
+      <div
+        className={modalClasses}
+        ref={combinedRef}
+        role={resolvedRole}
+        aria-modal={resolvedAriaModal}
+        tabIndex={-1}
+        {...rest}
+        data-testid="modal"
+      >
         {children}
+      </div>
+    );
+  } else {
+    // Legacy API: EXPLICIT type wins; fallback to auto detection if not provided
+    let isModalCard: boolean;
+    if (type === 'card') isModalCard = true;
+    else if (type === 'content') isModalCard = false;
+    else isModalCard = !!modalCardTitle || !!modalCardFoot;
+
+    modalElement = (
+      <div
+        className={modalClasses}
+        ref={combinedRef}
+        role={resolvedRole}
+        aria-modal={resolvedAriaModal}
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        {...rest}
+        data-testid="modal"
+      >
+        <div
+          className={prefixedClassNames(classPrefix, 'modal-background')}
+          onClick={onClose}
+          data-testid="modal-background"
+        />
+        {isModalCard ? (
+          <div className={prefixedClassNames(classPrefix, 'modal-card')}>
+            {modalCardTitle && (
+              <header
+                className={prefixedClassNames(classPrefix, 'modal-card-head')}
+              >
+                <p
+                  id={titleId}
+                  className={prefixedClassNames(
+                    classPrefix,
+                    'modal-card-title'
+                  )}
+                >
+                  {modalCardTitle}
+                </p>
+                {onClose && (
+                  <button
+                    className={deleteClass}
+                    aria-label="close"
+                    onClick={onClose}
+                    type="button"
+                    data-testid="modal-close"
+                  />
+                )}
+              </header>
+            )}
+            <section
+              className={prefixedClassNames(classPrefix, 'modal-card-body')}
+              data-testid="modal-body"
+            >
+              {children}
+            </section>
+            {modalCardFoot && (
+              <footer
+                className={prefixedClassNames(classPrefix, 'modal-card-foot')}
+              >
+                {modalCardFoot}
+              </footer>
+            )}
+          </div>
+        ) : (
+          <div
+            className={prefixedClassNames(classPrefix, 'modal-content')}
+            data-testid="modal-content"
+          >
+            {children}
+          </div>
+        )}
+        {/* Show floating close button for modal-content, or for modal-card when no header */}
+        {(!isModalCard || (!modalCardTitle && onClose)) && onClose && (
+          <button
+            className={prefixedClassNames(
+              classPrefix,
+              'modal-close',
+              'is-large'
+            )}
+            aria-label="close"
+            onClick={onClose}
+            type="button"
+            data-testid="modal-close-float"
+          />
+        )}
       </div>
     );
   }
 
-  // Legacy API: EXPLICIT type wins; fallback to auto detection if not provided
-  let isModalCard: boolean;
-  if (type === 'card') isModalCard = true;
-  else if (type === 'content') isModalCard = false;
-  else isModalCard = !!modalCardTitle || !!modalCardFoot;
+  if (isPortaled) {
+    const target = resolvePortalContainer(
+      typeof portal === 'boolean' ? undefined : portal
+    );
+    return createPortal(modalElement, target);
+  }
 
-  return (
-    <div ref={ref} className={modalClasses} {...rest} data-testid="modal">
-      <div
-        className={prefixedClassNames(classPrefix, 'modal-background')}
-        onClick={onClose}
-        data-testid="modal-background"
-      />
-      {isModalCard ? (
-        <div className={prefixedClassNames(classPrefix, 'modal-card')}>
-          {modalCardTitle && (
-            <header
-              className={prefixedClassNames(classPrefix, 'modal-card-head')}
-            >
-              <p
-                className={prefixedClassNames(classPrefix, 'modal-card-title')}
-              >
-                {modalCardTitle}
-              </p>
-              {onClose && (
-                <button
-                  className={deleteClass}
-                  aria-label="close"
-                  onClick={onClose}
-                  type="button"
-                  data-testid="modal-close"
-                />
-              )}
-            </header>
-          )}
-          <section
-            className={prefixedClassNames(classPrefix, 'modal-card-body')}
-            data-testid="modal-body"
-          >
-            {children}
-          </section>
-          {modalCardFoot && (
-            <footer
-              className={prefixedClassNames(classPrefix, 'modal-card-foot')}
-            >
-              {modalCardFoot}
-            </footer>
-          )}
-        </div>
-      ) : (
-        <div
-          className={prefixedClassNames(classPrefix, 'modal-content')}
-          data-testid="modal-content"
-        >
-          {children}
-        </div>
-      )}
-      {/* Show floating close button for modal-content, or for modal-card when no header */}
-      {(!isModalCard || (!modalCardTitle && onClose)) && onClose && (
-        <button
-          className={prefixedClassNames(classPrefix, 'modal-close', 'is-large')}
-          aria-label="close"
-          onClick={onClose}
-          type="button"
-          data-testid="modal-close-float"
-        />
-      )}
-    </div>
-  );
+  return modalElement;
 });
 
 export const Modal = withSubComponents(

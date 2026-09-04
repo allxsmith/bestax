@@ -664,6 +664,19 @@ describe('Toast', () => {
       expect(containerEl?.parentElement).toBe(document.body);
     });
 
+    it('falls back to document.body for an empty string container', () => {
+      // document.querySelector('') throws, so '' must be treated as "no
+      // container" rather than passed through to the selector.
+      expect(() =>
+        render(<Toast message="Empty selector" duration={0} container="" />)
+      ).not.toThrow();
+
+      const toastEl = screen.getByRole('alert');
+      expect(toastEl.closest('.toast-container')?.parentElement).toBe(
+        document.body
+      );
+    });
+
     it('mounts into an HTMLElement container', () => {
       const target = document.createElement('div');
       document.body.appendChild(target);

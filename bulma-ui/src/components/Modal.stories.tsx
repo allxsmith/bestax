@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Modal, ModalProps } from './Modal';
+import { Box } from '../elements/Box';
 
 const declarationLatin = `Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.`;
 
@@ -155,6 +156,33 @@ const CompoundModalContentComponent = () => {
 
 export const CompoundModalContent: StoryObj<ModalProps> = {
   render: () => <CompoundModalContentComponent />,
+};
+
+// Portal — renders into document.body instead of inline
+const PortalModalComponent = () => {
+  const [open, setOpen] = useState(true);
+  return (
+    <Box className="is-clipped">
+      <p>
+        This wrapper clips overflowing content (Bulma&apos;s{' '}
+        <code>is-clipped</code>) — a non-portaled modal would be confined here,
+        but the portaled one below escapes to <code>document.body</code>.
+      </p>
+      <button onClick={() => setOpen(true)}>Show Portaled Modal</button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        modalCardTitle="Rendered in document.body"
+        portal
+      >
+        {declarationLatin}
+      </Modal>
+    </Box>
+  );
+};
+
+export const Portal: StoryObj<ModalProps> = {
+  render: () => <PortalModalComponent />,
 };
 
 // Forwarded ref — the root `.modal` div, used here for focus management:

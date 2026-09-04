@@ -200,6 +200,31 @@ function example() {
 
 ---
 
+### Portal
+
+Set `portal` to render the dialog into `document.body` instead of inline — it's forwarded straight to the underlying [`Modal`](./modal.md), which renders inline on the server and during hydration, then moves into the portal once the client takes over so hydration matches.
+
+```tsx live
+function example() {
+  const [showDialog, setShowDialog] = useState(false);
+  return (
+    <Block>
+      <Button onClick={() => setShowDialog(true)}>Show Portaled Dialog</Button>
+      <Dialog
+        isOpen={showDialog}
+        title="Rendered in document.body"
+        message="This dialog is portaled, so it escapes any ancestor with overflow: hidden."
+        onConfirm={() => setShowDialog(false)}
+        showCancel={false}
+        portal
+      />
+    </Block>
+  );
+}
+```
+
+---
+
 ## Programmatic API
 
 For showing dialogs from anywhere in your app, use the programmatic API.
@@ -319,10 +344,12 @@ function example() {
 ## Accessibility
 
 - Uses `role="alertdialog"` for proper screen reader announcement
-- Has `aria-modal="true"` to indicate modal behavior
-- Focus is trapped within the dialog when open
-- Escape key closes the dialog (when `canCancel` is true)
-- Body scroll is prevented when dialog is open
+- Has `aria-modal="true"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer
+- `title` is wired up as `aria-labelledby` and `message` as `aria-describedby`
+- Focus moves to the confirm (or cancel, with `focusCancel`) button when opened
+- Escape key closes the dialog (when `canCancel` is true) — handled by the underlying [`Modal`](./modal.md), which routes it to the topmost open modal only
+- Tab and Shift+Tab cycle within the dialog while it is open — also from the underlying [`Modal`](./modal.md)
+- Body scroll is prevented when dialog is open, through the ref-counted lock shared with `Modal`, `Sidebar` and `Loading`
 - Confirm/cancel buttons are keyboard accessible
 
 ---
@@ -348,23 +375,24 @@ Use the programmatic `dialog.confirm()` with async/await to create clean, sequen
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                | Default     | Description                                                       |
-| ------------- | ------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------- |
-| `isOpen`      | `boolean`                                                           | —           | Whether the dialog is open (required).                            |
-| `title`       | `string`                                                            | —           | Dialog title.                                                     |
-| `message`     | `string` \| `React.ReactNode`                                       | —           | Dialog message/content (required).                                |
-| `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | The type/color of the dialog. Default: 'default'.                 |
-| `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                           |
-| `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                        |
-| `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.                          |
-| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed.              |
-| `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button. Default: true for confirm dialogs. |
-| `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.               |
-| `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.           |
-| `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display.                                           |
-| `className`   | `string`                                                            | —           | Additional CSS classes.                                           |
-| `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                              |
-| `...`         | All standard `<div>` attributes and Bulma helper props              | —           | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+| Prop          | Type                                                                | Default     | Description                                                                                                                                    |
+| ------------- | ------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isOpen`      | `boolean`                                                           | —           | Whether the dialog is open (required).                                                                                                         |
+| `title`       | `string`                                                            | —           | Dialog title.                                                                                                                                  |
+| `message`     | `string` \| `React.ReactNode`                                       | —           | Dialog message/content (required).                                                                                                             |
+| `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | The type/color of the dialog. Default: 'default'.                                                                                              |
+| `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                                                                                                        |
+| `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                                                                                                     |
+| `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.                                                                                                       |
+| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed.                                                                                           |
+| `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button. Default: true for confirm dialogs.                                                                              |
+| `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.                                                                                            |
+| `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.                                                                                        |
+| `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display.                                                                                                                        |
+| `portal`      | `boolean` \| `string` \| `HTMLElement`                              | `false`     | Renders the dialog into a portal target instead of inline. Forwarded to the underlying `Modal`; see its `portal` prop for the accepted values. |
+| `className`   | `string`                                                            | —           | Additional CSS classes.                                                                                                                        |
+| `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                                                                                                           |
+| `...`         | All standard `<div>` attributes and Bulma helper props              | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                              |
 
 <!-- /bestax:generated props -->
 

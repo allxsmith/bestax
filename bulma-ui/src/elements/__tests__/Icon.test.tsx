@@ -506,4 +506,67 @@ describe('Icon', () => {
       expect(span).not.toHaveClass('icon');
     });
   });
+
+  describe('Custom node via children', () => {
+    it('renders an inline SVG in place of the class-based glyph', () => {
+      render(
+        <Icon ariaLabel="Custom icon">
+          <svg data-testid="custom-svg" viewBox="0 0 16 16" />
+        </Icon>
+      );
+      const span = screen.getByLabelText('Custom icon');
+      expect(span).toHaveClass('icon');
+      expect(screen.getByTestId('custom-svg')).toBeInTheDocument();
+      expect(span.querySelector('i')).not.toBeInTheDocument();
+    });
+
+    it('keeps size, textColor and containerClassName behaviour identical to the name path', () => {
+      render(
+        <Icon
+          size="large"
+          textColor="primary"
+          containerClassName="panel-icon"
+          ariaLabel="Custom icon"
+        >
+          <svg data-testid="custom-svg" />
+        </Icon>
+      );
+      const span = screen.getByLabelText('Custom icon');
+      expect(span).toHaveClass('panel-icon');
+      expect(span).toHaveClass('has-text-primary');
+      expect(span).not.toHaveClass('icon');
+    });
+
+    it('ignores library/variant/features when children is used', () => {
+      const { container } = render(
+        <Icon library="mdi" variant="solid" features="fa-spin" ariaLabel="X">
+          <span data-testid="node">Node</span>
+        </Icon>
+      );
+      expect(screen.getByTestId('node')).toBeInTheDocument();
+      expect(container.querySelector('i')).not.toBeInTheDocument();
+      expect(container.querySelector('ion-icon')).not.toBeInTheDocument();
+    });
+
+    it('renders a bare container, not an `fa-undefined` glyph, when neither name nor children is given', () => {
+      // `IconChildrenProps['children']` excludes `undefined`, so the type already rejects
+      // `children={undefined}` and the neither-prop case. A plain-JS caller can still get
+      // here, and used to render `<i class="fas fa-undefined">`.
+      const { container } = render(
+        // @ts-expect-error children must not be undefined
+        <Icon ariaLabel="Empty" children={undefined} />
+      );
+      const span = screen.getByLabelText('Empty');
+      expect(span).toHaveClass('icon');
+      expect(container.querySelector('i')).not.toBeInTheDocument();
+    });
+
+    it('still renders a falsy node inside the container', () => {
+      // `null`/`false` are legal children — the caller asked for the container and its
+      // helper classes, so they are kept even though nothing paints inside.
+      const { container } = render(<Icon ariaLabel="Empty node">{null}</Icon>);
+      expect(screen.getByLabelText('Empty node')).toHaveClass('icon');
+      expect(container.querySelector('i')).not.toBeInTheDocument();
+    });
+  });
 });
