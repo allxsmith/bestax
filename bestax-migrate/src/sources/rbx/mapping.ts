@@ -153,6 +153,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Button',
     props: {
       as: AS_OK,
+      innerRef: { rename: 'ref' },
       color: {},
       size: {},
       outlined: { booleanToProp: { name: 'isOutlined' } },
@@ -519,9 +520,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       managed: {
         todo: 'bestax `Dropdown` is uncontrolled by default; use `active` + `onActiveChange` for controlled behaviour',
       },
-      innerRef: {
-        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
-      },
+      innerRef: { rename: 'ref' },
     },
     subs: {
       Container: { status: 'mapped', special: 'dropdown-container' },
@@ -638,9 +637,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         todo: 'bestax `Modal` renders inline where you place it rather than portalling into a document at all; drop this prop, and see the advisory the codemod adds on every Modal',
       },
       containerClassName: { rename: 'className' },
-      innerRef: {
-        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
-      },
+      innerRef: { rename: 'ref' },
     },
     subs: {
       Background: { status: 'mapped', target: 'Modal.Background' },
@@ -681,9 +678,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         todo: 'bestax `Navbar` is uncontrolled; drop `managed`',
       },
       document: { todo: 'bestax `Navbar` has no `document` prop; drop it' },
-      innerRef: {
-        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
-      },
+      innerRef: { rename: 'ref' },
     },
     subs: {
       Brand: { status: 'mapped', target: 'Navbar.Brand' },

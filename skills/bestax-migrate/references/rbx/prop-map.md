@@ -114,3 +114,16 @@ wrong:
 - Several of the accepted props are **narrow literal unions**, so `as={SomeComponent}` still
   fails to typecheck even where `as` is allowed — which is deliberate: a visible type error
   beats a silent rewrite.
+
+## Refs
+
+rbx reaches a component's rendered element with `innerRef`. bestax uses a plain forwarded
+`ref` on the roots that support one, so the codemod renames the prop:
+
+| rbx                                                   | bestax-bulma | note                                |
+| ----------------------------------------------------- | ------------ | ----------------------------------- |
+| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element |
+
+rbx puts `innerRef` on every component via `forwardRefAs`, but only these four bestax roots
+forward one today, so only these four are renamed. On any other component the codemod leaves
+`innerRef` alone — move the ref onto a wrapping element you control.

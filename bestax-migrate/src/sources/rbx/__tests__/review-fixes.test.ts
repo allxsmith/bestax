@@ -695,15 +695,28 @@ describe('rbx types tooltip and badge as `number | string`', () => {
 });
 
 describe('the innerRef remediation is achievable', () => {
-  it('does not tell users to rename innerRef to ref', () => {
-    // bestax Dropdown/Modal/Navbar are plain function components: following
-    // "rename it to ref" just replaces a TODO with a type error.
-    const { todos } = migrate(
-      'import { Dropdown } from "rbx";\nexport const A = (r: any) => <Dropdown innerRef={r}>x</Dropdown>;'
+  // These four roots forward a ref as of bulma-ui #622, so rbx's escape hatch
+  // maps straight across instead of being TODO'd away. The guidance used to
+  // say the opposite, and following it would have deleted a working ref.
+  it.each(['Button', 'Dropdown', 'Modal', 'Navbar'])(
+    'renames innerRef to ref on %s',
+    name => {
+      const { output, todos } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} innerRef={r}>x</${name}>;`
+      );
+      expect(output).toMatch(/<\w+ ref=\{r\}/);
+      expect(output).not.toMatch(/innerRef/);
+      expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
+    }
+  );
+
+  it('leaves innerRef alone on a root that forwards no ref', () => {
+    // Card is not one of the four; renaming here would be a type error, so the
+    // codemod must not touch it.
+    const { output } = migrate(
+      'import { Card } from "rbx";\nexport const A = (r: any) => <Card innerRef={r}>x</Card>;'
     );
-    const msg = todos.find(t => t.rule === 'prop:innerRef')?.message ?? '';
-    expect(msg).toMatch(/forwards no ref/);
-    expect(msg).not.toMatch(/rename .*to `ref`/);
+    expect(output).toMatch(/innerRef=\{r\}/);
   });
 });
 
