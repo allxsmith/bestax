@@ -173,18 +173,19 @@
           "required": false,
           "inherited": false,
           "deprecated": false
-        },
+        }
+      ],
+      "extraProps": [
         {
           "name": "ref",
           "type": "React.Ref<HTMLDivElement>",
           "default": null,
-          "description": "Forwarded to the underlying element.",
+          "description": "Ref forwarded to the root `.modal` element.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "extraProps": [],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
     },

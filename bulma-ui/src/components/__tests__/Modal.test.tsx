@@ -375,6 +375,33 @@ describe('Modal', () => {
       unmount();
       expect(seen[seen.length - 1]).toBeNull();
     });
+
+    // The cleanup contract is honored identically on React 18 and 19 (the CI
+    // matrix), so this does not branch on React.version.
+    it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
+      const calls: (HTMLDivElement | null)[] = [];
+      const cleanup = jest.fn();
+      const callbackRef = (node: HTMLDivElement | null) => {
+        calls.push(node);
+        if (!node) return undefined;
+        return () => {
+          cleanup();
+        };
+      };
+
+      const { unmount } = render(
+        <Modal active ref={callbackRef}>
+          {latin}
+        </Modal>
+      );
+      expect(calls).toEqual([screen.getByTestId('modal')]);
+      expect(cleanup).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(calls).toHaveLength(1);
+    });
   });
 
   describe('Escape key', () => {

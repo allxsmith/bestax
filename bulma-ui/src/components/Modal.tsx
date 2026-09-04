@@ -52,6 +52,7 @@ const getTabbable = (node: HTMLElement): HTMLElement[] =>
 
 /**
  * Props for the Modal component.
+ * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the root `.modal` element.
  */
 export interface ModalProps
   extends
@@ -391,16 +392,36 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
   const modalRootRef = useRef<HTMLDivElement>(null);
 
+  // Cleanup returned by a consumer's callback ref on attach, held until detach.
+  const consumerCleanupRef = useRef<(() => void) | null>(null);
+
   // The forwarded ref and the internal one must both see the node: focus
   // management, the scroll lock and the topmost-modal check all read
-  // `modalRootRef`, while consumers expect their own ref to resolve. Same
-  // pattern as `Dialog` (`Dialog.tsx:145`).
+  // `modalRootRef`, while consumers expect their own ref to resolve.
   const combinedRef = useCallback(
     (node: HTMLDivElement | null) => {
       (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
         node;
       if (typeof ref === 'function') {
-        ref(node);
+        // React 19 lets a callback ref return a cleanup function and detaches
+        // by running it instead of calling the ref with `null`; React 18
+        // discards the return value entirely. Returning it from here would be
+        // a React-19-only contract, so instead we hold the cleanup and run it
+        // ourselves on detach — a consumer's cleanup ref then behaves the same
+        // on both majors of the CI matrix. Same shape as `Dropdown`.
+        if (node === null) {
+          const consumerCleanup = consumerCleanupRef.current;
+          consumerCleanupRef.current = null;
+          if (consumerCleanup) {
+            consumerCleanup();
+          } else {
+            ref(null);
+          }
+          return;
+        }
+        const cleanup: unknown = ref(node);
+        consumerCleanupRef.current =
+          typeof cleanup === 'function' ? (cleanup as () => void) : null;
       } else if (ref) {
         (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
       }
