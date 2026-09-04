@@ -287,6 +287,8 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
   }
 );
 
+NavbarBurger.displayName = 'NavbarBurger';
+
 /**
  * Props for the NavbarMenu component.
  */
@@ -519,6 +521,8 @@ export const NavbarLink = forwardRef<
   );
 });
 
+NavbarLink.displayName = 'NavbarLink';
+
 /**
  * Props for the NavbarDropdown component.
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the dropdown container element.
@@ -605,6 +609,8 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
     );
   }
 );
+
+NavbarDropdown.displayName = 'NavbarDropdown';
 
 /**
  * Props for the NavbarDropdownMenu component.

@@ -350,6 +350,7 @@ const ForwardedRefNavbar = () => {
   const linkRef = useRef<HTMLAnchorElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | null>(null);
+  const [burgerLabel, setBurgerLabel] = useState<string | null>(null);
 
   useEffect(() => {
     setHeight(navRef.current?.getBoundingClientRect().height ?? null);
@@ -382,9 +383,19 @@ const ForwardedRefNavbar = () => {
           Nav height from the forwarded ref:{' '}
           {height === null ? '—' : `${Math.round(height)}px`}
         </p>
+        {/* Bulma hides `.navbar-burger` above the desktop breakpoint, so
+            focusing it would be a no-op at this story's default width. Read
+            the node instead — that demonstrates the ref at any width. */}
+        <p>Burger aria-label from its forwarded ref: {burgerLabel ?? '—'}</p>
         <Buttons mt="3">
-          <Button onClick={() => burgerRef.current?.focus()}>
-            Focus the burger
+          <Button
+            onClick={() =>
+              setBurgerLabel(
+                burgerRef.current?.getAttribute('aria-label') ?? null
+              )
+            }
+          >
+            Read the burger from its ref
           </Button>
           <Button onClick={() => linkRef.current?.focus()}>
             Focus the dropdown link

@@ -63,4 +63,6 @@ export const LinkButton = forwardRef<
   );
 });
 
+LinkButton.displayName = 'LinkButton';
+
 export default LinkButton;
