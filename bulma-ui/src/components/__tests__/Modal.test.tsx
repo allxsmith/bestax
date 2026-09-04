@@ -991,5 +991,44 @@ describe('Modal', () => {
       errorSpy.mockRestore();
       document.body.removeChild(container);
     });
+
+    it('re-points a forwarded ref at the portaled node after the hydration move', async () => {
+      // The move remounts the subtree, so the forwarded ref has to detach from
+      // the inline node and reattach to the portaled one; a consumer holding
+      // the first node would otherwise be pointing at a detached element.
+      const seen: (HTMLDivElement | null)[] = [];
+      const modal = (
+        <Modal
+          active
+          portal
+          ref={(node: HTMLDivElement | null) => {
+            seen.push(node);
+          }}
+        >
+          Hydrated modal
+        </Modal>
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(modal);
+      document.body.appendChild(container);
+
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let unmountRoot = () => {};
+      await act(async () => {
+        const root = hydrateRoot(container, modal);
+        unmountRoot = () => root.unmount();
+      });
+
+      const portaled = document.body.querySelector('[data-testid="modal"]');
+      expect(portaled).not.toBeNull();
+      expect(seen[seen.length - 1]).toBe(portaled);
+
+      await act(async () => unmountRoot());
+      expect(seen[seen.length - 1]).toBeNull();
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    });
   });
 });
