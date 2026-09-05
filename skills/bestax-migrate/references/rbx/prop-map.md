@@ -134,8 +134,9 @@ the name `Navbar.Dropdown` for the outer container, which is what `<Navbar.Item 
 becomes, and that one does forward a ref. A plain `<Navbar.Item>` does not, so the rename is
 conditional on the `dropdown` prop.
 
-rbx puts `innerRef` on every component via `forwardRefAs`; the codemod renames it only on the
-eight entries above. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
+An existing `ref` needs no migration: rbx components accept one, bestax's do on the roots
+listed above, and the codemod passes `ref` through untouched. The renames above are for
+`innerRef`, and the codemod applies them only on those eight entries. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
 element you control.
 
 Note the gap that leaves: other bestax components do forward a ref (the form controls,
