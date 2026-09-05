@@ -629,7 +629,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       onClose: {},
       closeOnEsc: { rename: 'closeOnEscape' },
       closeOnBlur: {
-        todo: "bestax `Modal` has no built-in background-click close; wire it through `Modal.Background`'s onClick and `onClose`",
+        todo: 'bestax `Modal` closes on background click in its legacy form, where it renders its own background wired to `onClose`; a `Modal.Content` or `Modal.Card` child selects the compound form, which renders only the children you wrote — there, add `<Modal.Background onClick={onClose} />`, or drop the prop if you passed false',
       },
       document: {
         todo: 'bestax `Modal` portals via `portal`, but that takes `true`, a selector or an element — not a `Document`. Pass an element from the document you targeted, or drop the prop if you were passing the default document',
