@@ -27,6 +27,7 @@ import {
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import {
   collectBoundNames,
+  makeAliasRegistry,
   makeReserve,
   nameOf,
   prefersTabs,
@@ -189,75 +190,7 @@ export default function transform(
   // The scope each binding was collected in, so a reference can be checked
   // against the binding it actually resolves to rather than matched by name.
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
-  // Aliases are keyed by the AST node that owns the declaring scope, not by
-  // bare name. Two functions can each destructure `Header` from a different
-  // component; a name-keyed map let the second overwrite the first, and both
-  // declarations were then pruned while both `<Header…>` references were left
-  // resolving to nothing.
-  //
-  // Resolution walks the reference's ANCESTORS rather than consulting
-  // `scope.lookup`, because by the time references are rewritten the alias
-  // pass has already pruned the declaration -- so the binding is gone from
-  // the scope table, and `path.scope` objects are not identity-stable across
-  // traversals either.
-  const aliasesByOwner = new Map<unknown, Map<string, string[]>>();
-  const ownersFor = (name: string): unknown[] => {
-    const owners: unknown[] = [];
-    for (const [owner, perScope] of aliasesByOwner) {
-      if (perScope.has(name)) owners.push(owner);
-    }
-    return owners;
-  };
-  const aliasAt = (name: string, at?: unknown): string[] | undefined => {
-    const owners = ownersFor(name);
-    if (owners.length === 0) return undefined;
-    // Without a reference location there is nothing to walk, so the only
-    // owner is the best answer available. WITH one, always walk: an unrelated
-    // `Header` parameter in another function must not resolve to the alias
-    // merely because the alias is the only one by that name. A single-owner
-    // shortcut here rewrote such a parameter to `{ Header: Card.Header }`,
-    // which is not even valid syntax.
-    if (at === undefined) {
-      return owners.length === 1
-        ? aliasesByOwner.get(owners[0])!.get(name)
-        : undefined;
-    }
-    type Anc = { parent?: Anc; node?: unknown };
-    let cursor = at as Anc | undefined;
-    while (cursor) {
-      if (cursor.node !== undefined) {
-        const hit = aliasesByOwner.get(cursor.node)?.get(name);
-        if (hit) {
-          // The walk finds the nearest OWNER, but a binding can intervene
-          // between the reference and that owner: `function F(Header)` under
-          // a module-level `const { Header } = Card` shadows the alias, and
-          // resolving through it rewrote the parameter itself to
-          // `F(Card.Header)`. If the scope table still binds the name
-          // somewhere other than the owner, that nearer binding wins. (After
-          // the alias declaration is pruned the lookup returns nothing for
-          // the alias itself, which is the case this must keep allowing.)
-          const declaring = (
-            at as {
-              scope?: {
-                lookup(n: string): { path?: { node?: unknown } } | null;
-              };
-            }
-          ).scope?.lookup(name)?.path?.node;
-          if (
-            declaring !== undefined &&
-            declaring !== null &&
-            declaring !== cursor.node
-          ) {
-            return undefined;
-          }
-          return hit;
-        }
-      }
-      cursor = cursor.parent;
-    }
-    return undefined;
-  };
-  const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
+  const { register: registerAlias, aliasAt, anyAlias } = makeAliasRegistry();
 
   // ---- 1b. Resolve `const { Input, Field: F } = Form` destructuring -----
   root.find(j.VariableDeclarator).forEach(path => {
@@ -282,13 +215,8 @@ export default function transform(
       ) {
         const owner = (path.scope as unknown as { path?: { node?: unknown } })
           ?.path?.node;
-        let perScope = aliasesByOwner.get(owner);
-        if (!perScope) {
-          perScope = new Map<string, string[]>();
-          aliasesByOwner.set(owner, perScope);
-        }
         const target = [...basePath, prop.key.name];
-        perScope.set(prop.value.name, target);
+        registerAlias(owner, prop.value.name, target);
         aliases.set(prop.value.name, target);
         // Pruning the declaration is only safe if every use of the alias will
         // actually be rewritten. For a name the table cannot map, the JSX is

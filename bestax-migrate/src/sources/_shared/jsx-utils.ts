@@ -123,6 +123,51 @@ export function literalValueOf(attr: any): LiteralValue {
   return { kind: 'expression' };
 }
 
+/**
+ * The literal value of an expression node (as opposed to `literalValueOf`,
+ * which reads a JSX attribute): a string, number or boolean literal's value,
+ * otherwise undefined.
+ */
+export function literalOf(node: any): string | number | boolean | undefined {
+  if (!node) return undefined;
+  if (node.type === 'StringLiteral') return node.value;
+  if (node.type === 'NumericLiteral') return node.value;
+  if (node.type === 'BooleanLiteral') return node.value;
+  return undefined;
+}
+
+/**
+ * Reuse a value node as a JSX attribute value: a string literal can sit bare
+ * (`size="one-third"`), anything else needs an expression container.
+ */
+export function attrValue(j: JSCodeshift, node: any): any {
+  return node?.type === 'StringLiteral'
+    ? j.stringLiteral(node.value)
+    : j.jsxExpressionContainer(node);
+}
+
+/** The static key of an object property (`{ tablet: … }`, `{ 'inline-block': … }`). */
+export function propKey(prop: any): string | undefined {
+  const key = prop.key?.name ?? prop.key?.value;
+  return typeof key === 'string' ? key : undefined;
+}
+
+/** The ObjectExpression inside a JSX attribute value, or null. */
+export function objectExpressionOf(value: any): any | null {
+  return value?.type === 'JSXExpressionContainer' &&
+    value.expression?.type === 'ObjectExpression'
+    ? value.expression
+    : null;
+}
+
+/** The ArrayExpression inside a JSX attribute value, or null. */
+export function arrayExpressionOf(value: any): any | null {
+  return value?.type === 'JSXExpressionContainer' &&
+    value.expression?.type === 'ArrayExpression'
+    ? value.expression
+    : null;
+}
+
 export type Booleanish = 'truthy' | 'falsy' | 'expression';
 
 /**

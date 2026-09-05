@@ -27,7 +27,11 @@ import {
   addAttr,
   addTodo,
   attributesOf,
+  attrValue,
+  literalOf,
   makeAttr,
+  objectExpressionOf,
+  propKey,
   removeAttr,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
@@ -41,36 +45,6 @@ export const RESPONSIVE_KINDS: Record<string, ResponsiveKind> = {
   column: 'column',
   'column-group': 'column-group',
 };
-
-function literalOf(node: any): string | number | boolean | undefined {
-  if (!node) return undefined;
-  if (node.type === 'StringLiteral') return node.value;
-  if (node.type === 'NumericLiteral') return node.value;
-  if (node.type === 'BooleanLiteral') return node.value;
-  return undefined;
-}
-
-/**
- * Reuse a value node as a JSX attribute value: a string literal can sit bare
- * (`size="one-third"`), anything else needs an expression container.
- */
-function attrValue(j: any, node: any): any {
-  return node?.type === 'StringLiteral'
-    ? j.stringLiteral(node.value)
-    : j.jsxExpressionContainer(node);
-}
-
-function propKey(prop: any): string | undefined {
-  const key = prop.key?.name ?? prop.key?.value;
-  return typeof key === 'string' ? key : undefined;
-}
-
-function objectExpressionOf(value: any): any | null {
-  return value?.type === 'JSXExpressionContainer' &&
-    value.expression?.type === 'ObjectExpression'
-    ? value.expression
-    : null;
-}
 
 /**
  * One `{ value, only }` cell of the universal `responsive` prop. Returns the
