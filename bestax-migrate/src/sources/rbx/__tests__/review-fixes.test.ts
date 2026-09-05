@@ -723,6 +723,17 @@ describe('the innerRef remediation is achievable', () => {
     expect(output).not.toMatch(/innerRef/);
   });
 
+  it('renames innerRef to ref on Modal.Container, which becomes Modal', () => {
+    // Modal.Container maps to the Modal root, which forwards a ref, but the
+    // sub carried no innerRef entry so the prop fell through as an unknown
+    // DOM attribute.
+    const { output } = migrate(
+      'import { Modal } from "rbx";\nexport const A = (r: any) => <Modal.Container innerRef={r}>x</Modal.Container>;'
+    );
+    expect(output).toContain('ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+  });
+
   it('leaves innerRef alone on Navbar.Dropdown, which maps to the menu', () => {
     // rbx's Navbar.Dropdown is the menu itself, so it maps to bestax's
     // Navbar.DropdownMenu — a plain function component that forwards no ref.

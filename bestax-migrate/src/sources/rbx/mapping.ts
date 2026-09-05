@@ -643,7 +643,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
       Background: { status: 'mapped', target: 'Modal.Background' },
       Close: { status: 'mapped', target: 'Modal.Close' },
       Content: { status: 'mapped', target: 'Modal.Content' },
-      Container: { status: 'mapped', special: 'modal-container' },
+      Container: {
+        status: 'mapped',
+        special: 'modal-container',
+        props: { innerRef: { rename: 'ref' } },
+      },
       Card: {
         status: 'mapped',
         target: 'Modal.Card',
