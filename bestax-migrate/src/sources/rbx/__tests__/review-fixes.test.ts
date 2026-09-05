@@ -766,6 +766,16 @@ describe('the innerRef remediation is achievable', () => {
     expect(output).toContain('<Navbar.Item innerRef={r}');
   });
 
+  it('passes an existing ref through untouched', () => {
+    // The renames are for `innerRef`; a plain `ref` already works on the roots
+    // that forward one, so the codemod must not rewrite or flag it.
+    const { output, todos } = migrate(
+      'import { Button } from "rbx";\nexport const A = (r: any) => <Button ref={r}>x</Button>;'
+    );
+    expect(output).toContain('ref={r}');
+    expect(todos).toHaveLength(0);
+  });
+
   it('leaves innerRef alone on a root that forwards no ref', () => {
     // Card is not one of the four; renaming here would be a type error, so the
     // codemod must not touch it.

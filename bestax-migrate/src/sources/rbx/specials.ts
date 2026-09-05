@@ -788,12 +788,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * The markup maps cleanly, but three rbx behaviours do not exist in bestax
-   * and none of them fail loudly: rbx portals the modal into `document.body`,
-   * closes it on Escape by default, and clips document scroll while it is
-   * open. bestax renders inline and implements none of the three. An
-   * unmodified `<Modal>` therefore migrates to something that looks right and
-   * behaves differently, so every conversion is flagged.
+   * rbx's Modal portals into `document.body`, closes on Escape and clips
+   * document scroll, all by default. bestax matches two of those since #633 —
+   * `closeOnEscape` and `lockScroll` both default to `true` — but still
+   * renders inline unless `portal` is set. That last difference does not fail
+   * loudly, so every conversion is still flagged, now about the portal alone.
    */
   modal(ctx, path, _element) {
     addTodo(
