@@ -898,6 +898,11 @@ describe('react-bulma-components transform fixtures', () => {
         expect(message).toMatch(/only in its legacy form/);
         expect(message).toMatch(/compound form/);
         expect(message).not.toMatch(/when onClose is set; remove/);
+        // Neither message may name a variable. `onClose` is the RBC prop, not
+        // the identifier bound to it — this fixture's own handler is anonymous,
+        // and the overlays fixture calls it `close` — so `onClick={onClose}`
+        // pasted verbatim is an undefined reference.
+        expect(message).not.toMatch(/\{onClose\}/);
       }
     );
   });
