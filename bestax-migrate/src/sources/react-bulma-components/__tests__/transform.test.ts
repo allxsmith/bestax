@@ -705,7 +705,9 @@ describe('react-bulma-components transform fixtures', () => {
       ].join('\n');
       const { output } = runTransform(transform, 'icon-modifier.tsx', source);
       expect(output).toContain('name="home"');
-      expect(output).not.toContain('rotate-90"');
+      expect(output).not.toContain('name="rotate-90"');
+      // …and the modifier survives as a bestax `features` entry.
+      expect(output).toContain('features="fa-rotate-90"');
     });
   });
 

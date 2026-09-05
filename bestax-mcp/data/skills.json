@@ -81,14 +81,29 @@
     },
     {
       "name": "bestax-migrate",
-      "description": "Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4) or rbx (v2) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components or rbx and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.",
+      "description": "Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4), rbx (v2) or bloomer (0.6) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components, rbx or bloomer and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.",
       "promptName": "migrate",
       "dir": "bestax-migrate",
       "references": [
         {
+          "id": "bloomer-component-map",
+          "file": "references/bloomer/component-map.md",
+          "bytes": 12033
+        },
+        {
+          "id": "bloomer-prop-map",
+          "file": "references/bloomer/prop-map.md",
+          "bytes": 18333
+        },
+        {
+          "id": "bloomer-unmappables",
+          "file": "references/bloomer/unmappables.md",
+          "bytes": 12915
+        },
+        {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 8555
+          "bytes": 8622
         },
         {
           "id": "rbx-component-map",
@@ -103,7 +118,7 @@
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 10780
+          "bytes": 10931
         },
         {
           "id": "react-bulma-components-component-map",

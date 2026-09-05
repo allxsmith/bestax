@@ -37,9 +37,13 @@ import {
 } from '../_shared/jsx-utils.js';
 import {
   alignTarget,
+  applyIconProps,
   makeStripModifierProps,
+  makeStructuralHelpers,
   mergeClassName,
+  modifierClass,
   parseIconClasses,
+  restrictAsToTargets,
   type SpecialHandler,
   type SpecialResult,
 } from '../_shared/specials-utils.js';
@@ -52,35 +56,6 @@ const stripModifierProps = makeStripModifierProps(
   UNIVERSAL_PROPS,
   RESPONSIVE_BREAKPOINTS
 );
-
-/**
- * Turn a literal modifier prop into an `is-*` class fragment for an element
- * on its way to becoming plain HTML. Returns the class (or undefined) and
- * always removes the attribute.
- */
-function modifierClass(
-  ctx: TransformContext,
-  path: ASTPath<any>,
-  element: any,
-  prop: string,
-  base: string,
-  where: string
-): string {
-  const attr = findAttr(element, prop);
-  if (!attr) return base;
-  const literal = literalValueOf(attr);
-  removeAttr(element, attr);
-  if (literal.kind === 'string' || literal.kind === 'number') {
-    return `${base} is-${literal.value}`;
-  }
-  addTodo(
-    ctx,
-    path,
-    `prop:${prop}`,
-    `dynamic ${where} \`${prop}\`; add the matching is-* class by hand`
-  );
-  return base;
-}
 
 /**
  * Also strips the universal `responsive` object: responsive.ts would have
@@ -129,103 +104,19 @@ function stripHelperComponentProps(
 }
 
 /**
- * rbx puts `as` on every component, but a handler that chooses its target from
- * a prop value can land on a bestax component that has no `as` — Media.Item
- * resolves to Left/Content/Right where only Left declares one, Level.Item to
- * Left/Right/Item where only Item does, Navbar.Item to Item/Dropdown where
- * only Item does. Opting into `as` in the mapping table cannot express that,
- * so the target has to be checked after it is picked.
+ * rbx's plain-element rewrites strip both the universal helper props and the
+ * badge/tooltip/responsive props (which would otherwise ride onto the HTML
+ * tag as unknown DOM attributes — see stripHelperComponentProps).
  */
-function restrictAsToTargets(
-  ctx: TransformContext,
-  path: ASTPath<any>,
-  element: any,
-  target: string | undefined,
-  allowed: string[]
-): void {
-  const asAttr = findAttr(element, 'as');
-  if (!asAttr || (target && allowed.includes(target))) return;
-  removeAttr(element, asAttr);
-  addTodo(
-    ctx,
-    path,
-    'prop:as',
-    `bestax's \`${target}\` has no \`as\` prop (of the targets this can resolve to, only ${allowed
-      .map(a => `\`${a}\``)
-      .join(' / ')} does); render the tag directly or restructure`
-  );
-  ctx.dirty = true;
-}
-
-/** Replace the element with a plain HTML tag carrying `className`. */
-function replaceWithPlain(
-  ctx: TransformContext,
-  path: ASTPath<any>,
-  element: any,
-  tag: string,
-  className: string | undefined,
-  where: string
-): SpecialResult {
-  const merged = mergeClassName(ctx, path, element, className, where);
-  const rest = stripHelperComponentProps(
-    ctx,
-    path,
-    stripModifierProps(ctx, path, attributesOf(element), where),
-    where
-  );
-  path.replace(plainElement(ctx.j, tag, merged, rest, element.children ?? []));
-  ctx.dirty = true;
-  return { replaced: true };
-}
-
-/**
- * rbx wraps several components in a `*.Container` that owns the modifiers,
- * where bestax's component renders that wrapper itself. Move the container's
- * (already-converted) attributes onto its single child and replace the
- * container with it — otherwise both would rename to the same bestax
- * component and nest, which is invalid.
- *
- * Returns null when the element isn't the single-JSX-child shape, so the
- * caller can fall back to keeping the container.
- */
-function collapseOntoChild(
-  ctx: TransformContext,
-  path: ASTPath<any>,
-  element: any,
-  where: string,
-  expected: string
-): SpecialResult | null {
-  const children = (element.children ?? []).filter(
-    (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
-  );
-  if (children.length !== 1 || children[0].type !== 'JSXElement') return null;
-  const child = children[0];
-  // The child must be the component this container exists to wrap. rbx lets
-  // both of these containers hold something else — an `<iframe>` for a ratio
-  // box, a native `<select>` — and folding onto that put Bulma modifier props
-  // on an intrinsic element and dropped the wrapper the markup needs.
-  const childPath = ctx.resolve?.(child.openingElement?.name);
-  if (!childPath || childPath.join('.') !== expected) return null;
-
-  for (const attr of [...attributesOf(element)]) {
-    const name: string = attr.name.name;
-    if (findAttr(child, name)) {
-      addTodo(
-        ctx,
-        path,
-        `prop:${name}`,
-        `\`${where}\` folded into its child, but both set \`${name}\`; the child's value was kept — reconcile by hand`
-      );
-      continue;
-    }
-    removeAttr(element, attr);
-    addAttr(child, attr);
-  }
-
-  path.replace(child);
-  ctx.dirty = true;
-  return { replaced: true };
-}
+const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
+  (ctx, path, attrs, where) =>
+    stripHelperComponentProps(
+      ctx,
+      path,
+      stripModifierProps(ctx, path, attrs, where),
+      where
+    )
+);
 
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
@@ -306,20 +197,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
       const literal = classAttr ? literalValueOf(classAttr) : undefined;
       if (literal?.kind === 'string') {
         const parsed = parseIconClasses(literal.value);
-        if (parsed) {
-          addAttr(element, makeAttr(ctx.j, 'name', parsed.name));
-          if (parsed.library) {
-            addAttr(element, makeAttr(ctx.j, 'library', parsed.library));
-          }
-          if (parsed.variant) {
-            addAttr(element, makeAttr(ctx.j, 'variant', parsed.variant));
-          }
-          element.children = [];
-          if (element.openingElement) {
-            element.openingElement.selfClosing = true;
-            element.closingElement = null;
-          }
-          ctx.dirty = true;
+        // An app's own class on the <i> has no home on bestax's glyph, so
+        // the child is kept (and flagged below) rather than losing it.
+        if (parsed && parsed.leftovers.length === 0) {
+          applyIconProps(ctx, path, element, parsed);
           return {};
         }
       }

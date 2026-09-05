@@ -39,7 +39,11 @@ const ICON_LIBRARY_VALUES = [
   'material-symbols',
 ] as const;
 // bestax-migrate/src/sources/registry.ts → SOURCES
-const MIGRATE_SOURCE_VALUES = ['react-bulma-components', 'rbx'] as const;
+const MIGRATE_SOURCE_VALUES = [
+  'react-bulma-components',
+  'rbx',
+  'bloomer',
+] as const;
 // bestax-migrate/src/cli.ts → CSS_MODES
 const CSS_MODE_VALUES = ['bestax', 'bulma', 'keep'] as const;
 const PACKAGE_MANAGER_VALUES = ['npm', 'pnpm', 'yarn', 'bun'] as const;

@@ -10,10 +10,15 @@
 
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
+import { addAttrOnce } from './props.js';
 import {
+  addAttr,
   addTodo,
+  attributesOf,
   findAttr,
   literalValueOf,
+  makeAttr,
+  plainElement,
   removeAttr,
   type TransformContext,
 } from './jsx-utils.js';
@@ -140,10 +145,26 @@ export function mergeClassName(
   return base;
 }
 
-/** Parse an icon-font <i className="..."> into bestax Icon name/library/variant. */
-export function parseIconClasses(
-  className: string
-): { name: string; library?: string; variant?: string } | null {
+/** What an icon-font class string says about a bestax `Icon`. */
+export interface ParsedIconClasses {
+  name: string;
+  library?: string;
+  variant?: string;
+  /** Recognised modifier classes (`fa-spin`, `fa-2x`, `mdi-48px`) — bestax's `features`. */
+  features: string[];
+  /**
+   * Tokens that are neither the icon, its style, nor a modifier the library
+   * documents — an app's own class. bestax's Icon has nowhere to put them
+   * on the glyph, so a caller that wants exact markup keeps the child.
+   */
+  leftovers: string[];
+}
+
+/**
+ * Parse an icon-font class string (`fas fa-home fa-spin`, `mdi mdi-account`)
+ * into bestax Icon props. Returns null when no icon name can be read.
+ */
+export function parseIconClasses(className: string): ParsedIconClasses | null {
   const tokens = className.trim().split(/\s+/);
   const faVariant: Record<string, string> = {
     fas: 'solid',
@@ -175,15 +196,265 @@ export function parseIconClasses(
     /^fa-(?:solid|regular|brands|light|duotone|thin|sharp|classic|2xs|xs|sm|lg|xl|2xl|\d{1,2}x|fw|ul|li|border|inverse|stack|stack-1x|stack-2x|pull-(?:left|right)|spin|spin-pulse|spin-reverse|pulse|beat|fade|beat-fade|bounce|flash|shake|swap-opacity|rotate-(?:90|180|270|by)|flip-(?:horizontal|vertical|both))$/;
   const faName = tokens.find(t => /^fa-/.test(t) && !FA_MODIFIER.test(t));
   if (faStyle && faName) {
+    // The style word itself (`fa-solid`) is not a feature; `fa` is FA4's
+    // style token and, when it accompanies a v5+ style, harmless.
+    const features = tokens.filter(t => FA_MODIFIER.test(t) && !faVariant[t]);
+    const leftovers = tokens.filter(
+      t => t !== faStyle && t !== faName && t !== 'fa' && !features.includes(t)
+    );
     return {
       name: faName.replace(/^fa-/, ''),
       library: 'fa',
       variant: faVariant[faStyle],
+      features,
+      leftovers,
     };
   }
   if (tokens.includes('mdi')) {
-    const mdiName = tokens.find(t => /^mdi-/.test(t) && t !== 'mdi');
-    if (mdiName) return { name: mdiName.replace(/^mdi-/, ''), library: 'mdi' };
+    // MDI's documented modifiers: sizes, spin, rotation, flips, light/dark,
+    // inactive. Any other `mdi-*` token is the icon — whichever comes first,
+    // since `mdi mdi-24px mdi-account` is as legal as the other order.
+    const MDI_MODIFIER =
+      /^mdi-(?:(?:18|24|36|48)px|spin|rotate-(?:45|90|135|180|225|270|315)|flip-[hv]|light|dark|inactive)$/;
+    const mdiName = tokens.find(
+      t => /^mdi-/.test(t) && t !== 'mdi' && !MDI_MODIFIER.test(t)
+    );
+    if (mdiName) {
+      const features = tokens.filter(t => MDI_MODIFIER.test(t));
+      const leftovers = tokens.filter(
+        t => t !== 'mdi' && t !== mdiName && !features.includes(t)
+      );
+      return {
+        name: mdiName.replace(/^mdi-/, ''),
+        library: 'mdi',
+        features,
+        leftovers,
+      };
+    }
   }
   return null;
+}
+
+/**
+ * Write a parsed icon onto a bestax `Icon`-shaped element: `name`, then
+ * `library`/`variant` when known, then `features` — one string, or an array
+ * literal when there are several — and make the element self-closing.
+ */
+export function applyIconProps(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  parsed: ParsedIconClasses
+): void {
+  const { j } = ctx;
+  // The source forwarded HTML props, so the element may already carry a
+  // `name` (or any of these): the existing one is kept and the clash named,
+  // rather than writing a duplicate attribute.
+  const once = (attr: any) =>
+    addAttrOnce(ctx, path, element, 'className', attr);
+  once(makeAttr(j, 'name', parsed.name));
+  if (parsed.library) once(makeAttr(j, 'library', parsed.library));
+  if (parsed.variant) once(makeAttr(j, 'variant', parsed.variant));
+  if (parsed.features.length === 1) {
+    once(makeAttr(j, 'features', parsed.features[0]));
+  } else if (parsed.features.length > 1) {
+    once(
+      j.jsxAttribute(
+        j.jsxIdentifier('features'),
+        j.jsxExpressionContainer(
+          j.arrayExpression(parsed.features.map(f => j.stringLiteral(f)))
+        )
+      )
+    );
+  }
+  element.children = [];
+  element.openingElement.selfClosing = true;
+  element.closingElement = null;
+  ctx.dirty = true;
+}
+
+/**
+ * Turn a literal modifier prop into an `is-*` class fragment for an element
+ * on its way to becoming plain HTML. Returns the class (or undefined) and
+ * always removes the attribute.
+ */
+export function modifierClass(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  prop: string,
+  base: string,
+  where: string
+): string {
+  const attr = findAttr(element, prop);
+  if (!attr) return base;
+  const literal = literalValueOf(attr);
+  removeAttr(element, attr);
+  if (literal.kind === 'string' || literal.kind === 'number') {
+    return `${base} is-${literal.value}`;
+  }
+  addTodo(
+    ctx,
+    path,
+    `prop:${prop}`,
+    `dynamic ${where} \`${prop}\`; add the matching is-* class by hand`
+  );
+  return base;
+}
+
+/**
+ * A source that puts `as` (or its own name for it) on every component can
+ * land, through a handler that picks its target from a prop value, on a
+ * bestax component that has no `as` — Media.Item resolves to
+ * Left/Content/Right where only Left declares one. Opting into `as` in the
+ * mapping table cannot express that, so the target has to be checked after
+ * it is picked.
+ */
+export function restrictAsToTargets(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string | undefined,
+  allowed: string[],
+  prop = 'as'
+): void {
+  const asAttr = findAttr(element, prop);
+  if (!asAttr || (target && allowed.includes(target))) return;
+  removeAttr(element, asAttr);
+  addTodo(
+    ctx,
+    path,
+    `prop:${prop}`,
+    `bestax's \`${target}\` has no \`as\` prop (of the targets this can resolve to, only ${allowed
+      .map(a => `\`${a}\``)
+      .join(' / ')} does); render the tag directly or restructure`
+  );
+  ctx.dirty = true;
+}
+
+/** Attribute filter a source applies before an element becomes plain HTML. */
+export type AttrStrip = (
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  attrs: any[],
+  where: string
+) => any[];
+
+/**
+ * The two structural rewrites every source needs, bound to that source's own
+ * attribute strip (its modifier vocabulary is the one thing that differs):
+ * replacing an element with plain HTML, and folding a wrapper onto the single
+ * child it exists to wrap.
+ */
+export function makeStructuralHelpers(strip: AttrStrip) {
+  /** Replace the element with a plain HTML tag carrying `className`. */
+  function replaceWithPlain(
+    ctx: TransformContext,
+    path: ASTPath<any>,
+    element: any,
+    tag: string,
+    className: string | undefined,
+    where: string
+  ): SpecialResult {
+    const merged = mergeClassName(ctx, path, element, className, where);
+    const kept = new Set(strip(ctx, path, attributesOf(element), where));
+    // Spread attributes pass through untouched, in their original places:
+    // they are the caller's own props, and a plain element takes them as
+    // readily as the component did, with the same JSX precedence. The Bulma
+    // class the element exists for is written right AFTER the last spread,
+    // so a `className` inside a spread cannot override it — the source
+    // merged such a className with its own; a plain element cannot, so the
+    // spread is named.
+    const all = element.openingElement.attributes ?? [];
+    const spreads = all.filter((a: any) => a.type === 'JSXSpreadAttribute');
+    const ordered = all.filter(
+      (a: any) => a.type === 'JSXSpreadAttribute' || kept.has(a)
+    );
+    if (spreads.length > 0 && merged) {
+      addTodo(
+        ctx,
+        path,
+        'plain-element',
+        `${where} became a plain <${tag}> with \`className="${merged}"\`; a \`className\` inside its spread prop(s) would have been merged with that class by the source, and is overridden here — merge it by hand`
+      );
+    }
+    const attrs = [...ordered];
+    if (merged) {
+      const lastSpread = attrs.reduce(
+        (last: number, a: any, i: number) =>
+          a.type === 'JSXSpreadAttribute' ? i : last,
+        -1
+      );
+      attrs.splice(lastSpread + 1, 0, makeAttr(ctx.j, 'className', merged));
+    }
+    path.replace(
+      plainElement(ctx.j, tag, undefined, attrs, element.children ?? [])
+    );
+    ctx.dirty = true;
+    return { replaced: true };
+  }
+
+  /**
+   * A wrapper that owns the modifiers, where bestax's component renders that
+   * wrapper itself: move the wrapper's (already-converted) attributes onto
+   * its single child and replace the wrapper with it — otherwise both would
+   * rename to the same bestax component and nest, which is invalid.
+   *
+   * Returns null when the element isn't the single-JSX-child shape, or the
+   * child is not one of the components this wrapper exists to wrap (a
+   * ratio-box `<iframe>`, a native `<select>`), so the caller can keep the
+   * wrapper.
+   */
+  function collapseOntoChild(
+    ctx: TransformContext,
+    path: ASTPath<any>,
+    element: any,
+    where: string,
+    expected: string | string[]
+  ): SpecialResult | null {
+    const children = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    if (children.length !== 1 || children[0].type !== 'JSXElement') {
+      return null;
+    }
+    const child = children[0];
+    const childPath = ctx.resolve?.(child.openingElement?.name);
+    const accepted = Array.isArray(expected) ? expected : [expected];
+    if (!childPath || !accepted.includes(childPath.join('.'))) return null;
+
+    // Spreads have no name to collide on; they move across as written — as
+    // one block, in source order, placed FIRST so the child's own explicit
+    // props still win over them, the same rule the named branch keeps.
+    const spreads = (element.openingElement.attributes ?? []).filter(
+      (a: any) => a.type === 'JSXSpreadAttribute'
+    );
+    for (const spread of spreads) removeAttr(element, spread);
+    if (spreads.length > 0) {
+      child.openingElement.attributes = [
+        ...spreads,
+        ...(child.openingElement.attributes ?? []),
+      ];
+    }
+    for (const attr of [...(element.openingElement.attributes ?? [])]) {
+      const name: string = attr.name.name;
+      if (findAttr(child, name)) {
+        addTodo(
+          ctx,
+          path,
+          `prop:${name}`,
+          `\`${where}\` folded into its child, but both set \`${name}\`; the child's value was kept — reconcile by hand`
+        );
+        continue;
+      }
+      removeAttr(element, attr);
+      addAttr(child, attr);
+    }
+
+    path.replace(child);
+    ctx.dirty = true;
+    return { replaced: true };
+  }
+
+  return { replaceWithPlain, collapseOntoChild };
 }

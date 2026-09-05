@@ -8,7 +8,7 @@ sidebar_position: 7
 
 The [`bestax-migrate`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/SKILL.md)
 skill teaches an agent to move an existing app off an unmaintained React Bulma library and onto
-`@allxsmith/bestax-bulma` on Bulma v1. Two sources are supported:
+`@allxsmith/bestax-bulma` on Bulma v1. Three sources are supported:
 
 - [`react-bulma-components`](https://github.com/couds/react-bulma-components) v4 — unmaintained
   since 2022, Bulma 0.9.x —
@@ -17,6 +17,10 @@ skill teaches an agent to move an existing app off an unmaintained React Bulma l
   direct dependency, so migrating is what frees an app to choose its own Bulma version. The
   four Bulma extensions it pulled in are reported for you to remove, not deleted —
   [guide](../guides/getting-started/migration/rbx.md)
+- [`bloomer`](https://github.com/AlgusDark/bloomer) 0.6 — archived in 2018, Bulma 0.6 era, built
+  on React 16 and `create-react-class`. Its flat exports become bestax's compound components,
+  and its Font Awesome 4 icons are the thing to watch —
+  [guide](../guides/getting-started/migration/bloomer.md)
 
 It drives the `bestax-migrate` codemod and then resolves everything the codemod flags.
 
@@ -55,17 +59,20 @@ bestax-migrate skill, and make sure the build passes when you're done.
 
 ## References bundled with the skill
 
-The mapping tables are per source — `references/react-bulma-components/` and `references/rbx/` —
-each holding the same three files:
+The mapping tables are per source — `references/react-bulma-components/`, `references/rbx/` and
+`references/bloomer/` — each holding the same three files:
 
 - `component-map.md` — every component of that library (and every compound sub-component) with
   its bestax target.
 - `prop-map.md` — the modifier-prop conversions and breakpoint-object flattening.
 - `unmappables.md` — a recipe for every `TODO(bestax-migrate)` the codemod can leave.
 
-- `references/css-migration.md` — the Bulma 0.9 → 1 CSS step, shared by both: the stylesheet
-  work is about Bulma, not about which wrapper you came from.
+- `references/css-migration.md` — the Bulma 0.9 → 1 CSS step, shared by all three: the stylesheet
+  work is about Bulma, not about which wrapper you came from. A bloomer app starts from Bulma
+  0.6, so it crosses that step plus the 0.6 → 0.9 changes before it; the reference says which
+  it covers.
 
 See the full migration guides for the codemod itself:
 [react-bulma-components](../guides/getting-started/migration/react-bulma-components.md) ·
-[rbx](../guides/getting-started/migration/rbx.md).
+[rbx](../guides/getting-started/migration/rbx.md) ·
+[bloomer](../guides/getting-started/migration/bloomer.md).

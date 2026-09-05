@@ -42,6 +42,7 @@ import {
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import {
   collectBoundNames,
+  makeAliasRegistry,
   makeReserve,
   nameOf,
   prefersTabs,
@@ -152,6 +153,32 @@ export default function transform(
     }
   });
 
+  // A barrel re-export reaches the library without an import declaration,
+  // so nothing above saw it; it cannot be rewritten (a compound bestax
+  // target has no single name to re-export) and must not vanish silently.
+  root
+    .find(j.ExportNamedDeclaration)
+    .filter(p => String(p.node.source?.value ?? '') === RBX)
+    .forEach(p => {
+      addTodo(
+        ctx,
+        p,
+        'imports',
+        `re-exports from '${RBX}' were not migrated; import the components, migrate them, then re-export the bestax ones by hand`
+      );
+    });
+  root
+    .find(j.ExportAllDeclaration)
+    .filter(p => String(p.node.source?.value ?? '') === RBX)
+    .forEach(p => {
+      addTodo(
+        ctx,
+        p,
+        'imports',
+        `\`export * from '${RBX}'\` was not migrated; re-export the bestax components you need by hand`
+      );
+    });
+
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
   // `bestax` (default): everything converges on the recommended combined
   // bundle. `bulma`: plain Bulma v1 CSS plus the separate extras file.
@@ -260,75 +287,7 @@ export default function transform(
   // The scope each binding was collected in, so a reference can be checked
   // against the binding it actually resolves to rather than matched by name.
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
-  // Aliases are keyed by the AST node that owns the declaring scope, not by
-  // bare name. Two functions can each destructure `Header` from a different
-  // component; a name-keyed map let the second overwrite the first, and both
-  // declarations were then pruned while both `<Header…>` references were left
-  // resolving to nothing.
-  //
-  // Resolution walks the reference's ANCESTORS rather than consulting
-  // `scope.lookup`, because by the time references are rewritten the alias
-  // pass has already pruned the declaration -- so the binding is gone from
-  // the scope table, and `path.scope` objects are not identity-stable across
-  // traversals either.
-  const aliasesByOwner = new Map<unknown, Map<string, string[]>>();
-  const ownersFor = (name: string): unknown[] => {
-    const owners: unknown[] = [];
-    for (const [owner, perScope] of aliasesByOwner) {
-      if (perScope.has(name)) owners.push(owner);
-    }
-    return owners;
-  };
-  const aliasAt = (name: string, at?: unknown): string[] | undefined => {
-    const owners = ownersFor(name);
-    if (owners.length === 0) return undefined;
-    // Without a reference location there is nothing to walk, so the only
-    // owner is the best answer available. WITH one, always walk: an unrelated
-    // `Header` parameter in another function must not resolve to the alias
-    // merely because the alias is the only one by that name. A single-owner
-    // shortcut here rewrote such a parameter to `{ Header: Card.Header }`,
-    // which is not even valid syntax.
-    if (at === undefined) {
-      return owners.length === 1
-        ? aliasesByOwner.get(owners[0])!.get(name)
-        : undefined;
-    }
-    type Anc = { parent?: Anc; node?: unknown };
-    let cursor = at as Anc | undefined;
-    while (cursor) {
-      if (cursor.node !== undefined) {
-        const hit = aliasesByOwner.get(cursor.node)?.get(name);
-        if (hit) {
-          // The walk finds the nearest OWNER, but a binding can intervene
-          // between the reference and that owner: `function F(Header)` under
-          // a module-level `const { Header } = Card` shadows the alias, and
-          // resolving through it rewrote the parameter itself to
-          // `F(Card.Header)`. If the scope table still binds the name
-          // somewhere other than the owner, that nearer binding wins. (After
-          // the alias declaration is pruned the lookup returns nothing for
-          // the alias itself, which is the case this must keep allowing.)
-          const declaring = (
-            at as {
-              scope?: {
-                lookup(n: string): { path?: { node?: unknown } } | null;
-              };
-            }
-          ).scope?.lookup(name)?.path?.node;
-          if (
-            declaring !== undefined &&
-            declaring !== null &&
-            declaring !== cursor.node
-          ) {
-            return undefined;
-          }
-          return hit;
-        }
-      }
-      cursor = cursor.parent;
-    }
-    return undefined;
-  };
-  const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
+  const { register: registerAlias, aliasAt, anyAlias } = makeAliasRegistry();
 
   // ---- 1b. Resolve `const { Item } = Card` destructuring -----------------
   root.find(j.VariableDeclarator).forEach(path => {
@@ -353,13 +312,8 @@ export default function transform(
       ) {
         const owner = (path.scope as unknown as { path?: { node?: unknown } })
           ?.path?.node;
-        let perScope = aliasesByOwner.get(owner);
-        if (!perScope) {
-          perScope = new Map<string, string[]>();
-          aliasesByOwner.set(owner, perScope);
-        }
         const target = [...basePath, prop.key.name];
-        perScope.set(prop.value.name, target);
+        registerAlias(owner, prop.value.name, target);
         aliases.set(prop.value.name, target);
         // Pruning the declaration is only safe if every use of the alias will
         // actually be rewritten. For a name the table cannot map, the JSX is
@@ -500,6 +454,16 @@ export default function transform(
   });
 
   ctx.reserve = makeReserve(ctx, bound);
+  // Names the passes actually asked for. `ctx.needed` is also seeded from an
+  // existing bestax import's specifiers below (so JSX reuses their locals),
+  // and that seeding alone must not turn a type-only specifier into a value
+  // import nobody needed.
+  const requested = new Set<string>();
+  const baseReserve = ctx.reserve;
+  ctx.reserve = root => {
+    requested.add(root);
+    return baseReserve(root);
+  };
 
   // Merge with an existing bestax import: reuse its locals verbatim.
   // Only a declaration that already uses NAMED specifiers can absorb more of
@@ -509,17 +473,28 @@ export default function transform(
   const existingBestax = root
     .find(j.ImportDeclaration, { source: { value: BESTAX } })
     .paths()
-    .find(p =>
-      (p.node.specifiers ?? []).every(
-        (spec: any) => spec.type === 'ImportSpecifier'
-      )
+    .find(
+      p =>
+        // A type-only declaration cannot take a value specifier: merging a
+        // component into `import type { … }` erases it at runtime.
+        p.node.importKind !== 'type' &&
+        (p.node.specifiers ?? []).every(
+          (spec: any) => spec.type === 'ImportSpecifier'
+        )
     );
   const preExistingImports = new Set<string>();
   if (existingBestax) {
     for (const spec of existingBestax.node.specifiers ?? []) {
       if (spec.type === 'ImportSpecifier' && spec.local) {
+        // The local name is reused either way, so the JSX never needs an
+        // alias. But an inline `type` specifier (`import { type Box }`) is
+        // not a value binding: it is not counted as already imported, so the
+        // component is written as a value below — onto this specifier, which
+        // keeps its name, rather than as a duplicate.
         ctx.needed.set(nameOf(spec.imported), nameOf(spec.local));
-        preExistingImports.add(nameOf(spec.imported));
+        if ((spec as { importKind?: string | null }).importKind !== 'type') {
+          preExistingImports.add(nameOf(spec.imported));
+        }
       }
     }
   }
@@ -789,6 +764,64 @@ export default function transform(
       )
     ) {
       namespaceStillReferenced = true;
+      addTodo(
+        ctx,
+        path,
+        'value-reference',
+        `\`${name}\` is the library's namespace import used as a plain value (destructured, or passed around); nothing reached through it was migrated — reference its components as \`${name}.Component\` or import them by name, then re-run`
+      );
+      return;
+    }
+    // Members, keys and signatures name a thing; they do not reference the
+    // import. An export specifier does, and is handled on its own: a flat
+    // target keeps the public name (\`export { SubTitle as Subtitle }\`), a
+    // dotted one cannot be re-exported under a member name and is flagged.
+    if (parentType === 'ExportSpecifier') {
+      if (parentNode.local !== path.node) return;
+      const exportedName = nameOf(parentNode.exported ?? parentNode.local);
+      const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
+      if (
+        mapping &&
+        mapping.status !== 'todo' &&
+        mapping.target &&
+        !mapping.target.includes('.')
+      ) {
+        const local = ctx.reserve(mapping.target);
+        // Replace the node: recast reprints a specifier whose identifiers were
+
+        // swapped in place in its original shorthand form, dropping the `as`.
+
+        path.parent.replace(
+          j.exportSpecifier.from({
+            local: j.identifier(local),
+
+            exported: j.identifier(exportedName),
+          })
+        );
+        ctx.dirty = true;
+        return;
+      }
+      ctx.retained.add(imported);
+      addTodo(
+        ctx,
+        path,
+        'value-reference',
+        `\`${name}\` is re-exported; ${mapping?.target ? `its bestax counterpart \`${mapping.target}\` is a member of \`${mapping.target.split('.')[0]}\` and cannot be re-exported under this name` : 'it has no bestax counterpart to re-export'} — migrate the consumers by hand`
+      );
+      return;
+    }
+    if (
+      parentType === 'TSEnumMember' ||
+      ((parentType === 'ObjectMethod' ||
+        parentType === 'ClassMethod' ||
+        parentType === 'ClassProperty' ||
+        parentType === 'PropertyDefinition' ||
+        parentType === 'MethodDefinition' ||
+        parentType === 'TSPropertySignature' ||
+        parentType === 'TSMethodSignature') &&
+        parentNode.key === path.node &&
+        !parentNode.computed)
+    ) {
       return;
     }
     // Non-reference positions: member property names and object keys.
@@ -1009,7 +1042,10 @@ export default function transform(
     const retainedNames = [...ctx.retained].sort((a, b) => a.localeCompare(b));
 
     const freshNames = [...ctx.needed.entries()]
-      .filter(([imported]) => !preExistingImports.has(imported))
+      .filter(
+        ([imported]) =>
+          requested.has(imported) && !preExistingImports.has(imported)
+      )
       .sort((a, b) => a[0].localeCompare(b[0]));
     const bestaxImport =
       freshNames.length > 0
@@ -1021,10 +1057,71 @@ export default function transform(
           )
         : null;
 
+    /**
+
+     * A pruned declaration takes its comments with it — a licence header, an
+
+     * eslint directive. Hand them to what replaces it, or to the next statement.
+
+     */
+
+    const carryComments = (node: any, importPath: any): void => {
+      const comments = node.comments ?? [];
+
+      if (comments.length === 0) return;
+
+      const body: any[] = importPath.parent?.node?.body ?? [];
+
+      const index = body.indexOf(node);
+
+      const carrier =
+        bestaxImport ??
+        existingBestax?.node ??
+        (index >= 0 ? body[index + 1] : undefined);
+
+      if (carrier) {
+        carrier.comments = [...comments, ...(carrier.comments ?? [])];
+      } else if (index > 0) {
+        // The import was the last statement: the comments stay where they
+
+        // were, after what precedes it.
+
+        const previous = body[index - 1];
+
+        previous.comments = [
+          ...(previous.comments ?? []),
+
+          ...comments.map((c: any) => ({
+            ...c,
+            leading: false,
+            trailing: true,
+          })),
+        ];
+      } else {
+        // The import was the only statement: the comments become the file's.
+
+        const program = importPath.parent?.node;
+
+        if (program)
+          program.comments = [...comments, ...(program.comments ?? [])];
+      }
+
+      node.comments = [];
+    };
+
     let inserted = false;
     // A retained rbx specifier must never collide with a bestax import local
     // (possible when one component is both JSX-migrated and value-retained).
-    const bestaxLocals = new Set(ctx.needed.values());
+    // Only a VALUE local can collide at runtime: a type-only specifier the
+    // seeding above recorded, and nothing promoted, binds no value.
+    const bestaxLocals = new Set(
+      [...ctx.needed.entries()]
+        .filter(
+          ([imported]) =>
+            requested.has(imported) || preExistingImports.has(imported)
+        )
+        .map(([, local]) => local)
+    );
     for (const path of rbxImportPaths) {
       const node = path.node;
       const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {
@@ -1044,10 +1141,25 @@ export default function transform(
       });
       if (!inserted) {
         if (existingBestax && bestaxImport) {
-          existingBestax.node.specifiers = [
-            ...(existingBestax.node.specifiers ?? []),
-            ...bestaxImport.specifiers!,
-          ];
+          const current = existingBestax.node.specifiers ?? [];
+          const appended: any[] = [];
+          for (const fresh of bestaxImport.specifiers!) {
+            // A type-only specifier for the same name becomes the value
+            // import (a value import carries the type too); appending a
+            // second `Box` beside `type Box` would be a duplicate identifier.
+            const typeOnly: any = current.find(
+              (spec: any) =>
+                spec.type === 'ImportSpecifier' &&
+                spec.importKind === 'type' &&
+                nameOf(spec.imported) === nameOf((fresh as any).imported)
+            );
+            if (typeOnly) {
+              typeOnly.importKind = null;
+            } else {
+              appended.push(fresh);
+            }
+          }
+          existingBestax.node.specifiers = [...current, ...appended];
         } else if (bestaxImport) {
           path.insertBefore(bestaxImport);
         }
@@ -1082,6 +1194,7 @@ export default function transform(
           }
         }
       } else {
+        carryComments(node, path);
         path.prune();
       }
       ctx.dirty = true;
