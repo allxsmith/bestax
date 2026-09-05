@@ -135,25 +135,31 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ### Forwarded ref
 
-`LinkButton` forwards a ref to the `<a>` it renders, so you can focus or measure it directly.
+`LinkButton` forwards a ref to the element it renders. That is a `<button>` by default — the component styles a button to look like a link — and whatever `as` selects otherwise, so `as="a"` with an `href` gives you an anchor.
 
 ```tsx live
 function example() {
-  const linkRef = React.useRef(null);
-  const [href, setHref] = React.useState(null);
+  const defaultRef = React.useRef(null);
+  const anchorRef = React.useRef(null);
+  const [tags, setTags] = React.useState(null);
 
   return (
     <>
-      <LinkButton href="#forwarded-ref" color="link" ref={linkRef}>
-        Target
+      <LinkButton ref={defaultRef}>Default</LinkButton>
+      <LinkButton as="a" href="#forwarded-ref" ml="2" ref={anchorRef}>
+        As an anchor
       </LinkButton>
       <Button
         ml="2"
-        onClick={() => setHref(linkRef.current?.getAttribute('href'))}
+        onClick={() =>
+          setTags(
+            `${defaultRef.current?.tagName} / ${anchorRef.current?.tagName}`
+          )
+        }
       >
-        Read the href from its ref
+        Read both from their refs
       </Button>
-      <p>href: {href ?? '—'}</p>
+      <p>Rendered elements: {tags ?? '—'}</p>
     </>
   );
 }

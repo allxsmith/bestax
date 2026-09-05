@@ -153,8 +153,8 @@ function example() {
   return (
     <>
       <Dropdown label="Pick one" ref={dropdownRef}>
-        <Dropdown.Item value="a">First</Dropdown.Item>
-        <Dropdown.Item value="b">Second</Dropdown.Item>
+        <Dropdown.Item>First</Dropdown.Item>
+        <Dropdown.Item>Second</Dropdown.Item>
       </Dropdown>
       <Button mt="3" onClick={() => setTag(dropdownRef.current?.className)}>
         Read the root from its ref
