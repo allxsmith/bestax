@@ -37,6 +37,7 @@ import {
 } from '../_shared/jsx-utils.js';
 import {
   alignTarget,
+  applyIconProps,
   makeStripModifierProps,
   makeStructuralHelpers,
   mergeClassName,
@@ -196,20 +197,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
       const literal = classAttr ? literalValueOf(classAttr) : undefined;
       if (literal?.kind === 'string') {
         const parsed = parseIconClasses(literal.value);
-        if (parsed) {
-          addAttr(element, makeAttr(ctx.j, 'name', parsed.name));
-          if (parsed.library) {
-            addAttr(element, makeAttr(ctx.j, 'library', parsed.library));
-          }
-          if (parsed.variant) {
-            addAttr(element, makeAttr(ctx.j, 'variant', parsed.variant));
-          }
-          element.children = [];
-          if (element.openingElement) {
-            element.openingElement.selfClosing = true;
-            element.closingElement = null;
-          }
-          ctx.dirty = true;
+        // An app's own class on the <i> has no home on bestax's glyph, so
+        // the child is kept (and flagged below) rather than losing it.
+        if (parsed && parsed.leftovers.length === 0) {
+          applyIconProps(ctx, element, parsed);
           return {};
         }
       }

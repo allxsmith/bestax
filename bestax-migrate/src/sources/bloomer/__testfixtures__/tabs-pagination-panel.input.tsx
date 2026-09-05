@@ -69,16 +69,15 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
         <PanelTab>Public</PanelTab>
       </PanelTabs>
       <PanelBlock isActive href="/repo">
-        <PanelIcon>
-          <i className="fas fa-book" />
-        </PanelIcon>
+        <PanelIcon className="fas fa-book" />
         bestax
       </PanelBlock>
-      <PanelBlock>
-        <PanelIcon>
-          <i className="fa fa-code-fork" />
-        </PanelIcon>
+      <PanelBlock isWrapped>
+        <PanelIcon className="fa fa-code-fork" />
         fork
+      </PanelBlock>
+      <PanelBlock tag="label" isActive>
+        <input type="checkbox" /> remember
       </PanelBlock>
     </Panel>
     <Dropdown isActive isAlign="right" isHoverable>
@@ -87,6 +86,7 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
       </DropdownItem>
       <DropdownDivider />
       <DropdownItem tag="div">B</DropdownItem>
+      <DropdownItem>C</DropdownItem>
     </Dropdown>
   </>
 );

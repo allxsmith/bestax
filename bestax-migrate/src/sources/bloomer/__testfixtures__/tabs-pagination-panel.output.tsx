@@ -46,10 +46,12 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
         <Panel.Icon name="book" library="fa" variant="solid" />
         bestax
       </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon><i className="fa fa-code-fork" aria-hidden="true" /></Panel.Icon>
-        fork
-      </Panel.Block>
+      <div className="panel-block is-wrapped">
+        <Panel.Icon><i className="fa fa-code-fork" aria-hidden="true" /></Panel.Icon>fork
+              </div>
+      <label className="panel-block is-active">
+        <input type="checkbox" />remember
+              </label>
     </Panel>
     <Dropdown active hoverable right>
       <Dropdown.Item active href="/a">
@@ -57,6 +59,7 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
       </Dropdown.Item>
       <Dropdown.Divider />
       <Dropdown.Item as="div">B</Dropdown.Item>
+      <Dropdown.Item as="div">C</Dropdown.Item>
     </Dropdown>
   </>
 );

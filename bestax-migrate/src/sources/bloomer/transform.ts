@@ -267,6 +267,17 @@ export default function transform(
     const imported = imports.get(head);
     if (imported === undefined || imported === '*') return;
     const parent = path.parent?.node;
+    // A target-less special (NavbarItem, Help, PageControl, …) used as a bare
+    // value is retained by the value-reference pass, so its local must not be
+    // handed to a bestax import first.
+    if (
+      parent?.type !== 'ImportSpecifier' &&
+      parent?.type !== 'MemberExpression'
+    ) {
+      const bare = MAPPING[imported];
+      if (bare && bare.status !== 'todo' && !bare.target) bound.add(head);
+      return;
+    }
     if (
       parent?.type !== 'MemberExpression' ||
       parent.object !== path.node ||
@@ -306,10 +317,14 @@ export default function transform(
   const existingBestax = root
     .find(j.ImportDeclaration, { source: { value: BESTAX } })
     .paths()
-    .find(p =>
-      (p.node.specifiers ?? []).every(
-        (spec: any) => spec.type === 'ImportSpecifier'
-      )
+    .find(
+      p =>
+        // A type-only declaration cannot take a value specifier: merging a
+        // component into `import type { … }` erases it at runtime.
+        p.node.importKind !== 'type' &&
+        (p.node.specifiers ?? []).every(
+          (spec: any) => spec.type === 'ImportSpecifier'
+        )
     );
   const preExistingImports = new Set<string>();
   if (existingBestax) {
@@ -547,8 +562,7 @@ export default function transform(
       if (
         shorthandMapping &&
         shorthandMapping.status !== 'todo' &&
-        shorthandMapping.target &&
-        !shorthandMapping.special
+        shorthandMapping.target
       ) {
         const [root, ...rest] = shorthandMapping.target.split('.');
         const local = ctx.reserve(root);
@@ -586,12 +600,11 @@ export default function transform(
       return;
     }
     const mapping = MAPPING[imported];
-    if (
-      mapping &&
-      mapping.status !== 'todo' &&
-      mapping.target &&
-      !mapping.special
-    ) {
+    // A special that has a `target` only adjusts props on the JSX path; it
+    // never changes the target, so a value reference points at the same
+    // bestax component (`const Old = Icon` → bestax's Icon). Only a
+    // target-less special (NavbarItem, Help, …) has nothing to rename to.
+    if (mapping && mapping.status !== 'todo' && mapping.target) {
       const [root, ...rest] = mapping.target.split('.');
       const local = ctx.reserve(root);
       if (rest.length > 0) {

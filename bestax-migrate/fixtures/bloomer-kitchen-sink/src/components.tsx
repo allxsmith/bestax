@@ -135,6 +135,9 @@ export const Components = ({ open }: { open: boolean }) => (
       <NavbarMenu isActive={open}>
         <NavbarStart>
           <NavbarItem isActive>Home</NavbarItem>
+          <NavbarItem href="/docs" isActive>
+            Docs
+          </NavbarItem>
           <NavbarItem hasDropdown isHoverable>
             <NavbarLink>More</NavbarLink>
             <NavbarDropdown>
@@ -177,10 +180,12 @@ export const Components = ({ open }: { open: boolean }) => (
         <PanelTab>Public</PanelTab>
       </PanelTabs>
       <PanelBlock isActive href="/repo">
-        <PanelIcon>
-          <i className="fas fa-book" />
-        </PanelIcon>
+        <PanelIcon className="fas fa-book" />
         bestax
+      </PanelBlock>
+      <PanelBlock>
+        <PanelIcon className="fas fa-code-branch" />
+        fork
       </PanelBlock>
     </Panel>
     <Tabs isAlign="centered" isBoxed isSize="small" isFullWidth>

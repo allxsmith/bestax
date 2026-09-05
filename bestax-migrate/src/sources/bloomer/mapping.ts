@@ -249,6 +249,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Subtitle: {
     status: 'mapped',
     target: 'SubTitle',
+    special: 'subtitle',
     props: {
       isSize: size,
       isSpaced: classTodo('is-spaced', 'SubTitle'),
@@ -388,7 +389,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   DropdownItem: {
     status: 'mapped',
     target: 'Dropdown.Item',
-    special: 'anchor-when-href',
+    special: 'dropdown-item',
     props: { isActive: active, tag: TAG_AS },
   },
   DropdownDivider: { status: 'mapped', target: 'Dropdown.Divider' },
@@ -537,7 +538,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   PanelBlock: {
     status: 'mapped',
     target: 'Panel.Block',
-    special: 'anchor-when-href',
+    special: 'panel-block',
     props: {
       isActive: active,
       isWrapped: classTodo('is-wrapped', 'Panel.Block'),

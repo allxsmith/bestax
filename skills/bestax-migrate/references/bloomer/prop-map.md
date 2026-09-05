@@ -1,10 +1,14 @@
 # bloomer → bestax-bulma prop map
 
-bloomer's boolean modifiers are already bestax's names — `isActive`, `isLoading`, `isOutlined`,
+Most of bloomer's boolean modifiers are already bestax's names — `isLoading`, `isOutlined`,
 `isInverted`, `isStatic`, `isHovered`, `isFocused`, `isBordered`, `isStriped`, `isNarrow`,
-`isMultiline`, `isVCentered`, `isMobile`, … pass through untouched. What changes is the
-value-carrying props, the helper props every component inherited from `withHelpersModifiers`,
-and the two props bestax spells differently on every component.
+`isMultiline`, `isVCentered`, `isMobile`, … pass through untouched. The exceptions are in
+the tables below: `isActive` becomes `active` on the components whose bestax counterpart
+names it that way, `isFullWidth` survives only where bestax declares it, and a few
+(`Input isActive`, `NavbarLink isActive`, `PageLink isActive`) have no counterpart and become
+a TODO. What else changes is the value-carrying props, the helper props every component
+inherited from `withHelpersModifiers`, and the two props bestax spells differently on every
+component.
 
 ## Universal helper props
 
@@ -51,7 +55,7 @@ leftover would be a type error rather than a no-op.
 | `isColor="primary"`                                                                                          | `color="primary"` (every component that had it)                                                                                                         |
 | `isSize="large"`                                                                                             | `size="large"` — Button, Content, Delete, Icon, Input, Progress, Section, Select, Tag, TextArea, Breadcrumb, Pagination, Tabs, Field.Label, Modal.Close |
 | `Title isSize={3}`                                                                                           | `size={3}` — bestax accepts the numbers 1–6                                                                                                             |
-| `Subtitle isSize={4}`                                                                                        | `SubTitle size={4}`                                                                                                                                     |
+| `Subtitle isSize={4}`                                                                                        | `SubTitle size={4} as="h2"` — bloomer's default was an `<h2>`, bestax's is an `<h1>`, so the level is kept                                              |
 | `Image isSize="128x128"`                                                                                     | `size="128x128"`                                                                                                                                        |
 | `Image isRatio="16:9"`                                                                                       | `size="16by9"` (`square`→`square`, `1:1`→`1by1`, `4:3`→`4by3`, `3:2`→`3by2`, `2:1`→`2by1`)                                                              |
 | `Breadcrumb isAlign`                                                                                         | `alignment`                                                                                                                                             |
@@ -60,6 +64,8 @@ leftover would be a type error rather than a no-op.
 | `Pagination isAlign`                                                                                         | `align` (`"left"` is the default and is dropped)                                                                                                        |
 | `Dropdown isAlign="right"`                                                                                   | `right`; `isHoverable` → `hoverable`                                                                                                                    |
 | `Icon isAlign="left"`                                                                                        | `className="is-left"` (bestax's Icon has no align prop)                                                                                                 |
+| `Icon className="fas fa-spinner fa-spin"`                                                                    | `name="spinner" library="fa" variant="solid" features="fa-spin"` — modifier classes become `features`                                                   |
+| `PanelIcon className="fas fa-book"`                                                                          | `Panel.Icon name="book" library="fa" variant="solid"` — same className API as `Icon`                                                                    |
 | `Button isLink`                                                                                              | `color="link"` (a TODO if `isColor` is also set)                                                                                                        |
 | `Hero isFullHeight`                                                                                          | `size="fullheight"`                                                                                                                                     |
 | `Container isFluid`                                                                                          | `fluid`                                                                                                                                                 |
@@ -93,10 +99,14 @@ Everywhere else `tag` is left in place with a TODO. On the components that becom
 (`Help`, `Label`, `Heading`, `BreadcrumbItem`, `PanelTab`, `TabLink`, `Page`, `HeroVideo`) a
 literal `tag` is honoured — `<Help tag="span">` becomes `<span className="help">`.
 
-bloomer's `Button` and `Image` never took `tag` at all. bloomer rendered an `<a>` whenever `href` was set, whatever `tag` said. The codemod keeps that:
-`Button` and `LevelItem` gain `as="a"` beside their `href`, and a `tag` next to an `href` is
-dropped on the targets that already render an anchor (`Navbar.Item`, `Menu.Item`,
-`Dropdown.Item`, `Panel.Block`).
+bloomer's `Button` and `Image` never took `tag` at all. bloomer rendered an `<a>` whenever
+`href` was set, whatever `tag` said, and its default element was otherwise a `<div>`. The
+codemod keeps both: `Button` and `LevelItem` gain `as="a"` beside their `href`; a `tag` next to
+an `href` is dropped on the targets that already render an anchor (`Navbar.Item`, `Menu.Item`,
+`Dropdown.Item`, `Panel.Block`); and a `NavbarItem` or `DropdownItem` with neither `href` nor
+`tag` gains `as="div"`, because bestax's `Navbar.Item` and `Dropdown.Item` default to an `<a>`.
+bestax's `Panel.Block` is always an `<a>`, so only a `PanelBlock` with `href` becomes one — the
+rest stay the plain `<div class="panel-block">` (or the `tag` you gave) that bloomer rendered.
 
 ## Refs
 

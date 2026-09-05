@@ -4,7 +4,9 @@ import { Icon, Image, Content, Delete, Table, Footer, Container } from "bloomer"
 export const Media = ({ cls }: { cls: string }) => (
   <Container>
     <Icon className="fas fa-home" isSize="large" />
-    <Icon className="mdi mdi-account" />
+    <Icon className="mdi mdi-account mdi-24px" />
+    <Icon className="fas fa-spinner fa-spin fa-lg" />
+    <Icon className="fas fa-home mine" />
     <Icon className="fa fa-github" hasTextColor="danger" />
     <Icon className={cls} isAlign="right" />
     <Icon isSize="small" />

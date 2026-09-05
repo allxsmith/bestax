@@ -368,10 +368,14 @@ export default function transform(
   const existingBestax = root
     .find(j.ImportDeclaration, { source: { value: BESTAX } })
     .paths()
-    .find(path =>
-      (path.node.specifiers ?? []).every(
-        (spec: any) => spec.type === 'ImportSpecifier'
-      )
+    .find(
+      path =>
+        // A type-only declaration cannot take a value specifier: merging a
+        // component into `import type { … }` erases it at runtime.
+        path.node.importKind !== 'type' &&
+        (path.node.specifiers ?? []).every(
+          (spec: any) => spec.type === 'ImportSpecifier'
+        )
     );
   const preExistingImports = new Set<string>();
   if (existingBestax) {

@@ -103,8 +103,9 @@ code per the references, or deliberately keep the old markup with `className` st
   not. Because rbx pinned Bulma 0.7.5, you cross **two** Bulma majors — expect more visual
   drift than the 0.9 → 1 guide alone describes.
 - **bloomer**: every export is a flat name and most become dotted bestax compounds
-  (`CardHeaderTitle` → `Card.Header.Title`). Its `is*` booleans already are bestax's; the
-  work is in `isSize`/`isColor`/`isAlign` (renamed per component), the `isDisplay`/`isHidden`
+  (`CardHeaderTitle` → `Card.Header.Title`). Most of its `is*` booleans already are bestax's
+  (`isActive` becomes `active` where bestax names it so; `isFullWidth` survives only on
+  Button, Select, Table and Tabs); the work is in `isSize`/`isColor`/`isAlign` (renamed per component), the `isDisplay`/`isHidden`
   helpers (flattened, arrays and objects included), `tag` (→ `as` where bestax has one) and
   `render` (always a TODO). Its icons are className-based and Font Awesome 4 — the biggest
   visual risk, see `references/bloomer/unmappables.md`. The app declared its own Bulma 0.6,

@@ -15,7 +15,9 @@ FontAwesome component form, which carries no readable name.
 
 `library` is `fa` | `mdi` | `ion` | `material-icons` | `material-symbols`; `variant` is the style
 (`solid`, `regular`, `brands`, …). Icon-font children the parser _can_ read
-(`<i className="fas fa-home" />`) are converted automatically.
+(`<i className="fas fa-home" />`) are converted automatically, with modifier classes such as
+`fa-spin` carried as bestax's `features`; a child that also carries an app class of its own is
+kept and flagged instead.
 
 ## `component:Tile` — Bulma v1 removed tiles
 

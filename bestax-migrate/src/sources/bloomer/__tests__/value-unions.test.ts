@@ -21,7 +21,7 @@ import {
   validDisplays,
   validViewports,
 } from '@allxsmith/bestax-bulma';
-import { COLUMN_SIZE_MAP, MAPPING } from '../mapping.js';
+import { COLUMN_SIZE_MAP, MAPPING, UNIVERSAL_PROPS } from '../mapping.js';
 import { VIEWPORT_SUFFIX } from '../../_shared/viewports.js';
 
 /** bloomer 0.6.5 `src/bulma.tsx` — the `Bulma` namespace, verbatim. */
@@ -105,13 +105,24 @@ describe('bloomer helper values that the mapping passes through unchanged', () =
       v => !(validColors as readonly string[]).includes(v)
     );
     expect(missing.sort()).toEqual([...KNOWN_UNSUPPORTED_SHADES].sort());
+    const todo = UNIVERSAL_PROPS.hasTextColor.valueTodo ?? {};
+    expect(Object.keys(todo).sort()).toEqual(
+      [...KNOWN_UNSUPPORTED_SHADES].sort()
+    );
+  });
+
+  it("names every colour outside Message's six-colour union", () => {
     const todo = MAPPING.Message.props?.isColor?.valueTodo ?? {};
-    expect(Object.keys(todo).sort()).toEqual([
-      'black',
-      'dark',
-      'light',
-      'white',
-    ]);
+    const semantic = [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+    ];
+    const outside = BLOOMER.colors.filter(c => !semantic.includes(c));
+    expect(Object.keys(todo).sort()).toEqual([...outside].sort());
   });
 
   it('maps every bloomer column fraction and width word', () => {

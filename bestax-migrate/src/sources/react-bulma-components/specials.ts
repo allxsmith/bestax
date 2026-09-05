@@ -27,6 +27,7 @@ import {
   alignTarget,
   makeStripModifierProps,
   mergeClassName,
+  applyIconProps,
   parseIconClasses,
   type SpecialHandler,
   type SpecialResult,
@@ -540,7 +541,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
               cls && cls.value && cls.value.type === 'StringLiteral'
                 ? cls.value.value
                 : null;
-            return value ? parseIconClasses(value) : null;
+            const read = value ? parseIconClasses(value) : null;
+            // An app's own class on the <i> has no home on bestax's glyph.
+            return read && read.leftovers.length === 0 ? read : null;
           })()
         : null;
     if (!parsed) {
@@ -553,11 +556,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
       return {};
     }
     if (!findAttr(element, 'name') && !findAttr(element, 'icon')) {
-      addAttr(element, makeAttr(ctx.j, 'name', parsed.name));
-      if (parsed.library)
-        addAttr(element, makeAttr(ctx.j, 'library', parsed.library));
-      if (parsed.variant)
-        addAttr(element, makeAttr(ctx.j, 'variant', parsed.variant));
+      applyIconProps(ctx, element, parsed);
+      return {};
     }
     element.children = [];
     if (element.closingElement) {

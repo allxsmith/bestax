@@ -72,13 +72,13 @@ export const Compounds = ({ open }: { open: boolean }) => (
       </Navbar.Brand>
       <Navbar.Menu active={open}>
         <Navbar.Start>
-          <Navbar.Item active>Home</Navbar.Item>
+          <Navbar.Item active as="div">Home</Navbar.Item>
           <Navbar.Dropdown hoverable>
             <Navbar.Link>More</Navbar.Link>
             <Navbar.DropdownMenu>
               <Navbar.Item href="/about">About</Navbar.Item>
               <Navbar.Divider />
-              <Navbar.Item>Jobs</Navbar.Item>
+              <Navbar.Item as="div">Jobs</Navbar.Item>
             </Navbar.DropdownMenu>
           </Navbar.Dropdown>
         </Navbar.Start>

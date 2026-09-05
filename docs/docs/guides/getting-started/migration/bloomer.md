@@ -54,8 +54,10 @@ in place:
   `Pagination.Link`, `Subtitle` → `SubTitle`. `PageControl` becomes `Pagination.Previous` or
   `Pagination.Next` from its `isNext`; `NavbarItem hasDropdown` becomes the `Navbar.Dropdown`
   container and `NavbarDropdown` its `Navbar.DropdownMenu`.
-- **Props** — bloomer's `is*` booleans are already bestax's (`isActive`, `isLoading`,
-  `isOutlined`, `isBordered`, …) and pass through. The value props are renamed per component:
+- **Props** — most of bloomer's `is*` booleans are already bestax's (`isLoading`,
+  `isOutlined`, `isBordered`, …) and pass through; `isActive` becomes `active` where bestax
+  names it that way, and `isFullWidth` survives only where bestax declares it. The value props
+  are renamed per component:
   `isColor` → `color`, `isSize` → `size` (numbers stay numbers on `Title`/`Subtitle`), `isAlign`
   → `alignment` / `align` / `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →
   `textColor`, `isPulled` → `float`, `isMarginless` → `m="0"`, `tag` → `as` where bestax
@@ -69,8 +71,11 @@ in place:
   per-breakpoint object → `sizeMobile`/`sizeTablet`/…
 - **Structure** — wrappers bestax renders itself fold away: `Page` onto its `PageLink`,
   `TabLink` into a plain `<a>` inside `Tabs.Item`. `Help`, `Label`, `Heading`, `BreadcrumbItem`,
-  `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered. Icon-font classes
-  the codemod can read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`.
+  `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered, and so does a
+  `PanelBlock` without `href` (bestax's is always an `<a>`). Icon-font classes the codemod can
+  read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers included as
+  `features`. Where bloomer rendered a `<div>` and bestax defaults to an `<a>` (`NavbarItem`,
+  `DropdownItem`), the codemod adds `as="div"`.
 - **Stylesheets** — your `bulma/css/bulma.css` import becomes the bestax bundle, and a Sass
   `@import "~bulma/bulma"` with its `$variable` overrides becomes `@use "bulma/sass" with (…)`.
 - **package.json** — `bloomer` is removed, `@allxsmith/bestax-bulma` added, your pre-1 `bulma`

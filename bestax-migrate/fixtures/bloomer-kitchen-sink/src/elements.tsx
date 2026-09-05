@@ -45,6 +45,7 @@ export const Elements = () => (
     <Progress isColor="danger" value={40} max={100} isSize="medium" />
     <Icon className="fas fa-home" isSize="large" />
     <Icon className="mdi mdi-account" />
+    <Icon className="fas fa-spinner fa-spin fa-lg" />
     <Image isSize="128x128" src="a.png" />
     <Image isRatio="16:9" src="b.png" />
     <Table isBordered isStriped isNarrow isFullWidth>

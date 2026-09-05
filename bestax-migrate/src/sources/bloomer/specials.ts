@@ -24,6 +24,7 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import {
+  applyIconProps,
   makeStripModifierProps,
   makeStructuralHelpers,
   modifierClass,
@@ -120,27 +121,36 @@ const join = (...parts: Array<string | undefined>): string | undefined => {
 };
 
 /**
- * bloomer switched several components to an <a> whenever `href` was set,
- * whatever `tag` said. Where the bestax target already renders an <a> by
- * default, a surviving `tag` (which the mapping turns into `as`) would undo
- * that, so it is dropped; where the target defaults to something else, `as`
- * is set explicitly.
+ * bloomer rendered its default `tag` — usually a <div> — and switched to an
+ * <a> whenever `href` was set, whatever `tag` said. bestax's defaults differ
+ * per component, so this keeps bloomer's markup either way:
+ *
+ * - with `href`, a surviving `tag` (which the mapping turns into `as`) would
+ *   undo the anchor on targets that already render one, so it is dropped;
+ *   where the target defaults to something else, `as="a"` is set
+ *   (`setAs`);
+ * - without `href` or `tag`, a target that defaults to an <a> gets
+ *   `as={bareAs}` so bloomer's <div> stays a <div>.
  */
 function anchorWhenHref(
   ctx: TransformContext,
   element: any,
-  setAs: boolean
+  options: { setAs?: boolean; bareAs?: string } = {}
 ): string[] {
-  if (!findAttr(element, 'href')) return [];
   const handled: string[] = [];
   const tagAttr = findAttr(element, 'tag');
-  if (tagAttr) {
-    removeAttr(element, tagAttr);
-    handled.push('tag');
-    ctx.dirty = true;
-  }
-  if (setAs && !findAttr(element, 'as')) {
-    addAttr(element, makeAttr(ctx.j, 'as', 'a'));
+  if (findAttr(element, 'href')) {
+    if (tagAttr) {
+      removeAttr(element, tagAttr);
+      handled.push('tag');
+      ctx.dirty = true;
+    }
+    if (options.setAs && !findAttr(element, 'as')) {
+      addAttr(element, makeAttr(ctx.j, 'as', 'a'));
+      ctx.dirty = true;
+    }
+  } else if (options.bareAs && !tagAttr && !findAttr(element, 'as')) {
+    addAttr(element, makeAttr(ctx.j, 'as', options.bareAs));
     ctx.dirty = true;
   }
   return handled;
@@ -151,9 +161,10 @@ const FA4_CLASSES = /(?:^|\s)fa(?:\s|$)/;
 
 /**
  * Turn an icon-font class string into bestax `Icon` props when the parser
- * can read it (Font Awesome 5/6 and MDI); otherwise render it the way
- * bloomer did — an <i> child carrying the classes — which bestax's `Icon`
- * accepts as a custom node, and say why that may still need attention.
+ * can read every token (Font Awesome 5/6 and MDI, modifiers included —
+ * those become `features`); otherwise render it the way bloomer did — an <i>
+ * child carrying the classes — which bestax's `Icon` accepts as a custom
+ * node, and say why that may still need attention.
  */
 function iconFromClasses(
   ctx: TransformContext,
@@ -165,16 +176,10 @@ function iconFromClasses(
   const { j } = ctx;
   if (typeof classes === 'string') {
     const parsed = parseIconClasses(classes);
-    if (parsed) {
-      addAttr(element, makeAttr(j, 'name', parsed.name));
-      if (parsed.library)
-        addAttr(element, makeAttr(j, 'library', parsed.library));
-      if (parsed.variant)
-        addAttr(element, makeAttr(j, 'variant', parsed.variant));
-      element.children = [];
-      element.openingElement.selfClosing = true;
-      element.closingElement = null;
-      ctx.dirty = true;
+    // An app's own class on the glyph has no home on bestax's Icon props;
+    // keeping the child keeps it.
+    if (parsed && parsed.leftovers.length === 0) {
+      applyIconProps(ctx, element, parsed);
       return;
     }
   }
@@ -205,8 +210,84 @@ function iconFromClasses(
     `component:${where}`,
     fa4
       ? `kept the Font Awesome 4 classes on an <i> child, as bloomer rendered them; bestax's optional Font Awesome peer is 6.7+, where many v4 names changed (brand icons moved to \`variant="brands"\`) — keep FA4 loaded, or switch to \`name\`/\`library\`/\`variant\` (\`<Icon name="home" library="fa" variant="solid" />\`)`
-      : `kept the icon classes on an <i> child, as bloomer rendered them; bestax renders that child unchanged, so make sure the icon font is still loaded — or switch to \`name\`/\`library\`/\`variant\` (\`<Icon name="home" library="fa" variant="solid" />\`)`
+      : `kept the icon classes on an <i> child, as bloomer rendered them; bestax renders that child unchanged, so make sure the icon font is still loaded — or switch to \`name\`/\`library\`/\`variant\` (\`<Icon name="home" library="fa" variant="solid" />\`), with any modifier classes in \`features\``
   );
+}
+
+/**
+ * bloomer's Icon and PanelIcon both put the icon-font classes on their own
+ * `className` and rendered `<span class="…"><i class={className}/></span>`,
+ * ignoring children. Consume that className into bestax props or a child.
+ */
+function iconFromElement(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  where: string
+): void {
+  const { j } = ctx;
+  /**
+   * bestax's Icon needs a `name` or a child; with neither, bloomer rendered
+   * an empty glyph (`<i class="undefined">`). An empty `<i>` child keeps the
+   * element typechecking and the markup as it was while the TODO stands.
+   */
+  const inertChild = (): void => {
+    element.children = [
+      j.jsxElement(
+        j.jsxOpeningElement(
+          j.jsxIdentifier('i'),
+          [makeAttr(j, 'aria-hidden', 'true')],
+          true
+        ),
+        null,
+        []
+      ),
+    ];
+    element.openingElement.selfClosing = false;
+    element.closingElement = j.jsxClosingElement(element.openingElement.name);
+    ctx.dirty = true;
+  };
+  const classAttr = findAttr(element, 'className');
+  if (classAttr) {
+    const literal = literalValueOf(classAttr);
+    removeAttr(element, classAttr);
+    ctx.dirty = true;
+    if (literal.kind === 'string') {
+      iconFromClasses(ctx, path, element, literal.value, where);
+    } else if (literal.kind === 'expression') {
+      iconFromClasses(
+        ctx,
+        path,
+        element,
+        { dynamic: classAttr.value.expression },
+        where
+      );
+    } else {
+      // A bare `className`, or a boolean/number: never icon classes, and
+      // `classAttr.value` may be null — no expression to carry over.
+      inertChild();
+      addTodo(
+        ctx,
+        path,
+        'prop:className',
+        `\`className\` on ${where} was not an icon-class string (bloomer read the icon-font classes from it); bestax's needs a \`name\` (plus \`library\`/\`variant\`) or a child node — set one by hand`
+      );
+    }
+    return;
+  }
+  const children = (element.children ?? []).filter(
+    (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+  );
+  if (children.length === 0) {
+    inertChild();
+    addTodo(
+      ctx,
+      path,
+      `component:${where}`,
+      `no icon classes to carry over (bloomer read them from \`className\`); bestax's needs a \`name\` (plus \`library\`/\`variant\`) or a child node — an empty <i> child keeps it compiling until you set one`
+    );
+  }
+  // Children bloomer never rendered are left for bestax, which does.
 }
 
 const SPECIALS: Record<string, SpecialHandler> = {
@@ -241,7 +322,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         );
       }
     }
-    const handled = anchorWhenHref(ctx, element, true);
+    const handled = anchorWhenHref(ctx, element, { setAs: true });
     return { handledProps: ['isLink', ...handled] };
   },
 
@@ -289,35 +370,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
 
-    const classAttr = findAttr(element, 'className');
-    if (classAttr) {
-      const literal = literalValueOf(classAttr);
-      removeAttr(element, classAttr);
-      ctx.dirty = true;
-      if (literal.kind === 'string') {
-        iconFromClasses(ctx, path, element, literal.value, 'Icon');
-      } else {
-        iconFromClasses(
-          ctx,
-          path,
-          element,
-          { dynamic: classAttr.value.expression },
-          'Icon'
-        );
-      }
-    } else {
-      const children = (element.children ?? []).filter(
-        (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
-      );
-      if (children.length === 0) {
-        addTodo(
-          ctx,
-          path,
-          'component:Icon',
-          'no icon classes to carry over (bloomer read them from `className`); bestax `Icon` needs a `name` (plus `library`/`variant`) or a child node'
-        );
-      }
-    }
+    iconFromElement(ctx, path, element, 'Icon');
 
     if (alignClass) {
       addAttr(element, makeAttr(ctx.j, 'className', alignClass));
@@ -325,36 +378,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { handledProps: ['className', 'isAlign'] };
   },
 
-  /**
-   * bloomer's PanelIcon is `<span class="panel-icon">{children}</span>` with
-   * an icon-font <i> child; bestax's Panel.Icon is an Icon in panel clothing.
-   */
+  /** bloomer's PanelIcon is its Icon in panel clothing: same className API. */
   'panel-icon'(ctx, path, element) {
-    const children = (element.children ?? []).filter(
-      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
-    );
-    const iChild =
-      children.length === 1 &&
-      children[0].type === 'JSXElement' &&
-      children[0].openingElement?.name?.type === 'JSXIdentifier' &&
-      (children[0].openingElement.name.name === 'i' ||
-        children[0].openingElement.name.name === 'span')
-        ? children[0]
-        : null;
-    const classAttr = iChild ? findAttr(iChild, 'className') : undefined;
-    const literal = classAttr ? literalValueOf(classAttr) : undefined;
-    if (literal?.kind === 'string') {
-      iconFromClasses(ctx, path, element, literal.value, 'PanelIcon');
-    } else if (children.length === 0) {
-      addTodo(
-        ctx,
-        path,
-        'component:PanelIcon',
-        'empty PanelIcon; bestax `Panel.Icon` needs a `name` (plus `library`/`variant`) or a child node'
-      );
-    }
-    // Anything else is a child node bestax's Panel.Icon renders unchanged.
-    return {};
+    iconFromElement(ctx, path, element, 'PanelIcon');
+    return { handledProps: ['className'] };
   },
 
   /**
@@ -520,17 +547,40 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'component:Dropdown',
       'bestax `Dropdown` takes a `label` and renders its own trigger and menu; move the `<DropdownTrigger>` content into `label`, keep the `<DropdownItem>`s as direct children, and drop the `DropdownMenu`/`DropdownContent` wrappers'
     );
-    return { handledProps: anchorWhenHref(ctx, element, false) };
+    return { handledProps: anchorWhenHref(ctx, element) };
   },
 
   /** bestax's Level.Item renders a <div> unless `as="a"`. */
   'level-item'(ctx, _path, element) {
-    return { handledProps: anchorWhenHref(ctx, element, true) };
+    return { handledProps: anchorWhenHref(ctx, element, { setAs: true }) };
   },
 
   /** Targets that already render an <a>: a surviving `tag` would undo it. */
   'anchor-when-href'(ctx, _path, element) {
-    return { handledProps: anchorWhenHref(ctx, element, false) };
+    return { handledProps: anchorWhenHref(ctx, element) };
+  },
+
+  /** bloomer's default DropdownItem was a <div>; bestax's Dropdown.Item is an <a>. */
+  'dropdown-item'(ctx, _path, element) {
+    return { handledProps: anchorWhenHref(ctx, element, { bareAs: 'div' }) };
+  },
+
+  /**
+   * bestax's Panel.Block is always an <a>; bloomer's was a <div> unless
+   * `href` was set (a checkbox label, a search box). Only the anchor case
+   * is the bestax component — the rest stays the plain block it was.
+   */
+  'panel-block'(ctx, path, element) {
+    if (findAttr(element, 'href')) {
+      return { handledProps: anchorWhenHref(ctx, element) };
+    }
+    const cls = join(
+      'panel-block',
+      booleanClass(ctx, path, element, 'isActive', 'is-active', 'PanelBlock'),
+      booleanClass(ctx, path, element, 'isWrapped', 'is-wrapped', 'PanelBlock')
+    );
+    const tag = plainTag(ctx, path, element, 'div', 'PanelBlock');
+    return replaceWithPlain(ctx, path, element, tag, cls, 'PanelBlock');
   },
 
   /**
@@ -587,7 +637,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       ctx.dirty = true;
     }
-    const handled = anchorWhenHref(ctx, element, false);
+    // bloomer's default NavbarItem was a <div>; bestax's Navbar.Item is an <a>.
+    const handled = anchorWhenHref(
+      ctx,
+      element,
+      target === 'Navbar.Item' ? { bareAs: 'div' } : {}
+    );
     restrictAsToTargets(ctx, path, element, target, ['Navbar.Item'], 'tag');
     return {
       target,
@@ -656,7 +711,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'dynamic PageControl `isNext`; pick between `<Pagination.Previous>` and `<Pagination.Next>` by hand'
       );
     }
-    const handled = anchorWhenHref(ctx, element, false);
+    const handled = anchorWhenHref(ctx, element);
     return { target, handledProps: ['isNext', 'isPrevious', ...handled] };
   },
 
@@ -666,6 +721,32 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * so the wrapper folds onto its child.
    */
   page(ctx, path, element) {
+    const foldable = (element.children ?? []).some(
+      (c: any) =>
+        c.type === 'JSXElement' &&
+        ['PageLink', 'PageEllipsis'].includes(
+          ctx.resolve?.(c.openingElement?.name)?.join('.') ?? ''
+        )
+    );
+    if (foldable) {
+      // The child renders the <li> itself, so a `tag` on the wrapper has
+      // nothing left to apply to. bloomer's default is the same <li>; anything
+      // else is a change bestax cannot express.
+      const tagAttr = findAttr(element, 'tag');
+      if (tagAttr) {
+        const literal = literalValueOf(tagAttr);
+        removeAttr(element, tagAttr);
+        ctx.dirty = true;
+        if (!(literal.kind === 'string' && literal.value === 'li')) {
+          addTodo(
+            ctx,
+            path,
+            'prop:tag',
+            'bestax `Pagination.Link` and `Pagination.Ellipsis` render their own <li>, so the `tag` on this Page has nowhere to go; restyle the item by hand if it mattered'
+          );
+        }
+      }
+    }
     const collapsed = collapseOntoChild(ctx, path, element, 'Page', [
       'PageLink',
       'PageEllipsis',
@@ -710,6 +791,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
     const tag = plainTag(ctx, path, element, 'div', 'HeroVideo');
     return replaceWithPlain(ctx, path, element, tag, cls, 'HeroVideo');
+  },
+
+  /**
+   * bloomer's Subtitle defaulted to an <h2>; bestax's SubTitle defaults to an
+   * <h1>. Keeping the heading level is what a screen reader hears.
+   */
+  subtitle(ctx, _path, element) {
+    if (!findAttr(element, 'tag') && !findAttr(element, 'as')) {
+      addAttr(element, makeAttr(ctx.j, 'as', 'h2'));
+      ctx.dirty = true;
+    }
+    return {};
   },
 
   /** Marks the element for the column size pass in responsive.ts. */

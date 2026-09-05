@@ -70,6 +70,21 @@ describe('bloomer plain-element handlers', () => {
     expect(rules).toEqual(['prop:isColor']);
   });
 
+  it('carries a spread through a plain-element rewrite and a fold', () => {
+    const help = migrate(
+      dyn('Help', '<Help isColor="danger" {...p.rest}>x</Help>')
+    );
+    expect(help.output).toContain(
+      '<p className="help is-danger" {...p.rest}>x</p>'
+    );
+    const page = migrate(
+      "import { Page, PageLink } from 'bloomer';\nexport const A = (p: Record<string, any>) => <Page {...p.li}><PageLink>1</PageLink></Page>;\n"
+    );
+    expect(page.output).toContain(
+      '<Pagination.Link {...p.li}>1</Pagination.Link>'
+    );
+  });
+
   it('merges an existing className into the plain element', () => {
     const { output } = migrate(
       dyn('Label', '<Label isSize="small" className="mine">x</Label>')
@@ -134,25 +149,71 @@ describe('bloomer Icon', () => {
     expect(output).toContain('<Icon><svg /></Icon>');
   });
 
-  it('reads a PanelIcon child that the parser cannot name and keeps it', () => {
-    const { output, rules } = migrate(
-      dyn('PanelIcon', '<PanelIcon><svg /></PanelIcon>')
+  it('reads PanelIcon classes from its own className, like Icon', () => {
+    const fa6 = migrate(
+      dyn('PanelIcon', '<PanelIcon className="fas fa-book" />')
     );
-    expect(rules).toEqual([]);
-    expect(output).toContain('<Panel.Icon><svg /></Panel.Icon>');
+    expect(fa6.rules).toEqual([]);
+    expect(fa6.output).toContain(
+      '<Panel.Icon name="book" library="fa" variant="solid" />'
+    );
+    const fa4 = migrate(
+      dyn('PanelIcon', '<PanelIcon className="fa fa-book" />')
+    );
+    expect(fa4.rules).toEqual(['component:PanelIcon']);
+    expect(fa4.output).toContain(
+      '<Panel.Icon><i className="fa fa-book" aria-hidden="true" /></Panel.Icon>'
+    );
+    const dynamic = migrate(dyn('PanelIcon', '<PanelIcon className={p.c} />'));
+    expect(dynamic.rules).toEqual(['component:PanelIcon']);
+    expect(dynamic.output).toContain(
+      '<Panel.Icon><i className={p.c} aria-hidden="true" /></Panel.Icon>'
+    );
   });
 
-  it('flags an empty PanelIcon', () => {
-    const { rules } = migrate(dyn('PanelIcon', '<PanelIcon />'));
+  it('gives an empty Icon an inert child so it still compiles', () => {
+    const { output, rules } = migrate(dyn('PanelIcon', '<PanelIcon />'));
     expect(rules).toEqual(['component:PanelIcon']);
+    expect(output).toContain(
+      '<Panel.Icon><i aria-hidden="true" /></Panel.Icon>'
+    );
   });
 
-  it('flags a PanelIcon child whose classes are dynamic', () => {
-    const { output, rules } = migrate(
-      dyn('PanelIcon', '<PanelIcon><i className={p.c} /></PanelIcon>')
+  it('does not crash on a valueless or boolean className', () => {
+    const bare = migrate(dyn('Icon', '<Icon className />'));
+    expect(bare.rules).toEqual(['prop:className']);
+    expect(bare.output).toContain('<Icon><i aria-hidden="true" /></Icon>');
+    const bool = migrate(
+      dyn('Icon', '<Icon className={true} isSize="small" />')
     );
-    expect(rules).toEqual([]);
-    expect(output).toContain('<Panel.Icon><i className={p.c} /></Panel.Icon>');
+    expect(bool.rules).toEqual(['prop:className']);
+    expect(jsx(bool.output)).not.toContain('className');
+  });
+
+  it('carries icon modifiers as features and keeps an app class on the glyph', () => {
+    const one = migrate(
+      dyn('Icon', '<Icon className="fas fa-spinner fa-spin" />')
+    );
+    expect(one.output).toContain(
+      '<Icon name="spinner" library="fa" variant="solid" features="fa-spin" />'
+    );
+    const many = migrate(
+      dyn('Icon', '<Icon className="fa-solid fa-lg fa-cog fa-fw" />')
+    );
+    expect(many.output).toContain('features={["fa-lg", "fa-fw"]}');
+    const mdi = migrate(
+      dyn('Icon', '<Icon className="mdi mdi-24px mdi-account" />')
+    );
+    expect(mdi.output).toContain(
+      '<Icon name="account" library="mdi" features="mdi-24px" />'
+    );
+    const own = migrate(
+      dyn('Icon', '<Icon className="fas fa-home brand-glyph" />')
+    );
+    expect(own.rules).toEqual(['component:Icon']);
+    expect(own.output).toContain(
+      '<i className="fas fa-home brand-glyph" aria-hidden="true" />'
+    );
   });
 });
 
@@ -201,7 +262,7 @@ describe('bloomer navigation handlers', () => {
       )
     );
     expect(rules).toEqual(['prop:hasDropdown', 'prop:isHoverable']);
-    expect(output).toContain('<Navbar.Item>x</Navbar.Item>');
+    expect(output).toContain('<Navbar.Item as="div">x</Navbar.Item>');
   });
 
   it('drops the tag of a dropdown container', () => {
@@ -233,6 +294,50 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
+  it('keeps a bare NavbarItem and DropdownItem a <div>, as bloomer rendered them', () => {
+    const item = migrate(dyn('NavbarItem', '<NavbarItem>x</NavbarItem>'));
+    expect(item.output).toContain('<Navbar.Item as="div">x</Navbar.Item>');
+    const tagged = migrate(
+      dyn('NavbarItem', '<NavbarItem tag="span">x</NavbarItem>')
+    );
+    expect(tagged.output).toContain('<Navbar.Item as="span">x</Navbar.Item>');
+    const drop = migrate(
+      dyn('DropdownItem', '<DropdownItem isActive>x</DropdownItem>')
+    );
+    expect(drop.output).toContain(
+      '<Dropdown.Item active as="div">x</Dropdown.Item>'
+    );
+    const link = migrate(
+      dyn('DropdownItem', '<DropdownItem href="/x" tag="span">x</DropdownItem>')
+    );
+    expect(link.output).toContain('<Dropdown.Item href="/x">x</Dropdown.Item>');
+  });
+
+  it('keeps a PanelBlock without href as the plain block bloomer rendered', () => {
+    const plain = migrate(
+      dyn('PanelBlock', '<PanelBlock isActive isWrapped>x</PanelBlock>')
+    );
+    expect(plain.rules).toEqual([]);
+    expect(plain.output).toContain(
+      '<div className="panel-block is-active is-wrapped">x</div>'
+    );
+    const label = migrate(
+      dyn(
+        'PanelBlock',
+        '<PanelBlock tag="label" isActive={p.on}>x</PanelBlock>'
+      )
+    );
+    expect(label.rules).toEqual(['prop:isActive']);
+    expect(label.output).toContain('<label className="panel-block">x</label>');
+    const anchor = migrate(
+      dyn('PanelBlock', '<PanelBlock href="/x" isWrapped>x</PanelBlock>')
+    );
+    expect(anchor.rules).toEqual(['prop:isWrapped']);
+    expect(anchor.output).toContain(
+      '<Panel.Block href="/x" isWrapped>x</Panel.Block>'
+    );
+  });
+
   it('keeps a NavbarDropdown without isBoxed as the menu', () => {
     const { output, rules } = migrate(
       dyn('NavbarDropdown', '<NavbarDropdown>x</NavbarDropdown>')
@@ -259,6 +364,26 @@ describe('bloomer navigation handlers', () => {
     );
     expect(rules).toEqual(['prop:isNext']);
     expect(output).toContain('<Pagination.Previous>x</Pagination.Previous>');
+  });
+
+  it('drops a Page tag the folded child cannot honour, flagging a non-li one', () => {
+    const li = migrate(
+      dyn('Page, PageLink', '<Page tag="li"><PageLink>1</PageLink></Page>')
+    );
+    expect(li.rules).toEqual([]);
+    expect(li.output).toContain('<Pagination.Link>1</Pagination.Link>');
+    const span = migrate(
+      dyn('Page, PageLink', '<Page tag="span"><PageLink>1</PageLink></Page>')
+    );
+    expect(span.rules).toEqual(['prop:tag']);
+    expect(span.output).toContain('<Pagination.Link>1</Pagination.Link>');
+  });
+
+  it('keeps Subtitle an <h2> unless told otherwise', () => {
+    const bare = migrate(dyn('Subtitle', '<Subtitle isSize={4}>x</Subtitle>'));
+    expect(bare.output).toContain('<SubTitle size={4} as="h2">x</SubTitle>');
+    const tagged = migrate(dyn('Subtitle', '<Subtitle tag="p">x</Subtitle>'));
+    expect(tagged.output).toContain('<SubTitle as="p">x</SubTitle>');
   });
 
   it('keeps a Page it cannot fold as a plain list item', () => {

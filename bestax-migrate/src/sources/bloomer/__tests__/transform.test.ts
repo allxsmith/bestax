@@ -110,6 +110,16 @@ describe('bloomer imports', () => {
     expect(output).not.toContain("from 'bloomer'");
   });
 
+  it('never merges a component into a type-only bestax import', () => {
+    const { output } = migrate(
+      "import type { TitleProps } from '@allxsmith/bestax-bulma';\nimport { Box } from 'bloomer';\nexport const A = (p: TitleProps) => <Box />;\n"
+    );
+    expect(output).toContain(
+      "import type { TitleProps } from '@allxsmith/bestax-bulma';"
+    );
+    expect(output).toContain('import { Box } from "@allxsmith/bestax-bulma";');
+  });
+
   it('aliases a bestax import whose name the file already binds', () => {
     const { output } = migrate(
       "import { CardHeaderTitle } from 'bloomer';\nconst Card = () => null;\nexport const A = () => <><Card /><CardHeaderTitle>x</CardHeaderTitle></>;\n"
@@ -174,6 +184,25 @@ describe('bloomer value references', () => {
     expect(output).toContain('import { Box as BulmaBox }');
     expect(output).toContain('<BulmaBox />');
     expect(output).toContain("import { Box } from 'bloomer'");
+  });
+
+  it('renames a value reference of a component whose special keeps its target', () => {
+    const { output, rules } = migrate(
+      'import { Icon } from \'bloomer\';\nconst Old = Icon;\nexport const A = () => <Icon className="fas fa-home" />;\n'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('const Old = Icon;');
+    expect(output).toMatch(/import \{ Icon \} from "@allxsmith\/bestax-bulma"/);
+    expect(output).not.toContain("from 'bloomer'");
+  });
+
+  it('reserves the local of a target-less special used as a value', () => {
+    const { output, rules } = migrate(
+      "import { PageControl, Pagination } from 'bloomer';\nconst Prev = PageControl;\nexport const A = () => <Pagination><PageControl>p</PageControl></Pagination>;\n"
+    );
+    expect(rules).toEqual(['value-reference']);
+    expect(output).toContain("import { PageControl } from 'bloomer'");
+    expect(output).toContain('<Pagination.Previous>p</Pagination.Previous>');
   });
 
   it('flags a retained component used as a value', () => {

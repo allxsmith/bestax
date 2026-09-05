@@ -16,6 +16,7 @@ import {
   attributesOf,
   findAttr,
   literalValueOf,
+  makeAttr,
   plainElement,
   removeAttr,
   type TransformContext,
@@ -143,10 +144,26 @@ export function mergeClassName(
   return base;
 }
 
-/** Parse an icon-font <i className="..."> into bestax Icon name/library/variant. */
-export function parseIconClasses(
-  className: string
-): { name: string; library?: string; variant?: string } | null {
+/** What an icon-font class string says about a bestax `Icon`. */
+export interface ParsedIconClasses {
+  name: string;
+  library?: string;
+  variant?: string;
+  /** Recognised modifier classes (`fa-spin`, `fa-2x`, `mdi-48px`) — bestax's `features`. */
+  features: string[];
+  /**
+   * Tokens that are neither the icon, its style, nor a modifier the library
+   * documents — an app's own class. bestax's Icon has nowhere to put them
+   * on the glyph, so a caller that wants exact markup keeps the child.
+   */
+  leftovers: string[];
+}
+
+/**
+ * Parse an icon-font class string (`fas fa-home fa-spin`, `mdi mdi-account`)
+ * into bestax Icon props. Returns null when no icon name can be read.
+ */
+export function parseIconClasses(className: string): ParsedIconClasses | null {
   const tokens = className.trim().split(/\s+/);
   const faVariant: Record<string, string> = {
     fas: 'solid',
@@ -178,17 +195,76 @@ export function parseIconClasses(
     /^fa-(?:solid|regular|brands|light|duotone|thin|sharp|classic|2xs|xs|sm|lg|xl|2xl|\d{1,2}x|fw|ul|li|border|inverse|stack|stack-1x|stack-2x|pull-(?:left|right)|spin|spin-pulse|spin-reverse|pulse|beat|fade|beat-fade|bounce|flash|shake|swap-opacity|rotate-(?:90|180|270|by)|flip-(?:horizontal|vertical|both))$/;
   const faName = tokens.find(t => /^fa-/.test(t) && !FA_MODIFIER.test(t));
   if (faStyle && faName) {
+    // The style word itself (`fa-solid`) is not a feature; `fa` is FA4's
+    // style token and, when it accompanies a v5+ style, harmless.
+    const features = tokens.filter(t => FA_MODIFIER.test(t) && !faVariant[t]);
+    const leftovers = tokens.filter(
+      t => t !== faStyle && t !== faName && t !== 'fa' && !features.includes(t)
+    );
     return {
       name: faName.replace(/^fa-/, ''),
       library: 'fa',
       variant: faVariant[faStyle],
+      features,
+      leftovers,
     };
   }
   if (tokens.includes('mdi')) {
-    const mdiName = tokens.find(t => /^mdi-/.test(t) && t !== 'mdi');
-    if (mdiName) return { name: mdiName.replace(/^mdi-/, ''), library: 'mdi' };
+    // MDI's documented modifiers: sizes, spin, rotation, flips, light/dark,
+    // inactive. Any other `mdi-*` token is the icon — whichever comes first,
+    // since `mdi mdi-24px mdi-account` is as legal as the other order.
+    const MDI_MODIFIER =
+      /^mdi-(?:(?:18|24|36|48)px|spin|rotate-(?:45|90|135|180|225|270|315)|flip-[hv]|light|dark|inactive)$/;
+    const mdiName = tokens.find(
+      t => /^mdi-/.test(t) && t !== 'mdi' && !MDI_MODIFIER.test(t)
+    );
+    if (mdiName) {
+      const features = tokens.filter(t => MDI_MODIFIER.test(t));
+      const leftovers = tokens.filter(
+        t => t !== 'mdi' && t !== mdiName && !features.includes(t)
+      );
+      return {
+        name: mdiName.replace(/^mdi-/, ''),
+        library: 'mdi',
+        features,
+        leftovers,
+      };
+    }
   }
   return null;
+}
+
+/**
+ * Write a parsed icon onto a bestax `Icon`-shaped element: `name`, then
+ * `library`/`variant` when known, then `features` — one string, or an array
+ * literal when there are several — and make the element self-closing.
+ */
+export function applyIconProps(
+  ctx: TransformContext,
+  element: any,
+  parsed: ParsedIconClasses
+): void {
+  const { j } = ctx;
+  addAttr(element, makeAttr(j, 'name', parsed.name));
+  if (parsed.library) addAttr(element, makeAttr(j, 'library', parsed.library));
+  if (parsed.variant) addAttr(element, makeAttr(j, 'variant', parsed.variant));
+  if (parsed.features.length === 1) {
+    addAttr(element, makeAttr(j, 'features', parsed.features[0]));
+  } else if (parsed.features.length > 1) {
+    addAttr(
+      element,
+      j.jsxAttribute(
+        j.jsxIdentifier('features'),
+        j.jsxExpressionContainer(
+          j.arrayExpression(parsed.features.map(f => j.stringLiteral(f)))
+        )
+      )
+    );
+  }
+  element.children = [];
+  element.openingElement.selfClosing = true;
+  element.closingElement = null;
+  ctx.dirty = true;
 }
 
 /**
@@ -275,7 +351,14 @@ export function makeStructuralHelpers(strip: AttrStrip) {
     where: string
   ): SpecialResult {
     const merged = mergeClassName(ctx, path, element, className, where);
-    const rest = strip(ctx, path, attributesOf(element), where);
+    const kept = new Set(strip(ctx, path, attributesOf(element), where));
+    // Spread attributes pass through untouched, in place: they are the
+    // caller's own props, and a plain element takes them as readily as the
+    // component did. `attributesOf` filters them out, so dropping them here
+    // lost `{...rest}` with no TODO.
+    const rest = (element.openingElement.attributes ?? []).filter(
+      (a: any) => a.type === 'JSXSpreadAttribute' || kept.has(a)
+    );
     path.replace(
       plainElement(ctx.j, tag, merged, rest, element.children ?? [])
     );
@@ -312,7 +395,13 @@ export function makeStructuralHelpers(strip: AttrStrip) {
     const accepted = Array.isArray(expected) ? expected : [expected];
     if (!childPath || !accepted.includes(childPath.join('.'))) return null;
 
-    for (const attr of [...attributesOf(element)]) {
+    for (const attr of [...(element.openingElement.attributes ?? [])]) {
+      if (attr.type === 'JSXSpreadAttribute') {
+        // A spread has no name to collide on; it moves across as written.
+        removeAttr(element, attr);
+        addAttr(child, attr);
+        continue;
+      }
       const name: string = attr.name.name;
       if (findAttr(child, name)) {
         addTodo(

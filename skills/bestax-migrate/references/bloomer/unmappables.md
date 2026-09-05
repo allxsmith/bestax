@@ -13,8 +13,9 @@ bloomer's `Icon` put the icon-font classes on its own `className`, and its era w
 <Icon name="home" library="fa" variant="solid" size="large" />
 ```
 
-Anything else — FA4's `fa fa-home` above all — is moved onto an `<i>` child, which renders
-exactly what bloomer rendered, and flagged: bestax's optional Font Awesome peer is **6.7+**, where
+Modifier classes the library documents (`fa-spin`, `fa-lg`, `mdi-24px`) become bestax's
+`features`. Anything else — FA4's `fa fa-home` above all, or an app's own class beside the icon
+— is moved onto an `<i>` child, which renders exactly what bloomer rendered, and flagged: bestax's optional Font Awesome peer is **6.7+**, where
 many v4 names changed and brand icons moved to `variant="brands"`. Either keep FA4 loaded, or
 convert to the prop form:
 
@@ -23,8 +24,10 @@ convert to the prop form:
 <Icon name="github" library="fa" variant="brands" />
 ```
 
-`library` is `fa` | `mdi` | `ion` | `material-icons` | `material-symbols`. An `Icon` with no
-`className` and no children is flagged too: bestax's needs a `name` or a child.
+`library` is `fa` | `mdi` | `ion` | `material-icons` | `material-symbols`. `PanelIcon` has the
+same `className` API and converts the same way. An `Icon` with no `className` and no children
+is flagged too — it gets an empty `<i>` child so it compiles until you set a `name` or a child —
+and so is a `className` that is not a string (`prop:className`).
 
 ## `component:Nav` — Bulma 0.4's nav
 
@@ -140,24 +143,24 @@ own CSS styled the class.
 
 Each of these is left in place with a TODO naming the class to add instead:
 
-| prop                      | on                                           | what to do                                                                              |
-| ------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `isBold`                  | `Hero`                                       | `className="is-bold"` (Bulma v1 still ships it)                                         |
-| `isHalfHeight`            | `Hero`                                       | `className="is-halfheight"` — bestax's `size` has no half-height                        |
-| `isSize="large"`          | `Media`                                      | `className="is-large"`                                                                  |
-| `isSpaced`                | `Subtitle`                                   | `className="is-spaced"` — only `Title` has `isSpaced`                                   |
-| `isActive`                | `Input`                                      | `className="is-active"`                                                                 |
-| `isActive`, `isFocused`   | `PageLink`, `PageControl`, `PageEllipsis`    | `className="is-active"` / `"is-focused"`                                                |
-| `isActive`                | `NavbarLink`                                 | `className="is-active"`                                                                 |
-| `isHoverable`             | `NavbarItem` without `hasDropdown`           | move to the `Navbar.Dropdown`, or `className="is-hoverable"`                            |
-| `isBoxed`                 | `NavbarDropdown`, `NavbarDivider`            | `className="is-boxed"`                                                                  |
-| `isWrapped`               | `PanelBlock`                                 | `className="is-wrapped"`                                                                |
-| `isFlexible`              | `LevelItem`                                  | `className="is-flexible"`                                                               |
-| `hasAddons="fullwidth"`   | `Field`                                      | `hasAddons` plus `className="has-addons-fullwidth"`                                     |
-| `isAlign`                 | `TabList`                                    | set `align` on the `<Tabs>` — Bulma aligns the container                                |
-| `isGrid`                  | `Columns`                                    | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid` |
-| `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete` | put an `<a>` inside, or handle it in `onClick`                                          |
-| `isRatio` beside `isSize` | `Image`                                      | bestax's one `size` took the fixed size; restore the ratio if that was the point        |
+| prop                      | on                                           | what to do                                                                               |
+| ------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `isBold`                  | `Hero`                                       | `className="is-bold"` (Bulma v1 still ships it)                                          |
+| `isHalfHeight`            | `Hero`                                       | `className="is-halfheight"` — bestax's `size` has no half-height                         |
+| `isSize="large"`          | `Media`                                      | `className="is-large"`                                                                   |
+| `isSpaced`                | `Subtitle`                                   | `className="is-spaced"` — only `Title` has `isSpaced`                                    |
+| `isActive`                | `Input`                                      | `className="is-active"`                                                                  |
+| `isActive`, `isFocused`   | `PageLink`, `PageControl`, `PageEllipsis`    | `className="is-active"` / `"is-focused"`                                                 |
+| `isActive`                | `NavbarLink`                                 | `className="is-active"`                                                                  |
+| `isHoverable`             | `NavbarItem` without `hasDropdown`           | move to the `Navbar.Dropdown`, or `className="is-hoverable"`                             |
+| `isBoxed`                 | `NavbarDropdown`, `NavbarDivider`            | `className="is-boxed"`                                                                   |
+| `isWrapped`               | `PanelBlock` with `href`                     | `className="is-wrapped"` (a block without `href` stays plain markup and keeps the class) |
+| `isFlexible`              | `LevelItem`                                  | `className="is-flexible"`                                                                |
+| `hasAddons="fullwidth"`   | `Field`                                      | `hasAddons` plus `className="has-addons-fullwidth"`                                      |
+| `isAlign`                 | `TabList`                                    | set `align` on the `<Tabs>` — Bulma aligns the container                                 |
+| `isGrid`                  | `Columns`                                    | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid`  |
+| `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete` | put an `<a>` inside, or handle it in `onClick`                                           |
+| `isRatio` beside `isSize` | `Image`                                      | bestax's one `size` took the fixed size; restore the ratio if that was the point         |
 
 ## `prop:isLink` — beside `isColor`
 
