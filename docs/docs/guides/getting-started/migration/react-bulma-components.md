@@ -98,7 +98,7 @@ errors. The recurring cases:
 | `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                              |
 | Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                    |
 | `Pagination` extras (`delta`, custom labels, …)   | bestax Pagination windows itself; render conditionally instead of `autoHide`                               |
-| `Modal closeOnEsc/closeOnBlur/showClose`          | bestax defaults already do this when `onClose` is set — delete the props                                   |
+| `Modal closeOnBlur/showClose`                     | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself               |
 
 :::tip Let an agent do the follow-up
 The [`bestax-migrate` skill](/docs/skills/migrate) packages this whole workflow — codemod run,

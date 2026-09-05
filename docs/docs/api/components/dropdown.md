@@ -141,6 +141,32 @@ function example() {
 
 ---
 
+### Forwarded ref
+
+`Dropdown` forwards a ref to the root `.dropdown` element. It is merged with the ref the component uses internally for outside-click and keyboard handling, so attaching your own does not disable either.
+
+```tsx live
+function example() {
+  const dropdownRef = React.useRef(null);
+  const [tag, setTag] = React.useState(null);
+
+  return (
+    <>
+      <Dropdown label="Pick one" ref={dropdownRef}>
+        <Dropdown.Item>First</Dropdown.Item>
+        <Dropdown.Item>Second</Dropdown.Item>
+      </Dropdown>
+      <Button mt="3" onClick={() => setTag(dropdownRef.current?.className)}>
+        Read the root from its ref
+      </Button>
+      <p>Root class: {tag ?? '—'}</p>
+    </>
+  );
+}
+```
+
+Callback refs behave the same on React 18 and 19: a cleanup function you return runs on detach instead of the ref being called with `null`.
+
 ### Compound (dot-notation) usage
 
 `DropdownItem` and `DropdownDivider` are also available as `Dropdown.Item` and `Dropdown.Divider`, so the whole menu can be composed from the single `Dropdown` import.
@@ -221,6 +247,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 | `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.      |
 | `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked.       |
 | `id`             | `string`                                               | —       | Root element ID (for aria-controls, etc).         |
+| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.       |
 | `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**

@@ -778,4 +778,132 @@ describe('react-bulma-components transform fixtures', () => {
       expect(todos.some(t => t.rule === 'css')).toBe(true);
     });
   });
+
+  /**
+   * The bestax roots this codemod targets gained `forwardRef`, so the old
+   * `domRef` advice ("use a ref on a DOM child or wrap the component") told
+   * users to restructure markup around a ref that now works. rbx's `innerRef`
+   * was corrected the same way; this pins the sibling.
+   */
+  describe('the domRef TODO describes refs that bestax actually forwards', () => {
+    function domRefTodo(name: string): string {
+      const todos: TodoEntry[] = [];
+      runTransform(
+        transform,
+        'ref.tsx',
+        `import { ${name} } from "react-bulma-components";\n` +
+          `export const A = (r: any) => <${name} domRef={r}>x</${name}>;`,
+        { add: entry => todos.push(entry) }
+      );
+      const todo = todos.find(t => t.rule === 'prop:domRef');
+      expect(todo).toBeDefined();
+      return todo!.message;
+    }
+
+    it('does not offer the Button rename once `remove` retargets it to Delete', () => {
+      // `<Button remove>` becomes `<Delete>`, a plain function component, so
+      // the general advice — which names Button as forwarding a ref — would
+      // send the user to rename `domRef` on an element that ignores it.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Button } from "react-bulma-components";\n' +
+          'export const A = (r: any) => <Button remove domRef={r} />;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<Delete');
+      const domRefTodos = todos.filter(t => t.rule === 'prop:domRef');
+      expect(domRefTodos).toHaveLength(1);
+      expect(domRefTodos[0].message).toContain('forwards no ref');
+      expect(domRefTodos[0].message).not.toMatch(/rename `domRef` to `ref`/);
+    });
+
+    it.each(['Button', 'Modal', 'Dropdown', 'Navbar'])(
+      'tells you to rename domRef to ref on %s rather than wrap it',
+      name => {
+        const message = domRefTodo(name);
+        expect(message).toMatch(/rename `domRef` to `ref`/);
+        expect(message).toMatch(new RegExp(`\`${name}\``));
+      }
+    );
+
+    it('still offers the wrapping fallback for the components that forward no ref', () => {
+      expect(domRefTodo('Card')).toMatch(/wrap the component/);
+    });
+
+    it('names the Navbar.Dropdown collision in both directions', () => {
+      // The codemod retargets both sides of it: an RBC `Navbar.Item` wrapping a
+      // dropdown becomes bestax `Navbar.Dropdown` (which forwards a ref), and
+      // the RBC `Navbar.Dropdown` inside it becomes `Navbar.DropdownMenu`
+      // (which does not). Reading only the name you wrote gets it backwards
+      // in either direction.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Navbar } from "react-bulma-components";\n' +
+          'export const A = (r: any) => <Navbar.Item domRef={r}><Navbar.Dropdown>x</Navbar.Dropdown></Navbar.Item>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<Navbar.Dropdown domRef={r}>');
+      expect(output).toContain('<Navbar.DropdownMenu>');
+      const message = todos.find(t => t.rule === 'prop:domRef')!.message;
+      expect(message).toMatch(/`Navbar\.Item` that wrapped your dropdown/);
+      expect(message).toMatch(/`Navbar\.DropdownMenu` and does not/);
+    });
+  });
+
+  /**
+   * The rbx source's Modal guidance was corrected earlier in this change; this
+   * source carried the same three claims about the same bestax component, and
+   * all three were wrong for the shape RBC modals actually migrate into.
+   */
+  describe('the Modal TODOs describe the modal the codemod produces', () => {
+    function migrateModal(attrs: string) {
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'm.tsx',
+        'import { Modal } from "react-bulma-components";\n' +
+          `export const A = () => <Modal show ${attrs} onClose={() => {}}><Modal.Content>x</Modal.Content></Modal>;`,
+        { add: entry => todos.push(entry) }
+      );
+      return { output: output ?? '', todos };
+    }
+
+    it('renames closeOnEsc rather than telling you to drop it', () => {
+      // bestax `closeOnEscape` defaults to `true`, so "remove" turned
+      // `closeOnEsc={false}` into a modal that dismisses on Escape when the
+      // original forbade it — the same regression the rbx source had.
+      const { output, todos } = migrateModal('closeOnEsc={false}');
+      expect(output).toContain('closeOnEscape={false}');
+      expect(output).not.toContain('closeOnEsc=');
+      expect(todos.find(t => t.rule === 'prop:closeOnEsc')).toBeUndefined();
+    });
+
+    it.each([
+      ['closeOnBlur', 'closeOnBlur'],
+      ['showClose', 'showClose={false}'],
+    ])(
+      'does not claim bestax supplies %s on the compound form it migrates into',
+      (rule, attrs) => {
+        // A `Modal.Content` or `Modal.Card` child puts bestax's Modal on its
+        // compound path, which renders exactly the children it is given — no
+        // background element and no close button — so "bestax does this when
+        // onClose is set; remove" was false for every RBC modal.
+        const { todos } = migrateModal(attrs);
+        const message =
+          todos.find(t => t.rule === `prop:${rule}`)?.message ?? '';
+        expect(message).toMatch(/only in its legacy form/);
+        expect(message).toMatch(/compound form/);
+        expect(message).not.toMatch(/when onClose is set; remove/);
+        // Neither message may name a variable. `onClose` is the RBC prop, not
+        // the identifier bound to it — this fixture's own handler is anonymous,
+        // and the overlays fixture calls it `close` — so `onClick={onClose}`
+        // pasted verbatim is an undefined reference.
+        expect(message).not.toMatch(/\{onClose\}/);
+      }
+    );
+  });
 });

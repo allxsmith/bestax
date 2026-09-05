@@ -114,6 +114,8 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const [isPaused, setIsPaused] = useState(false);
     const toastRef = useRef<HTMLDivElement | null>(null);
 
+    // Cleanup returned by a consumer's callback ref on attach, held until detach.
+    const consumerCleanupRef = useRef<(() => void) | null>(null);
     const handleClose = useCallback(() => {
       setIsVisible(false);
       onClose?.();
@@ -202,18 +204,43 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const toastButtonClass = usePrefixedClassNames('button');
     const toastCloseClass = usePrefixedClassNames('delete', 'is-small');
 
+    const setRef = useCallback(
+      (node: HTMLDivElement | null) => {
+        toastRef.current = node;
+        if (typeof ref === 'function') {
+          // React 19 lets a callback ref return a cleanup function and detaches by
+          // running it instead of calling the ref with `null`; React 18 discards the
+          // return value entirely. Returning it from here would be a React-19-only
+          // contract, so we hold the cleanup and run it ourselves on detach — the
+          // same shape as `Dropdown`, `Modal`, `Dialog`, `Sidebar` and `Carousel`.
+          // The form controls that merge a forwarded ref still discard the cleanup
+          // and detach with `ref(null)`, so this is not yet library-wide — grep
+          // `typeof ref === 'function'` for the current split. Memoized because an
+          // unstable ref identity makes React detach and re-attach on every render,
+          // which would run that cleanup each time.
+          if (node === null) {
+            const consumerCleanup = consumerCleanupRef.current;
+            consumerCleanupRef.current = null;
+            if (consumerCleanup) {
+              consumerCleanup();
+            } else {
+              ref(null);
+            }
+            return;
+          }
+          const cleanup: unknown = ref(node);
+          consumerCleanupRef.current =
+            typeof cleanup === 'function' ? (cleanup as () => void) : null;
+        } else if (ref) {
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        }
+      },
+      [ref]
+    );
+
     if (!isVisible) {
       return null;
     }
-
-    const setRef = (node: HTMLDivElement | null) => {
-      toastRef.current = node;
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref) {
-        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-      }
-    };
 
     const toastElement = (
       <div

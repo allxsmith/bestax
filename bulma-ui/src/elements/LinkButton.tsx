@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 import { Button, ButtonProps } from './Button';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 
@@ -30,6 +30,7 @@ export interface LinkButtonProps extends Omit<
  *
  * @function
  * @param {LinkButtonProps} props - Props for the LinkButton component.
+ * @param {React.Ref<HTMLButtonElement | HTMLAnchorElement>} ref - Forwarded ref to the rendered button or anchor element.
  * @returns {JSX.Element} The rendered link-styled button element.
  *
  * @example
@@ -40,12 +41,10 @@ export interface LinkButtonProps extends Omit<
  * // Underline variant with color
  * <LinkButton variant="underline" color="primary">Learn more</LinkButton>
  */
-export const LinkButton: React.FC<LinkButtonProps> = ({
-  variant = 'text',
-  color,
-  className,
-  ...props
-}) => {
+export const LinkButton = forwardRef<
+  HTMLButtonElement | HTMLAnchorElement,
+  LinkButtonProps
+>(function LinkButton({ variant = 'text', color, className, ...props }, ref) {
   const buttonColor = variant === 'underline' ? 'text' : variant;
 
   const prefixedClasses = usePrefixedClassNames(
@@ -56,11 +55,14 @@ export const LinkButton: React.FC<LinkButtonProps> = ({
 
   return (
     <Button
+      ref={ref}
       color={buttonColor}
       className={classNames(prefixedClasses, className)}
       {...props}
     />
   );
-};
+});
+
+LinkButton.displayName = 'LinkButton';
 
 export default LinkButton;

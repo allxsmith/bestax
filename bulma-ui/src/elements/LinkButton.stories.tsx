@@ -291,3 +291,24 @@ export const PolymorphicAs: Story = {
   ),
   name: 'Polymorphic `as` (Router Link)',
 };
+
+// Forwarded ref — reach the DOM node for programmatic focus
+const ForwardedRefDemo = () => {
+  const linkButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  return (
+    <Buttons>
+      <Button onClick={() => linkButtonRef.current?.focus()}>
+        Focus the link button
+      </Button>
+      <LinkButton ref={linkButtonRef} variant="underline" color="primary">
+        I receive focus
+      </LinkButton>
+    </Buttons>
+  );
+};
+
+export const ForwardedRef: Story = {
+  render: () => <ForwardedRefDemo />,
+  name: 'Forwarded ref (programmatic focus)',
+};

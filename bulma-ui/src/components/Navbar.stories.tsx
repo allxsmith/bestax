@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import Navbar from './Navbar';
+import { Box } from '../elements/Box';
+import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 import logo from '../../images/logo.svg';
 
 const meta: Meta<typeof Navbar> = {
@@ -337,6 +340,77 @@ export const Light: Story = {
 };
 export const White: Story = {
   render: () => <StatefulNavbarBurgerMenu color="white" />,
+};
+
+// Forwarded refs — the root `<nav>` plus the interactive sub-parts
+// (`Navbar.Burger`, `Navbar.Link`, `Navbar.Dropdown`).
+const ForwardedRefNavbar = () => {
+  const navRef = useRef<HTMLElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const linkRef = useRef<HTMLAnchorElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  const [burgerLabel, setBurgerLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    setHeight(navRef.current?.getBoundingClientRect().height ?? null);
+  }, []);
+
+  return (
+    <>
+      <Navbar ref={navRef}>
+        <Navbar.Brand>
+          <Navbar.Item href="#">
+            <img src={logo} alt="Logo" width="28" height="28" />
+          </Navbar.Item>
+          <Navbar.Burger ref={burgerRef} aria-label="menu" />
+        </Navbar.Brand>
+        <Navbar.Menu active>
+          <Navbar.Start>
+            <Navbar.Item href="#">Home</Navbar.Item>
+            <Navbar.Dropdown ref={dropdownRef} hoverable>
+              <Navbar.Link ref={linkRef}>More</Navbar.Link>
+              <Navbar.DropdownMenu>
+                <Navbar.Item href="#">About</Navbar.Item>
+                <Navbar.Item href="#">Contact</Navbar.Item>
+              </Navbar.DropdownMenu>
+            </Navbar.Dropdown>
+          </Navbar.Start>
+        </Navbar.Menu>
+      </Navbar>
+      <Box m="4">
+        <p>
+          Nav height from the forwarded ref:{' '}
+          {height === null ? '—' : `${Math.round(height)}px`}
+        </p>
+        {/* Bulma hides `.navbar-burger` above the desktop breakpoint, so
+            focusing it would be a no-op at this story's default width. Read
+            the node instead — that demonstrates the ref at any width. */}
+        <p>Burger aria-label from its forwarded ref: {burgerLabel ?? '—'}</p>
+        <Buttons mt="3">
+          <Button
+            onClick={() =>
+              setBurgerLabel(
+                burgerRef.current?.getAttribute('aria-label') ?? null
+              )
+            }
+          >
+            Read the burger from its ref
+          </Button>
+          <Button onClick={() => linkRef.current?.focus()}>
+            Focus the dropdown link
+          </Button>
+          <Button onClick={() => dropdownRef.current?.scrollIntoView()}>
+            Scroll to the dropdown
+          </Button>
+        </Buttons>
+      </Box>
+    </>
+  );
+};
+
+export const ForwardedRefs: Story = {
+  render: () => <ForwardedRefNavbar />,
 };
 
 // Compound (dot-notation) usage

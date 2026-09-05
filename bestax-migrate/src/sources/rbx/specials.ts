@@ -788,19 +788,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * The markup maps cleanly, but three rbx behaviours do not exist in bestax
-   * and none of them fail loudly: rbx portals the modal into `document.body`,
-   * closes it on Escape by default, and clips document scroll while it is
-   * open. bestax renders inline and implements none of the three. An
-   * unmodified `<Modal>` therefore migrates to something that looks right and
-   * behaves differently, so every conversion is flagged.
+   * rbx's Modal portals into `document.body`, closes on Escape and clips
+   * document scroll, all by default. bestax matches two of those since #633 —
+   * `closeOnEscape` and `lockScroll` both default to `true` — but still
+   * renders inline unless `portal` is set. That last difference does not fail
+   * loudly, so every conversion is still flagged, now about the portal alone.
    */
   modal(ctx, path, _element) {
     addTodo(
       ctx,
       path,
       'component:Modal',
-      'bestax `Modal` renders inline rather than portalling into document.body, and implements neither Escape-to-close nor scroll locking — rbx did all three by default. Re-add whichever your UI relied on'
+      'bestax `Modal` closes on Escape and locks body scroll by default, matching rbx, but it renders inline: set `portal` if you relied on rbx portalling into document.body'
     );
     return {};
   },
@@ -854,6 +853,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       ctx.dirty = true;
     }
+    // bestax's `Navbar.Dropdown` forwards a ref, but it is the one such target
+    // the `innerRef: { rename: 'ref' }` entries in mapping.ts cannot reach:
+    // that table is keyed on the rbx name (`Navbar.Item`), and only this
+    // handler knows which of the two targets was picked. A plain
+    // `Navbar.Item` is still a function component, so the rename is
+    // conditional — there, `innerRef` is left alone.
+    const renamedInnerRef: string[] = [];
+    if (target === 'Navbar.Dropdown') {
+      const innerRefAttr = findAttr(element, 'innerRef');
+      if (innerRefAttr) {
+        innerRefAttr.name = ctx.j.jsxIdentifier('ref');
+        renamedInnerRef.push('innerRef');
+        ctx.dirty = true;
+      }
+    }
     restrictAsToTargets(ctx, path, element, target ?? 'Navbar.Item', [
       'Navbar.Item',
     ]);
@@ -867,6 +881,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'expanded',
         'hoverable',
         'managed',
+        ...renamedInnerRef,
       ],
     };
   },

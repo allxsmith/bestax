@@ -142,7 +142,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   forwardRefAs: {
     status: 'todo',
-    todo: '`forwardRefAs` is rbx-internal and has no counterpart. Only the bestax form controls and a few components (Dialog, Sidebar, Toast, Carousel) forward refs; most, Button and Box included, are plain function components that do not — put the ref on a wrapping element you control',
+    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls and from `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel` — pass `ref` directly on those. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, are plain function components that forward no ref; put the ref on a wrapping element you control',
   },
 
   // ---- elements -----------------------------------------------------------
@@ -153,6 +153,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Button',
     props: {
       as: AS_OK,
+      innerRef: { rename: 'ref' },
       color: {},
       size: {},
       outlined: { booleanToProp: { name: 'isOutlined' } },
@@ -519,9 +520,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       managed: {
         todo: 'bestax `Dropdown` is uncontrolled by default; use `active` + `onActiveChange` for controlled behaviour',
       },
-      innerRef: {
-        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
-      },
+      innerRef: { rename: 'ref' },
     },
     subs: {
       Container: { status: 'mapped', special: 'dropdown-container' },
@@ -628,25 +627,25 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       active: {},
       onClose: {},
-      closeOnEsc: {
-        todo: 'bestax `Modal` implements no Escape handling at all; add your own keydown listener, or drop the prop if the behaviour is not needed',
-      },
+      closeOnEsc: { rename: 'closeOnEscape' },
       closeOnBlur: {
-        todo: "bestax `Modal` has no built-in background-click close; wire it through `Modal.Background`'s onClick and `onClose`",
+        todo: 'bestax `Modal` closes on background click in its legacy form, where it renders its own background wired to `onClose`; a `Modal.Content` or `Modal.Card` child selects the compound form, which renders only the children you wrote — there, add a `<Modal.Background>` whose `onClick` calls your close handler, or drop the prop if you passed false',
       },
       document: {
-        todo: 'bestax `Modal` renders inline where you place it rather than portalling into a document at all; drop this prop, and see the advisory the codemod adds on every Modal',
+        todo: 'bestax `Modal` portals via `portal`, but that takes `true`, a selector or an element — not a `Document`. Pass an element from the document you targeted, or drop the prop if you were passing the default document',
       },
       containerClassName: { rename: 'className' },
-      innerRef: {
-        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
-      },
+      innerRef: { rename: 'ref' },
     },
     subs: {
       Background: { status: 'mapped', target: 'Modal.Background' },
       Close: { status: 'mapped', target: 'Modal.Close' },
       Content: { status: 'mapped', target: 'Modal.Content' },
-      Container: { status: 'mapped', special: 'modal-container' },
+      Container: {
+        status: 'mapped',
+        special: 'modal-container',
+        props: { innerRef: { rename: 'ref' } },
+      },
       Card: {
         status: 'mapped',
         target: 'Modal.Card',
@@ -663,7 +662,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
       Portal: {
         status: 'todo',
-        todo: '`Modal.Portal` is rbx-internal; bestax `<Modal>` renders inline and does not portal at all — wrap it in `createPortal` yourself if you relied on that (see the advisory the codemod adds on every Modal)',
+        todo: '`Modal.Portal` is rbx-internal; set `portal` on the `<Modal>` instead — it takes `true`, a selector or an element',
       },
     },
   },
@@ -681,13 +680,15 @@ export const MAPPING: Record<string, ComponentMapping> = {
         todo: 'bestax `Navbar` is uncontrolled; drop `managed`',
       },
       document: { todo: 'bestax `Navbar` has no `document` prop; drop it' },
-      innerRef: {
-        todo: 'this bestax component is a plain function component and forwards no ref; drop `innerRef`, or put the ref on a wrapping element you control',
-      },
+      innerRef: { rename: 'ref' },
     },
     subs: {
       Brand: { status: 'mapped', target: 'Navbar.Brand' },
-      Burger: { status: 'mapped', target: 'Navbar.Burger' },
+      Burger: {
+        status: 'mapped',
+        target: 'Navbar.Burger',
+        props: { innerRef: { rename: 'ref' } },
+      },
       Divider: { status: 'mapped', target: 'Navbar.Divider' },
       Menu: { status: 'mapped', target: 'Navbar.Menu' },
       Link: {
@@ -695,6 +696,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Navbar.Link',
         props: {
           as: AS_OK,
+          innerRef: { rename: 'ref' },
           arrowless: {},
           onClick: {},
         },

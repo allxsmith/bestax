@@ -40,6 +40,10 @@
     {
       "title": "Polymorphic `as` (Router Links)",
       "code": "import { Link as RouterLink } from 'react-router-dom';\nimport { LinkButton } from '@allxsmith/bestax-bulma';\n\n<LinkButton as={RouterLink} to=\"/dashboard\" variant=\"underline\">\n  Go to Dashboard\n</LinkButton>;"
+    },
+    {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const defaultRef = React.useRef(null);\n  const anchorRef = React.useRef(null);\n  const [tags, setTags] = React.useState(null);\n\n  return (\n    <>\n      <LinkButton ref={defaultRef}>Default</LinkButton>\n      <LinkButton as=\"a\" href=\"#forwarded-ref\" ml=\"2\" ref={anchorRef}>\n        As an anchor\n      </LinkButton>\n      <Button\n        ml=\"2\"\n        onClick={() =>\n          setTags(\n            `${defaultRef.current?.tagName} / ${anchorRef.current?.tagName}`\n          )\n        }\n      >\n        Read both from their refs\n      </Button>\n      <p>Rendered elements: {tags ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- **Semantic HTML:** Renders a native `<button>` element, providing correct keyboard navigation, focus management, and screen reader announcements.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** Fully keyboard accessible with Enter and Space activation.\n- **Replaces anti-patterns:** Use this instead of `<div onClick>` or `<span onClick>` for interactive elements that should not navigate.\n\n:::note\nIf your LinkButton has only an icon, use `aria-label` to provide accessible text.\n:::",
@@ -248,7 +252,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement | HTMLAnchorElement>",
+          "default": null,
+          "description": "Ref forwarded to the rendered button or anchor element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <button> attributes and Bulma helper props",
       "types": []
     }

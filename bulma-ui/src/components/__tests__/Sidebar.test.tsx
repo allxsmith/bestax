@@ -687,4 +687,33 @@ describe('Sidebar', () => {
       expect(container.querySelector('.sidebar-footer')).toBeInTheDocument();
     });
   });
+
+  // The cleanup contract is honored identically on React 18 and 19 (the CI
+  // matrix), and identically across every component that merges a forwarded
+  // ref, so neither this nor its siblings branch on React.version.
+  it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
+    const calls: (HTMLElement | null)[] = [];
+    const cleanup = jest.fn();
+    const callbackRef = (node: HTMLElement | null) => {
+      calls.push(node);
+      if (!node) return undefined;
+      return () => {
+        cleanup();
+      };
+    };
+
+    const { unmount } = render(
+      <Sidebar isOpen onClose={() => {}} ref={callbackRef}>
+        x
+      </Sidebar>
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).not.toBeNull();
+    expect(cleanup).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(1);
+  });
 });

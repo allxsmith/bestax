@@ -695,15 +695,111 @@ describe('rbx types tooltip and badge as `number | string`', () => {
 });
 
 describe('the innerRef remediation is achievable', () => {
-  it('does not tell users to rename innerRef to ref', () => {
-    // bestax Dropdown/Modal/Navbar are plain function components: following
-    // "rename it to ref" just replaces a TODO with a type error.
-    const { todos } = migrate(
-      'import { Dropdown } from "rbx";\nexport const A = (r: any) => <Dropdown innerRef={r}>x</Dropdown>;'
+  // These four roots forward a ref as of bulma-ui #622, so rbx's escape hatch
+  // maps straight across instead of being TODO'd away. The guidance used to
+  // say the opposite, and following it would have deleted a working ref.
+  it.each(['Button', 'Dropdown', 'Modal', 'Navbar'])(
+    'renames innerRef to ref on %s',
+    name => {
+      const { output, todos } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} innerRef={r}>x</${name}>;`
+      );
+      expect(output).toMatch(/<\w+ ref=\{r\}/);
+      expect(output).not.toMatch(/innerRef/);
+      expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
+    }
+  );
+
+  it.each([
+    ['Navbar.Burger', 'Navbar.Burger'],
+    ['Navbar.Link', 'Navbar.Link'],
+  ])('renames innerRef to ref on %s', (rbxName, bestaxName) => {
+    // NavbarBurger and NavbarLink forward a ref too, and the root's prop
+    // mapping does not reach sub-components.
+    const { output } = migrate(
+      `import { Navbar } from "rbx";\nexport const A = (r: any) => <${rbxName} innerRef={r} />;`
     );
-    const msg = todos.find(t => t.rule === 'prop:innerRef')?.message ?? '';
-    expect(msg).toMatch(/forwards no ref/);
-    expect(msg).not.toMatch(/rename .*to `ref`/);
+    expect(output).toContain(`<${bestaxName} ref={r}`);
+    expect(output).not.toMatch(/innerRef/);
+  });
+
+  it('renames innerRef to ref on Modal.Container, which becomes Modal', () => {
+    // Modal.Container maps to the Modal root, which forwards a ref, but the
+    // sub carried no innerRef entry so the prop fell through as an unknown
+    // DOM attribute.
+    const { output } = migrate(
+      'import { Modal } from "rbx";\nexport const A = (r: any) => <Modal.Container innerRef={r}>x</Modal.Container>;'
+    );
+    expect(output).toContain('ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+  });
+
+  it('leaves innerRef alone on Navbar.Dropdown, which maps to the menu', () => {
+    // rbx's Navbar.Dropdown is the menu itself, so it maps to bestax's
+    // Navbar.DropdownMenu — a plain function component that forwards no ref.
+    const { output } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Dropdown innerRef={r}>x</Navbar.Dropdown>;'
+    );
+    expect(output).toMatch(/innerRef=\{r\}/);
+  });
+
+  it('renames innerRef to ref on the Navbar.Item that becomes a Dropdown', () => {
+    // The other half of the same collision: bestax's Navbar.Dropdown is the
+    // container, which `<Navbar.Item dropdown>` becomes, and it forwards a ref.
+    // The prop table is keyed on the rbx name, so only the special can know
+    // which target was picked — this was the one forwarding target the renames
+    // in mapping.ts could not reach.
+    const { output, todos } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item dropdown innerRef={r}>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Dropdown ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
+  });
+
+  it('leaves innerRef alone on a plain Navbar.Item', () => {
+    // Without `dropdown` the target stays Navbar.Item, a function component —
+    // so the rename above must be conditional, not unconditional.
+    const { output } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item innerRef={r}>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Item innerRef={r}');
+  });
+
+  // A plain `ref` is passed through untouched everywhere. That is correct on a
+  // root that forwards one and silently wrong on a root that does not, and the
+  // codemod cannot currently tell the difference — no table has a `ref` entry.
+  // Both halves are pinned so the asymmetry stays visible rather than being
+  // mistaken for "refs are handled".
+  it('passes an existing ref through on a root that forwards one', () => {
+    const { output, todos } = migrate(
+      'import { Button } from "rbx";\nexport const A = (r: any) => <Button ref={r}>x</Button>;'
+    );
+    expect(output).toContain('ref={r}');
+    expect(todos).toHaveLength(0);
+  });
+
+  it.each(['Card', 'Box', 'Section'])(
+    'also passes ref through on %s, which forwards none',
+    name => {
+      // Documents today's behaviour, not a desired one: the ref survives the
+      // rewrite and then resolves to null at runtime. Deliberately does NOT
+      // assert the absence of a diagnostic — flagging this is the improvement,
+      // and a test pinning "no TODO" would fail the change that adds it.
+      const { output } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} ref={r}>x</${name}>;`
+      );
+      expect(output).toContain('ref={r}');
+    }
+  );
+
+  it('leaves innerRef alone on a root that forwards no ref', () => {
+    // Card is not one of the four; renaming here would be a type error, so the
+    // codemod must not touch it.
+    const { output } = migrate(
+      'import { Card } from "rbx";\nexport const A = (r: any) => <Card innerRef={r}>x</Card>;'
+    );
+    expect(output).toMatch(/innerRef=\{r\}/);
   });
 });
 
@@ -1026,25 +1122,39 @@ describe('findings that arrived during the backlog pass', () => {
   });
 });
 
-describe('rbx Modal behaviours bestax does not implement', () => {
-  it('flags every conversion, since none of them fail loudly', () => {
-    // rbx portals into document.body, closes on Escape and clips scroll by
-    // default; bestax does none of the three, so an unmodified Modal migrates
-    // to something that looks right and behaves differently.
+describe('rbx Modal behaviours after bulma-ui gained them', () => {
+  // bulma-ui #633 added closeOnEscape, lockScroll and portal to Modal. Two of
+  // the three now match rbx's defaults, so the advisory that said bestax did
+  // "none of the three" became false, and the closeOnEsc TODO actively
+  // regressed behaviour: dropping the prop, as it instructed, lands on
+  // closeOnEscape's default of true.
+  it('still flags every conversion, but only about the portal', () => {
     const { todos } = migrate(
       'import { Modal } from "rbx";\nexport const A = () => <Modal active><Modal.Content>x</Modal.Content></Modal>;'
     );
-    expect(todos.find(t => t.rule === 'component:Modal')?.message).toMatch(
-      /portalling into document\.body/
-    );
+    const msg = todos.find(t => t.rule === 'component:Modal')?.message ?? '';
+    expect(msg).toMatch(/set `portal`/);
+    expect(msg).not.toMatch(/implements neither/);
   });
 
-  it('does not claim bestax closes on Escape', () => {
-    const { todos } = migrate(
-      'import { Modal } from "rbx";\nexport const A = () => <Modal active closeOnEsc>x</Modal>;'
+  it('renames closeOnEsc rather than telling you to drop it', () => {
+    const { output, todos } = migrate(
+      'import { Modal } from "rbx";\nexport const A = () => <Modal active closeOnEsc={false}>x</Modal>;'
     );
-    const msg = todos.find(t => t.rule === 'prop:closeOnEsc')?.message ?? '';
-    expect(msg).toMatch(/no Escape handling at all/);
+    // The false value has to survive: dropping it would silently re-enable
+    // Escape-to-close, which is what the old guidance caused.
+    expect(output).toContain('closeOnEscape={false}');
+    expect(todos.find(t => t.rule === 'prop:closeOnEsc')).toBeUndefined();
+  });
+
+  it('points Modal.Portal at the portal prop', () => {
+    const { todos } = migrate(
+      'import { Modal } from "rbx";\nexport const A = () => <Modal.Portal><Modal active>x</Modal></Modal.Portal>;'
+    );
+    const msg =
+      todos.find(t => t.rule === 'component:Modal.Portal')?.message ?? '';
+    expect(msg).toMatch(/set `portal`/);
+    expect(msg).not.toMatch(/createPortal/);
   });
 });
 

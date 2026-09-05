@@ -133,6 +133,38 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ---
 
+### Forwarded ref
+
+`LinkButton` forwards a ref to the element it renders. That is a `<button>` by default — the component styles a button to look like a link — and whatever `as` selects otherwise, so `as="a"` with an `href` gives you an anchor.
+
+```tsx live
+function example() {
+  const defaultRef = React.useRef(null);
+  const anchorRef = React.useRef(null);
+  const [tags, setTags] = React.useState(null);
+
+  return (
+    <>
+      <LinkButton ref={defaultRef}>Default</LinkButton>
+      <LinkButton as="a" href="#forwarded-ref" ml="2" ref={anchorRef}>
+        As an anchor
+      </LinkButton>
+      <Button
+        ml="2"
+        onClick={() =>
+          setTags(
+            `${defaultRef.current?.tagName} / ${anchorRef.current?.tagName}`
+          )
+        }
+      >
+        Read both from their refs
+      </Button>
+      <p>Rendered elements: {tags ?? '—'}</p>
+    </>
+  );
+}
+```
+
 ## Visual Behavior
 
 |                       | Default text color   | Hover                                           |
@@ -200,6 +232,7 @@ If your LinkButton has only an icon, use `aria-label` to provide accessible text
 | `target`      | `string`                                                                                                                           | —          | Anchor tag target.                                                                                                                                                                                                                                            |
 | `rel`         | `string`                                                                                                                           | —          | Anchor tag rel.                                                                                                                                                                                                                                               |
 | `children`    | `React.ReactNode`                                                                                                                  | —          | Button content.                                                                                                                                                                                                                                               |
+| `ref`         | `React.Ref<HTMLButtonElement \| HTMLAnchorElement>`                                                                                | —          | Ref forwarded to the rendered button or anchor element.                                                                                                                                                                                                       |
 | `...`         | All standard `<button>` attributes and Bulma helper props                                                                          | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                             |
 
 <!-- /bestax:generated props -->

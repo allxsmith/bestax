@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Button } from '../Button';
@@ -267,6 +267,26 @@ describe('Button Component', () => {
       expect(button).toHaveClass('is-info');
       expect(button).toHaveClass('is-medium');
       expect(button).toHaveClass('p-3');
+    });
+  });
+
+  describe('ref forwarding', () => {
+    it('forwards ref to the underlying <button> element', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(<Button ref={ref}>Click Me</Button>);
+      expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+      expect(ref.current).toBe(screen.getByRole('button'));
+    });
+
+    it('forwards ref to the underlying <a> element when as="a"', () => {
+      const ref = createRef<HTMLAnchorElement>();
+      render(
+        <Button as="a" href="#" ref={ref}>
+          Link Button
+        </Button>
+      );
+      expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+      expect(ref.current).toBe(screen.getByRole('link'));
     });
   });
 });

@@ -94,7 +94,22 @@ const SPECIALS: Record<string, SpecialHandler> = {
       // (`remove={false}`, `remove=""`, `remove={0}`) → just drop the prop.
       removeAttr(element, attr);
       ctx.dirty = true;
-      return resolved === 'truthy' ? { target: 'Delete' } : {};
+      if (resolved !== 'truthy') return {};
+      // The universal `domRef` advice lists `Button` among the components that
+      // forward a ref, but this element is no longer a Button: `Delete` is a
+      // plain function component. Claim the prop so that advice cannot fire
+      // here, and say what actually applies to the target we picked.
+      const handledProps: string[] = [];
+      if (findAttr(element, 'domRef')) {
+        addTodo(
+          ctx,
+          path,
+          'prop:domRef',
+          'this `<Button remove>` became bestax `<Delete>`, which forwards no ref — the general `domRef` advice does not apply here; put the ref on a DOM child or wrap the component'
+        );
+        handledProps.push('domRef');
+      }
+      return { target: 'Delete', handledProps };
     }
     addTodo(
       ctx,

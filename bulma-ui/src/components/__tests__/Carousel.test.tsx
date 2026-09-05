@@ -834,4 +834,29 @@ describe('Carousel', () => {
       expect(prevButton).toBeDisabled();
     });
   });
+
+  // The cleanup contract is honored identically on React 18 and 19 (the CI
+  // matrix), and identically across every component that merges a forwarded
+  // ref, so neither this nor its siblings branch on React.version.
+  it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
+    const calls: (HTMLDivElement | null)[] = [];
+    const cleanup = jest.fn();
+    const callbackRef = (node: HTMLDivElement | null) => {
+      calls.push(node);
+      if (!node) return undefined;
+      return () => {
+        cleanup();
+      };
+    };
+
+    const { unmount } = render(<TestCarousel ref={callbackRef} />);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).not.toBeNull();
+    expect(cleanup).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(1);
+  });
 });

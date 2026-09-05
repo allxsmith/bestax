@@ -30,6 +30,10 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <Dropdown\n      label=\"Controlled Dropdown\"\n      active={open}\n      onActiveChange={setOpen}\n    >\n      <Dropdown.Item>Item A</Dropdown.Item>\n      <Dropdown.Item>Item B</Dropdown.Item>\n    </Dropdown>\n  );\n}"
     },
     {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const dropdownRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Dropdown label=\"Pick one\" ref={dropdownRef}>\n        <Dropdown.Item>First</Dropdown.Item>\n        <Dropdown.Item>Second</Dropdown.Item>\n      </Dropdown>\n      <Button mt=\"3\" onClick={() => setTag(dropdownRef.current?.className)}>\n        Read the root from its ref\n      </Button>\n      <p>Root class: {tag ?? '—'}</p>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Dropdown label=\"Dropdown Menu\" active>\n  <Dropdown.Item>First Item</Dropdown.Item>\n  <Dropdown.Item>Second Item</Dropdown.Item>\n  <Dropdown.Divider />\n  <Dropdown.Item>Third Item</Dropdown.Item>\n</Dropdown>"
     }
@@ -156,7 +160,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the root dropdown element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
     },

@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -329,6 +330,77 @@ describe('Modal', () => {
       expect(screen.getByTestId('bg')).toHaveClass('custom-bg');
       expect(screen.getByTestId('card')).toHaveClass('custom-card');
       expect(screen.getByTestId('body')).toHaveClass('custom-body');
+    });
+  });
+
+  describe('ref forwarding', () => {
+    it('forwards ref to the root .modal element (legacy API)', () => {
+      const ref = createRef<HTMLDivElement>();
+      render(
+        <Modal active ref={ref}>
+          {latin}
+        </Modal>
+      );
+      expect(ref.current).toBeInstanceOf(HTMLDivElement);
+      expect(ref.current).toBe(screen.getByTestId('modal'));
+    });
+
+    it('forwards ref to the root .modal element (compound API)', () => {
+      const ref = createRef<HTMLDivElement>();
+      render(
+        <Modal isActive ref={ref}>
+          <Modal.Background />
+          <Modal.Content>{latin}</Modal.Content>
+        </Modal>
+      );
+      expect(ref.current).toBeInstanceOf(HTMLDivElement);
+      expect(ref.current).toBe(screen.getByTestId('modal'));
+    });
+
+    it('forwards to a callback ref, and detaches on unmount', () => {
+      const seen: (HTMLDivElement | null)[] = [];
+      // Block body on purpose: a callback ref that returns a value is read as
+      // a cleanup function under React 19.
+      const { unmount } = render(
+        <Modal
+          active
+          ref={node => {
+            seen.push(node);
+          }}
+        >
+          {latin}
+        </Modal>
+      );
+      expect(seen[0]).toBe(screen.getByTestId('modal'));
+      unmount();
+      expect(seen[seen.length - 1]).toBeNull();
+    });
+
+    // The cleanup contract is honored identically on React 18 and 19 (the CI
+    // matrix), so this does not branch on React.version.
+    it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
+      const calls: (HTMLDivElement | null)[] = [];
+      const cleanup = jest.fn();
+      const callbackRef = (node: HTMLDivElement | null) => {
+        calls.push(node);
+        if (!node) return undefined;
+        return () => {
+          cleanup();
+        };
+      };
+
+      const { unmount } = render(
+        <Modal active ref={callbackRef}>
+          {latin}
+        </Modal>
+      );
+      expect(calls).toEqual([screen.getByTestId('modal')]);
+      expect(cleanup).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(calls).toHaveLength(1);
     });
   });
 
@@ -916,6 +988,45 @@ describe('Modal', () => {
       expect(portaled?.parentElement).toBe(document.body);
 
       await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    });
+
+    it('re-points a forwarded ref at the portaled node after the hydration move', async () => {
+      // The move remounts the subtree, so the forwarded ref has to detach from
+      // the inline node and reattach to the portaled one; a consumer holding
+      // the first node would otherwise be pointing at a detached element.
+      const seen: (HTMLDivElement | null)[] = [];
+      const modal = (
+        <Modal
+          active
+          portal
+          ref={(node: HTMLDivElement | null) => {
+            seen.push(node);
+          }}
+        >
+          Hydrated modal
+        </Modal>
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(modal);
+      document.body.appendChild(container);
+
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let unmountRoot = () => {};
+      await act(async () => {
+        const root = hydrateRoot(container, modal);
+        unmountRoot = () => root.unmount();
+      });
+
+      const portaled = document.body.querySelector('[data-testid="modal"]');
+      expect(portaled).not.toBeNull();
+      expect(seen[seen.length - 1]).toBe(portaled);
+
+      await act(async () => unmountRoot());
+      expect(seen[seen.length - 1]).toBeNull();
       errorSpy.mockRestore();
       document.body.removeChild(container);
     });

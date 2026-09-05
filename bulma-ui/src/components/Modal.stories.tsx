@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Modal, ModalProps } from './Modal';
 import { Box } from '../elements/Box';
@@ -183,4 +183,43 @@ const PortalModalComponent = () => {
 
 export const Portal: StoryObj<ModalProps> = {
   render: () => <PortalModalComponent />,
+};
+
+// Forwarded ref — the root `.modal` div, used here for focus management:
+// on open, focus is moved to the first focusable control inside the modal.
+const ForwardedRefModalComponent = () => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(true);
+  const closeModal = () => setOpen(false);
+
+  useEffect(() => {
+    if (!open) return;
+    modalRef.current?.querySelector<HTMLElement>('.button')?.focus();
+  }, [open]);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Modal
+        ref={modalRef}
+        active={open}
+        onClose={closeModal}
+        modalCardTitle="Focus Managed Modal"
+        modalCardFoot={
+          <>
+            <button className="button is-success">Save</button>
+            <button className="button" onClick={closeModal}>
+              Cancel
+            </button>
+          </>
+        }
+      >
+        {declarationLatin}
+      </Modal>
+    </>
+  );
+};
+
+export const ForwardedRef: StoryObj<ModalProps> = {
+  render: () => <ForwardedRefModalComponent />,
 };

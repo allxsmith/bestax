@@ -1,4 +1,10 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+} from 'react';
 import { createPortal } from 'react-dom';
 import {
   classNames,
@@ -46,6 +52,7 @@ const getTabbable = (node: HTMLElement): HTMLElement[] =>
 
 /**
  * Props for the Modal component.
+ * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the root `.modal` element.
  */
 export interface ModalProps
   extends
@@ -352,24 +359,27 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @see {@link https://bulma.io/documentation/components/modal/ | Bulma Modal documentation}
  */
-const ModalRoot: React.FC<ModalProps> = ({
-  active,
-  isActive,
-  onClose,
-  className,
-  textColor,
-  bgColor,
-  modalCardTitle,
-  modalCardFoot,
-  type,
-  children,
-  closeOnEscape = true,
-  lockScroll = true,
-  portal = false,
-  role,
-  'aria-modal': ariaModalProp,
-  ...props
-}) => {
+const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
+  {
+    active,
+    isActive,
+    onClose,
+    className,
+    textColor,
+    bgColor,
+    modalCardTitle,
+    modalCardFoot,
+    type,
+    children,
+    closeOnEscape = true,
+    lockScroll = true,
+    portal = false,
+    role,
+    'aria-modal': ariaModalProp,
+    ...props
+  },
+  ref
+) {
   const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
@@ -381,6 +391,43 @@ const ModalRoot: React.FC<ModalProps> = ({
   const isModalActive = active ?? isActive ?? false;
 
   const modalRootRef = useRef<HTMLDivElement>(null);
+
+  // Cleanup returned by a consumer's callback ref on attach, held until detach.
+  const consumerCleanupRef = useRef<(() => void) | null>(null);
+
+  // The forwarded ref and the internal one must both see the node: focus
+  // management, the scroll lock and the topmost-modal check all read
+  // `modalRootRef`, while consumers expect their own ref to resolve.
+  const combinedRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
+        node;
+      if (typeof ref === 'function') {
+        // React 19 lets a callback ref return a cleanup function and detaches
+        // by running it instead of calling the ref with `null`; React 18
+        // discards the return value entirely. Returning it from here would be
+        // a React-19-only contract, so instead we hold the cleanup and run it
+        // ourselves on detach — a consumer's cleanup ref then behaves the same
+        // on both majors of the CI matrix. Same shape as `Dropdown`.
+        if (node === null) {
+          const consumerCleanup = consumerCleanupRef.current;
+          consumerCleanupRef.current = null;
+          if (consumerCleanup) {
+            consumerCleanup();
+          } else {
+            ref(null);
+          }
+          return;
+        }
+        const cleanup: unknown = ref(node);
+        consumerCleanupRef.current =
+          typeof cleanup === 'function' ? (cleanup as () => void) : null;
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    },
+    [ref]
+  );
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const stackTokenRef = useRef<object>({});
   const generatedTitleId = useId();
@@ -517,7 +564,7 @@ const ModalRoot: React.FC<ModalProps> = ({
     modalElement = (
       <div
         className={modalClasses}
-        ref={modalRootRef}
+        ref={combinedRef}
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
         tabIndex={-1}
@@ -537,7 +584,7 @@ const ModalRoot: React.FC<ModalProps> = ({
     modalElement = (
       <div
         className={modalClasses}
-        ref={modalRootRef}
+        ref={combinedRef}
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
         aria-labelledby={titleId}
@@ -624,7 +671,7 @@ const ModalRoot: React.FC<ModalProps> = ({
   }
 
   return modalElement;
-};
+});
 
 export const Modal = withSubComponents(
   ModalRoot,

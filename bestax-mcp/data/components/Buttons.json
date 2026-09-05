@@ -355,7 +355,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement | HTMLAnchorElement>",
+          "default": null,
+          "description": "Ref forwarded to the rendered button or anchor element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <button> attributes and Bulma helper props",
       "types": []
     },
@@ -557,7 +567,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement | HTMLAnchorElement>",
+          "default": null,
+          "description": "Ref forwarded to the rendered button or anchor element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <button> attributes and Bulma helper props",
       "types": []
     }

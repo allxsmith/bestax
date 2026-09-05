@@ -34,6 +34,10 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Portaled Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Rendered in document.body\"\n        portal\n      >\n        This modal is portaled, so it escapes any ancestor with an `overflow:\n        hidden` style.\n      </Modal>\n    </>\n  );\n}"
     },
     {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const [open, setOpen] = React.useState(false);\n  const [width, setWidth] = React.useState(null);\n  const modalRef = React.useRef(null);\n\n  return (\n    <>\n      <Button color=\"info\" onClick={() => setOpen(true)}>\n        Open and measure\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        ref={modalRef}\n        modalCardTitle=\"Measured through the ref\"\n      >\n        <Button\n          onClick={() =>\n            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)\n          }\n        >\n          Measure\n        </Button>\n        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Card>\n          <Modal.Card.Head>\n            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>\n            <Modal.Close onClick={closeModal} />\n          </Modal.Card.Head>\n          <Modal.Card.Body>\n            This modal uses the compound components API for better control and\n            readability.\n          </Modal.Card.Body>\n          <Modal.Card.Foot>\n            <Buttons>\n              <Button color=\"success\" onClick={closeModal}>\n                Save\n              </Button>\n              <Button onClick={closeModal}>Cancel</Button>\n            </Buttons>\n          </Modal.Card.Foot>\n        </Modal.Card>\n      </Modal>\n    </>\n  );\n}"
     },
@@ -175,7 +179,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the root `.modal` element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
     },

@@ -66,11 +66,26 @@ Drop `delta` (built-in), render conditionally instead of `autoHide`
 (`{total > 1 && <Pagination …/>}`), and compose `Pagination.Previous`/`Pagination.Next`
 manually if custom labels are essential.
 
-## `Modal` (`closeOnEsc`, `closeOnBlur`, `showClose`)
+## `Modal` (`closeOnBlur`, `showClose`)
 
-bestax `Modal` already closes on Esc and background click and shows the close button
-whenever `onClose` is set — usually just delete these props. To hide the close button,
-omit `onClose` and render your own close control.
+`closeOnEsc` is not in this list: bestax has `closeOnEscape` (default `true`) and the codemod
+renames it, so `closeOnEsc={false}` keeps suppressing Escape rather than inheriting the default.
+
+The other two depend on which form the migrated modal lands in. bestax's `Modal` supplies a
+background wired to `onClose` and a floating close button only in its **legacy** form — plain
+children, no compound child. A `Modal.Content` or `Modal.Card` child (which is what almost every
+RBC modal has) selects the **compound** form, and that renders only the children you wrote:
+
+```tsx
+<Modal active={show} onClose={close}>
+  <Modal.Background onClick={close} />
+  <Modal.Content>…</Modal.Content>
+  <Modal.Close variant="floating" onClick={close} />
+</Modal>
+```
+
+So `closeOnBlur` and `showClose={true}` mean "add those two children"; passing either as `false`
+means "drop the prop", since the compound form gives you neither unless you ask.
 
 ## `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
 
@@ -113,8 +128,23 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `domRef`
 
-bestax components don't take `domRef`. Most don't forward refs either — attach the ref to
-a DOM element inside, or wrap the component in a `<div ref={…}>`.
+bestax components don't take `domRef`, but many forward a plain `ref` — the form controls
+and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and
+`Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel`. On those, rename `domRef` to
+`ref` and it works; do not restructure the markup. Everywhere else there is no ref to
+forward — attach the ref to a DOM element inside, or wrap the component in a `<div ref={…}>`.
+
+The codemod does not do that rename for you: `domRef` is flagged on every component, so the
+TODO names both cases and you pick. `Navbar.Dropdown` is the trap, and it cuts both ways —
+RBC's is the menu itself, so it maps to bestax's `Navbar.DropdownMenu`, which forwards no ref;
+bestax reserves the name `Navbar.Dropdown` for the outer container, which is what the
+`Navbar.Item` wrapping your dropdown becomes, and that one _does_ forward one. So after the
+codemod runs, read the target name on the line, not the one you wrote.
+
+`Button` has the same shape of trap. `<Button remove>` is Bulma's delete cross, so it migrates
+to `<Delete>`, a plain function component that forwards no ref — even though `Button` itself
+does. The codemod detects that case and replaces the general advice with a TODO naming
+`Delete`, so the message on the line is the one to trust.
 
 ## Helper props dropped from plain-element replacements
 

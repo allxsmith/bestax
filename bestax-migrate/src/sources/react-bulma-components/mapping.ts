@@ -31,7 +31,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
     todo: 'this bestax component has no `as` prop; restructure the element instead',
   },
   domRef: {
-    todo: 'bestax-bulma components do not take domRef; use a ref on a DOM child or wrap the component',
+    todo: 'bestax-bulma has no `domRef`. The form controls and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel` forward a ref — on those, rename `domRef` to `ref`. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: put the ref on a DOM child or wrap the component',
   },
   // ColorProps
   backgroundColor: { rename: 'bgColor' },
@@ -572,12 +572,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       show: { rename: 'active' },
       onClose: {},
-      closeOnEsc: { todo: 'bestax Modal closes on Esc by default; remove' },
+      closeOnEsc: { rename: 'closeOnEscape' },
       closeOnBlur: {
-        todo: 'bestax Modal background click closes when onClose is set; remove',
+        todo: 'bestax Modal closes on background click only in its legacy form; the Modal.Content/Modal.Card child selects the compound form, which renders only the children you wrote — add a `<Modal.Background>` whose `onClick` calls your close handler, or drop the prop if you passed false',
       },
       showClose: {
-        todo: 'bestax Modal renders the close button when onClose is set; remove',
+        todo: 'bestax Modal renders a close button only in its legacy form; the Modal.Content/Modal.Card child selects the compound form, which renders only the children you wrote — add a `<Modal.Close variant="floating">` whose `onClick` calls your close handler, or drop the prop if you passed false',
       },
       document: { drop: true },
     },

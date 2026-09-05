@@ -233,6 +233,45 @@ It's SSR-safe: a portal has no server-rendered counterpart, so the modal renders
 
 ---
 
+### Forwarded ref
+
+`Modal` forwards a ref to the root `.modal` element, so you can measure it or move focus without wrapping it.
+
+```tsx live
+function example() {
+  const [open, setOpen] = React.useState(false);
+  const [width, setWidth] = React.useState(null);
+  const modalRef = React.useRef(null);
+
+  return (
+    <>
+      <Button color="info" onClick={() => setOpen(true)}>
+        Open and measure
+      </Button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        ref={modalRef}
+        modalCardTitle="Measured through the ref"
+      >
+        <Button
+          onClick={() =>
+            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)
+          }
+        >
+          Measure
+        </Button>
+        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>
+      </Modal>
+    </>
+  );
+}
+```
+
+The ref keeps working with `portal`. Moving into the portal remounts the subtree, so the ref detaches from the inline node and re-points at the portaled one rather than leaving you holding a detached element.
+
+Callback refs behave the same on React 18 and 19: if your callback returns a cleanup function, it runs on detach instead of the ref being called with `null`.
+
 ### Compound (dot-notation) usage
 
 #### Modal.Card with compound components
@@ -364,6 +403,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | `closeOnEscape`  | `boolean`                                                               | `true`  | Close the modal when the Escape key is pressed (calls `onClose`). Only the topmost open modal responds, so Escape closes one layer at a time.                                                                                                                                                                                                                                                      |
 | `lockScroll`     | `boolean`                                                               | `true`  | Lock body scroll while the modal is active. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.                                                                                                                                                                                           |
 | `portal`         | `boolean` \| `string` \| `HTMLElement`                                  | `false` | Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to `document.body`; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. |
+| `ref`            | `React.Ref<HTMLDivElement>`                                             | —       | Ref forwarded to the root `.modal` element.                                                                                                                                                                                                                                                                                                                                                        |
 | `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                  |
 
 **Subcomponents:**
