@@ -891,9 +891,32 @@ export default function transform(
         existingBestax?.node ??
         (index >= 0 ? body[index + 1] : undefined);
 
-      if (!carrier) return;
+      if (carrier) {
+        carrier.comments = [...comments, ...(carrier.comments ?? [])];
+      } else if (index > 0) {
+        // The import was the last statement: the comments stay where they
 
-      carrier.comments = [...comments, ...(carrier.comments ?? [])];
+        // were, after what precedes it.
+
+        const previous = body[index - 1];
+
+        previous.comments = [
+          ...(previous.comments ?? []),
+
+          ...comments.map((c: any) => ({
+            ...c,
+            leading: false,
+            trailing: true,
+          })),
+        ];
+      } else {
+        // The import was the only statement: the comments become the file's.
+
+        const program = importPath.parent?.node;
+
+        if (program)
+          program.comments = [...comments, ...(program.comments ?? [])];
+      }
 
       node.comments = [];
     };
@@ -901,7 +924,16 @@ export default function transform(
     let inserted = false;
     // A retained RBC specifier must never collide with a bestax import local
     // (possible when one component is both JSX-migrated and value-retained).
-    const bestaxLocals = new Set(ctx.needed.values());
+    // Only a VALUE local can collide at runtime: a type-only specifier the
+    // seeding above recorded, and nothing promoted, binds no value.
+    const bestaxLocals = new Set(
+      [...ctx.needed.entries()]
+        .filter(
+          ([imported]) =>
+            requested.has(imported) || preExistingImports.has(imported)
+        )
+        .map(([, local]) => local)
+    );
     for (const path of rbcImportPaths) {
       const node = path.node;
       const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {

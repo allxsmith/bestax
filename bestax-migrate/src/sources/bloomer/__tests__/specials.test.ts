@@ -335,16 +335,16 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
-  it('drops a false helper on a helperless target without a hint', () => {
+  it('merges helpers on a helperless target into className, dropping false ones', () => {
     const { output, rules } = migrate(
       dyn(
         'PageControl',
         '<PageControl href="#" isMarginless={false} isHidden={false} isPulled="right">p</PageControl>'
       )
     );
-    expect(rules).toEqual(['prop:isPulled']);
+    expect(rules).toEqual([]);
     expect(output).toContain(
-      '<Pagination.Previous href="#">p</Pagination.Previous>'
+      '<Pagination.Previous href="#" className="is-pulled-right">p</Pagination.Previous>'
     );
   });
 
@@ -463,24 +463,60 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
-  it('turns helpers on HTML-attribute-only targets into class hints', () => {
+  it('turns helpers on HTML-attribute-only targets into classes, or a hint', () => {
     const { output, rules } = migrate(
       dyn(
         'PageControl',
-        '<PageControl href="#" isPulled="right" isMarginless isHidden="mobile">p</PageControl>'
+        '<PageControl href="#" isPulled="right" isMarginless isHidden="mobile" className="x">p</PageControl>'
       )
     );
-    expect(rules).toEqual([
-      'prop:isPulled',
-      'prop:isMarginless',
-      'prop:isHidden',
-    ]);
+    expect(rules).toEqual([]);
     expect(output).toContain(
-      '<Pagination.Previous href="#">p</Pagination.Previous>'
+      '<Pagination.Previous href="#" className="x is-pulled-right m-0 is-hidden-mobile">p</Pagination.Previous>'
     );
-    expect(output).toContain('className="is-pulled-right"');
-    expect(output).toContain('className="m-0"');
-    expect(output).toContain('className="is-hidden-mobile"');
+    const dynamic = migrate(
+      dyn(
+        'PageControl',
+        '<PageControl isHidden={p.h} isDisplay={["flex"]}>p</PageControl>'
+      )
+    );
+    expect(dynamic.rules).toEqual(['prop:isHidden', 'prop:isDisplay']);
+    expect(dynamic.output).toContain(
+      '<Pagination.Previous>p</Pagination.Previous>'
+    );
+  });
+
+  it('turns a modifier bestax has no prop for into its Bulma class', () => {
+    const hero = migrate(
+      dyn('Hero', '<Hero isBold isHalfHeight className="mine">x</Hero>')
+    );
+    expect(hero.rules).toEqual([]);
+    expect(hero.output).toContain(
+      '<Hero className="mine is-bold is-halfheight">x</Hero>'
+    );
+    const media = migrate(dyn('Media', '<Media isSize="large">x</Media>'));
+    expect(media.output).toContain('<Media className="is-large">x</Media>');
+    const off = migrate(dyn('Hero', '<Hero isBold={false}>x</Hero>'));
+    expect(off.rules).toEqual([]);
+    expect(off.output).toContain('<Hero>x</Hero>');
+    const dyn1 = migrate(dyn('Hero', '<Hero isBold={p.b}>x</Hero>'));
+    expect(dyn1.rules).toEqual(['prop:isBold']);
+    const dynClass = migrate(
+      dyn('Hero', '<Hero isBold className={p.c}>x</Hero>')
+    );
+    expect(dynClass.rules).toEqual(['prop:isBold']);
+    expect(dynClass.output).toContain('<Hero className={p.c}>x</Hero>');
+    const input = migrate(dyn('Input', '<Input isActive isSize="small" />'));
+    expect(input.output).toContain(
+      '<InputBase size="small" className="is-active" />'
+    );
+    const menu = migrate(
+      dyn('NavbarDropdown', '<NavbarDropdown isBoxed>x</NavbarDropdown>')
+    );
+    expect(menu.rules).toEqual([]);
+    expect(menu.output).toContain(
+      '<Navbar.DropdownMenu className="is-boxed">x</Navbar.DropdownMenu>'
+    );
   });
 
   it('keeps a bare NavbarItem and DropdownItem a <div>, as bloomer rendered them', () => {
@@ -521,9 +557,9 @@ describe('bloomer navigation handlers', () => {
     const anchor = migrate(
       dyn('PanelBlock', '<PanelBlock href="/x" isWrapped>x</PanelBlock>')
     );
-    expect(anchor.rules).toEqual(['prop:isWrapped']);
+    expect(anchor.rules).toEqual([]);
     expect(anchor.output).toContain(
-      '<Panel.Block href="/x" isWrapped>x</Panel.Block>'
+      '<Panel.Block href="/x" className="is-wrapped">x</Panel.Block>'
     );
   });
 

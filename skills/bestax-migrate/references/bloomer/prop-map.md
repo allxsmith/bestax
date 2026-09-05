@@ -118,9 +118,11 @@ the `tag` you gave) that bloomer rendered.
 A few bestax parts extend only React's HTML attributes and take no Bulma helper props at all:
 `Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
 `Panel.Heading`/`Tabs`/`Block`, `Tabs.List`/`Item`, `Message.Header`/`Body` and the `Modal`
-parts. A bloomer helper on one of those is removed with a TODO naming the Bulma class to add
-instead (`is-pulled-right`, `m-0`, `is-hidden-mobile`, …), since Bulma v1 still ships every one
-of them.
+parts. A bloomer helper on one of those becomes the Bulma class in `className` (`is-pulled-right`,
+`m-0`, `is-hidden-mobile`, …), since Bulma v1 still ships every one of them; only a dynamic
+value is flagged. The same conversion covers the modifiers bestax has no prop for anywhere —
+`Hero isBold`, `Media isSize`, `Subtitle isSpaced`, `Input isActive`, `PanelBlock isWrapped`,
+`LevelItem isFlexible`, `NavbarDivider isBoxed`, the pagination parts' `isActive`/`isFocused`.
 
 ## Refs
 

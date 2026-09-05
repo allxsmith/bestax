@@ -183,6 +183,27 @@ describe('bloomer imports', () => {
     expect(destructured.output).toContain("import * as B from 'bloomer'");
   });
 
+  it('does not count a type-only local as a runtime collision', () => {
+    const { output, rules } = migrate(
+      "import { type Box } from '@allxsmith/bestax-bulma';\nimport { Tile } from 'bloomer';\nexport type B = Box;\nexport const A = () => <Tile />;\n"
+    );
+    expect(rules).toEqual(['component:Tile']);
+    expect(output).toContain(
+      "import { type Box } from '@allxsmith/bestax-bulma';"
+    );
+    expect(output).toContain("import { Tile } from 'bloomer';");
+  });
+
+  it('keeps the comments of a pruned import that ends the file, or is alone', () => {
+    const last = migrate(
+      "import React from 'react';\n// keep me\nimport { Box } from 'bloomer';\n"
+    );
+    expect(last.output).toContain('// keep me');
+    expect(last.output).not.toContain("from 'bloomer'");
+    const only = migrate("// only me\nimport { Box } from 'bloomer';\n");
+    expect(only.output).toContain('// only me');
+  });
+
   it('aliases a bestax import whose name the file already binds', () => {
     const { output } = migrate(
       "import { CardHeaderTitle } from 'bloomer';\nconst Card = () => null;\nexport const A = () => <><Card /><CardHeaderTitle>x</CardHeaderTitle></>;\n"

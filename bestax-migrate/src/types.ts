@@ -38,6 +38,17 @@ export interface PropAction {
    * bare boolean `name` when `value` is omitted.
    */
   booleanToProp?: { name: string; value?: string };
+  /**
+   * Replace a boolean (valueless / `true`) attribute with this Bulma class,
+   * merged into `className` — for a modifier bestax has no prop for but
+   * Bulma v1 still ships. A `false` value is dropped; a dynamic one is a TODO.
+   */
+  toClass?: string;
+  /**
+   * Replace a literal string attribute with `prefix + value` merged into
+   * `className` (`isSize="large"` → `is-large`). A dynamic value is a TODO.
+   */
+  toClassPrefix?: string;
   /** Remove the attribute entirely. */
   drop?: boolean;
   /** Leave the attribute as-is and attach a TODO with this hint. */

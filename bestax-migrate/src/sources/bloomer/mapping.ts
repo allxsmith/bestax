@@ -73,11 +73,6 @@ const size: PropAction = { rename: 'size' };
 const color: PropAction = { rename: 'color' };
 const active: PropAction = { rename: 'active' };
 
-/** A Bulma modifier bestax has no prop for on this target; the class still exists in v1. */
-const classTodo = (cls: string, target: string): PropAction => ({
-  todo: `bestax \`${target}\` has no prop for Bulma's \`${cls}\`; add className="${cls}"`,
-});
-
 const NAV_TODO = (name: string): ComponentMapping => ({
   status: 'todo',
   todo: `\`${name}\` is Bulma 0.4's \`.nav\`, which Bulma removed in 0.5 (bloomer kept the component); rebuild it with bestax's \`Navbar\` — \`Nav\` → \`Navbar\`, \`NavLeft\`/\`NavRight\` → \`Navbar.Start\`/\`Navbar.End\`, \`NavItem\` → \`Navbar.Item\`, \`NavToggle\` → \`Navbar.Burger\` (${DOCS}/api/components/navbar)`,
@@ -314,7 +309,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     special: 'subtitle',
     props: {
       isSize: size,
-      isSpaced: classTodo('is-spaced', 'SubTitle'),
+      isSpaced: { toClass: 'is-spaced' },
       tag: TAG_AS,
     },
   },
@@ -344,7 +339,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isSize: size,
       isHovered: {},
       isFocused: {},
-      isActive: classTodo('is-active', 'Input'),
+      isActive: { toClass: 'is-active' },
     },
   },
   Label: { status: 'mapped', special: 'label' },
@@ -475,14 +470,14 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Level.Item',
     special: 'level-item',
-    props: { isFlexible: classTodo('is-flexible', 'Level.Item'), tag: TAG_AS },
+    props: { isFlexible: { toClass: 'is-flexible' }, tag: TAG_AS },
   },
   LevelLeft: { status: 'mapped', target: 'Level.Left' },
   LevelRight: { status: 'mapped', target: 'Level.Right' },
   Media: {
     status: 'mapped',
     target: 'Media',
-    props: { isSize: classTodo('is-large', 'Media'), tag: TAG_AS },
+    props: { isSize: { toClassPrefix: 'is-' }, tag: TAG_AS },
   },
   MediaContent: { status: 'mapped', target: 'Media.Content' },
   MediaLeft: { status: 'mapped', target: 'Media.Left', props: { tag: TAG_AS } },
@@ -563,13 +558,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
   NavbarLink: {
     status: 'mapped',
     target: 'Navbar.Link',
-    props: { isActive: classTodo('is-active', 'Navbar.Link'), tag: TAG_AS },
+    props: { isActive: { toClass: 'is-active' }, tag: TAG_AS },
   },
   NavbarDropdown: { status: 'mapped', special: 'navbar-dropdown' },
   NavbarDivider: {
     status: 'mapped',
     target: 'Navbar.Divider',
-    props: { isBoxed: classTodo('is-boxed', 'Navbar.Divider') },
+    props: { isBoxed: { toClass: 'is-boxed' } },
   },
 
   // ---- pagination ---------------------------------------------------------
@@ -583,16 +578,16 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     special: 'page-control',
     props: {
-      isActive: classTodo('is-active', 'Pagination.Previous/Next'),
-      isFocused: classTodo('is-focused', 'Pagination.Previous/Next'),
+      isActive: { toClass: 'is-active' },
+      isFocused: { toClass: 'is-focused' },
     },
   },
   PageEllipsis: {
     status: 'mapped',
     target: 'Pagination.Ellipsis',
     props: {
-      isActive: classTodo('is-active', 'Pagination.Ellipsis'),
-      isFocused: classTodo('is-focused', 'Pagination.Ellipsis'),
+      isActive: { toClass: 'is-active' },
+      isFocused: { toClass: 'is-focused' },
     },
   },
   // bestax's Pagination.Link and Pagination.Ellipsis render their own <li>.
@@ -603,8 +598,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Pagination.Link',
     props: {
       isCurrent: active, // bestax's `active` renders Bulma's `is-current`
-      isActive: classTodo('is-active', 'Pagination.Link'),
-      isFocused: classTodo('is-focused', 'Pagination.Link'),
+      isActive: { toClass: 'is-active' },
+      isFocused: { toClass: 'is-focused' },
     },
   },
 
@@ -619,7 +614,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     special: 'panel-block',
     props: {
       isActive: active,
-      isWrapped: classTodo('is-wrapped', 'Panel.Block'),
+      isWrapped: { toClass: 'is-wrapped' },
     },
   },
   PanelIcon: {
@@ -669,8 +664,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isColor: color,
       isSize: size,
       isFullHeight: { booleanToProp: { name: 'size', value: 'fullheight' } },
-      isHalfHeight: classTodo('is-halfheight', 'Hero'),
-      isBold: classTodo('is-bold', 'Hero'),
+      isHalfHeight: { toClass: 'is-halfheight' },
+      isBold: { toClass: 'is-bold' },
     },
   },
   HeroHeader: { status: 'mapped', target: 'Hero.Head' },

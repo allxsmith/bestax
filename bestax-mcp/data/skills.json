@@ -93,12 +93,12 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 18056
+          "bytes": 18333
         },
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 14391
+          "bytes": 12915
         },
         {
           "id": "css-migration",

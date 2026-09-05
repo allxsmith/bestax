@@ -70,6 +70,39 @@ export function addAttrOnce(
   addAttr(element, attr);
 }
 
+/**
+ * Merge a Bulma class into the element's `className`: appended to a string
+ * literal, written fresh when there is none, and a TODO when the existing
+ * value is dynamic (the class cannot be spliced into an expression safely).
+ */
+export function mergeClass(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  cls: string,
+  originalName: string
+): void {
+  const { j } = ctx;
+  const existing = findAttr(element, 'className');
+  if (!existing) {
+    addAttr(element, makeAttr(j, 'className', cls));
+    return;
+  }
+  const literal = literalValueOf(existing);
+  if (literal.kind === 'string') {
+    const classes = literal.value.split(/\s+/).filter(Boolean);
+    if (!classes.includes(cls)) classes.push(cls);
+    existing.value = j.stringLiteral(classes.join(' '));
+    return;
+  }
+  addTodo(
+    ctx,
+    path,
+    `prop:${originalName}`,
+    `\`${originalName}\` becomes the \`${cls}\` class, but \`className\` is dynamic here; add \`${cls}\` to it by hand`
+  );
+}
+
 /** Apply one PropAction to `attr` on `element`. */
 export function applyPropAction(
   ctx: TransformContext,
@@ -84,6 +117,46 @@ export function applyPropAction(
   if (action.drop) {
     removeAttr(element, attr);
     ctx.dirty = true;
+    return;
+  }
+  if (action.toClass) {
+    const resolved = resolveBooleanish(attr);
+    if (resolved === 'expression') {
+      addTodo(
+        ctx,
+        path,
+        `prop:${originalName}`,
+        `\`${originalName}\` has a dynamic value; bestax has no prop for it — add the \`${action.toClass}\` class conditionally by hand`
+      );
+      return;
+    }
+    removeAttr(element, attr);
+    ctx.dirty = true;
+    if (resolved === 'truthy') {
+      mergeClass(ctx, path, element, action.toClass, originalName);
+    }
+    return;
+  }
+  if (action.toClassPrefix) {
+    const value = literalValueOf(attr);
+    if (value.kind !== 'string') {
+      addTodo(
+        ctx,
+        path,
+        `prop:${originalName}`,
+        `\`${originalName}\` has a dynamic value; bestax has no prop for it — add the \`${action.toClassPrefix}<value>\` class by hand`
+      );
+      return;
+    }
+    removeAttr(element, attr);
+    ctx.dirty = true;
+    mergeClass(
+      ctx,
+      path,
+      element,
+      `${action.toClassPrefix}${value.value}`,
+      originalName
+    );
     return;
   }
   if (action.todo) {

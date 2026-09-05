@@ -397,9 +397,14 @@ export function makeStructuralHelpers(strip: AttrStrip) {
 
     for (const attr of [...(element.openingElement.attributes ?? [])]) {
       if (attr.type === 'JSXSpreadAttribute') {
-        // A spread has no name to collide on; it moves across as written.
+        // A spread has no name to collide on; it moves across as written —
+        // but FIRST, so the child's own explicit props still win over it,
+        // the same rule the named branch below keeps.
         removeAttr(element, attr);
-        addAttr(child, attr);
+        child.openingElement.attributes = [
+          attr,
+          ...(child.openingElement.attributes ?? []),
+        ];
         continue;
       }
       const name: string = attr.name.name;

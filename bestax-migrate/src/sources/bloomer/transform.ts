@@ -40,7 +40,11 @@ import {
   renameElement,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
-import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import {
+  applyPropAction,
+  applyUniversalProps,
+  mergeClass,
+} from '../_shared/props.js';
 import {
   collectBoundNames,
   makeReserve,
@@ -457,11 +461,17 @@ export default function transform(
         handled.add(name);
         // A false boolean was a no-op in bloomer; nothing to re-add.
         if (literal.kind === 'boolean' && !literal.value) continue;
+        // A literal is exactly one Bulma class, which every one of these
+        // parts still takes as `className`; anything else is a TODO.
+        if (literal.kind === 'string' || literal.kind === 'boolean') {
+          mergeClass(ctx, path, element, cls, name);
+          continue;
+        }
         addTodo(
           ctx,
           path,
           `prop:${name}`,
-          `bestax \`${target}\` takes no Bulma helper props (it extends only React's HTML attributes); add className="${cls}" by hand`
+          `bestax \`${target}\` takes no Bulma helper props (it extends only React's HTML attributes); add the matching \`${cls}\` class to \`className\` by hand`
         );
       }
     }
@@ -810,9 +820,32 @@ export default function transform(
         existingBestax?.node ??
         (index >= 0 ? body[index + 1] : undefined);
 
-      if (!carrier) return;
+      if (carrier) {
+        carrier.comments = [...comments, ...(carrier.comments ?? [])];
+      } else if (index > 0) {
+        // The import was the last statement: the comments stay where they
 
-      carrier.comments = [...comments, ...(carrier.comments ?? [])];
+        // were, after what precedes it.
+
+        const previous = body[index - 1];
+
+        previous.comments = [
+          ...(previous.comments ?? []),
+
+          ...comments.map((c: any) => ({
+            ...c,
+            leading: false,
+            trailing: true,
+          })),
+        ];
+      } else {
+        // The import was the only statement: the comments become the file's.
+
+        const program = importPath.parent?.node;
+
+        if (program)
+          program.comments = [...comments, ...(program.comments ?? [])];
+      }
 
       node.comments = [];
     };
@@ -820,7 +853,16 @@ export default function transform(
     let inserted = false;
     // A retained bloomer specifier must never collide with a bestax import local
     // (possible when one component is both JSX-migrated and value-retained).
-    const bestaxLocals = new Set(ctx.needed.values());
+    // Only a VALUE local can collide at runtime: a type-only specifier the
+    // seeding above recorded, and nothing promoted, binds no value.
+    const bestaxLocals = new Set(
+      [...ctx.needed.entries()]
+        .filter(
+          ([imported]) =>
+            requested.has(imported) || preExistingImports.has(imported)
+        )
+        .map(([, local]) => local)
+    );
     for (const path of sourceImportPaths) {
       const node = path.node;
       const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {

@@ -24,6 +24,7 @@ import {
   resolveBooleanish,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
+import { applyPropAction } from '../_shared/props.js';
 import {
   applyIconProps,
   makeStripModifierProps,
@@ -611,6 +612,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       if (siblings.length === 1 && siblings[0] === element) {
         for (const attr of [...(parent.openingElement.attributes ?? [])]) {
+          if (attr.type === 'JSXSpreadAttribute') {
+            // Before the link's own props, so those still win over it.
+            element.openingElement.attributes = [
+              attr,
+              ...(element.openingElement.attributes ?? []),
+            ];
+            continue;
+          }
           const name =
             attr.type === 'JSXAttribute' ? attr.name.name : undefined;
           if (name && findAttr(element, name)) {
@@ -787,14 +796,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   'navbar-dropdown'(ctx, path, element) {
     const boxedAttr = findAttr(element, 'isBoxed');
     if (boxedAttr) {
-      removeAttr(element, boxedAttr);
-      addTodo(
-        ctx,
-        path,
-        'prop:isBoxed',
-        'bestax `Navbar.DropdownMenu` has no `boxed` prop; add className="is-boxed"'
-      );
-      ctx.dirty = true;
+      applyPropAction(ctx, path, element, boxedAttr, { toClass: 'is-boxed' });
     }
     return { target: 'Navbar.DropdownMenu', handledProps: ['isBoxed'] };
   },
