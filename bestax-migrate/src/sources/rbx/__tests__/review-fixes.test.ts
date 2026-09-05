@@ -780,13 +780,16 @@ describe('the innerRef remediation is achievable', () => {
   });
 
   it.each(['Card', 'Box', 'Section'])(
-    'also passes ref through on %s, which forwards none — documented, not flagged',
+    'also passes ref through on %s, which forwards none',
     name => {
-      const { output, todos } = migrate(
+      // Documents today's behaviour, not a desired one: the ref survives the
+      // rewrite and then resolves to null at runtime. Deliberately does NOT
+      // assert the absence of a diagnostic — flagging this is the improvement,
+      // and a test pinning "no TODO" would fail the change that adds it.
+      const { output } = migrate(
         `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} ref={r}>x</${name}>;`
       );
       expect(output).toContain('ref={r}');
-      expect(todos.filter(t => t.rule === 'prop:ref')).toHaveLength(0);
     }
   );
 
