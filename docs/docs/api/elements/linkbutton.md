@@ -133,6 +133,32 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ---
 
+### Forwarded ref
+
+`LinkButton` forwards a ref to the `<a>` it renders, so you can focus or measure it directly.
+
+```tsx live
+function example() {
+  const linkRef = React.useRef(null);
+  const [href, setHref] = React.useState(null);
+
+  return (
+    <>
+      <LinkButton href="#forwarded-ref" color="link" ref={linkRef}>
+        Target
+      </LinkButton>
+      <Button
+        ml="2"
+        onClick={() => setHref(linkRef.current?.getAttribute('href'))}
+      >
+        Read the href from its ref
+      </Button>
+      <p>href: {href ?? '—'}</p>
+    </>
+  );
+}
+```
+
 ## Visual Behavior
 
 |                       | Default text color   | Hover                                           |

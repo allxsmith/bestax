@@ -233,6 +233,45 @@ It's SSR-safe: a portal has no server-rendered counterpart, so the modal renders
 
 ---
 
+### Forwarded ref
+
+`Modal` forwards a ref to the root `.modal` element, so you can measure it or move focus without wrapping it.
+
+```tsx live
+function example() {
+  const [open, setOpen] = React.useState(false);
+  const [width, setWidth] = React.useState(null);
+  const modalRef = React.useRef(null);
+
+  return (
+    <>
+      <Button color="info" onClick={() => setOpen(true)}>
+        Open and measure
+      </Button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        ref={modalRef}
+        modalCardTitle="Measured through the ref"
+      >
+        <Button
+          onClick={() =>
+            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)
+          }
+        >
+          Measure
+        </Button>
+        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>
+      </Modal>
+    </>
+  );
+}
+```
+
+The ref keeps working with `portal`. Moving into the portal remounts the subtree, so the ref detaches from the inline node and re-points at the portaled one rather than leaving you holding a detached element.
+
+Callback refs behave the same on React 18 and 19: if your callback returns a cleanup function, it runs on detach instead of the ref being called with `null`.
+
 ### Compound (dot-notation) usage
 
 #### Modal.Card with compound components

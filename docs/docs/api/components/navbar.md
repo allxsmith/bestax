@@ -389,6 +389,33 @@ function example() {
 
 ---
 
+### Forwarded ref
+
+`Navbar` forwards a ref to the root `<nav>`, and `Navbar.Burger`, `Navbar.Link` and `Navbar.Dropdown` forward to their own elements — the `<button>`, the `<a>` and the dropdown container respectively.
+
+```tsx live
+function example() {
+  const navRef = React.useRef(null);
+  const [height, setHeight] = React.useState(null);
+
+  return (
+    <>
+      <Navbar ref={navRef}>
+        <Navbar.Brand>
+          <Navbar.Item href="#">Home</Navbar.Item>
+        </Navbar.Brand>
+      </Navbar>
+      <Button mt="3" onClick={() => setHeight(navRef.current?.offsetHeight)}>
+        Measure the navbar
+      </Button>
+      <p>Height: {height == null ? '—' : `${height}px`}</p>
+    </>
+  );
+}
+```
+
+`Navbar.Burger` is hidden above the desktop breakpoint by Bulma, so read its node through the ref rather than trying to focus it when the viewport is wide.
+
 ### Compound (dot-notation) usage
 
 `NavbarBrand`, `NavbarMenu`, `NavbarItem`, and the other subcomponents are also available as `Navbar.Brand`, `Navbar.Menu`, `Navbar.Item`, and so on, so a complete navbar can be composed from the single `Navbar` import.

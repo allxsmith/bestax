@@ -287,6 +287,29 @@ When `as` is anything other than `'button'` (including `'a'` or a custom compone
 
 ---
 
+### Forwarded ref
+
+`Button` forwards a ref to the element it renders. That element follows `as`, so the ref points at a `<button>` by default and at whatever you asked for otherwise — an `<a>` under `as="a"`.
+
+```tsx live
+function example() {
+  const buttonRef = React.useRef(null);
+  const [tag, setTag] = React.useState(null);
+
+  return (
+    <>
+      <Button color="primary" ref={buttonRef}>
+        Target
+      </Button>
+      <Button ml="2" onClick={() => setTag(buttonRef.current?.tagName)}>
+        Read the tag from its ref
+      </Button>
+      <p>Rendered element: {tag ?? '—'}</p>
+    </>
+  );
+}
+```
+
 ## Accessibility
 
 - **Labeling:** Always provide descriptive content for buttons for screen readers.
