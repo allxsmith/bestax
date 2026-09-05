@@ -74,8 +74,11 @@ describe('bloomer plain-element handlers', () => {
     const help = migrate(
       dyn('Help', '<Help isColor="danger" {...p.rest}>x</Help>')
     );
+    // The spread goes first so the Bulma class the element exists for wins,
+    // and the possible className inside the spread is named.
+    expect(help.rules).toEqual(['plain-element']);
     expect(help.output).toContain(
-      '<p className="help is-danger" {...p.rest}>x</p>'
+      '<p {...p.rest} className="help is-danger">x</p>'
     );
     const page = migrate(
       "import { Page, PageLink } from 'bloomer';\nexport const A = (p: Record<string, any>) => <Page {...p.li}><PageLink>1</PageLink></Page>;\n"
@@ -83,6 +86,7 @@ describe('bloomer plain-element handlers', () => {
     expect(page.output).toContain(
       '<Pagination.Link {...p.li}>1</Pagination.Link>'
     );
+    expect(page.rules).toEqual(['component:Page']);
   });
 
   it('keeps several wrapper spreads in source order when folding', () => {
@@ -98,6 +102,7 @@ describe('bloomer plain-element handlers', () => {
     expect(menu.output).toContain(
       '<Menu.Item {...p.first} {...p.second} href="/" id="x">h</Menu.Item>'
     );
+    expect(menu.rules).toEqual(['component:MenuLink']);
   });
 
   it('names the Page attributes a fold moves onto the link', () => {
@@ -395,6 +400,29 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
+  it('names the MenuLink attributes that change element under Menu.Item', () => {
+    const link = migrate(
+      dyn(
+        'MenuLink',
+        '<MenuLink id="x" style={p.s} className="c" href="/">h</MenuLink>'
+      )
+    );
+    expect(link.rules).toEqual(['component:MenuLink']);
+    expect(link.output).toContain(
+      '<Menu.Item id="x" style={p.s} className="c" href="/">h</Menu.Item>'
+    );
+    const li = migrate(
+      dyn(
+        'MenuLink',
+        '<li className="mine" id="y"><MenuLink href="/">h</MenuLink></li>'
+      )
+    );
+    expect(li.rules).toEqual(['component:MenuLink']);
+    expect(li.output).toContain(
+      '<Menu.Item href="/" className="mine" id="y">h</Menu.Item>'
+    );
+  });
+
   it('folds the literal <li> bloomer wrote around a MenuLink', () => {
     const one = migrate(
       dyn(
@@ -402,7 +430,7 @@ describe('bloomer navigation handlers', () => {
         '<MenuList><li className="x"><MenuLink isActive href="/">Home</MenuLink></li></MenuList>'
       )
     );
-    expect(one.rules).toEqual([]);
+    expect(one.rules).toEqual(['component:MenuLink']);
     expect(one.output).toContain(
       '<Menu.List><Menu.Item active href="/" className="x">Home</Menu.Item></Menu.List>'
     );

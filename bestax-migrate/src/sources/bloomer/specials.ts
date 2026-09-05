@@ -606,6 +606,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * folds onto the item, carrying its attributes, or the list nests.
    */
   'menu-link'(ctx, path, element) {
+    // bestax's Menu.Item puts `id`, `style`, `title`, `role` and `tabIndex`
+    // on its <li> and everything else (className included) on the <a>;
+    // bloomer's MenuLink WAS the <a>, so those five change element.
+    const LI_PROPS = ['id', 'style', 'title', 'role', 'tabIndex'];
+    const toLi = attributesOf(element)
+      .map((a: any) => a.name.name as string)
+      .filter((n: string) => LI_PROPS.includes(n));
+    if (toLi.length > 0) {
+      addTodo(
+        ctx,
+        path,
+        'component:MenuLink',
+        `${toLi.map((n: string) => `\`${n}\``).join(', ')} sat on bloomer's <a>; bestax's \`Menu.Item\` puts ${toLi.length === 1 ? 'it' : 'them'} on the <li> it renders around the link — move ${toLi.length === 1 ? 'it' : 'them'} by hand if the anchor is what you targeted`
+      );
+    }
     const parentPath = path.parent;
     const parent = parentPath?.node;
     if (
@@ -617,6 +632,22 @@ const SPECIALS: Record<string, SpecialHandler> = {
         (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
       );
       if (siblings.length === 1 && siblings[0] === element) {
+        // The <li>'s own className and spreads land on the <a> after the
+        // fold (Menu.Item puts className there); its id/style/title/role/
+        // tabIndex land back on the <li>. Name what changes node.
+        const liMoved = (parent.openingElement.attributes ?? [])
+          .map((a: any): string =>
+            a.type === 'JSXSpreadAttribute' ? 'a spread' : a.name.name
+          )
+          .filter((n: string) => n === 'className' || n === 'a spread');
+        if (liMoved.length > 0) {
+          addTodo(
+            ctx,
+            path,
+            'component:MenuLink',
+            `${liMoved.map((n: string) => (n === 'a spread' ? n : `\`${n}\``)).join(', ')} on the <li> around this MenuLink now applies to the <a> that \`Menu.Item\` renders inside its own <li> — move ${liMoved.length === 1 ? 'it' : 'them'} by hand if the <li> is what you styled`
+          );
+        }
         // Spreads first, as one block in source order, so the link's own
         // props still win over them.
         const spreads = (parent.openingElement.attributes ?? []).filter(
@@ -906,19 +937,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
       // the ellipsis <span>), so whatever else sat on this <li> — a class, an
       // id, a helper prop — lands on a different element after the fold.
       // It is moved rather than lost, and named.
-      const moved = attributesOf(element)
+      const moved = (element.openingElement.attributes ?? [])
         .map((a: any): string =>
-          a.name.type === 'JSXNamespacedName'
-            ? `${a.name.namespace.name}:${a.name.name.name}`
-            : a.name.name
+          a.type === 'JSXSpreadAttribute'
+            ? 'a spread'
+            : a.name.type === 'JSXNamespacedName'
+              ? `${a.name.namespace.name}:${a.name.name.name}`
+              : a.name.name
         )
-        .filter(n => n !== 'tag' && n !== 'key');
+        .filter((n: string) => n !== 'tag' && n !== 'key');
       if (moved.length > 0) {
         addTodo(
           ctx,
           path,
           'component:Page',
-          `${moved.map(n => `\`${n}\``).join(', ')} sat on the Page's <li>; bestax's \`Pagination.Link\` and \`Pagination.Ellipsis\` render their own <li> and put props on the element inside it, so ${moved.length === 1 ? 'it now applies' : 'they now apply'} there — move ${moved.length === 1 ? 'it' : 'them'} by hand if the <li> is what you styled`
+          `${moved.map((n: string) => `\`${n}\``).join(', ')} sat on the Page's <li>; bestax's \`Pagination.Link\` and \`Pagination.Ellipsis\` render their own <li> and put props on the element inside it, so ${moved.length === 1 ? 'it now applies' : 'they now apply'} there — move ${moved.length === 1 ? 'it' : 'them'} by hand if the <li> is what you styled`
         );
       }
       // The child renders the <li> itself, so a `tag` on the wrapper has

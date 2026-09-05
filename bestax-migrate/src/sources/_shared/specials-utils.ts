@@ -358,15 +358,28 @@ export function makeStructuralHelpers(strip: AttrStrip) {
   ): SpecialResult {
     const merged = mergeClassName(ctx, path, element, className, where);
     const kept = new Set(strip(ctx, path, attributesOf(element), where));
-    // Spread attributes pass through untouched, in place: they are the
-    // caller's own props, and a plain element takes them as readily as the
-    // component did. `attributesOf` filters them out, so dropping them here
-    // lost `{...rest}` with no TODO.
-    const rest = (element.openingElement.attributes ?? []).filter(
-      (a: any) => a.type === 'JSXSpreadAttribute' || kept.has(a)
-    );
+    // Spread attributes pass through untouched: they are the caller's own
+    // props, and a plain element takes them as readily as the component did.
+    // They go FIRST, so the Bulma class the element exists for is written
+    // after them and cannot be overridden by a `className` inside a spread —
+    // the source merged such a className with its own; a plain element
+    // cannot, so the spread is named.
+    const all = element.openingElement.attributes ?? [];
+    const spreads = all.filter((a: any) => a.type === 'JSXSpreadAttribute');
+    const named = all.filter((a: any) => kept.has(a));
+    if (spreads.length > 0 && merged) {
+      addTodo(
+        ctx,
+        path,
+        'plain-element',
+        `${where} became a plain <${tag}> with \`className="${merged}"\`; a \`className\` inside its spread prop(s) would have been merged with that class by the source, and is overridden here — merge it by hand`
+      );
+    }
+    const attrs = merged
+      ? [...spreads, makeAttr(ctx.j, 'className', merged), ...named]
+      : [...spreads, ...named];
     path.replace(
-      plainElement(ctx.j, tag, merged, rest, element.children ?? [])
+      plainElement(ctx.j, tag, undefined, attrs, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
