@@ -123,6 +123,32 @@ export default function transform(
     }
   });
 
+  // A barrel re-export reaches the library without an import declaration,
+  // so nothing above saw it; it cannot be rewritten (a compound bestax
+  // target has no single name to re-export) and must not vanish silently.
+  root
+    .find(j.ExportNamedDeclaration)
+    .filter(p => String(p.node.source?.value ?? '') === RBC)
+    .forEach(p => {
+      addTodo(
+        ctx,
+        p,
+        'imports',
+        `re-exports from '${RBC}' were not migrated; import the components, migrate them, then re-export the bestax ones by hand`
+      );
+    });
+  root
+    .find(j.ExportAllDeclaration)
+    .filter(p => String(p.node.source?.value ?? '') === RBC)
+    .forEach(p => {
+      addTodo(
+        ctx,
+        p,
+        'imports',
+        `\`export * from '${RBC}'\` was not migrated; re-export the bestax components you need by hand`
+      );
+    });
+
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
   // `bestax` (default): everything converges on the recommended combined
   // bundle. `bulma`: plain Bulma v1 CSS plus the separate extras file.
@@ -358,6 +384,16 @@ export default function transform(
   });
 
   ctx.reserve = makeReserve(ctx, bound);
+  // Names the passes actually asked for. `ctx.needed` is also seeded from an
+  // existing bestax import's specifiers below (so JSX reuses their locals),
+  // and that seeding alone must not turn a type-only specifier into a value
+  // import nobody needed.
+  const requested = new Set<string>();
+  const baseReserve = ctx.reserve;
+  ctx.reserve = root => {
+    requested.add(root);
+    return baseReserve(root);
+  };
 
   // Merge with an existing bestax import: reuse its locals verbatim.
   // Only a declaration made entirely of NAMED specifiers can be merged into.
@@ -540,6 +576,64 @@ export default function transform(
       )
     ) {
       namespaceStillReferenced = true;
+      addTodo(
+        ctx,
+        path,
+        'value-reference',
+        `\`${name}\` is the library's namespace import used as a plain value (destructured, or passed around); nothing reached through it was migrated — reference its components as \`${name}.Component\` or import them by name, then re-run`
+      );
+      return;
+    }
+    // Members, keys and signatures name a thing; they do not reference the
+    // import. An export specifier does, and is handled on its own: a flat
+    // target keeps the public name (\`export { SubTitle as Subtitle }\`), a
+    // dotted one cannot be re-exported under a member name and is flagged.
+    if (parentType === 'ExportSpecifier') {
+      if (parentNode.local !== path.node) return;
+      const exportedName = nameOf(parentNode.exported ?? parentNode.local);
+      const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
+      if (
+        mapping &&
+        mapping.status !== 'todo' &&
+        mapping.target &&
+        !mapping.target.includes('.')
+      ) {
+        const local = ctx.reserve(mapping.target);
+        // Replace the node: recast reprints a specifier whose identifiers were
+
+        // swapped in place in its original shorthand form, dropping the `as`.
+
+        path.parent.replace(
+          j.exportSpecifier.from({
+            local: j.identifier(local),
+
+            exported: j.identifier(exportedName),
+          })
+        );
+        ctx.dirty = true;
+        return;
+      }
+      ctx.retained.add(imported);
+      addTodo(
+        ctx,
+        path,
+        'value-reference',
+        `\`${name}\` is re-exported; ${mapping?.target ? `its bestax counterpart \`${mapping.target}\` is a member of \`${mapping.target.split('.')[0]}\` and cannot be re-exported under this name` : 'it has no bestax counterpart to re-export'} — migrate the consumers by hand`
+      );
+      return;
+    }
+    if (
+      parentType === 'TSEnumMember' ||
+      ((parentType === 'ObjectMethod' ||
+        parentType === 'ClassMethod' ||
+        parentType === 'ClassProperty' ||
+        parentType === 'PropertyDefinition' ||
+        parentType === 'MethodDefinition' ||
+        parentType === 'TSPropertySignature' ||
+        parentType === 'TSMethodSignature') &&
+        parentNode.key === path.node &&
+        !parentNode.computed)
+    ) {
       return;
     }
     // Non-reference positions: member property names and object keys.
@@ -760,7 +854,10 @@ export default function transform(
     const retainedNames = [...ctx.retained].sort((a, b) => a.localeCompare(b));
 
     const freshNames = [...ctx.needed.entries()]
-      .filter(([imported]) => !preExistingImports.has(imported))
+      .filter(
+        ([imported]) =>
+          requested.has(imported) && !preExistingImports.has(imported)
+      )
       .sort((a, b) => a[0].localeCompare(b[0]));
     const bestaxImport =
       freshNames.length > 0
@@ -771,6 +868,35 @@ export default function transform(
             j.stringLiteral(BESTAX)
           )
         : null;
+
+    /**
+
+     * A pruned declaration takes its comments with it — a licence header, an
+
+     * eslint directive. Hand them to what replaces it, or to the next statement.
+
+     */
+
+    const carryComments = (node: any, importPath: any): void => {
+      const comments = node.comments ?? [];
+
+      if (comments.length === 0) return;
+
+      const body: any[] = importPath.parent?.node?.body ?? [];
+
+      const index = body.indexOf(node);
+
+      const carrier =
+        bestaxImport ??
+        existingBestax?.node ??
+        (index >= 0 ? body[index + 1] : undefined);
+
+      if (!carrier) return;
+
+      carrier.comments = [...comments, ...(carrier.comments ?? [])];
+
+      node.comments = [];
+    };
 
     let inserted = false;
     // A retained RBC specifier must never collide with a bestax import local
@@ -827,6 +953,7 @@ export default function transform(
           node.comments.push(j.commentLine(text, true, false));
         }
       } else {
+        carryComments(node, path);
         path.prune();
       }
       ctx.dirty = true;

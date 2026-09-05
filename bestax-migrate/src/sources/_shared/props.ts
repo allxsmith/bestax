@@ -160,6 +160,22 @@ export function applyPropAction(
   }
 
   let renamedTo = originalName;
+  if (
+    action.rename &&
+    action.rename !== originalName &&
+    findAttr(element, action.rename)
+  ) {
+    // Two source props can converge on one bestax prop (`isSize` and
+    // `isFullHeight` both on `size`); renaming over the one already written
+    // produced a duplicate attribute, which is invalid JSX.
+    addTodo(
+      ctx,
+      path,
+      `prop:${originalName}`,
+      `\`${originalName}\` maps to \`${action.rename}\`, but \`${action.rename}\` is already set on this element; reconcile by hand`
+    );
+    return;
+  }
   if (action.rename) {
     attr.name = j.jsxIdentifier(action.rename);
     renamedTo = action.rename;

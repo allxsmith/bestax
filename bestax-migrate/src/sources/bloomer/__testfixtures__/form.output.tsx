@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox, Control, Field, Icon, Input, Radio, Select, TextArea } from "@allxsmith/bestax-bulma";
+import { Checkbox, Control, Field, Icon, InputBase, Radio, SelectBase, TextAreaBase } from "@allxsmith/bestax-bulma";
 
 // TODO(bestax-migrate): `hasAddons="fullwidth"` — bestax `Field.hasAddons` takes `true`, "centered" or "right"; Bulma v1 keeps `has-addons-fullwidth`, so use `hasAddons` plus className="has-addons-fullwidth"
 // TODO(bestax-migrate): kept the Font Awesome 4 classes on an <i> child, as bloomer rendered them; bestax's optional Font Awesome peer is 6.7+, where many v4 names changed (brand icons moved to `variant="brands"`) — keep FA4 loaded, or switch to `name`/`library`/`variant` (`<Icon name="home" library="fa" variant="solid" />`)
@@ -13,14 +13,14 @@ export const Form = ({ err }: { err?: string }) => (
       <Field.Body>
         <Field grouped="right" hasAddons="fullwidth">
           <Control isExpanded isLoading hasIconsLeft>
-            <Input color="danger" size="medium" isFocused placeholder="Name" />
+            <InputBase color="danger" size="medium" isFocused placeholder="Name" />
             <Icon size="small" className="is-left"><i className="fa fa-user" aria-hidden="true" /></Icon>
           </Control>
           <Control hasIconsLeft hasIconsRight>
-            <Input type="email" isActive />
+            <InputBase type="email" isActive />
           </Control>
           <Control hasIconsLeft hasIconsRight>
-            <TextArea size="large" isHovered rows={3} />
+            <TextAreaBase size="large" isHovered rows={3} />
           </Control>
         </Field>
         <span className="help is-danger">
@@ -30,9 +30,9 @@ export const Form = ({ err }: { err?: string }) => (
     </Field>
     <Field grouped>
       <Control>
-        <Select color="primary" isLoading isFullWidth>
+        <SelectBase color="primary" isLoading isFullWidth>
           <option>A</option>
-        </Select>
+        </SelectBase>
       </Control>
       <Control>
         <Checkbox name="remember"> Remember me</Checkbox>

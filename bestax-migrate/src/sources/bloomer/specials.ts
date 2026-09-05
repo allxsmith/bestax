@@ -122,25 +122,40 @@ const join = (...parts: Array<string | undefined>): string | undefined => {
 };
 
 /**
- * bloomer rendered its default `tag` — usually a <div> — and switched to an
- * <a> whenever `href` was set, whatever `tag` said. bestax's defaults differ
- * per component, so this keeps bloomer's markup either way:
+ * Some bloomer components rendered their default `tag` (usually a <div>) and
+ * switched to an <a> whenever `href` was set, whatever `tag` said: Button,
+ * Delete, LevelItem, DropdownItem, NavbarItem, PanelBlock, CardFooterItem
+ * (and the Nav family). bestax's defaults differ per component, so this
+ * keeps bloomer's markup for those either way:
  *
- * - with `href`, a surviving `tag` (which the mapping turns into `as`) would
- *   undo the anchor on targets that already render one, so it is dropped;
- *   where the target defaults to something else, `as="a"` is set
- *   (`setAs`);
+ * - with a literal `href`, a surviving `tag` (which the mapping turns into
+ *   `as`) would undo the anchor on targets that already render one, so it is
+ *   dropped; where the target defaults to something else, `as="a"` is set
+ *   (`setAs`). A dynamic `href` was a runtime decision bloomer made and
+ *   bestax cannot: it is flagged, not guessed;
  * - without `href` or `tag`, a target that defaults to an <a> gets
  *   `as={bareAs}` so bloomer's <div> stays a <div>.
  */
 function anchorWhenHref(
   ctx: TransformContext,
+  path: ASTPath<any>,
   element: any,
   options: { setAs?: boolean; bareAs?: string } = {}
 ): string[] {
   const handled: string[] = [];
   const tagAttr = findAttr(element, 'tag');
-  if (findAttr(element, 'href')) {
+  const hrefAttr = findAttr(element, 'href');
+  if (hrefAttr) {
+    const literal = literalValueOf(hrefAttr);
+    if (literal.kind === 'expression') {
+      addTodo(
+        ctx,
+        path,
+        'prop:href',
+        `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; set \`as\` conditionally by hand${tagAttr ? ' (the `tag` was kept as `as` for the other case)' : ''}`
+      );
+      return handled;
+    }
     if (tagAttr) {
       removeAttr(element, tagAttr);
       handled.push('tag');
@@ -249,7 +264,20 @@ function iconFromElement(
     ctx.dirty = true;
   };
   const classAttr = findAttr(element, 'className');
+  const solid = (element.children ?? []).filter(
+    (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+  );
   if (classAttr) {
+    if (solid.length > 0) {
+      // bloomer drew the glyph from `className` and never rendered these;
+      // the classes win, and the removed markup is named.
+      addTodo(
+        ctx,
+        path,
+        `component:${where}`,
+        `removed the children of this ${where}: bloomer never rendered them (the glyph came from \`className\`), and bestax's Icon takes either classes or a child — restore them by hand if they mattered`
+      );
+    }
     const literal = literalValueOf(classAttr);
     removeAttr(element, classAttr);
     ctx.dirty = true;
@@ -276,10 +304,7 @@ function iconFromElement(
     }
     return;
   }
-  const children = (element.children ?? []).filter(
-    (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
-  );
-  if (children.length === 0) {
+  if (solid.length === 0) {
     inertChild();
     addTodo(
       ctx,
@@ -332,7 +357,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         );
       }
     }
-    const handled = anchorWhenHref(ctx, element, { setAs: true });
+    const handled = anchorWhenHref(ctx, path, element, { setAs: true });
     return { handledProps: ['isLink', ...handled] };
   },
 
@@ -524,7 +549,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'label',
       'Label'
     );
-    return replaceWithPlain(ctx, path, element, 'label', className, 'Label');
+    const tag = plainTag(ctx, path, element, 'label', 'Label');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Label');
   },
 
   /**
@@ -550,29 +576,103 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * bestax's takes a `label` and renders the trigger and menu itself, so the
    * shape differs enough that a mechanical rewrite would be a guess.
    */
-  dropdown(ctx, path, element) {
+  dropdown(ctx, path, _element) {
     addTodo(
       ctx,
       path,
       'component:Dropdown',
       'bestax `Dropdown` takes a `label` and renders its own trigger and menu; move the `<DropdownTrigger>` content into `label`, keep the `<DropdownItem>`s as direct children, and drop the `DropdownMenu`/`DropdownContent` wrappers'
     );
-    return { handledProps: anchorWhenHref(ctx, element) };
+    return {};
+  },
+
+  /**
+   * bestax's Menu.Item renders its own <li><a>; bloomer's MenuLink was the
+   * <a> alone, so its docs (and apps) wrap it in a literal <li>. That <li>
+   * folds onto the item, carrying its attributes, or the list nests.
+   */
+  'menu-link'(ctx, path, element) {
+    const parentPath = path.parent;
+    const parent = parentPath?.node;
+    if (
+      parent?.type === 'JSXElement' &&
+      parent.openingElement?.name?.type === 'JSXIdentifier' &&
+      parent.openingElement.name.name === 'li'
+    ) {
+      const siblings = (parent.children ?? []).filter(
+        (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+      );
+      if (siblings.length === 1 && siblings[0] === element) {
+        for (const attr of [...(parent.openingElement.attributes ?? [])]) {
+          const name =
+            attr.type === 'JSXAttribute' ? attr.name.name : undefined;
+          if (name && findAttr(element, name)) {
+            addTodo(
+              ctx,
+              path,
+              'prop:' + name,
+              `the <li> around this MenuLink and the link both set \`${name}\`; the link's value was kept — reconcile by hand`
+            );
+            continue;
+          }
+          addAttr(element, attr);
+        }
+        parentPath.replace(element);
+        ctx.dirty = true;
+      } else {
+        addTodo(
+          ctx,
+          path,
+          'component:MenuLink',
+          'bestax `Menu.Item` renders its own <li>, and this MenuLink shares its <li> with other content — remove the <li> or move the siblings by hand'
+        );
+      }
+    }
+    return {};
+  },
+
+  /**
+   * bestax's Breadcrumb renders its own <ul>; bloomer's was the bare <nav>,
+   * so its docs wrote the <ul>. It folds away, or the lists nest.
+   */
+  breadcrumb(ctx, path, element) {
+    const solid = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    const ul = solid[0];
+    if (
+      solid.length === 1 &&
+      ul.type === 'JSXElement' &&
+      ul.openingElement?.name?.type === 'JSXIdentifier' &&
+      ul.openingElement.name.name === 'ul'
+    ) {
+      const attrs = ul.openingElement.attributes ?? [];
+      if (attrs.length > 0) {
+        addTodo(
+          ctx,
+          path,
+          'component:Breadcrumb',
+          'bestax `Breadcrumb` renders its own <ul>, so the attributes on this one were dropped with it — re-apply them to the Breadcrumb by hand'
+        );
+      }
+      element.children = ul.children ?? [];
+      ctx.dirty = true;
+    }
+    return {};
   },
 
   /** bestax's Level.Item renders a <div> unless `as="a"`. */
-  'level-item'(ctx, _path, element) {
-    return { handledProps: anchorWhenHref(ctx, element, { setAs: true }) };
-  },
-
-  /** Targets that already render an <a>: a surviving `tag` would undo it. */
-  'anchor-when-href'(ctx, _path, element) {
-    return { handledProps: anchorWhenHref(ctx, element) };
+  'level-item'(ctx, path, element) {
+    return {
+      handledProps: anchorWhenHref(ctx, path, element, { setAs: true }),
+    };
   },
 
   /** bloomer's default DropdownItem was a <div>; bestax's Dropdown.Item is an <a>. */
-  'dropdown-item'(ctx, _path, element) {
-    return { handledProps: anchorWhenHref(ctx, element, { bareAs: 'div' }) };
+  'dropdown-item'(ctx, path, element) {
+    return {
+      handledProps: anchorWhenHref(ctx, path, element, { bareAs: 'div' }),
+    };
   },
 
   /**
@@ -582,7 +682,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
    */
   'panel-block'(ctx, path, element) {
     if (findAttr(element, 'href')) {
-      return { handledProps: anchorWhenHref(ctx, element) };
+      return { handledProps: anchorWhenHref(ctx, path, element) };
     }
     const cls = join(
       'panel-block',
@@ -648,11 +748,23 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
     }
     // bloomer's default NavbarItem was a <div>; bestax's Navbar.Item is an <a>.
-    const handled = anchorWhenHref(
-      ctx,
-      element,
-      target === 'Navbar.Item' ? { bareAs: 'div' } : {}
-    );
+    // The dropdown container has neither `href` nor `as`.
+    let handled: string[] = [];
+    if (target === 'Navbar.Item') {
+      handled = anchorWhenHref(ctx, path, element, { bareAs: 'div' });
+    } else {
+      const hrefAttr = findAttr(element, 'href');
+      if (hrefAttr) {
+        removeAttr(element, hrefAttr);
+        ctx.dirty = true;
+        addTodo(
+          ctx,
+          path,
+          'prop:href',
+          'bestax `Navbar.Dropdown` is the container and takes no `href`; put it on the `<Navbar.Link>` inside'
+        );
+      }
+    }
     restrictAsToTargets(ctx, path, element, target, ['Navbar.Item'], 'tag');
     return {
       target,
@@ -721,8 +833,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'dynamic PageControl `isNext`; pick between `<Pagination.Previous>` and `<Pagination.Next>` by hand'
       );
     }
-    const handled = anchorWhenHref(ctx, element);
-    return { target, handledProps: ['isNext', 'isPrevious', ...handled] };
+    return { target, handledProps: ['isNext', 'isPrevious'] };
   },
 
   /**
@@ -731,20 +842,45 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * so the wrapper folds onto its child.
    */
   page(ctx, path, element) {
-    const foldable = (element.children ?? []).some(
-      (c: any) =>
-        c.type === 'JSXElement' &&
-        ['PageLink', 'PageEllipsis'].includes(
-          ctx.resolve?.(c.openingElement?.name)?.join('.') ?? ''
-        )
+    const isLink = (node: any): boolean =>
+      node?.type === 'JSXElement' &&
+      ['PageLink', 'PageEllipsis'].includes(
+        ctx.resolve?.(node.openingElement?.name)?.join('.') ?? ''
+      );
+    const solid = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
     );
+    // Exactly the shape collapseOntoChild folds: one JSX child, and it is
+    // the link. A link reached any other way (in an expression, beside a
+    // sibling) still renders its own <li>, so the plain <li> this becomes
+    // would nest one — said, not silently produced.
+    const foldable = solid.length === 1 && isLink(solid[0]);
+    if (!foldable) {
+      const nested = ctx
+        .j(element)
+        .find(ctx.j.JSXElement)
+        .paths()
+        .some(p => p.node !== element && isLink(p.node));
+      if (nested) {
+        addTodo(
+          ctx,
+          path,
+          'component:Page',
+          "bestax's `Pagination.Link` and `Pagination.Ellipsis` render their own <li>, and this Page wraps one in a way the codemod cannot fold (an expression, or beside other children) — remove the wrapper by hand"
+        );
+      }
+    }
     if (foldable) {
       // The child renders the <li> itself and puts its props on the <a> (or
       // the ellipsis <span>), so whatever else sat on this <li> — a class, an
       // id, a helper prop — lands on a different element after the fold.
       // It is moved rather than lost, and named.
       const moved = attributesOf(element)
-        .map((a: any) => a.name.name as string)
+        .map((a: any): string =>
+          a.name.type === 'JSXNamespacedName'
+            ? `${a.name.namespace.name}:${a.name.name.name}`
+            : a.name.name
+        )
         .filter(n => n !== 'tag' && n !== 'key');
       if (moved.length > 0) {
         addTodo(

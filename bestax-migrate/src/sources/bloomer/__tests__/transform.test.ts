@@ -131,6 +131,58 @@ describe('bloomer imports', () => {
     expect(output).not.toContain('type Box');
   });
 
+  it('leaves an unused inline type specifier alone', () => {
+    const { output } = migrate(
+      "import { Button, type ButtonProps } from '@allxsmith/bestax-bulma';\nimport { Box } from 'bloomer';\nexport const A = (p: ButtonProps) => <Box>{p.children}</Box>;\n"
+    );
+    expect(output).toMatch(/import \{ Button, type ButtonProps, Box \} from/);
+  });
+
+  it('re-exports keep their public name, or are flagged', () => {
+    const { output, rules } = migrate(
+      "import { CardHeader, Subtitle, Button } from 'bloomer';\nexport { CardHeader, Button };\nexport { Subtitle as Sub };\nexport { Subtitle };\n"
+    );
+    expect(rules).toEqual(['value-reference']);
+    expect(output).toContain('export { CardHeader, Button };');
+    expect(output).toContain('export { SubTitle as Sub };');
+    expect(output).toContain('export { SubTitle as Subtitle };');
+    expect(output).toContain("import { CardHeader } from 'bloomer'");
+  });
+
+  it('never rewrites a member name that merely matches an import', () => {
+    const source =
+      "import { CardHeader } from 'bloomer';\nconst reg = { CardHeader() { return 1; } };\ninterface P { CardHeader: string }\nenum E { CardHeader }\nclass C { CardHeader = 1; }\nexport const A = () => <CardHeader>{reg.CardHeader()}</CardHeader>;\nexport type { P, E, C };\n";
+    const { output, rules } = migrate(source);
+    expect(rules).toEqual([]);
+    expect(output).toContain('const reg = { CardHeader() { return 1; } };');
+    expect(output).toContain('interface P { CardHeader: string }');
+    expect(output).toContain('enum E { CardHeader }');
+    expect(output).toContain('class C { CardHeader = 1; }');
+    expect(output).toContain('<Card.Header>{reg.CardHeader()}</Card.Header>');
+  });
+
+  it('carries the comments of a pruned import onto its replacement', () => {
+    const { output } = migrate(
+      "/* Copyright 2018 Acme. MIT licensed. */\n// eslint-disable-next-line import/no-unresolved\nimport { Box } from 'bloomer';\nexport const A = () => <Box />;\n"
+    );
+    expect(output).toMatch(
+      /^\/\* Copyright 2018 Acme\. MIT licensed\. \*\/\n\/\/ eslint-disable-next-line import\/no-unresolved\nimport \{ Box \} from "@allxsmith\/bestax-bulma";/
+    );
+  });
+
+  it('flags a barrel re-export and a destructured namespace', () => {
+    const barrel = migrate(
+      "export { Button } from 'bloomer';\nexport * from 'bloomer';\n"
+    );
+    expect(barrel.rules).toEqual(['imports', 'imports']);
+    expect(barrel.output).toContain("export { Button } from 'bloomer';");
+    const destructured = migrate(
+      "import * as B from 'bloomer';\nconst { Box, Title } = B;\nexport const A = () => <Box><Title>x</Title></Box>;\n"
+    );
+    expect(destructured.rules).toEqual(['value-reference']);
+    expect(destructured.output).toContain("import * as B from 'bloomer'");
+  });
+
   it('aliases a bestax import whose name the file already binds', () => {
     const { output } = migrate(
       "import { CardHeaderTitle } from 'bloomer';\nconst Card = () => null;\nexport const A = () => <><Card /><CardHeaderTitle>x</CardHeaderTitle></>;\n"
@@ -162,11 +214,11 @@ describe('bloomer value references', () => {
     expect(output).not.toContain("from 'bloomer'");
   });
 
-  it('keeps a namespace binding that is used bare', () => {
+  it('keeps a namespace binding that is used bare, and says so', () => {
     const { output, rules } = migrate(
       "import * as B from 'bloomer';\nexport const keys = Object.keys(B);\nexport const A = () => <B.Box />;\n"
     );
-    expect(rules).toEqual([]);
+    expect(rules).toEqual(['value-reference']);
     expect(output).toContain("import * as B from 'bloomer'");
     expect(output).toContain('<Box />');
   });

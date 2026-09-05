@@ -68,7 +68,7 @@ export const Leftovers = ({
       </DropdownTrigger>
       <DropdownMenu>
         <DropdownContent>
-          <DropdownItem>A</DropdownItem>
+          <DropdownItem href="/a">A</DropdownItem>
         </DropdownContent>
       </DropdownMenu>
     </Dropdown>

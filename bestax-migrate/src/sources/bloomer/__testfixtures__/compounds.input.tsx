@@ -90,9 +90,12 @@ export const Compounds = ({ open }: { open: boolean }) => (
     <Menu>
       <MenuLabel>General</MenuLabel>
       <MenuList>
-        <MenuLink isActive href="/">
-          Dashboard
-        </MenuLink>
+        <li>
+          <MenuLink isActive href="/">
+            Dashboard
+          </MenuLink>
+        </li>
+        <MenuLink href="/two">Two</MenuLink>
       </MenuList>
     </Menu>
     <Message isColor="info">

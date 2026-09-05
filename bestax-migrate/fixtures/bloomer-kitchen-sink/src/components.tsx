@@ -65,12 +65,14 @@ import {
 export const Components = ({ open }: { open: boolean }) => (
   <>
     <Breadcrumb isAlign="centered" hasSeparator="arrow" isSize="small">
-      <BreadcrumbItem>
-        <a href="/">Home</a>
-      </BreadcrumbItem>
-      <BreadcrumbItem isActive>
-        <a href="/here">Here</a>
-      </BreadcrumbItem>
+      <ul>
+        <BreadcrumbItem>
+          <a href="/">Home</a>
+        </BreadcrumbItem>
+        <BreadcrumbItem isActive>
+          <a href="/here">Here</a>
+        </BreadcrumbItem>
+      </ul>
     </Breadcrumb>
     <Card>
       <CardHeader>
@@ -103,9 +105,11 @@ export const Components = ({ open }: { open: boolean }) => (
     <Menu>
       <MenuLabel>General</MenuLabel>
       <MenuList>
-        <MenuLink isActive href="/">
-          Dashboard
-        </MenuLink>
+        <li>
+          <MenuLink isActive href="/">
+            Dashboard
+          </MenuLink>
+        </li>
       </MenuList>
     </Menu>
     <Message isColor="info">

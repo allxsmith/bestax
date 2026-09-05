@@ -51,7 +51,7 @@ coverage test holds to bloomer's own export surface (108 exports, vendored from 
 | `HeroVideo`            | _structural_          | mapped  |
 | `Icon`                 | `Icon`                | partial |
 | `Image`                | `Image`               | mapped  |
-| `Input`                | `Input`               | mapped  |
+| `Input`                | `InputBase`           | mapped  |
 | `Label`                | _structural_          | mapped  |
 | `Level`                | `Level`               | mapped  |
 | `LevelItem`            | `Level.Item`          | mapped  |
@@ -109,7 +109,7 @@ coverage test holds to bloomer's own export surface (108 exports, vendored from 
 | `Progress`             | `Progress`            | mapped  |
 | `Radio`                | `Radio`               | mapped  |
 | `Section`              | `Section`             | mapped  |
-| `Select`               | `Select`              | mapped  |
+| `Select`               | `SelectBase`          | mapped  |
 | `Subtitle`             | `SubTitle`            | mapped  |
 | `Tab`                  | `Tabs.Item`           | mapped  |
 | `TabLink`              | _structural_          | mapped  |
@@ -117,7 +117,7 @@ coverage test holds to bloomer's own export surface (108 exports, vendored from 
 | `Table`                | `Table`               | mapped  |
 | `Tabs`                 | `Tabs`                | mapped  |
 | `Tag`                  | `Tag`                 | mapped  |
-| `TextArea`             | `TextArea`            | mapped  |
+| `TextArea`             | `TextAreaBase`        | mapped  |
 | `Tile`                 | — _(see unmappables)_ | todo    |
 | `Title`                | `Title`               | mapped  |
 | `withHelpersModifiers` | — _(see unmappables)_ | todo    |
@@ -152,6 +152,8 @@ Some targets depend on a prop or a child, so the codemod picks them element by e
 | `NavbarItem`                                         | `Navbar.Item` / `Navbar.Dropdown`                                  | `hasDropdown`                                                                                                             |
 | `Page`                                               | _folded into its child_ / `<li>`                                   | whether the child is a `PageLink`/`PageEllipsis`; attributes on the Page move onto the link, with a `component:Page` note |
 | `PanelBlock`                                         | `Panel.Block` / `<div class="panel-block">`                        | `href` — bestax's block is always an `<a>`                                                                                |
+| `MenuLink` in a literal `<li>`                       | `Menu.Item`, the `<li>` folded away                                | bestax's item renders its own `<li>`                                                                                      |
+| `Breadcrumb` around a literal `<ul>`                 | `Breadcrumb`, the `<ul>` folded away                               | bestax's breadcrumb renders its own `<ul>`                                                                                |
 | `Icon`, `PanelIcon`                                  | `name`/`library`/`variant` / an `<i>` child                        | whether the icon classes are FA5/6 or MDI                                                                                 |
 | `Help`, `Label`, `Heading`                           | `<p class="help">`, `<label class="label">`, `<p class="heading">` | always plain markup                                                                                                       |
 | `BreadcrumbItem`, `PanelTab`, `TabLink`, `HeroVideo` | `<li>`, `<a>`, `<a>`, `<div class="hero-video">`                   | always plain markup                                                                                                       |

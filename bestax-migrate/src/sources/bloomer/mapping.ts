@@ -140,6 +140,68 @@ export const RESPONSIVE_PROPS: Record<string, string | null> = {
   isHidden: null,
 };
 
+/**
+ * bestax targets that extend only React's HTML attributes — no
+ * `BulmaClassesProps` — so bloomer's universal helpers have no prop to land
+ * on. The transform turns each into a TODO naming the Bulma class instead of
+ * emitting an excess-property type error.
+ */
+export const HELPERLESS_TARGETS = new Set([
+  'Pagination.Previous',
+  'Pagination.Next',
+  'Pagination.Ellipsis',
+  'Navbar.Dropdown',
+  'Navbar.DropdownMenu',
+  'Navbar.Divider',
+  'Panel.Heading',
+  'Panel.Tabs',
+  'Panel.Block',
+  'Tabs.List',
+  'Tabs.Item',
+  'Message.Header',
+  'Message.Body',
+  'Modal.Background',
+  'Modal.Content',
+  'Modal.Card',
+  'Modal.Card.Head',
+  'Modal.Card.Title',
+  'Modal.Card.Body',
+  'Modal.Card.Foot',
+  'Modal.Close',
+]);
+
+/** The Bulma class a helper prop stood for, for the hint on those targets. */
+export function helperClassHint(
+  name: string,
+  value: string | number | boolean | undefined
+): string | null {
+  const v = typeof value === 'string' ? value : undefined;
+  switch (name) {
+    case 'hasTextAlign':
+      return `has-text-${v ?? '<alignment>'}`;
+    case 'hasTextColor':
+      return `has-text-${v ?? '<colour>'}`;
+    case 'isPulled':
+      return `is-pulled-${v ?? '<side>'}`;
+    case 'isClearfix':
+      return 'is-clearfix';
+    case 'isOverlay':
+      return 'is-overlay';
+    case 'isUnselectable':
+      return 'is-unselectable';
+    case 'isMarginless':
+      return 'm-0';
+    case 'isPaddingless':
+      return 'p-0';
+    case 'isDisplay':
+      return `is-${v ?? '<display>[-<viewport>]'}`;
+    case 'isHidden':
+      return v ? `is-hidden-${v}` : 'is-hidden';
+    default:
+      return null;
+  }
+}
+
 /** Bloomer's fraction and width spellings → bestax's `BulmaColumnSize` names. */
 export const COLUMN_SIZE_MAP: Record<string, string> = {
   '1/2': 'half',
@@ -270,9 +332,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: { isExpanded: {}, isLoading: {}, tag: TAG_AS },
   },
   Help: { status: 'mapped', special: 'help' },
+  // bloomer's form elements were bare <input>/<select>/<textarea>s; bestax's
+  // Input/Select/TextArea wrap themselves in Field and Control when not
+  // already inside one, which a bare element in a table cell or beside an
+  // icon did not do. The *Base exports are the bare elements.
   Input: {
     status: 'mapped',
-    target: 'Input',
+    target: 'InputBase',
     props: {
       isColor: color,
       isSize: size,
@@ -284,7 +350,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Label: { status: 'mapped', special: 'label' },
   Select: {
     status: 'mapped',
-    target: 'Select',
+    target: 'SelectBase',
     props: {
       isColor: color,
       isSize: size,
@@ -294,7 +360,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   TextArea: {
     status: 'mapped',
-    target: 'TextArea',
+    target: 'TextAreaBase',
     props: { isSize: size, isActive: {}, isHovered: {}, isFocused: {} },
   },
   Field: {
@@ -323,9 +389,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
 
   // ---- breadcrumb ---------------------------------------------------------
+  // bestax's Breadcrumb renders its own <ul>; bloomer's was the bare <nav>
+  // and its docs wrote the <ul>, which the special folds away.
   Breadcrumb: {
     status: 'mapped',
     target: 'Breadcrumb',
+    special: 'breadcrumb',
     props: {
       hasSeparator: { rename: 'separator' },
       isAlign: { rename: 'alignment' }, // centered | right — same union
@@ -390,7 +459,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Dropdown.Item',
     special: 'dropdown-item',
-    props: { isActive: active, tag: TAG_AS },
+    props: {
+      isActive: active,
+      tag: TAG_AS,
+      href: {
+        todo: 'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
+      },
+    },
   },
   DropdownDivider: { status: 'mapped', target: 'Dropdown.Divider' },
 
@@ -415,10 +490,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Menu: { status: 'mapped', target: 'Menu' },
   MenuLabel: { status: 'mapped', target: 'Menu.Label' },
   MenuList: { status: 'mapped', target: 'Menu.List' },
+  // bestax's Menu.Item renders its own <li><a>; bloomer's MenuLink was the
+  // <a>, wrapped in a literal <li> by convention (its docs do), which the
+  // special folds away.
   MenuLink: {
     status: 'mapped',
     target: 'Menu.Item',
-    special: 'anchor-when-href',
+    special: 'menu-link',
     props: { isActive: active, tag: TAG_AS },
   },
   Message: {
@@ -603,7 +681,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   // ---- the helper HOC -----------------------------------------------------
   withHelpersModifiers: {
     status: 'todo',
-    todo: `\`withHelpersModifiers\` wrapped a component so it accepted bloomer's helper props; every bestax component takes the same helpers natively, and a custom component can call \`useBulmaClasses\` itself (${DOCS}/api/helpers/usebulmaclasses)`,
+    todo: `\`withHelpersModifiers\` wrapped a component so it accepted bloomer's helper props; bestax components take the same helpers natively (bar the parts that extend only React's HTML attributes, which take className), and a custom component can call \`useBulmaClasses\` itself (${DOCS}/api/helpers/usebulmaclasses)`,
   },
 };
 

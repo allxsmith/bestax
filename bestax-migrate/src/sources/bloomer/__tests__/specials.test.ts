@@ -294,7 +294,10 @@ describe('bloomer navigation handlers', () => {
     const menu = migrate(
       dyn('MenuLink', '<MenuLink href="/x" tag="span">x</MenuLink>')
     );
-    expect(menu.output).toContain('<Menu.Item href="/x">x</Menu.Item>');
+    // bloomer's MenuLink rendered its tag whatever href said.
+    expect(menu.output).toContain(
+      '<Menu.Item href="/x" as="span">x</Menu.Item>'
+    );
     const item = migrate(
       dyn('NavbarItem', '<NavbarItem href="/x" tag="div">x</NavbarItem>')
     );
@@ -309,6 +312,141 @@ describe('bloomer navigation handlers', () => {
     expect(level.output).toContain(
       '<Level.Item href="/x" as="a">x</Level.Item>'
     );
+  });
+
+  it('flags a dynamic href instead of guessing the anchor', () => {
+    const { output, rules } = migrate(
+      dyn('Button', '<Button href={p.url} tag="span">x</Button>')
+    );
+    expect(rules).toEqual(['prop:href', 'prop:tag']);
+    expect(jsx(output)).toContain('<Button href={p.url} tag="span">x</Button>');
+    const level = migrate(
+      dyn('LevelItem', '<LevelItem href={p.url}>x</LevelItem>')
+    );
+    expect(level.rules).toEqual(['prop:href']);
+    expect(level.output).toContain('<Level.Item href={p.url}>x</Level.Item>');
+  });
+
+  it('moves an href off the Navbar.Dropdown container with a hint', () => {
+    const { output, rules } = migrate(
+      dyn('NavbarItem', '<NavbarItem hasDropdown href="/x">x</NavbarItem>')
+    );
+    expect(rules).toEqual(['prop:href']);
+    expect(output).toContain('<Navbar.Dropdown>x</Navbar.Dropdown>');
+  });
+
+  it('keeps a PageControl tag as bloomer did, beside its href', () => {
+    const { output } = migrate(
+      dyn(
+        'PageControl',
+        '<PageControl isNext tag="span" href="/n">n</PageControl>'
+      )
+    );
+    // bestax's Pagination.Next has no `as`, so the tag stays, flagged.
+    expect(jsx(output)).toContain(
+      '<Pagination.Next tag="span" href="/n">n</Pagination.Next>'
+    );
+  });
+
+  it('folds the literal <li> bloomer wrote around a MenuLink', () => {
+    const one = migrate(
+      dyn(
+        'MenuList, MenuLink',
+        '<MenuList><li className="x"><MenuLink isActive href="/">Home</MenuLink></li></MenuList>'
+      )
+    );
+    expect(one.rules).toEqual([]);
+    expect(one.output).toContain(
+      '<Menu.List><Menu.Item active href="/" className="x">Home</Menu.Item></Menu.List>'
+    );
+    const shared = migrate(
+      dyn('MenuLink', '<li><MenuLink>Home</MenuLink><span>x</span></li>')
+    );
+    expect(shared.rules).toEqual(['component:MenuLink']);
+    expect(shared.output).toContain(
+      '<li><Menu.Item>Home</Menu.Item><span>x</span></li>'
+    );
+  });
+
+  it('folds the literal <ul> bloomer wrote inside a Breadcrumb', () => {
+    const plain = migrate(
+      dyn(
+        'Breadcrumb, BreadcrumbItem',
+        '<Breadcrumb><ul><BreadcrumbItem isActive><a>Here</a></BreadcrumbItem></ul></Breadcrumb>'
+      )
+    );
+    expect(plain.rules).toEqual([]);
+    expect(plain.output).toContain(
+      '<Breadcrumb><li className="is-active"><a>Here</a></li></Breadcrumb>'
+    );
+    const attrs = migrate(
+      dyn(
+        'Breadcrumb',
+        '<Breadcrumb><ul id="crumbs"><li>x</li></ul></Breadcrumb>'
+      )
+    );
+    expect(attrs.rules).toEqual(['component:Breadcrumb']);
+    expect(attrs.output).toContain('<Breadcrumb><li>x</li></Breadcrumb>');
+  });
+
+  it('warns when a Page wraps a link it cannot fold', () => {
+    const { output, rules } = migrate(
+      dyn(
+        'Page, PageLink',
+        '<Page key="k">{p.on ? <PageLink isCurrent>1</PageLink> : <PageLink>1</PageLink>}</Page>'
+      )
+    );
+    expect(rules).toEqual(['component:Page']);
+    expect(output).toContain('<li key="k">');
+    expect(output).toContain('<Pagination.Link active>1</Pagination.Link>');
+  });
+
+  it('honours a literal tag on Label', () => {
+    const { output, rules } = migrate(
+      dyn('Label', '<Label tag="span" isSize="small">x</Label>')
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<span className="label is-small">x</span>');
+  });
+
+  it('names the children a className-driven Icon removes', () => {
+    const { output, rules } = migrate(
+      dyn('Icon', '<Icon className="fas fa-home"><span>fallback</span></Icon>')
+    );
+    expect(rules).toEqual(['component:Icon']);
+    expect(output).toContain(
+      '<Icon name="home" library="fa" variant="solid" />'
+    );
+  });
+
+  it('refuses to write two size props onto a Hero', () => {
+    const { output, rules } = migrate(
+      dyn('Hero', '<Hero isFullHeight isSize="large">x</Hero>')
+    );
+    expect(rules).toEqual(['prop:isSize']);
+    expect(jsx(output)).toContain(
+      '<Hero isSize="large" size="fullheight">x</Hero>'
+    );
+  });
+
+  it('turns helpers on HTML-attribute-only targets into class hints', () => {
+    const { output, rules } = migrate(
+      dyn(
+        'PageControl',
+        '<PageControl href="#" isPulled="right" isMarginless isHidden="mobile">p</PageControl>'
+      )
+    );
+    expect(rules).toEqual([
+      'prop:isPulled',
+      'prop:isMarginless',
+      'prop:isHidden',
+    ]);
+    expect(output).toContain(
+      '<Pagination.Previous href="#">p</Pagination.Previous>'
+    );
+    expect(output).toContain('className="is-pulled-right"');
+    expect(output).toContain('className="m-0"');
+    expect(output).toContain('className="is-hidden-mobile"');
   });
 
   it('keeps a bare NavbarItem and DropdownItem a <div>, as bloomer rendered them', () => {
@@ -411,12 +549,15 @@ describe('bloomer navigation handlers', () => {
     expect(output).toContain('<span><b>1</b></span>');
   });
 
-  it('keeps a dropdown href and drops the tag beside it', () => {
+  it('keeps a Dropdown tag beside its href, as bloomer did', () => {
     const { output, rules } = migrate(
       dyn('Dropdown', '<Dropdown href="/x" tag="span">x</Dropdown>')
     );
-    expect(rules).toEqual(['component:Dropdown']);
-    expect(output).toContain('<Dropdown href="/x">x</Dropdown>');
+    // bestax's Dropdown has no `as`, so the tag stays, flagged.
+    expect(rules).toEqual(['component:Dropdown', 'prop:tag']);
+    expect(jsx(output)).toContain(
+      '<Dropdown href="/x" tag="span">x</Dropdown>'
+    );
   });
 });
 

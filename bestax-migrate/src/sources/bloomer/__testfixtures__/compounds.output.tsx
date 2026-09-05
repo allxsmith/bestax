@@ -48,6 +48,7 @@ export const Compounds = ({ open }: { open: boolean }) => (
         <Menu.Item active href="/">
           Dashboard
         </Menu.Item>
+        <Menu.Item href="/two">Two</Menu.Item>
       </Menu.List>
     </Menu>
     <Message color="info">

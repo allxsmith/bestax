@@ -62,14 +62,17 @@ in place:
   → `alignment` / `align` / `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →
   `textColor`, `isPulled` → `float`, `isMarginless` → `m="0"`, `tag` → `as` where bestax
   declares one, `Button isLink` → `color="link"`, `Field isGrouped` → `grouped`,
-  `Control hasIcons` → `hasIconsLeft`/`hasIconsRight`.
+  `Control hasIcons` → `hasIconsLeft`/`hasIconsRight`. `Input`, `Select` and `TextArea` become
+  the bare `InputBase`/`SelectBase`/`TextAreaBase`, because bestax's `Input` wraps itself in a
+  `Field` and `Control` and bloomer's never did.
 - **Helpers** — `isDisplay` and `isHidden`, in all three of their shapes, flatten onto bestax's
   per-viewport props: `isDisplay="flex-tablet"` → `displayTablet="flex"`,
   `isDisplay={{ flex: ['default', 'tablet'] }}` → `display="flex" displayTablet="flex"`,
   `isHidden="touch"` → `visibilityTouch="hidden"`. Every Bulma viewport has a bestax prop,
   `touch` and the `-only` ones included. `Column isSize="1/2"` → `size="half"`, and its
   per-breakpoint object → `sizeMobile`/`sizeTablet`/…
-- **Structure** — wrappers bestax renders itself fold away: `Page` onto its `PageLink`,
+- **Structure** — wrappers bestax renders itself fold away: `Page` onto its `PageLink`, the
+  literal `<li>` bloomer's docs put around a `MenuLink`, the literal `<ul>` inside a `Breadcrumb`,
   `TabLink` into a plain `<a>` inside `Tabs.Item`. `Help`, `Label`, `Heading`, `BreadcrumbItem`,
   `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered, and so does a
   `PanelBlock` without `href` (bestax's is always an `<a>`). Icon-font classes the codemod can

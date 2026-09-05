@@ -28,7 +28,8 @@ convert to the prop form:
 same `className` API and converts the same way. An `Icon` with no `className` and no children
 is flagged too — it gets an empty `<i>` child so it compiles until you set a `name` or a child —
 and so is a `className` that is not a string (`prop:className`). An `Icon` written with children
-is flagged as well: bloomer never rendered them, bestax will.
+is flagged as well: bloomer never rendered them — beside a `className` they are removed (the
+classes win), without one they are kept and bestax will render them.
 
 ## `component:Nav` — Bulma 0.4's nav
 
@@ -86,10 +87,12 @@ bestax's `Dropdown` takes a `label` and renders its own trigger and menu, so blo
 </Dropdown>
 
 <Dropdown label="Open" active right>
-  <Dropdown.Item href="/a">A</Dropdown.Item>
+  <Dropdown.Item onClick={() => navigate('/a')}>A</Dropdown.Item>
 </Dropdown>
 ```
 
+bestax's `Dropdown.Item` declares no `href` (`prop:href` on a `DropdownItem`): navigate in
+`onClick`, or put an `<a>` inside the item.
 `isHoverable` → `hoverable`, `isActive` → `active` carry over on the `Dropdown` itself.
 
 ## `prop:tag` — polymorphism
@@ -144,24 +147,44 @@ own CSS styled the class.
 
 Each of these is left in place with a TODO naming the class to add instead:
 
-| prop                      | on                                           | what to do                                                                               |
-| ------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `isBold`                  | `Hero`                                       | `className="is-bold"` (Bulma v1 still ships it)                                          |
-| `isHalfHeight`            | `Hero`                                       | `className="is-halfheight"` — bestax's `size` has no half-height                         |
-| `isSize="large"`          | `Media`                                      | `className="is-large"`                                                                   |
-| `isSpaced`                | `Subtitle`                                   | `className="is-spaced"` — only `Title` has `isSpaced`                                    |
-| `isActive`                | `Input`                                      | `className="is-active"`                                                                  |
-| `isActive`, `isFocused`   | `PageLink`, `PageControl`, `PageEllipsis`    | `className="is-active"` / `"is-focused"`                                                 |
-| `isActive`                | `NavbarLink`                                 | `className="is-active"`                                                                  |
-| `isHoverable`             | `NavbarItem` without `hasDropdown`           | move to the `Navbar.Dropdown`, or `className="is-hoverable"`                             |
-| `isBoxed`                 | `NavbarDropdown`, `NavbarDivider`            | `className="is-boxed"`                                                                   |
-| `isWrapped`               | `PanelBlock` with `href`                     | `className="is-wrapped"` (a block without `href` stays plain markup and keeps the class) |
-| `isFlexible`              | `LevelItem`                                  | `className="is-flexible"`                                                                |
-| `hasAddons="fullwidth"`   | `Field`                                      | `hasAddons` plus `className="has-addons-fullwidth"`                                      |
-| `isAlign`                 | `TabList`                                    | set `align` on the `<Tabs>` — Bulma aligns the container                                 |
-| `isGrid`                  | `Columns`                                    | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid`  |
-| `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete` | put an `<a>` inside, or handle it in `onClick`                                           |
-| `isRatio` beside `isSize` | `Image`                                      | bestax's one `size` took the fixed size; restore the ratio if that was the point         |
+| prop                      | on                                                                                 | what to do                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `isBold`                  | `Hero`                                                                             | `className="is-bold"` (Bulma v1 still ships it)                                          |
+| `isHalfHeight`            | `Hero`                                                                             | `className="is-halfheight"` — bestax's `size` has no half-height                         |
+| `isSize="large"`          | `Media`                                                                            | `className="is-large"`                                                                   |
+| `isSpaced`                | `Subtitle`                                                                         | `className="is-spaced"` — only `Title` has `isSpaced`                                    |
+| `isActive`                | `Input`                                                                            | `className="is-active"`                                                                  |
+| `isActive`, `isFocused`   | `PageLink`, `PageControl`, `PageEllipsis`                                          | `className="is-active"` / `"is-focused"`                                                 |
+| `isActive`                | `NavbarLink`                                                                       | `className="is-active"`                                                                  |
+| `isHoverable`             | `NavbarItem` without `hasDropdown`                                                 | move to the `Navbar.Dropdown`, or `className="is-hoverable"`                             |
+| `isBoxed`                 | `NavbarDropdown`, `NavbarDivider`                                                  | `className="is-boxed"`                                                                   |
+| `isWrapped`               | `PanelBlock` with `href`                                                           | `className="is-wrapped"` (a block without `href` stays plain markup and keeps the class) |
+| `isFlexible`              | `LevelItem`                                                                        | `className="is-flexible"`                                                                |
+| `hasAddons="fullwidth"`   | `Field`                                                                            | `hasAddons` plus `className="has-addons-fullwidth"`                                      |
+| `isAlign`                 | `TabList`                                                                          | set `align` on the `<Tabs>` — Bulma aligns the container                                 |
+| `isGrid`                  | `Columns`                                                                          | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid`  |
+| `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete`, `DropdownItem`                       | put an `<a>` inside, or handle it in `onClick`                                           |
+| `href={expr}` (dynamic)   | `Button`, `LevelItem` and the other components that switched to an `<a>` on `href` | bloomer decided the element at runtime; set `as` conditionally by hand                   |
+| `href`                    | `NavbarItem hasDropdown`                                                           | bestax's `Navbar.Dropdown` is the container; put the `href` on the `Navbar.Link` inside  |
+| `isRatio` beside `isSize` | `Image`                                                                            | bestax's one `size` took the fixed size; restore the ratio if that was the point         |
+
+## `component:MenuLink`, `component:Breadcrumb`, `component:Page` — lists bestax renders itself
+
+bestax's `Menu.Item` renders its own `<li><a>`, its `Breadcrumb` its own `<ul>`, and its
+`Pagination.Link`/`Pagination.Ellipsis` their own `<li>`. bloomer's docs wrote those elements by
+hand, so the codemod folds a literal `<li>` around a `MenuLink`, a literal `<ul>` inside a
+`Breadcrumb`, and a `Page` around a single link away — carrying their attributes. It flags the
+shapes it cannot fold: a `MenuLink` sharing its `<li>` with other content, a `<ul>` carrying
+attributes, and a `Page` whose link sits in an expression or beside siblings — remove the wrapper
+by hand, or the lists nest.
+
+## Helper props on parts that take none
+
+`Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
+`Panel.Heading`/`Tabs`/`Block`, `Tabs.List`/`Item`, `Message.Header`/`Body` and the `Modal`
+parts extend only React's HTML attributes. A bloomer helper on one of them (`isPulled`,
+`isMarginless`, `isHidden`, `hasTextAlign`, …) is removed with a TODO naming the Bulma class —
+add it as `className`; Bulma v1 ships every one of them.
 
 ## `prop:isLink` — beside `isColor`
 
@@ -191,7 +214,12 @@ and shade of that era exists in bestax verbatim.
 ## `value-reference` — a component used as a value
 
 `const Wrapped = Box` and `{ Subtitle }` are rewritten to the bestax binding (`Hero.Foot`,
-`SubTitle`) when the target is a plain rename. A retained component (`Tile`, the `Nav` family,
+`SubTitle`) when the target is a plain rename, and `export { Subtitle }` becomes
+`export { SubTitle as Subtitle }` so the public name survives. A re-export of a component whose
+bestax counterpart is a member of a compound (`export { CardHeader }` → `Card.Header`) cannot be
+expressed and is flagged; so is a barrel `export { X } from 'bloomer'` (`imports`) and a
+namespace import used as a plain value (`const { Box } = B`), through which nothing was
+migrated. A retained component (`Tile`, the `Nav` family,
 `withHelpersModifiers`) used as a value keeps the bloomer import with this flag: migrate the
 usage by hand. `withHelpersModifiers` in particular has nothing to become — every bestax
 component already takes the helper props, and a custom component gets them from
@@ -212,5 +240,5 @@ on it have no home and are dropped with this flag. Re-apply them as classes
 ## Dynamic values
 
 Any prop whose value the codemod cannot read — `isColor={c}`, `isNext={n}`, `hasIcons={sides}`,
-`tag={t}` — is either renamed as-is (when the rename is unconditional) or flagged with the
+`tag={t}`, `isTransparent={t}`, `isFullHeight={f}`, `isNormal={n}` — is either renamed as-is (when the rename is unconditional) or flagged with the
 specific prop to set. The comment names it.

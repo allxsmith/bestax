@@ -26,12 +26,14 @@ import {
 export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
   <>
     <Breadcrumb isAlign="centered" hasSeparator="arrow" isSize="small">
-      <BreadcrumbItem>
-        <a href="/">Home</a>
-      </BreadcrumbItem>
-      <BreadcrumbItem isActive>
-        <a href="/here">Here</a>
-      </BreadcrumbItem>
+      <ul>
+        <BreadcrumbItem>
+          <a href="/">Home</a>
+        </BreadcrumbItem>
+        <BreadcrumbItem isActive>
+          <a href="/here">Here</a>
+        </BreadcrumbItem>
+      </ul>
     </Breadcrumb>
     <Tabs isAlign="centered" isBoxed isSize="small" isFullWidth>
       <TabList>
