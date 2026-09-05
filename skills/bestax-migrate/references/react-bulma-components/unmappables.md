@@ -126,6 +126,11 @@ bestax reserves the name `Navbar.Dropdown` for the outer container, which is wha
 `Navbar.Item` wrapping your dropdown becomes, and that one _does_ forward one. So after the
 codemod runs, read the target name on the line, not the one you wrote.
 
+`Button` has the same shape of trap. `<Button remove>` is Bulma's delete cross, so it migrates
+to `<Delete>`, a plain function component that forwards no ref — even though `Button` itself
+does. The codemod detects that case and replaces the general advice with a TODO naming
+`Delete`, so the message on the line is the one to trust.
+
 ## Helper props dropped from plain-element replacements
 
 Where the codemod produced a plain element (`Form.Label` → `<label>`, `Breadcrumb.Item` →
