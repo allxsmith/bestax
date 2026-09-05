@@ -112,7 +112,6 @@ which breakpoints did not carry.
 
 | TODO                                               | What to do                                                                                                                                                                                                                                               |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prop:closeOnEsc` on `Modal`                       | bestax implements no Escape handling at all; add your own keydown listener, or drop the prop                                                                                                                                                             |
 | `prop:closeOnBlur` on `Modal`                      | the migrated compound form renders `Modal.Background` as you wrote it; wire its `onClick` to your `onClose`                                                                                                                                              |
 | `prop:selected`, `prop:text` on `Button`           | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                                                                                                                   |
 | `prop:size` on `Button.Group` / `Tags` / `Message` | set `size` on each child instead                                                                                                                                                                                                                         |
@@ -121,36 +120,36 @@ which breakpoints did not carry.
 | `component:Divider` (a labelled divider)           | rbx rendered `<Divider>OR</Divider>`'s children as a centred label via `data-content`; bestax's `Divider` is a bare `<hr>` and takes no children -- React rejects children on a void element at runtime. Put the label in surrounding markup, or drop it |
 | `prop:direction` on `PageLoader`                   | no directional variant; drop it or add a class                                                                                                                                                                                                           |
 | `prop:managed`                                     | bestax components are uncontrolled; drive the `Modal` with `active` and `onClose`                                                                                                                                                                        |
-| `prop:document` on `Modal`                         | bestax renders the Modal inline rather than portalling into any document — see [Modal behaviours bestax does not implement](#modal-behaviours-bestax-does-not-implement)                                                                                 |
+| `prop:document` on `Modal`                         | bestax portals via `portal`, but it takes `true`, a selector or an element rather than a `Document` — see [Modal: what carries over](#modal-what-carries-over)                                                                                           |
 | `prop:document` on `Navbar`                        | bestax's `Navbar` has no `document` prop; drop it                                                                                                                                                                                                        |
 | `badgeOutlined`, `badgeRounded`, `badgeSize`       | bestax's `Badge` has no outline, pill or size variant                                                                                                                                                                                                    |
 | `tooltipResponsive`                                | bestax's `Tooltip` has one `position` for all viewports                                                                                                                                                                                                  |
 
-## Modal behaviours bestax does not implement
+## Modal: what carries over
 
 `component:Modal` — emitted on **every** Modal the codemod converts, whether or not you passed
 any of the props above.
 
-rbx's Modal did three things by default that bestax's does not do at all:
+rbx's Modal did three things by default. bestax now does two of them the same way, and the
+third is one prop away:
 
-| rbx default                      | bestax                                              |
-| -------------------------------- | --------------------------------------------------- |
-| portals into `document.body`     | renders inline, exactly where you place it          |
-| closes on Escape                 | no keydown handling of any kind                     |
-| clips document scroll while open | no scroll locking; the page behind stays scrollable |
+| rbx default                      | bestax                                                             |
+| -------------------------------- | ------------------------------------------------------------------ |
+| closes on Escape                 | same, `closeOnEscape` defaults to `true`                           |
+| clips document scroll while open | same, `lockScroll` defaults to `true`                              |
+| portals into `document.body`     | renders inline unless you set `portal` (`true`, selector, element) |
 
-The markup migrates cleanly, so nothing fails to compile and nothing looks wrong in a
-screenshot — which is why this one is flagged unconditionally rather than left to review. Re-add
-whichever your UI actually relied on:
+So the only one that needs an edit is the portal, and it matters most when an ancestor has
+`overflow: hidden`, `filter` or a `transform` — any of which will clip or re-parent a modal that
+used to escape them. `portal` renders inline on the server and during hydration, then moves once
+the client takes over, so it is safe under SSR.
 
-- **Portal** — wrap the render in `createPortal(…, document.body)` yourself. This matters most if
-  an ancestor has `overflow: hidden`, `filter`, or a `transform`, any of which will now clip or
-  re-parent the modal that used to escape them.
-- **Escape** — add a `keydown` listener while the modal is open and call your `onClose`.
-- **Scroll lock** — Bulma still ships `.is-clipped`; put it on `<html>` while the modal is open.
+The codemod maps `closeOnEsc` to `closeOnEscape` for you, so `closeOnEsc={false}` keeps
+suppressing Escape rather than silently inheriting the new default.
 
-Background click is the one that does carry over, but only because you write it: the migrated
-compound form renders your `Modal.Background`, so wire its `onClick` to the same `onClose`.
+Background click is the one that genuinely does not carry over, and only because you write it:
+the migrated compound form renders your `Modal.Background`, so wire its `onClick` to the same
+`onClose`.
 
 ## `prop:textColor="white-ter"` / `"white-bis"`
 
