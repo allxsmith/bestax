@@ -1,6 +1,6 @@
 ---
 name: bestax-migrate
-description: Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4) or rbx (v2) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components or rbx and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.
+description: Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4), rbx (v2) or bloomer (0.6) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components, rbx or bloomer and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.
 license: MIT
 ---
 
@@ -15,10 +15,11 @@ this skill drives the codemod and finishes what it flags.
 The codemod's first argument names the library you are migrating _from_. Check the app's
 `package.json` and imports:
 
-| Source                                                               | Argument                 | References                                                                                 |
-| -------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
-| `react-bulma-components` v4 (unmaintained since 2022, Bulma 0.9.x)   | `react-bulma-components` | [`references/react-bulma-components/`](references/react-bulma-components/component-map.md) |
-| `rbx` v2 (abandoned 2019, pins Bulma **0.7.5** plus four extensions) | `rbx`                    | [`references/rbx/`](references/rbx/component-map.md)                                       |
+| Source                                                                        | Argument                 | References                                                                                 |
+| ----------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
+| `react-bulma-components` v4 (unmaintained since 2022, Bulma 0.9.x)            | `react-bulma-components` | [`references/react-bulma-components/`](references/react-bulma-components/component-map.md) |
+| `rbx` v2 (abandoned 2019, pins Bulma **0.7.5** plus four extensions)          | `rbx`                    | [`references/rbx/`](references/rbx/component-map.md)                                       |
+| `bloomer` 0.6 (archived 2018, Bulma 0.6 era, React 16 + `create-react-class`) | `bloomer`                | [`references/bloomer/`](references/bloomer/component-map.md)                               |
 
 Everything below is written as `<source>`; substitute the argument from that table. The
 reference paths follow the same split — `references/<source>/component-map.md`,
@@ -59,8 +60,8 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    documented in the per-source `references/` pages.
 
    The report's `peer-deps` entries predict install failures: bestax-bulma needs
-   **React 18/19** (react-bulma-components also ran on 17, and rbx peer-depended on
-   **React 16** — upgrade react/react-dom first) and its optional Font Awesome peer wants
+   **React 18/19** (react-bulma-components also ran on 17, while rbx and bloomer peer-depended
+   on **React 16** — upgrade react/react-dom first) and its optional Font Awesome peer wants
    **FA ≥ 6.7** (an app pinned to FA 5 either upgrades or installs with
    `npm install --legacy-peer-deps`).
 
@@ -101,6 +102,13 @@ code per the references, or deliberately keep the old markup with `className` st
   become real wrapping `<Badge>` / `<Tooltip>` components. Its `as` is universal, bestax's is
   not. Because rbx pinned Bulma 0.7.5, you cross **two** Bulma majors — expect more visual
   drift than the 0.9 → 1 guide alone describes.
+- **bloomer**: every export is a flat name and most become dotted bestax compounds
+  (`CardHeaderTitle` → `Card.Header.Title`). Its `is*` booleans already are bestax's; the
+  work is in `isSize`/`isColor`/`isAlign` (renamed per component), the `isDisplay`/`isHidden`
+  helpers (flattened, arrays and objects included), `tag` (→ `as` where bestax has one) and
+  `render` (always a TODO). Its icons are className-based and Font Awesome 4 — the biggest
+  visual risk, see `references/bloomer/unmappables.md`. The app declared its own Bulma 0.6,
+  which the codemod bumps; there is no pinned Bulma to free.
 
 ## Rules
 

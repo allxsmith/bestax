@@ -140,7 +140,8 @@ named-import style first.
 
 ## Coming from a different library?
 
-Already supported: [**rbx**](./rbx.md) (`bestax-migrate rbx src/`).
+Already supported: [**rbx**](./rbx.md) (`bestax-migrate rbx src/`) and
+[**bloomer**](./bloomer.md) (`bestax-migrate bloomer src/`).
 
 If you're using a specific React Bulma package that isn't supported by the migration tool yet,
 [open a feature request](https://github.com/allxsmith/bestax/issues/new?template=feature-request.md)
