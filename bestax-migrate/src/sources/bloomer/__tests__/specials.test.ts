@@ -85,6 +85,21 @@ describe('bloomer plain-element handlers', () => {
     );
   });
 
+  it('keeps several wrapper spreads in source order when folding', () => {
+    const page = migrate(
+      "import { Page, PageLink } from 'bloomer';\nexport const A = (p: Record<string, any>) => <Page {...p.first} {...p.second}><PageLink>1</PageLink></Page>;\n"
+    );
+    expect(page.output).toContain(
+      '<Pagination.Link {...p.first} {...p.second}>1</Pagination.Link>'
+    );
+    const menu = migrate(
+      'import { MenuLink } from \'bloomer\';\nexport const A = (p: Record<string, any>) => <li {...p.first} {...p.second} id="x"><MenuLink href="/">h</MenuLink></li>;\n'
+    );
+    expect(menu.output).toContain(
+      '<Menu.Item {...p.first} {...p.second} href="/" id="x">h</Menu.Item>'
+    );
+  });
+
   it('names the Page attributes a fold moves onto the link', () => {
     const { output, rules } = migrate(
       dyn(
@@ -317,7 +332,7 @@ describe('bloomer navigation handlers', () => {
   it('treats an empty or false href the way bloomer did — no anchor', () => {
     const empty = migrate(dyn('Button', '<Button href="">x</Button>'));
     expect(empty.rules).toEqual([]);
-    expect(empty.output).toContain('<Button href="">x</Button>');
+    expect(empty.output).toContain('<Button>x</Button>');
     const off = migrate(
       dyn(
         'DropdownItem',
@@ -325,14 +340,12 @@ describe('bloomer navigation handlers', () => {
       )
     );
     expect(jsx(off.output)).toContain(
-      '<Dropdown.Item href={false} as="span">x</Dropdown.Item>'
+      '<Dropdown.Item as="span">x</Dropdown.Item>'
     );
     const bare = migrate(
       dyn('NavbarItem', '<NavbarItem href={0}>x</NavbarItem>')
     );
-    expect(jsx(bare.output)).toContain(
-      '<Navbar.Item href={0} as="div">x</Navbar.Item>'
-    );
+    expect(jsx(bare.output)).toContain('<Navbar.Item as="div">x</Navbar.Item>');
   });
 
   it('merges helpers on a helperless target into className, dropping false ones', () => {
@@ -553,9 +566,7 @@ describe('bloomer navigation handlers', () => {
       dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')
     );
     expect(rules).toEqual([]);
-    expect(output).toContain(
-      '<div className="panel-block is-active" href="">x</div>'
-    );
+    expect(output).toContain('<div className="panel-block is-active">x</div>');
   });
 
   it('keeps a PanelBlock without href as the plain block bloomer rendered', () => {

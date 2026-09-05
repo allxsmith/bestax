@@ -147,12 +147,18 @@ function anchorWhenHref(
   const tagAttr = findAttr(element, 'tag');
   const hrefAttr = findAttr(element, 'href');
   // bloomer chose the element with `props.href ? 'a' : tag`, so an empty or
-  // false `href` kept the default element — the attribute is left as written.
+  // false `href` kept the default element. It selected nothing, and bestax
+  // types `href` as a string where it exists at all, so it is dropped.
   const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
   const hrefFalsy =
     hrefLiteral !== undefined &&
     hrefLiteral.kind !== 'expression' &&
     !hrefLiteral.value;
+  if (hrefAttr && hrefFalsy) {
+    removeAttr(element, hrefAttr);
+    handled.push('href');
+    ctx.dirty = true;
+  }
   if (hrefAttr && !hrefFalsy) {
     const literal = hrefLiteral!;
     if (literal.kind === 'expression') {
@@ -611,15 +617,19 @@ const SPECIALS: Record<string, SpecialHandler> = {
         (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
       );
       if (siblings.length === 1 && siblings[0] === element) {
+        // Spreads first, as one block in source order, so the link's own
+        // props still win over them.
+        const spreads = (parent.openingElement.attributes ?? []).filter(
+          (a: any) => a.type === 'JSXSpreadAttribute'
+        );
+        if (spreads.length > 0) {
+          element.openingElement.attributes = [
+            ...spreads,
+            ...(element.openingElement.attributes ?? []),
+          ];
+        }
         for (const attr of [...(parent.openingElement.attributes ?? [])]) {
-          if (attr.type === 'JSXSpreadAttribute') {
-            // Before the link's own props, so those still win over it.
-            element.openingElement.attributes = [
-              attr,
-              ...(element.openingElement.attributes ?? []),
-            ];
-            continue;
-          }
+          if (attr.type === 'JSXSpreadAttribute') continue;
           const name =
             attr.type === 'JSXAttribute' ? attr.name.name : undefined;
           if (name && findAttr(element, name)) {
@@ -704,6 +714,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
     const anchored =
       hrefAttr !== undefined &&
       (hrefLiteral!.kind === 'expression' || Boolean(hrefLiteral!.value));
+    if (hrefAttr && !anchored) {
+      // A falsy href selected nothing in bloomer and cannot sit on a <div>.
+      removeAttr(element, hrefAttr);
+      ctx.dirty = true;
+    }
     if (anchored) {
       return { handledProps: anchorWhenHref(ctx, path, element) };
     }

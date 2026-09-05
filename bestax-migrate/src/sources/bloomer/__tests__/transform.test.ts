@@ -184,13 +184,17 @@ describe('bloomer imports', () => {
   });
 
   it('does not count a type-only local as a runtime collision', () => {
+    // `Box` is a type-only local here; the migrated component reuses that
+    // name as the value import (no `BulmaBox` alias), and the type import
+    // for `Title` stays a type.
     const { output, rules } = migrate(
-      "import { type Box } from '@allxsmith/bestax-bulma';\nimport { Tile } from 'bloomer';\nexport type B = Box;\nexport const A = () => <Tile />;\n"
+      "import { type Box, type Title } from '@allxsmith/bestax-bulma';\nimport { Box as BloomerBox, Tile } from 'bloomer';\nexport type T = Title;\nexport const A = (b: Box) => <><BloomerBox /><Tile /></>;\n"
     );
     expect(rules).toEqual(['component:Tile']);
-    expect(output).toContain(
-      "import { type Box } from '@allxsmith/bestax-bulma';"
+    expect(output).toMatch(
+      /import \{ Box, type Title \} from ['"]@allxsmith\/bestax-bulma['"]/
     );
+    expect(output).toContain('<><Box /><Tile /></>');
     expect(output).toContain("import { Tile } from 'bloomer';");
   });
 

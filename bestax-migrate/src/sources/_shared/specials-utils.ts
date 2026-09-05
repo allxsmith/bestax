@@ -401,18 +401,20 @@ export function makeStructuralHelpers(strip: AttrStrip) {
     const accepted = Array.isArray(expected) ? expected : [expected];
     if (!childPath || !accepted.includes(childPath.join('.'))) return null;
 
+    // Spreads have no name to collide on; they move across as written — as
+    // one block, in source order, placed FIRST so the child's own explicit
+    // props still win over them, the same rule the named branch keeps.
+    const spreads = (element.openingElement.attributes ?? []).filter(
+      (a: any) => a.type === 'JSXSpreadAttribute'
+    );
+    for (const spread of spreads) removeAttr(element, spread);
+    if (spreads.length > 0) {
+      child.openingElement.attributes = [
+        ...spreads,
+        ...(child.openingElement.attributes ?? []),
+      ];
+    }
     for (const attr of [...(element.openingElement.attributes ?? [])]) {
-      if (attr.type === 'JSXSpreadAttribute') {
-        // A spread has no name to collide on; it moves across as written —
-        // but FIRST, so the child's own explicit props still win over it,
-        // the same rule the named branch below keeps.
-        removeAttr(element, attr);
-        child.openingElement.attributes = [
-          attr,
-          ...(child.openingElement.attributes ?? []),
-        ];
-        continue;
-      }
       const name: string = attr.name.name;
       if (findAttr(child, name)) {
         addTodo(
