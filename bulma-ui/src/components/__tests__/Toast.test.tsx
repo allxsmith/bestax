@@ -989,6 +989,29 @@ describe('Toast Queue', () => {
     expect(screen.queryByText('Queued 2')).not.toBeInTheDocument();
   });
 
+  it('does not run the cleanup on re-render, only on real detach', () => {
+    // setRef must stay referentially stable: an unstable ref identity makes
+    // React detach and re-attach on every render, which would fire the
+    // consumer's cleanup each time.
+    const cleanup = jest.fn();
+    const callbackRef = (node: HTMLDivElement | null) => {
+      if (!node) return undefined;
+      return () => {
+        cleanup();
+      };
+    };
+
+    const { rerender, unmount } = render(
+      <Toast message="Stable" duration={0} ref={callbackRef} />
+    );
+    rerender(<Toast message="Stable again" duration={0} ref={callbackRef} />);
+    rerender(<Toast message="And again" duration={0} ref={callbackRef} />);
+    expect(cleanup).not.toHaveBeenCalled();
+
+    unmount();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
   // The cleanup contract is honored identically on React 18 and 19 (the CI
   // matrix), and identically across every component that merges a forwarded
   // ref, so neither this nor its siblings branch on React.version.
