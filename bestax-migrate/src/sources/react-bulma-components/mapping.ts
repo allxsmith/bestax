@@ -31,7 +31,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
     todo: 'this bestax component has no `as` prop; restructure the element instead',
   },
   domRef: {
-    todo: 'bestax-bulma has no `domRef`. The form controls and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel` forward a ref — on those, rename `domRef` to `ref`. The rest forward no ref: put the ref on a DOM child or wrap the component',
+    todo: 'bestax-bulma has no `domRef`. The form controls and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel` forward a ref — on those, rename `domRef` to `ref`. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: put the ref on a DOM child or wrap the component',
   },
   // ColorProps
   backgroundColor: { rename: 'bgColor' },

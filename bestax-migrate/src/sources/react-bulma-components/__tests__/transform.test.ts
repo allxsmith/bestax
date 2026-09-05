@@ -812,5 +812,26 @@ describe('react-bulma-components transform fixtures', () => {
     it('still offers the wrapping fallback for the components that forward no ref', () => {
       expect(domRefTodo('Card')).toMatch(/wrap the component/);
     });
+
+    it('names the Navbar.Dropdown collision in both directions', () => {
+      // The codemod retargets both sides of it: an RBC `Navbar.Item` wrapping a
+      // dropdown becomes bestax `Navbar.Dropdown` (which forwards a ref), and
+      // the RBC `Navbar.Dropdown` inside it becomes `Navbar.DropdownMenu`
+      // (which does not). Reading only the name you wrote gets it backwards
+      // in either direction.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Navbar } from "react-bulma-components";\n' +
+          'export const A = (r: any) => <Navbar.Item domRef={r}><Navbar.Dropdown>x</Navbar.Dropdown></Navbar.Item>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<Navbar.Dropdown domRef={r}>');
+      expect(output).toContain('<Navbar.DropdownMenu>');
+      const message = todos.find(t => t.rule === 'prop:domRef')!.message;
+      expect(message).toMatch(/`Navbar\.Item` that wrapped your dropdown/);
+      expect(message).toMatch(/`Navbar\.DropdownMenu` and does not/);
+    });
   });
 });

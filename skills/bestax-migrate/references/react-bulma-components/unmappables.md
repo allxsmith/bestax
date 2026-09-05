@@ -120,8 +120,11 @@ and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` 
 forward — attach the ref to a DOM element inside, or wrap the component in a `<div ref={…}>`.
 
 The codemod does not do that rename for you: `domRef` is flagged on every component, so the
-TODO names both cases and you pick. `Navbar.Dropdown` is the trap — RBC's is the menu itself,
-so it maps to bestax's `Navbar.DropdownMenu`, which forwards no ref.
+TODO names both cases and you pick. `Navbar.Dropdown` is the trap, and it cuts both ways —
+RBC's is the menu itself, so it maps to bestax's `Navbar.DropdownMenu`, which forwards no ref;
+bestax reserves the name `Navbar.Dropdown` for the outer container, which is what the
+`Navbar.Item` wrapping your dropdown becomes, and that one _does_ forward one. So after the
+codemod runs, read the target name on the line, not the one you wrote.
 
 ## Helper props dropped from plain-element replacements
 

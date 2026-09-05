@@ -732,6 +732,29 @@ describe('the innerRef remediation is achievable', () => {
     expect(output).toMatch(/innerRef=\{r\}/);
   });
 
+  it('renames innerRef to ref on the Navbar.Item that becomes a Dropdown', () => {
+    // The other half of the same collision: bestax's Navbar.Dropdown is the
+    // container, which `<Navbar.Item dropdown>` becomes, and it forwards a ref.
+    // The prop table is keyed on the rbx name, so only the special can know
+    // which target was picked — this was the one forwarding target the renames
+    // in mapping.ts could not reach.
+    const { output, todos } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item dropdown innerRef={r}>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Dropdown ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
+  });
+
+  it('leaves innerRef alone on a plain Navbar.Item', () => {
+    // Without `dropdown` the target stays Navbar.Item, a function component —
+    // so the rename above must be conditional, not unconditional.
+    const { output } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item innerRef={r}>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Item innerRef={r}');
+  });
+
   it('leaves innerRef alone on a root that forwards no ref', () => {
     // Card is not one of the four; renaming here would be a type error, so the
     // codemod must not touch it.

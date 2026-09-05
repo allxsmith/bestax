@@ -854,6 +854,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       ctx.dirty = true;
     }
+    // bestax's `Navbar.Dropdown` forwards a ref, but it is the one such target
+    // the `innerRef: { rename: 'ref' }` entries in mapping.ts cannot reach:
+    // that table is keyed on the rbx name (`Navbar.Item`), and only this
+    // handler knows which of the two targets was picked. A plain
+    // `Navbar.Item` is still a function component, so the rename is
+    // conditional — there, `innerRef` is left alone.
+    const renamedInnerRef: string[] = [];
+    if (target === 'Navbar.Dropdown') {
+      const innerRefAttr = findAttr(element, 'innerRef');
+      if (innerRefAttr) {
+        innerRefAttr.name = ctx.j.jsxIdentifier('ref');
+        renamedInnerRef.push('innerRef');
+        ctx.dirty = true;
+      }
+    }
     restrictAsToTargets(ctx, path, element, target ?? 'Navbar.Item', [
       'Navbar.Item',
     ]);
@@ -867,6 +882,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'expanded',
         'hoverable',
         'managed',
+        ...renamedInnerRef,
       ],
     };
   },

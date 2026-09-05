@@ -120,17 +120,21 @@ wrong:
 rbx reaches a component's rendered element with `innerRef`. bestax uses a plain forwarded
 `ref` on the roots that support one, so the codemod renames the prop:
 
-| rbx                                                   | bestax-bulma | note                                     |
-| ----------------------------------------------------- | ------------ | ---------------------------------------- |
-| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element      |
-| `innerRef` on `Navbar.Burger`, `Navbar.Link`          | `ref`        | these two sub-components forward one too |
+| rbx                                                   | bestax-bulma | note                                        |
+| ----------------------------------------------------- | ------------ | ------------------------------------------- |
+| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element         |
+| `innerRef` on `Navbar.Burger`, `Navbar.Link`          | `ref`        | these two sub-components forward one too    |
+| `innerRef` on `Navbar.Item` **with `dropdown`**       | `ref`        | that one becomes bestax's `Navbar.Dropdown` |
 
-`Navbar.Dropdown` is the exception that looks like it should be in that list: in rbx it is the
-menu itself (`div.navbar-dropdown`), so it maps to bestax's `Navbar.DropdownMenu`, which
-forwards no ref — not to `Navbar.Dropdown`.
+The last row is the `Navbar.Dropdown` collision, and it runs both ways. Your rbx
+`Navbar.Dropdown` is the menu itself (`div.navbar-dropdown`), so it maps to bestax's
+`Navbar.DropdownMenu`, which forwards no ref — `innerRef` there is left alone. bestax reserves
+the name `Navbar.Dropdown` for the outer container, which is what `<Navbar.Item dropdown>`
+becomes, and that one does forward a ref. A plain `<Navbar.Item>` does not, so the rename is
+conditional on the `dropdown` prop.
 
 rbx puts `innerRef` on every component via `forwardRefAs`; the codemod renames it only on the
-six entries above. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
+seven entries above. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
 element you control.
 
 Note the gap that leaves: other bestax components do forward a ref (the form controls,
