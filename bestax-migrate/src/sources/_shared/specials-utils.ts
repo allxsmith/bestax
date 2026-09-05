@@ -358,15 +358,18 @@ export function makeStructuralHelpers(strip: AttrStrip) {
   ): SpecialResult {
     const merged = mergeClassName(ctx, path, element, className, where);
     const kept = new Set(strip(ctx, path, attributesOf(element), where));
-    // Spread attributes pass through untouched: they are the caller's own
-    // props, and a plain element takes them as readily as the component did.
-    // They go FIRST, so the Bulma class the element exists for is written
-    // after them and cannot be overridden by a `className` inside a spread —
-    // the source merged such a className with its own; a plain element
-    // cannot, so the spread is named.
+    // Spread attributes pass through untouched, in their original places:
+    // they are the caller's own props, and a plain element takes them as
+    // readily as the component did, with the same JSX precedence. The Bulma
+    // class the element exists for is written right AFTER the last spread,
+    // so a `className` inside a spread cannot override it — the source
+    // merged such a className with its own; a plain element cannot, so the
+    // spread is named.
     const all = element.openingElement.attributes ?? [];
     const spreads = all.filter((a: any) => a.type === 'JSXSpreadAttribute');
-    const named = all.filter((a: any) => kept.has(a));
+    const ordered = all.filter(
+      (a: any) => a.type === 'JSXSpreadAttribute' || kept.has(a)
+    );
     if (spreads.length > 0 && merged) {
       addTodo(
         ctx,
@@ -375,9 +378,15 @@ export function makeStructuralHelpers(strip: AttrStrip) {
         `${where} became a plain <${tag}> with \`className="${merged}"\`; a \`className\` inside its spread prop(s) would have been merged with that class by the source, and is overridden here — merge it by hand`
       );
     }
-    const attrs = merged
-      ? [...spreads, makeAttr(ctx.j, 'className', merged), ...named]
-      : [...spreads, ...named];
+    const attrs = [...ordered];
+    if (merged) {
+      const lastSpread = attrs.reduce(
+        (last: number, a: any, i: number) =>
+          a.type === 'JSXSpreadAttribute' ? i : last,
+        -1
+      );
+      attrs.splice(lastSpread + 1, 0, makeAttr(ctx.j, 'className', merged));
+    }
     path.replace(
       plainElement(ctx.j, tag, undefined, attrs, element.children ?? [])
     );

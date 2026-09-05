@@ -80,6 +80,13 @@ describe('bloomer plain-element handlers', () => {
     expect(help.output).toContain(
       '<p {...p.rest} className="help is-danger">x</p>'
     );
+    // …while every other attribute keeps its place, and so its precedence.
+    const ordered = migrate(
+      dyn('Help', '<Help id="first" {...p.rest} title="t">x</Help>')
+    );
+    expect(ordered.output).toContain(
+      '<p id="first" {...p.rest} className="help" title="t">x</p>'
+    );
     const page = migrate(
       "import { Page, PageLink } from 'bloomer';\nexport const A = (p: Record<string, any>) => <Page {...p.li}><PageLink>1</PageLink></Page>;\n"
     );
