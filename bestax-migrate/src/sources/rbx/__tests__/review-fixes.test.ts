@@ -1095,25 +1095,39 @@ describe('findings that arrived during the backlog pass', () => {
   });
 });
 
-describe('rbx Modal behaviours bestax does not implement', () => {
-  it('flags every conversion, since none of them fail loudly', () => {
-    // rbx portals into document.body, closes on Escape and clips scroll by
-    // default; bestax does none of the three, so an unmodified Modal migrates
-    // to something that looks right and behaves differently.
+describe('rbx Modal behaviours after bulma-ui gained them', () => {
+  // bulma-ui #633 added closeOnEscape, lockScroll and portal to Modal. Two of
+  // the three now match rbx's defaults, so the advisory that said bestax did
+  // "none of the three" became false, and the closeOnEsc TODO actively
+  // regressed behaviour: dropping the prop, as it instructed, lands on
+  // closeOnEscape's default of true.
+  it('still flags every conversion, but only about the portal', () => {
     const { todos } = migrate(
       'import { Modal } from "rbx";\nexport const A = () => <Modal active><Modal.Content>x</Modal.Content></Modal>;'
     );
-    expect(todos.find(t => t.rule === 'component:Modal')?.message).toMatch(
-      /portalling into document\.body/
-    );
+    const msg = todos.find(t => t.rule === 'component:Modal')?.message ?? '';
+    expect(msg).toMatch(/set `portal`/);
+    expect(msg).not.toMatch(/implements neither/);
   });
 
-  it('does not claim bestax closes on Escape', () => {
-    const { todos } = migrate(
-      'import { Modal } from "rbx";\nexport const A = () => <Modal active closeOnEsc>x</Modal>;'
+  it('renames closeOnEsc rather than telling you to drop it', () => {
+    const { output, todos } = migrate(
+      'import { Modal } from "rbx";\nexport const A = () => <Modal active closeOnEsc={false}>x</Modal>;'
     );
-    const msg = todos.find(t => t.rule === 'prop:closeOnEsc')?.message ?? '';
-    expect(msg).toMatch(/no Escape handling at all/);
+    // The false value has to survive: dropping it would silently re-enable
+    // Escape-to-close, which is what the old guidance caused.
+    expect(output).toContain('closeOnEscape={false}');
+    expect(todos.find(t => t.rule === 'prop:closeOnEsc')).toBeUndefined();
+  });
+
+  it('points Modal.Portal at the portal prop', () => {
+    const { todos } = migrate(
+      'import { Modal } from "rbx";\nexport const A = () => <Modal.Portal><Modal active>x</Modal></Modal.Portal>;'
+    );
+    const msg =
+      todos.find(t => t.rule === 'component:Modal.Portal')?.message ?? '';
+    expect(msg).toMatch(/set `portal`/);
+    expect(msg).not.toMatch(/createPortal/);
   });
 });
 

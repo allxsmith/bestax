@@ -800,7 +800,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx,
       path,
       'component:Modal',
-      'bestax `Modal` renders inline rather than portalling into document.body, and implements neither Escape-to-close nor scroll locking — rbx did all three by default. Re-add whichever your UI relied on'
+      'bestax `Modal` closes on Escape and locks body scroll by default, matching rbx, but it renders inline: set `portal` if you relied on rbx portalling into document.body'
     );
     return {};
   },

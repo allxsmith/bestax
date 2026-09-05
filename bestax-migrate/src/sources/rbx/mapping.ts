@@ -627,14 +627,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       active: {},
       onClose: {},
-      closeOnEsc: {
-        todo: 'bestax `Modal` implements no Escape handling at all; add your own keydown listener, or drop the prop if the behaviour is not needed',
-      },
+      closeOnEsc: { rename: 'closeOnEscape' },
       closeOnBlur: {
         todo: "bestax `Modal` has no built-in background-click close; wire it through `Modal.Background`'s onClick and `onClose`",
       },
       document: {
-        todo: 'bestax `Modal` renders inline where you place it rather than portalling into a document at all; drop this prop, and see the advisory the codemod adds on every Modal',
+        todo: 'bestax `Modal` portals via `portal`, but that takes `true`, a selector or an element — not a `Document`. Pass an element from the document you targeted, or drop the prop if you were passing the default document',
       },
       containerClassName: { rename: 'className' },
       innerRef: { rename: 'ref' },
@@ -664,7 +662,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
       Portal: {
         status: 'todo',
-        todo: '`Modal.Portal` is rbx-internal; bestax `<Modal>` renders inline and does not portal at all — wrap it in `createPortal` yourself if you relied on that (see the advisory the codemod adds on every Modal)',
+        todo: '`Modal.Portal` is rbx-internal; set `portal` on the `<Modal>` instead — it takes `true`, a selector or an element',
       },
     },
   },
