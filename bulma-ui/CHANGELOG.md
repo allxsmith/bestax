@@ -1,3 +1,55 @@
+# [5.15.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.14.0...@allxsmith/bestax-bulma@5.15.0) (2026-09-05)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** release the index carrying the background-click correction ([673adcd](https://github.com/allxsmith/bestax/commit/673adcd149b4dbf67b3b2ea32f2116dcc0899dcb))
+* **bestax-mcp:** release the index carrying the corrected examples ([51a5828](https://github.com/allxsmith/bestax/commit/51a5828b285d3a9685a280b241338f503d553963))
+* **bestax-mcp:** release the index carrying the corrected Modal guidance ([5c7eb18](https://github.com/allxsmith/bestax/commit/5c7eb188d6ab3377ff263428d97b8aa3e83a5e70))
+* **bestax-mcp:** release the index carrying the corrected rbc Modal guidance ([6903aa3](https://github.com/allxsmith/bestax/commit/6903aa3ed92a75f515feea8ed48a80ef475c2e19))
+* **bestax-mcp:** release the index carrying the corrected ref guidance ([6722933](https://github.com/allxsmith/bestax/commit/67229333e0e8b8793609e93b927aa7e7ff3245d4))
+* **bestax-mcp:** release the index carrying the Modal.Container ref mapping ([6e0d3da](https://github.com/allxsmith/bestax/commit/6e0d3dac2e7f03b5454b4f30cad2b6cb5e11cec4))
+* **bestax-mcp:** release the index carrying the ref docs and corrected guidance ([fcf0c95](https://github.com/allxsmith/bestax/commit/fcf0c95be0c31ce04fffc46e6e3d5b07cc9b7b00))
+* **bestax-mcp:** release the regenerated index carrying the new ref definitions ([9845b53](https://github.com/allxsmith/bestax/commit/9845b53dbefba8eb65b193da9309cc79e1fc19be))
+* **bestax-migrate:** align the modal docblock with the advisory it explains ([f9130fe](https://github.com/allxsmith/bestax/commit/f9130fe7eeda31b22d6464d11b481d1876204cdc))
+* **bestax-migrate:** align the rbx fixture and e2e comments with the advisory ([1f71d4e](https://github.com/allxsmith/bestax/commit/1f71d4ee4f2c1317c65eb59935b0226e5800c0f4))
+* **bestax-migrate:** correct the forwardRefAs TODO's list of ref-forwarding components ([76d6d6a](https://github.com/allxsmith/bestax/commit/76d6d6ad967eb02528d4d077e869db2025ab4651))
+* **bestax-migrate:** correct the rbc domRef guidance for the newly forwarded refs ([f93c844](https://github.com/allxsmith/bestax/commit/f93c844da57b463f28f09f2bd75ea45dcf8d69e7))
+* **bestax-migrate:** correct the rbc Modal guidance the compound form contradicts ([76e62d0](https://github.com/allxsmith/bestax/commit/76e62d02dd94c7f239a127bdf806c8847103b392))
+* **bestax-migrate:** correct the rbx closeOnBlur claim about background clicks ([8ccae65](https://github.com/allxsmith/bestax/commit/8ccae65cdb44e3a9eb8cd964e4a569b83e249e65))
+* **bestax-migrate:** correct the rbx Modal guidance that bulma-ui outgrew ([ae62415](https://github.com/allxsmith/bestax/commit/ae62415fe32a79c773b08c0f4293a81a60436726)), closes [#633](https://github.com/allxsmith/bestax/issues/633)
+* **bestax-migrate:** disambiguate Navbar.Dropdown in the forwardRefAs advisory ([242e3d4](https://github.com/allxsmith/bestax/commit/242e3d4514cc1f049fee2d1032c00e2d5cb84716))
+* **bestax-migrate:** keep the domRef advice off the Delete that Button becomes ([617fbb6](https://github.com/allxsmith/bestax/commit/617fbb62636ff09db5484e52d4f31c67f297306e))
+* **bestax-migrate:** map rbx innerRef to ref on Button/Dropdown/Modal/Navbar ([5207a79](https://github.com/allxsmith/bestax/commit/5207a791b3a157993b9758d77ab04d11e4a98e2a))
+* **bestax-migrate:** pin both halves of the rbx ref pass-through ([1d87cc2](https://github.com/allxsmith/bestax/commit/1d87cc2872487dd01ec91af61d32620c99cb3e90)), closes [#622](https://github.com/allxsmith/bestax/issues/622)
+* **bestax-migrate:** rename innerRef on rbx Navbar.Burger and Navbar.Link ([b935a16](https://github.com/allxsmith/bestax/commit/b935a166b496717a17a1a4fca63a9f40386efa30))
+* **bestax-migrate:** rename rbx innerRef on Modal.Container, which becomes Modal ([90f9840](https://github.com/allxsmith/bestax/commit/90f9840af715a0112d6018c5035edc4c5b7b3d2d))
+* **bestax-migrate:** rename rbx innerRef on the Navbar.Item that becomes a Dropdown ([16155fe](https://github.com/allxsmith/bestax/commit/16155fe9d21072d61a422fe9a86eb5c20e0b74ca))
+* **bestax-migrate:** stop naming a close handler in the showClose TODO too ([ce5a337](https://github.com/allxsmith/bestax/commit/ce5a337e6dbb80a358e4d3d26c0691033e75be2c))
+* **bestax-migrate:** stop naming a close handler the user may not have ([6cfb557](https://github.com/allxsmith/bestax/commit/6cfb5574289884db108e95c4ed50cb8fcd37df83))
+* **bulma-ui:** exclude disabled/hidden controls from Modal initial focus ([f4091f8](https://github.com/allxsmith/bestax/commit/f4091f8420a03261ce07c55c747cd0c4a3110f2a))
+* **bulma-ui:** honour callback-ref cleanups on Dialog, Sidebar, Toast and Carousel ([dbbdc23](https://github.com/allxsmith/bestax/commit/dbbdc2393b1c5dc1af186fbcaeea2297d94cb7f1))
+* **bulma-ui:** keep Toast's empty-container fallback, filter to real tab stops, re-key focus across the portal move ([511a7ae](https://github.com/allxsmith/bestax/commit/511a7ae4cd56bf0c63aab99b0440fb6b5c6b0d6a))
+* **bulma-ui:** memoize Toast's merged ref so the cleanup fires only on detach ([e4e6b04](https://github.com/allxsmith/bestax/commit/e4e6b04be2bf329c2cef0043cb9fe582c4d6bf02))
+* **bulma-ui:** preserve Modal's forwarded callback-ref cleanup, restore its [@extra](https://github.com/extra)Prop ([cf9c70d](https://github.com/allxsmith/bestax/commit/cf9c70d3bd20ecdbda8f4639e45a8889e10280d5))
+* **bulma-ui:** run a forwarded callback ref's cleanup on Dropdown detach ([f36032c](https://github.com/allxsmith/bestax/commit/f36032c32b898c314b68bd6a4d665049e89118af))
+* **bulma-ui:** scope Modal keyboard/focus handling to the topmost modal ([6d3096d](https://github.com/allxsmith/bestax/commit/6d3096d13b1cee29da9d3e4fc13275c4db1a6527))
+* **bulma-ui:** set displayName on the newly forwarded-ref components ([603d745](https://github.com/allxsmith/bestax/commit/603d745914d36644630358062f702cf1650fa989))
+* **create-bestax:** ship the corrected background-click guidance to scaffolded apps ([067eed8](https://github.com/allxsmith/bestax/commit/067eed818cebd9fd7bd0011718bada6d095c6807))
+* **create-bestax:** ship the corrected rbc Modal guidance to scaffolded apps ([1374104](https://github.com/allxsmith/bestax/commit/1374104e0eeeb12db29846ed48ebc430da602e84))
+* **create-bestax:** ship the corrected rbx Modal guidance to scaffolded apps ([b864e90](https://github.com/allxsmith/bestax/commit/b864e90c92bca15fe1a5401039047ab9e1ba3d4b)), closes [#633](https://github.com/allxsmith/bestax/issues/633)
+* **create-bestax:** ship the corrected ref guidance to scaffolded apps ([bd0cfd3](https://github.com/allxsmith/bestax/commit/bd0cfd3d6b99106dad7c66a5ab9d359e40eb1159))
+* **create-bestax:** ship the Modal.Container ref mapping to scaffolded apps ([06b470f](https://github.com/allxsmith/bestax/commit/06b470fb76bb8170410bf6c37f224bfbcf1022e7))
+* **create-bestax:** stop claiming rbx puts innerRef on every component ([83f6f21](https://github.com/allxsmith/bestax/commit/83f6f21401c0eca92400838aef674cd159b47e5e))
+* **create-bestax:** stop telling scaffolded apps a carried-over ref needs no work ([d1fe477](https://github.com/allxsmith/bestax/commit/d1fe477b7c7910a9863b3ae7415a6f91446d9642)), closes [#622](https://github.com/allxsmith/bestax/issues/622)
+
+
+### Features
+
+* **bulma-ui:** add dialog-parity a11y behaviours and portal to Modal/Dialog ([8389134](https://github.com/allxsmith/bestax/commit/8389134d4a196d373ed62d22c3bdc09bc137cb47)), closes [#617](https://github.com/allxsmith/bestax/issues/617)
+* **bulma-ui:** forward LinkButton's ref and add ref stories ([e63f056](https://github.com/allxsmith/bestax/commit/e63f0569b67a9809e8c71f2de56636e6a93a9417)), closes [#622](https://github.com/allxsmith/bestax/issues/622)
+* **bulma-ui:** forward refs on Button, Modal, Dropdown, and Navbar ([90ca711](https://github.com/allxsmith/bestax/commit/90ca711ef217d963a44beebd912a2a4ed27a235b))
+
 # [5.14.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.13.0...@allxsmith/bestax-bulma@5.14.0) (2026-09-03)
 
 
