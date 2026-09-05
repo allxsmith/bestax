@@ -147,9 +147,11 @@ the client takes over, so it is safe under SSR.
 The codemod maps `closeOnEsc` to `closeOnEscape` for you, so `closeOnEsc={false}` keeps
 suppressing Escape rather than silently inheriting the new default.
 
-Background click is the one that genuinely does not carry over, and only because you write it:
-the migrated compound form renders your `Modal.Background`, so wire its `onClick` to the same
-`onClose`.
+Background click depends on which form you land in. bestax's `Modal` has a legacy form — bare
+children — where it renders its own background and close button, both wired to `onClose`, so
+`closeOnBlur` carries over for free. A `Modal.Content` or `Modal.Card` child selects the compound
+form instead, which renders only what you wrote; there, wire your own `Modal.Background`'s
+`onClick` to the same `onClose`.
 
 ## `prop:textColor="white-ter"` / `"white-bis"`
 
