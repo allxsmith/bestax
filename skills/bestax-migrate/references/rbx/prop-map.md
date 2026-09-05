@@ -127,16 +127,25 @@ rbx reaches a component's rendered element with `innerRef`. bestax uses a plain 
 | `innerRef` on `Navbar.Item` **with `dropdown`**       | `ref`        | that one becomes bestax's `Navbar.Dropdown` |
 | `innerRef` on `Modal.Container`                       | `ref`        | that one becomes bestax's `Modal` root      |
 
-The last row is the `Navbar.Dropdown` collision, and it runs both ways. Your rbx
+The third row is the `Navbar.Dropdown` collision, and it runs both ways. Your rbx
 `Navbar.Dropdown` is the menu itself (`div.navbar-dropdown`), so it maps to bestax's
 `Navbar.DropdownMenu`, which forwards no ref — `innerRef` there is left alone. bestax reserves
 the name `Navbar.Dropdown` for the outer container, which is what `<Navbar.Item dropdown>`
 becomes, and that one does forward a ref. A plain `<Navbar.Item>` does not, so the rename is
 conditional on the `dropdown` prop.
 
-An existing `ref` needs no migration: rbx components accept one, bestax's do on the roots
-listed above, and the codemod passes `ref` through untouched. The renames above are for
-`innerRef`, and the codemod applies them only on those eight entries. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
+An existing `ref` is passed through untouched — which is safe only where the bestax target
+forwards one. rbx forwards a ref on every component; bestax does so on the form controls plus
+`Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar`, `Navbar.Burger`, `Navbar.Link`,
+`Navbar.Dropdown`, `Dialog`, `Sidebar`, `Toast` and `Carousel`. Carry a `ref` onto anything
+else — `Card`, `Box`, `Section`, `Message`, `Tabs` and most of the catalogue — and it resolves
+to `null` at runtime, with React logging "Function components cannot be given refs" and
+continuing.
+
+**The codemod does not flag this**, because neither the universal prop table nor any
+per-component table has a `ref` entry, so check every `ref` you carried over against the list
+above rather than assuming the silent pass-through means it works. The renames above are for
+`innerRef`, and apply only on those eight entries. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
 element you control.
 
 Note the gap that leaves: other bestax components do forward a ref (the form controls,
