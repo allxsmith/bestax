@@ -113,8 +113,15 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `domRef`
 
-bestax components don't take `domRef`. Most don't forward refs either — attach the ref to
-a DOM element inside, or wrap the component in a `<div ref={…}>`.
+bestax components don't take `domRef`, but many forward a plain `ref` — the form controls
+and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and
+`Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel`. On those, rename `domRef` to
+`ref` and it works; do not restructure the markup. Everywhere else there is no ref to
+forward — attach the ref to a DOM element inside, or wrap the component in a `<div ref={…}>`.
+
+The codemod does not do that rename for you: `domRef` is flagged on every component, so the
+TODO names both cases and you pick. `Navbar.Dropdown` is the trap — RBC's is the menu itself,
+so it maps to bestax's `Navbar.DropdownMenu`, which forwards no ref.
 
 ## Helper props dropped from plain-element replacements
 

@@ -9,7 +9,7 @@ this automatically for literal values; dynamic values get TODOs.
 | RBC                               | bestax                                                                                                                                                         |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `renderAs`                        | `as` — **only** on polymorphic components (Button, Title/SubTitle, Footer, Level.Item, Media\*, Menu.Item, Navbar.Item/Link, Dropdown.Item); elsewhere flagged |
-| `domRef`                          | flagged — use a `ref` on a DOM child instead                                                                                                                   |
+| `domRef`                          | flagged — rename to `ref` on the components that forward one, else use a DOM child                                                                             |
 | `backgroundColor`                 | `bgColor`                                                                                                                                                      |
 | `textColor`                       | `textColor` (same)                                                                                                                                             |
 | `colorVariant`                    | flagged — use `isLight` or a color shade                                                                                                                       |

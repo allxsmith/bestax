@@ -778,4 +778,39 @@ describe('react-bulma-components transform fixtures', () => {
       expect(todos.some(t => t.rule === 'css')).toBe(true);
     });
   });
+
+  /**
+   * The bestax roots this codemod targets gained `forwardRef`, so the old
+   * `domRef` advice ("use a ref on a DOM child or wrap the component") told
+   * users to restructure markup around a ref that now works. rbx's `innerRef`
+   * was corrected the same way; this pins the sibling.
+   */
+  describe('the domRef TODO describes refs that bestax actually forwards', () => {
+    function domRefTodo(name: string): string {
+      const todos: TodoEntry[] = [];
+      runTransform(
+        transform,
+        'ref.tsx',
+        `import { ${name} } from "react-bulma-components";\n` +
+          `export const A = (r: any) => <${name} domRef={r}>x</${name}>;`,
+        { add: entry => todos.push(entry) }
+      );
+      const todo = todos.find(t => t.rule === 'prop:domRef');
+      expect(todo).toBeDefined();
+      return todo!.message;
+    }
+
+    it.each(['Button', 'Modal', 'Dropdown', 'Navbar'])(
+      'tells you to rename domRef to ref on %s rather than wrap it',
+      name => {
+        const message = domRefTodo(name);
+        expect(message).toMatch(/rename `domRef` to `ref`/);
+        expect(message).toMatch(new RegExp(`\`${name}\``));
+      }
+    );
+
+    it('still offers the wrapping fallback for the components that forward no ref', () => {
+      expect(domRefTodo('Card')).toMatch(/wrap the component/);
+    });
+  });
 });

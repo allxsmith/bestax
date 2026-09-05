@@ -31,7 +31,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
     todo: 'this bestax component has no `as` prop; restructure the element instead',
   },
   domRef: {
-    todo: 'bestax-bulma components do not take domRef; use a ref on a DOM child or wrap the component',
+    todo: 'bestax-bulma has no `domRef`. The form controls and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel` forward a ref — on those, rename `domRef` to `ref`. The rest forward no ref: put the ref on a DOM child or wrap the component',
   },
   // ColorProps
   backgroundColor: { rename: 'bgColor' },
