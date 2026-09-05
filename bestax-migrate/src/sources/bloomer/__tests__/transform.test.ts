@@ -120,6 +120,17 @@ describe('bloomer imports', () => {
     expect(output).toContain('import { Box } from "@allxsmith/bestax-bulma";');
   });
 
+  it('turns an inline type specifier into the value import it needs', () => {
+    const { output } = migrate(
+      "import { Title, type Box } from '@allxsmith/bestax-bulma';\nimport { Box as BloomerBox } from 'bloomer';\nexport const A = (b: Box) => <><Title>x</Title><BloomerBox /></>;\n"
+    );
+    expect(output).toMatch(
+      /import \{ Title, Box \} from ['"]@allxsmith\/bestax-bulma['"]/
+    );
+    expect(output).toContain('(b: Box) => <><Title>x</Title><Box /></>');
+    expect(output).not.toContain('type Box');
+  });
+
   it('aliases a bestax import whose name the file already binds', () => {
     const { output } = migrate(
       "import { CardHeaderTitle } from 'bloomer';\nconst Card = () => null;\nexport const A = () => <><Card /><CardHeaderTitle>x</CardHeaderTitle></>;\n"

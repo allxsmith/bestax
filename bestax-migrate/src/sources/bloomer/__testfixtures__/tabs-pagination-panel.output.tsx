@@ -1,6 +1,7 @@
 import React from "react";
 import { Breadcrumb, Dropdown, Pagination, Panel, Tabs } from "@allxsmith/bestax-bulma";
 
+// TODO(bestax-migrate): `className` sat on the Page's <li>; bestax's `Pagination.Link` and `Pagination.Ellipsis` render their own <li> and put props on the element inside it, so it now applies there — move it by hand if the <li> is what you styled
 // TODO(bestax-migrate): kept the Font Awesome 4 classes on an <i> child, as bloomer rendered them; bestax's optional Font Awesome peer is 6.7+, where many v4 names changed (brand icons moved to `variant="brands"`) — keep FA4 loaded, or switch to `name`/`library`/`variant` (`<Icon name="home" library="fa" variant="solid" />`)
 // TODO(bestax-migrate): bestax `Dropdown` takes a `label` and renders its own trigger and menu; move the `<DropdownTrigger>` content into `label`, keep the `<DropdownItem>`s as direct children, and drop the `DropdownMenu`/`DropdownContent` wrappers
 export const Navigation = ({ onSelect }: { onSelect: () => void }) => (

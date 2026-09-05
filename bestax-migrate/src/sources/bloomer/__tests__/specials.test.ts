@@ -85,6 +85,23 @@ describe('bloomer plain-element handlers', () => {
     );
   });
 
+  it('names the Page attributes a fold moves onto the link', () => {
+    const { output, rules } = migrate(
+      dyn(
+        'Page, PageLink',
+        '<Page className="mine" id="p1" key="k"><PageLink>1</PageLink></Page>'
+      )
+    );
+    expect(rules).toEqual(['component:Page']);
+    expect(output).toContain(
+      '<Pagination.Link className="mine" id="p1" key="k">1</Pagination.Link>'
+    );
+    const bare = migrate(
+      dyn('Page, PageLink', '<Page key="k"><PageLink>1</PageLink></Page>')
+    );
+    expect(bare.rules).toEqual([]);
+  });
+
   it('merges an existing className into the plain element', () => {
     const { output } = migrate(
       dyn('Label', '<Label isSize="small" className="mine">x</Label>')
@@ -143,9 +160,9 @@ describe('bloomer Icon', () => {
     );
   });
 
-  it('keeps children it was given and says nothing', () => {
+  it('keeps children bloomer never rendered, and says so', () => {
     const { output, rules } = migrate(dyn('Icon', '<Icon><svg /></Icon>'));
-    expect(rules).toEqual([]);
+    expect(rules).toEqual(['component:Icon']);
     expect(output).toContain('<Icon><svg /></Icon>');
   });
 

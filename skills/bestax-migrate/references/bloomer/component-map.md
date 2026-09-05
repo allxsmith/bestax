@@ -146,12 +146,12 @@ that change along the way:
 
 Some targets depend on a prop or a child, so the codemod picks them element by element:
 
-| bloomer                                              | becomes                                                            | decided by                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------ |
-| `PageControl`                                        | `Pagination.Previous` / `Pagination.Next`                          | `isNext` (bloomer's default is previous)         |
-| `NavbarItem`                                         | `Navbar.Item` / `Navbar.Dropdown`                                  | `hasDropdown`                                    |
-| `Page`                                               | _folded into its child_ / `<li>`                                   | whether the child is a `PageLink`/`PageEllipsis` |
-| `PanelBlock`                                         | `Panel.Block` / `<div class="panel-block">`                        | `href` — bestax's block is always an `<a>`       |
-| `Icon`, `PanelIcon`                                  | `name`/`library`/`variant` / an `<i>` child                        | whether the icon classes are FA5/6 or MDI        |
-| `Help`, `Label`, `Heading`                           | `<p class="help">`, `<label class="label">`, `<p class="heading">` | always plain markup                              |
-| `BreadcrumbItem`, `PanelTab`, `TabLink`, `HeroVideo` | `<li>`, `<a>`, `<a>`, `<div class="hero-video">`                   | always plain markup                              |
+| bloomer                                              | becomes                                                            | decided by                                                                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `PageControl`                                        | `Pagination.Previous` / `Pagination.Next`                          | `isNext` (bloomer's default is previous)                                                                                  |
+| `NavbarItem`                                         | `Navbar.Item` / `Navbar.Dropdown`                                  | `hasDropdown`                                                                                                             |
+| `Page`                                               | _folded into its child_ / `<li>`                                   | whether the child is a `PageLink`/`PageEllipsis`; attributes on the Page move onto the link, with a `component:Page` note |
+| `PanelBlock`                                         | `Panel.Block` / `<div class="panel-block">`                        | `href` — bestax's block is always an `<a>`                                                                                |
+| `Icon`, `PanelIcon`                                  | `name`/`library`/`variant` / an `<i>` child                        | whether the icon classes are FA5/6 or MDI                                                                                 |
+| `Help`, `Label`, `Heading`                           | `<p class="help">`, `<label class="label">`, `<p class="heading">` | always plain markup                                                                                                       |
+| `BreadcrumbItem`, `PanelTab`, `TabLink`, `HeroVideo` | `<li>`, `<a>`, `<a>`, `<div class="hero-video">`                   | always plain markup                                                                                                       |

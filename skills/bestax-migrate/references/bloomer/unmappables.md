@@ -27,7 +27,8 @@ convert to the prop form:
 `library` is `fa` | `mdi` | `ion` | `material-icons` | `material-symbols`. `PanelIcon` has the
 same `className` API and converts the same way. An `Icon` with no `className` and no children
 is flagged too — it gets an empty `<i>` child so it compiles until you set a `name` or a child —
-and so is a `className` that is not a string (`prop:className`).
+and so is a `className` that is not a string (`prop:className`). An `Icon` written with children
+is flagged as well: bloomer never rendered them, bestax will.
 
 ## `component:Nav` — Bulma 0.4's nav
 

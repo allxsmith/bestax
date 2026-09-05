@@ -16,6 +16,7 @@ import { RENDER_TODO, RESPONSIVE_PROPS, UNIVERSAL_PROPS } from './mapping.js';
 import {
   addAttr,
   addTodo,
+  attributesOf,
   findAttr,
   literalValueOf,
   makeAttr,
@@ -286,8 +287,17 @@ function iconFromElement(
       `component:${where}`,
       `no icon classes to carry over (bloomer read them from \`className\`); bestax's needs a \`name\` (plus \`library\`/\`variant\`) or a child node — an empty <i> child keeps it compiling until you set one`
     );
+    return;
   }
-  // Children bloomer never rendered are left for bestax, which does.
+  // bloomer drew the glyph from `className` and never rendered its children;
+  // bestax renders them. They are kept — dropping markup is worse — but that
+  // is a change the user has to see.
+  addTodo(
+    ctx,
+    path,
+    `component:${where}`,
+    `bloomer's ${where} never rendered its children (the glyph came from \`className\`); bestax renders them, so check this is what you want to show, or replace them with \`name\`/\`library\`/\`variant\``
+  );
 }
 
 const SPECIALS: Record<string, SpecialHandler> = {
@@ -729,6 +739,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
         )
     );
     if (foldable) {
+      // The child renders the <li> itself and puts its props on the <a> (or
+      // the ellipsis <span>), so whatever else sat on this <li> — a class, an
+      // id, a helper prop — lands on a different element after the fold.
+      // It is moved rather than lost, and named.
+      const moved = attributesOf(element)
+        .map((a: any) => a.name.name as string)
+        .filter(n => n !== 'tag' && n !== 'key');
+      if (moved.length > 0) {
+        addTodo(
+          ctx,
+          path,
+          'component:Page',
+          `${moved.map(n => `\`${n}\``).join(', ')} sat on the Page's <li>; bestax's \`Pagination.Link\` and \`Pagination.Ellipsis\` render their own <li> and put props on the element inside it, so ${moved.length === 1 ? 'it now applies' : 'they now apply'} there — move ${moved.length === 1 ? 'it' : 'them'} by hand if the <li> is what you styled`
+        );
+      }
       // The child renders the <li> itself, so a `tag` on the wrapper has
       // nothing left to apply to. bloomer's default is the same <li>; anything
       // else is a change bestax cannot express.

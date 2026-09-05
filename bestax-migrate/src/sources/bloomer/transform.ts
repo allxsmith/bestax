@@ -330,8 +330,15 @@ export default function transform(
   if (existingBestax) {
     for (const spec of existingBestax.node.specifiers ?? []) {
       if (spec.type === 'ImportSpecifier' && spec.local) {
+        // The local name is reused either way, so the JSX never needs an
+        // alias. But an inline `type` specifier (`import { type Box }`) is
+        // not a value binding: it is not counted as already imported, so the
+        // component is written as a value below — onto this specifier, which
+        // keeps its name, rather than as a duplicate.
         ctx.needed.set(nameOf(spec.imported), nameOf(spec.local));
-        preExistingImports.add(nameOf(spec.imported));
+        if ((spec as { importKind?: string | null }).importKind !== 'type') {
+          preExistingImports.add(nameOf(spec.imported));
+        }
       }
     }
   }
@@ -673,10 +680,25 @@ export default function transform(
       });
       if (!inserted) {
         if (existingBestax && bestaxImport) {
-          existingBestax.node.specifiers = [
-            ...(existingBestax.node.specifiers ?? []),
-            ...bestaxImport.specifiers!,
-          ];
+          const current = existingBestax.node.specifiers ?? [];
+          const appended: any[] = [];
+          for (const fresh of bestaxImport.specifiers!) {
+            // A type-only specifier for the same name becomes the value
+            // import (a value import carries the type too); appending a
+            // second `Box` beside `type Box` would be a duplicate identifier.
+            const typeOnly: any = current.find(
+              (spec: any) =>
+                spec.type === 'ImportSpecifier' &&
+                spec.importKind === 'type' &&
+                nameOf(spec.imported) === nameOf((fresh as any).imported)
+            );
+            if (typeOnly) {
+              typeOnly.importKind = null;
+            } else {
+              appended.push(fresh);
+            }
+          }
+          existingBestax.node.specifiers = [...current, ...appended];
         } else if (bestaxImport) {
           path.insertBefore(bestaxImport);
         }
