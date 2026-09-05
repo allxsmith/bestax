@@ -548,6 +548,16 @@ describe('bloomer navigation handlers', () => {
     expect(link.output).toContain('<Dropdown.Item href="/x">x</Dropdown.Item>');
   });
 
+  it('treats a falsy PanelBlock href as no anchor', () => {
+    const { output, rules } = migrate(
+      dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<div className="panel-block is-active" href="">x</div>'
+    );
+  });
+
   it('keeps a PanelBlock without href as the plain block bloomer rendered', () => {
     const plain = migrate(
       dyn('PanelBlock', '<PanelBlock isActive isWrapped>x</PanelBlock>')

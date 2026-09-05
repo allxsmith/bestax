@@ -697,7 +697,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * is the bestax component — the rest stays the plain block it was.
    */
   'panel-block'(ctx, path, element) {
-    if (findAttr(element, 'href')) {
+    // The same rule as anchorWhenHref: bloomer chose the anchor with
+    // `props.href ? 'a' : tag`, so an empty or false href is no anchor.
+    const hrefAttr = findAttr(element, 'href');
+    const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
+    const anchored =
+      hrefAttr !== undefined &&
+      (hrefLiteral!.kind === 'expression' || Boolean(hrefLiteral!.value));
+    if (anchored) {
       return { handledProps: anchorWhenHref(ctx, path, element) };
     }
     const cls = join(
