@@ -800,6 +800,25 @@ describe('react-bulma-components transform fixtures', () => {
       return todo!.message;
     }
 
+    it('does not offer the Button rename once `remove` retargets it to Delete', () => {
+      // `<Button remove>` becomes `<Delete>`, a plain function component, so
+      // the general advice — which names Button as forwarding a ref — would
+      // send the user to rename `domRef` on an element that ignores it.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Button } from "react-bulma-components";\n' +
+          'export const A = (r: any) => <Button remove domRef={r} />;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<Delete');
+      const domRefTodos = todos.filter(t => t.rule === 'prop:domRef');
+      expect(domRefTodos).toHaveLength(1);
+      expect(domRefTodos[0].message).toContain('forwards no ref');
+      expect(domRefTodos[0].message).not.toMatch(/rename `domRef` to `ref`/);
+    });
+
     it.each(['Button', 'Modal', 'Dropdown', 'Navbar'])(
       'tells you to rename domRef to ref on %s rather than wrap it',
       name => {
