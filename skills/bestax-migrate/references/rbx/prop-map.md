@@ -129,6 +129,10 @@ rbx reaches a component's rendered element with `innerRef`. bestax uses a plain 
 menu itself (`div.navbar-dropdown`), so it maps to bestax's `Navbar.DropdownMenu`, which
 forwards no ref — not to `Navbar.Dropdown`.
 
-rbx puts `innerRef` on every component via `forwardRefAs`, but only these four bestax roots
-forward one today, so only these four are renamed. On any other component the codemod leaves
-`innerRef` alone — move the ref onto a wrapping element you control.
+rbx puts `innerRef` on every component via `forwardRefAs`; the codemod renames it only on the
+six entries above. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
+element you control.
+
+Note the gap that leaves: other bestax components do forward a ref (the form controls,
+`LinkButton`, `Dialog`, `Sidebar`, `Toast`, `Carousel`), but their rbx `innerRef` is not mapped
+yet, so it passes through untouched rather than being renamed for you.
