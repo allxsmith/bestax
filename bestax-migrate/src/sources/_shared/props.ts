@@ -28,7 +28,7 @@ import {
  * source props can map onto one bestax prop (e.g. RBC's `textTransform` +
  * `italic`), and a silent duplicate would be invalid JSX.
  */
-function addConverted(
+export function addConverted(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
@@ -36,16 +36,38 @@ function addConverted(
   name: string,
   value: string | undefined
 ): void {
+  addAttrOnce(ctx, path, element, originalName, makeAttr(ctx.j, name, value));
+}
+
+/**
+ * The same refusal for an attribute the caller has already built — a numeric
+ * `size={6}` or a reused expression node, which `makeAttr` cannot express.
+ */
+export function addAttrOnce(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  originalName: string,
+  attr: any
+): void {
+  const name: string = attr.name.name;
   if (findAttr(element, name)) {
+    const value = attr.value;
+    const rendered =
+      value == null
+        ? ''
+        : value.type === 'StringLiteral'
+          ? `="${value.value}"`
+          : '={…}';
     addTodo(
       ctx,
       path,
       `prop:${originalName}`,
-      `\`${originalName}\` maps to \`${name}${value === undefined ? '' : `="${value}"`}\`, but \`${name}\` is already set on this element; reconcile by hand`
+      `\`${originalName}\` maps to \`${name}${rendered}\`, but \`${name}\` is already set on this element; reconcile by hand`
     );
     return;
   }
-  addAttr(element, makeAttr(ctx.j, name, value));
+  addAttr(element, attr);
 }
 
 /** Apply one PropAction to `attr` on `element`. */

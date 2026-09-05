@@ -6,10 +6,12 @@
 import type { MigrationSource } from '../types.js';
 import { reactBulmaComponents } from './react-bulma-components/index.js';
 import { rbx } from './rbx/index.js';
+import { bloomer } from './bloomer/index.js';
 
 export const SOURCES: Record<string, MigrationSource> = {
   [reactBulmaComponents.name]: reactBulmaComponents,
   [rbx.name]: rbx,
+  [bloomer.name]: bloomer,
 };
 
 export function getSource(name: string): MigrationSource | undefined {

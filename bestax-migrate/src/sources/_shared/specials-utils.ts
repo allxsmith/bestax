@@ -11,9 +11,12 @@
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
 import {
+  addAttr,
   addTodo,
+  attributesOf,
   findAttr,
   literalValueOf,
+  plainElement,
   removeAttr,
   type TransformContext,
 } from './jsx-utils.js';
@@ -186,4 +189,148 @@ export function parseIconClasses(
     if (mdiName) return { name: mdiName.replace(/^mdi-/, ''), library: 'mdi' };
   }
   return null;
+}
+
+/**
+ * Turn a literal modifier prop into an `is-*` class fragment for an element
+ * on its way to becoming plain HTML. Returns the class (or undefined) and
+ * always removes the attribute.
+ */
+export function modifierClass(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  prop: string,
+  base: string,
+  where: string
+): string {
+  const attr = findAttr(element, prop);
+  if (!attr) return base;
+  const literal = literalValueOf(attr);
+  removeAttr(element, attr);
+  if (literal.kind === 'string' || literal.kind === 'number') {
+    return `${base} is-${literal.value}`;
+  }
+  addTodo(
+    ctx,
+    path,
+    `prop:${prop}`,
+    `dynamic ${where} \`${prop}\`; add the matching is-* class by hand`
+  );
+  return base;
+}
+
+/**
+ * A source that puts `as` (or its own name for it) on every component can
+ * land, through a handler that picks its target from a prop value, on a
+ * bestax component that has no `as` — Media.Item resolves to
+ * Left/Content/Right where only Left declares one. Opting into `as` in the
+ * mapping table cannot express that, so the target has to be checked after
+ * it is picked.
+ */
+export function restrictAsToTargets(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string | undefined,
+  allowed: string[],
+  prop = 'as'
+): void {
+  const asAttr = findAttr(element, prop);
+  if (!asAttr || (target && allowed.includes(target))) return;
+  removeAttr(element, asAttr);
+  addTodo(
+    ctx,
+    path,
+    `prop:${prop}`,
+    `bestax's \`${target}\` has no \`as\` prop (of the targets this can resolve to, only ${allowed
+      .map(a => `\`${a}\``)
+      .join(' / ')} does); render the tag directly or restructure`
+  );
+  ctx.dirty = true;
+}
+
+/** Attribute filter a source applies before an element becomes plain HTML. */
+export type AttrStrip = (
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  attrs: any[],
+  where: string
+) => any[];
+
+/**
+ * The two structural rewrites every source needs, bound to that source's own
+ * attribute strip (its modifier vocabulary is the one thing that differs):
+ * replacing an element with plain HTML, and folding a wrapper onto the single
+ * child it exists to wrap.
+ */
+export function makeStructuralHelpers(strip: AttrStrip) {
+  /** Replace the element with a plain HTML tag carrying `className`. */
+  function replaceWithPlain(
+    ctx: TransformContext,
+    path: ASTPath<any>,
+    element: any,
+    tag: string,
+    className: string | undefined,
+    where: string
+  ): SpecialResult {
+    const merged = mergeClassName(ctx, path, element, className, where);
+    const rest = strip(ctx, path, attributesOf(element), where);
+    path.replace(
+      plainElement(ctx.j, tag, merged, rest, element.children ?? [])
+    );
+    ctx.dirty = true;
+    return { replaced: true };
+  }
+
+  /**
+   * A wrapper that owns the modifiers, where bestax's component renders that
+   * wrapper itself: move the wrapper's (already-converted) attributes onto
+   * its single child and replace the wrapper with it — otherwise both would
+   * rename to the same bestax component and nest, which is invalid.
+   *
+   * Returns null when the element isn't the single-JSX-child shape, or the
+   * child is not one of the components this wrapper exists to wrap (a
+   * ratio-box `<iframe>`, a native `<select>`), so the caller can keep the
+   * wrapper.
+   */
+  function collapseOntoChild(
+    ctx: TransformContext,
+    path: ASTPath<any>,
+    element: any,
+    where: string,
+    expected: string | string[]
+  ): SpecialResult | null {
+    const children = (element.children ?? []).filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    if (children.length !== 1 || children[0].type !== 'JSXElement') {
+      return null;
+    }
+    const child = children[0];
+    const childPath = ctx.resolve?.(child.openingElement?.name);
+    const accepted = Array.isArray(expected) ? expected : [expected];
+    if (!childPath || !accepted.includes(childPath.join('.'))) return null;
+
+    for (const attr of [...attributesOf(element)]) {
+      const name: string = attr.name.name;
+      if (findAttr(child, name)) {
+        addTodo(
+          ctx,
+          path,
+          `prop:${name}`,
+          `\`${where}\` folded into its child, but both set \`${name}\`; the child's value was kept — reconcile by hand`
+        );
+        continue;
+      }
+      removeAttr(element, attr);
+      addAttr(child, attr);
+    }
+
+    path.replace(child);
+    ctx.dirty = true;
+    return { replaced: true };
+  }
+
+  return { replaceWithPlain, collapseOntoChild };
 }
