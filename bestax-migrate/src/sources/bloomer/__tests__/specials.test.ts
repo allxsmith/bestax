@@ -314,6 +314,40 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
+  it('treats an empty or false href the way bloomer did — no anchor', () => {
+    const empty = migrate(dyn('Button', '<Button href="">x</Button>'));
+    expect(empty.rules).toEqual([]);
+    expect(empty.output).toContain('<Button href="">x</Button>');
+    const off = migrate(
+      dyn(
+        'DropdownItem',
+        '<DropdownItem href={false} tag="span">x</DropdownItem>'
+      )
+    );
+    expect(jsx(off.output)).toContain(
+      '<Dropdown.Item href={false} as="span">x</Dropdown.Item>'
+    );
+    const bare = migrate(
+      dyn('NavbarItem', '<NavbarItem href={0}>x</NavbarItem>')
+    );
+    expect(jsx(bare.output)).toContain(
+      '<Navbar.Item href={0} as="div">x</Navbar.Item>'
+    );
+  });
+
+  it('drops a false helper on a helperless target without a hint', () => {
+    const { output, rules } = migrate(
+      dyn(
+        'PageControl',
+        '<PageControl href="#" isMarginless={false} isHidden={false} isPulled="right">p</PageControl>'
+      )
+    );
+    expect(rules).toEqual(['prop:isPulled']);
+    expect(output).toContain(
+      '<Pagination.Previous href="#">p</Pagination.Previous>'
+    );
+  });
+
   it('flags a dynamic href instead of guessing the anchor', () => {
     const { output, rules } = migrate(
       dyn('Button', '<Button href={p.url} tag="span">x</Button>')

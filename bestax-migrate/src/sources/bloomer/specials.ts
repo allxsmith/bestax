@@ -145,8 +145,15 @@ function anchorWhenHref(
   const handled: string[] = [];
   const tagAttr = findAttr(element, 'tag');
   const hrefAttr = findAttr(element, 'href');
-  if (hrefAttr) {
-    const literal = literalValueOf(hrefAttr);
+  // bloomer chose the element with `props.href ? 'a' : tag`, so an empty or
+  // false `href` kept the default element — the attribute is left as written.
+  const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
+  const hrefFalsy =
+    hrefLiteral !== undefined &&
+    hrefLiteral.kind !== 'expression' &&
+    !hrefLiteral.value;
+  if (hrefAttr && !hrefFalsy) {
+    const literal = hrefLiteral!;
     if (literal.kind === 'expression') {
       addTodo(
         ctx,

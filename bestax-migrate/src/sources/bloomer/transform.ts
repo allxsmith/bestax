@@ -455,6 +455,8 @@ export default function transform(
         if (!cls) continue;
         removeAttr(element, attr);
         handled.add(name);
+        // A false boolean was a no-op in bloomer; nothing to re-add.
+        if (literal.kind === 'boolean' && !literal.value) continue;
         addTodo(
           ctx,
           path,
