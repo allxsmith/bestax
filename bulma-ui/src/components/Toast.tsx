@@ -212,10 +212,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
           // running it instead of calling the ref with `null`; React 18 discards the
           // return value entirely. Returning it from here would be a React-19-only
           // contract, so we hold the cleanup and run it ourselves on detach — the
-          // same shape as `Dropdown` and `Modal`, so one consumer cleanup ref
-          // behaves identically across every component in the library. Memoized
-          // for the same reason: an unstable ref identity makes React detach and
-          // re-attach on every render, which would run that cleanup each time.
+          // same shape as `Dropdown`, `Modal`, `Dialog`, `Sidebar` and `Carousel`.
+          // The form controls that merge a forwarded ref still discard the cleanup
+          // and detach with `ref(null)`, so this is not yet library-wide — grep
+          // `typeof ref === 'function'` for the current split. Memoized because an
+          // unstable ref identity makes React detach and re-attach on every render,
+          // which would run that cleanup each time.
           if (node === null) {
             const consumerCleanup = consumerCleanupRef.current;
             consumerCleanupRef.current = null;
