@@ -92,6 +92,8 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const sidebarRef = useRef<HTMLElement>(null);
+    // Cleanup returned by a consumer's callback ref on attach, held until detach.
+    const consumerCleanupRef = useRef<(() => void) | null>(null);
     const resolvedFullwidth = isFullwidth ?? fullWidth ?? false;
 
     // Close handler
@@ -150,7 +152,25 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
         (sidebarRef as React.MutableRefObject<HTMLElement | null>).current =
           node;
         if (typeof ref === 'function') {
-          ref(node);
+          // React 19 lets a callback ref return a cleanup function and detaches by
+          // running it instead of calling the ref with `null`; React 18 discards the
+          // return value entirely. Returning it from here would be a React-19-only
+          // contract, so we hold the cleanup and run it ourselves on detach — the
+          // same shape as `Dropdown` and `Modal`, so one consumer cleanup ref
+          // behaves identically across every component in the library.
+          if (node === null) {
+            const consumerCleanup = consumerCleanupRef.current;
+            consumerCleanupRef.current = null;
+            if (consumerCleanup) {
+              consumerCleanup();
+            } else {
+              ref(null);
+            }
+            return;
+          }
+          const cleanup: unknown = ref(node);
+          consumerCleanupRef.current =
+            typeof cleanup === 'function' ? (cleanup as () => void) : null;
         } else if (ref) {
           (ref as React.MutableRefObject<HTMLElement | null>).current = node;
         }
