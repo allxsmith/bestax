@@ -54,7 +54,7 @@
     "ts-jest": "^29.4.12",
     "turbo": "^2.10.12",
     "typescript": "^6.0.3",
-    "wrangler": "^4.126.0"
+    "wrangler": "^4.127.1"
   },
   "keywords": [
     "react",
