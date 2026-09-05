@@ -125,6 +125,7 @@ rbx reaches a component's rendered element with `innerRef`. bestax uses a plain 
 | `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element         |
 | `innerRef` on `Navbar.Burger`, `Navbar.Link`          | `ref`        | these two sub-components forward one too    |
 | `innerRef` on `Navbar.Item` **with `dropdown`**       | `ref`        | that one becomes bestax's `Navbar.Dropdown` |
+| `innerRef` on `Modal.Container`                       | `ref`        | that one becomes bestax's `Modal` root      |
 
 The last row is the `Navbar.Dropdown` collision, and it runs both ways. Your rbx
 `Navbar.Dropdown` is the menu itself (`div.navbar-dropdown`), so it maps to bestax's
@@ -134,7 +135,7 @@ becomes, and that one does forward a ref. A plain `<Navbar.Item>` does not, so t
 conditional on the `dropdown` prop.
 
 rbx puts `innerRef` on every component via `forwardRefAs`; the codemod renames it only on the
-seven entries above. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
+eight entries above. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
 element you control.
 
 Note the gap that leaves: other bestax components do forward a ref (the form controls,
