@@ -572,12 +572,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       show: { rename: 'active' },
       onClose: {},
-      closeOnEsc: { todo: 'bestax Modal closes on Esc by default; remove' },
+      closeOnEsc: { rename: 'closeOnEscape' },
       closeOnBlur: {
-        todo: 'bestax Modal background click closes when onClose is set; remove',
+        todo: 'bestax Modal closes on background click only in its legacy form; the Modal.Content/Modal.Card child selects the compound form, which renders only the children you wrote — add <Modal.Background onClick={onClose} />, or drop the prop if you passed false',
       },
       showClose: {
-        todo: 'bestax Modal renders the close button when onClose is set; remove',
+        todo: 'bestax Modal renders a close button only in its legacy form; the Modal.Content/Modal.Card child selects the compound form, which renders only the children you wrote — add <Modal.Close variant="floating" onClick={onClose} />, or drop the prop if you passed false',
       },
       document: { drop: true },
     },

@@ -853,4 +853,52 @@ describe('react-bulma-components transform fixtures', () => {
       expect(message).toMatch(/`Navbar\.DropdownMenu` and does not/);
     });
   });
+
+  /**
+   * The rbx source's Modal guidance was corrected earlier in this change; this
+   * source carried the same three claims about the same bestax component, and
+   * all three were wrong for the shape RBC modals actually migrate into.
+   */
+  describe('the Modal TODOs describe the modal the codemod produces', () => {
+    function migrateModal(attrs: string) {
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'm.tsx',
+        'import { Modal } from "react-bulma-components";\n' +
+          `export const A = () => <Modal show ${attrs} onClose={() => {}}><Modal.Content>x</Modal.Content></Modal>;`,
+        { add: entry => todos.push(entry) }
+      );
+      return { output: output ?? '', todos };
+    }
+
+    it('renames closeOnEsc rather than telling you to drop it', () => {
+      // bestax `closeOnEscape` defaults to `true`, so "remove" turned
+      // `closeOnEsc={false}` into a modal that dismisses on Escape when the
+      // original forbade it — the same regression the rbx source had.
+      const { output, todos } = migrateModal('closeOnEsc={false}');
+      expect(output).toContain('closeOnEscape={false}');
+      expect(output).not.toContain('closeOnEsc=');
+      expect(todos.find(t => t.rule === 'prop:closeOnEsc')).toBeUndefined();
+    });
+
+    it.each([
+      ['closeOnBlur', 'closeOnBlur'],
+      ['showClose', 'showClose={false}'],
+    ])(
+      'does not claim bestax supplies %s on the compound form it migrates into',
+      (rule, attrs) => {
+        // A `Modal.Content` or `Modal.Card` child puts bestax's Modal on its
+        // compound path, which renders exactly the children it is given — no
+        // background element and no close button — so "bestax does this when
+        // onClose is set; remove" was false for every RBC modal.
+        const { todos } = migrateModal(attrs);
+        const message =
+          todos.find(t => t.rule === `prop:${rule}`)?.message ?? '';
+        expect(message).toMatch(/only in its legacy form/);
+        expect(message).toMatch(/compound form/);
+        expect(message).not.toMatch(/when onClose is set; remove/);
+      }
+    );
+  });
 });

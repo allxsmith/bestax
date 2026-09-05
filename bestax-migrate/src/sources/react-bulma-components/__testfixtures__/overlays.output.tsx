@@ -1,7 +1,7 @@
 import { Icon, IconText, Message, Modal, Progress, Table } from "@allxsmith/bestax-bulma";
 
 export function Overlays({ show, close }: { show: boolean; close: () => void }) {
-  // TODO(bestax-migrate): `closeOnBlur` — bestax Modal background click closes when onClose is set; remove
+  // TODO(bestax-migrate): `closeOnBlur` — bestax Modal closes on background click only in its legacy form; the Modal.Content/Modal.Card child selects the compound form, which renders only the children you wrote — add <Modal.Background onClick={onClose} />, or drop the prop if you passed false
   // TODO(bestax-migrate): `showClose` — render a <Delete onClick={...}/> in the head instead
   return (
     <div>
