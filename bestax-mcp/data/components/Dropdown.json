@@ -31,7 +31,7 @@
     },
     {
       "title": "Forwarded ref",
-      "code": "function example() {\n  const dropdownRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Dropdown label=\"Pick one\" ref={dropdownRef}>\n        <Dropdown.Item value=\"a\">First</Dropdown.Item>\n        <Dropdown.Item value=\"b\">Second</Dropdown.Item>\n      </Dropdown>\n      <Button mt=\"3\" onClick={() => setTag(dropdownRef.current?.className)}>\n        Read the root from its ref\n      </Button>\n      <p>Root class: {tag ?? '—'}</p>\n    </>\n  );\n}"
+      "code": "function example() {\n  const dropdownRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Dropdown label=\"Pick one\" ref={dropdownRef}>\n        <Dropdown.Item>First</Dropdown.Item>\n        <Dropdown.Item>Second</Dropdown.Item>\n      </Dropdown>\n      <Button mt=\"3\" onClick={() => setTag(dropdownRef.current?.className)}>\n        Read the root from its ref\n      </Button>\n      <p>Root class: {tag ?? '—'}</p>\n    </>\n  );\n}"
     },
     {
       "title": "Compound (dot-notation) usage",
