@@ -135,11 +135,11 @@ describe('rbx kitchen-sink e2e', () => {
   });
 
   it('leaves no TODOs outside leftovers.tsx, bar the Modal advisory', () => {
-    // `component:Modal` fires on EVERY conversion by design: bestax renders
-    // the modal inline and implements neither Escape-to-close nor scroll
-    // locking, all of which rbx did by default. The markup migrates cleanly —
-    // this file still typechecks — but the behaviour differs, and nothing
-    // else would tell the user.
+    // `component:Modal` fires on EVERY conversion by design: bestax matches
+    // rbx on Escape-to-close and scroll locking since #633, but still renders
+    // inline unless `portal` is set. The markup migrates cleanly — this file
+    // still typechecks — but that one behaviour differs, and nothing else
+    // would tell the user.
     for (const [file, todos] of app.todosByFile) {
       if (file === 'leftovers.tsx') continue;
       const unexpected = todos.filter(t => t.rule !== 'component:Modal');

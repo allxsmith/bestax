@@ -69,7 +69,7 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
       </Dropdown.Menu>
     </Dropdown>
 
-    {/* bestax's Modal has no Escape handling, portal, or scroll lock; every conversion is flagged */}
+    {/* closeOnEsc renames; closeOnBlur is still yours to wire, and every conversion is flagged about the portal */}
     <Modal active closeOnEsc closeOnBlur>
       <Modal.Content>body</Modal.Content>
     </Modal>
