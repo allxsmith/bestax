@@ -876,24 +876,44 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { handledProps: ['isAlign'] };
   },
 
-  /** bloomer's PageControl is the previous link unless `isNext` says otherwise. */
+  /**
+   * bloomer's PageControl: `pagination-next` only when `isNext && !isPrevious`,
+   * `pagination-previous` whenever `!isNext` — so a link with both set
+   * rendered no direction at all, and a dynamic `isPrevious` beside `isNext`
+   * decided it at runtime. Both are flagged rather than guessed.
+   */
   'page-control'(ctx, path, element) {
     const nextAttr = findAttr(element, 'isNext');
     const prevAttr = findAttr(element, 'isPrevious');
-    const resolved = nextAttr ? resolveBooleanish(nextAttr) : 'falsy';
+    const next = nextAttr ? resolveBooleanish(nextAttr) : 'falsy';
+    const prev = prevAttr ? resolveBooleanish(prevAttr) : 'falsy';
     if (nextAttr) removeAttr(element, nextAttr);
     if (prevAttr) removeAttr(element, prevAttr);
     ctx.dirty = true;
     let target = 'Pagination.Previous';
-    if (resolved === 'truthy') {
-      target = 'Pagination.Next';
-    } else if (resolved === 'expression') {
+    if (next === 'expression') {
       addTodo(
         ctx,
         path,
         'prop:isNext',
         'dynamic PageControl `isNext`; pick between `<Pagination.Previous>` and `<Pagination.Next>` by hand'
       );
+    } else if (next === 'truthy' && prev === 'truthy') {
+      addTodo(
+        ctx,
+        path,
+        'prop:isPrevious',
+        'PageControl had both `isNext` and `isPrevious`, which bloomer rendered with no direction class at all; it became `<Pagination.Previous>` — pick the direction you meant'
+      );
+    } else if (next === 'truthy' && prev === 'expression') {
+      addTodo(
+        ctx,
+        path,
+        'prop:isPrevious',
+        'dynamic PageControl `isPrevious` beside `isNext`; bloomer showed the next link only while it was false — pick between `<Pagination.Previous>` and `<Pagination.Next>` by hand'
+      );
+    } else if (next === 'truthy') {
+      target = 'Pagination.Next';
     }
     return { target, handledProps: ['isNext', 'isPrevious'] };
   },

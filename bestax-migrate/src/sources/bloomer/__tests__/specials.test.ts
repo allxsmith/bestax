@@ -649,6 +649,31 @@ describe('bloomer navigation handlers', () => {
     expect(dynamic.output).toContain('<Pagination align={p.a}>');
   });
 
+  it('flags a PageControl whose isPrevious conflicts with or qualifies isNext', () => {
+    const both = migrate(
+      dyn('PageControl', '<PageControl isNext isPrevious>x</PageControl>')
+    );
+    expect(both.rules).toEqual(['prop:isPrevious']);
+    expect(both.output).toContain(
+      '<Pagination.Previous>x</Pagination.Previous>'
+    );
+    const qualified = migrate(
+      dyn('PageControl', '<PageControl isNext isPrevious={p.q}>x</PageControl>')
+    );
+    expect(qualified.rules).toEqual(['prop:isPrevious']);
+    expect(qualified.output).toContain(
+      '<Pagination.Previous>x</Pagination.Previous>'
+    );
+    const off = migrate(
+      dyn(
+        'PageControl',
+        '<PageControl isNext isPrevious={false}>x</PageControl>'
+      )
+    );
+    expect(off.rules).toEqual([]);
+    expect(off.output).toContain('<Pagination.Next>x</Pagination.Next>');
+  });
+
   it('flags a dynamic PageControl direction and drops isPrevious', () => {
     const { output, rules } = migrate(
       dyn('PageControl', '<PageControl isNext={p.n} isPrevious>x</PageControl>')

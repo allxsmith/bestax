@@ -6,7 +6,7 @@ Most of bloomer's boolean modifiers are already bestax's names — `isLoading`, 
 the tables below: `isActive` becomes `active` on the components whose bestax counterpart
 names it that way, `isFullWidth` survives only where bestax declares it, and a few
 (`Input isActive`, `NavbarLink isActive`, `PageLink isActive`) have no counterpart and become
-a TODO. What else changes is the value-carrying props, the helper props every component
+the Bulma class in `className` instead (see the end of this page). What else changes is the value-carrying props, the helper props every component
 inherited from `withHelpersModifiers`, and the two props bestax spells differently on every
 component.
 
