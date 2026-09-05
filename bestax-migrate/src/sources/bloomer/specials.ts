@@ -203,7 +203,7 @@ function iconFromClasses(
     // An app's own class on the glyph has no home on bestax's Icon props;
     // keeping the child keeps it.
     if (parsed && parsed.leftovers.length === 0) {
-      applyIconProps(ctx, element, parsed);
+      applyIconProps(ctx, path, element, parsed);
       return;
     }
   }

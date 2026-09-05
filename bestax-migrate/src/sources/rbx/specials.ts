@@ -200,7 +200,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         // An app's own class on the <i> has no home on bestax's glyph, so
         // the child is kept (and flagged below) rather than losing it.
         if (parsed && parsed.leftovers.length === 0) {
-          applyIconProps(ctx, element, parsed);
+          applyIconProps(ctx, path, element, parsed);
           return {};
         }
       }

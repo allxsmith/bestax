@@ -556,7 +556,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       return {};
     }
     if (!findAttr(element, 'name') && !findAttr(element, 'icon')) {
-      applyIconProps(ctx, element, parsed);
+      applyIconProps(ctx, path, element, parsed);
       return {};
     }
     element.children = [];

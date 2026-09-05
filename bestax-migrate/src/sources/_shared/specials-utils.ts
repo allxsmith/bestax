@@ -10,6 +10,7 @@
 
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
+import { addAttrOnce } from './props.js';
 import {
   addAttr,
   addTodo,
@@ -241,18 +242,23 @@ export function parseIconClasses(className: string): ParsedIconClasses | null {
  */
 export function applyIconProps(
   ctx: TransformContext,
+  path: ASTPath<any>,
   element: any,
   parsed: ParsedIconClasses
 ): void {
   const { j } = ctx;
-  addAttr(element, makeAttr(j, 'name', parsed.name));
-  if (parsed.library) addAttr(element, makeAttr(j, 'library', parsed.library));
-  if (parsed.variant) addAttr(element, makeAttr(j, 'variant', parsed.variant));
+  // The source forwarded HTML props, so the element may already carry a
+  // `name` (or any of these): the existing one is kept and the clash named,
+  // rather than writing a duplicate attribute.
+  const once = (attr: any) =>
+    addAttrOnce(ctx, path, element, 'className', attr);
+  once(makeAttr(j, 'name', parsed.name));
+  if (parsed.library) once(makeAttr(j, 'library', parsed.library));
+  if (parsed.variant) once(makeAttr(j, 'variant', parsed.variant));
   if (parsed.features.length === 1) {
-    addAttr(element, makeAttr(j, 'features', parsed.features[0]));
+    once(makeAttr(j, 'features', parsed.features[0]));
   } else if (parsed.features.length > 1) {
-    addAttr(
-      element,
+    once(
       j.jsxAttribute(
         j.jsxIdentifier('features'),
         j.jsxExpressionContainer(

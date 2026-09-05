@@ -443,6 +443,16 @@ describe('bloomer navigation handlers', () => {
     expect(output).toContain('<span className="label is-small">x</span>');
   });
 
+  it('keeps a name bloomer forwarded rather than writing a second one', () => {
+    const { output, rules } = migrate(
+      dyn('Icon', '<Icon className="fas fa-home" name="glyph" />')
+    );
+    expect(rules).toEqual(['prop:className']);
+    expect(jsx(output)).toContain(
+      '<Icon name="glyph" library="fa" variant="solid" />'
+    );
+  });
+
   it('names the children a className-driven Icon removes', () => {
     const { output, rules } = migrate(
       dyn('Icon', '<Icon className="fas fa-home"><span>fallback</span></Icon>')
