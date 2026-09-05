@@ -206,7 +206,7 @@
       "import": "import { Button } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 23,
-      "exampleCount": 24
+      "exampleCount": 25
     },
     {
       "name": "Buttons",
@@ -426,7 +426,7 @@
       "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 17,
-      "exampleCount": 7
+      "exampleCount": 8
     },
     {
       "name": "Emphasis",
@@ -580,7 +580,7 @@
       "import": "import { LinkButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 21,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "ListItem",
@@ -646,7 +646,7 @@
       "import": "import { Modal } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 23,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "Navbar",
@@ -657,7 +657,7 @@
       "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 55,
-      "exampleCount": 16
+      "exampleCount": 17
     },
     {
       "name": "Notification",

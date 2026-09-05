@@ -40,6 +40,10 @@
     {
       "title": "Polymorphic `as` (Router Links)",
       "code": "import { Link as RouterLink } from 'react-router-dom';\nimport { LinkButton } from '@allxsmith/bestax-bulma';\n\n<LinkButton as={RouterLink} to=\"/dashboard\" variant=\"underline\">\n  Go to Dashboard\n</LinkButton>;"
+    },
+    {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const linkRef = React.useRef(null);\n  const [href, setHref] = React.useState(null);\n\n  return (\n    <>\n      <LinkButton href=\"#forwarded-ref\" color=\"link\" ref={linkRef}>\n        Target\n      </LinkButton>\n      <Button\n        ml=\"2\"\n        onClick={() => setHref(linkRef.current?.getAttribute('href'))}\n      >\n        Read the href from its ref\n      </Button>\n      <p>href: {href ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- **Semantic HTML:** Renders a native `<button>` element, providing correct keyboard navigation, focus management, and screen reader announcements.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** Fully keyboard accessible with Enter and Space activation.\n- **Replaces anti-patterns:** Use this instead of `<div onClick>` or `<span onClick>` for interactive elements that should not navigate.\n\n:::note\nIf your LinkButton has only an icon, use `aria-label` to provide accessible text.\n:::",

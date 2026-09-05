@@ -91,6 +91,10 @@
     {
       "title": "Polymorphic `as` (Router Links)",
       "code": "import { Link as RouterLink } from 'react-router-dom';\nimport { Button } from '@allxsmith/bestax-bulma';\n\n<Button as={RouterLink} to=\"/visit\" color=\"primary\">\n  Book a visit\n</Button>;"
+    },
+    {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const buttonRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Button color=\"primary\" ref={buttonRef}>\n        Target\n      </Button>\n      <Button ml=\"2\" onClick={() => setTag(buttonRef.current?.tagName)}>\n        Read the tag from its ref\n      </Button>\n      <p>Rendered element: {tag ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- **Labeling:** Always provide descriptive content for buttons for screen readers.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.\n- **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.\n\n:::note\nIf your button has only an icon, use `aria-label` to provide accessible text.\n:::",

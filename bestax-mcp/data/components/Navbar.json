@@ -66,6 +66,10 @@
       "code": "function example() {\n  const colors = [\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n    'black',\n    'dark',\n    'light',\n    'white',\n  ];\n  return (\n    <>\n      {colors.map(color => (\n        <Navbar key={color} color={color} mb=\"2\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n            </Navbar.Item>\n          </Navbar.Brand>\n          <Navbar.Menu active>\n            <Navbar.Start>\n              <Navbar.Item href=\"#\">Home</Navbar.Item>\n              <Navbar.Item href=\"#\">Docs</Navbar.Item>\n              <Navbar.Item href=\"#\">Components</Navbar.Item>\n            </Navbar.Start>\n          </Navbar.Menu>\n        </Navbar>\n      ))}\n    </>\n  );\n}"
     },
     {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const navRef = React.useRef(null);\n  const [height, setHeight] = React.useState(null);\n\n  return (\n    <>\n      <Navbar ref={navRef}>\n        <Navbar.Brand>\n          <Navbar.Item href=\"#\">Home</Navbar.Item>\n        </Navbar.Brand>\n      </Navbar>\n      <Button mt=\"3\" onClick={() => setHeight(navRef.current?.offsetHeight)}>\n        Measure the navbar\n      </Button>\n      <p>Height: {height == null ? '—' : `${height}px`}</p>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Navbar>\n  <Navbar.Brand>\n    <Navbar.Item href=\"#\">\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n    <Navbar.Burger aria-label=\"menu\" />\n  </Navbar.Brand>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n      <Navbar.Item href=\"#\">Docs</Navbar.Item>\n    </Navbar.Start>\n    <Navbar.End>\n      <Navbar.Item href=\"#\">Log in</Navbar.Item>\n    </Navbar.End>\n  </Navbar.Menu>\n</Navbar>"
     }
