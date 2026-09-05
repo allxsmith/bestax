@@ -29,7 +29,7 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 | `Media`        | `Media`                                      | Auto                                                                                                                        |
 | `Menu`         | `Menu`                                       | Auto                                                                                                                        |
 | `Message`      | `Message`                                    | Auto; `size` flagged                                                                                                        |
-| `Modal`        | `Modal`                                      | `show`→`active`; `closeOnEsc`/`closeOnBlur`/`showClose` flagged (defaults cover them)                                       |
+| `Modal`        | `Modal`                                      | `show`→`active`, `closeOnEsc`→`closeOnEscape`; `closeOnBlur`/`showClose` flagged (compound form renders neither)            |
 | `Navbar`       | `Navbar`                                     | Auto; see dropdown note below                                                                                               |
 | `Notification` | `Notification`                               | Auto; `light`→`isLight`                                                                                                     |
 | `Pagination`   | `Pagination`                                 | `onChange`→`onPageChange`; `delta`/labels/`showFirstLast`/`autoHide` flagged                                                |

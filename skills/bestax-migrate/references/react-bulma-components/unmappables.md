@@ -66,11 +66,26 @@ Drop `delta` (built-in), render conditionally instead of `autoHide`
 (`{total > 1 && <Pagination …/>}`), and compose `Pagination.Previous`/`Pagination.Next`
 manually if custom labels are essential.
 
-## `Modal` (`closeOnEsc`, `closeOnBlur`, `showClose`)
+## `Modal` (`closeOnBlur`, `showClose`)
 
-bestax `Modal` already closes on Esc and background click and shows the close button
-whenever `onClose` is set — usually just delete these props. To hide the close button,
-omit `onClose` and render your own close control.
+`closeOnEsc` is not in this list: bestax has `closeOnEscape` (default `true`) and the codemod
+renames it, so `closeOnEsc={false}` keeps suppressing Escape rather than inheriting the default.
+
+The other two depend on which form the migrated modal lands in. bestax's `Modal` supplies a
+background wired to `onClose` and a floating close button only in its **legacy** form — plain
+children, no compound child. A `Modal.Content` or `Modal.Card` child (which is what almost every
+RBC modal has) selects the **compound** form, and that renders only the children you wrote:
+
+```tsx
+<Modal active={show} onClose={close}>
+  <Modal.Background onClick={close} />
+  <Modal.Content>…</Modal.Content>
+  <Modal.Close variant="floating" onClick={close} />
+</Modal>
+```
+
+So `closeOnBlur` and `showClose={true}` mean "add those two children"; passing either as `false`
+means "drop the prop", since the compound form gives you neither unless you ask.
 
 ## `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
 
