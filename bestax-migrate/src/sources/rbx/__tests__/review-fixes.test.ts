@@ -766,15 +766,29 @@ describe('the innerRef remediation is achievable', () => {
     expect(output).toContain('<Navbar.Item innerRef={r}');
   });
 
-  it('passes an existing ref through untouched', () => {
-    // The renames are for `innerRef`; a plain `ref` already works on the roots
-    // that forward one, so the codemod must not rewrite or flag it.
+  // A plain `ref` is passed through untouched everywhere. That is correct on a
+  // root that forwards one and silently wrong on a root that does not, and the
+  // codemod cannot currently tell the difference — no table has a `ref` entry.
+  // Both halves are pinned so the asymmetry stays visible rather than being
+  // mistaken for "refs are handled".
+  it('passes an existing ref through on a root that forwards one', () => {
     const { output, todos } = migrate(
       'import { Button } from "rbx";\nexport const A = (r: any) => <Button ref={r}>x</Button>;'
     );
     expect(output).toContain('ref={r}');
     expect(todos).toHaveLength(0);
   });
+
+  it.each(['Card', 'Box', 'Section'])(
+    'also passes ref through on %s, which forwards none — documented, not flagged',
+    name => {
+      const { output, todos } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} ref={r}>x</${name}>;`
+      );
+      expect(output).toContain('ref={r}');
+      expect(todos.filter(t => t.rule === 'prop:ref')).toHaveLength(0);
+    }
+  );
 
   it('leaves innerRef alone on a root that forwards no ref', () => {
     // Card is not one of the four; renaming here would be a type error, so the
