@@ -238,13 +238,13 @@ query. Whether `AI_LOOP_COPILOT=true` changes any of this is untested: the varia
 on, so no review requested by `claude-implement.yml` has been observed. The request itself starts
 nothing (it is made under the workflow's `GITHUB_TOKEN`, and nothing here listens for
 `review_requested`), but the review Copilot then submits is its own event under its own credentials,
-so treat that path as unknown rather than ruled out. Either way a Copilot-only finding still waits
-for the next natural event: a CI or deep-review completion, a CodeRabbit review, or the 2-hourly
-watchdog sweep. The widened condition removes our side of the obstacle; it is not a latency
-guarantee. Treat a `Claude PR Loop` run **with jobs** as the proof. Keep the `--paginate` and the
-`run_attempt` column: the most recent page alone is all startup failures, which is how the absolute
-version of this claim was first written, and without the attempt number the re-runs look like a
-second kind of trigger.
+so treat that path as unknown rather than ruled out. In every case observed so far, a Copilot-only
+finding has still waited for the next natural event: a CI or deep-review completion, a CodeRabbit
+review, or the 2-hourly watchdog sweep. The widened condition removes our side of the obstacle; it
+is not a latency guarantee. Treat a `Claude PR Loop` run **with jobs** as the proof. Keep the
+`--paginate` and the `run_attempt` column: the most recent page alone is all startup failures, which
+is how the absolute version of this claim was first written, and without the attempt number the
+re-runs look like a second kind of trigger.
 
 ```bash
 gh api --paginate \
@@ -272,13 +272,13 @@ is the gate, not the precision of the string, and each arm holds different parts
 and CI-completion arms of the `if:` carry the same-repo and `claude/*` head tests; the
 manual-dispatch arm carries neither and relies on GitHub only letting write-access users dispatch.
 The `ai-loop` label, PR-open and protected-path tests are re-derived in the gate job's shell on
-every arm, and the two head tests are not. So a `Copilot`-actored CI completion on a `claude/*` head
-still passes all of them before `fix` runs. Each place also lists the other spelling, but only as a
-hedge against GitHub changing which name it reports where; those extra entries match nothing today.
-CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer, read its
-login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`, since `gh run list`
-exposes no actor field) as well as off the API, and put each spelling where it is actually compared
-(#612).
+every arm, and the two head tests are not. So a CI completion with `Copilot` as the actor, on a
+`claude/*` head, still passes all of them before `fix` runs. Each place also lists the other
+spelling, but only as a hedge against GitHub changing which name it reports where; those extra
+entries match nothing today. CodeRabbit needs one spelling because both surfaces agree on it. When
+adding a reviewer, read its login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq
+.actor.login`, since `gh run list` exposes no actor field) as well as off the API, and put each
+spelling where it is actually compared (#612).
 
 One divergence deliberately remains. The gate's `if:` names exact logins, while the `ACTIONABLE`
 counter, and the fix job's terminal check that repeats it, match the case-insensitive prefix

@@ -95,8 +95,7 @@ jobs:
       vars.AI_LOOP_ENABLED == 'true' && (
         (github.event_name == 'pull_request_review' &&
           (github.event.review.user.login == 'coderabbitai[bot]' ||
-            github.event.review.user.login == 'copilot-pull-request-reviewer[bot]' ||
-            github.event.review.user.login == 'Copilot') &&
+            github.event.review.user.login == 'copilot-pull-request-reviewer[bot]') &&
           github.event.review.user.type == 'Bot' &&
           github.event.pull_request.state == 'open' &&
           github.event.pull_request.head.repo.full_name == github.repository &&
@@ -527,28 +526,25 @@ jobs:
           # suffix. On workflow_run, dispatch and schedule only the
           # human-actor check consults it.
           #
-          # `copilot` is the entry that does the work: the reviewer app
-          # (id 175728472) renders as `Copilot` to Actions, and the run's
-          # actor is the only string this list is ever compared against
-          # (verified across every pull_request_review run this repo has had
-          # from it). Matching is by normalised login, not by id: GitHub's
-          # other Copilot app, copilot-swe-agent[bot] (id 198982749), also
-          # renders as `Copilot`, so this entry admits either. What confines
-          # it is the gate, not the precision of this string, and each arm
-          # holds different parts of it: the review and workflow_run arms of
-          # the `if:` carry the same-repo and claude/* head tests, the
-          # workflow_dispatch arm carries neither and relies on GitHub only
-          # letting write-access actors dispatch (see the note under the
-          # `if:`), and the ai-loop label, PR-open and protected-path tests
-          # are re-derived in the gate job's shell on every arm while the two
-          # head tests are not. A Copilot-actored CI completion on a claude/*
-          # head therefore still passes all of them before fix runs. The
-          # reviewer is `copilot-pull-request-reviewer[bot]` in the event
-          # payload, which is what the gate's `if:` matches. That spelling is
-          # listed here only as a hedge against GitHub changing which name it
-          # reports as the actor; it matches nothing today. CodeRabbit needs
-          # one entry because both surfaces agree.
-          allowed_bots: 'coderabbitai,claude,github-actions,copilot,copilot-pull-request-reviewer'
+          # `copilot` is the Copilot reviewer app (id 175728472), which
+          # renders as `Copilot` to Actions (the run actor, verified across
+          # every pull_request_review run this repo has had from it) and as
+          # `copilot-pull-request-reviewer[bot]` in the event payload, which
+          # is what the gate's `if:` matches; each list carries only the
+          # spelling it is compared against. Matching here is by normalised
+          # login, not by id: GitHub's other Copilot app,
+          # copilot-swe-agent[bot] (id 198982749), also renders as `Copilot`,
+          # so this entry admits either. What confines it is the gate, not
+          # the precision of this string, and each arm holds different parts
+          # of it: the review and workflow_run arms of the `if:` carry the
+          # same-repo and claude/* head tests, the workflow_dispatch arm
+          # carries neither and relies on GitHub only letting write-access
+          # actors dispatch (see the note under the `if:`), and the ai-loop
+          # label, PR-open and protected-path tests are re-derived in the
+          # gate job's shell on every arm while the two head tests are not.
+          # A CI completion with Copilot as the actor, on a claude/* head,
+          # therefore still passes all of them before fix runs.
+          allowed_bots: 'coderabbitai,claude,github-actions,copilot'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into
           # the job log. The proxy blocks the execution-output artifact's blob
@@ -924,7 +920,7 @@ jobs:
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_bots: 'coderabbitai,claude,github-actions,copilot,copilot-pull-request-reviewer'
+          allowed_bots: 'coderabbitai,claude,github-actions,copilot'
           # Stream tool calls + denials to the log (blob-hosted artifact is
           # blocked by the proxy) so a rebuttal pass is diagnosable.
           show_full_output: true
@@ -991,8 +987,14 @@ jobs:
       # Thread replies/resolutions fire no workflow events — continue the
       # loop explicitly, but only if this pass made progress (otherwise a
       # broken verifier would self-dispatch forever).
+      # An empty execution_file means the session never ran: verify supplies
+      # no github_token, so the action's OIDC exchange can hit workflow
+      # validation when the PR head's copy of this file differs from main's,
+      # and it returns green having done nothing. Counting that as zero
+      # progress would pause the loop for the wrong reason; skipping this
+      # step leaves the PR for the next event instead.
       - name: Continue loop
-        if: always() && steps.claude.conclusion != 'skipped'
+        if: always() && steps.claude.conclusion != 'skipped' && steps.claude.outputs.execution_file != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BOT_TOKEN: ${{ secrets.AI_LOOP_PAT }}
