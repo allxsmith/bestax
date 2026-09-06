@@ -227,10 +227,16 @@ which before this change matched only `coderabbitai[bot]`; run `33041194214` was
 none. Runs `33586960606`, `33232938014` and `33035152465` are three of the twenty, on `claude/*`
 heads, and `33586960606` is the worked example: attempt 1 was `action_required` with zero jobs,
 attempt 2 produced the six. So there is no observed case of a Copilot review starting a loop run
-unaided. The `AI_LOOP_COPILOT=true` path adds nothing to that picture yet: `claude-implement.yml`
-requests the review under the workflow's `GITHUB_TOKEN`, and events attributed to that token start
-no workflows at all. Either way a Copilot-only finding still waits for the next natural event: a
-CI or deep-review completion, a CodeRabbit review, or the 2-hourly watchdog sweep. The widened
+unaided. Since 2026-09-06 the shape has changed again: Copilot's reviews on PR #643 that day (all
+of them its "encountered an error" submissions) created no `Claude PR Loop` run at all, so the
+query below can come back with nothing new rather than a fresh startup failure, and absence of a
+run is the expected reading, not a broken query. Whether `AI_LOOP_COPILOT=true` changes any of
+this is untested: the variable has never been on, so no review requested by `claude-implement.yml`
+has been observed. The request itself starts nothing (it is made under the workflow's
+`GITHUB_TOKEN`, and nothing here listens for `review_requested`), but the review Copilot then
+submits is its own event under its own credentials, so treat that path as unknown rather than
+ruled out. Either way a Copilot-only finding still waits for the next natural event: a CI or
+deep-review completion, a CodeRabbit review, or the 2-hourly watchdog sweep. The widened
 condition removes our side of the obstacle; it is not a latency guarantee. Treat a `Claude PR
 Loop` run **with jobs** as the proof. Keep the `--paginate` and the `run_attempt` column: the most
 recent page alone is all startup failures, which is how the absolute version of this claim was
@@ -255,8 +261,11 @@ Those two strings are not always the same. The Copilot reviewer app renders as
 spelling is what makes the gate condition match and the actor spelling is what makes
 `allowed_bots` match. `allowed_bots` compares normalised logins, not account ids, and GitHub's
 other Copilot app (`copilot-swe-agent[bot]`) also renders as `Copilot`, so that entry admits
-either; the confinement is the gate's `if:` (same-repo `claude/*` head, `ai-loop` label, PR
-open), not the precision of the string. Each place also lists the other spelling, but only as a
+either; the confinement is the gate, not the precision of the string. Its `if:` tests same-repo
+and `claude/*` head on every arm, and the `ai-loop` label, PR-open and protected-path tests are
+re-derived in the gate job's shell (the review arm repeats the first two in its `if:`), so a
+`Copilot`-actored CI completion still passes all of them before `fix` runs. Each place also lists
+the other spelling, but only as a
 hedge against GitHub changing which name it reports where; those extra entries match nothing
 today. CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer,
 read its login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`, since
