@@ -248,14 +248,17 @@ matched against the **run's actor**, and nothing else. A reviewer in one but not
 waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
 watchdog sweep) or fails the session's actor check outright.
 
-Those two strings are not always the same. Copilot is one account that renders as
+Those two strings are not always the same. The Copilot reviewer app renders as
 `copilot-pull-request-reviewer[bot]` in the payload and as `Copilot` to Actions, so the payload
 spelling is what makes the gate condition match and the actor spelling is what makes
-`allowed_bots` match. Each place also lists the other spelling, but only as a hedge against GitHub
-changing which name it reports where; those extra entries match nothing today. CodeRabbit needs
-one spelling because both surfaces agree on it. When adding a reviewer, read its login off a real
-run (`gh run list --json actor`) as well as off the API, and put each spelling where it is
-actually compared (#612).
+`allowed_bots` match. `allowed_bots` compares normalised logins, not account ids, and GitHub's
+other Copilot app (`copilot-swe-agent[bot]`) also renders as `Copilot`, so that entry admits
+either; the confinement is the gate's `if:` (same-repo `claude/*` head, `ai-loop` label, PR
+open), not the precision of the string. Each place also lists the other spelling, but only as a
+hedge against GitHub changing which name it reports where; those extra entries match nothing
+today. CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer,
+read its login off a real run (`gh run list --json actor`) as well as off the API, and put each
+spelling where it is actually compared (#612).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:

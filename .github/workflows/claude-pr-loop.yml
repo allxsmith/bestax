@@ -519,15 +519,20 @@ jobs:
           # login the gate triggers on but this list omits fails the session's
           # actor check instead of waiting (#612).
           #
-          # `copilot` is the entry that does the work: one account
+          # `copilot` is the entry that does the work: the reviewer app
           # (id 175728472) renders as `Copilot` to Actions, and the run's
           # actor is the only string this list is ever compared against
           # (verified across every pull_request_review run this repo has had
-          # from it). The same account is `copilot-pull-request-reviewer[bot]`
-          # in the event payload, which is what the gate's trigger matches.
-          # That spelling is listed here only as a hedge against GitHub
-          # changing which name it reports as the actor; it matches nothing
-          # today. CodeRabbit needs one entry because both surfaces agree.
+          # from it). Matching is by normalised login, not by id: GitHub's
+          # other Copilot app, copilot-swe-agent[bot] (id 198982749), also
+          # renders as `Copilot`, so this entry admits either. What confines
+          # it is the gate's `if:` (same-repo, claude/* head, ai-loop label,
+          # PR open), not the precision of this string. The reviewer is
+          # `copilot-pull-request-reviewer[bot]` in the event payload, which
+          # is what the gate's `if:` matches. That spelling is listed here
+          # only as a hedge against GitHub changing which name it reports as
+          # the actor; it matches nothing today. CodeRabbit needs one entry
+          # because both surfaces agree.
           allowed_bots: 'coderabbitai,claude,github-actions,copilot,copilot-pull-request-reviewer'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into
