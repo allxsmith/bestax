@@ -166,7 +166,9 @@ function anchorWhenHref(
         ctx,
         path,
         'prop:href',
-        `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; set \`as\` conditionally by hand${tagAttr ? ' (the `tag` was kept as `as` for the other case)' : ''}`
+        options.setAs
+          ? `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; set \`as="a"\` conditionally by hand${tagAttr ? ' (the `tag` beside it becomes `as`, which that conditional has to account for)' : ''}`
+          : `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; the bestax target renders an <a> already, so drop the \`href\` where it is empty${tagAttr ? ' — the `tag` beside it is flagged separately' : ''}`
       );
       return handled;
     }
@@ -606,10 +608,19 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * folds onto the item, carrying its attributes, or the list nests.
    */
   'menu-link'(ctx, path, element) {
-    // bestax's Menu.Item puts `id`, `style`, `title`, `role` and `tabIndex`
-    // on its <li> and everything else (className included) on the <a>;
-    // bloomer's MenuLink WAS the <a>, so those five change element.
-    const LI_PROPS = ['id', 'style', 'title', 'role', 'tabIndex'];
+    // bestax's Menu.Item renders <li><a>: `className`, `data-testid`,
+    // `style`, `id`, `title`, `role` and `tabIndex` go on the <li>, and
+    // everything left (`onClick`, `href`, `target`, `aria-*`, …) on the <a>.
+    // bloomer's MenuLink WAS the <a>, so those seven change element.
+    const LI_PROPS = [
+      'className',
+      'data-testid',
+      'id',
+      'style',
+      'title',
+      'role',
+      'tabIndex',
+    ];
     const toLi = attributesOf(element)
       .map((a: any) => a.name.name as string)
       .filter((n: string) => LI_PROPS.includes(n));
@@ -632,14 +643,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
         (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
       );
       if (siblings.length === 1 && siblings[0] === element) {
-        // The <li>'s own className and spreads land on the <a> after the
-        // fold (Menu.Item puts className there); its id/style/title/role/
-        // tabIndex land back on the <li>. Name what changes node.
+        // The <li>'s className, id, style, title, role and tabIndex land
+        // back on the <li> Menu.Item renders, so those are unchanged; anything
+        // else on it (onClick, aria-*, a spread that may hold either) ends up
+        // on the <a> instead. Name only what actually moves.
         const liMoved = (parent.openingElement.attributes ?? [])
           .map((a: any): string =>
             a.type === 'JSXSpreadAttribute' ? 'a spread' : a.name.name
           )
-          .filter((n: string) => n === 'className' || n === 'a spread');
+          .filter((n: string) => n === 'a spread' || !LI_PROPS.includes(n));
         if (liMoved.length > 0) {
           addTodo(
             ctx,
@@ -714,6 +726,23 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       element.children = ul.children ?? [];
       ctx.dirty = true;
+      return {};
+    }
+    // bestax's Breadcrumb renders its own <ul>, so any <ul> left inside it
+    // nests a second one.
+    const nestedList = solid.some(
+      (c: any) =>
+        c.type === 'JSXElement' &&
+        c.openingElement?.name?.type === 'JSXIdentifier' &&
+        c.openingElement.name.name === 'ul'
+    );
+    if (nestedList) {
+      addTodo(
+        ctx,
+        path,
+        'component:Breadcrumb',
+        'bestax `Breadcrumb` renders its own <ul>, and this one holds a <ul> the codemod cannot fold (it is not the only child) — remove the inner list by hand, or the markup nests two'
+      );
     }
     return {};
   },
@@ -1045,6 +1074,20 @@ const SPECIALS: Record<string, SpecialHandler> = {
   subtitle(ctx, _path, element) {
     if (!findAttr(element, 'tag') && !findAttr(element, 'as')) {
       addAttr(element, makeAttr(ctx.j, 'as', 'h2'));
+      ctx.dirty = true;
+    }
+    return {};
+  },
+
+  /**
+   * bloomer's ModalClose always rendered Bulma's `.modal-close` overlay
+   * button. bestax's Modal.Close defaults to `variant="delete"` — the small X
+   * for a card header — and honours `size` only on the floating variant, so
+   * the variant has to be named for the markup to survive.
+   */
+  'modal-close'(ctx, _path, element) {
+    if (!findAttr(element, 'variant')) {
+      addAttr(element, makeAttr(ctx.j, 'variant', 'floating'));
       ctx.dirty = true;
     }
     return {};

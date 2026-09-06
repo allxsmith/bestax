@@ -37,6 +37,27 @@ export type { SpecialResult };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/**
+ * The attributes a plain-element rewrite keeps: the modifier strip decides
+ * which NAMED props survive, and the element's spreads ride along in their
+ * original places — they are the caller's own props, which a plain element
+ * takes as readily as the component did. `attributesOf` filters spreads out,
+ * so passing its result alone dropped `{...rest}` with no TODO.
+ */
+function keptAttrs(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  where: string
+): any[] {
+  const kept = new Set(
+    stripModifierProps(ctx, path, attributesOf(element), where)
+  );
+  return (element.openingElement.attributes ?? []).filter(
+    (a: any) => a.type === 'JSXSpreadAttribute' || kept.has(a)
+  );
+}
+
 const stripModifierProps = makeStripModifierProps(
   UNIVERSAL_PROPS,
   RESPONSIVE_BREAKPOINTS
@@ -186,13 +207,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
         subtitleTruthy ? 'heading subtitle' : 'heading',
         'Heading'
       );
-      const rest = stripModifierProps(
-        ctx,
-        path,
-        attributesOf(element).filter(
-          a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
-        ),
-        'Heading'
+      const consumed = new Set(
+        stripModifierProps(
+          ctx,
+          path,
+          attributesOf(element).filter(
+            a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
+          ),
+          'Heading'
+        )
+      );
+      const rest = (element.openingElement.attributes ?? []).filter(
+        (a: any) => a.type === 'JSXSpreadAttribute' || consumed.has(a)
       );
       const replacement = plainElement(
         ctx.j,
@@ -463,12 +489,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     className = mergeClassName(ctx, path, element, className, 'Form.Label');
-    const rest = stripModifierProps(
-      ctx,
-      path,
-      attributesOf(element),
-      'Form.Label'
-    );
+    const rest = keptAttrs(ctx, path, element, 'Form.Label');
     path.replace(
       plainElement(ctx.j, 'label', className, rest, element.children ?? [])
     );
@@ -496,12 +517,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     className = mergeClassName(ctx, path, element, className, 'Form.Help');
-    const rest = stripModifierProps(
-      ctx,
-      path,
-      attributesOf(element),
-      'Form.Help'
-    );
+    const rest = keptAttrs(ctx, path, element, 'Form.Help');
     path.replace(
       plainElement(ctx.j, 'p', className, rest, element.children ?? [])
     );
@@ -571,7 +587,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   /** RBC Loader is a plain <div class="loader"> — keep exactly that. */
   'plain-loader'(ctx, path, element) {
     const className = mergeClassName(ctx, path, element, 'loader', 'Loader');
-    const rest = stripModifierProps(ctx, path, attributesOf(element), 'Loader');
+    const rest = keptAttrs(ctx, path, element, 'Loader');
     path.replace(
       plainElement(ctx.j, 'div', className, rest, element.children ?? [])
     );
@@ -639,12 +655,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     className = mergeClassName(ctx, path, element, className, 'Panel.Tabs.Tab');
-    const rest = stripModifierProps(
-      ctx,
-      path,
-      attributesOf(element),
-      'Panel.Tabs.Tab'
-    );
+    const rest = keptAttrs(ctx, path, element, 'Panel.Tabs.Tab');
     path.replace(
       plainElement(ctx.j, 'a', className, rest, element.children ?? [])
     );
@@ -671,12 +682,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    const anchorAttrs = stripModifierProps(
-      ctx,
-      path,
-      attributesOf(element),
-      'Breadcrumb.Item'
-    );
+    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item');
     const children = element.children ?? [];
     const solidChildren = children.filter(
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
@@ -730,12 +736,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'table-container',
       'Table.Container'
     );
-    const rest = stripModifierProps(
-      ctx,
-      path,
-      attributesOf(element),
-      'Table.Container'
-    );
+    const rest = keptAttrs(ctx, path, element, 'Table.Container');
     path.replace(
       plainElement(ctx.j, 'div', className, rest, element.children ?? [])
     );
@@ -760,16 +761,27 @@ const SPECIALS: Record<string, SpecialHandler> = {
       solid[0].openingElement.name.type === 'JSXIdentifier' &&
       solid[0].openingElement.name.name === 'a';
     if (alreadyAnchor) return {};
-    const anchorAttrs = stripModifierProps(
-      ctx,
-      path,
-      attributesOf(element).filter(
-        a => !['active', 'className'].includes(a.name.name)
-      ),
-      'Tabs.Tab'
+    const anchorKept = new Set(
+      stripModifierProps(
+        ctx,
+        path,
+        attributesOf(element).filter(
+          a => !['active', 'className'].includes(a.name.name)
+        ),
+        'Tabs.Tab'
+      )
     );
-    for (const attr of attributesOf(element)) {
-      if (!['active', 'className'].includes(attr.name.name)) {
+    // The anchor takes everything that is not the tab's own state, spreads
+    // included: they were the caller's props on the element that becomes the
+    // <a>, and `attributesOf` filters them out.
+    const anchorAttrs = (element.openingElement.attributes ?? []).filter(
+      (a: any) => a.type === 'JSXSpreadAttribute' || anchorKept.has(a)
+    );
+    for (const attr of [...(element.openingElement.attributes ?? [])]) {
+      if (
+        attr.type === 'JSXSpreadAttribute' ||
+        !['active', 'className'].includes(attr.name.name)
+      ) {
         removeAttr(element, attr);
       }
     }

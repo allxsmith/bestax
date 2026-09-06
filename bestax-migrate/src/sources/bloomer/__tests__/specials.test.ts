@@ -109,6 +109,7 @@ describe('bloomer plain-element handlers', () => {
     expect(menu.output).toContain(
       '<Menu.Item {...p.first} {...p.second} href="/" id="x">h</Menu.Item>'
     );
+    // A spread may hold either kind of prop, so it is named.
     expect(menu.rules).toEqual(['component:MenuLink']);
   });
 
@@ -377,8 +378,9 @@ describe('bloomer navigation handlers', () => {
     const { output, rules } = migrate(
       dyn('Button', '<Button href={p.url} tag="span">x</Button>')
     );
-    expect(rules).toEqual(['prop:href', 'prop:tag']);
-    expect(jsx(output)).toContain('<Button href={p.url} tag="span">x</Button>');
+    // `tag` carries over as `as`; only the runtime-decided element is flagged.
+    expect(rules).toEqual(['prop:href']);
+    expect(jsx(output)).toContain('<Button href={p.url} as="span">x</Button>');
     const level = migrate(
       dyn('LevelItem', '<LevelItem href={p.url}>x</LevelItem>')
     );
@@ -424,7 +426,8 @@ describe('bloomer navigation handlers', () => {
         '<li className="mine" id="y"><MenuLink href="/">h</MenuLink></li>'
       )
     );
-    expect(li.rules).toEqual(['component:MenuLink']);
+    // className and id stay on the <li> that Menu.Item renders: nothing moved.
+    expect(li.rules).toEqual([]);
     expect(li.output).toContain(
       '<Menu.Item href="/" className="mine" id="y">h</Menu.Item>'
     );
@@ -437,7 +440,7 @@ describe('bloomer navigation handlers', () => {
         '<MenuList><li className="x"><MenuLink isActive href="/">Home</MenuLink></li></MenuList>'
       )
     );
-    expect(one.rules).toEqual(['component:MenuLink']);
+    expect(one.rules).toEqual([]);
     expect(one.output).toContain(
       '<Menu.List><Menu.Item active href="/" className="x">Home</Menu.Item></Menu.List>'
     );

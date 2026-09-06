@@ -289,6 +289,19 @@ export default function transform(
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
   const { register: registerAlias, aliasAt, anyAlias } = makeAliasRegistry();
 
+  /**
+   * Locals a re-export names. Pruning the declaration that binds one of them
+   * (`const { Header } = Card; export { Header };`) leaves the specifier
+   * pointing at nothing, so those declarations are kept: the value-reference
+   * pass rewrites their initialiser to the bestax component, and the export
+   * goes on re-exporting the same member.
+   */
+  const reExported = new Set<string>();
+  root.find(j.ExportSpecifier).forEach(p => {
+    const local = p.node.local ?? p.node.exported;
+    if (local?.type === 'Identifier') reExported.add(local.name);
+  });
+
   // ---- 1b. Resolve `const { Item } = Card` destructuring -----------------
   root.find(j.VariableDeclarator).forEach(path => {
     const node = path.node;
@@ -335,7 +348,14 @@ export default function transform(
         allResolved = false;
       }
     }
-    if (allResolved) {
+    const exportsAnAlias = node.id.properties.some(
+      (prop: any) =>
+        (prop.type === 'ObjectProperty' || prop.type === 'Property') &&
+        prop.value?.type === 'Identifier' &&
+        reExported.has(prop.value.name)
+    );
+
+    if (allResolved && !exportsAnAlias) {
       const declaration = path.parent;
       if (
         declaration?.node?.type === 'VariableDeclaration' &&
@@ -750,6 +770,9 @@ export default function transform(
     ) {
       return;
     }
+    // A TS qualified name (`RBC.ButtonProps` in a type position) is erased at
+    // runtime, so it is not a value use of the namespace at all.
+    if (parentType === 'TSQualifiedName') return;
     // A namespace binding in a real value position. `rbx.Button` is still a
     // mappable component reference, so fall through to the member-expression
     // branch below with an empty prefix (the namespace itself is not part of
@@ -1074,9 +1097,14 @@ export default function transform(
 
       const index = body.indexOf(node);
 
+      // The fresh specifiers are merged INTO an existing bestax import when there
+
+      // is one, and the `bestaxImport` node is then discarded — so the comments
+
+      // have to follow the declaration that survives, not the one that does not.
+
       const carrier =
-        bestaxImport ??
-        existingBestax?.node ??
+        (existingBestax ? existingBestax.node : bestaxImport) ??
         (index >= 0 ? body[index + 1] : undefined);
 
       if (carrier) {

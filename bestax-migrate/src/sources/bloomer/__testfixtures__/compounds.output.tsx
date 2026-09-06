@@ -64,7 +64,7 @@ export const Compounds = ({ open }: { open: boolean }) => (
         <Modal.Card.Body>Content</Modal.Card.Body>
         <Modal.Card.Foot>Footer</Modal.Card.Foot>
       </Modal.Card>
-      <Modal.Close size="large" />
+      <Modal.Close size="large" variant="floating" />
     </Modal>
     <Navbar transparent>
       <Navbar.Brand>

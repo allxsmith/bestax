@@ -15,7 +15,7 @@ export const Media = ({ cls }: { cls: string }) => (
       variant="solid"
       features={["fa-spin", "fa-lg"]} />
     <Icon><i className="fas fa-home mine" aria-hidden="true" /></Icon>
-    <Icon textColor="danger"><i className="fa fa-github" aria-hidden="true" /></Icon>
+    <Icon className="has-text-danger"><i className="fa fa-github" aria-hidden="true" /></Icon>
     <Icon className="is-right"><i className={cls} aria-hidden="true" /></Icon>
     <Icon size="small"><i aria-hidden="true" /></Icon>
     <Image size="128x128" src="a.png" />

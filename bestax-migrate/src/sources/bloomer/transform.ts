@@ -27,6 +27,7 @@ import type { TransformOptions } from '../../types.js';
 import {
   HELPERLESS_TARGETS,
   MAPPING,
+  NO_CLASSNAME_TARGETS,
   UNIVERSAL_PROPS,
   helperClassHint,
   resolveMapping,
@@ -447,7 +448,50 @@ export default function transform(
     // Targets that extend only React's HTML attributes take none of bloomer's
     // universal helpers; each becomes a TODO naming the Bulma class rather
     // than an excess-property type error the report never mentions.
-    if (HELPERLESS_TARGETS.has(target)) {
+    // `Navbar.Divider` and `Pagination.Ellipsis` spread their props after
+    // their own className, and `Dropdown.Divider` declares none at all, so a
+    // class cannot be written on any of them: every helper is named instead,
+    // and anything else left on the divider would not compile.
+    if (NO_CLASSNAME_TARGETS.has(target)) {
+      for (const attr of [...attributesOf(element)]) {
+        const name: string = attr.name.name;
+        if (handled.has(name)) continue;
+        const literal = literalValueOf(attr);
+        const cls = helperClassHint(
+          name,
+          literal.kind === 'expression' ? undefined : literal.value
+        );
+        if (!cls) continue;
+        removeAttr(element, attr);
+        handled.add(name);
+        if (literal.kind === 'boolean' && !literal.value) continue;
+        addTodo(
+          ctx,
+          path,
+          `prop:${name}`,
+          `bestax \`${target}\` writes its own className last (or takes no props at all), so the \`${cls}\` class this became cannot be set on it — wrap it, or restyle by hand`
+        );
+      }
+      if (target === 'Dropdown.Divider') {
+        const left = attributesOf(element).filter(
+          (a: any) => !handled.has(a.name.name)
+        );
+        if (left.length > 0) {
+          for (const attr of left) removeAttr(element, attr);
+          ctx.dirty = true;
+          addTodo(
+            ctx,
+            path,
+            'component:DropdownDivider',
+            `bestax \`Dropdown.Divider\` is a bare component that declares no props and renders its own <hr>, so ${left
+              .map((a: any) => `\`${a.name.name}\``)
+              .join(
+                ', '
+              )} could not be carried over — put them on a wrapping element if you need them`
+          );
+        }
+      }
+    } else if (HELPERLESS_TARGETS.has(target)) {
       for (const attr of [...attributesOf(element)]) {
         const name: string = attr.name.name;
         if (handled.has(name)) continue;
@@ -542,6 +586,9 @@ export default function transform(
     ) {
       return;
     }
+    // A TS qualified name (`B.BoxProps` in a type position) is erased at
+    // runtime, so it is not a value use of the namespace at all.
+    if (parentType === 'TSQualifiedName') return;
     // A namespace binding in a real value position. `bloomer.Button` is still a
     // mappable component reference, so fall through to the member-expression
     // branch below with an empty prefix (the namespace itself is not part of
@@ -815,9 +862,14 @@ export default function transform(
 
       const index = body.indexOf(node);
 
+      // The fresh specifiers are merged INTO an existing bestax import when there
+
+      // is one, and the `bestaxImport` node is then discarded — so the comments
+
+      // have to follow the declaration that survives, not the one that does not.
+
       const carrier =
-        bestaxImport ??
-        existingBestax?.node ??
+        (existingBestax ? existingBestax.node : bestaxImport) ??
         (index >= 0 ? body[index + 1] : undefined);
 
       if (carrier) {

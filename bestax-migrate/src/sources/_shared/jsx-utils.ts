@@ -257,7 +257,15 @@ export function plainElement(
 ): any {
   const allAttrs = [...attrs];
   if (className) {
-    allAttrs.unshift(makeAttr(j, 'className', className));
+    // After the LAST spread, so a `className` inside one cannot replace the
+    // class this element exists for, while every other attribute keeps the
+    // place (and so the precedence) it had in the source.
+    const lastSpread = allAttrs.reduce(
+      (last: number, a: any, i: number) =>
+        a.type === 'JSXSpreadAttribute' ? i : last,
+      -1
+    );
+    allAttrs.splice(lastSpread + 1, 0, makeAttr(j, 'className', className));
   }
   const opening = j.jsxOpeningElement(
     j.jsxIdentifier(tag),

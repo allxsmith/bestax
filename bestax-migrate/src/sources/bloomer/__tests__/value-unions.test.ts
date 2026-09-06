@@ -105,10 +105,14 @@ describe('bloomer helper values that the mapping passes through unchanged', () =
       v => !(validColors as readonly string[]).includes(v)
     );
     expect(missing.sort()).toEqual([...KNOWN_UNSUPPORTED_SHADES].sort());
-    const todo = UNIVERSAL_PROPS.hasTextColor.valueTodo ?? {};
+    // `hasTextColor` is claimed per component wherever the target declares
+    // `textColor`; those rows carry the shade guard.
+    const todo = MAPPING.Box.props?.hasTextColor?.valueTodo ?? {};
     expect(Object.keys(todo).sort()).toEqual(
       [...KNOWN_UNSUPPORTED_SHADES].sort()
     );
+    // …and everywhere else it becomes the Bulma class instead.
+    expect(UNIVERSAL_PROPS.hasTextColor.toClassPrefix).toBe('has-text-');
   });
 
   it("names every colour outside Message's six-colour union", () => {

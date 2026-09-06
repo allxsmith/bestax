@@ -65,9 +65,22 @@ export const RENDER_TODO: PropAction = {
  * Tabs opt in with `FULLWIDTH_OK`.
  */
 const FULLWIDTH_TODO: PropAction = {
-  todo: 'bestax declares `isFullWidth` on Button, Select, Table and Tabs only, and Bulma\'s `is-fullwidth` has no effect elsewhere — drop it, or add className="is-fullwidth" if your own CSS relied on the class',
+  todo: 'Bulma defines `is-fullwidth` only on buttons, files, images, inputs, textareas, selects, tables and tabs, and this is none of them — drop it, or add className="is-fullwidth" if your own CSS styled the class',
 };
+/** Bulma styles `is-fullwidth` here, but bestax declares no prop for it. */
+const FULLWIDTH_CLASS: PropAction = { toClass: 'is-fullwidth' };
 const FULLWIDTH_OK: PropAction = {};
+
+/**
+ * `textColor` is not part of `BulmaClassesProps` — each component declares it
+ * by hand, and many do not. So it is claimed per component, like `isSize`;
+ * everywhere else bloomer's `hasTextColor` becomes the Bulma class it stood
+ * for, which every element takes.
+ */
+const TEXT_COLOR_OK: PropAction = {
+  rename: 'textColor',
+  valueTodo: SHADE_TODO,
+};
 
 const size: PropAction = { rename: 'size' };
 const color: PropAction = { rename: 'color' };
@@ -104,7 +117,8 @@ const MESSAGE_COLOR_TODO = Object.fromEntries(
 export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   // --- typography ----------------------------------------------------------
   hasTextAlign: { rename: 'textAlign' }, // left | right | centered — same union
-  hasTextColor: { rename: 'textColor', valueTodo: SHADE_TODO },
+  // Per-component maps override this wherever the target declares `textColor`.
+  hasTextColor: { toClassPrefix: 'has-text-' },
 
   // --- float / overlay -----------------------------------------------------
   isPulled: { rename: 'float' }, // left | right — same union
@@ -141,13 +155,26 @@ export const RESPONSIVE_PROPS: Record<string, string | null> = {
  * on. The transform turns each into a TODO naming the Bulma class instead of
  * emitting an excess-property type error.
  */
+/**
+ * Targets whose `className` cannot be used: `Navbar.Divider` and
+ * `Pagination.Ellipsis` spread `{...props}` AFTER their own className (so one
+ * written here replaces the class that makes them work), and
+ * `Dropdown.Divider` is a bare `React.FC` that declares no props at all and
+ * renders its own `<hr>` regardless. A helper on one of these is named, never
+ * converted.
+ */
+export const NO_CLASSNAME_TARGETS = new Set([
+  'Navbar.Divider',
+  'Pagination.Ellipsis',
+  'Dropdown.Divider',
+]);
+
 export const HELPERLESS_TARGETS = new Set([
   'Pagination.Previous',
   'Pagination.Next',
-  'Pagination.Ellipsis',
   'Navbar.Dropdown',
   'Navbar.DropdownMenu',
-  'Navbar.Divider',
+  'Dropdown.Divider',
   'Panel.Heading',
   'Panel.Tabs',
   'Panel.Block',
@@ -213,6 +240,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Columns',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       isMobile: {},
       isDesktop: {},
       isGapless: {},
@@ -226,14 +254,23 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   // `isSize` / `isOffset` (numbers, fractions, or a per-breakpoint object)
   // are flattened by responsive.ts, which the `column` special opts into.
-  Column: { status: 'mapped', target: 'Column', special: 'column' },
+  Column: {
+    status: 'mapped',
+    target: 'Column',
+    special: 'column',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   Tile: {
     status: 'todo',
     todo: `Bulma v1 replaced tiles with the Grid/Cell components — see ${DOCS}/api/grid and the migration guide ${DOCS}/guides/getting-started/migration/bulma-0-9-to-1`,
   },
 
   // ---- elements -----------------------------------------------------------
-  Box: { status: 'mapped', target: 'Box' },
+  Box: {
+    status: 'mapped',
+    target: 'Box',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   Button: {
     status: 'mapped',
     target: 'Button',
@@ -251,13 +288,20 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isFocused: {},
       isLoading: {},
       isFullWidth: FULLWIDTH_OK,
+      tag: TAG_AS,
+      hasTextColor: TEXT_COLOR_OK,
     },
   },
-  Content: { status: 'mapped', target: 'Content', props: { isSize: size } },
+  Content: {
+    status: 'mapped',
+    target: 'Content',
+    props: { hasTextColor: TEXT_COLOR_OK, isSize: size },
+  },
   Delete: {
     status: 'mapped',
     target: 'Delete',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       isSize: size,
       href: {
         todo: 'bestax `Delete` renders a <button> and has no anchor form; wrap it in an <a>, or handle the navigation in `onClick`',
@@ -270,11 +314,20 @@ export const MAPPING: Record<string, ComponentMapping> = {
     special: 'icon',
     props: { isSize: size },
   },
-  Image: { status: 'mapped', target: 'Image', special: 'image' },
+  Image: {
+    status: 'mapped',
+    target: 'Image',
+    special: 'image',
+    props: {
+      tag: TAG_AS,
+      hasTextColor: TEXT_COLOR_OK,
+      isFullWidth: FULLWIDTH_CLASS,
+    },
+  },
   Notification: {
     status: 'mapped',
     target: 'Notification',
-    props: { isColor: color },
+    props: { hasTextColor: TEXT_COLOR_OK, isColor: color },
   },
   Progress: {
     status: 'mapped',
@@ -301,13 +354,19 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Title: {
     status: 'mapped',
     target: 'Title',
-    props: { isSize: size, isSpaced: {}, tag: TAG_AS },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isSize: size,
+      isSpaced: {},
+      tag: TAG_AS,
+    },
   },
   Subtitle: {
     status: 'mapped',
     target: 'SubTitle',
     special: 'subtitle',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       isSize: size,
       isSpaced: { toClass: 'is-spaced' },
       tag: TAG_AS,
@@ -318,13 +377,26 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Heading: { status: 'partial', special: 'heading' },
 
   // ---- form ---------------------------------------------------------------
-  Checkbox: { status: 'mapped', target: 'Checkbox' },
-  Radio: { status: 'mapped', target: 'Radio' },
+  Checkbox: {
+    status: 'mapped',
+    target: 'Checkbox',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  Radio: {
+    status: 'mapped',
+    target: 'Radio',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   Control: {
     status: 'mapped',
     target: 'Control',
     special: 'control-icons',
-    props: { isExpanded: {}, isLoading: {}, tag: TAG_AS },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isExpanded: {},
+      isLoading: {},
+      tag: TAG_AS,
+    },
   },
   Help: { status: 'mapped', special: 'help' },
   // bloomer's form elements were bare <input>/<select>/<textarea>s; bestax's
@@ -335,6 +407,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'InputBase',
     props: {
+      isFullWidth: FULLWIDTH_CLASS,
       isColor: color,
       isSize: size,
       isHovered: {},
@@ -356,12 +429,19 @@ export const MAPPING: Record<string, ComponentMapping> = {
   TextArea: {
     status: 'mapped',
     target: 'TextAreaBase',
-    props: { isSize: size, isActive: {}, isHovered: {}, isFocused: {} },
+    props: {
+      isFullWidth: FULLWIDTH_CLASS,
+      isSize: size,
+      isActive: {},
+      isHovered: {},
+      isFocused: {},
+    },
   },
   Field: {
     status: 'mapped',
     target: 'Field',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       // `boolean | 'right' | 'centered'` on both sides.
       isGrouped: { rename: 'grouped' },
       hasAddons: {
@@ -373,11 +453,16 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isHorizontal: { rename: 'horizontal' },
     },
   },
-  FieldBody: { status: 'mapped', target: 'Field.Body' },
+  FieldBody: {
+    status: 'mapped',
+    target: 'Field.Body',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   FieldLabel: {
     status: 'mapped',
     target: 'Field.Label',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       isSize: size,
       isNormal: { booleanToProp: { name: 'size', value: 'normal' } },
     },
@@ -400,25 +485,51 @@ export const MAPPING: Record<string, ComponentMapping> = {
   BreadcrumbItem: { status: 'mapped', special: 'breadcrumb-item' },
 
   // ---- card ---------------------------------------------------------------
-  Card: { status: 'mapped', target: 'Card' },
-  CardImage: { status: 'mapped', target: 'Card.Image' },
-  CardContent: { status: 'mapped', target: 'Card.Content' },
-  CardHeader: { status: 'mapped', target: 'Card.Header' },
-  CardHeaderTitle: { status: 'mapped', target: 'Card.Header.Title' },
+  Card: {
+    status: 'mapped',
+    target: 'Card',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  CardImage: {
+    status: 'mapped',
+    target: 'Card.Image',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  CardContent: {
+    status: 'mapped',
+    target: 'Card.Content',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  CardHeader: {
+    status: 'mapped',
+    target: 'Card.Header',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  CardHeaderTitle: {
+    status: 'mapped',
+    target: 'Card.Header.Title',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   CardHeaderIcon: {
     status: 'mapped',
     target: 'Card.Header.Icon',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       href: {
         todo: 'bestax `Card.Header.Icon` renders a <button>; put an <a> inside it, or handle the navigation in `onClick`',
       },
     },
   },
-  CardFooter: { status: 'mapped', target: 'Card.Footer' },
+  CardFooter: {
+    status: 'mapped',
+    target: 'Card.Footer',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   CardFooterItem: {
     status: 'mapped',
     target: 'Card.FooterItem',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       href: {
         todo: 'bestax `Card.FooterItem` renders a <span> with no anchor form; put an <a> inside it',
       },
@@ -465,23 +576,55 @@ export const MAPPING: Record<string, ComponentMapping> = {
   DropdownDivider: { status: 'mapped', target: 'Dropdown.Divider' },
 
   // ---- level / media / menu / message ------------------------------------
-  Level: { status: 'mapped', target: 'Level', props: { isMobile: {} } },
+  Level: {
+    status: 'mapped',
+    target: 'Level',
+    props: { hasTextColor: TEXT_COLOR_OK, isMobile: {} },
+  },
   LevelItem: {
     status: 'mapped',
     target: 'Level.Item',
     special: 'level-item',
-    props: { isFlexible: { toClass: 'is-flexible' }, tag: TAG_AS },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isFlexible: { toClass: 'is-flexible' },
+      tag: TAG_AS,
+    },
   },
-  LevelLeft: { status: 'mapped', target: 'Level.Left' },
-  LevelRight: { status: 'mapped', target: 'Level.Right' },
+  LevelLeft: {
+    status: 'mapped',
+    target: 'Level.Left',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  LevelRight: {
+    status: 'mapped',
+    target: 'Level.Right',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   Media: {
     status: 'mapped',
     target: 'Media',
-    props: { isSize: { toClassPrefix: 'is-' }, tag: TAG_AS },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isSize: { toClassPrefix: 'is-' },
+      tag: TAG_AS,
+    },
   },
-  MediaContent: { status: 'mapped', target: 'Media.Content' },
-  MediaLeft: { status: 'mapped', target: 'Media.Left', props: { tag: TAG_AS } },
-  MediaRight: { status: 'mapped', target: 'Media.Right' },
+  MediaContent: {
+    status: 'mapped',
+    target: 'Media.Content',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  MediaLeft: {
+    status: 'mapped',
+    target: 'Media.Left',
+    props: { hasTextColor: TEXT_COLOR_OK, tag: TAG_AS },
+  },
+  MediaRight: {
+    status: 'mapped',
+    target: 'Media.Right',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   Menu: { status: 'mapped', target: 'Menu' },
   MenuLabel: { status: 'mapped', target: 'Menu.Label' },
   MenuList: { status: 'mapped', target: 'Menu.List' },
@@ -497,7 +640,10 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Message: {
     status: 'mapped',
     target: 'Message',
-    props: { isColor: { rename: 'color', valueTodo: MESSAGE_COLOR_TODO } },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isColor: { rename: 'color', valueTodo: MESSAGE_COLOR_TODO },
+    },
   },
   MessageHeader: { status: 'mapped', target: 'Message.Header' },
   MessageBody: { status: 'mapped', target: 'Message.Body' },
@@ -507,13 +653,17 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'partial',
     target: 'Modal',
     special: 'modal',
-    props: { isActive: active },
+    props: { hasTextColor: TEXT_COLOR_OK, isActive: active },
   },
   ModalBackground: { status: 'mapped', target: 'Modal.Background' },
   ModalContent: { status: 'mapped', target: 'Modal.Content' },
+  // bestax's Modal.Close defaults to `variant="delete"` (the small X for a
+  // card header) and honours `size` only on the floating variant; bloomer's
+  // ModalClose was always Bulma's `.modal-close` overlay button.
   ModalClose: {
     status: 'mapped',
     target: 'Modal.Close',
+    special: 'modal-close',
     props: { isSize: size },
   },
   ModalCard: { status: 'mapped', target: 'Modal.Card' },
@@ -534,21 +684,36 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Navbar: {
     status: 'mapped',
     target: 'Navbar',
-    props: { isTransparent: { rename: 'transparent' } },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isTransparent: { rename: 'transparent' },
+    },
   },
-  NavbarBrand: { status: 'mapped', target: 'Navbar.Brand' },
+  NavbarBrand: {
+    status: 'mapped',
+    target: 'Navbar.Brand',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   NavbarBurger: {
     status: 'mapped',
     target: 'Navbar.Burger',
-    props: { isActive: active },
+    props: { hasTextColor: TEXT_COLOR_OK, isActive: active },
   },
   NavbarMenu: {
     status: 'mapped',
     target: 'Navbar.Menu',
-    props: { isActive: active },
+    props: { hasTextColor: TEXT_COLOR_OK, isActive: active },
   },
-  NavbarStart: { status: 'mapped', target: 'Navbar.Start' },
-  NavbarEnd: { status: 'mapped', target: 'Navbar.End' },
+  NavbarStart: {
+    status: 'mapped',
+    target: 'Navbar.Start',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  NavbarEnd: {
+    status: 'mapped',
+    target: 'Navbar.End',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   // `hasDropdown` picks between Navbar.Item and the Navbar.Dropdown container.
   NavbarItem: {
     status: 'mapped',
@@ -558,13 +723,21 @@ export const MAPPING: Record<string, ComponentMapping> = {
   NavbarLink: {
     status: 'mapped',
     target: 'Navbar.Link',
-    props: { isActive: { toClass: 'is-active' }, tag: TAG_AS },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isActive: { toClass: 'is-active' },
+      tag: TAG_AS,
+    },
   },
   NavbarDropdown: { status: 'mapped', special: 'navbar-dropdown' },
   NavbarDivider: {
     status: 'mapped',
     target: 'Navbar.Divider',
-    props: { isBoxed: { toClass: 'is-boxed' } },
+    props: {
+      isBoxed: {
+        todo: 'Bulma v1 scopes navbar `is-boxed` to `.navbar-dropdown`, so there is no `.navbar-divider.is-boxed` to keep — drop it',
+      },
+    },
   },
 
   // ---- pagination ---------------------------------------------------------
@@ -572,7 +745,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Pagination',
     special: 'pagination',
-    props: { isSize: size },
+    props: { hasTextColor: TEXT_COLOR_OK, isSize: size },
   },
   PageControl: {
     status: 'mapped',
@@ -586,17 +759,26 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Pagination.Ellipsis',
     props: {
-      isActive: { toClass: 'is-active' },
-      isFocused: { toClass: 'is-focused' },
+      isActive: {
+        todo: 'bestax `Pagination.Ellipsis` spreads its props after its own className, so a class written here would replace `pagination-ellipsis`; wrap it or restyle by hand if you need `is-active`',
+      },
+      isFocused: {
+        todo: 'bestax `Pagination.Ellipsis` spreads its props after its own className, so a class written here would replace `pagination-ellipsis`; wrap it or restyle by hand if you need `is-focused`',
+      },
     },
   },
   // bestax's Pagination.Link and Pagination.Ellipsis render their own <li>.
   Page: { status: 'mapped', special: 'page' },
-  PageList: { status: 'mapped', target: 'Pagination.List' },
+  PageList: {
+    status: 'mapped',
+    target: 'Pagination.List',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   PageLink: {
     status: 'mapped',
     target: 'Pagination.Link',
     props: {
+      hasTextColor: TEXT_COLOR_OK,
       isCurrent: active, // bestax's `active` renders Bulma's `is-current`
       isActive: { toClass: 'is-active' },
       isFocused: { toClass: 'is-focused' },
@@ -653,10 +835,18 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Container: {
     status: 'mapped',
     target: 'Container',
-    props: { isFluid: { rename: 'fluid' } },
+    props: { hasTextColor: TEXT_COLOR_OK, isFluid: { rename: 'fluid' } },
   },
-  Footer: { status: 'mapped', target: 'Footer', props: { tag: TAG_AS } },
-  Section: { status: 'mapped', target: 'Section', props: { isSize: size } },
+  Footer: {
+    status: 'mapped',
+    target: 'Footer',
+    props: { hasTextColor: TEXT_COLOR_OK, tag: TAG_AS },
+  },
+  Section: {
+    status: 'mapped',
+    target: 'Section',
+    props: { hasTextColor: TEXT_COLOR_OK, isSize: size },
+  },
   Hero: {
     status: 'mapped',
     target: 'Hero',
@@ -668,10 +858,22 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isBold: { toClass: 'is-bold' },
     },
   },
-  HeroHeader: { status: 'mapped', target: 'Hero.Head' },
-  HeroBody: { status: 'mapped', target: 'Hero.Body' },
+  HeroHeader: {
+    status: 'mapped',
+    target: 'Hero.Head',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
+  HeroBody: {
+    status: 'mapped',
+    target: 'Hero.Body',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
   HeroVideo: { status: 'mapped', special: 'hero-video' },
-  HeroFooter: { status: 'mapped', target: 'Hero.Foot' },
+  HeroFooter: {
+    status: 'mapped',
+    target: 'Hero.Foot',
+    props: { hasTextColor: TEXT_COLOR_OK },
+  },
 
   // ---- the helper HOC -----------------------------------------------------
   withHelpersModifiers: {

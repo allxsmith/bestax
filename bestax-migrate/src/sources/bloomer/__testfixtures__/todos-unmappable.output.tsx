@@ -18,7 +18,7 @@ const Helped = withHelpersModifiers(Plain);
 // TODO(bestax-migrate): `isGrid` — Bulma removed `columns.is-grid` in 0.5; bestax `Columns` has no equivalent — use `isMultiline` with sized Columns, or the Grid component
 // TODO(bestax-migrate): `isLink` alongside `isColor`; bestax `Button` has one `color`, so pick `color="link"` or the other colour by hand
 // TODO(bestax-migrate): `render` — bloomer's `render` prop injected the computed props into your own renderer; bestax has no render-prop escape hatch — render the markup directly (`useBulmaClasses` yields the helper classes) or wrap the component (https://bestax.io/docs/api/helpers/usebulmaclasses)
-// TODO(bestax-migrate): `isFullWidth` — bestax declares `isFullWidth` on Button, Select, Table and Tabs only, and Bulma's `is-fullwidth` has no effect elsewhere — drop it, or add className="is-fullwidth" if your own CSS relied on the class
+// TODO(bestax-migrate): `isFullWidth` — Bulma defines `is-fullwidth` only on buttons, files, images, inputs, textareas, selects, tables and tabs, and this is none of them — drop it, or add className="is-fullwidth" if your own CSS styled the class
 export const Leftovers = ({ go }: { go: (p: object) => JSX.Element }) => (
   <Box tag="section">
     <Tile isAncestor>

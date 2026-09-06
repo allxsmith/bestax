@@ -378,17 +378,8 @@ export function makeStructuralHelpers(strip: AttrStrip) {
         `${where} became a plain <${tag}> with \`className="${merged}"\`; a \`className\` inside its spread prop(s) would have been merged with that class by the source, and is overridden here — merge it by hand`
       );
     }
-    const attrs = [...ordered];
-    if (merged) {
-      const lastSpread = attrs.reduce(
-        (last: number, a: any, i: number) =>
-          a.type === 'JSXSpreadAttribute' ? i : last,
-        -1
-      );
-      attrs.splice(lastSpread + 1, 0, makeAttr(ctx.j, 'className', merged));
-    }
     path.replace(
-      plainElement(ctx.j, tag, undefined, attrs, element.children ?? [])
+      plainElement(ctx.j, tag, merged, ordered, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
