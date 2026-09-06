@@ -213,9 +213,22 @@ separate store and none are documented here.
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
 | `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
-Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the loop wakes for it the
-same way it wakes for CodeRabbit: a submitted review from either reviewer fires the gate on an
-`ai-loop` PR. Two lists have to name the reviewer for that to work end to end — the gate's
+Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the gate's trigger names it
+alongside CodeRabbit: a submitted review from either is **eligible** to fire the gate on an
+`ai-loop` PR. Eligible is the honest word. Every `pull_request_review` run this repository has
+had with actor `Copilot` either failed at startup — zero jobs, so no job `if:` is ever
+evaluated — or was never created at all, which is what a Copilot review on this repo does today.
+So a Copilot-only finding still waits for the next natural event: a CI or deep-review completion,
+a CodeRabbit review, or the 2-hourly watchdog sweep. The trigger removes our side of the
+obstacle; it is not yet a latency guarantee. Re-check before relying on it, and treat a
+`Claude PR Loop` run with jobs as the proof:
+
+```bash
+gh api "repos/allxsmith/bestax/actions/workflows/claude-pr-loop.yml/runs?event=pull_request_review" \
+  --jq '.workflow_runs[] | select(.actor.login=="Copilot") | [.id, .conclusion] | @tsv'
+```
+
+Two lists have to name the reviewer for that to work end to end — the gate's
 `pull_request_review` trigger, matched against the event payload, and the `allowed_bots` list on
 the fix and verify sessions, matched against the **run's actor**. A reviewer in one but not the
 other either waits for an unrelated event (a CI or deep-review completion, the other reviewer, or
