@@ -215,11 +215,17 @@ separate store and none are documented here.
 
 Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the loop wakes for it the
 same way it wakes for CodeRabbit: a submitted review from either reviewer fires the gate on an
-`ai-loop` PR. Both logins are named in two places that have to agree — the gate's
-`pull_request_review` trigger and the `allowed_bots` list on the fix and verify sessions, which
-the action matches against the run's own actor. A reviewer named in one but not the other either
-waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
-watchdog sweep) or fails the session's actor check outright, so add a new reviewer to both (#612).
+`ai-loop` PR. Two lists have to name the reviewer for that to work end to end — the gate's
+`pull_request_review` trigger, matched against the event payload, and the `allowed_bots` list on
+the fix and verify sessions, matched against the **run's actor**. A reviewer in one but not the
+other either waits for an unrelated event (a CI or deep-review completion, the other reviewer, or
+the 2-hourly watchdog sweep) or fails the session's actor check outright.
+
+They are not always the same string. Copilot is one account that renders as
+`copilot-pull-request-reviewer[bot]` through the reviews API and as `Copilot` to Actions, so both
+spellings are listed; CodeRabbit needs one because both surfaces agree on it. When adding a
+reviewer, read its login off a real run (`gh run list --json actor`) as well as off the API, and
+put whichever spellings you find in both places (#612).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:

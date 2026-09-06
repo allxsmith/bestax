@@ -92,7 +92,8 @@ jobs:
       vars.AI_LOOP_ENABLED == 'true' && (
         (github.event_name == 'pull_request_review' &&
           (github.event.review.user.login == 'coderabbitai[bot]' ||
-            github.event.review.user.login == 'copilot-pull-request-reviewer[bot]') &&
+            github.event.review.user.login == 'copilot-pull-request-reviewer[bot]' ||
+            github.event.review.user.login == 'Copilot') &&
           github.event.review.user.type == 'Bot' &&
           github.event.pull_request.state == 'open' &&
           github.event.pull_request.head.repo.full_name == github.repository &&
@@ -509,15 +510,22 @@ jobs:
           bot_name: bestaxbot
           bot_id: '300268469'
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Trigger actors are bots by design: coderabbitai[bot] and
-          # copilot-pull-request-reviewer[bot] (reviews), claude[bot] (CI
-          # workflow_run after its own pushes), and github-actions[bot] (the
-          # loop's self-dispatch continuation). The action matches this list
-          # against the RUN's actor by exact normalised login, and fix/verify
-          # run in the gate's own run — so a login the gate triggers on but
-          # this list omits fails the session's actor check instead of
-          # waiting (#612).
-          allowed_bots: 'coderabbitai,claude,github-actions,copilot-pull-request-reviewer'
+          # Trigger actors are bots by design: coderabbitai[bot] and Copilot
+          # (reviews), claude[bot] (CI workflow_run after its own pushes), and
+          # github-actions[bot] (the loop's self-dispatch continuation). The
+          # action matches this list against the RUN's actor by exact
+          # normalised login, and fix/verify run in the gate's own run — so a
+          # login the gate triggers on but this list omits fails the session's
+          # actor check instead of waiting (#612).
+          #
+          # Copilot needs BOTH spellings, and they are not interchangeable:
+          # one account (id 175728472) renders as `Copilot` to Actions (the
+          # run's actor, which is what this list is matched against — verified
+          # against seven pull_request_review runs on this repo) and as
+          # `copilot-pull-request-reviewer[bot]` through the reviews API (what
+          # the gate's event payload is expected to carry). CodeRabbit needs
+          # only one because both surfaces agree on it.
+          allowed_bots: 'coderabbitai,claude,github-actions,copilot,copilot-pull-request-reviewer'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into
           # the job log. The proxy blocks the execution-output artifact's blob
@@ -893,7 +901,7 @@ jobs:
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_bots: 'coderabbitai,claude,github-actions,copilot-pull-request-reviewer'
+          allowed_bots: 'coderabbitai,claude,github-actions,copilot,copilot-pull-request-reviewer'
           # Stream tool calls + denials to the log (blob-hosted artifact is
           # blocked by the proxy) so a rebuttal pass is diagnosable.
           show_full_output: true
