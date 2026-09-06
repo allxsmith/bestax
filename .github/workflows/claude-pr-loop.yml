@@ -2,10 +2,11 @@ name: Claude PR Loop
 
 # Review → fix → verify → converge loop for AI-authored PRs (label: ai-loop)
 # ONLY. Triggered by CodeRabbit reviews, CI completions on claude/* branches,
-# or manual dispatch; Copilot reviews are eligible too, but GitHub has so far
-# created a run with jobs only for human-requested ones (the ai-development
-# guide has the data). The `gate` job is cheap shell that re-derives the PR's
-# live state and picks a mode — Claude usage is spent only in fix/verify.
+# or manual dispatch; Copilot reviews are eligible too, but every run one has
+# started so far died before creating a job, and jobs have appeared only when
+# a maintainer re-ran it (the ai-development guide has the data). The `gate`
+# job is cheap shell that re-derives the PR's live state and picks a mode —
+# Claude usage is spent only in fix/verify.
 #
 # Modes:
 #   fix-ci      CI is red on the head → Claude fixes the root cause, pushes.
