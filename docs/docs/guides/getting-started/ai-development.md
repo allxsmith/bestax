@@ -215,30 +215,39 @@ separate store and none are documented here.
 
 Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the gate's trigger names it
 alongside CodeRabbit: a submitted review from either is **eligible** to fire the gate on an
-`ai-loop` PR. Eligible is the honest word. Every `pull_request_review` run this repository has
-had with actor `Copilot` either failed at startup — zero jobs, so no job `if:` is ever
-evaluated — or was never created at all, which is what a Copilot review on this repo does today.
-So a Copilot-only finding still waits for the next natural event: a CI or deep-review completion,
-a CodeRabbit review, or the 2-hourly watchdog sweep. The trigger removes our side of the
-obstacle; it is not yet a latency guarantee. Re-check before relying on it, and treat a
-`Claude PR Loop` run with jobs as the proof:
+`ai-loop` PR. Eligible is the honest word. Most `pull_request_review` runs this repository has had
+with actor `Copilot` never reached a job: they failed at startup with zero jobs, so no job `if:`
+was evaluated, or sat at `action_required`, or were never created at all. A minority start
+normally and reach the gate (runs `33586960606`, `33232938014` and `33035152465` each created all
+six jobs on a `claude/*` head and evaluated the gate's `if:`, which before this change matched
+only `coderabbitai[bot]`). So the widened trigger is reachable, but a Copilot-only finding may
+still wait for the next natural event: a CI or deep-review completion, a CodeRabbit review, or the
+2-hourly watchdog sweep. The trigger removes our side of the obstacle; it is not yet a latency
+guarantee. Re-check before relying on it, and treat a `Claude PR Loop` run with jobs as the proof.
+Keep the `--paginate`: the most recent page alone can be all startup failures, which is how the
+absolute version of this claim was first written.
 
 ```bash
-gh api "repos/allxsmith/bestax/actions/workflows/claude-pr-loop.yml/runs?event=pull_request_review" \
-  --jq '.workflow_runs[] | select(.actor.login=="Copilot") | [.id, .conclusion] | @tsv'
+gh api --paginate \
+  "repos/allxsmith/bestax/actions/workflows/claude-pr-loop.yml/runs?event=pull_request_review" \
+  --jq '.workflow_runs[] | select(.actor.login=="Copilot") | [.id, .conclusion, .head_branch] | @tsv'
 ```
 
-Two lists have to name the reviewer for that to work end to end — the gate's
-`pull_request_review` trigger, matched against the event payload, and the `allowed_bots` list on
-the fix and verify sessions, matched against the **run's actor**. A reviewer in one but not the
-other either waits for an unrelated event (a CI or deep-review completion, the other reviewer, or
-the 2-hourly watchdog sweep) or fails the session's actor check outright.
+Two lists have to name the reviewer for that to work end to end, and they are matched against
+different strings. The gate's `pull_request_review` trigger is matched against the event payload
+(`review.user.login`); the `allowed_bots` list on the fix and verify sessions is matched against
+the **run's actor**, and nothing else. A reviewer in one but not the other either waits for an
+unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly watchdog
+sweep) or fails the session's actor check outright.
 
-They are not always the same string. Copilot is one account that renders as
-`copilot-pull-request-reviewer[bot]` through the reviews API and as `Copilot` to Actions, so both
-spellings are listed; CodeRabbit needs one because both surfaces agree on it. When adding a
-reviewer, read its login off a real run (`gh run list --json actor`) as well as off the API, and
-put whichever spellings you find in both places (#612).
+Those two strings are not always the same. Copilot is one account that renders as
+`copilot-pull-request-reviewer[bot]` in the payload and as `Copilot` to Actions, so the payload
+spelling is what makes the trigger match and the actor spelling is what makes `allowed_bots`
+match. Each place also lists the other spelling, but only as a hedge against GitHub changing
+which name it reports where; those extra entries match nothing today. CodeRabbit needs one
+spelling because both surfaces agree on it. When adding a reviewer, read its login off a real run
+(`gh run list --json actor`) as well as off the API, and put each spelling where it is actually
+compared (#612).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
