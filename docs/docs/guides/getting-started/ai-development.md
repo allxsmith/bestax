@@ -213,41 +213,49 @@ separate store and none are documented here.
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
 | `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
-Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the gate's trigger names it
+Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the gate job's `if:` names it
 alongside CodeRabbit: a submitted review from either is **eligible** to fire the gate on an
-`ai-loop` PR. Eligible is the honest word. Most `pull_request_review` runs this repository has had
-with actor `Copilot` never reached a job: they failed at startup with zero jobs, so no job `if:`
-was evaluated, or sat at `action_required`, or were never created at all. A minority start
-normally and reach the gate (runs `33586960606`, `33232938014` and `33035152465` each created all
-six jobs on a `claude/*` head and evaluated the gate's `if:`, which before this change matched
-only `coderabbitai[bot]`). So the widened trigger is reachable, but a Copilot-only finding may
-still wait for the next natural event: a CI or deep-review completion, a CodeRabbit review, or the
-2-hourly watchdog sweep. The trigger removes our side of the obstacle; it is not yet a latency
-guarantee. Re-check before relying on it, and treat a `Claude PR Loop` run with jobs as the proof.
-Keep the `--paginate`: the most recent page alone can be all startup failures, which is how the
-absolute version of this claim was first written.
+`ai-loop` PR. Eligible is the honest word, and the split between runs that start and runs that do
+not is not random. Whether a `Claude PR Loop` run for a Copilot review ever creates a job is
+decided by its `triggering_actor`. Every run Copilot triggered under its own actor (121 so far,
+100 `failure` with zero jobs and 21 `action_required`) died before a job existed, so no job `if:`
+was evaluated. Every run where a human had requested the review (`triggering_actor: allxsmith`,
+21 runs) created all six jobs and evaluated the gate's `if:`, which before this change matched
+only `coderabbitai[bot]`; runs `33586960606`, `33232938014` and `33035152465` are three of those,
+on `claude/*` heads. The two buckets interleave across August 2026, so this is a partition and
+not a change over time. The `AI_LOOP_COPILOT=true` path is a third case with no observations
+yet: `claude-implement.yml` requests the review under the workflow's `GITHUB_TOKEN`, and if
+attribution follows the requester the way it does for a human, GitHub's rule against
+`GITHUB_TOKEN`-attributed events starting workflows suppresses the run entirely. Verify that
+before relying on it. Either way a Copilot-only finding may still wait for the next natural
+event: a CI or deep-review completion, a CodeRabbit review, or the 2-hourly watchdog sweep. The
+widened condition removes our side of the obstacle; it is not yet a latency guarantee. Treat a
+`Claude PR Loop` run **with jobs** as the proof. Keep the `--paginate` and the `triggering_actor`
+column: the most recent page alone is all startup failures, which is how the absolute version of
+this claim was first written, and without the actor the partition looks like flakiness.
 
 ```bash
 gh api --paginate \
   "repos/allxsmith/bestax/actions/workflows/claude-pr-loop.yml/runs?event=pull_request_review" \
-  --jq '.workflow_runs[] | select(.actor.login=="Copilot") | [.id, .conclusion, .head_branch] | @tsv'
+  --jq '.workflow_runs[] | select(.actor.login=="Copilot")
+        | [.id, .triggering_actor.login, .conclusion, .head_branch] | @tsv'
 ```
 
 Two lists have to name the reviewer for that to work end to end, and they are matched against
-different strings. The gate's `pull_request_review` trigger is matched against the event payload
-(`review.user.login`); the `allowed_bots` list on the fix and verify sessions is matched against
-the **run's actor**, and nothing else. A reviewer in one but not the other either waits for an
-unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly watchdog
-sweep) or fails the session's actor check outright.
+different strings. The `pull_request_review` branch of the gate job's `if:` is matched against the
+event payload (`review.user.login`); the `allowed_bots` list on the fix and verify sessions is
+matched against the **run's actor**, and nothing else. A reviewer in one but not the other either
+waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
+watchdog sweep) or fails the session's actor check outright.
 
 Those two strings are not always the same. Copilot is one account that renders as
 `copilot-pull-request-reviewer[bot]` in the payload and as `Copilot` to Actions, so the payload
-spelling is what makes the trigger match and the actor spelling is what makes `allowed_bots`
-match. Each place also lists the other spelling, but only as a hedge against GitHub changing
-which name it reports where; those extra entries match nothing today. CodeRabbit needs one
-spelling because both surfaces agree on it. When adding a reviewer, read its login off a real run
-(`gh run list --json actor`) as well as off the API, and put each spelling where it is actually
-compared (#612).
+spelling is what makes the gate condition match and the actor spelling is what makes
+`allowed_bots` match. Each place also lists the other spelling, but only as a hedge against GitHub
+changing which name it reports where; those extra entries match nothing today. CodeRabbit needs
+one spelling because both surfaces agree on it. When adding a reviewer, read its login off a real
+run (`gh run list --json actor`) as well as off the API, and put each spelling where it is
+actually compared (#612).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
