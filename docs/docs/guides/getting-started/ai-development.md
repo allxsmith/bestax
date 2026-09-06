@@ -273,21 +273,24 @@ and CI-completion arms of the `if:` carry the same-repo and `claude/*` head test
 manual-dispatch arm carries neither and relies on GitHub only letting write-access users dispatch.
 The `ai-loop` label, PR-open and protected-path tests are re-derived in the gate job's shell on
 every arm, and the two head tests are not. So a CI completion with `Copilot` as the actor, on a
-`claude/*` head, still passes all of them before `fix` runs. Each place also lists the other
-spelling, but only as a hedge against GitHub changing which name it reports where; those extra
-entries match nothing today. CodeRabbit needs one spelling because both surfaces agree on it. When
-adding a reviewer, read its login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq
-.actor.login`, since `gh run list` exposes no actor field) as well as off the API, and put each
-spelling where it is actually compared (#612).
+`claude/*` head, still passes all of them before `fix` runs. Each list carries only the spelling it
+is compared against; a hedge entry in the other place would match nothing today and, in
+`allowed_bots`, would widen an allowlist on the job holding `AI_LOOP_PAT` for no observed reason.
+CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer, read its
+login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`, since `gh run list`
+exposes no actor field) as well as off the API, and put each spelling where it is actually compared
+(#612).
 
 One divergence deliberately remains. The gate's `if:` names exact logins, while the `ACTIONABLE`
 counter, and the fix job's terminal check that repeats it, match the case-insensitive prefix
 `^(coderabbitai|copilot)`. A thread opened by any other `copilot-*` app, `copilot-swe-agent[bot]`
 today or a future reviewer app, is therefore still counted as work the loop owes while its review
-fires no gate run, which is the same wait of up to two hours that #612 describes. That is the safe
-direction: a new `copilot-*` app cannot admit itself to a session holding `AI_LOOP_PAT` just by
-existing. But it means the two agree only for the logins named above, so adding a reviewer means
-adding it to the `if:` and to `allowed_bots`, not only to the counter's regex.
+fires no gate run (its run actor can still reach `fix` through the CI-completion arm described
+above, where the gate confines it), which is the same wait of up to two hours that #612 describes.
+That is the safe direction: a new `copilot-*` app cannot admit itself to a session holding
+`AI_LOOP_PAT` just by existing. But it means the two agree only for the logins named above, so
+adding a reviewer means adding it to the `if:` and to `allowed_bots`, not only to the counter's
+regex.
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
