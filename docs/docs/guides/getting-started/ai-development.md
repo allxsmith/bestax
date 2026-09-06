@@ -280,6 +280,15 @@ login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`,
 exposes no actor field) as well as off the API, and put each spelling where it is actually compared
 (#612).
 
+One divergence deliberately remains. The gate's `if:` names exact logins, while the `ACTIONABLE`
+counter, and the fix job's terminal check that repeats it, match the case-insensitive prefix
+`^(coderabbitai|copilot)`. A thread opened by any other `copilot-*` app, `copilot-swe-agent[bot]`
+today or a future reviewer app, is therefore still counted as work the loop owes while its review
+fires no gate run, which is the same wait of up to two hours that #612 describes. That is the safe
+direction: a new `copilot-*` app cannot admit itself to a session holding `AI_LOOP_PAT` just by
+existing. But it means the two agree only for the logins named above, so adding a reviewer means
+adding it to the `if:` and to `allowed_bots`, not only to the counter's regex.
+
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
 
