@@ -632,6 +632,19 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
+  it('leaves a class-hostile target alone when it carries a spread', () => {
+    const { output, rules } = migrate(
+      "import { NavbarDivider, PageEllipsis, DropdownDivider } from 'bloomer';\nexport const A = (p: Record<string, any>) => (<><NavbarDivider {...p.rest} /><PageEllipsis {...p.rest} /><DropdownDivider {...p.rest} /></>);\n"
+    );
+    expect(rules).toEqual([
+      'component:NavbarDivider',
+      'component:PageEllipsis',
+      'component:DropdownDivider',
+    ]);
+    expect(output).toContain('<NavbarDivider {...p.rest} />');
+    expect(output).toContain("from 'bloomer'");
+  });
+
   it('keeps a NavbarDropdown without isBoxed as the menu', () => {
     const { output, rules } = migrate(
       dyn('NavbarDropdown', '<NavbarDropdown>x</NavbarDropdown>')

@@ -45,7 +45,10 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    Flags: `--css bulma|keep` for other stylesheet targets, `--no-deps` to leave
    package.json alone.
 
-3. **Install** — the codemod edits package.json but never runs a package manager:
+3. **Install** — the codemod edits package.json but never runs a package manager. Resolve the
+   retained imports first: a component with no bestax equivalent keeps a trimmed,
+   TODO-annotated import of the source library, which the manifest step has just removed — so a
+   clean install leaves those unresolvable. The report names them in a `deps` entry.
 
    ```sh
    npm install   # or pnpm/yarn

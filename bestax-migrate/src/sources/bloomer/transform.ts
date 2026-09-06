@@ -453,6 +453,22 @@ export default function transform(
     // class cannot be written on any of them: every helper is named instead,
     // and anything else left on the divider would not compile.
     if (NO_CLASSNAME_TARGETS.has(target)) {
+      // A spread may carry a `className` that would replace the structural
+      // class on these two, or props `Dropdown.Divider` silently ignores —
+      // and the codemod cannot read inside it. Keep bloomer's element.
+      const spread = (element.openingElement.attributes ?? []).some(
+        (a: any) => a.type === 'JSXSpreadAttribute'
+      );
+      if (spread) {
+        ctx.retained.add(sourcePath[0]);
+        addTodo(
+          ctx,
+          path,
+          `component:${dotted}`,
+          `bestax \`${target}\` writes its own className last (or takes no props at all), and this element carries a spread whose contents the codemod cannot read — left as bloomer's, since a \`className\` inside it would replace the class that makes the element work`
+        );
+        return;
+      }
       for (const attr of [...attributesOf(element)]) {
         const name: string = attr.name.name;
         if (handled.has(name)) continue;

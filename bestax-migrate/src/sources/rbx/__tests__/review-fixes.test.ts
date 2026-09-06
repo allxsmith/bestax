@@ -1316,3 +1316,17 @@ describe('an alias shadowed by a nearer binding', () => {
     expect(output).toContain('function F(Header) { return <Header.Title/>; }');
   });
 });
+
+describe('rbx Title spaced', () => {
+  it('refuses to rename a dynamic spaced onto an isSpaced already set', () => {
+    const todos: TodoEntry[] = [];
+    const { output } = runTransform(
+      transform,
+      'case.tsx',
+      "import { Title } from 'rbx';\nexport const A = (p: Record<string, any>) => <Title spaced={p.s} isSpaced>x</Title>;",
+      { add: e => todos.push(e) }
+    );
+    expect(todos.map(t => t.rule)).toEqual(['prop:spaced']);
+    expect(output).toContain('spaced={p.s}');
+  });
+});

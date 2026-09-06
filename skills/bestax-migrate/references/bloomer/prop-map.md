@@ -14,20 +14,20 @@ component.
 
 bloomer's `withHelpersModifiers` mixed these into every component.
 
-| bloomer                     | bestax-bulma                 | note                                                         |
-| --------------------------- | ---------------------------- | ------------------------------------------------------------ |
-| `hasTextAlign="centered"`   | `textAlign="centered"`       | `left` / `right` / `centered` — same union                   |
-| `hasTextColor="grey-light"` | `textColor="grey-light"`     | every Bulma 0.6 colour and shade but `white-ter`/`white-bis` |
-| `isPulled="right"`          | `float="right"`              |                                                              |
-| `isClearfix`                | `clearfix`                   |                                                              |
-| `isOverlay`                 | `overlay`                    |                                                              |
-| `isUnselectable`            | `interaction="unselectable"` |                                                              |
-| `isMarginless`              | `m="0"`                      | bestax expresses the `is-*less` helpers as spacing           |
-| `isPaddingless`             | `p="0"`                      |                                                              |
-| `isFullWidth`               | `isFullWidth`                | on Button, Select, Table, Tabs; a TODO elsewhere             |
-| `isDisplay`, `isHidden`     | `display*`, `visibility*`    | flattened — see below                                        |
-| `tag`                       | `as`                         | where bestax declares one — see below                        |
-| `render`                    | —                            | always a TODO                                                |
+| bloomer                     | bestax-bulma                                                   | note                                                                                                                                                                                                                                                                                                                         |
+| --------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hasTextAlign="centered"`   | `textAlign="centered"`                                         | `left` / `right` / `centered` — same union                                                                                                                                                                                                                                                                                   |
+| `hasTextColor="grey-light"` | `textColor="grey-light"`, or `className="has-text-grey-light"` | `textColor` is declared per component, not by the helper hook, so it carries over on the ~48 targets that have it and becomes the Bulma class on the rest (`Tag`, `Table`, `Hero`, `Menu`, `Breadcrumb`, `Panel`, `Icon`, `Progress`, the form controls); every Bulma 0.6 colour and shade works but `white-ter`/`white-bis` |
+| `isPulled="right"`          | `float="right"`                                                |                                                                                                                                                                                                                                                                                                                              |
+| `isClearfix`                | `clearfix`                                                     |                                                                                                                                                                                                                                                                                                                              |
+| `isOverlay`                 | `overlay`                                                      |                                                                                                                                                                                                                                                                                                                              |
+| `isUnselectable`            | `interaction="unselectable"`                                   |                                                                                                                                                                                                                                                                                                                              |
+| `isMarginless`              | `m="0"`                                                        | bestax expresses the `is-*less` helpers as spacing                                                                                                                                                                                                                                                                           |
+| `isPaddingless`             | `p="0"`                                                        |                                                                                                                                                                                                                                                                                                                              |
+| `isFullWidth`               | `isFullWidth`                                                  | on Button, Select, Table, Tabs; a TODO elsewhere                                                                                                                                                                                                                                                                             |
+| `isDisplay`, `isHidden`     | `display*`, `visibility*`                                      | flattened — see below                                                                                                                                                                                                                                                                                                        |
+| `tag`                       | `as`                                                           | where bestax declares one — see below                                                                                                                                                                                                                                                                                        |
+| `render`                    | —                                                              | always a TODO                                                                                                                                                                                                                                                                                                                |
 
 ## `isDisplay` and `isHidden`
 
@@ -119,7 +119,10 @@ the `tag` you gave) that bloomer rendered.
 A few bestax parts extend only React's HTML attributes and take no Bulma helper props at all:
 `Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
 `Panel.Heading`/`Tabs`/`Block`, `Tabs.List`/`Item`, `Message.Header`/`Body` and the `Modal`
-parts. A bloomer helper on one of those becomes the Bulma class in `className` (`is-pulled-right`,
+parts. A bloomer helper on one of those becomes the Bulma class in `className` — except on
+`Navbar.Divider`, `Pagination.Ellipsis` and `Dropdown.Divider`, which write their own className
+last or take no props at all: there the helper is named in a TODO instead, and an element
+carrying a spread is left as bloomer's. Otherwise it is the Bulma class in `className` (`is-pulled-right`,
 `m-0`, `is-hidden-mobile`, …), since Bulma v1 still ships every one of them; only a dynamic
 value is flagged. The same conversion covers the modifiers bestax has no prop for anywhere —
 `Hero isBold`, `Media isSize`, `Subtitle isSpaced`, `Input isActive`, `PanelBlock isWrapped`,

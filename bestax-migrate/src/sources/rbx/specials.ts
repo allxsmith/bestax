@@ -164,6 +164,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
         addAttr(element, makeAttr(ctx.j, 'isSpaced'));
       } else if (resolved === 'falsy') {
         removeAttr(element, spacedAttr);
+      } else if (findAttr(element, 'isSpaced')) {
+        // `isSpaced` is already set (rbx passes unknown props through), so
+        // renaming onto it would emit the attribute twice.
+        addTodo(
+          ctx,
+          path,
+          'prop:spaced',
+          'dynamic `spaced` alongside an `isSpaced` already on this element; bestax has one prop for both — reconcile by hand'
+        );
       } else {
         // Dynamic: keep the expression, just rename the prop.
         spacedAttr.name = ctx.j.jsxIdentifier('isSpaced');
