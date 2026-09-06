@@ -519,7 +519,9 @@ jobs:
           # action matches this list against the RUN's actor by exact
           # normalised login, and fix/verify run in the gate's own run — so a
           # login the gate triggers on but this list omits fails the session's
-          # actor check instead of waiting (#612).
+          # WRITE-PERMISSION check (a non-user actor is credited with write
+          # access only when this list names it) and then its human-actor
+          # check, so a red run rather than a wait (#612).
           #
           # `copilot` is the entry that does the work: the reviewer app
           # (id 175728472) renders as `Copilot` to Actions, and the run's

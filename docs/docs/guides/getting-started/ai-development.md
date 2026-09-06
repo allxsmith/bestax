@@ -219,8 +219,7 @@ alongside CodeRabbit: a submitted review from either is **eligible** to fire the
 not is not random. Whether a `Claude PR Loop` run for a Copilot review ever creates a job is
 decided by whether a maintainer re-ran it. Every run Copilot has triggered arrived as
 `run_attempt: 1` with `triggering_actor: Copilot` and died before a job existed (100 `failure`
-with zero jobs and 21 `action_required`, 121 so far), so no job `if:` was evaluated. The only 21
-that reached a job are the ones a maintainer re-ran by hand: on a re-run `triggering_actor`
+with zero jobs and 21 `action_required`, 121 so far), so no job `if:` was evaluated. The only ones that reached a job are among the 21 a maintainer re-ran by hand: on a re-run `triggering_actor`
 becomes the re-runner, which is what the `allxsmith` rows in that query are, and not a record of
 who requested the review. Twenty of those created all six jobs and evaluated the gate's `if:`,
 which before this change matched only `coderabbitai[bot]`; run `33041194214` was cancelled with
@@ -254,7 +253,8 @@ different strings. The `pull_request_review` branch of the gate job's `if:` is m
 event payload (`review.user.login`); the `allowed_bots` list on the fix and verify sessions is
 matched against the **run's actor**, and nothing else. A reviewer in one but not the other either
 waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
-watchdog sweep) or fails the session's actor check outright.
+watchdog sweep) or fails the session's write-permission check outright, since the action credits a
+non-user actor with write access only when `allowed_bots` names it, and then its human-actor check.
 
 Those two strings are not always the same. The Copilot reviewer app renders as
 `copilot-pull-request-reviewer[bot]` in the payload and as `Copilot` to Actions, so the payload
