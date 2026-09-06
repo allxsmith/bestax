@@ -13,15 +13,15 @@ examples — useful if your client speaks MCP but not skills.
 
 ## Skills
 
-| Skill                                                           | Use it when…                                                                                                                                                                               |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`bestax-custom-component`](./bestax-custom-component/SKILL.md) | Building a **custom component** beyond stock Bulma — in an app: composition, helper props, public hooks, `--bulma-*` CSS vars; in the monorepo: the full SCSS/stories/tests/docs pipeline. |
-| [`bestax-form`](./bestax-form/SKILL.md)                         | Building **forms** — Field/Control composition, the full input inventory, and the validate-it-yourself error pattern (there is no form library).                                           |
-| [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.                                       |
-| [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes.                             |
-| [`bestax-icons`](./bestax-icons/SKILL.md)                       | **Icons** — the `Icon`/`IconText` components and the five supported libraries (Font Awesome, MDI, Ionicons, Material Icons/Symbols): setup, name formats, variants, and accessibility.     |
-| [`bestax-migrate`](./bestax-migrate/SKILL.md)                   | **Migrating** an existing app from `react-bulma-components` — drive the `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it leaves using the mapping references.        |
-| [`bestax-optimize`](./bestax-optimize/SKILL.md)                 | **CSS size** — measure raw+gzip and shrink the built stylesheet: a lighter prebuilt flavor, a hand-rolled modular Sass build, and import/icon-asset hygiene. First-party levers only.      |
+| Skill                                                           | Use it when…                                                                                                                                                                                            |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`bestax-custom-component`](./bestax-custom-component/SKILL.md) | Building a **custom component** beyond stock Bulma — in an app: composition, helper props, public hooks, `--bulma-*` CSS vars; in the monorepo: the full SCSS/stories/tests/docs pipeline.              |
+| [`bestax-form`](./bestax-form/SKILL.md)                         | Building **forms** — Field/Control composition, the full input inventory, and the validate-it-yourself error pattern (there is no form library).                                                        |
+| [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.                                                    |
+| [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes.                                          |
+| [`bestax-icons`](./bestax-icons/SKILL.md)                       | **Icons** — the `Icon`/`IconText` components and the five supported libraries (Font Awesome, MDI, Ionicons, Material Icons/Symbols): setup, name formats, variants, and accessibility.                  |
+| [`bestax-migrate`](./bestax-migrate/SKILL.md)                   | **Migrating** an existing app from `react-bulma-components`, `rbx` or `bloomer` — drive the `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it leaves using the mapping references. |
+| [`bestax-optimize`](./bestax-optimize/SKILL.md)                 | **CSS size** — measure raw+gzip and shrink the built stylesheet: a lighter prebuilt flavor, a hand-rolled modular Sass build, and import/icon-asset hygiene. First-party levers only.                   |
 
 ## Install
 
@@ -89,10 +89,10 @@ skills/
   bestax-migrate/
     SKILL.md                   # the codemod-then-resolve-TODOs workflow
     references/
-      component-map.md         # every react-bulma-components component → bestax target
-      prop-map.md              # universal modifier-prop + responsive-object conversions
-      unmappables.md           # recipes for every TODO(bestax-migrate) the codemod leaves
-      css-migration.md         # the Bulma 0.9 → 1 CSS step
+      css-migration.md         # the Bulma 0.9 → 1 CSS step, shared by every source
+      react-bulma-components/  # per source: component-map.md, prop-map.md, unmappables.md
+      rbx/
+      bloomer/
   bestax-optimize/
     SKILL.md
     references/

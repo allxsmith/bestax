@@ -17,6 +17,7 @@ import {
   addAttr,
   addTodo,
   attributesOf,
+  literalOf,
   makeAttr,
   removeAttr,
   type TransformContext,
@@ -32,15 +33,6 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   left: 'left',
   right: 'right',
 };
-
-function literalOf(prop: any): string | number | boolean | undefined {
-  const v = prop.value;
-  if (!v) return undefined;
-  if (v.type === 'StringLiteral') return v.value;
-  if (v.type === 'NumericLiteral') return v.value;
-  if (v.type === 'BooleanLiteral') return v.value;
-  return undefined;
-}
 
 export function flattenResponsiveProps(
   ctx: TransformContext,
@@ -87,7 +79,7 @@ export function flattenResponsiveProps(
         continue;
       }
       const key = prop.key?.name ?? prop.key?.value;
-      const literal = literalOf(prop);
+      const literal = literalOf(prop.value);
 
       if (key === 'display' && typeof literal === 'string') {
         if (literal === 'hidden') {

@@ -126,6 +126,10 @@ reported as `unknown-component` rather than being silently skipped.
 
 ## Coming from a different library?
 
+Already supported: [**react-bulma-components**](./react-bulma-components.md)
+(`bestax-migrate react-bulma-components src/`) and [**bloomer**](./bloomer.md)
+(`bestax-migrate bloomer src/`).
+
 If you're using a specific React Bulma package that isn't supported by the migration tool yet,
 [open a feature request](https://github.com/allxsmith/bestax/issues/new?template=feature-request.md)
 naming the package and the components you use — the codemod platform is built to grow new

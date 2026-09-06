@@ -2,23 +2,23 @@
 
 jscodeshift-based CLI (`pnpm dlx bestax-migrate <source> <paths…>`) that migrates existing
 apps from other React Bulma libraries to `@allxsmith/bestax-bulma`. Multi-source by design:
-each source library registers in `src/sources/registry.ts`. Two are shipped —
-`react-bulma-components` (v4 only) and `rbx` (v2 only).
+each source library registers in `src/sources/registry.ts`. Three are shipped —
+`react-bulma-components` (v4 only), `rbx` (v2 only) and `bloomer` (0.6 only).
 
 ## Hard rules
 
 - **No source library is EVER installed anywhere in this repo** (supply-chain policy) —
-  not react-bulma-components, not rbx. Fixtures are read as _text_ (`__testfixtures__`,
-  `fixtures/kitchen-sink`, `fixtures/rbx-kitchen-sink`); the migration _input_ is never
+  not react-bulma-components, not rbx, not bloomer. Fixtures are read as _text_ (`__testfixtures__`,
+  `fixtures/kitchen-sink`, `fixtures/rbx-kitchen-sink`, `fixtures/bloomer-kitchen-sink`); the migration _input_ is never
   typechecked or executed. Validation typechecks the migrated _output_ against the
-  workspace `@allxsmith/bestax-bulma`. The two kitchen-sink manifests are named
+  workspace `@allxsmith/bestax-bulma`. The kitchen-sink manifests are named
   `package.input.json`, not `package.json`: Dependabot's alert graph treats any file with
   that name as a real manifest whatever the lockfile says, and opened a security-update PR
   against the rbx fixture's deliberately-old `node-sass` (#615). The e2e renames its copy
   back inside `.e2e-tmp`, so the pass under test still sees a genuine `package.json`.
 - Mapping-table first: each source's `mapping.ts` is its single source of truth. Every
   export of that library must have an entry (`mapped`/`partial`/`todo`) — the
-  `mapping-coverage` test walks the vendored `RBC_EXPORTS` / `RBX_EXPORTS` list against it,
+  `mapping-coverage` test walks the vendored `RBC_EXPORTS` / `RBX_EXPORTS` / `BLOOMER_EXPORTS` list against it,
   in both directions, so the table cannot grow an entry for something the library never
   exported either. New coverage is a table edit (plus a `special` handler in `specials.ts`
   when structure changes).
@@ -26,11 +26,15 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
   everything library-agnostic: `jsx-utils.ts` (AST helpers + `TransformContext`),
   `props.ts` (the `PropAction` interpreter — its universal table is a parameter, not an
   import), `imports.ts` (binding collection and import aliasing), `specials-utils.ts`
-  (`alignTarget`, `mergeClassName`, `parseIconClasses`, and the `stripModifierProps`
-  factory), and `make-styles-transform.ts` (the whole Bulma 0.9→v1 stylesheet transform,
+  (`alignTarget`, `mergeClassName`, `parseIconClasses`, `modifierClass`, `restrictAsToTargets`,
+  the `stripModifierProps` factory and the `makeStructuralHelpers` factory behind
+  `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's nine viewports → bestax's
+  prop suffixes), and `make-styles-transform.ts` (the whole Bulma 0.9→v1 stylesheet transform,
   parameterised by the source package's own specifiers). What stays per-source is the data
   — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a `transform.ts` that
-  orchestrates them.
+  orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
+  destructuring pass, no alias registry and no wrapping pass; the rbx and RBC copies still
+  carry all three.
 - `'<source>'` must be added to `MIGRATE_SOURCE_VALUES` in `telemetry-worker/src/schema.ts`
   or its events are dropped at ingest; `check:conformance --only=telemetry-allowlists`
   fails until it is. That worker deploys to production on merge, so the two land together.
@@ -43,12 +47,14 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
 - **A TODO message is a claim about bestax; read the component before writing it.** Four
   shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`).
   The rbx e2e fails on an undocumented rule (RBC's does not); nothing checks the guidance is true.
-- **A defect in one source's `transform.ts` is almost certainly in the other.** Nine fixes were
-  ported RBC↔rbx on #613 and review kept finding the unported half. Fix the sibling in the same
-  commit, or move the logic into `_shared/`.
+- **A defect in one source's `transform.ts` is almost certainly in the others.** Nine fixes were
+  ported RBC↔rbx on #613 and review kept finding the unported half. Fix the siblings in the same
+  commit, or move the logic into `_shared/` (the alias registry, the literal/object helpers
+  and the structural-handler helpers went there on #410 for exactly this reason).
 - **Resolve references by binding, not by identifier text.** Every serious bug on #613 came
-  from a name-keyed map (`function F(Header)` became `F(Card.Header)`). Use `aliasAt` in each
-  `transform.ts` (duplicated; hoist it): ancestors decide ownership, `scope.lookup` vetoes a nearer binding.
+  from a name-keyed map (`function F(Header)` became `F(Card.Header)`). Use
+  `makeAliasRegistry` from `_shared/imports.ts`: ancestors decide ownership, `scope.lookup`
+  vetoes a nearer binding.
 - **The report may only describe what actually happened.** The manifest headline said "bumped
   bulma" in most manifest shapes where nothing was bumped. Track each mutation; phrase from it.
 - **The stylesheet and manifest passes must agree on what is removable.** Both report rather
@@ -107,6 +113,9 @@ each source library registers in `src/sources/registry.ts`. Two are shipped —
     script extracts the `<Playground>` blocks out of its 43 `*.docs.mdx` pages (254 blocks)
     and rebuilds each page as one synthetic module written the way a consumer writes rbx.
     Output lands in `.e2e-tmp/corpus-out-rbx/`.
+  - `validate:corpus:bloomer` — bloomer's own MIT docs: 39 React "Scene" `.tsx` files that
+    render the library through a relative `src` import, migrated as written after that
+    specifier becomes `'bloomer'`. Output lands in `.e2e-tmp/corpus-out-bloomer/`.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught six

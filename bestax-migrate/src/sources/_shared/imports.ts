@@ -164,3 +164,101 @@ export function resolvesToBinding(
   // the shadowing case it guards against.
   return !declaring || declaring === expected;
 }
+
+/**
+ * Registry of `const { Item } = Card`-style aliases, keyed by the AST node
+ * that owns the declaring scope rather than by bare name. Two functions can
+ * each destructure `Header` from a different component; a name-keyed map let
+ * the second overwrite the first, and both declarations were then pruned
+ * while both `<Header…>` references were left resolving to nothing.
+ *
+ * Resolution walks the reference's ANCESTORS rather than consulting
+ * `scope.lookup`, because by the time references are rewritten the alias
+ * pass has already pruned the declaration -- so the binding is gone from the
+ * scope table, and `path.scope` objects are not identity-stable across
+ * traversals either.
+ *
+ * Source-agnostic: every transform resolves aliases the same way, and #613
+ * shipped this block duplicated in two of them.
+ */
+export interface AliasRegistry {
+  /** Record that `local` in the scope owned by `owner` names `target`. */
+  register(owner: unknown, local: string, target: string[]): void;
+  /**
+   * The canonical path `name` aliases at `at` (a reference's path), or
+   * undefined when no alias applies to that reference.
+   */
+  aliasAt(name: string, at?: unknown): string[] | undefined;
+  /** Whether ANY scope aliases `name` — regardless of the reference. */
+  anyAlias(name: string): boolean;
+}
+
+export function makeAliasRegistry(): AliasRegistry {
+  const aliasesByOwner = new Map<unknown, Map<string, string[]>>();
+  const ownersFor = (name: string): unknown[] => {
+    const owners: unknown[] = [];
+    for (const [owner, perScope] of aliasesByOwner) {
+      if (perScope.has(name)) owners.push(owner);
+    }
+    return owners;
+  };
+  const register = (owner: unknown, local: string, target: string[]) => {
+    let perScope = aliasesByOwner.get(owner);
+    if (!perScope) {
+      perScope = new Map<string, string[]>();
+      aliasesByOwner.set(owner, perScope);
+    }
+    perScope.set(local, target);
+  };
+  const aliasAt = (name: string, at?: unknown): string[] | undefined => {
+    const owners = ownersFor(name);
+    if (owners.length === 0) return undefined;
+    // Without a reference location there is nothing to walk, so the only
+    // owner is the best answer available. WITH one, always walk: an unrelated
+    // `Header` parameter in another function must not resolve to the alias
+    // merely because the alias is the only one by that name. A single-owner
+    // shortcut here rewrote such a parameter to `{ Header: Card.Header }`,
+    // which is not even valid syntax.
+    if (at === undefined) {
+      return owners.length === 1
+        ? aliasesByOwner.get(owners[0])!.get(name)
+        : undefined;
+    }
+    type Anc = { parent?: Anc; node?: unknown };
+    let cursor = at as Anc | undefined;
+    while (cursor) {
+      if (cursor.node !== undefined) {
+        const hit = aliasesByOwner.get(cursor.node)?.get(name);
+        if (hit) {
+          // The walk finds the nearest OWNER, but a binding can intervene
+          // between the reference and that owner: `function F(Header)` under
+          // a module-level `const { Header } = Card` shadows the alias, and
+          // resolving through it rewrote the parameter itself to
+          // `F(Card.Header)`. If the scope table still binds the name
+          // somewhere other than the owner, that nearer binding wins. (After
+          // the alias declaration is pruned the lookup returns nothing for
+          // the alias itself, which is the case this must keep allowing.)
+          const declaring = (
+            at as {
+              scope?: {
+                lookup(n: string): { path?: { node?: unknown } } | null;
+              };
+            }
+          ).scope?.lookup(name)?.path?.node;
+          if (
+            declaring !== undefined &&
+            declaring !== null &&
+            declaring !== cursor.node
+          ) {
+            return undefined;
+          }
+          return hit;
+        }
+      }
+      cursor = cursor.parent;
+    }
+    return undefined;
+  };
+  const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
+  return { register, aliasAt, anyAlias };
+}

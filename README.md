@@ -167,7 +167,7 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
   | `bestax-custom-component` | Building a new custom component beyond stock Bulma, the bestax way               |
   | `bestax-icons`            | Adding icons — Icon/IconText and the five supported icon libraries               |
   | `bestax-optimize`         | Shrinking the built CSS — flavor builds, modular Sass, import hygiene            |
-  | `bestax-migrate`          | Moving an app off react-bulma-components (v4) onto bestax-bulma                  |
+  | `bestax-migrate`          | Moving an app off react-bulma-components, rbx or bloomer onto bestax-bulma       |
 
   ```bash
   npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold

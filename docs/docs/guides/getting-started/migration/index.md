@@ -54,3 +54,9 @@ Coming from the (unmaintained) `react-bulma-components` library? The **`bestax-m
 Coming from the (abandoned since 2019) `rbx` library? The **`bestax-migrate`** codemod handles it too — and here it does more than rename things: rbx pinned `bulma@0.7.5` as a _direct_ dependency, so migrating finally lets your app choose its own Bulma version — and it flags the four Bulma extensions rbx dragged along, all of which bestax now replaces. It also unblocks React 19, which removed the `defaultProps` rbx is built on.
 
 [Read the rbx guide →](./rbx.md)
+
+## [Migrating from bloomer](./bloomer.md)
+
+Coming from `bloomer`, the oldest React Bulma wrapper (archived since 2018, Bulma 0.6, React 16)? The **`bestax-migrate`** codemod maps all 108 of its flat exports onto bestax's compound components, flattens its three-shape `isDisplay`/`isHidden` helpers, and bumps the Bulma your app declared to v1 — flagging the Font Awesome 4 icons, the Bulma 0.4 `Nav` family and everything else Bulma has since dropped.
+
+[Read the bloomer guide →](./bloomer.md)

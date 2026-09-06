@@ -41,7 +41,8 @@ Then explore each skill — what it does, how to install it, and live examples:
   to a complete responsive page using the layout archetypes.
 - **[Icons](./icons)** — use `Icon`/`IconText` with any of the five supported icon libraries:
   per-library setup, name formats, variants, and decorative-vs-labeled accessibility.
-- **[Migrate](./migrate)** — move an existing app off `react-bulma-components`: run the
-  `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it leaves.
+- **[Migrate](./migrate)** — move an existing app off `react-bulma-components`, `rbx` or
+  `bloomer`: run the `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it
+  leaves.
 - **[Optimize](./optimize)** — reduce the built CSS size: measure raw+gzip, then the cheapest
   first-party lever that fits (lighter flavor, modular Sass build, import/asset hygiene).
