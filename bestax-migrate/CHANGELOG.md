@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.2.2...bestax-migrate@2.3.0) (2026-09-06)
+
+
+### Features
+
+* **bestax-migrate:** add bloomer as a migration source ([#642](https://github.com/allxsmith/bestax/issues/642)) ([9b604f4](https://github.com/allxsmith/bestax/commit/9b604f4f5bc81c2ba5e8e65fd0790c23c917c8bf))
+
 ## [2.2.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.2.1...bestax-migrate@2.2.2) (2026-09-05)
 
 
