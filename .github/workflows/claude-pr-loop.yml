@@ -987,14 +987,22 @@ jobs:
       # Thread replies/resolutions fire no workflow events — continue the
       # loop explicitly, but only if this pass made progress (otherwise a
       # broken verifier would self-dispatch forever).
-      # An empty execution_file means the session never ran: verify supplies
-      # no github_token, so the action's OIDC exchange can hit workflow
-      # validation when the PR head's copy of this file differs from main's,
-      # and it returns green having done nothing. Counting that as zero
-      # progress would pause the loop for the wrong reason; skipping this
-      # step leaves the PR for the next event instead.
+      # A green step with an empty execution_file means the session never
+      # ran: verify supplies no github_token, so the action's OIDC exchange
+      # can hit workflow validation when the PR head's copy of this file
+      # differs from main's, and it returns green having done nothing.
+      # Counting that as zero progress would pause the loop for the wrong
+      # reason; skipping this step leaves the PR for the next event instead.
+      # A red step can also have an empty execution_file (a failure before
+      # the session wrote its output), and that must still reach this step,
+      # which is verify's only terminal state: the iteration cap never
+      # counts verify, so a skipped handler here would let the sweep re-run
+      # a dying verify forever.
       - name: Continue loop
-        if: always() && steps.claude.conclusion != 'skipped' && steps.claude.outputs.execution_file != ''
+        if: |
+          always() && steps.claude.conclusion != 'skipped' &&
+            (steps.claude.outputs.execution_file != '' ||
+              steps.claude.conclusion == 'failure')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BOT_TOKEN: ${{ secrets.AI_LOOP_PAT }}

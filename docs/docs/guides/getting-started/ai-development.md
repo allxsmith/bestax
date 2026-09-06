@@ -223,12 +223,12 @@ the honest word, and the split between runs that start and runs that do not is n
 `Claude PR Loop` run for a Copilot review ever creates a job is decided by whether a maintainer
 re-ran it. Every run Copilot has triggered arrived as `run_attempt: 1` with `triggering_actor:
 Copilot` and died before a job existed (100 `failure` with zero jobs and 21 `action_required`, 121
-so far), so no job `if:` was evaluated. The only ones that reached a job are among the 21 a
+so far), so no job `if:` was evaluated. The only ones that reached a job are among the 19 a
 maintainer re-ran by hand: on a re-run `triggering_actor` becomes the re-runner, which is what the
-`allxsmith` rows in that query are, and not a record of who requested the review. Twenty of those
+`allxsmith` rows in that query are, and not a record of who requested the review. Eighteen of those
 created all six jobs and evaluated the gate's `if:`, which before this change matched only
 `coderabbitai[bot]`; run `33041194214` was cancelled with none. Runs `33586960606`, `33232938014`
-and `33035152465` are three of the twenty, on `claude/*` heads, and `33586960606` is the worked
+and `33035152465` are three of the eighteen, on `claude/*` heads, and `33586960606` is the worked
 example: attempt 1 was `action_required` with zero jobs, attempt 2 produced the six. So there is no
 observed case of a Copilot review starting a loop run unaided. Since 2026-09-06 the shape has
 changed again: Copilot's reviews on PR #643 that day (all of them its "encountered an error"
