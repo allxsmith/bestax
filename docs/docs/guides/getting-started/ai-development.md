@@ -213,6 +213,14 @@ separate store and none are documented here.
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
 | `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
+Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the loop wakes for it the
+same way it wakes for CodeRabbit: a submitted review from either reviewer fires the gate on an
+`ai-loop` PR. Both logins are named in two places that have to agree — the gate's
+`pull_request_review` trigger and the `allowed_bots` list on the fix and verify sessions, which
+the action matches against the run's own actor. A reviewer named in one but not the other either
+waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
+watchdog sweep) or fails the session's actor check outright, so add a new reviewer to both (#612).
+
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
 
