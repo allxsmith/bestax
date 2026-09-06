@@ -517,11 +517,15 @@ jobs:
           # (reviews), claude[bot] (CI workflow_run after its own pushes), and
           # github-actions[bot] (the loop's self-dispatch continuation). The
           # action matches this list against the RUN's actor by exact
-          # normalised login, and fix/verify run in the gate's own run — so a
+          # normalised login, and fix/verify run in the gate's own run, so a
           # login the gate triggers on but this list omits fails the session's
-          # WRITE-PERMISSION check (a non-user actor is credited with write
-          # access only when this list names it) and then its human-actor
-          # check, so a red run rather than a wait (#612).
+          # human-actor check: a red run rather than a wait (#612). The
+          # action's write-permission check is a second, narrower consumer:
+          # it runs only in PR and issue contexts (here, the review arm) and
+          # returns true for any `[bot]`-suffixed actor before reading this
+          # list, so it reaches the list only for `Copilot`, which has no
+          # suffix. On workflow_run, dispatch and schedule only the
+          # human-actor check consults it.
           #
           # `copilot` is the entry that does the work: the reviewer app
           # (id 175728472) renders as `Copilot` to Actions, and the run's
@@ -530,17 +534,20 @@ jobs:
           # from it). Matching is by normalised login, not by id: GitHub's
           # other Copilot app, copilot-swe-agent[bot] (id 198982749), also
           # renders as `Copilot`, so this entry admits either. What confines
-          # it is the gate, not the precision of this string: its `if:` holds
-          # the same-repo and claude/* head tests on every arm, and the
-          # ai-loop label, PR-open and protected-path tests live in the gate
-          # job's shell (the review arm repeats the first two in its `if:`),
-          # so a Copilot-actored CI completion on a claude/* head still has to
-          # pass all of them before fix runs. The reviewer is
-          # `copilot-pull-request-reviewer[bot]` in the event payload, which
-          # is what the gate's `if:` matches. That spelling is listed here
-          # only as a hedge against GitHub changing which name it reports as
-          # the actor; it matches nothing today. CodeRabbit needs one entry
-          # because both surfaces agree.
+          # it is the gate, not the precision of this string, and each arm
+          # holds different parts of it: the review and workflow_run arms of
+          # the `if:` carry the same-repo and claude/* head tests, the
+          # workflow_dispatch arm carries neither and relies on GitHub only
+          # letting write-access actors dispatch (see the note under the
+          # `if:`), and the ai-loop label, PR-open and protected-path tests
+          # are re-derived in the gate job's shell on every arm while the two
+          # head tests are not. A Copilot-actored CI completion on a claude/*
+          # head therefore still passes all of them before fix runs. The
+          # reviewer is `copilot-pull-request-reviewer[bot]` in the event
+          # payload, which is what the gate's `if:` matches. That spelling is
+          # listed here only as a hedge against GitHub changing which name it
+          # reports as the actor; it matches nothing today. CodeRabbit needs
+          # one entry because both surfaces agree.
           allowed_bots: 'coderabbitai,claude,github-actions,copilot,copilot-pull-request-reviewer'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into

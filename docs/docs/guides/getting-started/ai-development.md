@@ -213,33 +213,38 @@ separate store and none are documented here.
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
 | `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
-Turning `AI_LOOP_COPILOT` on gives the loop a second reviewer, and the gate job's `if:` names it
-alongside CodeRabbit: a submitted review from either is **eligible** to fire the gate on an
-`ai-loop` PR. Eligible is the honest word, and the split between runs that start and runs that do
-not is not random. Whether a `Claude PR Loop` run for a Copilot review ever creates a job is
-decided by whether a maintainer re-ran it. Every run Copilot has triggered arrived as
-`run_attempt: 1` with `triggering_actor: Copilot` and died before a job existed (100 `failure`
-with zero jobs and 21 `action_required`, 121 so far), so no job `if:` was evaluated. The only ones that reached a job are among the 21 a maintainer re-ran by hand: on a re-run `triggering_actor`
-becomes the re-runner, which is what the `allxsmith` rows in that query are, and not a record of
-who requested the review. Twenty of those created all six jobs and evaluated the gate's `if:`,
-which before this change matched only `coderabbitai[bot]`; run `33041194214` was cancelled with
-none. Runs `33586960606`, `33232938014` and `33035152465` are three of the twenty, on `claude/*`
-heads, and `33586960606` is the worked example: attempt 1 was `action_required` with zero jobs,
-attempt 2 produced the six. So there is no observed case of a Copilot review starting a loop run
-unaided. Since 2026-09-06 the shape has changed again: Copilot's reviews on PR #643 that day (all
-of them its "encountered an error" submissions) created no `Claude PR Loop` run at all, so the
-query below can come back with nothing new rather than a fresh startup failure, and absence of a
-run is the expected reading, not a broken query. Whether `AI_LOOP_COPILOT=true` changes any of
-this is untested: the variable has never been on, so no review requested by `claude-implement.yml`
-has been observed. The request itself starts nothing (it is made under the workflow's
-`GITHUB_TOKEN`, and nothing here listens for `review_requested`), but the review Copilot then
-submits is its own event under its own credentials, so treat that path as unknown rather than
-ruled out. Either way a Copilot-only finding still waits for the next natural event: a CI or
-deep-review completion, a CodeRabbit review, or the 2-hourly watchdog sweep. The widened
-condition removes our side of the obstacle; it is not a latency guarantee. Treat a `Claude PR
-Loop` run **with jobs** as the proof. Keep the `--paginate` and the `run_attempt` column: the most
-recent page alone is all startup failures, which is how the absolute version of this claim was
-first written, and without the attempt number the re-runs look like a second kind of trigger.
+The gate job's `if:` names Copilot alongside CodeRabbit: a submitted review from either is
+**eligible** to fire the gate on an `ai-loop` PR. That condition reads no `AI_LOOP_COPILOT`, only
+`AI_LOOP_ENABLED`, so it is live for any Copilot review, including one a maintainer requests by
+hand, which is how every Copilot review on a loop PR has arrived so far (#573, #624).
+`AI_LOOP_COPILOT` decides only whether `claude-implement.yml` asks for the review; unsetting it is
+not a kill switch for this trigger. `AI_LOOP_ENABLED=false` and removing `ai-loop` are. Eligible is
+the honest word, and the split between runs that start and runs that do not is not random. Whether a
+`Claude PR Loop` run for a Copilot review ever creates a job is decided by whether a maintainer
+re-ran it. Every run Copilot has triggered arrived as `run_attempt: 1` with `triggering_actor:
+Copilot` and died before a job existed (100 `failure` with zero jobs and 21 `action_required`, 121
+so far), so no job `if:` was evaluated. The only ones that reached a job are among the 21 a
+maintainer re-ran by hand: on a re-run `triggering_actor` becomes the re-runner, which is what the
+`allxsmith` rows in that query are, and not a record of who requested the review. Twenty of those
+created all six jobs and evaluated the gate's `if:`, which before this change matched only
+`coderabbitai[bot]`; run `33041194214` was cancelled with none. Runs `33586960606`, `33232938014`
+and `33035152465` are three of the twenty, on `claude/*` heads, and `33586960606` is the worked
+example: attempt 1 was `action_required` with zero jobs, attempt 2 produced the six. So there is no
+observed case of a Copilot review starting a loop run unaided. Since 2026-09-06 the shape has
+changed again: Copilot's reviews on PR #643 that day (all of them its "encountered an error"
+submissions) created no `Claude PR Loop` run at all, so the query below can come back with nothing
+new rather than a fresh startup failure, and absence of a run is the expected reading, not a broken
+query. Whether `AI_LOOP_COPILOT=true` changes any of this is untested: the variable has never been
+on, so no review requested by `claude-implement.yml` has been observed. The request itself starts
+nothing (it is made under the workflow's `GITHUB_TOKEN`, and nothing here listens for
+`review_requested`), but the review Copilot then submits is its own event under its own credentials,
+so treat that path as unknown rather than ruled out. Either way a Copilot-only finding still waits
+for the next natural event: a CI or deep-review completion, a CodeRabbit review, or the 2-hourly
+watchdog sweep. The widened condition removes our side of the obstacle; it is not a latency
+guarantee. Treat a `Claude PR Loop` run **with jobs** as the proof. Keep the `--paginate` and the
+`run_attempt` column: the most recent page alone is all startup failures, which is how the absolute
+version of this claim was first written, and without the attempt number the re-runs look like a
+second kind of trigger.
 
 ```bash
 gh api --paginate \
@@ -253,24 +258,27 @@ different strings. The `pull_request_review` branch of the gate job's `if:` is m
 event payload (`review.user.login`); the `allowed_bots` list on the fix and verify sessions is
 matched against the **run's actor**, and nothing else. A reviewer in one but not the other either
 waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
-watchdog sweep) or fails the session's write-permission check outright, since the action credits a
-non-user actor with write access only when `allowed_bots` names it, and then its human-actor check.
+watchdog sweep) or fails the session's human-actor check outright. The action's write-permission
+check also reads `allowed_bots`, but only in PR and issue contexts and only for an actor without a
+`[bot]` suffix, which here means `Copilot` on the review arm; every other entry and every other arm
+is decided by the human-actor check alone.
 
 Those two strings are not always the same. The Copilot reviewer app renders as
 `copilot-pull-request-reviewer[bot]` in the payload and as `Copilot` to Actions, so the payload
-spelling is what makes the gate condition match and the actor spelling is what makes
-`allowed_bots` match. `allowed_bots` compares normalised logins, not account ids, and GitHub's
-other Copilot app (`copilot-swe-agent[bot]`) also renders as `Copilot`, so that entry admits
-either; the confinement is the gate, not the precision of the string. Its `if:` tests same-repo
-and `claude/*` head on every arm, and the `ai-loop` label, PR-open and protected-path tests are
-re-derived in the gate job's shell (the review arm repeats the first two in its `if:`), so a
-`Copilot`-actored CI completion still passes all of them before `fix` runs. Each place also lists
-the other spelling, but only as a
-hedge against GitHub changing which name it reports where; those extra entries match nothing
-today. CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer,
-read its login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`, since
-`gh run list` exposes no actor field) as well as off the API, and put each spelling where it is
-actually compared (#612).
+spelling is what makes the gate condition match and the actor spelling is what makes `allowed_bots`
+match. `allowed_bots` compares normalised logins, not account ids, and GitHub's other Copilot app
+(`copilot-swe-agent[bot]`) also renders as `Copilot`, so that entry admits either; the confinement
+is the gate, not the precision of the string, and each arm holds different parts of it. The review
+and CI-completion arms of the `if:` carry the same-repo and `claude/*` head tests; the
+manual-dispatch arm carries neither and relies on GitHub only letting write-access users dispatch.
+The `ai-loop` label, PR-open and protected-path tests are re-derived in the gate job's shell on
+every arm, and the two head tests are not. So a `Copilot`-actored CI completion on a `claude/*` head
+still passes all of them before `fix` runs. Each place also lists the other spelling, but only as a
+hedge against GitHub changing which name it reports where; those extra entries match nothing today.
+CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer, read its
+login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`, since `gh run list`
+exposes no actor field) as well as off the API, and put each spelling where it is actually compared
+(#612).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
