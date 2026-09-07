@@ -607,14 +607,17 @@ jobs:
               before refuting one; refute only if the file contradicts
               the reviewer. This does not extend to workflow comments,
               guide prose, or the PR body.
-            - Findings about COMMENTS, docs prose, or the PR body: act only
-              if the text is FALSE about something a reader will act on:
-              who can trigger a job or what a credentialed job can do,
-              what a public component, prop, or command does, or an
-              example that does not work as written. Fix by deleting or
-              correcting the false clause — never by adding qualifiers,
-              counts, run ids, or dates. Otherwise refute in one line
-              ("Imprecise, not false; leaving it.") and push nothing.
+            - Findings about workflow COMMENTS, guide prose under
+              docs/docs/guides, or a CLAUDE.md (component API pages stay
+              under the house-style rule above): act only if the text is
+              FALSE about something a reader will act on: who can trigger
+              a job or what a credentialed job can do, what a public
+              component, prop, or command does, or an example that does
+              not work as written. Fix by deleting or correcting the false
+              clause — never by adding qualifiers, counts, run ids, or
+              dates. Otherwise refute in one line ("Imprecise, not false;
+              leaving it.") and push nothing. You cannot edit the PR
+              body; a finding about it is the human's.
             Only implement findings that are genuine, in-scope defects or
             small, clearly-correct improvements.
 
