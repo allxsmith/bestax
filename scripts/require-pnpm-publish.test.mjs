@@ -172,14 +172,13 @@ test('the refusal names the package being packed, not a hardcoded one', () => {
 });
 
 test('a readable manifest gets its offending specifier quoted', () => {
-  // bestax-migrate carries one in devDependencies (create-bestax carries the
-  // same sibling in dependencies, #644), and naming it is the reason this
-  // branch exists at all.
+  // Every CLI carries one in dependencies (#644), and naming it is the reason
+  // this branch exists at all.
   let msg = '';
   main({ npm_execpath: NPM }, m => (msg = m), repoDir('bestax-migrate'));
   assert.match(msg, /bestax-migrate declares/);
   assert.match(msg, /"@allxsmith\/bestax-bulma": "workspace:\^"/);
-  assert.match(msg, /in devDependencies/);
+  assert.match(msg, /in dependencies/);
 });
 
 test('a package with no pack-time specifier is not told it has one', () => {

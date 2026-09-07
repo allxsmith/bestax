@@ -148,21 +148,24 @@ What is specific to bestax-migrate is the specifier that forced it.
 uninstallable (#412). That was first patched by a `prepack` hook
 reimplementing pnpm's rewrite, and the reimplementation was wrong twice in one
 review — which is the whole argument for handing the job to pnpm instead of
-owning a subset of its logic. This is still the only package carrying such a
-specifier, so it is the one whose tarball is worth inspecting after any change
-to how packing works: `pnpm -C bestax-migrate pack`.
+owning a subset of its logic. It was the only package carrying such a
+specifier until #644 put one in every CLI, so all three tarballs are worth
+inspecting after any change to how packing works: `pnpm -C bestax-migrate pack`,
+and the same for `create-bestax` and `bestax-mcp`.
 
-`@allxsmith/bestax-bulma` still stays a **devDependency** — it is only the
-typecheck target for the e2e, never imported at runtime, and consumers of a
-codemod CLI must not be made to install the component library. Both halves of
-that are now enforced by `publishable-manifests` (#537): the protocol rule
-flags `workspace:^` in a consumer section, and the sibling rule flags a
-workspace package name in `dependencies`/`optionalDependencies` **whatever
-the specifier says** — so the plain-semver spelling that used to pass on
-review attention alone fails CI with the move-it-back fix named. One
-appearance that is NOT a counterexample: the e2e asserts the **migrated
-app's** manifest depends on the library (`e2e/kitchen-sink.test.ts`) — that
-is the codemod's output, which should depend on it, and no check reads it.
+`@allxsmith/bestax-bulma` is a declared **dependency** (#644): the codemod is
+built for the library and its manifest says so, the way bulma-ui declares
+`bulma`. Nothing in `src/` imports it at runtime — it is the typecheck target
+for the e2e and the source of the `valid*` constants the value-union tests diff
+against — and consumers of the CLI now install it along with `bulma` and, under
+npm's automatic peer install, `react`/`react-dom`. `publishable-manifests`
+(#537) still forbids a workspace sibling in `dependencies`/`optionalDependencies`
+**whatever the specifier says**; this one passes only because
+`SIBLING_RUNTIME_DEPS` in `scripts/check-conformance.mjs` declares the exact
+pair, and a test holds that declaration to the real manifest. One appearance
+that is NOT this dependency: the e2e asserts the **migrated app's** manifest
+depends on the library (`e2e/kitchen-sink.test.ts`) — that is the codemod's
+output, which should depend on it, and no check reads it.
 
 The skill lives at repo-root
 `skills/bestax-migrate/`. It **is** bundled into create-bestax (settled in #385): the
