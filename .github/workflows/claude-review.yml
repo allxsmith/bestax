@@ -372,14 +372,24 @@ jobs:
           # only read under the checkout. The name is dot-prefixed and
           # gitignored, and the session never commits.
           OUT="$GITHUB_WORKSPACE/.deep-review-delta.patch"
+          # This checkout is PR-controlled and `.gitignore` does not stop a
+          # branch force-adding that path as a symlink, which the redirect
+          # below would follow. Unlink first: the write then creates a new
+          # regular file whatever the branch shipped.
+          rm -f "$OUT"
           # Both commits present AND the old one an ancestor of the head.
           # A rebase or force-push can leave last_sha reachable but off the
           # current history, and a two-dot diff between two such commits
           # reports the rewritten work as reversed — a delta that never
           # existed. No ancestry, no boundary: fall back to a fresh review.
+          # A merge in the range is the same problem from the other side: a
+          # branch that merged an updated base since the last review keeps
+          # ancestry, but the two-dot patch then carries every upstream
+          # change too, which is not this PR's delta. Fall back as well.
           if git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null \
              && git cat-file -e "$HEAD_SHA^{commit}" 2>/dev/null \
-             && git merge-base --is-ancestor "$LAST_SHA" "$HEAD_SHA"; then
+             && git merge-base --is-ancestor "$LAST_SHA" "$HEAD_SHA" \
+             && [ -z "$(git rev-list --merges "$LAST_SHA".."$HEAD_SHA")" ]; then
             {
               git diff --stat "$LAST_SHA" "$HEAD_SHA"
               printf '\n'
@@ -388,7 +398,7 @@ jobs:
             echo "path=$OUT" >> "$GITHUB_OUTPUT"
             echo "verify delta: $LAST_SHA..$HEAD_SHA ($(wc -l < "$OUT") lines)"
           else
-            echo "last reviewed commit $LAST_SHA is missing from this checkout or is not an ancestor of $HEAD_SHA — falling back to a fresh review"
+            echo "no usable boundary from $LAST_SHA to $HEAD_SHA (missing commit, no ancestry, or a merge in the range) — falling back to a fresh review"
           fi
 
       - name: Setup pnpm
