@@ -2068,8 +2068,9 @@ const PNPM_PUBLISHED = new Set([
 
 /**
  * Workspace siblings a published package depends on AT RUNTIME, on purpose
- * (#644): the CLIs are built for `@allxsmith/bestax-bulma` and their manifests
- * say so, the way bulma-ui declares `bulma` without ever importing it. This is
+ * (#644): create-bestax is built for `@allxsmith/bestax-bulma` and its
+ * manifest says so, the way bulma-ui declares `bulma` without ever importing
+ * it; bestax-mcp and bestax-migrate join this map in their own PRs. This is
  * the exemption the sibling rule below reserved for "the PR that needs one",
  * and it takes the PNPM_PUBLISHED shape for the same reason: a declaration
  * cannot be misparsed, and scripts/publishable-manifests.test.mjs checks it
@@ -2269,8 +2270,9 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
  * The rule is blanket over published packages rather than an opt-in set, so
  * nothing is grandfathered by accident: the ONLY way through it is a line in
  * SIBLING_RUNTIME_DEPS above, added by the PR that wants the dependency, at
- * the moment the decision is cheap. #644 is that PR for the CLIs, which
- * depend on `@allxsmith/bestax-bulma` by declaration and never import it. The
+ * the moment the decision is cheap. #644 is that decision for the CLIs, one
+ * PR per package, each depending on `@allxsmith/bestax-bulma` by declaration
+ * and never importing it. The
  * exemption is per directory and per target, never per section: a declared
  * sibling in `optionalDependencies`, or a different sibling in the same
  * manifest, is still the case this rule exists for. A private sibling is never
