@@ -608,11 +608,13 @@ jobs:
               the reviewer. This does not extend to workflow comments,
               guide prose, or the PR body.
             - Findings about COMMENTS, docs prose, or the PR body: act only
-              if the text is FALSE about who can trigger a job or what a
-              credentialed job can do. Fix by deleting the overstated
-              clause — never by adding sentences, qualifiers, counts, run
-              ids, or dates. Otherwise refute in one line ("Imprecise,
-              not false; leaving it.") and push nothing for it.
+              if the text is FALSE about something a reader will act on:
+              who can trigger a job or what a credentialed job can do,
+              what a public component, prop, or command does, or an
+              example that does not work as written. Fix by deleting or
+              correcting the false clause — never by adding qualifiers,
+              counts, run ids, or dates. Otherwise refute in one line
+              ("Imprecise, not false; leaving it.") and push nothing.
             Only implement findings that are genuine, in-scope defects or
             small, clearly-correct improvements.
 

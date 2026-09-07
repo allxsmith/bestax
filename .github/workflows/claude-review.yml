@@ -477,13 +477,15 @@ jobs:
             6a. PROSE IS ADVISORY BY DEFAULT. A finding whose subject is a
                 comment, a docs page, a CLAUDE.md, or the PR body is 🔵
                 Advisory — a summary row, never inline — UNLESS the text
-                is FALSE about who can trigger a job or what a
-                credentialed job can do: it names the wrong actor, role,
-                token, or trigger, or claims a control that does not
-                exist, or says a job cannot do something it can. Imprecise
-                is not false. A missing qualifier, a stale count, "every"
-                where the mechanism is "most", or a restated third-party
-                internal is Advisory, and one row covers all of them.
+                is FALSE about something a reader will act on: who can
+                trigger a job or what a credentialed job can do (the wrong
+                actor, role, token, or trigger; a control that does not
+                exist; a job said unable to do what it can), or what a
+                public component, prop, or command does, or an example
+                that does not work as written. Imprecise is not false. A
+                missing qualifier, a stale count, "every" where the
+                mechanism is "most", or a restated third-party internal
+                is Advisory, and one row covers all of them.
                 When you suggest a wording change, fix by DELETION: name
                 the clause to remove so the remainder is true. Never
                 suggest adding a sentence, a qualifier, a number, a run
