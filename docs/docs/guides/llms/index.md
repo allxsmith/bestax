@@ -150,7 +150,7 @@ especially welcome.
 The LLM docs are generated at build time by
 [`docusaurus-plugin-llms`](https://github.com/rachfop/docusaurus-plugin-llms)
 (configured in `docs/docusaurus.config.js`), following the
-[llmstxt.org](https://llmstxt.org) standard. Three artifacts are produced and served
+[llmstxt.org](https://llmstxt.org) standard. These artifacts are produced and served
 from the site root:
 
 | File                                                | What it is                                                                                                                          |

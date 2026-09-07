@@ -322,8 +322,11 @@ The short version for contributors:
   squash-merges. Don't add or remove the loop labels (`ai-loop`, `needs-human-review`,
   `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
 - **Hand-driven PRs that want a deep review**: apply `deep-review` once at open, fix everything
-  it raised, then re-apply it once. The re-run verifies its own threads and reviews only the
-  commits since its last review; CodeRabbit re-reviews every push by itself, so let it go last.
+  it raised, then re-apply it once. The re-run verifies its own threads and reviews the commits
+  since its last review, or falls back to a full review when it cannot trust that boundary —
+  after a force push, a base change, or a merge from the base. CodeRabbit reviews incrementally
+  on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
+  its window reopens.
   Do not relabel per push: each application spends a full opus session, and relabeling after
   every fix is what turned #643 into 14 review rounds.
 - **PR titles must be scoped conventional commits** — the title becomes the squash commit and

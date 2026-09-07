@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Icons
 
-bestax-bulma supports five icon libraries out of the box: **Font Awesome**, **Material Design Icons**, **Ionicons**, **Google Material Icons**, and **Material Symbols**. Font Awesome is the default when no `library` prop is set.
+bestax-bulma supports these icon libraries out of the box: **Font Awesome**, **Material Design Icons**, **Ionicons**, **Google Material Icons**, and **Material Symbols**. Font Awesome is the default when no `library` prop is set.
 
 :::tip Easiest path: `create-bestax`
 The [Quick Start](/docs/guides/intro) installer prompts you to pick an icon library (or none) and handles the install, CSS import, and any needed `ConfigProvider` wiring automatically. Use the manual steps below if you're adding icons to an existing project or want to switch libraries later.

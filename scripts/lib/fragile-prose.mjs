@@ -42,7 +42,9 @@ const COUNTED_NOUNS =
   'reviews?|threads?|commits?|exports?|examples?|pages?|apps?|stories|' +
   'story|tests?|rules?|steps?|variables?|labels?|reviewers?|actors?|' +
   'members?|items?|services?|calls?|requests?|endpoints?|secrets?|' +
-  'tokens?|branches|scripts?|generators?|sections?|tables?|bullets?';
+  'tokens?|branches|scripts?|generators?|sections?|tables?|bullets?|' +
+  'skills?|libraries|library|artifacts?|targets?|sources?|hooks?|' +
+  'flags?|inputs?|outputs?|fields?|keys?|paths?';
 
 const NUMBER = `(?:${NUMBER_WORDS}|\\d+)`;
 
@@ -78,7 +80,7 @@ const PATTERNS = [
     why: 'line reference',
     // "claude-pr-loop.yml:224", "(:729)" style, or the words "line 224",
     // "lines 224-229", "L224".
-    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|mjs|c?js|tsx?|json|sh|scss|css)|[\s(]):\d{1,4}(?:-\d{1,4})?\b|\b(?:lines?|L)\s?\d{1,4}(?:\s?[-–]\s?\d{1,4})?\b/i,
+    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|[cm]?jsx?|tsx?|json|sh|scss|css|go|py|rs)|[\s(]):\d{1,4}(?:-\d{1,4})?\b|\b(?:lines?|L)\s?\d{1,4}(?:\s?[-–]\s?\d{1,4})?\b/i,
   },
 ];
 
@@ -95,6 +97,8 @@ const NOT_A_COUNT = [
   /\b\d+(?:\.\d+)?\s?(?:B|KB|MB|GB|KiB|MiB)\b/g, // sizes
   /\b(?:port|node|react|bulma|docusaurus|typescript|es)\s?\d+\b/gi, // named versions and ports
   /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
+  /\b\d+\s?[-–—]\s?\d+\b/g, // a range is guidance ("a 1-3 sentence hook"), not a tally
+  /\b\d+-(?:column|row|cell|bit|byte|core)\b/gi, // named systems, not inventories
 ];
 
 function blank(str, re) {
@@ -113,7 +117,7 @@ function maskNotCounts(line) {
 // cannot half-match a comment if this is ever handed more than one line.
 function maskInline(line) {
   return blank(
-    blank(blank(line, /`[^`]*`/g), /<!--[\s\S]*?-->/g),
+    blank(blank(line, /(`+)[\s\S]*?\1/g), /<!--[\s\S]*?-->/g),
     /https?:\/\/\S+/g
   );
 }
@@ -204,11 +208,13 @@ export function scanFragileProse(text, { kind }) {
     // A line that cites an issue or PR is recording what happened there
     // ("twelve commits behind on #361"), and history does not go stale. The
     // maintained counts this rule exists for name no ticket.
+    // A ticket makes a count historical, not a line number: "the guard at
+    // foo.yml:42, fixed in #643" still cites a line that will move.
     const receipt = /#\d+\b/.test(line);
     const subject = maskNotCounts(maskInline(line));
     for (const { why, re, kinds } of PATTERNS) {
       if (kinds && !kinds.includes(kind)) continue;
-      if (receipt && why !== 'run id') continue;
+      if (receipt && why === 'count') continue;
       const m = subject.match(re);
       if (m) {
         hits.push({ line: idx + 1, why, text: m[0].trim() });

@@ -215,7 +215,7 @@ function CustomComponent() {
 
 ## Configuration Hooks
 
-Four hooks expose the active configuration so your own components can honor the same settings as bestax's built-ins.
+These hooks expose the active configuration so your own components can honor the same settings as bestax's built-ins.
 
 ### useConfig
 

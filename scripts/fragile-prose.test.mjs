@@ -49,6 +49,9 @@ test('the documented example shapes are all hits', () => {
     'walks every file under node_modules, thousands of them',
     'forty hosts across the fleet',
     'completed all fifteen of its API calls under the firewall',
+    'the repo ships seven Agent Skills today',
+    'five icon libraries are supported',
+    'the release uploads five artifacts',
   ]) {
     assert.deepEqual(whys(md(text)), ['count'], text);
   }
@@ -163,6 +166,33 @@ test('a rule number or a step id is not a line reference', () => {
   );
   assert.deepEqual(
     md('it is step 4 of the anatomy rule in the component guide'),
+    []
+  );
+});
+
+test('a source path with any common extension is a line reference', () => {
+  for (const text of [
+    'the sequence is writeStatus (agent.go:307) and then a serve loop',
+    'see App.jsx:42 for the callback',
+    'the helper at scripts/lib/skills.mjs:88',
+  ]) {
+    assert.deepEqual(whys(md(text)), ['line reference'], text);
+  }
+});
+
+test('a ticket excuses a count but never a line reference', () => {
+  assert.deepEqual(
+    md('deleted 868 lines on #613 and the suite stayed green'),
+    []
+  );
+  assert.deepEqual(whys(md('the old guard at foo.yml:42 was fixed in #643')), [
+    'line reference',
+  ]);
+});
+
+test('a double-backtick code span is masked like a single one', () => {
+  assert.deepEqual(
+    md('Use ``nineteen jobs`` literally, and `87 components` too'),
     []
   );
 });
