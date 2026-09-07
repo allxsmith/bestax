@@ -266,9 +266,15 @@ export function scanFragileProse(text, { kind }) {
 
 /** The house-format message for one hit, ready for check-conformance. */
 export function describeHit(rel, hit) {
+  const remedy = {
+    count:
+      'put the command that produces it, or move the evidence to the issue',
+    'run id': 'move the evidence to the issue and link it',
+    'line reference':
+      'cite a heading, a step id, a job name, a flag or a rule number instead',
+  }[hit.why];
   return (
     `${rel} line ${hit.line}: "${hit.text}" — a ${hit.why} in prose goes ` +
-    `stale; put the command that produces it, move the evidence to the ` +
-    `issue, or mark the line ${ALLOW_TOKEN} with a reason`
+    `stale; ${remedy}, or mark the line ${ALLOW_TOKEN} with a reason`
   );
 }

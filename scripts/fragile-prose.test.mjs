@@ -159,6 +159,20 @@ test('path:line and "line N" references are hits', () => {
   ]);
 });
 
+test('a bare filename is not a line reference', () => {
+  assert.deepEqual(
+    md('edit turbo.json and rerun, then see App.jsx and index.mjs'),
+    []
+  );
+});
+
+test('the remedy names something that would actually fix the finding', () => {
+  const [ref] = md('the guard at foo.yml:42');
+  assert.match(describeHit('x.md', ref), /cite a heading, a step id/);
+  const [count] = md('nineteen jobs share this');
+  assert.match(describeHit('x.md', count), /the command that produces it/);
+});
+
 test('a rule number or a step id is not a line reference', () => {
   assert.deepEqual(
     md("rule 10's grep, the `dedupe` step, and heading 3.2"),

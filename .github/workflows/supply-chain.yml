@@ -964,7 +964,7 @@ jobs:
       # The provenance assertion moved out of this file and into
       # scripts/verify-attestation.mjs (#526), because checking what an
       # attestation *says* means decoding a base64 DSSE payload and comparing
-      # every field — rule 9 logic, not a shell loop. So the job now needs the
+      # the required provenance fields — rule 9 logic, not a shell loop. So the job needs the
       # repository on disk.
       #
       # This adds a second third-party action to a job that had one, which is
@@ -1040,7 +1040,8 @@ jobs:
       # digest is the one the attestation signs, and that the build it describes
       # is this repository, this workflow, this ref, on a GitHub-hosted runner.
       # The logic lives in scripts/ with a node --test sibling, per rule 9,
-      # because it decodes a base64 DSSE payload and compares every field; that
+      # because it decodes a base64 DSSE payload and compares the required
+      # provenance fields; that
       # is not something a shell loop can be tested for.
       #
       # Fails closed everywhere: a fetch error, an unparsable payload, or a
