@@ -2067,11 +2067,28 @@ const PNPM_PUBLISHED = new Set([
 ]);
 
 /**
+ * Workspace siblings a published package depends on AT RUNTIME, on purpose
+ * (#644): the CLIs are built for `@allxsmith/bestax-bulma` and their manifests
+ * say so, the way bulma-ui declares `bulma` without ever importing it. This is
+ * the exemption the sibling rule below reserved for "the PR that needs one",
+ * and it takes the PNPM_PUBLISHED shape for the same reason: a declaration
+ * cannot be misparsed, and scripts/publishable-manifests.test.mjs checks it
+ * against the real manifests, so a dependency that is later removed fails a
+ * test instead of leaving a silent standing exemption.
+ *
+ * Keyed by directory, valued by the sibling's PACKAGE NAME (the alias target,
+ * so `"ui": "npm:@allxsmith/bestax-bulma@^5"` is the same declaration). It
+ * covers `dependencies` only: an optional sibling is not what anyone declared.
+ */
+export const SIBLING_RUNTIME_DEPS = new Map([
+  ['create-bestax', new Set(['@allxsmith/bestax-bulma'])],
+]);
+
+/**
  * The per-package rule, split out from the filesystem walk so it can be driven
  * with fixtures. Without this seam the violation branches never execute during
- * a real run — bestax-migrate is the only package carrying a pack-time
- * specifier and it is exempt for it — so inverting the rule would leave CI
- * green.
+ * a real run — every package carrying a pack-time specifier is declared exempt
+ * for it — so inverting the rule would leave CI green.
  *
  * Each offender carries the reason it survived the filter, so the message does
  * not re-derive the predicate that produced it. Two copies of one rule inside
@@ -2249,12 +2266,16 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
  * four-file codemod CLI install the component library. bestax-migrate's
  * CLAUDE.md carried "that one is on review" as the only enforcement.
  *
- * The rule is blanket over published packages rather than an opt-in set: no
- * package has a sibling dep in a consumer section today, so nothing is
- * grandfathered, and a scaffolder or an MCP server has no more business
- * pulling in the component library than the codemod does. If a package ever
- * legitimately needs one, that PR adds the exemption — a decision at the
- * moment it is cheap, the PNPM_PUBLISHED shape.
+ * The rule is blanket over published packages rather than an opt-in set, so
+ * nothing is grandfathered by accident: the ONLY way through it is a line in
+ * SIBLING_RUNTIME_DEPS above, added by the PR that wants the dependency, at
+ * the moment the decision is cheap. #644 is that PR for the CLIs, which
+ * depend on `@allxsmith/bestax-bulma` by declaration and never import it. The
+ * exemption is per directory and per target, never per section: a declared
+ * sibling in `optionalDependencies`, or a different sibling in the same
+ * manifest, is still the case this rule exists for. A private sibling is never
+ * exempt, declared or not — no consumer could install it, so the declaration
+ * would be excusing a manifest that cannot ship.
  *
  * peerDependencies are deliberately OUTSIDE the rule, and this departs from
  * the protocol rule above, which does fire on a `workspace:` peer (with
@@ -2288,6 +2309,13 @@ export function siblingViolations(dir, pkg, siblings) {
       }
       const sibling = siblings.get(target);
       if (!sibling || target === pkg?.name) continue;
+      if (
+        section === 'dependencies' &&
+        !sibling.private &&
+        SIBLING_RUNTIME_DEPS.get(dir)?.has(target)
+      ) {
+        continue;
+      }
       // A PRIVATE sibling gets different advice: it does not exist on the
       // registry, so "make it a peerDependency" would leave every consumer
       // unable to install — the dependency cannot ship in any section

@@ -20,6 +20,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  SIBLING_RUNTIME_DEPS,
   hookScripts,
   manifestViolations,
   parseWorkspacePackages,
@@ -302,9 +303,9 @@ test('quotes, blank lines, and comment lines still parse as before', () => {
 
 // --- the rule ----------------------------------------------------------------
 //
-// bestax-migrate is the only package carrying a pack-time specifier and it is
-// exempt for that one, so none of these branches executes during a real run.
-// Without them, inverting the rule leaves CI green.
+// Every package carrying a pack-time specifier is declared exempt for it, so
+// none of these branches executes during a real run. Without them, inverting
+// the rule leaves CI green.
 
 // A declared package must also wire the prepublishOnly guard, so fixtures for
 // the pnpm side carry it; otherwise every one of them picks up that violation
@@ -708,9 +709,10 @@ test('an unresolvable protocol in devDependencies is explained honestly', () => 
 // --- the sibling-at-runtime rule (#537) --------------------------------------
 //
 // Driven with an explicit name set because the rule is pure and the real set
-// is derived inside the async walk. No published package carries a sibling in
-// a consumer section today, so none of these branches executes on the real
-// tree — the same seam rationale as everything above.
+// is derived inside the async walk. The violating fixtures below use pairs that
+// are NOT in SIBLING_RUNTIME_DEPS, because the declared pair (#644) is the one
+// the real tree carries and it passes — the same seam rationale as everything
+// above: a test that used the real, exempt pair would pass with the rule off.
 
 const SIBLINGS = new Map([
   ['@allxsmith/bestax-bulma', { private: false }],
@@ -722,15 +724,15 @@ const SIBLINGS = new Map([
 
 test('a plain-semver sibling in dependencies is flagged, whatever the range', () => {
   const v = siblingViolations(
-    'bestax-migrate',
+    'bestax-mcp',
     {
-      name: 'bestax-migrate',
-      dependencies: { '@allxsmith/bestax-bulma': '^5' },
+      name: 'bestax-mcp',
+      dependencies: { 'create-bestax': '^4' },
     },
     SIBLINGS
   );
   assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /consumers of bestax-migrate/);
+  assert.match(v[0], /consumers of bestax-mcp/);
   assert.match(v[0], /#537/);
 });
 
@@ -806,16 +808,16 @@ test('an npm alias pointing at a sibling is still a sibling', () => {
   // another key, so a key-only comparison was bypassable by renaming —
   // review caught the hole. The message names both the target and the alias.
   const v = siblingViolations(
-    'bestax-migrate',
+    'bestax-mcp',
     {
-      name: 'bestax-migrate',
-      dependencies: { ui: 'npm:@allxsmith/bestax-bulma@^5' },
+      name: 'bestax-mcp',
+      dependencies: { scaffold: 'npm:create-bestax@^4' },
     },
     SIBLINGS
   );
   assert.equal(v.length, 1, v.join('\n'));
-  assert.match(v[0], /@allxsmith\/bestax-bulma/);
-  assert.match(v[0], /aliased as "ui"/);
+  assert.match(v[0], /"create-bestax"/);
+  assert.match(v[0], /aliased as "scaffold"/);
 });
 
 test('a private sibling is not offered the peerDependency escape', () => {
@@ -841,15 +843,15 @@ test('one violation, one fix: the sibling rule owns a workspace: sibling dep', (
   // fix is the correct one, so the protocol rule stands down by name; a
   // `catalog:` entry pointing at an EXTERNAL package is no sibling and stays
   // protocol-flagged.
-  const siblings = new Map([['@allxsmith/bestax-bulma', { private: false }]]);
+  const siblings = new Map([['create-bestax', { private: false }]]);
   const pkg = {
-    name: 'bestax-migrate',
-    dependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+    name: 'bestax-mcp',
+    dependencies: { 'create-bestax': 'workspace:^' },
   };
-  const protocol = manifestViolations('bestax-migrate', pkg, siblings).filter(
-    v => v.includes('bestax-bulma')
+  const protocol = manifestViolations('bestax-mcp', pkg, siblings).filter(v =>
+    v.includes('create-bestax')
   );
-  const sibling = siblingViolations('bestax-migrate', pkg, siblings);
+  const sibling = siblingViolations('bestax-mcp', pkg, siblings);
   assert.equal(protocol.length, 0);
   assert.equal(sibling.length, 1);
   assert.match(sibling[0], /Move it to devDependencies/);
@@ -860,4 +862,123 @@ test('one violation, one fix: the sibling rule owns a workspace: sibling dep', (
     siblings
   );
   assert.ok(external.some(v => v.includes('leftpad')));
+});
+
+// --- the declared runtime siblings (#644) -------------------------------------
+//
+// SIBLING_RUNTIME_DEPS is the one way through the rule above. These pin its
+// edges: exempt exactly the declared (directory, target) pair in
+// `dependencies`, and nothing adjacent to it.
+
+test('a declared runtime sibling in dependencies is exempt', () => {
+  for (const [dir, targets] of SIBLING_RUNTIME_DEPS) {
+    for (const target of targets) {
+      assert.deepEqual(
+        siblingViolations(
+          dir,
+          { name: dir, dependencies: { [target]: 'workspace:^' } },
+          SIBLINGS
+        ),
+        [],
+        `${dir} -> ${target}`
+      );
+    }
+  }
+});
+
+test('the exemption is by target, so an alias to a declared sibling is exempt too', () => {
+  assert.deepEqual(
+    siblingViolations(
+      'create-bestax',
+      {
+        name: 'create-bestax',
+        dependencies: { ui: 'npm:@allxsmith/bestax-bulma@^5' },
+      },
+      SIBLINGS
+    ),
+    []
+  );
+});
+
+test('a declared sibling in optionalDependencies is still flagged', () => {
+  const v = siblingViolations(
+    'create-bestax',
+    {
+      name: 'create-bestax',
+      optionalDependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+});
+
+test('a declared directory depending on a different sibling is still flagged', () => {
+  const v = siblingViolations(
+    'create-bestax',
+    { name: 'create-bestax', dependencies: { 'bestax-mcp': 'workspace:^' } },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /"bestax-mcp"/);
+});
+
+test('an undeclared directory depending on a declared target is still flagged', () => {
+  const v = siblingViolations(
+    'bulma-ui',
+    {
+      name: '@allxsmith/bestax-bulma',
+      dependencies: { 'create-bestax': 'workspace:^' },
+    },
+    SIBLINGS
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+});
+
+test('a private sibling is never exempt, declared or not', () => {
+  // The map cannot be edited from here, so this pins the guard the only way
+  // it can be reached: a declared directory naming a private target. Nothing
+  // declares one today; if a declaration ever does, this is what fails.
+  for (const [dir, targets] of SIBLING_RUNTIME_DEPS) {
+    for (const target of targets) {
+      assert.equal(SIBLINGS.get(target)?.private, false, `${dir} -> ${target}`);
+    }
+  }
+});
+
+test('every declared runtime sibling matches the real manifests', () => {
+  // The declaration is the exemption, so it has to describe the tree as it is:
+  // a directory that stopped depending on the sibling must lose its line, or
+  // the exemption outlives the dependency it was granted for. Read through the
+  // same helpers as the PNPM_PUBLISHED checks above, so an unreadable manifest
+  // throws rather than shrinking the set.
+  const manifests = new Map(
+    parseWorkspacePackages(repoFile('pnpm-workspace.yaml')).map(dir => [
+      dir,
+      JSON.parse(repoFile(`${dir}/package.json`)),
+    ])
+  );
+  const privateByName = new Map(
+    [...manifests.values()].map(p => [p.name, Boolean(p.private)])
+  );
+  assert.ok(SIBLING_RUNTIME_DEPS.size > 0, 'SIBLING_RUNTIME_DEPS is empty');
+  for (const [dir, targets] of SIBLING_RUNTIME_DEPS) {
+    assert.ok(
+      DECLARED.has(dir),
+      `${dir} is declared in SIBLING_RUNTIME_DEPS but not in PNPM_PUBLISHED`
+    );
+    const pkg = manifests.get(dir);
+    assert.ok(pkg, `${dir} is not a workspace package`);
+    for (const target of targets) {
+      assert.ok(
+        privateByName.has(target),
+        `${target} is not a workspace package`
+      );
+      assert.equal(privateByName.get(target), false, `${target} is private`);
+      assert.ok(
+        Object.hasOwn(pkg.dependencies ?? {}, target),
+        `${dir} declares ${target} in SIBLING_RUNTIME_DEPS but its ` +
+          `package.json does not list it in dependencies`
+      );
+    }
+  }
 });

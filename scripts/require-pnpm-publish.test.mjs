@@ -172,8 +172,9 @@ test('the refusal names the package being packed, not a hardcoded one', () => {
 });
 
 test('a readable manifest gets its offending specifier quoted', () => {
-  // bestax-migrate is the only package carrying one, and naming it is the
-  // reason this branch exists at all.
+  // bestax-migrate carries one in devDependencies (create-bestax carries the
+  // same sibling in dependencies, #644), and naming it is the reason this
+  // branch exists at all.
   let msg = '';
   main({ npm_execpath: NPM }, m => (msg = m), repoDir('bestax-migrate'));
   assert.match(msg, /bestax-migrate declares/);

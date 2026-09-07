@@ -116,7 +116,12 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
   not stop every consumer being made to install the dependency. Which packages publish with pnpm
   is **declared** in `check:conformance` rather than inferred from their release config —
   inferring it meant parsing semantic-release's config format, which was wrong four times,
-  and every miss granted the exemption.
+  and every miss granted the exemption. A workspace **sibling** in `dependencies` or
+  `optionalDependencies` is separately a violation however the specifier is spelled (#537), and
+  the only way through is a line in `SIBLING_RUNTIME_DEPS` — same declared shape — for a
+  package that depends on a sibling at runtime on purpose (#644: the CLIs on
+  `@allxsmith/bestax-bulma`, the way bulma-ui declares `bulma`); the test holds that declaration
+  to the real manifests, so a removed dependency cannot leave a standing exemption.
 
 ## Workflow
 

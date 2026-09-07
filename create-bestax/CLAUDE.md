@@ -15,6 +15,18 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 - `src/validators.ts`, `src/display.ts`, `src/file-system.ts` — support modules
 - `templates/vite`, `templates/vite-ts` — the app templates
 
+## Dependencies
+
+`@allxsmith/bestax-bulma` is a declared runtime dependency (#644). The scaffolder is built for
+the library and its manifest says so, the way bulma-ui declares `bulma` without importing it:
+nothing in `src/` imports the library, the templates pin the published package themselves
+(`^5.0.0` in `templates/*/package.json`), and the e2e installs from the registry with
+`--ignore-workspace`. It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
+current at pack time (bulma-ui releases first in the same job), and the sibling rule in
+`check:conformance` allows it only because `SIBLING_RUNTIME_DEPS` declares this exact pair.
+What a consumer sees: `npm create bestax` installs the library, `bulma`, and — npm's automatic
+peer install — `react`/`react-dom` alongside the CLI.
+
 ## Sync rules (this package re-ships other parts of the repo)
 
 - `pnpm build` and `prepack` run `scripts/sync-skills.mjs`, which copies **every directory
