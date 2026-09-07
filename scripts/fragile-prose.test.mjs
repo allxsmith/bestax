@@ -213,6 +213,17 @@ test('a count wrapped across two lines is caught, at its first line', () => {
   assert.deepEqual(md('fine\nfine\nfine'), []);
 });
 
+test('the reason must sit inside the marker comment, and the token must end', () => {
+  assert.deepEqual(
+    whys(md('87 components <!-- bestax:count-ok --> trailing prose')),
+    ['count']
+  );
+  assert.deepEqual(whys(md('87 components <!-- bestax:count-okfoo -->')), [
+    'count',
+  ]);
+  assert.deepEqual(md('87 components <!-- bestax:count-ok generated -->'), []);
+});
+
 test('the allow marker needs a reason', () => {
   assert.deepEqual(
     md('87 components today <!-- bestax:count-ok: generated -->'),

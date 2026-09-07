@@ -278,8 +278,7 @@ export function scanFragileProse(text, { kind }) {
     if (!line.trim()) return;
     // The marker only excuses a line when it says why: a bare token is the
     // reflexive exemption the rule exists to avoid.
-    const marker = raw[idx].replace(/--!?>|\*\/\}/g, ' ');
-    if (new RegExp(`${ALLOW_TOKEN}\\s*[-:—]?\\s*\\w`).test(marker)) return;
+    if (hasReasonedMarker(raw[idx])) return;
     // A ticket makes a count historical: "twelve commits behind on #361"
     // records what happened there, and history does not go stale. It never
     // excuses a line reference, which moves whatever the history says.
@@ -316,6 +315,24 @@ export function scanFragileProse(text, { kind }) {
     }
   });
   return hits;
+}
+
+/**
+ * Whether the line carries the exemption marker AND says why, inside the same
+ * comment. The reason has to sit between the token and that comment's closing
+ * delimiter: prose after the comment is not a reason, and neither is the
+ * delimiter itself. The token needs a boundary, so `bestax:count-okfoo` is a
+ * typo rather than an exemption.
+ */
+function hasReasonedMarker(line) {
+  const token = new RegExp(`${ALLOW_TOKEN}(?![\\w-])`, 'g');
+  for (let m = token.exec(line); m; m = token.exec(line)) {
+    const rest = line.slice(m.index + m[0].length);
+    const close = rest.search(/--!?>|\*\/\}/);
+    const reason = close === -1 ? rest : rest.slice(0, close);
+    if (/\w/.test(reason)) return true;
+  }
+  return false;
 }
 
 /** The house-format message for one hit, ready for check-conformance. */
