@@ -398,10 +398,16 @@ jobs:
              && git cat-file -e "$HEAD_SHA^{commit}" 2>/dev/null \
              && git merge-base --is-ancestor "$LAST_SHA" "$HEAD_SHA" \
              && [ -z "$(git rev-list --merges "$LAST_SHA".."$HEAD_SHA")" ]; then
+            # --text --no-textconv --no-ext-diff: a `.gitattributes` in this
+            # checkout can mark a changed file `-diff`, `binary`, or onto a
+            # textconv/external driver, and the patch would then read
+            # "Binary files differ" while still looking complete. These
+            # force git's own textual diff whatever the branch declares.
+            DIFF="git diff --text --no-textconv --no-ext-diff"
             {
-              git diff --stat "$LAST_SHA" "$HEAD_SHA"
+              $DIFF --stat "$LAST_SHA" "$HEAD_SHA"
               printf '\n'
-              git diff "$LAST_SHA" "$HEAD_SHA"
+              $DIFF "$LAST_SHA" "$HEAD_SHA"
             } > "$OUT"
             echo "path=$OUT" >> "$GITHUB_OUTPUT"
             echo "verify delta: $LAST_SHA..$HEAD_SHA ($(wc -l < "$OUT") lines)"
