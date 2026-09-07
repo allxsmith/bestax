@@ -163,7 +163,7 @@ function IoniconExample() {
 
 **Available Icon Variants:**
 
-Ionicons v8 provides three variants for most icons:
+Ionicons v8 provides these variants for most icons:
 
 ```tsx live
 import { Icon, Columns, Column, Block } from '@allxsmith/bestax-bulma';

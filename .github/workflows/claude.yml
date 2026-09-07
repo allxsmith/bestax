@@ -237,7 +237,7 @@ jobs:
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
           # Same call, second vendor: turbo phones telemetry.vercel.com from the
-          # pnpm commands this session runs. It appeared in only one of the six
+          # pnpm commands this session runs. It appeared in only one of the
           # audit runs because turbo samples, which is precisely the intermittent
           # that reddens a block job weeks after a flip. Denied, not allow-listed
           # (#578).

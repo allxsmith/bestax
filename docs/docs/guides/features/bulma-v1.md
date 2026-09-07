@@ -169,7 +169,7 @@ function FixedGrid() {
 
 ### Skeleton Loading States
 
-bestax exposes Bulma v1's skeletons through three complementary APIs:
+bestax exposes Bulma v1's skeletons through complementary APIs:
 
 1. **`skeleton` helper prop** — available on every component that uses `useBulmaClasses` (so: Button, Box, Icon, Image, Notification, Tag, Input, TextArea, and most others). Renders Bulma's `is-skeleton` class for an in-place loading state.
 2. **`<Skeleton />` element** — a standalone placeholder for custom shapes and multi-line blocks (`<Skeleton variant="lines" lines={5} />`).

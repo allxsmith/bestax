@@ -473,8 +473,8 @@ and the jobs adjacent to them, per job, not every job in the directory** — the
 jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story-screenshots.yml`,
 `scorecard.yml`, `dependency-review.yml`) carry no harden-runner and are out of scope here.
 
-- **Enforcing and asserted** — all three `ai-scan` jobs (`gate`, `scan`, `label`), all four
-  `ai-triage` jobs (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
+- **Enforcing and asserted** — every `ai-scan` job (`gate`, `scan`, `label`), every
+  `ai-triage` job (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
   `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
@@ -586,8 +586,8 @@ Two things about reading its output, both learned assembling the #578 lists:
   cost. That was a guess, it was wrong, and the run is what showed it. If you catch yourself
   writing down what a policy will cost, go and read a run instead.
 
-- **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from four
-  runs and present in the fifth — `telemetry.vercel.com` (turbo) showed up exactly once across
+- **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from a
+  run and present in the next — `telemetry.vercel.com` (turbo) showed up exactly once across
   the six #578 runs. Prefer denying telemetry at the source (`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`,
   `TURBO_TELEMETRY_DISABLED`) over allow-listing a host you would rather not talk to; that is the
   standing call here, and it also keeps the next audit report clean for whoever reads it.

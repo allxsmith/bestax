@@ -11,7 +11,7 @@ Conventions:
 
 - Multi-part components use the compound pattern — `Card.Header`, `Navbar.Item`, `Modal.Card` —
   statics attached via `withSubComponents` (`../helpers/withSubComponents.ts`, mutates the
-  base, never wraps), exported from the same file. Each compound family ships the four
+  base, never wraps), exported from the same file. Each compound family ships the
   compound artifacts listed under Conventions in `bulma-ui/CLAUDE.md`: identity tests in a
   `describe('Compound components')` block, a dot-path render test, a `CompoundUsage` story,
   and a `### Compound (dot-notation) usage` docs example.

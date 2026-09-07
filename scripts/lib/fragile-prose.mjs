@@ -44,9 +44,12 @@ const COUNTED_NOUNS =
   'members?|items?|services?|calls?|requests?|endpoints?|secrets?|' +
   'tokens?|branches|scripts?|generators?|sections?|tables?|bullets?|' +
   'skills?|libraries|library|artifacts?|targets?|sources?|hooks?|' +
-  'flags?|inputs?|outputs?|fields?|keys?|paths?';
+  'flags?|inputs?|outputs?|fields?|keys?|paths?|variants?|levers?|' +
+  'questions?|apis?|options?|ways?|kinds?|modes?|reasons?|cases?|' +
+  'surfaces?|helpers?|classes|utilities';
 
-const NUMBER = `(?:${NUMBER_WORDS}|\\d+)`;
+// Up to four digits: a longer run is an id, and the run-id rule owns those.
+const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,4})`;
 
 const PATTERNS = [
   {
@@ -54,7 +57,7 @@ const PATTERNS = [
     // "nineteen jobs", "9 occurrences", "fifteen of its API calls" — a
     // number followed within three words by a counted noun.
     re: new RegExp(
-      `\\b${NUMBER}\\b(?:[\\s-][\\w']+){0,3}?[\\s-](?:${COUNTED_NOUNS})\\b`,
+      `\\b${NUMBER}\\b(?:[\\s-]+[\\w']+){0,3}?[\\s-]+(?:${COUNTED_NOUNS})\\b`,
       'i'
     ),
   },
@@ -98,7 +101,7 @@ const NOT_A_COUNT = [
   /\b(?:port|node|react|bulma|docusaurus|typescript|es)\s?\d+\b/gi, // named versions and ports
   /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
   /\b\d+\s?[-–—]\s?\d+\b/g, // a range is guidance ("a 1-3 sentence hook"), not a tally
-  /\b\d+-(?:column|row|cell|bit|byte|core)\b/gi, // named systems, not inventories
+  /\b\d+-(?:column|row|cell|bit|byte|core|only)\b/gi, // named systems, not inventories
 ];
 
 function blank(str, re) {
@@ -116,10 +119,17 @@ function maskNotCounts(line) {
 // markdown masker below; the comment pattern still spans newlines so it
 // cannot half-match a comment if this is ever handed more than one line.
 function maskInline(line) {
-  return blank(
-    blank(blank(line, /(`+)[\s\S]*?\1/g), /<!--[\s\S]*?-->/g),
-    /https?:\/\/\S+/g
+  let out = blank(blank(line, /(`+)[\s\S]*?\1/g), /<!--[\s\S]*?-->/g);
+  // A link's visible text is prose and its destination is not, so keep the
+  // text and blank the rest; emphasis markers go the same way. Without this a
+  // count inside a link or in bold reads as markup and slips the detector.
+  out = out.replace(
+    /\[([^\]]*)\]\([^)]*\)/g,
+    (m, text) => ' ' + text + ' '.repeat(m.length - text.length - 1)
   );
+  out = out.replace(/(\*\*|__|\*|_)(?=\S)/g, m => ' '.repeat(m.length));
+  out = out.replace(/(?<=\S)(\*\*|__|\*|_)/g, m => ' '.repeat(m.length));
+  return blank(out, /https?:\/\/\S+/g);
 }
 
 /**
@@ -202,22 +212,41 @@ export function scanFragileProse(text, { kind }) {
     kind === 'yaml' ? proseLinesOfYaml(text) : proseLinesOfMarkdown(text);
   // 'guide' is markdown for masking purposes; only the pattern set differs.
   const hits = [];
+  // Markdown wraps sentences, so a count and its noun can straddle a line
+  // break. Each line is scanned joined to the next, and a hit is reported at
+  // the first of the two; the join is why a noun three words away still
+  // matches when the author's editor happened to wrap there.
+  const joined = prose.map((line, i) =>
+    line.trim() && prose[i + 1]?.trim() ? `${line} ${prose[i + 1]}` : line
+  );
   prose.forEach((line, idx) => {
     if (!line.trim()) return;
     if (raw[idx].includes(ALLOW_TOKEN)) return;
+    if (raw[idx + 1]?.includes(ALLOW_TOKEN) && !line.trim()) return;
     // A line that cites an issue or PR is recording what happened there
     // ("twelve commits behind on #361"), and history does not go stale. The
     // maintained counts this rule exists for name no ticket.
     // A ticket makes a count historical, not a line number: "the guard at
     // foo.yml:42, fixed in #643" still cites a line that will move.
     const receipt = /#\d+\b/.test(line);
-    const subject = maskNotCounts(maskInline(line));
+    const own = maskNotCounts(maskInline(line));
+    const pair = maskNotCounts(maskInline(joined[idx]));
     for (const { why, re, kinds } of PATTERNS) {
       if (kinds && !kinds.includes(kind)) continue;
       if (receipt && why === 'count') continue;
+      // The pair only widens the count rule: a run id or a line reference is
+      // a single token and cannot straddle a break.
+      const subject = why === 'count' ? pair : own;
       const m = subject.match(re);
-      if (m) {
-        hits.push({ line: idx + 1, why, text: m[0].trim() });
+      // A match that begins past this line belongs to the next one, which
+      // reports it on its own turn; without this an unrelated first line
+      // would absorb the hit and name the wrong line.
+      if (m && m.index < line.length) {
+        hits.push({
+          line: idx + 1,
+          why,
+          text: m[0].replace(/\s+/g, ' ').trim(),
+        });
         return;
       }
     }

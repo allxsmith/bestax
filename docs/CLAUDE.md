@@ -123,7 +123,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   against; it does not re-derive a third party's internals. Claim the case in front of you:
   "every" and "only" are one counterexample from false. Never cite a line number; cite a
   heading, a step id, or a flag. `check:conformance --only=fragile-prose` enforces the count,
-  run-id, and line-reference parts.
+  run-id, and line-reference parts over `docs/docs/guides/**`; the migration guides are exempt
+  because their counts describe a frozen upstream, and the API pages are generated. The rule
+  still holds everywhere in `docs/docs/**` — the check is a net, not the contract.
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
   execute in the browser, so declare the browser globals each callback actually uses

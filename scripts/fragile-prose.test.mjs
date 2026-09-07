@@ -190,6 +190,30 @@ test('a ticket excuses a count but never a line reference', () => {
   ]);
 });
 
+test('a count wrapped across two lines is caught, at its first line', () => {
+  const [hit] = md(
+    'fine\nthe repo keeps three small pointer\nfiles for agents'
+  );
+  assert.equal(hit.line, 2);
+  assert.equal(hit.why, 'count');
+  assert.deepEqual(md('fine\nfine\nfine'), []);
+});
+
+test('a count inside a link or emphasis is caught', () => {
+  assert.deepEqual(
+    whys(md('The seven [Agent Skills](/docs/skills) ship with it')),
+    ['count']
+  );
+  assert.deepEqual(whys(md('**three levers**, cheapest first')), ['count']);
+});
+
+test('a run id is not read as a count of the words after it', () => {
+  assert.deepEqual(
+    whys(yaml('# run 33286967625 showed claude-review at block')),
+    []
+  );
+});
+
 test('a double-backtick code span is masked like a single one', () => {
   assert.deepEqual(
     md('Use ``nineteen jobs`` literally, and `87 components` too'),

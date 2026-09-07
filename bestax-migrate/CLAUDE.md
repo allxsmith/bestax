@@ -110,7 +110,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
   - `validate:corpus` — react-bulma-components' own MIT Storybook stories →
     `.e2e-tmp/corpus-out/`.
   - `validate:corpus:rbx` — rbx's own MIT docs. rbx used **docz**, not Storybook, so the
-    script extracts the `<Playground>` blocks out of its 43 `*.docs.mdx` pages (254 blocks)
+    script extracts the `<Playground>` blocks out of its `*.docs.mdx` pages
     and rebuilds each page as one synthetic module written the way a consumer writes rbx.
     Output lands in `.e2e-tmp/corpus-out-rbx/`.
   - `validate:corpus:bloomer` — bloomer's own MIT docs: 39 React "Scene" `.tsx` files that
