@@ -109,10 +109,11 @@ function maskNotCounts(line) {
 
 // Inline code, HTML comments and URLs on one line (an issue-comment anchor
 // is a nine-digit number too). Multi-line HTML comments are handled by the
-// markdown masker below.
+// markdown masker below; the comment pattern still spans newlines so it
+// cannot half-match a comment if this is ever handed more than one line.
 function maskInline(line) {
   return blank(
-    blank(blank(line, /`[^`]*`/g), /<!--.*?-->/g),
+    blank(blank(line, /`[^`]*`/g), /<!--[\s\S]*?-->/g),
     /https?:\/\/\S+/g
   );
 }
