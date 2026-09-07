@@ -388,7 +388,7 @@ function MaterialSymbolExample() {
 
 **Available Symbol Styles:**
 
-Material Symbols come in three styles. The default import includes all styles, but you can import selectively:
+Material Symbols come in several styles. The default import includes all of them, but you can import selectively:
 
 ```tsx live
 import { Icon, Columns, Column } from '@allxsmith/bestax-bulma';

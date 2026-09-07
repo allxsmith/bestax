@@ -64,10 +64,10 @@ the API pages and the skill catalog.
 
 Three. `@modelcontextprotocol/sdk` and `zod` are the two that are imported (the
 SDK's schema types are zod, and pnpm's isolated linker means anything imported
-must be declared). The SDK pulls a large tree of transitive packages, most of them for
-HTTP transports this server does not use — that was measured against
-`pnpm audit --audit-level=high` before adopting it, and it comes back clean.
-Re-check if that ever changes.
+must be declared). The SDK pulls a large tree of transitive packages, most of them
+for HTTP transports this server does not use. That footprint was weighed against
+what the server needs before adopting it, and `pnpm audit --audit-level=high`
+comes back clean on the result. Re-check both if that ever changes.
 
 `@allxsmith/bestax-bulma` is declared, not imported (#644): the server is built
 for the library and its manifest says so, the way bulma-ui declares `bulma`.

@@ -3569,10 +3569,12 @@ export async function checkFragileProse(root = REPO) {
     return fn(dir);
   };
   const targets = [
-    ...(await ifPresent(join(root, '.github'), d => walk(d, '.yml'))).map(f => [
-      f,
-      'yaml',
-    ]),
+    ...(
+      await ifPresent(root ? join(root, '.github') : root, async d => [
+        ...(await walk(d, '.yml')),
+        ...(await walk(d, '.yaml')),
+      ])
+    ).map(f => [f, 'yaml']),
     ...(await claudeMdFiles(root)).map(f => [f, 'markdown']),
     // Migration guides are exempt: their counts describe a frozen upstream
     // (a vendored version of another library), and the ones that matter are

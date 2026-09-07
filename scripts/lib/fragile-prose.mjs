@@ -34,8 +34,15 @@ const NUMBER_WORDS =
   'thirty|forty|fifty|sixty|seventy|eighty|ninety|dozens?|hundreds?|' +
   'thousands?';
 
-// Nouns whose count changes when code changes. Durations ("days"), sizes
-// ("KB") and ports are not counts of things and are left alone.
+// Nouns whose count changes when code changes. A curated list, not a general
+// plural rule: English spells plural nouns and third-person verbs the same, so
+// matching any word ending in s turns "the script removes 8" and "4000 covers
+// it" into counts. Precision matters more than recall here, because this gate
+// blocks CI — a false positive teaches people to work around the check, while
+// a miss only means the rule went uncaught once. Durations, sizes and ports
+// are not counts of things and are masked below. Nor is a rhetorical
+// enumeration: "three consequences" or "three things" introduces the list that
+// follows it, and the list is right there to check, so those nouns stay out.
 const COUNTED_NOUNS =
   'jobs?|hosts?|runs?|entries|entry|occurrences?|components?|props?|' +
   'packages?|workflows?|checks?|files?|lines?|rows?|copies|copy|attempts?|' +
@@ -46,9 +53,9 @@ const COUNTED_NOUNS =
   'skills?|libraries|library|artifacts?|targets?|sources?|hooks?|' +
   'flags?|inputs?|outputs?|fields?|keys?|paths?|variants?|levers?|' +
   'questions?|apis?|options?|ways?|kinds?|modes?|reasons?|cases?|' +
-  'surfaces?|helpers?|classes|utilities';
+  'surfaces?|helpers?|classes|utilities|styles?|strategies|strategy|' +
+  'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?';
 
-// Up to four digits: a longer run is an id, and the run-id rule owns those.
 const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,4})`;
 
 const PATTERNS = [
@@ -127,6 +134,8 @@ function maskInline(line) {
     /\[([^\]]*)\]\([^)]*\)/g,
     (m, text) => ' ' + text + ' '.repeat(m.length - text.length - 1)
   );
+  // MDX comments, which the docs tree uses instead of the HTML form.
+  out = blank(out, /\{\s*\/\*[\s\S]*?\*\/\s*\}/g);
   out = out.replace(/(\*\*|__|\*|_)(?=\S)/g, m => ' '.repeat(m.length));
   out = out.replace(/(?<=\S)(\*\*|__|\*|_)/g, m => ' '.repeat(m.length));
   return blank(out, /https?:\/\/\S+/g);

@@ -336,7 +336,7 @@ resting place.
     exit 1
 ```
 
-Copy the full version from any block job — the three shapes above are each load-bearing:
+Copy the full version from any block job — the shapes above are each load-bearing:
 
 - **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
   and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or

@@ -560,7 +560,7 @@ jobs:
       #
       # The parsing lives in scripts/parse-scan-verdict.mjs (rule 9; the
       # fail-closed contract and its rationale are in that file's header, the
-      # seven-shape trace in its test sibling). The script always exits 0 and
+      # shape-by-shape trace in its test sibling). The script always exits 0 and
       # prints exactly `clean` or `flagged <category>`; ANY other outcome — node
       # missing because the checkout failed under `always()`, a crashed script,
       # garbled output — yields an empty `verdict`, which the label job's enum

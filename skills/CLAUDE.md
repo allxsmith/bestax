@@ -22,7 +22,7 @@ there is no allowlist to join, and no per-skill bundling call to make. Full prov
 (#385 vs #540) and the slot for a future per-skill opt-out live in
 `create-bestax/scripts/sync-skills.mjs`'s header.
 
-The three install blocks (this README, the docs intro, the llms guide) are **generated**:
+The install blocks (this README, the docs intro, the llms guide) are **generated**:
 `pnpm gen` rewrites them between their `bestax:generated skills-install` markers from the
 directory listing (#542, `scripts/gen-skills-rosters.mjs`), and the `skills-roster` conformance
 check fails while a committed block is stale. Do not hand-edit inside the markers.

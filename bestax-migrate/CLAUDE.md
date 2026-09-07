@@ -28,7 +28,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
   import), `imports.ts` (binding collection and import aliasing), `specials-utils.ts`
   (`alignTarget`, `mergeClassName`, `parseIconClasses`, `modifierClass`, `restrictAsToTargets`,
   the `stripModifierProps` factory and the `makeStructuralHelpers` factory behind
-  `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's nine viewports → bestax's
+  `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's
   prop suffixes), and `make-styles-transform.ts` (the whole Bulma 0.9→v1 stylesheet transform,
   parameterised by the source package's own specifiers). What stays per-source is the data
   — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a `transform.ts` that
@@ -47,7 +47,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
 - **A TODO message is a claim about bestax; read the component before writing it.** Four
   shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`).
   The rbx e2e fails on an undocumented rule (RBC's does not); nothing checks the guidance is true.
-- **A defect in one source's `transform.ts` is almost certainly in the others.** Nine fixes were
+- **A defect in one source's `transform.ts` is almost certainly in the others.** The fixes were
   ported RBC↔rbx on #613 and review kept finding the unported half. Fix the siblings in the same
   commit, or move the logic into `_shared/` (the alias registry, the literal/object helpers
   and the structural-handler helpers went there on #410 for exactly this reason).
