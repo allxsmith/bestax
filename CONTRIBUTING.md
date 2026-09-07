@@ -321,6 +321,11 @@ The short version for contributors:
   `ai-loop` and iterates with the AI reviewers until it converges, then a human reviews and
   squash-merges. Don't add or remove the loop labels (`ai-loop`, `needs-human-review`,
   `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
+- **Hand-driven PRs that want a deep review**: apply `deep-review` once at open, fix everything
+  it raised, then re-apply it once. The re-run verifies its own threads and reviews only the
+  commits since its last review; CodeRabbit re-reviews every push by itself, so let it go last.
+  Do not relabel per push: each application spends a full opus session, and relabeling after
+  every fix is what turned #643 into 14 review rounds.
 - **PR titles must be scoped conventional commits** — the title becomes the squash commit and
   drives semantic-release (see [Commit Message Guidelines](#commit-message-guidelines)).
 

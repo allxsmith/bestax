@@ -114,6 +114,16 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   `docusaurus.config.js` does not override it. That is load-bearing but easy to miss: setting
   `format: 'detect'` would make every `.md` page render its tags as literal text.
 - Markdown is prettier-formatted (`pnpm format:check` covers `md`/`mdx`).
+- **Guides are canonical reference, not lab notebooks.** No run statistics, run ids, dated
+  observations or "as of" tallies in `docs/docs/**`: the LLM index serves it as current fact,
+  and a count is stale the day after it is written. Dated snapshots belong in `blog/`, which
+  is excluded from the index (see `blog/CLAUDE.md`). Evidence goes on the issue or PR and the
+  guide links it. A claim that needs a number to be true belongs in a test or a generator, not
+  a sentence. A guide section says what the operator can do and what each switch is compared
+  against; it does not re-derive a third party's internals. Claim the case in front of you:
+  "every" and "only" are one counterexample from false. Never cite a line number; cite a
+  heading, a step id, or a flag. `check:conformance --only=fragile-prose` enforces the count,
+  run-id, and line-reference parts.
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
   execute in the browser, so declare the browser globals each callback actually uses
