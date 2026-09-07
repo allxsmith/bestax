@@ -350,21 +350,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup pnpm
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-
-      - name: Setup Node.js
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: '24'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
-        run: pnpm install --frozen-lockfile
-
       # The delta a verify pass reviews, computed here rather than read from
       # the compare API inside the session: that endpoint caps its file list,
       # omits large patches and cannot show a deletion, and exposes no total
@@ -374,10 +359,13 @@ jobs:
       # push there is no trustworthy boundary, and the run falls back to a
       # fresh review (MODE reads this step's output, not last_sha directly).
       #
-      # AFTER install, deliberately. `pnpm install` runs this checkout's own
-      # `prepare` script, which the PR controls, so a delta written before it
-      # could be replaced between generation and the session reading it.
-      # Nothing PR-controlled executes between this step and the session.
+      # BEFORE install, deliberately, and install runs `--ignore-scripts` for
+      # the same reason. Generating after install would trust a `git` and an
+      # environment this checkout's own `prepare` hook could have altered;
+      # generating before it, while install may still run that hook, would
+      # let the hook replace the file. With no PR-controlled script running
+      # in the job at all, neither holds: nothing between checkout and the
+      # session executes code from this branch.
       - name: Compute verify delta
         id: delta
         if: |
@@ -420,6 +408,26 @@ jobs:
           else
             echo "no usable boundary from $LAST_SHA to $HEAD_SHA (missing commit, no ancestry, or a merge in the range) — falling back to a fresh review"
           fi
+
+      - name: Setup pnpm
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Setup Node.js
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      # `--ignore-scripts`: this checkout's `prepare` hook is PR-controlled,
+      # and the verify delta written above must reach the session unaltered.
+      # Nothing is lost — every `allowBuilds` entry in pnpm-workspace.yaml is
+      # already `false`, so no dependency build runs either way, and the only
+      # root hook is husky, which a runner does not need.
+      - name: Install dependencies
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run Claude (deep review)
         id: claude
