@@ -160,9 +160,10 @@ function stripComments(line, comment) {
   let rest = line;
   for (;;) {
     if (comment) {
-      const end = rest.indexOf(comment.close);
-      if (end === -1) return { text: out + ' '.repeat(rest.length), comment };
-      const after = end + comment.close.length;
+      const found = comment.close.exec(rest);
+      comment.close.lastIndex = 0;
+      if (!found) return { text: out + ' '.repeat(rest.length), comment };
+      const after = found.index + found[0].length;
       out += ' '.repeat(after);
       rest = rest.slice(after);
       comment = null;
@@ -170,22 +171,26 @@ function stripComments(line, comment) {
     }
     const masked = blank(rest, /(`+)[\s\S]*?\1/g);
     let best = null;
+    // HTML accepts `--!>` as well as `-->` to end a comment, so the close is
+    // a pattern rather than a literal.
     for (const [open, close] of [
-      ['<!--', '-->'],
-      ['{/*', '*/}'],
+      ['<!--', /--!?>/g],
+      ['{/*', /\*\/\}/g],
     ]) {
       const i = masked.indexOf(open);
       if (i !== -1 && (best === null || i < best.i)) best = { i, open, close };
     }
     if (best === null) return { text: out + rest, comment: null };
-    const closeIdx = masked.indexOf(best.close, best.i + best.open.length);
-    if (closeIdx === -1) {
+    best.close.lastIndex = best.i + best.open.length;
+    const found = best.close.exec(masked);
+    best.close.lastIndex = 0;
+    if (!found) {
       return {
         text: out + rest.slice(0, best.i) + ' '.repeat(rest.length - best.i),
         comment: { close: best.close },
       };
     }
-    const after = closeIdx + best.close.length;
+    const after = found.index + found[0].length;
     out += rest.slice(0, best.i) + ' '.repeat(after - best.i);
     rest = rest.slice(after);
   }
@@ -273,7 +278,7 @@ export function scanFragileProse(text, { kind }) {
     if (!line.trim()) return;
     // The marker only excuses a line when it says why: a bare token is the
     // reflexive exemption the rule exists to avoid.
-    const marker = raw[idx].replace(/-->|\*\/\}/g, ' ');
+    const marker = raw[idx].replace(/--!?>|\*\/\}/g, ' ');
     if (new RegExp(`${ALLOW_TOKEN}\\s*[-:—]?\\s*\\w`).test(marker)) return;
     // A ticket makes a count historical: "twelve commits behind on #361"
     // records what happened there, and history does not go stale. It never

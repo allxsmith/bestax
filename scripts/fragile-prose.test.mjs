@@ -241,6 +241,13 @@ test('a comment delimiter inside inline code opens nothing', () => {
   ]);
 });
 
+test('the legacy HTML comment terminator closes a comment too', () => {
+  assert.deepEqual(md('<!--\nnineteen jobs\n--!> fine'), []);
+  assert.deepEqual(whys(md('87 components <!-- bestax:count-ok --!>')), [
+    'count',
+  ]);
+});
+
 test('a second comment on the line after one closes is still masked', () => {
   assert.deepEqual(md('{/* a */} fine {/*\nnineteen jobs\n*/} done'), []);
 });
