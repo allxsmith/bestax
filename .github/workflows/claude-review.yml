@@ -342,11 +342,14 @@ jobs:
             echo "$DELIM"
           } >> "$GITHUB_OUTPUT"
 
+      # The event's head SHA, not its head ref: the ref is mutable, so a push
+      # landing mid-run would otherwise have the session review a tree newer
+      # than the commit the delta was computed from and the marker records.
       - name: Checkout PR head
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -374,6 +377,7 @@ jobs:
         env:
           LAST_SHA: ${{ steps.dedupe.outputs.last_sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           # In the workspace, not RUNNER_TEMP: the session's file tool can
@@ -394,8 +398,22 @@ jobs:
           # branch that merged an updated base since the last review keeps
           # ancestry, but the two-dot patch then carries every upstream
           # change too, which is not this PR's delta. Fall back as well.
-          if git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null \
+          # The base has to be here too, to tell a retarget from a push.
+          git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null \
+            || git fetch -q --no-tags origin "$BASE_SHA" 2>/dev/null || true
+          # Same base under both ends: if the PR was retargeted since the last
+          # review, its diff exposes code neither commit introduced, so the
+          # two merge bases differ and there is no honest delta to review.
+          SAME_BASE=no
+          if git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null \
+             && git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null \
              && git cat-file -e "$HEAD_SHA^{commit}" 2>/dev/null \
+             && [ "$(git merge-base "$BASE_SHA" "$LAST_SHA" 2>/dev/null)" \
+                  = "$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null)" ]; then
+            SAME_BASE=yes
+          fi
+          if [ "$SAME_BASE" = yes ] \
+             && [ "$LAST_SHA" != "$HEAD_SHA" ] \
              && git merge-base --is-ancestor "$LAST_SHA" "$HEAD_SHA" \
              && [ -z "$(git rev-list --merges "$LAST_SHA".."$HEAD_SHA")" ]; then
             # --text --no-textconv --no-ext-diff: a `.gitattributes` in this
@@ -412,7 +430,7 @@ jobs:
             echo "path=$OUT" >> "$GITHUB_OUTPUT"
             echo "verify delta: $LAST_SHA..$HEAD_SHA ($(wc -l < "$OUT") lines)"
           else
-            echo "no usable boundary from $LAST_SHA to $HEAD_SHA (missing commit, no ancestry, or a merge in the range) — falling back to a fresh review"
+            echo "no usable boundary from $LAST_SHA to $HEAD_SHA (missing commit, no new commits, a changed base, no ancestry, or a merge in the range) — falling back to a fresh review"
           fi
 
       - name: Setup pnpm
@@ -512,7 +530,10 @@ jobs:
             its newest one reviewed LAST REVIEWED SHA, and the changes since
             are in DELTA FILE. Do NOT re-review the PR. Skip steps 2 and 3
             and do exactly this:
-            a. List your own unresolved inline threads (GraphQL
+            a. FIRST, before running anything else, read DELTA FILE and
+               keep its contents. Commands you run later come from this
+               branch and could rewrite that file underneath you.
+            b. List your own unresolved inline threads (GraphQL
                reviewThreads on the PR, first comment by claude). Re-examine
                each against the current code and run the relevant test:
                genuinely fixed → reply "Verified fixed — <one sentence on
@@ -521,8 +542,8 @@ jobs:
                what is still wrong, once; refuted by the author → concede
                and resolve, or post ONE code-cited rebuttal and never a
                second.
-            b. Review ONLY the delta. It is precomputed at DELTA FILE, a
-               path inside the checkout: a
+            c. Review ONLY the delta you read in step a. It is precomputed
+               at DELTA FILE, a path inside the checkout: a
                `git diff --stat` and then the full patch from LAST
                REVIEWED SHA to HEAD SHA, so it is complete, deletions and
                large files included. Read that file with your file tool;
@@ -532,7 +553,7 @@ jobs:
                as a fresh review. Comment, doc, and PR-body changes in the
                delta get no new finding unless FALSE by rule 6a. Files
                outside the delta get nothing.
-            c. Post the summary review of step 8 with the marker as its
+            d. Post the summary review of step 8 with the marker as its
                first line and the heading
                `## Deep review (verify) — <resolved> resolved · <open> open · <new> new`,
                listing only threads you touched and new delta findings.
