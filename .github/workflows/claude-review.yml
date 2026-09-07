@@ -488,11 +488,12 @@ jobs:
                 of them. A false claim in the PR body is a row in the
                 summary addressed to the maintainer, never inline: neither
                 this review nor the fix agent can edit the PR body.
-                When you suggest a wording change, fix by DELETION: name
-                the clause to remove so the remainder is true. Never
-                suggest adding a sentence, a qualifier, a number, a run
-                id, or a date. Exact means the sentence claims no more
-                than the mechanism delivers; less is fine.
+                When you suggest a wording change, prefer DELETION: name
+                the clause to remove so the remainder is true, or the one
+                correction that makes a false clause true. Never suggest
+                adding a sentence, a qualifier, a number, a run id, or a
+                date. Exact means the sentence claims no more than the
+                mechanism delivers; less is fine.
             6b. Never ask for statistics, run ids, tallies, or dated
                 observations in docs or comments. If the diff adds any,
                 post ONE 🔵 row for the lot: "point-in-time evidence —
