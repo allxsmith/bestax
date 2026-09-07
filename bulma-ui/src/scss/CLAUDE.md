@@ -63,6 +63,6 @@ Rules the pattern encodes:
   prefix together: name your variables `<your-prefix>-*` or the matcher assigns them to
   nobody. After adding one, run `pnpm gen:api-sources` and confirm the component's
   `SCSS_SOURCES` entry is non-empty — an empty entry silently suppresses the API page's
-  CSS & Sass Variables section, which is how LinkButton shipped four variables invisibly
+  CSS & Sass Variables section, which is how LinkButton shipped its variables invisibly
   (#464). The orphan rule in `check:conformance` now fails on a partial that no component
   claims, so the miss is loud, but the fix is still yours to make.

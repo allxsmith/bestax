@@ -12,7 +12,7 @@ Skill. Run it with `npx bestax-mcp`.
 `pnpm gen:mcp` (root) runs `scripts/gen-mcp-index.mjs`, which reuses the same
 extraction the API docs use — `scripts/lib/props-extract.mjs` in
 `markdown: false` mode, `scss-vars.mjs`, `api-sources.mjs` — plus the
-hand-written `## Usage` / `## Accessibility` sections of the 87 API pages.
+hand-written `## Usage` / `## Accessibility` sections of the API pages.
 
 - **Never hand-edit `data/`.** CI fails on staleness (`pnpm gen:mcp:check`).
 - `data/catalog.json` and `data/components/*.json` are **committed**.
@@ -21,7 +21,7 @@ hand-written `## Usage` / `## Accessibility` sections of the 87 API pages.
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
   committed — enough for the staleness gate to catch a new or renamed skill,
   without putting a second copy of ~390 KB of markdown in every skill diff.
-  Turbo runs the first three of those concurrently, so that script takes a lock
+  Turbo runs the generators before it concurrently, so that script takes a lock
   and no-ops when the tree already matches the source; keep both properties if
   you touch it, and see its trailing "Concurrency" note for why the freshness
   check is required rather than merely an optimisation.
@@ -64,8 +64,8 @@ the API pages and the skill catalog.
 
 Three. `@modelcontextprotocol/sdk` and `zod` are the two that are imported (the
 SDK's schema types are zod, and pnpm's isolated linker means anything imported
-must be declared). The SDK pulls ~90 transitive packages, most of them for HTTP
-transports this server does not use — that was measured against
+must be declared). The SDK pulls a large tree of transitive packages, most of them for
+HTTP transports this server does not use — that was measured against
 `pnpm audit --audit-level=high` before adopting it, and it comes back clean.
 Re-check if that ever changes.
 

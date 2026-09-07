@@ -75,7 +75,7 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   empty and grows one category per PR, so a page is only generated once its category lands.
 - Section order on a managed page: Overview, Import, Usage, _(page-specific extras)_,
   Accessibility, Related Components, Additional Resources, Props, CSS & Sass Variables.
-  Every category except `helpers/` is managed; the four hook pages there have no `## Props`
+  Every category except `helpers/` is managed; the hook pages there have no `## Props`
   at all, and `config.md`/`theme.md` follow the order but keep their hand-written tables.
 - The `props` region owns the tables and nothing else. Prose inside `## Props` is preserved
   above the opening marker or below the closing one — but prose sitting _between_ two tables

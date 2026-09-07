@@ -100,7 +100,7 @@ name: AI Security Scan
 # scheduled (runner outage, cancellation between jobs) leaves quota spent for a
 # session that never ran. Pre-split, a job that never started charged nothing.
 #
-# A second, accepted: three named jobs are three public check runs, so `scan`'s
+# A second, accepted: each named job is a public check run, so `scan`'s
 # conclusion (`skipped` when the gate declined, `success` when a session ran)
 # is now readable without log access. That leaks WHETHER an item was scanned —
 # and since the gate fails open, a budget-exhausted day is exactly the window

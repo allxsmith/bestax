@@ -80,7 +80,7 @@ jobs:
       # reach rather than from a measured run; widen it from a StepSecurity
       # report if one is ever refused. The nearest sibling
       # (auto-close-duplicates.yml, also a scheduled issue-writer) now carries
-      # the same policy and the same five hosts — its script is dependency-free
+      # the same policy and the same hosts — its script is dependency-free
       # and API-only too, so the list covers both.
       #
       # Do not upgrade that to "these five always resolve" — the list is derived

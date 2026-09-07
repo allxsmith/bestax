@@ -78,11 +78,11 @@ jobs:
       id-token: write # OIDC exchange for the subscription token
     steps:
       # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
-      # audit run was 33231488110; all six runs the flip is built on are recorded
+      # audit run was 33231488110; the runs the flip is built on are recorded
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
-      # The eight hosts are the set already enforcing on ai-scan/scan,
+      # These hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
@@ -102,7 +102,7 @@ jobs:
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
       # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa3/6/7/9/11/13 across six runs). It does not need
+      # per run (productionresultssa<N>, a different N per run). It does not need
       # to be. harden-runner does not gate the runner own control-plane traffic, and
       # run 33286967625 is the proof rather than the assumption: claude-review at
       # block, with neither that host nor results-receiver.actions.githubusercontent.com

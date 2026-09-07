@@ -147,7 +147,7 @@ mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, React-
 react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
 roughly **monthly** cadence rather than editing an old post.
 
-Three files back every edition:
+These files back every edition:
 
 - `docs/src/data/componentComparison.js` — the matrix (capabilities × libraries), the per-cell
   link resolvers, and `lastReviewed`. **This is the source of truth** — the only file that

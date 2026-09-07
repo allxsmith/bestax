@@ -279,8 +279,8 @@ jobs:
       # No NPM_TOKEN: publishing authenticates via OIDC trusted publishing.
       # A present NPM_TOKEN takes precedence over OIDC and reintroduces the
       # EOTP (one-time password) failure on 2FA-protected accounts.
-      # All four release steps are identical on purpose: each package's
-      # release.config.js decides how it publishes, and since #532 all four
+      # All release steps are identical on purpose: each package's
+      # release.config.js decides how it publishes, and since #532 all of them
       # answer `pnpm publish` through the same shared helper.
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui

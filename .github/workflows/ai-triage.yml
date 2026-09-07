@@ -69,7 +69,7 @@ name: AI Triage
 # skip, zero usage. The counter is read-modify-write, so its correctness
 # DEPENDS on the global single-flight concurrency group below — do not
 # re-scope the group per item, and note the job split did not change that:
-# `concurrency` is workflow-level, so it still serializes all four jobs.
+# `concurrency` is workflow-level, so it still serializes every job.
 #
 # AI_TRIAGE_AUTOCLOSE (`on` / `dry-run` / unset ⇒ `off`) is passed to the
 # RENDERER, not to the session: when active, a dedupe comment that names a
@@ -160,8 +160,8 @@ permissions: {}
 # third run arrives while one is in progress and one is pending, the PENDING
 # one is CANCELLED. So in a burst, only the first and last items get triaged,
 # and the ones in between leave no trace at all — cancelled, not skipped, so
-# there is no gate log and no budget charge to explain the gap. The four-job
-# split widens the in-progress window from one runner spin-up to four, which
+# there is no gate log and no budget charge to explain the gap. The per-job
+# split widens the in-progress window from one runner spin-up to one per job, which
 # makes the burst that loses items smaller. `cancel-in-progress: false` only
 # stops a NEW run killing a RUNNING one; it does not protect the queue.
 #

@@ -340,14 +340,13 @@ Copy the full version from any block job — the three shapes above are each loa
 
 - **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
   and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or
-  slim runner). Without it a vendor outage fails every block job at once — nineteen of them as of
-  the inventory below, not the seven this line said before the `ai-scan`/`ai-triage` job splits —
-  with a bare `jq: could not open file`. It still fails, because a job holding a credential must
-  not run unprotected, but it says why. Do not hand-maintain that number: it is the count of
-  block-mode jobs, and it has been wrong once already. Derive it, and grep for the **key** rather
-  than the string — `grep -rn "^ *egress-policy: block$"`. A plain `grep egress-policy: block`
-  returns twenty: `deploy-worker.yml` names the policy in a comment, which is the same way a
-  `node -e` in a comment misclassifies a job below.
+  slim runner). Without it a vendor outage fails every block job at once, with a bare
+  `jq: could not open file`. It still fails, because a job holding a credential must not run
+  unprotected, but it says why. Do not write down how many block jobs that is: an earlier version
+  of this line did, and it was wrong before the `ai-scan`/`ai-triage` job splits. Derive it, and
+  grep for the **key** rather than the string — `grep -rn "^ *egress-policy: block$"`. A plain
+  `grep egress-policy: block` counts one more: `deploy-worker.yml` names the policy in a comment,
+  which is the same way a `node -e` in a comment misclassifies a job below.
 - **The status check polls** rather than testing once. The pre-step waits only for the file to
   _exist_ and gives up after ~9s, while the agent resolves every allow-listed host before writing
   its status, so a cold resolver or a long list can leave it absent or empty at this point.
@@ -479,17 +478,17 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
   `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
-  `claude-pr-loop` (`fix` and `verify`). Nineteen jobs; the command below is the check.
+  `claude-pr-loop` (`fix` and `verify`). The command below lists them.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
-  group by measuring all six of its members instead of guessing for them. All six now **use** the
-  same nine-host allowlist, and the gap between that and what the measurement produced is the part
-  worth keeping: the runs surfaced six application hosts, a strict subset of the eight the
-  Claude-session jobs above already used, and `nodejs.org` appeared in no run at all. It is on the
-  list anyway, and that ninth host is why "measured" is not the same as "complete". None
+  group by measuring every member instead of guessing for them. They all now **use** the same
+  allowlist, and the gap between that and what the measurement produced is the part worth
+  keeping: the runs surfaced a strict subset of the application hosts the Claude-session jobs
+  above already used, and `nodejs.org` appeared in no run at all. It is on the list anyway, and
+  that unmeasured host is why "measured" is not the same as "complete". None
   of `ai-scan`/`scan`, `ai-triage`/`triage` or `claude-repro`/`author` runs `actions/setup-node`,
-  so their eight-host list never needed it; all six of #578's jobs do run it, and setup-node falls
+  so their list never needed it; all six of #578's jobs do run it, and setup-node falls
   back to `nodejs.org/dist` when the toolcache misses and the `actions/node-versions` lookup fails.
-  Six audit runs could not surface that, because the toolcache hit every time and an unexercised
+  The audit runs could not surface that, because the toolcache hit every time and an unexercised
   path leaves no endpoint in any log. Review caught it, not measurement. Keep the group here rather
   than deleting it: audit remains the correct starting point for an **existing** live job whose
   egress has never been observed, and the recipe under this rule is what keeps it a short state
@@ -537,7 +536,7 @@ are not "API-only" in the harmless sense either.
 
 `claude-repro` deserves the emphasis: only its `author` job is hardened. **`publish` — the job
 that runs the sanitizer over attacker-influenced text and holds `issues: write` — has no egress
-policy at all.** Anyone citing "claude-repro enforces egress" is overstating it by three jobs.
+policy at all.** Anyone citing "claude-repro enforces egress" is overstating it by every job but `author`.
 
 Keep this inventory correct when you add a job, and qualify per job rather than per workflow. Its
 first version omitted `bestaxbot-reply` and named `claude-repro` unqualified — a table that
@@ -572,10 +571,10 @@ Two things about reading its output, both learned assembling the #578 lists:
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
   are the runner talking to its own control plane. The blob host cannot be pinned even in
-  principle — its name rotates per run (sa3, sa6, sa7, sa9, sa11, sa13 and sa17 so far, and the
-  list keeps growing every time anyone looks). Run
+  principle — its name rotates per run (`productionresultssa<N>`, a different N every time anyone looks).
+  Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
-  with the five-host list observed only `api.github.com` and `github.com`, and completed all
+  with its list observed only `api.github.com` and `github.com`, and completed all
   fifteen of its API calls under the firewall.
 
   **Leaving them out costs nothing, and that is measured rather than assumed.** harden-runner
@@ -630,8 +629,9 @@ anthropics/claude-code-action at the pinned SHA`. Do not restate the third party
 - A count lives in a command, never in a sentence. Write the grep that produces it (rule 10's
   `egress-policy: block` grep is the model). A hand-maintained number is wrong within months,
   and this file has proven that three times.
-- Evidence (run ids, dates, tallies) goes on the issue and is linked. A comment says what the
-  mechanism is; the issue says how we know.
+- Evidence (dates, tallies, measurements) goes on the issue and is linked. A comment says what
+  the mechanism is; the issue says how we know. A run id may stand in a workflow comment as the
+  receipt for the flip it justified, and nowhere in a guide.
 - One home per fact. A mechanism is explained once, where it is configured; every other
   mention is a pointer (`# same list as fix; rationale there`). Two copies are two things to
   keep equal, and a reviewer will find the day they differ.

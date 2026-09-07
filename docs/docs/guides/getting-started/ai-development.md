@@ -75,7 +75,7 @@ words, escaped and stripped of anything that could mention, link or re-trigger.
 **Only same-repo PRs are triaged** — PRs opened from forks are always
 skipped, automatic and label alike (the workflow deliberately avoids GitHub's
 `pull_request_target` trigger, so fork-originated events can never run with repository
-secrets); issues have no such restriction. Three repository variables control it:
+secrets); issues have no such restriction. Repository variables control it:
 
 - **`AI_TRIAGE_MODE`** — `auto` (new issues/PRs are triaged automatically and the label still
   works), `label` (opt-in only; the default when unset), or `off` (disables both automatic
@@ -160,7 +160,7 @@ output, so a re-run deep review that finds nothing can still meet an open thread
 pass and route to `verify` on that. And it picks a single mode per run: red or pending CI and
 threads still awaiting the fixer outrank `verify`. A paused loop stops it outright, since the
 gate requires the `ai-loop` label — but the iteration cap does not, because the cap only
-rewrites `fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at iteration 4 still runs.
+rewrites `fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at the cap still runs.
 
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook

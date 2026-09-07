@@ -415,7 +415,7 @@ jobs:
   # when capture fails — and a skipped publish is silence, which is exactly
   # what a healthy "nothing to screenshot" run looks like to the reviewer. A
   # Playwright install that 500s, or the 20-minute timeout expiring on a slow
-  # runner at the 24-story cap, would read as "no CSS to look at here". Say it
+  # runner at the story cap, would read as "no CSS to look at here". Say it
   # out loud instead, through the same upserted comment so the notice also
   # supersedes images from an earlier run rather than leaving them to pass as
   # current.

@@ -67,11 +67,11 @@ jobs:
     timeout-minutes: 30
     steps:
       # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
-      # audit runs were 33230210532 and 33230112308; all six runs the flip is
+      # audit runs were 33230210532 and 33230112308; the runs the flip is
       # built on are recorded on that issue, each read out of its own
       # `Post Harden runner` log rather than transcribed from the StepSecurity UI.
       #
-      # Eight of the nine hosts are the set already enforcing on ai-scan/scan,
+      # Apart from one addition, these hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
@@ -91,7 +91,7 @@ jobs:
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
       # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa3/6/7/9/11/13 across six runs). It does not need
+      # per run (productionresultssa<N>, a different N per run). It does not need
       # to be, and this job is where that was proven: run 33286967625 ran it at
       # block on a branch, with neither that host nor
       # results-receiver.actions.githubusercontent.com allow-listed, and setup-node
