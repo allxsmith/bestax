@@ -54,10 +54,11 @@
  *                        copies are byte-identical
  *   telemetry-allowlists worker schema enums are a superset of the CLI values
  *                        (templates, flavors, icons, sources, css modes, PMs)
- *   fragile-prose        no hand-maintained counts, run ids, or line references
- *                        in workflow comments, CLAUDE.md files, or guides; a
- *                        count lives in a command and evidence on the issue
- *                        (#643)
+ *   fragile-prose        no hand-maintained counts or line references in
+ *                        workflow comments, CLAUDE.md files, or guides, and no
+ *                        run ids in a guide (a workflow comment may cite the
+ *                        run that justified a flip); a count lives in a
+ *                        command and evidence on the issue (#643)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute, extname, sep } from 'node:path';

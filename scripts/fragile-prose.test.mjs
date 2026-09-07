@@ -289,6 +289,12 @@ test('an all-N back-reference is a count', () => {
   ]);
 });
 
+test('a count wrapped across several narrow lines is caught', () => {
+  const [hit] = md('three\nsmall\npointer\nfiles for agents');
+  assert.equal(hit.line, 1);
+  assert.equal(hit.why, 'count');
+});
+
 test('a count inside a link or emphasis is caught', () => {
   assert.deepEqual(
     whys(md('The seven [Agent Skills](/docs/skills) ship with it')),

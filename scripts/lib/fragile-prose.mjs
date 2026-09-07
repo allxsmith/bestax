@@ -268,12 +268,18 @@ export function scanFragileProse(text, { kind }) {
   // 'guide' is markdown for masking purposes; only the pattern set differs.
   const hits = [];
   // Markdown wraps sentences, so a count and its noun can straddle a line
-  // break. Each line is scanned joined to the next, and a hit is reported at
-  // the first of the two; the join is why a noun three words away still
-  // matches when the author's editor happened to wrap there.
-  const joined = prose.map((line, i) =>
-    line.trim() && prose[i + 1]?.trim() ? `${line} ${prose[i + 1]}` : line
-  );
+  // break — and with a narrow wrap, more than one. Each line is scanned
+  // joined to the next few, enough to cover the three-word window the count
+  // pattern allows, and a hit is reported at the line the match starts in.
+  const WINDOW = 3;
+  const joined = prose.map((line, i) => {
+    if (!line.trim()) return line;
+    let text = line;
+    for (let n = 1; n <= WINDOW && prose[i + n]?.trim(); n++) {
+      text += ` ${prose[i + n]}`;
+    }
+    return text;
+  });
   prose.forEach((line, idx) => {
     if (!line.trim()) return;
     // The marker only excuses a line when it says why: a bare token is the
