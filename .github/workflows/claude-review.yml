@@ -199,9 +199,9 @@ jobs:
       # (The marker, not just any claude[bot] activity: the fix agent posts
       # claude[bot] thread replies too, which must not count as "reviewed".)
       #
-      # EXCEPTION — deep-review `labeled` events skip the probe: a triage+
-      # human re-applying the label (verified live by the perm step above)
-      # is a deliberate re-run: a verify pass over the delta when a marker
+      # EXCEPTION — a deep-review `labeled` event runs whatever the probe
+      # finds: a triage+ human re-applying the label (verified live by the
+      # perm step above) is a deliberate re-run: a verify pass over the delta when a marker
       # review already exists (see MODE in the prompt), or a fresh review
       # when none does or the steer comment starts "deep-review: fresh".
       # Usage stays human-metered: one opus session per deliberate label
@@ -218,14 +218,15 @@ jobs:
           LABEL: ${{ github.event.label.name }}
         run: |
           set -euo pipefail
-          # The newest marker review's commit_id (reviews come oldest-first,
-          # so `last` is newest), or empty when no deep review exists yet.
+          # The newest marker review's commit_id (reviews come oldest-first
+          # across all pages, so `last` is newest), or empty when no deep
+          # review exists yet.
           # On a relabel this is what turns the run into a verify pass over
           # the delta instead of a fresh full review.
-          LAST_SHA=$(gh api "repos/$REPO/pulls/$PR/reviews?per_page=100" --jq \
-            '[.[] | select((.user.login | test("^claude(\\[bot\\])?$"))
-                           and (.body | contains("<!-- claude-deep-review -->")))]
-             | last | .commit_id // ""')
+          LAST_SHA=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews?per_page=100" \
+            | jq -rs '[.[][] | select((.user.login | test("^claude(\\[bot\\])?$"))
+                              and (.body | contains("<!-- claude-deep-review -->")))]
+                      | last | .commit_id // ""')
           echo "last_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
