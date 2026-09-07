@@ -273,6 +273,16 @@ test('fenced code, inline code, HTML comments and front matter are not scanned',
   assert.deepEqual(md(text), []);
 });
 
+test('a comment spanning lines is masked in both spellings', () => {
+  assert.deepEqual(md('<!--\nnineteen jobs\n--> fine'), []);
+  assert.deepEqual(md('{/*\nnineteen jobs\nand 87 components\n*/} fine'), []);
+  assert.deepEqual(md('{/* nineteen jobs */}\nfine'), []);
+  // The text after a closing delimiter is still prose.
+  assert.deepEqual(whys(md('{/*\nhidden\n*/} nineteen jobs remain')), [
+    'count',
+  ]);
+});
+
 test('an unterminated fence masks to end of file', () => {
   assert.deepEqual(md('```\nnineteen jobs\nstill code'), []);
 });

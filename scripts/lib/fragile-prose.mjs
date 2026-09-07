@@ -160,7 +160,7 @@ function proseLinesOfMarkdown(text) {
     i++;
   }
   let fence = null; // { char, len }
-  let inHtml = false;
+  let comment = null; // { close } while inside a multi-line comment
   for (; i < lines.length; i++) {
     const line = lines[i];
     if (fence) {
@@ -178,18 +178,28 @@ function proseLinesOfMarkdown(text) {
       fence = { char: open[1][0], len: open[1].length };
       continue;
     }
-    if (inHtml) {
-      const end = line.indexOf('-->');
+    // Comments in both spellings can span lines, so their state is carried
+    // here rather than left to the per-line mask, which only sees a comment
+    // whose delimiters both land on one line.
+    if (comment) {
+      const end = line.indexOf(comment.close);
       if (end === -1) continue;
-      inHtml = false;
-      out[i] = ' '.repeat(end + 3) + line.slice(end + 3);
+      const after = end + comment.close.length;
+      comment = null;
+      out[i] = ' '.repeat(after) + line.slice(after);
       continue;
     }
     let kept = line;
-    const start = kept.indexOf('<!--');
-    if (start !== -1 && !kept.includes('-->', start)) {
-      inHtml = true;
-      kept = kept.slice(0, start);
+    for (const [open, close] of [
+      ['<!--', '-->'],
+      ['{/*', '*/}'],
+    ]) {
+      const start = kept.indexOf(open);
+      if (start !== -1 && !kept.includes(close, start + open.length)) {
+        comment = { close };
+        kept = kept.slice(0, start);
+        break;
+      }
     }
     out[i] = kept;
   }
