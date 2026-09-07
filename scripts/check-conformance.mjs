@@ -2068,9 +2068,9 @@ const PNPM_PUBLISHED = new Set([
 
 /**
  * Workspace siblings a published package depends on AT RUNTIME, on purpose
- * (#644): create-bestax is built for `@allxsmith/bestax-bulma` and its
- * manifest says so, the way bulma-ui declares `bulma` without ever importing
- * it; bestax-mcp and bestax-migrate join this map in their own PRs. This is
+ * (#644): create-bestax and bestax-mcp are built for `@allxsmith/bestax-bulma`
+ * and their manifests say so, the way bulma-ui declares `bulma` without ever
+ * importing it; bestax-migrate joins this map in its own PR. This is
  * the exemption the sibling rule below reserved for "the PR that needs one",
  * and it takes the PNPM_PUBLISHED shape for the same reason: a declaration
  * cannot be misparsed, and scripts/publishable-manifests.test.mjs checks it
@@ -2083,6 +2083,7 @@ const PNPM_PUBLISHED = new Set([
  */
 export const SIBLING_RUNTIME_DEPS = new Map([
   ['create-bestax', new Set(['@allxsmith/bestax-bulma'])],
+  ['bestax-mcp', new Set(['@allxsmith/bestax-bulma'])],
 ]);
 
 /**

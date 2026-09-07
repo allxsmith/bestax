@@ -54,6 +54,7 @@
     "url": "https://github.com/allxsmith/bestax/issues"
   },
   "dependencies": {
+    "@allxsmith/bestax-bulma": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "zod": "^4.4.3"
   },
