@@ -201,10 +201,12 @@ jobs:
       #
       # EXCEPTION — deep-review `labeled` events skip the probe: a triage+
       # human re-applying the label (verified live by the perm step above)
-      # is an explicit "run a fresh review" request, e.g. after new commits
-      # or a prompt upgrade. Usage stays human-metered: one opus session per
-      # deliberate label application. The ai-loop path and label-at-creation
-      # double-fires keep the one-review invariant.
+      # is a deliberate re-run: a verify pass over the delta when a marker
+      # review already exists (see MODE in the prompt), or a fresh review
+      # when none does or the steer comment starts "deep-review: fresh".
+      # Usage stays human-metered: one opus session per deliberate label
+      # application. The ai-loop path and label-at-creation double-fires
+      # keep the one-review invariant.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
@@ -216,15 +218,21 @@ jobs:
           LABEL: ${{ github.event.label.name }}
         run: |
           set -euo pipefail
+          # The newest marker review's commit_id (reviews come oldest-first,
+          # so `last` is newest), or empty when no deep review exists yet.
+          # On a relabel this is what turns the run into a verify pass over
+          # the delta instead of a fresh full review.
+          LAST_SHA=$(gh api "repos/$REPO/pulls/$PR/reviews?per_page=100" --jq \
+            '[.[] | select((.user.login | test("^claude(\\[bot\\])?$"))
+                           and (.body | contains("<!-- claude-deep-review -->")))]
+             | last | .commit_id // ""')
+          echo "last_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by a verified triage+ user — running a fresh review"
+            echo "deep-review label applied by a verified triage+ user — running (${LAST_SHA:+verify since $LAST_SHA}${LAST_SHA:-fresh})"
             exit 0
           fi
-          MARKER=$(gh api "repos/$REPO/pulls/$PR/reviews?per_page=100" --jq \
-            '[.[] | select((.user.login | test("^claude(\\[bot\\])?$"))
-                           and (.body | contains("<!-- claude-deep-review -->")))] | length')
-          if [ "$MARKER" -gt 0 ]; then
+          if [ -n "$LAST_SHA" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "deep review already posted on PR #$PR — skipping"
           else
@@ -258,6 +266,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
+          echo "fresh=false" >> "$GITHUB_OUTPUT" # default: verify mode on a relabel
 
           # All "deep-review:"-prefixed comments -> newest first -> newest
           # per distinct author -> cap 5. --paginate because loop PRs
@@ -302,6 +311,15 @@ jobs:
           # length, and treat a whitespace-only remainder as no steer.
           TEXT=$(printf '%s' "$BODY" | tr -d '\r')
           TEXT="${TEXT#deep-review:}"
+          # A steer whose first word is "fresh" opts out of verify mode on a
+          # relabel (full review instead of the delta); the word itself is
+          # not part of the focus text. Steers persist across relabels, so
+          # delete the comment to return to verify mode.
+          if [ "$(printf '%s' "$TEXT" | awk '{print tolower($1); exit}')" = "fresh" ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+            TEXT=$(printf '%s' "$TEXT" | sed '1s/^[[:space:]]*[Ff][Rr][Ee][Ss][Hh]//')
+            echo "steer starts with 'fresh' — full review requested"
+          fi
           TEXT="${TEXT:0:2000}"
           [ -n "$(printf '%s' "$TEXT" | tr -d '[:space:]')" ] \
             || { echo "steer comment empty after prefix — unfocused review"; exit 0; }
@@ -392,12 +410,15 @@ jobs:
           # re-run then reveals the actual error.
           show_full_output: ${{ runner.debug == '1' }}
           claude_args: |
-            --max-turns 120
+            --max-turns ${{ steps.dedupe.outputs.last_sha != '' && steps.focus.outputs.fresh != 'true' && '40' || '120' }}
             --model claude-opus-5
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
+            HEAD SHA: ${{ github.event.pull_request.head.sha }}
+            MODE: ${{ steps.dedupe.outputs.last_sha != '' && steps.focus.outputs.fresh != 'true' && 'VERIFY' || 'FRESH' }}
+            LAST REVIEWED SHA: ${{ steps.dedupe.outputs.last_sha }}
 
             ${{ steps.focus.outputs.block }}
 
@@ -406,6 +427,31 @@ jobs:
             dependencies are installed. You did not write this code — review
             it adversarially: investigate like a skeptical engineer given a
             pointed brief, not a reader validating the diff in isolation.
+
+            If MODE is VERIFY: a deep review of this PR already exists and
+            its newest one reviewed LAST REVIEWED SHA. Do NOT re-review the
+            PR. Skip steps 2 and 3 and do exactly this:
+            a. List your own unresolved inline threads (GraphQL
+               reviewThreads on the PR, first comment by claude). Re-examine
+               each against the current code and run the relevant test:
+               genuinely fixed → reply "Verified fixed — <one sentence on
+               what you checked>" and resolve it (the resolveReviewThread
+               mutation via `gh api graphql`); not fixed → say precisely
+               what is still wrong, once; refuted by the author → concede
+               and resolve, or post ONE code-cited rebuttal and never a
+               second.
+            b. Review ONLY the delta, read with
+               `gh api repos/${{ github.repository }}/compare/<LAST REVIEWED SHA>...<HEAD SHA>`
+               (the `files[].patch` entries). Raise a new finding only for an
+               EXECUTABLE change in that delta (workflow logic, shell, jq,
+               source, tests), at the same bar as a fresh review. Comment,
+               doc, and PR-body changes in the delta get no new finding
+               unless FALSE by rule 6a. Files outside the delta get nothing.
+            c. Post the summary review of step 8 with the marker as its
+               first line and the heading
+               `## Deep review (verify) — <resolved> resolved · <open> open · <new> new`,
+               listing only threads you touched and new delta findings.
+               Then stop.
 
             1. Read the diff (`gh pr diff`) and the changed files in full.
             2. EVIDENCE PHASE — chase the PR's claims to their sources
