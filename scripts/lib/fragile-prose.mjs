@@ -271,7 +271,9 @@ export function scanFragileProse(text, { kind }) {
   // break — and with a narrow wrap, more than one. Each line is scanned
   // joined to the next few, enough to cover the three-word window the count
   // pattern allows, and a hit is reported at the line the match starts in.
-  const WINDOW = 3;
+  // The count pattern allows three words between the number and the noun, so
+  // at one word per line the noun can be the fourth line down.
+  const WINDOW = 4;
   const joined = prose.map((line, i) => {
     if (!line.trim()) return line;
     let text = line;
@@ -284,23 +286,26 @@ export function scanFragileProse(text, { kind }) {
     if (!line.trim()) return;
     // The marker only excuses a line when it says why: a bare token is the
     // reflexive exemption the rule exists to avoid.
-    if (hasReasonedMarker(raw[idx])) return;
+    if (hasReasonedMarker(raw[idx], kind)) return;
     // A ticket makes a count historical: "twelve commits behind on #361"
     // records what happened there, and history does not go stale. It never
     // excuses a line reference, which moves whatever the history says.
     const ownTicket = /#\d+\b/.test(line);
     const pairTicket = /#\d+\b/.test(joined[idx]);
     const inline = maskInline(line);
+    const pairInline = maskInline(joined[idx]);
     const own = maskNotCounts(inline);
-    const pair = maskNotCounts(maskInline(joined[idx]));
+    const pair = maskNotCounts(pairInline);
     for (const { why, re, kinds } of PATTERNS) {
       if (kinds && !kinds.includes(kind)) continue;
       // The pair only widens the count rule: a run id or a line reference is
-      // a single token and cannot straddle a break. A line reference reads
-      // the inline-masked text rather than the count-masked one, because a
-      // locator like "lines 224-229" is itself the range those masks remove.
+      // a single token and cannot straddle a break, though the words of a
+      // spelled-out one can ("see line" / "224"), so it reads the window too.
+      // It reads the inline-masked text rather than the count-masked one,
+      // because a locator like "lines 224-229" is itself the range those
+      // masks remove.
       const subject =
-        why === 'count' ? pair : why === 'line reference' ? inline : own;
+        why === 'count' ? pair : why === 'line reference' ? pairInline : own;
       const m = subject.match(re);
       // A match beginning past this line belongs to the next, which reports
       // it on its own turn; without this an unrelated first line would
@@ -330,15 +335,23 @@ export function scanFragileProse(text, { kind }) {
  * delimiter itself. The token needs a boundary, so `bestax:count-okfoo` is a
  * typo rather than an exemption.
  */
-function hasReasonedMarker(line) {
-  const token = new RegExp(`${ALLOW_TOKEN}(?![\\w-])`, 'g');
-  for (let m = token.exec(line); m; m = token.exec(line)) {
-    const rest = line.slice(m.index + m[0].length);
-    const close = rest.search(/--!?>|\*\/\}/);
-    const reason = close === -1 ? rest : rest.slice(0, close);
-    if (/\w/.test(reason)) return true;
-  }
-  return false;
+function hasReasonedMarker(line, kind) {
+  // Only a token inside a comment exempts anything. In markdown that means
+  // one of the two comment spellings; prose or inline code that merely names
+  // the marker is explaining it, not claiming it. A YAML prose line is itself
+  // a comment, so its whole body counts.
+  const spans =
+    kind === 'yaml'
+      ? [line.replace(/^\s*#\s?/, '')]
+      : [
+          ...line.matchAll(/<!--([\s\S]*?)(?:--!?>|$)/g),
+          ...line.matchAll(/\{\/\*([\s\S]*?)(?:\*\/\}|$)/g),
+        ].map(m => m[1]);
+  const token = new RegExp(`${ALLOW_TOKEN}(?![\\w-])`);
+  return spans.some(span => {
+    const m = token.exec(span);
+    return m ? /\w/.test(span.slice(m.index + m[0].length)) : false;
+  });
 }
 
 /** The house-format message for one hit, ready for check-conformance. */

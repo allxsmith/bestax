@@ -295,6 +295,24 @@ test('a count wrapped across several narrow lines is caught', () => {
   assert.equal(hit.why, 'count');
 });
 
+test('a maximally wrapped count is caught', () => {
+  const [hit] = md('three\nvery\nsmall\npointer\nfiles for agents');
+  assert.equal(hit.line, 1);
+  assert.equal(hit.why, 'count');
+});
+
+test('a spelled-out line reference wrapped across lines is caught', () => {
+  assert.deepEqual(whys(md('see line\n224 for the guard')), ['line reference']);
+});
+
+test('naming the marker in prose or code does not exempt', () => {
+  assert.deepEqual(
+    whys(md('Use `bestax:count-ok` when documenting 87 components')),
+    ['count']
+  );
+  assert.deepEqual(md('87 components <!-- bestax:count-ok: generated -->'), []);
+});
+
 test('a count inside a link or emphasis is caught', () => {
   assert.deepEqual(
     whys(md('The seven [Agent Skills](/docs/skills) ship with it')),
