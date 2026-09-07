@@ -420,14 +420,17 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      # `--ignore-scripts`: this checkout's `prepare` hook is PR-controlled,
+      # `--ignore-scripts --ignore-pnpmfile`: both hooks are PR-controlled,
       # and the verify delta written above must reach the session unaltered.
-      # Nothing is lost — every `allowBuilds` entry in pnpm-workspace.yaml is
-      # already `false`, so no dependency build runs either way, and the only
-      # root hook is husky, which a runner does not need.
+      # Scripts covers this checkout's `prepare`; the pnpmfile flag covers a
+      # `.pnpmfile.cjs`, which is plain JavaScript pnpm runs during install
+      # whether or not scripts are ignored. Nothing is lost — every
+      # `allowBuilds` entry in pnpm-workspace.yaml is already `false`, so no
+      # dependency build runs either way, the only root hook is husky, which
+      # a runner does not need, and this repo ships no pnpmfile.
       - name: Install dependencies
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
 
       - name: Run Claude (deep review)
         id: claude
