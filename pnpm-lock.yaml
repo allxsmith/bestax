@@ -314,6 +314,9 @@ importers:
 
   create-bestax:
     dependencies:
+      '@allxsmith/bestax-bulma':
+        specifier: workspace:^
+        version: link:../bulma-ui
       chalk:
         specifier: ^6.0.0
         version: 6.0.0
