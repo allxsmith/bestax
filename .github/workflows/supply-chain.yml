@@ -405,7 +405,7 @@ jobs:
 
           # A scan directory holding ONLY the lockfile (#530 item 5). syft used
           # to be pointed at the consumer tree and recursively walked every file
-          # under node_modules — thousands of them for bestax-migrate's
+          # under node_modules for bestax-migrate's
           # 98-package closure, twice per matrix leg — to satisfy a cataloger (bestax:count-ok: scale)
           # that reads the root lockfile and nothing else.
           #

@@ -17,8 +17,9 @@
  *
  * Numbers that are not counts of things are masked before matching: dates,
  * versions, SHAs, issue and PR references, percentages, durations, clock
- * times, and sizes. Number words start at "three": "one" and "two" are
- * ordinary English far more often than they are a tally.
+ * times, and sizes. Number words start at "three" and include the magnitude
+ * forms ("dozens of", "thousands of"): "one" and "two" are ordinary English
+ * far more often than they are a tally.
  *
  * A line carrying `bestax:count-ok` is skipped. The marker is for the few
  * deliberate cases (a number the surrounding text already calls a scale, not
@@ -29,7 +30,9 @@ export const ALLOW_TOKEN = 'bestax:count-ok';
 
 const NUMBER_WORDS =
   'three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|' +
-  'fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|dozen';
+  'fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|' +
+  'thirty|forty|fifty|sixty|seventy|eighty|ninety|dozens?|hundreds?|' +
+  'thousands?';
 
 // Nouns whose count changes when code changes. Durations ("days"), sizes
 // ("KB") and ports are not counts of things and are left alone.

@@ -571,7 +571,7 @@ Two things about reading its output, both learned assembling the #578 lists:
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
   are the runner talking to its own control plane. The blob host cannot be pinned even in
-  principle — its name rotates per run (`productionresultssa<N>`, a different N every time anyone looks).
+  principle — its name rotates per run (`productionresultssa<N>`, and N varies between runs).
   Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
   with its list observed only `api.github.com` and `github.com`, and completed all

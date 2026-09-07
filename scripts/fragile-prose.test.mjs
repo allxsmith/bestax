@@ -45,6 +45,9 @@ test('the documented example shapes are all hits', () => {
     'the runs surfaced six application hosts',
     'Nineteen jobs; the command below is the check',
     'All 87 components fit in the catalog',
+    'the SDK pulls dozens of transitive packages',
+    'walks every file under node_modules, thousands of them',
+    'forty hosts across the fleet',
   ]) {
     assert.deepEqual(whys(md(text)), ['count'], text);
   }
