@@ -52,13 +52,13 @@
     "url": "https://github.com/allxsmith/bestax/issues"
   },
   "dependencies": {
+    "@allxsmith/bestax-bulma": "workspace:^",
     "@babel/parser": "^7.29.8",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
     "jscodeshift": "^17.3.0"
   },
   "devDependencies": {
-    "@allxsmith/bestax-bulma": "workspace:^",
     "@jest/globals": "^30.0.0",
     "@types/jest": "^30.0.0",
     "@types/jscodeshift": "^17.3.0",
