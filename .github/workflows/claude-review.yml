@@ -421,10 +421,14 @@ jobs:
                against the real failing inputs. Reading the diff is not
                verification.
             3. RESIDUAL-RISK HUNT — for the failure class this PR
-               addresses, enumerate the ways it could still occur: adjacent
-               code paths, unhandled variants, boundary counts, the same bug
-               shape elsewhere in the changed subsystem. Refute each with
-               evidence, or post it as a finding.
+               addresses, enumerate the ways it could still occur in the
+               EXECUTABLE paths the diff touches (workflow logic, shell,
+               jq, source, tests): adjacent code paths, unhandled
+               variants, boundary counts. Refute each with evidence, or
+               post it as a finding — at most 3 residual-risk findings
+               per review; the rest go in the summary's Residual risk
+               bullets. Comments, docs, and the PR body are never a
+               residual risk.
             4. Verify every candidate finding against the actual code
                before posting it. Apply the lens that matches what the diff
                touches (both lenses when it touches both):
@@ -455,8 +459,9 @@ jobs:
                    nothing, swallowed errors, dead conditions
                  - idempotency/concurrency of workflows: double-fires,
                    races, re-runs, partial state
-            5. Do NOT post nitpicks, style, or formatting comments —
-               CodeRabbit and the linters cover those.
+            5. Do NOT post nitpicks, style, formatting, or wording
+               comments — CodeRabbit and the linters cover the first
+               three, and wording is governed by rule 6a.
 
             FORMAT — your output is read by BOTH the fix agent (which needs
             precise, actionable detail) and a human maintainer (who wants it
@@ -469,6 +474,35 @@ jobs:
                inflate them into blockers either. Category is Correctness /
                Accessibility / API / Coverage / SSR / Performance /
                Security / Robustness.
+            6a. PROSE IS ADVISORY BY DEFAULT. A finding whose subject is a
+                comment, a docs page, a CLAUDE.md, or the PR body is 🔵
+                Advisory — a summary row, never inline — UNLESS the text
+                is FALSE about who can trigger a job or what a
+                credentialed job can do: it names the wrong actor, role,
+                token, or trigger, or claims a control that does not
+                exist, or says a job cannot do something it can. Imprecise
+                is not false. A missing qualifier, a stale count, "every"
+                where the mechanism is "most", or a restated third-party
+                internal is Advisory, and one row covers all of them.
+                When you suggest a wording change, fix by DELETION: name
+                the clause to remove so the remainder is true. Never
+                suggest adding a sentence, a qualifier, a number, a run
+                id, or a date. The writing rules in .github/CLAUDE.md
+                ("How to be exact") and docs/CLAUDE.md define "exact".
+            6b. Never ask for statistics, run ids, tallies, or dated
+                observations in docs or comments. If the diff adds any,
+                post ONE 🔵 row for the lot: "point-in-time evidence —
+                move to the issue and link it."
+            6c. If LAST REVIEWED SHA is set, read your prior reviews and
+                the resolved threads BEFORE forming findings:
+                  gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
+                  (bodies containing "<!-- claude-deep-review -->")
+                  gh api graphql — reviewThreads{isResolved, comments
+                  {author, body}} on the PR
+                Do not re-open a resolved thread, and do not reverse a
+                suggestion of yours the author has applied, unless the
+                result is FALSE by 6a's test. If you would reverse
+                yourself, say so in the summary's Overall line instead.
             7. Post each BLOCKING defect (🔴/🟠/🟡) as an inline comment
                with mcp__github_inline_comment__create_inline_comment
                (confirmed: true). NEVER post a 🔵 Advisory as an inline

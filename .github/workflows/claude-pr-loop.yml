@@ -600,12 +600,19 @@ jobs:
               a fine end state: the loop escalates contested findings to a
               human (needs-human-review). Do NOT thrash trying to satisfy an
               out-of-scope or over-large ask — that wastes the whole budget.
-            - House-style findings (docs page sections, story argType
-              descriptions, inline styles, SCSS variable registration,
-              missing listing surfaces) are usually valid — check
-              /CONTRIBUTING-COMPONENTS.md and the folder CLAUDE.md before
-              refuting one; refute only if the file contradicts the
-              reviewer.
+            - House-style findings on COMPONENT files (docs page sections,
+              story argType descriptions, inline styles, SCSS variable
+              registration, missing listing surfaces) are usually valid —
+              check /CONTRIBUTING-COMPONENTS.md and the folder CLAUDE.md
+              before refuting one; refute only if the file contradicts
+              the reviewer. This does not extend to workflow comments,
+              guide prose, or the PR body.
+            - Findings about COMMENTS, docs prose, or the PR body: act only
+              if the text is FALSE about who can trigger a job or what a
+              credentialed job can do. Fix by deleting the overstated
+              clause — never by adding sentences, qualifiers, counts, run
+              ids, or dates. Otherwise refute in one line ("Imprecise,
+              not false; leaving it.") and push nothing for it.
             Only implement findings that are genuine, in-scope defects or
             small, clearly-correct improvements.
 
@@ -657,7 +664,8 @@ jobs:
                WHY, or why you disagree, and cite the specific file/code. No
                bare markers, no terse one-liners — be concrete and
                conversational (e.g. "I reordered the spread so the observer ref
-               can't be clobbered — `...rest` now comes before `ref`.").
+               can't be clobbered — `...rest` now comes before `ref`."). The
+               one-line prose refutation above is the deliberate exception.
             3. Thread bookkeeping — keep these EXACT rules even while writing
                conversationally; they drive the loop's state machine:
                - Claude-review threads (first author claude): when you fix one,
