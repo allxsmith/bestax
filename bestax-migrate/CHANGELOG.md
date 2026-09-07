@@ -1,3 +1,12 @@
+## [2.3.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.3.0...bestax-migrate@2.3.1) (2026-09-07)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** declare @allxsmith/bestax-bulma as a dependency ([#649](https://github.com/allxsmith/bestax/issues/649)) ([04076c3](https://github.com/allxsmith/bestax/commit/04076c34596bb4285955b96e7ef2e06dcad3deb9)), closes [#537](https://github.com/allxsmith/bestax/issues/537) [#644](https://github.com/allxsmith/bestax/issues/644)
+* **bestax-migrate:** declare @allxsmith/bestax-bulma as a dependency ([#650](https://github.com/allxsmith/bestax/issues/650)) ([2094d9b](https://github.com/allxsmith/bestax/commit/2094d9b55b1bf0253944b4da5fb107266f0b346c)), closes [#537](https://github.com/allxsmith/bestax/issues/537) [#644](https://github.com/allxsmith/bestax/issues/644)
+* **create-bestax:** declare @allxsmith/bestax-bulma as a dependency ([#645](https://github.com/allxsmith/bestax/issues/645)) ([5d785f9](https://github.com/allxsmith/bestax/commit/5d785f998847da69b51c15596747e5bbdec70b7f)), closes [#537](https://github.com/allxsmith/bestax/issues/537) [#644](https://github.com/allxsmith/bestax/issues/644)
+
 # [2.3.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.2.2...bestax-migrate@2.3.0) (2026-09-06)
 
 
