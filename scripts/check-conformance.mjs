@@ -2293,28 +2293,51 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
  * private sibling cannot become a peerDependency, since no consumer could
  * resolve it.
  */
-export function siblingViolations(dir, pkg, siblings) {
+/**
+ * The package a dependency entry actually installs. An npm alias installs its
+ * TARGET, so `"ui": "npm:@allxsmith/…@^5"` pulls in the sibling under another
+ * key — and `"@allxsmith/…": "npm:other@^1"` pulls in something else under
+ * the sibling's key. Every comparison against a sibling name goes through this,
+ * in the rule and in the test that holds SIBLING_RUNTIME_DEPS to the manifests,
+ * or either is bypassable by renaming (review on #537 caught exactly that hole
+ * in the rule; review on #645 caught it again in the test). The last `@`
+ * splits off the range; a scoped name's leading `@` survives because the slice
+ * starts past `npm:`.
+ */
+export function dependencyTarget(name, spec) {
+  if (typeof spec === 'string' && spec.startsWith('npm:')) {
+    const aliased = spec.slice(4);
+    const at = aliased.lastIndexOf('@');
+    return at > 0 ? aliased.slice(0, at) : aliased;
+  }
+  return name;
+}
+
+/**
+ * `runtimeDeps` defaults to the real declaration and the walk never passes
+ * one, so a test that omits it exercises the wiring — the same reason
+ * manifestViolations reads PNPM_PUBLISHED itself. It is a parameter at all
+ * because the private-sibling guard below is unreachable through the real
+ * map: the reality test forbids declaring a private target, so the only way
+ * to prove the guard exists is a fixture declaration that does.
+ */
+export function siblingViolations(
+  dir,
+  pkg,
+  siblings,
+  runtimeDeps = SIBLING_RUNTIME_DEPS
+) {
   if (pkg?.private) return [];
   const violations = [];
   for (const section of ['dependencies', 'optionalDependencies']) {
     for (const [name, spec] of Object.entries(pkg?.[section] ?? {})) {
-      // An npm alias installs its TARGET, so `"ui": "npm:@allxsmith/…@^5"`
-      // pulls in the sibling under another key. Compared on the target, or
-      // the rule is bypassable by renaming — review on the PR caught exactly
-      // that hole. The last `@` splits off the range; a scoped name's leading
-      // `@` survives because the slice starts past `npm:`.
-      let target = name;
-      if (typeof spec === 'string' && spec.startsWith('npm:')) {
-        const aliased = spec.slice(4);
-        const at = aliased.lastIndexOf('@');
-        target = at > 0 ? aliased.slice(0, at) : aliased;
-      }
+      const target = dependencyTarget(name, spec);
       const sibling = siblings.get(target);
       if (!sibling || target === pkg?.name) continue;
       if (
         section === 'dependencies' &&
         !sibling.private &&
-        SIBLING_RUNTIME_DEPS.get(dir)?.has(target)
+        runtimeDeps.get(dir)?.has(target)
       ) {
         continue;
       }

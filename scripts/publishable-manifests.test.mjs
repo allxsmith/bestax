@@ -21,6 +21,7 @@ import assert from 'node:assert/strict';
 
 import {
   SIBLING_RUNTIME_DEPS,
+  dependencyTarget,
   hookScripts,
   manifestViolations,
   parseWorkspacePackages,
@@ -934,15 +935,62 @@ test('an undeclared directory depending on a declared target is still flagged', 
   assert.equal(v.length, 1, v.join('\n'));
 });
 
-test('a private sibling is never exempt, declared or not', () => {
-  // The map cannot be edited from here, so this pins the guard the only way
-  // it can be reached: a declared directory naming a private target. Nothing
-  // declares one today; if a declaration ever does, this is what fails.
-  for (const [dir, targets] of SIBLING_RUNTIME_DEPS) {
-    for (const target of targets) {
-      assert.equal(SIBLINGS.get(target)?.private, false, `${dir} -> ${target}`);
-    }
-  }
+test('a private sibling is never exempt, even when declared', () => {
+  // The real map cannot declare a private target without failing the reality
+  // test below, so the guard is reached the only other way: a fixture
+  // declaration that does. The same fixture shape with a public target IS
+  // exempt, so the guard is what makes the difference, not the fixture.
+  const privateDecl = new Map([
+    ['bestax-migrate', new Set(['@allxsmith/bestax-docs'])],
+  ]);
+  const v = siblingViolations(
+    'bestax-migrate',
+    {
+      name: 'bestax-migrate',
+      dependencies: { '@allxsmith/bestax-docs': 'workspace:*' },
+    },
+    SIBLINGS,
+    privateDecl
+  );
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /private and unpublishable/);
+
+  const publicDecl = new Map([
+    ['bestax-migrate', new Set(['@allxsmith/bestax-bulma'])],
+  ]);
+  assert.deepEqual(
+    siblingViolations(
+      'bestax-migrate',
+      {
+        name: 'bestax-migrate',
+        dependencies: { '@allxsmith/bestax-bulma': 'workspace:^' },
+      },
+      SIBLINGS,
+      publicDecl
+    ),
+    []
+  );
+});
+
+test('dependencyTarget follows an npm alias in either direction', () => {
+  assert.equal(
+    dependencyTarget('ui', 'npm:@allxsmith/bestax-bulma@^5'),
+    '@allxsmith/bestax-bulma'
+  );
+  assert.equal(
+    dependencyTarget('ui', 'npm:@allxsmith/bestax-bulma'),
+    '@allxsmith/bestax-bulma'
+  );
+  // The sibling's own key pointing somewhere else is NOT a dependency on it.
+  assert.equal(
+    dependencyTarget('@allxsmith/bestax-bulma', 'npm:other@^1'),
+    'other'
+  );
+  assert.equal(
+    dependencyTarget('@allxsmith/bestax-bulma', 'workspace:^'),
+    '@allxsmith/bestax-bulma'
+  );
+  assert.equal(dependencyTarget('bulma', '^1.0.4'), 'bulma');
 });
 
 test('every declared runtime sibling matches the real manifests', () => {
@@ -974,10 +1022,19 @@ test('every declared runtime sibling matches the real manifests', () => {
         `${target} is not a workspace package`
       );
       assert.equal(privateByName.get(target), false, `${target} is private`);
+      // Compared on what each entry installs, not on its key, exactly as the
+      // rule compares: `"@allxsmith/bestax-bulma": "npm:other@^1"` would keep
+      // the key and drop the dependency, and a key check would keep the
+      // exemption standing over it.
+      const installs = new Set(
+        Object.entries(pkg.dependencies ?? {}).map(([n, spec]) =>
+          dependencyTarget(n, spec)
+        )
+      );
       assert.ok(
-        Object.hasOwn(pkg.dependencies ?? {}, target),
-        `${dir} declares ${target} in SIBLING_RUNTIME_DEPS but its ` +
-          `package.json does not list it in dependencies`
+        installs.has(target),
+        `${dir} declares ${target} in SIBLING_RUNTIME_DEPS but nothing in ` +
+          `its package.json dependencies installs it`
       );
     }
   }
