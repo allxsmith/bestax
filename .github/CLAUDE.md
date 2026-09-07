@@ -423,12 +423,12 @@ revert is the agent's; the pre-step only makes one visible by printing `agent.lo
 debugging a red assertion, `Reverted changes` is in the agent's output, not harden-runner's.
 
 **What the pair does NOT prove is that the policy stays armed.** In `step-security/agent`, the
-sequence is `writeStatus("Initialized")` (agent.go:307) and then a serve loop whose
-`case e := <-errc:` (:313) calls `RevertChanges` (:315). So any runtime error after
+sequence is `writeStatus("Initialized")` in `agent.go` and then a serve loop whose
+error branch calls `RevertChanges`. So any runtime error after
 initialization tears the firewall down while `agent.status` still reads `Initialized` and
 `agent.json` still reads `block` — **both assertion lines pass, nothing is enforcing.**
 Separately, `refreshDNSEntries` re-resolves every 30s and on failure only logs
-`failed to insert new ipaddress in firewall` (:357), so an allow-listed host whose IPs rotate can
+`failed to insert new ipaddress in firewall`, so an allow-listed host whose IPs rotate can
 quietly stop being reachable.
 
 Two further false-pass modes are known and not covered, both latent for this repo but worth
@@ -574,8 +574,8 @@ Two things about reading its output, both learned assembling the #578 lists:
   principle — its name rotates per run (`productionresultssa<N>`, and N varies between runs).
   Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
-  with its list observed only `api.github.com` and `github.com`, and completed all
-  fifteen of its API calls under the firewall.
+  with its list observed only `api.github.com` and `github.com`, and completed every one of
+  its API calls under the firewall.
 
   **Leaving them out costs nothing, and that is measured rather than assumed.** harden-runner
   does not gate the runner's own control-plane traffic, so the Actions cache keeps working:

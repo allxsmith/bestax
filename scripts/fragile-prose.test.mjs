@@ -48,6 +48,7 @@ test('the documented example shapes are all hits', () => {
     'the SDK pulls dozens of transitive packages',
     'walks every file under node_modules, thousands of them',
     'forty hosts across the fleet',
+    'completed all fifteen of its API calls under the firewall',
   ]) {
     assert.deepEqual(whys(md(text)), ['count'], text);
   }
@@ -159,6 +160,17 @@ test('a rule number or a step id is not a line reference', () => {
   assert.deepEqual(
     md("rule 10's grep, the `dedupe` step, and heading 3.2"),
     []
+  );
+  assert.deepEqual(
+    md('it is step 4 of the anatomy rule in the component guide'),
+    []
+  );
+});
+
+test('a parenthesised line reference is a hit', () => {
+  assert.deepEqual(
+    whys(md('the serve loop (:313) calls RevertChanges (:315)')),
+    ['line reference']
   );
 });
 

@@ -41,17 +41,18 @@ const COUNTED_NOUNS =
   'packages?|workflows?|checks?|files?|lines?|rows?|copies|copy|attempts?|' +
   'reviews?|threads?|commits?|exports?|examples?|pages?|apps?|stories|' +
   'story|tests?|rules?|steps?|variables?|labels?|reviewers?|actors?|' +
-  'members?|items?|services?';
+  'members?|items?|services?|calls?|requests?|endpoints?|secrets?|' +
+  'tokens?|branches|scripts?|generators?|sections?|tables?|bullets?';
 
 const NUMBER = `(?:${NUMBER_WORDS}|\\d+)`;
 
 const PATTERNS = [
   {
     why: 'count',
-    // "nineteen jobs", "9 occurrences", "all six of its members" — a number
-    // followed within two words by a counted noun.
+    // "nineteen jobs", "9 occurrences", "fifteen of its API calls" — a
+    // number followed within three words by a counted noun.
     re: new RegExp(
-      `\\b${NUMBER}\\b(?:[\\s-][\\w']+){0,2}?[\\s-](?:${COUNTED_NOUNS})\\b`,
+      `\\b${NUMBER}\\b(?:[\\s-][\\w']+){0,3}?[\\s-](?:${COUNTED_NOUNS})\\b`,
       'i'
     ),
   },
@@ -75,9 +76,9 @@ const PATTERNS = [
   },
   {
     why: 'line reference',
-    // "claude-pr-loop.yml:224", "`:729`" style, or the words "line 224",
+    // "claude-pr-loop.yml:224", "(:729)" style, or the words "line 224",
     // "lines 224-229", "L224".
-    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|mjs|c?js|tsx?|json|sh|scss|css)|\s):\d{1,4}(?:-\d{1,4})?\b|\b(?:lines?|L)\s?\d{1,4}(?:\s?[-–]\s?\d{1,4})?\b/i,
+    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|mjs|c?js|tsx?|json|sh|scss|css)|[\s(]):\d{1,4}(?:-\d{1,4})?\b|\b(?:lines?|L)\s?\d{1,4}(?:\s?[-–]\s?\d{1,4})?\b/i,
   },
 ];
 
@@ -93,6 +94,7 @@ const NOT_A_COUNT = [
   /\b\d+(?:\.\d+)?[\s-]?(?:ms|s|sec|secs|seconds?|min|mins|minutes?|h|hrs?|hours?|hourly|days?|weeks?|months?|years?)\b/gi, // durations, including "30-day"
   /\b\d+(?:\.\d+)?\s?(?:B|KB|MB|GB|KiB|MiB)\b/g, // sizes
   /\b(?:port|node|react|bulma|docusaurus|typescript|es)\s?\d+\b/gi, // named versions and ports
+  /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
 ];
 
 function blank(str, re) {
