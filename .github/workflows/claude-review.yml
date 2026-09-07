@@ -443,11 +443,17 @@ jobs:
                second.
             b. Review ONLY the delta, read with
                `gh api repos/${{ github.repository }}/compare/<LAST REVIEWED SHA>...<HEAD SHA>`
-               (the `files[].patch` entries). Raise a new finding only for an
-               EXECUTABLE change in that delta (workflow logic, shell, jq,
-               source, tests), at the same bar as a fresh review. Comment,
-               doc, and PR-body changes in the delta get no new finding
-               unless FALSE by rule 6a. Files outside the delta get nothing.
+               (the `files[].patch` entries). That response is not always
+               complete: it lists at most a few hundred files and omits
+               the patch of a very large file. Fail closed: if the
+               response reports more files than it returns, or any file
+               entry has no patch, read that file in full from the
+               checkout and review it as a fresh review would. Raise a
+               new finding only for an EXECUTABLE change in the delta
+               (workflow logic, shell, jq, source, tests), at the same bar
+               as a fresh review. Comment, doc, and PR-body changes in the
+               delta get no new finding unless FALSE by rule 6a. Files
+               outside the delta get nothing.
             c. Post the summary review of step 8 with the marker as its
                first line and the heading
                `## Deep review (verify) — <resolved> resolved · <open> open · <new> new`,
@@ -606,7 +612,14 @@ jobs:
 
                  then:
                  gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews" \
-                   -f event=COMMENT -F body=@/tmp/deep-review.md
+                   -f event=COMMENT -f commit_id=${{ github.event.pull_request.head.sha }} \
+                   -F body=@/tmp/deep-review.md
+
+               The commit_id pins the review to HEAD SHA, the commit this
+               run was started for: without it GitHub stamps the review
+               with whatever the PR's newest commit is when you post,
+               and a push that races this session would make the next
+               verify pass skip code nobody reviewed.
 
                Keep the literal marker "<!-- claude-deep-review -->" as the
                VERY FIRST line of the body — it is machine-parsed. With zero
