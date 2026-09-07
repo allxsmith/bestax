@@ -199,12 +199,14 @@ jobs:
       # (The marker, not just any claude[bot] activity: the fix agent posts
       # claude[bot] thread replies too, which must not count as "reviewed".)
       #
-      # EXCEPTION — deep-review `labeled` events skip the probe: a triage+
-      # human re-applying the label (verified live by the perm step above)
-      # is an explicit "run a fresh review" request, e.g. after new commits
-      # or a prompt upgrade. Usage stays human-metered: one opus session per
-      # deliberate label application. The ai-loop path and label-at-creation
-      # double-fires keep the one-review invariant.
+      # EXCEPTION — a deep-review `labeled` event runs whatever the probe
+      # finds: a triage+ human re-applying the label (verified live by the
+      # perm step above) is a deliberate re-run: a verify pass over the delta when a marker
+      # review already exists (see MODE in the prompt), or a fresh review
+      # when none does or the steer comment starts "deep-review: fresh".
+      # Usage stays human-metered: one opus session per deliberate label
+      # application. The ai-loop path and label-at-creation double-fires
+      # keep the one-review invariant.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
@@ -216,15 +218,22 @@ jobs:
           LABEL: ${{ github.event.label.name }}
         run: |
           set -euo pipefail
+          # The newest marker review's commit_id (reviews come oldest-first
+          # across all pages, so `last` is newest), or empty when no deep
+          # review exists yet.
+          # On a relabel this is what turns the run into a verify pass over
+          # the delta instead of a fresh full review.
+          LAST_SHA=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews?per_page=100" \
+            | jq -rs '[.[][] | select((.user.login | test("^claude(\\[bot\\])?$"))
+                              and (.body | contains("<!-- claude-deep-review -->")))]
+                      | last | .commit_id // ""')
+          echo "last_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by a verified triage+ user — running a fresh review"
+            echo "deep-review label applied by a verified triage+ user — running (${LAST_SHA:+verify since $LAST_SHA}${LAST_SHA:-fresh})"
             exit 0
           fi
-          MARKER=$(gh api "repos/$REPO/pulls/$PR/reviews?per_page=100" --jq \
-            '[.[] | select((.user.login | test("^claude(\\[bot\\])?$"))
-                           and (.body | contains("<!-- claude-deep-review -->")))] | length')
-          if [ "$MARKER" -gt 0 ]; then
+          if [ -n "$LAST_SHA" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "deep review already posted on PR #$PR — skipping"
           else
@@ -258,6 +267,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
+          echo "fresh=false" >> "$GITHUB_OUTPUT" # default: verify mode on a relabel
 
           # All "deep-review:"-prefixed comments -> newest first -> newest
           # per distinct author -> cap 5. --paginate because loop PRs
@@ -302,6 +312,20 @@ jobs:
           # length, and treat a whitespace-only remainder as no steer.
           TEXT=$(printf '%s' "$BODY" | tr -d '\r')
           TEXT="${TEXT#deep-review:}"
+          # A steer whose first word is "fresh" opts out of verify mode on a
+          # relabel (full review instead of the delta); the word itself is
+          # not part of the focus text. Steers persist across relabels, so
+          # delete the comment to return to verify mode.
+          # First word across the whole comment, not the first line, so a
+          # steer written as "deep-review:" then "fresh" on the next line
+          # still opts out; sed -z treats the text as one record so the
+          # token is stripped through any leading newlines.
+          FIRST=$(printf '%s' "$TEXT" | tr -s '[:space:]' ' ' | sed -E 's/^ //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]')
+          if [ "$FIRST" = "fresh" ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+            TEXT=$(printf '%s' "$TEXT" | sed -z -E 's/^[[:space:]]*[Ff][Rr][Ee][Ss][Hh]//')
+            echo "steer starts with 'fresh' — full review requested"
+          fi
           TEXT="${TEXT:0:2000}"
           [ -n "$(printf '%s' "$TEXT" | tr -d '[:space:]')" ] \
             || { echo "steer comment empty after prefix — unfocused review"; exit 0; }
@@ -318,13 +342,96 @@ jobs:
             echo "$DELIM"
           } >> "$GITHUB_OUTPUT"
 
+      # The event's head SHA, not its head ref: the ref is mutable, so a push
+      # landing mid-run would otherwise have the session review a tree newer
+      # than the commit the delta was computed from and the marker records.
       - name: Checkout PR head
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      # The delta a verify pass reviews, computed here rather than read from
+      # the compare API inside the session: that endpoint caps its file list,
+      # omits large patches and cannot show a deletion, and exposes no total
+      # to detect any of that from. A local diff between the two pinned
+      # commits is complete. Written only when both commits are in the
+      # checkout; if the last reviewed commit was rewritten away by a force
+      # push there is no trustworthy boundary, and the run falls back to a
+      # fresh review (MODE reads this step's output, not last_sha directly).
+      #
+      # BEFORE install, deliberately, and install runs `--ignore-scripts` for
+      # the same reason. Generating after install would trust a `git` and an
+      # environment this checkout's own `prepare` hook could have altered;
+      # generating before it, while install may still run that hook, would
+      # let the hook replace the file. With no PR-controlled script running
+      # in the job at all, neither holds: nothing between checkout and the
+      # session executes code from this branch.
+      - name: Compute verify delta
+        id: delta
+        if: |
+          steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false' &&
+            steps.dedupe.outputs.last_sha != '' && steps.focus.outputs.fresh != 'true'
+        env:
+          LAST_SHA: ${{ steps.dedupe.outputs.last_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # In the workspace, not RUNNER_TEMP: the session's file tool can
+          # only read under the checkout. The name is dot-prefixed and
+          # gitignored, and the session never commits.
+          OUT="$GITHUB_WORKSPACE/.deep-review-delta.patch"
+          # This checkout is PR-controlled and `.gitignore` does not stop a
+          # branch force-adding that path as a symlink, which the redirect
+          # below would follow. Unlink first: the write then creates a new
+          # regular file whatever the branch shipped.
+          rm -rf -- "$OUT"
+          # Both commits present AND the old one an ancestor of the head.
+          # A rebase or force-push can leave last_sha reachable but off the
+          # current history, and a two-dot diff between two such commits
+          # reports the rewritten work as reversed — a delta that never
+          # existed. No ancestry, no boundary: fall back to a fresh review.
+          # A merge in the range is the same problem from the other side: a
+          # branch that merged an updated base since the last review keeps
+          # ancestry, but the two-dot patch then carries every upstream
+          # change too, which is not this PR's delta. Fall back as well.
+          # The base has to be here too, to tell a retarget from a push.
+          git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null \
+            || git fetch -q --no-tags origin "$BASE_SHA" 2>/dev/null || true
+          # Same base under both ends: if the PR was retargeted since the last
+          # review, its diff exposes code neither commit introduced, so the
+          # two merge bases differ and there is no honest delta to review.
+          SAME_BASE=no
+          if git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null \
+             && git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null \
+             && git cat-file -e "$HEAD_SHA^{commit}" 2>/dev/null \
+             && [ "$(git merge-base "$BASE_SHA" "$LAST_SHA" 2>/dev/null)" \
+                  = "$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null)" ]; then
+            SAME_BASE=yes
+          fi
+          if [ "$SAME_BASE" = yes ] \
+             && [ "$LAST_SHA" != "$HEAD_SHA" ] \
+             && git merge-base --is-ancestor "$LAST_SHA" "$HEAD_SHA" \
+             && [ -z "$(git rev-list --merges "$LAST_SHA".."$HEAD_SHA")" ]; then
+            # --text --no-textconv --no-ext-diff: a `.gitattributes` in this
+            # checkout can mark a changed file `-diff`, `binary`, or onto a
+            # textconv/external driver, and the patch would then read
+            # "Binary files differ" while still looking complete. These
+            # force git's own textual diff whatever the branch declares.
+            DIFF="git diff --text --no-textconv --no-ext-diff"
+            {
+              $DIFF --stat "$LAST_SHA" "$HEAD_SHA"
+              printf '\n'
+              $DIFF "$LAST_SHA" "$HEAD_SHA"
+            } > "$OUT"
+            echo "path=$OUT" >> "$GITHUB_OUTPUT"
+            echo "verify delta: $LAST_SHA..$HEAD_SHA ($(wc -l < "$OUT") lines)"
+          else
+            echo "no usable boundary from $LAST_SHA to $HEAD_SHA (missing commit, no new commits, a changed base, no ancestry, or a merge in the range) — falling back to a fresh review"
+          fi
 
       - name: Setup pnpm
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
@@ -337,9 +444,17 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
+      # `--ignore-scripts --ignore-pnpmfile`: both hooks are PR-controlled,
+      # and the verify delta written above must reach the session unaltered.
+      # Scripts covers this checkout's `prepare`; the pnpmfile flag covers a
+      # `.pnpmfile.cjs`, which is plain JavaScript pnpm runs during install
+      # whether or not scripts are ignored. Nothing is lost — every
+      # `allowBuilds` entry in pnpm-workspace.yaml is already `false`, so no
+      # dependency build runs either way, the only root hook is husky, which
+      # a runner does not need, and this repo ships no pnpmfile.
       - name: Install dependencies
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
 
       - name: Run Claude (deep review)
         id: claude
@@ -392,12 +507,16 @@ jobs:
           # re-run then reveals the actual error.
           show_full_output: ${{ runner.debug == '1' }}
           claude_args: |
-            --max-turns 120
+            --max-turns ${{ steps.delta.outputs.path != '' && '40' || '120' }}
             --model claude-opus-5
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
+            HEAD SHA: ${{ github.event.pull_request.head.sha }}
+            MODE: ${{ steps.delta.outputs.path != '' && 'VERIFY' || 'FRESH' }}
+            LAST REVIEWED SHA: ${{ steps.dedupe.outputs.last_sha }}
+            DELTA FILE: ${{ steps.delta.outputs.path }}
 
             ${{ steps.focus.outputs.block }}
 
@@ -406,6 +525,39 @@ jobs:
             dependencies are installed. You did not write this code — review
             it adversarially: investigate like a skeptical engineer given a
             pointed brief, not a reader validating the diff in isolation.
+
+            If MODE is VERIFY: a deep review of this PR already exists,
+            its newest one reviewed LAST REVIEWED SHA, and the changes since
+            are in DELTA FILE. Do NOT re-review the PR. Skip steps 2 and 3
+            and do exactly this:
+            a. FIRST, before running anything else, read DELTA FILE and
+               keep its contents. Commands you run later come from this
+               branch and could rewrite that file underneath you.
+            b. List your own unresolved inline threads (GraphQL
+               reviewThreads on the PR, first comment by claude). Re-examine
+               each against the current code and run the relevant test:
+               genuinely fixed → reply "Verified fixed — <one sentence on
+               what you checked>" and resolve it (the resolveReviewThread
+               mutation via `gh api graphql`); not fixed → say precisely
+               what is still wrong, once; refuted by the author → concede
+               and resolve, or post ONE code-cited rebuttal and never a
+               second.
+            c. Review ONLY the delta you read in step a. It is precomputed
+               at DELTA FILE, a path inside the checkout: a
+               `git diff --stat` and then the full patch from LAST
+               REVIEWED SHA to HEAD SHA, so it is complete, deletions and
+               large files included. Read that file with your file tool;
+               do not reconstruct the delta from the compare API. Raise a
+               new finding only for an EXECUTABLE change in the delta
+               (workflow logic, shell, jq, source, tests), at the same bar
+               as a fresh review. Comment, doc, and PR-body changes in the
+               delta get no new finding unless FALSE by rule 6a. Files
+               outside the delta get nothing.
+            d. Post the summary review of step 8 with the marker as its
+               first line and the heading
+               `## Deep review (verify) — <resolved> resolved · <open> open · <new> new`,
+               listing only threads you touched and new delta findings.
+               Then stop.
 
             1. Read the diff (`gh pr diff`) and the changed files in full.
             2. EVIDENCE PHASE — chase the PR's claims to their sources
@@ -559,7 +711,14 @@ jobs:
 
                  then:
                  gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews" \
-                   -f event=COMMENT -F body=@/tmp/deep-review.md
+                   -f event=COMMENT -f commit_id=${{ github.event.pull_request.head.sha }} \
+                   -F body=@/tmp/deep-review.md
+
+               The commit_id pins the review to HEAD SHA, the commit this
+               run was started for: without it GitHub stamps the review
+               with whatever the PR's newest commit is when you post,
+               and a push that races this session would make the next
+               verify pass skip code nobody reviewed.
 
                Keep the literal marker "<!-- claude-deep-review -->" as the
                VERY FIRST line of the body — it is machine-parsed. With zero
