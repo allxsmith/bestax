@@ -3556,20 +3556,34 @@ async function claudeMdFiles(dir, out = []) {
   return out;
 }
 
-async function checkFragileProse() {
+// `root` is injectable so scripts/fragile-prose.test.mjs can walk a temporary
+// tree and prove the target set (and every exclusion) rather than only the
+// scanner.
+export async function checkFragileProse(root = REPO) {
+  const ifPresent = async (dir, fn) => {
+    try {
+      await access(dir);
+    } catch {
+      return [];
+    }
+    return fn(dir);
+  };
   const targets = [
-    ...(await walk(join(REPO, '.github'), '.yml')).map(f => [f, 'yaml']),
-    ...(await claudeMdFiles(REPO)).map(f => [f, 'markdown']),
+    ...(await ifPresent(join(root, '.github'), d => walk(d, '.yml'))).map(f => [
+      f,
+      'yaml',
+    ]),
+    ...(await claudeMdFiles(root)).map(f => [f, 'markdown']),
     // Migration guides are exempt: their counts describe a frozen upstream
     // (a vendored version of another library), and the ones that matter are
     // asserted by the mapping-coverage tests in bestax-migrate.
-    ...(await mdFiles(join(REPO, 'docs', 'docs', 'guides')))
+    ...(await ifPresent(join(root, 'docs', 'docs', 'guides'), mdFiles))
       .filter(f => !f.includes(`${sep}migration${sep}`))
       .map(f => [f, 'guide']),
   ];
   const violations = [];
   for (const [file, kind] of targets) {
-    const rel = relative(REPO, file).split('\\').join('/');
+    const rel = relative(root, file).split('\\').join('/');
     const hits = scanFragileProse(await readFile(file, 'utf8'), { kind });
     for (const hit of hits) violations.push(describeHit(rel, hit));
   }

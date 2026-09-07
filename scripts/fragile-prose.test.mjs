@@ -6,10 +6,14 @@
  * a rule that cries wolf gets marked `bestax:count-ok` reflexively, and a
  * reflexive marker is worth less than none.
  */
+import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
+import { checkFragileProse } from './check-conformance.mjs';
 
 const md = text => scanFragileProse(text, { kind: 'markdown' });
 const guide = text => scanFragileProse(text, { kind: 'guide' });
@@ -33,6 +37,17 @@ test('digits before a counted noun are a count', () => {
   assert.deepEqual(whys(md('the pin appears in 9 occurrences, one SHA')), [
     'count',
   ]);
+});
+
+test('the documented example shapes are all hits', () => {
+  for (const text of [
+    'that issue closed the group by measuring all six of its members',
+    'the runs surfaced six application hosts',
+    'Nineteen jobs; the command below is the check',
+    'All 87 components fit in the catalog',
+  ]) {
+    assert.deepEqual(whys(md(text)), ['count'], text);
+  }
 });
 
 test('a counting idiom without the noun is a count', () => {
@@ -218,4 +233,53 @@ test('a hit reports its line and the first pattern that matched', () => {
     /^docs\/x\.md line 3: "nineteen jobs" — a count in prose/
   );
   assert.match(describeHit('docs/x.md', hit), /bestax:count-ok/);
+});
+
+// --- the walk ---------------------------------------------------------------------
+
+test('walks a real tree: reports every target kind and honours every exclusion', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'fragile-prose-'));
+  const write = async (rel, body) => {
+    await mkdir(join(root, dirname(rel)), { recursive: true });
+    await writeFile(join(root, rel), body);
+  };
+  const count = 'nineteen jobs share this list\n';
+  const runId = 'see run 33586960606\n';
+
+  await write(
+    '.github/workflows/a.yml',
+    `jobs:\n  # ${count}  x: echo "nineteen jobs"\n`
+  );
+  await write('.github/CLAUDE.md', count + runId);
+  await write('pkg/CLAUDE.md', count);
+  await write('docs/docs/guides/g.md', runId);
+  await write('docs/docs/guides/migration/m.md', count);
+  await write('docs/docs/api/a.md', count);
+  await write('docs/blog/post.md', count);
+  await write('node_modules/dep/CLAUDE.md', count);
+  await write('.claude/worktrees/other/CLAUDE.md', count);
+  await write('pkg/dist/CLAUDE.md', count);
+  await write('README.md', count);
+
+  const violations = await checkFragileProse(root);
+  const files = [...new Set(violations.map(v => v.split(' line ')[0]))].sort();
+
+  assert.deepEqual(files, [
+    '.github/CLAUDE.md',
+    '.github/workflows/a.yml',
+    'docs/docs/guides/g.md',
+    'pkg/CLAUDE.md',
+  ]);
+  // The run id is a hit in the guide and a receipt in the contract.
+  assert.equal(violations.filter(v => v.includes('run id')).length, 1);
+  assert.ok(
+    violations.find(
+      v => v.startsWith('docs/docs/guides/g.md') && v.includes('run id')
+    )
+  );
+  // The yaml file's shell string is not scanned, only its comment line.
+  assert.equal(
+    violations.filter(v => v.startsWith('.github/workflows/a.yml')).length,
+    1
+  );
 });

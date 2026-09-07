@@ -37,7 +37,8 @@ const COUNTED_NOUNS =
   'jobs?|hosts?|runs?|entries|entry|occurrences?|components?|props?|' +
   'packages?|workflows?|checks?|files?|lines?|rows?|copies|copy|attempts?|' +
   'reviews?|threads?|commits?|exports?|examples?|pages?|apps?|stories|' +
-  'story|tests?|rules?|steps?|variables?|labels?|reviewers?|actors?';
+  'story|tests?|rules?|steps?|variables?|labels?|reviewers?|actors?|' +
+  'members?|items?|services?';
 
 const NUMBER = `(?:${NUMBER_WORDS}|\\d+)`;
 

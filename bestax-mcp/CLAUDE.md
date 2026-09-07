@@ -21,7 +21,7 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
   committed — enough for the staleness gate to catch a new or renamed skill,
   without putting a second copy of ~390 KB of markdown in every skill diff.
-  Turbo runs the generators before it concurrently, so that script takes a lock
+  Several Turbo tasks can invoke that script at the same time, so it takes a lock
   and no-ops when the tree already matches the source; keep both properties if
   you touch it, and see its trailing "Concurrency" note for why the freshness
   check is required rather than merely an optimisation.
