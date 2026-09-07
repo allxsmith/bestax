@@ -62,11 +62,25 @@ the API pages and the skill catalog.
 
 ## Dependencies
 
-Two: `@modelcontextprotocol/sdk` and `zod` (the SDK's schema types are zod, and
-pnpm's isolated linker means anything imported must be declared). The SDK pulls
-~90 transitive packages, most of them for HTTP transports this server does not
-use — that was measured against `pnpm audit --audit-level=high` before adopting
-it, and it comes back clean. Re-check if that ever changes.
+Three. `@modelcontextprotocol/sdk` and `zod` are the two that are imported (the
+SDK's schema types are zod, and pnpm's isolated linker means anything imported
+must be declared). The SDK pulls ~90 transitive packages, most of them for HTTP
+transports this server does not use — that was measured against
+`pnpm audit --audit-level=high` before adopting it, and it comes back clean.
+Re-check if that ever changes.
+
+`@allxsmith/bestax-bulma` is declared, not imported (#644): the server is built
+for the library and its manifest says so, the way bulma-ui declares `bulma`.
+It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
+current at pack time (bulma-ui releases first in the same job), and the sibling
+rule in `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS`
+declares this exact pair. Two things follow. `npx bestax-mcp` installs the
+library, `bulma`, and — npm's automatic peer install — `react`/`react-dom`
+alongside the server. And the version probe in `src/version.ts` walks up from
+`cwd`, so under `npx` the server's own copy in the npx cache is never on that
+path; installed as a project devDependency instead, npm may hoist this
+dependency's copy to the project's top-level `node_modules`, and when the
+project has no copy of its own the probe reports that one.
 
 ## Tests
 
