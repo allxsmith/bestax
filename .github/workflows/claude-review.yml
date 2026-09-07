@@ -494,11 +494,11 @@ jobs:
                 post ONE 🔵 row for the lot: "point-in-time evidence —
                 move to the issue and link it."
             6c. If LAST REVIEWED SHA is set, read your prior reviews and
-                the resolved threads BEFORE forming findings:
-                  gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
-                  (bodies containing "<!-- claude-deep-review -->")
-                  gh api graphql — reviewThreads{isResolved, comments
-                  {author, body}} on the PR
+                the resolved threads BEFORE forming findings: the reviews
+                API for this PR (your reviews carry the
+                "<!-- claude-deep-review -->" marker) and the PR's
+                reviewThreads through the GraphQL API, with each thread's
+                isResolved flag and comment authors and bodies.
                 Do not re-open a resolved thread, and do not reverse a
                 suggestion of yours the author has applied, unless the
                 result is FALSE by 6a's test. If you would reverse
