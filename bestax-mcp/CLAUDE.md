@@ -62,7 +62,7 @@ the API pages and the skill catalog.
 
 ## Dependencies
 
-Three. `@modelcontextprotocol/sdk` and `zod` are the two that are imported (the
+`@modelcontextprotocol/sdk` and `zod` are the ones that are imported (the
 SDK's schema types are zod, and pnpm's isolated linker means anything imported
 must be declared). The SDK pulls a large tree of transitive packages, most of them
 for HTTP transports this server does not use. That footprint was weighed against

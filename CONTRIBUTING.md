@@ -313,8 +313,9 @@ This repo uses AI reviewers and an autonomous fix loop — full details in the d
 The short version for contributors:
 
 - **Every PR gets a CodeRabbit review** automatically. Address or refute its comments — it
-  re-reviews on each push and marks addressed comments "✅ Addressed". A human maintainer still
-  reviews and merges everything.
+  reviews incrementally and marks addressed comments "✅ Addressed". It also rate-limits, so a
+  push during a spent window waits for the next one; the AI-assisted section below says how to
+  nudge it. A human maintainer still reviews and merges everything.
 - **`@claude` mentions are maintainer-only** (they spend the maintainer's Claude usage).
   External contributors don't need them — just push your changes.
 - **Issues labeled `claude-fix`** are implemented autonomously: Claude opens a PR labeled

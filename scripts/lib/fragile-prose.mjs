@@ -74,7 +74,11 @@ const PATTERNS = [
     // idioms that count without naming what they count.
     re: new RegExp(
       `\\b(?:all\\s+)?${NUMBER}\\s+(?:of\\s+(?:them|those|these)|so\\s+far)\\b` +
-        `|\\ball\\s+${NUMBER}\\b`,
+        `|\\ball\\s+${NUMBER}\\b` +
+        // A tally standing alone as its own sentence: "Three." opening a
+        // section counts what the section then lists. Words only — a digit
+        // at the start of a line is an ordered-list marker.
+        `|^\\s*(?:${NUMBER_WORDS})\\s*[.:;]`,
       'i'
     ),
   },
@@ -247,8 +251,10 @@ export function scanFragileProse(text, { kind }) {
     // ("twelve commits behind on #361"), and history does not go stale. The
     // maintained counts this rule exists for name no ticket.
     // A ticket makes a count historical, not a line number: "the guard at
-    // foo.yml:42, fixed in #643" still cites a line that will move.
-    const receipt = /#\d+\b/.test(line);
+    // foo.yml:42, fixed in #643" still cites a line that will move. Read
+    // across the pair, so a sentence wrapped before its ticket is treated
+    // the same as one that fits on a line.
+    const receipt = /#\d+\b/.test(joined[idx]);
     const own = maskNotCounts(maskInline(line));
     const pair = maskNotCounts(maskInline(joined[idx]));
     for (const { why, re, kinds } of PATTERNS) {

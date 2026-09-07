@@ -213,6 +213,23 @@ test('a count wrapped across two lines is caught, at its first line', () => {
   assert.deepEqual(md('fine\nfine\nfine'), []);
 });
 
+test('a tally standing alone as a sentence is a count', () => {
+  assert.deepEqual(whys(md('Three. The first is the SDK, the second is zod')), [
+    'count',
+  ]);
+  assert.deepEqual(md('Two. That is fine, since two is ordinary English'), []);
+});
+
+test('the ticket exemption reads across a wrapped line', () => {
+  assert.deepEqual(
+    md('deleted 868\nlines on #613 and the suite stayed green'),
+    []
+  );
+  assert.deepEqual(whys(md('deleted 868\nlines and the suite stayed green')), [
+    'count',
+  ]);
+});
+
 test('an all-N back-reference is a count', () => {
   assert.deepEqual(whys(md('All three are regenerated on every docs build')), [
     'count',
