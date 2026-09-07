@@ -628,7 +628,7 @@ anthropics/claude-code-action at the pinned SHA`. Do not restate the third party
   internals; they change under the pin and the restatement rots.
 - A count lives in a command, never in a sentence. Write the grep that produces it (rule 10's
   `egress-policy: block` grep is the model). A hand-maintained number is wrong within months,
-  and this file has proven that three times.
+  and this file has been caught doing exactly that.
 - Evidence (dates, tallies, measurements) goes on the issue and is linked. A comment says what
   the mechanism is; the issue says how we know. A run id may stand in a workflow comment as the
   receipt for the flip it justified, and nowhere in a guide.

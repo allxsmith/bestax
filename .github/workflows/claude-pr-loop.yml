@@ -512,15 +512,13 @@ jobs:
           # Trigger actors are bots by design: coderabbitai[bot] and Copilot
           # (reviews), claude[bot] (CI workflow_run after its own pushes),
           # github-actions[bot] (the loop's self-dispatch). The action matches
-          # this list against the RUN's actor by normalised login (its
-          # human-actor check; the write-permission check reads it only in
-          # PR/issue contexts for actors without a `[bot]` suffix). `copilot`
-          # is the reviewer app's actor spelling; the payload spelling
-          # `copilot-pull-request-reviewer[bot]` is what the gate's `if:`
-          # matches. copilot-swe-agent[bot] renders the same, so the gate's
-          # same-repo and claude/* head tests are the confinement, not this
-          # string. Source: check-human-actor and check-write-permissions in
-          # anthropics/claude-code-action at the pinned SHA. Evidence: #612.
+          # this list against the RUN's actor (check-human-actor and
+          # check-write-permissions in anthropics/claude-code-action at the
+          # pinned SHA). `copilot` is the reviewer app's actor spelling; the
+          # payload spelling `copilot-pull-request-reviewer[bot]` is what the
+          # gate's `if:` matches. copilot-swe-agent[bot] renders the same, so
+          # the gate's same-repo and claude/* head tests are the confinement,
+          # not this string. Evidence: #612.
           allowed_bots: 'coderabbitai,claude,github-actions,copilot'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into

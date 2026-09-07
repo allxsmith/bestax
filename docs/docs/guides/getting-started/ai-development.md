@@ -227,8 +227,8 @@ spelling where it is compared. The `ACTIONABLE` counter matches the prefix
 `^(coderabbitai|copilot)` deliberately: a new `copilot-*` app is counted as work owed, but it
 cannot admit itself to a session holding `AI_LOOP_PAT` just by existing.
 
-No Copilot review has yet started a loop run unaided; the runs that reached a job were manual
-re-runs. The evidence and the query that produced it are
+Do not assume a Copilot review starts a loop run by itself; whether GitHub creates a run for
+one is outside this repo's control, and what has been observed is recorded
 [on #612](https://github.com/allxsmith/bestax/issues/612#issuecomment-5563800114).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
