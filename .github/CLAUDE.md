@@ -618,6 +618,33 @@ reviewers never see it, a session called "read-only" when its token was write-sc
 encoding check described as a proof when it is a backstop. A comment that overstates its control
 is worse than no comment, because the next reader stops checking.
 
+### How to be exact: claim less
+
+Exact means claiming less, not explaining more. The way to make a security comment true is to
+delete the clause that overstates it, not to add the qualifiers that would make it true.
+
+- A security comment names the control and, when the control is a third party's, cites where
+  it lives, in one line: `# matched against the run actor by check-human-actor in
+anthropics/claude-code-action at the pinned SHA`. Do not restate the third party's
+  internals; they change under the pin and the restatement rots.
+- A count lives in a command, never in a sentence. Write the grep that produces it (rule 10's
+  `egress-policy: block` grep is the model). A hand-maintained number is wrong within months,
+  and this file has proven that three times.
+- Evidence (run ids, dates, tallies) goes on the issue and is linked. A comment says what the
+  mechanism is; the issue says how we know.
+- One home per fact. A mechanism is explained once, where it is configured; every other
+  mention is a pointer (`# same list as fix; rationale there`). Two copies are two things to
+  keep equal, and a reviewer will find the day they differ.
+- Claim the case in front of you. "Every", "only", "always" and "exactly one" are one
+  counterexample from false; "the review arm" survives, "every arm" does not.
+- Never cite a line number in prose. Lines move on the next edit; a step `id`, a job name, a
+  rule number, or a heading does not.
+- A PR body says what changed and why. State an invariant as the command that checks it
+  (`grep -c` the pin), not as today's count of what it found.
+
+The `fragile-prose` conformance check enforces the count, run-id, and line-reference rules;
+mark a deliberate exception with `bestax:count-ok` on the same line and say why.
+
 ## Where the rest is documented
 
 - **Design and operation of the AI loop, and the repository-variable table** — the
