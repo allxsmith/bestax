@@ -483,9 +483,11 @@ jobs:
                 exist; a job said unable to do what it can), or what a
                 public component, prop, or command does, or an example
                 that does not work as written. Imprecise is not false. A
-                missing qualifier, a stale count, "every" where the
-                mechanism is "most", or a restated third-party internal
-                is Advisory, and one row covers all of them.
+                missing qualifier, a stale count, or a restated
+                third-party internal is Advisory, and one row covers all
+                of them. A false claim in the PR body is a row in the
+                summary addressed to the maintainer, never inline: neither
+                this review nor the fix agent can edit the PR body.
                 When you suggest a wording change, fix by DELETION: name
                 the clause to remove so the remainder is true. Never
                 suggest adding a sentence, a qualifier, a number, a run
@@ -501,7 +503,9 @@ jobs:
                 "<!-- claude-deep-review -->" marker) and the PR's
                 reviewThreads through the GraphQL API, with each thread's
                 isResolved flag and comment authors and bodies.
-                Do not re-open a resolved thread. Do not reverse a
+                Do not re-open a resolved thread whose defect is absent
+                from the current code; a defect a later commit brought
+                back is a new finding at the normal bar. Do not reverse a
                 wording suggestion of yours the author has applied unless
                 the result is FALSE by 6a's test; a code suggestion of
                 yours that turned out to introduce a defect is a finding
