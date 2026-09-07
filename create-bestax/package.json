@@ -1,6 +1,6 @@
 {
   "name": "create-bestax",
-  "version": "4.2.6",
+  "version": "4.2.7",
   "description": "Create a new bestax-bulma project",
   "type": "module",
   "bin": {
