@@ -213,6 +213,38 @@ test('a count wrapped across two lines is caught, at its first line', () => {
   assert.deepEqual(md('fine\nfine\nfine'), []);
 });
 
+test('the allow marker needs a reason', () => {
+  assert.deepEqual(
+    md('87 components today <!-- bestax:count-ok: generated -->'),
+    []
+  );
+  assert.deepEqual(whys(md('87 components today <!-- bestax:count-ok -->')), [
+    'count',
+  ]);
+  assert.deepEqual(whys(yaml('# 19 jobs; bestax:count-ok')), ['count']);
+});
+
+test('a standalone ranged locator is a line reference', () => {
+  assert.deepEqual(whys(md('see lines 224-229')), ['line reference']);
+});
+
+test('a ticket on the next line excuses only a count that wraps into it', () => {
+  assert.deepEqual(md('deleted 868\nlines on #613 and it stayed green'), []);
+  assert.deepEqual(whys(md('nineteen jobs remain\nSee #613 for details')), [
+    'count',
+  ]);
+});
+
+test('a comment delimiter inside inline code opens nothing', () => {
+  assert.deepEqual(whys(md('write `{/*` in the page\nnineteen jobs remain')), [
+    'count',
+  ]);
+});
+
+test('a second comment on the line after one closes is still masked', () => {
+  assert.deepEqual(md('{/* a */} fine {/*\nnineteen jobs\n*/} done'), []);
+});
+
 test('a tally standing alone as a sentence is a count', () => {
   assert.deepEqual(whys(md('Three. The first is the SDK, the second is zod')), [
     'count',

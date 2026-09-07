@@ -147,11 +147,56 @@ function maskInline(line) {
 }
 
 /**
- * The lines of a markdown file with fenced blocks, front matter, and HTML
- * comments blanked, so only prose remains. Fence detection follows the same
- * CommonMark rules as `fenceMask` in api-page.mjs (backtick or tilde runs of
- * three or more, closed by a run at least as long); it is inlined here so this
- * module depends on nothing.
+ * Blank the comments in one line, carrying state across lines. Returns the
+ * line with every commented span replaced by spaces (length preserved, so a
+ * reported column still points at the right place) and the state to hand the
+ * next line. Both spellings are handled, a line may open and close several,
+ * and text after a close is scanned again — otherwise a second comment on the
+ * same line would read as prose. Delimiters are looked for in a copy with
+ * inline code blanked, so a backticked `{/*` does not open a comment.
+ */
+function stripComments(line, comment) {
+  let out = '';
+  let rest = line;
+  for (;;) {
+    if (comment) {
+      const end = rest.indexOf(comment.close);
+      if (end === -1) return { text: out + ' '.repeat(rest.length), comment };
+      const after = end + comment.close.length;
+      out += ' '.repeat(after);
+      rest = rest.slice(after);
+      comment = null;
+      continue;
+    }
+    const masked = blank(rest, /(`+)[\s\S]*?\1/g);
+    let best = null;
+    for (const [open, close] of [
+      ['<!--', '-->'],
+      ['{/*', '*/}'],
+    ]) {
+      const i = masked.indexOf(open);
+      if (i !== -1 && (best === null || i < best.i)) best = { i, open, close };
+    }
+    if (best === null) return { text: out + rest, comment: null };
+    const closeIdx = masked.indexOf(best.close, best.i + best.open.length);
+    if (closeIdx === -1) {
+      return {
+        text: out + rest.slice(0, best.i) + ' '.repeat(rest.length - best.i),
+        comment: { close: best.close },
+      };
+    }
+    const after = closeIdx + best.close.length;
+    out += rest.slice(0, best.i) + ' '.repeat(after - best.i);
+    rest = rest.slice(after);
+  }
+}
+
+/**
+ * The lines of a markdown file with fenced blocks, front matter, and comments
+ * blanked, so only prose remains. Fence detection follows the same CommonMark
+ * rules as `fenceMask` in api-page.mjs (backtick or tilde runs of three or
+ * more, closed by a run at least as long); it is inlined here so this module
+ * depends on nothing.
  */
 function proseLinesOfMarkdown(text) {
   const lines = text.split('\n');
@@ -174,38 +219,19 @@ function proseLinesOfMarkdown(text) {
       }
       continue;
     }
-    const open = line.match(/^\s{0,3}(`{3,}|~{3,})/);
-    if (
-      open &&
-      !(open[1][0] === '`' && line.slice(open[0].length).includes('`'))
-    ) {
-      fence = { char: open[1][0], len: open[1].length };
-      continue;
-    }
-    // Comments in both spellings can span lines, so their state is carried
-    // here rather than left to the per-line mask, which only sees a comment
-    // whose delimiters both land on one line.
-    if (comment) {
-      const end = line.indexOf(comment.close);
-      if (end === -1) continue;
-      const after = end + comment.close.length;
-      comment = null;
-      out[i] = ' '.repeat(after) + line.slice(after);
-      continue;
-    }
-    let kept = line;
-    for (const [open, close] of [
-      ['<!--', '-->'],
-      ['{/*', '*/}'],
-    ]) {
-      const start = kept.indexOf(open);
-      if (start !== -1 && !kept.includes(close, start + open.length)) {
-        comment = { close };
-        kept = kept.slice(0, start);
-        break;
+    if (!comment) {
+      const open = line.match(/^\s{0,3}(`{3,}|~{3,})/);
+      if (
+        open &&
+        !(open[1][0] === '`' && line.slice(open[0].length).includes('`'))
+      ) {
+        fence = { char: open[1][0], len: open[1].length };
+        continue;
       }
     }
-    out[i] = kept;
+    const stripped = stripComments(line, comment);
+    comment = stripped.comment;
+    out[i] = stripped.text;
   }
   return out;
 }
@@ -245,36 +271,43 @@ export function scanFragileProse(text, { kind }) {
   );
   prose.forEach((line, idx) => {
     if (!line.trim()) return;
-    if (raw[idx].includes(ALLOW_TOKEN)) return;
-    if (raw[idx + 1]?.includes(ALLOW_TOKEN) && !line.trim()) return;
-    // A line that cites an issue or PR is recording what happened there
-    // ("twelve commits behind on #361"), and history does not go stale. The
-    // maintained counts this rule exists for name no ticket.
-    // A ticket makes a count historical, not a line number: "the guard at
-    // foo.yml:42, fixed in #643" still cites a line that will move. Read
-    // across the pair, so a sentence wrapped before its ticket is treated
-    // the same as one that fits on a line.
-    const receipt = /#\d+\b/.test(joined[idx]);
-    const own = maskNotCounts(maskInline(line));
+    // The marker only excuses a line when it says why: a bare token is the
+    // reflexive exemption the rule exists to avoid.
+    const marker = raw[idx].replace(/-->|\*\/\}/g, ' ');
+    if (new RegExp(`${ALLOW_TOKEN}\\s*[-:—]?\\s*\\w`).test(marker)) return;
+    // A ticket makes a count historical: "twelve commits behind on #361"
+    // records what happened there, and history does not go stale. It never
+    // excuses a line reference, which moves whatever the history says.
+    const ownTicket = /#\d+\b/.test(line);
+    const pairTicket = /#\d+\b/.test(joined[idx]);
+    const inline = maskInline(line);
+    const own = maskNotCounts(inline);
     const pair = maskNotCounts(maskInline(joined[idx]));
     for (const { why, re, kinds } of PATTERNS) {
       if (kinds && !kinds.includes(kind)) continue;
-      if (receipt && why === 'count') continue;
       // The pair only widens the count rule: a run id or a line reference is
-      // a single token and cannot straddle a break.
-      const subject = why === 'count' ? pair : own;
+      // a single token and cannot straddle a break. A line reference reads
+      // the inline-masked text rather than the count-masked one, because a
+      // locator like "lines 224-229" is itself the range those masks remove.
+      const subject =
+        why === 'count' ? pair : why === 'line reference' ? inline : own;
       const m = subject.match(re);
-      // A match that begins past this line belongs to the next one, which
-      // reports it on its own turn; without this an unrelated first line
-      // would absorb the hit and name the wrong line.
-      if (m && m.index < line.length) {
-        hits.push({
-          line: idx + 1,
-          why,
-          text: m[0].replace(/\s+/g, ' ').trim(),
-        });
-        return;
+      // A match beginning past this line belongs to the next, which reports
+      // it on its own turn; without this an unrelated first line would
+      // absorb the hit and name the wrong one.
+      if (!m || m.index >= line.length) continue;
+      if (why === 'count') {
+        // A ticket on the next line only excuses a count that wraps into it.
+        // Otherwise an unrelated reference below would clear the line above.
+        const wraps = m.index + m[0].length > line.length;
+        if (ownTicket || (wraps && pairTicket)) continue;
       }
+      hits.push({
+        line: idx + 1,
+        why,
+        text: m[0].replace(/\s+/g, ' ').trim(),
+      });
+      return;
     }
   });
   return hits;

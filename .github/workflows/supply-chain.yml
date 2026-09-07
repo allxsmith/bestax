@@ -83,7 +83,7 @@ jobs:
   # How much smaller, measured rather than asserted — read out of the documents
   # produced by run 33260691933 (2026-08-29), not carried forward:
   #
-  #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)   bestax:count-ok, a scale not a checksum
+  #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)   bestax:count-ok: a scale, not a checksum
   #   create-bestax            12             (14)
   #   bestax-migrate           98             (100)
   #   bestax-mcp               93             (95)
