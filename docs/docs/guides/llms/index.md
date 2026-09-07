@@ -159,4 +159,4 @@ from the site root:
 | [`/llms-full.txt`](https://bestax.io/llms-full.txt) | The **entire documentation** concatenated into a single plain-text file.                                                            |
 | Per-page `.md`                                      | Every page is also served as clean Markdown at `<page>.md`, e.g. [`/docs/guides/intro.md`](https://bestax.io/docs/guides/intro.md). |
 
-All three are regenerated on every docs build, so they always match the deployed site.
+They are regenerated on every docs build, so they always match the deployed site.

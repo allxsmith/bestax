@@ -34,7 +34,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
   — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a `transform.ts` that
   orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
   destructuring pass, no alias registry and no wrapping pass; the rbx and RBC copies still
-  carry all three.
+  carry all of them.
 - `'<source>'` must be added to `MIGRATE_SOURCE_VALUES` in `telemetry-worker/src/schema.ts`
   or its events are dropped at ingest; `check:conformance --only=telemetry-allowlists`
   fails until it is. That worker deploys to production on merge, so the two land together.

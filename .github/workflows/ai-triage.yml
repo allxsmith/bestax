@@ -940,7 +940,7 @@ jobs:
           NUMBER: ${{ needs.gate.outputs.number }}
           # The item-type pin binds this job too. Enforcing it only in the render
           # job put the guarantee in the job that cannot write, while this one
-          # holds the PAT and invokes all three commands.
+          # holds the PAT and invokes the commands.
           IS_PR: ${{ needs.gate.outputs.is_pr }}
           TRIGGER: ${{ github.event.action }}
           DEDUPE_BODY: ${{ needs.triage.outputs.dedupe_body }}

@@ -70,10 +70,11 @@ const PATTERNS = [
   },
   {
     why: 'count',
-    // "nineteen of them", "twelve of those", "sa17 so far" idioms that count
-    // without naming the noun.
+    // "nineteen of them", "twelve of those", "all three are regenerated" —
+    // idioms that count without naming what they count.
     re: new RegExp(
-      `\\b${NUMBER}\\s+(?:of\\s+(?:them|those|these)|so\\s+far)\\b`,
+      `\\b(?:all\\s+)?${NUMBER}\\s+(?:of\\s+(?:them|those|these)|so\\s+far)\\b` +
+        `|\\ball\\s+${NUMBER}\\b`,
       'i'
     ),
   },

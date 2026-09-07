@@ -17,7 +17,7 @@ like library code: they get bug reports (#194, #195, #196, #197) and ship to use
 The roster is **read, not listed** (#540). `create-bestax/scripts/sync-skills.mjs` and
 `bestax-mcp/scripts/sync-skills.mjs` each copy every directory holding a `SKILL.md` into their
 package, and `scripts/gen-mcp-index.mjs` discovers the same set to generate the MCP manifest
-(it indexes, it does not bundle). A new skill therefore reaches all three by construction:
+(it indexes, it does not bundle). A new skill therefore reaches every one by construction:
 there is no allowlist to join, and no per-skill bundling call to make. Full provenance
 (#385 vs #540) and the slot for a future per-skill opt-out live in
 `create-bestax/scripts/sync-skills.mjs`'s header.

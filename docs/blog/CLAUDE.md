@@ -35,13 +35,13 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   input](…#368)", not "#368: form label wires no htmlFor". A mechanism catalog stitched with
   insider anchors reads disjointed to everyone but the maintainer (#478's draft was rewritten
   for exactly this).
-- **Work all three appeals.** A post should persuade on ethos, pathos, and logos together.
+- **Work every appeal.** A post should persuade on ethos, pathos, and logos together.
   _Ethos_: write from first-hand maintainer experience, link your sources, and own the
   mistakes (the candor above is the credibility play). _Pathos_: name the pain a change
   removes and the small joy it adds; let the humor and era nods carry feeling, and never
   manufacture drama. _Logos_: back every claim with a reason, a number, a table, or runnable
   code (a live demo is an argument the reader can poke). Before publishing, check the draft
-  lands all three: all logos reads like a changelog, and all pathos reads like marketing.
+  lands each of them: all logos reads like a changelog, and all pathos reads like marketing.
 - **Structure the middle.** Hyphen bullets for detail dumps, numbered lists only for ordered
   procedures, bold on the load-bearing word, section headings even in medium-length posts.
 - **MLA conventions.** MLA title case for the post title and headings (first word, last word,

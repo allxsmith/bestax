@@ -53,7 +53,7 @@ jobs:
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
-      # the Node 24 toolcache hit on every run. All three stay for the
+      # the Node 24 toolcache hit on every run. They stay for the
       # toolcache-miss path, and they are not interchangeable: the first two carry
       # the actions/node-versions manifest and its release assets, while nodejs.org
       # is setup-node v7 own fallback when that lookup misses.

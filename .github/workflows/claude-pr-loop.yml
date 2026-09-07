@@ -340,7 +340,7 @@ jobs:
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
-      # the Node 24 toolcache hit on every run. All three stay for the
+      # the Node 24 toolcache hit on every run. They stay for the
       # toolcache-miss path, and they are not interchangeable: the first two carry
       # the actions/node-versions manifest and its release assets, while nodejs.org
       # is setup-node v7's own fallback when that lookup misses.
@@ -512,9 +512,8 @@ jobs:
           # Trigger actors are bots by design: coderabbitai[bot] and Copilot
           # (reviews), claude[bot] (CI workflow_run after its own pushes),
           # github-actions[bot] (the loop's self-dispatch). The action matches
-          # this list against the RUN's actor (check-human-actor and
-          # check-write-permissions in anthropics/claude-code-action at the
-          # pinned SHA). `copilot` is the reviewer app's actor spelling; the
+          # this list against the RUN's actor (check-human-actor in
+          # anthropics/claude-code-action at the pinned SHA). `copilot` is the reviewer app's actor spelling; the
           # payload spelling `copilot-pull-request-reviewer[bot]` is what the
           # gate's `if:` matches. copilot-swe-agent[bot] renders the same, so
           # the gate's same-repo and claude/* head tests are the confinement,

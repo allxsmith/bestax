@@ -199,6 +199,15 @@ test('a count wrapped across two lines is caught, at its first line', () => {
   assert.deepEqual(md('fine\nfine\nfine'), []);
 });
 
+test('an all-N back-reference is a count', () => {
+  assert.deepEqual(whys(md('All three are regenerated on every docs build')), [
+    'count',
+  ]);
+  assert.deepEqual(whys(md('the three hosts stay; all four legs agree')), [
+    'count',
+  ]);
+});
+
 test('a count inside a link or emphasis is caught', () => {
   assert.deepEqual(
     whys(md('The seven [Agent Skills](/docs/skills) ship with it')),

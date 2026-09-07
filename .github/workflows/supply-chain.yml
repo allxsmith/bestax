@@ -108,7 +108,7 @@ jobs:
   # orders of magnitude, and obscures a genuinely tiny runtime closure that is
   # a selling point.
   #
-  # Per package, not one combined tree. Installing all four together resolves to
+  # Per package, not one combined tree. Installing them together resolves to
   # 204 packages, which would bury bulma-ui's five-package closure under the (bestax:count-ok: scale)
   # CLIs' dependencies and reproduce the exact problem this job exists to fix.
   #
@@ -455,7 +455,7 @@ jobs:
       #    ends up as SPDX downloadLocation.
       #
       # 2. `source.name` — every document was named
-      #    `/home/runner/work/_temp/consumer`, identical across all four, so the
+      #    `/home/runner/work/_temp/consumer`, identical across every leg, so the
       #    artifact leaked the runner's filesystem layout and did not say which
       #    package it described. It also appeared as a package entry with a null
       #    version.
