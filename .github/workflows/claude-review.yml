@@ -368,9 +368,18 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          OUT="$RUNNER_TEMP/deep-review-delta.patch"
+          # In the workspace, not RUNNER_TEMP: the session's file tool can
+          # only read under the checkout. The name is dot-prefixed and
+          # gitignored, and the session never commits.
+          OUT="$GITHUB_WORKSPACE/.deep-review-delta.patch"
+          # Both commits present AND the old one an ancestor of the head.
+          # A rebase or force-push can leave last_sha reachable but off the
+          # current history, and a two-dot diff between two such commits
+          # reports the rewritten work as reversed — a delta that never
+          # existed. No ancestry, no boundary: fall back to a fresh review.
           if git cat-file -e "$LAST_SHA^{commit}" 2>/dev/null \
-             && git cat-file -e "$HEAD_SHA^{commit}" 2>/dev/null; then
+             && git cat-file -e "$HEAD_SHA^{commit}" 2>/dev/null \
+             && git merge-base --is-ancestor "$LAST_SHA" "$HEAD_SHA"; then
             {
               git diff --stat "$LAST_SHA" "$HEAD_SHA"
               printf '\n'
@@ -379,7 +388,7 @@ jobs:
             echo "path=$OUT" >> "$GITHUB_OUTPUT"
             echo "verify delta: $LAST_SHA..$HEAD_SHA ($(wc -l < "$OUT") lines)"
           else
-            echo "last reviewed commit $LAST_SHA or head $HEAD_SHA is not in this checkout — falling back to a fresh review"
+            echo "last reviewed commit $LAST_SHA is missing from this checkout or is not an ancestor of $HEAD_SHA — falling back to a fresh review"
           fi
 
       - name: Setup pnpm
@@ -480,7 +489,8 @@ jobs:
                what is still wrong, once; refuted by the author → concede
                and resolve, or post ONE code-cited rebuttal and never a
                second.
-            b. Review ONLY the delta. It is precomputed at DELTA FILE: a
+            b. Review ONLY the delta. It is precomputed at DELTA FILE, a
+               path inside the checkout: a
                `git diff --stat` and then the full patch from LAST
                REVIEWED SHA to HEAD SHA, so it is complete, deletions and
                large files included. Read that file with your file tool;

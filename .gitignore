@@ -173,3 +173,6 @@ create-bestax/e2e/playwright-report/
 # backup left on disk by a pre-#436 checkout cannot be committed by a `git add
 # -A` after rebasing. Safe to drop once no working copy predates that change.
 bestax-migrate/package.json.pack-backup
+
+# Written by claude-review.yml for a verify pass; never committed.
+.deep-review-delta.patch
