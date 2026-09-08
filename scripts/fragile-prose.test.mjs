@@ -286,6 +286,13 @@ test('a number word carrying the verb is a count', () => {
   ]);
 });
 
+test('a code span needs a run of exactly its own length to close', () => {
+  // A double-backtick span holds a single backtick; the inner one must not
+  // close it, and the count after the real close is still prose.
+  assert.deepEqual(whys(md('text ``a `b` c`` then 19 jobs')), ['count']);
+  assert.deepEqual(md('a ``19 jobs`` span'), []);
+});
+
 test('a code span that opens on one line covers the next', () => {
   assert.deepEqual(md('run `command\n19 jobs` to see'), []);
   assert.deepEqual(whys(md('run `command`\n19 jobs remain')), ['count']);

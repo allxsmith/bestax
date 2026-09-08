@@ -147,7 +147,10 @@ function maskInline(line) {
   // A reference-link definition is not prose — it never renders — so the whole
   // line goes, label and destination together.
   if (/^\s{0,3}\[[^\]]+\]:\s/.test(line)) return ' '.repeat(line.length);
-  let out = blank(blank(line, /(`+)[\s\S]*?\1/g), /<!--[\s\S]*?-->/g);
+  let out = blank(
+    blank(line, /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g),
+    /<!--[\s\S]*?-->/g
+  );
   // A link's visible text is prose and its destination is not, so keep the
   // text and blank the rest; emphasis markers go the same way. Without this a
   // count inside a link or in bold reads as markup and slips the detector.
@@ -176,7 +179,7 @@ function stripCode(line, run) {
   let rest = line;
   for (;;) {
     if (run) {
-      const close = new RegExp(`\`{${run}}(?!\`)`).exec(rest);
+      const close = new RegExp(`(?<!\`)\`{${run}}(?!\`)`).exec(rest);
       if (!close) return { text: out + ' '.repeat(rest.length), run };
       const after = close.index + close[0].length;
       out += ' '.repeat(after);
@@ -187,7 +190,7 @@ function stripCode(line, run) {
     const open = /`+/.exec(rest);
     if (!open) return { text: out + rest, run: null };
     const len = open[0].length;
-    const closeRe = new RegExp(`\`{${len}}(?!\`)`, 'g');
+    const closeRe = new RegExp(`(?<!\`)\`{${len}}(?!\`)`, 'g');
     closeRe.lastIndex = open.index + len;
     const close = closeRe.exec(rest);
     if (!close) {
@@ -228,7 +231,7 @@ function stripComments(line, comment) {
       comment = null;
       continue;
     }
-    const masked = blank(rest, /(`+)[\s\S]*?\1/g);
+    const masked = blank(rest, /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g);
     let best = null;
     // HTML accepts `--!>` as well as `-->` to end a comment, so the close is
     // a pattern rather than a literal.
