@@ -286,6 +286,17 @@ test('a number word carrying the verb is a count', () => {
   ]);
 });
 
+test('a code span that opens on one line covers the next', () => {
+  assert.deepEqual(md('run `command\n19 jobs` to see'), []);
+  assert.deepEqual(whys(md('run `command`\n19 jobs remain')), ['count']);
+});
+
+test('a line reference is not capped at four digits', () => {
+  for (const t of ['see large-file.ts:10000', 'see line 10000', 'see L10000']) {
+    assert.deepEqual(whys(md(t)), ['line reference'], t);
+  }
+});
+
 test('a reference-link definition is not prose', () => {
   assert.deepEqual(md('[nineteen jobs]: /archive'), []);
   assert.deepEqual(whys(md('the nineteen jobs are listed')), ['count']);

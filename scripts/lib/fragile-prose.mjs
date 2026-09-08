@@ -107,7 +107,7 @@ const PATTERNS = [
     why: 'line reference',
     // "claude-pr-loop.yml:224", "(:729)" style, or the words "line 224",
     // "lines 224-229", "L224".
-    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|[cm]?jsx?|tsx?|json|sh|scss|css|go|py|rs)|[\s(]):\d{1,4}(?:-\d{1,4})?\b|\b(?:lines?|L)\s?\d{1,4}(?:\s?[-–]\s?\d{1,4})?\b/i,
+    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|[cm]?jsx?|tsx?|json|sh|scss|css|go|py|rs)|[\s(]):\d+(?:-\d+)?\b|\b(?:lines?|L)\s?\d+(?:\s?[-–]\s?\d+)?\b/i,
   },
 ];
 
@@ -163,6 +163,46 @@ function maskInline(line) {
   out = out.replace(/(\*\*|__|\*|_)(?=\S)/g, m => ' '.repeat(m.length));
   out = out.replace(/(?<=\S)(\*\*|__|\*|_)/g, m => ' '.repeat(m.length));
   return blank(out, /https?:\/\/\S+/g);
+}
+
+/**
+ * Blank the inline-code spans in one line, carrying state across lines: a span
+ * may open on one line and close on the next, and its contents are code on
+ * every line between. `run` is the length of the delimiter currently open, or
+ * null.
+ */
+function stripCode(line, run) {
+  let out = '';
+  let rest = line;
+  for (;;) {
+    if (run) {
+      const close = new RegExp(`\`{${run}}(?!\`)`).exec(rest);
+      if (!close) return { text: out + ' '.repeat(rest.length), run };
+      const after = close.index + close[0].length;
+      out += ' '.repeat(after);
+      rest = rest.slice(after);
+      run = null;
+      continue;
+    }
+    const open = /`+/.exec(rest);
+    if (!open) return { text: out + rest, run: null };
+    const len = open[0].length;
+    const closeRe = new RegExp(`\`{${len}}(?!\`)`, 'g');
+    closeRe.lastIndex = open.index + len;
+    const close = closeRe.exec(rest);
+    if (!close) {
+      return {
+        text:
+          out +
+          rest.slice(0, open.index) +
+          ' '.repeat(rest.length - open.index),
+        run: len,
+      };
+    }
+    const after = close.index + close[0].length;
+    out += rest.slice(0, open.index) + ' '.repeat(after - open.index);
+    rest = rest.slice(after);
+  }
 }
 
 /**
@@ -234,6 +274,7 @@ function proseLinesOfMarkdown(text) {
   }
   let fence = null; // { char, len }
   let comment = null; // { close } while inside a multi-line comment
+  let run = null; // backtick length while inside a multi-line code span
   for (; i < lines.length; i++) {
     const line = lines[i];
     if (fence) {
@@ -255,7 +296,9 @@ function proseLinesOfMarkdown(text) {
     }
     const stripped = stripComments(line, comment);
     comment = stripped.comment;
-    out[i] = stripped.text;
+    const coded = stripCode(stripped.text, run);
+    run = coded.run;
+    out[i] = coded.text;
   }
   return out;
 }
