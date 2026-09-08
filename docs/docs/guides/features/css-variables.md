@@ -150,7 +150,7 @@ function AdvancedTheming() {
 
 ## Complete CSS Variables Catalog
 
-Bulma v1 provides 500+ CSS variables organized by category. Here are the key categories — for the full, authoritative list see the [Bulma CSS Variables reference](https://bulma.io/documentation/features/css-variables/) and the per-component pages under [bulma.io/documentation](https://bulma.io/documentation/).
+Bulma v1 provides its CSS variables organized by category. Here are the key categories — for the full, authoritative list see the [Bulma CSS Variables reference](https://bulma.io/documentation/features/css-variables/) and the per-component pages under [bulma.io/documentation](https://bulma.io/documentation/).
 
 ### Scheme Variables
 

@@ -17,7 +17,7 @@ Most React Bulma packages on npm still target Bulma v0.9.4. That means no CSS va
 | Feature                     | Other Libraries          | bestax-bulma                                                                      |
 | --------------------------- | ------------------------ | --------------------------------------------------------------------------------- |
 | **Bulma Version**           | v0.9.4 or older          | v1.0+ (latest)                                                                    |
-| **CSS Variables**           | ❌ Not supported         | ✅ Full support (500+ variables)                                                  |
+| **CSS Variables**           | ❌ Not supported         | ✅ Full support                                                                   |
 | **Runtime Theming**         | ❌ Limited               | ✅ Complete `Theme` component                                                     |
 | **CSS Grid**                | ❌ Missing               | ✅ True CSS Grid via `Grid` / `Cell`                                              |
 | **Skeleton Loading**        | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                |
@@ -258,7 +258,7 @@ function SkeletonExamples() {
 
 | Feature              | Description                 | Implementation      |
 | -------------------- | --------------------------- | ------------------- |
-| **CSS Variables**    | 500+ customizable variables | Theme component     |
+| **CSS Variables**    | Customizable variables      | Theme component     |
 | **Runtime Theming**  | Dynamic theme switching     | Theme + CSS vars    |
 | **Class Prefixing**  | Namespace CSS classes       | ConfigProvider      |
 | **Dark Mode**        | Built-in dark theme support | Theme component     |

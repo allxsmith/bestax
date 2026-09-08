@@ -56,9 +56,9 @@ const COUNTED_NOUNS =
   'surfaces?|helpers?|classes|utilities|styles?|strategies|strategy|' +
   'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?';
 
-// Up to four digits, optionally approximate ("500+ variables"): a longer run
+// Up to eight digits, optionally approximate ("500+ variables"): a longer run
 // is an id, and the run-id rule owns those.
-const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,4}\\+?)`;
+const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,8}\\+?)`;
 
 const PATTERNS = [
   {
@@ -66,7 +66,9 @@ const PATTERNS = [
     // "nineteen jobs", "9 occurrences", "fifteen of its API calls" — a
     // number followed within three words by a counted noun.
     re: new RegExp(
-      `\\b${NUMBER}\\b(?:[\\s-]+[\\w']+){0,3}?[\\s-]+(?:${COUNTED_NOUNS})\\b`,
+      // `(?!\\w)` rather than `\\b` after the number: a word boundary cannot
+      // fall between the `+` of an approximate count and the space after it.
+      `\\b${NUMBER}(?!\\w)(?:[\\s-]+[\\w']+){0,3}?[\\s-]+(?:${COUNTED_NOUNS})\\b`,
       'i'
     ),
   },
@@ -112,7 +114,7 @@ const NOT_A_COUNT = [
   /\b\d+(?:\.\d+)?\s?%/g, // percentages
   /\b\d+(?:\.\d+)?[\s-]?(?:ms|s|sec|secs|seconds?|min|mins|minutes?|h|hrs?|hours?|hourly|days?|weeks?|months?|years?)\b/gi, // durations, including "30-day"
   /\b\d+(?:\.\d+)?\s?(?:B|KB|MB|GB|KiB|MiB)\b/g, // sizes
-  /\b(?:port|node|react|bulma|docusaurus|typescript|es)\s?\d+\b/gi, // named versions and ports
+  /\b(?:port|node|react|bulma|docusaurus|typescript|es|next\.?js|vite|jest|storybook)\s?\d+\+?/gi, // named versions and ports
   /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
   /\b\d+\s?[-–—]\s?\d+\b/g, // a range is guidance ("a 1-3 sentence hook"), not a tally
   /\b\d+-(?:column|row|cell|bit|byte|core|only)\b/gi, // named systems, not inventories

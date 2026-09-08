@@ -295,8 +295,15 @@ test('a count wrapped across several narrow lines is caught', () => {
   assert.equal(hit.why, 'count');
 });
 
-test('an approximate count is a count', () => {
+test('an approximate count is a count, with or without a leading all', () => {
+  assert.deepEqual(whys(md('500+ variables are exposed')), ['count']);
   assert.deepEqual(whys(md('all 500+ variables are exposed')), ['count']);
+});
+
+test('a large count is still a count, but an id is not', () => {
+  assert.deepEqual(whys(md('10000 files are scanned')), ['count']);
+  assert.deepEqual(whys(md('99999999 files are scanned')), ['count']);
+  assert.deepEqual(whys(guide('see run 33586960606')), ['run id']);
 });
 
 test('the window stops at a new block', () => {
