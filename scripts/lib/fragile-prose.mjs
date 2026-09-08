@@ -149,7 +149,7 @@ function maskInline(line) {
   if (/^\s{0,3}\[[^\]]+\]:\s/.test(line)) return ' '.repeat(line.length);
   let out = blank(
     blank(line, /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g),
-    /<!--[\s\S]*?-->/g
+    /<!--[\s\S]*?(?:--!?>)/g
   );
   // A link's visible text is prose and its destination is not, so keep the
   // text and blank the rest; emphasis markers go the same way. Without this a
