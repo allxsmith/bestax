@@ -336,6 +336,14 @@ test('the window stops at a new block', () => {
   );
 });
 
+test('only a real ticket excuses a count', () => {
+  assert.deepEqual(whys(md('500 variables https://example.test/#613')), [
+    'count',
+  ]);
+  assert.deepEqual(whys(md('500 variables `#613`')), ['count']);
+  assert.deepEqual(md('500 variables, fixed in #613'), []);
+});
+
 test('a ticket below the match does not excuse it', () => {
   assert.deepEqual(whys(md('deleted 868\nlines today\nper #613')), ['count']);
   assert.deepEqual(md('deleted 868\nlines on #613 today'), []);

@@ -309,18 +309,20 @@ export function scanFragileProse(text, { kind }) {
     // A ticket makes a count historical: "twelve commits behind on #361"
     // records what happened there, and history does not go stale. It never
     // excuses a line reference, which moves whatever the history says.
+    const inline = maskInline(line);
+    const pairInline = maskInline(joined[idx]);
     // A ticket only excuses the lines a match actually spans: one sitting
-    // further down the window documents something else.
+    // further down the window documents something else. It is read from the
+    // masked text, so a URL fragment or a value in inline code cannot pose
+    // as a reference.
     const ticketWithin = end => {
       let stop = 0;
       for (const part of windows[idx]) {
         stop += (stop ? 1 : 0) + part.length;
         if (stop >= end) break;
       }
-      return /#\d+\b/.test(joined[idx].slice(0, stop));
+      return /#\d+\b/.test(pairInline.slice(0, stop));
     };
-    const inline = maskInline(line);
-    const pairInline = maskInline(joined[idx]);
     const own = maskNotCounts(inline);
     const pair = maskNotCounts(pairInline);
     for (const { why, re, kinds } of PATTERNS) {
