@@ -54,7 +54,8 @@ const COUNTED_NOUNS =
   'flags?|inputs?|outputs?|fields?|keys?|paths?|variants?|levers?|' +
   'questions?|apis?|options?|ways?|kinds?|modes?|reasons?|cases?|' +
   'surfaces?|helpers?|classes|utilities|styles?|strategies|strategy|' +
-  'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?|icons?|levels?';
+  'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?|icons?|levels?|' +
+  'errors?|warnings?|failures?';
 
 // Up to eight digits, grouped or not, optionally approximate ("500+
 // variables", "2,500+ icons"): a longer run is an id, and the run-id rule
@@ -123,6 +124,7 @@ const NOT_A_COUNT = [
   /\b\d+(?:\.\d+)?\s?(?:B|KB|MB|GB|KiB|MiB)\b/g, // sizes
   /\b(?:port|node|react|bulma|docusaurus|typescript|es|next\.?js|vite|jest|storybook)\s?\d+\+?/gi, // named versions and ports
   /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
+  /\bHTTP\s?\d{3}\b|\b[1-5]\d{2}s?\s+(?:errors?|responses?|status(?:es)?|codes?)\b/gi, // HTTP statuses, not tallies
   /\b\d+\s?[-–—]\s?\d+\b/g, // a range is guidance ("a 1-3 sentence hook"), not a tally
   /\b\d+-(?:column|row|cell|bit|byte|core|only)\b/gi, // named systems, not inventories
 ];
@@ -142,6 +144,9 @@ function maskNotCounts(line) {
 // markdown masker below; the comment pattern still spans newlines so it
 // cannot half-match a comment if this is ever handed more than one line.
 function maskInline(line) {
+  // A reference-link definition is not prose — it never renders — so the whole
+  // line goes, label and destination together.
+  if (/^\s{0,3}\[[^\]]+\]:\s/.test(line)) return ' '.repeat(line.length);
   let out = blank(blank(line, /(`+)[\s\S]*?\1/g), /<!--[\s\S]*?-->/g);
   // A link's visible text is prose and its destination is not, so keep the
   // text and blank the rest; emphasis markers go the same way. Without this a

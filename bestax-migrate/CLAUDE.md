@@ -118,7 +118,7 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
     specifier becomes `'bloomer'`. Output lands in `.e2e-tmp/corpus-out-bloomer/`.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
-  sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught six
+  sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
   mapping errors that 254 clean Playgrounds had not.
 
 - After editing a test file, check the total test count did not drop: a range replacement

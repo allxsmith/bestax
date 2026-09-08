@@ -218,7 +218,7 @@ eligible to fire the gate on an `ai-loop` PR. That condition reads `AI_LOOP_ENAB
 `AI_LOOP_COPILOT` decides whether `claude-implement.yml` requests the review, and unsetting it
 is not a kill switch for the trigger. `AI_LOOP_ENABLED=false` and removing `ai-loop` are.
 
-Two lists name the reviewer and are compared against different strings. The review branch of the
+The reviewer is named in two places, compared against a different string in each. The review branch of the
 gate's `if:` is matched against the event payload (`review.user.login`,
 `copilot-pull-request-reviewer[bot]`), and the other branches read their own events;
 `allowed_bots` on the fix and verify sessions is matched against the run's actor (`Copilot`).

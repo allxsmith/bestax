@@ -286,6 +286,16 @@ test('a number word carrying the verb is a count', () => {
   ]);
 });
 
+test('a reference-link definition is not prose', () => {
+  assert.deepEqual(md('[nineteen jobs]: /archive'), []);
+  assert.deepEqual(whys(md('the nineteen jobs are listed')), ['count']);
+});
+
+test('an HTTP status is not a count', () => {
+  assert.deepEqual(md('the page returns 404 errors when missing'), []);
+  assert.deepEqual(whys(md('the run logged nine errors')), ['count']);
+});
+
 test('a grouped number reads as one count', () => {
   const [hit] = md('a library with 2,500+ icons');
   assert.equal(hit.text, '2,500+ icons');
