@@ -56,7 +56,9 @@ const COUNTED_NOUNS =
   'surfaces?|helpers?|classes|utilities|styles?|strategies|strategy|' +
   'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?';
 
-const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,4})`;
+// Up to four digits, optionally approximate ("500+ variables"): a longer run
+// is an id, and the run-id rule owns those.
+const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,4}\\+?)`;
 
 const PATTERNS = [
   {
@@ -274,14 +276,22 @@ export function scanFragileProse(text, { kind }) {
   // The count pattern allows three words between the number and the noun, so
   // at one word per line the noun can be the fourth line down.
   const WINDOW = 4;
-  const joined = prose.map((line, i) => {
-    if (!line.trim()) return line;
-    let text = line;
-    for (let n = 1; n <= WINDOW && prose[i + n]?.trim(); n++) {
-      text += ` ${prose[i + n]}`;
+  // A line that opens a new block — a list item, heading, quote or table row —
+  // starts a new sentence, so the window stops before it. Without that, a
+  // number ending one bullet joins the noun opening the next.
+  const startsBlock = l => /^\s*(?:[-*+]\s|\d+[.)]\s|#{1,6}\s|>|\|)/.test(l);
+  const windows = prose.map((line, i) => {
+    const parts = [line];
+    if (line.trim()) {
+      for (let n = 1; n <= WINDOW; n++) {
+        const next = prose[i + n];
+        if (!next?.trim() || startsBlock(next)) break;
+        parts.push(next);
+      }
     }
-    return text;
+    return parts;
   });
+  const joined = windows.map(parts => parts.join(' '));
   prose.forEach((line, idx) => {
     if (!line.trim()) return;
     // The marker only excuses a line when it says why: a bare token is the
@@ -290,8 +300,16 @@ export function scanFragileProse(text, { kind }) {
     // A ticket makes a count historical: "twelve commits behind on #361"
     // records what happened there, and history does not go stale. It never
     // excuses a line reference, which moves whatever the history says.
-    const ownTicket = /#\d+\b/.test(line);
-    const pairTicket = /#\d+\b/.test(joined[idx]);
+    // A ticket only excuses the lines a match actually spans: one sitting
+    // further down the window documents something else.
+    const ticketWithin = end => {
+      let stop = 0;
+      for (const part of windows[idx]) {
+        stop += (stop ? 1 : 0) + part.length;
+        if (stop >= end) break;
+      }
+      return /#\d+\b/.test(joined[idx].slice(0, stop));
+    };
     const inline = maskInline(line);
     const pairInline = maskInline(joined[idx]);
     const own = maskNotCounts(inline);
@@ -311,12 +329,7 @@ export function scanFragileProse(text, { kind }) {
       // it on its own turn; without this an unrelated first line would
       // absorb the hit and name the wrong one.
       if (!m || m.index >= line.length) continue;
-      if (why === 'count') {
-        // A ticket on the next line only excuses a count that wraps into it.
-        // Otherwise an unrelated reference below would clear the line above.
-        const wraps = m.index + m[0].length > line.length;
-        if (ownTicket || (wraps && pairTicket)) continue;
-      }
+      if (why === 'count' && ticketWithin(m.index + m[0].length)) continue;
       hits.push({
         line: idx + 1,
         why,

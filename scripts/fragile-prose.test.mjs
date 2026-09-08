@@ -295,6 +295,22 @@ test('a count wrapped across several narrow lines is caught', () => {
   assert.equal(hit.why, 'count');
 });
 
+test('an approximate count is a count', () => {
+  assert.deepEqual(whys(md('all 500+ variables are exposed')), ['count']);
+});
+
+test('the window stops at a new block', () => {
+  assert.deepEqual(
+    md('- set the size to 3 for large text\n- props are forwarded'),
+    []
+  );
+});
+
+test('a ticket below the match does not excuse it', () => {
+  assert.deepEqual(whys(md('deleted 868\nlines today\nper #613')), ['count']);
+  assert.deepEqual(md('deleted 868\nlines on #613 today'), []);
+});
+
 test('a maximally wrapped count is caught', () => {
   const [hit] = md('three\nvery\nsmall\npointer\nfiles for agents');
   assert.equal(hit.line, 1);
