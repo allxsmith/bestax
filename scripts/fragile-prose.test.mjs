@@ -316,6 +316,18 @@ test('an HTTP status is not a count, but a bare error tally is', () => {
   assert.deepEqual(whys(md('the run logged nine errors')), ['count']);
 });
 
+test('an empty comment does not swallow the rest of the file', () => {
+  assert.deepEqual(whys(md('<!-->\n19 jobs remain')), ['count']);
+  assert.deepEqual(whys(md('<!--->\n19 jobs remain')), ['count']);
+});
+
+test('a backtick inside a comment does not leave either state open', () => {
+  assert.deepEqual(whys(md('<!-- use ` here -->\n19 jobs remain')), ['count']);
+  assert.deepEqual(whys(md('<!--\nuse ` here\n-->\n19 jobs remain')), [
+    'count',
+  ]);
+});
+
 test('a comment marker inside a code span stays inert', () => {
   assert.deepEqual(whys(md('a span `{/*\n*/}` then\n19 jobs remain')), [
     'count',

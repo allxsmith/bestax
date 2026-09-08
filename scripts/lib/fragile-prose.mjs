@@ -169,91 +169,94 @@ function maskInline(line) {
 }
 
 /**
- * Blank the inline-code spans in one line, carrying state across lines: a span
- * may open on one line and close on the next, and its contents are code on
- * every line between. `run` is the length of the delimiter currently open, or
- * null.
+ * Blank the code spans and comments in one line, carrying state across lines.
+ *
+ * One interleaved pass rather than two: the grammars interact, and splitting
+ * them fails OPEN. Comments first would let a backtick inside a comment open a
+ * span; code first would let a span's close be blanked before comment
+ * detection saw it, leaving a comment open to end of file and hiding every
+ * violation after it. Here each step looks at whichever delimiter comes first
+ * and consumes it, so neither state can be entered from inside the other.
+ *
+ * `state` is null, `{ code: run }` while a backtick run of that length is
+ * open, or `{ close }` while a comment is open. Returns the masked line
+ * (length preserved) and the state for the next line.
  */
-function stripCode(line, run) {
+function stripSpans(line, state) {
+  const OPENERS = [
+    ['<!--', /(?<!<!)--!?>/g],
+    ['{/*', /\*\/\}/g],
+  ];
+  // CommonMark ends an empty comment at `<!-->` and `<!--->`; treated as a
+  // generic opener, their close would never be found and the comment would
+  // swallow the rest of the file.
+  const EMPTY = /^<!---?>/;
   let out = '';
   let rest = line;
   for (;;) {
-    if (run) {
-      const close = new RegExp(`(?<!\`)\`{${run}}(?!\`)`).exec(rest);
-      if (!close) return { text: out + ' '.repeat(rest.length), run };
+    if (state?.code) {
+      const close = new RegExp(`(?<!\`)\`{${state.code}}(?!\`)`).exec(rest);
+      if (!close) return { text: out + ' '.repeat(rest.length), state };
       const after = close.index + close[0].length;
       out += ' '.repeat(after);
       rest = rest.slice(after);
-      run = null;
+      state = null;
       continue;
     }
-    const open = /`+/.exec(rest);
-    if (!open) return { text: out + rest, run: null };
-    const len = open[0].length;
-    const closeRe = new RegExp(`(?<!\`)\`{${len}}(?!\`)`, 'g');
-    closeRe.lastIndex = open.index + len;
-    const close = closeRe.exec(rest);
+    if (state) {
+      state.close.lastIndex = 0;
+      const close = state.close.exec(rest);
+      if (!close) return { text: out + ' '.repeat(rest.length), state };
+      const after = close.index + close[0].length;
+      out += ' '.repeat(after);
+      rest = rest.slice(after);
+      state = null;
+      continue;
+    }
+    let best = null;
+    const tick = /`+/.exec(rest);
+    if (tick) best = { i: tick.index, kind: 'code', len: tick[0].length };
+    for (const [open, close] of OPENERS) {
+      const i = rest.indexOf(open);
+      if (i !== -1 && (best === null || i < best.i)) {
+        best = { i, kind: 'comment', open, close };
+      }
+    }
+    if (best === null) return { text: out + rest, state: null };
+    const head = rest.slice(0, best.i);
+    if (best.kind === 'code') {
+      const closeRe = new RegExp(`(?<!\`)\`{${best.len}}(?!\`)`, 'g');
+      closeRe.lastIndex = best.i + best.len;
+      const close = closeRe.exec(rest);
+      if (!close) {
+        return {
+          text: out + head + ' '.repeat(rest.length - best.i),
+          state: { code: best.len },
+        };
+      }
+      const after = close.index + close[0].length;
+      out += head + ' '.repeat(after - best.i);
+      rest = rest.slice(after);
+      continue;
+    }
+    const tail = rest.slice(best.i);
+    const empty = best.open === '<!--' ? EMPTY.exec(tail) : null;
+    if (empty) {
+      const after = best.i + empty[0].length;
+      out += head + ' '.repeat(after - best.i);
+      rest = rest.slice(after);
+      continue;
+    }
+    best.close.lastIndex = best.i + best.open.length;
+    const close = best.close.exec(rest);
     if (!close) {
       return {
-        text:
-          out +
-          rest.slice(0, open.index) +
-          ' '.repeat(rest.length - open.index),
-        run: len,
+        text: out + head + ' '.repeat(rest.length - best.i),
+        state: { close: best.close },
       };
     }
     const after = close.index + close[0].length;
-    out += rest.slice(0, open.index) + ' '.repeat(after - open.index);
-    rest = rest.slice(after);
-  }
-}
-
-/**
- * Blank the comments in one line, carrying state across lines. Returns the
- * line with every commented span replaced by spaces (length preserved, so a
- * reported column still points at the right place) and the state to hand the
- * next line. Both spellings are handled, a line may open and close several,
- * and text after a close is scanned again — otherwise a second comment on the
- * same line would read as prose. Delimiters are looked for in a copy with
- * inline code blanked, so a backticked `{/*` does not open a comment.
- */
-function stripComments(line, comment) {
-  let out = '';
-  let rest = line;
-  for (;;) {
-    if (comment) {
-      const found = comment.close.exec(rest);
-      comment.close.lastIndex = 0;
-      if (!found) return { text: out + ' '.repeat(rest.length), comment };
-      const after = found.index + found[0].length;
-      out += ' '.repeat(after);
-      rest = rest.slice(after);
-      comment = null;
-      continue;
-    }
-    const masked = blank(rest, /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g);
-    let best = null;
-    // HTML accepts `--!>` as well as `-->` to end a comment, so the close is
-    // a pattern rather than a literal.
-    for (const [open, close] of [
-      ['<!--', /--!?>/g],
-      ['{/*', /\*\/\}/g],
-    ]) {
-      const i = masked.indexOf(open);
-      if (i !== -1 && (best === null || i < best.i)) best = { i, open, close };
-    }
-    if (best === null) return { text: out + rest, comment: null };
-    best.close.lastIndex = best.i + best.open.length;
-    const found = best.close.exec(masked);
-    best.close.lastIndex = 0;
-    if (!found) {
-      return {
-        text: out + rest.slice(0, best.i) + ' '.repeat(rest.length - best.i),
-        comment: { close: best.close },
-      };
-    }
-    const after = found.index + found[0].length;
-    out += rest.slice(0, best.i) + ' '.repeat(after - best.i);
+    out += head + ' '.repeat(after - best.i);
     rest = rest.slice(after);
   }
 }
@@ -276,8 +279,7 @@ function proseLinesOfMarkdown(text) {
     i++;
   }
   let fence = null; // { char, len }
-  let comment = null; // { close } while inside a multi-line comment
-  let run = null; // backtick length while inside a multi-line code span
+  let spans = null; // code-span or comment state carried across lines
   for (; i < lines.length; i++) {
     const line = lines[i];
     if (fence) {
@@ -287,7 +289,7 @@ function proseLinesOfMarkdown(text) {
       }
       continue;
     }
-    if (!comment) {
+    if (!spans) {
       const open = line.match(/^\s{0,3}(`{3,}|~{3,})/);
       if (
         open &&
@@ -297,15 +299,8 @@ function proseLinesOfMarkdown(text) {
         continue;
       }
     }
-    // Code first, then comments: a comment marker inside a code span is
-    // inert, and only this order knows that a span opened on an earlier
-    // line is still open here. The reverse holds in principle — a backtick
-    // inside a comment — but a comment's contents are masked either way,
-    // so the worst case there is masking a little more than needed.
-    const coded = stripCode(line, run);
-    run = coded.run;
-    const stripped = stripComments(coded.text, comment);
-    comment = stripped.comment;
+    const stripped = stripSpans(line, spans);
+    spans = stripped.state;
     out[i] = stripped.text;
   }
   return out;
