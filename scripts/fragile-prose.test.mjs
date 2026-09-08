@@ -280,6 +280,18 @@ test('the ticket exemption reads across a wrapped line', () => {
   ]);
 });
 
+test('a determiner-led back-reference is a count', () => {
+  for (const t of [
+    'these five always resolve',
+    'only one of the five',
+    'its four live here',
+  ]) {
+    assert.deepEqual(whys(md(t)), ['count'], t);
+  }
+  // A determiner in front of a value is not a tally.
+  assert.deepEqual(md('the 30/14 sweep and the 1 rebuttal round'), []);
+});
+
 test('an all-N back-reference is a count', () => {
   assert.deepEqual(whys(md('All three are regenerated on every docs build')), [
     'count',

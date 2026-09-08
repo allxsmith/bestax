@@ -77,7 +77,7 @@ jobs:
       # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
       # here; it was wrong, and measuring it is what showed that.
       #
-      # The third is specific to this job, the only one of the six that touched it:
+      # The third is specific to this job, the only one that touched it:
       # private-user-images.githubusercontent.com, the session fetching an image
       # embedded in an issue body. The cost of leaving it out is real and small — a
       # `claude-fix` issue carrying a screenshot degrades, because the session

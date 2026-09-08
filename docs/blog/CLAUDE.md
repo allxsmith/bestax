@@ -170,7 +170,7 @@ These files back every edition:
   markdown / dev.to), and `hide_table_of_contents: true` (the wide table needs the room — this
   removes the right-hand TOC; the left blog sidebar is collapsed automatically via a scoped
   `:has(.sor-comparison)` rule in `src/css/custom.css`, so no per-post action is needed).
-- Keep the four admonitions: top `:::info` (snapshot date + latest-edition link), `:::tip`
+- Keep the admonitions: top `:::info` (snapshot date + latest-edition link), `:::tip`
   (headline insight), `:::note` (shadcn is a copy-paste registry, not a dependency), `:::caution`
   (corrections → GitHub issues).
 

@@ -357,7 +357,7 @@ jobs:
           PACKAGE: ${{ matrix.package }}
           EVENT: ${{ github.event_name }}
           TAG: ${{ github.event.release.tag_name }}
-        # Writes `spec` and `expect` itself. `expect` is empty for the three
+        # Writes `spec` and `expect` itself. `expect` is empty for the
         # legs no release names, and the workflow does no parsing of its own —
         # deriving the version from the spec here would reimplement the
         # last-`@` split in untested YAML, one character from being wrong for
@@ -717,7 +717,7 @@ jobs:
       # mode is "SBOMs attach unsigned plus a ::warning::". Widen the list from
       # the first real run's report rather than by guessing again.
       #
-      # Sigstore hosts are the four in its published signing config
+      # Sigstore hosts are those in its published signing config
       # (tuf-repo-cdn serves that config; fulcio issues the cert; rekor logs it;
       # timestamp countersigns the bundle). `oauth2.sigstore.dev` is the fifth
       # entry there and is deliberately omitted: it serves the interactive OIDC

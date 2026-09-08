@@ -59,7 +59,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped â€
   bulma" in most manifest shapes where nothing was bumped. Track each mutation; phrase from it.
 - **The stylesheet and manifest passes must agree on what is removable.** Both report rather
   than remove `bulma-*` extensions, since markup outside the source may still use their classes.
-  rbx enumerates its four in `deps.ts` and `transform.ts`; the shared Sass pass flags any `bulma-*`.
+  rbx enumerates them in `deps.ts` and `transform.ts`; the shared Sass pass flags any `bulma-*`.
 - **Never change `bulma-ui` to make a migration cleaner.** Map onto the library as it is and
   emit a TODO otherwise. A gap earns a `bulma-ui` issue only if it is a bestax defect or the
   source is genuinely better, not merely different (#616 to #622 are the worked example).

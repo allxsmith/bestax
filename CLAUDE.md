@@ -110,8 +110,8 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
   `pnpm publish` instead (#436 for bestax-migrate, #532 for the rest), through the shared
   `scripts/lib/pnpm-publish.mjs`, which buys each a **narrow** exemption:
   `workspace:`/`catalog:` in **devDependencies** only. `jsr:` becomes an aliased
-  `npm:@jsr/…` specifier and `link:`/`portal:`/`file:` are not rewritten at all, so those
-  four are a violation in **any** section, exemption or not. `workspace:`/`catalog:` are
+  `npm:@jsr/…` specifier and `link:`/`portal:`/`file:` are not rewritten at all, so each
+  of those is a violation in **any** section, exemption or not. `workspace:`/`catalog:` are
   additionally a violation in a section consumers resolve, since pnpm resolving them does
   not stop every consumer being made to install the dependency. Which packages publish with pnpm
   is **declared** in `check:conformance` rather than inferred from their release config —

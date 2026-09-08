@@ -74,11 +74,14 @@ const PATTERNS = [
   },
   {
     why: 'count',
-    // "nineteen of them", "twelve of those", "all three are regenerated" —
-    // idioms that count without naming what they count.
+    // "nineteen of them", "all three are regenerated", "only one of the five",
+    // "its four" — idioms that count without naming what they count. A
+    // determiner in front is the tell: it points back at a list that grows.
+    // Words only again — "the 30/14 sweep" and "the 1 rebuttal round" are
+    // values a determiner happens to precede, not tallies.
     re: new RegExp(
       `\\b(?:all\\s+)?${NUMBER}\\s+(?:of\\s+(?:them|those|these)|so\\s+far)\\b` +
-        `|\\ball\\s+${NUMBER}\\b` +
+        `|\\b(?:all|both|these|those|the|its|their|our)\\s+(?:${NUMBER_WORDS})(?!\\w)` +
         // A tally standing alone as its own sentence: "Three." opening a
         // section counts what the section then lists. Words only — a digit
         // at the start of a line is an ordered-list marker.
