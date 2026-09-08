@@ -313,14 +313,24 @@ This repo uses AI reviewers and an autonomous fix loop — full details in the d
 The short version for contributors:
 
 - **Every PR gets a CodeRabbit review** automatically. Address or refute its comments — it
-  re-reviews on each push and marks addressed comments "✅ Addressed". A human maintainer still
-  reviews and merges everything.
+  reviews incrementally and marks addressed comments "✅ Addressed". It also rate-limits, so a
+  push during a spent window waits for the next one; the AI-assisted section below says how to
+  nudge it. A human maintainer still reviews and merges everything.
 - **`@claude` mentions are maintainer-only** (they spend the maintainer's Claude usage).
   External contributors don't need them — just push your changes.
 - **Issues labeled `claude-fix`** are implemented autonomously: Claude opens a PR labeled
   `ai-loop` and iterates with the AI reviewers until it converges, then a human reviews and
   squash-merges. Don't add or remove the loop labels (`ai-loop`, `needs-human-review`,
   `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
+- **Hand-driven PRs that want a deep review**: apply `deep-review` once at open, fix everything
+  it raised, then re-apply it once. The re-run verifies its own threads and reviews the commits
+  since its last review, or falls back to a full review whenever it cannot establish a
+  trustworthy linear delta between them — a rewritten history, a merge from the base, or a
+  retarget that moves the merge base. CodeRabbit reviews incrementally
+  on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
+  its window reopens.
+  Do not relabel per push: each application spends a full opus session, and relabeling after
+  every fix is what turned #643 into 14 review rounds.
 - **PR titles must be scoped conventional commits** — the title becomes the squash commit and
   drives semantic-release (see [Commit Message Guidelines](#commit-message-guidelines)).
 

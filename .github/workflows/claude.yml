@@ -62,7 +62,7 @@ jobs:
     timeout-minutes: 30
     steps:
       # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
-      # audit run was 33231511797; all six runs the flip is built on are recorded
+      # audit run was 33231511797; the runs the flip is built on are recorded
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
@@ -71,11 +71,11 @@ jobs:
       # to the jobs that do. `pnpm/action-setup` pulls pnpm from registry.npmjs.org
       # either way, so the missing install step narrows nothing.
       #
-      # The eight hosts are the set already enforcing on ai-scan/scan,
+      # These hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
-      # the Node 24 toolcache hit on every run. All three stay for the
+      # the Node 24 toolcache hit on every run. They stay for the
       # toolcache-miss path, and they are not interchangeable: the first two carry
       # the actions/node-versions manifest and its release assets, while nodejs.org
       # is setup-node v7 own fallback when that lookup misses.
@@ -91,7 +91,7 @@ jobs:
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
       # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa3/6/7/9/11/13 across six runs). It does not need
+      # per run (productionresultssa<N>, a different N per run). It does not need
       # to be. harden-runner does not gate the runner own control-plane traffic, and
       # run 33286967625 is the proof rather than the assumption: claude-review at
       # block, with neither that host nor results-receiver.actions.githubusercontent.com
@@ -237,7 +237,7 @@ jobs:
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
           # Same call, second vendor: turbo phones telemetry.vercel.com from the
-          # pnpm commands this session runs. It appeared in only one of the six
+          # pnpm commands this session runs. It appeared in only one of the
           # audit runs because turbo samples, which is precisely the intermittent
           # that reddens a block job weeks after a flip. Denied, not allow-listed
           # (#578).

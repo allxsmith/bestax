@@ -2,7 +2,7 @@
 
 jscodeshift-based CLI (`pnpm dlx bestax-migrate <source> <paths…>`) that migrates existing
 apps from other React Bulma libraries to `@allxsmith/bestax-bulma`. Multi-source by design:
-each source library registers in `src/sources/registry.ts`. Three are shipped —
+each source library registers in `src/sources/registry.ts`. The shipped ones are —
 `react-bulma-components` (v4 only), `rbx` (v2 only) and `bloomer` (0.6 only).
 
 ## Hard rules
@@ -28,13 +28,13 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
   import), `imports.ts` (binding collection and import aliasing), `specials-utils.ts`
   (`alignTarget`, `mergeClassName`, `parseIconClasses`, `modifierClass`, `restrictAsToTargets`,
   the `stripModifierProps` factory and the `makeStructuralHelpers` factory behind
-  `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's nine viewports → bestax's
+  `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's
   prop suffixes), and `make-styles-transform.ts` (the whole Bulma 0.9→v1 stylesheet transform,
   parameterised by the source package's own specifiers). What stays per-source is the data
   — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a `transform.ts` that
   orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
   destructuring pass, no alias registry and no wrapping pass; the rbx and RBC copies still
-  carry all three.
+  carry all of them.
 - `'<source>'` must be added to `MIGRATE_SOURCE_VALUES` in `telemetry-worker/src/schema.ts`
   or its events are dropped at ingest; `check:conformance --only=telemetry-allowlists`
   fails until it is. That worker deploys to production on merge, so the two land together.
@@ -47,7 +47,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
 - **A TODO message is a claim about bestax; read the component before writing it.** Four
   shipped on #613 were false (Modal "always closes on Escape"; a Field TODO naming `isGrouped`).
   The rbx e2e fails on an undocumented rule (RBC's does not); nothing checks the guidance is true.
-- **A defect in one source's `transform.ts` is almost certainly in the others.** Nine fixes were
+- **A defect in one source's `transform.ts` is almost certainly in the others.** The fixes were
   ported RBC↔rbx on #613 and review kept finding the unported half. Fix the siblings in the same
   commit, or move the logic into `_shared/` (the alias registry, the literal/object helpers
   and the structural-handler helpers went there on #410 for exactly this reason).
@@ -59,7 +59,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
   bulma" in most manifest shapes where nothing was bumped. Track each mutation; phrase from it.
 - **The stylesheet and manifest passes must agree on what is removable.** Both report rather
   than remove `bulma-*` extensions, since markup outside the source may still use their classes.
-  rbx enumerates its four in `deps.ts` and `transform.ts`; the shared Sass pass flags any `bulma-*`.
+  rbx enumerates them in `deps.ts` and `transform.ts`; the shared Sass pass flags any `bulma-*`.
 - **Never change `bulma-ui` to make a migration cleaner.** Map onto the library as it is and
   emit a TODO otherwise. A gap earns a `bulma-ui` issue only if it is a bestax defect or the
   source is genuinely better, not merely different (#616 to #622 are the worked example).
@@ -110,7 +110,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
   - `validate:corpus` — react-bulma-components' own MIT Storybook stories →
     `.e2e-tmp/corpus-out/`.
   - `validate:corpus:rbx` — rbx's own MIT docs. rbx used **docz**, not Storybook, so the
-    script extracts the `<Playground>` blocks out of its 43 `*.docs.mdx` pages (254 blocks)
+    script extracts the `<Playground>` blocks out of its `*.docs.mdx` pages
     and rebuilds each page as one synthetic module written the way a consumer writes rbx.
     Output lands in `.e2e-tmp/corpus-out-rbx/`.
   - `validate:corpus:bloomer` — bloomer's own MIT docs: 39 React "Scene" `.tsx` files that
@@ -118,7 +118,7 @@ each source library registers in `src/sources/registry.ts`. Three are shipped �
     specifier becomes `'bloomer'`. Output lands in `.e2e-tmp/corpus-out-bloomer/`.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
-  sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught six
+  sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
   mapping errors that 254 clean Playgrounds had not.
 
 - After editing a test file, check the total test count did not drop: a range replacement

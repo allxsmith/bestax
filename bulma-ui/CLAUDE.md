@@ -17,7 +17,7 @@ npm package so consumers can build the styles themselves.
 
 ## The component anatomy rule
 
-A new or changed component is **five artifacts, not one**. Touch all of:
+A new or changed component is **five artifacts, not one**. Touch all of: <!-- bestax:count-ok: the list immediately below is the definition -->
 
 1. `src/<folder>/Foo.tsx` — the component
 2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage threshold: **99%**, `jest.config.js`)
@@ -52,7 +52,7 @@ improvising.
   name plus a `**Types:**` footnote built from the alias's own TSDoc.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
-  never wrap it. A compound family ships four artifacts beyond the base anatomy rule:
+  never wrap it. A compound family ships these artifacts beyond the base anatomy rule:
   an identity test per static (`expect(Parent.Sub).toBe(Sub)`, or `toBeDefined()` +
   dot-path render for module-private subs) in a `describe('Compound components')` block,
   a `CompoundUsage` story, and a `### Compound (dot-notation) usage` live example at the

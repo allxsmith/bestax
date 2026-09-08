@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # CSS Variables
 
-[Bulma v1 introduces comprehensive support for CSS custom properties (CSS variables)](https://bulma.io/documentation/features/css-variables/), enabling runtime customization without Sass compilation. bestax-bulma gives you a first-class React surface for all 500+ of them through the `Theme` component: named, camelCase props for the common variables, a `bulmaVars` escape hatch for the long tail, and automatic scoping so themes compose via React context — no manual style-sheet injection, no string concatenation, fully type-checked.
+[Bulma v1 introduces comprehensive support for CSS custom properties (CSS variables)](https://bulma.io/documentation/features/css-variables/), enabling runtime customization without Sass compilation. bestax-bulma gives you a first-class React surface for all of them through the `Theme` component: named, camelCase props for the common variables, a `bulmaVars` escape hatch for the long tail, and automatic scoping so themes compose via React context — no manual style-sheet injection, no string concatenation, fully type-checked.
 
 :::info Bulma's canonical reference
 The authoritative documentation for every Bulma CSS variable lives on the Bulma site:
@@ -150,7 +150,7 @@ function AdvancedTheming() {
 
 ## Complete CSS Variables Catalog
 
-Bulma v1 provides 500+ CSS variables organized by category. Here are the key categories — for the full, authoritative list see the [Bulma CSS Variables reference](https://bulma.io/documentation/features/css-variables/) and the per-component pages under [bulma.io/documentation](https://bulma.io/documentation/).
+Bulma v1 provides its CSS variables organized by category. Here are the key categories — for the full, authoritative list see the [Bulma CSS Variables reference](https://bulma.io/documentation/features/css-variables/) and the per-component pages under [bulma.io/documentation](https://bulma.io/documentation/).
 
 ### Scheme Variables
 

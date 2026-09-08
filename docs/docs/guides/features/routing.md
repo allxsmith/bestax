@@ -8,7 +8,7 @@ sidebar_position: 6
 
 How to wire bestax-bulma components to a client-side router — React Router, Next.js, TanStack
 Router, or any library whose navigation primitive is a component you render `as`. This page
-covers the three first-hour questions: making `Navbar.Item`/`Menu.Item` navigate, making a
+covers the first-hour questions: making `Navbar.Item`/`Menu.Item` navigate, making a
 `Button` navigate, and styling the active route.
 
 All examples use React Router v6/v7 (`react-router-dom`); the Next.js differences are at the

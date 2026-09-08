@@ -45,15 +45,15 @@ jobs:
     timeout-minutes: 60
     steps:
       # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
-      # audit run was 33230068020; all six runs the flip is built on are recorded
+      # audit run was 33230068020; the runs the flip is built on are recorded
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
-      # The eight hosts are the set already enforcing on ai-scan/scan,
+      # These hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
-      # the Node 24 toolcache hit on every run. All three stay for the
+      # the Node 24 toolcache hit on every run. They stay for the
       # toolcache-miss path, and they are not interchangeable: the first two carry
       # the actions/node-versions manifest and its release assets, while nodejs.org
       # is setup-node v7 own fallback when that lookup misses.
@@ -65,11 +65,11 @@ jobs:
       # repo that runs setup-node allows it (auto-close-duplicates,
       # security-txt-expiry, deploy-worker, supply-chain/consumer-sbom).
       #
-      # Three observed hosts are deliberately absent. telemetry.vercel.com is
+      # Some observed hosts are deliberately absent. telemetry.vercel.com is
       # turbo's telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
       # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa3/6/7/9/11/13 across six runs). It does not need
+      # per run (productionresultssa<N>, a different N per run). It does not need
       # to be. harden-runner does not gate the runner own control-plane traffic, and
       # run 33286967625 is the proof rather than the assumption: claude-review at
       # block, with neither that host nor results-receiver.actions.githubusercontent.com
@@ -77,7 +77,7 @@ jobs:
       # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
       # here; it was wrong, and measuring it is what showed that.
       #
-      # The third is specific to this job, the only one of the six that touched it:
+      # The third is specific to this job, the only one that touched it:
       # private-user-images.githubusercontent.com, the session fetching an image
       # embedded in an issue body. The cost of leaving it out is real and small — a
       # `claude-fix` issue carrying a screenshot degrades, because the session
@@ -259,9 +259,9 @@ jobs:
           # 250 turns is ~27m at the observed 6.4s/turn, still well inside
           # timeout-minutes: 60.
           #
-          # Four allowlist entries were added for those denials. The property
-          # each one is claimed on is narrow and stated per entry below; the
-          # only thing true of all four is that none can MUTATE the remote.
+          # Allowlist entries were added for those denials. The property each
+          # one is claimed on is narrow and stated per entry below; the only
+          # thing true of all of them is that none can MUTATE the remote.
           # `git fetch` does reach it, read-only and authenticated with the
           # ambient git credential, exactly as the checkout already is.
           #   - `git fetch` DOES write, but only locally: FETCH_HEAD and

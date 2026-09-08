@@ -2,12 +2,9 @@ name: Claude PR Loop
 
 # Review → fix → verify → converge loop for AI-authored PRs (label: ai-loop)
 # ONLY. Triggered by CodeRabbit reviews, CI completions on claude/* branches,
-# or manual dispatch; Copilot reviews are eligible too, but every run one has
-# started so far died before creating a job, jobs have appeared only when a
-# maintainer re-ran it, and since 2026-09-06 its reviews have created no run
-# at all (the ai-development guide has the data). The `gate` job is cheap
-# shell that re-derives the PR's live state and picks a mode — Claude usage
-# is spent only in fix/verify.
+# or manual dispatch; Copilot reviews are eligible too (#612). The `gate` job
+# is cheap shell that re-derives the PR's live state and picks a mode —
+# Claude usage is spent only in fix/verify.
 #
 # Modes:
 #   fix-ci      CI is red on the head → Claude fixes the root cause, pushes.
@@ -332,18 +329,18 @@ jobs:
       actions: write # read CI logs + self-dispatch in the terminal step
     steps:
       # BLOCK, with the allowlist MEASURED rather than guessed (#578). This job's
-      # audit run was 33233097667; all six runs the flip is built on are recorded
+      # audit run was 33233097667; the runs the flip is built on are recorded
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
       # The sibling sweep/gate/handoff/halt jobs make GitHub API calls only and
       # carry no harden-runner; only `fix` and `verify` execute repo code.
       #
-      # Eight of the nine hosts are the set already enforcing on ai-scan/scan,
+      # Apart from one addition, these hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
       # strict subset of it: objects.githubusercontent.com,
       # release-assets.githubusercontent.com and nodejs.org never appeared, because
-      # the Node 24 toolcache hit on every run. All three stay for the
+      # the Node 24 toolcache hit on every run. They stay for the
       # toolcache-miss path, and they are not interchangeable: the first two carry
       # the actions/node-versions manifest and its release assets, while nodejs.org
       # is setup-node v7's own fallback when that lookup misses.
@@ -361,8 +358,8 @@ jobs:
       # host. That one matters most here: this job's session runs `pnpm test` and
       # `pnpm run` on nearly every iteration, so turbo is invoked constantly, and
       # turbo samples its telemetry. The Actions cache blob host cannot be pinned
-      # at all: its name rotates per run (productionresultssa3/6/7/9/11/13 across
-      # six runs). It does not need to be — harden-runner does not gate the
+      # at all: its name rotates per run (productionresultssa<N>, a different N per
+      # run). It does not need to be — harden-runner does not gate the
       # runner's own control-plane traffic, and run 33286967625 showed
       # claude-review at block restoring its pnpm cache and completing
       # pnpm install --frozen-lockfile with neither that host nor
@@ -496,7 +493,7 @@ jobs:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
           # Same call, second vendor: turbo phones telemetry.vercel.com from the
           # pnpm commands this session runs, and this loop runs them on nearly
-          # every iteration. It appeared in only one of the six audit runs because
+          # every iteration. It appeared in only one of the audit runs because
           # turbo samples, which is precisely the intermittent that reddens a
           # block job weeks after a flip. Denied, not allow-listed (#578).
           TURBO_TELEMETRY_DISABLED: '1'
@@ -513,37 +510,14 @@ jobs:
           bot_id: '300268469'
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Trigger actors are bots by design: coderabbitai[bot] and Copilot
-          # (reviews), claude[bot] (CI workflow_run after its own pushes), and
-          # github-actions[bot] (the loop's self-dispatch continuation). The
-          # action matches this list against the RUN's actor by exact
-          # normalised login, and fix/verify run in the gate's own run, so a
-          # login the gate triggers on but this list omits fails the session's
-          # human-actor check: a red run rather than a wait (#612). The
-          # action's write-permission check is a second, narrower consumer:
-          # it runs only in PR and issue contexts (here, the review arm) and
-          # returns true for any `[bot]`-suffixed actor before reading this
-          # list, so it reaches the list only for `Copilot`, which has no
-          # suffix. On workflow_run, dispatch and schedule only the
-          # human-actor check consults it.
-          #
-          # `copilot` is the Copilot reviewer app (id 175728472), which
-          # renders as `Copilot` to Actions (the run actor, verified across
-          # every pull_request_review run this repo has had from it) and as
-          # `copilot-pull-request-reviewer[bot]` in the event payload, which
-          # is what the gate's `if:` matches; each list carries only the
-          # spelling it is compared against. Matching here is by normalised
-          # login, not by id: GitHub's other Copilot app,
-          # copilot-swe-agent[bot] (id 198982749), also renders as `Copilot`,
-          # so this entry admits either. What confines it is the gate, not
-          # the precision of this string, and each arm holds different parts
-          # of it: the review and workflow_run arms of the `if:` carry the
-          # same-repo and claude/* head tests, the workflow_dispatch arm
-          # carries neither and relies on GitHub only letting write-access
-          # actors dispatch (see the note under the `if:`), and the ai-loop
-          # label, PR-open and protected-path tests are re-derived in the
-          # gate job's shell on every arm while the two head tests are not.
-          # A CI completion with Copilot as the actor, on a claude/* head,
-          # therefore still passes all of them before fix runs.
+          # (reviews), claude[bot] (CI workflow_run after its own pushes),
+          # github-actions[bot] (the loop's self-dispatch). The action matches
+          # this list against the RUN's actor (check-human-actor in
+          # anthropics/claude-code-action at the pinned SHA). `copilot` is the reviewer app's actor spelling; the
+          # payload spelling `copilot-pull-request-reviewer[bot]` is what the
+          # gate's `if:` matches. copilot-swe-agent[bot] renders the same, so
+          # the gate's same-repo and claude/* head tests are the confinement,
+          # not this string. Evidence: #612.
           allowed_bots: 'coderabbitai,claude,github-actions,copilot'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into
@@ -927,13 +901,14 @@ jobs:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
           # Same call, second vendor: turbo phones telemetry.vercel.com from the
           # pnpm commands this session runs, and this loop runs them on nearly
-          # every iteration. It appeared in only one of the six audit runs because
+          # every iteration. It appeared in only one of the audit runs because
           # turbo samples, which is precisely the intermittent that reddens a
           # block job weeks after a flip. Denied, not allow-listed (#578).
           TURBO_TELEMETRY_DISABLED: '1'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Same list as fix; the rationale is on fix's entry.
           allowed_bots: 'coderabbitai,claude,github-actions,copilot'
           # Stream tool calls + denials to the log (blob-hosted artifact is
           # blocked by the proxy) so a rebuttal pass is diagnosable.

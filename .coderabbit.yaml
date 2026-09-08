@@ -48,6 +48,19 @@ reviews:
       instructions: >
         Docusaurus documentation site. Check MDX/Markdown correctness, working
         internal links, and that documented APIs match the library.
+    - path: '.github/workflows/**'
+      instructions: >
+        Review the workflow logic normally. Their COMMENTS are reviewed for
+        false claims about triggers, actors, or credentials only: do not
+        request added qualifiers, counts, run ids, or dates in a comment;
+        suggest deleting an overstated clause instead. Scripts and composite
+        actions elsewhere under .github/ get ordinary correctness and security
+        review.
+    - path: '.github/CLAUDE.md'
+      instructions: >
+        The workflow security contract. Flag a claim that is false about
+        triggers, actors, or credentials; do not request added qualifiers,
+        counts, run ids, or dates.
     - path: '**/*.{ts,tsx}'
       instructions: >
         Follow the repo ESLint + Prettier config (Prettier 3.9.4). Prefer

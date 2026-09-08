@@ -63,7 +63,7 @@ jobs:
       # fail-open, where block was already observed arming on the nearest
       # sibling (security-txt-expiry.yml, run 31952287389).
       #
-      # The list is this job's needs, and it is deliberately the same five hosts
+      # The list is this job's needs, and it is deliberately the same hosts
       # that sibling allows: checkout and setup-node reach GitHub and nodejs.org,
       # and scripts/auto-close-duplicates.mjs is dependency-free (node: builtins
       # + global fetch) against api.github.com and nothing else. Adding no new

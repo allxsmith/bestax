@@ -1,0 +1,460 @@
+/**
+ * Find prose that goes stale on the next unrelated edit.
+ *
+ * Three shapes of text kept drawing review findings on #643 and were each
+ * fixed by adding more of the same: a count of things written into a
+ * sentence ("nineteen jobs", "9 occurrences"), a workflow run id pasted as
+ * evidence, and a `path:123` line reference. None of them is wrong the day it
+ * is written; all of them are wrong soon after, and nothing re-measures them.
+ * The rules that replace them are in `.github/CLAUDE.md` ("How to be exact")
+ * and `docs/CLAUDE.md`: a count lives in a command, evidence lives on the
+ * issue, a reference names a step id or a heading.
+ *
+ * This scanner reads only prose: `#` comment lines in YAML, and markdown with
+ * fenced blocks, inline code, HTML comments, and front matter masked out. A
+ * count inside a shell string, a jq filter, or a code sample is never a hit,
+ * because those are the commands the rule points people at.
+ *
+ * Numbers that are not counts of things are masked before matching: dates,
+ * versions, SHAs, issue and PR references, percentages, durations, clock
+ * times, and sizes. Number words start at "three" and include the magnitude
+ * forms ("dozens of", "thousands of"): "one" and "two" are ordinary English
+ * far more often than they are a tally.
+ *
+ * A line carrying `bestax:count-ok` is skipped. The marker is for the few
+ * deliberate cases (a number the surrounding text already calls a scale, not
+ * a checksum) and should say why on the same line.
+ */
+
+export const ALLOW_TOKEN = 'bestax:count-ok';
+
+const NUMBER_WORDS =
+  'three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|' +
+  'fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|' +
+  'thirty|forty|fifty|sixty|seventy|eighty|ninety|dozens?|hundreds?|' +
+  'thousands?';
+
+// Nouns whose count changes when code changes. A curated list, not a general
+// plural rule: English spells plural nouns and third-person verbs the same, so
+// matching any word ending in s turns "the script removes 8" and "4000 covers
+// it" into counts. Precision matters more than recall here, because this gate
+// blocks CI — a false positive teaches people to work around the check, while
+// a miss only means the rule went uncaught once. Durations, sizes and ports
+// are not counts of things and are masked below. Nor is a rhetorical
+// enumeration: "three consequences" or "three things" introduces the list that
+// follows it, and the list is right there to check, so those nouns stay out.
+const COUNTED_NOUNS =
+  'jobs?|hosts?|runs?|entries|entry|occurrences?|components?|props?|' +
+  'packages?|workflows?|checks?|files?|lines?|rows?|copies|copy|attempts?|' +
+  'reviews?|threads?|commits?|exports?|examples?|pages?|apps?|stories|' +
+  'story|tests?|rules?|steps?|variables?|labels?|reviewers?|actors?|' +
+  'members?|items?|services?|calls?|requests?|endpoints?|secrets?|' +
+  'tokens?|branches|scripts?|generators?|sections?|tables?|bullets?|' +
+  'skills?|libraries|library|artifacts?|targets?|sources?|hooks?|' +
+  'flags?|inputs?|outputs?|fields?|keys?|paths?|variants?|levers?|' +
+  'questions?|apis?|options?|ways?|kinds?|modes?|reasons?|cases?|' +
+  'surfaces?|helpers?|classes|utilities|styles?|strategies|strategy|' +
+  'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?|icons?|levels?|' +
+  'errors?|warnings?|failures?';
+
+// Up to eight digits, grouped or not, optionally approximate ("500+
+// variables", "2,500+ icons"): a longer run is an id, and the run-id rule
+// owns those.
+const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,3}(?:,\\d{3})+\\+?|\\d{1,8}\\+?)`;
+
+const PATTERNS = [
+  {
+    why: 'count',
+    // "nineteen jobs", "9 occurrences", "fifteen of its API calls" — a
+    // number followed within three words by a counted noun.
+    re: new RegExp(
+      // `(?!\\w)` rather than `\\b` after the number: a word boundary cannot
+      // fall between the `+` of an approximate count and the space after it.
+      `\\b${NUMBER}(?!\\w)(?:[\\s-]+[\\w']+){0,3}?[\\s-]+(?:${COUNTED_NOUNS})\\b`,
+      'i'
+    ),
+  },
+  {
+    why: 'count',
+    // "nineteen of them", "all three are regenerated", "only one of the five",
+    // "its four" — idioms that count without naming what they count. A
+    // determiner in front is the tell: it points back at a list that grows.
+    // Words only again — "the 30/14 sweep" and "the 1 rebuttal round" are
+    // values a determiner happens to precede, not tallies.
+    re: new RegExp(
+      `\\b(?:all\\s+)?${NUMBER}\\s+(?:of\\s+(?:them|those|these)|so\\s+far)\\b` +
+        `|\\b(?:all|both|these|those|the|its|their|our|other)\\s+(?:${NUMBER_WORDS})(?!\\w)` +
+        // A tally standing alone as its own sentence: "Three." opening a
+        // section counts what the section then lists. Words only — a digit
+        // at the start of a line is an ordered-list marker.
+        `|^\\s*(?:${NUMBER_WORDS})\\s*[.:;]` +
+        // "Three are shipped" — a number word carrying the sentence's verb,
+        // with the things it counts named only in the list that follows.
+        `|\\b(?:${NUMBER_WORDS})\\s+(?:are|is|were|was|have|has|remain|ship|shipped|exist|apply|live)\\b`,
+      'i'
+    ),
+  },
+  {
+    why: 'run id',
+    // A bare integer of nine or more digits is a workflow run or job id.
+    // Guides only: in a workflow comment or a CLAUDE.md a run id is the
+    // receipt for the policy flip it justified, which `.github/CLAUDE.md`
+    // asks for; in a published guide it is a statistic nothing re-measures.
+    re: /\b\d{9,}\b/,
+    kinds: ['guide'],
+  },
+  {
+    why: 'line reference',
+    // "claude-pr-loop.yml:224", "(:729)" style, or the words "line 224",
+    // "lines 224-229", "L224".
+    re: /(?:[\w./-]+\.(?:ya?ml|mdx?|[cm]?jsx?|tsx?|json|sh|scss|css|go|py|rs)|[\s(]):\d+(?:-\d+)?\b|\b(?:lines?|L)\s?\d+(?:\s?[-–]\s?\d+)?\b/i,
+  },
+];
+
+// Numbers that are never counts of things. Each is blanked to spaces (length
+// preserved so column positions in a message stay honest) before matching.
+const NOT_A_COUNT = [
+  /\b\d{4}-\d{2}-\d{2}\b/g, // dates
+  /\b\d{1,2}:\d{2}(?::\d{2})?(?:Z|\s?(?:UTC|am|pm))?\b/gi, // clock times
+  /\bv?\d+\.\d+(?:\.\d+)*(?:[-+][\w.]+)?\b/g, // versions
+  /\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b/gi, // SHAs: a hex run with at least one letter, so a run id stays visible
+  /#\d+\b/g, // issue and PR references
+  /\b\d+(?:\.\d+)?\s?%/g, // percentages
+  /\b\d+(?:\.\d+)?[\s-]?(?:ms|s|sec|secs|seconds?|min|mins|minutes?|h|hrs?|hours?|hourly|days?|weeks?|months?|years?)\b/gi, // durations, including "30-day"
+  /\b\d+(?:\.\d+)?\s?(?:B|KB|MB|GB|KiB|MiB)\b/g, // sizes
+  /\b(?:port|node|react|bulma|docusaurus|typescript|es|next\.?js|vite|jest|storybook)\s?\d+\+?/gi, // named versions and ports
+  /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
+  /\bHTTP\s?\d{3}\b|\b[1-5]\d{2}s?\s+(?:status(?:es)?|codes?|responses?)\b/gi, // HTTP statuses, not tallies
+  /\b\d+\s?[-–—]\s?\d+\b/g, // a range is guidance ("a 1-3 sentence hook"), not a tally
+  /\b\d+-(?:column|row|cell|bit|byte|core|only)\b/gi, // named systems, not inventories
+];
+
+function blank(str, re) {
+  return str.replace(re, m => ' '.repeat(m.length));
+}
+
+function maskNotCounts(line) {
+  let out = line;
+  for (const re of NOT_A_COUNT) out = blank(out, re);
+  return out;
+}
+
+// Inline code, HTML comments and URLs on one line (an issue-comment anchor
+// is a nine-digit number too). Multi-line HTML comments are handled by the
+// markdown masker below; the comment pattern still spans newlines so it
+// cannot half-match a comment if this is ever handed more than one line.
+function maskInline(line) {
+  // A reference-link definition is not prose — it never renders — so the whole
+  // line goes, label and destination together.
+  if (/^\s{0,3}\[[^\]]+\]:\s/.test(line)) return ' '.repeat(line.length);
+  let out = blank(
+    blank(line, /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g),
+    /<!--[\s\S]*?(?:--!?>)/g
+  );
+  // A link's visible text is prose and its destination is not, so keep the
+  // text and blank the rest; emphasis markers go the same way. Without this a
+  // count inside a link or in bold reads as markup and slips the detector.
+  // Inline links keep their text and lose the destination; reference-style
+  // links (`[text][ref]` and `[text][]`) render the same way, so they are
+  // unwrapped too.
+  out = out.replace(
+    /\[([^\]]*)\](?:\([^)]*\)|\[[^\]]*\])/g,
+    (m, text) => ' ' + text + ' '.repeat(m.length - text.length - 1)
+  );
+  // MDX comments, which the docs tree uses instead of the HTML form.
+  out = blank(out, /\{\s*\/\*[\s\S]*?\*\/\s*\}/g);
+  out = out.replace(/(\*\*|__|\*|_)(?=\S)/g, m => ' '.repeat(m.length));
+  out = out.replace(/(?<=\S)(\*\*|__|\*|_)/g, m => ' '.repeat(m.length));
+  return blank(out, /https?:\/\/\S+/g);
+}
+
+/**
+ * Blank the code spans and comments in one line, carrying state across lines.
+ *
+ * One interleaved pass rather than two: the grammars interact, and splitting
+ * them fails OPEN. Comments first would let a backtick inside a comment open a
+ * span; code first would let a span's close be blanked before comment
+ * detection saw it, leaving a comment open to end of file and hiding every
+ * violation after it. Here each step looks at whichever delimiter comes first
+ * and consumes it, so neither state can be entered from inside the other.
+ *
+ * `state` is null, `{ code: run }` while a backtick run of that length is
+ * open, or `{ close }` while a comment is open. Returns the masked line
+ * (length preserved) and the state for the next line.
+ */
+function stripSpans(line, state) {
+  const OPENERS = [
+    ['<!--', /(?<!<!)--!?>/g],
+    // MDX closes with `*/` and then a `}` that may sit after whitespace or a
+    // line break, so the closer is two phases: see `awaitBrace`.
+    ['{/*', /\*\//g],
+  ];
+  // CommonMark ends an empty comment at `<!-->` and `<!--->`; treated as a
+  // generic opener, their close would never be found and the comment would
+  // swallow the rest of the file.
+  const EMPTY = /^<!---?>/;
+  let out = '';
+  let rest = line;
+  for (;;) {
+    if (state?.code) {
+      const close = new RegExp(`(?<!\`)\`{${state.code}}(?!\`)`).exec(rest);
+      if (!close) return { text: out + ' '.repeat(rest.length), state };
+      const after = close.index + close[0].length;
+      out += ' '.repeat(after);
+      rest = rest.slice(after);
+      state = null;
+      continue;
+    }
+    if (state?.awaitBrace) {
+      const brace = rest.indexOf('}');
+      if (brace === -1) return { text: out + ' '.repeat(rest.length), state };
+      out += ' '.repeat(brace + 1);
+      rest = rest.slice(brace + 1);
+      state = null;
+      continue;
+    }
+    if (state) {
+      state.close.lastIndex = 0;
+      const close = state.close.exec(rest);
+      if (!close) return { text: out + ' '.repeat(rest.length), state };
+      const after = close.index + close[0].length;
+      out += ' '.repeat(after);
+      rest = rest.slice(after);
+      state = state.brace ? { awaitBrace: true } : null;
+      continue;
+    }
+    let best = null;
+    const tick = /`+/.exec(rest);
+    if (tick) best = { i: tick.index, kind: 'code', len: tick[0].length };
+    for (const [open, close] of OPENERS) {
+      const i = rest.indexOf(open);
+      if (i !== -1 && (best === null || i < best.i)) {
+        best = { i, kind: 'comment', open, close };
+      }
+    }
+    if (best === null) return { text: out + rest, state: null };
+    const head = rest.slice(0, best.i);
+    if (best.kind === 'code') {
+      const closeRe = new RegExp(`(?<!\`)\`{${best.len}}(?!\`)`, 'g');
+      closeRe.lastIndex = best.i + best.len;
+      const close = closeRe.exec(rest);
+      if (!close) {
+        return {
+          text: out + head + ' '.repeat(rest.length - best.i),
+          state: { code: best.len },
+        };
+      }
+      const after = close.index + close[0].length;
+      out += head + ' '.repeat(after - best.i);
+      rest = rest.slice(after);
+      continue;
+    }
+    const tail = rest.slice(best.i);
+    const empty = best.open === '<!--' ? EMPTY.exec(tail) : null;
+    if (empty) {
+      const after = best.i + empty[0].length;
+      out += head + ' '.repeat(after - best.i);
+      rest = rest.slice(after);
+      continue;
+    }
+    const brace = best.open === '{/*';
+    best.close.lastIndex = best.i + best.open.length;
+    const close = best.close.exec(rest);
+    if (!close) {
+      return {
+        text: out + head + ' '.repeat(rest.length - best.i),
+        state: { close: best.close, brace },
+      };
+    }
+    const after = close.index + close[0].length;
+    out += head + ' '.repeat(after - best.i);
+    rest = rest.slice(after);
+    if (brace) state = { awaitBrace: true };
+  }
+}
+
+/**
+ * The lines of a markdown file with fenced blocks, front matter, and comments
+ * blanked, so only prose remains. Fence detection follows the same CommonMark
+ * rules as `fenceMask` in api-page.mjs (backtick or tilde runs of three or
+ * more, closed by a run at least as long); it is inlined here so this module
+ * depends on nothing.
+ */
+function proseLinesOfMarkdown(text) {
+  const lines = text.split('\n');
+  const out = new Array(lines.length).fill('');
+  let i = 0;
+  // front matter
+  if (lines[0] === '---') {
+    i = 1;
+    while (i < lines.length && lines[i] !== '---') i++;
+    i++;
+  }
+  let fence = null; // { char, len }
+  let spans = null; // code-span or comment state carried across lines
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    if (fence) {
+      const close = line.match(/^\s{0,3}(`{3,}|~{3,})\s*$/);
+      if (close && close[1][0] === fence.char && close[1].length >= fence.len) {
+        fence = null;
+      }
+      continue;
+    }
+    if (!spans) {
+      const open = line.match(/^\s{0,3}(`{3,}|~{3,})/);
+      if (
+        open &&
+        !(open[1][0] === '`' && line.slice(open[0].length).includes('`'))
+      ) {
+        fence = { char: open[1][0], len: open[1].length };
+        continue;
+      }
+    }
+    const stripped = stripSpans(line, spans);
+    spans = stripped.state;
+    out[i] = stripped.text;
+  }
+  return out;
+}
+
+/**
+ * The `#` comment lines of a YAML file, with the marker stripped. Whole-line
+ * comments only: a trailing `# …` after code is not scanned, because `#` also
+ * appears inside shell strings and jq filters and telling the two apart needs
+ * a real parser. Prose worth policing is written as its own line here anyway.
+ */
+function proseLinesOfYaml(text) {
+  return text.split('\n').map(line => {
+    const m = line.match(/^\s*#\s?(.*)$/);
+    return m ? m[1] : '';
+  });
+}
+
+/**
+ * Scan `text` for fragile prose. `kind` is 'yaml' (comment lines only),
+ * 'markdown' (prose outside code, comments and front matter), or 'guide'
+ * (markdown that is published reference, where a run id is also a hit). Returns one
+ * `{ line, why, text }` per offending line (1-based line numbers), naming the
+ * first pattern that hit. A line containing `bestax:count-ok` is skipped.
+ */
+export function scanFragileProse(text, { kind }) {
+  const raw = text.split('\n');
+  const prose =
+    kind === 'yaml' ? proseLinesOfYaml(text) : proseLinesOfMarkdown(text);
+  // 'guide' is markdown for masking purposes; only the pattern set differs.
+  const hits = [];
+  // Markdown wraps sentences, so a count and its noun can straddle a line
+  // break — and with a narrow wrap, more than one. Each line is scanned
+  // joined to the next few, enough to cover the three-word window the count
+  // pattern allows, and a hit is reported at the line the match starts in.
+  // The count pattern allows three words between the number and the noun, so
+  // at one word per line the noun can be the fourth line down.
+  const WINDOW = 4;
+  // A line that opens a new block — a list item, heading, quote or table row —
+  // starts a new sentence, so the window stops before it. Without that, a
+  // number ending one bullet joins the noun opening the next.
+  const startsBlock = l => /^\s*(?:[-*+]\s|\d+[.)]\s|#{1,6}\s|>|\|)/.test(l);
+  const windows = prose.map((line, i) => {
+    const parts = [line];
+    if (line.trim()) {
+      for (let n = 1; n <= WINDOW; n++) {
+        const next = prose[i + n];
+        if (!next?.trim() || startsBlock(next)) break;
+        parts.push(next);
+      }
+    }
+    return parts;
+  });
+  const joined = windows.map(parts => parts.join(' '));
+  prose.forEach((line, idx) => {
+    if (!line.trim()) return;
+    // The marker only excuses a line when it says why: a bare token is the
+    // reflexive exemption the rule exists to avoid.
+    if (hasReasonedMarker(raw[idx], kind)) return;
+    // A ticket makes a count historical: "twelve commits behind on #361"
+    // records what happened there, and history does not go stale. It never
+    // excuses a line reference, which moves whatever the history says.
+    const inline = maskInline(line);
+    const pairInline = maskInline(joined[idx]);
+    // A ticket only excuses the lines a match actually spans: one sitting
+    // further down the window documents something else. It is read from the
+    // masked text, so a URL fragment or a value in inline code cannot pose
+    // as a reference.
+    const ticketWithin = end => {
+      let stop = 0;
+      for (const part of windows[idx]) {
+        stop += (stop ? 1 : 0) + part.length;
+        if (stop >= end) break;
+      }
+      return /#\d+\b/.test(pairInline.slice(0, stop));
+    };
+    const own = maskNotCounts(inline);
+    const pair = maskNotCounts(pairInline);
+    for (const { why, re, kinds } of PATTERNS) {
+      if (kinds && !kinds.includes(kind)) continue;
+      // The pair only widens the count rule: a run id or a line reference is
+      // a single token and cannot straddle a break, though the words of a
+      // spelled-out one can ("see line" / "224"), so it reads the window too.
+      // It reads the inline-masked text rather than the count-masked one,
+      // because a locator like "lines 224-229" is itself the range those
+      // masks remove.
+      const subject =
+        why === 'count' ? pair : why === 'line reference' ? pairInline : own;
+      const m = subject.match(re);
+      // A match beginning past this line belongs to the next, which reports
+      // it on its own turn; without this an unrelated first line would
+      // absorb the hit and name the wrong one.
+      if (!m || m.index >= line.length) continue;
+      if (why === 'count' && ticketWithin(m.index + m[0].length)) continue;
+      hits.push({
+        line: idx + 1,
+        why,
+        text: m[0].replace(/\s+/g, ' ').trim(),
+      });
+      return;
+    }
+  });
+  return hits;
+}
+
+/**
+ * Whether the line carries the exemption marker AND says why, inside the same
+ * comment. The reason has to sit between the token and that comment's closing
+ * delimiter: prose after the comment is not a reason, and neither is the
+ * delimiter itself. The token needs a boundary, so `bestax:count-okfoo` is a
+ * typo rather than an exemption.
+ */
+function hasReasonedMarker(line, kind) {
+  // Only a token inside a comment exempts anything. In markdown that means
+  // one of the two comment spellings; prose or inline code that merely names
+  // the marker is explaining it, not claiming it. A YAML prose line is itself
+  // a comment, so its whole body counts.
+  const spans =
+    kind === 'yaml'
+      ? [line.replace(/^\s*#\s?/, '')]
+      : [
+          ...line.matchAll(/<!--([\s\S]*?)(?:--!?>|$)/g),
+          ...line.matchAll(/\{\/\*([\s\S]*?)(?:\*\/\}|$)/g),
+        ].map(m => m[1]);
+  const token = new RegExp(`${ALLOW_TOKEN}(?![\\w-])`);
+  return spans.some(span => {
+    const m = token.exec(span);
+    return m ? /\w/.test(span.slice(m.index + m[0].length)) : false;
+  });
+}
+
+/** The house-format message for one hit, ready for check-conformance. */
+export function describeHit(rel, hit) {
+  const remedy = {
+    count:
+      'put the command that produces it, or move the evidence to the issue',
+    'run id': 'move the evidence to the issue and link it',
+    'line reference':
+      'cite a heading, a step id, a job name, a flag or a rule number instead',
+  }[hit.why];
+  return (
+    `${rel} line ${hit.line}: "${hit.text}" — a ${hit.why} in prose goes ` +
+    `stale; ${remedy}, or mark the line ${ALLOW_TOKEN} with a reason`
+  );
+}

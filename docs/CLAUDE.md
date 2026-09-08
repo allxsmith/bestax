@@ -75,7 +75,7 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   empty and grows one category per PR, so a page is only generated once its category lands.
 - Section order on a managed page: Overview, Import, Usage, _(page-specific extras)_,
   Accessibility, Related Components, Additional Resources, Props, CSS & Sass Variables.
-  Every category except `helpers/` is managed; the four hook pages there have no `## Props`
+  Every category except `helpers/` is managed; the hook pages there have no `## Props`
   at all, and `config.md`/`theme.md` follow the order but keep their hand-written tables.
 - The `props` region owns the tables and nothing else. Prose inside `## Props` is preserved
   above the opening marker or below the closing one — but prose sitting _between_ two tables
@@ -106,7 +106,7 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   are required — without them MDX treats it as literal text, not a code block. The component
   derives the command back out of the fence and throws during the prerender if the round trip
   isn't exact, so a non-canonical fence (`npm install foo`, odd spacing) fails the build rather
-  than rendering three tabs derived from something the page never showed. Docs-tree pages
+  than rendering tabs derived from something the page never showed. Docs-tree pages
   only — a syndicated blog post must not use it (JSX reaches dev.to as raw text); see the
   Syndication section of `blog/CLAUDE.md`.
 
@@ -114,6 +114,18 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   `docusaurus.config.js` does not override it. That is load-bearing but easy to miss: setting
   `format: 'detect'` would make every `.md` page render its tags as literal text.
 - Markdown is prettier-formatted (`pnpm format:check` covers `md`/`mdx`).
+- **Guides are canonical reference, not lab notebooks.** No run statistics, run ids, dated
+  observations or "as of" tallies in `docs/docs/**`: the LLM index serves it as current fact,
+  and a count is stale the day after it is written. Dated snapshots belong in `blog/`, which
+  is excluded from the index (see `blog/CLAUDE.md`). Evidence goes on the issue or PR and the
+  guide links it. A claim that needs a number to be true belongs in a test or a generator, not
+  a sentence. A guide section says what the operator can do and what each switch is compared
+  against; it does not re-derive a third party's internals. Claim the case in front of you:
+  "every" and "only" are one counterexample from false. Never cite a line number; cite a
+  heading, a step id, or a flag. `check:conformance --only=fragile-prose` enforces the count,
+  run-id, and line-reference parts over `docs/docs/guides/**`; the migration guides are exempt
+  because their counts describe a frozen upstream, and the API pages are generated. The rule
+  still holds everywhere in `docs/docs/**` — the check is a net, not the contract.
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
   execute in the browser, so declare the browser globals each callback actually uses

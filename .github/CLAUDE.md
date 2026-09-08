@@ -336,18 +336,17 @@ resting place.
     exit 1
 ```
 
-Copy the full version from any block job — the three shapes above are each load-bearing:
+Copy the full version from any block job — the shapes above are each load-bearing:
 
 - **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
   and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or
-  slim runner). Without it a vendor outage fails every block job at once — nineteen of them as of
-  the inventory below, not the seven this line said before the `ai-scan`/`ai-triage` job splits —
-  with a bare `jq: could not open file`. It still fails, because a job holding a credential must
-  not run unprotected, but it says why. Do not hand-maintain that number: it is the count of
-  block-mode jobs, and it has been wrong once already. Derive it, and grep for the **key** rather
-  than the string — `grep -rn "^ *egress-policy: block$"`. A plain `grep egress-policy: block`
-  returns twenty: `deploy-worker.yml` names the policy in a comment, which is the same way a
-  `node -e` in a comment misclassifies a job below.
+  slim runner). Without it a vendor outage fails every block job at once, with a bare
+  `jq: could not open file`. It still fails, because a job holding a credential must not run
+  unprotected, but it says why. Do not write down how many block jobs that is: an earlier version
+  of this line did, and it was wrong before the `ai-scan`/`ai-triage` job splits. Derive it, and
+  grep for the **key** rather than the string — `grep -rn "^ *egress-policy: block$"`. A plain
+  `grep egress-policy: block` counts one more: `deploy-worker.yml` names the policy in a comment,
+  which is the same way a `node -e` in a comment misclassifies a job below.
 - **The status check polls** rather than testing once. The pre-step waits only for the file to
   _exist_ and gives up after ~9s, while the agent resolves every allow-listed host before writing
   its status, so a cold resolver or a long list can leave it absent or empty at this point.
@@ -424,12 +423,12 @@ revert is the agent's; the pre-step only makes one visible by printing `agent.lo
 debugging a red assertion, `Reverted changes` is in the agent's output, not harden-runner's.
 
 **What the pair does NOT prove is that the policy stays armed.** In `step-security/agent`, the
-sequence is `writeStatus("Initialized")` (agent.go:307) and then a serve loop whose
-`case e := <-errc:` (:313) calls `RevertChanges` (:315). So any runtime error after
+sequence is `writeStatus("Initialized")` in `agent.go` and then a serve loop whose
+error branch calls `RevertChanges`. So any runtime error after
 initialization tears the firewall down while `agent.status` still reads `Initialized` and
 `agent.json` still reads `block` — **both assertion lines pass, nothing is enforcing.**
 Separately, `refreshDNSEntries` re-resolves every 30s and on failure only logs
-`failed to insert new ipaddress in firewall` (:357), so an allow-listed host whose IPs rotate can
+`failed to insert new ipaddress in firewall`, so an allow-listed host whose IPs rotate can
 quietly stop being reachable.
 
 Two further false-pass modes are known and not covered, both latent for this repo but worth
@@ -474,22 +473,22 @@ and the jobs adjacent to them, per job, not every job in the directory** — the
 jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story-screenshots.yml`,
 `scorecard.yml`, `dependency-review.yml`) carry no harden-runner and are out of scope here.
 
-- **Enforcing and asserted** — all three `ai-scan` jobs (`gate`, `scan`, `label`), all four
-  `ai-triage` jobs (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
+- **Enforcing and asserted** — every `ai-scan` job (`gate`, `scan`, `label`), every
+  `ai-triage` job (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
   `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
-  `claude-pr-loop` (`fix` and `verify`). Nineteen jobs; the command below is the check.
+  `claude-pr-loop` (`fix` and `verify`). The command below lists them.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
-  group by measuring all six of its members instead of guessing for them. All six now **use** the
-  same nine-host allowlist, and the gap between that and what the measurement produced is the part
-  worth keeping: the runs surfaced six application hosts, a strict subset of the eight the
-  Claude-session jobs above already used, and `nodejs.org` appeared in no run at all. It is on the
-  list anyway, and that ninth host is why "measured" is not the same as "complete". None
+  group by measuring every member instead of guessing for them. They all now **use** the same
+  allowlist, and the gap between that and what the measurement produced is the part worth
+  keeping: the runs surfaced a strict subset of the application hosts the Claude-session jobs
+  above already used, and `nodejs.org` appeared in no run at all. It is on the list anyway, and
+  that unmeasured host is why "measured" is not the same as "complete". None
   of `ai-scan`/`scan`, `ai-triage`/`triage` or `claude-repro`/`author` runs `actions/setup-node`,
-  so their eight-host list never needed it; all six of #578's jobs do run it, and setup-node falls
+  so their list never needed it; all six of #578's jobs do run it, and setup-node falls
   back to `nodejs.org/dist` when the toolcache misses and the `actions/node-versions` lookup fails.
-  Six audit runs could not surface that, because the toolcache hit every time and an unexercised
+  The audit runs could not surface that, because the toolcache hit every time and an unexercised
   path leaves no endpoint in any log. Review caught it, not measurement. Keep the group here rather
   than deleting it: audit remains the correct starting point for an **existing** live job whose
   egress has never been observed, and the recipe under this rule is what keeps it a short state
@@ -508,8 +507,8 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
     `verify-provenance` (installs published packages, runs verification scripts). Calling any of
     these API-only — as this list did twice — understates the unmonitored execution and egress
     surface in the one inventory meant to state it precisely. `auto-close-duplicates` was the
-    fifth here until it was given an enforced policy; it is now in the first group, and it is the
-    only one of the five that has moved.
+    fifth here until it was given an enforced policy; it is now in the first group, and it is
+    the only one that has moved.
 
 Do not maintain any of this by hand; it has now been wrong three times, and each time the error
 moved a code-executing job into the harmless-looking group. Derive it:
@@ -537,7 +536,7 @@ are not "API-only" in the harmless sense either.
 
 `claude-repro` deserves the emphasis: only its `author` job is hardened. **`publish` — the job
 that runs the sanitizer over attacker-influenced text and holds `issues: write` — has no egress
-policy at all.** Anyone citing "claude-repro enforces egress" is overstating it by three jobs.
+policy at all.** Anyone citing "claude-repro enforces egress" is overstating it by every job but `author`.
 
 Keep this inventory correct when you add a job, and qualify per job rather than per workflow. Its
 first version omitted `bestaxbot-reply` and named `claude-repro` unqualified — a table that
@@ -572,11 +571,11 @@ Two things about reading its output, both learned assembling the #578 lists:
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
   are the runner talking to its own control plane. The blob host cannot be pinned even in
-  principle — its name rotates per run (sa3, sa6, sa7, sa9, sa11, sa13 and sa17 so far, and the
-  list keeps growing every time anyone looks). Run
+  principle — its name rotates per run (`productionresultssa<N>`, and N varies between runs).
+  Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
-  with the five-host list observed only `api.github.com` and `github.com`, and completed all
-  fifteen of its API calls under the firewall.
+  with its list observed only `api.github.com` and `github.com`, and completed every one of
+  its API calls under the firewall.
 
   **Leaving them out costs nothing, and that is measured rather than assumed.** harden-runner
   does not gate the runner's own control-plane traffic, so the Actions cache keeps working:
@@ -587,8 +586,8 @@ Two things about reading its output, both learned assembling the #578 lists:
   cost. That was a guess, it was wrong, and the run is what showed it. If you catch yourself
   writing down what a policy will cost, go and read a run instead.
 
-- **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from four
-  runs and present in the fifth — `telemetry.vercel.com` (turbo) showed up exactly once across
+- **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from a
+  run and present in the next — `telemetry.vercel.com` (turbo) showed up exactly once across
   the six #578 runs. Prefer denying telemetry at the source (`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`,
   `TURBO_TELEMETRY_DISABLED`) over allow-listing a host you would rather not talk to; that is the
   standing call here, and it also keeps the next audit report clean for whoever reads it.
@@ -617,6 +616,34 @@ overstated their mechanism: a flag described as blocking "every AI entry point" 
 reviewers never see it, a session called "read-only" when its token was write-scoped, and an
 encoding check described as a proof when it is a backstop. A comment that overstates its control
 is worse than no comment, because the next reader stops checking.
+
+### How to be exact: claim less
+
+Exact means claiming less, not explaining more. The way to make a security comment true is to
+delete the clause that overstates it, not to add the qualifiers that would make it true.
+
+- A security comment names the control and, when the control is a third party's, cites where
+  it lives, in one line: `# matched against the run actor by check-human-actor in
+anthropics/claude-code-action at the pinned SHA`. Do not restate the third party's
+  internals; the restatement rots the moment the pin moves, and nobody re-reads it then.
+- A count lives in a command, never in a sentence. Write the grep that produces it (rule 10's
+  `egress-policy: block` grep is the model). A hand-maintained number is wrong within months,
+  and this file has been caught doing exactly that.
+- Evidence (dates, tallies, measurements) goes on the issue and is linked. A comment says what
+  the mechanism is; the issue says how we know. A run id may stand in a workflow comment as the
+  receipt for the flip it justified, and nowhere in a guide.
+- One home per fact. A mechanism is explained once, where it is configured; every other
+  mention is a pointer (`# same list as fix; rationale there`). Two copies are two things to
+  keep equal, and a reviewer will find the day they differ.
+- Claim the case in front of you. "Every", "only", "always" and "exactly one" are one
+  counterexample from false; "the review arm" survives, "every arm" does not.
+- Never cite a line number in prose. Lines move on the next edit; a step `id`, a job name, a
+  rule number, or a heading does not.
+- A PR body says what changed and why. State an invariant as the command that checks it
+  (`grep -c` the pin), not as today's count of what it found.
+
+The `fragile-prose` conformance check enforces the count, run-id, and line-reference rules;
+mark a deliberate exception with `bestax:count-ok` on the same line and say why.
 
 ## Where the rest is documented
 

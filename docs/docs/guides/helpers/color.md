@@ -105,7 +105,7 @@ function ColorExamples() {
 
 ## Background Color
 
-Use the `bgColor` prop to apply background colors. It accepts the same color values as `textColor` and renders Bulma's `has-background-*` helpers — plus, on six surface components, the `scheme-*` values below, which render as a dark-mode-safe inline style instead of a class. A few components accept the raw `backgroundColor` helper name instead, and `Notification` has no background prop at all: its `color` variant fills the background, so pair it with `textColor`. Each component's Props table lists the names it takes.
+Use the `bgColor` prop to apply background colors. It accepts the same color values as `textColor` and renders Bulma's `has-background-*` helpers — plus, on the surface components listed below, the `scheme-*` values, which render as a dark-mode-safe inline style instead of a class. A few components accept the raw `backgroundColor` helper name instead, and `Notification` has no background prop at all: its `color` variant fills the background, so pair it with `textColor`. Each component's Props table lists the names it takes.
 
 ### Standard Background Colors
 
@@ -148,7 +148,7 @@ Use the `bgColor` prop to apply background colors. It accepts the same color val
 
 ### Scheme Backgrounds (adapt to dark mode)
 
-Bulma ships no `has-background-scheme-*` classes, so these values emit **no class at all** — the component renders a dark-mode-safe inline style that tracks Bulma's scheme CSS variables. They are supported on six surface components: `Section`, `Hero` (and `Hero.Head`/`Hero.Body`/`Hero.Foot`), `Container`, `Footer`, `Box`, and `Card` (the parent, not its subcomponents). `backgroundColorShade` is ignored for scheme values — no shaded scheme variables exist.
+Bulma ships no `has-background-scheme-*` classes, so these values emit **no class at all** — the component renders a dark-mode-safe inline style that tracks Bulma's scheme CSS variables. They are supported on the surface components: `Section`, `Hero` (and `Hero.Head`/`Hero.Body`/`Hero.Foot`), `Container`, `Footer`, `Box`, and `Card` (the parent, not its subcomponents). `backgroundColorShade` is ignored for scheme values — no shaded scheme variables exist.
 
 | Property                      | Emitted Inline Style                               | Background Value                   |
 | ----------------------------- | -------------------------------------------------- | ---------------------------------- |

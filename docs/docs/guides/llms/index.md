@@ -49,7 +49,7 @@ name), so a Claude Code session picks them up automatically. See the
 
 ## In the npm package
 
-The published `@allxsmith/bestax-bulma` tarball also carries three small pointer
+The published `@allxsmith/bestax-bulma` tarball also carries small pointer
 files at the package root, so an agent that explores `node_modules` by filename
 (`find` / `ls` for `AGENTS.md`, `CLAUDE.md`, `llms.txt`) lands on these resources
 even if it never opens the README or reaches the network first:
@@ -68,7 +68,7 @@ tarball cannot go stale between releases.
 
 `bestax-mcp` is the first-party [Model Context Protocol](https://modelcontextprotocol.io)
 server. Where `llms.txt` gives an agent the docs to read, the MCP server lets it **ask
-questions** — every component's props (including compound parts like `Navbar.Brand`), ~900
+questions** — every component's props (including compound parts like `Navbar.Brand`), the
 working examples, the `--bulma-*` variables behind each component, the helper props that
 replace inline styles, and the Agent Skills as invocable prompts.
 
@@ -116,7 +116,7 @@ Start with `list_components` — its output names the tool to call next. Reach f
 | `get_examples`      | Working `tsx` examples from the component's documentation page                                     |
 | `get_css_variables` | The `--bulma-*` custom properties a component reads, with Sass names and defaults                  |
 | `get_helper_props`  | Spacing, colour, typography, flexbox and visibility props — the alternative to hand-written styles |
-| `list_skills`       | The seven [Agent Skills](/docs/skills/intro)                                                       |
+| `list_skills`       | The [Agent Skills](/docs/skills/intro)                                                             |
 | `get_skill`         | A skill's instructions, or one of its reference documents                                          |
 
 It also exposes each skill as an MCP **prompt** (`theming`, `form`, `layout-scaffold`, …) and
@@ -150,7 +150,7 @@ especially welcome.
 The LLM docs are generated at build time by
 [`docusaurus-plugin-llms`](https://github.com/rachfop/docusaurus-plugin-llms)
 (configured in `docs/docusaurus.config.js`), following the
-[llmstxt.org](https://llmstxt.org) standard. Three artifacts are produced and served
+[llmstxt.org](https://llmstxt.org) standard. These artifacts are produced and served
 from the site root:
 
 | File                                                | What it is                                                                                                                          |
@@ -159,4 +159,4 @@ from the site root:
 | [`/llms-full.txt`](https://bestax.io/llms-full.txt) | The **entire documentation** concatenated into a single plain-text file.                                                            |
 | Per-page `.md`                                      | Every page is also served as clean Markdown at `<page>.md`, e.g. [`/docs/guides/intro.md`](https://bestax.io/docs/guides/intro.md). |
 
-All three are regenerated on every docs build, so they always match the deployed site.
+They are regenerated on every docs build, so they always match the deployed site.

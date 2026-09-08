@@ -47,19 +47,19 @@ the review-time requirements (Storybook story for UI changes, docs page for API 
 
 PRs authored by the loop move through a small label lifecycle:
 
-| Label                   | Where        | Meaning                                                                                                                                                                                                                                                        |
-| ----------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `claude-fix`            | issues       | Maintainer-approved: Claude implements this issue and opens a PR                                                                                                                                                                                               |
-| `ai-loop`               | PRs          | The PR is inside the autonomous review/fix loop                                                                                                                                                                                                                |
-| `needs-human-review`    | PRs          | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                                                                                                                                                                                  |
-| `ai-loop-paused`        | PRs          | The loop hit its iteration cap or a guardrail — a maintainer must intervene                                                                                                                                                                                    |
-| `deep-review`           | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply to re-run). Optionally steer it by pre-posting a PR comment starting with `deep-review:` (focus areas, suspected weak spots) — only comments from triage+ authors are used |
-| `ai-triage`             | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)                                                                               |
-| `claude-repro`          | issues       | Triage+ user applies it: Claude drafts a candidate reproduction test and github-actions[bot] posts it for a human to run (author-only — CI does not run it). Auto-removes                                                                                      |
-| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; blocks every entry point this repo controls — `claude-repro`, `claude-fix`, `@claude`, `@bestaxbot` — until a maintainer removes it (third-party reviewers are not gated)                          |
-| `claude-assisted`       | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                                                                                                   |
-| `stale`                 | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead                                                                              |
-| `neverstale`            | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                                                                                                        |
+| Label                   | Where        | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude-fix`            | issues       | Maintainer-approved: Claude implements this issue and opens a PR                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `ai-loop`               | PRs          | The PR is inside the autonomous review/fix loop                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `needs-human-review`    | PRs          | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `ai-loop-paused`        | PRs          | The loop hit its iteration cap or a guardrail — a maintainer must intervene                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `deep-review`           | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply once, after fixes: it re-checks its own threads and reviews the commits since its last review, falling back to a full review whenever it cannot establish a trustworthy linear delta between them, such as a rewritten history, a merge from the base, or a retarget that moves the merge base — and a steer starting `deep-review: fresh` forces one). Optionally steer it by pre-posting a PR comment starting with `deep-review:` (focus areas, suspected weak spots) — only comments from triage+ authors are used |
+| `ai-triage`             | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `claude-repro`          | issues       | Triage+ user applies it: Claude drafts a candidate reproduction test and github-actions[bot] posts it for a human to run (author-only — CI does not run it). Auto-removes                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; blocks every entry point this repo controls — `claude-repro`, `claude-fix`, `@claude`, `@bestaxbot` — until a maintainer removes it (third-party reviewers are not gated)                                                                                                                                                                                                                                                                                                                                                                      |
+| `claude-assisted`       | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `stale`                 | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `neverstale`            | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### AI triage
 
@@ -75,7 +75,7 @@ words, escaped and stripped of anything that could mention, link or re-trigger.
 **Only same-repo PRs are triaged** — PRs opened from forks are always
 skipped, automatic and label alike (the workflow deliberately avoids GitHub's
 `pull_request_target` trigger, so fork-originated events can never run with repository
-secrets); issues have no such restriction. Three repository variables control it:
+secrets); issues have no such restriction. Repository variables control it:
 
 - **`AI_TRIAGE_MODE`** — `auto` (new issues/PRs are triaged automatically and the label still
   works), `label` (opt-in only; the default when unset), or `off` (disables both automatic
@@ -160,7 +160,7 @@ output, so a re-run deep review that finds nothing can still meet an open thread
 pass and route to `verify` on that. And it picks a single mode per run: red or pending CI and
 threads still awaiting the fixer outrank `verify`. A paused loop stops it outright, since the
 gate requires the `ai-loop` label — but the iteration cap does not, because the cap only
-rewrites `fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at iteration 4 still runs.
+rewrites `fix-ci`/`fix-reviews` into `halt`, so a `verify` selected at the cap still runs.
 
 **Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
 dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
@@ -213,84 +213,24 @@ separate store and none are documented here.
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
 | `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
-The gate job's `if:` names Copilot alongside CodeRabbit: a submitted review from either is
-**eligible** to fire the gate on an `ai-loop` PR. That condition reads no `AI_LOOP_COPILOT`, only
-`AI_LOOP_ENABLED`, so it is live for any Copilot review, including one a maintainer requests by
-hand, which is how every Copilot review on a loop PR has arrived so far (#573, #624).
-`AI_LOOP_COPILOT` decides only whether `claude-implement.yml` asks for the review; unsetting it is
-not a kill switch for this trigger. `AI_LOOP_ENABLED=false` and removing `ai-loop` are. Eligible is
-the honest word, and the split between runs that start and runs that do not is not random. Whether a
-`Claude PR Loop` run for a Copilot review ever creates a job is decided by whether a maintainer
-re-ran it. Every run Copilot has triggered arrived as `run_attempt: 1` with `triggering_actor:
-Copilot` and died before a job existed (100 `failure` with zero jobs and 21 `action_required`, 121
-so far), so no job `if:` was evaluated. The only ones that reached a job are among the 19 a
-maintainer re-ran by hand: on a re-run `triggering_actor` becomes the re-runner, which is what the
-`allxsmith` rows in that query are, and not a record of who requested the review. Eighteen of those
-created all six jobs and evaluated the gate's `if:`, which before this change matched only
-`coderabbitai[bot]`; run `33041194214` was cancelled with none. Runs `33586960606`, `33232938014`
-and `33035152465` are three of the eighteen, on `claude/*` heads, and `33586960606` is the worked
-example: attempt 1 was `action_required` with zero jobs, attempt 2 produced the six. So there is no
-observed case of a Copilot review starting a loop run unaided. Since 2026-09-06 the shape has
-changed again: Copilot's reviews on PR #643 that day (all of them its "encountered an error"
-submissions) created no `Claude PR Loop` run at all, so the query below can come back with nothing
-new rather than a fresh startup failure, and absence of a run is the expected reading, not a broken
-query. Whether `AI_LOOP_COPILOT=true` changes any of this is untested: the variable has never been
-on, so no review requested by `claude-implement.yml` has been observed. The request itself starts
-nothing (it is made under the workflow's `GITHUB_TOKEN`, and nothing here listens for
-`review_requested`), but the review Copilot then submits is its own event under its own credentials,
-so treat that path as unknown rather than ruled out. In every case observed so far, a Copilot-only
-finding has still waited for the next natural event: a CI or deep-review completion, a CodeRabbit
-review, or the 2-hourly watchdog sweep. The widened condition removes our side of the obstacle; it
-is not a latency guarantee. Treat a `Claude PR Loop` run **with jobs** as the proof. Keep the
-`--paginate` and the `run_attempt` column: the most recent page alone is all startup failures, which
-is how the absolute version of this claim was first written, and without the attempt number the
-re-runs look like a second kind of trigger.
+The gate job's `if:` names Copilot alongside CodeRabbit, so a submitted review from either is
+eligible to fire the gate on an `ai-loop` PR. That condition reads `AI_LOOP_ENABLED` only:
+`AI_LOOP_COPILOT` decides whether `claude-implement.yml` requests the review, and unsetting it
+is not a kill switch for the trigger. `AI_LOOP_ENABLED=false` and removing `ai-loop` are.
 
-```bash
-gh api --paginate \
-  "repos/allxsmith/bestax/actions/workflows/claude-pr-loop.yml/runs?event=pull_request_review" \
-  --jq '.workflow_runs[] | select(.actor.login=="Copilot")
-        | [.id, .run_attempt, .triggering_actor.login, .conclusion, .head_branch] | @tsv'
-```
+The reviewer is named in two places, compared against a different string in each. The review branch of the
+gate's `if:` is matched against the event payload (`review.user.login`,
+`copilot-pull-request-reviewer[bot]`), and the other branches read their own events;
+`allowed_bots` on the fix and verify sessions is matched against the run's actor (`Copilot`).
+Each list carries only the spelling it is compared against. When adding a reviewer, read its
+login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`) and put each
+spelling where it is compared. The `ACTIONABLE` counter matches the prefix
+`^(coderabbitai|copilot)` deliberately: a new `copilot-*` app is counted as work owed, but it
+cannot admit itself to a session holding `AI_LOOP_PAT` just by existing.
 
-Two lists have to name the reviewer for that to work end to end, and they are matched against
-different strings. The `pull_request_review` branch of the gate job's `if:` is matched against the
-event payload (`review.user.login`); the `allowed_bots` list on the fix and verify sessions is
-matched against the **run's actor**, and nothing else. A reviewer in one but not the other either
-waits for an unrelated event (a CI or deep-review completion, the other reviewer, or the 2-hourly
-watchdog sweep) or fails the session's human-actor check outright. The action's write-permission
-check also reads `allowed_bots`, but only in PR and issue contexts and only for an actor without a
-`[bot]` suffix, which here means `Copilot` on the review arm; every other entry and every other arm
-is decided by the human-actor check alone.
-
-Those two strings are not always the same. The Copilot reviewer app renders as
-`copilot-pull-request-reviewer[bot]` in the payload and as `Copilot` to Actions, so the payload
-spelling is what makes the gate condition match and the actor spelling is what makes `allowed_bots`
-match. `allowed_bots` compares normalised logins, not account ids, and GitHub's other Copilot app
-(`copilot-swe-agent[bot]`) also renders as `Copilot`, so that entry admits either; the confinement
-is the gate, not the precision of the string, and each arm holds different parts of it. The review
-and CI-completion arms of the `if:` carry the same-repo and `claude/*` head tests; the
-manual-dispatch arm carries neither and relies on GitHub only letting write-access users dispatch.
-The `ai-loop` label, PR-open and protected-path tests are re-derived in the gate job's shell on
-every arm, and the two head tests are not. So a CI completion with `Copilot` as the actor, on a
-`claude/*` head, still passes all of them before `fix` runs. Each list carries only the spelling it
-is compared against; a hedge entry in the other place would match nothing today and, in
-`allowed_bots`, would widen an allowlist on the job holding `AI_LOOP_PAT` for no observed reason.
-CodeRabbit needs one spelling because both surfaces agree on it. When adding a reviewer, read its
-login off a real run (`gh api repos/<repo>/actions/runs/<id> --jq .actor.login`, since `gh run list`
-exposes no actor field) as well as off the API, and put each spelling where it is actually compared
-(#612).
-
-One divergence deliberately remains. The gate's `if:` names exact logins, while the `ACTIONABLE`
-counter, and the fix job's terminal check that repeats it, match the case-insensitive prefix
-`^(coderabbitai|copilot)`. A thread opened by any other `copilot-*` app, `copilot-swe-agent[bot]`
-today or a future reviewer app, is therefore still counted as work the loop owes while its review
-fires no gate run (its run actor can still reach `fix` through the CI-completion arm described
-above, where the gate confines it), which is the same wait of up to two hours that #612 describes.
-That is the safe direction: a new `copilot-*` app cannot admit itself to a session holding
-`AI_LOOP_PAT` just by existing. But it means the two agree only for the logins named above, so
-adding a reviewer means adding it to the `if:` and to `allowed_bots`, not only to the counter's
-regex.
+Do not assume a Copilot review starts a loop run by itself; whether GitHub creates a run for
+one is outside this repo's control, and what has been observed is recorded
+[on #612](https://github.com/allxsmith/bestax/issues/612#issuecomment-5563800114).
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:

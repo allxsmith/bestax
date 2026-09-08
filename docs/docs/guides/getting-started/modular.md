@@ -64,7 +64,7 @@ import {
 The categories above are illustrative, not exhaustive. See the [Elements](/docs/category/elements), [Components](/docs/category/components), [Form](/docs/category/form), [Layout](/docs/category/layout), [Columns](/docs/api/columns), and [Grid](/docs/api/grid) API sections for the complete list, including newer additions like `Dialog`, `Carousel`, `Tooltip`, `Steps`, `Sidebar`, `Toast`, `Loading`, `Collapse`, `Autocomplete`, `Taginput`, `Rate`, `Slider`, `NumberInput`, `Switch`, `Checkboxes`, and `Radios`.
 :::
 
-## CSS: three ways to load styles
+## CSS: the ways to load styles
 
 ### Option A — combined bundle (recommended)
 

@@ -83,7 +83,7 @@ jobs:
   # How much smaller, measured rather than asserted — read out of the documents
   # produced by run 33260691933 (2026-08-29), not carried forward:
   #
-  #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)
+  #   @allxsmith/bestax-bulma   5 packages   (7 entries shipped)   bestax:count-ok: a scale, not a checksum
   #   create-bestax            12             (14)
   #   bestax-migrate           98             (100)
   #   bestax-mcp               93             (95)
@@ -98,7 +98,7 @@ jobs:
   #
   # These are LIVE REGISTRY closures and they drift whenever any transitive
   # dependency publishes, so treat them as a scale, not a checksum — bestax-mcp
-  # read 94 here until it was re-measured, against 95 entries it could never
+  # read 94 here until it was re-measured, against 95 entries it could never (bestax:count-ok: the drift is the point)
   # have been consistent with. Nothing enforces them, deliberately: pinning
   # counts as a gate is what 48c57d5 reverted. Re-measure from a dispatch when
   # touching this job rather than editing the numbers to taste.
@@ -108,8 +108,8 @@ jobs:
   # orders of magnitude, and obscures a genuinely tiny runtime closure that is
   # a selling point.
   #
-  # Per package, not one combined tree. Installing all four together resolves to
-  # 204 packages, which would bury bulma-ui's five-package closure under the
+  # Per package, not one combined tree. Installing them together resolves to
+  # 204 packages, which would bury bulma-ui's five-package closure under the (bestax:count-ok: scale)
   # CLIs' dependencies and reproduce the exact problem this job exists to fix.
   #
   # Generation only, like `sbom`. Stated precisely: this job does hold a
@@ -124,7 +124,7 @@ jobs:
     permissions:
       contents: read
     strategy:
-      # One package failing must not hide the other three. They are independent
+      # One package failing must not hide the rest. They are independent
       # documents; there is nothing to be gained by cancelling the siblings.
       fail-fast: false
       matrix:
@@ -139,8 +139,8 @@ jobs:
             slug: bestax-mcp
 
     steps:
-      # Rule 10: a new job ships at `block`. This file has five jobs; the three
-      # that carry no harden-runner (`sbom`, `attach-sbom`, `verify-provenance`)
+      # Rule 10: a new job ships at `block`. The jobs in this file that carry
+      # no harden-runner (`sbom`, `attach-sbom`, `verify-provenance`)
       # predate the rule and are grandfathered by its "existing live job" clause.
       # This one and `sign-sbom` are not, and both enforce.
       #
@@ -266,7 +266,7 @@ jobs:
       # Syft to read.
       #
       # An earlier draft installed with `--omit=peer` and deleted the lockfile
-      # before scanning, to publish only "what we add" — three packages for
+      # before scanning, to publish only "what we add" — three packages for (bestax:count-ok: scale)
       # bulma-ui instead of five. That was wrong on every axis, which is worth
       # recording so nobody reintroduces it:
       #
@@ -293,11 +293,11 @@ jobs:
       #     evidence.
       #
       # The point of #424 is already carried by scanning a consumer tree at all:
-      # five packages for bulma-ui against the whole dev toolchain. Trading
-      # away digests to reach three was a bad bargain.
+      # five packages for bulma-ui against the whole dev toolchain. Trading (bestax:count-ok: scale)
+      # away digests to reach a smaller tree was a bad bargain.
       #
       # `--omit=optional` is deliberately NOT used either. It would cut
-      # bestax-migrate from 98 packages to 57, but consumers really do get
+      # bestax-migrate from 98 packages to 57, but consumers really do get (bestax:count-ok: scale)
       # optional dependencies, and an SBOM that omits them understates the tree.
       # `--ignore-scripts` is a deliberate divergence from a real consumer's
       # install, not an oversight. It matches this repository's standing posture
@@ -334,7 +334,7 @@ jobs:
       #     replace — leaving the release permanently carrying two
       #     contradictory consumer SBOMs for the same package.
       #
-      # The other three legs necessarily stay on `latest`: a release says
+      # The remaining legs necessarily stay on `latest`: a release says
       # nothing about them, and a consumer SBOM describes what a consumer
       # installs today. That asymmetry is why the decision is a script with a
       # test rather than an expression here — the tag has to be matched to its
@@ -357,7 +357,7 @@ jobs:
           PACKAGE: ${{ matrix.package }}
           EVENT: ${{ github.event_name }}
           TAG: ${{ github.event.release.tag_name }}
-        # Writes `spec` and `expect` itself. `expect` is empty for the three
+        # Writes `spec` and `expect` itself. `expect` is empty for the
         # legs no release names, and the workflow does no parsing of its own —
         # deriving the version from the spec here would reimplement the
         # last-`@` split in untested YAML, one character from being wrong for
@@ -405,8 +405,8 @@ jobs:
 
           # A scan directory holding ONLY the lockfile (#530 item 5). syft used
           # to be pointed at the consumer tree and recursively walked every file
-          # under node_modules — thousands of them for bestax-migrate's
-          # 98-package closure, twice per matrix leg — to satisfy a cataloger
+          # under node_modules for bestax-migrate's
+          # 98-package closure, twice per matrix leg — to satisfy a cataloger (bestax:count-ok: scale)
           # that reads the root lockfile and nothing else.
           #
           # A copied directory rather than the lockfile itself, and that is not
@@ -443,7 +443,7 @@ jobs:
       #    syft's github-actions cataloger was picking up `.github/workflows`
       #    YAML that some upstream packages ship inside their npm tarballs, so
       #    the SBOM listed `actions/checkout@v4` and `actions/setup-node@v4` as
-      #    if they were dependencies — bestax-migrate at 111 entries against a
+      #    if they were dependencies — bestax-migrate at 111 entries against a (bestax:count-ok: scale)
       #    real closure of 98.
       #
       #    Selecting the whole `javascript` group fixed that and broke something
@@ -455,7 +455,7 @@ jobs:
       #    ends up as SPDX downloadLocation.
       #
       # 2. `source.name` — every document was named
-      #    `/home/runner/work/_temp/consumer`, identical across all four, so the
+      #    `/home/runner/work/_temp/consumer`, identical across every leg, so the
       #    artifact leaked the runner's filesystem layout and did not say which
       #    package it described. It also appeared as a package entry with a null
       #    version.
@@ -464,7 +464,7 @@ jobs:
       #    configured source as its own SPDX package, so naming it plainly after
       #    the target made the target appear TWICE — once from the lock
       #    cataloger with its registry URL, once as the source with
-      #    NOASSERTION. Seven entries for a five-package closure. The prefix
+      #    NOASSERTION. Seven entries for a five-package closure. The prefix (bestax:count-ok: scale)
       #    keeps the document self-identifying while ensuring every actual
       #    closure package appears exactly once.
       #
@@ -717,14 +717,14 @@ jobs:
       # mode is "SBOMs attach unsigned plus a ::warning::". Widen the list from
       # the first real run's report rather than by guessing again.
       #
-      # Sigstore hosts are the four in its published signing config
+      # Sigstore hosts are those in its published signing config
       # (tuf-repo-cdn serves that config; fulcio issues the cert; rekor logs it;
       # timestamp countersigns the bundle). `oauth2.sigstore.dev` is the fifth
       # entry there and is deliberately omitted: it serves the interactive OIDC
       # flow, and this job uses the ambient GitHub Actions credential instead.
       #
       # `*.blob.core.windows.net` is deliberately absent, and this note exists
-      # because three separate review passes have now proposed adding it. The
+      # because review passes keep proposing to add it. The
       # artifact actions do reach Azure blob storage, but #487 measured a real
       # run and found those hosts (`results-receiver.actions.githubusercontent
       # .com`, `productionresultssa9.blob.core.windows.net`) already covered by
@@ -739,8 +739,8 @@ jobs:
       # egress policy in this repository into something close to open egress. If
       # a real run ever shows a blocked blob endpoint, add that exact host.
       #
-      # Of this file's four other jobs, three (`sbom`, `attach-sbom`,
-      # `verify-provenance`) predate rule 10 and are grandfathered by its
+      # Of this file's other jobs, `sbom`, `attach-sbom` and
+      # `verify-provenance` predate rule 10 and are grandfathered by its
       # "existing live job" clause. `consumer-sbom` is not grandfathered and
       # enforces, same as this job — do not read the grandfather clause as
       # covering it.
@@ -964,7 +964,7 @@ jobs:
       # The provenance assertion moved out of this file and into
       # scripts/verify-attestation.mjs (#526), because checking what an
       # attestation *says* means decoding a base64 DSSE payload and comparing
-      # nine fields — rule 9 logic, not a shell loop. So the job now needs the
+      # the required provenance fields — rule 9 logic, not a shell loop. So the job needs the
       # repository on disk.
       #
       # This adds a second third-party action to a job that had one, which is
@@ -1040,7 +1040,8 @@ jobs:
       # digest is the one the attestation signs, and that the build it describes
       # is this repository, this workflow, this ref, on a GitHub-hosted runner.
       # The logic lives in scripts/ with a node --test sibling, per rule 9,
-      # because it decodes a base64 DSSE payload and compares nine fields; that
+      # because it decodes a base64 DSSE payload and compares the required
+      # provenance fields; that
       # is not something a shell loop can be tested for.
       #
       # Fails closed everywhere: a fetch error, an unparsable payload, or a

@@ -81,7 +81,7 @@ Use the `isMobile` property to maintain horizontal layout even on mobile devices
 
 ## Breakpoints
 
-Bestax uses Bulma's 4 breakpoints to define 5 screen sizes:
+Bestax uses Bulma's breakpoints to define its screen sizes:
 
 | Size           | Range       | CSS Variable         |
 | -------------- | ----------- | -------------------- |

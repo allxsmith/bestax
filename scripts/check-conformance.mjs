@@ -54,9 +54,14 @@
  *                        copies are byte-identical
  *   telemetry-allowlists worker schema enums are a superset of the CLI values
  *                        (templates, flavors, icons, sources, css modes, PMs)
+ *   fragile-prose        no hand-maintained counts or line references in
+ *                        workflow comments, CLAUDE.md files, or guides, and no
+ *                        run ids in a guide (a workflow comment may cite the
+ *                        run that justified a flip); a count lives in a
+ *                        command and evidence on the issue (#643)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname, isAbsolute, extname } from 'node:path';
+import { join, relative, dirname, isAbsolute, extname, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // The registration parser lives in lib/ so the API-docs generator shares it —
@@ -102,6 +107,7 @@ import {
   parseBypassEntries,
   findExpired,
 } from './lib/bypass-annotations.mjs';
+import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -3520,6 +3526,73 @@ export async function checkDocsApiUrls(root = REPO) {
   return violations;
 }
 
+// Prose that goes stale on the next unrelated edit: a count of things in a
+// sentence, a run id pasted as evidence, a path:line reference. Scans the
+// three places such prose accumulates — workflow comments, the CLAUDE.md
+// contracts, and the published guides — and nothing else: blog posts are
+// dated snapshots by design, API pages are generated, and code is where the
+// commands live. What "exact" means instead is in .github/CLAUDE.md ("How to
+// be exact") and docs/CLAUDE.md; the scanner is in lib/fragile-prose.mjs.
+const FRAGILE_PROSE_SKIP_DIRS = new Set([
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  'storybook-static',
+]);
+
+async function claudeMdFiles(dir, out = []) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      // Hidden directories hold worktrees, caches and tool state, none of
+      // which is this repo's prose. `.github` is the exception: its CLAUDE.md
+      // is the workflow contract the rule was written for.
+      if (entry.name.startsWith('.') && entry.name !== '.github') continue;
+      if (FRAGILE_PROSE_SKIP_DIRS.has(entry.name)) continue;
+      await claudeMdFiles(join(dir, entry.name), out);
+    } else if (entry.name === 'CLAUDE.md') {
+      out.push(join(dir, entry.name));
+    }
+  }
+  return out;
+}
+
+// `root` is injectable so scripts/fragile-prose.test.mjs can walk a temporary
+// tree and prove the target set (and every exclusion) rather than only the
+// scanner.
+export async function checkFragileProse(root = REPO) {
+  const ifPresent = async (dir, fn) => {
+    try {
+      await access(dir);
+    } catch {
+      return [];
+    }
+    return fn(dir);
+  };
+  const targets = [
+    ...(
+      await ifPresent(root ? join(root, '.github') : root, async d => [
+        ...(await walk(d, '.yml')),
+        ...(await walk(d, '.yaml')),
+      ])
+    ).map(f => [f, 'yaml']),
+    ...(await claudeMdFiles(root)).map(f => [f, 'markdown']),
+    // Migration guides are exempt: their counts describe a frozen upstream
+    // (a vendored version of another library), and the ones that matter are
+    // asserted by the mapping-coverage tests in bestax-migrate.
+    ...(await ifPresent(join(root, 'docs', 'docs', 'guides'), mdFiles))
+      .filter(f => !f.includes(`${sep}migration${sep}`))
+      .map(f => [f, 'guide']),
+  ];
+  const violations = [];
+  for (const [file, kind] of targets) {
+    const rel = relative(root, file).split('\\').join('/');
+    const hits = scanFragileProse(await readFile(file, 'utf8'), { kind });
+    for (const hit of hits) violations.push(describeHit(rel, hit));
+  }
+  return violations;
+}
+
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
@@ -3539,6 +3612,7 @@ const CHECKS = {
   'telemetry-core': checkTelemetryCore,
   'telemetry-allowlists': checkTelemetryAllowlists,
   'docs-api-urls': checkDocsApiUrls,
+  'fragile-prose': checkFragileProse,
   'inline-style': null, // handled below (takes the flag)
 };
 

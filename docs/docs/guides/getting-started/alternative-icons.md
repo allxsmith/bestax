@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Icons
 
-bestax-bulma supports five icon libraries out of the box: **Font Awesome**, **Material Design Icons**, **Ionicons**, **Google Material Icons**, and **Material Symbols**. Font Awesome is the default when no `library` prop is set.
+bestax-bulma supports these icon libraries out of the box: **Font Awesome**, **Material Design Icons**, **Ionicons**, **Google Material Icons**, and **Material Symbols**. Font Awesome is the default when no `library` prop is set.
 
 :::tip Easiest path: `create-bestax`
 The [Quick Start](/docs/guides/intro) installer prompts you to pick an icon library (or none) and handles the install, CSS import, and any needed `ConfigProvider` wiring automatically. Use the manual steps below if you're adding icons to an existing project or want to switch libraries later.
@@ -105,7 +105,7 @@ function MaterialIconExample() {
 
 ## Ionicons
 
-Ionicons is a modern icon library with 1,300+ icons designed specifically for web, iOS, Android, and desktop apps. The library now uses web components for better performance and loading.
+Ionicons is a modern icon library designed specifically for web, iOS, Android, and desktop apps. The library now uses web components for better performance and loading.
 
 **Install:**
 
@@ -163,7 +163,7 @@ function IoniconExample() {
 
 **Available Icon Variants:**
 
-Ionicons v8 provides three variants for most icons:
+Ionicons v8 provides these variants for most icons:
 
 ```tsx live
 import { Icon, Columns, Column, Block } from '@allxsmith/bestax-bulma';
@@ -388,7 +388,7 @@ function MaterialSymbolExample() {
 
 **Available Symbol Styles:**
 
-Material Symbols come in three styles. The default import includes all styles, but you can import selectively:
+Material Symbols come in several styles. The default import includes all of them, but you can import selectively:
 
 ```tsx live
 import { Icon, Columns, Column } from '@allxsmith/bestax-bulma';
@@ -506,7 +506,7 @@ function MaterialSymbolStyles() {
 :::info Material Symbols vs Material Icons
 Material Symbols is Google's newer icon system with:
 
-- More comprehensive icon coverage (2,500+ icons)
+- More comprehensive icon coverage
 - Better optical sizing and variable font support
 - Consistent design across all platforms
 - Recommended for new projects
