@@ -457,22 +457,22 @@ test('a parenthesised line reference is a hit', () => {
 // --- masking --------------------------------------------------------------------
 
 test('fenced code, inline code, HTML comments and front matter are not scanned', () => {
-  const text = [
-    '---',
-    'title: nineteen jobs',
-    '---',
-    'Prose before.',
-    '```bash',
-    'grep -c "egress-policy: block" # prints 19 jobs',
-    '```',
-    'Run `gh api runs/33586960606` yourself. <!-- 87 components -->',
-    '<!--',
-    'nineteen jobs in a comment',
-    '-->',
-    '~~~',
-    '87 components',
-    '~~~',
-  ].join('\n');
+  // Built as one string: a bare comment delimiter on its own line reads to a
+  // static analyser like a hand-rolled HTML parser rather than test data.
+  const text = `---
+title: nineteen jobs
+---
+Prose before.
+\`\`\`bash
+grep -c "egress-policy: block" # prints 19 jobs
+\`\`\`
+Run \`gh api runs/33586960606\` yourself. <!-- 87 components -->
+<!--
+nineteen jobs in a comment
+-->
+~~~
+87 components
+~~~`;
   assert.deepEqual(md(text), []);
 });
 
