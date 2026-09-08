@@ -185,7 +185,9 @@ function maskInline(line) {
 function stripSpans(line, state) {
   const OPENERS = [
     ['<!--', /(?<!<!)--!?>/g],
-    ['{/*', /\*\/\}/g],
+    // MDX closes with `*/` and then a `}` that may sit after whitespace or a
+    // line break, so the closer is two phases: see `awaitBrace`.
+    ['{/*', /\*\//g],
   ];
   // CommonMark ends an empty comment at `<!-->` and `<!--->`; treated as a
   // generic opener, their close would never be found and the comment would
@@ -203,6 +205,14 @@ function stripSpans(line, state) {
       state = null;
       continue;
     }
+    if (state?.awaitBrace) {
+      const brace = rest.indexOf('}');
+      if (brace === -1) return { text: out + ' '.repeat(rest.length), state };
+      out += ' '.repeat(brace + 1);
+      rest = rest.slice(brace + 1);
+      state = null;
+      continue;
+    }
     if (state) {
       state.close.lastIndex = 0;
       const close = state.close.exec(rest);
@@ -210,7 +220,7 @@ function stripSpans(line, state) {
       const after = close.index + close[0].length;
       out += ' '.repeat(after);
       rest = rest.slice(after);
-      state = null;
+      state = state.brace ? { awaitBrace: true } : null;
       continue;
     }
     let best = null;
@@ -247,17 +257,19 @@ function stripSpans(line, state) {
       rest = rest.slice(after);
       continue;
     }
+    const brace = best.open === '{/*';
     best.close.lastIndex = best.i + best.open.length;
     const close = best.close.exec(rest);
     if (!close) {
       return {
         text: out + head + ' '.repeat(rest.length - best.i),
-        state: { close: best.close },
+        state: { close: best.close, brace },
       };
     }
     const after = close.index + close[0].length;
     out += head + ' '.repeat(after - best.i);
     rest = rest.slice(after);
+    if (brace) state = { awaitBrace: true };
   }
 }
 

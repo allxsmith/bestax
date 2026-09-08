@@ -316,6 +316,12 @@ test('an HTTP status is not a count, but a bare error tally is', () => {
   assert.deepEqual(whys(md('the run logged nine errors')), ['count']);
 });
 
+test('an MDX closer split from its brace still closes', () => {
+  assert.deepEqual(whys(md('{/*\ncomment\n*/\n}\n19 jobs remain')), ['count']);
+  assert.deepEqual(whys(md('{/* comment */}\n19 jobs remain')), ['count']);
+  assert.deepEqual(md('{/*\n19 jobs\n*/\n}'), []);
+});
+
 test('an empty comment does not swallow the rest of the file', () => {
   assert.deepEqual(whys(md('<!-->\n19 jobs remain')), ['count']);
   assert.deepEqual(whys(md('<!--->\n19 jobs remain')), ['count']);
