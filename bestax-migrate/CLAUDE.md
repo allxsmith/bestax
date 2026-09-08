@@ -2,7 +2,7 @@
 
 jscodeshift-based CLI (`pnpm dlx bestax-migrate <source> <paths…>`) that migrates existing
 apps from other React Bulma libraries to `@allxsmith/bestax-bulma`. Multi-source by design:
-each source library registers in `src/sources/registry.ts`. Three are shipped —
+each source library registers in `src/sources/registry.ts`. The shipped ones are —
 `react-bulma-components` (v4 only), `rbx` (v2 only) and `bloomer` (0.6 only).
 
 ## Hard rules

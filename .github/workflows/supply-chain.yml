@@ -294,7 +294,7 @@ jobs:
       #
       # The point of #424 is already carried by scanning a consumer tree at all:
       # five packages for bulma-ui against the whole dev toolchain. Trading (bestax:count-ok: scale)
-      # away digests to reach three was a bad bargain.
+      # away digests to reach a smaller tree was a bad bargain.
       #
       # `--omit=optional` is deliberately NOT used either. It would cut
       # bestax-migrate from 98 packages to 57, but consumers really do get (bestax:count-ok: scale)

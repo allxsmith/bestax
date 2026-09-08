@@ -280,6 +280,17 @@ test('the ticket exemption reads across a wrapped line', () => {
   ]);
 });
 
+test('a number word carrying the verb is a count', () => {
+  assert.deepEqual(whys(md('Three are shipped: rbx, bloomer and RBC')), [
+    'count',
+  ]);
+});
+
+test('a grouped number reads as one count', () => {
+  const [hit] = md('a library with 2,500+ icons');
+  assert.equal(hit.text, '2,500+ icons');
+});
+
 test('a determiner-led back-reference is a count', () => {
   for (const t of [
     'these five always resolve',

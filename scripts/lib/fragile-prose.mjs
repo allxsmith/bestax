@@ -54,11 +54,12 @@ const COUNTED_NOUNS =
   'flags?|inputs?|outputs?|fields?|keys?|paths?|variants?|levers?|' +
   'questions?|apis?|options?|ways?|kinds?|modes?|reasons?|cases?|' +
   'surfaces?|helpers?|classes|utilities|styles?|strategies|strategy|' +
-  'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?';
+  'shapes?|blocks?|viewports?|fixes|breakpoints?|tabs?|icons?|levels?';
 
-// Up to eight digits, optionally approximate ("500+ variables"): a longer run
-// is an id, and the run-id rule owns those.
-const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,8}\\+?)`;
+// Up to eight digits, grouped or not, optionally approximate ("500+
+// variables", "2,500+ icons"): a longer run is an id, and the run-id rule
+// owns those.
+const NUMBER = `(?:${NUMBER_WORDS}|\\d{1,3}(?:,\\d{3})+\\+?|\\d{1,8}\\+?)`;
 
 const PATTERNS = [
   {
@@ -85,7 +86,10 @@ const PATTERNS = [
         // A tally standing alone as its own sentence: "Three." opening a
         // section counts what the section then lists. Words only — a digit
         // at the start of a line is an ordered-list marker.
-        `|^\\s*(?:${NUMBER_WORDS})\\s*[.:;]`,
+        `|^\\s*(?:${NUMBER_WORDS})\\s*[.:;]` +
+        // "Three are shipped" — a number word carrying the sentence's verb,
+        // with the things it counts named only in the list that follows.
+        `|\\b(?:${NUMBER_WORDS})\\s+(?:are|is|were|was|have|has|remain|ship|shipped|exist|apply|live)\\b`,
       'i'
     ),
   },

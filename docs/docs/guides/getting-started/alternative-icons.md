@@ -105,7 +105,7 @@ function MaterialIconExample() {
 
 ## Ionicons
 
-Ionicons is a modern icon library with 1,300+ icons designed specifically for web, iOS, Android, and desktop apps. The library now uses web components for better performance and loading.
+Ionicons is a modern icon library designed specifically for web, iOS, Android, and desktop apps. The library now uses web components for better performance and loading.
 
 **Install:**
 
@@ -506,7 +506,7 @@ function MaterialSymbolStyles() {
 :::info Material Symbols vs Material Icons
 Material Symbols is Google's newer icon system with:
 
-- More comprehensive icon coverage (2,500+ icons)
+- More comprehensive icon coverage
 - Better optical sizing and variable font support
 - Consistent design across all platforms
 - Recommended for new projects

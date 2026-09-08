@@ -28,7 +28,7 @@ All components in bestax-bulma have access to these typography properties throug
 
 ## Size
 
-Control text size using the `textSize` prop. Bulma provides 7 size levels with size 1 being the largest and size 7 being the smallest.
+Control text size using the `textSize` prop. Bulma provides size levels with size 1 being the largest and size 7 being the smallest.
 
 | Property       | Bulma Class | Value          |
 | -------------- | ----------- | -------------- |
