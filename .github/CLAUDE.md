@@ -507,7 +507,7 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
     `verify-provenance` (installs published packages, runs verification scripts). Calling any of
     these API-only — as this list did twice — understates the unmonitored execution and egress
     surface in the one inventory meant to state it precisely. `auto-close-duplicates` was the
-    fifth here until it was given an enforced policy; it is now in the first group, and it is the
+    fifth here until it was given an enforced policy; it is now in the first group, and it is
     the only one that has moved.
 
 Do not maintain any of this by hand; it has now been wrong three times, and each time the error

@@ -124,7 +124,7 @@ jobs:
     permissions:
       contents: read
     strategy:
-      # One package failing must not hide the other three. They are independent
+      # One package failing must not hide the rest. They are independent
       # documents; there is nothing to be gained by cancelling the siblings.
       fail-fast: false
       matrix:
@@ -334,7 +334,7 @@ jobs:
       #     replace — leaving the release permanently carrying two
       #     contradictory consumer SBOMs for the same package.
       #
-      # The other three legs necessarily stay on `latest`: a release says
+      # The remaining legs necessarily stay on `latest`: a release says
       # nothing about them, and a consumer SBOM describes what a consumer
       # installs today. That asymmetry is why the decision is a script with a
       # test rather than an expression here — the tag has to be matched to its

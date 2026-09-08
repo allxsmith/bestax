@@ -220,7 +220,7 @@ jobs:
       # The npm pin is gone: it existed because OIDC trusted publishing needs
       # npm >= 11.5.1, and nothing here runs `npm publish` any more. Every
       # package publishes with `pnpm publish` (#436 for bestax-migrate, #532
-      # for the other three), which carries its own OIDC exchange.
+      # for the others), which carries its own OIDC exchange.
       #
       # This does NOT mean the job has no use for npm. @semantic-release/npm
       # keeps its prepare step, which shells out to `npm version` to write the

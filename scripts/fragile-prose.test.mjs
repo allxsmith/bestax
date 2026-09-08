@@ -296,6 +296,7 @@ test('a determiner-led back-reference is a count', () => {
     'these five always resolve',
     'only one of the five',
     'its four live here',
+    'must not hide the other three',
   ]) {
     assert.deepEqual(whys(md(t)), ['count'], t);
   }

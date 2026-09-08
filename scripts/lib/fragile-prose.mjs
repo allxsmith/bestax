@@ -82,7 +82,7 @@ const PATTERNS = [
     // values a determiner happens to precede, not tallies.
     re: new RegExp(
       `\\b(?:all\\s+)?${NUMBER}\\s+(?:of\\s+(?:them|those|these)|so\\s+far)\\b` +
-        `|\\b(?:all|both|these|those|the|its|their|our)\\s+(?:${NUMBER_WORDS})(?!\\w)` +
+        `|\\b(?:all|both|these|those|the|its|their|our|other)\\s+(?:${NUMBER_WORDS})(?!\\w)` +
         // A tally standing alone as its own sentence: "Three." opening a
         // section counts what the section then lists. Words only — a digit
         // at the start of a line is an ordered-list marker.
