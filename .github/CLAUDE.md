@@ -625,7 +625,7 @@ delete the clause that overstates it, not to add the qualifiers that would make 
 - A security comment names the control and, when the control is a third party's, cites where
   it lives, in one line: `# matched against the run actor by check-human-actor in
 anthropics/claude-code-action at the pinned SHA`. Do not restate the third party's
-  internals; they change under the pin and the restatement rots.
+  internals; the restatement rots the moment the pin moves, and nobody re-reads it then.
 - A count lives in a command, never in a sentence. Write the grep that produces it (rule 10's
   `egress-policy: block` grep is the model). A hand-maintained number is wrong within months,
   and this file has been caught doing exactly that.

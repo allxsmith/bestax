@@ -324,8 +324,9 @@ The short version for contributors:
   `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
 - **Hand-driven PRs that want a deep review**: apply `deep-review` once at open, fix everything
   it raised, then re-apply it once. The re-run verifies its own threads and reviews the commits
-  since its last review, or falls back to a full review when it cannot trust that boundary —
-  after a force push, a base change, or a merge from the base. CodeRabbit reviews incrementally
+  since its last review, or falls back to a full review whenever it cannot establish a
+  trustworthy linear delta between them — a rewritten history, a merge from the base, or a
+  retarget that moves the merge base. CodeRabbit reviews incrementally
   on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
   its window reopens.
   Do not relabel per push: each application spends a full opus session, and relabeling after
