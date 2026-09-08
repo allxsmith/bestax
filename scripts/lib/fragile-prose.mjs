@@ -146,8 +146,11 @@ function maskInline(line) {
   // A link's visible text is prose and its destination is not, so keep the
   // text and blank the rest; emphasis markers go the same way. Without this a
   // count inside a link or in bold reads as markup and slips the detector.
+  // Inline links keep their text and lose the destination; reference-style
+  // links (`[text][ref]` and `[text][]`) render the same way, so they are
+  // unwrapped too.
   out = out.replace(
-    /\[([^\]]*)\]\([^)]*\)/g,
+    /\[([^\]]*)\](?:\([^)]*\)|\[[^\]]*\])/g,
     (m, text) => ' ' + text + ' '.repeat(m.length - text.length - 1)
   );
   // MDX comments, which the docs tree uses instead of the HTML form.

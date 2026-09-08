@@ -373,6 +373,12 @@ test('a count inside a link or emphasis is caught', () => {
     ['count']
   );
   assert.deepEqual(whys(md('**three levers**, cheapest first')), ['count']);
+  assert.deepEqual(whys(md('The seven [Agent Skills][skills] ship with it')), [
+    'count',
+  ]);
+  assert.deepEqual(whys(md('The seven [Agent Skills][] ship with it')), [
+    'count',
+  ]);
 });
 
 test('a run id is not read as a count of the words after it', () => {
