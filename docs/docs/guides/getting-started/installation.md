@@ -416,7 +416,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 Components should have Bulma styling applied. If components appear unstyled:
 
 - Verify bestax CSS is imported
-- Check browser console for 404 errors
+- Check browser console for 404 responses
 - Ensure CSS import order is correct
 
 ### 4. Check Icons (if using)

@@ -309,9 +309,20 @@ test('a reference-link definition is not prose', () => {
   assert.deepEqual(whys(md('the nineteen jobs are listed')), ['count']);
 });
 
-test('an HTTP status is not a count', () => {
-  assert.deepEqual(md('the page returns 404 errors when missing'), []);
+test('an HTTP status is not a count, but a bare error tally is', () => {
+  assert.deepEqual(md('the page returns HTTP 404 when missing'), []);
+  assert.deepEqual(md('watch for 404 responses'), []);
+  assert.deepEqual(whys(md('the scan found 500 errors')), ['count']);
   assert.deepEqual(whys(md('the run logged nine errors')), ['count']);
+});
+
+test('a comment marker inside a code span stays inert', () => {
+  assert.deepEqual(whys(md('a span `{/*\n*/}` then\n19 jobs remain')), [
+    'count',
+  ]);
+  assert.deepEqual(whys(md('a span `<!--\n-->` then\n19 jobs remain')), [
+    'count',
+  ]);
 });
 
 test('a grouped number reads as one count', () => {
