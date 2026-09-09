@@ -110,8 +110,11 @@ overrides:
   serialize-javascript: '>=7.0.3'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched sharp (transitive via wrangler>miniflare, CI-only deploy
-  # tooling with its native build blocked above) — high libvips CVEs.
-  'sharp@<0.35.0': '>=0.35.0'
+  # tooling with its native build blocked above) — high libvips CVEs. Floor
+  # raised to 0.35.4 for GHSA-rgj7-g3m4-5g8c, which widened the affected range
+  # past the previous force and reddened every open PR until this moved.
+  # 0.35.4 (2026-08-26) is past the cooldown, so no exclude entry is needed.
+  'sharp@<0.35.4': '>=0.35.4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched postcss (transitive via vite/storybook and the Docusaurus
   # webpack CSS pipeline) — high advisory GHSA-r28c-9q8g-f849: sourceMappingURL
@@ -201,12 +204,15 @@ overrides:
   # rides the jest coverage chain (babel-plugin-istanbul >
   # @istanbuljs/load-nyc-config); the 4.x copies ride cosmiconfig (commitlint,
   # semantic-release) and the Docusaurus frontmatter pipeline. Both patched
-  # releases (2026-07-31) are already older than the cooldown, and every parent
-  # range admits them — the lockfile just predates them. Prune each entry once
-  # its line resolves to >=3.15.1 / >=4.3.1 without the force.
-  'js-yaml@3': '>=3.15.1 <4'
+  # releases are already older than the cooldown, and every parent range admits
+  # them — the lockfile just predates them. Floors raised for
+  # GHSA-2883-xcg3-v3hh, a second high advisory whose ranges reach past the
+  # earlier forces; both patched releases (2026-08-26) are past the cooldown
+  # too. Prune each entry once its line resolves to >=3.15.2 / >=4.3.2 without
+  # the force.
+  'js-yaml@3': '>=3.15.2 <4'
   # bestax:review 2026-11-13 — quarterly sweep; 4.x line, prunable on its own
-  'js-yaml@4': '>=4.3.1 <5'
+  'js-yaml@4': '>=4.3.2 <5'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched nanoid under the vite>postcss chain (storybook build
   # tooling) — high advisory GHSA-2v37-7h3g-55p8: custom generators can loop
@@ -219,6 +225,15 @@ overrides:
   # a consumer ever appears). Prune once the chain resolves to >=3.3.18 without
   # the force.
   'nanoid@3': '>=3.3.18 <4'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched svgo under the Docusaurus CSS pipeline
+  # (cssnano>cssnano-preset-default>postcss-svgo>svgo, and @svgr/plugin-svgo)
+  # — high advisory GHSA-w27v-7q3p-w38r against >=3.0.0 <3.3.5. 3.3.5 is well
+  # past the cooldown and the parents' ^3 ranges admit it, so no
+  # minimumReleaseAgeExclude entry is needed. Scoped to the 3.x major: the
+  # advisory's range is 3.x only, and the 4.x line is unaffected if a consumer
+  # ever appears. Prune once the chain resolves to >=3.3.5 without the force.
+  'svgo@3': '>=3.3.5 <4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched body-parser 1.x (transitive via the Docusaurus dev server's
   # express@4 chain) — GHSA-v422-hmwv-36x6, a low-severity DoS when an invalid
