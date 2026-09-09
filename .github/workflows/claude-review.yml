@@ -20,8 +20,10 @@ name: Claude Deep Review
 # label applied by automation on behalf of an outsider is a silent no-op),
 # and the dedupe marker caps AUTOMATIC usage at one review per PR — a
 # triage+ user re-applying `deep-review` is the one deliberate re-run
-# path (e.g. after new commits or a prompt upgrade; see the dedupe
-# step's EXCEPTION below).
+# path. That re-run settles the open threads of the review already on
+# the PR; it does not review the commits pushed since. A steer comment
+# starting "deep-review: fresh" is what asks for a full review of the
+# current code (see the dedupe step's EXCEPTION below).
 #
 # Deliberately does NOT trigger on `synchronize`: one review per PR, so
 # Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
@@ -219,23 +221,23 @@ jobs:
           LABEL: ${{ github.event.label.name }}
         run: |
           set -euo pipefail
-          # The newest marker review's commit_id (reviews come oldest-first
-          # across all pages, so `last` is newest), or empty when no deep
-          # review exists yet.
-          # On a relabel a non-empty value turns the run into a verify pass
-          # over its own open threads instead of a fresh review; the session
-          # also uses it to read what it said before.
-          LAST_SHA=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews?per_page=100" \
-            | jq -rs '[.[][] | select((.user.login | test("^claude(\\[bot\\])?$"))
-                              and (.body | contains("<!-- claude-deep-review -->")))]
-                      | last | .commit_id // ""')
-          echo "last_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
+          # Whether a deep review already exists on this PR. Deliberately a
+          # yes/no and not the reviewed commit: a verify pass posts a marker
+          # review too, so the newest marker's commit_id stops naming a
+          # commit anything code-reviewed after the first verify pass, and a
+          # boundary that drifts is worse than no boundary. A verify pass
+          # settles threads and reads the code they point at, so it needs
+          # only the yes.
+          REVIEWED=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews?per_page=100" \
+            | jq -rs 'any(.[][]; (.user.login | test("^claude(\\[bot\\])?$"))
+                              and (.body | contains("<!-- claude-deep-review -->")))')
+          echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by a verified triage+ user — running (${LAST_SHA:+verify since $LAST_SHA}${LAST_SHA:-fresh})"
+            echo "deep-review label applied by a verified triage+ user — running ($([ "$REVIEWED" = true ] && echo verify || echo fresh))"
             exit 0
           fi
-          if [ -n "$LAST_SHA" ]; then
+          if [ "$REVIEWED" = true ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "deep review already posted on PR #$PR — skipping"
           else
@@ -430,15 +432,14 @@ jobs:
           # re-run then reveals the actual error.
           show_full_output: ${{ runner.debug == '1' }}
           claude_args: |
-            --max-turns ${{ steps.dedupe.outputs.last_sha != '' && steps.focus.outputs.fresh != 'true' && '40' || '120' }}
+            --max-turns ${{ steps.dedupe.outputs.reviewed == 'true' && steps.focus.outputs.fresh != 'true' && '40' || '120' }}
             --model claude-opus-5
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
             HEAD SHA: ${{ github.event.pull_request.head.sha }}
-            MODE: ${{ steps.dedupe.outputs.last_sha != '' && steps.focus.outputs.fresh != 'true' && 'VERIFY' || 'FRESH' }}
-            LAST REVIEWED SHA: ${{ steps.dedupe.outputs.last_sha }}
+            MODE: ${{ steps.dedupe.outputs.reviewed == 'true' && steps.focus.outputs.fresh != 'true' && 'VERIFY' || 'FRESH' }}
 
             ${{ steps.focus.outputs.block }}
 
@@ -448,9 +449,9 @@ jobs:
             it adversarially: investigate like a skeptical engineer given a
             pointed brief, not a reader validating the diff in isolation.
 
-            If MODE is VERIFY: a deep review of this PR already exists and
-            its newest one reviewed LAST REVIEWED SHA. This pass settles the
-            findings that review left open, and nothing else. Do NOT
+            If MODE is VERIFY: a deep review of this PR already exists.
+            This pass settles the findings it left open, and nothing else.
+            Do NOT
             re-review the PR, and raise NO new findings — a reader who wants
             the current code reviewed asks for a fresh one, which is what a
             steer starting "deep-review: fresh" gives them. Skip steps 1
@@ -468,8 +469,8 @@ jobs:
                first line and the heading
                `## Deep review (verify) — <resolved> resolved · <open> open`,
                listing only the threads you touched. Say in the Overall
-               line that this pass settled threads and did not review the
-               commits since LAST REVIEWED SHA. Then stop.
+               line that this pass settled threads and reviewed no
+               commits. Then stop.
 
             1. Read the diff (`gh pr diff`) and the changed files in full.
             2. EVIDENCE PHASE — chase the PR's claims to their sources
@@ -562,8 +563,8 @@ jobs:
                 observations in docs or comments. If the diff adds any,
                 post ONE 🔵 row for the lot: "point-in-time evidence —
                 move to the issue and link it."
-            6c. If LAST REVIEWED SHA is set, read your prior reviews and
-                the resolved threads BEFORE forming findings: the reviews
+            6c. Read any prior reviews of yours on this PR and the
+                resolved threads BEFORE forming findings: the reviews
                 API for this PR (your reviews carry the
                 "<!-- claude-deep-review -->" marker) and the PR's
                 reviewThreads through the GraphQL API, with each thread's
@@ -628,9 +629,9 @@ jobs:
 
                The commit_id pins the review to HEAD SHA, the commit this
                run was started for: without it GitHub stamps the review
-               with whatever the PR's newest commit is when you post,
-               and a push that races this session would make the next
-               verify pass skip code nobody reviewed.
+               with whatever the PR's newest commit is when you post, so
+               a push that races this session would leave the review
+               claiming a commit it never read.
 
                Keep the literal marker "<!-- claude-deep-review -->" as the
                VERY FIRST line of the body — it is machine-parsed. With zero
