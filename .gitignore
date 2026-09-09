@@ -174,5 +174,3 @@ create-bestax/e2e/playwright-report/
 # -A` after rebasing. Safe to drop once no working copy predates that change.
 bestax-migrate/package.json.pack-backup
 
-# Written by claude-review.yml for a verify pass; never committed.
-.deep-review-delta.patch
