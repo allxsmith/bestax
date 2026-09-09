@@ -55,6 +55,49 @@ This file is the security contract for these workflows. The rules below are not 
 preferences — each one is load-bearing, and most were written after a review round or a
 red-team found the failure it prevents. Where a rule has a documented origin, it is cited.
 
+## The trust boundary
+
+Every rule below serves one threat model, stated here once so a review has a place to stop and
+an author has something to cite instead of shipping another defence for the same step.
+
+**What these jobs are exposed to.** The AI jobs check out branch code from an open PR and run
+its package manager and its tests. Everything under that checkout is attacker-influenced — the
+sources, the lockfile, package-manager hooks such as `.pnpmfile.cjs`, `.gitattributes`, and any
+file a later step reads back from the working tree — and the issue and PR text the session
+ingests is attacker-authored. A model token is present in the same job, and on the jobs that
+post as bestaxbot a PAT is present too. That exposure is the job: reviewing and fixing code
+means running it, and no rule here pretends otherwise.
+
+**The accepted defences.** These are the answer, and a review does not re-litigate whether they
+are sufficient: actions pinned to one SHA repo-wide (rule 1); tool allowlists held as a
+confinement boundary (rule 2); explicit opt-in for anything that spends usage (rule 3); a
+deterministic sanitizer between model text and anything published (rule 5, I2); plain
+`pull_request` with a head-repo guard, never `pull_request_target` (rule 7); sender exclusions
+on comment triggers (rule 8); trust decisions re-verified against the live API rather than read
+from the event payload (the trusted-labeler gates); an enforced, measured egress policy
+(rule 10, and read I1 for exactly what that leg adds); and a human merge — the loop never
+merges. A finding that one of these could be stronger is advisory unless it shows the control
+absent or false.
+
+**Where it stops.** A step boundary inside one job is not a trust boundary. A file a step writes
+for a later step of the same job is trusted to the degree the job is: the checkout already
+influences every step that runs after it, so hardening that hand-off against the checkout is
+worth doing when it is cheap, and is not a blocking defect when it is not. Origin: #647, where
+the step that writes the review delta for a later step drew round after round of correct,
+ever-narrower findings while every rule in this file held, because nothing said when enough
+was enough.
+
+What is blocking, however the change is dressed:
+
+- anything that widens **who can trigger a job** — a new trigger, a looser `if:`, a sender
+  exclusion dropped, a label gate bypassed;
+- anything that widens **what a credentialed job can reach** — a tool, an endpoint, a scope, a
+  PAT where a `GITHUB_TOKEN` was, a checkout of PR code where the default branch was;
+- anything that widens **what leaves the job** — a new comment or artifact path, model or issue
+  text reaching a publisher without the sanitizer, a posting identity that re-triggers.
+
+A finding that names none of those goes on the record as advisory and does not hold the merge.
+
 ## The two invariants
 
 Every AI workflow here is built to preserve these. If a change breaks one, the change is wrong,
