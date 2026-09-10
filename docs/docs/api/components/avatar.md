@@ -122,6 +122,29 @@ automatic initials/icon fallback runs.
 
 ---
 
+### Forwarded ref
+
+`Avatar` forwards a ref to its root element — the `<figure>`, or the `<a>` that an `href` selects — not to the inner `<img>`.
+
+```tsx live
+function example() {
+  const avatarRef = React.useRef(null);
+  const [tag, setTag] = React.useState(null);
+
+  return (
+    <>
+      <Avatar ref={avatarRef} name="Ada Lovelace" size="64x64" />
+      <Button mt="3" onClick={() => setTag(avatarRef.current?.tagName)}>
+        Read the tag from its ref
+      </Button>
+      <p>Rendered element: {tag ?? '—'}</p>
+    </>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - Image avatars use `alt` (falling back to `name`) for their accessible name.
@@ -162,6 +185,7 @@ automatic initials/icon fallback runs.
 
 | Prop         | Type                                                                                                  | Default    | Description                                                                                                                                          |
 | ------------ | ----------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`         | `React.ElementType`                                                                                   | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.                                                               |
 | `className`  | `string`                                                                                              | —          | Additional CSS classes to apply.                                                                                                                     |
 | `src`        | `string`                                                                                              | —          | Image URL. On load error (or if absent), falls back to initials, then `icon`.                                                                        |
 | `alt`        | `string`                                                                                              | —          | Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. |
@@ -171,12 +195,13 @@ automatic initials/icon fallback runs.
 | `size`       | `'16x16'` \| `'24x24'` \| `'32x32'` \| `'48x48'` \| `'64x64'` \| `'96x96'` \| `'128x128'` \| `number` | —          | Preset size, or a pixel size when a number.                                                                                                          |
 | `shape`      | `'circle'` \| `'rounded'` \| `'square'`                                                               | `'circle'` | Avatar shape. Default `'circle'`.                                                                                                                    |
 | `color`      | `AvatarColor`                                                                                         | —          | Background color for initials/icon avatars (else auto-derived from `name`).                                                                          |
-| `as`         | `React.ElementType`                                                                                   | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.                                                               |
 | `href`       | `string`                                                                                              | —          | When set, renders the avatar as a link.                                                                                                              |
 | `target`     | `string`                                                                                              | —          | Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).                                                            |
 | `rel`        | `string`                                                                                              | —          | Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).                                                               |
 | `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                           | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.                 |
-| `...`        | All standard HTML attributes and Bulma helper props                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                    |
+| `style`      | `React.CSSProperties`                                                                                 | —          | Inline styles, merged after the size style.                                                                                                          |
+| `ref`        | `React.Ref`                                                                                           | —          | Ref forwarded to the element `as` renders.                                                                                                           |
+| `...`        | All props of the element or component `as` renders and Bulma helper props                             | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                    |
 
 **Types:**
 

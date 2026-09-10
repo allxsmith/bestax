@@ -40,6 +40,15 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'div'",
+          "description": "Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "animation",
           "type": "'fade' | 'fade-up' | 'fade-down' | 'slide-left' | 'slide-right' | 'zoom' | 'flip'",
           "default": "'fade-up'",
@@ -85,15 +94,6 @@
           "deprecated": false
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'div'",
-          "description": "Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
           "name": "cascade",
           "type": "boolean",
           "default": "false",
@@ -119,20 +119,28 @@
           "required": false,
           "inherited": false,
           "deprecated": false
-        }
-      ],
-      "extraProps": [
+        },
         {
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes.",
+          "description": "Additional CSS classes. Applied to the observed element (the wrapper `div` when `as` is a component).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "React.CSSProperties",
+          "default": null,
+          "description": "Inline styles, merged after the animation's own. Applied to the observed element.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "extraProps": [],
+      "catchAll": "All props of the element or component as renders (default <div>) and Bulma helper props",
       "types": []
     }
   ],

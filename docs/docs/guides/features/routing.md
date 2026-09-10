@@ -17,9 +17,8 @@ end.
 ## Menu items as router links
 
 `Menu.Item` supports routers out of the box — pass the router's link component via `as`, and
-`to` (or any other router prop) is forwarded to it. Its prop type accepts extra keys, so this
-compiles without errors or casts (though the extra props aren't validated against the router's
-own types):
+`to` (or any other router prop) is forwarded to it. The props follow `as`, so `to` is checked
+against the router's own types and no cast is needed:
 
 ```tsx
 import { Link } from 'react-router-dom';
@@ -41,8 +40,8 @@ import { Menu } from '@allxsmith/bestax-bulma';
 ## Navbar items as router links
 
 `Navbar.Item` works the same way — pass the router's link component via `as`, and `to` (or
-any other router prop) is forwarded to it. Like `Menu.Item`, its prop type accepts extra
-keys, so this compiles without errors or casts:
+any other router prop) is forwarded to it. Like `Menu.Item`, its props follow `as`, so this
+compiles without a cast:
 
 ```tsx
 import { Link } from 'react-router-dom';
@@ -67,15 +66,13 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 `Button`'s `as` prop is polymorphic (any `React.ElementType`), so the same two options apply:
 
 ```tsx
-import { Link, LinkProps, useNavigate } from 'react-router-dom';
-import { Button, ButtonProps } from '@allxsmith/bestax-bulma';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@allxsmith/bestax-bulma';
 
-// Option 1 — render the Button AS the router link (typed alias, once):
-const ButtonLink = Button as React.FC<ButtonProps & LinkProps>;
-
-<ButtonLink as={Link} to="/signup" color="primary" size="large">
+// Option 1 — render the Button AS the router link:
+<Button as={Link} to="/signup" color="primary" size="large">
   Get started
-</ButtonLink>;
+</Button>;
 
 // Option 2 — keep a real <button> and navigate imperatively:
 function DemoButton() {
@@ -129,8 +126,8 @@ props bypass the components' own class handling, so the explicit `active` prop w
 
 ## Next.js
 
-Modern Next.js `<Link>` (13+) renders the anchor itself and uses **`href`** — which is already
-in `Navbar.Item`'s prop type, so no alias is needed:
+Modern Next.js `<Link>` (13+) renders the anchor itself and uses **`href`** — which `Navbar.Item`
+accepts because its props follow `as`, so no alias is needed:
 
 ```tsx
 import NextLink from 'next/link';
@@ -156,4 +153,6 @@ On Next.js **before 13**, `<Link>` required an `<a>` child by default — wrap i
   [Button](../../api/elements/button.md)
 - `Button`/`Link` polymorphism landed in [#238](https://github.com/allxsmith/bestax/pull/238);
   first-class `to` typing on `Navbar.Item` landed via
-  [#306](https://github.com/allxsmith/bestax/issues/306).
+  [#306](https://github.com/allxsmith/bestax/issues/306). Props and refs began following `as`
+  instead of being pinned to one element in
+  [#641](https://github.com/allxsmith/bestax/issues/641).

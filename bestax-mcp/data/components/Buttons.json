@@ -145,6 +145,15 @@
       "component": "Button",
       "props": [
         {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'button'",
+          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
           "default": null,
@@ -301,51 +310,6 @@
           "valuesRef": "helpers/valid-values"
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'button'",
-          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "href",
-          "type": "string",
-          "default": null,
-          "description": "Href value (if rendering as `<a>`).",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "onClick",
-          "type": "React.MouseEventHandler<HTMLButtonElement> | React.MouseEventHandler<HTMLAnchorElement>",
-          "default": null,
-          "description": "Click event handler.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "target",
-          "type": "string",
-          "default": null,
-          "description": "Anchor tag target.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "rel",
-          "type": "string",
-          "default": null,
-          "description": "Anchor tag rel.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
@@ -358,15 +322,15 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref<HTMLButtonElement | HTMLAnchorElement>",
+          "type": "React.Ref",
           "default": null,
-          "description": "Ref forwarded to the rendered button or anchor element.",
+          "description": "Ref forwarded to the element `as` renders.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "catchAll": "All props of the element or component as renders (default <button>) and Bulma helper props",
       "types": []
     },
     {
@@ -374,6 +338,15 @@
       "summary": "The `LinkButton` component renders a `<button>` that visually looks like text or a link.",
       "component": "LinkButton",
       "props": [
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'button'",
+          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "variant",
           "type": "'text' | 'ghost' | 'underline'",
@@ -513,51 +486,6 @@
           "valuesRef": "helpers/valid-values"
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'button'",
-          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "href",
-          "type": "string",
-          "default": null,
-          "description": "Href value (if rendering as `<a>`).",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "onClick",
-          "type": "React.MouseEventHandler<HTMLButtonElement> | React.MouseEventHandler<HTMLAnchorElement>",
-          "default": null,
-          "description": "Click event handler.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "target",
-          "type": "string",
-          "default": null,
-          "description": "Anchor tag target.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "rel",
-          "type": "string",
-          "default": null,
-          "description": "Anchor tag rel.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
@@ -570,15 +498,15 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref<HTMLButtonElement | HTMLAnchorElement>",
+          "type": "React.Ref",
           "default": null,
-          "description": "Ref forwarded to the rendered button or anchor element.",
+          "description": "Ref forwarded to the element `as` renders.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "catchAll": "All props of the element or component as renders (default <button>) and Bulma helper props",
       "types": []
     }
   ],

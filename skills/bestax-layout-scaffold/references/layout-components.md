@@ -243,7 +243,8 @@ a navbar that mounts conditionally.
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
 component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile
-without casts (their props allow extra keys). Drive `active` from `useLocation().pathname`.
+without casts (their props follow `as`, so `to` is checked against the router's own link
+type). Drive `active` from `useLocation().pathname`.
 Full patterns (including Buttons that navigate and Next.js `href`): the docs guide at
 https://bestax.io/docs/guides/features/routing.
 

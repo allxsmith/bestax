@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Link } from '../Link';
 import { ConfigProvider } from '../../helpers/Config';
@@ -208,5 +208,29 @@ describe('Link Component', () => {
       expect(link).toHaveClass('m-4');
       expect(link).toHaveClass('has-text-centered');
     });
+  });
+});
+
+describe('Ref forwarding', () => {
+  // Link gained ref forwarding with #641, alongside props that follow `as`.
+  it('forwards ref to the rendered <a> by default', () => {
+    const ref = createRef<HTMLAnchorElement>();
+    render(
+      <Link href="#" ref={ref}>
+        Home
+      </Link>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+    expect(ref.current).toBe(screen.getByRole('link'));
+  });
+
+  it('forwards ref to whatever as renders', () => {
+    const ref = createRef<HTMLSpanElement>();
+    render(
+      <Link as="span" ref={ref}>
+        Static
+      </Link>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });
 });

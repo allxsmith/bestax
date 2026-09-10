@@ -14,6 +14,9 @@ export default {
     'src/**/*.{ts,tsx}',
     '!src/**/*.{test,spec}.{ts,tsx}',
     '!src/**/__tests__/**',
+    // Type-level assertions (#641). They are checked by `tsc --noEmit`, never
+    // run — and the JSX in them would otherwise instrument as uncovered lines.
+    '!src/**/__typetests__/**',
     '!src/**/*.stories.{ts,tsx}',
     '!src/index.ts',
   ],

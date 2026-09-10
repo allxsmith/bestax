@@ -75,7 +75,7 @@ To create a sidebar or section menu with multiple levels, use the `Menu` compone
 
 ### Custom Link Component
 
-Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. This enables seamless integration with client-side routing libraries, allowing you to pass additional props like `to` or `href` as needed for navigation.
+Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
@@ -137,6 +137,35 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
     </Menu.Item>
   </Menu.List>
 </Menu>
+```
+
+---
+
+### Forwarded ref
+
+`Menu.Item` forwards a ref to the **inner** element — the one `as` names — not to the wrapping `<li>`. That is the element you want for programmatic focus.
+
+```tsx live
+function example() {
+  const itemRef = React.useRef(null);
+
+  return (
+    <>
+      <Button mb="3" onClick={() => itemRef.current?.focus()}>
+        Focus Customers
+      </Button>
+      <Menu>
+        <Menu.Label>General</Menu.Label>
+        <Menu.List>
+          <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+          <Menu.Item href="#customers" ref={itemRef}>
+            Customers
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    </>
+  );
+}
 ```
 
 ---
@@ -224,14 +253,20 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 ### Menu.Item
 
-| Prop        | Type                                                  | Default | Description                                       |
-| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                              | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                     | —       | Item content and optional nested MenuList.        |
-| `active`    | `boolean`                                             | `false` | Highlight item as active.                         |
-| `href`      | `string`                                              | —       | Href for link items (if rendered as `<a>`).       |
-| `as`        | `React.ElementType`                                   | `'a'`   | Custom link component (e.g. `Link` from router).  |
-| `...`       | All standard `<li>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop          | Type                                                                                      | Default | Description                                                               |
+| ------------- | ----------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------- |
+| `as`          | `React.ElementType`                                                                       | `'a'`   | Custom link component (e.g. `Link` from router).                          |
+| `className`   | `string`                                                                                  | —       | Additional CSS classes for the wrapping `<li>`.                           |
+| `children`    | `React.ReactNode`                                                                         | —       | Item content and optional nested MenuList.                                |
+| `active`      | `boolean`                                                                                 | `false` | Highlight item as active.                                                 |
+| `style`       | `React.CSSProperties`                                                                     | —       | Inline styles for the wrapping `<li>`.                                    |
+| `id`          | `string`                                                                                  | —       | `id` for the wrapping `<li>`.                                             |
+| `title`       | `string`                                                                                  | —       | `title` for the wrapping `<li>`.                                          |
+| `role`        | `React.AriaRole`                                                                          | —       | ARIA role for the wrapping `<li>`.                                        |
+| `tabIndex`    | `number`                                                                                  | —       | Tab index for the wrapping `<li>`.                                        |
+| `data-testid` | `string`                                                                                  | —       | Test id for the wrapping `<li>`.                                          |
+| `ref`         | `React.Ref`                                                                               | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`. |
+| `...`         | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                         |
 
 <!-- /bestax:generated props -->
 

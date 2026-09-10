@@ -181,7 +181,7 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 
 ### Custom Link Component
 
-Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Extra props like `to` are forwarded to the link component and type-check without casts, so client-side routing libraries integrate directly. See the [Routing guide](../../guides/features/routing.md) for the full patterns.
+Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` are forwarded to the link component and are checked against that component's own types, no cast needed. See the [Routing guide](../../guides/features/routing.md) for the full patterns.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
@@ -391,7 +391,7 @@ function example() {
 
 ### Forwarded ref
 
-`Navbar` forwards a ref to the root `<nav>`, and `Navbar.Burger`, `Navbar.Link` and `Navbar.Dropdown` forward to their own elements — the `<button>`, the `<a>` and the dropdown container respectively.
+`Navbar` forwards a ref to the root `<nav>`, and `Navbar.Burger`, `Navbar.Item`, `Navbar.Link` and `Navbar.Dropdown` forward to their own elements — the `<button>`, the element `as` renders, the `<a>` and the dropdown container respectively.
 
 ```tsx live
 function example() {
@@ -524,28 +524,29 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Item
 
-| Prop        | Type                                                                    | Default | Description                                         |
-| ----------- | ----------------------------------------------------------------------- | ------- | --------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes.                             |
-| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (e.g., a router link). |
-| `active`    | `boolean`                                                               | `false` | Whether the item is active.                         |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for the item.                            |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for the item.                      |
-| `children`  | `React.ReactNode`                                                       | —       | Navbar item content.                                |
-| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)   |
+| Prop        | Type                                                                                      | Default | Description                                         |
+| ----------- | ----------------------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
+| `as`        | `React.ElementType`                                                                       | `'a'`   | Render as a custom component (e.g., a router link). |
+| `className` | `string`                                                                                  | —       | Additional CSS classes.                             |
+| `active`    | `boolean`                                                                                 | `false` | Whether the item is active.                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Text color for the item.                            |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color for the item.                      |
+| `children`  | `React.ReactNode`                                                                         | —       | Navbar item content.                                |
+| `ref`       | `React.Ref`                                                                               | —       | Ref forwarded to the element `as` renders.          |
+| `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)   |
 
 ### Navbar.Link
 
-| Prop        | Type                                                                    | Default | Description                                           |
-| ----------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes.                               |
-| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (default: 'a').          |
-| `arrowless` | `boolean`                                                               | `false` | Remove the dropdown arrow indicator.                  |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                           |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                     |
-| `children`  | `React.ReactNode`                                                       | —       | Link content.                                         |
-| `ref`       | `React.Ref<HTMLAnchorElement \| HTMLButtonElement>`                     | —       | Ref forwarded to the rendered link or button element. |
-| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)     |
+| Prop        | Type                                                                                      | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `as`        | `React.ElementType`                                                                       | `'a'`   | Render as a custom component (default: 'a').      |
+| `className` | `string`                                                                                  | —       | Additional CSS classes.                           |
+| `arrowless` | `boolean`                                                                                 | `false` | Remove the dropdown arrow indicator.              |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Text color.                                       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color.                                 |
+| `children`  | `React.ReactNode`                                                                         | —       | Link content.                                     |
+| `ref`       | `React.Ref`                                                                               | —       | Ref forwarded to the element `as` renders.        |
+| `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Navbar.Burger
 

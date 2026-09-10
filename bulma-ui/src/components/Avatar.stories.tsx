@@ -1,6 +1,8 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Avatar } from './Avatar';
 import { Block } from '../elements/Block';
+import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
 
 const meta: Meta<typeof Avatar> = {
@@ -168,4 +170,33 @@ export const LazyLoadedImage: Story = {
       />
     );
   },
+};
+
+// Forwarded ref — measure the root element, whichever one `as`/`href` selected
+const AvatarForwardedRefDemo = () => {
+  const avatarRef = React.useRef<HTMLElement>(null);
+  const [size, setSize] = React.useState<string>('');
+
+  return (
+    <>
+      <Button
+        mb="3"
+        onClick={() => {
+          const rect = avatarRef.current?.getBoundingClientRect();
+          setSize(
+            rect ? `${Math.round(rect.width)}x${Math.round(rect.height)}` : ''
+          );
+        }}
+      >
+        Measure the avatar
+      </Button>
+      <Avatar ref={avatarRef} name="Ada Lovelace" size="64x64" />
+      {size && <p>{size}</p>}
+    </>
+  );
+};
+
+export const ForwardedRef: Story = {
+  render: () => <AvatarForwardedRefDemo />,
+  name: 'Forwarded ref (measure the root)',
 };

@@ -173,6 +173,31 @@ Links work seamlessly inline within text content.
 
 ---
 
+### Forwarded ref
+
+`Link` forwards a ref to the element it renders. That element follows `as`, so the ref points at an `<a>` by default and at whatever you asked for otherwise.
+
+```tsx live
+function example() {
+  const linkRef = React.useRef(null);
+  const [tag, setTag] = React.useState(null);
+
+  return (
+    <>
+      <Link href="#target" ref={linkRef} textColor="primary">
+        Target
+      </Link>
+      <Button ml="2" onClick={() => setTag(linkRef.current?.tagName)}>
+        Read the tag from its ref
+      </Button>
+      <p>Rendered element: {tag ?? '—'}</p>
+    </>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - **Descriptive Text:** Use meaningful link text that describes the destination, not generic text like "click here".
@@ -209,17 +234,15 @@ Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](http
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                                                              |
-| ----------- | ----------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes to apply.                                                         |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                       |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                 |
-| `isActive`  | `boolean`                                                               | `false` | Whether the link appears active.                                                         |
-| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. |
-| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the link.                                                       |
-| `href`      | `string`                                                                | —       | The URL the link points to.                                                              |
-| `target`    | `'_self'` \| `'_blank'` \| `'_parent'` \| `'_top'`                      | —       | Where to open the linked document.                                                       |
-| `rel`       | `string`                                                                | —       | Relationship between current and linked document.                                        |
-| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
+| Prop        | Type                                                                                      | Default | Description                                                                              |
+| ----------- | ----------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `as`        | `React.ElementType`                                                                       | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. |
+| `className` | `string`                                                                                  | —       | Additional CSS classes to apply.                                                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Text color helper.                                                                       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color helper.                                                                 |
+| `isActive`  | `boolean`                                                                                 | `false` | Whether the link appears active.                                                         |
+| `children`  | `React.ReactNode`                                                                         | —       | Content to render inside the link.                                                       |
+| `ref`       | `React.Ref`                                                                               | —       | Ref forwarded to the element `as` renders.                                               |
+| `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
 
 <!-- /bestax:generated props -->

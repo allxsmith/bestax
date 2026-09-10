@@ -80,13 +80,151 @@ test('the catch-all row loses its code spans in structured mode', () => {
 
   assert.equal(
     md.text,
-    'All standard `<button>` attributes and Bulma helper props'
+    'All props of the element or component `as` renders (default `<button>`) and Bulma helper props'
   );
   assert.equal(
     structured.text,
-    'All standard <button> attributes and Bulma helper props'
+    'All props of the element or component as renders (default <button>) and Bulma helper props'
   );
   assert.equal(structured.helpers, md.helpers);
+});
+
+// --- the polymorphic `as` contract (#641) --------------------------------
+//
+// The eight polymorphic components are declared
+// `const X = forwardRef(…) as PolymorphicComponent<…>`, and their props are a
+// type ALIAS intersecting an `*OwnProps` interface with
+// `ComponentPropsWithoutRef<T>` — an interface cannot extend a generic Omit.
+// Every assertion below guards a way that shape degrades SILENTLY: the
+// generator reads source syntax, so a case it does not recognise yields a
+// thinner table rather than an error, and the `gen:*:check` gates would commit
+// the thinner table as "regenerated".
+
+const POLYMORPHIC = [
+  ['Button', 'Button'],
+  ['LinkButton', 'LinkButton'],
+  ['Link', 'Link'],
+  ['Avatar', 'Avatar'],
+  ['Reveal', 'Reveal'],
+  ['Navbar', 'Navbar.Item'],
+  ['Navbar', 'Navbar.Link'],
+  ['Menu', 'Menu.Item'],
+];
+
+const table = (component, path) =>
+  extractComponent(component).tables.find(t => t.path === path);
+
+test('a polymorphic component still resolves its props type', () => {
+  // The cast defeats every existing path in `propsInterfaceName`. A miss is
+  // near-silent: `gen-api-docs` skips a `listOnly` SUB outright, so Navbar.Item
+  // would simply vanish from navbar.md, and the MCP index would commit an
+  // empty `props` array.
+  for (const [component, path] of POLYMORPHIC) {
+    const t = table(component, path);
+    assert.ok(t, `${path} has no table`);
+    assert.ok(!t.listOnly, `${path} rendered as listOnly`);
+    assert.ok(t.rows.length > 3, `${path} has only ${t.rows.length} rows`);
+    assert.ok(t.catchAll, `${path} lost its catch-all row`);
+  }
+});
+
+test('`as` renders its constraint, not the bare type parameter', () => {
+  // `as?: T` prints as `T` from source text — an identifier the page never
+  // defines, since a type PARAMETER is not an alias and so never reaches the
+  // `**Types:**` footnote either.
+  for (const [component, path] of POLYMORPHIC) {
+    const as = table(component, path).rows.find(r => r.name === 'as');
+    assert.equal(as.type, '`React.ElementType`', `${path} as`);
+  }
+  for (const [component] of POLYMORPHIC) {
+    for (const t of extractComponent(component, { markdown: false }).tables) {
+      for (const r of t.rows) {
+        assert.ok(
+          !/^[A-Z]$/.test(r.type),
+          `${t.path}.${r.name} rendered a bare type parameter: ${r.type}`
+        );
+      }
+    }
+  }
+});
+
+test('destructuring defaults survive the polymorphic cast', () => {
+  // `componentFunction` sees the `as` expression, not the forwardRef call, so
+  // without unwrapping it every Default cell on all eight pages empties.
+  assert.equal(
+    table('Button', 'Button').rows.find(r => r.name === 'as').default,
+    "'button'"
+  );
+  assert.equal(
+    table('Reveal', 'Reveal').rows.find(r => r.name === 'animation').default,
+    "'fade-up'"
+  );
+  assert.equal(
+    table('Menu', 'Menu.Item').rows.find(r => r.name === 'as').default,
+    "'a'"
+  );
+});
+
+test('the catch-all names the polymorphic element and its default', () => {
+  assert.equal(
+    table('Menu', 'Menu.Item').catchAll.text,
+    'All props of the element or component `as` renders (default `<a>`) and Bulma helper props'
+  );
+});
+
+test('a component with no single default element makes no default claim', () => {
+  // Avatar picks between `'a'` and `'figure'` at runtime depending on `href`,
+  // so its type parameter defaults to `React.ElementType` and the sentence must
+  // not invent an element.
+  const text = table('Avatar', 'Avatar').catchAll.text;
+  assert.equal(
+    text,
+    'All props of the element or component `as` renders and Bulma helper props'
+  );
+  assert.ok(!text.includes('(default'));
+});
+
+test('every polymorphic component still documents className and ref', () => {
+  // The synthesized className/children/ref rows are gated on `inheritsDom`,
+  // which a polymorphic base does NOT satisfy — it is not a `dom` entry. These
+  // pages keep those rows only because each `*OwnProps` declares `className`
+  // itself and each props type carries an `@extraProp` for `ref`. Drop either
+  // and the row disappears with no error, so assert the outcome rather than
+  // the mechanism.
+  for (const [component, path] of POLYMORPHIC) {
+    const t = table(component, path);
+    assert.ok(
+      t.rows.some(r => r.name === 'className'),
+      `${path} lost className`
+    );
+    if (path === 'Reveal') continue; // forwards no ref, by design
+    assert.ok(
+      t.extraProps.some(r => r.name === 'ref'),
+      `${path} lost its ref row`
+    );
+  }
+});
+
+test('the OwnProps split does not reclassify own props as inherited', () => {
+  // The members live on `*OwnProps`, so they arrive through the expand queue —
+  // the same path inherited props take. Flagging them `inherited` would flip
+  // every row of all eight components in the committed MCP index.
+  assert.ok(
+    table('Button', 'Button').rows.every(r => !r.inherited),
+    "Button's own props reported as inherited"
+  );
+  assert.ok(
+    table('LinkButton', 'LinkButton').rows.some(r => r.inherited),
+    'LinkButton no longer reports the props it inherits from Button'
+  );
+});
+
+test('a component whose props type cannot be named fails loudly', () => {
+  // The guard must not over-fire on the legitimate no-table cases: a sub whose
+  // props are an inline DOM type resolves a name, and `DropdownDivider` takes
+  // no parameters at all.
+  assert.equal(table('Navbar', 'Navbar.Divider').listOnly, true);
+  assert.equal(table('Dropdown', 'Dropdown.Divider').listOnly, true);
 });
 
 test('defaults, inheritance and compound sub-paths are mode-independent', () => {

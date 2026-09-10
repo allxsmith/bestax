@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 const avatarColors = [
   'primary',
@@ -87,12 +88,10 @@ function DefaultAvatarIcon() {
 }
 
 /**
- * Props for the Avatar component.
+ * The Avatar component's own props — everything it adds on top of the
+ * attributes of whatever element `as` renders.
  */
-export interface AvatarProps
-  extends
-    Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
-    Omit<BulmaClassesProps, 'color'> {
+export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
   /** Image URL. On load error (or if absent), falls back to initials, then `icon`. */
@@ -111,8 +110,6 @@ export interface AvatarProps
   shape?: AvatarShape;
   /** Background color for initials/icon avatars (else auto-derived from `name`). */
   color?: AvatarColor;
-  /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
-  as?: React.ElementType;
   /** When set, renders the avatar as a link. */
   href?: string;
   /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component). */
@@ -121,13 +118,41 @@ export interface AvatarProps
   rel?: string;
   /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
+  /** Inline styles, merged after the size style. */
+  style?: React.CSSProperties;
 }
+
+/**
+ * Props for the Avatar component. The DOM attributes and the `ref` both follow
+ * `as`.
+ *
+ * `href`, `target` and `rel` stay Avatar's own props rather than being derived:
+ * they are what *chooses* the element when `as` is absent (an `<a>` with an
+ * `href`, a `<figure>` without one), so they have to be accepted before `as` is
+ * known. The type parameter defaults to `React.ElementType` for the same
+ * reason — Avatar has no single default element to name.
+ *
+ * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ */
+export type AvatarProps<T extends React.ElementType = React.ElementType> =
+  AvatarOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof AvatarOwnProps | 'as'> & {
+      /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `AvatarProps<T>` above — the body cannot see through `T`.
+ */
+type AvatarImplProps = AvatarOwnProps & { as?: React.ElementType };
 
 /**
  * The `Avatar` component represents a person or entity as a compact image.
  *
  * @function
  * @param {AvatarProps} props - Props for the Avatar component.
+ * @param {React.Ref} ref - Forwarded ref to the element `as` renders.
  * @returns {JSX.Element} The rendered avatar element.
  *
  * @example
@@ -135,24 +160,28 @@ export interface AvatarProps
  * @example
  * <Avatar name="Grace Hopper" />
  */
-export const Avatar: React.FC<AvatarProps> = ({
-  className,
-  src,
-  alt,
-  name,
-  initials,
-  icon,
-  size,
-  shape = 'circle',
-  color,
-  as,
-  href,
-  target,
-  rel,
-  imageProps,
-  style,
-  ...props
-}) => {
+export const Avatar = forwardRef(function Avatar(
+  avatarProps: AvatarProps,
+  ref: React.Ref<HTMLElement>
+) {
+  const {
+    className,
+    src,
+    alt,
+    name,
+    initials,
+    icon,
+    size,
+    shape = 'circle',
+    color,
+    as,
+    href,
+    target,
+    rel,
+    imageProps,
+    style,
+    ...props
+  } = avatarProps as AvatarImplProps;
   // Tracks the src that failed to load. A src change clears the latch during
   // render (React's "reset state when props change" pattern) so a previously
   // failed src is retried when switched back to. The img is additionally
@@ -254,6 +283,7 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <Tag
+      ref={ref}
       className={combinedClasses}
       style={{ ...sizeStyle, ...style }}
       {...buttonTypeProps}
@@ -281,7 +311,7 @@ export const Avatar: React.FC<AvatarProps> = ({
       {showDefaultIcon && <DefaultAvatarIcon />}
     </Tag>
   );
-};
+}) as PolymorphicComponent<AvatarOwnProps, React.ElementType>;
 
 Avatar.displayName = 'Avatar';
 

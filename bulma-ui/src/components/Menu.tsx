@@ -1,7 +1,8 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, forwardRef, useContext } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
@@ -131,49 +132,84 @@ export const MenuList: React.FC<MenuListProps> = ({
 };
 
 /**
- * Props for the MenuItem component.
+ * The MenuItem component's own props.
+ *
+ * A menu item is two elements: a wrapping `<li>` and, inside it, the element
+ * `as` names. The props here are the ones the `<li>` consumes; everything else
+ * follows `as` onto the inner element.
  */
-export interface MenuItemProps
-  extends
-    Omit<React.LiHTMLAttributes<HTMLLIElement>, keyof BulmaClassesProps>,
-    BulmaClassesProps {
-  /** Additional CSS classes. */
+export interface MenuItemOwnProps extends BulmaClassesProps {
+  /** Additional CSS classes for the wrapping `<li>`. */
   className?: string;
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
   /** Highlight item as active. */
   active?: boolean;
-  /** Href for link items (if rendered as `<a>`). */
-  href?: string;
-  /** Custom link component (e.g. `Link` from router). */
-  as?: React.ElementType;
-  [key: string]: unknown;
+  /** Inline styles for the wrapping `<li>`. */
+  style?: React.CSSProperties;
+  /** `id` for the wrapping `<li>`. */
+  id?: string;
+  /** `title` for the wrapping `<li>`. */
+  title?: string;
+  /** ARIA role for the wrapping `<li>`. */
+  role?: React.AriaRole;
+  /** Tab index for the wrapping `<li>`. */
+  tabIndex?: number;
+  /** Test id for the wrapping `<li>`. */
+  'data-testid'?: string;
 }
+
+/**
+ * Props for the MenuItem component. Everything the `<li>` does not consume
+ * follows `as` onto the inner element: with the default `'a'` that means `href`
+ * and the other anchor attributes, and with `as={Link}` it means that
+ * component's own props.
+ *
+ * @extraProp {React.Ref} [ref] - Ref forwarded to the inner element `as` renders, not the wrapping `<li>`.
+ */
+export type MenuItemProps<T extends React.ElementType = 'a'> =
+  MenuItemOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof MenuItemOwnProps | 'as'> & {
+      /** Custom link component (e.g. `Link` from router). */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `MenuItemProps<T>` above — the body cannot see through `T`.
+ */
+type MenuItemImplProps = MenuItemOwnProps & { as?: React.ElementType };
 
 /**
  * MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
  *
  * @function
  * @param {MenuItemProps} props - Props for the MenuItem component.
+ * @param {React.Ref} ref - Forwarded ref to the inner element `as` renders.
  * @returns {JSX.Element} The rendered menu item.
  */
-export const MenuItem: React.FC<MenuItemProps> = ({
-  className,
-  children,
-  active,
-  href,
-  as: Component = 'a',
-  'data-testid': testId,
-  ...rest
-}) => {
-  const { bulmaHelperClasses, rest: bulmaRest } = useBulmaClasses(rest);
+export const MenuItem = forwardRef(function MenuItem(
+  itemProps: MenuItemProps,
+  ref: React.Ref<HTMLElement>
+) {
+  const {
+    className,
+    children,
+    active,
+    as: Component = 'a',
+    'data-testid': testId,
+    style,
+    id,
+    title,
+    role,
+    tabIndex,
+    ...rest
+  } = itemProps as MenuItemImplProps;
+  const { bulmaHelperClasses, rest: linkProps } = useBulmaClasses(rest);
   const itemClass = classNames(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses
   );
-
-  // Standard <li> props
-  const { style, id, title, role, tabIndex, ...linkProps } = bulmaRest;
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -186,31 +222,25 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     }
   });
 
-  // href/to should go to the link component
-  if (Component === 'a' && href) {
-    (linkProps as Record<string, unknown>).href = href;
-  }
-  if (Object.prototype.hasOwnProperty.call(rest, 'to')) {
-    (linkProps as Record<string, unknown>).to = rest.to;
-  }
-
   return (
     <li
       className={className}
       data-testid={testId}
-      style={style as React.CSSProperties | undefined}
-      id={id as string | undefined}
-      title={title as string | undefined}
-      role={role as React.AriaRole | undefined}
-      tabIndex={tabIndex as number | undefined}
+      style={style}
+      id={id}
+      title={title}
+      role={role}
+      tabIndex={tabIndex}
     >
-      <Component className={itemClass} {...linkProps}>
+      <Component ref={ref} className={itemClass} {...linkProps}>
         {labelChildren}
       </Component>
       {nestedMenuLists}
     </li>
   );
-};
+}) as PolymorphicComponent<MenuItemOwnProps, 'a'>;
+
+MenuItem.displayName = 'MenuItem';
 
 // Attach static subcomponents
 export const Menu = withSubComponents(

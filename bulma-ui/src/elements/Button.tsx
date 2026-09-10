@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import type { PolymorphicComponent } from '../helpers/polymorphic';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -7,13 +8,13 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Props for the Button component.
- * @extraProp {React.Ref<HTMLButtonElement | HTMLAnchorElement>} [ref] - Ref forwarded to the rendered button or anchor element.
+ * The Button component's own props — everything it adds on top of the
+ * attributes of whatever element `as` renders.
  */
-export interface ButtonProps
-  extends
-    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color' | 'onClick'>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
+export interface ButtonOwnProps extends Omit<
+  BulmaClassesProps,
+  'color' | 'backgroundColor' | 'size'
+> {
   /** Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. */
   color?:
     | 'primary'
@@ -60,21 +61,38 @@ export interface ButtonProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling. */
-  as?: React.ElementType;
-  /** Href value (if rendering as `<a>`). */
-  href?: string;
-  /** Click event handler. */
-  onClick?:
-    | React.MouseEventHandler<HTMLButtonElement>
-    | React.MouseEventHandler<HTMLAnchorElement>;
-  /** Anchor tag target. */
-  target?: string;
-  /** Anchor tag rel. */
-  rel?: string;
   /** Button content. */
   children?: React.ReactNode;
 }
+
+/**
+ * Props for the Button component. The DOM attributes and the `ref` both follow
+ * `as`: with `as="a"` the anchor attributes are accepted, with `as="div"` they
+ * are not.
+ *
+ * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ */
+export type ButtonProps<T extends React.ElementType = 'button'> =
+  ButtonOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof ButtonOwnProps | 'as'> & {
+      /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling. */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `ButtonProps<T>` above — the body cannot see through `T`, so it reads the
+ * widest form of the props it actually touches.
+ */
+type ButtonImplProps = ButtonOwnProps & {
+  as?: React.ElementType;
+  href?: string;
+  target?: string;
+  rel?: string;
+  onClick?:
+    | React.MouseEventHandler<HTMLButtonElement>
+    | React.MouseEventHandler<HTMLAnchorElement>;
+};
 
 const validButtonColors = [...validColors, 'text', 'ghost'] as const;
 
@@ -83,16 +101,16 @@ const validButtonColors = [...validColors, 'text', 'ghost'] as const;
  *
  * @function
  * @param {ButtonProps} props - Props for the Button component.
- * @param {React.Ref<HTMLButtonElement | HTMLAnchorElement>} ref - Forwarded ref to the rendered button or anchor element.
- * @returns {JSX.Element} The rendered button or anchor element.
+ * @param {React.Ref} ref - Forwarded ref to the element `as` renders.
+ * @returns {JSX.Element} The rendered button, anchor, or custom element.
  * @see {@link https://bulma.io/documentation/elements/button/ | Bulma Button documentation}
  */
 
-export const Button = forwardRef<
-  HTMLButtonElement | HTMLAnchorElement,
-  ButtonProps
->(function Button(
-  {
+export const Button = forwardRef(function Button(
+  props: ButtonProps,
+  ref: React.Ref<HTMLElement>
+) {
+  const {
     color,
     size,
     isLight,
@@ -116,14 +134,13 @@ export const Button = forwardRef<
     onClick,
     target,
     rel,
-    ...props
-  },
-  ref
-) {
+    ...bulmaProps
+  } = props as ButtonImplProps;
+
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
-    ...props,
+    ...bulmaProps,
   });
 
   // Generate Bulma classes with prefix
@@ -151,7 +168,8 @@ export const Button = forwardRef<
   if (Component !== 'button') {
     // Create anchor-specific props by excluding button-specific ones, so
     // native/custom link-like elements (an <a>, a router Link, ...) don't
-    // receive button-only HTML attributes.
+    // receive button-only HTML attributes. The types no longer allow them
+    // through, but a JavaScript consumer or a spread object still can.
     const {
       type: _type,
       disabled: _disabled,
@@ -202,7 +220,7 @@ export const Button = forwardRef<
       {children}
     </button>
   );
-});
+}) as PolymorphicComponent<ButtonOwnProps, 'button'>;
 
 Button.displayName = 'Button';
 

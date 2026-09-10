@@ -1,5 +1,7 @@
+import React from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Menu } from './Menu';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Menu> = {
   title: 'Components/Menu',
@@ -59,4 +61,32 @@ export const CompoundUsage: Story = {
       </Menu.List>
     </Menu>
   ),
+};
+
+// Forwarded ref — Menu.Item's ref reaches the inner element `as` renders,
+// not the wrapping <li>, because `as` is what names it.
+const MenuForwardedRefDemo = () => {
+  const itemRef = React.useRef<HTMLAnchorElement>(null);
+
+  return (
+    <>
+      <Button mb="3" onClick={() => itemRef.current?.focus()}>
+        Focus &ldquo;Customers&rdquo;
+      </Button>
+      <Menu>
+        <Menu.Label>General</Menu.Label>
+        <Menu.List>
+          <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+          <Menu.Item href="#customers" ref={itemRef}>
+            Customers
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    </>
+  );
+};
+
+export const ForwardedRef: Story = {
+  render: () => <MenuForwardedRefDemo />,
+  name: 'Forwarded ref (inner element, not the `<li>`)',
 };
