@@ -140,7 +140,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All props of the element or component selected by as (default <div>) and Bulma helper props",
+      "catchAll": "Remaining props of the element or component selected by as (default <div>) and Bulma helper props",
       "types": []
     }
   ],
