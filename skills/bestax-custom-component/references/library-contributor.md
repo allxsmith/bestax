@@ -97,6 +97,14 @@ Rules that keep components consistent:
 - **Spread `rest`, not `props`**, onto the DOM node — `useBulmaClasses` has already stripped the
   helper props out of `rest`, so they don't leak to the DOM as invalid attributes.
 - **Set `displayName`** on `forwardRef` components (needed for tests and Storybook autodocs).
+- **A polymorphic `as` means the props and the ref follow it.** If `as` accepts any
+  `React.ElementType`, do not pin the props to one element — split them into a
+  `<Name>OwnProps` interface and intersect it with `ComponentPropsWithoutRef<T>`, then cast
+  the `forwardRef` result to `PolymorphicComponent<<Name>OwnProps, 'default-tag'>`
+  (`src/helpers/polymorphic.ts`). `Button.tsx` is the reference. Pinning the props instead
+  rejects correct code and accepts incorrect code at the same time, which is what #641 fixed
+  across eight components. Constrain `as` to a literal union instead (`Title.tsx`) when only a
+  few tags make sense — then no generic is needed.
 - **Element sizing uses an inline `'small' | 'medium' | 'large'` union**, mapped to `is-small` /
   `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`
   constant — that one is `'0'…'6' | 'auto'` and exists for **spacing** helpers, not element size.
