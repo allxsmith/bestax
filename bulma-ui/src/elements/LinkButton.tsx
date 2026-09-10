@@ -25,6 +25,19 @@ export interface LinkButtonOwnProps extends Omit<
     | 'light'
     | 'dark'
     | 'black';
+  /**
+   * Not available on `LinkButton`, and declared so that a custom `as` target
+   * cannot reintroduce it. `Button` consumes these three for styling variants
+   * `LinkButton` does not offer, and strips them before rendering the target —
+   * so without this a component requiring one would type-check and silently
+   * never receive it.
+   * @internal
+   */
+  isOutlined?: never;
+  /** @internal Not available on `LinkButton` — see `isOutlined`. */
+  isInverted?: never;
+  /** @internal Not available on `LinkButton` — see `isOutlined`. */
+  isLight?: never;
 }
 
 /**

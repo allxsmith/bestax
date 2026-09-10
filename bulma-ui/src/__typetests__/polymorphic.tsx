@@ -92,6 +92,12 @@ export const accepted = (
 // dropped `href` here. This is the one shape that worked before #641 and
 // briefly stopped working during it.
 declare const cond: boolean;
+// `type` IS valid on an anchor — the MIME hint — and the props follow `as`, so
+// it must be accepted. It used to share an `@ts-expect-error` with `name`,
+// which meant `name` alone satisfied the directive and a regression in anchor
+// `type` support would have gone unnoticed.
+export const anchorType = <Button as="a" href="/x" type="application/pdf" />;
+
 export const unionAs = (
   <>
     <Button as={cond ? 'a' : 'button'} href="/x" />
@@ -142,8 +148,8 @@ export const rejected = (
     <Button as="div" href="/x" />
     {/* @ts-expect-error a div ref is not a button ref */}
     <Button ref={React.createRef<HTMLDivElement>()} />
-    {/* @ts-expect-error type/name are button-only, and the target takes neither */}
-    <Button as="a" type="submit" name="foo" />
+    {/* @ts-expect-error `name` is not an anchor attribute */}
+    <Button as="a" name="foo" />
     {/* @ts-expect-error `to` belongs to the router link, not to a plain button */}
     <Button to="/x" />
 
