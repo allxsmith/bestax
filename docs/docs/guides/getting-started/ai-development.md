@@ -39,14 +39,15 @@ Every PR gets AI review before human review:
   spend the maintainer's Claude usage). External contributors don't need them — just push.
 - **Copilot review** may also appear when the maintainers have it enabled.
 
-**A PR based on another PR's branch loses its automatic reviews.** CodeRabbit auto-reviews only
-the base branches listed under `auto_review.base_branches` in `.coderabbit.yaml`, which is the
-default branch alone. On any other base it posts a "Review skipped" notice, and that notice
-names `@coderabbitai review` as the way to get a single review anyway. The Claude deep review is
-separately unavailable to a branch whose copy of `claude-review.yml` differs from the default
-branch's, which an unmerged change to that file guarantees. So an upper PR in a stack is
-reviewed as far as someone asks for it and no further: mention CodeRabbit on it, and prefer
-landing a stack one PR at a time so each is reviewed against the default branch.
+**A PR based on another PR's branch gets no automatic CodeRabbit review.** CodeRabbit
+auto-reviews only the base branches listed under `auto_review.base_branches` in
+`.coderabbit.yaml`, which is the default branch alone. On any other base it posts a "Review
+skipped" notice, and that notice names `@coderabbitai review` as the way to get a single review
+anyway. Stacking affects that reviewer only. The Claude deep review turns on a separate
+condition — a branch whose copy of `claude-review.yml` differs from the default branch's does not
+get one — which an upper PR carrying an unmerged change to that file meets, so the two are easy
+to confuse. Mention CodeRabbit on an upper PR, and prefer landing a stack one PR at a time so
+each is reviewed against the default branch.
 
 A green AI review is not approval: a human maintainer still reviews and merges every PR, and
 the review-time requirements (Storybook story for UI changes, docs page for API changes,
