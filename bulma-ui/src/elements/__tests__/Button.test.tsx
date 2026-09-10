@@ -118,16 +118,19 @@ describe('Button Component', () => {
       expect(link).toHaveAttribute('tabindex', '-1');
     });
 
-    it('strips form-control attributes an anchor cannot carry', () => {
+    it('withholds the submit overrides from an anchor', () => {
+      // `formAction` and friends belong to a submit control. Everything else a
+      // caller passes reaches the element: the types already limit that to what
+      // the target accepts, and stripping by name is what lost `name`/`value`
+      // on an `as="input"`.
       render(
-        // @ts-expect-error an anchor takes no `name`; the runtime strips it
-        // anyway, because a JavaScript consumer or a spread object can still
-        // deliver one.
-        <Button as="a" href="#" name="foo" data-testid="a">
+        // @ts-expect-error an anchor takes no formAction; a JS consumer can
+        // still deliver one, and it must not reach the DOM.
+        <Button as="a" href="#" formAction="/x" data-testid="a">
           Link
         </Button>
       );
-      expect(screen.getByTestId('a')).not.toHaveAttribute('name');
+      expect(screen.getByTestId('a')).not.toHaveAttribute('formaction');
     });
 
     it('keeps the form attributes an input owns', () => {

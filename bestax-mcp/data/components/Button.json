@@ -288,9 +288,9 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref<Element>",
+          "type": "PolymorphicRef<T>",
           "default": null,
-          "description": "Ref forwarded to the element `as` renders.",
+          "description": "Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.",
           "required": false,
           "inherited": false,
           "deprecated": false

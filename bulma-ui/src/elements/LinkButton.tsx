@@ -31,7 +31,7 @@ export interface LinkButtonOwnProps extends Omit<
  * Props for the LinkButton component. The DOM attributes and the `ref` both
  * follow `as`, exactly as they do on `Button`.
  *
- * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type LinkButtonProps<T extends React.ElementType = 'button'> =
   LinkButtonOwnProps &

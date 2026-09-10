@@ -200,7 +200,7 @@ function example() {
 | `rel`        | `string`                                                                                              | —          | Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).                                                               |
 | `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                           | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.                 |
 | `style`      | `React.CSSProperties`                                                                                 | —          | Inline styles, merged after the size style.                                                                                                          |
-| `ref`        | `React.Ref<Element>`                                                                                  | —          | Ref forwarded to the element `as` renders.                                                                                                           |
+| `ref`        | `PolymorphicRef<T>`                                                                                   | —          | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.        |
 | `...`        | All props of the element or component selected by `as` (default `<figure>`) and Bulma helper props    | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                    |
 
 **Types:**

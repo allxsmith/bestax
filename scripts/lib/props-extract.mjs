@@ -240,9 +240,16 @@ function propsInterfaceName(ts, inits, name) {
     // resolves to no local interface and would render an empty table while
     // reading as a successfully-resolved name. Unwrap to the real props type.
     const name = paramType.typeName.getText();
-    if (/(^|\.)PropsWithChildren$/.test(name) && paramType.typeArguments?.[0]) {
-      const inner = paramType.typeArguments[0];
-      return ts.isTypeReferenceNode(inner) ? inner.typeName.getText() : name;
+    if (/(^|\.)PropsWithChildren$/.test(name)) {
+      const inner = paramType.typeArguments?.[0];
+      // `null` rather than the wrapper's name: nothing declares
+      // `React.PropsWithChildren` locally, so returning it reads as a resolved
+      // name, skips the loud-failure guard, and renders an empty table. An
+      // inline or intersection argument has no name to return, and that is
+      // exactly the case worth failing on.
+      return inner && ts.isTypeReferenceNode(inner)
+        ? inner.typeName.getText()
+        : null;
     }
     return name;
   }

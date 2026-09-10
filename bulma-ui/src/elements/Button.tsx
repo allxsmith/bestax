@@ -70,7 +70,7 @@ export interface ButtonOwnProps extends Omit<
  * `as`: with `as="a"` the anchor attributes are accepted, with `as="div"` they
  * are not.
  *
- * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type ButtonProps<T extends React.ElementType = 'button'> =
   ButtonOwnProps &
@@ -182,13 +182,24 @@ export const Button = forwardRef(function Button(
     // ours to pre-empt), and `type` on an anchor is the MIME hint that
     // `ButtonProps<'a'>` now types it as.
     //
-    // Which names to drop depends on the target, not on one list. A `<span>`
-    // can carry none of them; an `<input>`, `<select>`, `<textarea>`,
-    // `<output>` or `<fieldset>` owns `name`, `value`, `form` and `disabled`
-    // outright — stripping those rendered `<Button as="input" name="query"
-    // value="Search">` as an input the form submits nothing for. The `form*`
-    // submit-overrides belong to a submit control only, so they never survive.
-    const FORM_CONTROLS = ['input', 'select', 'textarea', 'output', 'fieldset'];
+    // The types already answer this: `ButtonProps<T>` derives from
+    // `ComponentPropsWithoutRef<T>`, so a caller can only pass what the target
+    // accepts, and there is nothing left to strip for a well-typed call. What
+    // remains is a runtime backstop for JavaScript consumers and spread
+    // objects, and its job is only to keep genuinely invalid attributes off the
+    // DOM.
+    //
+    // Enumerating that per tag is what kept going wrong — first all nine names
+    // from every non-button tag (so `<Button as="input" name="query"
+    // value="Search">` submitted nothing), then a hand-written form-control
+    // allowlist that still lost `formAction` on an input and `value` on an
+    // option. Both were guesses about a table React already has.
+    //
+    // So the backstop is now narrow: only the submit-overrides, and only on an
+    // anchor, which is the case the anchor path is actually for. Everything
+    // else reaches the element, where React drops an unknown attribute with a
+    // console warning rather than silently losing data. A custom component is
+    // untouched — it owns its prop contract.
     const {
       formAction: _formAction,
       formEncType: _formEncType,
@@ -197,21 +208,9 @@ export const Button = forwardRef(function Button(
       formTarget: _formTarget,
       ...withoutSubmitOverrides
     } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
-    const {
-      disabled: _disabled,
-      form: _form,
-      name: _name,
-      value: _value,
-      ...withoutFormFields
-    } = withoutSubmitOverrides;
 
     const forwardedRest =
-      typeof Component !== 'string'
-        ? // A custom component owns its prop contract.
-          (rest as object)
-        : FORM_CONTROLS.includes(Component)
-          ? withoutSubmitOverrides
-          : withoutFormFields;
+      Component === 'a' ? withoutSubmitOverrides : (rest as object);
 
     return (
       <Component
