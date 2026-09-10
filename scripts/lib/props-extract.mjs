@@ -219,6 +219,19 @@ function isWithSubComponents(ts, node) {
 }
 
 /**
+ * Wrappers that pass a props type through unchanged. Each resolves to no local
+ * declaration, so left alone each would satisfy the loud-failure guard's
+ * `ifaceName` test and quietly render an empty table.
+ */
+const TRANSPARENT_PROP_WRAPPERS =
+  /(^|\.)(PropsWithChildren|Readonly|Partial|Required|NonNullable)$/;
+
+/** Whether a type-reference name is one of those wrappers. Exported to test. */
+export function transparentPropWrapper(name) {
+  return TRANSPARENT_PROP_WRAPPERS.test(name);
+}
+
+/**
  * The props interface name for a component identifier, read off its
  * declaration's type annotation (`React.FC<HeroProps>`, `forwardRef<T, XProps>`)
  * rather than derived from the name — `Hero`'s implementation is `HeroComponent`
@@ -239,14 +252,21 @@ function propsInterfaceName(ts, inits, name) {
     // `props: React.PropsWithChildren<XProps>` names the WRAPPER, which
     // resolves to no local interface and would render an empty table while
     // reading as a successfully-resolved name. Unwrap to the real props type.
+    //
+    // Every transparent wrapper, not just that one: `Readonly<XProps>` and
+    // `Partial<XProps>` evade the guard the same way, and a guard with a known
+    // bypass is not much of a guard. A wrapper NOT on this list keeps its own
+    // name, which is what preserves the intentional no-table cases — a sub
+    // whose props are an inline DOM type (`React.HTMLAttributes<HTMLHRElement>`
+    // on `NavbarDivider`) resolves a name with no local declaration and takes
+    // the `listOnly` path.
     const name = paramType.typeName.getText();
-    if (/(^|\.)PropsWithChildren$/.test(name)) {
+    if (transparentPropWrapper(name)) {
       const inner = paramType.typeArguments?.[0];
-      // `null` rather than the wrapper's name: nothing declares
-      // `React.PropsWithChildren` locally, so returning it reads as a resolved
-      // name, skips the loud-failure guard, and renders an empty table. An
-      // inline or intersection argument has no name to return, and that is
-      // exactly the case worth failing on.
+      // `null` rather than the wrapper's name: nothing declares these locally,
+      // so returning one reads as a resolved name, skips the loud-failure
+      // guard, and renders an empty table. An inline or intersection argument
+      // has no name to return, and that is exactly the case worth failing on.
       return inner && ts.isTypeReferenceNode(inner)
         ? inner.typeName.getText()
         : null;

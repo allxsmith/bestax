@@ -20,6 +20,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   extractComponent,
+  transparentPropWrapper,
   unnameablePropsError,
 } from './lib/props-extract.mjs';
 
@@ -244,6 +245,28 @@ test('a component whose props type cannot be named fails loudly', () => {
     /Annotate the render function's first parameter/,
     'the message must say what to do about it'
   );
+
+  // A transparent wrapper must not evade it. Each of these resolves to no
+  // local declaration, so returning the wrapper's own name would read as
+  // resolved, skip the guard, and render an empty table.
+  for (const wrapper of [
+    'React.PropsWithChildren',
+    'Readonly',
+    'Partial',
+    'Required',
+    'NonNullable',
+  ]) {
+    assert.equal(
+      transparentPropWrapper(wrapper),
+      true,
+      `${wrapper} must be unwrapped, not returned as a props type name`
+    );
+  }
+  // A DOM attribute type is NOT one: `NavbarDivider`'s props are
+  // `React.HTMLAttributes<HTMLHRElement>`, which legitimately has no local
+  // declaration and takes the `listOnly` path rather than throwing.
+  assert.equal(transparentPropWrapper('React.HTMLAttributes'), false);
+  assert.equal(transparentPropWrapper('React.LiHTMLAttributes'), false);
 
   // And the shapes that must NOT trip it.
   assert.equal(
