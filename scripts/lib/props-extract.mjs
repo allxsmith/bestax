@@ -232,6 +232,26 @@ export function transparentPropWrapper(name) {
 }
 
 /**
+ * Peel transparent wrappers off a type reference and return the props type's
+ * name, or null when there is none to return.
+ *
+ * Loops rather than unwrapping once: `Readonly<Partial<XProps>>` needs two
+ * passes, and stopping early returns "Partial" — a truthy name with no local
+ * declaration, which is the silent `listOnly` degradation the loud-failure
+ * guard exists to prevent. An inline or intersection argument has no name at
+ * all, and that is the case worth failing on.
+ */
+export function unwrapPropsTypeName(ts, node) {
+  let current = node;
+  while (transparentPropWrapper(current.typeName.getText())) {
+    const inner = current.typeArguments?.[0];
+    if (!inner || !ts.isTypeReferenceNode(inner)) return null;
+    current = inner;
+  }
+  return current.typeName.getText();
+}
+
+/**
  * The props interface name for a component identifier, read off its
  * declaration's type annotation (`React.FC<HeroProps>`, `forwardRef<T, XProps>`)
  * rather than derived from the name — `Hero`'s implementation is `HeroComponent`
@@ -260,18 +280,15 @@ function propsInterfaceName(ts, inits, name) {
     // whose props are an inline DOM type (`React.HTMLAttributes<HTMLHRElement>`
     // on `NavbarDivider`) resolves a name with no local declaration and takes
     // the `listOnly` path.
-    const name = paramType.typeName.getText();
-    if (transparentPropWrapper(name)) {
-      const inner = paramType.typeArguments?.[0];
-      // `null` rather than the wrapper's name: nothing declares these locally,
-      // so returning one reads as a resolved name, skips the loud-failure
-      // guard, and renders an empty table. An inline or intersection argument
-      // has no name to return, and that is exactly the case worth failing on.
-      return inner && ts.isTypeReferenceNode(inner)
-        ? inner.typeName.getText()
-        : null;
-    }
-    return name;
+    // Unwrap as many layers as there are: `Readonly<Partial<XProps>>` needs
+    // two, and stopping at one returns "Partial" — a truthy name with no local
+    // declaration, which is the silent `listOnly` degradation the guard exists
+    // to prevent.
+    //
+    // `null` rather than the wrapper's name when the inner type has none:
+    // returning one reads as resolved and skips the guard. An inline or
+    // intersection argument is exactly the case worth failing on.
+    return unwrapPropsTypeName(ts, paramType);
   }
 
   // forwardRef<TRef, XProps>((props, ref) => …)
