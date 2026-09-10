@@ -138,10 +138,7 @@ describe('Button Component', () => {
       expect(link).toHaveAttribute('data-to', '/visit');
     });
 
-    it('does not forward button-only attributes to a custom component', () => {
-      const CustomLink = (
-        props: React.AnchorHTMLAttributes<HTMLAnchorElement>
-      ) => <a {...props} />;
+    it('does not forward button-only attributes to an intrinsic tag', () => {
       render(
         // @ts-expect-error the types reject button-only attributes on an anchor
         // component since #641; the runtime still strips them for an intrinsic
