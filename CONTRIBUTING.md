@@ -312,7 +312,7 @@ This repo uses AI reviewers and an autonomous fix loop — full details in the d
 [AI-Assisted Development](https://bestax.io/docs/guides/getting-started/ai-development).
 The short version for contributors:
 
-- **Every PR gets a CodeRabbit review** automatically. Address or refute its comments — it
+- **Every PR targeting `main` gets a CodeRabbit review** automatically. Address or refute its comments — it
   reviews incrementally and marks addressed comments "✅ Addressed". It also rate-limits, so a
   push during a spent window waits for the next one; the AI-assisted section below says how to
   nudge it. A human maintainer still reviews and merges everything.
@@ -331,16 +331,17 @@ The short version for contributors:
   Do not relabel per push: each application spends a full opus session, and relabeling after
   every fix is what turned #643 into 14 review rounds.
 - **Know when to stop fixing.** The autonomous loop stops after `MAX_ITERATIONS` fix rounds
-  (`claude-pr-loop.yml` sets it) and hands the PR to a human with the open threads listed. Give
+  (`claude-pr-loop.yml` sets it), pauses, and labels the PR `ai-loop-paused` for a human. Give
   a hand-driven PR the same stopping point. Once a file has been round-tripped that many times
   and what is left is wording rather than behaviour, reply once naming the findings you are
   leaving and why, then take the PR to human review. The reviewers keep reviewing; what changes
   is that you stop treating every finding as blocking. A finding that names a defect in
   behaviour still earns another round.
-- **A PR based on another PR's branch is reviewed by fewer of them.** CodeRabbit auto-reviews
+- **A PR based on another PR's branch loses its automatic reviews.** CodeRabbit auto-reviews
   only the base branches listed in `.coderabbit.yaml`, and the deep review cannot run on a
-  branch that carries an unmerged change to its own workflow. Land a stack one PR at a time, or
-  retarget the upper PR once its base merges — the docs guide has the detail.
+  branch whose copy of `claude-review.yml` differs from the default branch's. Ask for what you
+  want on an upper PR, and prefer landing a stack one PR at a time — the docs guide has the
+  detail.
 - **PR titles must be scoped conventional commits** — the title becomes the squash commit and
   drives semantic-release (see [Commit Message Guidelines](#commit-message-guidelines)).
 
