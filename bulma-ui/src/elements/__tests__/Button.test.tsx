@@ -130,6 +130,24 @@ describe('Button Component', () => {
       expect(screen.getByTestId('a')).not.toHaveAttribute('name');
     });
 
+    it('keeps the form attributes an input owns', () => {
+      // The strip list used to remove `name` and `value` from every non-button
+      // tag, so this rendered an input the form submitted nothing for.
+      render(
+        <Button
+          as="input"
+          type="submit"
+          name="query"
+          value="Search"
+          data-testid="i"
+        />
+      );
+      const input = screen.getByTestId('i');
+      expect(input).toHaveAttribute('name', 'query');
+      expect(input).toHaveAttribute('value', 'Search');
+      expect(input).toHaveAttribute('type', 'submit');
+    });
+
     it('keeps an attribute the anchor itself accepts', () => {
       // `type` is the anchor's MIME hint and `ButtonProps<'a'>` types it as
       // such, but the strip list removed it by spelling because a <button>

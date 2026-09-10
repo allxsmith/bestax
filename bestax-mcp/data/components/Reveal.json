@@ -29,14 +29,14 @@
   "accessibility": "- `Reveal` never removes content from the accessibility tree — it only animates `opacity` and\n  `transform`, so screen reader users always have access to the content regardless of scroll\n  position.\n- When the user's OS is set to reduce motion (`prefers-reduced-motion: reduce`), `Reveal` skips\n  the animation entirely and renders the final, visible state immediately.\n- During server-side rendering and the first client render (before hydration effects run),\n  `Reveal` renders the final, visible state — content is never hidden if JavaScript fails to\n  load, ensuring crawlers and no-JS visitors always see the full page.",
   "related": [],
   "storybook": null,
-  "summary": "",
+  "summary": "The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.",
   "import": "import { Reveal } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Reveal.tsx",
   "rootClass": "reveal",
   "parts": [
     {
       "path": "Reveal",
-      "summary": "",
+      "summary": "The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.",
       "component": null,
       "props": [
         {
@@ -140,7 +140,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All props of the element or component as renders (default <div>) and Bulma helper props",
+      "catchAll": "All props of the element or component selected by as (default <div>) and Bulma helper props",
       "types": []
     }
   ],

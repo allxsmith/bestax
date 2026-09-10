@@ -1020,10 +1020,13 @@ function catchAllRow(external, markdown = true) {
       // "props", not "attributes": with `as={RouterLink}` what passes through
       // is that component's props, which is exactly what
       // `ComponentPropsWithoutRef<T>` resolves to.
+      // "selected by `as`" rather than "`as` renders": the structured mode
+      // strips backticks for the MCP index, and "the element or component as
+      // renders" reads as a broken sentence there.
       polymorphic.add(
         e.element
-          ? `all props of the element or component \`as\` renders (default \`<${e.element}>\`)`
-          : 'all props of the element or component `as` renders'
+          ? `all props of the element or component selected by \`as\` (default \`<${e.element}>\`)`
+          : 'all props of the element or component selected by `as`'
       );
       continue;
     }
@@ -1439,7 +1442,9 @@ export function extractComponent(
           impl,
           rows: [],
           listOnly: true,
-          summary: jsdocText(ts, inits.get(impl)),
+          summary:
+            jsdocText(ts, inits.get(impl)) ||
+            jsdocText(ts, componentFunction(ts, inits.get(impl))),
         });
       }
       continue;
@@ -1681,7 +1686,9 @@ export function extractComponent(
       // `**Subcomponents:**` list. The hand-written pages described each sub
       // there ("Top bar for navigation or branding"), so dropping to a bare
       // name list would lose a sentence per sub-component.
-      summary: jsdocText(ts, implInit?.parent),
+      summary:
+        jsdocText(ts, implInit?.parent) ||
+        jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
       catchAll: catchAllRow(external, markdown),
@@ -1690,10 +1697,18 @@ export function extractComponent(
   }
 
   // Component-level TSDoc summary, for the generated Overview sentence.
+  //
+  // `const Reveal = RevealImpl as PolymorphicComponentWithoutRef<…>` puts the
+  // TSDoc on the FUNCTION, not on the exported const — so reading the const's
+  // declaration returns nothing and the page loses its Overview sentence
+  // silently. Fall back to whatever `componentFunction` resolved to.
   const rootImpl = paths[0]?.impl ?? name;
   const rootInitNode = inits.get(rootImpl);
   const rootDecl = rootInitNode?.parent;
-  const tsdoc = rootDecl ? jsdocText(ts, rootDecl) : '';
+  const tsdoc =
+    (rootDecl ? jsdocText(ts, rootDecl) : '') ||
+    jsdocText(ts, componentFunction(ts, rootInitNode)) ||
+    '';
   const candidates = rootClassCandidates(ts, sf);
   let rootClass = ROOT_CLASS_OVERRIDES[name] ?? pickRootClass(name, candidates);
 

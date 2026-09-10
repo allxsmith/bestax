@@ -106,5 +106,9 @@ export interface PolymorphicComponentWithoutRef<
   <T extends React.ElementType = Default>(
     props: PolymorphicProps<T, Own>
   ): React.ReactElement | null;
+  // The same derivation overload `PolymorphicComponent` carries, for the same
+  // reason: without it `React.ComponentProps<typeof Reveal>` instantiates at the
+  // constraint and collapses to `any`.
+  (props: PolymorphicProps<Default, Own>): React.ReactElement | null;
   displayName?: string;
 }
