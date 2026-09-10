@@ -142,6 +142,7 @@ describe('Button Component', () => {
           type="submit"
           name="query"
           value="Search"
+          disabled
           data-testid="i"
         />
       );
@@ -149,6 +150,18 @@ describe('Button Component', () => {
       expect(input).toHaveAttribute('name', 'query');
       expect(input).toHaveAttribute('value', 'Search');
       expect(input).toHaveAttribute('type', 'submit');
+      expect(input).toBeDisabled();
+    });
+
+    it('keeps form and disabled on another form-capable target', () => {
+      render(
+        <Button as="fieldset" form="signup" disabled data-testid="f">
+          Fields
+        </Button>
+      );
+      const fieldset = screen.getByTestId('f');
+      expect(fieldset).toHaveAttribute('form', 'signup');
+      expect(fieldset).toBeDisabled();
     });
 
     it('keeps an attribute the anchor itself accepts', () => {
