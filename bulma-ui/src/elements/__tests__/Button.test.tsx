@@ -144,15 +144,43 @@ describe('Button Component', () => {
       ) => <a {...props} />;
       render(
         // @ts-expect-error the types reject button-only attributes on an anchor
-        // component since #641; the runtime still strips them, because a
-        // JavaScript consumer or a spread object can still deliver them.
-        <Button as={CustomLink} href="#" type="submit" name="foo">
+        // component since #641; the runtime still strips them for an intrinsic
+        // tag, because a JavaScript consumer or a spread object can deliver
+        // them anyway.
+        <Button as="a" href="#" type="submit" name="foo">
           Custom
         </Button>
       );
       const link = screen.getByRole('link');
       expect(link).not.toHaveAttribute('type');
       expect(link).not.toHaveAttribute('name');
+    });
+
+    it('forwards a prop a custom component declares, even a stripped name', () => {
+      // The strip list matches on spelling, so `name` used to be removed from
+      // every non-button `as` — including a component that requires it. The
+      // props type promises the component's own props reach it; only intrinsic
+      // tags, where an unknown attribute would be invalid HTML, are filtered.
+      const Custom = ({
+        name,
+        children,
+      }: {
+        name: string;
+        children?: React.ReactNode;
+      }) => (
+        <a data-testid="custom" data-name={name}>
+          {children}
+        </a>
+      );
+      render(
+        <Button as={Custom} name="required">
+          Custom
+        </Button>
+      );
+      expect(screen.getByTestId('custom')).toHaveAttribute(
+        'data-name',
+        'required'
+      );
     });
   });
 

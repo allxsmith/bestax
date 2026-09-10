@@ -578,6 +578,13 @@ function splitUnion(text) {
 }
 
 /**
+ * `ButtonProps` -> `ButtonOwnProps`. A polymorphic component splits its props in
+ * two: the members live on the `*OwnProps` interface, while the public `*Props`
+ * alias intersects that with the attributes of whatever `as` renders.
+ */
+const ownPropsName = name => name && name.replace(/Props$/, 'OwnProps');
+
+/**
  * Source text of `<Interface>['<prop>']`, for lookup types. Indexed lazily over
  * the whole program because the interface usually lives in another module.
  */
@@ -595,7 +602,13 @@ function lookupMemberType(ts, ifaceName, propName) {
       }
     }
   }
-  const decl = interfaceMemberIndex.get(ifaceName);
+  // A polymorphic component's public `*Props` is a type ALIAS, so the index —
+  // which holds interfaces — misses it, and `AvatarProps['size']` renders as
+  // itself instead of the seven presets it names. The members live on the
+  // `*OwnProps` interface beside it.
+  const decl =
+    interfaceMemberIndex.get(ifaceName) ??
+    interfaceMemberIndex.get(ownPropsName(ifaceName));
   const member = decl?.members.find(
     m => m.name?.getText().replace(/^['"]|['"]$/g, '') === propName
   );
@@ -795,8 +808,13 @@ const REACT_DERIVED_PROPS = new Set([
 
 /**
  * `React.ComponentPropsWithoutRef<T>` -> a `polymorphic` catch-all entry
- * carrying the element `as` defaults to, or `''` when there is no single
- * default to name (`Avatar` picks between `'a'` and `'figure'` at runtime).
+ * carrying the element `as` defaults to.
+ *
+ * `''` is a guard against a type-parameter default this reader does not
+ * understand, not a supported shape: every polymorphic props type here defaults
+ * to a tag, and a test holds them to it. Defaulting to the CONSTRAINT instead
+ * would spread `ComponentPropsWithoutRef` across every element at once and
+ * accept anything.
  */
 function polymorphicBase(ts, node) {
   if (!node || !ts.isTypeReferenceNode(node)) return null;
@@ -1019,13 +1037,6 @@ function catchAllRow(external, markdown = true) {
  * `TimeInputBase`) declares none of the defaults it documents.
  */
 const interfaceDefaultsCache = new Map();
-/**
- * `ButtonProps` -> `ButtonOwnProps`. A polymorphic component splits its props in
- * two: the members live on the `*OwnProps` interface, while the public `*Props`
- * alias intersects that with the attributes of whatever `as` renders.
- */
-const ownPropsName = name => name && name.replace(/Props$/, 'OwnProps');
-
 function defaultsForInterface(ts, decl) {
   if (interfaceDefaultsCache.has(decl)) return interfaceDefaultsCache.get(decl);
   const sf = decl.getSourceFile();

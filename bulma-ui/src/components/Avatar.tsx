@@ -129,12 +129,19 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
  * `href`, `target` and `rel` stay Avatar's own props rather than being derived:
  * they are what *chooses* the element when `as` is absent (an `<a>` with an
  * `href`, a `<figure>` without one), so they have to be accepted before `as` is
- * known. The type parameter defaults to `React.ElementType` for the same
- * reason — Avatar has no single default element to name.
+ * known.
+ *
+ * The type parameter defaults to `'figure'`, not to `React.ElementType`.
+ * Defaulting to the constraint sounds truer to a runtime default that is
+ * conditional, but `ComponentPropsWithoutRef<React.ElementType>` spreads across
+ * every element at once and accepts anything — which is the false-positive this
+ * whole change exists to remove. `'figure'` is the element a no-`href` avatar
+ * actually renders, and the anchor props it can additionally take are declared
+ * above.
  *
  * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
  */
-export type AvatarProps<T extends React.ElementType = React.ElementType> =
+export type AvatarProps<T extends React.ElementType = 'figure'> =
   AvatarOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof AvatarOwnProps | 'as'> & {
       /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
@@ -311,7 +318,7 @@ export const Avatar = forwardRef(function Avatar(
       {showDefaultIcon && <DefaultAvatarIcon />}
     </Tag>
   );
-}) as PolymorphicComponent<AvatarOwnProps, React.ElementType>;
+}) as PolymorphicComponent<AvatarOwnProps, 'figure'>;
 
 Avatar.displayName = 'Avatar';
 

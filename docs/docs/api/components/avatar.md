@@ -201,7 +201,7 @@ function example() {
 | `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                           | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.                 |
 | `style`      | `React.CSSProperties`                                                                                 | —          | Inline styles, merged after the size style.                                                                                                          |
 | `ref`        | `React.Ref`                                                                                           | —          | Ref forwarded to the element `as` renders.                                                                                                           |
-| `...`        | All props of the element or component `as` renders and Bulma helper props                             | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                    |
+| `...`        | All props of the element or component `as` renders (default `<figure>`) and Bulma helper props        | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                    |
 
 **Types:**
 

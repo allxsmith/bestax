@@ -198,7 +198,7 @@
           "deprecated": false
         }
       ],
-      "catchAll": "All props of the element or component as renders and Bulma helper props",
+      "catchAll": "All props of the element or component as renders (default <figure>) and Bulma helper props",
       "types": [
         {
           "name": "AvatarColor",
