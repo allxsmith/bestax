@@ -39,6 +39,15 @@ Every PR gets AI review before human review:
   spend the maintainer's Claude usage). External contributors don't need them — just push.
 - **Copilot review** may also appear when the maintainers have it enabled.
 
+**A PR based on another PR's branch is reviewed by fewer of them, and nothing announces it.**
+CodeRabbit auto-reviews only the base branches listed under `auto_review.base_branches` in
+`.coderabbit.yaml`, which is the default branch alone; on any other base it posts a "Review
+skipped" notice and does not retry, and a manual mention does not override it. The Claude deep
+review is separately unavailable to a branch carrying an unmerged change to its own workflow
+file. A stacked PR can therefore reach merge having been read by Copilot alone. Either land a
+stack one PR at a time, or retarget the upper PR at the default branch once its base merges and
+let the reviewers see it there.
+
 A green AI review is not approval: a human maintainer still reviews and merges every PR, and
 the review-time requirements (Storybook story for UI changes, docs page for API changes,
 `skills/` updates for component changes) still apply.
