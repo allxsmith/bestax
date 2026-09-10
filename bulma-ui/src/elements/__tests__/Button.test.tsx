@@ -117,6 +117,33 @@ describe('Button Component', () => {
       expect(link).toHaveAttribute('aria-disabled', 'true');
       expect(link).toHaveAttribute('tabindex', '-1');
     });
+
+    it('strips form-control attributes an anchor cannot carry', () => {
+      render(
+        // @ts-expect-error an anchor takes no `name`; the runtime strips it
+        // anyway, because a JavaScript consumer or a spread object can still
+        // deliver one.
+        <Button as="a" href="#" name="foo" data-testid="a">
+          Link
+        </Button>
+      );
+      expect(screen.getByTestId('a')).not.toHaveAttribute('name');
+    });
+
+    it('keeps an attribute the anchor itself accepts', () => {
+      // `type` is the anchor's MIME hint and `ButtonProps<'a'>` types it as
+      // such, but the strip list removed it by spelling because a <button>
+      // also has a `type`.
+      render(
+        <Button as="a" href="/apply" type="application/pdf" data-testid="a">
+          Apply
+        </Button>
+      );
+      expect(screen.getByTestId('a')).toHaveAttribute(
+        'type',
+        'application/pdf'
+      );
+    });
   });
 
   describe('as={Component} custom component rendering', () => {
@@ -136,21 +163,6 @@ describe('Button Component', () => {
       expect(link.tagName).toBe('A');
       expect(link).toHaveClass('button', 'is-primary');
       expect(link).toHaveAttribute('data-to', '/visit');
-    });
-
-    it('does not forward button-only attributes to an intrinsic tag', () => {
-      render(
-        // @ts-expect-error the types reject button-only attributes on an anchor
-        // component since #641; the runtime still strips them for an intrinsic
-        // tag, because a JavaScript consumer or a spread object can deliver
-        // them anyway.
-        <Button as="a" href="#" type="submit" name="foo">
-          Custom
-        </Button>
-      );
-      const link = screen.getByRole('link');
-      expect(link).not.toHaveAttribute('type');
-      expect(link).not.toHaveAttribute('name');
     });
 
     it('forwards a prop a custom component declares, even a stripped name', () => {

@@ -166,18 +166,26 @@ export const Button = forwardRef(function Button(
   const buttonClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   if (Component !== 'button') {
-    // Strip button-only attributes so a native link-like element (an <a>, a
-    // <span>) doesn't receive them — React would render them as invalid HTML
-    // attributes. The types no longer allow them through, but a JavaScript
-    // consumer or a spread object still can.
+    // Strip the form-control attributes a link-like element cannot carry, so a
+    // JavaScript consumer or a spread object doesn't put them on the DOM. The
+    // types no longer allow them through; this is the runtime backstop.
     //
     // Only for INTRINSIC tags. A custom component (a router Link, ...) owns its
     // prop contract, and `ComponentPropsWithoutRef<T>` promises the caller that
-    // its props reach it. Stripping eleven names by their spelling alone broke
-    // that promise silently: `<Button as={Custom} name="x" />` type-checked
-    // while `Custom` never received the `name` it requires.
+    // its props reach it. Stripping names by their spelling alone broke that
+    // promise silently: `<Button as={Custom} name="x" />` type-checked while
+    // `Custom` never received the `name` it requires.
+    //
+    // `autoFocus` and `type` are deliberately NOT stripped: both are valid on
+    // targets this list was filtering them from. `autoFocus` is a global
+    // attribute (React decides per element whether to honour it, which is not
+    // ours to pre-empt), and `type` on an anchor is the MIME hint that
+    // `ButtonProps<'a'>` now types it as.
+    //
+    // The list is still wrong for a form-capable target — `as="input"` takes
+    // `name` and `value` legitimately, and loses them here — which needs a
+    // per-element answer rather than one list. Tracked separately.
     const {
-      type: _type,
       disabled: _disabled,
       form: _form,
       formAction: _formAction,
@@ -187,7 +195,6 @@ export const Button = forwardRef(function Button(
       formTarget: _formTarget,
       name: _name,
       value: _value,
-      autoFocus: _autoFocus,
       ...intrinsicRest
     } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
     const forwardedRest =
