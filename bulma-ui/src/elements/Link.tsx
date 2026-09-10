@@ -15,6 +15,14 @@ export interface LinkOwnProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor'
 > {
+  /**
+   * Not accepted. `color` on this component would be the deprecated
+   * presentational HTML attribute, and `useBulmaClasses` consumes any `color`
+   * key as a Bulma helper before the target could see it — so it is declared
+   * unavailable rather than silently eaten. Use `textColor` / `bgColor`.
+   * @internal
+   */
+  color?: never;
   /** Additional CSS classes to apply. */
   className?: string;
   /** Text color helper. */
@@ -35,10 +43,7 @@ export interface LinkOwnProps extends Omit<
  * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
-  Omit<
-    React.ComponentPropsWithoutRef<T>,
-    keyof LinkOwnProps | 'as' | 'color'
-  > & {
+  Omit<React.ComponentPropsWithoutRef<T>, keyof LinkOwnProps | 'as'> & {
     /** Render as another intrinsic element (`'span'`, `'button'`) or a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
     as?: T;
   };

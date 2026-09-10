@@ -283,7 +283,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 </Button>;
 ```
 
-The props follow `as`, so the type checker already limits what you can pass to what the target accepts. At runtime `Button` withholds only the submit-override attributes (`formAction`, `formEncType`, `formMethod`, `formNoValidate`, `formTarget`) from an `<a>` — they belong to a submit control. Everything else is forwarded, including to an `as="input"` that legitimately owns `name` and `value`.
+The props follow `as`, so the type checker already limits what you can pass to what the target accepts. At runtime `Button` applies two narrow backstops, for JavaScript callers and spread objects that the type checker never sees. The submit-override attributes (`formAction`, `formEncType`, `formMethod`, `formNoValidate`, `formTarget`) are withheld from an `<a>` — they belong to a submit control. And `disabled` is withheld from any element that does not own it, because Bulma styles `.button[disabled]` and a stray one would render the element greyed out. Everything else is forwarded, including to an `as="input"` that legitimately owns `name`, `value` and the submit overrides.
 
 ---
 
