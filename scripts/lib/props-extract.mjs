@@ -1331,6 +1331,27 @@ function pickRootClass(name, candidates) {
  *   so the docs generator's output is unaffected.
  * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
  */
+/**
+ * The loud-failure message for a component whose props type could not be named,
+ * or null when there is nothing wrong.
+ *
+ * Split out so the decision is testable: it fires only for real source shapes
+ * this extractor cannot read, and `extractComponent` is bound to the actual
+ * `bulma-ui/src` tree, so there is no way to reach the branch from a fixture.
+ * A component that genuinely takes no props (`DropdownDivider: React.FC = () =>
+ * …`) declares no first parameter and is not a failure; nor is a sub whose
+ * props are an inline DOM type, which resolves a NAME with no local
+ * declaration and takes the `listOnly` path instead.
+ */
+export function unnameablePropsError(impl, ifaceName, fn) {
+  if (ifaceName || !fn?.parameters?.length) return null;
+  return (
+    `${impl}: cannot determine a props type. Annotate the render ` +
+    `function's first parameter (\`props: ${impl}Props\`) — reading it ` +
+    `is how a polymorphic component's props are resolved.`
+  );
+}
+
 export function extractComponent(
   name,
   { depth = 1, _depth = 0, markdown = true } = {}
@@ -1405,16 +1426,12 @@ export function extractComponent(
     // a sub whose props are an inline DOM type (`NavbarDivider`,
     // `Pagination.Ellipsis`) legitimately resolves a NAME with no local
     // declaration, and that is the `listOnly` path below.
-    if (
-      !ifaceName &&
-      componentFunction(ts, inits.get(impl))?.parameters.length
-    ) {
-      throw new Error(
-        `${impl}: cannot determine a props type. Annotate the render ` +
-          `function's first parameter (\`props: ${impl}Props\`) — reading it ` +
-          `is how a polymorphic component's props are resolved.`
-      );
-    }
+    const unresolvable = unnameablePropsError(
+      impl,
+      ifaceName,
+      componentFunction(ts, inits.get(impl))
+    );
+    if (unresolvable) throw new Error(unresolvable);
     if (!decl) {
       // A sub-component declared in ANOTHER module — Table attaches Thead/Tbody/
       // Tfoot/Tr/Th/Td by importing them. There is no local initializer to read,
