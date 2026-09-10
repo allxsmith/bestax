@@ -75,7 +75,7 @@ export interface ButtonOwnProps extends Omit<
 export type ButtonProps<T extends React.ElementType = 'button'> =
   ButtonOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof ButtonOwnProps | 'as'> & {
-      /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else renders through the anchor path, which adds `href`/`target`/`rel` and, for an intrinsic tag only, drops the form-control attributes it cannot carry. */
+      /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else renders through the anchor path, which adds `href`/`target`/`rel` and withholds the submit-override attributes (`formAction` and friends) from an `<a>`. */
       as?: T;
     };
 
