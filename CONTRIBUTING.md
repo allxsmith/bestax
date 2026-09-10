@@ -312,7 +312,7 @@ This repo uses AI reviewers and an autonomous fix loop — full details in the d
 [AI-Assisted Development](https://bestax.io/docs/guides/getting-started/ai-development).
 The short version for contributors:
 
-- **Every PR targeting `main` gets a CodeRabbit review** automatically. Address or refute its comments — it
+- **A PR targeting `main` gets a CodeRabbit review** automatically once it is out of draft. Address or refute its comments — it
   reviews incrementally and marks addressed comments "✅ Addressed". It also rate-limits, so a
   push during a spent window waits for the next one; the AI-assisted section below says how to
   nudge it. A human maintainer still reviews and merges everything.
