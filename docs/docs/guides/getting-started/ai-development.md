@@ -30,9 +30,11 @@ The more actionable your issue, the better the agent does with it:
 
 ## For contributors: what reviews your PR
 
-Every PR gets AI review before human review:
+AI review comes before human review, and which reviewers a PR draws depends on where it
+targets and what it changes:
 
-- **CodeRabbit** reviews automatically. Respond in-thread or just push fixes — it re-reviews
+- **CodeRabbit** reviews a PR automatically once it targets the default branch and is out of
+  draft. Respond in-thread or just push fixes — it re-reviews
   each push and marks addressed comments with "✅ Addressed in commit …". If you think a
   finding is wrong, say so in the thread; a maintainer has the final word.
 - **`@claude` mentions** are restricted to the owner, members, and invited collaborators (they
