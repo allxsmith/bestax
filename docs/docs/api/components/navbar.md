@@ -391,7 +391,7 @@ function example() {
 
 ### Forwarded ref
 
-`Navbar` forwards a ref to the root `<nav>`, and `Navbar.Burger`, `Navbar.Item`, `Navbar.Link` and `Navbar.Dropdown` forward to their own elements — the `<button>`, the element `as` renders, the `<a>` and the dropdown container respectively.
+`Navbar` forwards a ref to the root `<nav>`, and `Navbar.Burger`, `Navbar.Item`, `Navbar.Link` and `Navbar.Dropdown` forward to their own elements — the burger `<button>`, the element `as` renders for both `Navbar.Item` and `Navbar.Link`, and the dropdown container.
 
 ```tsx live
 function example() {
