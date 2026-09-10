@@ -22,6 +22,7 @@ import {
   extractComponent,
   transparentPropWrapper,
   unnameablePropsError,
+  unwrapPropsTypeName,
 } from './lib/props-extract.mjs';
 
 // One Program construction dominates this file's runtime (~3 s), and
@@ -262,6 +263,25 @@ test('a component whose props type cannot be named fails loudly', () => {
       `${wrapper} must be unwrapped, not returned as a props type name`
     );
   }
+  // Nested wrappers peel all the way down. Stopping at one layer returns the
+  // inner wrapper's name, which is truthy and evades the guard.
+  const ref = (name, arg) => ({
+    typeName: { getText: () => name },
+    typeArguments: arg ? [arg] : undefined,
+  });
+  const fakeTs = { isTypeReferenceNode: n => Boolean(n && n.typeName) };
+  assert.equal(
+    unwrapPropsTypeName(fakeTs, ref('Readonly', ref('Partial', ref('XProps')))),
+    'XProps'
+  );
+  assert.equal(unwrapPropsTypeName(fakeTs, ref('XProps')), 'XProps');
+  // No nameable inner type — the case the guard must reject.
+  assert.equal(unwrapPropsTypeName(fakeTs, ref('Readonly', null)), null);
+  assert.equal(
+    unwrapPropsTypeName(fakeTs, ref('Readonly', { kind: 'inline' })),
+    null
+  );
+
   // A DOM attribute type is NOT one: `NavbarDivider`'s props are
   // `React.HTMLAttributes<HTMLHRElement>`, which legitimately has no local
   // declaration and takes the `listOnly` path rather than throwing.
