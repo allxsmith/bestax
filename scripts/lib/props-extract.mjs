@@ -1050,10 +1050,15 @@ function catchAllRow(external, markdown = true) {
       // "selected by `as`" rather than "`as` renders": the structured mode
       // strips backticks for the MCP index, and "the element or component as
       // renders" reads as a broken sentence there.
+      // "Remaining", not "all": this is the catch-all row, and the props type
+      // subtracts the component's own keys (plus `color`) from the element's
+      // side. `Menu.Item` withholds more still — `title`/`style` document the
+      // wrapper `<li>`. Promising "all props of the target" names props the
+      // type deliberately does not forward.
       polymorphic.add(
         e.element
-          ? `all props of the element or component selected by \`as\` (default \`<${e.element}>\`)`
-          : 'all props of the element or component selected by `as`'
+          ? `remaining props of the element or component selected by \`as\` (default \`<${e.element}>\`)`
+          : 'remaining props of the element or component selected by `as`'
       );
       continue;
     }

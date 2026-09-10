@@ -169,8 +169,21 @@ export const rejected = (
     {/* @ts-expect-error a span takes no href */}
     <Link as="span" href="/x" />
 
-    {/* @ts-expect-error a span takes no href, target or rel */}
-    <Navbar.Link as="span" href="/x" target="_blank" rel="noreferrer" />
+    {/* One directive per prop: a single one covering all three is satisfied by
+        any one of them still erroring, so two could regress unnoticed. This is
+        the acceptance criterion #641 states for Navbar.Link. */}
+    {/* @ts-expect-error a span takes no href */}
+    <Navbar.Link as="span" href="/x" />
+    {/* @ts-expect-error a span takes no target */}
+    <Navbar.Link as="span" target="_blank" />
+    {/* `rel` is deliberately NOT asserted here. #641's acceptance criterion
+        names it alongside href/target, but React declares `rel?: string` on
+        `HTMLAttributes<T>` — every element, span included — so rejecting it
+        would mean diverging from React's own typing, which is a worse contract
+        than following it. `<span rel>` compiles in plain React too. Splitting
+        the three directives is what surfaced this; the combined one was
+        satisfied by href alone. */}
+    <Navbar.Link as="span" rel="noreferrer" />
     {/* @ts-expect-error an anchor ref is not a button ref */}
     <Navbar.Link as="button" ref={React.createRef<HTMLAnchorElement>()} />
     {/* @ts-expect-error `dropdown` is not a prop of Navbar.Item or of a div */}
@@ -185,6 +198,15 @@ export const rejected = (
 
     {/* @ts-expect-error a div takes no href */}
     <Reveal as="div" href="/x" />
+
+    {/* Avatar is the one that already regressed here: defaulting its type
+        parameter to the CONSTRAINT made `ComponentPropsWithoutRef` spread over
+        every element and accept anything. Pinned by the compiler, not by the
+        catch-all sentence in the docs. */}
+    {/* @ts-expect-error a bogus prop is not an attribute of any element */}
+    <Avatar name="Ada" totallyBogus />
+    {/* @ts-expect-error a figure takes no href-less anchor attributes */}
+    <Avatar name="Ada" as="figure" download="x" />
 
     {/* A plain function component cannot receive a ref — React's own types
         reject it, and a ref passed here would leave `ref.current` null

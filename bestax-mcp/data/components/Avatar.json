@@ -198,7 +198,7 @@
           "deprecated": false
         }
       ],
-      "catchAll": "All props of the element or component selected by as (default <figure>) and Bulma helper props",
+      "catchAll": "Remaining props of the element or component selected by as (default <figure>) and Bulma helper props",
       "types": [
         {
           "name": "AvatarColor",
