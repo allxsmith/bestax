@@ -1,6 +1,7 @@
 import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import type { PolymorphicComponent } from '../helpers/polymorphic';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -163,16 +164,15 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
 };
 
 /**
- * Props for the NavbarItem component.
+ * The NavbarItem component's own props — everything it adds on top of the
+ * attributes of whatever element `as` renders.
  */
-export interface NavbarItemProps
-  extends
-    Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+export interface NavbarItemOwnProps extends Omit<
+  BulmaClassesProps,
+  'color' | 'backgroundColor'
+> {
   /** Additional CSS classes. */
   className?: string;
-  /** Render as a custom component (e.g., a router link). */
-  as?: React.ElementType;
   /** Whether the item is active. */
   active?: boolean;
   /** Text color for the item. */
@@ -181,26 +181,49 @@ export interface NavbarItemProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Navbar item content. */
   children?: React.ReactNode;
-  // Allow router props like `to` when rendering via `as` (matches MenuItemProps)
-  [key: string]: unknown;
 }
+
+/**
+ * Props for the NavbarItem component. The DOM attributes and the `ref` both
+ * follow `as`: rendering as a router link accepts that component's props (`to`
+ * and friends) by inference, and `as="span"` rejects `href`.
+ *
+ * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ */
+export type NavbarItemProps<T extends React.ElementType = 'a'> =
+  NavbarItemOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarItemOwnProps | 'as'> & {
+      /** Render as a custom component (e.g., a router link). */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `NavbarItemProps<T>` above — the body cannot see through `T`.
+ */
+type NavbarItemImplProps = NavbarItemOwnProps & { as?: React.ElementType };
 
 /**
  * Navigation links, buttons, or custom content
  *
  * @function
  * @param {NavbarItemProps} props - Props for the NavbarItem component.
+ * @param {React.Ref} ref - Forwarded ref to the element `as` renders.
  * @returns {JSX.Element} The rendered item.
  */
-export const NavbarItem: React.FC<NavbarItemProps> = ({
-  className,
-  as: Component = 'a',
-  active,
-  textColor,
-  bgColor,
-  children,
-  ...props
-}) => {
+export const NavbarItem = forwardRef(function NavbarItem(
+  itemProps: NavbarItemProps,
+  ref: React.Ref<HTMLElement>
+) {
+  const {
+    className,
+    as: Component = 'a',
+    active,
+    textColor,
+    bgColor,
+    children,
+    ...props
+  } = itemProps as NavbarItemImplProps;
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -209,6 +232,7 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
 
   return (
     <Component
+      ref={ref}
       className={classNames(
         usePrefixedClassNames('navbar-item', {
           'is-active': active,
@@ -221,7 +245,9 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
       {children}
     </Component>
   );
-};
+}) as PolymorphicComponent<NavbarItemOwnProps, 'a'>;
+
+NavbarItem.displayName = 'NavbarItem';
 
 /**
  * Props for the NavbarBurger component.
@@ -417,17 +443,15 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
 };
 
 /**
- * Props for the NavbarLink component.
- * @extraProp {React.Ref<HTMLAnchorElement | HTMLButtonElement>} [ref] - Ref forwarded to the rendered link or button element.
+ * The NavbarLink component's own props — everything it adds on top of the
+ * attributes of whatever element `as` renders.
  */
-export interface NavbarLinkProps
-  extends
-    Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+export interface NavbarLinkOwnProps extends Omit<
+  BulmaClassesProps,
+  'color' | 'backgroundColor'
+> {
   /** Additional CSS classes. */
   className?: string;
-  /** Render as a custom component (default: 'a'). */
-  as?: React.ElementType;
   /** Remove the dropdown arrow indicator. */
   arrowless?: boolean;
   /** Text color. */
@@ -439,18 +463,44 @@ export interface NavbarLinkProps
 }
 
 /**
+ * Props for the NavbarLink component. The DOM attributes and the `ref` both
+ * follow `as`: `as="button"` accepts the button attributes and a button ref,
+ * and `as="span"` rejects `href`, `target` and `rel`.
+ *
+ * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ */
+export type NavbarLinkProps<T extends React.ElementType = 'a'> =
+  NavbarLinkOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarLinkOwnProps | 'as'> & {
+      /** Render as a custom component (default: 'a'). */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `NavbarLinkProps<T>` above — the body cannot see through `T`, so it names the
+ * handful of DOM props it actually reads back off `rest`.
+ */
+type NavbarLinkImplProps = NavbarLinkOwnProps & {
+  as?: React.ElementType;
+  href?: string;
+  onKeyDown?: React.KeyboardEventHandler<HTMLAnchorElement>;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+};
+
+/**
  * Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
  *
  * @function
  * @param {NavbarLinkProps} props - Props for the NavbarLink component.
- * @param {React.Ref<HTMLAnchorElement | HTMLButtonElement>} ref - Forwarded ref to the rendered link or button element.
+ * @param {React.Ref} ref - Forwarded ref to the element `as` renders.
  * @returns {JSX.Element} The rendered navbar link.
  */
-export const NavbarLink = forwardRef<
-  HTMLAnchorElement | HTMLButtonElement,
-  NavbarLinkProps
->(function NavbarLink(
-  {
+export const NavbarLink = forwardRef(function NavbarLink(
+  linkProps: NavbarLinkProps,
+  ref: React.Ref<HTMLElement>
+) {
+  const {
     className,
     as: Component = 'a',
     arrowless,
@@ -458,9 +508,7 @@ export const NavbarLink = forwardRef<
     bgColor,
     children,
     ...props
-  },
-  ref
-) {
+  } = linkProps as NavbarLinkImplProps;
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -468,7 +516,7 @@ export const NavbarLink = forwardRef<
   });
 
   const dropdownContext = useContext(NavbarDropdownContext);
-  const hasHref = (rest as { href?: string }).href !== undefined;
+  const hasHref = rest.href !== undefined;
   const isNativeInteractive = Component === 'button' || hasHref;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
@@ -519,7 +567,7 @@ export const NavbarLink = forwardRef<
       {children}
     </Component>
   );
-});
+}) as PolymorphicComponent<NavbarLinkOwnProps, 'a'>;
 
 NavbarLink.displayName = 'NavbarLink';
 

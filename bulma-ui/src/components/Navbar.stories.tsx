@@ -348,6 +348,7 @@ const ForwardedRefNavbar = () => {
   const navRef = useRef<HTMLElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const linkRef = useRef<HTMLAnchorElement>(null);
+  const itemRef = useRef<HTMLAnchorElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | null>(null);
   const [burgerLabel, setBurgerLabel] = useState<string | null>(null);
@@ -367,7 +368,9 @@ const ForwardedRefNavbar = () => {
         </Navbar.Brand>
         <Navbar.Menu active>
           <Navbar.Start>
-            <Navbar.Item href="#">Home</Navbar.Item>
+            <Navbar.Item href="#" ref={itemRef}>
+              Home
+            </Navbar.Item>
             <Navbar.Dropdown ref={dropdownRef} hoverable>
               <Navbar.Link ref={linkRef}>More</Navbar.Link>
               <Navbar.DropdownMenu>
@@ -396,6 +399,9 @@ const ForwardedRefNavbar = () => {
             }
           >
             Read the burger from its ref
+          </Button>
+          <Button onClick={() => itemRef.current?.focus()}>
+            Focus the Home item
           </Button>
           <Button onClick={() => linkRef.current?.focus()}>
             Focus the dropdown link

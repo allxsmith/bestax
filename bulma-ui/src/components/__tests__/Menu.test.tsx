@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Menu, MenuLabel, MenuList, MenuItem } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
@@ -262,5 +262,38 @@ describe('Compound components', () => {
     expect(container.querySelector('.menu-label')).toBeInTheDocument();
     expect(container.querySelector('.menu-list')).toBeInTheDocument();
     expect(container.querySelectorAll('.menu-list li')).toHaveLength(2);
+  });
+});
+
+describe('Ref forwarding', () => {
+  // Menu.Item gained ref forwarding with #641. The ref goes to the INNER
+  // element `as` renders, not the wrapping <li>: `as` names the inner one.
+  it('forwards ref to the inner <a>, not the wrapping <li>', () => {
+    const ref = createRef<HTMLAnchorElement>();
+    render(
+      <Menu>
+        <MenuList>
+          <MenuItem href="/foo" ref={ref} data-testid="item-li">
+            Foo
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+    expect(ref.current).toBe(screen.getByTestId('item-li').querySelector('a'));
+  });
+
+  it('forwards ref to whatever as renders', () => {
+    const ref = createRef<HTMLSpanElement>();
+    render(
+      <Menu>
+        <MenuList>
+          <MenuItem as="span" ref={ref}>
+            Static
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });
 });

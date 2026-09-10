@@ -57,7 +57,11 @@ export default commandLineArgs => {
           declaration: true,
           declarationDir: 'dist/types',
           rootDir: 'src',
-          exclude: ['**/__tests__/**/*', '**/*.test.tsx'],
+          exclude: [
+            '**/__tests__/**/*',
+            '**/*.test.tsx',
+            '**/__typetests__/**/*',
+          ],
         }),
         isVisualizerEnabled &&
           visualizer({

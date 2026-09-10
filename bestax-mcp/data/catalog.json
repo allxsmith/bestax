@@ -139,8 +139,8 @@
       "slug": "components/avatar",
       "import": "import { Avatar } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 14,
-      "exampleCount": 7
+      "propCount": 15,
+      "exampleCount": 8
     },
     {
       "name": "Avatars",
@@ -150,7 +150,7 @@
       "slug": "components/avatars",
       "import": "import { Avatars, Avatar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 22,
+      "propCount": 23,
       "exampleCount": 8
     },
     {
@@ -205,7 +205,7 @@
       "slug": "elements/button",
       "import": "import { Button } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 23,
+      "propCount": 19,
       "exampleCount": 25
     },
     {
@@ -216,7 +216,7 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 53,
+      "propCount": 45,
       "exampleCount": 8
     },
     {
@@ -569,7 +569,7 @@
       "import": "import { Link } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 6,
-      "exampleCount": 11
+      "exampleCount": 12
     },
     {
       "name": "LinkButton",
@@ -579,7 +579,7 @@
       "slug": "elements/linkbutton",
       "import": "import { LinkButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 21,
+      "propCount": 17,
       "exampleCount": 10
     },
     {
@@ -623,8 +623,8 @@
       "slug": "components/menu",
       "import": "import { Menu } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 11,
-      "exampleCount": 5
+      "propCount": 16,
+      "exampleCount": 6
     },
     {
       "name": "Message",
@@ -788,7 +788,7 @@
       "slug": "components/reveal",
       "import": "import { Reveal } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 9,
+      "propCount": 11,
       "exampleCount": 5
     },
     {

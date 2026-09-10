@@ -220,19 +220,19 @@
       "component": null,
       "props": [
         {
-          "name": "className",
-          "type": "string",
-          "default": null,
-          "description": "Additional CSS classes.",
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Render as a custom component (e.g., a router link).",
           "required": false,
           "inherited": false,
           "deprecated": false
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'a'",
-          "description": "Render as a custom component (e.g., a router link).",
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -276,8 +276,18 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
-      "catchAll": "All standard <a> attributes and Bulma helper props",
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref",
+          "default": null,
+          "description": "Ref forwarded to the element `as` renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All props of the element or component as renders (default <a>) and Bulma helper props",
       "types": []
     },
     {
@@ -286,19 +296,19 @@
       "component": null,
       "props": [
         {
-          "name": "className",
-          "type": "string",
-          "default": null,
-          "description": "Additional CSS classes.",
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Render as a custom component (default: 'a').",
           "required": false,
           "inherited": false,
           "deprecated": false
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'a'",
-          "description": "Render as a custom component (default: 'a').",
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -345,15 +355,15 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref<HTMLAnchorElement | HTMLButtonElement>",
+          "type": "React.Ref",
           "default": null,
-          "description": "Ref forwarded to the rendered link or button element.",
+          "description": "Ref forwarded to the element `as` renders.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "catchAll": "All standard <a> attributes and Bulma helper props",
+      "catchAll": "All props of the element or component as renders (default <a>) and Bulma helper props",
       "types": []
     },
     {

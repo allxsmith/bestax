@@ -1,12 +1,14 @@
-import { forwardRef } from 'react';
-import { Button, ButtonProps } from './Button';
+import React, { forwardRef } from 'react';
+import { Button, ButtonOwnProps } from './Button';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 /**
- * Props for the LinkButton component.
+ * The LinkButton component's own props — everything it adds on top of the
+ * attributes of whatever element `as` renders.
  */
-export interface LinkButtonProps extends Omit<
-  ButtonProps,
+export interface LinkButtonOwnProps extends Omit<
+  ButtonOwnProps,
   'color' | 'isOutlined' | 'isInverted' | 'isLight'
 > {
   /** Display mode. `text` has no underline and highlights its background on hover; `ghost` uses the default text color and underlines on hover; `underline` drops the button chrome entirely (transparent background and border) and underlines on hover or focus. */
@@ -26,11 +28,27 @@ export interface LinkButtonProps extends Omit<
 }
 
 /**
+ * Props for the LinkButton component. The DOM attributes and the `ref` both
+ * follow `as`, exactly as they do on `Button`.
+ *
+ * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ */
+export type LinkButtonProps<T extends React.ElementType = 'button'> =
+  LinkButtonOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof LinkButtonOwnProps | 'as'> & {
+      /**
+       * Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`).
+       * @defaultValue 'button'
+       */
+      as?: T;
+    };
+
+/**
  * The `LinkButton` component renders a `<button>` that visually looks like text or a link.
  *
  * @function
  * @param {LinkButtonProps} props - Props for the LinkButton component.
- * @param {React.Ref<HTMLButtonElement | HTMLAnchorElement>} ref - Forwarded ref to the rendered button or anchor element.
+ * @param {React.Ref} ref - Forwarded ref to the element `as` renders.
  * @returns {JSX.Element} The rendered link-styled button element.
  *
  * @example
@@ -41,10 +59,10 @@ export interface LinkButtonProps extends Omit<
  * // Underline variant with color
  * <LinkButton variant="underline" color="primary">Learn more</LinkButton>
  */
-export const LinkButton = forwardRef<
-  HTMLButtonElement | HTMLAnchorElement,
-  LinkButtonProps
->(function LinkButton({ variant = 'text', color, className, ...props }, ref) {
+export const LinkButton = forwardRef(function LinkButton(
+  { variant = 'text', color, className, ...props }: LinkButtonProps,
+  ref: React.Ref<HTMLElement>
+) {
   const buttonColor = variant === 'underline' ? 'text' : variant;
 
   const prefixedClasses = usePrefixedClassNames(
@@ -55,13 +73,15 @@ export const LinkButton = forwardRef<
 
   return (
     <Button
-      ref={ref}
+      // LinkButton is polymorphic through to Button, which resolves the element
+      // from `as`. TS cannot infer that through the spread below.
+      ref={ref as React.Ref<HTMLButtonElement>}
       color={buttonColor}
       className={classNames(prefixedClasses, className)}
       {...props}
     />
   );
-});
+}) as PolymorphicComponent<LinkButtonOwnProps, 'button'>;
 
 LinkButton.displayName = 'LinkButton';
 

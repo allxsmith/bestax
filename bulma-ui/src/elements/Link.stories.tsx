@@ -1,6 +1,7 @@
 import React from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Link } from './Link';
+import { Button } from './Button';
 
 const meta: Meta<typeof Link> = {
   title: 'Elements/Link',
@@ -206,4 +207,25 @@ export const PolymorphicAs: Story = {
     </Link>
   ),
   name: 'Polymorphic `as` (Router Link)',
+};
+
+// Forwarded ref — reach the DOM node the `as` prop selected
+const LinkForwardedRefDemo = () => {
+  const linkRef = React.useRef<HTMLAnchorElement>(null);
+
+  return (
+    <>
+      <Button mr="2" onClick={() => linkRef.current?.focus()}>
+        Focus the link
+      </Button>
+      <Link href="#target" ref={linkRef} textColor="primary">
+        I receive focus
+      </Link>
+    </>
+  );
+};
+
+export const ForwardedRef: Story = {
+  render: () => <LinkForwardedRefDemo />,
+  name: 'Forwarded ref (programmatic focus)',
 };

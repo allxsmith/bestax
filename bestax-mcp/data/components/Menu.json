@@ -22,6 +22,10 @@
       "code": "<Menu>\n  <Menu.Label>Levels</Menu.Label>\n  <Menu.List>\n    <Menu.Item>\n      Level 1\n      <Menu.List>\n        <Menu.Item>\n          Level 2\n          <Menu.List>\n            <Menu.Item>Level 3</Menu.Item>\n          </Menu.List>\n        </Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n  </Menu.List>\n</Menu>"
     },
     {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const itemRef = React.useRef(null);\n\n  return (\n    <>\n      <Button mb=\"3\" onClick={() => itemRef.current?.focus()}>\n        Focus Customers\n      </Button>\n      <Menu>\n        <Menu.Label>General</Menu.Label>\n        <Menu.List>\n          <Menu.Item href=\"#dashboard\">Dashboard</Menu.Item>\n          <Menu.Item href=\"#customers\" ref={itemRef}>\n            Customers\n          </Menu.Item>\n        </Menu.List>\n      </Menu>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active>Dashboard</Menu.Item>\n    <Menu.Item>Customers</Menu.Item>\n  </Menu.List>\n</Menu>"
     }
@@ -124,10 +128,19 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Custom link component (e.g. `Link` from router).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes.",
+          "description": "Additional CSS classes for the wrapping `<li>`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -151,26 +164,72 @@
           "deprecated": false
         },
         {
-          "name": "href",
-          "type": "string",
+          "name": "style",
+          "type": "React.CSSProperties",
           "default": null,
-          "description": "Href for link items (if rendered as `<a>`).",
+          "description": "Inline styles for the wrapping `<li>`.",
           "required": false,
           "inherited": false,
           "deprecated": false
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'a'",
-          "description": "Custom link component (e.g. `Link` from router).",
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "`id` for the wrapping `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "default": null,
+          "description": "`title` for the wrapping `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "ARIA role for the wrapping `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "tabIndex",
+          "type": "number",
+          "default": null,
+          "description": "Tab index for the wrapping `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "data-testid",
+          "type": "string",
+          "default": null,
+          "description": "Test id for the wrapping `<li>`.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "extraProps": [],
-      "catchAll": "All standard <li> attributes and Bulma helper props",
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref",
+          "default": null,
+          "description": "Ref forwarded to the inner element `as` renders, not the wrapping `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All props of the element or component as renders (default <a>) and Bulma helper props",
       "types": []
     }
   ],

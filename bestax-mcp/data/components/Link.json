@@ -45,6 +45,10 @@
     {
       "title": "Inline Link",
       "code": "<Paragraph>\n  This is a paragraph with an <Link href=\"#\">inline link</Link> in the middle of\n  the text.\n</Paragraph>"
+    },
+    {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const linkRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Link href=\"#target\" ref={linkRef} textColor=\"primary\">\n        Target\n      </Link>\n      <Button ml=\"2\" onClick={() => setTag(linkRef.current?.tagName)}>\n        Read the tag from its ref\n      </Button>\n      <p>Rendered element: {tag ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- **Descriptive Text:** Use meaningful link text that describes the destination, not generic text like \"click here\".\n- **External Links:** When opening links in new tabs, consider informing users (e.g., with an icon or text like \"opens in new tab\").\n- **Focus States:** Links inherit browser focus styles. Customize with CSS if needed.\n- **Keyboard Navigation:** Links are naturally keyboard accessible via Tab and Enter keys.\n\n:::info\nFor navigation menus, consider using the `isActive` prop to indicate the current page.\n:::\n\n:::warning Links Are for Navigation, Buttons Are for Actions\nPer [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y) best practices, links (`<a>`) should navigate to a URL — not trigger an action via `onClick` alone. If your element performs an action (opening a modal, submitting data, toggling state, etc.) without navigating, use a [`Button`](./button.md) or [`LinkButton`](./linkbutton.md) instead. A `<Link href=\"#\" onClick={handleClick}>` is an anti-pattern that confuses screen readers and fails accessibility audits.\n:::",
@@ -60,6 +64,15 @@
       "summary": "The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.",
       "component": null,
       "props": [
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -99,15 +112,6 @@
           "deprecated": false
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": "'a'",
-          "description": "Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
@@ -119,34 +123,16 @@
       ],
       "extraProps": [
         {
-          "name": "href",
-          "type": "string",
+          "name": "ref",
+          "type": "React.Ref",
           "default": null,
-          "description": "The URL the link points to.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "target",
-          "type": "'_self' | '_blank' | '_parent' | '_top'",
-          "default": null,
-          "description": "Where to open the linked document.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "rel",
-          "type": "string",
-          "default": null,
-          "description": "Relationship between current and linked document.",
+          "description": "Ref forwarded to the element `as` renders.",
           "required": false,
           "inherited": false,
           "deprecated": false
         }
       ],
-      "catchAll": "All standard <a> attributes and Bulma helper props",
+      "catchAll": "All props of the element or component as renders (default <a>) and Bulma helper props",
       "types": []
     }
   ],

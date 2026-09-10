@@ -172,6 +172,29 @@ function sourceFileFor(program, cat, mod) {
     .find(f => f.fileName === want || f.fileName === wantTs);
 }
 
+/**
+ * `x as T`, `x satisfies T` and `(x)` all unwrap to `x`.
+ *
+ * The polymorphic components (#641) are declared
+ * `const Button = forwardRef(…) as PolymorphicComponent<…>` — `forwardRef`
+ * cannot express a generic component, so the public signature arrives by cast.
+ * Every reader below wants the call, not the cast: without this,
+ * `propsInterfaceName` returns null (and the component silently renders with no
+ * props table), `componentFunction` loses every destructuring default, and
+ * `isForwardRef` goes false so the `ref` row disappears.
+ */
+function unwrapExpression(ts, node) {
+  while (
+    node &&
+    (ts.isAsExpression(node) ||
+      ts.isSatisfiesExpression(node) ||
+      ts.isParenthesizedExpression(node))
+  ) {
+    node = node.expression;
+  }
+  return node;
+}
+
 /** Top-level `const <name> = <init>` initializers in a file. */
 function topLevelInitializers(ts, sf) {
   const out = new Map();
@@ -205,6 +228,17 @@ function propsInterfaceName(ts, inits, name) {
   const init = inits.get(name);
   if (!init) return null;
 
+  // The render function's own parameter type. For a polymorphic component this
+  // is the ONLY place the props type is named: `forwardRef` infers its type
+  // arguments from the render function, and the `as` cast names the COMPONENT
+  // type, not the props. Type arguments are dropped — the table documents
+  // `ButtonProps`, not `ButtonProps<'button'>`.
+  const fn = componentFunction(ts, init);
+  const paramType = fn?.parameters?.[0]?.type;
+  if (paramType && ts.isTypeReferenceNode(paramType)) {
+    return paramType.typeName.getText();
+  }
+
   // forwardRef<TRef, XProps>((props, ref) => …)
   if (ts.isCallExpression(init) && init.typeArguments?.length >= 2) {
     const expr = init.expression;
@@ -227,6 +261,7 @@ function propsInterfaceName(ts, inits, name) {
 /** The arrow/function whose first parameter destructures the props. */
 function componentFunction(ts, init) {
   if (!init) return null;
+  init = unwrapExpression(ts, init);
   if (ts.isArrowFunction(init) || ts.isFunctionExpression(init)) return init;
   if (ts.isCallExpression(init)) {
     const first = init.arguments[0];
@@ -588,6 +623,24 @@ function typeofArrayExpansion(ts, sf, arrayName) {
   return elements.map(e => e.getText()).join(' | ');
 }
 
+/**
+ * The constraint of an enclosing type parameter named `name`, or null if `name`
+ * is not one. `T` in `ButtonProps<T extends React.ElementType = 'button'>`
+ * resolves to `React.ElementType`.
+ */
+function typeParamConstraint(ts, member, name) {
+  if (!/^[A-Za-z_$][\w$]*$/.test(name)) return null;
+  for (let n = member; n; n = n.parent) {
+    const param = n.typeParameters?.find(tp => tp.name.text === name);
+    if (param) {
+      return param.constraint
+        ? param.constraint.getText().replace(/\s+/g, ' ')
+        : null;
+    }
+  }
+  return null;
+}
+
 function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
   const { markdown = true, refs = null } = opts;
   let text = member.type ? member.type.getText() : 'unknown';
@@ -620,6 +673,13 @@ function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
   };
 
   const parts = splitUnion(text).flatMap(part => {
+    // `as?: T` on a polymorphic props type. The bare parameter name means
+    // nothing to a reader — and it is not an alias either, so it would land in
+    // the footnote set with no definition to print. What a caller may actually
+    // pass is the parameter's CONSTRAINT, which is what the non-generic form
+    // printed before #641.
+    const constraint = typeParamConstraint(ts, member, part);
+    if (constraint) part = constraint;
     if (aliases.has(part)) return splitUnion(aliases.get(part));
     // `IconTextItem[]` — an ARRAY of a known alias. Looking up the whole cell
     // text missed it, so icontext.md kept a bare name where main spelled the
@@ -722,6 +782,51 @@ function resolveInterface(ts, checker, node) {
   return decl.getSourceFile().fileName.includes('/bulma-ui/src/') ? decl : null;
 }
 
+/**
+ * React's prop-derivation helpers. A props type built on one of these has no
+ * element name in its source text at all — the element is whatever `as` says —
+ * so the `HTML*Element` substring `catchAllRow` looks for is simply absent.
+ */
+const REACT_DERIVED_PROPS = new Set([
+  'ComponentPropsWithoutRef',
+  'ComponentPropsWithRef',
+  'ComponentProps',
+]);
+
+/**
+ * `React.ComponentPropsWithoutRef<T>` -> a `polymorphic` catch-all entry
+ * carrying the element `as` defaults to, or `''` when there is no single
+ * default to name (`Avatar` picks between `'a'` and `'figure'` at runtime).
+ */
+function polymorphicBase(ts, node) {
+  if (!node || !ts.isTypeReferenceNode(node)) return null;
+  const nm = node.typeName;
+  const last = ts.isQualifiedName(nm) ? nm.right.text : nm.text;
+  if (!REACT_DERIVED_PROPS.has(last)) return null;
+  return {
+    kind: 'polymorphic',
+    element: defaultElement(ts, node.typeArguments?.[0]),
+  };
+}
+
+/**
+ * A string-literal type, or a type parameter whose DEFAULT is one. `T` in
+ * `ButtonProps<T extends React.ElementType = 'button'>` resolves to `button`.
+ */
+function defaultElement(ts, arg) {
+  if (!arg) return '';
+  if (ts.isLiteralTypeNode(arg) && ts.isStringLiteral(arg.literal)) {
+    return arg.literal.text;
+  }
+  if (!ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) return '';
+  const want = arg.typeName.text;
+  for (let n = arg; n; n = n.parent) {
+    const param = n.typeParameters?.find(tp => tp.name.text === want);
+    if (param) return defaultElement(ts, param.default);
+  }
+  return '';
+}
+
 /** String-literal keys of an `Omit<T, K>` / `Pick<T, K>` second argument. */
 function literalKeys(ts, node) {
   if (!node) return [];
@@ -801,13 +906,15 @@ function classifyTypeNode(ts, checker, node, out, _seen) {
       return;
     }
     // Not a repo type (Omit of a DOM type) — summarise it instead.
-    out.external.push({ kind: 'dom', text });
+    out.external.push(
+      polymorphicBase(ts, node.typeArguments[0]) ?? { kind: 'dom', text }
+    );
     return;
   }
 
   const target = resolveInterface(ts, checker, node);
   if (target) pushExpand(ts, checker, target, () => true, out, _seen);
-  else out.external.push({ kind: 'dom', text });
+  else out.external.push(polymorphicBase(ts, node) ?? { kind: 'dom', text });
 }
 
 /**
@@ -863,10 +970,22 @@ function classifyHeritage(ts, checker, decl, _seen = new Set()) {
 
 function catchAllRow(external, markdown = true) {
   const elements = new Set();
+  const polymorphic = new Set();
   let helpers = false;
   for (const e of external) {
     if (e.kind === 'helpers') {
       helpers = true;
+      continue;
+    }
+    if (e.kind === 'polymorphic') {
+      // "props", not "attributes": with `as={RouterLink}` what passes through
+      // is that component's props, which is exactly what
+      // `ComponentPropsWithoutRef<T>` resolves to.
+      polymorphic.add(
+        e.element
+          ? `all props of the element or component \`as\` renders (default \`<${e.element}>\`)`
+          : 'all props of the element or component `as` renders'
+      );
       continue;
     }
     const m = e.text.match(/HTML\w*Element/);
@@ -874,8 +993,9 @@ function catchAllRow(external, markdown = true) {
   }
   const parts = [];
   if (elements.size) {
-    parts.push(`All standard ${[...elements].sort().join(' / ')} attributes`);
+    parts.push(`all standard ${[...elements].sort().join(' / ')} attributes`);
   }
+  parts.push(...[...polymorphic].sort());
   if (helpers) parts.push('Bulma helper props');
   if (!parts.length) return null;
   // `helpers` records whether BulmaClassesProps is actually in the heritage —
@@ -886,7 +1006,10 @@ function catchAllRow(external, markdown = true) {
   // DOM_ELEMENT_LABELS carries its own code spans (`<td>`/`<th>` is two of
   // them), so a structured consumer strips them from the finished sentence
   // rather than the table being rebuilt without them.
-  const text = parts.join(' and ');
+  // The leading clause is written lowercase so a polymorphic clause can follow
+  // one; the sentence is capitalised once, here.
+  const joined = parts.join(' and ');
+  const text = joined.charAt(0).toUpperCase() + joined.slice(1);
   return { text: markdown ? text : text.replace(/`/g, ''), helpers };
 }
 
@@ -896,6 +1019,13 @@ function catchAllRow(external, markdown = true) {
  * `TimeInputBase`) declares none of the defaults it documents.
  */
 const interfaceDefaultsCache = new Map();
+/**
+ * `ButtonProps` -> `ButtonOwnProps`. A polymorphic component splits its props in
+ * two: the members live on the `*OwnProps` interface, while the public `*Props`
+ * alias intersects that with the attributes of whatever `as` renders.
+ */
+const ownPropsName = name => name && name.replace(/Props$/, 'OwnProps');
+
 function defaultsForInterface(ts, decl) {
   if (interfaceDefaultsCache.has(decl)) return interfaceDefaultsCache.get(decl);
   const sf = decl.getSourceFile();
@@ -1224,6 +1354,22 @@ export function extractComponent(
   for (const { path, impl } of paths) {
     const ifaceName = propsInterfaceName(ts, inits, impl);
     const decl = ifaceName && interfaces.get(ifaceName);
+    // A component whose props type could not be named at all. Falling through
+    // is silent where it hurts most: `gen-api-docs` skips a `listOnly` SUB
+    // outright, so `Navbar.Item` would simply vanish from navbar.md, and the
+    // MCP index would commit `props: []`. Refuse instead. A component that
+    // genuinely takes no props (`DropdownDivider: React.FC = () => …`) declares
+    // no first parameter and is unaffected.
+    if (
+      !ifaceName &&
+      componentFunction(ts, inits.get(impl))?.parameters.length
+    ) {
+      throw new Error(
+        `${impl}: cannot determine a props type. Annotate the render ` +
+          `function's first parameter (\`props: ${impl}Props\`) — reading it ` +
+          `is how a polymorphic component's props are resolved.`
+      );
+    }
     if (!decl) {
       // A sub-component declared in ANOTHER module — Table attaches Thead/Tbody/
       // Tfoot/Tr/Th/Td by importing them. There is no local initializer to read,
@@ -1269,10 +1415,14 @@ export function extractComponent(
       componentFunction(ts, inits.get(impl))
     );
     const implInit = inits.get(impl);
+    // The polymorphic components wrap the forwardRef call in an `as` cast, and
+    // reading `.expression` off the cast returns the whole call text, so the
+    // regex has to run on the unwrapped call.
+    const implCall = unwrapExpression(ts, implInit);
     const isForwardRef =
-      implInit &&
-      ts.isCallExpression(implInit) &&
-      /forwardRef$/.test(implInit.expression.getText());
+      implCall &&
+      ts.isCallExpression(implCall) &&
+      /forwardRef$/.test(implCall.expression.getText());
     const { expand, external, seen, literals } = classifyHeritage(
       ts,
       checker,
@@ -1324,13 +1474,18 @@ export function extractComponent(
         ...defaultsForInterface(ts, base),
         ...defaults,
       ]);
+      // A polymorphic component's own props are reached through the expand
+      // queue (its `*Props` is an alias, so it has no members of its own), but
+      // they are not INHERITED — flagging them so would flip every row of the
+      // eight polymorphic components to `inherited: true` in the MCP index.
+      const ownBase = base.name.text === ownPropsName(ifaceName);
       for (const row of memberRows(
         ts,
         base,
         merged,
         baseDefaults,
         linkBase,
-        true,
+        !ownBase,
         used,
         rowOpts
       )) {
@@ -1411,7 +1566,7 @@ export function extractComponent(
     // `React.Ref<HTMLInputElement>`, not a bare `React.Ref` — the element is
     // right there in the forwardRef type arguments, and the hand-written tables
     // named it.
-    const refTarget = isForwardRef && implInit.typeArguments?.[0]?.getText();
+    const refTarget = isForwardRef && implCall.typeArguments?.[0]?.getText();
     if (inheritsDom) {
       // `children` is inherited by every DOM-attribute type, but inheriting it
       // is not the same as rendering it. Divider spreads onto `<hr>`, so the

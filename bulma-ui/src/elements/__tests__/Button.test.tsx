@@ -143,6 +143,9 @@ describe('Button Component', () => {
         props: React.AnchorHTMLAttributes<HTMLAnchorElement>
       ) => <a {...props} />;
       render(
+        // @ts-expect-error the types reject button-only attributes on an anchor
+        // component since #641; the runtime still strips them, because a
+        // JavaScript consumer or a spread object can still deliver them.
         <Button as={CustomLink} href="#" type="submit" name="foo">
           Custom
         </Button>

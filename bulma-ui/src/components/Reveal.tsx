@@ -11,6 +11,7 @@ import {
   usePrefixedClassNames,
 } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
+import type { PolymorphicComponentWithoutRef } from '../helpers/polymorphic';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -26,11 +27,10 @@ export type RevealAnimation =
   | 'flip';
 
 /**
- * Props for the Reveal component.
- * @extraProp {string} [className] - Additional CSS classes.
+ * The Reveal component's own props — everything it adds on top of the
+ * attributes of whatever element `as` renders.
  */
-export interface RevealProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, 'color'>, BulmaClassesProps {
+export interface RevealOwnProps extends BulmaClassesProps {
   /** Animation style applied when the element enters the viewport. */
   animation?: RevealAnimation;
   /** Delay in milliseconds before the animation starts. Default: 0. */
@@ -41,15 +41,37 @@ export interface RevealProps
   threshold?: number;
   /** Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit. */
   once?: boolean;
-  /** Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. */
-  as?: React.ElementType;
   /** Stagger direct children with an incrementing delay instead of animating this element as a single block. */
   cascade?: boolean;
   /** Milliseconds added to each successive child's delay when `cascade` is set. Default: 80. */
   cascadeInterval?: number;
   /** Content to reveal. */
   children?: React.ReactNode;
+  /** Additional CSS classes. Applied to the observed element (the wrapper `div` when `as` is a component). */
+  className?: string;
+  /** Inline styles, merged after the animation's own. Applied to the observed element. */
+  style?: React.CSSProperties;
 }
+
+/**
+ * Props for the Reveal component. The DOM attributes follow `as`.
+ *
+ * Reveal forwards no `ref`: it owns the node it observes for scroll
+ * intersection, and when `as` is a component that node is a wrapper `div`
+ * rather than the element `as` names — so a ref derived from `as` would point
+ * at the wrong thing.
+ */
+export type RevealProps<T extends React.ElementType = 'div'> = RevealOwnProps &
+  Omit<React.ComponentPropsWithoutRef<T>, keyof RevealOwnProps | 'as'> & {
+    /** Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. */
+    as?: T;
+  };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `RevealProps<T>` above — the body cannot see through `T`.
+ */
+type RevealImplProps = RevealOwnProps & { as?: React.ElementType };
 
 /**
  * Detects the user's `prefers-reduced-motion` preference. Always `false` on
@@ -101,20 +123,21 @@ function usePrefersReducedMotion(): boolean {
  *   ))}
  * </Reveal>
  */
-export const Reveal: React.FC<RevealProps> = ({
-  animation = 'fade-up',
-  delay = 0,
-  duration = 600,
-  threshold = 0.15,
-  once = true,
-  as: Component = 'div',
-  cascade = false,
-  cascadeInterval = 80,
-  className,
-  style,
-  children,
-  ...props
-}) => {
+export const Reveal = function Reveal(revealProps: RevealProps) {
+  const {
+    animation = 'fade-up',
+    delay = 0,
+    duration = 600,
+    threshold = 0.15,
+    once = true,
+    as: Component = 'div',
+    cascade = false,
+    cascadeInterval = 80,
+    className,
+    style,
+    children,
+    ...props
+  } = revealProps as RevealImplProps;
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const classPrefix = useClassPrefix();
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -245,6 +268,8 @@ export const Reveal: React.FC<RevealProps> = ({
       <Component {...rest}>{content}</Component>
     </div>
   );
-};
+} as PolymorphicComponentWithoutRef<RevealOwnProps, 'div'>;
+
+Reveal.displayName = 'Reveal';
 
 export default Reveal;

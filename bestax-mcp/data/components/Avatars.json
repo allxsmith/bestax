@@ -71,7 +71,7 @@
         },
         {
           "name": "size",
-          "type": "'16x16' | '24x24' | '32x32' | '48x48' | '64x64' | '96x96' | '128x128' | number",
+          "type": "AvatarProps['size']",
           "default": null,
           "description": "Uniform size applied to every child `Avatar` (and the surplus avatar).",
           "required": false,
@@ -80,7 +80,7 @@
         },
         {
           "name": "shape",
-          "type": "'circle' | 'rounded' | 'square'",
+          "type": "AvatarProps['shape']",
           "default": null,
           "description": "Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.",
           "required": false,
@@ -133,6 +133,15 @@
       "summary": "The `Avatar` component represents a person or entity as a compact image.",
       "component": "Avatar",
       "props": [
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": null,
+          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -215,15 +224,6 @@
           "deprecated": false
         },
         {
-          "name": "as",
-          "type": "React.ElementType",
-          "default": null,
-          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
           "name": "href",
           "type": "string",
           "default": null,
@@ -258,10 +258,29 @@
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "React.CSSProperties",
+          "default": null,
+          "description": "Inline styles, merged after the size style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
         }
       ],
-      "extraProps": [],
-      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref",
+          "default": null,
+          "description": "Ref forwarded to the element `as` renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All props of the element or component as renders and Bulma helper props",
       "types": [
         {
           "name": "AvatarColor",

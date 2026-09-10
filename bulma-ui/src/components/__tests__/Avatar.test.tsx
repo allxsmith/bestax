@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Avatar } from '../Avatar';
 import { ConfigProvider } from '../../helpers/Config';
@@ -339,5 +339,22 @@ describe('Avatar', () => {
     const avatar = screen.getByTestId('avatar');
     expect(avatar).toHaveClass('bulma-avatar');
     expect(avatar).not.toHaveClass('avatar');
+  });
+});
+
+describe('Ref forwarding', () => {
+  // Avatar gained ref forwarding with #641. The ref lands on the root element,
+  // which `as` names — not on the inner <img>.
+  it('forwards ref to the root <figure> by default', () => {
+    const ref = createRef<HTMLElement>();
+    render(<Avatar name="Ada" ref={ref} data-testid="avatar" />);
+    expect(ref.current).toBe(screen.getByTestId('avatar'));
+    expect(ref.current?.tagName).toBe('FIGURE');
+  });
+
+  it('forwards ref to the <a> an href selects', () => {
+    const ref = createRef<HTMLAnchorElement>();
+    render(<Avatar name="Ada" href="https://example.com" ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
   });
 });

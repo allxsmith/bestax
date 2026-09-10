@@ -753,6 +753,25 @@ describe('Navbar.Link', () => {
     );
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
+
+  // Navbar.Item gained ref forwarding with #641: the polymorphic contract is
+  // props AND ref following `as`, and it had neither.
+  it('forwards Navbar.Item ref to the rendered <a> element by default', () => {
+    const ref = createRef<HTMLAnchorElement>();
+    render(<Navbar.Item ref={ref}>Home</Navbar.Item>);
+    expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+    expect(ref.current).toBe(screen.getByText('Home'));
+  });
+
+  it('forwards Navbar.Item ref to whatever as renders', () => {
+    const ref = createRef<HTMLSpanElement>();
+    render(
+      <Navbar.Item as="span" ref={ref}>
+        Static
+      </Navbar.Item>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLSpanElement);
+  });
 });
 
 describe('Compound components', () => {
