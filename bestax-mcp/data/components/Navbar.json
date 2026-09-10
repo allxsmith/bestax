@@ -279,7 +279,7 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref",
+          "type": "React.Ref<Element>",
           "default": null,
           "description": "Ref forwarded to the element `as` renders.",
           "required": false,
@@ -355,7 +355,7 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref",
+          "type": "React.Ref<Element>",
           "default": null,
           "description": "Ref forwarded to the element `as` renders.",
           "required": false,

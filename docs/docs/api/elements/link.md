@@ -242,7 +242,7 @@ Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](http
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color helper.                                                                 |
 | `isActive`  | `boolean`                                                                                 | `false` | Whether the link appears active.                                                         |
 | `children`  | `React.ReactNode`                                                                         | —       | Content to render inside the link.                                                       |
-| `ref`       | `React.Ref`                                                                               | —       | Ref forwarded to the element `as` renders.                                               |
+| `ref`       | `React.Ref<Element>`                                                                      | —       | Ref forwarded to the element `as` renders.                                               |
 | `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
 
 <!-- /bestax:generated props -->

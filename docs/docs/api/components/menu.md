@@ -265,7 +265,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 | `role`        | `React.AriaRole`                                                                          | —       | ARIA role for the wrapping `<li>`.                                        |
 | `tabIndex`    | `number`                                                                                  | —       | Tab index for the wrapping `<li>`.                                        |
 | `data-testid` | `string`                                                                                  | —       | Test id for the wrapping `<li>`.                                          |
-| `ref`         | `React.Ref`                                                                               | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`. |
+| `ref`         | `React.Ref<Element>`                                                                      | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`. |
 | `...`         | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                         |
 
 <!-- /bestax:generated props -->

@@ -32,10 +32,13 @@ export interface LinkOwnProps extends Omit<
  * `as`: with the default `'a'` the anchor attributes (`href`, `target`, `rel`)
  * are accepted, with `as="span"` they are not.
  *
- * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
  */
 export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
-  Omit<React.ComponentPropsWithoutRef<T>, keyof LinkOwnProps | 'as'> & {
+  Omit<
+    React.ComponentPropsWithoutRef<T>,
+    keyof LinkOwnProps | 'as' | 'color'
+  > & {
     /** Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
     as?: T;
   };

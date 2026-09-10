@@ -532,7 +532,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Text color for the item.                            |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color for the item.                      |
 | `children`  | `React.ReactNode`                                                                         | —       | Navbar item content.                                |
-| `ref`       | `React.Ref`                                                                               | —       | Ref forwarded to the element `as` renders.          |
+| `ref`       | `React.Ref<Element>`                                                                      | —       | Ref forwarded to the element `as` renders.          |
 | `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)   |
 
 ### Navbar.Link
@@ -545,7 +545,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Text color.                                       |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color.                                 |
 | `children`  | `React.ReactNode`                                                                         | —       | Link content.                                     |
-| `ref`       | `React.Ref`                                                                               | —       | Ref forwarded to the element `as` renders.        |
+| `ref`       | `React.Ref<Element>`                                                                      | —       | Ref forwarded to the element `as` renders.        |
 | `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Navbar.Burger

@@ -114,7 +114,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'button'",
-          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.",
+          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else renders through the anchor path, which adds `href`/`target`/`rel` and, for an intrinsic tag only, drops the form-control attributes it cannot carry.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -288,7 +288,7 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref",
+          "type": "React.Ref<Element>",
           "default": null,
           "description": "Ref forwarded to the element `as` renders.",
           "required": false,

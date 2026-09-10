@@ -123,7 +123,7 @@ function usePrefersReducedMotion(): boolean {
  *   ))}
  * </Reveal>
  */
-export const Reveal = function Reveal(revealProps: RevealProps) {
+function RevealImpl(revealProps: RevealProps) {
   const {
     animation = 'fade-up',
     delay = 0,
@@ -242,12 +242,16 @@ export const Reveal = function Reveal(revealProps: RevealProps) {
       })
     : children;
 
-  // Scroll observation needs a real DOM node. Intrinsic tags ('div',
-  // 'section', ...) always accept a ref directly. A custom component passed
-  // via `as` (Section, Card, ...) is rendered by this library as a plain
-  // React.FC with no ref forwarding, so the ref (and the animation classes
-  // that depend on it) go on a plain wrapper `div` instead, with `Component`
-  // rendered inside it.
+  // Scroll observation needs a DOM node this component OWNS — the observer and
+  // the animation classes both key off it. An intrinsic tag is that node, so
+  // the ref goes straight on it. A component passed via `as` is not: whatever
+  // it renders is its own business, and it may render several elements or
+  // none. So it gets wrapped in an observed `div`.
+  //
+  // Not a statement about ref forwarding. Several components in this library
+  // forward refs (#641 added four more), and that changes nothing here — a
+  // forwarded ref would still point at the target's node rather than at one
+  // this component controls.
   if (typeof Component === 'string') {
     // A plain createElement call sidesteps the combinatorial JSX prop types
     // for `ref` across every possible intrinsic tag `as` could be.
@@ -268,7 +272,12 @@ export const Reveal = function Reveal(revealProps: RevealProps) {
       <Component {...rest}>{content}</Component>
     </div>
   );
-} as PolymorphicComponentWithoutRef<RevealOwnProps, 'div'>;
+}
+
+export const Reveal = RevealImpl as PolymorphicComponentWithoutRef<
+  RevealOwnProps,
+  'div'
+>;
 
 Reveal.displayName = 'Reveal';
 

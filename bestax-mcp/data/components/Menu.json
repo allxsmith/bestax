@@ -221,7 +221,7 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "React.Ref",
+          "type": "React.Ref<Element>",
           "default": null,
           "description": "Ref forwarded to the inner element `as` renders, not the wrapping `<li>`.",
           "required": false,

@@ -24,6 +24,12 @@ export type PolymorphicRef<T extends React.ElementType> =
  *
  * `Own` wins every collision — a component that declares `color` as a Bulma
  * variant keeps it, rather than inheriting the DOM attribute of the same name.
+ * `color` is dropped from the element's side unconditionally, because every
+ * component here treats `color` as a Bulma concept and routes it through
+ * `useBulmaClasses`; without that, a component whose own props do NOT declare
+ * one (Link, Navbar.Item, Navbar.Link) inherited the deprecated presentational
+ * HTML attribute, so `<Navbar.Link color="not-a-bulma-color">` type-checked and
+ * then rendered `has-text-not-a-bulma-color`.
  *
  * Distributive over `T` on purpose. `Omit<A | B, K>` keys off `keyof (A | B)`,
  * which is only what A and B share — so a union-typed `as` (a ternary, or a
@@ -43,7 +49,7 @@ export type PolymorphicProps<
   Own,
 > = T extends unknown
   ? Own &
-      Omit<React.ComponentPropsWithoutRef<T>, keyof Own | 'as'> & {
+      Omit<React.ComponentPropsWithoutRef<T>, keyof Own | 'as' | 'color'> & {
         /** The element or component to render. */
         as?: T;
       }
