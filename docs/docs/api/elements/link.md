@@ -234,15 +234,15 @@ Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](http
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                                      | Default | Description                                                                              |
-| ----------- | ----------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------- |
-| `as`        | `React.ElementType`                                                                       | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. |
-| `className` | `string`                                                                                  | —       | Additional CSS classes to apply.                                                         |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Text color helper.                                                                       |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                   | —       | Background color helper.                                                                 |
-| `isActive`  | `boolean`                                                                                 | `false` | Whether the link appears active.                                                         |
-| `children`  | `React.ReactNode`                                                                         | —       | Content to render inside the link.                                                       |
-| `ref`       | `React.Ref<Element>`                                                                      | —       | Ref forwarded to the element `as` renders.                                               |
-| `...`       | All props of the element or component `as` renders (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
+| Prop        | Type                                                                                          | Default | Description                                                                              |
+| ----------- | --------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `as`        | `React.ElementType`                                                                           | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. |
+| `className` | `string`                                                                                      | —       | Additional CSS classes to apply.                                                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                       | —       | Text color helper.                                                                       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                       | —       | Background color helper.                                                                 |
+| `isActive`  | `boolean`                                                                                     | `false` | Whether the link appears active.                                                         |
+| `children`  | `React.ReactNode`                                                                             | —       | Content to render inside the link.                                                       |
+| `ref`       | `React.Ref<Element>`                                                                          | —       | Ref forwarded to the element `as` renders.                                               |
+| `...`       | All props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
 
 <!-- /bestax:generated props -->

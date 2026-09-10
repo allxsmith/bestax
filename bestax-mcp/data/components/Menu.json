@@ -229,7 +229,7 @@
           "deprecated": false
         }
       ],
-      "catchAll": "All props of the element or component as renders (default <a>) and Bulma helper props",
+      "catchAll": "All props of the element or component selected by as (default <a>) and Bulma helper props",
       "types": []
     }
   ],

@@ -80,11 +80,11 @@ test('the catch-all row loses its code spans in structured mode', () => {
 
   assert.equal(
     md.text,
-    'All props of the element or component `as` renders (default `<button>`) and Bulma helper props'
+    'All props of the element or component selected by `as` (default `<button>`) and Bulma helper props'
   );
   assert.equal(
     structured.text,
-    'All props of the element or component as renders (default <button>) and Bulma helper props'
+    'All props of the element or component selected by as (default <button>) and Bulma helper props'
   );
   assert.equal(structured.helpers, md.helpers);
 });
@@ -168,7 +168,7 @@ test('destructuring defaults survive the polymorphic cast', () => {
 test('the catch-all names the polymorphic element and its default', () => {
   assert.equal(
     table('Menu', 'Menu.Item').catchAll.text,
-    'All props of the element or component `as` renders (default `<a>`) and Bulma helper props'
+    'All props of the element or component selected by `as` (default `<a>`) and Bulma helper props'
   );
 });
 
@@ -188,7 +188,7 @@ test('every polymorphic component names a concrete default element', () => {
   }
   assert.equal(
     table('Avatar', 'Avatar').catchAll.text,
-    'All props of the element or component `as` renders (default `<figure>`) and Bulma helper props'
+    'All props of the element or component selected by `as` (default `<figure>`) and Bulma helper props'
   );
 });
 

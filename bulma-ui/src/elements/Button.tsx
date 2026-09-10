@@ -182,23 +182,36 @@ export const Button = forwardRef(function Button(
     // ours to pre-empt), and `type` on an anchor is the MIME hint that
     // `ButtonProps<'a'>` now types it as.
     //
-    // The list is still wrong for a form-capable target — `as="input"` takes
-    // `name` and `value` legitimately, and loses them here — which needs a
-    // per-element answer rather than one list. Tracked separately.
+    // Which names to drop depends on the target, not on one list. A `<span>`
+    // can carry none of them; an `<input>`, `<select>`, `<textarea>`,
+    // `<output>` or `<fieldset>` owns `name`, `value`, `form` and `disabled`
+    // outright — stripping those rendered `<Button as="input" name="query"
+    // value="Search">` as an input the form submits nothing for. The `form*`
+    // submit-overrides belong to a submit control only, so they never survive.
+    const FORM_CONTROLS = ['input', 'select', 'textarea', 'output', 'fieldset'];
     const {
-      disabled: _disabled,
-      form: _form,
       formAction: _formAction,
       formEncType: _formEncType,
       formMethod: _formMethod,
       formNoValidate: _formNoValidate,
       formTarget: _formTarget,
+      ...withoutSubmitOverrides
+    } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
+    const {
+      disabled: _disabled,
+      form: _form,
       name: _name,
       value: _value,
-      ...intrinsicRest
-    } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
+      ...withoutFormFields
+    } = withoutSubmitOverrides;
+
     const forwardedRest =
-      typeof Component === 'string' ? intrinsicRest : (rest as object);
+      typeof Component !== 'string'
+        ? // A custom component owns its prop contract.
+          (rest as object)
+        : FORM_CONTROLS.includes(Component)
+          ? withoutSubmitOverrides
+          : withoutFormFields;
 
     return (
       <Component
