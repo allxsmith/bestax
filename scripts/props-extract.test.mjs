@@ -18,7 +18,10 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractComponent } from './lib/props-extract.mjs';
+import {
+  extractComponent,
+  unnameablePropsError,
+} from './lib/props-extract.mjs';
 
 // One Program construction dominates this file's runtime (~3 s), and
 // extractComponent caches it — so extract each fixture once, up front.
@@ -228,9 +231,36 @@ test('the OwnProps split does not reclassify own props as inherited', () => {
 });
 
 test('a component whose props type cannot be named fails loudly', () => {
-  // The guard must not over-fire on the legitimate no-table cases: a sub whose
-  // props are an inline DOM type resolves a name, and `DropdownDivider` takes
-  // no parameters at all.
+  // The decision, not just its absence. `extractComponent` reads the real
+  // `bulma-ui/src` tree, so the throwing branch cannot be reached from a
+  // fixture — which is how this test previously asserted only that the guard
+  // does NOT fire, under a name promising the opposite.
+  const fn = { parameters: [{}] };
+  const msg = unnameablePropsError('Widget', null, fn);
+  assert.ok(msg, 'an unnameable first-parameter type must be rejected');
+  assert.match(msg, /^Widget: cannot determine a props type\./);
+  assert.match(
+    msg,
+    /Annotate the render function's first parameter/,
+    'the message must say what to do about it'
+  );
+
+  // And the shapes that must NOT trip it.
+  assert.equal(
+    unnameablePropsError('Widget', 'WidgetProps', fn),
+    null,
+    'a resolved name is not a failure'
+  );
+  assert.equal(
+    unnameablePropsError('Widget', null, { parameters: [] }),
+    null,
+    'a component that takes no props is not a failure'
+  );
+  assert.equal(unnameablePropsError('Widget', null, null), null);
+
+  // The two legitimate no-table cases still render as `listOnly` end to end:
+  // a sub whose props are an inline DOM type resolves a NAME with no local
+  // declaration, and `DropdownDivider` declares no parameters.
   assert.equal(table('Navbar', 'Navbar.Divider').listOnly, true);
   assert.equal(table('Dropdown', 'Dropdown.Divider').listOnly, true);
 });
