@@ -1100,6 +1100,13 @@ function memberRows(
     if (!ts.isPropertySignature(member) && !ts.isMethodSignature(member))
       continue;
     const name = member.name.getText().replace(/^['"]|['"]$/g, '');
+    // `@internal` is TSDoc's "not part of the public API". A member carrying it
+    // exists for the type system — `LinkButton` declares `isOutlined?: never`
+    // so a custom `as` target cannot reintroduce a prop `Button` consumes — and
+    // documenting it as a prop typed `never` tells a reader nothing.
+    if (ts.getJSDocTags(member).some(t => t.tagName.text === 'internal')) {
+      continue;
+    }
     const explicit = jsdocTag(ts, member, 'defaultValue');
     // An optional prop typed exactly `boolean` with no destructuring default is
     // `undefined`, which every consumer treats as off — the hand-written tables
