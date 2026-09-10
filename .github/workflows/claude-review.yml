@@ -526,18 +526,15 @@ jobs:
                    races, re-runs, partial state
             4a. THE TRUST BOUNDARY IS FIXED. For the Infra lens, review
                 against the boundary `.github/CLAUDE.md` states under
-                "The trust boundary", not one you construct: the checkout
-                is attacker-influenced, the model token (and on some jobs
-                a PAT) shares the job with it, and the pinned actions,
-                allowlists, opt-in gates, sanitizers, `pull_request`-only
-                triggers, sender exclusions, live re-verification, egress
-                policy and human merge are the accepted answer. A step
-                boundary inside one job is not a trust boundary: a file
-                one step writes for a later step of the same job is
-                trusted as the job is, and hardening that hand-off
-                against the checkout is 🔵 Advisory, never a blocker.
-                On the exposure axis, blocking is what widens who can
-                trigger a job, what a credentialed job can reach, or
+                "The trust boundary" — which jobs run PR code and which
+                read the default branch, where each credential sits, and
+                which controls are the accepted answer — not one you
+                construct. A step boundary inside one job is not a trust
+                boundary: a file one step writes for a later step of the
+                same job is trusted as the job is, and hardening that
+                hand-off against the checkout is 🔵 Advisory, never a
+                blocker. On the exposure axis, blocking is what widens who
+                can trigger a job, what a credentialed job can reach, or
                 what leaves the job; an exposure finding naming none of
                 those is 🔵 Advisory. That bounds exposure only — a
                 functional defect in the same diff (broken shell or jq,

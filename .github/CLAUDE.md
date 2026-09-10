@@ -60,17 +60,19 @@ red-team found the failure it prevents. Where a rule has a documented origin, it
 Every rule below serves one threat model, stated here once so a review has a place to stop and
 an author has something to cite instead of shipping another defence for the same step.
 
-**What these jobs are exposed to.** The jobs that review or fix code — the deep review, the fix
-loop, `@claude`, `@bestaxbot` — check out branch code from an open PR and run its package
-manager and its tests. Everything under that checkout is attacker-influenced: the sources, the
-lockfile, package-manager hooks such as `.pnpmfile.cjs`, `.gitattributes`, and any file a later
-step reads back from the working tree. The scan, triage and repro sessions check out the default
-branch and install nothing, so their exposure is the issue and PR text they ingest, which is
+**What these jobs are exposed to.** The deep review and the fix loop check out branch code from
+an open PR and run its package manager and its tests; `@claude` and `@bestaxbot` join that class
+when a review event triggers them, and check out the default branch when a comment or an issue
+does. Everything under a PR checkout is attacker-influenced: the sources, the lockfile,
+package-manager hooks such as `.pnpmfile.cjs`, `.gitattributes`, and any file a later step reads
+back from the working tree. The scan, triage and repro sessions check out the default branch
+and install nothing, so their exposure is the issue and PR text they ingest, which is
 attacker-authored on every one of these jobs. A model token shares the job with whatever it
-reads. Where the PAT sits differs and is the thing to check: triage and repro hand a finished
-payload to a publish job that holds the PAT and runs no model, while the fix loop and
-`@bestaxbot` hand the PAT to the session itself. That exposure is the job: reviewing and fixing
-code means running it, and no rule here pretends otherwise.
+reads. Where the PAT sits differs and is the thing to check: triage hands a finished payload to
+a publish job that holds the PAT and runs no model; repro's publisher holds no PAT at all and
+posts with `GITHUB_TOKEN` (I2); the fix loop and `@bestaxbot` hand the PAT to the session
+itself. That exposure is the job: reviewing and fixing code means running it, and no rule here
+pretends otherwise.
 
 **The accepted defences.** These are the answer, and a review does not re-litigate whether they
 are sufficient: actions pinned to one SHA repo-wide (rule 1); tool allowlists held as a
