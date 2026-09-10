@@ -37,6 +37,18 @@ export type PolymorphicProps<T extends React.ElementType, Own> = Own &
  * cast to this. `displayName` is part of the type because the library sets it
  * on every `forwardRef` component, and `withSubComponents` constrains its base
  * to `{ displayName?: string }`.
+ *
+ * **A wrapping HOC erases the genericity.** `React.memo(Button)`,
+ * `React.lazy`, a `styled()` wrapper — anything that infers its props through
+ * `ComponentProps<T>` — instantiates the type parameter once and hands back a
+ * component with a single widened prop type. Calls still work, but the checks
+ * stop: `<MemoButton as="div" href="/x" />` compiles where `<Button>` rejects
+ * it. This is inherent to polymorphic components in TypeScript, not something
+ * this library can fix. Re-assert the type to get the checks back:
+ *
+ * ```tsx
+ * const MemoButton = React.memo(Button) as typeof Button;
+ * ```
  */
 export interface PolymorphicComponent<Own, Default extends React.ElementType> {
   <T extends React.ElementType = Default>(
