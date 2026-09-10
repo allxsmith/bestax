@@ -21,6 +21,11 @@ import { Button } from '../elements/Button';
 import { Link } from '../elements/Link';
 import { LinkButton } from '../elements/LinkButton';
 
+/** A component that forwards no ref, the way most hand-written ones do. */
+const PlainFC = (props: { children?: React.ReactNode }) => (
+  <span>{props.children}</span>
+);
+
 /** A router-style link, standing in for `react-router`'s `Link`. */
 const RouterLink = React.forwardRef<
   HTMLAnchorElement,
@@ -81,6 +86,30 @@ export const accepted = (
 // so each of these is also proof the rejection is real.
 // --------------------------------------------------------------------------
 
+// A union-typed `as` — a ternary, or a variable typed `'a' | 'button'` — must
+// keep each member's own props. `Omit<A | B, K>` keys off `keyof (A | B)`,
+// which is only the keys COMMON to both, so a non-distributive form silently
+// dropped `href` here. This is the one shape that worked before #641 and
+// briefly stopped working during it.
+declare const cond: boolean;
+export const unionAs = (
+  <>
+    <Button as={cond ? 'a' : 'button'} href="/x" />
+    <Button as={cond ? 'a' : 'span'} />
+  </>
+);
+
+// `ComponentProps<typeof Button>` must resolve to real props. With only a
+// generic call signature it instantiated at the constraint and collapsed to
+// `any`, so a consumer deriving their own prop type from ours lost every check.
+type DerivedButtonProps = React.ComponentProps<typeof Button>;
+export const derived: DerivedButtonProps = {
+  color: 'primary',
+  children: 'ok',
+  // @ts-expect-error a bogus key must not survive the derivation
+  totallyBogus: true,
+};
+
 // A wrapping HOC instantiates the type parameter and hands back one widened
 // prop type, so the checks stop at the wrapper. Inherent to the pattern; the
 // cast is the documented way back. Pinned here so the workaround cannot rot.
@@ -128,5 +157,11 @@ export const rejected = (
 
     {/* @ts-expect-error a div takes no href */}
     <Reveal as="div" href="/x" />
+
+    {/* A plain function component cannot receive a ref — React's own types
+        reject it, and a ref passed here would leave `ref.current` null
+        forever. `PolymorphicRef` resolves to `never` for such a target. */}
+    {/* @ts-expect-error PlainFC forwards no ref */}
+    <Button as={PlainFC} ref={React.createRef<HTMLSpanElement>()} />
   </>
 );
