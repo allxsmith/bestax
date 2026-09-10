@@ -166,10 +166,16 @@ export const Button = forwardRef(function Button(
   const buttonClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   if (Component !== 'button') {
-    // Create anchor-specific props by excluding button-specific ones, so
-    // native/custom link-like elements (an <a>, a router Link, ...) don't
-    // receive button-only HTML attributes. The types no longer allow them
-    // through, but a JavaScript consumer or a spread object still can.
+    // Strip button-only attributes so a native link-like element (an <a>, a
+    // <span>) doesn't receive them — React would render them as invalid HTML
+    // attributes. The types no longer allow them through, but a JavaScript
+    // consumer or a spread object still can.
+    //
+    // Only for INTRINSIC tags. A custom component (a router Link, ...) owns its
+    // prop contract, and `ComponentPropsWithoutRef<T>` promises the caller that
+    // its props reach it. Stripping eleven names by their spelling alone broke
+    // that promise silently: `<Button as={Custom} name="x" />` type-checked
+    // while `Custom` never received the `name` it requires.
     const {
       type: _type,
       disabled: _disabled,
@@ -182,8 +188,10 @@ export const Button = forwardRef(function Button(
       name: _name,
       value: _value,
       autoFocus: _autoFocus,
-      ...anchorRest
+      ...intrinsicRest
     } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
+    const forwardedRest =
+      typeof Component === 'string' ? intrinsicRest : (rest as object);
 
     return (
       <Component
@@ -200,7 +208,7 @@ export const Button = forwardRef(function Button(
             : (onClick as
                 React.MouseEventHandler<HTMLAnchorElement> | undefined)
         }
-        {...(anchorRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+        {...(forwardedRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
       >
         {children}
       </Component>

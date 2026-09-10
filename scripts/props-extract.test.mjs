@@ -172,16 +172,24 @@ test('the catch-all names the polymorphic element and its default', () => {
   );
 });
 
-test('a component with no single default element makes no default claim', () => {
-  // Avatar picks between `'a'` and `'figure'` at runtime depending on `href`,
-  // so its type parameter defaults to `React.ElementType` and the sentence must
-  // not invent an element.
-  const text = table('Avatar', 'Avatar').catchAll.text;
+test('every polymorphic component names a concrete default element', () => {
+  // A type parameter defaulting to the CONSTRAINT rather than to a tag —
+  // `<T extends React.ElementType = React.ElementType>` — makes
+  // `ComponentPropsWithoutRef<T>` spread across every element at once, which
+  // accepts anything and reintroduces the false positive #641 removed. Avatar
+  // is the one that tempts it, because its runtime default is conditional on
+  // `href`. The catch-all sentence is the visible symptom: no element named.
+  for (const [component, path] of POLYMORPHIC) {
+    assert.match(
+      table(component, path).catchAll.text,
+      /\(default `<[a-z]+>`\)/,
+      `${path} names no default element`
+    );
+  }
   assert.equal(
-    text,
-    'All props of the element or component `as` renders and Bulma helper props'
+    table('Avatar', 'Avatar').catchAll.text,
+    'All props of the element or component `as` renders (default `<figure>`) and Bulma helper props'
   );
-  assert.ok(!text.includes('(default'));
 });
 
 test('every polymorphic component still documents className and ref', () => {

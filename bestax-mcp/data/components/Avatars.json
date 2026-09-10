@@ -71,7 +71,7 @@
         },
         {
           "name": "size",
-          "type": "AvatarProps['size']",
+          "type": "'16x16' | '24x24' | '32x32' | '48x48' | '64x64' | '96x96' | '128x128' | number",
           "default": null,
           "description": "Uniform size applied to every child `Avatar` (and the surplus avatar).",
           "required": false,
@@ -80,7 +80,7 @@
         },
         {
           "name": "shape",
-          "type": "AvatarProps['shape']",
+          "type": "'circle' | 'rounded' | 'square'",
           "default": null,
           "description": "Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.",
           "required": false,
@@ -280,7 +280,7 @@
           "deprecated": false
         }
       ],
-      "catchAll": "All props of the element or component as renders and Bulma helper props",
+      "catchAll": "All props of the element or component as renders (default <figure>) and Bulma helper props",
       "types": [
         {
           "name": "AvatarColor",
