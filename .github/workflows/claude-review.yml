@@ -536,10 +536,15 @@ jobs:
                 one step writes for a later step of the same job is
                 trusted as the job is, and hardening that hand-off
                 against the checkout is 🔵 Advisory, never a blocker.
-                Blocking is only what widens who can trigger a job, what
-                a credentialed job can reach, or what leaves the job. Do
-                not post a narrower finding on a hand-off after one has
-                been answered; cite the section and stop.
+                On the exposure axis, blocking is what widens who can
+                trigger a job, what a credentialed job can reach, or
+                what leaves the job; an exposure finding naming none of
+                those is 🔵 Advisory. That bounds exposure only — a
+                functional defect in the same diff (broken shell or jq,
+                a swallowed error, a silent no-op, a dead condition, a
+                race) keeps the severity the Infra lens above gives it.
+                Do not post a narrower finding on a hand-off after one
+                has been answered; cite the section and stop.
             5. Do NOT post nitpicks, style, formatting, or wording
                comments — CodeRabbit and the linters cover the first
                three, and wording is governed by rule 6a.

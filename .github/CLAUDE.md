@@ -60,18 +60,23 @@ red-team found the failure it prevents. Where a rule has a documented origin, it
 Every rule below serves one threat model, stated here once so a review has a place to stop and
 an author has something to cite instead of shipping another defence for the same step.
 
-**What these jobs are exposed to.** The AI jobs check out branch code from an open PR and run
-its package manager and its tests. Everything under that checkout is attacker-influenced — the
-sources, the lockfile, package-manager hooks such as `.pnpmfile.cjs`, `.gitattributes`, and any
-file a later step reads back from the working tree — and the issue and PR text the session
-ingests is attacker-authored. A model token is present in the same job, and on the jobs that
-post as bestaxbot a PAT is present too. That exposure is the job: reviewing and fixing code
-means running it, and no rule here pretends otherwise.
+**What these jobs are exposed to.** The jobs that review or fix code — the deep review, the fix
+loop, `@claude`, `@bestaxbot` — check out branch code from an open PR and run its package
+manager and its tests. Everything under that checkout is attacker-influenced: the sources, the
+lockfile, package-manager hooks such as `.pnpmfile.cjs`, `.gitattributes`, and any file a later
+step reads back from the working tree. The scan, triage and repro sessions check out the default
+branch and install nothing, so their exposure is the issue and PR text they ingest, which is
+attacker-authored on every one of these jobs. A model token shares the job with whatever it
+reads. Where the PAT sits differs and is the thing to check: triage and repro hand a finished
+payload to a publish job that holds the PAT and runs no model, while the fix loop and
+`@bestaxbot` hand the PAT to the session itself. That exposure is the job: reviewing and fixing
+code means running it, and no rule here pretends otherwise.
 
 **The accepted defences.** These are the answer, and a review does not re-litigate whether they
 are sufficient: actions pinned to one SHA repo-wide (rule 1); tool allowlists held as a
 confinement boundary (rule 2); explicit opt-in for anything that spends usage (rule 3); a
-deterministic sanitizer between model text and anything published (rule 5, I2); plain
+deterministic sanitizer or renderer on the publication paths that have one — repro's draft and
+triage's comment (rule 5, I2); plain
 `pull_request` with a head-repo guard, never `pull_request_target` (rule 7); sender exclusions
 on comment triggers (rule 8); trust decisions re-verified against the live API rather than read
 from the event payload (the trusted-labeler gates); an enforced, measured egress policy
@@ -87,7 +92,7 @@ the step that writes the review delta for a later step drew round after round of
 ever-narrower findings while every rule in this file held, because nothing said when enough
 was enough.
 
-What is blocking, however the change is dressed:
+What is blocking on that axis, however the change is dressed:
 
 - anything that widens **who can trigger a job** — a new trigger, a looser `if:`, a sender
   exclusion dropped, a label gate bypassed;
@@ -96,7 +101,10 @@ What is blocking, however the change is dressed:
 - anything that widens **what leaves the job** — a new comment or artifact path, model or issue
   text reaching a publisher without the sanitizer, a posting identity that re-triggers.
 
-A finding that names none of those goes on the record as advisory and does not hold the merge.
+That list ranks **exposure**, and only exposure. An exposure finding naming none of those goes
+on the record as advisory and does not hold the merge. A functional defect — broken shell or
+jq, a swallowed error, a silent no-op, a dead condition, a race — is blocking on its own merits
+under the normal review criteria, and nothing in this section lowers it.
 
 ## The two invariants
 
