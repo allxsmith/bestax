@@ -81,6 +81,20 @@ export const accepted = (
 // so each of these is also proof the rejection is real.
 // --------------------------------------------------------------------------
 
+// A wrapping HOC instantiates the type parameter and hands back one widened
+// prop type, so the checks stop at the wrapper. Inherent to the pattern; the
+// cast is the documented way back. Pinned here so the workaround cannot rot.
+const MemoButton = React.memo(Button) as typeof Button;
+
+export const hocWorkaround = (
+  <>
+    <MemoButton as="a" href="/x" />
+    <MemoButton ref={React.createRef<HTMLButtonElement>()} />
+    {/* @ts-expect-error the re-assertion restores what React.memo erased */}
+    <MemoButton as="div" href="/x" />
+  </>
+);
+
 export const rejected = (
   <>
     {/* @ts-expect-error href is not an attribute of a div */}
