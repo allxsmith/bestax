@@ -251,7 +251,16 @@ export const Button = forwardRef(function Button(
         tabIndex={isDisabled ? -1 : undefined}
         onClick={
           isDisabled
-            ? (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()
+            ? // Guarded, because this handler is installed into whatever `as`
+              // renders and a custom component's `onClick` need not be a DOM
+              // event handler at all. One declaring `onClick: (v: string) =>
+              // void` calls this with a string, and an unguarded
+              // `e.preventDefault()` throws `is not a function`. Blocking the
+              // real event is the point; a foreign payload is simply not ours
+              // to act on.
+              (e: React.MouseEvent<HTMLAnchorElement>) => {
+                if (typeof e?.preventDefault === 'function') e.preventDefault();
+              }
             : (onClick as
                 React.MouseEventHandler<HTMLAnchorElement> | undefined)
         }

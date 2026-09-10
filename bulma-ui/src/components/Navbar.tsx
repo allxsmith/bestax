@@ -171,6 +171,14 @@ export interface NavbarItemOwnProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor'
 > {
+  /**
+   * Not accepted. `color` here would be the deprecated presentational HTML
+   * attribute, and `useBulmaClasses` consumes any `color` key as a Bulma helper
+   * before the target could see it — so it is declared unavailable rather than
+   * silently eaten. Use `textColor` / `bgColor`.
+   * @internal
+   */
+  color?: never;
   /** Additional CSS classes. */
   className?: string;
   /** Whether the item is active. */
@@ -192,10 +200,7 @@ export interface NavbarItemOwnProps extends Omit<
  */
 export type NavbarItemProps<T extends React.ElementType = 'a'> =
   NavbarItemOwnProps &
-    Omit<
-      React.ComponentPropsWithoutRef<T>,
-      keyof NavbarItemOwnProps | 'as' | 'color'
-    > & {
+    Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarItemOwnProps | 'as'> & {
       /** Render as another intrinsic element (`'span'`, `'div'`) or a custom component (e.g. a router link). Defaults to `'a'`. */
       as?: T;
     };
@@ -453,6 +458,14 @@ export interface NavbarLinkOwnProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor'
 > {
+  /**
+   * Not accepted. `color` here would be the deprecated presentational HTML
+   * attribute, and `useBulmaClasses` consumes any `color` key as a Bulma helper
+   * before the target could see it — so it is declared unavailable rather than
+   * silently eaten. Use `textColor` / `bgColor`.
+   * @internal
+   */
+  color?: never;
   /** Additional CSS classes. */
   className?: string;
   /** Remove the dropdown arrow indicator. */
@@ -474,10 +487,7 @@ export interface NavbarLinkOwnProps extends Omit<
  */
 export type NavbarLinkProps<T extends React.ElementType = 'a'> =
   NavbarLinkOwnProps &
-    Omit<
-      React.ComponentPropsWithoutRef<T>,
-      keyof NavbarLinkOwnProps | 'as' | 'color'
-    > & {
+    Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarLinkOwnProps | 'as'> & {
       /** Render as another intrinsic element (`'button'`, `'span'`) or a custom component. Defaults to `'a'`. */
       as?: T;
     };

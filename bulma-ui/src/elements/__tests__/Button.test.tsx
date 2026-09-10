@@ -198,6 +198,28 @@ describe('Button Component', () => {
       expect(screen.getByTestId('s')).not.toHaveAttribute('disabled');
     });
 
+    it('does not throw when a disabled custom target has a non-DOM onClick', () => {
+      // The isDisabled blocker is installed into whatever `as` renders. A
+      // component declaring `onClick: (v: string) => void` calls it with a
+      // string, and an unguarded `e.preventDefault()` threw.
+      const Custom = (p: {
+        onClick?: (v: string) => void;
+        children?: React.ReactNode;
+      }) => (
+        <a data-testid="c" onClick={() => p.onClick?.('a string')}>
+          {p.children}
+        </a>
+      );
+      const { container } = render(
+        <Button as={Custom} isDisabled>
+          x
+        </Button>
+      );
+      expect(() =>
+        (container.querySelector('a') as HTMLElement).click()
+      ).not.toThrow();
+    });
+
     it('keeps form and disabled on another form-capable target', () => {
       render(
         <Button as="fieldset" form="signup" disabled data-testid="f">
