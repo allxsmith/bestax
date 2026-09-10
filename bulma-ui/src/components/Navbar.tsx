@@ -188,11 +188,14 @@ export interface NavbarItemOwnProps extends Omit<
  * follow `as`: rendering as a router link accepts that component's props (`to`
  * and friends) by inference, and `as="span"` rejects `href`.
  *
- * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
  */
 export type NavbarItemProps<T extends React.ElementType = 'a'> =
   NavbarItemOwnProps &
-    Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarItemOwnProps | 'as'> & {
+    Omit<
+      React.ComponentPropsWithoutRef<T>,
+      keyof NavbarItemOwnProps | 'as' | 'color'
+    > & {
       /** Render as a custom component (e.g., a router link). */
       as?: T;
     };
@@ -467,11 +470,14 @@ export interface NavbarLinkOwnProps extends Omit<
  * follow `as`: `as="button"` accepts the button attributes and a button ref,
  * and `as="span"` rejects `href`, `target` and `rel`.
  *
- * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
  */
 export type NavbarLinkProps<T extends React.ElementType = 'a'> =
   NavbarLinkOwnProps &
-    Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarLinkOwnProps | 'as'> & {
+    Omit<
+      React.ComponentPropsWithoutRef<T>,
+      keyof NavbarLinkOwnProps | 'as' | 'color'
+    > & {
       /** Render as a custom component (default: 'a'). */
       as?: T;
     };

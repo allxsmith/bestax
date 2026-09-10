@@ -236,7 +236,15 @@ function propsInterfaceName(ts, inits, name) {
   const fn = componentFunction(ts, init);
   const paramType = fn?.parameters?.[0]?.type;
   if (paramType && ts.isTypeReferenceNode(paramType)) {
-    return paramType.typeName.getText();
+    // `props: React.PropsWithChildren<XProps>` names the WRAPPER, which
+    // resolves to no local interface and would render an empty table while
+    // reading as a successfully-resolved name. Unwrap to the real props type.
+    const name = paramType.typeName.getText();
+    if (/(^|\.)PropsWithChildren$/.test(name) && paramType.typeArguments?.[0]) {
+      const inner = paramType.typeArguments[0];
+      return ts.isTypeReferenceNode(inner) ? inner.typeName.getText() : name;
+    }
+    return name;
   }
 
   // forwardRef<TRef, XProps>((props, ref) => …)
@@ -262,6 +270,19 @@ function propsInterfaceName(ts, inits, name) {
 function componentFunction(ts, init) {
   if (!init) return null;
   init = unwrapExpression(ts, init);
+  // `const Reveal = RevealImpl as PolymorphicComponentWithoutRef<…>` — the
+  // implementation is a sibling function DECLARATION, which is what keeps
+  // eslint's react-hooks rules recognising it as a component through the cast.
+  // Without following the identifier the props type resolves to nothing.
+  if (ts.isIdentifier(init)) {
+    const name = init.text;
+    const found = init
+      .getSourceFile()
+      .statements.find(
+        st => ts.isFunctionDeclaration(st) && st.name?.text === name
+      );
+    return found ?? null;
+  }
   if (ts.isArrowFunction(init) || ts.isFunctionExpression(init)) return init;
   if (ts.isCallExpression(init)) {
     const first = init.arguments[0];
@@ -1370,7 +1391,10 @@ export function extractComponent(
     // outright, so `Navbar.Item` would simply vanish from navbar.md, and the
     // MCP index would commit `props: []`. Refuse instead. A component that
     // genuinely takes no props (`DropdownDivider: React.FC = () => …`) declares
-    // no first parameter and is unaffected.
+    // no first parameter and is unaffected. It cannot key on `decl` instead:
+    // a sub whose props are an inline DOM type (`NavbarDivider`,
+    // `Pagination.Ellipsis`) legitimately resolves a NAME with no local
+    // declaration, and that is the `listOnly` path below.
     if (
       !ifaceName &&
       componentFunction(ts, inits.get(impl))?.parameters.length

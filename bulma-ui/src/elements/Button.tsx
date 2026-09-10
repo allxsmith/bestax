@@ -70,12 +70,12 @@ export interface ButtonOwnProps extends Omit<
  * `as`: with `as="a"` the anchor attributes are accepted, with `as="div"` they
  * are not.
  *
- * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
  */
 export type ButtonProps<T extends React.ElementType = 'button'> =
   ButtonOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof ButtonOwnProps | 'as'> & {
-      /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling. */
+      /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else renders through the anchor path, which adds `href`/`target`/`rel` and, for an intrinsic tag only, drops the form-control attributes it cannot carry. */
       as?: T;
     };
 

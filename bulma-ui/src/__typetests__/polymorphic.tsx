@@ -163,5 +163,13 @@ export const rejected = (
         forever. `PolymorphicRef` resolves to `never` for such a target. */}
     {/* @ts-expect-error PlainFC forwards no ref */}
     <Button as={PlainFC} ref={React.createRef<HTMLSpanElement>()} />
+
+    {/* The deprecated presentational HTML `color` attribute must not arrive
+        through the element's props on a component whose own props declare no
+        Bulma `color` — it would render as a helper class. */}
+    {/* @ts-expect-error not a Bulma color */}
+    <Navbar.Link color="not-a-bulma-color" />
+    {/* @ts-expect-error same on Link, whose own props omit color too */}
+    <Link color="nope" />
   </>
 );

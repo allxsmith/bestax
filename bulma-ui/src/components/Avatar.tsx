@@ -139,7 +139,7 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
  * actually renders, and the anchor props it can additionally take are declared
  * above.
  *
- * @extraProp {React.Ref} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
  */
 export type AvatarProps<T extends React.ElementType = 'figure'> =
   AvatarOwnProps &

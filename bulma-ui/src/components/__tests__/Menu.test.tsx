@@ -265,6 +265,48 @@ describe('Compound components', () => {
   });
 });
 
+describe('href routing', () => {
+  it('withholds href from a non-anchor intrinsic tag', () => {
+    render(
+      <Menu>
+        <MenuList>
+          {/* @ts-expect-error a span takes no href; a JS consumer can still
+              deliver one, and it must not reach the DOM */}
+          <MenuItem as="span" href="/x" data-testid="li">
+            Static
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    const span = screen.getByTestId('li').querySelector('span');
+    expect(span).not.toHaveAttribute('href');
+  });
+
+  it('forwards href to a custom component, which owns its prop contract', () => {
+    const Custom = ({
+      href,
+      children,
+    }: {
+      href?: string;
+      children?: React.ReactNode;
+    }) => (
+      <a data-testid="custom" href={href}>
+        {children}
+      </a>
+    );
+    render(
+      <Menu>
+        <MenuList>
+          <MenuItem as={Custom} href="/x">
+            Go
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    expect(screen.getByTestId('custom')).toHaveAttribute('href', '/x');
+  });
+});
+
 describe('Ref forwarding', () => {
   // Menu.Item gained ref forwarding with #641. The ref goes to the INNER
   // element `as` renders, not the wrapping <li>: `as` names the inner one.

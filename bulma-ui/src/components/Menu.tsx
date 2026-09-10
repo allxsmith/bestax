@@ -165,7 +165,7 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
  * and the other anchor attributes, and with `as={Link}` it means that
  * component's own props.
  *
- * @extraProp {React.Ref} [ref] - Ref forwarded to the inner element `as` renders, not the wrapping `<li>`.
+ * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the inner element `as` renders, not the wrapping `<li>`.
  */
 export type MenuItemProps<T extends React.ElementType = 'a'> =
   MenuItemOwnProps &
@@ -205,7 +205,15 @@ export const MenuItem = forwardRef(function MenuItem(
     tabIndex,
     ...rest
   } = itemProps as MenuItemImplProps;
-  const { bulmaHelperClasses, rest: linkProps } = useBulmaClasses(rest);
+  const { bulmaHelperClasses, rest: forwarded } = useBulmaClasses(rest);
+  // `href` reaches an anchor or a custom component (which owns its own prop
+  // contract), but not another intrinsic tag — `<span href>` is invalid HTML.
+  // The same rule Avatar applies through `isLinkLike` and Button through its
+  // intrinsic-only strip. Before #641 `href` was an own prop re-applied only
+  // for `as="a"`; deriving it from `as` must not quietly widen that.
+  const isLinkLike = Component === 'a' || typeof Component !== 'string';
+  const { href: _href, ...withoutHref } = forwarded as { href?: string };
+  const linkProps = isLinkLike ? forwarded : withoutHref;
   const itemClass = classNames(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses
