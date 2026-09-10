@@ -30,8 +30,7 @@ The more actionable your issue, the better the agent does with it:
 
 ## For contributors: what reviews your PR
 
-AI review comes before human review, and which reviewers a PR draws depends on where it
-targets and what it changes:
+Which AI reviewers a PR draws depends on where it targets and what it changes:
 
 - **CodeRabbit** reviews a PR automatically once it targets the default branch and is out of
   draft. Respond in-thread or just push fixes — it re-reviews

@@ -332,9 +332,9 @@ The short version for contributors:
   every fix is what turned #643 into 14 review rounds.
 - **Know when to stop fixing.** The autonomous loop stops after `MAX_ITERATIONS` fix rounds
   (`claude-pr-loop.yml` sets it), pauses, and labels the PR `ai-loop-paused` for a human. Give
-  a hand-driven PR the same stopping point. Once a file has been round-tripped that many times
-  and what is left is wording rather than behaviour, reply once naming the findings you are
-  leaving and why, then take the PR to human review. The reviewers keep reviewing; what changes
+  a hand-driven PR the same stopping point. Once the PR has been through that many rounds and
+  what is left is wording rather than behaviour, reply once naming the findings you are leaving
+  and why, then take the PR to human review. The reviewers keep reviewing; what changes
   is that you stop treating every finding as blocking. A finding that names a defect in
   behaviour still earns another round.
 - **A PR based on another PR's branch gets no automatic CodeRabbit review.** It auto-reviews
