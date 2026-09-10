@@ -99,8 +99,8 @@ Rules that keep components consistent:
 - **Set `displayName`** on `forwardRef` components (needed for tests and Storybook autodocs).
 - **A polymorphic `as` means the props and the ref follow it.** If `as` accepts any
   `React.ElementType`, do not pin the props to one element — split them into a
-  `<Name>OwnProps` interface and intersect it with `ComponentPropsWithoutRef<T>`, then cast
-  the `forwardRef` result to `PolymorphicComponent<<Name>OwnProps, 'default-tag'>`
+  `FooOwnProps` interface and intersect it with `ComponentPropsWithoutRef<T>`, then cast
+  the `forwardRef` result to `PolymorphicComponent<FooOwnProps, 'default-tag'>`
   (`src/helpers/polymorphic.ts`). `Button.tsx` is the reference. Pinning the props instead
   rejects correct code and accepts incorrect code at the same time, which is what #641 fixed
   across eight components. Constrain `as` to a literal union instead (`Title.tsx`) when only a
