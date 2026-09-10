@@ -149,8 +149,10 @@ green and every AI review thread is resolved.
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
-  PR to run the Claude deep review on it (re-applying the label re-runs it; a
-  `deep-review:`-prefixed PR comment from a triage+ user pre-steers its focus). Its output
+  PR to run the Claude deep review on it. Re-applying the label settles that review's own
+  open threads and raises nothing new — it does not review the commits pushed since, so a
+  steer comment starting `deep-review: fresh` is what asks for a full review of the current
+  code. A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
