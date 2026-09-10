@@ -188,7 +188,7 @@ export interface NavbarItemOwnProps extends Omit<
  * follow `as`: rendering as a router link accepts that component's props (`to`
  * and friends) by inference, and `as="span"` rejects `href`.
  *
- * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type NavbarItemProps<T extends React.ElementType = 'a'> =
   NavbarItemOwnProps &
@@ -470,7 +470,7 @@ export interface NavbarLinkOwnProps extends Omit<
  * follow `as`: `as="button"` accepts the button attributes and a button ref,
  * and `as="span"` rejects `href`, `target` and `rel`.
  *
- * @extraProp {React.Ref<Element>} [ref] - Ref forwarded to the element `as` renders.
+ * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type NavbarLinkProps<T extends React.ElementType = 'a'> =
   NavbarLinkOwnProps &
