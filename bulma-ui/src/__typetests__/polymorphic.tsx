@@ -110,6 +110,18 @@ export const derived: DerivedButtonProps = {
   totallyBogus: true,
 };
 
+// The same derivation guard for the ref-less variant. `Reveal` is cast through
+// `PolymorphicComponentWithoutRef`, whose second overload exists for exactly
+// this and is otherwise exercised by nothing — so it could regress to `any`
+// with every gate green.
+type DerivedRevealProps = React.ComponentProps<typeof Reveal>;
+export const derivedReveal: DerivedRevealProps = {
+  animation: 'fade',
+  children: 'ok',
+  // @ts-expect-error a bogus key must not survive the derivation
+  totallyBogus: true,
+};
+
 // A wrapping HOC instantiates the type parameter and hands back one widened
 // prop type, so the checks stop at the wrapper. Inherent to the pattern; the
 // cast is the documented way back. Pinned here so the workaround cannot rot.
