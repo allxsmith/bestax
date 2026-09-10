@@ -196,7 +196,7 @@ export type NavbarItemProps<T extends React.ElementType = 'a'> =
       React.ComponentPropsWithoutRef<T>,
       keyof NavbarItemOwnProps | 'as' | 'color'
     > & {
-      /** Render as a custom component (e.g., a router link). */
+      /** Render as another intrinsic element (`'span'`, `'div'`) or a custom component (e.g. a router link). Defaults to `'a'`. */
       as?: T;
     };
 
@@ -478,7 +478,7 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
       React.ComponentPropsWithoutRef<T>,
       keyof NavbarLinkOwnProps | 'as' | 'color'
     > & {
-      /** Render as a custom component (default: 'a'). */
+      /** Render as another intrinsic element (`'button'`, `'span'`) or a custom component. Defaults to `'a'`. */
       as?: T;
     };
 

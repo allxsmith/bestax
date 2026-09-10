@@ -126,11 +126,21 @@ describe('Button Component', () => {
       render(
         // @ts-expect-error an anchor takes no formAction; a JS consumer can
         // still deliver one, and it must not reach the DOM.
-        <Button as="a" href="#" formAction="/x" data-testid="a">
+        <Button
+          as="a"
+          href="#"
+          formAction="/x"
+          data-testid="a"
+          {...({ disabled: true } as Record<string, unknown>)}
+        >
           Link
         </Button>
       );
-      expect(screen.getByTestId('a')).not.toHaveAttribute('formaction');
+      const link = screen.getByTestId('a');
+      expect(link).not.toHaveAttribute('formaction');
+      // An anchor owns neither filter's props, so it takes both. Scoping the
+      // submit-overrides to `as="a"` in an if/else let `disabled` back onto it.
+      expect(link).not.toHaveAttribute('disabled');
     });
 
     it('keeps the form attributes an input owns', () => {
@@ -151,6 +161,24 @@ describe('Button Component', () => {
       expect(input).toHaveAttribute('value', 'Search');
       expect(input).toHaveAttribute('type', 'submit');
       expect(input).toBeDisabled();
+    });
+
+    it('keeps the submit overrides on an input, which owns them', () => {
+      // These are withheld from an anchor, which is not a submit control. An
+      // `<input type="submit">` is one — scoping the two filters to a single
+      // if/else stripped them here and nothing caught it.
+      render(
+        <Button
+          as="input"
+          type="submit"
+          formAction="/search"
+          formMethod="post"
+          data-testid="i"
+        />
+      );
+      const input = screen.getByTestId('i');
+      expect(input).toHaveAttribute('formaction', '/search');
+      expect(input).toHaveAttribute('formmethod', 'post');
     });
 
     it('withholds disabled from an element that does not own it', () => {

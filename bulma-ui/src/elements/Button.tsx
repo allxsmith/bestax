@@ -206,6 +206,13 @@ export const Button = forwardRef(function Button(
     //
     // The elements that own `disabled`, per the HTML spec. A closed set, unlike
     // the open-ended question of which tag owns which attribute.
+    const SUBMIT_OVERRIDES = [
+      'formAction',
+      'formEncType',
+      'formMethod',
+      'formNoValidate',
+      'formTarget',
+    ];
     const OWNS_DISABLED = [
       'button',
       'fieldset',
@@ -216,24 +223,22 @@ export const Button = forwardRef(function Button(
       'textarea',
     ];
 
-    const {
-      formAction: _formAction,
-      formEncType: _formEncType,
-      formMethod: _formMethod,
-      formNoValidate: _formNoValidate,
-      formTarget: _formTarget,
-      disabled: _disabled,
-      ...withoutDisabled
-    } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
-
-    // Put `disabled` back for the elements that own it. The submit-overrides
-    // never come back: nothing on the anchor path is a submit control.
-    const forwardedRest: object =
-      typeof Component !== 'string'
-        ? rest
-        : OWNS_DISABLED.includes(Component)
-          ? { ...withoutDisabled, disabled: _disabled }
-          : withoutDisabled;
+    // Two independent filters. They are not exclusive — an `<a>` owns neither
+    // the submit-overrides nor `disabled`, so it takes both — and deriving them
+    // from one destructure, or from one if/else, is what broke each of them in
+    // turn: first the overrides came off every intrinsic (an `as="input"` lost
+    // `formAction`), then scoping them to the anchor let `disabled` back onto
+    // it.
+    const forwardedRest: Record<string, unknown> = { ...rest };
+    if (typeof Component === 'string') {
+      // Meaningless anywhere but a submit control, and an anchor is not one.
+      if (Component === 'a') {
+        for (const key of SUBMIT_OVERRIDES) delete forwardedRest[key];
+      }
+      // Visible via Bulma's `.button[disabled]`, so withheld from any element
+      // that does not own it.
+      if (!OWNS_DISABLED.includes(Component)) delete forwardedRest.disabled;
+    }
 
     return (
       <Component
