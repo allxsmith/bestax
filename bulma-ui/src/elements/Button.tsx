@@ -182,35 +182,58 @@ export const Button = forwardRef(function Button(
     // ours to pre-empt), and `type` on an anchor is the MIME hint that
     // `ButtonProps<'a'>` now types it as.
     //
-    // The types already answer this: `ButtonProps<T>` derives from
-    // `ComponentPropsWithoutRef<T>`, so a caller can only pass what the target
-    // accepts, and there is nothing left to strip for a well-typed call. What
-    // remains is a runtime backstop for JavaScript consumers and spread
-    // objects, and its job is only to keep genuinely invalid attributes off the
-    // DOM.
+    // The types already answer this for a TypeScript caller: `ButtonProps<T>`
+    // derives from `ComponentPropsWithoutRef<T>`, so only what the target
+    // accepts can be passed. What is left is a runtime backstop for JavaScript
+    // consumers and spread objects.
     //
-    // Enumerating that per tag is what kept going wrong — first all nine names
-    // from every non-button tag (so `<Button as="input" name="query"
-    // value="Search">` submitted nothing), then a hand-written form-control
+    // Keep it to the two cases where a stray attribute does something. The
+    // submit-overrides belong to a submit control and never make sense on the
+    // anchor path. `disabled` is the one that is VISIBLE: Bulma styles
+    // `.button[disabled]` (background, border, shadow, opacity), so letting it
+    // through to a `<span>` greys the element out — main stripped it, and not
+    // stripping it would be a silent visual change on a types-only release.
+    //
+    // Everything else (`name`, `value`, `form`) is inert where it does not
+    // belong, and enumerating which tags own it is what kept going wrong:
+    // first all nine names on every non-button tag (so `<Button as="input"
+    // name="query" value="Search">` submitted nothing), then a form-control
     // allowlist that still lost `formAction` on an input and `value` on an
-    // option. Both were guesses about a table React already has.
+    // option. Those now ride on the types instead.
     //
-    // So the backstop is now narrow: only the submit-overrides, and only on an
-    // anchor, which is the case the anchor path is actually for. Everything
-    // else reaches the element, where React drops an unknown attribute with a
-    // console warning rather than silently losing data. A custom component is
-    // untouched — it owns its prop contract.
+    // A custom component is exempt entirely — it owns its prop contract, and
+    // `ComponentPropsWithoutRef<T>` promises the caller its props arrive.
+    //
+    // The elements that own `disabled`, per the HTML spec. A closed set, unlike
+    // the open-ended question of which tag owns which attribute.
+    const OWNS_DISABLED = [
+      'button',
+      'fieldset',
+      'input',
+      'optgroup',
+      'option',
+      'select',
+      'textarea',
+    ];
+
     const {
       formAction: _formAction,
       formEncType: _formEncType,
       formMethod: _formMethod,
       formNoValidate: _formNoValidate,
       formTarget: _formTarget,
-      ...withoutSubmitOverrides
+      disabled: _disabled,
+      ...withoutDisabled
     } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-    const forwardedRest =
-      Component === 'a' ? withoutSubmitOverrides : (rest as object);
+    // Put `disabled` back for the elements that own it. The submit-overrides
+    // never come back: nothing on the anchor path is a submit control.
+    const forwardedRest: object =
+      typeof Component !== 'string'
+        ? rest
+        : OWNS_DISABLED.includes(Component)
+          ? { ...withoutDisabled, disabled: _disabled }
+          : withoutDisabled;
 
     return (
       <Component

@@ -153,6 +153,23 @@ describe('Button Component', () => {
       expect(input).toBeDisabled();
     });
 
+    it('withholds disabled from an element that does not own it', () => {
+      // Bulma styles `.button[disabled]` — background, border, shadow and
+      // opacity — so a stray `disabled` on a span is a VISIBLE change, not an
+      // inert attribute. The types reject it; this is the backstop for a
+      // JavaScript consumer or a spread object.
+      render(
+        <Button
+          as="span"
+          data-testid="s"
+          {...({ disabled: true } as Record<string, unknown>)}
+        >
+          S
+        </Button>
+      );
+      expect(screen.getByTestId('s')).not.toHaveAttribute('disabled');
+    });
+
     it('keeps form and disabled on another form-capable target', () => {
       render(
         <Button as="fieldset" form="signup" disabled data-testid="f">
