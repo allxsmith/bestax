@@ -337,11 +337,11 @@ The short version for contributors:
   leaving and why, then take the PR to human review. The reviewers keep reviewing; what changes
   is that you stop treating every finding as blocking. A finding that names a defect in
   behaviour still earns another round.
-- **A PR based on another PR's branch loses its automatic reviews.** CodeRabbit auto-reviews
-  only the base branches listed in `.coderabbit.yaml`, and the deep review cannot run on a
-  branch whose copy of `claude-review.yml` differs from the default branch's. Ask for what you
-  want on an upper PR, and prefer landing a stack one PR at a time — the docs guide has the
-  detail.
+- **A PR based on another PR's branch gets no automatic CodeRabbit review.** It auto-reviews
+  only the base branches listed in `.coderabbit.yaml`; ask for one with `@coderabbitai review`.
+  The deep review turns on its own condition — a branch whose copy of `claude-review.yml`
+  differs from the default branch's does not get one — so an upper PR carrying a workflow change
+  can lose both. Prefer landing a stack one PR at a time; the docs guide has the detail.
 - **PR titles must be scoped conventional commits** — the title becomes the squash commit and
   drives semantic-release (see [Commit Message Guidelines](#commit-message-guidelines)).
 
