@@ -74,6 +74,16 @@ export const accepted = (
     </Menu.Item>
 
     <Avatar name="Ada" href="https://example.com" />
+    {/* Avatar's element is conditional — `href` with no `as` renders an `<a>`,
+        otherwise a `<figure>`. The `'figure'` default resolves the ref to an
+        `HTMLElement` one, which accepts either, so both cases are checked
+        without the caller having to state `as`. */}
+    <Avatar
+      name="Ada"
+      href="https://example.com"
+      ref={React.createRef<HTMLAnchorElement>()}
+    />
+    <Avatar name="Ada" ref={React.createRef<HTMLElement>()} />
     <Avatar name="Ada" as="button" type="button" />
 
     <Reveal as="section" id="s" />
