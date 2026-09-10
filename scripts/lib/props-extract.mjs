@@ -1318,20 +1318,6 @@ function pickRootClass(name, candidates) {
 }
 
 /**
- * Extract everything an API page needs for one component.
- *
- * @param {string} name    Exported component name (the page's frontmatter title).
- * @param {object} [opts]
- * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
- * @param {boolean} [opts.markdown=true] Render cells for a markdown table —
- *   backticked types, page-relative links for the shared value unions, and a
- *   `**Deprecated.**` prefix folded into the description. Pass `false` for a
- *   structured consumer (the MCP index): plain type text, and `deprecated` /
- *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
- *   so the docs generator's output is unaffected.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
- */
-/**
  * The loud-failure message for a component whose props type could not be named,
  * or null when there is nothing wrong.
  *
@@ -1352,6 +1338,20 @@ export function unnameablePropsError(impl, ifaceName, fn) {
   );
 }
 
+/**
+ * Extract everything an API page needs for one component.
+ *
+ * @param {string} name    Exported component name (the page's frontmatter title).
+ * @param {object} [opts]
+ * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
+ * @param {boolean} [opts.markdown=true] Render cells for a markdown table —
+ *   backticked types, page-relative links for the shared value unions, and a
+ *   `**Deprecated.**` prefix folded into the description. Pass `false` for a
+ *   structured consumer (the MCP index): plain type text, and `deprecated` /
+ *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
+ *   so the docs generator's output is unaffected.
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
+ */
 export function extractComponent(
   name,
   { depth = 1, _depth = 0, markdown = true } = {}
