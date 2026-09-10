@@ -103,8 +103,12 @@ Rules that keep components consistent:
   the `forwardRef` result to `PolymorphicComponent<FooOwnProps, 'default-tag'>`
   (`src/helpers/polymorphic.ts`). `Button.tsx` is the reference. Pinning the props instead
   rejects correct code and accepts incorrect code at the same time, which is what #641 fixed
-  across eight components. Constrain `as` to a literal union instead (`Title.tsx`) when only a
-  few tags make sense — then no generic is needed.
+  across eight components. A literal union (`Title.tsx`) escapes the generic only when its
+  members genuinely **share** a prop and ref surface — `h1`–`h6` and `p` all carry plain
+  `HTMLAttributes`, so one interface describes them all. It is not a general exemption:
+  `Dropdown.Item`'s `'a' | 'div' | 'button'` differ in `href`, `disabled`, `type` and their ref
+  element, and pinning them to one interface reproduces exactly this defect (#663). When the
+  members differ, constrain `T` to the union rather than dropping the generic.
 - **Element sizing uses an inline `'small' | 'medium' | 'large'` union**, mapped to `is-small` /
   `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`
   constant — that one is `'0'…'6' | 'auto'` and exists for **spacing** helpers, not element size.

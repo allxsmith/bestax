@@ -39,7 +39,7 @@ export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
     React.ComponentPropsWithoutRef<T>,
     keyof LinkOwnProps | 'as' | 'color'
   > & {
-    /** Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
+    /** Render as another intrinsic element (`'span'`, `'button'`) or a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
     as?: T;
   };
 
