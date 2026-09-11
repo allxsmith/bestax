@@ -551,8 +551,17 @@ export const NavbarLink = forwardRef(function NavbarLink(
   const hasHref = rest.href !== undefined;
   const isNativeInteractive = Component === 'button' || hasHref;
 
+  // Guarded like Button's disabled blocker: these run on whatever `as` renders,
+  // and a custom target's callback need not take a DOM event. One declaring
+  // `onKeyDown: (k: {key: string}) => void` reaches `e.preventDefault()` and
+  // throws. Composing the caller's handler is unconditional; acting on the
+  // event is not ours to do when the payload is foreign.
+  const isDomEvent = (e: unknown): e is { preventDefault: () => void } =>
+    typeof (e as { preventDefault?: unknown })?.preventDefault === 'function';
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
     rest.onKeyDown?.(e);
+    if (!isDomEvent(e)) return;
     if (!dropdownContext || e.defaultPrevented) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -570,6 +579,7 @@ export const NavbarLink = forwardRef(function NavbarLink(
   // click semantics (navigation / the caller's handler).
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     rest.onClick?.(e);
+    if (!isDomEvent(e)) return;
     if (!dropdownContext || isNativeInteractive || e.defaultPrevented) return;
     dropdownContext.toggle();
   };

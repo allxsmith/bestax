@@ -1,7 +1,10 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import type { PolymorphicComponent } from '../helpers/polymorphic';
+import {
+  isCustomElement,
+  type PolymorphicComponent,
+} from '../helpers/polymorphic';
 
 const avatarColors = [
   'primary',
@@ -265,11 +268,13 @@ export const Avatar = forwardRef(function Avatar(
   const isInteractive =
     Tag === 'a' ||
     Tag === 'button' ||
+    isCustomElement(Tag) ||
     (typeof Tag !== 'string' && href != null);
 
   // Only forward link attributes when rendering an anchor or a custom (non-DOM)
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
-  const isLinkLike = Tag === 'a' || typeof Tag !== 'string';
+  const isLinkLike =
+    Tag === 'a' || typeof Tag !== 'string' || isCustomElement(Tag);
   const linkProps = isLinkLike ? { href, target, rel } : {};
 
   // alt coalesces with ?? (not ||) so an explicit alt="" survives as the
