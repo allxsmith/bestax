@@ -99,6 +99,8 @@ errors. The recurring cases:
 | Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                    |
 | `Pagination` extras (`delta`, custom labels, …)   | bestax Pagination windows itself; render conditionally instead of `autoHide`                               |
 | `Modal closeOnBlur/showClose`                     | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself               |
+| `renderAs` outside a narrowed `as`                | several bestax components render only certain tags — wrap the component in the element you wanted          |
+| `href` beside a non-anchor `renderAs`             | bestax types `href` onto an `<a>` only — drop the `renderAs` where the link was the point                  |
 
 :::tip Let an agent do the follow-up
 The [`bestax-migrate` skill](/docs/skills/migrate) packages this whole workflow — codemod run,
