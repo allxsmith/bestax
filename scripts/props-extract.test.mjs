@@ -144,10 +144,21 @@ test('`as` renders its constraint, not the bare type parameter', () => {
   }
   for (const [component] of POLYMORPHIC) {
     for (const t of extractComponent(component, { markdown: false }).tables) {
-      for (const r of t.rows) {
+      // `extraProps` too, not just `rows`: every polymorphic `ref` is emitted
+      // through an `@extraProp`, so scanning only `rows` let
+      // `PolymorphicRef<T>` reach the page with `T` declared nowhere on it —
+      // the exact bare-type-parameter problem this asserts against.
+      for (const r of [...(t.rows ?? []), ...(t.extraProps ?? [])]) {
         assert.ok(
           !/^[A-Z]$/.test(r.type),
           `${t.path}.${r.name} rendered a bare type parameter: ${r.type}`
+        );
+        // Nor one nested inside a generic — `PolymorphicRef<T>` names `T`,
+        // which no API page declares, so a reader meets an identifier with
+        // nowhere to look it up.
+        assert.ok(
+          !/\b[A-Z]\b(?![\w<])/.test(r.type.replace(/[A-Z]\w+/g, '')),
+          `${t.path}.${r.name} names an undeclared type parameter: ${r.type}`
         );
       }
     }

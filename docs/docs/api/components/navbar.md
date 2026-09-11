@@ -532,7 +532,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Text color for the item.                                                                                                                      |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Background color for the item.                                                                                                                |
 | `children`  | `React.ReactNode`                                                                                   | —       | Navbar item content.                                                                                                                          |
-| `ref`       | `PolymorphicRef<T>`                                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes. |
+| `ref`       | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes. |
 | `...`       | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                             |
 
 ### Navbar.Link
@@ -545,7 +545,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Text color.                                                                                                                                   |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Background color.                                                                                                                             |
 | `children`  | `React.ReactNode`                                                                                   | —       | Link content.                                                                                                                                 |
-| `ref`       | `PolymorphicRef<T>`                                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes. |
+| `ref`       | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes. |
 | `...`       | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                             |
 
 ### Navbar.Burger

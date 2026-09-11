@@ -147,7 +147,7 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
  * actually renders, and the anchor props it can additionally take are declared
  * above.
  *
- * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
+ * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type AvatarProps<T extends React.ElementType = 'figure'> =
   AvatarOwnProps &

@@ -322,7 +322,7 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "PolymorphicRef<T>",
+          "type": "PolymorphicRef<React.ElementType>",
           "default": null,
           "description": "Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.",
           "required": false,
@@ -498,7 +498,7 @@
       "extraProps": [
         {
           "name": "ref",
-          "type": "PolymorphicRef<T>",
+          "type": "PolymorphicRef<React.ElementType>",
           "default": null,
           "description": "Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.",
           "required": false,

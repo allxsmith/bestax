@@ -77,7 +77,7 @@ export interface ButtonOwnProps extends Omit<
  * `as`: with `as="a"` the anchor attributes are accepted, with `as="div"` they
  * are not.
  *
- * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
+ * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type ButtonProps<T extends React.ElementType = 'button'> =
   ButtonOwnProps &

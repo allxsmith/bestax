@@ -242,7 +242,7 @@ Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](http
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Background color helper.                                                                                                                      |
 | `isActive`  | `boolean`                                                                                           | `false` | Whether the link appears active.                                                                                                              |
 | `children`  | `React.ReactNode`                                                                                   | —       | Content to render inside the link.                                                                                                            |
-| `ref`       | `PolymorphicRef<T>`                                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes. |
+| `ref`       | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes. |
 | `...`       | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                             |
 
 <!-- /bestax:generated props -->
