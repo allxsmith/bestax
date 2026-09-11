@@ -268,8 +268,7 @@ export const Avatar = forwardRef(function Avatar(
   const isInteractive =
     Tag === 'a' ||
     Tag === 'button' ||
-    isCustomElement(Tag) ||
-    (typeof Tag !== 'string' && href != null);
+    ((typeof Tag !== 'string' || isCustomElement(Tag)) && href != null);
 
   // Only forward link attributes when rendering an anchor or a custom (non-DOM)
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
