@@ -23,6 +23,13 @@ export interface LinkOwnProps extends Omit<
    * @internal
    */
   color?: never;
+  /**
+   * Not accepted under this name. `useBulmaClasses` consumes any
+   * `backgroundColor` key before `rest` is spread, so a custom `as` target
+   * declaring one would never receive it. Use `bgColor`.
+   * @internal
+   */
+  backgroundColor?: never;
   /** Additional CSS classes to apply. */
   className?: string;
   /** Text color helper. */

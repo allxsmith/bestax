@@ -15,6 +15,13 @@ export interface ButtonOwnProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor' | 'size'
 > {
+  /**
+   * Not accepted under this name. `useBulmaClasses` consumes any
+   * `backgroundColor` key before `rest` is spread, so a custom `as` target
+   * declaring one would never receive it. Use `bgColor`.
+   * @internal
+   */
+  backgroundColor?: never;
   /** Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. */
   color?:
     | 'primary'

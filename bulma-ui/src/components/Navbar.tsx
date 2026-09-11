@@ -179,6 +179,13 @@ export interface NavbarItemOwnProps extends Omit<
    * @internal
    */
   color?: never;
+  /**
+   * Not accepted under this name. `useBulmaClasses` consumes any
+   * `backgroundColor` key before `rest` is spread, so a custom `as` target
+   * declaring one would never receive it. Use `bgColor`.
+   * @internal
+   */
+  backgroundColor?: never;
   /** Additional CSS classes. */
   className?: string;
   /** Whether the item is active. */
@@ -466,6 +473,13 @@ export interface NavbarLinkOwnProps extends Omit<
    * @internal
    */
   color?: never;
+  /**
+   * Not accepted under this name. `useBulmaClasses` consumes any
+   * `backgroundColor` key before `rest` is spread, so a custom `as` target
+   * declaring one would never receive it. Use `bgColor`.
+   * @internal
+   */
+  backgroundColor?: never;
   /** Additional CSS classes. */
   className?: string;
   /** Remove the dropdown arrow indicator. */
