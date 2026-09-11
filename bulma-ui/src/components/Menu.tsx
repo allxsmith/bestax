@@ -165,7 +165,7 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
  * and the other anchor attributes, and with `as={Link}` it means that
  * component's own props.
  *
- * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
+ * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type MenuItemProps<T extends React.ElementType = 'a'> =
   MenuItemOwnProps &

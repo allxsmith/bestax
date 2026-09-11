@@ -47,7 +47,7 @@ export interface LinkOwnProps extends Omit<
  * `as`: with the default `'a'` the anchor attributes (`href`, `target`, `rel`)
  * are accepted, with `as="span"` they are not.
  *
- * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
+ * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
 export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
   Omit<React.ComponentPropsWithoutRef<T>, keyof LinkOwnProps | 'as'> & {
