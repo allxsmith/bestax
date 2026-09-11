@@ -25,6 +25,7 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
   collectBoundNames,
   makeAliasRegistry,
@@ -536,6 +537,10 @@ export default function transform(
       }
     }
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
+
+    // Last: bestax's props follow `as`, so the element decides which of the
+    // props just written it can actually take.
+    enforcePolymorphicProps(ctx, path, element, target);
   });
 
   // ---- 2b. Value references to RBC components ---------------------------

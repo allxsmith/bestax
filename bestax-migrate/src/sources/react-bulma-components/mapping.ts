@@ -320,6 +320,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
           value: {
             todo: 'bestax Dropdown.Item has no value prop; use onClick and your own state',
           },
+          href: {
+            todo: 'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
+          },
         },
       },
       Divider: { status: 'mapped', target: 'Dropdown.Divider' },

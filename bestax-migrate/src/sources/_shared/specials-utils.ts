@@ -357,6 +357,21 @@ export function makeStructuralHelpers(strip: AttrStrip) {
     where: string
   ): SpecialResult {
     const merged = mergeClassName(ctx, path, element, className, where);
+    // An `href` only belongs on the anchor. The source component put it on
+    // whatever tag it rendered, where the browser ignored it; a plain element
+    // is typed as itself, so carrying it here is a type error for an
+    // attribute that never navigated anywhere.
+    const href = tag === 'a' ? undefined : findAttr(element, 'href');
+    if (href) {
+      removeAttr(element, href);
+      addTodo(
+        ctx,
+        path,
+        'prop:href',
+        `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside`
+      );
+      ctx.dirty = true;
+    }
     const kept = new Set(strip(ctx, path, attributesOf(element), where));
     // Spread attributes pass through untouched, in their original places:
     // they are the caller's own props, and a plain element takes them as

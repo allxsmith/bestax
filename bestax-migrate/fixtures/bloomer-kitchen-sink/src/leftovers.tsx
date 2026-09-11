@@ -19,6 +19,7 @@ import {
   Icon,
   Input,
   Media,
+  MenuLink,
   Nav,
   NavItem,
   NavLeft,
@@ -72,6 +73,12 @@ export const Leftovers = ({
         </DropdownContent>
       </DropdownMenu>
     </Dropdown>
+
+    {/* bestax narrows `as` on these, and a <span> is not in either union */}
+    <Media tag="span">span media</Media>
+    <MenuLink href="/x" tag="span">
+      an href bloomer put on the span it rendered
+    </MenuLink>
 
     {/* no bestax prop for these Bulma modifiers */}
     <Columns isGrid>

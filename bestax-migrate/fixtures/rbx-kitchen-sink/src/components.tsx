@@ -33,7 +33,9 @@ export const Components = () => (
     </Breadcrumb>
     <Level breakpoint="mobile">
       <Level.Item align="left">Left</Level.Item>
-      <Level.Item>Middle</Level.Item>
+      <Level.Item as="a" href="/middle">
+        Middle
+      </Level.Item>
       <Level.Item align="right">Right</Level.Item>
     </Level>
     <Media>
@@ -44,7 +46,9 @@ export const Components = () => (
     <Menu>
       <Menu.Label>Menu</Menu.Label>
       <Menu.List>
-        <Menu.List.Item active>Active</Menu.List.Item>
+        <Menu.List.Item active as="a" href="/active">
+          Active
+        </Menu.List.Item>
         <Menu.List.Item>Other</Menu.List.Item>
       </Menu.List>
     </Menu>
@@ -70,7 +74,9 @@ export const Components = () => (
       </Navbar.Brand>
       <Navbar.Menu>
         <Navbar.Segment align="start">
-          <Navbar.Item active>Start</Navbar.Item>
+          <Navbar.Item active as="a" href="/start">
+            Start
+          </Navbar.Item>
           <Navbar.Divider />
         </Navbar.Segment>
         <Navbar.Segment align="end">

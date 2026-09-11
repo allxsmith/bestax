@@ -51,6 +51,27 @@ bestax's `<File>` renders the whole Bulma structure itself, so `File.Label`, `Fi
 rbx puts `as` on everything; bestax does not. Either render the tag directly, or restructure.
 See the `as` section of [prop-map.md](prop-map.md) for the components that do accept it.
 
+The same rule fires a second way: several bestax components accept `as` but narrow it to the
+tags Bulma's markup allows there, so a literal outside that union (`<Control as="span">`,
+`<Media as="section">`) is dropped and named. The TODO lists the tags that component renders.
+
+## `prop:href` — a link needs the anchor
+
+bestax gives an element the attributes of the tag `as` names, so an `href` only belongs where
+that tag is an `<a>`. rbx let the two disagree, and the browser ignored the result:
+`<Menu.List.Item as="span" href="/x">` rendered a `<span>` that navigated nowhere.
+
+The codemod keeps the element you asked for and drops the attribute that did nothing:
+
+```jsx
+<Menu.List.Item as="span" href="/x">Home</Menu.List.Item>
+<Menu.Item as="span">Home</Menu.Item>
+```
+
+If the link was the point, drop the `as` — `Menu.Item`, `Navbar.Item`, `Navbar.Link` and
+`Panel.Block` all render an `<a>` by default, and `Button` and `Level.Item` take `as="a"`.
+`Dropdown.Item` declares no `href` at any `as`: navigate in `onClick`, or put an `<a>` inside.
+
 ## `component:Generic` — rbx's base element
 
 `Generic` is rbx's untyped passthrough. Render the underlying tag, and move its helper props to

@@ -14,6 +14,8 @@ import {
   Element,
   Heading,
   Hero,
+  Media,
+  Menu,
   Modal,
   Pagination,
   Tile,
@@ -31,6 +33,11 @@ export function Leftovers() {
       <Button remove={isRemove} onClick={() => setIsRemove(true)}>
         Dynamic remove
       </Button>
+      {/* bestax narrows `as` here, and RBC put an href on the tag it rendered */}
+      <Media renderAs="section">Section media</Media>
+      <Menu.List.Item renderAs="span" href="/x">
+        An href on the span RBC rendered
+      </Menu.List.Item>
       <Tile kind="ancestor">
         <Tile kind="parent" vertical size={8}>
           <Tile kind="child">Tile child</Tile>

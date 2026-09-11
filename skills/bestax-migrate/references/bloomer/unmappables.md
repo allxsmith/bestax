@@ -108,6 +108,29 @@ Elsewhere, render the element you wanted directly, or move the bestax component 
 A dynamic `tag` on a component that becomes plain markup is flagged the same way — the plain
 element takes bloomer's default tag.
 
+## `prop:as` — a tag the component does not render
+
+Several bestax components accept `as` but narrow it to the tags Bulma's markup allows there, so
+a literal `tag` outside that union (`<Media tag="section">`, `<Control tag="span">`) becomes a
+`prop:as` TODO listing the tags that component does render. Wrap the component in the element
+you wanted, or restructure.
+
+## `prop:href` — a link needs the anchor
+
+bestax gives an element the attributes of the tag `as` names, so an `href` only belongs where
+that tag is an `<a>`. bloomer's `MenuLink`, `NavbarLink` and the components that become plain
+markup rendered their `tag` whatever `href` said, so `<MenuLink href="/x" tag="span">` really
+was a `<span href="/x">` — an attribute no browser acts on. The element stays, the dead
+attribute goes:
+
+```jsx
+<MenuLink href="/x" tag="span">Home</MenuLink>
+<Menu.Item as="span">Home</Menu.Item>
+```
+
+Drop the `tag` where the link was the point. On the components that switched to an `<a>` on
+`href` the codemod does that for you — see [prop-map.md](prop-map.md).
+
 ## `prop:render` — the render prop
 
 bloomer's `render` handed the computed props (`className` included) to your own renderer:
@@ -168,7 +191,8 @@ Each of these is left in place with a TODO:
 | `isAlign`                 | `TabList`                                                                          | set `align` on the `<Tabs>` — Bulma aligns the container                                |
 | `isGrid`                  | `Columns`                                                                          | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid` |
 | `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete`, `DropdownItem`                       | put an `<a>` inside, or handle it in `onClick`                                          |
-| `href={expr}` (dynamic)   | `Button`, `LevelItem` and the other components that switched to an `<a>` on `href` | bloomer decided the element at runtime; set `as` conditionally by hand                  |
+| `href` beside a `tag`     | `MenuLink`, `NavbarLink`, and anything that becomes plain markup                   | the tag bloomer rendered was no anchor, so the `href` did nothing; drop the `tag`       |
+| `href={expr}` (dynamic)   | `Button`, `LevelItem` and the other components that switched to an `<a>` on `href` | resolved to the anchor; render the other element by hand where the `href` is empty      |
 | `href`                    | `NavbarItem hasDropdown`                                                           | bestax's `Navbar.Dropdown` is the container; put the `href` on the `Navbar.Link` inside |
 | `isRatio` beside `isSize` | `Image`                                                                            | bestax's one `size` took the fixed size; restore the ratio if that was the point        |
 

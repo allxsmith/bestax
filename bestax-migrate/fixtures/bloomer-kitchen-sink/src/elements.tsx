@@ -34,7 +34,7 @@ export const Elements = () => (
     <Button isLoading isFullWidth isActive isHovered isFocused>
       Three
     </Button>
-    <Button href="/next" isColor="info">
+    <Button href="/next" tag="span" isColor="info">
       Next
     </Button>
     <Tag isColor="info" isSize="medium">
