@@ -219,16 +219,30 @@ function isWithSubComponents(ts, node) {
 }
 
 /**
- * Wrappers that pass a props type through unchanged. Each resolves to no local
- * declaration, so left alone each would satisfy the loud-failure guard's
- * `ifaceName` test and quietly render an empty table.
+ * Wrappers that pass a props type through unchanged, member for member. Each
+ * resolves to no local declaration, so left alone each would satisfy the
+ * loud-failure guard's `ifaceName` test and quietly render an empty table.
+ *
+ * `Partial` and `Required` are deliberately NOT here. They invert optionality,
+ * so unwrapping one would document the inner interface's own `required` flags —
+ * `Partial<XProps>` would list props as required that are not. They are
+ * recognised separately and rejected, because emitting a table that is wrong
+ * about requiredness is worse than refusing to emit one.
  */
 const TRANSPARENT_PROP_WRAPPERS =
-  /(^|\.)(PropsWithChildren|Readonly|Partial|Required|NonNullable)$/;
+  /(^|\.)(PropsWithChildren|Readonly|NonNullable)$/;
+
+/** Wrappers that rewrite optionality, which this extractor does not model. */
+const OPTIONALITY_MODIFIERS = /(^|\.)(Partial|Required)$/;
 
 /** Whether a type-reference name is one of those wrappers. Exported to test. */
 export function transparentPropWrapper(name) {
   return TRANSPARENT_PROP_WRAPPERS.test(name);
+}
+
+/** Whether a name rewrites optionality, which is refused rather than guessed. */
+export function optionalityModifier(name) {
+  return OPTIONALITY_MODIFIERS.test(name);
 }
 
 /**
@@ -243,12 +257,17 @@ export function transparentPropWrapper(name) {
  */
 export function unwrapPropsTypeName(ts, node) {
   let current = node;
-  while (transparentPropWrapper(current.typeName.getText())) {
+  for (;;) {
+    const name = current.typeName.getText();
+    // `Partial`/`Required` rewrite optionality this extractor does not model,
+    // so they resolve to nothing and the guard reports them — better than a
+    // table that is confidently wrong about which props are required.
+    if (optionalityModifier(name)) return null;
+    if (!transparentPropWrapper(name)) return name;
     const inner = current.typeArguments?.[0];
     if (!inner || !ts.isTypeReferenceNode(inner)) return null;
     current = inner;
   }
-  return current.typeName.getText();
 }
 
 /**

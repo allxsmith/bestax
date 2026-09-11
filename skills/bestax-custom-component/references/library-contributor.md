@@ -97,7 +97,7 @@ Rules that keep components consistent:
 - **Spread `rest`, not `props`**, onto the DOM node — `useBulmaClasses` has already stripped the
   helper props out of `rest`, so they don't leak to the DOM as invalid attributes.
 - **Set `displayName`** on `forwardRef` components (needed for tests and Storybook autodocs).
-- **A polymorphic `as` means the props and the ref follow it.** If `as` accepts any
+- **A polymorphic `as` means the props follow it, and usually the ref too.** If `as` accepts any
   `React.ElementType`, do not pin the props to one element — split them into a
   `FooOwnProps` interface and intersect it with `ComponentPropsWithoutRef<T>`, then cast
   the `forwardRef` result to `PolymorphicComponent<FooOwnProps, 'default-tag'>`
@@ -109,6 +109,12 @@ Rules that keep components consistent:
   `Dropdown.Item`'s `'a' | 'div' | 'button'` differ in `href`, `disabled`, `type` and their ref
   element, and pinning them to one interface reproduces exactly this defect (#663). When the
   members differ, constrain `T` to the union rather than dropping the generic.
+  Forward the ref unless the component owns the node it needs: `Reveal` observes
+  an element for scroll intersection and wraps a custom `as` in its own `div`,
+  so the element `as` names is not the one it holds — it uses
+  `PolymorphicComponentWithoutRef` and forwards none. That is the exception, not
+  a licence to skip refs; everything a consumer might focus or measure should
+  forward one.
 - **Element sizing uses an inline `'small' | 'medium' | 'large'` union**, mapped to `is-small` /
   `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`
   constant — that one is `'0'…'6' | 'auto'` and exists for **spacing** helpers, not element size.

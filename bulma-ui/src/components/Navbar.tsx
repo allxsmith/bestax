@@ -481,7 +481,9 @@ export interface NavbarLinkOwnProps extends Omit<
 /**
  * Props for the NavbarLink component. The DOM attributes and the `ref` both
  * follow `as`: `as="button"` accepts the button attributes and a button ref,
- * and `as="span"` rejects `href`, `target` and `rel`.
+ * and `as="span"` rejects `href` and `target`. Not `rel` — React declares it on
+ * `HTMLAttributes<T>`, so it is valid on every element, and rejecting it would
+ * mean diverging from React's own typing.
  *
  * @extraProp {PolymorphicRef<T>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */

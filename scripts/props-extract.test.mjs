@@ -21,6 +21,7 @@ import assert from 'node:assert/strict';
 import {
   extractComponent,
   transparentPropWrapper,
+  optionalityModifier,
   unnameablePropsError,
   unwrapPropsTypeName,
 } from './lib/props-extract.mjs';
@@ -253,8 +254,6 @@ test('a component whose props type cannot be named fails loudly', () => {
   for (const wrapper of [
     'React.PropsWithChildren',
     'Readonly',
-    'Partial',
-    'Required',
     'NonNullable',
   ]) {
     assert.equal(
@@ -271,10 +270,31 @@ test('a component whose props type cannot be named fails loudly', () => {
   });
   const fakeTs = { isTypeReferenceNode: n => Boolean(n && n.typeName) };
   assert.equal(
-    unwrapPropsTypeName(fakeTs, ref('Readonly', ref('Partial', ref('XProps')))),
+    unwrapPropsTypeName(
+      fakeTs,
+      ref('Readonly', ref('React.PropsWithChildren', ref('XProps')))
+    ),
     'XProps'
   );
   assert.equal(unwrapPropsTypeName(fakeTs, ref('XProps')), 'XProps');
+  // `Partial`/`Required` rewrite optionality, which this extractor does not
+  // model — unwrapping one would emit the inner interface's own `required`
+  // flags, documenting optional props as required. They resolve to nothing so
+  // the loud-failure guard reports them.
+  for (const modifier of ['Partial', 'Required']) {
+    assert.equal(optionalityModifier(modifier), true, modifier);
+    assert.equal(transparentPropWrapper(modifier), false, modifier);
+    assert.equal(
+      unwrapPropsTypeName(fakeTs, ref(modifier, ref('XProps'))),
+      null,
+      `${modifier}<XProps> must not resolve to XProps`
+    );
+  }
+  // Including nested under a genuinely transparent one.
+  assert.equal(
+    unwrapPropsTypeName(fakeTs, ref('Readonly', ref('Partial', ref('XProps')))),
+    null
+  );
   // No nameable inner type — the case the guard must reject.
   assert.equal(unwrapPropsTypeName(fakeTs, ref('Readonly', null)), null);
   assert.equal(
