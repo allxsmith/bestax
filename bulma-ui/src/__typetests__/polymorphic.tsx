@@ -207,6 +207,14 @@ export const rejected = (
     {/* @ts-expect-error Reveal forwards no ref */}
     <Reveal ref={React.createRef<HTMLDivElement>()} />
 
+    {/* Avatar always renders its own content — image, initials or icon — so
+        caller children would be replaced. Deriving them from `as` let a target
+        requiring `children` compel a value it then never received. (That the
+        same target is still satisfiable with children OMITTED is the optional-
+        own-prop shadowing in #665, not specific to Avatar.) */}
+    {/* @ts-expect-error Avatar accepts no children */}
+    <Avatar name="Ada">hello</Avatar>
+
     {/* Avatar is the one that already regressed here: defaulting its type
         parameter to the CONSTRAINT made `ComponentPropsWithoutRef` spread over
         every element and accept anything. Pinned by the compiler, not by the

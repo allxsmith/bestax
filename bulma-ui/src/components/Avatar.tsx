@@ -120,6 +120,14 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
   /** Inline styles, merged after the size style. */
   style?: React.CSSProperties;
+  /**
+   * Not accepted. Avatar always renders its own content — the image, the
+   * initials, or the icon — so anything a caller passed would be replaced. It
+   * is declared unavailable rather than derived from `as`, which would let a
+   * target requiring `children` compel a value it then never receives.
+   * @internal
+   */
+  children?: never;
 }
 
 /**
