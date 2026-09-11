@@ -2,7 +2,10 @@ import React, { createContext, forwardRef, useContext } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import type { PolymorphicComponent } from '../helpers/polymorphic';
+import {
+  isCustomElement,
+  type PolymorphicComponent,
+} from '../helpers/polymorphic';
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
@@ -211,7 +214,10 @@ export const MenuItem = forwardRef(function MenuItem(
   // The same rule Avatar applies through `isLinkLike` and Button through its
   // intrinsic-only strip. Before #641 `href` was an own prop re-applied only
   // for `as="a"`; deriving it from `as` must not quietly widen that.
-  const isLinkLike = Component === 'a' || typeof Component !== 'string';
+  const isLinkLike =
+    Component === 'a' ||
+    typeof Component !== 'string' ||
+    isCustomElement(Component);
   const { href: _href, ...withoutHref } = forwarded as { href?: string };
   const linkProps = isLinkLike ? forwarded : withoutHref;
   const itemClass = classNames(

@@ -1,6 +1,9 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import type { PolymorphicComponent } from '../helpers/polymorphic';
+import {
+  isCustomElement,
+  type PolymorphicComponent,
+} from '../helpers/polymorphic';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -237,7 +240,7 @@ export const Button = forwardRef(function Button(
     // `formAction`), then scoping them to the anchor let `disabled` back onto
     // it.
     const forwardedRest: Record<string, unknown> = { ...rest };
-    if (typeof Component === 'string') {
+    if (typeof Component === 'string' && !isCustomElement(Component)) {
       // Meaningless anywhere but a submit control, and an anchor is not one.
       if (Component === 'a') {
         for (const key of SUBMIT_OVERRIDES) delete forwardedRest[key];

@@ -220,6 +220,25 @@ describe('Button Component', () => {
       ).not.toThrow();
     });
 
+    it('leaves a custom element alone, props and all', () => {
+      // A custom element is an intrinsic STRING, so the built-in backstop
+      // caught it — but its props are whatever a consumer declared through
+      // `React.JSX.IntrinsicElements`, the way this package declares
+      // `<ion-icon>`. A hyphen is exact: HTML requires one in a custom element
+      // name and no built-in has one.
+      render(
+        <Button
+          as={'x-control' as never}
+          data-testid="x"
+          {...({ disabled: true, name: 'q' } as Record<string, unknown>)}
+        />
+      );
+      const el = screen.getByTestId('x');
+      expect(el.tagName.toLowerCase()).toBe('x-control');
+      expect(el).toHaveAttribute('disabled');
+      expect(el).toHaveAttribute('name', 'q');
+    });
+
     it('keeps form and disabled on another form-capable target', () => {
       render(
         <Button as="fieldset" form="signup" disabled data-testid="f">
