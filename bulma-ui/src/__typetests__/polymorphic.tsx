@@ -17,7 +17,7 @@ import { Avatar } from '../components/Avatar';
 import { Menu } from '../components/Menu';
 import { Navbar } from '../components/Navbar';
 import { Reveal } from '../components/Reveal';
-import { Button } from '../elements/Button';
+import { Button, type ButtonProps } from '../elements/Button';
 import { Link } from '../elements/Link';
 import { LinkButton } from '../elements/LinkButton';
 
@@ -118,6 +118,22 @@ export const unionAs = (
 // `ComponentProps<typeof Button>` must resolve to real props. With only a
 // generic call signature it instantiated at the constraint and collapsed to
 // `any`, so a consumer deriving their own prop type from ours lost every check.
+// The exported ALIAS does not distribute, unlike the component. `unionAs`
+// above passes through `PolymorphicComponent`/`PolymorphicProps`, which does,
+// so it does not cover this — a wrapper author reaching for `ButtonProps<T>`
+// gets stricter behaviour than the component they are wrapping.
+//
+// Pinned as a known limitation rather than left invisible: the alias cannot be
+// made distributive without the docs extractor losing most of the props table
+// (measured twice — Button falls from 19 rows to 2), so it needs the extractor
+// taught first. That is #667, and when it lands this directive stops being an
+// error and fails the build, which is the prompt to delete this block.
+export const aliasUnionLimitation: ButtonProps<'a' | 'button'> = {
+  as: 'a',
+  // @ts-expect-error #667 — the alias keeps only keys common to the union
+  href: '/x',
+};
+
 type DerivedButtonProps = React.ComponentProps<typeof Button>;
 export const derived: DerivedButtonProps = {
   color: 'primary',
