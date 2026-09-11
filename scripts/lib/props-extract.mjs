@@ -223,26 +223,35 @@ function isWithSubComponents(ts, node) {
  * resolves to no local declaration, so left alone each would satisfy the
  * loud-failure guard's `ifaceName` test and quietly render an empty table.
  *
- * `Partial` and `Required` are deliberately NOT here. They invert optionality,
- * so unwrapping one would document the inner interface's own `required` flags —
- * `Partial<XProps>` would list props as required that are not. They are
- * recognised separately and rejected, because emitting a table that is wrong
- * about requiredness is worse than refusing to emit one.
+ * Only two qualify. `Readonly` and `NonNullable` leave the member list and its
+ * optionality exactly as they found it, which is all a props table records.
  */
-const TRANSPARENT_PROP_WRAPPERS =
-  /(^|\.)(PropsWithChildren|Readonly|NonNullable)$/;
+const TRANSPARENT_PROP_WRAPPERS = /(^|\.)(Readonly|NonNullable)$/;
 
-/** Wrappers that rewrite optionality, which this extractor does not model. */
-const OPTIONALITY_MODIFIERS = /(^|\.)(Partial|Required)$/;
+/**
+ * Wrappers that DO change the table, and are refused rather than guessed at.
+ *
+ * `Partial` and `Required` invert optionality, so unwrapping one would document
+ * the inner interface's own `required` flags — `Partial<XProps>` listing props
+ * as required that are not.
+ *
+ * `PropsWithChildren` adds `children`, which unwrapping would drop: the
+ * synthesized `children` row only appears for a props type that inherits DOM
+ * attributes, so a table could lose the one prop the wrapper was added to
+ * provide. Every component here declares `children` on its own interface
+ * instead, so refusing this directs a contributor to the house convention
+ * rather than to a silently incomplete table.
+ */
+const UNSUPPORTED_PROP_WRAPPERS = /(^|\.)(Partial|Required|PropsWithChildren)$/;
 
 /** Whether a type-reference name is one of those wrappers. Exported to test. */
 export function transparentPropWrapper(name) {
   return TRANSPARENT_PROP_WRAPPERS.test(name);
 }
 
-/** Whether a name rewrites optionality, which is refused rather than guessed. */
-export function optionalityModifier(name) {
-  return OPTIONALITY_MODIFIERS.test(name);
+/** Whether a name changes the props table, and so is refused. Exported to test. */
+export function unsupportedPropWrapper(name) {
+  return UNSUPPORTED_PROP_WRAPPERS.test(name);
 }
 
 /**
@@ -259,10 +268,10 @@ export function unwrapPropsTypeName(ts, node) {
   let current = node;
   for (;;) {
     const name = current.typeName.getText();
-    // `Partial`/`Required` rewrite optionality this extractor does not model,
-    // so they resolve to nothing and the guard reports them — better than a
-    // table that is confidently wrong about which props are required.
-    if (optionalityModifier(name)) return null;
+    // A wrapper that changes the table resolves to nothing, so the guard
+    // reports it — better than a table that is confidently wrong about which
+    // props are required, or silently missing `children`.
+    if (unsupportedPropWrapper(name)) return null;
     if (!transparentPropWrapper(name)) return name;
     const inner = current.typeArguments?.[0];
     if (!inner || !ts.isTypeReferenceNode(inner)) return null;
