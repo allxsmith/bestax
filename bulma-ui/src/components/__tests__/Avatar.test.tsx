@@ -342,6 +342,24 @@ describe('Avatar', () => {
   });
 });
 
+describe('Custom element targets', () => {
+  it('keeps role="img" on a custom element with no href', () => {
+    // A custom element is not inherently interactive — it is a string tag with
+    // consumer-declared props, and without an href it is still a picture.
+    render(<Avatar as={'x-avatar' as never} name="Ada" data-testid="a" />);
+    expect(screen.getByTestId('a')).toHaveAttribute('role', 'img');
+  });
+
+  it('drops role="img" once the custom element has an href', () => {
+    render(
+      <Avatar as={'x-avatar' as never} href="/p" name="Ada" data-testid="a" />
+    );
+    const el = screen.getByTestId('a');
+    expect(el).not.toHaveAttribute('role', 'img');
+    expect(el).toHaveAttribute('href', '/p');
+  });
+});
+
 describe('Ref forwarding', () => {
   // Avatar gained ref forwarding with #641. The ref lands on the root element,
   // which `as` names — not on the inner <img>.

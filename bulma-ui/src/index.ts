@@ -113,7 +113,15 @@ export * from './grid/Cell';
 export * from './grid/Grid';
 
 export * from './helpers/classNames';
-export * from './helpers/polymorphic';
+// Types only, explicitly. A wildcard would also publish `isCustomElement`, and
+// everything exported here is public forever — an internal DOM-filtering detail
+// is not something to support for the life of the package.
+export type {
+  PolymorphicComponent,
+  PolymorphicComponentWithoutRef,
+  PolymorphicProps,
+  PolymorphicRef,
+} from './helpers/polymorphic';
 export * from './helpers/mergeBulmaStyles';
 export * from './helpers/useBulmaClasses';
 export * from './helpers/Theme';
