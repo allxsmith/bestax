@@ -21,7 +21,7 @@ import assert from 'node:assert/strict';
 import {
   extractComponent,
   transparentPropWrapper,
-  optionalityModifier,
+  unsupportedPropWrapper,
   unnameablePropsError,
   unwrapPropsTypeName,
 } from './lib/props-extract.mjs';
@@ -251,11 +251,7 @@ test('a component whose props type cannot be named fails loudly', () => {
   // A transparent wrapper must not evade it. Each of these resolves to no
   // local declaration, so returning the wrapper's own name would read as
   // resolved, skip the guard, and render an empty table.
-  for (const wrapper of [
-    'React.PropsWithChildren',
-    'Readonly',
-    'NonNullable',
-  ]) {
+  for (const wrapper of ['Readonly', 'NonNullable']) {
     assert.equal(
       transparentPropWrapper(wrapper),
       true,
@@ -272,17 +268,17 @@ test('a component whose props type cannot be named fails loudly', () => {
   assert.equal(
     unwrapPropsTypeName(
       fakeTs,
-      ref('Readonly', ref('React.PropsWithChildren', ref('XProps')))
+      ref('Readonly', ref('NonNullable', ref('XProps')))
     ),
     'XProps'
   );
   assert.equal(unwrapPropsTypeName(fakeTs, ref('XProps')), 'XProps');
-  // `Partial`/`Required` rewrite optionality, which this extractor does not
-  // model — unwrapping one would emit the inner interface's own `required`
-  // flags, documenting optional props as required. They resolve to nothing so
-  // the loud-failure guard reports them.
-  for (const modifier of ['Partial', 'Required']) {
-    assert.equal(optionalityModifier(modifier), true, modifier);
+  // A wrapper that changes the table is refused, not unwrapped: `Partial` and
+  // `Required` invert optionality (so the inner interface's own `required`
+  // flags would be wrong), and `PropsWithChildren` adds `children` that
+  // unwrapping would drop. All resolve to nothing so the guard reports them.
+  for (const modifier of ['Partial', 'Required', 'React.PropsWithChildren']) {
+    assert.equal(unsupportedPropWrapper(modifier), true, modifier);
     assert.equal(transparentPropWrapper(modifier), false, modifier);
     assert.equal(
       unwrapPropsTypeName(fakeTs, ref(modifier, ref('XProps'))),

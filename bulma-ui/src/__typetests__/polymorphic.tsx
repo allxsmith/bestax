@@ -199,6 +199,14 @@ export const rejected = (
     {/* @ts-expect-error a div takes no href */}
     <Reveal as="div" href="/x" />
 
+    {/* Reveal forwards NO ref, deliberately — it observes a node it owns, which
+        for a component `as` is a wrapper div rather than the element named. A
+        ref accepted here would sit at `null` forever. Nothing else pins this,
+        so a later consolidation onto `PolymorphicComponent` would go green
+        while silently accepting one. */}
+    {/* @ts-expect-error Reveal forwards no ref */}
+    <Reveal ref={React.createRef<HTMLDivElement>()} />
+
     {/* Avatar is the one that already regressed here: defaulting its type
         parameter to the CONSTRAINT made `ComponentPropsWithoutRef` spread over
         every element and accept anything. Pinned by the compiler, not by the
