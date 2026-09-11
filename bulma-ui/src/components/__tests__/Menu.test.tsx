@@ -282,6 +282,26 @@ describe('href routing', () => {
     expect(span).not.toHaveAttribute('href');
   });
 
+  it('forwards href to a custom element, which declares its own props', () => {
+    render(
+      <Menu>
+        <MenuList>
+          <MenuItem
+            as={'x-link' as never}
+            {...({ href: '/x' } as Record<string, unknown>)}
+            data-testid="li"
+          >
+            i
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    expect(screen.getByTestId('li').querySelector('x-link')).toHaveAttribute(
+      'href',
+      '/x'
+    );
+  });
+
   it('forwards href to a custom component, which owns its prop contract', () => {
     const Custom = ({
       href,

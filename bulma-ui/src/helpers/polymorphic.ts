@@ -1,6 +1,21 @@
 import type React from 'react';
 
 /**
+ * Whether an `as` target is a custom element rather than a built-in tag.
+ *
+ * HTML requires a custom element's name to contain a hyphen, and no built-in
+ * element name has one, so this is exact rather than a heuristic. It matters
+ * because a custom element is an intrinsic STRING — `typeof as === 'string'` is
+ * true — while its props are whatever a consumer declared through
+ * `React.JSX.IntrinsicElements`, the way this package declares `<ion-icon>`.
+ * A runtime backstop that filters built-in attributes must leave those alone,
+ * or it strips props the derived type just promised to forward.
+ */
+export function isCustomElement(as: unknown): as is string {
+  return typeof as === 'string' && as.includes('-');
+}
+
+/**
  * The ref type of whatever element `as` renders.
  *
  * Derived from `ComponentPropsWithRef` rather than `React.ComponentRef` so it
