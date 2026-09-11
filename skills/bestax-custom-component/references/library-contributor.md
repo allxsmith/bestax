@@ -101,7 +101,17 @@ Rules that keep components consistent:
   `React.ElementType`, do not pin the props to one element — split them into a
   `FooOwnProps` interface and intersect it with `ComponentPropsWithoutRef<T>`, then cast
   the `forwardRef` result to `PolymorphicComponent<FooOwnProps, 'default-tag'>`
-  (`src/helpers/polymorphic.ts`). `Button.tsx` is the reference. Pinning the props instead
+  (`src/helpers/polymorphic.ts`). `Button.tsx` is the reference.
+  **Write that intersection out in the alias; do not build it from
+  `PolymorphicProps<T, FooOwnProps>`.** The API-docs extractor walks heritage
+  syntactically, and it cannot see through a generic alias or a distributive
+  conditional — routing the alias through the helper drops most of the props
+  table without failing (#667). `PolymorphicProps` is for consumer and wrapper
+  types; `PolymorphicComponent<FooOwnProps, 'default-tag'>` is the cast target,
+  and `PolymorphicComponentWithoutRef` the one for a component that forwards no
+  ref. Add type-level checks in `src/__typetests__/` both ways — that the
+  default `as` accepts its element's props and a different `as` rejects them —
+  since nothing else in the repo type-checks this. Pinning the props instead
   rejects correct code and accepts incorrect code at the same time, which is what #641 fixed
   across eight components. A literal union (`Title.tsx`) escapes the generic only when its
   members genuinely **share** a prop and ref surface — `h1`–`h6` and `p` all carry plain
