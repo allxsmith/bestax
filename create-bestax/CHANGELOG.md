@@ -1,3 +1,28 @@
+## [4.2.8](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.7...create-bestax@4.2.8) (2026-09-11)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept no children on Avatar, rather than deriving them from `as` ([a8897d2](https://github.com/allxsmith/bestax/commit/a8897d29798fa4545e9c4c89c4280d53c328ab8d)), closes [#665](https://github.com/allxsmith/bestax/issues/665)
+* **bulma-ui:** apply the custom-element and event guards consistently ([cc8818c](https://github.com/allxsmith/bestax/commit/cc8818c98881a73fdca0b238bcb16bcc06633f49))
+* **bulma-ui:** declare backgroundColor unavailable, and check the whole class ([daf636a](https://github.com/allxsmith/bestax/commit/daf636a5e91d96d3920792651f118ad268ea18d1))
+* **bulma-ui:** keep stripping disabled where the element does not own it ([afd94a7](https://github.com/allxsmith/bestax/commit/afd94a72b739f22dffc0151de1cbe984acf1646b))
+* **bulma-ui:** keep the form attributes an `as="input"` owns ([3ae7bd8](https://github.com/allxsmith/bestax/commit/3ae7bd873f02a3471022537e1c5d35157d0409a6))
+* **bulma-ui:** leave custom elements out of the built-in attribute backstops ([94f6f48](https://github.com/allxsmith/bestax/commit/94f6f48e9fa476fa5f9755bd139aeb742b30b344))
+* **bulma-ui:** make props and refs follow the polymorphic `as` ([7528d87](https://github.com/allxsmith/bestax/commit/7528d87d995bfcdf21e33b5e25da9a3e1c2a0b34)), closes [#188](https://github.com/allxsmith/bestax/issues/188) [#641](https://github.com/allxsmith/bestax/issues/641)
+* **bulma-ui:** publish only the polymorphic types, and keep role="img" without an href ([b0c8dfe](https://github.com/allxsmith/bestax/commit/b0c8dfe11d5d44a044ff7de051224e5d3ecf3129))
+* **bulma-ui:** reject the LinkButton props Button eats, and split a conflated assertion ([b0c7a16](https://github.com/allxsmith/bestax/commit/b0c7a162f584a8ae442006f4815ffd7492175c8d))
+* **bulma-ui:** restore union `as`, and stop the props type collapsing to any ([dfec253](https://github.com/allxsmith/bestax/commit/dfec253473e743fdb562a7d4352f03bae0f081ee)), closes [#641](https://github.com/allxsmith/bestax/issues/641)
+* **bulma-ui:** scope the two attribute filters independently ([d132427](https://github.com/allxsmith/bestax/commit/d132427012be570331ce469e2b586fcb74f3cb20)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** stop Avatar widening to every element, and forward custom props ([74f452b](https://github.com/allxsmith/bestax/commit/74f452b30956f6a8efbad6ed91135b4a55124909)), closes [#661](https://github.com/allxsmith/bestax/issues/661) [#641](https://github.com/allxsmith/bestax/issues/641)
+* **bulma-ui:** stop guessing which attributes a target element owns ([9baafe9](https://github.com/allxsmith/bestax/commit/9baafe9eca9832946fad96186d33214b2e93c0fa)), closes [#641](https://github.com/allxsmith/bestax/issues/641)
+* **bulma-ui:** stop stripping attributes the target element accepts ([65800e8](https://github.com/allxsmith/bestax/commit/65800e8e85087ea0c17f30149f68c6f0975a9d34))
+* **bulma-ui:** stop the color exclusion reaching custom targets, and guard the disabled blocker ([3299b54](https://github.com/allxsmith/bestax/commit/3299b54088db6b25ec0cfbdc0ccb939c608faeec)), closes [#665](https://github.com/allxsmith/bestax/issues/665)
+* **bulma-ui:** stop the ref cells naming a type parameter no page declares ([5931850](https://github.com/allxsmith/bestax/commit/59318506589e18b7cfad4d3e6d953e514798e18f))
+* **bulma-ui:** the eight smaller defects review found in [#661](https://github.com/allxsmith/bestax/issues/661) ([a6df70f](https://github.com/allxsmith/bestax/commit/a6df70f308afdd6ea4d7e3e628c5a8fb60fd4e83))
+* **bulma-ui:** treat optionality modifiers as unsupported, and correct two contracts ([9ca5de9](https://github.com/allxsmith/bestax/commit/9ca5de982a165c4924fbaa0e2747ed1228906d50))
+* **create-bestax:** ship the polymorphic `as` guidance to scaffolded apps ([4aa322c](https://github.com/allxsmith/bestax/commit/4aa322c752fd0e04c3548f44720a4ccf557ca8b5)), closes [#641](https://github.com/allxsmith/bestax/issues/641)
+
 ## [4.2.7](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.6...create-bestax@4.2.7) (2026-09-07)
 
 
