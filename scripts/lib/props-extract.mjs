@@ -297,25 +297,25 @@ function propsInterfaceName(ts, inits, name) {
   const fn = componentFunction(ts, init);
   const paramType = fn?.parameters?.[0]?.type;
   if (paramType && ts.isTypeReferenceNode(paramType)) {
-    // `props: React.PropsWithChildren<XProps>` names the WRAPPER, which
-    // resolves to no local interface and would render an empty table while
-    // reading as a successfully-resolved name. Unwrap to the real props type.
+    // A wrapped props type — `Readonly<XProps>` — names the WRAPPER, which
+    // resolves to no local interface. Left alone that reads as a successfully
+    // resolved name, skips the loud-failure guard, and renders an empty table.
     //
-    // Every transparent wrapper, not just that one: `Readonly<XProps>` and
-    // `Partial<XProps>` evade the guard the same way, and a guard with a known
-    // bypass is not much of a guard. A wrapper NOT on this list keeps its own
-    // name, which is what preserves the intentional no-table cases — a sub
-    // whose props are an inline DOM type (`React.HTMLAttributes<HTMLHRElement>`
-    // on `NavbarDivider`) resolves a name with no local declaration and takes
-    // the `listOnly` path.
-    // Unwrap as many layers as there are: `Readonly<Partial<XProps>>` needs
-    // two, and stopping at one returns "Partial" — a truthy name with no local
-    // declaration, which is the silent `listOnly` degradation the guard exists
-    // to prevent.
+    // So the reference is peeled, and what happens depends on what it names:
     //
-    // `null` rather than the wrapper's name when the inner type has none:
-    // returning one reads as resolved and skips the guard. An inline or
-    // intersection argument is exactly the case worth failing on.
+    // - A transparent wrapper (`Readonly`, `NonNullable`) is peeled through,
+    //   repeatedly — `Readonly<NonNullable<XProps>>` takes two passes.
+    // - A wrapper that CHANGES the table (`Partial`, `Required`,
+    //   `PropsWithChildren`) resolves to null, so the guard reports it. The
+    //   first two invert optionality and the third adds `children`; unwrapping
+    //   any of them would emit a table that is confidently wrong.
+    // - Anything else keeps its own name. That is what preserves the
+    //   intentional no-table cases: a sub whose props are an inline DOM type
+    //   (`React.HTMLAttributes<HTMLHRElement>` on `NavbarDivider`) resolves a
+    //   name with no local declaration and takes the `listOnly` path.
+    // - An inner type with no name at all — inline, or an intersection —
+    //   resolves to null, which is the case worth failing on.
+    //
     return unwrapPropsTypeName(ts, paramType);
   }
 
