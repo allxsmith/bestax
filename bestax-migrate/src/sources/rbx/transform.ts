@@ -40,6 +40,7 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
   collectBoundNames,
   makeAliasRegistry,
@@ -698,6 +699,10 @@ export default function transform(
       }
     }
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
+
+    // Last: bestax's props follow `as`, so the element decides which of the
+    // props just written it can actually take.
+    enforcePolymorphicProps(ctx, path, element, target);
 
     // ---- 2a. badge/tooltip helper props → wrapping components ------------
     // Last, so the inner element is already fully migrated. Both families are

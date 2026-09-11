@@ -13,6 +13,8 @@ import {
   Highlight,
   Icon,
   List,
+  Media,
+  Menu,
   Modal,
   Numeric,
   Tile,
@@ -33,6 +35,12 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     <List>
       <List.Item active>item</List.Item>
     </List>
+
+    {/* bestax narrows `as` here, and rbx put an href on the tag it rendered */}
+    <Media as="section">section media</Media>
+    <Menu.List.Item as="span" href="/x">
+      an href on the span rbx rendered
+    </Menu.List.Item>
 
     {/* no bestax equivalents */}
     <Fieldset disabled>fields</Fieldset>

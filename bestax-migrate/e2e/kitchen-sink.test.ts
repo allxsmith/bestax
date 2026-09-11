@@ -213,6 +213,8 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('prop:remove');
     expect(rules).toContain('prop:subtitle');
     expect(rules).toContain('prop:heading');
+    expect(rules).toContain('prop:as');
+    expect(rules).toContain('prop:href');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),

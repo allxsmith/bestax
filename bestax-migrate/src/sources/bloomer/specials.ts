@@ -129,11 +129,15 @@ const join = (...parts: Array<string | undefined>): string | undefined => {
  * (and the Nav family). bestax's defaults differ per component, so this
  * keeps bloomer's markup for those either way:
  *
- * - with a literal `href`, a surviving `tag` (which the mapping turns into
- *   `as`) would undo the anchor on targets that already render one, so it is
- *   dropped; where the target defaults to something else, `as="a"` is set
- *   (`setAs`). A dynamic `href` was a runtime decision bloomer made and
- *   bestax cannot: it is flagged, not guessed;
+ * - with an `href` that has a value, the anchor is the element bloomer
+ *   rendered, so the `tag` beside it (which the mapping would turn into `as`)
+ *   is the branch that did not happen and goes; where the target defaults to
+ *   something other than an <a>, `as="a"` is set (`setAs`);
+ * - a dynamic `href` was a runtime decision bloomer made and bestax's `as` is
+ *   one element or the other. It resolves to the anchor, which is the branch
+ *   the `href` is there for, and the TODO names the element to restore for
+ *   the empty case. Keeping both would emit `href` beside a non-anchor `as`,
+ *   which the library does not type;
  * - without `href` or `tag`, a target that defaults to an <a> gets
  *   `as={bareAs}` so bloomer's <div> stays a <div>.
  */
@@ -160,26 +164,41 @@ function anchorWhenHref(
     ctx.dirty = true;
   }
   if (hrefAttr && !hrefFalsy) {
-    const literal = hrefLiteral!;
-    if (literal.kind === 'expression') {
-      addTodo(
-        ctx,
-        path,
-        'prop:href',
-        options.setAs
-          ? `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; set \`as="a"\` conditionally by hand${tagAttr ? ' (the `tag` beside it becomes `as`, which that conditional has to account for)' : ''}`
-          : `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; the bestax target renders an <a> already, so drop the \`href\` where it is empty${tagAttr ? ' — the `tag` beside it is flagged separately' : ''}`
-      );
-      return handled;
-    }
+    // The href wins the element. bloomer read `props.href ? 'a' : tag`, so a
+    // `tag` here is the branch that did not run — and an `as` already on the
+    // element is not bloomer's element choice at all (it took no such prop),
+    // so neither survives beside the anchor the `href` needs.
+    const tagValue = tagAttr ? literalValueOf(tagAttr) : undefined;
     if (tagAttr) {
       removeAttr(element, tagAttr);
       handled.push('tag');
       ctx.dirty = true;
     }
+    const asAttr = findAttr(element, 'as');
+    const asLiteral = asAttr ? literalValueOf(asAttr) : undefined;
+    if (asAttr && !(asLiteral?.kind === 'string' && asLiteral.value === 'a')) {
+      removeAttr(element, asAttr);
+      ctx.dirty = true;
+    }
     if (options.setAs && !findAttr(element, 'as')) {
       addAttr(element, makeAttr(ctx.j, 'as', 'a'));
       ctx.dirty = true;
+    }
+    if (hrefLiteral!.kind === 'expression') {
+      // Name the element that was dropped where the source named it: it is
+      // the half of bloomer's runtime choice this output no longer renders.
+      const other =
+        tagValue?.kind === 'string'
+          ? `a <${tagValue.value}>`
+          : options.bareAs
+            ? 'a <div>'
+            : 'its default tag';
+      addTodo(
+        ctx,
+        path,
+        'prop:href',
+        `bloomer chose the element at runtime — an <a> when \`href\` had a value, ${other} when it did not. bestax's \`as\` is one element or the other, and this is the anchor; render the other by hand where the \`href\` is empty`
+      );
     }
   } else if (options.bareAs && !tagAttr && !findAttr(element, 'as')) {
     addAttr(element, makeAttr(ctx.j, 'as', options.bareAs));

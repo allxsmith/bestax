@@ -245,6 +245,8 @@ describe('bloomer kitchen-sink e2e', () => {
       'component:DropdownContent',
       'component:Icon',
       'prop:tag',
+      'prop:as',
+      'prop:href',
       'prop:render',
       'prop:isGrid',
       'prop:hasAddons',

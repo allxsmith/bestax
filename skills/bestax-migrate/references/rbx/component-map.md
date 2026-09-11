@@ -98,7 +98,7 @@ test holds to rbx's own export surface in both directions.
 | `Navbar.Divider`           | `Navbar.Divider`      | mapped  |
 | `Navbar.Menu`              | `Navbar.Menu`         | mapped  |
 | `Navbar.Link`              | `Navbar.Link`         | mapped  |
-| `Navbar.Item`              | _structural_          | mapped  |
+| `Navbar.Item`              | `Navbar.Item`         | mapped  |
 | `Navbar.Item.Container`    | _structural_          | mapped  |
 | `Navbar.Dropdown`          | _structural_          | mapped  |
 | `Navbar.Segment`           | _structural_          | mapped  |

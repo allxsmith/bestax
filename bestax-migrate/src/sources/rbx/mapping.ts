@@ -532,7 +532,14 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Dropdown.Item',
         // `as` lives on DropdownItemProps ('a' | 'div' | 'button'), not on
         // the Dropdown root.
-        props: { as: AS_OK, active: {}, onClick: {} },
+        props: {
+          as: AS_OK,
+          active: {},
+          onClick: {},
+          href: {
+            todo: 'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
+          },
+        },
       },
       Divider: { status: 'mapped', target: 'Dropdown.Divider' },
       Context: {
@@ -702,6 +709,14 @@ export const MAPPING: Record<string, ComponentMapping> = {
         },
       },
       Item: {
+        // The `navbar-item` handler names a target only for the `dropdown`
+        // case; without one here the plain item resolved to no target at all,
+        // and `transform.ts` skips every prop pass for an element it cannot
+        // name — so `backgroundColor`/`marginless` on a plain `<Navbar.Item>`
+        // passed through as rbx wrote them while the same props on its
+        // `Navbar.Link` sibling migrated. The rename is a no-op (rbx and
+        // bestax spell it the same), which is why it looked right.
+        target: 'Navbar.Item',
         status: 'mapped',
         special: 'navbar-item',
         props: { active: {}, onClick: {}, as: AS_OK },
