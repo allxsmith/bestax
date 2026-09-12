@@ -334,6 +334,55 @@ export function restrictAsToTargets(
   ctx.dirty = true;
 }
 
+/**
+ * Strip the link attributes a plain element cannot carry.
+ *
+ * Exported because not every source reaches plain markup through
+ * `replaceWithPlain`: react-bulma-components builds six of its replacements
+ * by hand, and they bypassed this entirely -- `<Form.Help href="/x">` became
+ * `<p className="help" href="/x">`, which does not compile.
+ */
+export function dropLinkAttrsForPlainTag(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  tag: string,
+  where: string
+): void {
+  // An `href` only belongs on the anchor. The source component put it on
+  // whatever tag it rendered, where the browser ignored it; a plain element
+  // is typed as itself, so carrying it here is a type error for an attribute
+  // that never navigated anywhere.
+  const href = tag === 'a' ? undefined : findAttr(element, 'href');
+  if (href) {
+    const was = attrSource(ctx.j, href);
+    removeAttr(element, href);
+    addTodo(
+      ctx,
+      path,
+      'prop:href',
+      `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside${was ? ` — it read \`${was}\`` : ''}`
+    );
+    ctx.dirty = true;
+  }
+  // Its siblings are judged against the same tag, each on its own, so a
+  // `referrerPolicy` on an `<img>` survives.
+  for (const name of LINK_ATTRS) {
+    if (elementTakesLinkAttr(name, tag)) continue;
+    const attr = findAttr(element, name);
+    if (!attr) continue;
+    const was = attrSource(ctx.j, attr);
+    removeAttr(element, attr);
+    addTodo(
+      ctx,
+      path,
+      `prop:${name}`,
+      `${where} became a plain <${tag}>, which takes no \`${name}\`${was ? ` — it read \`${was}\`` : ''}; put it on an <a> inside, or change the element`
+    );
+    ctx.dirty = true;
+  }
+}
+
 /** Attribute filter a source applies before an element becomes plain HTML. */
 export type AttrStrip = (
   ctx: TransformContext,
@@ -359,40 +408,7 @@ export function makeStructuralHelpers(strip: AttrStrip) {
     where: string
   ): SpecialResult {
     const merged = mergeClassName(ctx, path, element, className, where);
-    // An `href` only belongs on the anchor. The source component put it on
-    // whatever tag it rendered, where the browser ignored it; a plain element
-    // is typed as itself, so carrying it here is a type error for an
-    // attribute that never navigated anywhere.
-    const href = tag === 'a' ? undefined : findAttr(element, 'href');
-    if (href) {
-      const wasWritten = attrSource(ctx.j, href);
-      removeAttr(element, href);
-      const was = wasWritten ? ` — it read \`${wasWritten}\`` : '';
-      addTodo(
-        ctx,
-        path,
-        'prop:href',
-        `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside${was}`
-      );
-      ctx.dirty = true;
-    }
-    // The link attributes beside it are judged against the same tag, and for
-    // the same reason: a `<span target="_blank">` does not compile either.
-    // Each on its own, so a `referrerPolicy` on an `<img>` survives.
-    for (const name of LINK_ATTRS) {
-      if (elementTakesLinkAttr(name, tag)) continue;
-      const attr = findAttr(element, name);
-      if (!attr) continue;
-      const was = attrSource(ctx.j, attr);
-      removeAttr(element, attr);
-      addTodo(
-        ctx,
-        path,
-        `prop:${name}`,
-        `${where} became a plain <${tag}>, which takes no \`${name}\`${was ? ` — it read \`${was}\`` : ''}; put it on an <a> inside, or change the element`
-      );
-      ctx.dirty = true;
-    }
+    dropLinkAttrsForPlainTag(ctx, path, element, tag, where);
     const kept = new Set(strip(ctx, path, attributesOf(element), where));
     // Spread attributes pass through untouched, in their original places:
     // they are the caller's own props, and a plain element takes them as
