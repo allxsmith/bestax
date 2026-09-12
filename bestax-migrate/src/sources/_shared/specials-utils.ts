@@ -11,7 +11,11 @@
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
 import { addAttrOnce } from './props.js';
-import { LINK_ATTRS, elementTakesLinkAttr } from './polymorphic.js';
+import {
+  HREF_ELEMENTS,
+  LINK_ATTRS,
+  elementTakesLinkAttr,
+} from './polymorphic.js';
 import {
   addAttr,
   addTodo,
@@ -353,7 +357,13 @@ export function dropLinkAttrsForPlainTag(
   // whatever tag it rendered, where the browser ignored it; a plain element
   // is typed as itself, so carrying it here is a type error for an attribute
   // that never navigated anywhere.
-  const href = tag === 'a' ? undefined : findAttr(element, 'href');
+  // A plain rewrite can legitimately produce an `<area>` or a `<link>`, and
+  // React types an `href` onto both. The anchor-only rule that applies to
+  // bestax components does not apply here -- there is no component in the way
+  // to disagree about what it forwards.
+  const href = HREF_ELEMENTS.includes(tag)
+    ? undefined
+    : findAttr(element, 'href');
   if (href) {
     const was = attrSource(ctx.j, href);
     removeAttr(element, href);

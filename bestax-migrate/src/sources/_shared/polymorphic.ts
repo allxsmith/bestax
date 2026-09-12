@@ -207,6 +207,16 @@ const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
 export const TARGET_LINK_ATTR_TABLE: Record<string, readonly string[]> =
   TARGET_LINK_ATTRS;
 
+/**
+ * The intrinsic elements React types an `href` onto.
+ *
+ * Only relevant to plain markup. On a bestax component the anchor is the only
+ * `as` that keeps an `href`, because the components disagree about what they
+ * forward (see `ANCHOR` below) -- but a plain `<area href>` has no component
+ * in the way, and it is valid.
+ */
+export const HREF_ELEMENTS: readonly string[] = ['a', 'area', 'base', 'link'];
+
 /** Whether `element` renders `attr` legally -- exported for the plain-markup path. */
 export function elementTakesLinkAttr(name: string, element: string): boolean {
   const allowed = LINK_ATTR_ELEMENTS[name];
