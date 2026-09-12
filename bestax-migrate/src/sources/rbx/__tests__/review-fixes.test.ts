@@ -227,6 +227,18 @@ describe('a broken default import is kept, not stranded', () => {
 });
 
 describe('Navbar.Item still cleans up after picking a target', () => {
+  it('migrates props on a plain item, which named no target for years', () => {
+    // The `navbar-item` handler names a target only for the `dropdown` case,
+    // and `transform.ts` skips every prop pass for an element it cannot name.
+    // So these two passed through as rbx wrote them while the same props on a
+    // `Navbar.Link` sibling converted — invisible because the rename is a
+    // no-op here, rbx and bestax spelling the component the same way.
+    const { output } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = () => <Navbar.Item backgroundColor="primary" marginless>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Item bgColor="primary" m="0">');
+  });
+
   it('flags `up` even when `dropdown` selects Navbar.Dropdown', () => {
     const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = () => <Navbar.Item dropdown up>x</Navbar.Item>;'
