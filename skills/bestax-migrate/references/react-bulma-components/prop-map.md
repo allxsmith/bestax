@@ -29,6 +29,23 @@ this automatically for literal values; dynamic values get TODOs.
 | flexbox props                     | same names/values (`flexDirection`, `justifyContent`, …)                                                                                                       |
 | `clearfix`, `overlay`             | same                                                                                                                                                           |
 
+## `renderAs` → `as`, and the props that follow it
+
+bestax gives an element the attributes of the tag `as` names, and several components narrow
+`as` to the tags Bulma's markup allows there (`Footer` is `'footer' | 'div'`, `Control` is
+`'div' | 'p'`, `Level.Item` is `'div' | 'p' | 'a'`). RBC's `renderAs` took any tag, so two
+shapes cannot carry across:
+
+- a `renderAs` outside that union — `<Media renderAs="section">` — drops the `as` with a
+  `prop:as` TODO naming the tags the component does render;
+- an `href` beside a `renderAs` that is not an `<a>` (`<Menu.List.Item renderAs="span"
+href="/x">`) keeps the element and drops the `href`, with a `prop:href` TODO. RBC rendered
+  a `<span href="/x">` there, which navigates nowhere in any browser, so nothing working is
+  lost. Drop the `renderAs` where the link was the point.
+
+`<Button href="/x">` with no `renderAs` goes the same way: bestax's `Button` renders a
+`<button>`. Set `as="a"` to make it a link.
+
 ## Boolean modifier convention
 
 RBC uses bare booleans (`loading`, `outlined`, `rounded`, `fullwidth`); bestax prefixes

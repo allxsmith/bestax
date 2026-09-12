@@ -303,9 +303,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       hasTextColor: TEXT_COLOR_OK,
       isSize: size,
-      href: {
-        todo: 'bestax `Delete` renders a <button> and has no anchor form; wrap it in an <a>, or handle the navigation in `onClick`',
-      },
     },
   },
   Icon: {
@@ -515,9 +512,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Card.Header.Icon',
     props: {
       hasTextColor: TEXT_COLOR_OK,
-      href: {
-        todo: 'bestax `Card.Header.Icon` renders a <button>; put an <a> inside it, or handle the navigation in `onClick`',
-      },
     },
   },
   CardFooter: {
@@ -530,9 +524,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Card.FooterItem',
     props: {
       hasTextColor: TEXT_COLOR_OK,
-      href: {
-        todo: 'bestax `Card.FooterItem` renders a <span> with no anchor form; put an <a> inside it',
-      },
     },
   },
 
@@ -568,9 +559,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       isActive: active,
       tag: TAG_AS,
-      href: {
-        todo: 'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
-      },
     },
   },
   DropdownDivider: { status: 'mapped', target: 'Dropdown.Divider' },

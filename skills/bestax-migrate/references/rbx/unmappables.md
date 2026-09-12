@@ -51,6 +51,47 @@ bestax's `<File>` renders the whole Bulma structure itself, so `File.Label`, `Fi
 rbx puts `as` on everything; bestax does not. Either render the tag directly, or restructure.
 See the `as` section of [prop-map.md](prop-map.md) for the components that do accept it.
 
+The same rule fires a second way: several bestax components accept `as` but narrow it to the
+tags Bulma's markup allows there, so a literal outside that union (`<Control as="span">`,
+`<Media as="section">`) is dropped and named. The TODO lists the tags that component renders.
+
+## `prop:href` — a link needs the anchor
+
+bestax gives an element the attributes of the tag `as` names, so an `href` belongs on an `<a>`
+or on a custom component you pass to `as`, never on another intrinsic tag. rbx let the two disagree, and the browser ignored the result:
+`<Menu.List.Item as="span" href="/x">` rendered a `<span>` that navigated nowhere.
+
+The codemod keeps the element you asked for and drops the attribute that did nothing:
+
+```jsx
+<Menu.List.Item as="span" href="/x">Home</Menu.List.Item>
+<Menu.Item as="span">Home</Menu.Item>
+```
+
+Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
+`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
+`<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
+
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
+whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
+`<a>` inside.
+
+## `prop:target`, `prop:download`, `prop:hrefLang`, `prop:ping`, `prop:referrerPolicy`, `prop:media`
+
+`target`, `download`, `hrefLang`, `ping`, `referrerPolicy` and `media` follow the element the same way
+`href` does, and they are invalid on the wrong one whether or not an `href` is beside them —
+`<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged against
+the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>` or a
+`target` on a `<form>` stays where it is legal. Where one is removed the TODO quotes it. Put it
+on an `<a>` inside, or make the element one that takes it.
+
+`rel` is never touched: React declares it on `HTMLAttributes`, so it is valid on every element.
+
+A component can be narrower than its element. One that takes no `href` at any `as` takes none of
+these either, and `Level.Item` declares only `href`, `target` and `rel` — so `download` and the
+rest go there even at `as="a"`.
+
 ## `component:Generic` — rbx's base element
 
 `Generic` is rbx's untyped passthrough. Render the underlying tag, and move its helper props to

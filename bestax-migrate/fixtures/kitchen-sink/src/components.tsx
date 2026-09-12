@@ -61,7 +61,9 @@ export function Widgets() {
       </Card>
       <Menu>
         <Menu.List title="General">
-          <Menu.List.Item active>Dashboard</Menu.List.Item>
+          <Menu.List.Item active renderAs="a" href="/dashboard">
+            Dashboard
+          </Menu.List.Item>
           <Menu.List.Item>Customers</Menu.List.Item>
         </Menu.List>
       </Menu>

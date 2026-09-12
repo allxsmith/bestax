@@ -245,6 +245,8 @@ describe('bloomer kitchen-sink e2e', () => {
       'component:DropdownContent',
       'component:Icon',
       'prop:tag',
+      'prop:as',
+      'prop:href',
       'prop:render',
       'prop:isGrid',
       'prop:hasAddons',
@@ -298,6 +300,19 @@ describe('bloomer kitchen-sink e2e', () => {
     const backticked = new Set(
       [...refs.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1])
     );
+    // A `prop:` rule gets a stricter reading: only a heading or a table row
+    // counts. Matching a backtick anywhere made that fallback near vacuous --
+    // `\`as\`` occurs in ordinary prose in every one of these files, so
+    // `prop:as` read as documented in all three sources whether a recipe
+    // existed or not, which is how RBC shipped without one. Rules with no
+    // `prop:`/`component:` prefix (`deps`, `peer-deps`) stay loose: they are
+    // explained in SKILL.md's prose, which is the right home for them.
+    const inHeadingOrRow = new Set(
+      refs
+        .split('\n')
+        .filter(l => l.startsWith('|') || l.startsWith('#'))
+        .flatMap(l => [...l.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1]))
+    );
 
     const documented = (rule: string): boolean => {
       if (tokens.has(rule)) return true;
@@ -309,7 +324,7 @@ describe('bloomer kitchen-sink e2e', () => {
         );
       }
       if (rule.startsWith('prop:')) {
-        return backticked.has(rule.slice('prop:'.length));
+        return inHeadingOrRow.has(rule.slice('prop:'.length));
       }
       return backticked.has(rule);
     };

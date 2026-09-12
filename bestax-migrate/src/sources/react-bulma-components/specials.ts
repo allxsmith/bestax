@@ -25,6 +25,7 @@ import {
 } from '../_shared/jsx-utils.js';
 import {
   alignTarget,
+  dropLinkAttrsForPlainTag,
   makeStripModifierProps,
   mergeClassName,
   applyIconProps,
@@ -48,8 +49,14 @@ function keptAttrs(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
-  where: string
+  where: string,
+  tag: string
 ): any[] {
+  // These replacements are built by hand rather than through
+  // `replaceWithPlain`, so the link-attribute cleanup has to be invoked here
+  // or it never runs for this source: `<Form.Help href="/x">` was becoming
+  // `<p className="help" href="/x">`.
+  dropLinkAttrsForPlainTag(ctx, path, element, tag, where);
   const kept = new Set(
     stripModifierProps(ctx, path, attributesOf(element), where)
   );
@@ -207,6 +214,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
         subtitleTruthy ? 'heading subtitle' : 'heading',
         'Heading'
       );
+      // The seventh hand-built plain rewrite in this file, and the one that
+      // does not go through `keptAttrs` -- so it needs the cleanup by name or
+      // `<Heading renderAs="a" href="/x">` lands an `href` on the `<p>`.
+      dropLinkAttrsForPlainTag(ctx, path, element, 'p', 'Heading');
       const consumed = new Set(
         stripModifierProps(
           ctx,
@@ -489,7 +500,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     className = mergeClassName(ctx, path, element, className, 'Form.Label');
-    const rest = keptAttrs(ctx, path, element, 'Form.Label');
+    const rest = keptAttrs(ctx, path, element, 'Form.Label', 'label');
     path.replace(
       plainElement(ctx.j, 'label', className, rest, element.children ?? [])
     );
@@ -517,7 +528,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     className = mergeClassName(ctx, path, element, className, 'Form.Help');
-    const rest = keptAttrs(ctx, path, element, 'Form.Help');
+    const rest = keptAttrs(ctx, path, element, 'Form.Help', 'p');
     path.replace(
       plainElement(ctx.j, 'p', className, rest, element.children ?? [])
     );
@@ -587,7 +598,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   /** RBC Loader is a plain <div class="loader"> — keep exactly that. */
   'plain-loader'(ctx, path, element) {
     const className = mergeClassName(ctx, path, element, 'loader', 'Loader');
-    const rest = keptAttrs(ctx, path, element, 'Loader');
+    const rest = keptAttrs(ctx, path, element, 'Loader', 'div');
     path.replace(
       plainElement(ctx.j, 'div', className, rest, element.children ?? [])
     );
@@ -655,7 +666,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     className = mergeClassName(ctx, path, element, className, 'Panel.Tabs.Tab');
-    const rest = keptAttrs(ctx, path, element, 'Panel.Tabs.Tab');
+    const rest = keptAttrs(ctx, path, element, 'Panel.Tabs.Tab', 'a');
     path.replace(
       plainElement(ctx.j, 'a', className, rest, element.children ?? [])
     );
@@ -682,7 +693,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item');
+    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item', 'a');
     const children = element.children ?? [];
     const solidChildren = children.filter(
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
@@ -736,7 +747,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'table-container',
       'Table.Container'
     );
-    const rest = keptAttrs(ctx, path, element, 'Table.Container');
+    const rest = keptAttrs(ctx, path, element, 'Table.Container', 'div');
     path.replace(
       plainElement(ctx.j, 'div', className, rest, element.children ?? [])
     );

@@ -101,18 +101,50 @@ Everywhere else `tag` is left in place with a TODO. On the components that becom
 (`Help`, `Label`, `Heading`, `BreadcrumbItem`, `PanelTab`, `TabLink`, `Page`, `HeroVideo`) a
 literal `tag` is honoured — `<Help tag="span">` becomes `<span className="help">`.
 
+A literal `tag` outside the union its bestax target narrows `as` to — `<Media tag="section">`,
+`<Control tag="span">` — is dropped with a `prop:as` TODO naming the tags that component does
+render. bloomer rendered the tag you asked for; bestax does not offer it there, and writing it
+through produced output the project could not compile.
+
+## `href` picks the element
+
+bestax gives an element the attributes of the tag `as` names, so `href` exists only where that
+tag is an `<a>`. bloomer had no such rule, and the two libraries part company in two ways.
+
 bloomer's `Button` and `Image` never took `tag` at all. Seven bloomer components — `Button`,
 `Delete`, `LevelItem`, `DropdownItem`, `NavbarItem`, `PanelBlock`, `CardFooterItem` — rendered
 an `<a>` whenever `href` was set, whatever `tag` said, and a `<div>` (or their default tag)
-otherwise; the rest (`MenuLink`, `PageControl`, `Dropdown`, …) rendered their `tag` regardless.
-The codemod keeps that: `Button` and `LevelItem` gain `as="a"` beside a literal `href`; a `tag`
-next to a literal `href` is dropped on the switching targets that already render an anchor
-(`Navbar.Item`, `Dropdown.Item`, `Panel.Block`); a `NavbarItem` or `DropdownItem` with neither
-`href` nor `tag` gains `as="div"`, because bestax's `Navbar.Item` and `Dropdown.Item` default
-to an `<a>`. A dynamic `href={expr}` was a runtime decision bloomer made and bestax cannot, so it
-is flagged (`prop:href`) rather than guessed. bestax's `Panel.Block` is always an `<a>`, so only
-a `PanelBlock` with `href` becomes one — the rest stay the plain `<div class="panel-block">` (or
-the `tag` you gave) that bloomer rendered.
+otherwise; the rest (`MenuLink`, `NavbarLink`, `PageControl`, `Dropdown`, …) rendered their
+`tag` regardless.
+
+**On the switching components the `href` wins the element**, because that is what bloomer
+rendered. `Button` and `LevelItem` gain `as="a"`; on the targets that already render an anchor
+(`Navbar.Item`, `Dropdown.Item`, `Panel.Block`) the `tag` is simply dropped. `Dropdown.Item` is
+the exception that loses the `href` too: it declares none at any `as`, so the anchor it renders
+is not one you can point anywhere — see [unmappables.md](unmappables.md). A `NavbarItem` or
+`DropdownItem` with neither `href` nor `tag` gains `as="div"`, because bestax's `Navbar.Item`
+and `Dropdown.Item` default to an `<a>`. An empty or false `href` selected nothing in bloomer
+and is dropped. bestax's `Panel.Block` is always an `<a>`, so only a `PanelBlock` with `href`
+becomes one — the rest stay the plain `<div class="panel-block">` (or the `tag` you gave) that
+bloomer rendered.
+
+A dynamic `href={expr}` was a runtime decision bloomer made and bestax's `as` is one element or
+the other. It resolves to the anchor, which is the branch the `href` is there for, and the
+`prop:href` TODO names the element to render by hand for the empty case:
+
+```jsx
+<Button href={p.url} tag="span">x</Button>
+// TODO(bestax-migrate): bloomer chose the element at runtime … render <span> by hand where
+// the `href` is empty
+<Button href={p.url} as="a">x</Button>
+```
+
+**Everywhere else the element wins.** `MenuLink` and `NavbarLink` rendered their `tag` whatever
+`href` said, so `<MenuLink href="/x" tag="span">` really was a `<span href="/x">` — which
+navigates nowhere in any browser. The element stays and the attribute that did nothing goes,
+with a `prop:href` TODO. The same happens to a component that becomes plain markup: a
+`<TabLink href="#one" tag="span">` becomes a `<span>`, and its `href` is named rather than
+written. Where the link was the intent, drop the `tag`.
 
 ## Helper props on parts that take none
 

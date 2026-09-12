@@ -38,6 +38,8 @@ const tmpDir = fs.mkdtempSync(path.join(tmpRoot, 'kitchen-sink-'));
 
 interface MigratedApp {
   todosByFile: Map<string, TodoEntry[]>;
+  /** TODOs from the manifest pass, which belongs to no source file. */
+  depTodos: TodoEntry[];
   files: string[];
 }
 
@@ -100,7 +102,7 @@ function migrateKitchenSink(): MigratedApp {
     fs.writeFileSync(pkgPath, `${JSON.stringify(pkgNext, null, 2)}\n`);
   }
 
-  return { todosByFile, files };
+  return { todosByFile, files, depTodos: pkgTodos };
 }
 
 describe('kitchen-sink e2e', () => {
@@ -213,6 +215,8 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('prop:remove');
     expect(rules).toContain('prop:subtitle');
     expect(rules).toContain('prop:heading');
+    expect(rules).toContain('prop:as');
+    expect(rules).toContain('prop:href');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
@@ -223,6 +227,79 @@ describe('kitchen-sink e2e', () => {
     expect(migrated).toMatch(
       /import \{ Element, Tile \} from 'react-bulma-components';/
     );
+  });
+
+  it('documents every TODO rule it emits in the skill reference', () => {
+    // A rule with no recipe is a dead end for the user reading the report.
+    // rbx and bloomer have had this guard for a while; RBC did not, which is
+    // how `prop:as` and `prop:href` reached its output on #662 with no entry
+    // in its `unmappables.md` while both siblings gained one.
+    const skillDir = path.join(packageRoot, '..', 'skills', 'bestax-migrate');
+    const refsDir = path.join(skillDir, 'references', 'react-bulma-components');
+    const refs = [
+      ...fs
+        .readdirSync(refsDir)
+        .filter(f => f.endsWith('.md'))
+        .map(f => path.join(refsDir, f)),
+      path.join(skillDir, 'SKILL.md'),
+    ]
+      .map(f => fs.readFileSync(f, 'utf8'))
+      .join('\n');
+
+    const emitted = new Set<string>();
+    for (const todos of app.todosByFile.values()) {
+      for (const todo of todos) emitted.add(todo.rule);
+    }
+    for (const todo of app.depTodos) emitted.add(todo.rule);
+    expect(emitted.size).toBeGreaterThan(0);
+
+    // Match documented rule TOKENS, not substrings. `refs.includes(rule)`
+    // let `component:List` pass off the text of `component:List.Item`, and
+    // the prop fallback matched any backticked occurrence of the word
+    // anywhere in prose — so the guard could pass while the rule it was
+    // meant to pin went undocumented.
+    const tokens = new Set(
+      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+    );
+    // A prop rule may instead be written bare in a row that names the
+    // component beside it (`| \`expanded\` on \`Field\` |`).
+    const backticked = new Set(
+      [...refs.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1])
+    );
+    // A `prop:` rule gets a stricter reading: only a heading or a table row
+    // counts. Matching a backtick anywhere made that fallback near vacuous --
+    // `\`as\`` occurs in ordinary prose in every one of these files, so
+    // `prop:as` read as documented in all three sources whether a recipe
+    // existed or not, which is how RBC shipped without one. Rules with no
+    // `prop:`/`component:` prefix (`deps`, `peer-deps`) stay loose: they are
+    // explained in SKILL.md's prose, which is the right home for them.
+    const inHeadingOrRow = new Set(
+      refs
+        .split('\n')
+        .filter(l => l.startsWith('|') || l.startsWith('#'))
+        .flatMap(l => [...l.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1]))
+    );
+
+    const documented = (rule: string): boolean => {
+      if (tokens.has(rule)) return true;
+      if (rule.startsWith('component:')) {
+        // A dotted part may be covered by its parent's section, which the
+        // reference writes as `component:File.*` or as a section for the
+        // parent component itself.
+        const parent = rule.slice('component:'.length).split('.')[0];
+        return (
+          tokens.has(`component:${parent}.*`) ||
+          tokens.has(`component:${parent}`)
+        );
+      }
+      if (rule.startsWith('prop:')) {
+        return inHeadingOrRow.has(rule.slice('prop:'.length));
+      }
+      return backticked.has(rule);
+    };
+
+    const undocumented = [...emitted].sort().filter(r => !documented(r));
+    expect(undocumented).toEqual([]);
   });
 
   it('typechecks the migrated output against @allxsmith/bestax-bulma', () => {

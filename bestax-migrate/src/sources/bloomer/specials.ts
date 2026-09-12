@@ -129,14 +129,56 @@ const join = (...parts: Array<string | undefined>): string | undefined => {
  * (and the Nav family). bestax's defaults differ per component, so this
  * keeps bloomer's markup for those either way:
  *
- * - with a literal `href`, a surviving `tag` (which the mapping turns into
- *   `as`) would undo the anchor on targets that already render one, so it is
- *   dropped; where the target defaults to something else, `as="a"` is set
- *   (`setAs`). A dynamic `href` was a runtime decision bloomer made and
- *   bestax cannot: it is flagged, not guessed;
+ * - with an `href` that has a value, the anchor is the element bloomer
+ *   rendered, so the `tag` beside it (which the mapping would turn into `as`)
+ *   is the branch that did not happen and goes; where the target defaults to
+ *   something other than an <a>, `as="a"` is set (`setAs`);
+ * - a dynamic `href` was a runtime decision bloomer made and bestax's `as` is
+ *   one element or the other. It resolves to the anchor, which is the branch
+ *   the `href` is there for, and the TODO names the element to restore for
+ *   the empty case. Keeping both would emit `href` beside a non-anchor `as`,
+ *   which the library does not type.
+ *
+ *   Settled deliberately, and reviewers have raised it more than once. The
+ *   alternative that keeps bloomer's own choice is a conditional --
+ *   `as={href ? 'a' : 'span'}` -- which does typecheck, on `Button` as well
+ *   as `Level.Item`. It was weighed and declined: it writes a conditional the
+ *   author did not, it only works where the source `tag` is a literal, and it
+ *   leaves a second shape to explain. A single element plus a TODO that names
+ *   the other is the output this package prefers. Do not re-litigate without
+ *   new information;
  * - without `href` or `tag`, a target that defaults to an <a> gets
  *   `as={bareAs}` so bloomer's <div> stays a <div>.
  */
+/**
+ * Did bloomer's `props.href ? 'a' : tag` take the `tag` branch for this value?
+ *
+ * True for `""`, `false` and `0`, and for `null` and `undefined` -- both reach
+ * `literalValueOf` as expressions, because it has no kind for them, but both
+ * are statically falsy and neither ever selected the anchor. `undefined` is
+ * shadowable (a parameter may be named it), so it is resolved by binding
+ * rather than by text, which is the rule this package applies to component
+ * references.
+ *
+ * Shared by `anchorWhenHref` and the `panel-block` handler: they are two
+ * copies of the same decision, and the second one missed these two literals.
+ */
+function isFalsyHref(path: ASTPath<any>, attr: any): boolean {
+  const expr =
+    attr.value?.type === 'JSXExpressionContainer'
+      ? attr.value.expression
+      : undefined;
+  if (expr) {
+    if (expr.type === 'NullLiteral') return true;
+    if (expr.type === 'Literal' && expr.value === null) return true;
+    if (expr.type === 'Identifier' && expr.name === 'undefined') {
+      return !path.scope?.lookup('undefined');
+    }
+  }
+  const literal = literalValueOf(attr);
+  return literal.kind !== 'expression' && !literal.value;
+}
+
 function anchorWhenHref(
   ctx: TransformContext,
   path: ASTPath<any>,
@@ -150,36 +192,66 @@ function anchorWhenHref(
   // false `href` kept the default element. It selected nothing, and bestax
   // types `href` as a string where it exists at all, so it is dropped.
   const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
-  const hrefFalsy =
-    hrefLiteral !== undefined &&
-    hrefLiteral.kind !== 'expression' &&
-    !hrefLiteral.value;
+  const hrefFalsy = hrefAttr !== undefined && isFalsyHref(path, hrefAttr);
   if (hrefAttr && hrefFalsy) {
     removeAttr(element, hrefAttr);
     handled.push('href');
     ctx.dirty = true;
   }
   if (hrefAttr && !hrefFalsy) {
-    const literal = hrefLiteral!;
-    if (literal.kind === 'expression') {
-      addTodo(
-        ctx,
-        path,
-        'prop:href',
-        options.setAs
-          ? `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; set \`as="a"\` conditionally by hand${tagAttr ? ' (the `tag` beside it becomes `as`, which that conditional has to account for)' : ''}`
-          : `bloomer rendered an <a> only when \`href\` had a value, and this one is dynamic; the bestax target renders an <a> already, so drop the \`href\` where it is empty${tagAttr ? ' — the `tag` beside it is flagged separately' : ''}`
-      );
-      return handled;
-    }
+    // The href wins the element. bloomer read `props.href ? 'a' : tag`, so a
+    // `tag` here is the branch that did not run, and the anchor is what
+    // rendered. That holds for an expression too, so the `tag` still goes --
+    // but it is a live reference, so its removal is announced rather than
+    // silent, which is what the first version of this got wrong.
+    const tagValue = tagAttr ? literalValueOf(tagAttr) : undefined;
+    const dynamicTag = tagAttr !== undefined && tagValue?.kind !== 'string';
     if (tagAttr) {
       removeAttr(element, tagAttr);
       handled.push('tag');
       ctx.dirty = true;
     }
+    if (dynamicTag) {
+      addTodo(
+        ctx,
+        path,
+        'prop:tag',
+        `bloomer rendered an <a> whenever \`href\` had a value, so the \`tag\` expression beside this one chose nothing and is removed. Restore it by hand if the \`href\` can be empty`
+      );
+    }
+    // An `as` on the element is not bloomer's element choice -- it took no
+    // such prop -- so a literal one that is not the anchor is dropped. An
+    // expression stays: it is the author's own component, it is the element
+    // they meant, and on a target generic over `as` it takes the `href` with
+    // it. Rewriting it to `as="a"` swapped a router link for a plain anchor.
+    const asAttr = findAttr(element, 'as');
+    const asLiteral = asAttr ? literalValueOf(asAttr) : undefined;
+    const literalAs =
+      asLiteral?.kind === 'string' ? asLiteral.value : undefined;
+    if (asAttr && asLiteral?.kind === 'string' && literalAs !== 'a') {
+      removeAttr(element, asAttr);
+      ctx.dirty = true;
+    }
     if (options.setAs && !findAttr(element, 'as')) {
       addAttr(element, makeAttr(ctx.j, 'as', 'a'));
       ctx.dirty = true;
+    }
+    if (hrefLiteral!.kind === 'expression') {
+      // Name the element that was dropped where the source named it: it is
+      // the half of bloomer's runtime choice this output no longer renders.
+      const other = dynamicTag
+        ? 'the element `tag` named'
+        : tagValue?.kind === 'string'
+          ? `a <${tagValue.value}>`
+          : options.bareAs
+            ? `a <${options.bareAs}>`
+            : 'its default tag';
+      addTodo(
+        ctx,
+        path,
+        'prop:href',
+        `bloomer chose the element at runtime — an <a> when \`href\` had a value, ${other} when it did not. bestax's \`as\` is one element or the other, and this is the anchor; render the other by hand where the \`href\` is empty`
+      );
     }
   } else if (options.bareAs && !tagAttr && !findAttr(element, 'as')) {
     addAttr(element, makeAttr(ctx.j, 'as', options.bareAs));
@@ -770,10 +842,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // The same rule as anchorWhenHref: bloomer chose the anchor with
     // `props.href ? 'a' : tag`, so an empty or false href is no anchor.
     const hrefAttr = findAttr(element, 'href');
-    const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
-    const anchored =
-      hrefAttr !== undefined &&
-      (hrefLiteral!.kind === 'expression' || Boolean(hrefLiteral!.value));
+    const anchored = hrefAttr !== undefined && !isFalsyHref(path, hrefAttr);
     if (hrefAttr && !anchored) {
       // A falsy href selected nothing in bloomer and cannot sit on a <div>.
       removeAttr(element, hrefAttr);

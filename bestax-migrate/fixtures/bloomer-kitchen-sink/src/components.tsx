@@ -94,7 +94,9 @@ export const Components = ({ open }: { open: boolean }) => (
         <LevelItem>Left</LevelItem>
       </LevelLeft>
       <LevelRight>
-        <LevelItem href="/all">All</LevelItem>
+        <LevelItem href="/all" tag="p">
+          All
+        </LevelItem>
       </LevelRight>
     </Level>
     <Media tag="div">
@@ -139,7 +141,7 @@ export const Components = ({ open }: { open: boolean }) => (
       <NavbarMenu isActive={open}>
         <NavbarStart>
           <NavbarItem isActive>Home</NavbarItem>
-          <NavbarItem href="/docs" isActive>
+          <NavbarItem href="/docs" tag="div" isActive>
             Docs
           </NavbarItem>
           <NavbarItem hasDropdown isHoverable>

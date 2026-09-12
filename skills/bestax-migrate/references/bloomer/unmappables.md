@@ -108,6 +108,53 @@ Elsewhere, render the element you wanted directly, or move the bestax component 
 A dynamic `tag` on a component that becomes plain markup is flagged the same way — the plain
 element takes bloomer's default tag.
 
+## `prop:as` — a tag the component does not render
+
+Several bestax components accept `as` but narrow it to the tags Bulma's markup allows there, so
+a literal `tag` outside that union (`<Media tag="section">`, `<Control tag="span">`) becomes a
+`prop:as` TODO listing the tags that component does render. Wrap the component in the element
+you wanted, or restructure.
+
+## `prop:href` — a link needs the anchor
+
+bestax gives an element the attributes of the tag `as` names, so an `href` belongs on an `<a>`
+or on a custom component you pass to `as`, never on another intrinsic tag. bloomer's `MenuLink`, `NavbarLink` and the components that become plain
+markup rendered their `tag` whatever `href` said, so `<MenuLink href="/x" tag="span">` really
+was a `<span href="/x">` — an attribute no browser acts on. The element stays, the dead
+attribute goes:
+
+```jsx
+<MenuLink href="/x" tag="span">Home</MenuLink>
+<Menu.Item as="span">Home</Menu.Item>
+```
+
+Drop the `tag` where the link was the point. On the components that switched to an `<a>` on
+`href` the codemod does that for you — see [prop-map.md](prop-map.md).
+
+Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
+`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
+`<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
+
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
+whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
+`<a>` inside.
+
+## `prop:target`, `prop:download`, `prop:hrefLang`, `prop:ping`, `prop:referrerPolicy`, `prop:media`
+
+`target`, `download`, `hrefLang`, `ping`, `referrerPolicy` and `media` follow the element the same way
+`href` does, and they are invalid on the wrong one whether or not an `href` is beside them —
+`<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged against
+the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>` or a
+`target` on a `<form>` stays where it is legal. Where one is removed the TODO quotes it. Put it
+on an `<a>` inside, or make the element one that takes it.
+
+`rel` is never touched: React declares it on `HTMLAttributes`, so it is valid on every element.
+
+A component can be narrower than its element. One that takes no `href` at any `as` takes none of
+these either, and `Level.Item` declares only `href`, `target` and `rel` — so `download` and the
+rest go there even at `as="a"`.
+
 ## `prop:render` — the render prop
 
 bloomer's `render` handed the computed props (`className` included) to your own renderer:
@@ -159,7 +206,9 @@ value, or a dynamic `className` the class cannot be spliced into, is flagged wit
 
 ## Props with no counterpart
 
-Each of these is left in place with a TODO:
+Each of these raises a TODO. Most are left on the element for you to resolve; the `href` rows
+are the exception — bestax types no `href` onto the element these ended up on, so the codemod
+removes the attribute and the TODO quotes what it was:
 
 | prop                      | on                                                                                 | what to do                                                                              |
 | ------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -168,7 +217,8 @@ Each of these is left in place with a TODO:
 | `isAlign`                 | `TabList`                                                                          | set `align` on the `<Tabs>` — Bulma aligns the container                                |
 | `isGrid`                  | `Columns`                                                                          | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid` |
 | `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete`, `DropdownItem`                       | put an `<a>` inside, or handle it in `onClick`                                          |
-| `href={expr}` (dynamic)   | `Button`, `LevelItem` and the other components that switched to an `<a>` on `href` | bloomer decided the element at runtime; set `as` conditionally by hand                  |
+| `href` beside a `tag`     | `MenuLink`, `NavbarLink`, and anything that becomes plain markup                   | the tag bloomer rendered was no anchor, so the `href` did nothing; drop the `tag`       |
+| `href={expr}` (dynamic)   | `Button`, `LevelItem` and the other components that switched to an `<a>` on `href` | resolved to the anchor; render the other element by hand where the `href` is empty      |
 | `href`                    | `NavbarItem hasDropdown`                                                           | bestax's `Navbar.Dropdown` is the container; put the `href` on the `Navbar.Link` inside |
 | `isRatio` beside `isSize` | `Image`                                                                            | bestax's one `size` took the fixed size; restore the ratio if that was the point        |
 

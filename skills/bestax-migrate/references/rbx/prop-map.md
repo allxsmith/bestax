@@ -86,7 +86,7 @@ rbx has three shapes; all three flatten to bestax's per-viewport props.
 
 rbx's `forwardRefAs` puts `as` on **every** component. bestax declares it on a smaller set, and
 several of those narrow it to specific tags (`Footer` is `'footer' | 'div'`, `Control` is
-`'div'`). The codemod passes `as` through only where bestax really accepts it, and TODOs it
+`'div' | 'p'`). The codemod passes `as` through only where bestax really accepts it, and TODOs it
 everywhere else:
 
 | bestax component             | `as` accepts               |
@@ -98,7 +98,7 @@ everywhere else:
 | `Media`                      | `'article' \| 'div'`       |
 | `Media.Left`                 | `'figure' \| 'div'`        |
 | `Level.Item`                 | `'div' \| 'p' \| 'a'`      |
-| `Control`                    | `'div'`                    |
+| `Control`                    | `'div' \| 'p'`             |
 | `Menu.Item`                  | any element type           |
 | `Dropdown.Item`              | `'a' \| 'div' \| 'button'` |
 | `Navbar.Item`, `Navbar.Link` | any element type           |
@@ -113,7 +113,27 @@ wrong:
   other two.
 - Several of the accepted props are **narrow literal unions**, so `as={SomeComponent}` still
   fails to typecheck even where `as` is allowed — which is deliberate: a visible type error
-  beats a silent rewrite.
+  beats a silent rewrite. A **literal** outside the union is a different case: the codemod can
+  read it, so `<Control as="span">` drops the `as` with a `prop:as` TODO naming the tags that
+  component does render. Writing it through produced output the project could not compile, and
+  rbx rendered no `<span>` there either.
+
+## `href` follows `as`
+
+bestax gives an element the attributes of the tag `as` names, so `href` exists only where that
+tag is an `<a>`. rbx is looser: `<Button as="span" href="/x">` type-checks there and renders
+`<span href="/x">`, which navigates nowhere in any browser.
+
+So the codemod keeps the element and drops the attribute, with a `prop:href` TODO:
+
+```jsx
+<Button as="span" href="/x">x</Button>
+<Button as="span">x</Button>   // + TODO(bestax-migrate): `href` on `as="span"` …
+```
+
+`<Button href="/x">` with no `as` goes the same way — bestax's `Button` renders a `<button>`,
+so there is no anchor for the attribute to sit on. Where the link was the intent, set `as="a"`;
+that is what keeps the `href`. Dropping the `as` does not, on this component.
 
 ## Refs
 

@@ -13,7 +13,10 @@ import {
   Highlight,
   Icon,
   List,
+  Media,
+  Menu,
   Modal,
+  Navbar,
   Numeric,
   Tile,
 } from "rbx";
@@ -33,6 +36,16 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     <List>
       <List.Item active>item</List.Item>
     </List>
+
+    {/* bestax narrows `as` here, and rbx put an href on the tag it rendered */}
+    <Media as="section">section media</Media>
+    <Menu.List.Item as="span" href="/x">
+      an href on the span rbx rendered
+    </Menu.List.Item>
+    {/* link attributes follow the element too, with or without an href */}
+    <Navbar.Link as="span" target="_blank">
+      a target on a span
+    </Navbar.Link>
 
     {/* no bestax equivalents */}
     <Fieldset disabled>fields</Fieldset>

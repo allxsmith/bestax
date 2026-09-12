@@ -228,6 +228,11 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('component:Icon');
     expect(rules).toContain('component:File.Label');
     expect(rules).toContain('component:Dropdown');
+    // The two `as`/`href` leftovers, which the fixture adds for these and
+    // which nothing here asserted — so deleting them cost no coverage.
+    expect(rules).toContain('prop:as');
+    expect(rules).toContain('prop:href');
+    expect(rules).toContain('prop:target');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
@@ -274,6 +279,19 @@ describe('rbx kitchen-sink e2e', () => {
     const backticked = new Set(
       [...refs.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1])
     );
+    // A `prop:` rule gets a stricter reading: only a heading or a table row
+    // counts. Matching a backtick anywhere made that fallback near vacuous --
+    // `\`as\`` occurs in ordinary prose in every one of these files, so
+    // `prop:as` read as documented in all three sources whether a recipe
+    // existed or not, which is how RBC shipped without one. Rules with no
+    // `prop:`/`component:` prefix (`deps`, `peer-deps`) stay loose: they are
+    // explained in SKILL.md's prose, which is the right home for them.
+    const inHeadingOrRow = new Set(
+      refs
+        .split('\n')
+        .filter(l => l.startsWith('|') || l.startsWith('#'))
+        .flatMap(l => [...l.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1]))
+    );
 
     const documented = (rule: string): boolean => {
       if (tokens.has(rule)) return true;
@@ -288,7 +306,7 @@ describe('rbx kitchen-sink e2e', () => {
         );
       }
       if (rule.startsWith('prop:')) {
-        return backticked.has(rule.slice('prop:'.length));
+        return inHeadingOrRow.has(rule.slice('prop:'.length));
       }
       return backticked.has(rule);
     };

@@ -107,6 +107,20 @@ export type LiteralValue =
   | { kind: 'expression' };
 
 /** Extract the literal value of a JSX attribute, if it has one. */
+/**
+ * An attribute as the author wrote it, for a TODO that removes it. A dynamic
+ * value may be the only reference keeping an import alive, so the message has
+ * to carry it -- otherwise the destination is recoverable only from git.
+ * Returns '' if the printer cannot render the node.
+ */
+export function attrSource(j: JSCodeshift, attr: any): string {
+  try {
+    return j(attr).toSource();
+  } catch {
+    return '';
+  }
+}
+
 export function literalValueOf(attr: any): LiteralValue {
   if (attr.value == null) return { kind: 'boolean', value: true };
   const v = attr.value;
@@ -227,7 +241,16 @@ export function addTodo(
   ) {
     statement = statement.parent;
   }
-  const text = ` TODO(bestax-migrate): ${message}`;
+  // A `//` comment ends at the first newline, so any line break inside the
+  // message would leave the rest of it as bare code and the file unparseable.
+  // Messages quote source text -- an attribute value, a tag name -- and JSX
+  // permits a newline inside both, so this is folded here rather than at each
+  // of the callers that interpolate one.
+  //
+  // Line terminators only. Collapsing all whitespace rewrote the very thing
+  // the quote exists to preserve: `href="/a  b"` came back as `href="/a b"`,
+  // a different URL.
+  const text = ` TODO(bestax-migrate): ${message.replace(/[\r\n\u2028\u2029]+/g, ' ').trim()}`;
   if (statement) {
     const node = statement.node;
     node.comments = node.comments ?? [];

@@ -45,11 +45,15 @@ describe('bloomer Button', () => {
     expect(output).toContain('<Button>x</Button>');
   });
 
-  it('does not add as="a" when the element already sets one', () => {
-    const { output } = migrate(
+  it('lets an href win an `as` the source element already carried', () => {
+    // bloomer's Button took no `as`, so one in the source was an attribute
+    // riding along on whatever element `props.href ? 'a' : tag` picked — and
+    // with an href that had a value, that element was the <a>.
+    const { output, rules } = migrate(
       dyn('Button', '<Button href="/x" as="span">x</Button>')
     );
-    expect(output).toContain('<Button href="/x" as="span">');
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Button href="/x" as="a">');
   });
 });
 
@@ -318,14 +322,18 @@ describe('bloomer navigation handlers', () => {
     expect(output).toContain('<Navbar.Dropdown>x</Navbar.Dropdown>');
   });
 
-  it('lets href win over tag where the target already renders an anchor', () => {
+  it('keeps the element a MenuLink rendered, and drops the href it ignored', () => {
     const menu = migrate(
       dyn('MenuLink', '<MenuLink href="/x" tag="span">x</MenuLink>')
     );
-    // bloomer's MenuLink rendered its tag whatever href said.
-    expect(menu.output).toContain(
-      '<Menu.Item href="/x" as="span">x</Menu.Item>'
-    );
+    // bloomer's MenuLink rendered its tag whatever href said, so this really
+    // was a <span href> — which navigates nowhere, and which bestax will not
+    // type. The element stays; the attribute that did nothing goes.
+    expect(menu.rules).toEqual(['prop:href']);
+    expect(jsx(menu.output)).toContain('<Menu.Item as="span">x</Menu.Item>');
+  });
+
+  it('lets href win over tag where the target already renders an anchor', () => {
     const item = migrate(
       dyn('NavbarItem', '<NavbarItem href="/x" tag="div">x</NavbarItem>')
     );
@@ -352,9 +360,10 @@ describe('bloomer navigation handlers', () => {
         '<DropdownItem href={false} tag="span">x</DropdownItem>'
       )
     );
-    expect(jsx(off.output)).toContain(
-      '<Dropdown.Item as="span">x</Dropdown.Item>'
-    );
+    // The `tag` becomes `as`, and `Dropdown.Item` renders no <span>, so the
+    // element it cannot be is named rather than written.
+    expect(off.rules).toEqual(['prop:as']);
+    expect(jsx(off.output)).toContain('<Dropdown.Item>x</Dropdown.Item>');
     const bare = migrate(
       dyn('NavbarItem', '<NavbarItem href={0}>x</NavbarItem>')
     );
@@ -374,18 +383,24 @@ describe('bloomer navigation handlers', () => {
     );
   });
 
-  it('flags a dynamic href instead of guessing the anchor', () => {
-    const { output, rules } = migrate(
+  it('resolves a dynamic href to the anchor, and names the other element', () => {
+    // bloomer picked between <a> and the tag at runtime. bestax's `as` is one
+    // element, and `href` only exists on the anchor — so keeping both would
+    // emit a pair the library does not type. The anchor is the branch the
+    // href is there for; the TODO names the <span> to restore.
+    const { output, rules, todos } = migrate(
       dyn('Button', '<Button href={p.url} tag="span">x</Button>')
     );
-    // `tag` carries over as `as`; only the runtime-decided element is flagged.
     expect(rules).toEqual(['prop:href']);
-    expect(jsx(output)).toContain('<Button href={p.url} as="span">x</Button>');
+    expect(jsx(output)).toContain('<Button href={p.url} as="a">x</Button>');
+    expect(todos[0].message).toContain('<span>');
     const level = migrate(
       dyn('LevelItem', '<LevelItem href={p.url}>x</LevelItem>')
     );
     expect(level.rules).toEqual(['prop:href']);
-    expect(level.output).toContain('<Level.Item href={p.url}>x</Level.Item>');
+    expect(level.output).toContain(
+      '<Level.Item href={p.url} as="a">x</Level.Item>'
+    );
   });
 
   it('moves an href off the Navbar.Dropdown container with a hint', () => {
@@ -593,10 +608,13 @@ describe('bloomer navigation handlers', () => {
     expect(drop.output).toContain(
       '<Dropdown.Item active as="div">x</Dropdown.Item>'
     );
+    // The href picks the anchor over the `tag`, as bloomer did — and then
+    // goes, because bestax's `Dropdown.Item` declares no `href` at any `as`.
     const link = migrate(
       dyn('DropdownItem', '<DropdownItem href="/x" tag="span">x</DropdownItem>')
     );
-    expect(link.output).toContain('<Dropdown.Item href="/x">x</Dropdown.Item>');
+    expect(link.rules).toEqual(['prop:href']);
+    expect(link.output).toContain('<Dropdown.Item>x</Dropdown.Item>');
   });
 
   it('treats a falsy PanelBlock href as no anchor', () => {
@@ -730,11 +748,12 @@ describe('bloomer navigation handlers', () => {
     const { output, rules } = migrate(
       dyn('Dropdown', '<Dropdown href="/x" tag="span">x</Dropdown>')
     );
-    // bestax's Dropdown has no `as`, so the tag stays, flagged.
-    expect(rules).toEqual(['component:Dropdown', 'prop:tag']);
-    expect(jsx(output)).toContain(
-      '<Dropdown href="/x" tag="span">x</Dropdown>'
-    );
+    // bestax's Dropdown has no `as`, so the tag stays, flagged. The `href`
+    // does not: `Dropdown` takes none at any `as`, and bloomer's own
+    // `Dropdown` rendered its `tag` whatever `href` said, so the attribute
+    // was doing nothing on the <span> it really was.
+    expect(rules).toEqual(['component:Dropdown', 'prop:tag', 'prop:href']);
+    expect(jsx(output)).toContain('<Dropdown tag="span">x</Dropdown>');
   });
 });
 

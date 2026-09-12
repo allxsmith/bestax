@@ -17,7 +17,7 @@ Reported from package.json, not a code TODO. bestax-bulma's peers: **React ^18 |
 **@fortawesome/fontawesome-free ^6.7 || ^7** (FA 5 apps: upgrade, or
 `npm install --legacy-peer-deps` and keep FA 5 for your own `<i>` tags).
 
-## `Element` — no generic element
+## `component:Element` — no generic element
 
 bestax has no `Element`. Pick the semantic component (`Block`, `Box`, `Content`, …) that
 matches the usage, or plain JSX with classes:
@@ -29,7 +29,7 @@ matches the usage, or plain JSX with classes:
 <Span textColor="grey" m="2">…</Span>   // bestax exports Span/Paragraph/Strong/etc.
 ```
 
-## `Tile` — Bulma v1 replaced tiles with Grid
+## `component:Tile` — Bulma v1 replaced tiles with Grid
 
 Convert ancestor/parent/child tile trees to `Grid`/`Cell` (docs:
 https://bestax.io/docs/api/grid):
@@ -87,7 +87,7 @@ RBC modal has) selects the **compound** form, and that renders only the children
 So `closeOnBlur` and `showClose={true}` mean "add those two children"; passing either as `false`
 means "drop the prop", since the compound form gives you neither unless you ask.
 
-## `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
+## `responsive` — `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
 
 No bestax helper-prop variants exist. Use Bulma classes directly:
 `className="is-hidden-touch"`, `is-flex-tablet-only`, etc. (all still exist in Bulma v1).
@@ -113,7 +113,7 @@ The codemod only rewrites literals. Convert the expression at its source, e.g.:
 <Block textSize={String(n) as '1' | '2' | '3' | '4' | '5' | '6' | '7'}>
 ```
 
-## Button shade colors (`black-bis`, `grey-light`, …) and `isSelected`
+## `prop:color` — Button shade colors (`black-bis`, `grey-light`, …) and `isSelected`
 
 bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 `bgColor`/`textColor` (they accept the full palette incl. shades), and replace
@@ -145,6 +145,50 @@ codemod runs, read the target name on the line, not the one you wrote.
 to `<Delete>`, a plain function component that forwards no ref — even though `Button` itself
 does. The codemod detects that case and replaces the general advice with a TODO naming
 `Delete`, so the message on the line is the one to trust.
+
+## `prop:as` — a tag the component does not render
+
+Several bestax components accept `as` but narrow it to the tags Bulma's markup allows there, so
+a literal `renderAs` outside that union (`<Media renderAs="section">`, `<Footer
+renderAs="section">`) becomes a `prop:as` TODO listing the tags that component does render. Wrap
+the component in the element you wanted, or restructure. See the `as` section of
+[prop-map.md](prop-map.md) for which components accept it at all.
+
+## `prop:href` — a link needs the anchor
+
+bestax gives an element the attributes of the tag `as` names, so an `href` belongs on an `<a>`
+or on a custom component you pass to `as`, never on another intrinsic tag. RBC let the two
+disagree, and the browser ignored the result: `<Menu.List.Item renderAs="span" href="/x">`
+rendered a `<span>` that navigated nowhere. The element stays, the dead attribute goes:
+
+```jsx
+<Menu.List.Item renderAs="span" href="/x">Home</Menu.List.Item>
+<Menu.Item as="span">Home</Menu.Item>
+```
+
+Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
+`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
+`<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
+
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
+whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
+`<a>` inside.
+
+## `prop:target`, `prop:download`, `prop:hrefLang`, `prop:ping`, `prop:referrerPolicy`, `prop:media`
+
+`target`, `download`, `hrefLang`, `ping`, `referrerPolicy` and `media` follow the element the same way
+`href` does, and they are invalid on the wrong one whether or not an `href` is beside them —
+`<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged against
+the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>` or a
+`target` on a `<form>` stays where it is legal. Where one is removed the TODO quotes it. Put it
+on an `<a>` inside, or make the element one that takes it.
+
+`rel` is never touched: React declares it on `HTMLAttributes`, so it is valid on every element.
+
+A component can be narrower than its element. One that takes no `href` at any `as` takes none of
+these either, and `Level.Item` declares only `href`, `target` and `rel` — so `download` and the
+rest go there even at `as="a"`.
 
 ## Helper props dropped from plain-element replacements
 
