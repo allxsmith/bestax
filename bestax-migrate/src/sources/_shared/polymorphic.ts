@@ -104,6 +104,17 @@ const HREF_OK: Record<string, string> = {
   'Panel.Block': 'a',
 };
 
+/**
+ * Where "put an <a> inside" is not the useful advice. bloomer's navbar handler
+ * already said this for its own source; the other two reached the same target
+ * and got the generic line, which is the sibling drift `bestax-migrate`'s
+ * CLAUDE.md warns about. Keyed by target, all three get it.
+ */
+const NO_HREF_HINT: Record<string, string> = {
+  'Navbar.Dropdown':
+    'bestax `Navbar.Dropdown` is the container and takes no `href`; put it on the `<Navbar.Link>` inside',
+};
+
 /** The targets whose `as` this pass may believe. */
 export function declaresAs(target: string): boolean {
   return target in AS_UNIONS || AS_ANY.has(target);
@@ -137,19 +148,33 @@ export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
 const ANCHOR = 'a';
 
 /**
- * Attributes that exist only on the anchor family. They are as inert as the
- * `href` beside them once the element is not a link, and just as much a type
- * error, so they leave together -- dropping the `href` alone left
- * `<Navbar.Link as="span" target="_blank">`, which still does not compile.
+ * The elements each link attribute is valid on. Not a blanket "anchor-only"
+ * list, because they are not: `referrerPolicy` is real on `<img>` and
+ * `<script>`, `target` on `<form>`, `rel` on `<link>`. Treating them as one
+ * set deleted working attributes from those elements.
+ *
+ * They still have to be checked. Dropping the `href` alone left
+ * `<Navbar.Link as="span" target="_blank">`, which does not compile either --
+ * and the check has to run whether or not an `href` was there to start with,
+ * since that shape is just as invalid without one.
  */
-const ANCHOR_ONLY = [
-  'target',
-  'rel',
-  'download',
-  'hrefLang',
-  'ping',
-  'referrerPolicy',
-];
+const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
+  target: ['a', 'area', 'form', 'base'],
+  rel: ['a', 'area', 'form', 'link'],
+  download: ['a', 'area'],
+  hrefLang: ['a', 'link'],
+  ping: ['a', 'area'],
+  referrerPolicy: ['a', 'area', 'iframe', 'img', 'link', 'script'],
+};
+
+/** Whether `element` renders `attr` legally -- exported for the plain-markup path. */
+export function elementTakesLinkAttr(name: string, element: string): boolean {
+  const allowed = LINK_ATTR_ELEMENTS[name];
+  return !allowed || allowed.includes(element);
+}
+
+/** The link attributes, for callers that iterate them. */
+export const LINK_ATTRS: readonly string[] = Object.keys(LINK_ATTR_ELEMENTS);
 
 /**
  * Drop an `as` the bestax target cannot render, naming the elements it can.
@@ -202,25 +227,16 @@ function dropInertHref(
   const wasWritten = attrSource(ctx.j, href);
   const drop = (why: string): void => {
     removeAttr(element, href);
-    const alsoWent: string[] = [];
-    for (const name of ANCHOR_ONLY) {
-      const attr = findAttr(element, name);
-      if (!attr) continue;
-      removeAttr(element, attr);
-      alsoWent.push(`\`${name}\``);
-    }
-    const tail = alsoWent.length
-      ? ` (${alsoWent.join(', ')} went with it -- the anchor is what carried them)`
-      : '';
     const was = wasWritten ? ` -- it read \`${wasWritten}\`` : '';
-    addTodo(ctx, path, 'prop:href', `${why}${tail}${was}`);
+    addTodo(ctx, path, 'prop:href', `${why}${was}`);
     ctx.dirty = true;
   };
 
   const defaultEl = HREF_OK[target];
   if (!defaultEl) {
     drop(
-      `bestax \`${target}\` takes no \`href\` at any \`as\` -- navigate in \`onClick\`, or put an <a> inside it`
+      NO_HREF_HINT[target] ??
+        `bestax \`${target}\` takes no \`href\` at any \`as\` -- navigate in \`onClick\`, or put an <a> inside it`
     );
     return;
   }
@@ -259,6 +275,38 @@ function dropInertHref(
 }
 
 /**
+ * Drop a link attribute the rendered element does not take.
+ *
+ * Independent of `href`: `<Navbar.Link as="span" target="_blank">` is invalid
+ * with or without one, and the sources emit both shapes. Each attribute is
+ * judged against the element rather than as a group, so a `referrerPolicy` on
+ * an `<img>` and a `target` on a `<form>` stay.
+ */
+function dropInertLinkAttrs(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string,
+  rendered: string | undefined
+): void {
+  if (!rendered) return;
+  for (const name of LINK_ATTRS) {
+    if (elementTakesLinkAttr(name, rendered)) continue;
+    const attr = findAttr(element, name);
+    if (!attr) continue;
+    const was = attrSource(ctx.j, attr);
+    removeAttr(element, attr);
+    addTodo(
+      ctx,
+      path,
+      `prop:${name}`,
+      `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here -- ${was ? `it read \`${was}\`; ` : ''}put it on an <a> inside, or change the element`
+    );
+    ctx.dirty = true;
+  }
+}
+
+/**
  * The whole-element pass each source runs after its prop passes, once the
  * bestax `target` and the final `as` are both known.
  */
@@ -273,5 +321,20 @@ export function enforcePolymorphicProps(
   const attr = declaresAs(target) ? findAttr(element, 'as') : undefined;
   const literal = attr ? literalValueOf(attr) : undefined;
   dropInertHref(ctx, path, element, target, literal);
+  // The element as it will render: the `as` if the target takes it, otherwise
+  // the component's own. Unknown for a dynamic `as`, and unknown for a target
+  // outside `HREF_OK` that was given no `as` -- the default element is only
+  // recorded for the nine that can carry a link. So this rule reaches an
+  // explicit accepted `as` on any target, plus those nine bare; elsewhere it
+  // declines rather than guesses.
+  const rendered =
+    literal && literal.kind === 'string'
+      ? acceptsAs(target, literal.value)
+        ? literal.value
+        : HREF_OK[target]
+      : literal
+        ? undefined
+        : HREF_OK[target];
+  dropInertLinkAttrs(ctx, path, element, target, rendered);
   restrictAsValue(ctx, path, element, target, attr, literal);
 }

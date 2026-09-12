@@ -175,6 +175,15 @@ and on `Button` and `Level.Item` once `as="a"` names one — those two render a 
 whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
 `<a>` inside.
 
+## `prop:target` and the other link attributes
+
+`target`, `rel`, `download`, `hrefLang`, `ping` and `referrerPolicy` follow the element the
+same way `href` does, and they are invalid on the wrong one whether or not an `href` is beside
+them — `<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged
+against the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>`
+or a `target` on a `<form>` stays where it is legal. Where one is removed the TODO quotes it.
+Put it on an `<a>` inside, or make the element one that takes it.
+
 ## Helper props dropped from plain-element replacements
 
 Where the codemod produced a plain element (`Form.Label` → `<label>`, `Breadcrumb.Item` →
