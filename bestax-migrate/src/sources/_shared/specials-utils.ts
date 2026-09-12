@@ -11,6 +11,7 @@
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
 import { addAttrOnce } from './props.js';
+import { LINK_ATTRS, elementTakesLinkAttr } from './polymorphic.js';
 import {
   addAttr,
   addTodo,
@@ -372,6 +373,23 @@ export function makeStructuralHelpers(strip: AttrStrip) {
         path,
         'prop:href',
         `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside${was}`
+      );
+      ctx.dirty = true;
+    }
+    // The link attributes beside it are judged against the same tag, and for
+    // the same reason: a `<span target="_blank">` does not compile either.
+    // Each on its own, so a `referrerPolicy` on an `<img>` survives.
+    for (const name of LINK_ATTRS) {
+      if (elementTakesLinkAttr(name, tag)) continue;
+      const attr = findAttr(element, name);
+      if (!attr) continue;
+      const was = attrSource(ctx.j, attr);
+      removeAttr(element, attr);
+      addTodo(
+        ctx,
+        path,
+        `prop:${name}`,
+        `${where} became a plain <${tag}>, which takes no \`${name}\`${was ? ` — it read \`${was}\`` : ''}; put it on an <a> inside, or change the element`
       );
       ctx.dirty = true;
     }

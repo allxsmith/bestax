@@ -232,6 +232,7 @@ describe('rbx kitchen-sink e2e', () => {
     // which nothing here asserted — so deleting them cost no coverage.
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
+    expect(rules).toContain('prop:target');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),

@@ -141,6 +141,35 @@ const join = (...parts: Array<string | undefined>): string | undefined => {
  * - without `href` or `tag`, a target that defaults to an <a> gets
  *   `as={bareAs}` so bloomer's <div> stays a <div>.
  */
+/**
+ * Did bloomer's `props.href ? 'a' : tag` take the `tag` branch for this value?
+ *
+ * True for `""`, `false` and `0`, and for `null` and `undefined` -- both reach
+ * `literalValueOf` as expressions, because it has no kind for them, but both
+ * are statically falsy and neither ever selected the anchor. `undefined` is
+ * shadowable (a parameter may be named it), so it is resolved by binding
+ * rather than by text, which is the rule this package applies to component
+ * references.
+ *
+ * Shared by `anchorWhenHref` and the `panel-block` handler: they are two
+ * copies of the same decision, and the second one missed these two literals.
+ */
+function isFalsyHref(path: ASTPath<any>, attr: any): boolean {
+  const expr =
+    attr.value?.type === 'JSXExpressionContainer'
+      ? attr.value.expression
+      : undefined;
+  if (expr) {
+    if (expr.type === 'NullLiteral') return true;
+    if (expr.type === 'Literal' && expr.value === null) return true;
+    if (expr.type === 'Identifier' && expr.name === 'undefined') {
+      return !path.scope?.lookup('undefined');
+    }
+  }
+  const literal = literalValueOf(attr);
+  return literal.kind !== 'expression' && !literal.value;
+}
+
 function anchorWhenHref(
   ctx: TransformContext,
   path: ASTPath<any>,
@@ -154,27 +183,7 @@ function anchorWhenHref(
   // false `href` kept the default element. It selected nothing, and bestax
   // types `href` as a string where it exists at all, so it is dropped.
   const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
-  // `null` and `undefined` reach `literalValueOf` as expressions, but they are
-  // statically falsy, and bloomer's `props.href ? 'a' : tag` took the tag for
-  // them -- so they belong with `false`, `0` and `""`, not with a value only
-  // the runtime knows.
-  const staticallyEmpty =
-    hrefAttr !== undefined &&
-    hrefAttr.value?.type === 'JSXExpressionContainer' &&
-    (hrefAttr.value.expression?.type === 'NullLiteral' ||
-      (hrefAttr.value.expression?.type === 'Literal' &&
-        hrefAttr.value.expression.value === null) ||
-      (hrefAttr.value.expression?.type === 'Identifier' &&
-        hrefAttr.value.expression.name === 'undefined' &&
-        // `undefined` is shadowable (a parameter may be named it), and this
-        // package resolves references by binding rather than by text. A
-        // shadowed one is a live value, not the literal.
-        !path.scope?.lookup('undefined')));
-  const hrefFalsy =
-    staticallyEmpty ||
-    (hrefLiteral !== undefined &&
-      hrefLiteral.kind !== 'expression' &&
-      !hrefLiteral.value);
+  const hrefFalsy = hrefAttr !== undefined && isFalsyHref(path, hrefAttr);
   if (hrefAttr && hrefFalsy) {
     removeAttr(element, hrefAttr);
     handled.push('href');
@@ -824,10 +833,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // The same rule as anchorWhenHref: bloomer chose the anchor with
     // `props.href ? 'a' : tag`, so an empty or false href is no anchor.
     const hrefAttr = findAttr(element, 'href');
-    const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
-    const anchored =
-      hrefAttr !== undefined &&
-      (hrefLiteral!.kind === 'expression' || Boolean(hrefLiteral!.value));
+    const anchored = hrefAttr !== undefined && !isFalsyHref(path, hrefAttr);
     if (hrefAttr && !anchored) {
       // A falsy href selected nothing in bloomer and cannot sit on a <div>.
       removeAttr(element, hrefAttr);

@@ -98,12 +98,16 @@ const RBX: Case[] = [
   ['Footer', '<Footer as="a" href="/x">x</Footer>'],
   ['Tab', '<Tab href="/x">One</Tab>'],
   ['Media', '<Media.Item align="left" href="/x">x</Media.Item>'],
-  // The anchor-only siblings are as inert as the href, and as much a type
-  // error -- they have to leave with it.
+  // The link attributes beside the href are as invalid as it is, and just as
+  // invalid without it -- so the check cannot be conditional on one.
   [
     'Navbar',
     '<Navbar.Link as="span" href="/x" target="_blank">x</Navbar.Link>',
   ],
+  ['Navbar', '<Navbar.Link as="span" target="_blank">x</Navbar.Link>'],
+  ['Button', '<Button as="span" download>x</Button>'],
+  // Kept where the element really takes it: `referrerPolicy` on an <img>.
+  ['Button', '<Button as="img" referrerPolicy="no-referrer" src="/a.png" />'],
   [
     'Menu',
     '<Menu.List.Item as="span" href="/x" rel="noopener">x</Menu.List.Item>',
@@ -231,6 +235,25 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
       '<Menu.List.Item as="span" href="/x">x</Menu.List.Item>',
     ]);
     expect(menu).toContain('drop the `as`');
+  });
+
+  it('gives every source the same advice for the same target', () => {
+    // bloomer's navbar handler said the useful thing for its own source and
+    // the other two got the generic line for the same target -- the sibling
+    // drift `bestax-migrate/CLAUDE.md` warns about. Keyed by target now.
+    const hint = 'put it on the `<Navbar.Link>` inside';
+    expect(
+      migrate(bloomer, 'bloomer', [
+        'NavbarItem',
+        '<NavbarItem hasDropdown href="/x">x</NavbarItem>',
+      ])
+    ).toContain(hint);
+    expect(
+      migrate(rbx, 'rbx', [
+        'Navbar',
+        '<Navbar.Item dropdown href="/x">x</Navbar.Item>',
+      ])
+    ).toContain(hint);
   });
 
   it('never writes an href beside an `as` that is not an anchor', () => {
