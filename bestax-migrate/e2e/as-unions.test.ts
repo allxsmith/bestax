@@ -195,6 +195,26 @@ describe('the href and `as` tables match what the library accepts', () => {
  * `ping` does not. Each row is asserted by use, in both directions -- valid on
  * every element it lists, rejected on one it does not.
  */
+/**
+ * The elements the link-attribute rows are checked against, written out
+ * rather than read off the table they are checking. Every element any row
+ * names has to be here, plus a few that no row does.
+ */
+const LINK_ATTR_UNIVERSE = [
+  'a',
+  'area',
+  'base',
+  'div',
+  'form',
+  'iframe',
+  'img',
+  'link',
+  'script',
+  'source',
+  'span',
+  'style',
+] as const;
+
 const SAMPLE: Record<string, string> = {
   target: '="_blank"',
   download: '',
@@ -205,15 +225,12 @@ const SAMPLE: Record<string, string> = {
 
 function buildLinkAttrSource(): string {
   const rows: string[] = [];
-  // Every element any row mentions, so the negative direction is a real
-  // completeness check. Asserting only against `<span>` proved nothing about
-  // the rows themselves: drop `area` from `hrefLang` and each remaining
-  // assertion still passes, which is the exact regression this exists to
-  // catch. Each attribute is now rejected on every element outside its row.
-  const universe = [
-    ...new Set(Object.values(LINK_ATTR_TABLE).flat()),
-    'span',
-  ].sort();
+  // Independent of the table on purpose. Deriving the universe from
+  // `LINK_ATTR_TABLE` meant a row and its own negative set moved together:
+  // delete `script` from `referrerPolicy` and `script` left the universe too,
+  // so nothing asserted it. This list is written out, so removing an element
+  // from a row leaves an assertion behind that then fails.
+  const universe = [...LINK_ATTR_UNIVERSE];
   for (const [attr, elements] of Object.entries(LINK_ATTR_TABLE)) {
     const value = SAMPLE[attr] ?? '="x"';
     for (const el of elements) {
@@ -237,6 +254,15 @@ describe('the link-attribute table matches what React types', () => {
       status: 0,
       diagnostics: '',
     });
+  });
+
+  it('checks every element the table names', () => {
+    // The universe is hand-written so it cannot move with the rows; this is
+    // what stops a new row naming an element the negative side never sees.
+    const named = new Set(Object.values(LINK_ATTR_TABLE).flat());
+    expect(
+      [...named].filter(e => !LINK_ATTR_UNIVERSE.includes(e as never))
+    ).toEqual([]);
   });
 
   it('leaves `rel` out, because it is valid on every element', () => {
