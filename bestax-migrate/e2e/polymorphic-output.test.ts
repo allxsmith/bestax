@@ -105,6 +105,15 @@ const RBX: Case[] = [
     '<Navbar.Link as="span" href="/x" target="_blank">x</Navbar.Link>',
   ],
   ['Navbar', '<Navbar.Link as="span" target="_blank">x</Navbar.Link>'],
+  // Targets whose props do NOT follow `as`: every matrix row for link
+  // attributes used to sit on the four that do, so the gap was invisible by
+  // construction. `Dropdown.Item` takes no link at any `as`; `Level.Item`
+  // enumerates its own props and stops at `target`.
+  ['Dropdown', '<Dropdown.Item href="/x" target="_blank">x</Dropdown.Item>'],
+  ['Dropdown', '<Dropdown.Item as="a" target="_blank">x</Dropdown.Item>'],
+  ['Level', '<Level.Item as="a" href="/x" target="_blank">x</Level.Item>'],
+  ['Level', '<Level.Item as="a" href="/x" download>x</Level.Item>'],
+  ['Tab', '<Tab target="_blank">One</Tab>'],
   ['Button', '<Button as="span" download>x</Button>'],
   // Kept where the element really takes it: `referrerPolicy` on an <img>.
   ['Button', '<Button as="img" referrerPolicy="no-referrer" src="/a.png" />'],
