@@ -126,12 +126,20 @@ function buildHrefSource(): string {
   for (const target of AS_ANY_TARGETS) {
     roots.add(target.split('.')[0]);
     const i = rows.length;
+    // A custom component with a required prop of its own. `as="span"` alone
+    // proved nothing: a component narrowed to a union containing `span` would
+    // pass it while `AS_ANY` went on preserving tags it cannot render.
     rows.push(
-      `export const a${i} = <${target} as="span">{'x'}</${target}>; // ${target}: any`
+      `export const a${i} = <${target} as={Custom} mustPass="y">{'x'}</${target}>; // ${target}: any`
+    );
+    rows.push(
+      `export const s${i} = <${target} as="span">{'x'}</${target}>; // ${target}: intrinsic`
     );
   }
   return [
     `import { ${[...roots].sort().join(', ')} } from '@allxsmith/bestax-bulma';`,
+    '',
+    'const Custom = (p: { mustPass: string; children?: unknown }) => <>{p.children}</>;',
     '',
     ...rows,
     '',
@@ -197,6 +205,15 @@ const SAMPLE: Record<string, string> = {
 
 function buildLinkAttrSource(): string {
   const rows: string[] = [];
+  // Every element any row mentions, so the negative direction is a real
+  // completeness check. Asserting only against `<span>` proved nothing about
+  // the rows themselves: drop `area` from `hrefLang` and each remaining
+  // assertion still passes, which is the exact regression this exists to
+  // catch. Each attribute is now rejected on every element outside its row.
+  const universe = [
+    ...new Set(Object.values(LINK_ATTR_TABLE).flat()),
+    'span',
+  ].sort();
   for (const [attr, elements] of Object.entries(LINK_ATTR_TABLE)) {
     const value = SAMPLE[attr] ?? '="x"';
     for (const el of elements) {
@@ -204,9 +221,10 @@ function buildLinkAttrSource(): string {
         `export const y${rows.length} = <${el} ${attr}${value} />; // ${attr} on ${el}`
       );
     }
-    // `<span>` is in no row, so every attribute must be rejected on it.
-    rows.push(`// @ts-expect-error ${attr} is not valid on a <span>`);
-    rows.push(`export const n${rows.length} = <span ${attr}${value} />;`);
+    for (const el of universe.filter(e => !elements.includes(e))) {
+      rows.push(`// @ts-expect-error ${attr} is not valid on a <${el}>`);
+      rows.push(`export const n${rows.length} = <${el} ${attr}${value} />;`);
+    }
   }
   return rows.join('\n') + '\n';
 }

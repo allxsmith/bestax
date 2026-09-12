@@ -79,12 +79,18 @@ whichever you name, but declares no `href` at any of them. Navigate in `onClick`
 
 ## `prop:target` and the other link attributes
 
-`target`, `rel`, `download`, `hrefLang`, `ping` and `referrerPolicy` follow the element the
-same way `href` does, and they are invalid on the wrong one whether or not an `href` is beside
-them — `<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged
-against the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>`
-or a `target` on a `<form>` stays where it is legal. Where one is removed the TODO quotes it.
-Put it on an `<a>` inside, or make the element one that takes it.
+`target`, `download`, `hrefLang`, `ping` and `referrerPolicy` follow the element the same way
+`href` does, and they are invalid on the wrong one whether or not an `href` is beside them —
+`<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged against
+the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>` or a
+`target` on a `<form>` stays where it is legal. Where one is removed the TODO quotes it. Put it
+on an `<a>` inside, or make the element one that takes it.
+
+`rel` is never touched: React declares it on `HTMLAttributes`, so it is valid on every element.
+
+A component can be narrower than its element. One that takes no `href` at any `as` takes none of
+these either, and `Level.Item` declares only `href`, `target` and `rel` — so `download` and the
+rest go there even at `as="a"`.
 
 ## `component:Generic` — rbx's base element
 
