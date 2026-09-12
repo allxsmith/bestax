@@ -79,7 +79,7 @@ whichever you name, but declares no `href` at any of them. Navigate in `onClick`
 
 ## `prop:target` and the other link attributes
 
-`target`, `download`, `hrefLang`, `ping` and `referrerPolicy` follow the element the same way
+`target`, `download`, `hrefLang`, `ping`, `referrerPolicy` and `media` follow the element the same way
 `href` does, and they are invalid on the wrong one whether or not an `href` is beside them —
 `<Navbar.Link as="span" target="_blank">` does not compile on its own. Each is judged against
 the element that actually renders, not as a group, so a `referrerPolicy` on an `<img>` or a

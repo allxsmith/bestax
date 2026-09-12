@@ -98,7 +98,7 @@
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 15912
+          "bytes": 15921
         },
         {
           "id": "css-migration",
@@ -118,7 +118,7 @@
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 13237
+          "bytes": 13246
         },
         {
           "id": "react-bulma-components-component-map",
@@ -133,7 +133,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 9241
+          "bytes": 9250
         }
       ],
       "examples": []

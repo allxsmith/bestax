@@ -214,6 +214,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
         subtitleTruthy ? 'heading subtitle' : 'heading',
         'Heading'
       );
+      // The seventh hand-built plain rewrite in this file, and the one that
+      // does not go through `keptAttrs` -- so it needs the cleanup by name or
+      // `<Heading renderAs="a" href="/x">` lands an `href` on the `<p>`.
+      dropLinkAttrsForPlainTag(ctx, path, element, 'p', 'Heading');
       const consumed = new Set(
         stripModifierProps(
           ctx,

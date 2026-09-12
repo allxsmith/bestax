@@ -168,7 +168,17 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
   hrefLang: ['a', 'area', 'link'],
   ping: ['a'],
   referrerPolicy: ['a', 'area', 'iframe', 'img', 'link', 'script'],
+  media: ['a', 'area', 'link', 'source', 'style'],
 };
+
+// `type` is the other member `AnchorHTMLAttributes` adds, and it is
+// deliberately absent. It is not a link attribute in any useful sense: it is
+// an ordinary prop on form controls and buttons, which bestax components
+// declare in their own right. This rule cannot tell "the anchor contributed
+// it" from "the component owns it", and treating it as a link attribute
+// stripped `type="text"` off every `<Input>` in the fixtures. So
+// `<Button as="span" type="button">` still ships a type error -- one the
+// source wrote rather than one the codemod created, which is the trade.
 
 // `rel` is deliberately absent: React declares it on `HTMLAttributes`, so it
 // is valid on every intrinsic and there is nothing to remove. The same point
@@ -325,15 +335,19 @@ function dropInertLinkAttrs(
 ): void {
   const carriesLinks = HREF_OK[target] !== undefined;
   const declared = TARGET_LINK_ATTRS[target];
-  // Nothing to judge against: the target does take links, but which element it
-  // renders is unknown (a dynamic `as`). Leave the pair for the author.
-  if (carriesLinks && !declared && !rendered) return;
   for (const name of LINK_ATTRS) {
-    const keeps = !carriesLinks
-      ? false
-      : declared
-        ? declared.includes(name)
-        : elementTakesLinkAttr(name, rendered as string);
+    // Both have to allow it. A target that enumerates its props can be
+    // narrower than the element, and the element can be narrower than the
+    // target: `Level.Item` declares `target` but forwards it only when the
+    // tag is an `<a>`, so `<Level.Item as="p" target="_blank">` was keeping
+    // the same inert attribute this pass removes everywhere else.
+    let keeps: boolean;
+    if (!carriesLinks) keeps = false;
+    else if (declared && !declared.includes(name)) keeps = false;
+    // A dynamic `as` leaves the element unknown, and guessing either way is
+    // worse than leaving it for the author.
+    else if (rendered === undefined) keeps = true;
+    else keeps = elementTakesLinkAttr(name, rendered);
     if (keeps) continue;
     const attr = findAttr(element, name);
     if (!attr) continue;

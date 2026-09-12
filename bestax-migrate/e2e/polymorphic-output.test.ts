@@ -114,6 +114,10 @@ const RBX: Case[] = [
   ['Level', '<Level.Item as="a" href="/x" target="_blank">x</Level.Item>'],
   ['Level', '<Level.Item as="a" href="/x" download>x</Level.Item>'],
   ['Tab', '<Tab target="_blank">One</Tab>'],
+  // `Level.Item` declares `target`, but forwards it only for an <a>, so the
+  // component and the element both have to allow it.
+  ['Level', '<Level.Item as="p" target="_blank">x</Level.Item>'],
+  ['Button', '<Button as="span" media="print">x</Button>'],
   ['Button', '<Button as="span" download>x</Button>'],
   // Kept where the element really takes it: `referrerPolicy` on an <img>.
   ['Button', '<Button as="img" referrerPolicy="no-referrer" src="/a.png" />'],
@@ -137,6 +141,8 @@ const RBC: Case[] = [
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
   ['Media', '<Media renderAs="section" href="/x">x</Media>'],
+  // The seventh hand-built plain rewrite, which does not use `keptAttrs`.
+  ['Heading', '<Heading heading renderAs="a" href="/x">Stats</Heading>'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [
