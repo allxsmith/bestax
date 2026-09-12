@@ -137,7 +137,16 @@ const join = (...parts: Array<string | undefined>): string | undefined => {
  *   one element or the other. It resolves to the anchor, which is the branch
  *   the `href` is there for, and the TODO names the element to restore for
  *   the empty case. Keeping both would emit `href` beside a non-anchor `as`,
- *   which the library does not type;
+ *   which the library does not type.
+ *
+ *   Settled deliberately, and reviewers have raised it more than once. The
+ *   alternative that keeps bloomer's own choice is a conditional --
+ *   `as={href ? 'a' : 'span'}` -- which does typecheck, on `Button` as well
+ *   as `Level.Item`. It was weighed and declined: it writes a conditional the
+ *   author did not, it only works where the source `tag` is a literal, and it
+ *   leaves a second shape to explain. A single element plus a TODO that names
+ *   the other is the output this package prefers. Do not re-litigate without
+ *   new information;
  * - without `href` or `tag`, a target that defaults to an <a> gets
  *   `as={bareAs}` so bloomer's <div> stays a <div>.
  */

@@ -165,7 +165,17 @@ function migrate(
   const { output } = runTransform(source.transform, 'case.tsx', input, {
     add: () => {},
   });
-  return output ?? input;
+  // `runTransform` returns null when the transform declined the file, and
+  // falling back to `input` handed the SOURCE library's JSX to tsc -- so a
+  // case that never migrated would be judged on the wrong code entirely. It
+  // is how a `Menu.Item` typo in this list surfaced as "Cannot find module
+  // 'rbx'" rather than as the missing migration it was.
+  if (output === null) {
+    throw new Error(
+      `${pkg}: transform declined \`${jsx}\` -- the case never migrated, so nothing here was checked`
+    );
+  }
+  return output;
 }
 
 describe('migrated output typechecks where `as` and `href` collide', () => {
