@@ -215,7 +215,16 @@ export const TARGET_LINK_ATTR_TABLE: Record<string, readonly string[]> =
  * forward (see `ANCHOR` below) -- but a plain `<area href>` has no component
  * in the way, and it is valid.
  */
-export const HREF_ELEMENTS: readonly string[] = ['a', 'area', 'base', 'link'];
+export const HREF_ELEMENTS: readonly string[] = [
+  'a',
+  'area',
+  'base',
+  'link',
+  // React 19 types `href` onto `<style>` for stylesheet hoisting. Implausible
+  // as the output of a Bulma rewrite, but the table is checked against the
+  // library rather than against what seems likely, and it said otherwise.
+  'style',
+];
 
 /** Whether `element` renders `attr` legally -- exported for the plain-markup path. */
 export function elementTakesLinkAttr(name: string, element: string): boolean {

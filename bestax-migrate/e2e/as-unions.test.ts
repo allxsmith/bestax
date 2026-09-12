@@ -14,6 +14,7 @@
 import {
   AS_ANY_TARGETS,
   AS_UNIONS,
+  HREF_ELEMENTS,
   HREF_TABLE,
   LINK_ATTR_TABLE,
   TARGET_LINK_ATTR_TABLE,
@@ -289,6 +290,31 @@ describe('the per-target link-attribute exception matches the library', () => {
     }
     const source = rows.join('\n') + '\n';
     const { status, diagnostics } = typecheckTsx(source, 'target-link-attrs');
+    expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
+  });
+});
+
+describe('the href-bearing intrinsics match what React types', () => {
+  it('accepts an href on each, and rejects it off them', () => {
+    // The fifth hand-written table in this file's subject, added last and
+    // pinned last. Every other one here was wrong at least once before a
+    // test held it to the library, so this one does not get to be the
+    // exception. Same universe as the link attributes, for the same reason:
+    // written out, not read off the table under test.
+    const rows: string[] = [];
+    for (const el of LINK_ATTR_UNIVERSE) {
+      if (HREF_ELEMENTS.includes(el)) {
+        rows.push(`export const h_${el} = <${el} href="#" />;`);
+      } else {
+        rows.push(`// @ts-expect-error ${el} takes no href`);
+        rows.push(`export const n_${el} = <${el} href="#" />;`);
+      }
+    }
+    const source = rows.join('\n') + '\n';
+    const { status, diagnostics } = typecheckTsx(source, 'href-elements');
     expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
       status: 0,
       diagnostics: '',
