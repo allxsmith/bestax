@@ -536,9 +536,6 @@ export const MAPPING: Record<string, ComponentMapping> = {
           as: AS_OK,
           active: {},
           onClick: {},
-          href: {
-            todo: 'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
-          },
         },
       },
       Divider: { status: 'mapped', target: 'Dropdown.Divider' },

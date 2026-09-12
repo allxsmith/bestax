@@ -700,8 +700,10 @@ export default function transform(
     }
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
 
-    // Last: bestax's props follow `as`, so the element decides which of the
-    // props just written it can actually take.
+    // After every prop pass: bestax's props follow `as`, so the element
+    // decides which of the props just written it can actually take. The
+    // wrappers below move neither `as` nor `href`, so this reads the final
+    // pair either way.
     enforcePolymorphicProps(ctx, path, element, target);
 
     // ---- 2a. badge/tooltip helper props → wrapping components ------------

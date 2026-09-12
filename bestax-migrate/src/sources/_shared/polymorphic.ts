@@ -7,7 +7,8 @@
  * emit two shapes that do not compile against the library:
  *
  * - an `as` naming an element the bestax component does not offer;
- * - an `href` beside an `as` that is not an `<a>`.
+ * - an `href` beside an `as` that is not an `<a>`;
+ * - an `href` on a component that declares none at any `as`.
  *
  * Both are dropped with a TODO rather than carried, and nothing renders
  * differently for it. The source component ignored an `as` it had no element
@@ -54,16 +55,36 @@ const AS_UNION_TABLE = {
   Title: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
 } as const;
 
-/** The literal rows, for the type test that holds them to the library. */
-export type AsUnions = typeof AS_UNION_TABLE;
-
 export const AS_UNIONS: Record<string, readonly string[]> = AS_UNION_TABLE;
+
+/**
+ * Targets that declare no `href` at any `as`, with the recipe for the intent
+ * the attribute carried. These are plain props interfaces rather than
+ * polymorphic ones, so the attribute is a type error whatever `as` says --
+ * `as="a"` does not rescue it.
+ *
+ * The source libraries put an `href` on all four, so this is the same defect
+ * as the `as`-following one above and belongs beside it: keyed by bestax
+ * target, it reaches every source at once. A mapping entry cannot do the job,
+ * because `PropAction` can express a TODO or a drop but not both, and a TODO
+ * alone leaves the attribute in the output.
+ */
+const NO_HREF: Record<string, string> = {
+  Delete:
+    'bestax `Delete` renders a <button> and has no anchor form; wrap it in an <a>, or handle the navigation in `onClick`',
+  'Card.Header.Icon':
+    'bestax `Card.Header.Icon` renders a <button>; put an <a> inside it, or handle the navigation in `onClick`',
+  'Card.FooterItem':
+    'bestax `Card.FooterItem` renders a <span> with no anchor form; put an <a> inside it',
+  'Dropdown.Item':
+    'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
+};
 
 /**
  * Targets whose default element takes no `href`, so one with no `as` beside
  * it has no home. Only `Button` renders a `<button>` by default among the
  * components any source can hand an `href` to; the rest default to an `<a>`,
- * or declare no `href` at all and are flagged by their own mapping entry.
+ * or declare none at all and are in `NO_HREF`.
  */
 const NO_BARE_HREF = new Set(['Button']);
 
@@ -115,6 +136,15 @@ function dropInertHref(
 ): void {
   const href = findAttr(element, 'href');
   if (!href) return;
+  // No `as` rescues a component that declares no `href` at all, so this is
+  // settled before the element is read.
+  const noHref = NO_HREF[target];
+  if (noHref) {
+    removeAttr(element, href);
+    addTodo(ctx, path, 'prop:href', noHref);
+    ctx.dirty = true;
+    return;
+  }
   const asAttr = findAttr(element, 'as');
   if (!asAttr) {
     if (!NO_BARE_HREF.has(target)) return;
