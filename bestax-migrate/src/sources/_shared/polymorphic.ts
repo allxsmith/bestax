@@ -3,20 +3,24 @@
  * of whatever `as` renders, and a few components narrow `as` to a literal
  * union of the elements Bulma's markup allows there. Every source library
  * this package migrates from is looser — rbx and react-bulma-components take
- * any tag, bloomer took any `tag` — so a faithful prop-for-prop rename can
- * emit two shapes that do not compile against the library:
+ * any tag, bloomer took any `tag` — so a faithful prop-for-prop rename emits
+ * shapes that do not compile against the library:
  *
  * - an `as` naming an element the bestax component does not offer;
  * - an `href` beside an `as` that is not an `<a>`;
- * - an `href` on a component that declares none at any `as`.
+ * - an `href` on a component that declares none at any `as`;
+ * - `target` and its siblings on an element, or a component, without them.
  *
- * Both are dropped with a TODO rather than carried, and nothing renders
- * differently for it. The source component ignored an `as` it had no element
- * for, and an `href` on a `<span>` or a `<div>` navigates nowhere in any
- * browser — so what goes is a prop that never did anything, and the TODO says
- * where to put the intent instead. Carrying them across would hand the user a
- * project that does not typecheck, which is the one thing a codemod must not
- * do.
+ * All are dropped with a TODO rather than carried, because carrying them
+ * hands the user a project that does not typecheck, which is the one thing a
+ * codemod must not do.
+ *
+ * What that costs differs by case, and each TODO says so. Dropping an `href`
+ * or a `target` costs nothing the source had: they sat on a `<span>` or a
+ * `<div>`, where no browser acts on them. Dropping an `as` does change the
+ * element — every source here rendered the tag it was given, and bestax
+ * renders its own instead — so that TODO names the tag to restore rather than
+ * claiming nothing moved.
  *
  * Source-agnostic: what it knows is bestax's side of the rename, so all three
  * sources run it over every element after their prop passes.
@@ -170,6 +174,29 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
 // is valid on every intrinsic and there is nothing to remove. The same point
 // `bulma-ui/src/__typetests__/polymorphic.tsx` makes about it.
 
+/**
+ * The link attributes a target accepts, where its props do not follow `as`.
+ *
+ * Most components here either follow `as` (the element decides, above) or
+ * extend `AnchorHTMLAttributes` outright (`Pagination.*`, `Panel.Block`, so
+ * everything is fine). `Level.Item` is the exception that enumerates: it
+ * declares `href`, `target` and `rel` and nothing else, so `download`,
+ * `hrefLang`, `ping` and `referrerPolicy` are type errors there even at
+ * `as="a"`.
+ *
+ * A target absent from `HREF_OK` needs no row: a component that takes no
+ * `href` at any `as` takes none of its siblings either -- verified for
+ * `Dropdown.Item`, `Card.FooterItem`, `Tabs.Item` and `Delete`, which is why
+ * this is derived from that table rather than being a second list to keep.
+ */
+const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
+  'Level.Item': ['target'],
+};
+
+/** The rows the type test holds to the library. */
+export const TARGET_LINK_ATTR_TABLE: Record<string, readonly string[]> =
+  TARGET_LINK_ATTRS;
+
 /** Whether `element` renders `attr` legally -- exported for the plain-markup path. */
 export function elementTakesLinkAttr(name: string, element: string): boolean {
   const allowed = LINK_ATTR_ELEMENTS[name];
@@ -296,18 +323,32 @@ function dropInertLinkAttrs(
   target: string,
   rendered: string | undefined
 ): void {
-  if (!rendered) return;
+  const carriesLinks = HREF_OK[target] !== undefined;
+  const declared = TARGET_LINK_ATTRS[target];
+  // Nothing to judge against: the target does take links, but which element it
+  // renders is unknown (a dynamic `as`). Leave the pair for the author.
+  if (carriesLinks && !declared && !rendered) return;
   for (const name of LINK_ATTRS) {
-    if (elementTakesLinkAttr(name, rendered)) continue;
+    const keeps = !carriesLinks
+      ? false
+      : declared
+        ? declared.includes(name)
+        : elementTakesLinkAttr(name, rendered as string);
+    if (keeps) continue;
     const attr = findAttr(element, name);
     if (!attr) continue;
     const was = attrSource(ctx.j, attr);
     removeAttr(element, attr);
+    const because = !carriesLinks
+      ? `bestax \`${target}\` is not a link at any \`as\`, so it takes no \`${name}\` either`
+      : declared
+        ? `bestax \`${target}\` declares its own props rather than taking the element's, and \`${name}\` is not among them`
+        : `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here`;
     addTodo(
       ctx,
       path,
       `prop:${name}`,
-      `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here -- ${was ? `it read \`${was}\`; ` : ''}put it on an <a> inside, or change the element`
+      `${because} -- ${was ? `it read \`${was}\`; ` : ''}put it on an <a> inside, or change the element`
     );
     ctx.dirty = true;
   }
