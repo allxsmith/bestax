@@ -175,7 +175,7 @@ and on `Button` and `Level.Item` once `as="a"` names one — those two render a 
 whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
 `<a>` inside.
 
-## `prop:target` and the other link attributes
+## `prop:target`, `prop:download`, `prop:hrefLang`, `prop:ping`, `prop:referrerPolicy`, `prop:media`
 
 `target`, `download`, `hrefLang`, `ping`, `referrerPolicy` and `media` follow the element the same way
 `href` does, and they are invalid on the wrong one whether or not an `href` is beside them —
