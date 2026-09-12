@@ -165,7 +165,11 @@ function anchorWhenHref(
       (hrefAttr.value.expression?.type === 'Literal' &&
         hrefAttr.value.expression.value === null) ||
       (hrefAttr.value.expression?.type === 'Identifier' &&
-        hrefAttr.value.expression.name === 'undefined'));
+        hrefAttr.value.expression.name === 'undefined' &&
+        // `undefined` is shadowable (a parameter may be named it), and this
+        // package resolves references by binding rather than by text. A
+        // shadowed one is a live value, not the literal.
+        !path.scope?.lookup('undefined')));
   const hrefFalsy =
     staticallyEmpty ||
     (hrefLiteral !== undefined &&

@@ -107,6 +107,20 @@ export type LiteralValue =
   | { kind: 'expression' };
 
 /** Extract the literal value of a JSX attribute, if it has one. */
+/**
+ * An attribute as the author wrote it, for a TODO that removes it. A dynamic
+ * value may be the only reference keeping an import alive, so the message has
+ * to carry it -- otherwise the destination is recoverable only from git.
+ * Returns '' if the printer cannot render the node.
+ */
+export function attrSource(j: JSCodeshift, attr: any): string {
+  try {
+    return j(attr).toSource();
+  } catch {
+    return '';
+  }
+}
+
 export function literalValueOf(attr: any): LiteralValue {
   if (attr.value == null) return { kind: 'boolean', value: true };
   const v = attr.value;

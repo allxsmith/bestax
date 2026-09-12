@@ -25,6 +25,7 @@
 import type { ASTPath } from 'jscodeshift';
 import {
   addTodo,
+  attrSource,
   findAttr,
   literalValueOf,
   removeAttr,
@@ -119,13 +120,21 @@ export const HREF_TABLE: Record<string, string> = HREF_OK;
 export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
 
 /**
- * The intrinsic elements React types an `href` onto. `<a>` is the one any of
- * these sources meant, but `as="area"` is legal on a target generic over
- * `as`, and React's `AreaHTMLAttributes` carries `href` -- so comparing with
- * `'a'` alone removed a working attribute and told the reader an `<area>`
- * takes no `href`.
+ * The `as` value that keeps an `href`. Only the anchor, and not because it is
+ * the only intrinsic React types an `href` onto -- `area`, `link` and `base`
+ * carry one too, and a target generic over `as` accepts them.
+ *
+ * They are excluded because the components disagree about what they forward,
+ * so no shared set is right. `Menu.Item` strips `href` unless the tag is an
+ * `<a>` or a custom component (`bulma-ui/src/components/Menu.tsx:212-222`),
+ * while `Button` routes everything but `'button'` through its anchor path and
+ * would forward it. Keeping `href` beside `as="area"` therefore typechecks on
+ * both and does nothing on one of them, which is the silently-dead attribute
+ * this pass exists to remove. Dropping it is announced and the TODO quotes
+ * the value; keeping it is not. No source here emits `as="area"` anyway, and
+ * an `<area href>` outside a `<map>` navigates nowhere regardless.
  */
-const HREF_ELEMENTS = new Set(['a', 'area', 'link', 'base']);
+const ANCHOR = 'a';
 
 /**
  * Attributes that exist only on the anchor family. They are as inert as the
@@ -190,16 +199,7 @@ function dropInertHref(
 ): void {
   const href = findAttr(element, 'href');
   if (!href) return;
-  // Quote the value as written. A dynamic `href={trackUrl()}` is a live
-  // expression, and it may be the only reference keeping an import alive, so
-  // removing it without saying what it was leaves the author nothing but git
-  // history to recover the destination from.
-  let wasWritten = '';
-  try {
-    wasWritten = ctx.j(href).toSource();
-  } catch {
-    wasWritten = '';
-  }
+  const wasWritten = attrSource(ctx.j, href);
   const drop = (why: string): void => {
     removeAttr(element, href);
     const alsoWent: string[] = [];
@@ -238,15 +238,23 @@ function dropInertHref(
       : undefined;
 
   if (rendered === undefined) {
-    if (HREF_ELEMENTS.has(defaultEl)) return;
+    if (defaultEl === ANCHOR) return;
     drop(
       `bestax \`${target}\` renders a <${defaultEl}> unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or navigate in \`onClick\``
     );
     return;
   }
-  if (HREF_ELEMENTS.has(rendered)) return;
+  if (rendered === ANCHOR) return;
+  // Which remedy is right depends on what the target renders with no `as`.
+  // "drop the `as`" is only a link on the targets whose bare element is the
+  // anchor; on `Button` it gives a <button> that will not compile, and on
+  // `Level.Item` a <div> that compiles and quietly is not a link.
+  const remedy =
+    defaultEl === ANCHOR
+      ? 'drop the `as` to make this a link, or put an <a> inside'
+      : `set \`as="a"\` to make this a link -- dropping the \`as\` gives you a <${defaultEl}> -- or put an <a> inside`;
   drop(
-    `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${rendered}> takes no \`href\` (it navigated nowhere in the source either) -- drop the \`as\` to make this a link, or put an <a> inside`
+    `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${rendered}> takes no \`href\` (it navigated nowhere in the source either) -- ${remedy}`
   );
 }
 
