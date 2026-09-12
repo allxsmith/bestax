@@ -15,6 +15,7 @@ import {
   AS_ANY_TARGETS,
   AS_UNIONS,
   HREF_TABLE,
+  LINK_ATTR_TABLE,
   declaresAs,
 } from '../src/sources/_shared/polymorphic.js';
 import { typecheckTsx } from './support/typecheck-tsx.js';
@@ -175,5 +176,51 @@ describe('the href and `as` tables match what the library accepts', () => {
       'Navbar.Item',
       'Navbar.Link',
     ]);
+  });
+});
+
+/**
+ * `LINK_ATTR_TABLE` decides which attributes survive beside a changed element,
+ * and it was wrong in three of its six rows when written by hand: `rel` is on
+ * `HTMLAttributes` and so valid everywhere, `hrefLang` reaches `<area>`, and
+ * `ping` does not. Each row is asserted by use, in both directions -- valid on
+ * every element it lists, rejected on one it does not.
+ */
+const SAMPLE: Record<string, string> = {
+  target: '="_blank"',
+  download: '',
+  hrefLang: '="en"',
+  ping: '="/p"',
+  referrerPolicy: '="no-referrer"',
+};
+
+function buildLinkAttrSource(): string {
+  const rows: string[] = [];
+  for (const [attr, elements] of Object.entries(LINK_ATTR_TABLE)) {
+    const value = SAMPLE[attr] ?? '="x"';
+    for (const el of elements) {
+      rows.push(
+        `export const y${rows.length} = <${el} ${attr}${value} />; // ${attr} on ${el}`
+      );
+    }
+    // `<span>` is in no row, so every attribute must be rejected on it.
+    rows.push(`// @ts-expect-error ${attr} is not valid on a <span>`);
+    rows.push(`export const n${rows.length} = <span ${attr}${value} />;`);
+  }
+  return rows.join('\n') + '\n';
+}
+
+describe('the link-attribute table matches what React types', () => {
+  it('licenses each row, and rejects the attribute off it', () => {
+    const source = buildLinkAttrSource();
+    const { status, diagnostics } = typecheckTsx(source, 'link-attrs');
+    expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
+  });
+
+  it('leaves `rel` out, because it is valid on every element', () => {
+    expect(Object.keys(LINK_ATTR_TABLE)).not.toContain('rel');
   });
 });

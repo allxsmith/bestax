@@ -241,7 +241,12 @@ export function addTodo(
   ) {
     statement = statement.parent;
   }
-  const text = ` TODO(bestax-migrate): ${message}`;
+  // A `//` comment ends at the first newline, so any line break inside the
+  // message would leave the rest of it as bare code and the file unparseable.
+  // Messages quote source text -- an attribute value, a tag name -- and JSX
+  // permits a newline inside both, so this is collapsed here rather than at
+  // each of the callers that interpolate one.
+  const text = ` TODO(bestax-migrate): ${message.replace(/\s+/g, ' ').trim()}`;
   if (statement) {
     const node = statement.node;
     node.comments = node.comments ?? [];
