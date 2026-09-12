@@ -71,30 +71,36 @@ export const AS_UNIONS: Record<string, readonly string[]> = AS_UNION_TABLE;
 const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);
 
 /**
- * Where an `href` can live, by bestax target. `bare` means the component's
- * own default element takes one; `anchor` means only `as="a"` does. A target
- * absent from this table takes no `href` at any `as`, which is most of them:
- * of the names the three sources can produce, nine are here.
+ * Where an `href` can live, by bestax target -- the value is the element the
+ * component renders when no `as` is given. An `href` survives only where that
+ * element is the anchor, or where `as="a"` names one; a target absent from
+ * this table takes no `href` at any `as`, which is most of them.
  *
  * Stated this way round on purpose. The source libraries put an `href` on
  * anything, and a table of what cannot take one is a list nobody can keep
  * complete -- the first version of this rule named four targets and missed
  * `Tabs.Item`, `Media.Left`, `Card.Image` and ninety more. Note the two
  * `Pagination` controls: a source reaches them through a `special`, not a
- * `target:` line, so a table built by reading the mappings alone misses them. `as-unions.test.ts`
- * holds every row here to the library's own types, in both directions, so the
- * short list is checked rather than trusted.
+ * `target:` line, so a table built by reading the mappings alone misses them.
+ *
+ * The default element is here rather than a bare "takes an href" flag because
+ * typechecking cannot answer the question on its own. `Level.Item` declares
+ * `href` on its props at every `as`, so `<Level.Item href="/x">` compiles --
+ * but it renders a <div> and forwards `href` only when the tag is an `<a>`
+ * (`bulma-ui/src/layout/Level.tsx:227`), so the attribute is dropped at
+ * runtime. A table built from the types alone calls that supported; it is the
+ * same dead attribute this pass exists to remove.
  */
-const HREF_OK: Record<string, 'bare' | 'anchor'> = {
-  Button: 'anchor',
-  'Level.Item': 'bare',
-  'Menu.Item': 'bare',
-  'Navbar.Item': 'bare',
-  'Navbar.Link': 'bare',
-  'Pagination.Link': 'bare',
-  'Pagination.Next': 'bare',
-  'Pagination.Previous': 'bare',
-  'Panel.Block': 'bare',
+const HREF_OK: Record<string, string> = {
+  Button: 'button',
+  'Level.Item': 'div',
+  'Menu.Item': 'a',
+  'Navbar.Item': 'a',
+  'Navbar.Link': 'a',
+  'Pagination.Link': 'a',
+  'Pagination.Next': 'a',
+  'Pagination.Previous': 'a',
+  'Panel.Block': 'a',
 };
 
 /** The targets whose `as` this pass may believe. */
@@ -109,7 +115,7 @@ function acceptsAs(target: string, value: string): boolean {
 }
 
 /** The rows the type test holds to the library. */
-export const HREF_TABLE: Record<string, 'bare' | 'anchor'> = HREF_OK;
+export const HREF_TABLE: Record<string, string> = HREF_OK;
 export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
 
 /** An `as` value that gives the element an `href`. */
@@ -169,8 +175,8 @@ function dropInertHref(
     ctx.dirty = true;
   };
 
-  const mode = HREF_OK[target];
-  if (!mode) {
+  const defaultEl = HREF_OK[target];
+  if (!defaultEl) {
     drop(
       `bestax \`${target}\` takes no \`href\` at any \`as\` -- navigate in \`onClick\`, or put an <a> inside it`
     );
@@ -190,9 +196,9 @@ function dropInertHref(
       : undefined;
 
   if (rendered === undefined) {
-    if (mode === 'bare') return;
+    if (defaultEl === ANCHOR) return;
     drop(
-      `bestax \`${target}\` renders a <button>, which takes no \`href\` -- set \`as="a"\` to make it a link, or navigate in \`onClick\``
+      `bestax \`${target}\` renders a <${defaultEl}> unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or navigate in \`onClick\``
     );
     return;
   }

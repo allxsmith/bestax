@@ -98,7 +98,7 @@
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 14564
+          "bytes": 14807
         },
         {
           "id": "css-migration",
@@ -113,12 +113,12 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 11564
+          "bytes": 11653
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 12272
+          "bytes": 12333
         },
         {
           "id": "react-bulma-components-component-map",
@@ -133,7 +133,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 8264
+          "bytes": 8337
         }
       ],
       "examples": []

@@ -15,6 +15,7 @@ import {
   AS_ANY_TARGETS,
   AS_UNIONS,
   HREF_TABLE,
+  declaresAs,
 } from '../src/sources/_shared/polymorphic.js';
 import { typecheckTsx } from './support/typecheck-tsx.js';
 
@@ -99,28 +100,25 @@ describe('AS_UNIONS matches the `as` each bestax component declares', () => {
  *
  * A type assertion cannot express "this element accepts this attribute", so
  * these assert by USE -- each row becomes the JSX it licenses, and tsc accepts
- * or rejects it exactly as a migrated project would. The negative direction
- * matters just as much, so every href-capable target is also asserted to
- * reject the shape the table says it rejects.
+ * or rejects it exactly as a migrated project would.
  */
 function buildHrefSource(): string {
   const rows: string[] = [];
   const roots = new Set<string>();
-  for (const [target, mode] of Object.entries(HREF_TABLE)) {
+  for (const [target, defaultEl] of Object.entries(HREF_TABLE)) {
     roots.add(target.split('.')[0]);
     const i = rows.length;
-    if (mode === 'bare') {
+    // Only where the component declares an `as` at all -- `Pagination.Link`
+    // and `Panel.Block` are anchors outright and take no such prop.
+    if (declaresAs(target)) {
       rows.push(
-        `export const h${i} = <${target} href="#">{'x'}</${target}>; // ${target}: bare`
+        `export const h${i} = <${target} as="a" href="#">{'x'}</${target}>; // ${target}: as="a"`
       );
-    } else {
+    }
+    if (defaultEl === 'a') {
       rows.push(
-        `export const h${i} = <${target} as="a" href="#">{'x'}</${target}>; // ${target}: anchor`
+        `export const b${i} = <${target} href="#">{'x'}</${target}>; // ${target}: bare`
       );
-      // The generated file asserts the negative too: if the bare form ever
-      // starts compiling, the expect-error line becomes the failure.
-      rows.push(`// @ts-expect-error ${target} takes no bare href`);
-      rows.push(`export const n${i} = <${target} href="#">{'x'}</${target}>;`);
     }
   }
   for (const target of AS_ANY_TARGETS) {
@@ -148,21 +146,25 @@ describe('the href and `as` tables match what the library accepts', () => {
     });
   });
 
-  it('pins the set of href-capable targets', () => {
+  it('pins the set of href-capable targets, and what each renders', () => {
     // The table says where an `href` may stay; everything absent from it loses
     // the attribute. A row added by accident is how #662 shipped, and a row
     // missed is how `Pagination.Next` did — it is reached through a `special`
     // rather than a `target:` line, so reading the mappings does not find it.
+    // The typecheck above cannot pin the default element: `Level.Item`
+    // declares `href` at every `as`, so the bare form compiles even though it
+    // renders a <div> and drops the attribute. That row is held here and by
+    // the comment on the table, which cites the line in bulma-ui.
     expect(HREF_TABLE).toEqual({
-      Button: 'anchor',
-      'Level.Item': 'bare',
-      'Menu.Item': 'bare',
-      'Navbar.Item': 'bare',
-      'Navbar.Link': 'bare',
-      'Pagination.Link': 'bare',
-      'Pagination.Next': 'bare',
-      'Pagination.Previous': 'bare',
-      'Panel.Block': 'bare',
+      Button: 'button',
+      'Level.Item': 'div',
+      'Menu.Item': 'a',
+      'Navbar.Item': 'a',
+      'Navbar.Link': 'a',
+      'Pagination.Link': 'a',
+      'Pagination.Next': 'a',
+      'Pagination.Previous': 'a',
+      'Panel.Block': 'a',
     });
   });
 
