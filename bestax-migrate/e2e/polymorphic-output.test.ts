@@ -69,6 +69,10 @@ const BLOOMER: Case[] = [
   ['Tab', '<Tab href="/x">One</Tab>'],
   ['CardImage', '<CardImage href="/x">x</CardImage>'],
   ['PageControl', '<PageControl href="/p">p</PageControl>'],
+  // Statically falsy: bloomer took the `tag` branch for these, so the anchor
+  // must not be forced. `literalValueOf` calls them expressions.
+  ['Button', '<Button href={null} tag="span">x</Button>'],
+  ['Button', '<Button href={undefined} tag="span">x</Button>'],
 ];
 
 const RBX: Case[] = [
@@ -94,6 +98,18 @@ const RBX: Case[] = [
   ['Footer', '<Footer as="a" href="/x">x</Footer>'],
   ['Tab', '<Tab href="/x">One</Tab>'],
   ['Media', '<Media.Item align="left" href="/x">x</Media.Item>'],
+  // The anchor-only siblings are as inert as the href, and as much a type
+  // error -- they have to leave with it.
+  [
+    'Navbar',
+    '<Navbar.Link as="span" href="/x" target="_blank">x</Navbar.Link>',
+  ],
+  [
+    'Menu',
+    '<Menu.List.Item as="span" href="/x" rel="noopener">x</Menu.List.Item>',
+  ],
+  // `<area>` carries an href, so this one is kept, not dropped.
+  ['Button', '<Button as="area" href="/x">x</Button>'],
 ];
 
 const RBC: Case[] = [
@@ -116,6 +132,14 @@ const SOURCES: Array<[MigrationSource, string, Case[]]> = [
   [rbx, 'rbx', RBX],
   [reactBulmaComponents, 'react-bulma-components', RBC],
 ];
+
+/** Output with the `// TODO(bestax-migrate): …` lines removed. */
+function codeOf(output: string): string {
+  return output
+    .split('\n')
+    .filter(l => !l.trim().startsWith('// TODO(bestax-migrate)'))
+    .join('\n');
+}
 
 /** Migrate one case into a standalone module. */
 function migrate(
@@ -173,11 +197,10 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
     // `Level.Item` declares `href` at every `as`, so a bare one compiles --
     // and renders a <div> that drops the attribute. tsc cannot see that, so
     // it is asserted on the output instead.
-    const bare = migrate(rbx, 'rbx', [
-      'Level',
-      '<Level.Item href="/x">x</Level.Item>',
-    ]);
-    expect(bare).not.toContain('href="/x"');
+    const bare = codeOf(
+      migrate(rbx, 'rbx', ['Level', '<Level.Item href="/x">x</Level.Item>'])
+    );
+    expect(bare).not.toContain('href');
     const anchored = migrate(rbx, 'rbx', [
       'Level',
       '<Level.Item as="a" href="/x">x</Level.Item>',
@@ -193,7 +216,11 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
     for (const [source, pkg, cases] of SOURCES) {
       for (const testCase of cases) {
         const output = migrate(source, pkg, testCase);
-        const pairs = /<[A-Z][^>]*\sas="(?!a")[a-z0-9]+"[^>]*>/g;
+        // `a` is the one these sources meant, but React types `href` onto
+        // `area`, `link` and `base` too, and a target generic over `as` accepts
+        // them -- so those are not offenders.
+        const pairs =
+          /<[A-Z][^>]*\sas="(?!(?:a|area|link|base)")[a-z0-9]+"[^>]*>/g;
         for (const tag of output.match(pairs) ?? []) {
           if (/\shref[=}]/.test(tag)) offenders.push(`${pkg}: ${tag}`);
         }

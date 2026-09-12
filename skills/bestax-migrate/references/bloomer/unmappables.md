@@ -191,7 +191,9 @@ value, or a dynamic `className` the class cannot be spliced into, is flagged wit
 
 ## Props with no counterpart
 
-Each of these is left in place with a TODO:
+Each of these raises a TODO. Most are left on the element for you to resolve; the `href` rows
+are the exception — bestax types no `href` onto the element these ended up on, so the codemod
+removes the attribute and the TODO quotes what it was:
 
 | prop                      | on                                                                                 | what to do                                                                              |
 | ------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |

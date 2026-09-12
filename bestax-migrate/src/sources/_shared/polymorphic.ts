@@ -118,8 +118,29 @@ function acceptsAs(target: string, value: string): boolean {
 export const HREF_TABLE: Record<string, string> = HREF_OK;
 export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
 
-/** An `as` value that gives the element an `href`. */
-const ANCHOR = 'a';
+/**
+ * The intrinsic elements React types an `href` onto. `<a>` is the one any of
+ * these sources meant, but `as="area"` is legal on a target generic over
+ * `as`, and React's `AreaHTMLAttributes` carries `href` -- so comparing with
+ * `'a'` alone removed a working attribute and told the reader an `<area>`
+ * takes no `href`.
+ */
+const HREF_ELEMENTS = new Set(['a', 'area', 'link', 'base']);
+
+/**
+ * Attributes that exist only on the anchor family. They are as inert as the
+ * `href` beside them once the element is not a link, and just as much a type
+ * error, so they leave together -- dropping the `href` alone left
+ * `<Navbar.Link as="span" target="_blank">`, which still does not compile.
+ */
+const ANCHOR_ONLY = [
+  'target',
+  'rel',
+  'download',
+  'hrefLang',
+  'ping',
+  'referrerPolicy',
+];
 
 /**
  * Drop an `as` the bestax target cannot render, naming the elements it can.
@@ -169,9 +190,30 @@ function dropInertHref(
 ): void {
   const href = findAttr(element, 'href');
   if (!href) return;
+  // Quote the value as written. A dynamic `href={trackUrl()}` is a live
+  // expression, and it may be the only reference keeping an import alive, so
+  // removing it without saying what it was leaves the author nothing but git
+  // history to recover the destination from.
+  let wasWritten = '';
+  try {
+    wasWritten = ctx.j(href).toSource();
+  } catch {
+    wasWritten = '';
+  }
   const drop = (why: string): void => {
     removeAttr(element, href);
-    addTodo(ctx, path, 'prop:href', why);
+    const alsoWent: string[] = [];
+    for (const name of ANCHOR_ONLY) {
+      const attr = findAttr(element, name);
+      if (!attr) continue;
+      removeAttr(element, attr);
+      alsoWent.push(`\`${name}\``);
+    }
+    const tail = alsoWent.length
+      ? ` (${alsoWent.join(', ')} went with it -- the anchor is what carried them)`
+      : '';
+    const was = wasWritten ? ` -- it read \`${wasWritten}\`` : '';
+    addTodo(ctx, path, 'prop:href', `${why}${tail}${was}`);
     ctx.dirty = true;
   };
 
@@ -196,13 +238,13 @@ function dropInertHref(
       : undefined;
 
   if (rendered === undefined) {
-    if (defaultEl === ANCHOR) return;
+    if (HREF_ELEMENTS.has(defaultEl)) return;
     drop(
       `bestax \`${target}\` renders a <${defaultEl}> unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or navigate in \`onClick\``
     );
     return;
   }
-  if (rendered === ANCHOR) return;
+  if (HREF_ELEMENTS.has(rendered)) return;
   drop(
     `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${rendered}> takes no \`href\` (it navigated nowhere in the source either) -- drop the \`as\` to make this a link, or put an <a> inside`
   );

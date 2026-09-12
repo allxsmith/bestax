@@ -13,7 +13,7 @@ import {
 } from "@allxsmith/bestax-bulma";
 
 // TODO(bestax-migrate): `renderAs` — this bestax component has no `as` prop; restructure the element instead
-// TODO(bestax-migrate): bestax `Card.FooterItem` takes no `href` at any `as` -- navigate in `onClick`, or put an <a> inside it
+// TODO(bestax-migrate): bestax `Card.FooterItem` takes no `href` at any `as` -- navigate in `onClick`, or put an <a> inside it -- it read `href="#follow"`
 export const Profile = () => (
   <Hero color="primary" size="fullheight" fullheightWithNavbar>
     <Hero.Head>

@@ -84,7 +84,7 @@ Anything the codemod cannot convert safely is left in place with a
 `// TODO(bestax-migrate): …` comment on the enclosing statement, and summarised in a report at
 the end of the run. Nothing is ever silently dropped or best-guessed.
 
-The four you are most likely to see, in the order they show up when the codemod is run over
+The ones you are most likely to see, in the order they show up when the codemod is run over
 rbx's own documentation examples:
 
 | What               | Why                                                                                                                         | What to do                                                                              |
