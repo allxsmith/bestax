@@ -166,13 +166,14 @@ rendered a `<span>` that navigated nowhere. The element stays, the dead attribut
 <Menu.Item as="span">Home</Menu.Item>
 ```
 
-If the link was the point, drop the `renderAs` — `Menu.Item`, `Navbar.Item` and `Navbar.Link`
-render an `<a>` by default, and `Button` and `Level.Item` take `as="a"`.
+Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
+`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
+`<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
 
-Four targets declare no `href` at any `as`, because they are plain props interfaces rather than
-polymorphic ones: `Delete` and `Card.Header.Icon` render a `<button>`, `Card.FooterItem` renders
-a `<span>`, and `Dropdown.Item` declares none at all. `as="a"` does not rescue them. Navigate in
-`onClick`, or put an `<a>` inside.
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
+whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
+`<a>` inside.
 
 ## Helper props dropped from plain-element replacements
 

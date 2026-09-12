@@ -169,6 +169,20 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
       '<Button href="/x" as={p.Link}>x</Button>',
     ]);
     expect(link).toContain('as={p.Link}');
+
+    // `Level.Item` declares `href` at every `as`, so a bare one compiles --
+    // and renders a <div> that drops the attribute. tsc cannot see that, so
+    // it is asserted on the output instead.
+    const bare = migrate(rbx, 'rbx', [
+      'Level',
+      '<Level.Item href="/x">x</Level.Item>',
+    ]);
+    expect(bare).not.toContain('href="/x"');
+    const anchored = migrate(rbx, 'rbx', [
+      'Level',
+      '<Level.Item as="a" href="/x">x</Level.Item>',
+    ]);
+    expect(anchored).toContain('href="/x"');
   });
 
   it('never writes an href beside an `as` that is not an anchor', () => {

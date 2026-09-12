@@ -131,8 +131,9 @@ So the codemod keeps the element and drops the attribute, with a `prop:href` TOD
 <Button as="span">x</Button>   // + TODO(bestax-migrate): `href` on `as="span"` …
 ```
 
-`<Button href="/x">` with no `as` goes the same way — bestax's `Button` renders a `<button>`.
-Where the link was the intent, drop the `as` (or set `as="a"`) and the `href` stays.
+`<Button href="/x">` with no `as` goes the same way — bestax's `Button` renders a `<button>`,
+so there is no anchor for the attribute to sit on. Where the link was the intent, set `as="a"`;
+that is what keeps the `href`. Dropping the `as` does not, on this component.
 
 ## Refs
 

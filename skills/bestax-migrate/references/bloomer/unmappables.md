@@ -131,10 +131,14 @@ attribute goes:
 Drop the `tag` where the link was the point. On the components that switched to an `<a>` on
 `href` the codemod does that for you — see [prop-map.md](prop-map.md).
 
-Four targets declare no `href` at any `as`, because they are plain props interfaces rather than
-polymorphic ones: `Delete` and `Card.Header.Icon` render a `<button>`, `Card.FooterItem` renders
-a `<span>`, and `Dropdown.Item` declares none at all. `as="a"` does not rescue them. Navigate in
-`onClick`, or put an `<a>` inside.
+Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
+`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
+`<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
+
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
+whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
+`<a>` inside.
 
 ## `prop:render` — the render prop
 

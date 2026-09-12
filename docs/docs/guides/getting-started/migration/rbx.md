@@ -93,7 +93,7 @@ rbx's own documentation examples:
 | `component:Tile`   | Bulma v1 removed Tiles                                                                                                      | Use [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
 | `component:File.*` | bestax's `<File>` renders the whole file-input structure from its own props                                                 | Drop the parts; set `label`, `hasName`, `isBoxed` on `<File>`                           |
 | `prop:as`          | rbx's `forwardRefAs` puts `as` on every component; bestax declares it on a smaller set, several narrowed to specific tags   | Restructure, or render the tag directly                                                 |
-| `prop:href`        | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag | Drop the `as` where the link was the point — an `href` on a `<span>` navigated nowhere  |
+| `prop:href`        | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag | Set `as="a"` where the link was the point — an `href` on a `<span>` navigated nowhere   |
 
 `Generic`, `Tile`, `List`, `Fieldset`, `Numeric` and `Highlight` have no bestax counterpart, so
 their imports are kept (trimmed and TODO-annotated) — your app still runs while you migrate
