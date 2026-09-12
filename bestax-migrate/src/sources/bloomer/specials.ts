@@ -154,10 +154,23 @@ function anchorWhenHref(
   // false `href` kept the default element. It selected nothing, and bestax
   // types `href` as a string where it exists at all, so it is dropped.
   const hrefLiteral = hrefAttr ? literalValueOf(hrefAttr) : undefined;
+  // `null` and `undefined` reach `literalValueOf` as expressions, but they are
+  // statically falsy, and bloomer's `props.href ? 'a' : tag` took the tag for
+  // them -- so they belong with `false`, `0` and `""`, not with a value only
+  // the runtime knows.
+  const staticallyEmpty =
+    hrefAttr !== undefined &&
+    hrefAttr.value?.type === 'JSXExpressionContainer' &&
+    (hrefAttr.value.expression?.type === 'NullLiteral' ||
+      (hrefAttr.value.expression?.type === 'Literal' &&
+        hrefAttr.value.expression.value === null) ||
+      (hrefAttr.value.expression?.type === 'Identifier' &&
+        hrefAttr.value.expression.name === 'undefined'));
   const hrefFalsy =
-    hrefLiteral !== undefined &&
-    hrefLiteral.kind !== 'expression' &&
-    !hrefLiteral.value;
+    staticallyEmpty ||
+    (hrefLiteral !== undefined &&
+      hrefLiteral.kind !== 'expression' &&
+      !hrefLiteral.value);
   if (hrefAttr && hrefFalsy) {
     removeAttr(element, hrefAttr);
     handled.push('href');
