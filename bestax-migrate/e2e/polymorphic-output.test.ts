@@ -54,6 +54,11 @@ const BLOOMER: Case[] = [
   ['Title', '<Title tag="span">x</Title>'],
   ['Title', '<Title tag="h2">x</Title>'],
   ['LevelItem', '<LevelItem tag="span">x</LevelItem>'],
+  // Targets that declare no `href` at any `as`.
+  ['DropdownItem', '<DropdownItem href="/x" tag="span">x</DropdownItem>'],
+  ['Delete', '<Delete href="/x" />'],
+  ['CardHeaderIcon', '<CardHeaderIcon href="/x">x</CardHeaderIcon>'],
+  ['CardFooterItem', '<CardFooterItem href="/x">x</CardFooterItem>'],
 ];
 
 const RBX: Case[] = [
@@ -69,6 +74,11 @@ const RBX: Case[] = [
   ['Control', '<Control as="span">x</Control>'],
   ['Footer', '<Footer as="section">x</Footer>'],
   ['Media', '<Media as="section">x</Media>'],
+  // Targets that declare no `href` at any `as` — `as="a"` does not rescue it.
+  ['Dropdown', '<Dropdown.Item as="a" href="/x">x</Dropdown.Item>'],
+  ['Delete', '<Delete href="/x" />'],
+  ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
+  ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
 ];
 
 const RBC: Case[] = [
@@ -79,6 +89,10 @@ const RBC: Case[] = [
   ['Level', '<Level.Item renderAs="span">x</Level.Item>'],
   ['Footer', '<Footer renderAs="section">x</Footer>'],
   ['Media', '<Media renderAs="section">x</Media>'],
+  // Targets that declare no `href` at any `as`.
+  ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
+  ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
+  ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [
