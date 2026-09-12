@@ -91,16 +91,16 @@ Anything without a safe automatic conversion is left in place with an inline com
 and the run ends with a summary of every TODO by file and line. TODOs are expected output, not
 errors. The recurring cases:
 
-| Flagged                                           | What to do                                                                                                 |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components |
-| `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                             |
-| `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                              |
-| Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                    |
-| `Pagination` extras (`delta`, custom labels, …)   | bestax Pagination windows itself; render conditionally instead of `autoHide`                               |
-| `Modal closeOnBlur/showClose`                     | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself               |
-| `renderAs` outside a narrowed `as`                | several bestax components render only certain tags — wrap the component in the element you wanted          |
-| `href` beside a non-anchor `renderAs`             | bestax types `href` onto an `<a>` only — drop the `renderAs` where the link was the point                  |
+| Flagged                                           | What to do                                                                                                             |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components             |
+| `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                                         |
+| `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                                          |
+| Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                                |
+| `Pagination` extras (`delta`, custom labels, …)   | bestax Pagination windows itself; render conditionally instead of `autoHide`                                           |
+| `Modal closeOnBlur/showClose`                     | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself                           |
+| `renderAs` outside a narrowed `as`                | several bestax components render only certain tags — wrap the component in the element you wanted                      |
+| `href` beside a non-anchor `renderAs`             | bestax types `href` onto an `<a>` or a custom `as`, not another tag — drop the `renderAs` where the link was the point |
 
 :::tip Let an agent do the follow-up
 The [`bestax-migrate` skill](/docs/skills/migrate) packages this whole workflow — codemod run,

@@ -117,8 +117,8 @@ you wanted, or restructure.
 
 ## `prop:href` — a link needs the anchor
 
-bestax gives an element the attributes of the tag `as` names, so an `href` only belongs where
-that tag is an `<a>`. bloomer's `MenuLink`, `NavbarLink` and the components that become plain
+bestax gives an element the attributes of the tag `as` names, so an `href` belongs on an `<a>`
+or on a custom component you pass to `as`, never on another intrinsic tag. bloomer's `MenuLink`, `NavbarLink` and the components that become plain
 markup rendered their `tag` whatever `href` said, so `<MenuLink href="/x" tag="span">` really
 was a `<span href="/x">` — an attribute no browser acts on. The element stays, the dead
 attribute goes:
@@ -130,6 +130,11 @@ attribute goes:
 
 Drop the `tag` where the link was the point. On the components that switched to an `<a>` on
 `href` the codemod does that for you — see [prop-map.md](prop-map.md).
+
+Four targets declare no `href` at any `as`, because they are plain props interfaces rather than
+polymorphic ones: `Delete` and `Card.Header.Icon` render a `<button>`, `Card.FooterItem` renders
+a `<span>`, and `Dropdown.Item` declares none at all. `as="a"` does not rescue them. Navigate in
+`onClick`, or put an `<a>` inside.
 
 ## `prop:render` — the render prop
 

@@ -57,8 +57,8 @@ tags Bulma's markup allows there, so a literal outside that union (`<Control as=
 
 ## `prop:href` — a link needs the anchor
 
-bestax gives an element the attributes of the tag `as` names, so an `href` only belongs where
-that tag is an `<a>`. rbx let the two disagree, and the browser ignored the result:
+bestax gives an element the attributes of the tag `as` names, so an `href` belongs on an `<a>`
+or on a custom component you pass to `as`, never on another intrinsic tag. rbx let the two disagree, and the browser ignored the result:
 `<Menu.List.Item as="span" href="/x">` rendered a `<span>` that navigated nowhere.
 
 The codemod keeps the element you asked for and drops the attribute that did nothing:
@@ -70,7 +70,10 @@ The codemod keeps the element you asked for and drops the attribute that did not
 
 If the link was the point, drop the `as` — `Menu.Item`, `Navbar.Item`, `Navbar.Link` and
 `Panel.Block` all render an `<a>` by default, and `Button` and `Level.Item` take `as="a"`.
-`Dropdown.Item` declares no `href` at any `as`: navigate in `onClick`, or put an `<a>` inside.
+Four targets declare no `href` at any `as`, because they are plain props interfaces rather than
+polymorphic ones: `Delete` and `Card.Header.Icon` render a `<button>`, `Card.FooterItem` renders
+a `<span>`, and `Dropdown.Item` declares none at all. `as="a"` does not rescue them. Navigate in
+`onClick`, or put an `<a>` inside.
 
 ## `component:Generic` — rbx's base element
 
