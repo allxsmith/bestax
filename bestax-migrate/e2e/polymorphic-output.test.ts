@@ -108,7 +108,6 @@ const RBX: Case[] = [
     'Menu',
     '<Menu.List.Item as="span" href="/x" rel="noopener">x</Menu.List.Item>',
   ],
-  // `<area>` carries an href, so this one is kept, not dropped.
   ['Button', '<Button as="area" href="/x">x</Button>'],
 ];
 
@@ -206,6 +205,32 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
       '<Level.Item as="a" href="/x">x</Level.Item>',
     ]);
     expect(anchored).toContain('href="/x"');
+  });
+
+  it('tells the reader the remedy that works on this target', () => {
+    // "drop the `as`" is a link only where the bare element is the anchor. On
+    // `Button` it gives a <button> that does not compile, and on `Level.Item`
+    // a <div> that compiles and quietly is not a link -- the same sentence
+    // that was wrong in the rbx prop-map, written into the user's file.
+    const button = migrate(rbx, 'rbx', [
+      'Button',
+      '<Button as="span" href="/x">x</Button>',
+    ]);
+    expect(button).toContain('set `as="a"`');
+    expect(button).not.toContain('drop the `as` to make this a link');
+
+    const level = migrate(rbx, 'rbx', [
+      'Level',
+      '<Level.Item as="p" href="/x">x</Level.Item>',
+    ]);
+    expect(level).toContain('set `as="a"`');
+
+    // Where the bare element really is an anchor, dropping it is the advice.
+    const menu = migrate(rbx, 'rbx', [
+      'Menu',
+      '<Menu.List.Item as="span" href="/x">x</Menu.List.Item>',
+    ]);
+    expect(menu).toContain('drop the `as`');
   });
 
   it('never writes an href beside an `as` that is not an anchor', () => {

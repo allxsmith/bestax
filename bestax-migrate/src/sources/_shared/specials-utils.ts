@@ -14,6 +14,7 @@ import { addAttrOnce } from './props.js';
 import {
   addAttr,
   addTodo,
+  attrSource,
   attributesOf,
   findAttr,
   literalValueOf,
@@ -363,12 +364,14 @@ export function makeStructuralHelpers(strip: AttrStrip) {
     // attribute that never navigated anywhere.
     const href = tag === 'a' ? undefined : findAttr(element, 'href');
     if (href) {
+      const wasWritten = attrSource(ctx.j, href);
       removeAttr(element, href);
+      const was = wasWritten ? ` — it read \`${wasWritten}\`` : '';
       addTodo(
         ctx,
         path,
         'prop:href',
-        `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside`
+        `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside${was}`
       );
       ctx.dirty = true;
     }
