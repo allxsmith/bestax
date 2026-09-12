@@ -165,18 +165,35 @@ function anchorWhenHref(
   }
   if (hrefAttr && !hrefFalsy) {
     // The href wins the element. bloomer read `props.href ? 'a' : tag`, so a
-    // `tag` here is the branch that did not run — and an `as` already on the
-    // element is not bloomer's element choice at all (it took no such prop),
-    // so neither survives beside the anchor the `href` needs.
+    // `tag` here is the branch that did not run, and the anchor is what
+    // rendered. That holds for an expression too, so the `tag` still goes --
+    // but it is a live reference, so its removal is announced rather than
+    // silent, which is what the first version of this got wrong.
     const tagValue = tagAttr ? literalValueOf(tagAttr) : undefined;
+    const dynamicTag = tagAttr !== undefined && tagValue?.kind !== 'string';
     if (tagAttr) {
       removeAttr(element, tagAttr);
       handled.push('tag');
       ctx.dirty = true;
     }
+    if (dynamicTag) {
+      addTodo(
+        ctx,
+        path,
+        'prop:tag',
+        `bloomer rendered an <a> whenever \`href\` had a value, so the \`tag\` expression beside this one chose nothing and is removed. Restore it by hand if the \`href\` can be empty`
+      );
+    }
+    // An `as` on the element is not bloomer's element choice -- it took no
+    // such prop -- so a literal one that is not the anchor is dropped. An
+    // expression stays: it is the author's own component, it is the element
+    // they meant, and on a target generic over `as` it takes the `href` with
+    // it. Rewriting it to `as="a"` swapped a router link for a plain anchor.
     const asAttr = findAttr(element, 'as');
     const asLiteral = asAttr ? literalValueOf(asAttr) : undefined;
-    if (asAttr && !(asLiteral?.kind === 'string' && asLiteral.value === 'a')) {
+    const literalAs =
+      asLiteral?.kind === 'string' ? asLiteral.value : undefined;
+    if (asAttr && asLiteral?.kind === 'string' && literalAs !== 'a') {
       removeAttr(element, asAttr);
       ctx.dirty = true;
     }
@@ -187,11 +204,12 @@ function anchorWhenHref(
     if (hrefLiteral!.kind === 'expression') {
       // Name the element that was dropped where the source named it: it is
       // the half of bloomer's runtime choice this output no longer renders.
-      const other =
-        tagValue?.kind === 'string'
+      const other = dynamicTag
+        ? 'the element `tag` named'
+        : tagValue?.kind === 'string'
           ? `a <${tagValue.value}>`
           : options.bareAs
-            ? 'a <div>'
+            ? `a <${options.bareAs}>`
             : 'its default tag';
       addTodo(
         ctx,

@@ -59,6 +59,16 @@ const BLOOMER: Case[] = [
   ['Delete', '<Delete href="/x" />'],
   ['CardHeaderIcon', '<CardHeaderIcon href="/x">x</CardHeaderIcon>'],
   ['CardFooterItem', '<CardFooterItem href="/x">x</CardFooterItem>'],
+  // An `href` beside an `as` the target cannot render. The `as` goes, so the
+  // element is the component's own -- and the href has to be judged against
+  // that, not against the attribute the pass is about to delete.
+  ['Title', '<Title tag="a" href="/x">x</Title>'],
+  ['MediaLeft', '<MediaLeft tag="a" href="/x">x</MediaLeft>'],
+  ['Control', '<Control tag="a" href="/x">x</Control>'],
+  // Targets reached through a special rather than a `target:` line.
+  ['Tab', '<Tab href="/x">One</Tab>'],
+  ['CardImage', '<CardImage href="/x">x</CardImage>'],
+  ['PageControl', '<PageControl href="/p">p</PageControl>'],
 ];
 
 const RBX: Case[] = [
@@ -79,6 +89,11 @@ const RBX: Case[] = [
   ['Delete', '<Delete href="/x" />'],
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
+  ['Title', '<Title as="a" href="/x">x</Title>'],
+  ['Media', '<Media as="section" href="/x">x</Media>'],
+  ['Footer', '<Footer as="a" href="/x">x</Footer>'],
+  ['Tab', '<Tab href="/x">One</Tab>'],
+  ['Media', '<Media.Item align="left" href="/x">x</Media.Item>'],
 ];
 
 const RBC: Case[] = [
@@ -93,6 +108,7 @@ const RBC: Case[] = [
   ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
+  ['Media', '<Media renderAs="section" href="/x">x</Media>'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [
@@ -127,6 +143,32 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
     const { status, diagnostics } = typecheckTsxFiles(files, 'polymorphic');
     // A failure names `<pkg>-<n>.tsx`; `n` is the index into the list above.
     expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
+  });
+
+  it('keeps what the target does accept, and every live expression', () => {
+    // Two shapes that cannot join the compile matrix above, because something
+    // else in the output still does not typecheck — but the part this pass
+    // owns has to be right, and both were wrong.
+    //
+    // `Panel.Block` takes a bare `href` and declares no `as` at all, so the
+    // `as="span"` here is an earlier pass's TODO marker, not the element. A
+    // rule that reads it deletes the prop that compiles and keeps the one
+    // that does not.
+    const panel = migrate(rbx, 'rbx', [
+      'Panel',
+      '<Panel.Block as="span" href="/x">x</Panel.Block>',
+    ]);
+    expect(panel).toContain('href="/x"');
+
+    // bloomer took no `as`, so one in the source is the author's own
+    // component riding along — and on a target generic over `as` it takes the
+    // `href` with it. Rewriting it to `as="a"` swapped a router link for a
+    // plain anchor and orphaned the import, with nothing said.
+    const link = migrate(bloomer, 'bloomer', [
+      'Button',
+      '<Button href="/x" as={p.Link}>x</Button>',
+    ]);
+    expect(link).toContain('as={p.Link}');
   });
 
   it('never writes an href beside an `as` that is not an anchor', () => {

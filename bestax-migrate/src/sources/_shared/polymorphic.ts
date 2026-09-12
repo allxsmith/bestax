@@ -58,35 +58,59 @@ const AS_UNION_TABLE = {
 export const AS_UNIONS: Record<string, readonly string[]> = AS_UNION_TABLE;
 
 /**
- * Targets that declare no `href` at any `as`, with the recipe for the intent
- * the attribute carried. These are plain props interfaces rather than
- * polymorphic ones, so the attribute is a type error whatever `as` says --
- * `as="a"` does not rescue it.
+ * The targets that accept an `as` beyond a narrowed union -- generic over
+ * `React.ElementType`, so any tag is valid. Every other target either narrows
+ * `as` (the table above) or declares none at all.
  *
- * The source libraries put an `href` on all four, so this is the same defect
- * as the `as`-following one above and belongs beside it: keyed by bestax
- * target, it reaches every source at once. A mapping entry cannot do the job,
- * because `PropAction` can express a TODO or a drop but not both, and a TODO
- * alone leaves the attribute in the output.
+ * That last group is why this set has to exist. An earlier pass flags an `as`
+ * a component cannot take and leaves the attribute in place as the marker for
+ * its TODO, so reading the element off whatever `as` is present would believe
+ * a prop the component never had -- and `<Panel.Block as="span" href="/x">`
+ * would lose the `href` that compiles and keep the `as` that does not.
  */
-const NO_HREF: Record<string, string> = {
-  Delete:
-    'bestax `Delete` renders a <button> and has no anchor form; wrap it in an <a>, or handle the navigation in `onClick`',
-  'Card.Header.Icon':
-    'bestax `Card.Header.Icon` renders a <button>; put an <a> inside it, or handle the navigation in `onClick`',
-  'Card.FooterItem':
-    'bestax `Card.FooterItem` renders a <span> with no anchor form; put an <a> inside it',
-  'Dropdown.Item':
-    'bestax `Dropdown.Item` declares no `href`; navigate in `onClick`, or put an <a> inside the item',
-};
+const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);
 
 /**
- * Targets whose default element takes no `href`, so one with no `as` beside
- * it has no home. Only `Button` renders a `<button>` by default among the
- * components any source can hand an `href` to; the rest default to an `<a>`,
- * or declare none at all and are in `NO_HREF`.
+ * Where an `href` can live, by bestax target. `bare` means the component's
+ * own default element takes one; `anchor` means only `as="a"` does. A target
+ * absent from this table takes no `href` at any `as`, which is most of them:
+ * of the names the three sources can produce, nine are here.
+ *
+ * Stated this way round on purpose. The source libraries put an `href` on
+ * anything, and a table of what cannot take one is a list nobody can keep
+ * complete -- the first version of this rule named four targets and missed
+ * `Tabs.Item`, `Media.Left`, `Card.Image` and ninety more. Note the two
+ * `Pagination` controls: a source reaches them through a `special`, not a
+ * `target:` line, so a table built by reading the mappings alone misses them. `as-unions.test.ts`
+ * holds every row here to the library's own types, in both directions, so the
+ * short list is checked rather than trusted.
  */
-const NO_BARE_HREF = new Set(['Button']);
+const HREF_OK: Record<string, 'bare' | 'anchor'> = {
+  Button: 'anchor',
+  'Level.Item': 'bare',
+  'Menu.Item': 'bare',
+  'Navbar.Item': 'bare',
+  'Navbar.Link': 'bare',
+  'Pagination.Link': 'bare',
+  'Pagination.Next': 'bare',
+  'Pagination.Previous': 'bare',
+  'Panel.Block': 'bare',
+};
+
+/** The targets whose `as` this pass may believe. */
+export function declaresAs(target: string): boolean {
+  return target in AS_UNIONS || AS_ANY.has(target);
+}
+
+/** Whether `target` renders `value` when told `as={value}`. */
+function acceptsAs(target: string, value: string): boolean {
+  const union = AS_UNIONS[target];
+  return union ? union.includes(value) : AS_ANY.has(target);
+}
+
+/** The rows the type test holds to the library. */
+export const HREF_TABLE: Record<string, 'bare' | 'anchor'> = HREF_OK;
+export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
 
 /** An `as` value that gives the element an `href`. */
 const ANCHOR = 'a';
@@ -104,13 +128,12 @@ function restrictAsValue(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
-  target: string
+  target: string,
+  attr: any,
+  literal: ReturnType<typeof literalValueOf> | undefined
 ): void {
   const allowed = AS_UNIONS[target];
-  if (!allowed) return;
-  const attr = findAttr(element, 'as');
-  if (!attr) return;
-  const literal = literalValueOf(attr);
+  if (!allowed || !attr || !literal) return;
   if (literal.kind !== 'string' || allowed.includes(literal.value)) return;
   const offered = allowed.map(a => `\`${a}\``).join(' / ');
   removeAttr(element, attr);
@@ -124,52 +147,59 @@ function restrictAsValue(
 }
 
 /**
- * Drop an `href` the element cannot take. bestax types `href` onto an anchor
- * only, and the source rendered the same non-anchor element with an `href`
- * that did nothing — so this removes a dead attribute rather than a link.
+ * Drop an `href` the element cannot take.
+ *
+ * The element is read from the `as` the target actually declares, never from
+ * whatever attribute happens to be spelled `as`, and from the value as it was
+ * written -- `restrictAsValue` may be about to remove it, and an element this
+ * pass has already forgotten cannot be judged.
  */
 function dropInertHref(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
-  target: string
+  target: string,
+  literal: ReturnType<typeof literalValueOf> | undefined
 ): void {
   const href = findAttr(element, 'href');
   if (!href) return;
-  // No `as` rescues a component that declares no `href` at all, so this is
-  // settled before the element is read.
-  const noHref = NO_HREF[target];
-  if (noHref) {
+  const drop = (why: string): void => {
     removeAttr(element, href);
-    addTodo(ctx, path, 'prop:href', noHref);
+    addTodo(ctx, path, 'prop:href', why);
     ctx.dirty = true;
-    return;
-  }
-  const asAttr = findAttr(element, 'as');
-  if (!asAttr) {
-    if (!NO_BARE_HREF.has(target)) return;
-    removeAttr(element, href);
-    addTodo(
-      ctx,
-      path,
-      'prop:href',
-      `bestax \`${target}\` renders a <button>, which takes no \`href\` — set \`as="a"\` to make it a link, or navigate in \`onClick\``
+  };
+
+  const mode = HREF_OK[target];
+  if (!mode) {
+    drop(
+      `bestax \`${target}\` takes no \`href\` at any \`as\` -- navigate in \`onClick\`, or put an <a> inside it`
     );
-    ctx.dirty = true;
     return;
   }
-  const literal = literalValueOf(asAttr);
+
   // A dynamic `as` may well be an anchor at runtime; guessing either way is
   // worse than leaving the pair for the author, who can read the expression.
-  if (literal.kind !== 'string' || literal.value === ANCHOR) return;
-  removeAttr(element, href);
-  addTodo(
-    ctx,
-    path,
-    'prop:href',
-    `\`href\` on \`as="${literal.value}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${literal.value}> takes no \`href\` (it navigated nowhere in the source either) — drop the \`as\` to make this a link, or put an <a> inside`
+  if (literal && literal.kind !== 'string') return;
+
+  // An `as` naming a tag the target does not render is dropped by
+  // `restrictAsValue`, so what renders is the component's own default -- the
+  // same element as if no `as` had been written at all.
+  const rendered =
+    literal && literal.kind === 'string' && acceptsAs(target, literal.value)
+      ? literal.value
+      : undefined;
+
+  if (rendered === undefined) {
+    if (mode === 'bare') return;
+    drop(
+      `bestax \`${target}\` renders a <button>, which takes no \`href\` -- set \`as="a"\` to make it a link, or navigate in \`onClick\``
+    );
+    return;
+  }
+  if (rendered === ANCHOR) return;
+  drop(
+    `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${rendered}> takes no \`href\` (it navigated nowhere in the source either) -- drop the \`as\` to make this a link, or put an <a> inside`
   );
-  ctx.dirty = true;
 }
 
 /**
@@ -182,6 +212,10 @@ export function enforcePolymorphicProps(
   element: any,
   target: string
 ): void {
-  restrictAsValue(ctx, path, element, target);
-  dropInertHref(ctx, path, element, target);
+  // Read the `as` once, before either rule can remove it, and only where the
+  // target declares one at all.
+  const attr = declaresAs(target) ? findAttr(element, 'as') : undefined;
+  const literal = attr ? literalValueOf(attr) : undefined;
+  dropInertHref(ctx, path, element, target, literal);
+  restrictAsValue(ctx, path, element, target, attr, literal);
 }

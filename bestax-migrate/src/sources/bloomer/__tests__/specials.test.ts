@@ -748,11 +748,12 @@ describe('bloomer navigation handlers', () => {
     const { output, rules } = migrate(
       dyn('Dropdown', '<Dropdown href="/x" tag="span">x</Dropdown>')
     );
-    // bestax's Dropdown has no `as`, so the tag stays, flagged.
-    expect(rules).toEqual(['component:Dropdown', 'prop:tag']);
-    expect(jsx(output)).toContain(
-      '<Dropdown href="/x" tag="span">x</Dropdown>'
-    );
+    // bestax's Dropdown has no `as`, so the tag stays, flagged. The `href`
+    // does not: `Dropdown` takes none at any `as`, and bloomer's own
+    // `Dropdown` rendered its `tag` whatever `href` said, so the attribute
+    // was doing nothing on the <span> it really was.
+    expect(rules).toEqual(['component:Dropdown', 'prop:tag', 'prop:href']);
+    expect(jsx(output)).toContain('<Dropdown tag="span">x</Dropdown>');
   });
 });
 
