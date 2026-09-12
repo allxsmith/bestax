@@ -159,13 +159,16 @@ const ANCHOR = 'a';
  * since that shape is just as invalid without one.
  */
 const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
-  target: ['a', 'area', 'form', 'base'],
-  rel: ['a', 'area', 'form', 'link'],
+  target: ['a', 'area', 'base', 'form'],
   download: ['a', 'area'],
-  hrefLang: ['a', 'link'],
-  ping: ['a', 'area'],
+  hrefLang: ['a', 'area', 'link'],
+  ping: ['a'],
   referrerPolicy: ['a', 'area', 'iframe', 'img', 'link', 'script'],
 };
+
+// `rel` is deliberately absent: React declares it on `HTMLAttributes`, so it
+// is valid on every intrinsic and there is nothing to remove. The same point
+// `bulma-ui/src/__typetests__/polymorphic.tsx` makes about it.
 
 /** Whether `element` renders `attr` legally -- exported for the plain-markup path. */
 export function elementTakesLinkAttr(name: string, element: string): boolean {
@@ -175,6 +178,10 @@ export function elementTakesLinkAttr(name: string, element: string): boolean {
 
 /** The link attributes, for callers that iterate them. */
 export const LINK_ATTRS: readonly string[] = Object.keys(LINK_ATTR_ELEMENTS);
+
+/** The rows the type test holds to React. */
+export const LINK_ATTR_TABLE: Record<string, readonly string[]> =
+  LINK_ATTR_ELEMENTS;
 
 /**
  * Drop an `as` the bestax target cannot render, naming the elements it can.

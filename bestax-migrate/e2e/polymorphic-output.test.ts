@@ -237,6 +237,24 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
     expect(menu).toContain('drop the `as`');
   });
 
+  it('keeps a quoted value on one line, so the comment stays a comment', () => {
+    // A `//` comment ends at the first newline. JSX allows one inside an
+    // attribute value, and these messages quote the value they removed, so a
+    // multiline expression used to put bare code on the next line and leave
+    // the file unparseable -- a worse failure than the one being fixed.
+    const out = migrate(bloomer, 'bloomer', [
+      'MenuLink',
+      '<MenuLink tag="span" href={\n  p.getUrl()\n}>x</MenuLink>',
+    ]);
+    const todo = out
+      .split('\n')
+      .filter(l => l.includes('TODO(bestax-migrate)'));
+    expect(todo).toHaveLength(1);
+    expect(todo[0]).toContain('p.getUrl()');
+    // Nothing after the comment line may be a stray fragment of it.
+    expect(codeOf(out)).not.toContain('getUrl');
+  });
+
   it('gives every source the same advice for the same target', () => {
     // bloomer's navbar handler said the useful thing for its own source and
     // the other two got the generic line for the same target -- the sibling
