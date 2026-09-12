@@ -38,8 +38,8 @@ shapes cannot carry across:
 
 - a `renderAs` outside that union — `<Media renderAs="section">` — drops the `as` with a
   `prop:as` TODO naming the tags the component does render;
-- an `href` beside a `renderAs` that is not an `<a>` — `<Menu.List.Item renderAs="span"
-href="/x">` — keeps the element and drops the `href`, with a `prop:href` TODO. RBC rendered
+- an `href` beside a `renderAs` that is not an `<a>` (`<Menu.List.Item renderAs="span"
+href="/x">`) keeps the element and drops the `href`, with a `prop:href` TODO. RBC rendered
   a `<span href="/x">` there, which navigates nowhere in any browser, so nothing working is
   lost. Drop the `renderAs` where the link was the point.
 

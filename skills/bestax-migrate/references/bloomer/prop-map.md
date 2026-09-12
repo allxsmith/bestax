@@ -119,7 +119,9 @@ otherwise; the rest (`MenuLink`, `NavbarLink`, `PageControl`, `Dropdown`, …) r
 
 **On the switching components the `href` wins the element**, because that is what bloomer
 rendered. `Button` and `LevelItem` gain `as="a"`; on the targets that already render an anchor
-(`Navbar.Item`, `Dropdown.Item`, `Panel.Block`) the `tag` is simply dropped. A `NavbarItem` or
+(`Navbar.Item`, `Dropdown.Item`, `Panel.Block`) the `tag` is simply dropped. `Dropdown.Item` is
+the exception that loses the `href` too: it declares none at any `as`, so the anchor it renders
+is not one you can point anywhere — see [unmappables.md](unmappables.md). A `NavbarItem` or
 `DropdownItem` with neither `href` nor `tag` gains `as="div"`, because bestax's `Navbar.Item`
 and `Dropdown.Item` default to an `<a>`. An empty or false `href` selected nothing in bloomer
 and is dropped. bestax's `Panel.Block` is always an `<a>`, so only a `PanelBlock` with `href`
