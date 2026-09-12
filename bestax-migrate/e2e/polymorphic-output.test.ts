@@ -314,3 +314,46 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * The same intent in each source's own spelling. `bestax-migrate/CLAUDE.md`
+ * names divergence between the three transforms as the recurring defect here
+ * -- "a defect in one source's `transform.ts` is almost certainly in the
+ * others" -- and this pass is shared precisely so they cannot drift. Nothing
+ * asserted that they actually agree, and the RBC plain-element path had in
+ * fact been bypassing the rule entirely while the other two applied it.
+ */
+const PARITY: Array<[string, Case, Case, Case]> = [
+  [
+    'an href beside a non-anchor element',
+    ['MenuLink', '<MenuLink tag="span" href="/x">x</MenuLink>'],
+    ['Menu', '<Menu.List.Item as="span" href="/x">x</Menu.List.Item>'],
+    ['Menu', '<Menu.List.Item renderAs="span" href="/x">x</Menu.List.Item>'],
+  ],
+  [
+    'a target beside a non-anchor element',
+    ['NavbarLink', '<NavbarLink tag="span" target="_blank">x</NavbarLink>'],
+    ['Navbar', '<Navbar.Link as="span" target="_blank">x</Navbar.Link>'],
+    ['Navbar', '<Navbar.Link renderAs="span" target="_blank">x</Navbar.Link>'],
+  ],
+  [
+    'an href on a component that declares none',
+    ['DropdownItem', '<DropdownItem href="/x">x</DropdownItem>'],
+    ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
+    ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
+  ],
+];
+
+describe('the three sources agree on the same shape', () => {
+  it.each(PARITY)('%s', (_name, bloomerCase, rbxCase, rbcCase) => {
+    const out = [
+      codeOf(migrate(bloomer, 'bloomer', bloomerCase)),
+      codeOf(migrate(rbx, 'rbx', rbxCase)),
+      codeOf(migrate(reactBulmaComponents, 'react-bulma-components', rbcCase)),
+    ].map(text =>
+      (text.split('\n').find(l => l.includes('export const A')) ?? '').trim()
+    );
+    expect(out[1]).toBe(out[0]);
+    expect(out[2]).toBe(out[0]);
+  });
+});
