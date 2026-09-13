@@ -25,7 +25,15 @@ import {
   TARGET_LINK_ATTR_TABLE,
   declaresAs,
 } from '../src/sources/_shared/polymorphic.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { typecheckTsx } from './support/typecheck-tsx.js';
+
+const packageRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+);
 
 const TARGETS = Object.keys(AS_UNIONS).sort();
 
@@ -451,6 +459,83 @@ describe('every row is exactly what React declares, over all of HTML', () => {
       '',
     ].join('\n');
     const { status, diagnostics } = typecheckTsx(source, 'html-complete');
+    expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
+  });
+});
+
+/**
+ * Targets whose bare probe cannot be built: they need props this test does
+ * not know, or reject children. Named rather than filtered silently, because
+ * a target that quietly stopped being probed is the same blindness the
+ * universe had.
+ */
+const UNPROBEABLE = ['Dropdown', 'Dropdown.Divider', 'Tabs.Tab'];
+
+/**
+ * Every bestax target the three sources can produce.
+ *
+ * `target:` lines only, plus the handful a `special` names inline -- reading
+ * every capitalised dotted string out of `specials.ts` also collects the
+ * SOURCE libraries' own names (`Form.Help`, `Field.Label`), which bestax does
+ * not export. `Pagination.Next` and `Pagination.Previous` are the ones that
+ * matter here: no mapping names them, and the first version of `HREF_OK`
+ * missed both for exactly that reason.
+ */
+const SPECIAL_ONLY_TARGETS = ['Pagination.Next', 'Pagination.Previous'];
+
+function reachableTargets(): string[] {
+  const dir = path.join(packageRoot, 'src', 'sources');
+  const found = new Set<string>(SPECIAL_ONLY_TARGETS);
+  for (const source of ['bloomer', 'rbx', 'react-bulma-components']) {
+    for (const file of ['mapping.ts', 'specials.ts']) {
+      const text = fs.readFileSync(path.join(dir, source, file), 'utf8');
+      for (const m of text.matchAll(/target: '([A-Z][\w.]*)'/g))
+        found.add(m[1]);
+    }
+  }
+  return [...found].filter(t => !UNPROBEABLE.includes(t)).sort();
+}
+
+describe('HREF_OK names every reachable target that takes an href', () => {
+  it('and no others', () => {
+    // The one claim in this file nothing held. A deep review refuted a
+    // missing row by hand once; a missing row deletes a working link and a
+    // spurious one ships a dead attribute, so it is asserted here instead.
+    const targets = reachableTargets();
+    const roots = [...new Set(targets.map(t => t.split('.')[0]))].sort();
+    const rows: string[] = [];
+    for (const target of targets) {
+      const i = rows.length;
+      const mode = HREF_TABLE[target];
+      if (mode === 'a') {
+        rows.push(
+          `export const y${i} = <${target} href="#">{'x'}</${target}>;`
+        );
+      } else if (mode) {
+        // Not an anchor by default, so its `as="a"` form is the one asserted.
+        // The bare form is NOT asserted to fail: `Level.Item` declares `href`
+        // at every `as` and drops it at runtime, which is the whole reason
+        // this table holds the rendered element rather than the declared type.
+        rows.push(
+          `export const y${i} = <${target} as="a" href="#">{'x'}</${target}>;`
+        );
+      } else {
+        rows.push(`// @ts-expect-error ${target} takes no href at any as`);
+        rows.push(
+          `export const n${i} = <${target} href="#">{'x'}</${target}>;`
+        );
+      }
+    }
+    const source = [
+      `import { ${roots.join(', ')} } from '@allxsmith/bestax-bulma';`,
+      '',
+      ...rows,
+      '',
+    ].join('\n');
+    const { status, diagnostics } = typecheckTsx(source, 'href-ok-complete');
     expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
       status: 0,
       diagnostics: '',
