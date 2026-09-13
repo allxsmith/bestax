@@ -221,7 +221,7 @@
           "name": "icon",
           "type": "string",
           "default": null,
-          "description": "DEPRECATED: Legacy prop, use `name` instead.",
+          "description": "**DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`, `'mdi mdi-rocket'`). Use `name` instead.",
           "required": false,
           "inherited": true,
           "deprecated": false

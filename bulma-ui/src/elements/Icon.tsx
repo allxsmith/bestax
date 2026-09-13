@@ -48,8 +48,8 @@ interface IconBaseProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** DEPRECATED: Legacy prop, use `name` instead. */
-  icon?: string; // DEPRECATED: legacy prop that should not be used
+  /** **DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`, `'mdi mdi-rocket'`). Use `name` instead. */
+  icon?: string;
   /**
    * The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured. Ignored when `children` supplies the glyph instead of `name`.
    * @defaultValue 'fa'
@@ -105,10 +105,35 @@ export interface IconChildrenProps extends IconBaseProps {
 }
 
 /**
- * Props for the Icon component — a discriminated union of a class-based `name` and a custom
- * `children` node.
+ * Props for `Icon` naming its glyph through the deprecated `icon` prop instead of `name`.
+ *
+ * The runtime has always accepted `icon` on its own — it parses the library prefix off the
+ * class string and falls through to the `name` path — but the type offered no member without
+ * a `name` or `children`, so every caller still on the deprecated prop got an error the
+ * package could not see (nothing type-checks tests or stories; #663). Declaring the path is
+ * the honest resolution: it is deprecated, not removed, and a deprecation that does not
+ * type-check is a removal announced only to whoever tries it.
+ *
+ * @deprecated Pass `name` instead. This member goes when `icon` does.
  */
-export type IconProps = IconNameProps | IconChildrenProps;
+export interface IconDeprecatedProps extends IconBaseProps {
+  /** **DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`, `'mdi mdi-rocket'`). Use `name` instead. */
+  // Required here, optional on `IconBaseProps`: the other two members allow it
+  // alongside `name`, and this one is the member where it IS the glyph. Same
+  // prose in both places on purpose — the API-docs extractor reads whichever it
+  // reaches first, and the two must not drift apart.
+  icon: string;
+  /** The icon name. Absent on this path — `icon` supplies the glyph. */
+  name?: undefined;
+  /** A custom node. Mutually exclusive with `icon`. */
+  children?: never;
+}
+
+/**
+ * Props for the Icon component — a discriminated union of a class-based `name`, a custom
+ * `children` node, and the deprecated `icon` class string.
+ */
+export type IconProps = IconNameProps | IconChildrenProps | IconDeprecatedProps;
 
 /**
  * Strips a redundant leading library prefix from an icon name (e.g. `fa-check` -> `check`
@@ -286,10 +311,11 @@ export const Icon: React.FC<IconProps> = ({
     );
   }
 
-  // `name` is guaranteed once `children` is absent (`IconProps` is a discriminated union of
-  // the two, and `IconChildrenProps['children']` excludes `undefined` so `children={undefined}`
-  // can't slip past into this branch) — the cast only matters for legacy callers that bypass
-  // the type and rely solely on the deprecated `icon` prop below.
+  // `name` is guaranteed once `children` is absent UNLESS the caller is on the deprecated
+  // `icon` path, which `IconDeprecatedProps` declares with `name?: undefined`.
+  // (`IconChildrenProps['children']` excludes `undefined`, so `children={undefined}` can't
+  // slip past into this branch.) The cast covers that third member, and the `!name && icon`
+  // fallback below is what fills it in.
   let finalName = name as string;
   if (!name && icon) {
     // If icon prop is provided instead of name, try to parse it
@@ -314,9 +340,10 @@ export const Icon: React.FC<IconProps> = ({
   finalName = stripRedundantLibraryPrefix(finalName, finalLibrary);
 
   if (!finalName) {
-    // No glyph to name. Unreachable through the public type, but a plain-JS caller (or one
-    // that casts) can land here, and building a class off an absent name produced a bogus
-    // `fa-undefined` glyph. Render the bare container instead, matching the `children` branch.
+    // No glyph to name. Reachable through the public type only as `icon=""`, and otherwise
+    // by a plain-JS caller (or one that casts). Building a class off an absent name produced
+    // a bogus `fa-undefined` glyph; render the bare container instead, matching the
+    // `children` branch.
     return (
       <span
         className={iconContainerClasses}
