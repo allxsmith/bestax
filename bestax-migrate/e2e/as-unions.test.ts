@@ -41,11 +41,48 @@ const TARGETS = Object.keys(AS_UNIONS).sort();
 /** `Level.Item` is reached through the `Level` its mapping target names. */
 const importRoots = [...new Set(TARGETS.map(t => t.split('.')[0]))].sort();
 
+/**
+ * The targets whose props FOLLOW `as` while `as` itself stays narrowed --
+ * bulma-ui's constrained polymorphic components (#663).
+ *
+ * Reading their `as` as a type does not work. Such a component is a pair of
+ * call signatures, generic first and a non-generic derivation overload second,
+ * and `infer` takes the LAST -- which pins `as` to the default element. `AsOf`
+ * reports `'a'` for `Dropdown.Item`, which also renders a `<div>` and a
+ * `<button>`, so an `Exact` row against the union fails while nothing has
+ * drifted.
+ *
+ * So these assert by USE, the same way the href tables below do: every member
+ * of the row must compile, and every HTML intrinsic outside it must not. That
+ * is the stronger check of the two -- `Exact` reads one declaration, this one
+ * puts every tag through the component's own call signature.
+ */
+const AS_BY_USE = new Set(['Dropdown.Item']);
+
 function buildSource(): string {
-  const rows = TARGETS.map((target, i) => {
+  const rows: string[] = [];
+  for (const [i, target] of TARGETS.entries()) {
+    if (AS_BY_USE.has(target)) {
+      const union = AS_UNIONS[target];
+      for (const value of union) {
+        rows.push(
+          `export const y${i}_${value} = <${target} as="${value}">{'x'}</${target}>; // ${target}: as="${value}"`
+        );
+      }
+      for (const tag of HTML_INTRINSICS) {
+        if (union.includes(tag)) continue;
+        rows.push(`// @ts-expect-error ${target} does not render a <${tag}>`);
+        rows.push(
+          `export const n${i}_${tag} = <${target} as="${tag}">{'x'}</${target}>;`
+        );
+      }
+      continue;
+    }
     const union = AS_UNIONS[target].map(v => `'${v}'`).join(' | ');
-    return `type _${i} = Assert<Exact<${union}, AsOf<typeof ${target}>>>; // ${target}`;
-  });
+    rows.push(
+      `type _${i} = Assert<Exact<${union}, AsOf<typeof ${target}>>>; // ${target}`
+    );
+  }
   return [
     "import type { JSXElementConstructor } from 'react';",
     `import { ${importRoots.join(', ')} } from '@allxsmith/bestax-bulma';`,
@@ -182,6 +219,7 @@ describe('the href and `as` tables match what the library accepts', () => {
     // the comment on the table, which cites the line in bulma-ui.
     expect(HREF_TABLE).toEqual({
       Button: 'button',
+      'Dropdown.Item': 'a',
       'Level.Item': 'div',
       'Menu.Item': 'a',
       'Navbar.Item': 'a',

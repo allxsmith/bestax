@@ -611,13 +611,14 @@ describe('bloomer navigation handlers', () => {
     expect(drop.output).toContain(
       '<Dropdown.Item active as="div">x</Dropdown.Item>'
     );
-    // The href picks the anchor over the `tag`, as bloomer did — and then
-    // goes, because bestax's `Dropdown.Item` declares no `href` at any `as`.
+    // The href picks the anchor over the `tag`, as bloomer did — and it now
+    // stays: `Dropdown.Item` declares an anchor's props under its default
+    // `as`, so the attribute survives instead of being TODO'd away (#663).
     const link = migrate(
       dyn('DropdownItem', '<DropdownItem href="/x" tag="span">x</DropdownItem>')
     );
-    expect(link.rules).toEqual(['prop:href']);
-    expect(link.output).toContain('<Dropdown.Item>x</Dropdown.Item>');
+    expect(link.rules).toEqual([]);
+    expect(link.output).toContain('<Dropdown.Item href="/x">x</Dropdown.Item>');
   });
 
   it('treats a falsy PanelBlock href as no anchor', () => {
