@@ -98,6 +98,7 @@ const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);
  */
 const HREF_OK: Record<string, string> = {
   Button: 'button',
+  'Dropdown.Item': 'a',
   'Level.Item': 'div',
   'Menu.Item': 'a',
   'Navbar.Item': 'a',
@@ -124,8 +125,6 @@ const NO_HREF_HINT: Record<string, string> = {
     'bestax `Delete` renders a <button> with no children and has no anchor form; wrap it in an <a>, or navigate in `onClick`',
   'Card.Header.Icon':
     'bestax `Card.Header.Icon` renders a <button>, so an <a> inside it would nest interactive elements; navigate in `onClick`, or wrap the whole icon in an <a>',
-  'Dropdown.Item':
-    'bestax `Dropdown.Item` declares no `href` and already renders an <a> by default, so an <a> inside would nest anchors; navigate in `onClick`',
 };
 
 /**
@@ -137,10 +136,9 @@ const NO_HREF_HINT: Record<string, string> = {
 const LINK_REMEDY: Record<string, string> = {
   Delete: 'wrap it in an <a>, or navigate in `onClick`',
   'Navbar.Dropdown': 'put it on the `<Navbar.Link>` inside',
-  // Both already render interactive elements -- a <button> and an <a> -- so
-  // "put an <a> inside" would nest one inside the other, which is invalid.
+  // Already renders an interactive element, so "put an <a> inside" would nest
+  // one inside the other, which is invalid.
   'Card.Header.Icon': 'navigate in `onClick`, or wrap the whole icon in an <a>',
-  'Dropdown.Item': 'navigate in `onClick`',
 };
 
 const remedyFor = (target: string): string =>
