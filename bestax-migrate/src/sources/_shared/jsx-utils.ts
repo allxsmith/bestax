@@ -106,7 +106,6 @@ export type LiteralValue =
   | { kind: 'number'; value: number }
   | { kind: 'expression' };
 
-/** Extract the literal value of a JSX attribute, if it has one. */
 /**
  * An attribute as the author wrote it, for a TODO that removes it. A dynamic
  * value may be the only reference keeping an import alive, so the message has
@@ -121,6 +120,7 @@ export function attrSource(j: JSCodeshift, attr: any): string {
   }
 }
 
+/** Extract the literal value of a JSX attribute, if it has one. */
 export function literalValueOf(attr: any): LiteralValue {
   if (attr.value == null) return { kind: 'boolean', value: true };
   const v = attr.value;
