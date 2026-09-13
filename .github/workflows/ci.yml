@@ -59,12 +59,26 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # Do not fold this into the step below on the grounds that it checks a
+      # subset. It does — `tsconfig.test.json` extends the build config and
+      # REPLACES its include/exclude rather than merging, so every file here is
+      # also in that project and none is unique to this one.
+      # What differs is scope, not coverage: only that project pulls in
+      # `types/assets.d.ts`, whose `declare module '*.svg'` would mask a missing
+      # declaration in shipped source. This step is the assertion that the
+      # published program type-checks ON ITS OWN, with no test-only ambient
+      # declaration propping it up — the same separation that keeps tests and
+      # stories out of the declaration emit.
+      #
+      # It is also load-bearing in a way the `build` step above is not:
+      # @rollup/plugin-typescript reports semantic errors as WARNINGS, so
+      # `pnpm build` succeeds on source that does not type-check. These two
+      # steps are the only thing between a type error and a published package.
       - name: Typecheck
         run: pnpm run typecheck
 
-      # A second TypeScript project over the tests and stories, which
-      # `typecheck` deliberately excludes because that program is also the
-      # build's. See bulma-ui/tsconfig.test.json.
+      # The tests and the stories, which `typecheck` excludes because that
+      # program is also the build's. See bulma-ui/tsconfig.test.json.
       - name: Typecheck tests and stories
         run: pnpm run typecheck:tests
 
@@ -183,15 +197,18 @@ jobs:
       - name: Build bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run build
 
+      # Both projects, for the reason the build-and-test job states: the second
+      # is a strict superset of the first in FILES, but only the first checks
+      # the published program without `types/assets.d.ts` in scope.
       - name: Typecheck bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run typecheck
 
-      # Tests and stories too. `pin-react.mjs` pins react/react-dom and never
-      # @types/react, so today both legs read one set of types and this adds no
-      # signal the single-version job lacks — but that is equally true of the
-      # step above, and running one and not the other reads as an oversight.
-      # If the types are ever pinned too, this is the leg that would catch a
-      # React-18-only break in a story or a test.
+      # `pin-react.mjs` pins react/react-dom and never @types/react, so today
+      # both legs read one set of types and this adds no signal the
+      # single-version job lacks — but that is equally true of the step above,
+      # and running one without the other reads as an oversight. If the types
+      # are ever pinned too, this is the leg that would catch a React-18-only
+      # break in a story or a test.
       - name: Typecheck bulma-ui tests and stories
         run: pnpm --filter @allxsmith/bestax-bulma run typecheck:tests
 
