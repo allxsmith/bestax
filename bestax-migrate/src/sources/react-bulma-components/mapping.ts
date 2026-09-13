@@ -361,6 +361,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
         status: 'mapped',
         target: 'Control',
         props: {
+          // `Control` declares `as` too, narrowed to div/p.
+          renderAs: { rename: 'as' },
           fullwidth: { booleanToProp: { name: 'isExpanded' } },
           loading: { booleanToProp: { name: 'isLoading' } },
           iconType: {
@@ -487,6 +489,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Image',
     special: 'image',
     props: {
+      // bestax's `Image` does declare an `as`, narrowed to figure/div/p, so
+      // the universal `renderAs` TODO ("this bestax component has no `as`
+      // prop") was a false claim about the library and left the prop on the
+      // element. Renaming lets the narrowed-union check judge it.
+      renderAs: { rename: 'as' },
       rounded: { booleanToProp: { name: 'isRounded' } },
       fallback: {
         todo: 'no fallback prop in bestax Image; handle onError yourself',

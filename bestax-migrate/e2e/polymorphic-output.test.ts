@@ -146,6 +146,13 @@ const RBC: Case[] = [
   // `card-image` moves these props onto an <Image> it creates, so they have
   // to be judged against `Image` rather than the wrapper they sit on.
   ['Card', '<Card.Image href="/x" src="/a.png" />'],
+  // `Image` and `Control` do declare a narrowed `as`, so `renderAs` renames
+  // onto it instead of collecting the universal "no `as` prop" TODO, which
+  // was a false claim about the library and left the prop on the element.
+  ['Image', '<Image renderAs="span" src="/a.png" />'],
+  ['Image', '<Image renderAs="div" src="/a.png" />'],
+  ['Form', '<Form.Control renderAs="span">x</Form.Control>'],
+  ['Card', '<Card.Image renderAs="span" src="/a.png" />'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [
@@ -224,6 +231,30 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
       '<Button href="/x" as={p.Link}>x</Button>',
     ]);
     expect(link).toContain('as={p.Link}');
+
+    // A spread can overwrite the `as` written before it, so that `as` is not
+    // the element -- `<Button as="span" {...p} href="/x">` with `p.as === "a"`
+    // rendered a working anchor. Unknown, so nothing is touched.
+    const shadowed = migrate(rbx, 'rbx', [
+      'Button',
+      '<Button as="span" {...p} href="/x">x</Button>',
+    ]);
+    expect(shadowed).toContain('href="/x"');
+    // A spread BEFORE the `as` does not shadow it, so the rule still applies.
+    const notShadowed = migrate(rbx, 'rbx', [
+      'Button',
+      '<Button {...p} as="span" href="/x">x</Button>',
+    ]);
+    expect(codeOf(notShadowed)).not.toContain('href');
+
+    // `Delete` renders a childless <button/>, so neither branch may tell the
+    // reader to put an <a> inside it. The `href` branch was fixed and this
+    // one was not.
+    const del = migrate(bloomer, 'bloomer', [
+      'Delete',
+      '<Delete href="/x" target="_blank" />',
+    ]);
+    expect(del).not.toContain('put it on an <a> inside');
 
     // The one removal that deletes an arbitrary expression rather than a
     // literal, so it owes the same quote the others give.

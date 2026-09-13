@@ -361,6 +361,12 @@ export function dropLinkAttrsForPlainTag(
   // React types an `href` onto both. The anchor-only rule that applies to
   // bestax components does not apply here -- there is no component in the way
   // to disagree about what it forwards.
+  //
+  // The message deliberately does not add "it navigated nowhere in the source
+  // either", the way the polymorphic path does. That holds only where `tag`
+  // came from the source -- bloomer's call sites all pass one -- while rbx and
+  // react-bulma-components hard-code the plain tag and ignore the source's
+  // element prop, so there the element really did change.
   const href = HREF_ELEMENTS.includes(tag)
     ? undefined
     : findAttr(element, 'href');
@@ -371,7 +377,7 @@ export function dropLinkAttrsForPlainTag(
       ctx,
       path,
       'prop:href',
-      `${where} became a plain <${tag}>, which takes no \`href\` (it navigated nowhere in the source either) — make it an <a>, or put one inside${was ? ` — it read \`${was}\`` : ''}`
+      `${where} became a plain <${tag}>, which takes no \`href\` — make it an <a>, or put one inside${was ? ` — it read \`${was}\`` : ''}`
     );
     ctx.dirty = true;
   }

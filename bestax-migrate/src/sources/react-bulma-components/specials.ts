@@ -308,6 +308,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // written on. The special returns `replaced`, so the shared pass never
     // sees the child it creates -- `<Card.Image href="/x">` was moving the
     // `href` onto an `<Image>` that declares none.
+    //
+    // `renderAs` is renamed first: the mapping does that for a plain `Image`,
+    // but this path never reaches the prop passes, so without it the check
+    // below would look for an `as` that is still spelled the RBC way.
+    const renderAsAttr = findAttr(element, 'renderAs');
+    if (renderAsAttr) renderAsAttr.name = ctx.j.jsxIdentifier('as');
     enforcePolymorphicProps(ctx, path, element, 'Image');
     const attrs = element.openingElement.attributes ?? [];
     const imageAttrs = attrs.filter(

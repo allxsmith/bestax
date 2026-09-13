@@ -115,8 +115,9 @@ wrong:
   fails to typecheck even where `as` is allowed — which is deliberate: a visible type error
   beats a silent rewrite. A **literal** outside the union is a different case: the codemod can
   read it, so `<Control as="span">` drops the `as` with a `prop:as` TODO naming the tags that
-  component does render. Writing it through produced output the project could not compile, and
-  rbx rendered no `<span>` there either.
+  component does render. Writing it through produced output the project could not compile.
+  Note that this one does change the rendered element: rbx's `forwardRefAs` rendered the tag you
+  gave it, so that really was a `<span>`, and the TODO exists to tell you the element moved.
 
 ## `href` follows `as`
 
