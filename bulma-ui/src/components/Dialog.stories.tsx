@@ -137,6 +137,11 @@ export const Types: Story = {
 
     const types = [
       {
+        type: 'default',
+        title: 'Default',
+        message: 'A neutral dialog with no type modifier.',
+      },
+      {
         type: 'success',
         title: 'Success',
         message: 'Operation completed successfully!',
