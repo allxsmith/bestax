@@ -300,7 +300,8 @@ function dropInertHref(
   path: ASTPath<any>,
   element: any,
   target: string,
-  literal: ReturnType<typeof literalValueOf> | undefined
+  literal: ReturnType<typeof literalValueOf> | undefined,
+  elementKnown: boolean
 ): void {
   const href = findAttr(element, 'href');
   if (!href) return;
@@ -321,8 +322,10 @@ function dropInertHref(
     return;
   }
 
-  // A dynamic `as` may well be an anchor at runtime; guessing either way is
-  // worse than leaving the pair for the author, who can read the expression.
+  // Past here every answer depends on which element renders. A dynamic `as`
+  // may well be an anchor at runtime, and a spread may supply one; guessing
+  // either way is worse than leaving the pair for the author.
+  if (!elementKnown) return;
   if (literal && literal.kind !== 'string') return;
 
   // An `as` naming a tag the target does not render is dropped by
@@ -454,23 +457,30 @@ export function enforcePolymorphicProps(
   const read = declaresAs(target)
     ? lastWordOnAs(element)
     : { attr: undefined, shadowed: false };
-  // An `as` a later spread can overwrite is unknown, not absent: falling back
-  // to the target's default element would delete an `href` that the spread's
-  // `as="a"` made valid. A spread with no `as` written beside it keeps the
-  // ordinary reading -- `{...rest}` is on half the elements in a real app,
-  // and treating every one as unknown would switch the rule off.
-  if (read.shadowed) return;
-  const attr = read.attr;
+  // A spread with no `as` written beside it keeps the ordinary reading:
+  // `{...rest}` is on half the elements in a real app, and treating every one
+  // as unknown would keep `href` on components that take none.
+  //
+  // `restrictAsValue` still runs on a shadowed `as`. An out-of-union literal
+  // is invalid exactly as written, and dead if the spread overwrites it, so
+  // removing it is right either way.
+  const attr = read.attr ?? findAttr(element, 'as');
   const literal = attr ? literalValueOf(attr) : undefined;
-  dropInertHref(ctx, path, element, target, literal);
+  // Shadowing makes the ELEMENT unknown, not the component. Returning here
+  // skipped the union check and the component-level `href` rule as well, so
+  // `<Image as="span" {...p} href="/x">` kept both an `as` outside `Image`'s
+  // union and an `href` it declares at no `as` -- two facts the spread cannot
+  // change.
+  dropInertHref(ctx, path, element, target, literal, !read.shadowed);
   // The element as it will render: the `as` if the target takes it, otherwise
   // the component's own. Unknown for a dynamic `as`, and unknown for a target
   // outside `HREF_OK` that was given no `as` -- the default element is only
   // recorded for the nine that can carry a link. So this rule reaches an
   // explicit accepted `as` on any target, plus those nine bare; elsewhere it
   // declines rather than guesses.
-  const rendered =
-    literal && literal.kind === 'string'
+  const rendered = read.shadowed
+    ? undefined
+    : literal && literal.kind === 'string'
       ? acceptsAs(target, literal.value)
         ? literal.value
         : HREF_OK[target]

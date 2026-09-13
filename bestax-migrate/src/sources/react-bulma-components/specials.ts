@@ -308,21 +308,28 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // written on. The special returns `replaced`, so the shared pass never
     // sees the child it creates -- `<Card.Image href="/x">` was moving the
     // `href` onto an `<Image>` that declares none.
-    //
+    const imageAttrsOf = (): any[] =>
+      (element.openingElement.attributes ?? []).filter(
+        (a: any) => a.type === 'JSXAttribute' && a.name.name !== 'className'
+      );
+    if (children.length > 0 || imageAttrsOf().length === 0) {
+      // Already wrapping its own content — nothing to restructure, and
+      // nothing here is destined for an `<Image>`. Bail before touching the
+      // props: renaming `renderAs` on this path left an `as` on the
+      // `Card.Image` wrapper, which has none, and put it beyond the reach of
+      // the ordinary `renderAs` mapping that would have flagged it.
+      return {};
+    }
     // `renderAs` is renamed first: the mapping does that for a plain `Image`,
     // but this path never reaches the prop passes, so without it the check
     // below would look for an `as` that is still spelled the RBC way.
     const renderAsAttr = findAttr(element, 'renderAs');
     if (renderAsAttr) renderAsAttr.name = ctx.j.jsxIdentifier('as');
     enforcePolymorphicProps(ctx, path, element, 'Image');
-    const attrs = element.openingElement.attributes ?? [];
-    const imageAttrs = attrs.filter(
-      (a: any) => a.type === 'JSXAttribute' && a.name.name !== 'className'
-    );
-    if (children.length > 0 || imageAttrs.length === 0) {
-      // Already wrapping its own content — nothing to restructure.
-      return {};
-    }
+    // Read the attributes back AFTER that: it removes the ones `Image` cannot
+    // take, and a list captured beforehand would carry the removed nodes onto
+    // the child regardless.
+    const imageAttrs = imageAttrsOf();
     for (const attr of imageAttrs) {
       if (attr.name.name === 'size') {
         const literal = literalValueOf(attr);
@@ -342,7 +349,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
       null,
       []
     );
-    element.openingElement.attributes = attrs.filter(
+    element.openingElement.attributes = (
+      element.openingElement.attributes ?? []
+    ).filter(
       (a: any) => a.type === 'JSXAttribute' && a.name.name === 'className'
     );
     element.children = [inner];
