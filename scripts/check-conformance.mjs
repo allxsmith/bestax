@@ -3606,7 +3606,10 @@ export async function checkFragileProse(root = REPO) {
  * once.
  *
  * Read from the root `all` script rather than declared, so a task added to
- * that chain is covered without a second list to keep in step.
+ * that chain is covered without a second list to keep in step. One level of
+ * `pnpm run <script>` indirection is followed, because `all` reaches `lint`
+ * that way and `lint` is itself a turbo task — reading the literal text alone
+ * left the check's own contract unmet.
  */
 async function checkTurboTasks() {
   const violations = [];
@@ -3616,11 +3619,34 @@ async function checkTurboTasks() {
     return ['package.json `all` no longer runs turbo — this check is stale.'];
   }
 
-  // Each `turbo run a b c` segment names tasks until the first flag.
+  // `all` calls other root scripts, and one of them (`lint`) runs turbo. Expand
+  // one level so those segments are seen too; a script naming itself would
+  // otherwise loop, so each is expanded at most once.
+  const scripts = root.scripts ?? {};
+  const seen = new Set(['all']);
+  let text = all;
+  for (const m of [...all.matchAll(/pnpm (?:run )?([\w:-]+)/g)]) {
+    const name = m[1];
+    if (seen.has(name) || !scripts[name]) continue;
+    seen.add(name);
+    text += ` && ${scripts[name]}`;
+  }
+
+  // Each `turbo run a b c` segment names tasks. Flags are skipped rather than
+  // ending the scan: `turbo run --filter=X build-storybook` is valid CLI, and
+  // stopping at the flag dropped the task silently — a fail-open inside the
+  // check written to close one. A flag spelled `--filter X` also eats its
+  // value, so it cannot be mistaken for a task name.
   const tasks = new Set();
-  for (const segment of all.matchAll(/turbo run ([^&|]*)/g)) {
-    for (const word of segment[1].trim().split(/\s+/)) {
-      if (!word || word.startsWith('-')) break;
+  for (const segment of text.matchAll(/turbo run ([^&|]*)/g)) {
+    const words = segment[1].trim().split(/\s+/).filter(Boolean);
+    for (let i = 0; i < words.length; i += 1) {
+      const word = words[i];
+      if (word === '--') break;
+      if (word.startsWith('-')) {
+        if (!word.includes('=')) i += 1;
+        continue;
+      }
       tasks.add(word);
     }
   }
@@ -3645,7 +3671,7 @@ async function checkTurboTasks() {
   for (const [task, found] of [...owners].sort()) {
     if (!found.length) {
       violations.push(
-        `package.json \`all\` runs \`turbo run ${task}\`, but no workspace ` +
+        `package.json \`all\` reaches \`turbo run ${task}\`, but no workspace ` +
           `package declares a "${task}" script — turbo exits 0 having run ` +
           `nothing, so that gate passes without checking anything.`
       );
