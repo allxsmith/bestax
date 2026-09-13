@@ -235,6 +235,16 @@ function anchorWhenHref(
       asLiteral?.kind === 'string' ? asLiteral.value : undefined;
     if (asAttr && asLiteral?.kind === 'string' && literalAs !== 'a') {
       removeAttr(element, asAttr);
+      // Say so. bloomer had no `as`, so this one was spread onto the element
+      // as a stray DOM attribute and did nothing -- but in bestax `as` picks
+      // the element, so removing it is a decision about the author's code and
+      // not a no-op the way it was in the source.
+      addTodo(
+        ctx,
+        path,
+        'prop:as',
+        `bloomer had no \`as\` prop, so \`as="${literalAs}"\` rode onto the element it rendered and did nothing; in bestax it would pick the element, and the \`href\` here needs the <a> -- it is removed rather than left to fight the anchor`
+      );
       ctx.dirty = true;
     }
     if (options.setAs && !findAttr(element, 'as')) {

@@ -52,7 +52,10 @@ describe('bloomer Button', () => {
     const { output, rules } = migrate(
       dyn('Button', '<Button href="/x" as="span">x</Button>')
     );
-    expect(rules).toEqual([]);
+    // Announced, not silent: bloomer had no `as`, so the source's rode onto
+    // the element as a stray attribute — but in bestax it would pick the
+    // element, so removing it is a decision about the author's code.
+    expect(rules).toEqual(['prop:as']);
     expect(output).toContain('<Button href="/x" as="a">');
   });
 });
