@@ -135,6 +135,19 @@ describe('Control', () => {
     expect(screen.getByTestId('custom-svg-3')).toBeInTheDocument();
   });
 
+  it('spreads an iconLeft object using the deprecated `icon` (no `name`)', () => {
+    // `icon` is a member of `IconProps`, so the guard has to recognise it. When
+    // it did not, the object fell through to the custom-node branch and React
+    // threw "Objects are not valid as a React child" (#663).
+    render(<Control iconLeft={{ icon: 'fas fa-star' }}>Icons</Control>);
+    // Spread onto Icon (the mock above puts every prop on its span), not
+    // wrapped as its child. `name` is absent on this path, hence the testid.
+    expect(screen.getByTestId('icon-undefined')).toHaveAttribute(
+      'icon',
+      'fas fa-star'
+    );
+  });
+
   it('treats a falsy conditional iconLeft/iconRight as absent (no empty icon span)', () => {
     // The idiomatic `iconLeft={cond && <Node/>}` pattern yields `false` when off — it must
     // not reserve the icon column or mount an empty icon span.

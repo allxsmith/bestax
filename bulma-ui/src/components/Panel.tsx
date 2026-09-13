@@ -2,7 +2,12 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { Icon, IconChildrenProps, IconNameProps } from '../elements/Icon';
+import {
+  Icon,
+  IconChildrenProps,
+  IconDeprecatedProps,
+  IconNameProps,
+} from '../elements/Icon';
 
 /**
  * Props for the Panel component.
@@ -67,7 +72,11 @@ export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
  */
 export type PanelIconProps =
   | Omit<IconNameProps, 'containerClassName'>
-  | Omit<IconChildrenProps, 'containerClassName'>;
+  | Omit<IconChildrenProps, 'containerClassName'>
+  // `PanelIcon` spreads straight into `<Icon>`, so every member of `IconProps`
+  // reaches it. Enumerating them by hand is what left the deprecated `icon`
+  // path compiling on `Icon` and failing here, with an error naming `children`.
+  | Omit<IconDeprecatedProps, 'containerClassName'>;
 
 /**
  * Props for the PanelInputBlock component.

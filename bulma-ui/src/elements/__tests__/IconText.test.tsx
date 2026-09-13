@@ -261,6 +261,26 @@ describe('IconText custom node icon', () => {
   });
 });
 
+describe('IconText deprecated icon prop', () => {
+  it('spreads an iconProps object using the deprecated `icon` (no `name`)', () => {
+    // Same guard, same failure mode as Control: an unrecognised `IconProps`
+    // member reaches React as a child and throws, rather than degrading (#663).
+    const { container } = render(
+      <IconText iconProps={{ icon: 'fas fa-star' }} />
+    );
+    expect(container.querySelector('i')).toHaveClass('fas', 'fa-star');
+  });
+
+  it('spreads a deprecated `icon` on an items entry too', () => {
+    const { container } = render(
+      <IconText
+        items={[{ iconProps: { icon: 'fas fa-star' }, text: 'Star' }]}
+      />
+    );
+    expect(container.querySelector('i')).toHaveClass('fas', 'fa-star');
+  });
+});
+
 describe('IconText color text alias', () => {
   it('renders has-text-primary when only color is set', () => {
     const { container } = render(<IconText color="primary">Txt</IconText>);

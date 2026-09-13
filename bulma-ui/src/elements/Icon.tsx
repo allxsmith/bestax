@@ -48,7 +48,7 @@ interface IconBaseProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** **DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`, `'mdi mdi-rocket'`). Use `name` instead. */
+  /** **DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the glyph name; the library still comes from `library` or `ConfigProvider`, so `'mdi mdi-rocket'` on its own renders an `fa` class and needs `library="mdi"` beside it. Use `name` instead. */
   icon?: string;
   /**
    * The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured. Ignored when `children` supplies the glyph instead of `name`.
@@ -107,8 +107,8 @@ export interface IconChildrenProps extends IconBaseProps {
 /**
  * Props for `Icon` naming its glyph through the deprecated `icon` prop instead of `name`.
  *
- * The runtime has always accepted `icon` on its own — it parses the library prefix off the
- * class string and falls through to the `name` path — but the type offered no member without
+ * The runtime has always accepted `icon` on its own — it strips a leading library prefix off
+ * the class string and falls through to the `name` path — but the type offered no member without
  * a `name` or `children`, so every caller still on the deprecated prop got an error the
  * package could not see (nothing type-checks tests or stories; #663). Declaring the path is
  * the honest resolution: it is deprecated, not removed, and a deprecation that does not
@@ -117,7 +117,7 @@ export interface IconChildrenProps extends IconBaseProps {
  * @deprecated Pass `name` instead. This member goes when `icon` does.
  */
 export interface IconDeprecatedProps extends IconBaseProps {
-  /** **DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`, `'mdi mdi-rocket'`). Use `name` instead. */
+  /** **DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the glyph name; the library still comes from `library` or `ConfigProvider`, so `'mdi mdi-rocket'` on its own renders an `fa` class and needs `library="mdi"` beside it. Use `name` instead. */
   // Required here, optional on `IconBaseProps`: the other two members allow it
   // alongside `name`, and this one is the member where it IS the glyph. Same
   // prose in both places on purpose — the API-docs extractor reads whichever it
