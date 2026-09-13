@@ -917,7 +917,67 @@ function polymorphicBase(ts, node) {
   return {
     kind: 'polymorphic',
     element: defaultElement(ts, node.typeArguments?.[0]),
+    closed: constrainedToTags(ts, node.typeArguments?.[0]),
   };
+}
+
+/**
+ * Whether the type parameter behind `T` is constrained to a closed set of
+ * intrinsic TAGS rather than an open `React.ElementType`.
+ *
+ * It decides one word in the catch-all row. A component narrowed to
+ * `'a' | 'div' | 'button'` takes no component at all — `__typetests__` asserts
+ * `<Dropdown.Item as={RouterLink}>` is rejected — so promising "the element or
+ * component selected by `as`" tells a reader, and the MCP index an assistant
+ * answers from, that a shape the compiler refuses is supported.
+ *
+ * Resolved syntactically, like the rest of this reader: an inline union of
+ * string literals, or a type alias in the same file that is one
+ * (`DropdownItemElement`). Anything else is treated as open, which is the
+ * pre-existing wording and the safe direction — it under-promises for a
+ * constraint this cannot read, rather than over-promising.
+ */
+function constrainedToTags(ts, arg) {
+  if (!arg || !ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) {
+    return false;
+  }
+  const want = arg.typeName.text;
+  let constraint = null;
+  for (let n = arg; n; n = n.parent) {
+    const param = n.typeParameters?.find(tp => tp.name.text === want);
+    if (param) {
+      constraint = param.constraint;
+      break;
+    }
+  }
+  return isTagUnion(ts, constraint, arg);
+}
+
+/** A union of string-literal types, following one alias hop in the same file. */
+function isTagUnion(ts, node, scope, hopped = false) {
+  if (!node) return false;
+  if (ts.isUnionTypeNode(node)) {
+    return node.types.every(
+      t => ts.isLiteralTypeNode(t) && ts.isStringLiteral(t.literal)
+    );
+  }
+  if (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal)) {
+    return true;
+  }
+  if (
+    hopped ||
+    !ts.isTypeReferenceNode(node) ||
+    !ts.isIdentifier(node.typeName)
+  ) {
+    return false;
+  }
+  const name = node.typeName.text;
+  let file = scope;
+  while (file && !ts.isSourceFile(file)) file = file.parent;
+  const alias = file?.statements?.find(
+    st => ts.isTypeAliasDeclaration(st) && st.name.text === name
+  );
+  return isTagUnion(ts, alias?.type, scope, true);
 }
 
 /**
@@ -1100,10 +1160,14 @@ function catchAllRow(external, markdown = true) {
       // side. `Menu.Item` withholds more still — `title`/`style` document the
       // wrapper `<li>`. Promising "all props of the target" names props the
       // type deliberately does not forward.
+      // "element or component" only where `as` really takes both. A closed
+      // tag union takes no component, and saying otherwise names a shape the
+      // compiler refuses (#663).
+      const target = e.closed ? 'element' : 'element or component';
       polymorphic.add(
         e.element
-          ? `remaining props of the element or component selected by \`as\` (default \`<${e.element}>\`)`
-          : 'remaining props of the element or component selected by `as`'
+          ? `remaining props of the ${target} selected by \`as\` (default \`<${e.element}>\`)`
+          : `remaining props of the ${target} selected by \`as\``
       );
       continue;
     }

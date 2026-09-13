@@ -390,6 +390,15 @@ export interface DropdownItemOwnProps extends BulmaClassesProps {
  * this type did before — rejected `href` on an anchor and `type` on a button,
  * both of which have always worked at runtime. Same defect as #641, in the
  * narrower shape a constrained `as` takes.
+ *
+ * **Name the tag you mean.** Bare `DropdownItemProps` is the DEFAULT element's
+ * shape, `as?: 'a'` and an anchor's attributes — it was the whole union before
+ * this became generic, so `{ as: 'div' }` typed against it now needs
+ * `DropdownItemProps<'div'>`. Passing the union does not stand in for that:
+ * `DropdownItemProps<DropdownItemElement>` keeps only the keys all three share
+ * and so has no `href` at all. That is the #667 alias limitation Button
+ * carries, pinned for this component in `__typetests__/polymorphic.tsx`; the
+ * component itself distributes and is unaffected.
  */
 export type DropdownItemProps<T extends DropdownItemElement = 'a'> =
   DropdownItemOwnProps &
@@ -425,6 +434,18 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
     ...props
   } = itemProps as DropdownItemImplProps;
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  // `href` reaches an anchor, but not a `<div>` or a `<button>` — `<div href>`
+  // is invalid HTML. The same rule Menu applies, for the same reason: the type
+  // now derives `href` from `as`, and deriving it must not quietly widen where
+  // it lands. The type stops a direct caller; this stops a plain-JS one, a
+  // loose `{...props}` spread, and the genericity a wrapping HOC erases.
+  //
+  // Menu's condition also admits a custom component and a custom element,
+  // which own their prop contracts. `as` is closed to three intrinsic tags
+  // here, so neither can arrive and the anchor test is the whole rule.
+  const isLinkLike = Component === 'a';
+  const { href: _href, ...withoutHref } = rest as { href?: string };
+  const forwarded = isLinkLike ? rest : withoutHref;
   return (
     <Component
       className={classNames(
@@ -437,7 +458,7 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       tabIndex={0}
       role="menuitem"
       data-testid="dropdown-item"
-      {...rest}
+      {...forwarded}
     >
       {children}
     </Component>

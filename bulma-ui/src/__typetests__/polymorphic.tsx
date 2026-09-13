@@ -5,17 +5,26 @@
  * `__tests__/`: `bulma-ui/tsconfig.json` excludes that directory and every
  * `*.test.tsx`, and ts-jest runs transpile-only (the repo sets
  * `isolatedModules`), so jest checks no type an `@ts-expect-error` there
- * claims. `tsconfig.test.json` now does (#663), but only `pnpm typecheck` runs
- * in the React 18/19 matrix — so a file here is the only one whose directives
- * are enforced against BOTH majors' types. An `@ts-expect-error` that stops
- * being an error fails the build as TS2578.
+ * claims. `tsconfig.test.json` now does (#663), which makes a directive in a
+ * test file mean something again — but this file stays here, because `tsc
+ * --noEmit` reads it under `pnpm typecheck` and so does every consumer running
+ * that script. An `@ts-expect-error` that stops being an error fails the build
+ * as TS2578.
+ *
+ * The React 18/19 matrix is NOT a second opinion on any of it: `pin-react.mjs`
+ * pins `react` and `react-dom` only, never `@types/react`, so both legs read
+ * one identical set of types.
  *
  * Nothing renders these; jest's testMatch does not reach this directory and
  * `collectCoverageFrom` excludes it.
  */
 import React from 'react';
 import { Avatar } from '../components/Avatar';
-import { Dropdown } from '../components/Dropdown';
+import {
+  Dropdown,
+  type DropdownItemElement,
+  type DropdownItemProps,
+} from '../components/Dropdown';
 import { Menu } from '../components/Menu';
 import { Navbar } from '../components/Navbar';
 import { Reveal } from '../components/Reveal';
@@ -143,6 +152,27 @@ export const aliasUnionLimitation: ButtonProps<'a' | 'button'> = {
   // @ts-expect-error #667 — the alias keeps only keys common to the union
   href: '/x',
 };
+
+// The same limitation on a CONSTRAINED component, where it costs more than on
+// Button: the bare alias used to be the whole `'a' | 'div' | 'button'` union,
+// and is now the default element alone. Both halves are pinned so the day #667
+// lands, these directives go unused and say so.
+export const constrainedAliasLimitation: DropdownItemProps = {
+  // @ts-expect-error #667 — the bare alias is the default element, not the union
+  as: 'div',
+};
+export const constrainedAliasUnionLimitation: DropdownItemProps<DropdownItemElement> =
+  {
+    as: 'a',
+    // @ts-expect-error #667 — the alias keeps only keys common to the union
+    href: '/x',
+  };
+
+// The component itself is unaffected by either: it distributes, so a
+// union-typed `as` keeps each member's props. Deliberate, and the same
+// behaviour `unionAs` pins for the open `as` above.
+declare const anyItemTag: DropdownItemElement;
+export const constrainedUnionAs = <Dropdown.Item as={anyItemTag} href="/x" />;
 
 type DerivedButtonProps = React.ComponentProps<typeof Button>;
 export const derived: DerivedButtonProps = {
