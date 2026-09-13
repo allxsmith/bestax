@@ -152,9 +152,38 @@ const LINK_REMEDY: Record<string, string> = {
 const NO_NESTED_ANCHOR = new Set(['a', 'button']);
 
 /**
+ * Elements that can hold no children at all, so "put an <a> inside" names
+ * markup the author cannot write. They CAN be wrapped -- `<a><img></a>` is the
+ * classic form -- which is the advice `Delete` already gives for the same
+ * reason through `LINK_REMEDY`. The plain-markup path reaches these: bloomer's
+ * `tag` is whatever literal the source wrote, so `<Help tag="img">` is one
+ * rewrite away.
+ */
+const VOID_ELEMENTS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
+
+/**
  * What to do with a link the element refuses. `carry` is true for an attribute
  * that has to land ON the anchor to do anything (`target`, `download`, …) and
  * false where the anchor itself IS the remedy (a bare `href`).
+ *
+ * Three answers, because "put an <a> inside" is wrong in two different ways: an
+ * anchor inside interactive content is invalid, and an anchor inside a void
+ * element is impossible.
  *
  * Exported because `specials-utils.ts` reaches the same question from the plain
  * markup side, and `bestax-migrate/CLAUDE.md` puts a rule two transforms need in
@@ -163,12 +192,17 @@ const NO_NESTED_ANCHOR = new Set(['a', 'button']);
 export const nestOrClick = (
   rendered: string | undefined,
   carry = false
-): string =>
-  rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)
-    ? 'navigate in `onClick`'
-    : carry
-      ? 'put it on an <a> inside'
-      : 'put an <a> inside';
+): string => {
+  if (rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)) {
+    return 'navigate in `onClick`';
+  }
+  if (rendered !== undefined && VOID_ELEMENTS.has(rendered)) {
+    return carry
+      ? 'put it on an <a> wrapping this element'
+      : 'wrap it in an <a>';
+  }
+  return carry ? 'put it on an <a> inside' : 'put an <a> inside';
+};
 
 const remedyFor = (target: string, rendered?: string): string =>
   LINK_REMEDY[target] ??
