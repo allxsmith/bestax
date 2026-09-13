@@ -14,7 +14,8 @@ import type { IconProps } from './Icon';
  * makes the same call for `isCustomElement`: an internal discriminator is not
  * something to support for the life of the package.
  *
- * It tests each member's VALUE, not merely its key. `'icon' in value` was enough
+ * It tests each member's VALUE, not merely its key, and only after everything
+ * React owns is out of the way. `'icon' in value` was enough
  * to claim a Font Awesome `IconDefinition` — `{ prefix, iconName, icon: [w, h, …,
  * path] }` — whose `icon` is a path array rather than a class string. That object
  * is not a renderable node either, so the honest outcome is the one this slot has
@@ -31,7 +32,13 @@ export function isIconProps(
   value: IconProps | React.ReactNode
 ): value is IconProps {
   if (typeof value !== 'object' || value === null) return false;
-  if (React.isValidElement(value)) return false;
+  // Anything React owns. `isValidElement` covers elements only; a PORTAL is a
+  // valid `ReactNode` that fails it and carries a `children` key, so the member
+  // test below claimed it and `Control` spread it into `<Icon>` as props —
+  // rendering the portal's child locally instead of in its container. Every
+  // React internal carries `$$typeof`, so testing for it covers lazy, context
+  // and whatever React adds next, rather than portals alone.
+  if (React.isValidElement(value) || '$$typeof' in value) return false;
   const candidate = value as {
     name?: unknown;
     icon?: unknown;

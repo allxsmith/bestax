@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createPortal } from 'react-dom';
 import { IconText } from '../IconText';
 import { Icon } from '../Icon';
 import { ConfigProvider } from '../../helpers/Config';
@@ -285,6 +286,19 @@ describe('IconText deprecated icon prop', () => {
       // @ts-expect-error an IconDefinition is neither IconProps nor a node
       render(<IconText iconProps={faStar} />)
     ).toThrow(/not valid as a React child/);
+  });
+
+  it('does not claim a React portal as icon props', () => {
+    // A portal is a valid ReactNode that `isValidElement` rejects and that
+    // carries a `children` key, so a member test alone claimed it — and
+    // spreading it as props renders its child locally instead of in its
+    // container, which is the one thing a portal exists to avoid.
+    const host = document.createElement('div');
+    host.id = 'portal-host';
+    document.body.appendChild(host);
+    render(<IconText iconProps={createPortal(<i data-testid="p" />, host)} />);
+    expect(host.querySelector('[data-testid="p"]')).toBeInTheDocument();
+    document.body.removeChild(host);
   });
 
   it('spreads a deprecated `icon` on an items entry too', () => {
