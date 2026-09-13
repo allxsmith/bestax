@@ -673,6 +673,24 @@ describe('bloomer navigation handlers', () => {
     expect(href.todos[0].message).toContain('navigate in `onClick`');
   });
 
+  it('says wrap, not nest, for an element that holds no children', () => {
+    // bloomer's `tag` is whatever literal the source wrote, so a void element
+    // is one rewrite away — and "put an <a> inside" an <img> is markup nobody
+    // can write. Wrapping is the form that works: <a><img></a>.
+    const voidAttr = migrate(
+      dyn('Help', '<Help tag="img" target="_blank">x</Help>')
+    );
+    expect(voidAttr.todos[0].message).toContain(
+      'put it on an <a> wrapping this element'
+    );
+    expect(voidAttr.todos[0].message).not.toContain('inside');
+
+    const voidHref = migrate(
+      dyn('Help', '<Help tag="input" href="/x">x</Help>')
+    );
+    expect(voidHref.todos[0].message).toContain('wrap it in an <a>');
+  });
+
   it('treats a falsy PanelBlock href as no anchor', () => {
     const { output, rules } = migrate(
       dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')
