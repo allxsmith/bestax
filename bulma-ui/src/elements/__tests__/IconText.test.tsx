@@ -271,6 +271,22 @@ describe('IconText deprecated icon prop', () => {
     expect(container.querySelector('i')).toHaveClass('fas', 'fa-star');
   });
 
+  it('does not claim a Font Awesome IconDefinition as icon props', () => {
+    // `{ prefix, iconName, icon: [w, h, …, path] }` carries an `icon` key whose
+    // value is a path array, not a class string. A key-presence guard claimed it
+    // and rendered a blank container that still reserved layout; the shape test
+    // leaves it to the node branch, where React says what is actually wrong.
+    const faStar = {
+      prefix: 'fas',
+      iconName: 'star',
+      icon: [512, 512, [], 'f005', 'M1z'],
+    };
+    expect(() =>
+      // @ts-expect-error an IconDefinition is neither IconProps nor a node
+      render(<IconText iconProps={faStar} />)
+    ).toThrow(/not valid as a React child/);
+  });
+
   it('spreads a deprecated `icon` on an items entry too', () => {
     const { container } = render(
       <IconText

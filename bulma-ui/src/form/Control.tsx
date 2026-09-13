@@ -10,24 +10,9 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { Icon, IconProps } from '../elements/Icon';
+import { isIconProps } from '../elements/iconProps';
 import { useConfig } from '../helpers/Config';
 import { ControlProvider } from './FormContext';
-
-/**
- * Distinguishes an `IconProps` object from a plain custom node (an inline SVG, a `react-icons`
- * component, …) passed to a slot that accepts either.
- */
-function isIconProps(value: IconProps | React.ReactNode): value is IconProps {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !React.isValidElement(value) &&
-    // Every member of `IconProps` -- `icon` included, which names the glyph on
-    // the deprecated path (#663). A member missing here is not a fallthrough
-    // to the node branch but a crash: the object reaches React as a child.
-    ('name' in value || 'children' in value || 'icon' in value)
-  );
-}
 
 /**
  * Props for the Control component.

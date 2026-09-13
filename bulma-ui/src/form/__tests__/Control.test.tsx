@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react';
 import Control from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
-// Mock Icon so we can test for its appearance
+// Mock Icon so we can test for its appearance. The `isIconProps` guard deciding
+// which branch Control takes lives in its own module and is deliberately NOT
+// mocked — a stub would be testing the stub (#663).
 jest.mock('../../elements/Icon', () => ({
   Icon: ({ name, ...props }: { name: string; [key: string]: unknown }) => (
     <span data-testid={`icon-${name}`} {...props} />
