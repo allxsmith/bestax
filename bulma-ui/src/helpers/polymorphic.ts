@@ -137,12 +137,20 @@ export interface PolymorphicComponentWithoutRef<
  * constraint keeps that promise while still deriving props from whichever of
  * the three a caller picks.
  *
- * Genericity is what makes the derivation exact, and it is worth the extra type
- * parameter. Typing such a component as `React.FC<Union>` instead — a union of
- * the three prop shapes — reads as equivalent but is not: against a union
- * target, an object literal's excess-property check passes if the property
- * exists in ANY member, so `<Item as="div" href="/x" />` slips through. Inferring
- * `T` from `as` first checks against that one member, which is the point.
+ * Genericity is what makes the derivation exact for a LITERAL `as`, and it is
+ * worth the extra type parameter. Typing such a component as `React.FC<Union>`
+ * instead — a union of the three prop shapes — reads as equivalent but is not:
+ * against a union target, an object literal's excess-property check passes if
+ * the property exists in ANY member, so `<Item as="div" href="/x" />` slips
+ * through. Inferring `T` from the literal checks against that one member.
+ *
+ * A UNION-typed `as` — a ternary, or a variable typed as the whole set — infers
+ * `T` as the union and lands back in that same permissive check, so
+ * `<Item as={tag} href="/x" />` compiles whatever `tag` turns out to be. That is
+ * the open `as` behaviour too, and deliberate there: `PolymorphicProps`
+ * distributes precisely so a union-typed `as` KEEPS each member's props rather
+ * than losing every prop the members do not share. Narrowing it is not a
+ * constrained-component question; it would have to change for `Button` first.
  */
 export interface ConstrainedPolymorphicComponentWithoutRef<
   Own,

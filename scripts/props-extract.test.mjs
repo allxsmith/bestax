@@ -189,6 +189,18 @@ test('the catch-all names the polymorphic element and its default', () => {
   );
 });
 
+test('a constrained `as` drops "or component" from the catch-all', () => {
+  // `Dropdown.Item` narrows `as` to three tags, so it takes no component at
+  // all — `bulma-ui/src/__typetests__/polymorphic.tsx` asserts `as={RouterLink}`
+  // is rejected. Saying "element or component" there promised a shape the
+  // compiler refuses, on the API page and in the MCP index built from it
+  // (#663). The open-`as` components above must keep the longer wording.
+  assert.equal(
+    table('Dropdown', 'Dropdown.Item').catchAll.text,
+    'Remaining props of the element selected by `as` (default `<a>`) and Bulma helper props'
+  );
+});
+
 test('every polymorphic component names a concrete default element', () => {
   // A type parameter defaulting to the CONSTRAINT rather than to a tag —
   // `<T extends React.ElementType = React.ElementType>` — makes

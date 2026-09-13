@@ -1239,3 +1239,28 @@ describe('Compound components', () => {
     expect(container.querySelector('.dropdown-divider')).toBeInTheDocument();
   });
 });
+
+describe('href routing', () => {
+  it('forwards href to the default anchor', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item href="/x">Link</Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).toHaveAttribute('href', '/x');
+  });
+
+  it('withholds href from a non-anchor tag', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {/* A JS consumer can still deliver an href, and `<div href>` is
+            invalid HTML, so it must not reach the DOM. */}
+        {/* @ts-expect-error a div takes no href */}
+        <Dropdown.Item as="div" href="/x">
+          Static
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).not.toHaveAttribute('href');
+  });
+});
