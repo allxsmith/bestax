@@ -388,3 +388,72 @@ describe('the href-bearing intrinsics match what React types', () => {
     });
   });
 });
+
+/**
+ * The HTML half of `JSX.IntrinsicElements`, as of `@types/react` 19.
+ *
+ * Written out because the structural test for it does not work --
+ * `JSX.IntrinsicElements[E]` is a `DetailedHTMLProps` wrapper, so
+ * `extends HTMLAttributes` does not separate HTML from SVG. Regenerate by
+ * reading the keys between `interface IntrinsicElements {` and the `// SVG`
+ * comment in `@types/react/index.d.ts`.
+ *
+ * The point of listing it is that it is complete and chosen independently of
+ * the tables below. The earlier universe was a dozen elements picked by hand,
+ * which could not see a row missing an element the universe also lacked --
+ * `media` on `<meta>` sat there unnoticed for exactly that reason.
+ *
+ * SVG is excluded on purpose: `SVGAttributes` declares `href`, `media` and
+ * `target`, so every SVG tag would join these rows, and no source here can
+ * produce one.
+ */
+const HTML_INTRINSICS =
+  `a abbr address area article aside audio b base bdi bdo big
+blockquote body br button canvas caption center cite code col colgroup data datalist dd del
+details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6
+head header hgroup hr html i iframe img input ins kbd keygen label legend li link main map mark
+menu menuitem meta meter nav noindex noscript object ol optgroup option output p param picture
+pre progress q rp rt ruby s samp script search section select slot small source span strong
+style sub summary sup table tbody td template textarea tfoot th thead time title tr track u ul
+var video wbr webview`
+    .split(/\s+/)
+    .filter(Boolean);
+
+describe('every row is exactly what React declares, over all of HTML', () => {
+  it('matches each link-attribute row against the full intrinsic set', () => {
+    const html = HTML_INTRINSICS.map(e => `'${e}'`).join(' | ');
+    const rows = Object.entries(LINK_ATTR_TABLE).map(
+      ([attr, els]) =>
+        `type _${attr} = Assert<Exact<HtmlWith<'${attr}'>, ${els
+          .map(e => `'${e}'`)
+          .join(' | ')}>>; // ${attr}`
+    );
+    // `href` carries the one deliberate divergence: `<style href>` is React 19
+    // only and the table is the 18/19 common denominator, so it is added back
+    // here rather than to the table.
+    rows.push(
+      `type _href = Assert<Exact<HtmlWith<'href'>, ${[...HREF_ELEMENTS, 'style']
+        .map(e => `'${e}'`)
+        .join(' | ')}>>; // href`
+    );
+    const source = [
+      "import type { JSX } from 'react';",
+      `type Html = ${html};`,
+      'type ElementsWith<K extends string> = {',
+      '  [E in keyof JSX.IntrinsicElements]-?: K extends keyof JSX.IntrinsicElements[E] ? E : never;',
+      '}[keyof JSX.IntrinsicElements];',
+      'type HtmlWith<K extends string> = Extract<ElementsWith<K>, Html>;',
+      'type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;',
+      'type Assert<T extends true> = T;',
+      '',
+      ...rows,
+      'export {};',
+      '',
+    ].join('\n');
+    const { status, diagnostics } = typecheckTsx(source, 'html-complete');
+    expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
+  });
+});
