@@ -51,7 +51,8 @@ interface IconBaseProps
   /**
    * Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the
    * glyph name; the library still comes from `library` or `ConfigProvider`, so
-   * `'mdi mdi-rocket'` on its own renders an `fa` class and needs `library="mdi"` beside it.
+   * `'mdi mdi-rocket'` renders an `fa` class unless the effective library is already `mdi` —
+   * set it here or on the provider.
    *
    * @deprecated Use `name` instead.
    */
@@ -130,7 +131,8 @@ export interface IconDeprecatedProps extends IconBaseProps {
   /**
    * Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the
    * glyph name; the library still comes from `library` or `ConfigProvider`, so
-   * `'mdi mdi-rocket'` on its own renders an `fa` class and needs `library="mdi"` beside it.
+   * `'mdi mdi-rocket'` renders an `fa` class unless the effective library is already `mdi` —
+   * set it here or on the provider.
    *
    * @deprecated Use `name` instead.
    */
