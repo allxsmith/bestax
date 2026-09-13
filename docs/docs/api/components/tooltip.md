@@ -198,7 +198,7 @@ Tooltips on icon buttons for action descriptions.
 ```tsx live
 function example() {
   return (
-    <Block display="flex" gap="5" p="6">
+    <Block display="flex" p="6">
       <Tooltip label="Delete item" color="danger" position="bottom">
         <Span cursor="pointer">
           <Icon name="fas fa-trash" />

@@ -744,7 +744,7 @@ function AdvancedPaletteExample() {
   return (
     <Box p="4">
       {/* Status cards with coordinated colors */}
-      <Box display="flex" flexDirection="column" gap="4">
+      <Box display="flex" flexDirection="column">
         {/* Success Card */}
         <Card backgroundColor="success" backgroundColorShade="05">
           <Card.Content>

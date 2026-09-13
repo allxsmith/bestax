@@ -47,7 +47,7 @@
     },
     {
       "title": "Formats",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput\n    label=\"YYYY-MM-DD HH:mm (default)\"\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"MM/DD/YYYY hh:mm A\"\n    format=\"MM/DD/YYYY hh:mm A\"\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"DD.MM.YYYY HH:mm\"\n    format=\"DD.MM.YYYY HH:mm\"\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"Intl — display only\"\n    format={{ dateStyle: 'medium', timeStyle: 'short' }}\n    editable={false}\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"YYYY-MM-DD HH:mm (default)\"\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"MM/DD/YYYY hh:mm A\"\n    format=\"MM/DD/YYYY hh:mm A\"\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"DD.MM.YYYY HH:mm\"\n    format=\"DD.MM.YYYY HH:mm\"\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"Intl — display only\"\n    format={{ dateStyle: 'medium', timeStyle: 'short' }}\n    editable={false}\n    defaultValue={new Date(2026, 4, 30, 13, 45)}\n    mobileNative={false}\n  />\n</Block>"
     },
     {
       "title": "Formats",
@@ -55,11 +55,11 @@
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput label=\"Default (left icon + right launcher)\" />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n  />\n  <DateTimeInput label=\"No launcher\" triggerIcon={false} />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Default (left icon + right launcher)\" />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n  />\n  <DateTimeInput label=\"No launcher\" triggerIcon={false} />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" />\n</Block>"
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput\n    label=\"Default (left icon + right launcher)\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"No launcher (popover via ↓ only)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"Default (left icon + right launcher)\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"No launcher (popover via ↓ only)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "Min and Max",
@@ -103,31 +103,31 @@
     },
     {
       "title": "Locale",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput\n    label=\"ja-JP\"\n    locale=\"ja-JP\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"fr-FR\"\n    locale=\"fr-FR\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"ja-JP\"\n    locale=\"ja-JP\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n  <DateTimeInput\n    label=\"fr-FR\"\n    locale=\"fr-FR\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n</Block>"
     },
     {
       "title": "Locale",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput\n    label=\"ja-JP\"\n    locale=\"ja-JP\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"fr-FR\"\n    locale=\"fr-FR\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"ja-JP\"\n    locale=\"ja-JP\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"fr-FR\"\n    locale=\"fr-FR\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n</Block>"
     },
     {
       "title": "Sizes",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput label=\"Small\" controlSize=\"small\" size=\"small\" />\n  <DateTimeInput label=\"Default\" />\n  <DateTimeInput label=\"Medium\" controlSize=\"medium\" size=\"medium\" />\n  <DateTimeInput label=\"Large\" controlSize=\"large\" size=\"large\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Small\" controlSize=\"small\" size=\"small\" />\n  <DateTimeInput label=\"Default\" />\n  <DateTimeInput label=\"Medium\" controlSize=\"medium\" size=\"medium\" />\n  <DateTimeInput label=\"Large\" controlSize=\"large\" size=\"large\" />\n</Block>"
     },
     {
       "title": "Sizes",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput\n    label=\"Small\"\n    controlSize=\"small\"\n    size=\"small\"\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Default\" openOnFocus={false} />\n  <DateTimeInput\n    label=\"Medium\"\n    controlSize=\"medium\"\n    size=\"medium\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Large\"\n    controlSize=\"large\"\n    size=\"large\"\n    openOnFocus={false}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"Small\"\n    controlSize=\"small\"\n    size=\"small\"\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Default\" openOnFocus={false} />\n  <DateTimeInput\n    label=\"Medium\"\n    controlSize=\"medium\"\n    size=\"medium\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Large\"\n    controlSize=\"large\"\n    size=\"large\"\n    openOnFocus={false}\n  />\n</Block>"
     },
     {
       "title": "Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput label=\"Primary\" color=\"primary\" />\n  <DateTimeInput label=\"Info\" color=\"info\" />\n  <DateTimeInput label=\"Success\" color=\"success\" />\n  <DateTimeInput label=\"Warning\" color=\"warning\" />\n  <DateTimeInput label=\"Danger\" color=\"danger\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Primary\" color=\"primary\" />\n  <DateTimeInput label=\"Info\" color=\"info\" />\n  <DateTimeInput label=\"Success\" color=\"success\" />\n  <DateTimeInput label=\"Warning\" color=\"warning\" />\n  <DateTimeInput label=\"Danger\" color=\"danger\" />\n</Block>"
     },
     {
       "title": "Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <DateTimeInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <DateTimeInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <DateTimeInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <DateTimeInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <DateTimeInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <DateTimeInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <DateTimeInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <DateTimeInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "States",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateTimeInput label=\"Disabled\" disabled />\n  <DateTimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <DateTimeInput label=\"Loading\" isLoading />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Disabled\" disabled />\n  <DateTimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <DateTimeInput label=\"Loading\" isLoading />\n</Block>"
     },
     {
       "title": "Context-Aware Rendering",

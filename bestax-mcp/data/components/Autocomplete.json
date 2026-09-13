@@ -19,7 +19,7 @@
     },
     {
       "title": "Color and Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Primary small\"\n    color=\"primary\"\n    size=\"small\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Info normal\"\n    color=\"info\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Success medium\"\n    color=\"success\"\n    size=\"medium\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Danger large\"\n    color=\"danger\"\n    size=\"large\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Primary small\"\n    color=\"primary\"\n    size=\"small\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Info normal\"\n    color=\"info\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Success medium\"\n    color=\"success\"\n    size=\"medium\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Danger large\"\n    color=\"danger\"\n    size=\"large\"\n  />\n</Block>"
     },
     {
       "title": "With Object Data",

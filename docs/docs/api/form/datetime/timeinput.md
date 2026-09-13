@@ -628,7 +628,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 30, 0);
   return (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <TimeInput label="HH:mm (24h, default)" defaultValue={v} />
       <TimeInput label="hh:mm A (12h)" format="hh:mm A" defaultValue={v} />
       <TimeInput
@@ -650,7 +650,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 30, 0);
   return (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <TimeInput
         label="HH:mm (24h, default)"
         defaultValue={v}
@@ -715,7 +715,7 @@ function example() {
 A clickable launcher sits on the **right** and toggles the popover — handy for input-mode (`openOnFocus={false}`) where you type the value and click the icon to open the spinner. Override its glyph with `triggerIconName`, or hide it with `triggerIcon={false}` (the popover still opens on focus / click). The decorative **left** icon is independent: it shows by default, takes its glyph from `iconLeftName`, and is hidden with `iconLeftName=""`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput label="Default (left icon + right launcher)" />
   <TimeInput label="Custom launcher glyph" triggerIconName="hourglass" />
   <TimeInput label="No launcher" triggerIcon={false} />
@@ -726,7 +726,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 **Typing-first** — the same set with `openOnFocus={false}` on each instance: the field is type-first, which makes the right launcher icon (or `↓`) the way into the popover.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput label="Default (left icon + right launcher)" openOnFocus={false} />
   <TimeInput
     label="Custom launcher glyph"
@@ -747,7 +747,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 ### Sizes
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput label="Small" controlSize="small" size="small" />
   <TimeInput label="Default" />
   <TimeInput label="Medium" controlSize="medium" size="medium" />
@@ -758,7 +758,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 **Typing-first** — the same sizes with `openOnFocus={false}` on every instance: focusing lets you type, and the launcher icon (or `↓`) opens the popover.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput
     label="Small"
     controlSize="small"
@@ -786,7 +786,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 ### Colors
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput label="Primary" color="primary" />
   <TimeInput label="Info" color="info" />
   <TimeInput label="Success" color="success" />
@@ -798,7 +798,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 **Typing-first** — the same colors with `openOnFocus={false}` everywhere: click in to type, and use the launcher icon (or `↓`) to open the popover.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput label="Primary" color="primary" openOnFocus={false} />
   <TimeInput label="Info" color="info" openOnFocus={false} />
   <TimeInput label="Success" color="success" openOnFocus={false} />
@@ -812,7 +812,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 ### States
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <TimeInput label="Disabled" disabled />
   <TimeInput label="Read only" readOnly defaultValue={new Date()} />
   <TimeInput label="Loading" isLoading />

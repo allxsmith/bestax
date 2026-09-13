@@ -81,7 +81,7 @@ function example() {
 Number inputs with different button colors.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Numberinput defaultValue={5} color="primary" />
   <Numberinput defaultValue={5} color="success" />
   <Numberinput defaultValue={5} color="info" />
@@ -97,7 +97,7 @@ Number inputs with different button colors.
 Number inputs in different sizes.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Numberinput defaultValue={5} size="small" color="primary" />
   <Numberinput defaultValue={5} color="primary" />
   <Numberinput defaultValue={5} size="medium" color="primary" />
@@ -112,7 +112,7 @@ Number inputs in different sizes.
 Different positions for the +/- buttons.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Block>
     <Paragraph mb="1">Both sides (default)</Paragraph>
     <Numberinput defaultValue={5} controlsPosition="both" color="primary" />

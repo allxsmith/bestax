@@ -35,7 +35,7 @@
     },
     {
       "title": "On Icons",
-      "code": "function example() {\n  return (\n    <Block display=\"flex\" gap=\"5\" p=\"6\">\n      <Tooltip label=\"Delete item\" color=\"danger\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-trash\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Edit item\" color=\"info\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-edit\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Download\" color=\"success\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-download\" />\n        </Span>\n      </Tooltip>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" p=\"6\">\n      <Tooltip label=\"Delete item\" color=\"danger\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-trash\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Edit item\" color=\"info\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-edit\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Download\" color=\"success\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-download\" />\n        </Span>\n      </Tooltip>\n    </Block>\n  );\n}"
     },
     {
       "title": "Form Field Help",

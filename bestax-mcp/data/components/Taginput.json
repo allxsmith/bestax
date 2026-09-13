@@ -19,11 +19,11 @@
     },
     {
       "title": "Tag Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Taginput\n    defaultValue={['Primary']}\n    tagColor=\"primary\"\n    placeholder=\"Primary tags...\"\n  />\n  <Taginput\n    defaultValue={['Success']}\n    tagColor=\"success\"\n    placeholder=\"Success tags...\"\n  />\n  <Taginput\n    defaultValue={['Info']}\n    tagColor=\"info\"\n    placeholder=\"Info tags...\"\n  />\n  <Taginput\n    defaultValue={['Warning']}\n    tagColor=\"warning\"\n    placeholder=\"Warning tags...\"\n  />\n  <Taginput\n    defaultValue={['Danger']}\n    tagColor=\"danger\"\n    placeholder=\"Danger tags...\"\n  />\n  <Taginput\n    defaultValue={['Dark']}\n    tagColor=\"dark\"\n    placeholder=\"Dark tags...\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    defaultValue={['Primary']}\n    tagColor=\"primary\"\n    placeholder=\"Primary tags...\"\n  />\n  <Taginput\n    defaultValue={['Success']}\n    tagColor=\"success\"\n    placeholder=\"Success tags...\"\n  />\n  <Taginput\n    defaultValue={['Info']}\n    tagColor=\"info\"\n    placeholder=\"Info tags...\"\n  />\n  <Taginput\n    defaultValue={['Warning']}\n    tagColor=\"warning\"\n    placeholder=\"Warning tags...\"\n  />\n  <Taginput\n    defaultValue={['Danger']}\n    tagColor=\"danger\"\n    placeholder=\"Danger tags...\"\n  />\n  <Taginput\n    defaultValue={['Dark']}\n    tagColor=\"dark\"\n    placeholder=\"Dark tags...\"\n  />\n</Block>"
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Taginput\n    defaultValue={['Small']}\n    size=\"small\"\n    tagColor=\"primary\"\n    placeholder=\"Small...\"\n  />\n  <Taginput\n    defaultValue={['Normal']}\n    tagColor=\"primary\"\n    placeholder=\"Normal...\"\n  />\n  <Taginput\n    defaultValue={['Medium']}\n    size=\"medium\"\n    tagColor=\"primary\"\n    placeholder=\"Medium...\"\n  />\n  <Taginput\n    defaultValue={['Large']}\n    size=\"large\"\n    tagColor=\"primary\"\n    placeholder=\"Large...\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    defaultValue={['Small']}\n    size=\"small\"\n    tagColor=\"primary\"\n    placeholder=\"Small...\"\n  />\n  <Taginput\n    defaultValue={['Normal']}\n    tagColor=\"primary\"\n    placeholder=\"Normal...\"\n  />\n  <Taginput\n    defaultValue={['Medium']}\n    size=\"medium\"\n    tagColor=\"primary\"\n    placeholder=\"Medium...\"\n  />\n  <Taginput\n    defaultValue={['Large']}\n    size=\"large\"\n    tagColor=\"primary\"\n    placeholder=\"Large...\"\n  />\n</Block>"
     },
     {
       "title": "Maximum Tags",
@@ -39,7 +39,7 @@
     },
     {
       "title": "Read-only and Disabled",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Block>\n    <Paragraph mb=\"1\">Read-only:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Disabled:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor=\"info\" />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Read-only:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Disabled:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor=\"info\" />\n  </Block>\n</Block>"
     },
     {
       "title": "Non-closable Tags",

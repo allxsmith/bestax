@@ -127,7 +127,7 @@ function example() {
 Tags with different color variants.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Taginput
     defaultValue={['Primary']}
     tagColor="primary"
@@ -168,7 +168,7 @@ Tags with different color variants.
 Tag inputs in different sizes.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Taginput
     defaultValue={['Small']}
     size="small"
@@ -278,7 +278,7 @@ function example() {
 Display modes for tags.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Block>
     <Paragraph mb="1">Read-only:</Paragraph>
     <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor="info" />
