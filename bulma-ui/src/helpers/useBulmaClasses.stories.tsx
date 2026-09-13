@@ -366,7 +366,7 @@ export const BackgroundColorShades: Story = {
 export const CombinedColorShades: Story = {
   render: () => (
     <Columns isMultiline>
-      <Column size="one-half">
+      <Column size="half">
         <Box
           bgColor="primary"
           backgroundColorShade="10"
@@ -376,7 +376,7 @@ export const CombinedColorShades: Story = {
           Light background (10%) with dark text (80%)
         </Box>
       </Column>
-      <Column size="one-half">
+      <Column size="half">
         <Box
           bgColor="info"
           backgroundColorShade="75"
@@ -386,7 +386,7 @@ export const CombinedColorShades: Story = {
           Dark background (75%) with light text (05%)
         </Box>
       </Column>
-      <Column size="one-half">
+      <Column size="half">
         <Box
           bgColor="success"
           backgroundColorShade="20"
@@ -396,7 +396,7 @@ export const CombinedColorShades: Story = {
           Light success background with dark success text
         </Box>
       </Column>
-      <Column size="one-half">
+      <Column size="half">
         <Box
           bgColor="warning"
           backgroundColorShade="bold"

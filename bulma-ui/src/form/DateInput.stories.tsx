@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DateInput } from './DateInput';
 import { DateInputBase } from './DateInputBase';
 import { Field } from './Field';
@@ -208,7 +208,7 @@ export const Formats: Story = {
   render: () => {
     const d = new Date(2026, 4, 30);
     return (
-      <Block display="flex" flexDirection="column" gap="4">
+      <Block display="flex" flexDirection="column">
         <DateInput
           label="YYYY-MM-DD (default)"
           defaultValue={d}
@@ -337,7 +337,7 @@ export const WithoutLauncher: Story = {
 export const WithIcon: Story = {
   name: 'Left icon (custom glyph / hide)',
   render: () => (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <DateInput label="Default left icon + right launcher" />
       <DateInput label="Custom left glyph" iconLeftName="calendar-alt" />
       <DateInput label="Left icon hidden" iconLeftName="" />

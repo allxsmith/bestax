@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TimeInput } from './TimeInput';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
@@ -370,7 +370,7 @@ export const ManualEntryFormats: Story = {
   render: () => {
     const v = today(13, 45, 30);
     return (
-      <Block display="flex" flexDirection="column" gap="4">
+      <Block display="flex" flexDirection="column">
         <TimeInput
           label="HH:mm (24h, default)"
           defaultValue={v}
@@ -573,7 +573,7 @@ export const Formats: Story = {
   render: () => {
     const v = today(13, 45, 30);
     return (
-      <Block display="flex" flexDirection="column" gap="4">
+      <Block display="flex" flexDirection="column">
         <TimeInput label="HH:mm (24h, default)" defaultValue={v} />
         <TimeInput label="hh:mm A (12h)" format="hh:mm A" defaultValue={v} />
         <TimeInput
@@ -602,7 +602,7 @@ export const Formats: Story = {
 
 export const Locale: Story = {
   render: () => (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <TimeInput
         label="en-US (hh:mm A)"
         format="hh:mm A"
@@ -685,7 +685,7 @@ export const WithoutLauncher: Story = {
 export const WithIcon: Story = {
   name: 'Left icon (custom glyph / hide)',
   render: () => (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <TimeInput label="Default left icon + right launcher" />
       <TimeInput label="Custom left glyph" iconLeftName="history" />
       <TimeInput label="Left icon hidden" iconLeftName="" />

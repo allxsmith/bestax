@@ -516,7 +516,7 @@ export const ShoppingCart: Story = {
                     </Media.Left>
                     <Media.Content>
                       <Title size="6">{product.name}</Title>
-                      <SubTitle size="7">{product.price}</SubTitle>
+                      <SubTitle size="6">{product.price}</SubTitle>
                     </Media.Content>
                     <Media.Right>
                       <Delete
