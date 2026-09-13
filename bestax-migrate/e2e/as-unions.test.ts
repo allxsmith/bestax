@@ -20,6 +20,7 @@ import {
   AS_ANY_TARGETS,
   AS_UNIONS,
   HREF_ELEMENTS,
+  HTML_INTRINSICS,
   HREF_TABLE,
   LINK_ATTR_TABLE,
   TARGET_LINK_ATTR_TABLE,
@@ -396,36 +397,6 @@ describe('the href-bearing intrinsics match what React types', () => {
     });
   });
 });
-
-/**
- * The HTML half of `JSX.IntrinsicElements`, as of `@types/react` 19.
- *
- * Written out because the structural test for it does not work --
- * `JSX.IntrinsicElements[E]` is a `DetailedHTMLProps` wrapper, so
- * `extends HTMLAttributes` does not separate HTML from SVG. Regenerate by
- * reading the keys between `interface IntrinsicElements {` and the `// SVG`
- * comment in `@types/react/index.d.ts`.
- *
- * The point of listing it is that it is complete and chosen independently of
- * the tables below. The earlier universe was a dozen elements picked by hand,
- * which could not see a row missing an element the universe also lacked --
- * `media` on `<meta>` sat there unnoticed for exactly that reason.
- *
- * SVG is excluded on purpose: `SVGAttributes` declares `href`, `media` and
- * `target`, so every SVG tag would join these rows, and no source here can
- * produce one.
- */
-const HTML_INTRINSICS =
-  `a abbr address area article aside audio b base bdi bdo big
-blockquote body br button canvas caption center cite code col colgroup data datalist dd del
-details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6
-head header hgroup hr html i iframe img input ins kbd keygen label legend li link main map mark
-menu menuitem meta meter nav noindex noscript object ol optgroup option output p param picture
-pre progress q rp rt ruby s samp script search section select slot small source span strong
-style sub summary sup table tbody td template textarea tfoot th thead time title tr track u ul
-var video wbr webview`
-    .split(/\s+/)
-    .filter(Boolean);
 
 describe('every row is exactly what React declares, over all of HTML', () => {
   it('matches each link-attribute row against the full intrinsic set', () => {

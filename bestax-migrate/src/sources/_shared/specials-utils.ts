@@ -12,9 +12,9 @@ import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
 import { addAttrOnce } from './props.js';
 import {
-  HREF_ELEMENTS,
   LINK_ATTRS,
   elementTakesLinkAttr,
+  tagRejectsHref,
 } from './polymorphic.js';
 import {
   addAttr,
@@ -367,9 +367,7 @@ export function dropLinkAttrsForPlainTag(
   // came from the source -- bloomer's call sites all pass one -- while rbx and
   // react-bulma-components hard-code the plain tag and ignore the source's
   // element prop, so there the element really did change.
-  const href = HREF_ELEMENTS.includes(tag)
-    ? undefined
-    : findAttr(element, 'href');
+  const href = tagRejectsHref(tag) ? findAttr(element, 'href') : undefined;
   if (href) {
     const was = attrSource(ctx.j, href);
     removeAttr(element, href);

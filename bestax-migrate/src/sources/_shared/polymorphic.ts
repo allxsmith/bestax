@@ -122,6 +122,10 @@ const NO_HREF_HINT: Record<string, string> = {
   // mapping said the right thing here before the entry moved into this table.
   Delete:
     'bestax `Delete` renders a <button> with no children and has no anchor form; wrap it in an <a>, or navigate in `onClick`',
+  'Card.Header.Icon':
+    'bestax `Card.Header.Icon` renders a <button>, so an <a> inside it would nest interactive elements; navigate in `onClick`, or wrap the whole icon in an <a>',
+  'Dropdown.Item':
+    'bestax `Dropdown.Item` declares no `href` and already renders an <a> by default, so an <a> inside would nest anchors; navigate in `onClick`',
 };
 
 /**
@@ -133,6 +137,10 @@ const NO_HREF_HINT: Record<string, string> = {
 const LINK_REMEDY: Record<string, string> = {
   Delete: 'wrap it in an <a>, or navigate in `onClick`',
   'Navbar.Dropdown': 'put it on the `<Navbar.Link>` inside',
+  // Both already render interactive elements -- a <button> and an <a> -- so
+  // "put an <a> inside" would nest one inside the other, which is invalid.
+  'Card.Header.Icon': 'navigate in `onClick`, or wrap the whole icon in an <a>',
+  'Dropdown.Item': 'navigate in `onClick`',
 };
 
 const remedyFor = (target: string): string =>
@@ -235,6 +243,153 @@ export const TARGET_LINK_ATTR_TABLE: Record<string, readonly string[]> =
  * in the way, and it is valid.
  */
 export const HREF_ELEMENTS: readonly string[] = ['a', 'area', 'base', 'link'];
+
+/**
+ * The HTML half of `JSX.IntrinsicElements`, as of `@types/react` 19.
+ *
+ * Regenerate by reading the keys between `interface IntrinsicElements {` and
+ * the `// SVG` comment in `@types/react/index.d.ts`. `as-unions.test.ts`
+ * holds the link tables to this set, so it is checked rather than trusted.
+ *
+ * SVG is excluded deliberately: `SVGAttributes` declares `href`, `media` and
+ * `target`, so every SVG tag would join those rows. What that means for a
+ * plain rewrite is `tagRejectsHref`'s problem, not a reason to widen this.
+ */
+export const HTML_INTRINSICS: readonly string[] = [
+  'a',
+  'abbr',
+  'address',
+  'area',
+  'article',
+  'aside',
+  'audio',
+  'b',
+  'base',
+  'bdi',
+  'bdo',
+  'big',
+  'blockquote',
+  'body',
+  'br',
+  'button',
+  'canvas',
+  'caption',
+  'center',
+  'cite',
+  'code',
+  'col',
+  'colgroup',
+  'data',
+  'datalist',
+  'dd',
+  'del',
+  'details',
+  'dfn',
+  'dialog',
+  'div',
+  'dl',
+  'dt',
+  'em',
+  'embed',
+  'fieldset',
+  'figcaption',
+  'figure',
+  'footer',
+  'form',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'head',
+  'header',
+  'hgroup',
+  'hr',
+  'html',
+  'i',
+  'iframe',
+  'img',
+  'input',
+  'ins',
+  'kbd',
+  'keygen',
+  'label',
+  'legend',
+  'li',
+  'link',
+  'main',
+  'map',
+  'mark',
+  'menu',
+  'menuitem',
+  'meta',
+  'meter',
+  'nav',
+  'noindex',
+  'noscript',
+  'object',
+  'ol',
+  'optgroup',
+  'option',
+  'output',
+  'p',
+  'param',
+  'picture',
+  'pre',
+  'progress',
+  'q',
+  'rp',
+  'rt',
+  'ruby',
+  's',
+  'samp',
+  'script',
+  'search',
+  'section',
+  'select',
+  'slot',
+  'small',
+  'source',
+  'span',
+  'strong',
+  'style',
+  'sub',
+  'summary',
+  'sup',
+  'table',
+  'tbody',
+  'td',
+  'template',
+  'textarea',
+  'tfoot',
+  'th',
+  'thead',
+  'time',
+  'title',
+  'tr',
+  'track',
+  'u',
+  'ul',
+  'var',
+  'video',
+  'wbr',
+  'webview',
+];
+
+/**
+ * Whether a plain tag is known NOT to take an `href`.
+ *
+ * `HREF_ELEMENTS` is the HTML answer, and bloomer's `plainTag` can return any
+ * literal the source wrote -- including an SVG tag, where `SVGAttributes`
+ * declares `href`. Treating "not in the HTML list" as "takes no href" lost a
+ * working `href` off `<TabLink tag="use" href="#icon">`. An unrecognised tag
+ * is left alone: this pass removes attributes it can prove are dead, and it
+ * cannot prove that here.
+ */
+export function tagRejectsHref(tag: string): boolean {
+  return HTML_INTRINSICS.includes(tag) && !HREF_ELEMENTS.includes(tag);
+}
 
 // `<style href>` is React 19 only -- it arrived with stylesheet hoisting, and
 // `StyleHTMLAttributes` has no `href` in React 18. bulma-ui's peer range is
@@ -488,14 +643,6 @@ export function enforcePolymorphicProps(
   // `<Image as="span" {...p} href="/x">` kept both an `as` outside `Image`'s
   // union and an `href` it declares at no `as` -- two facts the spread cannot
   // change.
-  if (read.shadowed) {
-    addTodo(
-      ctx,
-      path,
-      'prop:as',
-      `a spread after \`as\` can overwrite it, so which element \`${target}\` renders here is not knowable -- the \`href\` and its siblings are left as written, and one of the two is wrong: check the spread`
-    );
-  }
   dropInertHref(ctx, path, element, target, literal, !read.shadowed);
   // The element as it will render: the `as` if the target takes it, otherwise
   // the component's own. Unknown for a dynamic `as`, and unknown for a target
@@ -514,4 +661,25 @@ export function enforcePolymorphicProps(
         : HREF_OK[target];
   dropInertLinkAttrs(ctx, path, element, target, rendered);
   restrictAsValue(ctx, path, element, target, attr, literal);
+
+  // Only now, and only if something element-dependent actually survived. The
+  // first version fired on every `as` beside a spread -- `<Title as="h2"
+  // {...rest}>` is a complete migration with nothing at stake and was getting
+  // a TODO -- and it ran before the passes, so it also claimed attributes
+  // were "left as written" that the component-level rules had just removed.
+  if (read.shadowed) {
+    const left = ['href', ...LINK_ATTRS].filter(n => findAttr(element, n));
+    if (left.length) {
+      addTodo(
+        ctx,
+        path,
+        'prop:as',
+        `a spread after \`as\` can overwrite it, so which element \`${target}\` renders here is not knowable -- ${left
+          .map(n => `\`${n}\``)
+          .join(
+            ', '
+          )} ${left.length > 1 ? 'were' : 'was'} left as written, and whether ${left.length > 1 ? 'they are' : 'it is'} valid depends on what the spread supplies`
+      );
+    }
+  }
 }
