@@ -54,6 +54,9 @@
  *                        copies are byte-identical
  *   telemetry-allowlists worker schema enums are a superset of the CLI values
  *                        (templates, flavors, icons, sources, css modes, PMs)
+ *   turbo-tasks          every task the root `all` chain runs through turbo is
+ *                        implemented by at least one package, so a renamed
+ *                        script cannot leave the gate green and empty (#663)
  *   fragile-prose        no hand-maintained counts or line references in
  *                        workflow comments, CLAUDE.md files, or guides, and no
  *                        run ids in a guide (a workflow comment may cite the
@@ -3593,6 +3596,64 @@ export async function checkFragileProse(root = REPO) {
   return violations;
 }
 
+/**
+ * `turbo run <task>` exits 0 printing "0 total" when NO package in scope
+ * implements the task. So a task named in the root `all` chain — or in a CI
+ * step — that no package declares is a gate that passes having checked
+ * nothing, the same fail-open shape the repo rejects elsewhere. #663 added
+ * `typecheck:tests`, which only bulma-ui implements, and a rename would have
+ * been silent in `pnpm all`, in the new ci.yml step and in the root script at
+ * once.
+ *
+ * Read from the root `all` script rather than declared, so a task added to
+ * that chain is covered without a second list to keep in step.
+ */
+async function checkTurboTasks() {
+  const violations = [];
+  const root = JSON.parse(await readFile(join(REPO, 'package.json'), 'utf8'));
+  const all = root.scripts?.all ?? '';
+  if (!all.includes('turbo run')) {
+    return ['package.json `all` no longer runs turbo — this check is stale.'];
+  }
+
+  // Each `turbo run a b c` segment names tasks until the first flag.
+  const tasks = new Set();
+  for (const segment of all.matchAll(/turbo run ([^&|]*)/g)) {
+    for (const word of segment[1].trim().split(/\s+/)) {
+      if (!word || word.startsWith('-')) break;
+      tasks.add(word);
+    }
+  }
+
+  const dirs = parseWorkspacePackages(
+    await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
+  );
+  const owners = new Map([...tasks].map(t => [t, []]));
+  for (const dir of dirs) {
+    let pkg;
+    try {
+      pkg = JSON.parse(await readFile(join(REPO, dir, 'package.json'), 'utf8'));
+    } catch {
+      continue; // `publishable-manifests` reports an unreadable manifest
+    }
+    if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) continue;
+    for (const task of tasks) {
+      if (pkg.scripts?.[task]) owners.get(task).push(pkg.name ?? dir);
+    }
+  }
+
+  for (const [task, found] of [...owners].sort()) {
+    if (!found.length) {
+      violations.push(
+        `package.json \`all\` runs \`turbo run ${task}\`, but no workspace ` +
+          `package declares a "${task}" script — turbo exits 0 having run ` +
+          `nothing, so that gate passes without checking anything.`
+      );
+    }
+  }
+  return violations;
+}
+
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
@@ -3613,6 +3674,7 @@ const CHECKS = {
   'telemetry-allowlists': checkTelemetryAllowlists,
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
+  'turbo-tasks': checkTurboTasks,
   'inline-style': null, // handled below (takes the flag)
 };
 
