@@ -65,6 +65,13 @@ Enforced by CI (`.github/workflows/ci.yml`):
   once it stops being needed, and in JSX the directive must sit in its OWN single-line
   `{/* … */}` — TypeScript anchors it to the line a comment STARTS on, so a multi-line
   one suppresses nothing (#663).
+- **`pnpm build` is not a type gate.** `@rollup/plugin-typescript` reports semantic errors
+  as warnings, so the build succeeds on source that does not type-check. The two `typecheck`
+  scripts are what stands between a type error and a published package, which is why both
+  run in CI even though one reads a subset of the other's files: `tsconfig.test.json`
+  extends the build config and REPLACES its include/exclude rather than merging, so only the
+  narrower `typecheck` checks the shipped program without `types/assets.d.ts` — and its
+  `declare module '*.svg'` — in scope.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
   a **React 18/19 matrix** builds and tests bulma-ui on both majors.
 
