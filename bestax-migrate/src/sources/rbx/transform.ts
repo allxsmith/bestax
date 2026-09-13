@@ -704,7 +704,8 @@ export default function transform(
     // decides which of the props just written it can actually take. The
     // wrappers below move neither `as` nor `href`, so this reads the final
     // pair either way.
-    enforcePolymorphicProps(ctx, path, element, target);
+    // rbx spells its element prop `as`, so a spread here really can carry one.
+    enforcePolymorphicProps(ctx, path, element, target, true);
 
     // ---- 2a. badge/tooltip helper props → wrapping components ------------
     // Last, so the inner element is already fully migrated. Both families are

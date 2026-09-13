@@ -416,16 +416,16 @@ function dropInertLinkAttrs(
  * The `as` attribute only if no spread can overwrite it. `findAttr` reads by
  * name and knows nothing about `{...rest}`, which JSX applies last-write-wins.
  */
-function lastWordOnAs(element: any): {
-  attr: any | undefined;
-  shadowed: boolean;
-} {
+function lastWordOnAs(
+  element: any,
+  spreadCanCarryAs: boolean
+): { attr: any | undefined; shadowed: boolean } {
   const attrs: any[] = element.openingElement?.attributes ?? [];
   let seen: any | undefined;
   let shadowed = false;
   for (const a of attrs) {
     if (a.type === 'JSXSpreadAttribute') {
-      if (seen) {
+      if (seen && spreadCanCarryAs) {
         seen = undefined;
         shadowed = true;
       }
@@ -445,7 +445,18 @@ export function enforcePolymorphicProps(
   ctx: TransformContext,
   path: ASTPath<any>,
   element: any,
-  target: string
+  target: string,
+  /**
+   * Whether a spread on this element could be carrying an `as`.
+   *
+   * Only where the SOURCE spells its element prop `as`, which is rbx alone.
+   * bloomer's is `tag` and react-bulma-components' is `renderAs`, and the
+   * rename only ever touches a literal attribute -- a `renderAs` key inside
+   * `{...rest}` never becomes an `as`. Guessing `true` everywhere let
+   * `<Button renderAs="span" {...rest} href="/x">` through untouched, which
+   * is the shape this pass exists to remove.
+   */
+  spreadCanCarryAs = false
 ): void {
   // Read the `as` once, before either rule can remove it, and only where the
   // target declares one at all -- and only when JSX precedence says this
@@ -455,7 +466,7 @@ export function enforcePolymorphicProps(
   // the spread can overwrite is treated as unknown, which is the same answer
   // this pass already gives for a dynamic one.
   const read = declaresAs(target)
-    ? lastWordOnAs(element)
+    ? lastWordOnAs(element, spreadCanCarryAs)
     : { attr: undefined, shadowed: false };
   // A spread with no `as` written beside it keeps the ordinary reading:
   // `{...rest}` is on half the elements in a real app, and treating every one
@@ -471,6 +482,14 @@ export function enforcePolymorphicProps(
   // `<Image as="span" {...p} href="/x">` kept both an `as` outside `Image`'s
   // union and an `href` it declares at no `as` -- two facts the spread cannot
   // change.
+  if (read.shadowed) {
+    addTodo(
+      ctx,
+      path,
+      'prop:as',
+      `a spread after \`as\` can overwrite it, so which element \`${target}\` renders here is not knowable -- the \`href\` and its siblings are left as written, and one of the two is wrong: check the spread`
+    );
+  }
   dropInertHref(ctx, path, element, target, literal, !read.shadowed);
   // The element as it will render: the `as` if the target takes it, otherwise
   // the component's own. Unknown for a dynamic `as`, and unknown for a target

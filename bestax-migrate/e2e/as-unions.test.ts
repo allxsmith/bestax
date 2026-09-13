@@ -499,6 +499,12 @@ function reachableTargets(): string[] {
   return [...found].filter(t => !UNPROBEABLE.includes(t)).sort();
 }
 
+/** Whether the target renders an `<a>` when told to: `AS_ANY`, or a union with it. */
+function acceptsAsAnchor(target: string): boolean {
+  const union = AS_UNIONS[target];
+  return union ? union.includes('a') : AS_ANY_TARGETS.includes(target);
+}
+
 describe('HREF_OK names every reachable target that takes an href', () => {
   it('and no others', () => {
     // The one claim in this file nothing held. A deep review refuted a
@@ -527,6 +533,15 @@ describe('HREF_OK names every reachable target that takes an href', () => {
         rows.push(
           `export const n${i} = <${target} href="#">{'x'}</${target}>;`
         );
+        // "at any `as`" is the claim, so the anchor form has to be checked
+        // wherever the target has one -- `Dropdown.Item` accepts `as="a"` and
+        // still declares no `href`, and only the bare form was asserted.
+        if (acceptsAsAnchor(target)) {
+          rows.push(`// @ts-expect-error ${target} takes no href at as="a"`);
+          rows.push(
+            `export const m${i} = <${target} as="a" href="#">{'x'}</${target}>;`
+          );
+        }
       }
     }
     const source = [
