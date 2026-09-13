@@ -411,6 +411,36 @@ export type DropdownItemProps<T extends DropdownItemElement = 'a'> =
     };
 
 /**
+ * The anchor-only attributes, withheld from a `<div>` or a `<button>`.
+ *
+ * Mirrors `LINK_ATTRS` in `bestax-migrate/src/sources/_shared/polymorphic.ts`,
+ * which drops the same set when a migration lands one on a non-anchor. `rel` is
+ * absent from both on purpose: React declares it on `HTMLAttributes<T>` — every
+ * element — so withholding it would diverge from React's own typing, the same
+ * call #641 recorded for `Navbar.Link`.
+ */
+const LINK_ONLY_ATTRS = [
+  'href',
+  'target',
+  'download',
+  'hrefLang',
+  'ping',
+  'referrerPolicy',
+  'media',
+] as const;
+
+/** `props` without any attribute only an anchor can carry. */
+function omitLinkAttrs(
+  props: Record<string, unknown>
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (!(LINK_ONLY_ATTRS as readonly string[]).includes(key)) out[key] = value;
+  }
+  return out;
+}
+
+/**
  * The shape the implementation destructures. The public contract is the generic
  * `DropdownItemProps<T>` above — the body cannot see through `T`.
  */
@@ -434,18 +464,24 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
     ...props
   } = itemProps as DropdownItemImplProps;
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  // `href` reaches an anchor, but not a `<div>` or a `<button>` — `<div href>`
-  // is invalid HTML. The same rule Menu applies, for the same reason: the type
-  // now derives `href` from `as`, and deriving it must not quietly widen where
-  // it lands. The type stops a direct caller; this stops a plain-JS one, a
-  // loose `{...props}` spread, and the genericity a wrapping HOC erases.
+  // The anchor's attributes reach an anchor and nothing else — `<div href>` and
+  // `<button target>` are invalid HTML. The same rule Menu applies, for the same
+  // reason: the type now derives these from `as`, and deriving them must not
+  // quietly widen where they land. The type stops a direct caller; this stops a
+  // plain-JS one, a loose `{...props}` spread, and the genericity a wrapping HOC
+  // erases.
   //
-  // Menu's condition also admits a custom component and a custom element,
-  // which own their prop contracts. `as` is closed to three intrinsic tags
-  // here, so neither can arrive and the anchor test is the whole rule.
-  const isLinkLike = Component === 'a';
-  const { href: _href, ...withoutHref } = rest as { href?: string };
-  const forwarded = isLinkLike ? rest : withoutHref;
+  // The whole link set, not `href` alone. Menu strips only `href` because its
+  // props never gained the rest; here they all arrive together under `as="a"`,
+  // and `bestax-migrate` already removes exactly this set (`LINK_ATTRS`) when it
+  // migrates onto a non-anchor — so stripping less would leave the codemod
+  // stricter than the component it migrates to.
+  //
+  // Menu's condition also admits a custom component and a custom element, which
+  // own their prop contracts. `as` is closed to three intrinsic tags here, so
+  // neither can arrive and the anchor test is the whole rule.
+  const forwarded =
+    Component === 'a' ? rest : (omitLinkAttrs(rest) as typeof rest);
   return (
     <Component
       className={classNames(
@@ -458,6 +494,11 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       tabIndex={0}
       role="menuitem"
       data-testid="dropdown-item"
+      // A menu item inside a form must not submit it. `<button>` defaults to
+      // type="submit", and a filter or sort menu sitting in a form is ordinary.
+      // Avatar defaults it the same way, and Dropdown's own trigger sets it —
+      // an explicit `type` through `rest` still wins, since it is spread after.
+      {...(Component === 'button' ? { type: 'button' as const } : {})}
       {...forwarded}
     >
       {children}

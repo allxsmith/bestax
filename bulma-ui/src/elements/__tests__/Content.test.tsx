@@ -151,7 +151,6 @@ describe('Content Component', () => {
         size="invalid-size"
         // @ts-expect-error not a Bulma spacing value; the point is that it is dropped
         m="invalid-size"
-        as="invalid"
       >
         Test
       </Content>
@@ -161,6 +160,17 @@ describe('Content Component', () => {
     expect(content).not.toHaveClass('has-text-invalid-color');
     expect(content).not.toHaveClass('is-invalid-size');
     expect(content).not.toHaveClass('m-invalid-size');
+  });
+
+  // Its own render, not a fourth attribute on the one above. With four invalid
+  // props on one element TypeScript elaborates the three property mismatches
+  // and drops the top-level excess-property report, so `as` raised no error
+  // there and a directive for it would have failed as unused — leaving a real
+  // one to surface on an undirected line the moment any of the three changed.
+  test('ignores an `as` Content does not declare', () => {
+    // @ts-expect-error `as` is not a prop of Content
+    render(<Content as="invalid">Test</Content>);
+    expect(screen.getByText('Test')).toHaveClass('content', { exact: false });
   });
 
   // Test 12: Renders nested HTML elements correctly
