@@ -141,8 +141,24 @@ const LINK_REMEDY: Record<string, string> = {
   'Card.Header.Icon': 'navigate in `onClick`, or wrap the whole icon in an <a>',
 };
 
-const remedyFor = (target: string): string =>
-  LINK_REMEDY[target] ?? 'put it on an <a> inside, or change the element';
+/**
+ * Elements that must not be given an `<a>` child -- an anchor inside
+ * interactive content is invalid HTML. `LINK_REMEDY` states this per TARGET,
+ * for components that render such an element whatever `as` says; this states
+ * it per RENDERED ELEMENT, for the ones where the author's `as` chose it.
+ * `Dropdown.Item` needs both readings: it is a link by default and a
+ * `<button>` on request.
+ */
+const NO_NESTED_ANCHOR = new Set(['a', 'button']);
+
+/** What to do with a link attribute the element refuses. */
+const nestOrClick = (rendered: string | undefined): string =>
+  rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)
+    ? 'navigate in `onClick`'
+    : 'put an <a> inside';
+
+const remedyFor = (target: string, rendered?: string): string =>
+  LINK_REMEDY[target] ?? `${nestOrClick(rendered)}, or change the element`;
 
 /** The targets whose `as` this pass may believe. */
 export function declaresAs(target: string): boolean {
@@ -221,8 +237,8 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
  *
  * A target absent from `HREF_OK` needs no row: a component that takes no
  * `href` at any `as` takes none of its siblings either -- verified for
- * `Dropdown.Item`, `Card.FooterItem`, `Tabs.Item` and `Delete`, which is why
- * this is derived from that table rather than being a second list to keep.
+ * `Card.FooterItem`, `Tabs.Item` and `Delete`, which is why this is derived
+ * from that table rather than being a second list to keep.
  */
 const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
   'Level.Item': ['target'],
@@ -503,8 +519,8 @@ function dropInertHref(
   // `Level.Item` a <div> that compiles and quietly is not a link.
   const remedy =
     defaultEl === ANCHOR
-      ? 'drop the `as` to make this a link, or put an <a> inside'
-      : `set \`as="a"\` to make this a link -- dropping the \`as\` gives you a <${defaultEl}> -- or put an <a> inside`;
+      ? `drop the \`as\` to make this a link, or ${nestOrClick(rendered)}`
+      : `set \`as="a"\` to make this a link -- dropping the \`as\` gives you a <${defaultEl}> -- or ${nestOrClick(rendered)}`;
   drop(
     `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${rendered}> takes no \`href\` (it navigated nowhere in the source either) -- ${remedy}`
   );
@@ -559,7 +575,7 @@ function dropInertLinkAttrs(
       ctx,
       path,
       `prop:${name}`,
-      `${because} -- ${was ? `it read \`${was}\`; ` : ''}${remedyFor(target)}`
+      `${because} -- ${was ? `it read \`${was}\`; ` : ''}${remedyFor(target, rendered)}`
     );
     ctx.dirty = true;
   }
@@ -645,8 +661,8 @@ export function enforcePolymorphicProps(
   // The element as it will render: the `as` if the target takes it, otherwise
   // the component's own. Unknown for a dynamic `as`, and unknown for a target
   // outside `HREF_OK` that was given no `as` -- the default element is only
-  // recorded for the nine that can carry a link. So this rule reaches an
-  // explicit accepted `as` on any target, plus those nine bare; elsewhere it
+  // recorded for the targets in that table. So this rule reaches an explicit
+  // accepted `as` on any target, plus those targets bare; elsewhere it
   // declines rather than guesses.
   const rendered = read.shadowed
     ? undefined

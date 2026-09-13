@@ -621,6 +621,31 @@ describe('bloomer navigation handlers', () => {
     expect(link.output).toContain('<Dropdown.Item href="/x">x</Dropdown.Item>');
   });
 
+  it('does not send a reader to nest an <a> inside a <button>', () => {
+    // `Dropdown.Item` is a link by default and a <button> on request, so the
+    // remedy has to read the element the `as` chose. An <a> inside interactive
+    // content is invalid, which is why the <button> form says onClick instead.
+    const button = migrate(
+      dyn(
+        'DropdownItem',
+        '<DropdownItem tag="button" target="_blank">x</DropdownItem>'
+      )
+    );
+    expect(button.output).toContain(
+      '<Dropdown.Item as="button">x</Dropdown.Item>'
+    );
+    expect(button.todos[0].message).toContain('navigate in `onClick`');
+    expect(button.todos[0].message).not.toContain('put an <a> inside');
+
+    const div = migrate(
+      dyn(
+        'DropdownItem',
+        '<DropdownItem tag="div" target="_blank">x</DropdownItem>'
+      )
+    );
+    expect(div.todos[0].message).toContain('put an <a> inside');
+  });
+
   it('treats a falsy PanelBlock href as no anchor', () => {
     const { output, rules } = migrate(
       dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')

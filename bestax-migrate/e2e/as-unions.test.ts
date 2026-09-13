@@ -543,8 +543,11 @@ describe('HREF_OK names every reachable target that takes an href', () => {
           `export const n${i} = <${target} href="#">{'x'}</${target}>;`
         );
         // "at any `as`" is the claim, so the anchor form has to be checked
-        // wherever the target has one -- `Dropdown.Item` accepts `as="a"` and
-        // still declares no `href`, and only the bare form was asserted.
+        // wherever the target has one; asserting the bare form alone leaves
+        // `as="a"` unchecked. NOTE no reachable target currently sits in this
+        // state -- `Dropdown.Item` was the one, until #663 gave it an `href` --
+        // so this branch is a rule kept against the next such target, not
+        // coverage this file has today.
         if (acceptsAsAnchor(target)) {
           rows.push(`// @ts-expect-error ${target} takes no href at as="a"`);
           rows.push(
