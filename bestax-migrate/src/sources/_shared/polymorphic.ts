@@ -468,9 +468,15 @@ export function enforcePolymorphicProps(
   const read = declaresAs(target)
     ? lastWordOnAs(element, spreadCanCarryAs)
     : { attr: undefined, shadowed: false };
-  // A spread with no `as` written beside it keeps the ordinary reading:
-  // `{...rest}` is on half the elements in a real app, and treating every one
-  // as unknown would keep `href` on components that take none.
+  // A spread with no `as` written beside it keeps the ordinary reading, and
+  // that is a settled decision rather than an oversight. `{...rest}` is on
+  // half the elements in a real app; treating every one as an unknown element
+  // would keep `href` on components that take none, which is the defect this
+  // pass exists to remove. It trades a silent invalid `href` for a reported
+  // dropped one, and the reported one is the better failure. Weighed against
+  // the alternative and chosen deliberately -- these are dead source
+  // libraries and the simpler rule is the right one. Do not re-open it
+  // without a real migration that it got wrong.
   //
   // `restrictAsValue` still runs on a shadowed `as`. An out-of-union literal
   // is invalid exactly as written, and dead if the spread overwrites it, so
