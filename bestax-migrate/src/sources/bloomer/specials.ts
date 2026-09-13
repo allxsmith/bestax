@@ -15,6 +15,7 @@ import type { ASTPath } from 'jscodeshift';
 import { RENDER_TODO, RESPONSIVE_PROPS, UNIVERSAL_PROPS } from './mapping.js';
 import {
   addAttr,
+  attrSource,
   addTodo,
   attributesOf,
   findAttr,
@@ -206,6 +207,10 @@ function anchorWhenHref(
     // silent, which is what the first version of this got wrong.
     const tagValue = tagAttr ? literalValueOf(tagAttr) : undefined;
     const dynamicTag = tagAttr !== undefined && tagValue?.kind !== 'string';
+    // The only removal in this pass that deletes an arbitrary expression, so
+    // it owes the same quote every other one gives: the reference may be the
+    // last thing keeping an import alive.
+    const dynamicTagSource = dynamicTag ? attrSource(ctx.j, tagAttr) : '';
     if (tagAttr) {
       removeAttr(element, tagAttr);
       handled.push('tag');
@@ -216,7 +221,7 @@ function anchorWhenHref(
         ctx,
         path,
         'prop:tag',
-        `bloomer rendered an <a> whenever \`href\` had a value, so the \`tag\` expression beside this one chose nothing and is removed. Restore it by hand if the \`href\` can be empty`
+        `bloomer rendered an <a> whenever \`href\` had a value, so the \`tag\` expression beside this one chose nothing and is removed${dynamicTagSource ? ` -- it read \`${dynamicTagSource}\`` : ''}. Restore it by hand if the \`href\` can be empty`
       );
     }
     // An `as` on the element is not bloomer's element choice -- it took no

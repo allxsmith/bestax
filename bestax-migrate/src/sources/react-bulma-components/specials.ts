@@ -23,6 +23,7 @@ import {
   resolveBooleanish,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
+import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
   alignTarget,
   dropLinkAttrsForPlainTag,
@@ -298,10 +299,16 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * RBC Card.Image takes Image props directly; bestax Card.Image is a plain
    * wrapper — move the props onto a new inner <Image>.
    */
-  'card-image'(ctx, _path, element) {
+  'card-image'(ctx, path, element) {
     const children = (element.children ?? []).filter(
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
     );
+    // These props are about to become an `<Image>`'s, so they are judged
+    // against `Image` and not against the `Card.Image` wrapper they are
+    // written on. The special returns `replaced`, so the shared pass never
+    // sees the child it creates -- `<Card.Image href="/x">` was moving the
+    // `href` onto an `<Image>` that declares none.
+    enforcePolymorphicProps(ctx, path, element, 'Image');
     const attrs = element.openingElement.attributes ?? [];
     const imageAttrs = attrs.filter(
       (a: any) => a.type === 'JSXAttribute' && a.name.name !== 'className'
