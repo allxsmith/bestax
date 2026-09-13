@@ -8,7 +8,8 @@
     "src/__tests__/**/*.ts",
     "src/__tests__/**/*.tsx",
     "src/**/*.stories.ts",
-    "src/**/*.stories.tsx"
+    "src/**/*.stories.tsx",
+    "types/**/*"
   ],
   "exclude": ["node_modules", "dist", "build"]
 }

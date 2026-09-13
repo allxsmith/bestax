@@ -28,6 +28,7 @@
     "bundle:stats": "rollup -c --configPlugin visualizer",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "clean": "rimraf dist",

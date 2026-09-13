@@ -1,0 +1,19 @@
+{
+  // Type-checks what `tsconfig.json` deliberately leaves out: the tests and the
+  // stories. That file is also the build's program (`@rollup/plugin-typescript`,
+  // `declaration: true`), so lifting its excludes would pull tests and stories
+  // into the published declaration emit. A second project checks them without
+  // touching what ships.
+  //
+  // ts-jest does not stand in for this: the root `tsconfig.json` sets
+  // `isolatedModules`, and ts-jest gates its language service on exactly that,
+  // so `pnpm test` transpiles types away rather than checking them. Until this
+  // project existed, an `@ts-expect-error` in a test file suppressed nothing
+  // because nothing looked (#663).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": ["src/**/*", "types/**/*"],
+  "exclude": ["node_modules", "dist", "coverage"]
+}
