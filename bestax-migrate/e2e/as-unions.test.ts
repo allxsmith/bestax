@@ -216,12 +216,19 @@ const LINK_ATTR_UNIVERSE = [
   'style',
 ] as const;
 
+/**
+ * A valid value per attribute. Held to the table below, so an attribute added
+ * to `LINK_ATTR_TABLE` without one here fails rather than being skipped --
+ * `media` was added to the table and these tests would have gone on passing
+ * without ever checking it.
+ */
 const SAMPLE: Record<string, string> = {
   target: '="_blank"',
   download: '',
   hrefLang: '="en"',
   ping: '="/p"',
   referrerPolicy: '="no-referrer"',
+  media: '="print"',
 };
 
 function buildLinkAttrSource(): string {
@@ -266,12 +273,47 @@ describe('the link-attribute table matches what React types', () => {
     ).toEqual([]);
   });
 
+  it('has a sample value for every attribute in the table', () => {
+    // Otherwise a new row is silently skipped by every test above.
+    expect(
+      Object.keys(LINK_ATTR_TABLE).filter(a => SAMPLE[a] === undefined)
+    ).toEqual([]);
+  });
   it('leaves `rel` out, because it is valid on every element', () => {
     expect(Object.keys(LINK_ATTR_TABLE)).not.toContain('rel');
   });
 });
 
 describe('the per-target link-attribute exception matches the library', () => {
+  it('needs a row for no target but the one it has', () => {
+    // The premise behind a single-row table: every other href-capable target
+    // either follows `as` or extends `AnchorHTMLAttributes`, so the element
+    // decides and no row is needed. If one of them ever narrows, the rule
+    // silently keeps an attribute the component rejects -- so the premise is
+    // asserted rather than assumed.
+    const rows: string[] = [];
+    const roots = new Set<string>();
+    for (const target of Object.keys(HREF_TABLE)) {
+      if (TARGET_LINK_ATTR_TABLE[target]) continue;
+      roots.add(target.split('.')[0]);
+      const as = declaresAs(target) ? 'as="a" ' : '';
+      for (const attr of Object.keys(LINK_ATTR_TABLE)) {
+        rows.push(
+          `export const p${rows.length} = <${target} ${as}${attr}${SAMPLE[attr]}>{'x'}</${target}>; // ${target} ${attr}`
+        );
+      }
+    }
+    const source =
+      `import { ${[...roots].sort().join(', ')} } from '@allxsmith/bestax-bulma';\n\n` +
+      rows.join('\n') +
+      '\n';
+    const { status, diagnostics } = typecheckTsx(source, 'no-extra-rows');
+    expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
+  });
+
   it('holds `Level.Item` to exactly the link attributes it declares', () => {
     // Most href-capable targets either follow `as` or extend
     // `AnchorHTMLAttributes`; this one enumerates, and the rule has a row for
@@ -281,11 +323,11 @@ describe('the per-target link-attribute exception matches the library', () => {
       '',
       `export const ok = <Level.Item as="a" href="#" target="_blank">{'x'}</Level.Item>;`,
     ];
-    for (const [attr, sample] of Object.entries(SAMPLE)) {
+    for (const attr of Object.keys(LINK_ATTR_TABLE)) {
       if (TARGET_LINK_ATTR_TABLE['Level.Item'].includes(attr)) continue;
       rows.push(`// @ts-expect-error Level.Item declares no ${attr}`);
       rows.push(
-        `export const n_${attr} = <Level.Item as="a" ${attr}${sample}>{'x'}</Level.Item>;`
+        `export const n_${attr} = <Level.Item as="a" ${attr}${SAMPLE[attr]}>{'x'}</Level.Item>;`
       );
     }
     const source = rows.join('\n') + '\n';
