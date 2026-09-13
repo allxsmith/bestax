@@ -151,14 +151,28 @@ const LINK_REMEDY: Record<string, string> = {
  */
 const NO_NESTED_ANCHOR = new Set(['a', 'button']);
 
-/** What to do with a link attribute the element refuses. */
-const nestOrClick = (rendered: string | undefined): string =>
+/**
+ * What to do with a link the element refuses. `carry` is true for an attribute
+ * that has to land ON the anchor to do anything (`target`, `download`, …) and
+ * false where the anchor itself IS the remedy (a bare `href`).
+ *
+ * Exported because `specials-utils.ts` reaches the same question from the plain
+ * markup side, and `bestax-migrate/CLAUDE.md` puts a rule two transforms need in
+ * `_shared/` rather than in one of them.
+ */
+export const nestOrClick = (
+  rendered: string | undefined,
+  carry = false
+): string =>
   rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)
     ? 'navigate in `onClick`'
-    : 'put an <a> inside';
+    : carry
+      ? 'put it on an <a> inside'
+      : 'put an <a> inside';
 
 const remedyFor = (target: string, rendered?: string): string =>
-  LINK_REMEDY[target] ?? `${nestOrClick(rendered)}, or change the element`;
+  LINK_REMEDY[target] ??
+  `${nestOrClick(rendered, true)}, or change the element`;
 
 /** The targets whose `as` this pass may believe. */
 export function declaresAs(target: string): boolean {
@@ -508,7 +522,7 @@ function dropInertHref(
   if (rendered === undefined) {
     if (defaultEl === ANCHOR) return;
     drop(
-      `bestax \`${target}\` renders a <${defaultEl}> unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or navigate in \`onClick\``
+      `bestax \`${target}\` renders a <${defaultEl}> unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or ${nestOrClick(defaultEl)}`
     );
     return;
   }

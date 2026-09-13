@@ -14,6 +14,7 @@ import { addAttrOnce } from './props.js';
 import {
   LINK_ATTRS,
   elementTakesLinkAttr,
+  nestOrClick,
   tagRejectsHref,
 } from './polymorphic.js';
 import {
@@ -375,7 +376,7 @@ export function dropLinkAttrsForPlainTag(
       ctx,
       path,
       'prop:href',
-      `${where} became a plain <${tag}>, which takes no \`href\` — make it an <a>, or put one inside${was ? ` — it read \`${was}\`` : ''}`
+      `${where} became a plain <${tag}>, which takes no \`href\` — make it an <a>, or ${nestOrClick(tag)}${was ? ` — it read \`${was}\`` : ''}`
     );
     ctx.dirty = true;
   }
@@ -391,7 +392,7 @@ export function dropLinkAttrsForPlainTag(
       ctx,
       path,
       `prop:${name}`,
-      `${where} became a plain <${tag}>, which takes no \`${name}\`${was ? ` — it read \`${was}\`` : ''}; put it on an <a> inside, or change the element`
+      `${where} became a plain <${tag}>, which takes no \`${name}\`${was ? ` — it read \`${was}\`` : ''}; ${nestOrClick(tag, true)}, or change the element`
     );
     ctx.dirty = true;
   }

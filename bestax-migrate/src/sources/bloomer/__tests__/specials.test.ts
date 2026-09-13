@@ -643,7 +643,34 @@ describe('bloomer navigation handlers', () => {
         '<DropdownItem tag="div" target="_blank">x</DropdownItem>'
       )
     );
-    expect(div.todos[0].message).toContain('put an <a> inside');
+    // "put it ON": a `target` has to land on the anchor to do anything, so the
+    // attribute path says where it goes, not just that an anchor is needed.
+    expect(div.todos[0].message).toContain('put it on an <a> inside');
+  });
+
+  it('applies the same rule when the element becomes plain markup', () => {
+    // The sibling path: `dropLinkAttrsForPlainTag` reaches the same question
+    // from plain HTML, where bloomer's `tag` can be any literal the source
+    // wrote. It advised nesting an <a> unconditionally, <button> included --
+    // the drift bestax-migrate/CLAUDE.md says to fix in `_shared/` rather than
+    // in one transform.
+    const button = migrate(
+      dyn(
+        'PanelBlock',
+        '<PanelBlock tag="button" target="_blank">x</PanelBlock>'
+      )
+    );
+    expect(button.todos[0].message).toContain('navigate in `onClick`');
+    expect(button.todos[0].message).not.toContain('<a> inside');
+
+    const span = migrate(
+      dyn('PanelBlock', '<PanelBlock tag="span" target="_blank">x</PanelBlock>')
+    );
+    expect(span.todos[0].message).toContain('put it on an <a> inside');
+
+    // And for a bare href, where the anchor itself is the remedy.
+    const href = migrate(dyn('Help', '<Help tag="button" href="/x">x</Help>'));
+    expect(href.todos[0].message).toContain('navigate in `onClick`');
   });
 
   it('treats a falsy PanelBlock href as no anchor', () => {
