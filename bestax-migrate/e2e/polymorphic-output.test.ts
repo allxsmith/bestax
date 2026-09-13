@@ -54,8 +54,10 @@ const BLOOMER: Case[] = [
   ['Title', '<Title tag="span">x</Title>'],
   ['Title', '<Title tag="h2">x</Title>'],
   ['LevelItem', '<LevelItem tag="span">x</LevelItem>'],
-  // Targets that declare no `href` at any `as`.
+  // `Dropdown.Item` keeps an href on the <a> it renders, and the `tag` loses
+  // to it -- the anchor is what bloomer rendered for an href too.
   ['DropdownItem', '<DropdownItem href="/x" tag="span">x</DropdownItem>'],
+  // Targets that declare no `href` at any `as`.
   ['Delete', '<Delete href="/x" />'],
   ['CardHeaderIcon', '<CardHeaderIcon href="/x">x</CardHeaderIcon>'],
   ['CardFooterItem', '<CardFooterItem href="/x">x</CardFooterItem>'],
@@ -88,7 +90,8 @@ const RBX: Case[] = [
   ['Control', '<Control as="span">x</Control>'],
   ['Footer', '<Footer as="section">x</Footer>'],
   ['Media', '<Media as="section">x</Media>'],
-  // Targets that declare no `href` at any `as` — `as="a"` does not rescue it.
+  // `Dropdown.Item` at `as="a"` keeps its href; the two below declare none at
+  // any `as`, which `as="a"` does not rescue.
   ['Dropdown', '<Dropdown.Item as="a" href="/x">x</Dropdown.Item>'],
   ['Delete', '<Delete href="/x" />'],
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
@@ -107,7 +110,8 @@ const RBX: Case[] = [
   ['Navbar', '<Navbar.Link as="span" target="_blank">x</Navbar.Link>'],
   // Targets whose props do NOT follow `as`: every matrix row for link
   // attributes used to sit on the four that do, so the gap was invisible by
-  // construction. `Dropdown.Item` takes no link at any `as`; `Level.Item`
+  // construction. `Dropdown.Item`'s props follow a CONSTRAINED `as`, so the
+  // anchor form carries a link and the other two do not; `Level.Item`
   // enumerates its own props and stops at `target`.
   ['Dropdown', '<Dropdown.Item href="/x" target="_blank">x</Dropdown.Item>'],
   ['Dropdown', '<Dropdown.Item as="a" target="_blank">x</Dropdown.Item>'],
@@ -136,7 +140,7 @@ const RBC: Case[] = [
   ['Level', '<Level.Item renderAs="span">x</Level.Item>'],
   ['Footer', '<Footer renderAs="section">x</Footer>'],
   ['Media', '<Media renderAs="section">x</Media>'],
-  // Targets that declare no `href` at any `as`.
+  // `Dropdown.Item` keeps it; the two Card items declare none at any `as`.
   ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
@@ -385,10 +389,20 @@ const PARITY: Array<[string, Case, Case, Case]> = [
     ['Navbar', '<Navbar.Link renderAs="span" target="_blank">x</Navbar.Link>'],
   ],
   [
-    'an href on a component that declares none',
+    // `Dropdown.Item` renders an <a> by default and takes that anchor's props
+    // (#663), so all three must now KEEP the attribute. It used to be this
+    // row's "declares none" case; the row below covers that class instead, or
+    // the class would have been left with no subject at all.
+    'an href a component declares and keeps',
     ['DropdownItem', '<DropdownItem href="/x">x</DropdownItem>'],
     ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
     ['Dropdown', '<Dropdown.Item href="/x">x</Dropdown.Item>'],
+  ],
+  [
+    'an href on a component that declares none',
+    ['CardHeaderIcon', '<CardHeaderIcon href="/x">x</CardHeaderIcon>'],
+    ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
+    ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ],
 ];
 
