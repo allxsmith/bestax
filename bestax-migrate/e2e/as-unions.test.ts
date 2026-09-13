@@ -5,6 +5,11 @@
  * have worked; too wide, and it emits output the user's project cannot
  * compile — which is the defect that #662 was.
  *
+ * These run against the React types installed here, which are React 19's.
+ * bulma-ui's peer range is `^18 || ^19`, so a row that differs between the
+ * two majors is only half-checked by anything in this file -- `<style href>`
+ * is the one known case, and it is excluded from the table for that reason.
+ *
  * bulma-ui exports these as types, not as runtime constants, so no runtime
  * diff can check them. This generates one type assertion per row and hands it
  * to `tsc` against the built library, which makes drift in either direction a
@@ -348,6 +353,10 @@ describe('the href-bearing intrinsics match what React types', () => {
     // written out, not read off the table under test.
     const rows: string[] = [];
     for (const el of LINK_ATTR_UNIVERSE) {
+      // `<style href>` is React 19 only, and the table is deliberately the
+      // 18/19 common denominator, so the negative assertion cannot be made
+      // here: it would be unused against the React 19 types installed.
+      if (el === 'style') continue;
       if (HREF_ELEMENTS.includes(el)) {
         rows.push(`export const h_${el} = <${el} href="#" />;`);
       } else {

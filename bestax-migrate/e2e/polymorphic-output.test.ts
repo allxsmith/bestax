@@ -143,6 +143,9 @@ const RBC: Case[] = [
   ['Media', '<Media renderAs="section" href="/x">x</Media>'],
   // The seventh hand-built plain rewrite, which does not use `keptAttrs`.
   ['Heading', '<Heading heading renderAs="a" href="/x">Stats</Heading>'],
+  // `card-image` moves these props onto an <Image> it creates, so they have
+  // to be judged against `Image` rather than the wrapper they sit on.
+  ['Card', '<Card.Image href="/x" src="/a.png" />'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [
@@ -221,6 +224,14 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
       '<Button href="/x" as={p.Link}>x</Button>',
     ]);
     expect(link).toContain('as={p.Link}');
+
+    // The one removal that deletes an arbitrary expression rather than a
+    // literal, so it owes the same quote the others give.
+    const dyn = migrate(bloomer, 'bloomer', [
+      'Button',
+      '<Button href="/x" tag={p.pick}>x</Button>',
+    ]);
+    expect(dyn).toContain('it read `tag={p.pick}`');
 
     // `Level.Item` declares `href` at every `as`, so a bare one compiles --
     // and renders a <div> that drops the attribute. tsc cannot see that, so
