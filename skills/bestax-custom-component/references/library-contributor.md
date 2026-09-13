@@ -110,15 +110,22 @@ Rules that keep components consistent:
   types; `PolymorphicComponent<FooOwnProps, 'default-tag'>` is the cast target,
   and `PolymorphicComponentWithoutRef` the one for a component that forwards no
   ref. Add type-level checks in `src/__typetests__/` both ways — that the
-  default `as` accepts its element's props and a different `as` rejects them —
-  since nothing else in the repo type-checks this. Pinning the props instead
+  default `as` accepts its element's props and a different `as` rejects them.
+  Tests and stories are type-checked too (`typecheck:tests`), but `__typetests__/`
+  is the home for these: `pnpm typecheck` reads it, so a consumer running that
+  script gets them as well. Pinning the props instead
   rejects correct code and accepts incorrect code at the same time, which is what #641 fixed
   across eight components. A literal union (`Title.tsx`) escapes the generic only when its
   members genuinely **share** a prop and ref surface — `h1`–`h6` and `p` all carry plain
   `HTMLAttributes`, so one interface describes them all. It is not a general exemption:
   `Dropdown.Item`'s `'a' | 'div' | 'button'` differ in `href`, `disabled`, `type` and their ref
   element, and pinning them to one interface reproduces exactly this defect (#663). When the
-  members differ, constrain `T` to the union rather than dropping the generic.
+  members differ, constrain `T` to the union rather than dropping the generic —
+  `ConstrainedPolymorphicComponentWithoutRef` in `helpers/polymorphic.ts` is that
+  shape, and `Dropdown.Item` is the worked example. Two consequences to pin while
+  you are there: the exported `*Props<T>` alias is the DEFAULT element's shape, not
+  the union (#667), and a wrapping HOC (`React.memo`) collapses onto that default
+  rather than loosening — stricter, not looser, whatever a reader expects.
   Forward the ref unless the component owns the node it needs: `Reveal` observes
   an element for scroll intersection and wraps a custom `as` in its own `div`,
   so the element `as` names is not the one it holds — it uses
