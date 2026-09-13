@@ -127,3 +127,34 @@ export interface PolymorphicComponentWithoutRef<
   (props: PolymorphicProps<Default, Own>): React.ReactElement | null;
   displayName?: string;
 }
+
+/**
+ * A component whose props follow `as`, where `as` is a closed set of tags.
+ *
+ * `PolymorphicComponentWithoutRef` lets `as` name anything; this narrows it to
+ * `Allowed`. Bulma pins some elements by its own markup contract — a dropdown
+ * item is an `<a>`, a `<div>` or a `<button>` and nothing else — and the
+ * constraint keeps that promise while still deriving props from whichever of
+ * the three a caller picks.
+ *
+ * Genericity is what makes the derivation exact, and it is worth the extra type
+ * parameter. Typing such a component as `React.FC<Union>` instead — a union of
+ * the three prop shapes — reads as equivalent but is not: against a union
+ * target, an object literal's excess-property check passes if the property
+ * exists in ANY member, so `<Item as="div" href="/x" />` slips through. Inferring
+ * `T` from `as` first checks against that one member, which is the point.
+ */
+export interface ConstrainedPolymorphicComponentWithoutRef<
+  Own,
+  Allowed extends React.ElementType,
+  Default extends Allowed,
+> {
+  <T extends Allowed = Default>(
+    props: PolymorphicProps<T, Own>
+  ): React.ReactElement | null;
+  // The derivation overload `PolymorphicComponent` documents, for the same
+  // reason: without it `React.ComponentProps<typeof DropdownItem>` instantiates
+  // at the constraint and collapses to `any`.
+  (props: PolymorphicProps<Default, Own>): React.ReactElement | null;
+  displayName?: string;
+}

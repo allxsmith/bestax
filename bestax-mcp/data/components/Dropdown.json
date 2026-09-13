@@ -180,6 +180,15 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "'a' | 'div' | 'button'",
+          "default": "'a'",
+          "description": "The element type to render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "active",
           "type": "boolean",
           "default": "false",
@@ -193,15 +202,6 @@
           "type": "string",
           "default": null,
           "description": "Additional CSS classes.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "as",
-          "type": "'a' | 'div' | 'button'",
-          "default": "'a'",
-          "description": "The element type to render.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -226,7 +226,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "catchAll": "Remaining props of the element or component selected by as (default <a>) and Bulma helper props",
       "types": []
     },
     {

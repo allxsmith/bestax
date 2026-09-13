@@ -4,16 +4,18 @@
  * These assert types, not behaviour, so they deliberately live OUTSIDE
  * `__tests__/`: `bulma-ui/tsconfig.json` excludes that directory and every
  * `*.test.tsx`, and ts-jest runs transpile-only (the repo sets
- * `isolatedModules`), so an `@ts-expect-error` in a test file is checked by
- * nothing. Here `tsc --noEmit` reads the file — which means `pnpm typecheck`
- * and the React 18/19 matrix both enforce it, and an `@ts-expect-error` that
- * stops being an error fails the build as TS2578.
+ * `isolatedModules`), so jest checks no type an `@ts-expect-error` there
+ * claims. `tsconfig.test.json` now does (#663), but only `pnpm typecheck` runs
+ * in the React 18/19 matrix — so a file here is the only one whose directives
+ * are enforced against BOTH majors' types. An `@ts-expect-error` that stops
+ * being an error fails the build as TS2578.
  *
  * Nothing renders these; jest's testMatch does not reach this directory and
  * `collectCoverageFrom` excludes it.
  */
 import React from 'react';
 import { Avatar } from '../components/Avatar';
+import { Dropdown } from '../components/Dropdown';
 import { Menu } from '../components/Menu';
 import { Navbar } from '../components/Navbar';
 import { Reveal } from '../components/Reveal';
@@ -85,6 +87,14 @@ export const accepted = (
     />
     <Avatar name="Ada" ref={React.createRef<HTMLElement>()} />
     <Avatar name="Ada" as="button" type="button" />
+
+    {/* A CONSTRAINED `as` — Bulma's dropdown markup allows three tags and no
+        more — still derives each tag's own props (#663). Before that, every
+        one of these was pinned to `HTMLAttributes<HTMLElement>` and rejected. */}
+    <Dropdown.Item href="/x" target="_blank" rel="noreferrer" />
+    <Dropdown.Item as="a" href="/x" />
+    <Dropdown.Item as="button" type="submit" disabled />
+    <Dropdown.Item as="div" active />
 
     <Reveal as="section" id="s" />
     <Reveal animation="fade" />
@@ -214,6 +224,20 @@ export const rejected = (
 
     {/* @ts-expect-error a div takes no href */}
     <Reveal as="div" href="/x" />
+
+    {/* The constraint is the other half of #663: deriving props from `as` must
+        not quietly reopen `as` to anything. A union of prop shapes would have
+        let the first of these through — against a union target an object
+        literal's excess-property check passes if the key exists in ANY member —
+        which is why the component is generic over its allowed set instead. */}
+    {/* @ts-expect-error a div takes no href */}
+    <Dropdown.Item as="div" href="/x" />
+    {/* @ts-expect-error an anchor takes no `form` */}
+    <Dropdown.Item as="a" form="f" />
+    {/* @ts-expect-error a span is not one of the three tags Bulma allows */}
+    <Dropdown.Item as="span" />
+    {/* @ts-expect-error nor is a component, however link-like */}
+    <Dropdown.Item as={RouterLink} to="/x" />
 
     {/* Reveal forwards NO ref, deliberately — it observes a node it owns, which
         for a component `as` is a wrapper div rather than the element named. A
