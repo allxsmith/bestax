@@ -124,6 +124,20 @@ const NO_HREF_HINT: Record<string, string> = {
     'bestax `Delete` renders a <button> with no children and has no anchor form; wrap it in an <a>, or navigate in `onClick`',
 };
 
+/**
+ * Where to put a link on a target, for the attributes beside `href`. The same
+ * fact as `NO_HREF_HINT` in its short form -- fixing the `Delete` advice in
+ * one branch and leaving the sibling saying "put it on an <a> inside" to a
+ * component with no children is how these two drifted apart the first time.
+ */
+const LINK_REMEDY: Record<string, string> = {
+  Delete: 'wrap it in an <a>, or navigate in `onClick`',
+  'Navbar.Dropdown': 'put it on the `<Navbar.Link>` inside',
+};
+
+const remedyFor = (target: string): string =>
+  LINK_REMEDY[target] ?? 'put it on an <a> inside, or change the element';
+
 /** The targets whose `as` this pass may believe. */
 export function declaresAs(target: string): boolean {
   return target in AS_UNIONS || AS_ANY.has(target);
@@ -363,31 +377,61 @@ function dropInertLinkAttrs(
     // target: `Level.Item` declares `target` but forwards it only when the
     // tag is an `<a>`, so `<Level.Item as="p" target="_blank">` was keeping
     // the same inert attribute this pass removes everywhere else.
-    let keeps: boolean;
-    if (!carriesLinks) keeps = false;
-    else if (declared && !declared.includes(name)) keeps = false;
+    // Which check rejects it decides both the outcome and what the TODO says.
+    // Keying the message off "the target has a row" instead told a
+    // `<Level.Item as="p" target>` reader that `Level.Item` does not declare
+    // `target` -- it does; the <p> is what refuses it.
+    let rejectedBy: 'component' | 'element' | null = null;
+    if (!carriesLinks) rejectedBy = 'component';
+    else if (declared && !declared.includes(name)) rejectedBy = 'component';
     // A dynamic `as` leaves the element unknown, and guessing either way is
     // worse than leaving it for the author.
-    else if (rendered === undefined) keeps = true;
-    else keeps = elementTakesLinkAttr(name, rendered);
-    if (keeps) continue;
+    else if (rendered !== undefined && !elementTakesLinkAttr(name, rendered))
+      rejectedBy = 'element';
+    if (!rejectedBy) continue;
     const attr = findAttr(element, name);
     if (!attr) continue;
     const was = attrSource(ctx.j, attr);
     removeAttr(element, attr);
-    const because = !carriesLinks
-      ? `bestax \`${target}\` is not a link at any \`as\`, so it takes no \`${name}\` either`
-      : declared
-        ? `bestax \`${target}\` declares its own props rather than taking the element's, and \`${name}\` is not among them`
-        : `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here`;
+    const because =
+      rejectedBy === 'element'
+        ? `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here`
+        : !carriesLinks
+          ? `bestax \`${target}\` is not a link at any \`as\`, so it takes no \`${name}\` either`
+          : `bestax \`${target}\` declares its own props rather than taking the element's, and \`${name}\` is not among them`;
     addTodo(
       ctx,
       path,
       `prop:${name}`,
-      `${because} -- ${was ? `it read \`${was}\`; ` : ''}put it on an <a> inside, or change the element`
+      `${because} -- ${was ? `it read \`${was}\`; ` : ''}${remedyFor(target)}`
     );
     ctx.dirty = true;
   }
+}
+
+/**
+ * The `as` attribute only if no spread can overwrite it. `findAttr` reads by
+ * name and knows nothing about `{...rest}`, which JSX applies last-write-wins.
+ */
+function lastWordOnAs(element: any): {
+  attr: any | undefined;
+  shadowed: boolean;
+} {
+  const attrs: any[] = element.openingElement?.attributes ?? [];
+  let seen: any | undefined;
+  let shadowed = false;
+  for (const a of attrs) {
+    if (a.type === 'JSXSpreadAttribute') {
+      if (seen) {
+        seen = undefined;
+        shadowed = true;
+      }
+    } else if (a.name?.name === 'as') {
+      seen = a;
+      shadowed = false;
+    }
+  }
+  return { attr: seen, shadowed };
 }
 
 /**
@@ -401,8 +445,22 @@ export function enforcePolymorphicProps(
   target: string
 ): void {
   // Read the `as` once, before either rule can remove it, and only where the
-  // target declares one at all.
-  const attr = declaresAs(target) ? findAttr(element, 'as') : undefined;
+  // target declares one at all -- and only when JSX precedence says this
+  // attribute is the one that wins. A spread after it overwrites it, so
+  // `<Button as="span" {...p} href="/x">` with `p.as === "a"` rendered an
+  // anchor while this pass read `span` and deleted a working `href`. An `as`
+  // the spread can overwrite is treated as unknown, which is the same answer
+  // this pass already gives for a dynamic one.
+  const read = declaresAs(target)
+    ? lastWordOnAs(element)
+    : { attr: undefined, shadowed: false };
+  // An `as` a later spread can overwrite is unknown, not absent: falling back
+  // to the target's default element would delete an `href` that the spread's
+  // `as="a"` made valid. A spread with no `as` written beside it keeps the
+  // ordinary reading -- `{...rest}` is on half the elements in a real app,
+  // and treating every one as unknown would switch the rule off.
+  if (read.shadowed) return;
+  const attr = read.attr;
   const literal = attr ? literalValueOf(attr) : undefined;
   dropInertHref(ctx, path, element, target, literal);
   // The element as it will render: the `as` if the target takes it, otherwise
