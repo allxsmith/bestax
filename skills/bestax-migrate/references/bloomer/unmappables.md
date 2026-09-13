@@ -87,12 +87,14 @@ bestax's `Dropdown` takes a `label` and renders its own trigger and menu, so blo
 </Dropdown>
 
 <Dropdown label="Open" active right>
-  <Dropdown.Item onClick={() => navigate('/a')}>A</Dropdown.Item>
+  <Dropdown.Item href="/a">A</Dropdown.Item>
 </Dropdown>
 ```
 
-bestax's `Dropdown.Item` declares no `href` (`prop:href` on a `DropdownItem`): navigate in
-`onClick`, or put an `<a>` inside the item.
+bestax's `Dropdown.Item` renders an `<a>` by default and takes that anchor's props, so the
+`href` carries over. It keeps one only where the element it renders is the anchor: on
+`as="div"` or `as="button"` the attribute is dropped (`prop:href`), and the item is a link
+again if you drop the `as`.
 `isHoverable` → `hoverable`, `isActive` → `active` carry over on the `Dropdown` itself.
 
 ## `prop:tag` — polymorphism
@@ -132,13 +134,15 @@ Drop the `tag` where the link was the point. On the components that switched to 
 `href` the codemod does that for you — see [prop-map.md](prop-map.md).
 
 Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
-`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+`Panel.Block`, `Dropdown.Item` and the three `Pagination` controls, which render an `<a>` unless
+told otherwise,
 and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
 `<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
 
-`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
-whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
-`<a>` inside.
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and takes the
+props of whichever you name, so the default `<a>` keeps an `href` and the other two do not.
+Drop the `as` to make it a link again; inside the `<button>` form an `<a>` would nest
+interactive content, so navigate in `onClick` there.
 
 ## `prop:target`, `prop:download`, `prop:hrefLang`, `prop:ping`, `prop:referrerPolicy`, `prop:media`
 
@@ -216,7 +220,7 @@ removes the attribute and the TODO quotes what it was:
 | `hasAddons="fullwidth"`   | `Field`                                                                            | `hasAddons` plus `className="has-addons-fullwidth"`                                     |
 | `isAlign`                 | `TabList`                                                                          | set `align` on the `<Tabs>` — Bulma aligns the container                                |
 | `isGrid`                  | `Columns`                                                                          | Bulma removed `columns.is-grid` in 0.5; use `isMultiline` with sized columns, or `Grid` |
-| `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete`, `DropdownItem`                       | put an `<a>` inside, or handle it in `onClick`                                          |
+| `href`                    | `CardFooterItem`, `CardHeaderIcon`, `Delete`                                       | put an `<a>` inside, or handle it in `onClick`                                          |
 | `href` beside a `tag`     | `MenuLink`, `NavbarLink`, and anything that becomes plain markup                   | the tag bloomer rendered was no anchor, so the `href` did nothing; drop the `tag`       |
 | `href={expr}` (dynamic)   | `Button`, `LevelItem` and the other components that switched to an `<a>` on `href` | resolved to the anchor; render the other element by hand where the `href` is empty      |
 | `href`                    | `NavbarItem hasDropdown`                                                           | bestax's `Navbar.Dropdown` is the container; put the `href` on the `Navbar.Link` inside |
