@@ -67,10 +67,10 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Dialog: { isOpen: true, message: 'Are you sure?' },
   Tabs: {
     children: [
-      <Library.Tabs.Tab key="a" label="A">
+      <Library.Tabs.Tab key="a" index={0}>
         A
       </Library.Tabs.Tab>,
-      <Library.Tabs.Tab key="b" label="B">
+      <Library.Tabs.Tab key="b" index={1}>
         B
       </Library.Tabs.Tab>,
     ],

@@ -255,11 +255,11 @@ describe('Card Component', () => {
   });
 
   test('renderFooter returns null if footer is falsy', () => {
-    expect(__test_exports__.renderFooter(undefined)).toBeNull();
-    expect(__test_exports__.renderFooter(null)).toBeNull();
-    expect(__test_exports__.renderFooter(false)).toBeNull();
-    expect(__test_exports__.renderFooter('')).toBeNull();
-    expect(__test_exports__.renderFooter(0)).toBeNull();
+    expect(__test_exports__.renderFooter(undefined, undefined)).toBeNull();
+    expect(__test_exports__.renderFooter(null, undefined)).toBeNull();
+    expect(__test_exports__.renderFooter(false, undefined)).toBeNull();
+    expect(__test_exports__.renderFooter('', undefined)).toBeNull();
+    expect(__test_exports__.renderFooter(0, undefined)).toBeNull();
   });
 
   test('renderFooter wraps a single ReactNode in one card-footer-item', () => {

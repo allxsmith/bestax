@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Autocomplete } from '../Autocomplete';
+import { Autocomplete, AutocompleteItem } from '../Autocomplete';
 import { Field } from '../Field';
 
 const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
@@ -804,7 +804,9 @@ describe('Autocomplete', () => {
     });
 
     it('returns empty string when field and value are both missing', () => {
-      const data = [{ foo: 'bar' } as unknown as { label: string }];
+      // Neither `field` nor `value` is present — which `AutocompleteItem`
+      // forbids, and which is exactly the fallback under test.
+      const data = [{ foo: 'bar' }] as unknown as AutocompleteItem[];
       render(<Autocomplete data={data} field="label" />);
       const input = screen.getByRole('combobox');
 

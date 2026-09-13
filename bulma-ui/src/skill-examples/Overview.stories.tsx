@@ -1,6 +1,5 @@
 // Skills → Overview: what the skills are and how to install/use them.
 // Mirrors the docs site's /docs/skills/intro page.
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Box, Title, SubTitle, Content } from '../index';
 

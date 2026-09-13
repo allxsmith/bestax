@@ -270,8 +270,11 @@ describe('href routing', () => {
     render(
       <Menu>
         <MenuList>
-          {/* @ts-expect-error a span takes no href; a JS consumer can still
-              deliver one, and it must not reach the DOM */}
+          {/* A JS consumer can still deliver an href, and it must not reach
+              the DOM. Keep the directive on its own single-line comment: TS
+              anchors it to the line a comment STARTS on, so a multi-line one
+              never lands on the line below it. */}
+          {/* @ts-expect-error a span takes no href */}
           <MenuItem as="span" href="/x" data-testid="li">
             Static
           </MenuItem>
