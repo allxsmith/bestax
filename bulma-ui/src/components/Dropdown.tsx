@@ -8,6 +8,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
 
 /**
  * Checks if code is running in a browser environment.
@@ -360,23 +361,53 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
 );
 
 /**
- * Props for the DropdownItem component.
+ * The elements a dropdown item may render as. Bulma's dropdown markup names
+ * these three and no others, so `as` is a closed set rather than an open
+ * `React.ElementType`.
  */
-export interface DropdownItemProps
-  extends
-    Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
-    BulmaClassesProps {
+export type DropdownItemElement = 'a' | 'div' | 'button';
+
+/**
+ * The DropdownItem component's own props.
+ */
+export interface DropdownItemOwnProps extends BulmaClassesProps {
   /** Whether the item is active. */
   active?: boolean;
   /** Additional CSS classes. */
   className?: string;
-  /** The element type to render. */
-  as?: 'a' | 'div' | 'button';
   /** Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. */
   disabled?: boolean;
   /** Item content. */
   children?: React.ReactNode;
 }
+
+/**
+ * Props for the DropdownItem component. Everything the item does not own
+ * follows `as`: `href`, `target` and `rel` under the default `'a'`, `type` and
+ * `form` under `'button'`, and the shared HTML attributes under any of them.
+ *
+ * Pinning these to `React.HTMLAttributes<HTMLElement>` instead — which is what
+ * this type did before — rejected `href` on an anchor and `type` on a button,
+ * both of which have always worked at runtime. Same defect as #641, in the
+ * narrower shape a constrained `as` takes.
+ */
+export type DropdownItemProps<T extends DropdownItemElement = 'a'> =
+  DropdownItemOwnProps &
+    Omit<
+      React.ComponentPropsWithoutRef<T>,
+      keyof DropdownItemOwnProps | 'as'
+    > & {
+      /** The element type to render. */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the generic
+ * `DropdownItemProps<T>` above — the body cannot see through `T`.
+ */
+type DropdownItemImplProps = DropdownItemOwnProps & {
+  as?: DropdownItemElement;
+};
 
 /**
  * Bulma Dropdown item.
@@ -385,13 +416,14 @@ export interface DropdownItemProps
  * @param {DropdownItemProps} props - Props for the DropdownItem component.
  * @returns {JSX.Element} The rendered dropdown item.
  */
-export const DropdownItem: React.FC<DropdownItemProps> = ({
-  children,
-  active,
-  className,
-  as: Component = 'a',
-  ...props
-}) => {
+export const DropdownItem = ((itemProps: DropdownItemProps) => {
+  const {
+    children,
+    active,
+    className,
+    as: Component = 'a',
+    ...props
+  } = itemProps as DropdownItemImplProps;
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   return (
     <Component
@@ -410,7 +442,11 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
       {children}
     </Component>
   );
-};
+}) as ConstrainedPolymorphicComponentWithoutRef<
+  DropdownItemOwnProps,
+  DropdownItemElement,
+  'a'
+>;
 
 /**
  * Bulma Dropdown divider.

@@ -117,6 +117,7 @@ export * from './helpers/classNames';
 // everything exported here is public forever — an internal DOM-filtering detail
 // is not something to support for the life of the package.
 export type {
+  ConstrainedPolymorphicComponentWithoutRef,
   PolymorphicComponent,
   PolymorphicComponentWithoutRef,
   PolymorphicProps,
