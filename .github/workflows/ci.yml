@@ -186,6 +186,15 @@ jobs:
       - name: Typecheck bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run typecheck
 
+      # Tests and stories too. `pin-react.mjs` pins react/react-dom and never
+      # @types/react, so today both legs read one set of types and this adds no
+      # signal the single-version job lacks — but that is equally true of the
+      # step above, and running one and not the other reads as an oversight.
+      # If the types are ever pinned too, this is the leg that would catch a
+      # React-18-only break in a story or a test.
+      - name: Typecheck bulma-ui tests and stories
+        run: pnpm --filter @allxsmith/bestax-bulma run typecheck:tests
+
       - name: Test bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run test
 

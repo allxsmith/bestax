@@ -33,7 +33,8 @@ pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:s
 pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp)
 pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint
-pnpm typecheck      # tsc --noEmit
+pnpm typecheck      # tsc --noEmit (each package's build program)
+pnpm typecheck:tests # tsc over bulma-ui's tests and stories, which `typecheck` excludes
 pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
 pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
@@ -56,6 +57,14 @@ Enforced by CI (`.github/workflows/ci.yml`):
   every other jest package 95% (78% branches). `docs` has no jest suite.
 - Stale skill catalog fails (`gen:catalog:check`) and a stale MCP index fails
   (`gen:mcp:check`); build, typecheck, lint, format, audit.
+- **Tests and stories are type-checked too**, by a second project
+  (`bulma-ui/tsconfig.test.json`, script `typecheck:tests`) — `tsconfig.json` excludes
+  them because it is also the build's program. ts-jest transpiles rather than checks
+  (the repo sets `isolatedModules`), so jest never stands in for this. Two consequences
+  worth knowing: an `@ts-expect-error` in a test or story is live and fails as TS2578
+  once it stops being needed, and in JSX the directive must sit in its OWN single-line
+  `{/* … */}` — TypeScript anchors it to the line a comment STARTS on, so a multi-line
+  one suppresses nothing (#663).
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
   a **React 18/19 matrix** builds and tests bulma-ui on both majors.
 
