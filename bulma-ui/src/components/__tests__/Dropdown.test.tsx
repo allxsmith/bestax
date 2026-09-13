@@ -1240,6 +1240,36 @@ describe('Compound components', () => {
   });
 });
 
+describe('button form', () => {
+  it('does not submit the form it sits in', () => {
+    // `<button>` defaults to type="submit"; a sort or filter menu inside a
+    // settings form would post it on every item click.
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button">Sort</Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
+  it('lets an explicit type win', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" type="submit">
+          Save
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).toHaveAttribute(
+      'type',
+      'submit'
+    );
+  });
+});
+
 describe('href routing', () => {
   it('forwards href to the default anchor', () => {
     render(
@@ -1248,6 +1278,34 @@ describe('href routing', () => {
       </Dropdown>
     );
     expect(screen.getByTestId('dropdown-item')).toHaveAttribute('href', '/x');
+  });
+
+  it('withholds every anchor-only attribute from a non-anchor tag', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {/* @ts-expect-error a div takes no anchor attributes */}
+        <Dropdown.Item as="div" target="_blank" download="f" ping="/p">
+          Static
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    const item = screen.getByTestId('dropdown-item');
+    for (const attr of ['target', 'download', 'ping']) {
+      expect(item).not.toHaveAttribute(attr);
+    }
+  });
+
+  it('keeps them on the anchor', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item href="/x" target="_blank" rel="noreferrer">
+          Link
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    const item = screen.getByTestId('dropdown-item');
+    expect(item).toHaveAttribute('target', '_blank');
+    expect(item).toHaveAttribute('rel', 'noreferrer');
   });
 
   it('withholds href from a non-anchor tag', () => {

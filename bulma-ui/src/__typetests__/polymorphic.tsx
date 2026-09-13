@@ -194,10 +194,29 @@ export const derivedReveal: DerivedRevealProps = {
   totallyBogus: true,
 };
 
-// A wrapping HOC instantiates the type parameter and hands back one widened
-// prop type, so the checks stop at the wrapper. Inherent to the pattern; the
-// cast is the documented way back. Pinned here so the workaround cannot rot.
+// A wrapping HOC instantiates the type parameter and hands back ONE prop type,
+// taken from the derivation overload — so the wrapper is pinned to the default
+// element rather than loosened. Inherent to the pattern; the cast is the
+// documented way back. Pinned here so the workaround cannot rot.
+const RawMemoButton = React.memo(Button);
+const RawMemoItem = React.memo(Dropdown.Item);
 const MemoButton = React.memo(Button) as typeof Button;
+
+export const hocErasureIsStricter = (
+  <>
+    {/* Each of these compiles on the component itself, three lines below. */}
+    {/* @ts-expect-error memo pins Button to its default 'button' */}
+    <RawMemoButton as="div" />
+    {/* @ts-expect-error memo pins Dropdown.Item to its default 'a' */}
+    <RawMemoItem as="div" />
+    {/* @ts-expect-error and to 'a' for the button form too */}
+    <RawMemoItem as="button" />
+
+    <Button as="div" />
+    <Dropdown.Item as="div" />
+    <Dropdown.Item as="button" />
+  </>
+);
 
 export const hocWorkaround = (
   <>

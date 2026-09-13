@@ -88,10 +88,14 @@ export type PolymorphicProps<
  * **A wrapping HOC erases the genericity.** `React.memo(Button)`,
  * `React.lazy`, a `styled()` wrapper — anything that infers its props through
  * `ComponentProps<T>` — instantiates the type parameter once and hands back a
- * component with a single widened prop type. Calls still work, but the checks
- * stop: `<MemoButton as="div" href="/x" />` compiles where `<Button>` rejects
- * it. This is inherent to polymorphic components in TypeScript, not something
- * this library can fix. Re-assert the type to get the checks back:
+ * component with a single prop type. It takes the LAST call signature, which is
+ * the derivation overload, so the wrapper is pinned to the DEFAULT element:
+ * `React.memo(Button)` rejects `as="div"` outright, and `React.memo(Dropdown.Item)`
+ * renders neither a `<div>` nor a `<button>`, though both components accept those
+ * directly. Stricter, not looser — the checks do not stop, they collapse onto one
+ * element, and a `Dropdown.Item` memoized for a long menu list is the case that
+ * meets it. This is inherent to polymorphic components in TypeScript, not
+ * something this library can fix. Re-assert the type to get the rest back:
  *
  * ```tsx
  * const MemoButton = React.memo(Button) as typeof Button;
