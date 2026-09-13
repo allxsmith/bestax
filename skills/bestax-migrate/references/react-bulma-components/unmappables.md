@@ -167,13 +167,15 @@ rendered a `<span>` that navigated nowhere. The element stays, the dead attribut
 ```
 
 Most targets take no `href` at all. It lives on `Menu.Item`, `Navbar.Item`, `Navbar.Link`,
-`Panel.Block` and the three `Pagination` controls, which render an `<a>` unless told otherwise,
+`Panel.Block`, `Dropdown.Item` and the three `Pagination` controls, which render an `<a>` unless
+told otherwise,
 and on `Button` and `Level.Item` once `as="a"` names one — those two render a `<button>` and a
 `<div>` by default, and drop the attribute. Everywhere else the codemod removes it.
 
-`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and renders
-whichever you name, but declares no `href` at any of them. Navigate in `onClick`, or put an
-`<a>` inside.
+`Dropdown.Item` is the one to read twice: it accepts `as="a" | "div" | "button"` and takes the
+props of whichever you name, so the default `<a>` keeps an `href` and the other two do not.
+Drop the `as` to make it a link again; inside the `<button>` form an `<a>` would nest
+interactive content, so navigate in `onClick` there.
 
 ## `prop:target`, `prop:download`, `prop:hrefLang`, `prop:ping`, `prop:referrerPolicy`, `prop:media`
 
