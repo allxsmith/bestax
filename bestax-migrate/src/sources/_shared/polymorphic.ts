@@ -117,6 +117,11 @@ const HREF_OK: Record<string, string> = {
 const NO_HREF_HINT: Record<string, string> = {
   'Navbar.Dropdown':
     'bestax `Navbar.Dropdown` is the container and takes no `href`; put it on the `<Navbar.Link>` inside',
+  // `Delete` renders a self-closing <button/> with no `{children}` at all, so
+  // the generic "put an <a> inside it" is advice nobody can follow. bloomer's
+  // mapping said the right thing here before the entry moved into this table.
+  Delete:
+    'bestax `Delete` renders a <button> with no children and has no anchor form; wrap it in an <a>, or navigate in `onClick`',
 };
 
 /** The targets whose `as` this pass may believe. */
@@ -168,7 +173,7 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
   hrefLang: ['a', 'area', 'link'],
   ping: ['a'],
   referrerPolicy: ['a', 'area', 'iframe', 'img', 'link', 'script'],
-  media: ['a', 'area', 'link', 'source', 'style'],
+  media: ['a', 'area', 'link', 'meta', 'source', 'style'],
 };
 
 // `type` is the other member `AnchorHTMLAttributes` adds, and it is
