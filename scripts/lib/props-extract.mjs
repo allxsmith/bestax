@@ -917,7 +917,7 @@ function polymorphicBase(ts, node) {
   return {
     kind: 'polymorphic',
     element: defaultElement(ts, node.typeArguments?.[0]),
-    closed: constrainedToTags(ts, node.typeArguments?.[0]),
+    asKind: asConstraintKind(ts, node.typeArguments?.[0]),
   };
 }
 
@@ -933,13 +933,23 @@ function polymorphicBase(ts, node) {
  *
  * Resolved syntactically, like the rest of this reader: an inline union of
  * string literals, or a type alias in the same file that is one
- * (`DropdownItemElement`). Anything else is treated as open, which is the
- * pre-existing wording and the safe direction — it under-promises for a
- * constraint this cannot read, rather than over-promising.
+ * (`DropdownItemElement`).
+ *
+ * Returns 'tags', 'open' (an explicit `React.ElementType`) or 'unknown'. Both
+ * recognized kinds are detected POSITIVELY, and a test holds every polymorphic
+ * component to one of them — because 'unknown' has no safe answer. Falling back
+ * to the open wording over-promises on a constrained component, which is the
+ * defect this helper exists to fix; falling back to the closed wording
+ * under-promises on the eight components that really do take any element. The
+ * fallback is 'open' to preserve the long-standing wording, so the test is what
+ * actually protects the contract: move `DropdownItemElement` into
+ * `helpers/polymorphic.ts` — a natural refactor, since its paired interface
+ * lives there — and the same-file alias hop finds nothing, the kind goes
+ * 'unknown', and the test says so rather than the docs quietly regressing.
  */
-function constrainedToTags(ts, arg) {
+function asConstraintKind(ts, arg) {
   if (!arg || !ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) {
-    return false;
+    return 'unknown';
   }
   const want = arg.typeName.text;
   let constraint = null;
@@ -950,7 +960,14 @@ function constrainedToTags(ts, arg) {
       break;
     }
   }
-  return isTagUnion(ts, constraint, arg);
+  if (!constraint) return 'unknown';
+  if (isTagUnion(ts, constraint, arg)) return 'tags';
+  if (ts.isTypeReferenceNode(constraint)) {
+    const nm = constraint.typeName;
+    const last = ts.isQualifiedName(nm) ? nm.right.text : nm.text;
+    if (last === 'ElementType') return 'open';
+  }
+  return 'unknown';
 }
 
 /** A union of string-literal types, following one alias hop in the same file. */
@@ -1163,7 +1180,7 @@ function catchAllRow(external, markdown = true) {
       // "element or component" only where `as` really takes both. A closed
       // tag union takes no component, and saying otherwise names a shape the
       // compiler refuses (#663).
-      const target = e.closed ? 'element' : 'element or component';
+      const target = e.asKind === 'tags' ? 'element' : 'element or component';
       polymorphic.add(
         e.element
           ? `remaining props of the ${target} selected by \`as\` (default \`<${e.element}>\`)`
@@ -1174,6 +1191,14 @@ function catchAllRow(external, markdown = true) {
     const m = e.text.match(/HTML\w*Element/);
     if (m) elements.add(DOM_ELEMENT_LABELS[m[0]] ?? 'HTML');
   }
+  // Surfaced so a test can hold every polymorphic component to a RECOGNIZED
+  // constraint. 'unknown' silently takes the open wording, which over-promises
+  // on a constrained component — the one direction this must not regress in.
+  const asKinds = [
+    ...new Set(
+      external.filter(e => e.kind === 'polymorphic').map(e => e.asKind)
+    ),
+  ].sort();
   const parts = [];
   if (elements.size) {
     parts.push(`all standard ${[...elements].sort().join(' / ')} attributes`);
@@ -1193,7 +1218,11 @@ function catchAllRow(external, markdown = true) {
   // one; the sentence is capitalised once, here.
   const joined = parts.join(' and ');
   const text = joined.charAt(0).toUpperCase() + joined.slice(1);
-  return { text: markdown ? text : text.replace(/`/g, ''), helpers };
+  return {
+    text: markdown ? text : text.replace(/`/g, ''),
+    helpers,
+    ...(asKinds.length ? { asKinds } : {}),
+  };
 }
 
 /**

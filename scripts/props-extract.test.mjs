@@ -201,6 +201,27 @@ test('a constrained `as` drops "or component" from the catch-all', () => {
   );
 });
 
+test('every polymorphic component has a recognized `as` constraint', () => {
+  // The catch-all wording is chosen from this. 'unknown' falls back to the open
+  // phrasing, which on a CONSTRAINED component promises a shape the compiler
+  // refuses — the defect the constraint reader was added to fix. The reader
+  // resolves a tag-union alias only within the same source file, so moving
+  // `DropdownItemElement` next to its paired interface in helpers/polymorphic.ts
+  // would silently regress the docs and the MCP index. This is what notices.
+  const targets = [...POLYMORPHIC, ['Dropdown', 'Dropdown.Item']];
+  for (const [component, path] of targets) {
+    assert.deepEqual(
+      table(component, path).catchAll.asKinds?.filter(k => k === 'unknown'),
+      [],
+      `${path} has an \`as\` constraint the reader could not classify`
+    );
+  }
+  assert.deepEqual(table('Dropdown', 'Dropdown.Item').catchAll.asKinds, [
+    'tags',
+  ]);
+  assert.deepEqual(table('Button', 'Button').catchAll.asKinds, ['open']);
+});
+
 test('every polymorphic component names a concrete default element', () => {
   // A type parameter defaulting to the CONSTRAINT rather than to a tag —
   // `<T extends React.ElementType = React.ElementType>` — makes
