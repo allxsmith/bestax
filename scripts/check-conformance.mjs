@@ -3611,6 +3611,75 @@ export async function checkFragileProse(root = REPO) {
  * that way and `lint` is itself a turbo task — reading the literal text alone
  * left the check's own contract unmet.
  */
+/**
+ * Turbo flags that consume the NEXT token, so it is a value and not a task.
+ *
+ * Enumerated rather than guessed. Treating every `--flag` without `=` as
+ * value-taking silently swallowed the task after a BOOLEAN one — `turbo run
+ * --force build` lost `build` — which is a fail-open inside a check written to
+ * close one. An unknown flag therefore leaves the next token alone: at worst
+ * that demands an owner for something that is not a task and fails LOUDLY,
+ * which is the direction this check is supposed to err in. Add the flag here
+ * when that happens.
+ */
+const TURBO_VALUE_FLAGS = new Set([
+  '--filter',
+  '--scope',
+  '--ignore',
+  '--cache-dir',
+  '--concurrency',
+  '--env-mode',
+  '--log-order',
+  '--log-prefix',
+  '--output-logs',
+  '--api',
+  '--team',
+  '--token',
+  '--cwd',
+  '--graph',
+]);
+
+/**
+ * Every turbo task reachable from `scripts[entry]`, following one level of
+ * `pnpm run <script>` indirection.
+ *
+ * The indirection matters: `all` reaches `lint` that way, and `lint` is itself
+ * a turbo task, so reading the entry script's literal text left the repo's own
+ * lint task outside the contract this check states. One level only, and each
+ * script expanded at most once, so a script naming itself cannot loop.
+ *
+ * Exported for `scripts/turbo-tasks.test.mjs`. `.github/CLAUDE.md` asks for
+ * non-trivial parsing to carry a `node --test` sibling, and this parser had
+ * two option-handling holes found by review before it had one.
+ */
+export function turboTasksIn(scripts, entry) {
+  const source = scripts?.[entry] ?? '';
+  const seen = new Set([entry]);
+  let text = source;
+  for (const m of [...source.matchAll(/pnpm (?:run )?([\w:-]+)/g)]) {
+    const name = m[1];
+    if (seen.has(name) || !scripts[name]) continue;
+    seen.add(name);
+    text += ` && ${scripts[name]}`;
+  }
+
+  const tasks = new Set();
+  for (const segment of text.matchAll(/turbo run ([^&|]*)/g)) {
+    const words = segment[1].trim().split(/\s+/).filter(Boolean);
+    for (let i = 0; i < words.length; i += 1) {
+      const word = words[i];
+      if (word === '--') break;
+      if (!word.startsWith('-')) {
+        tasks.add(word);
+        continue;
+      }
+      if (word.includes('=')) continue;
+      if (TURBO_VALUE_FLAGS.has(word)) i += 1;
+    }
+  }
+  return tasks;
+}
+
 async function checkTurboTasks() {
   const violations = [];
   const root = JSON.parse(await readFile(join(REPO, 'package.json'), 'utf8'));
@@ -3619,37 +3688,7 @@ async function checkTurboTasks() {
     return ['package.json `all` no longer runs turbo — this check is stale.'];
   }
 
-  // `all` calls other root scripts, and one of them (`lint`) runs turbo. Expand
-  // one level so those segments are seen too; a script naming itself would
-  // otherwise loop, so each is expanded at most once.
-  const scripts = root.scripts ?? {};
-  const seen = new Set(['all']);
-  let text = all;
-  for (const m of [...all.matchAll(/pnpm (?:run )?([\w:-]+)/g)]) {
-    const name = m[1];
-    if (seen.has(name) || !scripts[name]) continue;
-    seen.add(name);
-    text += ` && ${scripts[name]}`;
-  }
-
-  // Each `turbo run a b c` segment names tasks. Flags are skipped rather than
-  // ending the scan: `turbo run --filter=X build-storybook` is valid CLI, and
-  // stopping at the flag dropped the task silently — a fail-open inside the
-  // check written to close one. A flag spelled `--filter X` also eats its
-  // value, so it cannot be mistaken for a task name.
-  const tasks = new Set();
-  for (const segment of text.matchAll(/turbo run ([^&|]*)/g)) {
-    const words = segment[1].trim().split(/\s+/).filter(Boolean);
-    for (let i = 0; i < words.length; i += 1) {
-      const word = words[i];
-      if (word === '--') break;
-      if (word.startsWith('-')) {
-        if (!word.includes('=')) i += 1;
-        continue;
-      }
-      tasks.add(word);
-    }
-  }
+  const tasks = turboTasksIn(root.scripts ?? {}, 'all');
 
   const dirs = parseWorkspacePackages(
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')

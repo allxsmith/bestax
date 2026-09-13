@@ -183,10 +183,11 @@
           "name": "icon",
           "type": "string",
           "default": null,
-          "description": "**DEPRECATED:** Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the glyph name; the library still comes from `library` or `ConfigProvider`, so `'mdi mdi-rocket'` on its own renders an `fa` class and needs `library=\"mdi\"` beside it. Use `name` instead.",
+          "description": "Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the glyph name; the library still comes from `library` or `ConfigProvider`, so `'mdi mdi-rocket'` on its own renders an `fa` class and needs `library=\"mdi\"` beside it.",
           "required": false,
           "inherited": true,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "Use `name` instead."
         },
         {
           "name": "className",
@@ -257,10 +258,11 @@
           "name": "libraryFeatures",
           "type": "string | string[]",
           "default": null,
-          "description": "**DEPRECATED:** Use `variant` and `features` instead.",
+          "description": "Additional modifiers in the older combined form, parsed into `variant` and `features`.",
           "required": false,
           "inherited": true,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "Use `variant` and `features` instead."
         },
         {
           "name": "size",

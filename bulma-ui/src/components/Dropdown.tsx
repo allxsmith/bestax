@@ -494,12 +494,26 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       tabIndex={0}
       role="menuitem"
       data-testid="dropdown-item"
+      {...forwarded}
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
-      // Avatar defaults it the same way, and Dropdown's own trigger sets it —
-      // an explicit `type` through `rest` still wins, since it is spread after.
-      {...(Component === 'button' ? { type: 'button' as const } : {})}
-      {...forwarded}
+      // Avatar defaults it the same way, and Dropdown's own trigger sets it.
+      //
+      // After `forwarded`, reading through it rather than before it: React
+      // treats `type={undefined}` as "remove the attribute", and a spread
+      // carrying an absent key is how that arrives. Spreading the default first
+      // let such a spread erase it and restore the submit behaviour, so the
+      // guard only held for callers who passed nothing.
+      {...(Component === 'button'
+        ? {
+            type:
+              (
+                forwarded as {
+                  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
+                }
+              ).type ?? 'button',
+          }
+        : {})}
     >
       {children}
     </Component>

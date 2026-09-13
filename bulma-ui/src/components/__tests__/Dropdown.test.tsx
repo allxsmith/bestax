@@ -1255,6 +1255,26 @@ describe('button form', () => {
     );
   });
 
+  it('survives a spread carrying an absent type', () => {
+    // React reads `type={undefined}` as "remove the attribute", and a props
+    // spread with the key absent is how that arrives. Defaulting before the
+    // spread let it erase the guard and restore submit.
+    const spread: { type?: 'button' | 'submit' | 'reset' } = {
+      type: undefined,
+    };
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" {...spread}>
+          Sort
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
   it('lets an explicit type win', () => {
     render(
       <Dropdown label="Menu" active>
