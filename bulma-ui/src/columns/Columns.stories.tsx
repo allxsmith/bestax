@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Columns } from './Columns';
 import type { BulmaGapValue } from '../grid/Grid';

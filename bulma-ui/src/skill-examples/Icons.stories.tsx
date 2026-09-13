@@ -1,7 +1,6 @@
 // Skills → Examples → Icons: the bestax-icons skill's canonical example,
 // rendered live. Shows the app-root ConfigProvider, meaningful-vs-decorative
 // accessibility, sizes/variants/features, and multi-segment IconText.
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ExampleMeta } from './ExampleMeta';
 import { ConfigProvider, Icon, IconText, Box, Button, Title } from '../index';

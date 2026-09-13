@@ -145,8 +145,11 @@ describe('Content Component', () => {
   test('ignores invalid Bulma props', () => {
     render(
       <Content
+        // @ts-expect-error not a Bulma color; the point is that it is dropped
         textColor="invalid-color"
+        // @ts-expect-error not a Bulma size; the point is that it is dropped
         size="invalid-size"
+        // @ts-expect-error not a Bulma spacing value; the point is that it is dropped
         m="invalid-size"
         as="invalid"
       >

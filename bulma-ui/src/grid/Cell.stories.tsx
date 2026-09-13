@@ -1,4 +1,3 @@
-import React from 'react';
 import { Grid } from './Grid';
 import { Cell } from './Cell';
 import { Notification } from '../elements/Notification';

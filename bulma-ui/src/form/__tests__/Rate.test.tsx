@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Rate } from '../Rate';
+import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
 
@@ -856,7 +856,9 @@ describe('Rate', () => {
 
   describe('Custom Icon partial fill', () => {
     it('passes fillPercent to customIcon when value is fractional', () => {
-      const customIcon = jest.fn(() => <span data-testid="ci">x</span>);
+      const customIcon = jest.fn((_props: RateIconProps) => (
+        <span data-testid="ci">x</span>
+      ));
       render(
         <Rate
           value={2.5}
@@ -869,24 +871,19 @@ describe('Rate', () => {
       // Icon at index 2 should be the partial one with fillPercent ~50.
       const partialCall = customIcon.mock.calls.find(
         ([props]) =>
-          (props as { index: number }).index === 2 &&
-          (props as { fillPercent: number }).fillPercent > 0 &&
-          (props as { fillPercent: number }).fillPercent < 100
+          props.index === 2 && props.fillPercent > 0 && props.fillPercent < 100
       );
       expect(partialCall).toBeDefined();
-      const props = partialCall![0] as {
-        index: number;
-        isActive: boolean;
-        fillPercent: number;
-        value: number;
-      };
+      const props = partialCall![0];
       expect(props.fillPercent).toBe(50);
       expect(props.isActive).toBe(true);
       expect(props.value).toBe(2.5);
     });
 
     it('marks customIcon as hovered when hoverValue passes its index (partial path)', () => {
-      const customIcon = jest.fn(() => <span data-testid="ci">x</span>);
+      const customIcon = jest.fn((_props: RateIconProps) => (
+        <span data-testid="ci">x</span>
+      ));
       const { container } = render(
         <Rate defaultValue={0} precision={0.5} customIcon={customIcon} />
       );
@@ -899,9 +896,7 @@ describe('Rate', () => {
       fireEvent.mouseMove(stars[2], { clientX: 45 });
 
       const partialCalls = customIcon.mock.calls.filter(
-        ([props]) =>
-          (props as { fillPercent: number }).fillPercent > 0 &&
-          (props as { fillPercent: number }).fillPercent < 100
+        ([props]) => props.fillPercent > 0 && props.fillPercent < 100
       );
       expect(partialCalls.length).toBeGreaterThan(0);
     });
