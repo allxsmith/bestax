@@ -693,7 +693,7 @@ describe('bloomer navigation handlers', () => {
     // `<input>` is void AND interactive, and an `<a>` may contain no
     // interactive content — so `<a><input /></a>` is as invalid as nesting an
     // anchor inside a button. Void-ness alone is the wrong test.
-    for (const tag of ['input', 'select', 'textarea', 'label']) {
+    for (const tag of ['input', 'select', 'textarea', 'iframe', 'button']) {
       const out = migrate(dyn('Help', `<Help tag="${tag}" href="/x">x</Help>`));
       expect(out.todos[0].message).toContain('navigate in `onClick`');
       // Replacing the element with an anchor ("make it an <a>") is still fair
@@ -706,11 +706,14 @@ describe('bloomer navigation handlers', () => {
 
   it('still offers nesting where the element only refuses to be wrapped', () => {
     // "May an <a> contain it" and "may it contain an <a>" are different
-    // questions, and one set cannot answer both. `<details>` is interactive, so
-    // no <a> may wrap it — but
-    // `<details><summary>x</summary><a href>y</a></details>` is ordinary valid
-    // markup, and suppressing that advice was the cost of conflating them.
-    for (const tag of ['details', 'iframe']) {
+    // questions, and one set cannot answer both. `<details>` and `<label>` are
+    // interactive, so no <a> may wrap either — and both hold an <a> child
+    // perfectly well (`label`'s content model excludes labelable controls and
+    // nested labels, not anchors). Suppressing that advice was the cost of
+    // conflating the two directions. `iframe` is the opposite case and sits in
+    // the loop above: its content model is "nothing", so markup between its
+    // tags is not a usable child at all.
+    for (const tag of ['details', 'label']) {
       const out = migrate(
         dyn('Help', `<Help tag="${tag}" target="_blank">x</Help>`)
       );
