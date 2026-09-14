@@ -704,6 +704,35 @@ describe('bloomer navigation handlers', () => {
     }
   });
 
+  it('tells a context-bound element to stop being the link', () => {
+    // `base`/`link`/`meta` belong to <head>, `col` to <colgroup>, `source` and
+    // `track` to a media element, `param` to <object>, `area` to <map>. No <a>
+    // can sit between any of them and the parent the spec requires, so neither
+    // nesting nor wrapping is available — this branch is the only one that
+    // offers neither, and nothing else covers it.
+    // `area` is in that set for correctness and is unreachable here: it really
+    // does take `href` and `target`, so the earlier element check keeps them
+    // and the remedy never runs.
+    for (const tag of ['meta', 'col', 'source', 'track']) {
+      const attr = migrate(
+        dyn('Help', `<Help tag="${tag}" target="_blank">x</Help>`)
+      );
+      expect(attr.todos[0].message).toContain(
+        'move it to an element that can take it'
+      );
+      expect(attr.todos[0].message).not.toContain('<a>');
+
+      const href = migrate(
+        dyn('Help', `<Help tag="${tag}" href="/x">x</Help>`)
+      );
+      expect(href.todos[0].message).toContain(
+        'use an element that can be a link'
+      );
+      expect(href.todos[0].message).not.toContain('<a> inside');
+      expect(href.todos[0].message).not.toContain('wrap it in an <a>');
+    }
+  });
+
   it('still offers nesting where the element only refuses to be wrapped', () => {
     // "May an <a> contain it" and "may it contain an <a>" are different
     // questions, and one set cannot answer both. `<details>` and `<label>` are
