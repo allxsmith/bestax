@@ -142,31 +142,47 @@ const LINK_REMEDY: Record<string, string> = {
 };
 
 /**
- * Interactive content. An `<a>` may contain none of it, and none of it may
- * usefully contain an `<a>` either -- both nest interactive content inside
- * interactive content -- so for these the remedy is neither wrapping nor
- * nesting.
+ * Elements that may not CONTAIN an `<a>`, so "put an <a> inside" names markup
+ * the author cannot write.
  *
- * `LINK_REMEDY` states this per TARGET, for components that render such an
- * element whatever `as` says; this states it per RENDERED ELEMENT, for the ones
- * where the author's `as` chose it. `Dropdown.Item` needs both readings: it is
- * a link by default and a `<button>` on request.
+ * This is not the same question as "may an `<a>` contain it". Interactive
+ * content -- `button`, `input`, `details`, `iframe`, … -- may not be an `<a>`
+ * DESCENDANT, which rules out wrapping; only a subset also refuses an `<a>`
+ * child, which is what rules out nesting. `<details>` is the case that shows
+ * they differ: an `<a>` may not wrap one, and
+ * `<details><summary>…</summary><a href>…</a></details>` is ordinary valid
+ * markup. Conflating the two directions suppressed advice that was correct.
  *
- * `audio` and `video` are deliberately absent: they are interactive only with
- * `controls`, which the tag alone does not say, and an `<a>` wrapping one
- * without it is valid.
+ * So this set is only the second direction, read off each element's content
+ * model: `a` (no nested anchor), `button`/`label` (no interactive descendant),
+ * `select`/`textarea` (options and text only), `embed`/`input` (void).
+ *
+ * `LINK_REMEDY` states the same thing per TARGET, for components that render
+ * such an element whatever `as` says; this states it per RENDERED ELEMENT, for
+ * the ones where the author's `as` chose it. `Dropdown.Item` needs both
+ * readings: it is a link by default and a `<button>` on request.
  */
-const NO_NESTED_ANCHOR = new Set([
+const NO_ANCHOR_CHILD = new Set([
   'a',
   'button',
-  'details',
   'embed',
-  'iframe',
   'input',
   'label',
   'select',
   'textarea',
 ]);
+
+/**
+ * Elements an `<a>` may not WRAP, because they are interactive content and an
+ * `<a>` may have no interactive descendant. The complement of the set above
+ * rather than the same list: `details` and `iframe` refuse to be wrapped and
+ * accept an `<a>` child perfectly well.
+ *
+ * `audio` and `video` are deliberately absent -- interactive only with
+ * `controls`, which the tag alone does not say, so wrapping one is valid as far
+ * as this can tell.
+ */
+const NO_ANCHOR_WRAPPER = new Set([...NO_ANCHOR_CHILD, 'details', 'iframe']);
 
 /**
  * Void elements an `<a>` may actually WRAP. `<a><img></a>` is the canonical
@@ -218,7 +234,7 @@ export const nestOrClick = (
   rendered: string | undefined,
   carry = false
 ): string => {
-  if (rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)) {
+  if (rendered !== undefined && NO_ANCHOR_CHILD.has(rendered)) {
     return 'navigate in `onClick`';
   }
   if (rendered !== undefined && CONTEXT_BOUND.has(rendered)) {
@@ -226,7 +242,11 @@ export const nestOrClick = (
       ? 'move it to an element that can take it'
       : 'use an element that can be a link';
   }
-  if (rendered !== undefined && WRAPPABLE_VOID.has(rendered)) {
+  if (
+    rendered !== undefined &&
+    WRAPPABLE_VOID.has(rendered) &&
+    !NO_ANCHOR_WRAPPER.has(rendered)
+  ) {
     return carry
       ? 'put it on an <a> wrapping this element'
       : 'wrap it in an <a>';
