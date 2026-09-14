@@ -154,8 +154,14 @@ const LINK_REMEDY: Record<string, string> = {
  * markup. Conflating the two directions suppressed advice that was correct.
  *
  * So this set is only the second direction, read off each element's content
- * model: `a` (no nested anchor), `button`/`label` (no interactive descendant),
- * `select`/`textarea` (options and text only), `embed`/`input` (void).
+ * model: `a` (transparent, but no `a` descendant), `button` (no interactive
+ * descendant), `select`/`textarea` (options and text only), `embed`/`input`
+ * (void), `iframe` (content model "nothing" — markup between the tags is not a
+ * usable child).
+ *
+ * `label` is deliberately NOT here, though it is interactive: its content model
+ * is phrasing content excluding labelable controls and nested labels, and an
+ * `<a>` is neither. It refuses to be WRAPPED, not to hold a link.
  *
  * `LINK_REMEDY` states the same thing per TARGET, for components that render
  * such an element whatever `as` says; this states it per RENDERED ELEMENT, for
@@ -166,8 +172,8 @@ const NO_ANCHOR_CHILD = new Set([
   'a',
   'button',
   'embed',
+  'iframe',
   'input',
-  'label',
   'select',
   'textarea',
 ]);
@@ -175,14 +181,15 @@ const NO_ANCHOR_CHILD = new Set([
 /**
  * Elements an `<a>` may not WRAP, because they are interactive content and an
  * `<a>` may have no interactive descendant. The complement of the set above
- * rather than the same list: `details` and `iframe` refuse to be wrapped and
- * accept an `<a>` child perfectly well.
+ * rather than the same list: `details` and `label` refuse to be wrapped and
+ * accept an `<a>` child perfectly well, which is the whole reason the two
+ * questions need two sets.
  *
  * `audio` and `video` are deliberately absent -- interactive only with
  * `controls`, which the tag alone does not say, so wrapping one is valid as far
  * as this can tell.
  */
-const NO_ANCHOR_WRAPPER = new Set([...NO_ANCHOR_CHILD, 'details', 'iframe']);
+const NO_ANCHOR_WRAPPER = new Set([...NO_ANCHOR_CHILD, 'details', 'label']);
 
 /**
  * Void elements an `<a>` may actually WRAP. `<a><img></a>` is the canonical
