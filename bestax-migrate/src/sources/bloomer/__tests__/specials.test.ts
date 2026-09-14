@@ -685,10 +685,23 @@ describe('bloomer navigation handlers', () => {
     );
     expect(voidAttr.todos[0].message).not.toContain('inside');
 
-    const voidHref = migrate(
-      dyn('Help', '<Help tag="input" href="/x">x</Help>')
-    );
+    const voidHref = migrate(dyn('Help', '<Help tag="br" href="/x">x</Help>'));
     expect(voidHref.todos[0].message).toContain('wrap it in an <a>');
+  });
+
+  it('does not advise wrapping an interactive element in an <a> either', () => {
+    // `<input>` is void AND interactive, and an `<a>` may contain no
+    // interactive content — so `<a><input /></a>` is as invalid as nesting an
+    // anchor inside a button. Void-ness alone is the wrong test.
+    for (const tag of ['input', 'select', 'textarea', 'label']) {
+      const out = migrate(dyn('Help', `<Help tag="${tag}" href="/x">x</Help>`));
+      expect(out.todos[0].message).toContain('navigate in `onClick`');
+      // Replacing the element with an anchor ("make it an <a>") is still fair
+      // advice; nesting one inside it or wrapping one around it is not.
+      expect(out.todos[0].message).not.toContain('<a> inside');
+      expect(out.todos[0].message).not.toContain('wrapping this element');
+      expect(out.todos[0].message).not.toContain('wrap it in an <a>');
+    }
   });
 
   it('treats a falsy PanelBlock href as no anchor', () => {

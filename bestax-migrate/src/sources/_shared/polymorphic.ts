@@ -142,32 +142,52 @@ const LINK_REMEDY: Record<string, string> = {
 };
 
 /**
- * Elements that must not be given an `<a>` child -- an anchor inside
- * interactive content is invalid HTML. `LINK_REMEDY` states this per TARGET,
- * for components that render such an element whatever `as` says; this states
- * it per RENDERED ELEMENT, for the ones where the author's `as` chose it.
- * `Dropdown.Item` needs both readings: it is a link by default and a
- * `<button>` on request.
+ * Interactive content. An `<a>` may contain none of it, and none of it may
+ * usefully contain an `<a>` either -- both nest interactive content inside
+ * interactive content -- so for these the remedy is neither wrapping nor
+ * nesting.
+ *
+ * `LINK_REMEDY` states this per TARGET, for components that render such an
+ * element whatever `as` says; this states it per RENDERED ELEMENT, for the ones
+ * where the author's `as` chose it. `Dropdown.Item` needs both readings: it is
+ * a link by default and a `<button>` on request.
+ *
+ * `audio` and `video` are deliberately absent: they are interactive only with
+ * `controls`, which the tag alone does not say, and an `<a>` wrapping one
+ * without it is valid.
  */
-const NO_NESTED_ANCHOR = new Set(['a', 'button']);
+const NO_NESTED_ANCHOR = new Set([
+  'a',
+  'button',
+  'details',
+  'embed',
+  'iframe',
+  'input',
+  'label',
+  'select',
+  'textarea',
+]);
 
 /**
  * Elements that can hold no children at all, so "put an <a> inside" names
- * markup the author cannot write. They CAN be wrapped -- `<a><img></a>` is the
- * classic form -- which is the advice `Delete` already gives for the same
- * reason through `LINK_REMEDY`. The plain-markup path reaches these: bloomer's
- * `tag` is whatever literal the source wrote, so `<Help tag="img">` is one
- * rewrite away.
+ * markup the author cannot write -- but which an `<a>` may WRAP. `<a><img></a>`
+ * is the canonical form, and it is the advice `Delete` already gives for the
+ * same reason through `LINK_REMEDY`. The plain-markup path reaches these:
+ * bloomer's `tag` is whatever literal the source wrote, so `<Help tag="img">`
+ * is one rewrite away.
+ *
+ * `input` and `embed` are void too and are NOT here: they are interactive
+ * content, which an `<a>` may not contain in either direction, so they belong
+ * to the set above. Void-ness alone is the wrong test, and treating it as
+ * sufficient recommended `<a><input /></a>`.
  */
-const VOID_ELEMENTS = new Set([
+const WRAPPABLE_VOID = new Set([
   'area',
   'base',
   'br',
   'col',
-  'embed',
   'hr',
   'img',
-  'input',
   'link',
   'meta',
   'param',
@@ -196,7 +216,7 @@ export const nestOrClick = (
   if (rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)) {
     return 'navigate in `onClick`';
   }
-  if (rendered !== undefined && VOID_ELEMENTS.has(rendered)) {
+  if (rendered !== undefined && WRAPPABLE_VOID.has(rendered)) {
     return carry
       ? 'put it on an <a> wrapping this element'
       : 'wrap it in an <a>';
