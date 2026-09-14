@@ -15,7 +15,13 @@ import assert from 'node:assert/strict';
 import { turboTasksIn } from './check-conformance.mjs';
 
 const tasksOf = (scripts, entry = 'all') =>
-  [...turboTasksIn(scripts, entry)].sort();
+  [...turboTasksIn(scripts, entry).keys()].sort();
+
+/** The packages a task is filtered to, or null when some run was unfiltered. */
+const scopeOf = (scripts, task, entry = 'all') => {
+  const scope = turboTasksIn(scripts, entry).get(task);
+  return scope === null || scope === undefined ? scope : [...scope].sort();
+};
 
 test('reads the tasks of a plain segment', () => {
   assert.deepEqual(tasksOf({ all: 'turbo run build test lint' }), [
@@ -110,4 +116,57 @@ test('a script naming itself does not loop', () => {
 
 test('an entry that runs no turbo yields nothing', () => {
   assert.deepEqual(tasksOf({ all: 'eslint .' }), []);
+});
+
+test('records the package a `--filter` narrows a task to', () => {
+  // Ignoring the filter let any package's script satisfy the check — so a
+  // renamed `build-storybook` in bulma-ui passed on the strength of an
+  // unrelated one elsewhere, which is the fail-open this rule exists to close.
+  assert.deepEqual(
+    scopeOf(
+      { all: 'turbo run --filter=@scope/ui build-storybook' },
+      'build-storybook'
+    ),
+    ['@scope/ui']
+  );
+});
+
+test('reads a space-separated filter value too', () => {
+  assert.deepEqual(
+    scopeOf({ all: 'turbo run --filter @scope/ui docs' }, 'docs'),
+    ['@scope/ui']
+  );
+});
+
+test('an unfiltered run of the same task wins over a filtered one', () => {
+  // The unfiltered run only needs somebody to own the task; a later filtered
+  // run must not narrow a demand the unfiltered one already made.
+  assert.equal(
+    scopeOf(
+      { all: 'turbo run build && turbo run --filter=@scope/ui build' },
+      'build'
+    ),
+    null
+  );
+  assert.equal(
+    scopeOf(
+      { all: 'turbo run --filter=@scope/ui build && turbo run build' },
+      'build'
+    ),
+    null
+  );
+});
+
+test('unions the packages of two filtered runs', () => {
+  assert.deepEqual(
+    scopeOf(
+      { all: 'turbo run --filter=a lint && turbo run --filter=b lint' },
+      'lint'
+    ),
+    ['a', 'b']
+  );
+});
+
+test('a task with no filter anywhere has a null scope', () => {
+  assert.equal(scopeOf({ all: 'turbo run test' }, 'test'), null);
 });

@@ -3663,18 +3663,41 @@ export function turboTasksIn(scripts, entry) {
     text += ` && ${scripts[name]}`;
   }
 
-  const tasks = new Set();
+  /** task name -> Set of packages it is filtered to, or null when unfiltered. */
+  const tasks = new Map();
   for (const segment of text.matchAll(/turbo run ([^&|]*)/g)) {
     const words = segment[1].trim().split(/\s+/).filter(Boolean);
+    // A `--filter` narrows the segment to named packages, and the task has to
+    // be declared THERE. Ignoring it let any package's script satisfy the
+    // check, so a renamed `build-storybook` in bulma-ui would pass on the
+    // strength of an unrelated one elsewhere — the fail-open this closes.
+    const scope = [];
+    const names = [];
     for (let i = 0; i < words.length; i += 1) {
       const word = words[i];
       if (word === '--') break;
       if (!word.startsWith('-')) {
-        tasks.add(word);
+        names.push(word);
         continue;
       }
-      if (word.includes('=')) continue;
-      if (TURBO_VALUE_FLAGS.has(word)) i += 1;
+      const eq = word.indexOf('=');
+      const flag = eq === -1 ? word : word.slice(0, eq);
+      let value = eq === -1 ? null : word.slice(eq + 1);
+      if (value === null && TURBO_VALUE_FLAGS.has(flag)) value = words[++i];
+      if (flag === '--filter' && value) scope.push(value);
+    }
+    for (const name of names) {
+      // An unfiltered run of the same task is the weaker requirement and wins:
+      // it only needs somebody to own the task, and a later filtered run must
+      // not narrow a demand the unfiltered one already made.
+      if (!scope.length) {
+        tasks.set(name, null);
+        continue;
+      }
+      if (tasks.get(name) === null) continue;
+      const merged = tasks.get(name) ?? new Set();
+      for (const pkg of scope) merged.add(pkg);
+      tasks.set(name, merged);
     }
   }
   return tasks;
@@ -3693,7 +3716,7 @@ async function checkTurboTasks() {
   const dirs = parseWorkspacePackages(
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
   );
-  const owners = new Map([...tasks].map(t => [t, []]));
+  const owners = new Map([...tasks.keys()].map(t => [t, []]));
   for (const dir of dirs) {
     let pkg;
     try {
@@ -3702,18 +3725,32 @@ async function checkTurboTasks() {
       continue; // `publishable-manifests` reports an unreadable manifest
     }
     if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) continue;
-    for (const task of tasks) {
+    for (const task of tasks.keys()) {
       if (pkg.scripts?.[task]) owners.get(task).push(pkg.name ?? dir);
     }
   }
 
   for (const [task, found] of [...owners].sort()) {
-    if (!found.length) {
-      violations.push(
-        `package.json \`all\` reaches \`turbo run ${task}\`, but no workspace ` +
-          `package declares a "${task}" script — turbo exits 0 having run ` +
-          `nothing, so that gate passes without checking anything.`
-      );
+    const scope = tasks.get(task);
+    if (scope === null) {
+      if (!found.length) {
+        violations.push(
+          `package.json \`all\` reaches \`turbo run ${task}\`, but no workspace ` +
+            `package declares a "${task}" script — turbo exits 0 having run ` +
+            `nothing, so that gate passes without checking anything.`
+        );
+      }
+      continue;
+    }
+    // Filtered: the named packages are the ones that must declare it.
+    for (const wanted of [...scope].sort()) {
+      if (!found.includes(wanted)) {
+        violations.push(
+          `package.json \`all\` reaches \`turbo run --filter=${wanted} ${task}\`, ` +
+            `but ${wanted} declares no "${task}" script — turbo exits 0 having ` +
+            `run nothing, so that gate passes without checking anything.`
+        );
+      }
     }
   }
   return violations;
