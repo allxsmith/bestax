@@ -190,6 +190,22 @@ describe('Panel.Icon', () => {
     expect(icon.querySelector('i')).toHaveClass('fas', 'fa-user');
   });
 
+  it('accepts the deprecated `icon` path, which it re-declares by hand', () => {
+    // `PanelIconProps` enumerates the `IconProps` members rather than deriving
+    // them, so a member added to that union compiles on `Icon` and fails here
+    // until someone remembers this file. That is how the deprecated path came
+    // to be advertised on panel.md while the type rejected it (#663).
+    render(
+      <Panel.Block>
+        <Panel.Icon icon="fas fa-star" data-testid="icon" />
+        Item
+      </Panel.Block>
+    );
+    const icon = screen.getByTestId('icon');
+    expect(icon).toHaveClass('panel-icon');
+    expect(icon.querySelector('i')).toHaveClass('fas', 'fa-star');
+  });
+
   it('accepts custom className', () => {
     render(
       <Panel.Block>
