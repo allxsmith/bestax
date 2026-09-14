@@ -169,31 +169,35 @@ const NO_NESTED_ANCHOR = new Set([
 ]);
 
 /**
- * Elements that can hold no children at all, so "put an <a> inside" names
- * markup the author cannot write -- but which an `<a>` may WRAP. `<a><img></a>`
- * is the canonical form, and it is the advice `Delete` already gives for the
- * same reason through `LINK_REMEDY`. The plain-markup path reaches these:
- * bloomer's `tag` is whatever literal the source wrote, so `<Help tag="img">`
- * is one rewrite away.
+ * Void elements an `<a>` may actually WRAP. `<a><img></a>` is the canonical
+ * form, and it is the advice `Delete` already gives through `LINK_REMEDY` for
+ * the same reason. The plain-markup path reaches these: bloomer's `tag` is
+ * whatever literal the source wrote, so `<Help tag="img">` is one rewrite away.
  *
- * `input` and `embed` are void too and are NOT here: they are interactive
- * content, which an `<a>` may not contain in either direction, so they belong
- * to the set above. Void-ness alone is the wrong test, and treating it as
- * sufficient recommended `<a><input /></a>`.
+ * Deliberately short. Void-ness is necessary and not sufficient, and the two
+ * ways of getting that wrong are both invalid trees: `input` and `embed` are
+ * interactive (above), and the set below belongs somewhere an `<a>` cannot be.
  */
-const WRAPPABLE_VOID = new Set([
+const WRAPPABLE_VOID = new Set(['br', 'hr', 'img', 'wbr']);
+
+/**
+ * Void elements whose parent is fixed by the spec, so no `<a>` can sit between
+ * them and it: `base`, `link` and `meta` belong to `<head>`, `col` to
+ * `<colgroup>`, `source` and `track` to a media element, `param` to `<object>`,
+ * `area` to `<map>`.
+ *
+ * Nothing can be nested in them and nothing can wrap them, so the only honest
+ * remedy is to stop using the element for this.
+ */
+const CONTEXT_BOUND = new Set([
   'area',
   'base',
-  'br',
   'col',
-  'hr',
-  'img',
   'link',
   'meta',
   'param',
   'source',
   'track',
-  'wbr',
 ]);
 
 /**
@@ -201,9 +205,10 @@ const WRAPPABLE_VOID = new Set([
  * that has to land ON the anchor to do anything (`target`, `download`, …) and
  * false where the anchor itself IS the remedy (a bare `href`).
  *
- * Three answers, because "put an <a> inside" is wrong in two different ways: an
- * anchor inside interactive content is invalid, and an anchor inside a void
- * element is impossible.
+ * Four answers, because "put an <a> inside" is wrong in three different ways:
+ * an anchor inside interactive content is invalid, an anchor inside a void
+ * element is impossible, and an anchor around a context-bound element puts it
+ * somewhere its parent may not be.
  *
  * Exported because `specials-utils.ts` reaches the same question from the plain
  * markup side, and `bestax-migrate/CLAUDE.md` puts a rule two transforms need in
@@ -215,6 +220,11 @@ export const nestOrClick = (
 ): string => {
   if (rendered !== undefined && NO_NESTED_ANCHOR.has(rendered)) {
     return 'navigate in `onClick`';
+  }
+  if (rendered !== undefined && CONTEXT_BOUND.has(rendered)) {
+    return carry
+      ? 'move it to an element that can take it'
+      : 'use an element that can be a link';
   }
   if (rendered !== undefined && WRAPPABLE_VOID.has(rendered)) {
     return carry
