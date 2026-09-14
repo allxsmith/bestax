@@ -138,7 +138,7 @@ Apply bold text weight using the `textWeight` prop.
 Display links in all Bulma theme colors.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="2">
+<Block display="flex" flexDirection="column">
   <Link href="#" textColor="primary">
     Primary Link
   </Link>

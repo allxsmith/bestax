@@ -31,7 +31,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Code textColor=\"primary\">primary code</Code>\n  <Code textColor=\"link\">link code</Code>\n  <Code textColor=\"info\">info code</Code>\n  <Code textColor=\"success\">success code</Code>\n  <Code textColor=\"warning\">warning code</Code>\n  <Code textColor=\"danger\">danger code</Code>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Code textColor=\"primary\">primary code</Code>\n  <Code textColor=\"link\">link code</Code>\n  <Code textColor=\"info\">info code</Code>\n  <Code textColor=\"success\">success code</Code>\n  <Code textColor=\"warning\">warning code</Code>\n  <Code textColor=\"danger\">danger code</Code>\n</Block>"
     },
     {
       "title": "File Path",

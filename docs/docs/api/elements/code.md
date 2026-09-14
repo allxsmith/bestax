@@ -97,7 +97,7 @@ Add background color and padding for visibility.
 Display code in all Bulma theme colors.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="2">
+<Block display="flex" flexDirection="column">
   <Code textColor="primary">primary code</Code>
   <Code textColor="link">link code</Code>
   <Code textColor="info">info code</Code>

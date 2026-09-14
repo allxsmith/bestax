@@ -28,7 +28,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Span textColor=\"primary\">Primary Span</Span>\n  <Span textColor=\"link\">Link Span</Span>\n  <Span textColor=\"info\">Info Span</Span>\n  <Span textColor=\"success\">Success Span</Span>\n  <Span textColor=\"warning\">Warning Span</Span>\n  <Span textColor=\"danger\">Danger Span</Span>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Span textColor=\"primary\">Primary Span</Span>\n  <Span textColor=\"link\">Link Span</Span>\n  <Span textColor=\"info\">Info Span</Span>\n  <Span textColor=\"success\">Success Span</Span>\n  <Span textColor=\"warning\">Warning Span</Span>\n  <Span textColor=\"danger\">Danger Span</Span>\n</Block>"
     },
     {
       "title": "Inline with Text",

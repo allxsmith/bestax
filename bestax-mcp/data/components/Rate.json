@@ -23,7 +23,7 @@
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Rate defaultValue={3} size=\"small\" />\n  <Rate defaultValue={3} />\n  <Rate defaultValue={3} size=\"medium\" />\n  <Rate defaultValue={3} size=\"large\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Rate defaultValue={3} size=\"small\" />\n  <Rate defaultValue={3} />\n  <Rate defaultValue={3} size=\"medium\" />\n  <Rate defaultValue={3} size=\"large\" />\n</Block>"
     },
     {
       "title": "Custom Max Value",

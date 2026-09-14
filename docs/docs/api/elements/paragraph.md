@@ -115,7 +115,7 @@ Use `textAlign="justified"` for text that spans the full width.
 Display paragraphs in all Bulma theme colors.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="2">
+<Block display="flex" flexDirection="column">
   <Paragraph textColor="primary">Primary paragraph</Paragraph>
   <Paragraph textColor="link">Link paragraph</Paragraph>
   <Paragraph textColor="info">Info paragraph</Paragraph>

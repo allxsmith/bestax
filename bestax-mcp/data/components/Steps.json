@@ -15,11 +15,11 @@
     },
     {
       "title": "Color Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"success\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"info\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"warning\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"danger\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"success\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"info\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"warning\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"danger\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n</Block>"
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Steps\n    value={1}\n    size=\"small\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    size=\"medium\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    size=\"large\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Steps\n    value={1}\n    size=\"small\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    size=\"medium\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    size=\"large\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n</Block>"
     },
     {
       "title": "With Icons",

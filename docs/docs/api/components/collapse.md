@@ -174,7 +174,7 @@ function example() {
   ];
 
   return (
-    <Block display="flex" flexDirection="column" gap="2">
+    <Block display="flex" flexDirection="column">
       {items.map((item, index) => (
         <Collapse
           key={index}
@@ -259,7 +259,7 @@ function example() {
       <Title size="5" mb="4">
         FAQ
       </Title>
-      <Block display="flex" flexDirection="column" gap="2">
+      <Block display="flex" flexDirection="column">
         {faqs.map((faq, index) => (
           <Collapse
             key={index}

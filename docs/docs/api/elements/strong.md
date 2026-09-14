@@ -86,7 +86,7 @@ Strong text works naturally inline within paragraphs.
 Display strong text in all Bulma theme colors.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="2">
+<Block display="flex" flexDirection="column">
   <Strong textColor="primary">Primary strong</Strong>
   <Strong textColor="link">Link strong</Strong>
   <Strong textColor="info">Info strong</Strong>

@@ -121,7 +121,7 @@ The `size` prop adjusts the size of the icon container. Use `size="large"` for a
 Use Google's official Material Icons with different styles available through `variant`.
 
 ```tsx live
-<Block display="flex" gap="4" alignItems="center">
+<Block display="flex" alignItems="center">
   <Icon library="material-icons" name="favorite" ariaLabel="Filled heart" />
   <Icon
     library="material-icons"
@@ -143,7 +143,7 @@ Use Google's official Material Icons with different styles available through `va
 Google's newest icon system with modern design and comprehensive coverage.
 
 ```tsx live
-<Block display="flex" gap="4" alignItems="center">
+<Block display="flex" alignItems="center">
   <Icon
     library="material-symbols"
     name="settings"

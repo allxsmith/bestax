@@ -78,7 +78,7 @@ function example() {
 Steps with different color variants.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="5">
+<Block display="flex" flexDirection="column">
   <Steps
     value={1}
     color="primary"
@@ -114,7 +114,7 @@ Steps with different color variants.
 Steps with different size variants.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="5">
+<Block display="flex" flexDirection="column">
   <Steps
     value={1}
     size="small"

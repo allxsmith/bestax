@@ -27,7 +27,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Emphasis textColor=\"primary\">Primary emphasis</Emphasis>\n  <Emphasis textColor=\"link\">Link emphasis</Emphasis>\n  <Emphasis textColor=\"info\">Info emphasis</Emphasis>\n  <Emphasis textColor=\"success\">Success emphasis</Emphasis>\n  <Emphasis textColor=\"warning\">Warning emphasis</Emphasis>\n  <Emphasis textColor=\"danger\">Danger emphasis</Emphasis>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Emphasis textColor=\"primary\">Primary emphasis</Emphasis>\n  <Emphasis textColor=\"link\">Link emphasis</Emphasis>\n  <Emphasis textColor=\"info\">Info emphasis</Emphasis>\n  <Emphasis textColor=\"success\">Success emphasis</Emphasis>\n  <Emphasis textColor=\"warning\">Warning emphasis</Emphasis>\n  <Emphasis textColor=\"danger\">Danger emphasis</Emphasis>\n</Block>"
     },
     {
       "title": "Quotation Style",

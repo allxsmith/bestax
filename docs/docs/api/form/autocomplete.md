@@ -120,7 +120,7 @@ function example() {
 Autocomplete with different colors and sizes.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Autocomplete
     data={['Apple', 'Banana', 'Cherry']}
     placeholder="Primary small"

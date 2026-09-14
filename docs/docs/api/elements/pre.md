@@ -98,7 +98,7 @@ dist/index.js  45.23 kB
 Display different code examples side by side.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Pre bgColor="light" p="3">
     <Code>{`// JavaScript
 const add = (a, b) => a + b;`}</Code>

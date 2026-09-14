@@ -35,7 +35,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Paragraph textColor=\"primary\">Primary paragraph</Paragraph>\n  <Paragraph textColor=\"link\">Link paragraph</Paragraph>\n  <Paragraph textColor=\"info\">Info paragraph</Paragraph>\n  <Paragraph textColor=\"success\">Success paragraph</Paragraph>\n  <Paragraph textColor=\"warning\">Warning paragraph</Paragraph>\n  <Paragraph textColor=\"danger\">Danger paragraph</Paragraph>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Paragraph textColor=\"primary\">Primary paragraph</Paragraph>\n  <Paragraph textColor=\"link\">Link paragraph</Paragraph>\n  <Paragraph textColor=\"info\">Info paragraph</Paragraph>\n  <Paragraph textColor=\"success\">Success paragraph</Paragraph>\n  <Paragraph textColor=\"warning\">Warning paragraph</Paragraph>\n  <Paragraph textColor=\"danger\">Danger paragraph</Paragraph>\n</Block>"
     },
     {
       "title": "Stacked Paragraphs",

@@ -35,11 +35,11 @@
     },
     {
       "title": "Google Material Icons",
-      "code": "<Block display=\"flex\" gap=\"4\" alignItems=\"center\">\n  <Icon library=\"material-icons\" name=\"favorite\" ariaLabel=\"Filled heart\" />\n  <Icon\n    library=\"material-icons\"\n    name=\"favorite\"\n    variant=\"outlined\"\n    ariaLabel=\"Outlined heart\"\n  />\n  <Icon\n    library=\"material-icons\"\n    name=\"favorite\"\n    variant=\"round\"\n    ariaLabel=\"Round heart\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Icon library=\"material-icons\" name=\"favorite\" ariaLabel=\"Filled heart\" />\n  <Icon\n    library=\"material-icons\"\n    name=\"favorite\"\n    variant=\"outlined\"\n    ariaLabel=\"Outlined heart\"\n  />\n  <Icon\n    library=\"material-icons\"\n    name=\"favorite\"\n    variant=\"round\"\n    ariaLabel=\"Round heart\"\n  />\n</Block>"
     },
     {
       "title": "Material Symbols",
-      "code": "<Block display=\"flex\" gap=\"4\" alignItems=\"center\">\n  <Icon\n    library=\"material-symbols\"\n    name=\"settings\"\n    ariaLabel=\"Settings outlined\"\n  />\n  <Icon\n    library=\"material-symbols\"\n    name=\"settings\"\n    variant=\"rounded\"\n    ariaLabel=\"Settings rounded\"\n  />\n  <Icon\n    library=\"material-symbols\"\n    name=\"settings\"\n    variant=\"sharp\"\n    ariaLabel=\"Settings sharp\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Icon\n    library=\"material-symbols\"\n    name=\"settings\"\n    ariaLabel=\"Settings outlined\"\n  />\n  <Icon\n    library=\"material-symbols\"\n    name=\"settings\"\n    variant=\"rounded\"\n    ariaLabel=\"Settings rounded\"\n  />\n  <Icon\n    library=\"material-symbols\"\n    name=\"settings\"\n    variant=\"sharp\"\n    ariaLabel=\"Settings sharp\"\n  />\n</Block>"
     },
     {
       "title": "Material Design Icons",

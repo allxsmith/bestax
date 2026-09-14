@@ -91,7 +91,7 @@ Apply bold text weight for emphasis.
 Display spans in all Bulma theme colors.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="2">
+<Block display="flex" flexDirection="column">
   <Span textColor="primary">Primary Span</Span>
   <Span textColor="link">Link Span</Span>
   <Span textColor="info">Info Span</Span>

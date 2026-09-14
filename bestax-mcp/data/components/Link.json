@@ -40,7 +40,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Link href=\"#\" textColor=\"primary\">\n    Primary Link\n  </Link>\n  <Link href=\"#\" textColor=\"link\">\n    Link Color Link\n  </Link>\n  <Link href=\"#\" textColor=\"info\">\n    Info Link\n  </Link>\n  <Link href=\"#\" textColor=\"success\">\n    Success Link\n  </Link>\n  <Link href=\"#\" textColor=\"warning\">\n    Warning Link\n  </Link>\n  <Link href=\"#\" textColor=\"danger\">\n    Danger Link\n  </Link>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Link href=\"#\" textColor=\"primary\">\n    Primary Link\n  </Link>\n  <Link href=\"#\" textColor=\"link\">\n    Link Color Link\n  </Link>\n  <Link href=\"#\" textColor=\"info\">\n    Info Link\n  </Link>\n  <Link href=\"#\" textColor=\"success\">\n    Success Link\n  </Link>\n  <Link href=\"#\" textColor=\"warning\">\n    Warning Link\n  </Link>\n  <Link href=\"#\" textColor=\"danger\">\n    Danger Link\n  </Link>\n</Block>"
     },
     {
       "title": "Inline Link",
