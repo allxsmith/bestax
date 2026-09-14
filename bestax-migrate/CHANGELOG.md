@@ -1,3 +1,26 @@
+## [2.3.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.3.2...bestax-migrate@2.3.3) (2026-09-14)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** an anchor cannot wrap an element whose parent is fixed ([1e2e78b](https://github.com/allxsmith/bestax/commit/1e2e78b0508ba9b825411b5a070a188aba74b4a6)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** an anchor may not wrap interactive content either ([5637976](https://github.com/allxsmith/bestax/commit/5637976a9f734f98e62ea45a7ea1089630eb92e8)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** apply the nested-anchor rule on the plain-markup path too ([ba27e3a](https://github.com/allxsmith/bestax/commit/ba27e3a9108fc673f147a37312e8a15d06a46449)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** do not advise nesting an <a> inside an element that holds none ([156c793](https://github.com/allxsmith/bestax/commit/156c7938f076ff9aa8fba49d3ebbaa76101b59ab)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** keep the href `Dropdown.Item` now takes ([e261cdd](https://github.com/allxsmith/bestax/commit/e261cddc88566377bccccdbeb3d2a7466d919409)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** read iframe and label off their own content models ([6612821](https://github.com/allxsmith/bestax/commit/6612821a0e7d4d385a96bc19a251fe53f1d74f44)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** read the element before advising an <a> inside it ([88a95a3](https://github.com/allxsmith/bestax/commit/88a95a3e2c0aab8aab661815596418cc8b911d66)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bestax-migrate:** stop conflating the two directions an anchor can be invalid ([c7dac64](https://github.com/allxsmith/bestax/commit/c7dac646c8e8e6b035514621381d727a0f98f5a3)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** carry the deprecated `icon` path through every consumer of IconProps ([b8eb722](https://github.com/allxsmith/bestax/commit/b8eb722492d61d471d9440b68668027e47aac5eb)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** declare the deprecated `icon` path `Icon` still honours ([80124d1](https://github.com/allxsmith/bestax/commit/80124d12c6f27feb4828815c91d033dcb75853ba)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** keep DropdownItemProps accepting every tag it always accepted ([d621b88](https://github.com/allxsmith/bestax/commit/d621b88d86bd7f3bc053474d215726b03df35408)), closes [#667](https://github.com/allxsmith/bestax/issues/667) [#667](https://github.com/allxsmith/bestax/issues/667) [#667](https://github.com/allxsmith/bestax/issues/667) [#663](https://github.com/allxsmith/bestax/issues/663) [#667](https://github.com/allxsmith/bestax/issues/667)
+* **bulma-ui:** keep React's own node shapes out of the icon-props branch ([638e329](https://github.com/allxsmith/bestax/commit/638e329929beaa3f90709cffb7458adcc155c90c)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** keep the button default against a spread, and tag the deprecated props ([fcc148b](https://github.com/allxsmith/bestax/commit/fcc148b74655a42c99ddc595f38dc5dd11f82e95)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** let Dropdown.Item's props follow its constrained `as` ([f9c998f](https://github.com/allxsmith/bestax/commit/f9c998f483997e99deaed4b2a45b176bc2e4743c)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** stop a Dropdown.Item button submitting the form it sits in ([a27f0d6](https://github.com/allxsmith/bestax/commit/a27f0d6702fe5afbf830bcb84a40cea2a1022195)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** test the icon-config shape, and keep one copy of the guard ([f8c9c5b](https://github.com/allxsmith/bestax/commit/f8c9c5b48e97297d5dab900ca2b78f15be59b54c)), closes [#663](https://github.com/allxsmith/bestax/issues/663)
+* **bulma-ui:** withhold an href from a Dropdown.Item that is not an anchor ([f597cf2](https://github.com/allxsmith/bestax/commit/f597cf2ae36ebca4c4b57a65ac69c3c259187153)), closes [#667](https://github.com/allxsmith/bestax/issues/667) [#667](https://github.com/allxsmith/bestax/issues/667) [#663](https://github.com/allxsmith/bestax/issues/663)
+
 ## [2.3.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.3.1...bestax-migrate@2.3.2) (2026-09-13)
 
 
