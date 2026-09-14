@@ -51,7 +51,7 @@ Switch with different color variants.
 ```tsx live
 function example() {
   return (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <Switch color="primary" defaultChecked>
         Primary
       </Switch>
@@ -84,7 +84,7 @@ Switch with different size variants.
 ```tsx live
 function example() {
   return (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <Switch size="small" defaultChecked>
         Small
       </Switch>
@@ -143,7 +143,7 @@ Switch with outlined style.
 ```tsx live
 function example() {
   return (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <Switch isOutlined color="primary" defaultChecked>
         Primary outlined
       </Switch>
@@ -180,7 +180,7 @@ Disabled switches.
 ```tsx live
 function example() {
   return (
-    <Block display="flex" flexDirection="column" gap="4">
+    <Block display="flex" flexDirection="column">
       <Switch disabled>Disabled unchecked</Switch>
       <Switch disabled defaultChecked color="success">
         Disabled checked
@@ -238,7 +238,7 @@ function example() {
   return (
     <Block style={{ maxWidth: '300px' }}>
       <Title size="5">Settings</Title>
-      <Block display="flex" flexDirection="column" gap="4">
+      <Block display="flex" flexDirection="column">
         <Switch
           color="primary"
           checked={settings.notifications}

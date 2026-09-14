@@ -15,15 +15,15 @@
     },
     {
       "title": "Color Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Numberinput defaultValue={5} color=\"primary\" />\n  <Numberinput defaultValue={5} color=\"success\" />\n  <Numberinput defaultValue={5} color=\"info\" />\n  <Numberinput defaultValue={5} color=\"warning\" />\n  <Numberinput defaultValue={5} color=\"danger\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Numberinput defaultValue={5} color=\"primary\" />\n  <Numberinput defaultValue={5} color=\"success\" />\n  <Numberinput defaultValue={5} color=\"info\" />\n  <Numberinput defaultValue={5} color=\"warning\" />\n  <Numberinput defaultValue={5} color=\"danger\" />\n</Block>"
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Numberinput defaultValue={5} size=\"small\" color=\"primary\" />\n  <Numberinput defaultValue={5} color=\"primary\" />\n  <Numberinput defaultValue={5} size=\"medium\" color=\"primary\" />\n  <Numberinput defaultValue={5} size=\"large\" color=\"primary\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Numberinput defaultValue={5} size=\"small\" color=\"primary\" />\n  <Numberinput defaultValue={5} color=\"primary\" />\n  <Numberinput defaultValue={5} size=\"medium\" color=\"primary\" />\n  <Numberinput defaultValue={5} size=\"large\" color=\"primary\" />\n</Block>"
     },
     {
       "title": "Controls Position",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Block>\n    <Paragraph mb=\"1\">Both sides (default)</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"both\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Left only</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"left\" color=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Right only</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"right\" color=\"success\" />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Both sides (default)</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"both\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Left only</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"left\" color=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Right only</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"right\" color=\"success\" />\n  </Block>\n</Block>"
     },
     {
       "title": "Rounded Buttons",

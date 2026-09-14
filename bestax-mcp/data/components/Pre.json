@@ -27,7 +27,7 @@
     },
     {
       "title": "Multiple Code Blocks",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Pre bgColor=\"light\" p=\"3\">\n    <Code>{`// JavaScript\nconst add = (a, b) => a + b;`}</Code>\n  </Pre>\n  <Pre bgColor=\"light\" p=\"3\">\n    <Code>{`// TypeScript\nconst add = (a: number, b: number): number => a + b;`}</Code>\n  </Pre>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Pre bgColor=\"light\" p=\"3\">\n    <Code>{`// JavaScript\nconst add = (a, b) => a + b;`}</Code>\n  </Pre>\n  <Pre bgColor=\"light\" p=\"3\">\n    <Code>{`// TypeScript\nconst add = (a: number, b: number): number => a + b;`}</Code>\n  </Pre>\n</Block>"
     },
     {
       "title": "Primary Accent",

@@ -228,7 +228,7 @@ function example() {
 The `format` prop takes a token string or `Intl.DateTimeFormatOptions`. Padded tokens (`YYYY`, `YY`, `MM`, `DD`) keep the field segmented-typeable; `Intl` formats are display-only unless you also pass a custom `parse`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput
     label="YYYY-MM-DD (default)"
     defaultValue={new Date(2026, 4, 30)}
@@ -311,7 +311,7 @@ function example() {
 A clickable launcher sits on the **right** and toggles the popover — handy for input-mode (`openOnFocus={false}`) where you type the value and click the icon to open the calendar. Override its glyph with `triggerIconName`, or hide it with `triggerIcon={false}` (the popover still opens on focus / click). The decorative **left** icon is independent: it shows by default, takes its glyph from `iconLeftName`, and is hidden with `iconLeftName=""`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput label="Default (left icon + right launcher)" />
   <DateInput label="Custom launcher glyph" triggerIconName="calendar-day" />
   <DateInput label="No launcher" triggerIcon={false} />
@@ -322,7 +322,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 **Typing-first** — the same group with `openOnFocus={false}`, where the launcher icon earns its keep; note that the `triggerIcon={false}` instance has no launcher, so its popover is keyboard-only (`↓`).
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput label="Default (left icon + right launcher)" openOnFocus={false} />
   <DateInput
     label="Custom launcher glyph"
@@ -458,7 +458,7 @@ Segmented typing with no calendar — handy in dense forms.
 Day and month names follow the supplied BCP-47 locale via `Intl.DateTimeFormat`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput
     label="ja-JP"
     locale="ja-JP"
@@ -487,7 +487,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 **Typing-first** — the same locales with `openOnFocus={false}` added: type straight into each field, then compare the localized calendars via the launcher icon (or `↓`).
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput
     label="ja-JP"
     locale="ja-JP"
@@ -569,7 +569,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 ### Sizes
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput label="Small" controlSize="small" size="small" />
   <DateInput label="Default" />
   <DateInput label="Medium" controlSize="medium" size="medium" />
@@ -580,7 +580,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 **Typing-first** — every size with `openOnFocus={false}` so focusing just lets you type; the launcher icon (or `↓`) opens the popover.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput
     label="Small"
     controlSize="small"
@@ -608,7 +608,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 ### Colors
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput label="Primary" color="primary" />
   <DateInput label="Info" color="info" />
   <DateInput label="Success" color="success" />
@@ -620,7 +620,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 **Typing-first** — the same palette with `openOnFocus={false}`: click in to type, and use the launcher icon (or `↓`) for the calendar.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput label="Primary" color="primary" openOnFocus={false} />
   <DateInput label="Info" color="info" openOnFocus={false} />
   <DateInput label="Success" color="success" openOnFocus={false} />
@@ -634,7 +634,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 ### States
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateInput label="Disabled" disabled />
   <DateInput label="Read only" readOnly defaultValue={new Date()} />
   <DateInput label="Loading" isLoading />

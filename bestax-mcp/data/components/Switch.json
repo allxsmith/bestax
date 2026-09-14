@@ -11,11 +11,11 @@
     },
     {
       "title": "Colors",
-      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch color=\"primary\" defaultChecked>\n        Primary\n      </Switch>\n      <Switch color=\"link\" defaultChecked>\n        Link\n      </Switch>\n      <Switch color=\"info\" defaultChecked>\n        Info\n      </Switch>\n      <Switch color=\"success\" defaultChecked>\n        Success\n      </Switch>\n      <Switch color=\"warning\" defaultChecked>\n        Warning\n      </Switch>\n      <Switch color=\"danger\" defaultChecked>\n        Danger\n      </Switch>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <Switch color=\"primary\" defaultChecked>\n        Primary\n      </Switch>\n      <Switch color=\"link\" defaultChecked>\n        Link\n      </Switch>\n      <Switch color=\"info\" defaultChecked>\n        Info\n      </Switch>\n      <Switch color=\"success\" defaultChecked>\n        Success\n      </Switch>\n      <Switch color=\"warning\" defaultChecked>\n        Warning\n      </Switch>\n      <Switch color=\"danger\" defaultChecked>\n        Danger\n      </Switch>\n    </Block>\n  );\n}"
     },
     {
       "title": "Sizes",
-      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch size=\"small\" defaultChecked>\n        Small\n      </Switch>\n      <Switch size=\"normal\" defaultChecked>\n        Normal\n      </Switch>\n      <Switch size=\"medium\" defaultChecked>\n        Medium\n      </Switch>\n      <Switch size=\"large\" defaultChecked>\n        Large\n      </Switch>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <Switch size=\"small\" defaultChecked>\n        Small\n      </Switch>\n      <Switch size=\"normal\" defaultChecked>\n        Normal\n      </Switch>\n      <Switch size=\"medium\" defaultChecked>\n        Medium\n      </Switch>\n      <Switch size=\"large\" defaultChecked>\n        Large\n      </Switch>\n    </Block>\n  );\n}"
     },
     {
       "title": "Rounded Style",
@@ -27,7 +27,7 @@
     },
     {
       "title": "Outlined Style",
-      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch isOutlined color=\"primary\" defaultChecked>\n        Primary outlined\n      </Switch>\n      <Switch isOutlined color=\"success\" defaultChecked>\n        Success outlined\n      </Switch>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <Switch isOutlined color=\"primary\" defaultChecked>\n        Primary outlined\n      </Switch>\n      <Switch isOutlined color=\"success\" defaultChecked>\n        Success outlined\n      </Switch>\n    </Block>\n  );\n}"
     },
     {
       "title": "RTL Layout",
@@ -35,7 +35,7 @@
     },
     {
       "title": "Disabled State",
-      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch disabled>Disabled unchecked</Switch>\n      <Switch disabled defaultChecked color=\"success\">\n        Disabled checked\n      </Switch>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <Switch disabled>Disabled unchecked</Switch>\n      <Switch disabled defaultChecked color=\"success\">\n        Disabled checked\n      </Switch>\n    </Block>\n  );\n}"
     },
     {
       "title": "Controlled Usage",
@@ -43,7 +43,7 @@
     },
     {
       "title": "Settings Panel Example",
-      "code": "function example() {\n  const [settings, setSettings] = useState({\n    notifications: true,\n    darkMode: false,\n    autoSave: true,\n  });\n\n  const updateSetting = key => e => {\n    setSettings(prev => ({ ...prev, [key]: e.target.checked }));\n  };\n\n  return (\n    <Block style={{ maxWidth: '300px' }}>\n      <Title size=\"5\">Settings</Title>\n      <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n        <Switch\n          color=\"primary\"\n          checked={settings.notifications}\n          onChange={updateSetting('notifications')}\n        >\n          Push notifications\n        </Switch>\n        <Switch\n          color=\"info\"\n          checked={settings.darkMode}\n          onChange={updateSetting('darkMode')}\n        >\n          Dark mode\n        </Switch>\n        <Switch\n          color=\"success\"\n          checked={settings.autoSave}\n          onChange={updateSetting('autoSave')}\n        >\n          Auto-save\n        </Switch>\n      </Block>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [settings, setSettings] = useState({\n    notifications: true,\n    darkMode: false,\n    autoSave: true,\n  });\n\n  const updateSetting = key => e => {\n    setSettings(prev => ({ ...prev, [key]: e.target.checked }));\n  };\n\n  return (\n    <Block style={{ maxWidth: '300px' }}>\n      <Title size=\"5\">Settings</Title>\n      <Block display=\"flex\" flexDirection=\"column\">\n        <Switch\n          color=\"primary\"\n          checked={settings.notifications}\n          onChange={updateSetting('notifications')}\n        >\n          Push notifications\n        </Switch>\n        <Switch\n          color=\"info\"\n          checked={settings.darkMode}\n          onChange={updateSetting('darkMode')}\n        >\n          Dark mode\n        </Switch>\n        <Switch\n          color=\"success\"\n          checked={settings.autoSave}\n          onChange={updateSetting('autoSave')}\n        >\n          Auto-save\n        </Switch>\n      </Block>\n    </Block>\n  );\n}"
     }
   ],
   "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- The switch can be focused and toggled with keyboard (Space/Enter)",

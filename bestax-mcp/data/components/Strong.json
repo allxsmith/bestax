@@ -24,7 +24,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Strong textColor=\"primary\">Primary strong</Strong>\n  <Strong textColor=\"link\">Link strong</Strong>\n  <Strong textColor=\"info\">Info strong</Strong>\n  <Strong textColor=\"success\">Success strong</Strong>\n  <Strong textColor=\"warning\">Warning strong</Strong>\n  <Strong textColor=\"danger\">Danger strong</Strong>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Strong textColor=\"primary\">Primary strong</Strong>\n  <Strong textColor=\"link\">Link strong</Strong>\n  <Strong textColor=\"info\">Info strong</Strong>\n  <Strong textColor=\"success\">Success strong</Strong>\n  <Strong textColor=\"warning\">Warning strong</Strong>\n  <Strong textColor=\"danger\">Danger strong</Strong>\n</Block>"
     },
     {
       "title": "Callout Pattern",

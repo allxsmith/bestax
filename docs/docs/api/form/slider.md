@@ -73,7 +73,7 @@ function example() {
 Sliders with different color options.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="5">
+<Block display="flex" flexDirection="column">
   <Slider defaultValue={50} color="primary" showOutput />
   <Slider defaultValue={50} color="success" showOutput />
   <Slider defaultValue={50} color="info" showOutput />
@@ -89,7 +89,7 @@ Sliders with different color options.
 Sliders in different sizes.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="5">
+<Block display="flex" flexDirection="column">
   <Block>
     <Paragraph mb="1">Small</Paragraph>
     <Slider defaultValue={50} size="small" color="primary" />
@@ -116,7 +116,7 @@ Sliders in different sizes.
 Slider with rounded track and circular thumb.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="5">
+<Block display="flex" flexDirection="column">
   <Block>
     <Paragraph mb="1">Rounded</Paragraph>
     <Slider defaultValue={50} isRounded color="info" showOutput />

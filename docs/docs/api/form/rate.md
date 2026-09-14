@@ -109,7 +109,7 @@ function example() {
 Ratings in different sizes.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <Rate defaultValue={3} size="small" />
   <Rate defaultValue={3} />
   <Rate defaultValue={3} size="medium" />

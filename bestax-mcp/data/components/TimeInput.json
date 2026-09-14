@@ -119,11 +119,11 @@
     },
     {
       "title": "Formats",
-      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <TimeInput label=\"HH:mm (24h, default)\" defaultValue={v} />\n      <TimeInput label=\"hh:mm A (12h)\" format=\"hh:mm A\" defaultValue={v} />\n      <TimeInput\n        label=\"hh:mm a (lowercase)\"\n        format=\"hh:mm a\"\n        defaultValue={v}\n      />\n      <TimeInput label=\"HH:mm:ss\" format=\"HH:mm:ss\" defaultValue={v} />\n      <TimeInput label=\"hh:mm:ss A\" format=\"hh:mm:ss A\" defaultValue={v} />\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <TimeInput label=\"HH:mm (24h, default)\" defaultValue={v} />\n      <TimeInput label=\"hh:mm A (12h)\" format=\"hh:mm A\" defaultValue={v} />\n      <TimeInput\n        label=\"hh:mm a (lowercase)\"\n        format=\"hh:mm a\"\n        defaultValue={v}\n      />\n      <TimeInput label=\"HH:mm:ss\" format=\"HH:mm:ss\" defaultValue={v} />\n      <TimeInput label=\"hh:mm:ss A\" format=\"hh:mm:ss A\" defaultValue={v} />\n    </Block>\n  );\n}"
     },
     {
       "title": "Formats",
-      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <TimeInput\n        label=\"HH:mm (24h, default)\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm A (12h)\"\n        format=\"hh:mm A\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm a (lowercase)\"\n        format=\"hh:mm a\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"HH:mm:ss\"\n        format=\"HH:mm:ss\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm:ss A\"\n        format=\"hh:mm:ss A\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <TimeInput\n        label=\"HH:mm (24h, default)\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm A (12h)\"\n        format=\"hh:mm A\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm a (lowercase)\"\n        format=\"hh:mm a\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"HH:mm:ss\"\n        format=\"HH:mm:ss\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm:ss A\"\n        format=\"hh:mm:ss A\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n    </Block>\n  );\n}"
     },
     {
       "title": "Formats",
@@ -131,31 +131,31 @@
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Default (left icon + right launcher)\" />\n  <TimeInput label=\"Custom launcher glyph\" triggerIconName=\"hourglass\" />\n  <TimeInput label=\"No launcher\" triggerIcon={false} />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Default (left icon + right launcher)\" />\n  <TimeInput label=\"Custom launcher glyph\" triggerIconName=\"hourglass\" />\n  <TimeInput label=\"No launcher\" triggerIcon={false} />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" />\n</Block>"
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <TimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"hourglass\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"No launcher (press ↓ to open)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <TimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"hourglass\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"No launcher (press ↓ to open)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "Sizes",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Small\" controlSize=\"small\" size=\"small\" />\n  <TimeInput label=\"Default\" />\n  <TimeInput label=\"Medium\" controlSize=\"medium\" size=\"medium\" />\n  <TimeInput label=\"Large\" controlSize=\"large\" size=\"large\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Small\" controlSize=\"small\" size=\"small\" />\n  <TimeInput label=\"Default\" />\n  <TimeInput label=\"Medium\" controlSize=\"medium\" size=\"medium\" />\n  <TimeInput label=\"Large\" controlSize=\"large\" size=\"large\" />\n</Block>"
     },
     {
       "title": "Sizes",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput\n    label=\"Small\"\n    controlSize=\"small\"\n    size=\"small\"\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Default\" openOnFocus={false} />\n  <TimeInput\n    label=\"Medium\"\n    controlSize=\"medium\"\n    size=\"medium\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"Large\"\n    controlSize=\"large\"\n    size=\"large\"\n    openOnFocus={false}\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput\n    label=\"Small\"\n    controlSize=\"small\"\n    size=\"small\"\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Default\" openOnFocus={false} />\n  <TimeInput\n    label=\"Medium\"\n    controlSize=\"medium\"\n    size=\"medium\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"Large\"\n    controlSize=\"large\"\n    size=\"large\"\n    openOnFocus={false}\n  />\n</Block>"
     },
     {
       "title": "Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Primary\" color=\"primary\" />\n  <TimeInput label=\"Info\" color=\"info\" />\n  <TimeInput label=\"Success\" color=\"success\" />\n  <TimeInput label=\"Warning\" color=\"warning\" />\n  <TimeInput label=\"Danger\" color=\"danger\" />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Primary\" color=\"primary\" />\n  <TimeInput label=\"Info\" color=\"info\" />\n  <TimeInput label=\"Success\" color=\"success\" />\n  <TimeInput label=\"Warning\" color=\"warning\" />\n  <TimeInput label=\"Danger\" color=\"danger\" />\n</Block>"
     },
     {
       "title": "Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <TimeInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <TimeInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <TimeInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <TimeInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <TimeInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <TimeInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <TimeInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <TimeInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "States",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Disabled\" disabled />\n  <TimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <TimeInput label=\"Loading\" isLoading />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Disabled\" disabled />\n  <TimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <TimeInput label=\"Loading\" isLoading />\n</Block>"
     },
     {
       "title": "Context-Aware Rendering",

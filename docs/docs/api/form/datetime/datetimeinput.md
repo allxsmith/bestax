@@ -196,7 +196,7 @@ function example() {
 The `format` prop takes a token string or `Intl.DateTimeFormatOptions` spanning the whole date-time. Padded token formats keep the field segmented-typeable; `Intl` formats are display-only unless you add a custom `parse`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput
     label="YYYY-MM-DD HH:mm (default)"
     defaultValue={new Date(2026, 4, 30, 13, 45)}
@@ -251,7 +251,7 @@ function example() {
 A clickable launcher sits on the **right** and toggles the popover — handy for input-mode (`openOnFocus={false}`) where you type the value and click the icon to open the picker. Override its glyph with `triggerIconName`, or hide it with `triggerIcon={false}` (the popover still opens on focus / click). The decorative **left** icon is independent: it shows by default, takes its glyph from `iconLeftName`, and is hidden with `iconLeftName=""`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput label="Default (left icon + right launcher)" />
   <DateTimeInput
     label="Custom launcher glyph"
@@ -265,7 +265,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 **Typing-first** — the same group with `openOnFocus={false}` on every instance, so clicking a field just lets you type and the launcher icon opens the popover; note the `triggerIcon={false}` instance has no launcher, leaving its popover keyboard-only via `↓`.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput
     label="Default (left icon + right launcher)"
     openOnFocus={false}
@@ -469,7 +469,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom popover 
 ### Locale
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput
     label="ja-JP"
     locale="ja-JP"
@@ -492,7 +492,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 **Typing-first** — the same locales with `openOnFocus={false}` on each instance: focus to type the localized value, and use the launcher icon (or `↓`) to open the popover.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput
     label="ja-JP"
     locale="ja-JP"
@@ -515,7 +515,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 ### Sizes
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput label="Small" controlSize="small" size="small" />
   <DateTimeInput label="Default" />
   <DateTimeInput label="Medium" controlSize="medium" size="medium" />
@@ -526,7 +526,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 **Typing-first** — every size with `openOnFocus={false}`: clicking any field lets you type straight away, with the launcher icon (or `↓`) opening the popover.
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput
     label="Small"
     controlSize="small"
@@ -554,7 +554,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 ### Colors
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput label="Primary" color="primary" />
   <DateTimeInput label="Info" color="info" />
   <DateTimeInput label="Success" color="success" />
@@ -566,7 +566,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 **Typing-first** — the same colors with `openOnFocus={false}` on every instance: type directly in any field and open the popover with the launcher icon (or `↓`).
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput label="Primary" color="primary" openOnFocus={false} />
   <DateTimeInput label="Info" color="info" openOnFocus={false} />
   <DateTimeInput label="Success" color="success" openOnFocus={false} />
@@ -580,7 +580,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 ### States
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="4">
+<Block display="flex" flexDirection="column">
   <DateTimeInput label="Disabled" disabled />
   <DateTimeInput label="Read only" readOnly defaultValue={new Date()} />
   <DateTimeInput label="Loading" isLoading />

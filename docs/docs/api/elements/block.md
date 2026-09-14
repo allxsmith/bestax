@@ -107,7 +107,7 @@ The notification blocks have zero margin bottom assigned to illustrate the spaci
 :::
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="0">
+<Block display="flex" flexDirection="column">
   <Block>
     <Notification color="primary" mb={0}>
       First Block

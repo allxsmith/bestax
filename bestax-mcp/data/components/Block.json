@@ -32,7 +32,7 @@
     },
     {
       "title": "Stacked Blocks (Demonstrating Vertical Spacing)",
-      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"0\">\n  <Block>\n    <Notification color=\"primary\" mb={0}>\n      First Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"info\" mb={0}>\n      Second Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"success\" mb={0}>\n      Third Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"warning\" mb={0}>\n      Fourth Block\n    </Notification>\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Notification color=\"primary\" mb={0}>\n      First Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"info\" mb={0}>\n      Second Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"success\" mb={0}>\n      Third Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"warning\" mb={0}>\n      Fourth Block\n    </Notification>\n  </Block>\n</Block>"
     }
   ],
   "accessibility": "- **Content:** Use semantic HTML inside `Block` for best accessibility.\n- **Spacing:** The `.block` class is for layout only and does not affect accessibility.\n- **Contrast:** Choose text and background colors for good readability.\n\n:::info\nUse `Block` for logical, visually separated sections of content.\n:::",
