@@ -226,7 +226,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "Remaining props of the element selected by as (default <a>) and Bulma helper props",
+      "catchAll": "Remaining props of the element selected by as and Bulma helper props",
       "types": []
     },
     {

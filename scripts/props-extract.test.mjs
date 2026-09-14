@@ -197,7 +197,26 @@ test('a constrained `as` drops "or component" from the catch-all', () => {
   // (#663). The open-`as` components above must keep the longer wording.
   assert.equal(
     table('Dropdown', 'Dropdown.Item').catchAll.text,
-    'Remaining props of the element selected by `as` (default `<a>`) and Bulma helper props'
+    'Remaining props of the element selected by `as` and Bulma helper props'
+  );
+});
+
+test('a constrained `as` names no default element in the catch-all', () => {
+  // And should not. The test below requires an OPEN polymorphic component to
+  // default its type parameter to a tag, because defaulting to
+  // `React.ElementType` spreads `ComponentPropsWithoutRef` over every element
+  // and accepts anything — the false positive #641 removed.
+  //
+  // A CLOSED constraint inverts that. `DropdownItemProps` defaults to its
+  // three-tag union deliberately, so the bare alias keeps accepting
+  // `{ as: 'div' }` as it always has (#667 is what stops it also carrying
+  // `href`), and `Omit` over three tags yields FEWER props rather than
+  // anything. There is no single element to name, and the `as` row carries the
+  // runtime default instead.
+  assert.match(
+    table('Dropdown', 'Dropdown.Item').catchAll.text,
+    /selected by `as` and/,
+    'a default element appeared — check whether the alias stopped defaulting to its union'
   );
 });
 

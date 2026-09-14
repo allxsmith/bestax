@@ -391,24 +391,23 @@ export interface DropdownItemOwnProps extends BulmaClassesProps {
  * both of which have always worked at runtime. Same defect as #641, in the
  * narrower shape a constrained `as` takes.
  *
- * **Name the tag you mean.** Bare `DropdownItemProps` is the DEFAULT element's
- * shape, `as?: 'a'` and an anchor's attributes — it was the whole union before
- * this became generic, so `{ as: 'div' }` typed against it now needs
- * `DropdownItemProps<'div'>`. Passing the union does not stand in for that:
- * `DropdownItemProps<DropdownItemElement>` keeps only the keys all three share
- * and so has no `href` at all. That is the #667 alias limitation Button
- * carries, pinned for this component in `__typetests__/polymorphic.tsx`; the
- * component itself distributes and is unaffected.
+ * **Name the tag you mean.** The type parameter defaults to the whole union, not
+ * to the rendered element, so bare `DropdownItemProps` keeps accepting
+ * `{ as: 'div' }` the way it always has. The cost is that it is not
+ * distributive: `Omit` over a union keeps only the shared keys, so the bare
+ * alias carries no `href` even though the component takes one under `as="a"`.
+ * Write `DropdownItemProps<'a'>` for the anchor's props. That is the #667 alias
+ * limitation Button carries, labelled next-major because closing it is
+ * source-breaking, and pinned for this component in
+ * `__typetests__/polymorphic.tsx`; the component itself is unaffected.
  */
-export type DropdownItemProps<T extends DropdownItemElement = 'a'> =
-  DropdownItemOwnProps &
-    Omit<
-      React.ComponentPropsWithoutRef<T>,
-      keyof DropdownItemOwnProps | 'as'
-    > & {
-      /** The element type to render. */
-      as?: T;
-    };
+export type DropdownItemProps<
+  T extends DropdownItemElement = DropdownItemElement,
+> = DropdownItemOwnProps &
+  Omit<React.ComponentPropsWithoutRef<T>, keyof DropdownItemOwnProps | 'as'> & {
+    /** The element type to render. */
+    as?: T;
+  };
 
 /**
  * The anchor-only attributes, withheld from a `<div>` or a `<button>`.
