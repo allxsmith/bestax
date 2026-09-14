@@ -25,6 +25,11 @@ export const CustomTags = () => (
       Anchor Item
     </Dropdown.Item>
     <Dropdown.Item as="div">Div Item</Dropdown.Item>
+    {/* The button form takes a button's props, and defaults `type` to
+        "button" so an item inside a form does not submit it. */}
+    <Dropdown.Item as="button" onClick={() => {}}>
+      Button Item
+    </Dropdown.Item>
   </Dropdown>
 );
 
