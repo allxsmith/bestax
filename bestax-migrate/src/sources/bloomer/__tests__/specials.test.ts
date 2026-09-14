@@ -704,6 +704,20 @@ describe('bloomer navigation handlers', () => {
     }
   });
 
+  it('still offers nesting where the element only refuses to be wrapped', () => {
+    // "May an <a> contain it" and "may it contain an <a>" are different
+    // questions, and one set cannot answer both. `<details>` is interactive, so
+    // no <a> may wrap it — but
+    // `<details><summary>x</summary><a href>y</a></details>` is ordinary valid
+    // markup, and suppressing that advice was the cost of conflating them.
+    for (const tag of ['details', 'iframe']) {
+      const out = migrate(
+        dyn('Help', `<Help tag="${tag}" target="_blank">x</Help>`)
+      );
+      expect(out.todos[0].message).toContain('put it on an <a> inside');
+    }
+  });
+
   it('treats a falsy PanelBlock href as no anchor', () => {
     const { output, rules } = migrate(
       dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')
