@@ -123,9 +123,14 @@ Rules that keep components consistent:
   members differ, constrain `T` to the union rather than dropping the generic —
   `ConstrainedPolymorphicComponentWithoutRef` in `helpers/polymorphic.ts` is that
   shape, and `Dropdown.Item` is the worked example. Two consequences to pin while
-  you are there: the exported `*Props<T>` alias is the DEFAULT element's shape, not
-  the union (#667), and a wrapping HOC (`React.memo`) collapses onto that default
-  rather than loosening — stricter, not looser, whatever a reader expects.
+  you are there. **Default the alias's `T` to the whole union, not to the rendered
+  element** — narrowing it would break `const p: SomeProps = { as: 'div' }`, which
+  compiles for every consumer today; the cost is that the bare alias then carries
+  only the keys all members share, so no `href` (#667, `next-major`). The
+  component keeps full precision at each call site regardless. And a wrapping HOC
+  (`React.memo`) infers through the derivation overload, so it collapses onto the
+  component's default element — stricter than the component, not looser, whatever
+  a reader expects.
   Forward the ref unless the component owns the node it needs: `Reveal` observes
   an element for scroll intersection and wraps a custom `as` in its own `div`,
   so the element `as` names is not the one it holds — it uses
