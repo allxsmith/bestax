@@ -153,20 +153,33 @@ export const aliasUnionLimitation: ButtonProps<'a' | 'button'> = {
   href: '/x',
 };
 
-// The same limitation on a CONSTRAINED component, where it costs more than on
-// Button: the bare alias used to be the whole `'a' | 'div' | 'button'` union,
-// and is now the default element alone. Both halves are pinned so the day #667
-// lands, these directives go unused and say so.
-export const constrainedAliasLimitation: DropdownItemProps = {
-  // @ts-expect-error #667 — the bare alias is the default element, not the union
-  as: 'div',
+// The bare alias keeps every tag the component takes. It defaults its type
+// parameter to the whole union rather than to the rendered element, which is
+// the shape it had before it became generic — narrowing it to `'a'` would stop
+// `const p: DropdownItemProps = { as: 'div' }` compiling, and that has worked
+// on every published version.
+export const aliasKeepsEveryTag = (
+  <>
+    {(({ as: _a }: DropdownItemProps) => null)({ as: 'div' })}
+    {(({ as: _b }: DropdownItemProps) => null)({ as: 'button' })}
+    {(({ as: _c }: DropdownItemProps) => null)({ as: 'a' })}
+  </>
+);
+
+// What it does NOT carry is the per-element props: the alias is not
+// distributive, so `Omit` over the union keeps only the shared keys. The
+// COMPONENT has them — three lines below — and a wrapper author writing against
+// the alias does not. Making the alias distributive costs the docs extractor
+// most of the table (measured on this component: six rows to two), so it needs
+// the extractor taught first. That is #667, labelled next-major because closing
+// it is source-breaking; when it lands this directive goes unused and says so.
+export const aliasDropsPerElementProps: DropdownItemProps = {
+  as: 'a',
+  // @ts-expect-error #667 — the alias keeps only keys common to the union
+  href: '/x',
 };
-export const constrainedAliasUnionLimitation: DropdownItemProps<DropdownItemElement> =
-  {
-    as: 'a',
-    // @ts-expect-error #667 — the alias keeps only keys common to the union
-    href: '/x',
-  };
+
+export const componentHasThemAnyway = <Dropdown.Item as="a" href="/x" />;
 
 // The component itself is unaffected by either: it distributes, so a
 // union-typed `as` keeps each member's props. Deliberate, and the same
