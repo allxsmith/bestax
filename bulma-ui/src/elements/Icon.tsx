@@ -121,9 +121,10 @@ export interface IconChildrenProps extends IconBaseProps {
  * The runtime has always accepted `icon` on its own — it strips a leading library prefix off
  * the class string and falls through to the `name` path — but the type offered no member without
  * a `name` or `children`, so every caller still on the deprecated prop got an error the
- * package could not see (nothing type-checks tests or stories; #663). Declaring the path is
- * the honest resolution: it is deprecated, not removed, and a deprecation that does not
- * type-check is a removal announced only to whoever tries it.
+ * package could not see — until #663 nothing here type-checked a test or a story, so the
+ * three `Icon.test.tsx` cases exercising this path proved the runtime and said nothing about
+ * the type. Declaring the path is the honest resolution: it is deprecated, not removed, and a
+ * deprecation that does not type-check is a removal announced only to whoever tries it.
  *
  * @deprecated Pass `name` instead. This member goes when `icon` does.
  */
