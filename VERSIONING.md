@@ -7,8 +7,9 @@ version numbers are unrelated (e.g. bestax-bulma 5.x alongside create-bestax 3.x
 The source of truth is the `releaseRules` in each package's semantic-release config:
 [`bulma-ui/release.config.js`](./bulma-ui/release.config.js),
 [`create-bestax/release.config.js`](./create-bestax/release.config.js),
-[`bestax-migrate/release.config.js`](./bestax-migrate/release.config.js), and
-[`bestax-mcp/release.config.js`](./bestax-mcp/release.config.js).
+[`bestax-migrate/release.config.js`](./bestax-migrate/release.config.js),
+[`bestax-mcp/release.config.js`](./bestax-mcp/release.config.js), and
+[`eslint-plugin/release.config.js`](./eslint-plugin/release.config.js).
 
 ## Release Rules
 
@@ -16,16 +17,17 @@ A commit releases **only** the package its scope names. Representative examples 
 `feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules apply to every package
 through its own scope:
 
-| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp |
-| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- |
-| `feat(bulma-ui): …`                                               | minor        | —             | —              | —          |
-| `fix(bulma-ui): …`                                                | patch        | —             | —              | —          |
-| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | —          |
-| `feat(create-bestax): …`                                          | —            | minor         | —              | —          |
-| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          |
-| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      |
-| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | —          |
-| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          |
+| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp | eslint-plugin |
+| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- | ------------- |
+| `feat(bulma-ui): …`                                               | minor        | —             | —              | —          | —             |
+| `fix(bulma-ui): …`                                                | patch        | —             | —              | —          | —             |
+| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | —          | —             |
+| `feat(create-bestax): …`                                          | —            | minor         | —              | —          | —             |
+| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          | —             |
+| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      | —             |
+| `feat(eslint-plugin): …`                                          | —            | —             | —              | —          | minor         |
+| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | —          | —             |
+| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          | —             |
 
 Notes:
 
@@ -57,6 +59,8 @@ Each package tags and logs its own releases:
 - `create-bestax@X.Y.Z` tags, changelog at `create-bestax/CHANGELOG.md`
 - `bestax-migrate@X.Y.Z` tags, changelog at `bestax-migrate/CHANGELOG.md`
 - `bestax-mcp@X.Y.Z` tags, changelog at `bestax-mcp/CHANGELOG.md`
+- `@allxsmith/eslint-plugin-bestax@X.Y.Z` tags, changelog at
+  `eslint-plugin/CHANGELOG.md`
 
 ## Release Process
 

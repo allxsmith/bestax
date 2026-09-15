@@ -254,7 +254,7 @@ Runs the real commit analysis + next-version calc, but publishes nothing:
 
 ```bash
 export GITHUB_TOKEN=<a token with repo read>   # the github plugin needs it even in dry-run
-for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do
+for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp eslint-plugin; do
   ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )
 done
 ```
@@ -369,7 +369,7 @@ Publishing authenticates with npm via [OIDC trusted publishing](https://docs.npm
 
 For this to work, each published package must have a trusted publisher configured **once** on npmjs.com (Package → Settings → Trusted Publisher):
 
-- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp` — every publishable package, and a missing entry fails the publish _after_ the release commit and tag are pushed
+- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp` and `@allxsmith/eslint-plugin-bestax` — every publishable package, and a missing entry fails the publish _after_ the release commit and tag are pushed
 - Provider: **GitHub Actions**
 - Repository: `allxsmith/bestax`
 - Workflow: `ci.yml`

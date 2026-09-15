@@ -2073,6 +2073,7 @@ const PNPM_PUBLISHED = new Set([
   'create-bestax',
   'bestax-migrate',
   'bestax-mcp',
+  'eslint-plugin',
 ]);
 
 /**
@@ -2094,6 +2095,7 @@ export const SIBLING_RUNTIME_DEPS = new Map([
   ['create-bestax', new Set(['@allxsmith/bestax-bulma'])],
   ['bestax-mcp', new Set(['@allxsmith/bestax-bulma'])],
   ['bestax-migrate', new Set(['@allxsmith/bestax-bulma'])],
+  ['eslint-plugin', new Set(['@allxsmith/bestax-bulma'])],
 ]);
 
 /**

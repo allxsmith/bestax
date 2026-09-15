@@ -1,0 +1,94 @@
+/**
+ * Prefer the explicit `textColor` / `bgColor` props over the `color` alias.
+ *
+ * On the content elements `color` renders `has-text-<color>` — the same class
+ * as `textColor` — and there is no `.box.is-<color>` CSS for it to mean
+ * anything else. The library's own TSDoc says to prefer `textColor` for
+ * exactly that reason: read on its own, `<Box color="primary">` looks like a
+ * filled box and is not one.
+ *
+ * This rule is OPT-IN, not part of `recommended`, because unlike the other
+ * rules here it reports code that works. `color` is a documented alias, and an
+ * author who writes it may well want coloured text. What the rule buys is
+ * explicitness at the call site.
+ *
+ * Two things it must not do, both found by linting the library's own docs:
+ *
+ *   - Fire when the element also sets a background. `<Box backgroundColor="light"
+ *     color="dark">` is a deliberate, correct pairing — surface from one prop,
+ *     text from the other — and telling that author "color is not a background"
+ *     is nonsense.
+ *   - Fire on elements with a real `is-<color>` modifier. Those are absent from
+ *     the generated set, so `<Button color="primary">` never reports.
+ */
+import type { Rule } from 'eslint';
+import { TEXT_ALIAS_COLOR_ELEMENTS } from '../generated/metadata.js';
+import { attributesOf, resolveElement, withImports } from '../lib/elements.js';
+
+const TEXT_ALIAS = new Set(TEXT_ALIAS_COLOR_ELEMENTS);
+
+/** Setting either of these shows the author knows where the surface comes from. */
+const BACKGROUND_PROPS = ['bgColor', 'backgroundColor'];
+
+const rule: Rule.RuleModule = {
+  meta: {
+    type: 'suggestion',
+    fixable: 'code',
+    docs: {
+      description:
+        'prefer the explicit textColor prop over the ambiguous color alias',
+      url: 'https://bestax.io/docs/guides/getting-started/eslint-plugin#no-color-as-surface',
+    },
+    schema: [],
+    messages: {
+      ambiguous:
+        '`color` on `{{element}}` is a text-colour alias — it renders `has-text-{{value}}`, and no `is-<color>` CSS exists for it. Write `textColor="{{value}}"` to say so, or `bgColor="{{value}}"` if you wanted a coloured surface.',
+      redundant:
+        '`color` on `{{element}}` is ignored here: `textColor` is already set and takes precedence. Remove `color`.',
+    },
+  },
+  create(context) {
+    const { imports, visitor } = withImports();
+    return {
+      ...visitor,
+      JSXOpeningElement(node: unknown) {
+        const opening = node as { name: unknown; attributes: unknown[] };
+        const element = resolveElement(opening.name, imports);
+        if (element === null || !TEXT_ALIAS.has(element)) return;
+
+        const attrs = attributesOf(opening);
+        const named = (n: string) =>
+          attrs.find((a: { name: { name: string } }) => a.name.name === n);
+
+        const color = named('color');
+        if (!color) return;
+
+        if (named('textColor')) {
+          context.report({
+            node: color,
+            messageId: 'redundant',
+            data: { element },
+          });
+          return;
+        }
+        // A background is set explicitly, so `color` is unambiguously the
+        // text half of a deliberate pairing. Nothing to say.
+        if (BACKGROUND_PROPS.some(named)) return;
+
+        const raw = color.value;
+        const value =
+          raw?.type === 'Literal' && typeof raw.value === 'string'
+            ? raw.value
+            : '<value>';
+        context.report({
+          node: color.name,
+          messageId: 'ambiguous',
+          data: { element, value },
+          fix: fixer => fixer.replaceText(color.name, 'textColor'),
+        });
+      },
+    };
+  },
+};
+
+export default rule;

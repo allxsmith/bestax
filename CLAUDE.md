@@ -8,6 +8,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `bestax-migrate/` — the `bestax-migrate` codemod CLI (has its own CLAUDE.md)
 - `bestax-mcp/` — the `bestax-mcp` MCP server; its `data/` index is **generated**
   (has its own CLAUDE.md)
+- `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
+  its `src/generated/` metadata is **generated** (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
   (deployed from CI by `deploy-worker.yml` — a merged change under it ships to
@@ -20,6 +22,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
 - `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
+- `scripts/gen-eslint-meta.mjs` — generates the ESLint plugin's component metadata
+  (`pnpm gen:eslint-meta`)
 
 ## Toolchain
 
@@ -30,7 +34,7 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 
 ```bash
 pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, lint, format:check, storybook build
-pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp)
+pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin)
 pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit (each package's build program)
@@ -39,7 +43,8 @@ pnpm format         # prettier --write (format:check to verify; covers md/mdx to
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
 pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
 pnpm gen:skills     # regenerate the skill install rosters (conformance fails if stale)
-pnpm gen            # all four generators (api docs, catalog, MCP index, skill rosters)
+pnpm gen:eslint-meta # regenerate the ESLint plugin's metadata (CI fails if stale)
+pnpm gen            # every generator (api docs, catalog, MCP index, skill rosters, eslint metadata)
 pnpm docs           # Docusaurus dev server :3000
 pnpm storybook      # Storybook dev server :6006
 pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
@@ -87,7 +92,7 @@ Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consu
 semantic-release. Two repo-specific rules:
 
 - Commits of type `feat|fix|perf|refactor|style|revert` **must** use a scope of `bulma-ui`, `docs`,
-  `create-bestax`, `bestax-migrate`, or `bestax-mcp` — an unscoped commit of any of these
+  `create-bestax`, `bestax-migrate`, `bestax-mcp`, or `eslint-plugin` — an unscoped commit of any of these
   scope-gated types is rejected
   (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth). One exception worth
   knowing: commitlint's default ignores skip git's own `Revert "…"` messages, so the hook cannot

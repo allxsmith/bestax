@@ -133,7 +133,7 @@ Runs the real commit analysis and next-version calc, but publishes nothing:
 
 ```bash
 export GITHUB_TOKEN=your_token   # the github plugin needs a repo-read token even in dry-run
-for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do
+for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp eslint-plugin; do
   ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )
 done
 ```

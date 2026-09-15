@@ -14,6 +14,7 @@ const RELEASE_SCOPES = [
   'create-bestax',
   'bestax-migrate',
   'bestax-mcp',
+  'eslint-plugin',
 ];
 
 export default {

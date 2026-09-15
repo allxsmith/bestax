@@ -4,16 +4,17 @@
 
 Security fixes land on the **latest release line only** — currently
 `@allxsmith/bestax-bulma` 5.x, `create-bestax` 4.x, `bestax-migrate` 2.x, and
-`bestax-mcp` 1.x. All four packages release automatically from `main`
+`bestax-mcp` 1.x. Every published package releases automatically from `main`
 (semantic-release), so the latest published version is always the patched one.
 Older majors may still work but receive no security updates; please upgrade.
 
-| Package                   | Supported    | Unsupported |
-| ------------------------- | ------------ | ----------- |
-| `@allxsmith/bestax-bulma` | 5.x (latest) | < 5.0       |
-| `create-bestax`           | 4.x (latest) | < 4.0       |
-| `bestax-migrate`          | 2.x (latest) | < 2.0       |
-| `bestax-mcp`              | 1.x (latest) | —           |
+| Package                           | Supported    | Unsupported |
+| --------------------------------- | ------------ | ----------- |
+| `@allxsmith/bestax-bulma`         | 5.x (latest) | < 5.0       |
+| `create-bestax`                   | 4.x (latest) | < 4.0       |
+| `bestax-migrate`                  | 2.x (latest) | < 2.0       |
+| `bestax-mcp`                      | 1.x (latest) | —           |
+| `@allxsmith/eslint-plugin-bestax` | 1.x (latest) | —           |
 
 ## Supply-Chain Security
 
