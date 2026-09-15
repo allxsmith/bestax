@@ -346,12 +346,19 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
  * from that table rather than being a second list to keep.
  */
 const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
-  // `Level.Item` enumerates its anchor props rather than deriving them from
-  // `as`, so the row lists what it actually declares. It gained four in #672
-  // — `download`, `hrefLang`, `ping`, `referrerPolicy` — which were type errors
-  // on its own `<a>` before. `media` is still absent from the component, so it
-  // is still the one this table strips.
-  'Level.Item': ['target', 'download', 'hrefLang', 'ping', 'referrerPolicy'],
+  // Empty since #672. `Level.Item` was the only row: it listed `href`, `target`
+  // and `rel` and stopped, so the element alone could not say that `download`
+  // was rejected. It now enumerates the anchor's attributes by SUBTRACTING
+  // `React.HTMLAttributes` from `React.AnchorHTMLAttributes`, which is all of
+  // them — and a row naming all of them decides nothing a row naming none does
+  // not, so the element decides and the row goes.
+  //
+  // The mechanism stays for a target that really is narrower than its element,
+  // and the e2e asserts the premise rather than assuming it: every href-capable
+  // target without a row accepts every link attribute on its anchor.
+  // `Level.Item` joins that sweep, so its coverage moved rather than going.
+  // NOTE that leaves the `rejectedBy = 'component'` arm with no live caller —
+  // worth deleting and restoring from git if nothing claims it.
 };
 
 /** The rows the type test holds to the library. */

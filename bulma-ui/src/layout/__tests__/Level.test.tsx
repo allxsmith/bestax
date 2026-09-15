@@ -115,6 +115,8 @@ describe('Level', () => {
           hrefLang="en"
           ping="/p"
           referrerPolicy="no-referrer"
+          media="print"
+          type="application/pdf"
           data-testid="wide"
         >
           Download
@@ -126,6 +128,8 @@ describe('Level', () => {
     expect(anchor).toHaveAttribute('hreflang', 'en');
     expect(anchor).toHaveAttribute('ping', '/p');
     expect(anchor).toHaveAttribute('referrerpolicy', 'no-referrer');
+    expect(anchor).toHaveAttribute('media', 'print');
+    expect(anchor).toHaveAttribute('type', 'application/pdf');
   });
 
   it('withholds them from a non-anchor tag', () => {
@@ -135,8 +139,15 @@ describe('Level', () => {
       <Level>
         <Level.Item
           as="p"
+          href="/x"
+          target="_blank"
+          rel="noopener"
           download="r.pdf"
+          hrefLang="en"
+          ping="/p"
           referrerPolicy="no-referrer"
+          media="print"
+          type="application/pdf"
           data-testid="p"
         >
           Text
@@ -145,7 +156,19 @@ describe('Level', () => {
     );
     const p = screen.getByTestId('p');
     expect(p.tagName).toBe('P');
-    for (const attr of ['download', 'hreflang', 'ping', 'referrerpolicy']) {
+    // Every attribute the type admits has to be supplied here, or the assertion
+    // for it is vacuous — it would pass on a prop that was never sent.
+    for (const attr of [
+      'href',
+      'target',
+      'rel',
+      'download',
+      'hreflang',
+      'ping',
+      'referrerpolicy',
+      'media',
+      'type',
+    ]) {
       expect(p).not.toHaveAttribute(attr);
     }
   });

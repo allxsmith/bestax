@@ -163,6 +163,25 @@ export const LevelRight: React.FC<LevelRightProps> = ({
 };
 
 /**
+ * Exactly what `<a>` adds over the attributes every element has: `href`,
+ * `target`, `rel`, `download`, `hrefLang`, `ping`, `referrerPolicy`, `media`,
+ * `type`.
+ *
+ * Subtracted from React's own types rather than listed. Listing them is how this
+ * component came to reject `download` at `as="a"` — the list said `href`,
+ * `target`, `rel` and stopped, and #641 is the report. A list gains an entry only
+ * when someone notices; a subtraction gains it when React does.
+ *
+ * They reach the `<a>` branch and no other: declared at every `as` because
+ * narrowing them to the anchor is source-breaking (#672, `next-major`), and
+ * withheld at runtime so the type's permissiveness costs no dead markup.
+ */
+type AnchorOnlyAttributes = Omit<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  keyof React.HTMLAttributes<HTMLAnchorElement>
+>;
+
+/**
  * Props for the LevelItem component.
  *
  * The anchor attributes are enumerated here, at every `as`, and forwarded only
@@ -178,6 +197,7 @@ export const LevelRight: React.FC<LevelRightProps> = ({
  */
 export interface LevelItemProps
   extends
+    AnchorOnlyAttributes,
     React.HTMLAttributes<
       HTMLDivElement | HTMLParagraphElement | HTMLAnchorElement
     >,
@@ -196,20 +216,6 @@ export interface LevelItemProps
   className?: string;
   /** Content. */
   children?: React.ReactNode;
-  /** Href for "a" tag. */
-  href?: string;
-  /** Target for "a" tag */
-  target?: string;
-  /** Rel for "a" tag */
-  rel?: string;
-  /** `download` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
-  download?: string | boolean;
-  /** `hrefLang` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
-  hrefLang?: string;
-  /** `ping` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
-  ping?: string;
-  /** `referrerPolicy` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
-  referrerPolicy?: React.HTMLAttributeReferrerPolicy;
 }
 
 /**
@@ -224,13 +230,6 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   hasTextCentered,
   className,
   children,
-  href,
-  target,
-  rel,
-  download,
-  hrefLang,
-  ping,
-  referrerPolicy,
   color,
   bgColor,
   textColor,
@@ -248,27 +247,39 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   });
   const levelItemClasses = classNames(mainClass, bulmaHelperClasses, className);
 
-  // If rendering as "a", only pass anchor-specific props
+  // The anchor's own attributes reach an `<a>` and nothing else. The type
+  // declares them at every `as` — narrowing that is source-breaking (#672) — so
+  // the runtime is what keeps `<Level.Item as="p" download>` from rendering a
+  // dead attribute. One list, because JS has no view of the type; #682 is the
+  // issue for sharing it with the two components that keep their own copies.
+  const ANCHOR_ONLY = [
+    'href',
+    'target',
+    'rel',
+    'download',
+    'hrefLang',
+    'ping',
+    'referrerPolicy',
+    'media',
+    'type',
+  ] as const;
+
   if (Tag === 'a') {
     return (
-      <a
-        className={levelItemClasses}
-        href={href}
-        target={target}
-        rel={rel}
-        download={download}
-        hrefLang={hrefLang}
-        ping={ping}
-        referrerPolicy={referrerPolicy}
-        {...rest}
-      >
+      <a className={levelItemClasses} {...rest}>
         {children}
       </a>
     );
   }
 
+  const withoutAnchorAttrs = Object.fromEntries(
+    Object.entries(rest).filter(
+      ([key]) => !(ANCHOR_ONLY as readonly string[]).includes(key)
+    )
+  );
+
   return (
-    <Tag className={levelItemClasses} {...rest}>
+    <Tag className={levelItemClasses} {...withoutAnchorAttrs}>
       {children}
     </Tag>
   );
