@@ -164,6 +164,17 @@ export const LevelRight: React.FC<LevelRightProps> = ({
 
 /**
  * Props for the LevelItem component.
+ *
+ * The anchor attributes are enumerated here, at every `as`, and forwarded only
+ * when the tag is an `<a>` — so `<Level.Item as="p" download>` compiles and
+ * renders a `<p>` without it. That asymmetry is deliberate for now: deriving
+ * them from `as` instead is what makes the dead pair a type error, and it also
+ * stops `const p: LevelItemProps = { href }` compiling for consumers who write
+ * it today. #672 carries that half, labelled `next-major`.
+ *
+ * What this list must NOT become is a shorter one. Enumerating only `href`,
+ * `target` and `rel` made every other anchor attribute a type error even at
+ * `as="a"`, which is what #641 reported.
  */
 export interface LevelItemProps
   extends
@@ -191,6 +202,14 @@ export interface LevelItemProps
   target?: string;
   /** Rel for "a" tag */
   rel?: string;
+  /** `download` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
+  download?: string | boolean;
+  /** `hrefLang` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
+  hrefLang?: string;
+  /** `ping` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
+  ping?: string;
+  /** `referrerPolicy` for the `as="a"` form. Forwarded only when the tag is an `<a>`. */
+  referrerPolicy?: React.HTMLAttributeReferrerPolicy;
 }
 
 /**
@@ -208,6 +227,10 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   href,
   target,
   rel,
+  download,
+  hrefLang,
+  ping,
+  referrerPolicy,
   color,
   bgColor,
   textColor,
@@ -233,6 +256,10 @@ export const LevelItem: React.FC<LevelItemProps> = ({
         href={href}
         target={target}
         rel={rel}
+        download={download}
+        hrefLang={hrefLang}
+        ping={ping}
+        referrerPolicy={referrerPolicy}
         {...rest}
       >
         {children}

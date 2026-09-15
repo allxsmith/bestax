@@ -102,6 +102,54 @@ describe('Level', () => {
     expect(screen.getByTestId('level-item')).toHaveClass('m-2');
   });
 
+  it('forwards the wider anchor attributes to the <a>', () => {
+    // The ones #641 reported as rejected. They travel as named props, like
+    // href/target/rel, rather than through the `...rest` spread — so a change
+    // to the destructure list drops them and only this notices.
+    render(
+      <Level>
+        <Level.Item
+          as="a"
+          href="/files/r.pdf"
+          download="r.pdf"
+          hrefLang="en"
+          ping="/p"
+          referrerPolicy="no-referrer"
+          data-testid="wide"
+        >
+          Download
+        </Level.Item>
+      </Level>
+    );
+    const anchor = screen.getByTestId('wide');
+    expect(anchor).toHaveAttribute('download', 'r.pdf');
+    expect(anchor).toHaveAttribute('hreflang', 'en');
+    expect(anchor).toHaveAttribute('ping', '/p');
+    expect(anchor).toHaveAttribute('referrerpolicy', 'no-referrer');
+  });
+
+  it('withholds them from a non-anchor tag', () => {
+    // They are declared at every `as` — the half #672 leaves to a major — so
+    // the type permits this and the runtime must not render a dead attribute.
+    render(
+      <Level>
+        <Level.Item
+          as="p"
+          download="r.pdf"
+          referrerPolicy="no-referrer"
+          data-testid="p"
+        >
+          Text
+        </Level.Item>
+      </Level>
+    );
+    const p = screen.getByTestId('p');
+    expect(p.tagName).toBe('P');
+    for (const attr of ['download', 'hreflang', 'ping', 'referrerpolicy']) {
+      expect(p).not.toHaveAttribute(attr);
+    }
+  });
+
   it('renders as <a> when requested with href and anchor props', () => {
     render(
       <Level>

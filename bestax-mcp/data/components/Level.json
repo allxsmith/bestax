@@ -314,6 +314,42 @@
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "download",
+          "type": "string | boolean",
+          "default": null,
+          "description": "`download` for the `as=\"a\"` form. Forwarded only when the tag is an `<a>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hrefLang",
+          "type": "string",
+          "default": null,
+          "description": "`hrefLang` for the `as=\"a\"` form. Forwarded only when the tag is an `<a>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ping",
+          "type": "string",
+          "default": null,
+          "description": "`ping` for the `as=\"a\"` form. Forwarded only when the tag is an `<a>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "referrerPolicy",
+          "type": "React.HTMLAttributeReferrerPolicy",
+          "default": null,
+          "description": "`referrerPolicy` for the `as=\"a\"` form. Forwarded only when the tag is an `<a>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
         }
       ],
       "extraProps": [],
