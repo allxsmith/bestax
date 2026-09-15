@@ -130,6 +130,11 @@
       "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
     },
+    "./constants": {
+      "types": "./dist/types/helpers/bulmaClassHelpers.d.ts",
+      "import": "./dist/constants.esm.js",
+      "require": "./dist/constants.cjs.js"
+    },
     "./dist/extras.css": {
       "default": "./dist/extras.css"
     },

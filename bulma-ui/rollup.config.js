@@ -73,6 +73,40 @@ export default commandLineArgs => {
       ].filter(Boolean),
       external: ['react', 'react-dom', 'react/jsx-runtime'],
     },
+    // Constants bundle — the helper value tuples with no React and no
+    // component code, so tooling (the ESLint plugin) can read them without
+    // loading the library. Declarations come from the main bundle's pass,
+    // which already emits dist/types/helpers/bulmaClassHelpers.d.ts.
+    {
+      input: 'src/helpers/bulmaClassHelpers.ts',
+      output: [
+        {
+          dir: 'dist',
+          format: 'cjs',
+          sourcemap: true,
+          entryFileNames: 'constants.cjs.js',
+          banner: aiBanner,
+        },
+        {
+          dir: 'dist',
+          format: 'esm',
+          sourcemap: true,
+          entryFileNames: 'constants.esm.js',
+          banner: aiBanner,
+        },
+      ],
+      plugins: [
+        resolve(),
+        commonjs(),
+        typescript({
+          tsconfig: './tsconfig.json',
+          declaration: false,
+          declarationMap: false,
+          declarationDir: undefined,
+          outDir: undefined,
+        }),
+      ],
+    },
     // SCSS extras bundle
     {
       input: 'src/scss/extras.scss',
