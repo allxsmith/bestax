@@ -189,8 +189,9 @@ on an `<a>` inside, or make the element one that takes it.
 `rel` is never touched: React declares it on `HTMLAttributes`, so it is valid on every element.
 
 A component can be narrower than its element. One that takes no `href` at any `as` takes none of
-these either, and `Level.Item` declares only `href`, `target` and `rel` — so `download` and the
-rest go there even at `as="a"`.
+these either, and `Level.Item` enumerates its anchor props rather than deriving them from `as`:
+it declares `href`, `target`, `rel`, `download`, `hrefLang`, `ping` and `referrerPolicy`, so only
+`media` goes to the TODO even at `as="a"`.
 
 ## Helper props dropped from plain-element replacements
 
