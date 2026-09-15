@@ -336,9 +336,9 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
  * Most components here either follow `as` (the element decides, above) or
  * extend `AnchorHTMLAttributes` outright (`Pagination.*`, `Panel.Block`, so
  * everything is fine). `Level.Item` is the exception that enumerates: it
- * declares `href`, `target` and `rel` and nothing else, so `download`,
- * `hrefLang`, `ping` and `referrerPolicy` are type errors there even at
- * `as="a"`.
+ * enumerates: since #672 it declares `href`, `target`, `rel`, `download`,
+ * `hrefLang`, `ping` and `referrerPolicy`, and still not `media` — so `media`
+ * is a type error on its `<a>` where the element would take one.
  *
  * A target absent from `HREF_OK` needs no row: a component that takes no
  * `href` at any `as` takes none of its siblings either -- verified for
@@ -346,7 +346,12 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
  * from that table rather than being a second list to keep.
  */
 const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
-  'Level.Item': ['target'],
+  // `Level.Item` enumerates its anchor props rather than deriving them from
+  // `as`, so the row lists what it actually declares. It gained four in #672
+  // — `download`, `hrefLang`, `ping`, `referrerPolicy` — which were type errors
+  // on its own `<a>` before. `media` is still absent from the component, so it
+  // is still the one this table strips.
+  'Level.Item': ['target', 'download', 'hrefLang', 'ping', 'referrerPolicy'],
 };
 
 /** The rows the type test holds to the library. */
