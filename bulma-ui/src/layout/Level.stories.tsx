@@ -168,3 +168,36 @@ export const CompoundUsage: StoryObj<typeof Level> = {
     </Level>
   ),
 };
+
+/**
+ * `Level.Item` renders an `<a>` when told to, and that form takes the anchor's
+ * wider attributes — `download`, `hrefLang`, `ping`, `referrerPolicy` — not
+ * just `href`/`target`/`rel`. On any other `as` they are withheld rather than
+ * rendered as dead markup.
+ */
+export const AnchorItem: StoryObj<typeof Level> = {
+  render: () => (
+    <Level>
+      <Level.Left>
+        <Level.Item
+          as="a"
+          href="/files/report.pdf"
+          download="report.pdf"
+          referrerPolicy="no-referrer"
+        >
+          Download the report
+        </Level.Item>
+      </Level.Left>
+      <Level.Right>
+        <Level.Item
+          as="a"
+          href="https://example.com"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open example.com
+        </Level.Item>
+      </Level.Right>
+    </Level>
+  ),
+};

@@ -381,30 +381,6 @@ describe('the per-target link-attribute exception matches the library', () => {
       diagnostics: '',
     });
   });
-
-  it('holds `Level.Item` to exactly the link attributes it declares', () => {
-    // Most href-capable targets either follow `as` or extend
-    // `AnchorHTMLAttributes`; this one enumerates, and the rule has a row for
-    // it. Asserted by use, both ways.
-    const rows: string[] = [
-      "import { Level } from '@allxsmith/bestax-bulma';",
-      '',
-      `export const ok = <Level.Item as="a" href="#" target="_blank">{'x'}</Level.Item>;`,
-    ];
-    for (const attr of Object.keys(LINK_ATTR_TABLE)) {
-      if (TARGET_LINK_ATTR_TABLE['Level.Item'].includes(attr)) continue;
-      rows.push(`// @ts-expect-error Level.Item declares no ${attr}`);
-      rows.push(
-        `export const n_${attr} = <Level.Item as="a" ${attr}${SAMPLE[attr]}>{'x'}</Level.Item>;`
-      );
-    }
-    const source = rows.join('\n') + '\n';
-    const { status, diagnostics } = typecheckTsx(source, 'target-link-attrs');
-    expect({ status, diagnostics: annotate(diagnostics, source) }).toEqual({
-      status: 0,
-      diagnostics: '',
-    });
-  });
 });
 
 describe('the href-bearing intrinsics match what React types', () => {
