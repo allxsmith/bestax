@@ -96,16 +96,28 @@ export default commandLineArgs => {
         },
       ],
       plugins: [
-        resolve(),
-        commonjs(),
         typescript({
           tsconfig: './tsconfig.json',
           declaration: false,
           declarationMap: false,
           declarationDir: undefined,
           outDir: undefined,
+          // This entry is one file; compiling the whole program for it cost
+          // seconds and pulled in the tests.
+          include: ['src/helpers/bulmaClassHelpers.ts'],
+          exclude: [
+            '**/__tests__/**/*',
+            '**/*.test.tsx',
+            '**/__typetests__/**/*',
+          ],
         }),
       ],
+      // No resolve()/commonjs(): this module imports nothing, so bundling
+      // node_modules is work with no output. `external` still matters — the
+      // file also exports runtime helpers, and the first one to reach for
+      // `useMemo` would otherwise inline React into a bundle whose whole
+      // purpose is not needing it.
+      external: ['react', 'react-dom', 'react/jsx-runtime'],
     },
     // SCSS extras bundle
     {

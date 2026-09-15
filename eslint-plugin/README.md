@@ -13,13 +13,19 @@ ESLint rules for [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allx
 
 Every rule here reports code that does not do what it looks like it does. The
 library's helper props validate by membership and emit nothing for a value they
-do not recognise — no throw, no warning — so `textColor="blue"` type-checks,
-renders nothing, and tells you nothing. That is the class of bug this plugin
-exists to close.
+do not recognise, with no throw and no warning, so `textColor="blue"` renders
+nothing and says nothing.
+
+**Scope, up front:** the helper props are typed as literal unions, so if you
+write bestax in `.tsx` and run `tsc`, it already catches a wrong literal. This
+plugin is for the places that check does not reach: JavaScript and JSX
+projects, code in markdown and MDX, and lint stages that run before or instead
+of typechecking. The deprecation and flex rules are additive everywhere, since
+no type error marks a deprecated prop or a flex prop that emits nothing.
 
 ## Requirements
 
-ESLint 9 or 10, using [flat config](https://eslint.org/docs/latest/use/configure/configuration-files).
+ESLint 10, using [flat config](https://eslint.org/docs/latest/use/configure/configuration-files).
 The plugin is ESM-only, so it cannot be `require()`d from a legacy
 `.eslintrc.js`.
 
@@ -36,14 +42,29 @@ import bestax from '@allxsmith/eslint-plugin-bestax';
 export default [bestax.configs.recommended];
 ```
 
-Or register it yourself and pick rules:
+The preset matches `.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, and enables JSX
+parsing. It sets no `parser`, so whatever you configure for TypeScript
+survives; put your TypeScript config first and this after:
+
+```js
+import bestax from '@allxsmith/eslint-plugin-bestax';
+import tseslint from 'typescript-eslint';
+
+export default [...tseslint.configs.recommended, bestax.configs.recommended];
+```
+
+Or register it yourself and pick rules. `files` is load-bearing: a flat config
+object without it inherits ESLint's default `**/*.{js,mjs,cjs}` set, so leaving
+it out silently lints none of your JSX.
 
 ```js
 import bestax from '@allxsmith/eslint-plugin-bestax';
 
 export default [
   {
+    files: ['**/*.{jsx,tsx}'],
     plugins: { '@allxsmith/bestax': bestax },
+    languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
     rules: {
       '@allxsmith/bestax/valid-helper-value': 'error',
       '@allxsmith/bestax/no-deprecated-props': 'warn',
@@ -68,9 +89,16 @@ Opt-in — this one reports code that works, and buys explicitness instead:
 | --------------------- | ------- | ----------------------------------------------------------------------------- |
 | `no-color-as-surface` | yes     | `textColor` instead of the `color` alias, where `color` cannot mean a surface |
 
-Each rule only judges values it can actually read: a prop whose value is a
-variable, or an element carrying a spread, is left alone rather than guessed
-at.
+Each rule resolves elements through the import and through scope, so neither
+your own `<Box>` nor a local shadowing the imported one is linted against
+Bulma's rules, and each skips a value it cannot read as a literal.
+
+A spread is handled by what it can change: `no-color-as-surface` and
+`no-inert-flex-props` go silent, since a spread may carry the prop that makes
+the code correct; `no-deprecated-props` reports but offers no fix; and
+`valid-helper-value` still reports, because an explicit attribute wins over a
+spread so a wrong literal is wrong regardless. No autofix changes what the code
+renders.
 
 ### valid-helper-value
 
@@ -80,10 +108,13 @@ at.
 ```
 
 The valid values come from the library's own exported tuples at lint time, by
-way of its `/constants` subpath, so the rule always matches the version you
-have installed. Component-specific `color` props are deliberately not checked —
-`<Button color="ghost">` is correct, and reporting it would be worse than
-reporting nothing.
+way of its `/constants` subpath, rather than from a list copied into this
+package. The version those tuples come from is the copy of
+`@allxsmith/bestax-bulma` this plugin resolves, which in an ordinary deduped
+install is the same one your app uses; across a major bump it may not be, so
+keep the two in step. Component-specific `color` props are deliberately not
+checked, since `<Button color="ghost">` is correct and reporting it would be
+worse than reporting nothing.
 
 ### no-deprecated-props
 

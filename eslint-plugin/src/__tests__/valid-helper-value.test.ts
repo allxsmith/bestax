@@ -42,6 +42,18 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [{ messageId: 'invalidWithSuggestion' }],
     },
     {
+      // Two near-misses at the same distance: pins the ranking and the " or "
+      // joining, which only a multi-candidate value reaches. Both `grey-light`
+      // and `grey-lighter` are one edit away.
+      code: imported('Box', '<Box textColor="grey-lighte" />'),
+      errors: [
+        {
+          message:
+            '`textColor="grey-lighte"` is not a value textColor accepts, so the class is never emitted and nothing renders. Did you mean `grey-light` or `grey-lighter`?',
+        },
+      ],
+    },
+    {
       // Off the end of the 1-7 scale.
       code: imported('Box', '<Box textSize="8" />'),
       errors: [{ messageId: 'invalid' }],

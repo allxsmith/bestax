@@ -57,16 +57,26 @@ export function collectImport(node: any, into: ImportedNames): void {
 /**
  * The canonical library name for a JSX element, or null when the element did
  * not come from the library. Returns null rather than guessing.
+ *
+ * `bindsToImport` decides whether the root identifier really resolves to the
+ * import rather than to a local that shadows it. Both tables here key on
+ * identifier TEXT, so without it a file that imports `Box` from the library
+ * AND declares its own `const Box` inside a function gets the local's JSX
+ * linted against Bulma's rules. Default-true keeps `resolveElement` usable
+ * without a scope, which the unit tests rely on.
  */
 export function resolveElement(
   nameNode: any,
-  imports: ImportedNames
+  imports: ImportedNames,
+  bindsToImport: (name: string) => boolean = () => true
 ): string | null {
   const walk = (node: any): string | null | typeof NAMESPACE => {
     if (node?.type === 'JSXIdentifier') {
       const named = imports.named.get(node.name);
-      if (named !== undefined) return named;
-      if (imports.namespaces.has(node.name)) return NAMESPACE;
+      if (named !== undefined) return bindsToImport(node.name) ? named : null;
+      if (imports.namespaces.has(node.name)) {
+        return bindsToImport(node.name) ? NAMESPACE : null;
+      }
       return null;
     }
     if (node?.type === 'JSXMemberExpression') {
@@ -117,8 +127,64 @@ export function hasSpread(opening: any): boolean {
 }
 
 /**
- * Wire an `ImportDeclaration` collector into a rule's visitor, returning the
- * shared binding table. Every rule needs exactly this preamble.
+ * True when `name`, seen at `node`, resolves to an import binding rather than
+ * to a local declaration that shadows it.
+ *
+ * An unresolvable name answers true, keeping the name-table behaviour: a miss
+ * here costs a report on library code, which is less bad than going quiet.
+ */
+export function bindsToImportAt(
+  context: Rule.RuleContext,
+  node: unknown
+): (name: string) => boolean {
+  type ScopeLike = { variables: any[]; upper: ScopeLike | null };
+  return name => {
+    let scope: ScopeLike | null;
+    try {
+      scope = context.sourceCode.getScope(
+        node as never
+      ) as unknown as ScopeLike;
+    } catch {
+      return true;
+    }
+    while (scope) {
+      const variable = scope.variables.find((v: any) => v.name === name);
+      if (variable) {
+        return (variable.defs ?? []).some(
+          (d: any) => d.type === 'ImportBinding'
+        );
+      }
+      scope = scope.upper;
+    }
+    return true;
+  };
+}
+
+/**
+ * The library name for a JSX opening element, scope-checked. This is what the
+ * rules call; `resolveElement` is the name-table half of it.
+ */
+export function elementOf(
+  context: Rule.RuleContext,
+  opening: any,
+  imports: ImportedNames
+): string | null {
+  return resolveElement(
+    opening?.name,
+    imports,
+    bindsToImportAt(context, opening)
+  );
+}
+
+/**
+ * Wire an import collector into a rule's visitor, returning the shared binding
+ * table. Every rule needs exactly this preamble.
+ *
+ * The collection happens on `Program`, walking its body, rather than in an
+ * `ImportDeclaration` visitor. ESLint traverses in document order, so a
+ * visitor-based collector has not seen an import that appears BELOW the JSX
+ * using it, and every rule here would go silent on that file. Imports hoist,
+ * so that file is legal and compiles.
  */
 export function withImports(): {
   imports: ImportedNames;
@@ -128,8 +194,12 @@ export function withImports(): {
   return {
     imports,
     visitor: {
-      ImportDeclaration(node: unknown) {
-        collectImport(node, imports);
+      Program(node: unknown) {
+        for (const stmt of (node as { body?: unknown[] }).body ?? []) {
+          if ((stmt as { type?: string })?.type === 'ImportDeclaration') {
+            collectImport(stmt, imports);
+          }
+        }
       },
     },
   };

@@ -33,7 +33,7 @@
 import { createRequire } from 'node:module';
 import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { exportedModules, extractComponent } from './lib/props-extract.mjs';
 
 const require = createRequire(import.meta.url);
@@ -43,12 +43,29 @@ const OUT = join(REPO, 'eslint-plugin', 'src', 'generated', 'metadata.ts');
 /**
  * The sentence the library uses to mark a text-alias `color`. Authored
  * identically across those components on purpose (see the TSDoc on Box,
- * Block, Card, …), which is what makes it safe to match on.
+ * Block, Card, …), which is what makes it matchable at all.
  *
- * A rename of this phrase must fail loudly rather than silently empty the
- * rule, so the caller asserts the match count is non-zero.
+ * KNOWN INCOMPLETE, and deliberately so for now. The phrase is prose, not
+ * behaviour: `Level`, `Section`, `Footer` and `Media` funnel `color` into the
+ * helper's text slot with the same `color: textColor ?? color` construct as
+ * `Box`, and emit no `is-<color>` class either, but word their TSDoc "Bulma
+ * color modifier" and so are missed. The miss direction is a false negative on
+ * an opt-in rule, which is the safe one; the fix is to key on that construct
+ * instead of on the sentence, which is its own change with its own dogfooding.
+ * Until then the generated comment says so rather than implying the set is
+ * exhaustive.
  */
 const TEXT_ALIAS_MARKER = /Text color alias/i;
+
+/**
+ * Components whose text-alias status is load-bearing for the rule's message.
+ *
+ * The emptiness guard below only catches a total wipeout; a rewording of ONE
+ * component's TSDoc would drop it from the rule with a legitimate-looking diff
+ * and no failure. Anchoring on names rather than on a count means a legitimate
+ * addition needs no edit here, while a rewording of one of these fails loudly.
+ */
+const TEXT_ALIAS_ANCHORS = ['Box', 'Card', 'Content'];
 
 /** `Use \`isFullwidth\` instead — …` → `isFullwidth`. */
 export function replacementFrom(note) {
@@ -108,6 +125,17 @@ export function collect() {
         'disable no-color-as-surface.'
     );
   }
+  const missing = TEXT_ALIAS_ANCHORS.filter(n => !textAlias.has(n));
+  if (missing.length) {
+    throw new Error(
+      `${missing.join(', ')} no longer ${
+        missing.length === 1 ? 'matches' : 'match'
+      } ${TEXT_ALIAS_MARKER}, so ` +
+        'no-color-as-surface would stop reporting them. If the TSDoc was ' +
+        'reworded on purpose, update TEXT_ALIAS_MARKER (or the anchors) here ' +
+        'in the same change.'
+    );
+  }
   return { deprecated, textAlias };
 }
 
@@ -154,8 +182,12 @@ ${rows.join('\n')}
  * variant. On these, \`color\` renders \`has-text-<color>\` exactly like
  * \`textColor\`, and a coloured background needs \`bgColor\`.
  *
- * Elements with a real \`is-<color>\` modifier (\`Button\`, \`Hero\`,
- * \`Notification\`, \`Progress\`, …) are deliberately absent.
+ * NOT exhaustive. Membership is read from the TSDoc sentence the library uses
+ * to say so, and components that behave identically but word it differently
+ * (\`Level\`, \`Section\`, \`Footer\`, \`Media\`) are missed. So absence
+ * here does NOT mean the element has a real \`is-<color>\` modifier — only
+ * that no sentence claimed otherwise. Elements that genuinely do have one
+ * (\`Button\`, \`Hero\`, \`Notification\`, \`Progress\`) are also absent.
  */
 export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
 ${[...textAlias]
@@ -173,7 +205,7 @@ export async function build() {
   return prettier.format(out, { ...config, filepath: OUT });
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const text = await build();
   await writeFile(OUT, text, 'utf8');
   console.log(`wrote ${OUT}`);

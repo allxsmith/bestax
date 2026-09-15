@@ -150,8 +150,12 @@ export const DEPRECATED_PROPS: Readonly<
  * variant. On these, `color` renders `has-text-<color>` exactly like
  * `textColor`, and a coloured background needs `bgColor`.
  *
- * Elements with a real `is-<color>` modifier (`Button`, `Hero`,
- * `Notification`, `Progress`, …) are deliberately absent.
+ * NOT exhaustive. Membership is read from the TSDoc sentence the library uses
+ * to say so, and components that behave identically but word it differently
+ * (`Level`, `Section`, `Footer`, `Media`) are missed. So absence
+ * here does NOT mean the element has a real `is-<color>` modifier — only
+ * that no sentence claimed otherwise. Elements that genuinely do have one
+ * (`Button`, `Hero`, `Notification`, `Progress`) are also absent.
  */
 export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
   'Block',

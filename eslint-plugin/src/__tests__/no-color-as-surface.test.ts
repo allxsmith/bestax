@@ -24,6 +24,14 @@ ruleTester.run('no-color-as-surface', rule, {
     // real usage lifted from the library's own margin-and-padding guide.
     imported('Box', '<Box backgroundColor="light" color="dark" p="2" />'),
     imported('Box', '<Box bgColor="primary" color="white" />'),
+    // A value the rule cannot read is not judged, like everywhere else here.
+    // It used to be reported, with the literal `<value>` in the message and a
+    // fix applied sight unseen.
+    imported('Box', '<Box color={tone} />'),
+    // A bare boolean attribute has no value at all.
+    imported('Box', '<Box color />'),
+    // A spread may carry the background that silences this rule.
+    imported('Box', '<Box {...rest} color="dark" />'),
     // A compound part whose color is a real modifier, unlike its root.
     imported('Buttons', '<Buttons.Button color="primary" />'),
     // Not our Box.
@@ -35,6 +43,13 @@ ruleTester.run('no-color-as-surface', rule, {
     {
       code: imported('Box', '<Box color="primary" />'),
       output: imported('Box', '<Box textColor="primary" />'),
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // A single-quasi template is readable, so it is judged, and the message
+      // carries the real value rather than a placeholder.
+      code: imported('Box', '<Box color={`primary`} />'),
+      output: imported('Box', '<Box textColor={`primary`} />'),
       errors: [{ messageId: 'ambiguous' }],
     },
     {
@@ -54,13 +69,6 @@ ruleTester.run('no-color-as-surface', rule, {
       code: imported('Box', '<Box color="primary" textColor="info" />'),
       output: null,
       errors: [{ messageId: 'redundant' }],
-    },
-    {
-      // An unreadable value still gets the rename; only the message text
-      // needs the literal.
-      code: imported('Box', '<Box color={tone} />'),
-      output: imported('Box', '<Box textColor={tone} />'),
-      errors: [{ messageId: 'ambiguous' }],
     },
   ],
 });

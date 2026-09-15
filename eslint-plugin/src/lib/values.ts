@@ -30,21 +30,6 @@ import {
   validVisibilities,
 } from '@allxsmith/bestax-bulma/constants';
 
-/**
- * Viewports `textSize` supports. Narrower than `validViewports` on purpose:
- * text size ships no `-only` bands, so `textSize` with `viewport="tablet-only"`
- * would render a dead class. Mirrors `sizeSupportedViewports` in
- * useTypographyClasses.
- */
-const textSizeViewports = [
-  'mobile',
-  'tablet',
-  'touch',
-  'desktop',
-  'widescreen',
-  'fullhd',
-] as const;
-
 const SPACING_PROPS = [
   'm',
   'mt',
@@ -101,6 +86,17 @@ const family = (
  * `validColors` would report correct code. The `color` mistake that IS worth
  * reporting — using it as a surface on a component where it means text — is
  * `no-color-as-surface`.
+ *
+ * KEYED BY PROP, NOT BY ELEMENT, and that is a real limitation rather than a
+ * simplification. A few components widen `bgColor` with the scheme colours
+ * (`Box`, `Card`, `Container`, `Hero`, `Section`, `Footer`) and the rest do
+ * not, so `<Block bgColor="scheme-main-bis" />` renders nothing and this table
+ * accepts it. Every such gap points the same way — silence on a wrong value,
+ * never a report on a right one — which is the direction to be wrong in, and
+ * TypeScript catches this particular one. Closing it properly means a
+ * per-element table, which the MCP index already extracts; that is a change
+ * with its own dogfooding, not a tweak here. The hand-written `color`
+ * exclusion above is the same limitation showing through.
  */
 export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
   ...SPACING_PROPS.map(p => [p, validSizes] as [string, readonly string[]]),
@@ -150,5 +146,3 @@ export const DISPLAY_PROPS: readonly string[] = [
 
 /** `display` values that turn on a flex container. */
 export const FLEX_DISPLAYS: readonly string[] = ['flex', 'inline-flex'];
-
-export { textSizeViewports };

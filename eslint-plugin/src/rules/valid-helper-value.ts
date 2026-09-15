@@ -2,16 +2,29 @@
  * Report helper-prop values the library will silently drop.
  *
  * `useBulmaClasses` validates by membership and emits nothing for a value it
- * does not recognise — no throw, no warning, no fallback. So `textColor="blue"`
- * and `textSize="8"` type-check under a widened prop, render nothing, and
- * report nothing. This rule is the only thing that says so.
+ * does not recognise: no throw, no warning, no fallback. So `textColor="blue"`
+ * renders nothing and says nothing at runtime.
+ *
+ * Who this actually helps, stated plainly because it is narrower than it
+ * looks: the helper props are typed as literal unions, so `tsc` already
+ * rejects a wrong literal in a `.tsx` file, and rather well (it answers
+ * `textAlign="center"` with TS2820 and its own "Did you mean 'centered'?").
+ * This rule earns its place where that check is not running:
+ *
+ *   - JavaScript and JSX projects, which have no such check at all
+ *   - code in markdown and MDX, which no `tsc` program includes; every real
+ *     bug this rule has found so far was in a docs fence
+ *   - editors and CI stages that lint before, or instead of, typechecking
+ *
+ * It is deliberately not a substitute for typechecking, and the overlap on
+ * `.tsx` is expected rather than a defect.
  */
 import type { Rule } from 'eslint';
 import { HELPER_VALUES } from '../lib/values.js';
 import {
   attributesOf,
   literalValue,
-  resolveElement,
+  elementOf,
   withImports,
 } from '../lib/elements.js';
 
@@ -74,7 +87,7 @@ const rule: Rule.RuleModule = {
           name: unknown;
           attributes: unknown[];
         };
-        if (resolveElement(opening.name, imports) === null) return;
+        if (elementOf(context, opening, imports) === null) return;
         for (const attr of attributesOf(opening)) {
           const prop: string = attr.name.name;
           const valid = HELPER_VALUES.get(prop);

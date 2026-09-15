@@ -59,7 +59,7 @@
     "@allxsmith/bestax-bulma": "workspace:^"
   },
   "peerDependencies": {
-    "eslint": "^9.0.0 || ^10.0.0"
+    "eslint": "^10.0.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.0",

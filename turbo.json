@@ -27,13 +27,13 @@
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
       "outputs": ["coverage/**"]
     },
-    "eslint-plugin#typecheck": {
+    "@allxsmith/eslint-plugin-bestax#typecheck": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"]
     },
-    "eslint-plugin#test": {
+    "@allxsmith/eslint-plugin-bestax#test": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"]
     },
-    "eslint-plugin#test:coverage": {
+    "@allxsmith/eslint-plugin-bestax#test:coverage": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
       "outputs": ["coverage/**"]
     },

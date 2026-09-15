@@ -11,8 +11,8 @@ what it looks like it does.
 
 The helper props validate by membership: `useBulmaClasses` checks a value
 against the list it accepts and emits nothing when it does not match. There is
-no throw, no console warning, and no fallback. So this compiles, renders, and
-tells you nothing at all:
+no throw, no console warning, and no fallback. So this renders, and says
+nothing about itself:
 
 ```jsx
 <Box textAlign="center" mt="1rem" textColor="blue" />
@@ -20,17 +20,38 @@ tells you nothing at all:
 
 Every helper prop on that element is wrong, and not one of them emits a class:
 Bulma spells it `centered`, the spacing scale is `0`–`6` and `auto` rather than
-CSS lengths, and `blue` is not one of its colours. The plugin is the thing that
-says so.
+CSS lengths, and `blue` is not one of its colours.
+
+:::info Where this helps, and where TypeScript already does
+
+The helper props are typed as literal unions, so in a `.tsx` file `tsc` already
+rejects every one of those, and it does it well: `textAlign="center"` gets
+TS2820 with its own "Did you mean 'centered'?".
+
+So `valid-helper-value` is for the places that check does not reach:
+JavaScript and JSX projects, code in markdown and MDX that no `tsc` program
+includes, and lint stages that run before or instead of typechecking. Code in
+a documentation fence is the case worth dwelling on, since no `tsc` program
+includes it and it is the code readers copy.
+
+`no-deprecated-props` and `no-inert-flex-props` are additive everywhere. No
+type error marks a deprecated prop, and none marks a flex prop that emits
+nothing.
+
+:::
 
 ## Setup
 
-Requires ESLint 9 or 10 with [flat config](https://eslint.org/docs/latest/use/configure/configuration-files).
+Requires ESLint 10 with [flat config](https://eslint.org/docs/latest/use/configure/configuration-files).
 The plugin is ESM-only and cannot be `require()`d from a legacy `.eslintrc.js`.
 
+<PackageManagerTabs>
+
 ```bash
-npm install --save-dev @allxsmith/eslint-plugin-bestax
+pnpm add -D @allxsmith/eslint-plugin-bestax
 ```
+
+</PackageManagerTabs>
 
 ```js title="eslint.config.js"
 import bestax from '@allxsmith/eslint-plugin-bestax';
@@ -38,16 +59,35 @@ import bestax from '@allxsmith/eslint-plugin-bestax';
 export default [bestax.configs.recommended];
 ```
 
-The recommended config registers the plugin as `@allxsmith/bestax` and turns
-on every rule that reports broken code, as an error. `no-color-as-surface` is
-left off — see below. To choose rules yourself:
+The recommended config registers the plugin as `@allxsmith/bestax`, matches
+`.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, enables JSX parsing, and turns on
+every rule that reports broken code as an error. `no-color-as-surface` is left
+off; see below.
+
+**TypeScript projects need a parser alongside it.** The preset deliberately
+sets no `parser`, so that whatever you configure for TypeScript survives. Put
+your TypeScript config first and the preset after:
+
+```js title="eslint.config.js"
+import bestax from '@allxsmith/eslint-plugin-bestax';
+import tseslint from 'typescript-eslint';
+
+export default [...tseslint.configs.recommended, bestax.configs.recommended];
+```
+
+To choose rules yourself, note that `files` is doing real work here: a flat
+config object without it inherits ESLint's default `**/*.{js,mjs,cjs}` set, so
+leaving it out means your `.jsx` and `.tsx` files are never linted and you get
+no error saying so.
 
 ```js title="eslint.config.js"
 import bestax from '@allxsmith/eslint-plugin-bestax';
 
 export default [
   {
+    files: ['**/*.{jsx,tsx}'],
     plugins: { '@allxsmith/bestax': bestax },
+    languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
     rules: {
       '@allxsmith/bestax/valid-helper-value': 'error',
       '@allxsmith/bestax/no-deprecated-props': 'warn',
@@ -58,16 +98,25 @@ export default [
 
 ## What it will not do
 
-Every rule resolves elements through the import, so your own `<Box>` is never
-linted against Bulma's rules. And every rule only judges what it can read: a
-prop whose value is a variable, a template with an interpolation, or an element
-carrying a spread is left alone rather than guessed at. A false report on
-correct code is worse than a missed one, because it teaches people to switch
-the rule off.
+Every rule resolves elements through the import, and through scope, so neither
+your own `<Box>` nor a local that shadows the imported one is linted against
+Bulma's rules. Every rule skips a value it cannot read as a literal: a
+variable, or a template with an interpolation.
 
-There are no style rules here. Nothing in this plugin has an opinion about
-whether you _should_ use a helper prop — only about whether the one you wrote
-does anything.
+A spread is treated by what it can change. `no-color-as-surface` and
+`no-inert-flex-props` go silent, because a spread may carry the very prop that
+would make the code correct. `no-deprecated-props` still reports, since the
+deprecated prop is written right there, but offers no fix. `valid-helper-value`
+also still reports: an explicit attribute wins over a spread, so a wrong
+literal is wrong whatever the spread holds.
+
+No autofix here changes what the code renders. A false report on correct code
+is worse than a missed one, because it teaches people to switch the rule off.
+
+The `recommended` set has no style rules. Nothing in it has an opinion about
+whether you _should_ use a helper prop, only about whether the one you wrote
+does anything. The one rule that is about spelling rather than correctness,
+`no-color-as-surface`, ships switched off for exactly that reason.
 
 ## Rules
 
@@ -83,8 +132,10 @@ Reports helper values the library will drop.
 ```
 
 The valid values are read from the library's own exported tuples at lint time,
-through its `/constants` subpath, so the rule always agrees with the version
-you have installed rather than with a list baked into the plugin.
+through its `/constants` subpath, rather than from a list baked into the
+plugin. Those tuples come from the copy of the library this plugin resolves,
+which in an ordinary deduped install is the one your app uses; across a major
+bump it may not be, so keep the two in step.
 
 It deliberately skips component-specific `color` props, which have their own
 unions — `<Button color="ghost">` is correct, and the value rule has no business
@@ -109,10 +160,11 @@ Reports props the library has deprecated, and fixes the renames.
 <Tags isMultiline />         // ✗ never had an effect — no fix
 ```
 
-A rename carries its replacement, so it is autofixable. A prop retired outright
-— one that emits a class no shipped CSS matches, or never did anything — is
-reported with the library's own reason and no fix, because there is nothing to
-rename it to.
+A rename carries its replacement, so it is autofixable. Anything else is
+reported with the library's own reason and no fix: a prop retired outright (it
+emits a class no shipped CSS matches, or never did anything), and a note that
+names more than one replacement, such as `Icon`'s `libraryFeatures`, which
+became `variant` and `features`.
 
 The table is generated from the library's TSDoc, so a rename reaches the plugin
 with the release that makes it.

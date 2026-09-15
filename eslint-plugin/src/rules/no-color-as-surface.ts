@@ -20,10 +20,20 @@
  *     is nonsense.
  *   - Fire on elements with a real `is-<color>` modifier. Those are absent from
  *     the generated set, so `<Button color="primary">` never reports.
+ *
+ * It is also silent on an element carrying a spread (which may hold the very
+ * background prop that would silence it) and on a `color` whose value it
+ * cannot read as a literal.
  */
 import type { Rule } from 'eslint';
 import { TEXT_ALIAS_COLOR_ELEMENTS } from '../generated/metadata.js';
-import { attributesOf, resolveElement, withImports } from '../lib/elements.js';
+import {
+  attributesOf,
+  elementOf,
+  hasSpread,
+  literalValue,
+  withImports,
+} from '../lib/elements.js';
 
 const TEXT_ALIAS = new Set(TEXT_ALIAS_COLOR_ELEMENTS);
 
@@ -53,8 +63,12 @@ const rule: Rule.RuleModule = {
       ...visitor,
       JSXOpeningElement(node: unknown) {
         const opening = node as { name: unknown; attributes: unknown[] };
-        const element = resolveElement(opening.name, imports);
+        const element = elementOf(context, opening, imports);
         if (element === null || !TEXT_ALIAS.has(element)) return;
+        // A spread may carry the background prop that silences this rule, or
+        // the textColor that makes `color` redundant. Either way the element's
+        // real prop set is unknowable, so say nothing.
+        if (hasSpread(opening)) return;
 
         const attrs = attributesOf(opening);
         const named = (n: string) =>
@@ -75,11 +89,12 @@ const rule: Rule.RuleModule = {
         // text half of a deliberate pairing. Nothing to say.
         if (BACKGROUND_PROPS.some(named)) return;
 
-        const raw = color.value;
-        const value =
-          raw?.type === 'Literal' && typeof raw.value === 'string'
-            ? raw.value
-            : '<value>';
+        // Only a readable literal is judged, like every other rule here. A
+        // computed value could be anything, and the message would have to say
+        // so in place of the value, which is not advice anyone can act on.
+        const value = literalValue(color);
+        if (value === null) return;
+
         context.report({
           node: color.name,
           messageId: 'ambiguous',

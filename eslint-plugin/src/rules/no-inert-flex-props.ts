@@ -24,7 +24,7 @@ import {
   attributesOf,
   hasSpread,
   literalValue,
-  resolveElement,
+  elementOf,
   withImports,
 } from '../lib/elements.js';
 
@@ -51,7 +51,7 @@ const rule: Rule.RuleModule = {
       ...visitor,
       JSXOpeningElement(node: unknown) {
         const opening = node as { name: unknown; attributes: unknown[] };
-        if (resolveElement(opening.name, imports) === null) return;
+        if (elementOf(context, opening, imports) === null) return;
         if (hasSpread(opening)) return;
 
         const attrs = attributesOf(opening);
