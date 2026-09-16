@@ -2,6 +2,11 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
+  type AnchorOnlyAttributes,
+  ANCHOR_ONLY_ATTRS,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
+import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
@@ -163,29 +168,6 @@ export const LevelRight: React.FC<LevelRightProps> = ({
 };
 
 /**
- * Exactly what `<a>` adds over the attributes every element has: `href`,
- * `target`, `download`, `hrefLang`, `ping`, `referrerPolicy`, `media`, `type`.
- *
- * NOT `rel`, which React declares on `HTMLAttributes` for every element and the
- * subtraction therefore removes. This component withholds it from a non-anchor
- * anyway, because it always has — see `ANCHOR_ONLY` in the implementation,
- * where it is named separately for that reason.
- *
- * Subtracted from React's own types rather than listed. Listing them is how this
- * component came to reject `download` at `as="a"` — the list said `href`,
- * `target`, `rel` and stopped, and #641 is the report. A list gains an entry only
- * when someone notices; a subtraction gains it when React does.
- *
- * They reach the `<a>` branch and no other: declared at every `as` because
- * narrowing them to the anchor is source-breaking (#672, `next-major`), and
- * withheld at runtime so the type's permissiveness costs no dead markup.
- */
-type AnchorOnlyAttributes = Omit<
-  React.AnchorHTMLAttributes<HTMLAnchorElement>,
-  keyof React.HTMLAttributes<HTMLAnchorElement>
->;
-
-/**
  * Props for the LevelItem component.
  *
  * The anchor attributes are enumerated here, at every `as`, and forwarded only
@@ -262,21 +244,11 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   // `as` while the list let it leak onto a `<div>`. `Record` makes that a
   // compile error here until this object catches up. #682 is the issue for
   // sharing the rule with the two components that keep their own copies.
-  const ANCHOR_ONLY: Record<keyof AnchorOnlyAttributes | 'rel', true> = {
-    href: true,
-    target: true,
-    download: true,
-    hrefLang: true,
-    ping: true,
-    referrerPolicy: true,
-    media: true,
-    type: true,
-    // `rel` is NOT in the subtraction: React declares it on `HTMLAttributes`,
-    // for every element. It is here because this component has always withheld
-    // it from a non-anchor, and it is named separately so the key set above
-    // stays honest about where each name comes from.
-    rel: true,
-  };
+  // The derived set plus `rel`. `rel` is not an anchor-only attribute — React
+  // declares it on every element — but this component has always withheld it
+  // from a non-anchor, so it is named separately rather than folded in, and
+  // that separation is what says which names come from where.
+  const STRIP_FROM_NON_ANCHOR = { ...ANCHOR_ONLY_ATTRS, rel: true } as const;
 
   if (Tag === 'a') {
     return (
@@ -286,9 +258,7 @@ export const LevelItem: React.FC<LevelItemProps> = ({
     );
   }
 
-  const withoutAnchorAttrs = Object.fromEntries(
-    Object.entries(rest).filter(([key]) => !(key in ANCHOR_ONLY))
-  );
+  const withoutAnchorAttrs = omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
 
   return (
     <Tag className={levelItemClasses} {...withoutAnchorAttrs}>

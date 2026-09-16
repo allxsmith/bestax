@@ -2,6 +2,7 @@ import React, { createContext, forwardRef, useContext } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { omitAttrs } from '../helpers/anchorAttrs';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -218,8 +219,14 @@ export const MenuItem = forwardRef(function MenuItem(
     Component === 'a' ||
     typeof Component !== 'string' ||
     isCustomElement(Component);
-  const { href: _href, ...withoutHref } = forwarded as { href?: string };
-  const linkProps = isLinkLike ? forwarded : withoutHref;
+  // `href` ALONE, which is where this component differs from its two siblings.
+  // `Dropdown.Item` and `Level.Item` derive their props from `as` and so gained
+  // the anchor's whole surface to withhold; this one's own props never declared
+  // the rest, so there is nothing else for a typed caller to deliver. A JS
+  // caller can still deliver them, and they are not stripped here — see #682.
+  const linkProps = isLinkLike
+    ? forwarded
+    : omitAttrs(forwarded, { href: true });
   const itemClass = classNames(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses

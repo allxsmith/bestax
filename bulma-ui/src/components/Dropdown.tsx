@@ -9,6 +9,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
+import { ANCHOR_ONLY_ATTRS, omitAttrs } from '../helpers/anchorAttrs';
 
 /**
  * Checks if code is running in a browser environment.
@@ -410,34 +411,21 @@ export type DropdownItemProps<
   };
 
 /**
- * The anchor-only attributes, withheld from a `<div>` or a `<button>`.
+ * The anchor's attributes, minus the one a `<button>` legitimately takes.
  *
- * Mirrors `LINK_ATTRS` in `bestax-migrate/src/sources/_shared/polymorphic.ts`,
- * which drops the same set when a migration lands one on a non-anchor. `rel` is
- * absent from both on purpose: React declares it on `HTMLAttributes<T>` — every
- * element — so withholding it would diverge from React's own typing, the same
- * call #641 recorded for `Navbar.Link`.
+ * `type` stays: `as="button"` is a supported form and `type="submit"` is valid
+ * there, so stripping it would remove a working attribute. That single
+ * exclusion is the whole difference between this component and `Level.Item`,
+ * which renders no `<button>` and strips the full set.
+ *
+ * `rel` is absent from the derived set and not added back here: React declares
+ * it on `HTMLAttributes` for every element, so withholding it would diverge
+ * from React's own typing — the call #641 recorded for `Navbar.Link`.
  */
-const LINK_ONLY_ATTRS = [
-  'href',
-  'target',
-  'download',
-  'hrefLang',
-  'ping',
-  'referrerPolicy',
-  'media',
-] as const;
-
-/** `props` without any attribute only an anchor can carry. */
-function omitLinkAttrs(
-  props: Record<string, unknown>
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(props)) {
-    if (!(LINK_ONLY_ATTRS as readonly string[]).includes(key)) out[key] = value;
-  }
-  return out;
-}
+const STRIP_FROM_NON_ANCHOR: Record<string, true> = (() => {
+  const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
+  return rest;
+})();
 
 /**
  * The shape the implementation destructures. The public contract is the generic
@@ -480,7 +468,7 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
   // own their prop contracts. `as` is closed to three intrinsic tags here, so
   // neither can arrive and the anchor test is the whole rule.
   const forwarded =
-    Component === 'a' ? rest : (omitLinkAttrs(rest) as typeof rest);
+    Component === 'a' ? rest : omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
   return (
     <Component
       className={classNames(
