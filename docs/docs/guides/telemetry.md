@@ -115,6 +115,15 @@ characters of `A-Za-z0-9._:-` — but stores them verbatim, so a modified client
 could record short arbitrary strings there. Aggregate queries treat
 unrecognized rule names as noise.
 
+## The ESLint plugin
+
+`@allxsmith/eslint-plugin-bestax` sends **no telemetry at all** and makes no
+network requests. It reads the library's exported value tuples from the
+installed copy of `@allxsmith/bestax-bulma` and reports on the file in front of
+it; there is no network code in the package. The only URLs it carries are the
+documentation links in each rule's metadata, which ESLint prints beside a
+report and nothing fetches.
+
 ## The MCP server
 
 `bestax-mcp` sends **no telemetry at all** and makes no network requests — it
