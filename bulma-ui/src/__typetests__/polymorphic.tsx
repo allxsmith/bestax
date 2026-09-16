@@ -20,6 +20,7 @@
  */
 import React from 'react';
 import { Avatar } from '../components/Avatar';
+import { Level, type LevelItemProps } from '../layout/Level';
 import {
   Dropdown,
   type DropdownItemElement,
@@ -339,5 +340,59 @@ export const rejected = (
     <Navbar.Link color="not-a-bulma-color" />
     {/* @ts-expect-error same on Link, whose own props omit color too */}
     <Link color="nope" />
+  </>
+);
+
+// --------------------------------------------------------------------------
+// `Level.Item` (#672). It is NOT polymorphic: it enumerates the anchor's
+// attributes by subtracting `HTMLAttributes` from `AnchorHTMLAttributes`, and
+// withholds them at runtime for any tag that is not an `<a>`. Deriving them
+// from `as` is the source-breaking half, deferred.
+//
+// These exist because the compatibility was checked with throwaway probes
+// while the polymorphic version was written and reverted, and a probe proves
+// nothing after it is deleted. Each line below is a shape that version broke.
+// --------------------------------------------------------------------------
+
+export const levelItemGained = (
+  <>
+    {/* #641's symptom, and the two a hand-written list kept missing. */}
+    <Level.Item as="a" href="/x" download="f" />
+    <Level.Item as="a" referrerPolicy="no-referrer" hrefLang="en" ping="/p" />
+    <Level.Item as="a" media="print" type="application/pdf" />
+  </>
+);
+
+// An event handler written against the ALIAS keeps its contextual type. The
+// polymorphic version turned one handler over a union element into a union of
+// three handler types, and this became an implicit `any`.
+export const levelItemHandler: LevelItemProps = {
+  onClick: event => void event.currentTarget,
+};
+
+// A props bag spreads back into its own component — the canonical wrapper
+// shape, and `TS2769` under the reverted version.
+declare const levelItemBag: LevelItemProps;
+export const levelItemSpread = <Level.Item {...levelItemBag} />;
+
+// The alias stays assignable to a single element's attributes.
+declare function wantsDivAttributes(
+  props: React.HTMLAttributes<HTMLDivElement>
+): void;
+export const levelItemAssignable = () => wantsDivAttributes(levelItemBag);
+
+// `ComponentProps` keeps its keys reachable: `keyof` a union is the
+// INTERSECTION of its members' keys, so a union-shaped props type loses them.
+type LevelItemDerived = React.ComponentProps<typeof Level.Item>;
+export const levelItemKey: keyof LevelItemDerived = 'href';
+export const levelItemIndexed: LevelItemDerived['href'] = '/x';
+export const levelItemDerivedTag: LevelItemDerived = { as: 'p' };
+
+// And a memo wrapper keeps every tag.
+const MemoLevelItem = React.memo(Level.Item);
+export const levelItemMemo = (
+  <>
+    <MemoLevelItem as="a" href="/x" />
+    <MemoLevelItem as="p" />
   </>
 );

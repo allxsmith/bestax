@@ -103,9 +103,10 @@ describe('Level', () => {
   });
 
   it('forwards the wider anchor attributes to the <a>', () => {
-    // The ones #641 reported as rejected. They travel as named props, like
-    // href/target/rel, rather than through the `...rest` spread — so a change
-    // to the destructure list drops them and only this notices.
+    // The ones #641 reported as rejected. They are not destructured — they reach
+    // the `<a>` through `...rest`, and are filtered out of it for every other
+    // tag — so a change to that filter, or to `useBulmaClasses`, drops them and
+    // only this notices.
     render(
       <Level>
         <Level.Item
