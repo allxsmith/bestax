@@ -1,3 +1,10 @@
+## [2.3.4](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.3.3...bestax-migrate@2.3.4) (2026-09-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let Level.Item's anchor take the rest of an anchor's attributes ([#675](https://github.com/allxsmith/bestax/issues/675)) ([59e8e34](https://github.com/allxsmith/bestax/commit/59e8e348ec69ace8144d429f8345e85591d2a3f2))
+
 ## [2.3.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.3.2...bestax-migrate@2.3.3) (2026-09-14)
 
 
