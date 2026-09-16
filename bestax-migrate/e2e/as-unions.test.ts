@@ -23,7 +23,6 @@ import {
   HTML_INTRINSICS,
   HREF_TABLE,
   LINK_ATTR_TABLE,
-  TARGET_LINK_ATTR_TABLE,
   declaresAs,
 } from '../src/sources/_shared/polymorphic.js';
 import fs from 'node:fs';
@@ -352,17 +351,17 @@ describe('the link-attribute table matches what React types', () => {
   });
 });
 
-describe('the per-target link-attribute exception matches the library', () => {
-  it('needs a row for no target but the one it has', () => {
-    // The premise behind a single-row table: every other href-capable target
-    // either follows `as` or extends `AnchorHTMLAttributes`, so the element
-    // decides and no row is needed. If one of them ever narrows, the rule
-    // silently keeps an attribute the component rejects -- so the premise is
-    // asserted rather than assumed.
+describe('link attributes match what the library accepts', () => {
+  it("holds every href-capable target to its anchor's whole surface", () => {
+    // The premise that let the per-target table go (#672): every href-capable
+    // target either follows `as` or carries the anchor's attributes outright,
+    // so the element decides for all of them. If one ever narrows, the rule
+    // would silently keep an attribute the component rejects -- so the premise
+    // is asserted rather than assumed, for every target rather than for the
+    // ones that had no row.
     const rows: string[] = [];
     const roots = new Set<string>();
     for (const target of Object.keys(HREF_TABLE)) {
-      if (TARGET_LINK_ATTR_TABLE[target]) continue;
       roots.add(target.split('.')[0]);
       const as = declaresAs(target) ? 'as="a" ' : '';
       for (const attr of Object.keys(LINK_ATTR_TABLE)) {

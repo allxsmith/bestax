@@ -108,18 +108,19 @@ const RBX: Case[] = [
     '<Navbar.Link as="span" href="/x" target="_blank">x</Navbar.Link>',
   ],
   ['Navbar', '<Navbar.Link as="span" target="_blank">x</Navbar.Link>'],
-  // Targets whose props do NOT follow `as`: every matrix row for link
-  // attributes used to sit on the four that do, so the gap was invisible by
-  // construction. `Dropdown.Item`'s props follow a CONSTRAINED `as`, so the
-  // anchor form carries a link and the other two do not; `Level.Item`
-  // enumerates its own props and stops at `target`.
+  // Targets with a CONSTRAINED `as`: every matrix row for link attributes used
+  // to sit on the four with an open one, so the gap was invisible by
+  // construction. `Dropdown.Item`'s props follow its `as`, so the anchor form
+  // carries a link and the other two do not. `Level.Item` declares the anchor's
+  // whole surface at every `as` since #672 and forwards it only on the `<a>`,
+  // so what the element renders is what decides.
   ['Dropdown', '<Dropdown.Item href="/x" target="_blank">x</Dropdown.Item>'],
   ['Dropdown', '<Dropdown.Item as="a" target="_blank">x</Dropdown.Item>'],
   ['Level', '<Level.Item as="a" href="/x" target="_blank">x</Level.Item>'],
   ['Level', '<Level.Item as="a" href="/x" download>x</Level.Item>'],
   ['Tab', '<Tab target="_blank">One</Tab>'],
-  // `Level.Item` declares `target`, but forwards it only for an <a>, so the
-  // component and the element both have to allow it.
+  // `Level.Item` declares `target` at every `as` and forwards it only for an
+  // <a>, so the ELEMENT is what refuses it here — the component allows it.
   ['Level', '<Level.Item as="p" target="_blank">x</Level.Item>'],
   ['Button', '<Button as="span" media="print">x</Button>'],
   ['Button', '<Button as="span" download>x</Button>'],
@@ -280,6 +281,31 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
       '<Level.Item as="a" href="/x">x</Level.Item>',
     ]);
     expect(anchored).toContain('href="/x"');
+
+    // The attributes #672 added, on the form that keeps them. This is the whole
+    // point of the release that carries it, and it was asserted by nothing: the
+    // compile matrix passes whether the codemod keeps the attribute or strips it
+    // with a TODO, and the test that used to cover the stripping went with the
+    // per-target row.
+    const widerRaw = migrate(rbx, 'rbx', [
+      'Level',
+      '<Level.Item as="a" href="/x" download="f" referrerPolicy="no-referrer">x</Level.Item>',
+    ]);
+    expect(codeOf(widerRaw)).toContain('download="f"');
+    expect(codeOf(widerRaw)).toContain('referrerPolicy="no-referrer"');
+    // Checked on the RAW output: a TODO quotes the attribute it removed, so
+    // `codeOf` — which strips the TODOs — would pass either way.
+    expect(widerRaw).not.toContain('TODO(bestax-migrate)');
+
+    // And the non-anchor form still loses them, with a TODO saying why. Same
+    // trap in reverse: the TODO contains `download="f"` as the value it read, so
+    // the absence has to be asserted on the code rather than the whole output.
+    const nonAnchorRaw = migrate(rbx, 'rbx', [
+      'Level',
+      '<Level.Item as="p" download="f">x</Level.Item>',
+    ]);
+    expect(codeOf(nonAnchorRaw)).not.toContain('download');
+    expect(nonAnchorRaw).toContain('TODO(bestax-migrate)');
   });
 
   it('tells the reader the remedy that works on this target', () => {

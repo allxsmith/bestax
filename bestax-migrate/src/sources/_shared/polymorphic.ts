@@ -330,44 +330,6 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
 // `bulma-ui/src/__typetests__/polymorphic.tsx` makes about it.
 
 /**
- * The link attributes a target accepts, where its props do not follow `as`.
- *
- * Every component here either follows `as` (the element decides, above) or
- * carries the anchor's attributes outright — `Pagination.*` and `Panel.Block`
- * by extending `AnchorHTMLAttributes`, `Level.Item` since #672 by subtracting
- * `HTMLAttributes` from it. So none is narrower than the element it renders,
- * and none needs a row.
- *
- * A target that ENUMERATED a subset would be, and the rule would have to know:
- * `Level.Item` listed `href`, `target` and `rel` and stopped, which made
- * `download` a type error on its own `<a>`.
- *
- * A target absent from `HREF_OK` needs no row: a component that takes no
- * `href` at any `as` takes none of its siblings either -- verified for
- * `Card.FooterItem`, `Tabs.Item` and `Delete`, which is why this is derived
- * from that table rather than being a second list to keep.
- */
-const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
-  // Empty since #672. `Level.Item` was the only row: it listed `href`, `target`
-  // and `rel` and stopped, so the element alone could not say that `download`
-  // was rejected. It now enumerates the anchor's attributes by SUBTRACTING
-  // `React.HTMLAttributes` from `React.AnchorHTMLAttributes`, which is all of
-  // them — and a row naming all of them decides nothing a row naming none does
-  // not, so the element decides and the row goes.
-  //
-  // The mechanism stays for a target that really is narrower than its element,
-  // and the e2e asserts the premise rather than assuming it: every href-capable
-  // target without a row accepts every link attribute on its anchor.
-  // `Level.Item` joins that sweep, so its coverage moved rather than going.
-  // NOTE that leaves the `rejectedBy = 'component'` arm with no live caller —
-  // worth deleting and restoring from git if nothing claims it.
-};
-
-/** The rows the type test holds to the library. */
-export const TARGET_LINK_ATTR_TABLE: Record<string, readonly string[]> =
-  TARGET_LINK_ATTRS;
-
-/**
  * The intrinsic elements React types an `href` onto.
  *
  * Only relevant to plain markup. On a bestax component the anchor is the only
@@ -661,20 +623,20 @@ function dropInertLinkAttrs(
   rendered: string | undefined
 ): void {
   const carriesLinks = HREF_OK[target] !== undefined;
-  const declared = TARGET_LINK_ATTRS[target];
   for (const name of LINK_ATTRS) {
-    // Both have to allow it. A target that enumerates its props can be
-    // narrower than the element, and the element can be narrower than the
-    // target: `Level.Item` declares `target` but forwards it only when the
-    // tag is an `<a>`, so `<Level.Item as="p" target="_blank">` was keeping
-    // the same inert attribute this pass removes everywhere else.
-    // Which check rejects it decides both the outcome and what the TODO says.
-    // Keying the message off "the target has a row" instead told a
-    // `<Level.Item as="p" target>` reader that `Level.Item` does not declare
-    // `target` -- it does; the <p> is what refuses it.
+    // Two ways to refuse it, and which one decides the TODO's wording. The
+    // component refuses outright if it is no link at any `as`. Otherwise the
+    // ELEMENT decides — `Level.Item` declares `target` and forwards it only for
+    // an `<a>`, so `<Level.Item as="p" target="_blank">` would keep the same
+    // inert attribute this pass removes everywhere else, and the message has to
+    // say the `<p>` refused it rather than that the component did.
+    //
+    // There used to be a third way: a per-target table for a component that
+    // enumerated a SUBSET of the link attributes and was therefore narrower
+    // than its own element. Nothing is, since #672, so the table went with the
+    // branch that read it.
     let rejectedBy: 'component' | 'element' | null = null;
     if (!carriesLinks) rejectedBy = 'component';
-    else if (declared && !declared.includes(name)) rejectedBy = 'component';
     // A dynamic `as` leaves the element unknown, and guessing either way is
     // worse than leaving it for the author.
     else if (rendered !== undefined && !elementTakesLinkAttr(name, rendered))
@@ -687,9 +649,7 @@ function dropInertLinkAttrs(
     const because =
       rejectedBy === 'element'
         ? `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here`
-        : !carriesLinks
-          ? `bestax \`${target}\` is not a link at any \`as\`, so it takes no \`${name}\` either`
-          : `bestax \`${target}\` declares its own props rather than taking the element's, and \`${name}\` is not among them`;
+        : `bestax \`${target}\` is not a link at any \`as\`, so it takes no \`${name}\` either`;
     addTodo(
       ctx,
       path,
