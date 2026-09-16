@@ -1,3 +1,10 @@
+## [5.15.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.2...@allxsmith/bestax-bulma@5.15.3) (2026-09-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let Level.Item's anchor take the rest of an anchor's attributes ([#675](https://github.com/allxsmith/bestax/issues/675)) ([59e8e34](https://github.com/allxsmith/bestax/commit/59e8e348ec69ace8144d429f8345e85591d2a3f2))
+
 ## [5.15.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.1...@allxsmith/bestax-bulma@5.15.2) (2026-09-14)
 
 
