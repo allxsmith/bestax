@@ -290,7 +290,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <a> / <div> attributes and Bulma helper props",
+      "catchAll": "All standard <a> / <div> / <p> attributes and Bulma helper props",
       "types": []
     }
   ],
