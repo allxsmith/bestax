@@ -53,27 +53,43 @@ pnpm add -D @allxsmith/eslint-plugin-bestax
 
 </PackageManagerTabs>
 
+The recommended config registers the plugin as `@allxsmith/bestax`, matches
+`.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, enables JSX parsing, and turns on
+every rule that reports broken code as an error. `no-color-as-surface` is left
+off; see below.
+
+It deliberately sets **no `parser`**, so that whatever you configure for
+TypeScript survives. Which means a TypeScript project has to supply one:
+
+```js title="eslint.config.js"
+import bestax from '@allxsmith/eslint-plugin-bestax';
+import parser from '@typescript-eslint/parser';
+
+export default [
+  { files: ['**/*.{ts,tsx}'], languageOptions: { parser } },
+  bestax.configs.recommended,
+];
+```
+
+Any TypeScript setup that sets a parser works the same way, `typescript-eslint`
+included, precisely because the preset does not set one of its own.
+
+On a project with no TypeScript, the preset alone is enough:
+
 ```js title="eslint.config.js"
 import bestax from '@allxsmith/eslint-plugin-bestax';
 
 export default [bestax.configs.recommended];
 ```
 
-The recommended config registers the plugin as `@allxsmith/bestax`, matches
-`.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, enables JSX parsing, and turns on
-every rule that reports broken code as an error. `no-color-as-surface` is left
-off; see below.
+:::caution
 
-**TypeScript projects need a parser alongside it.** The preset deliberately
-sets no `parser`, so that whatever you configure for TypeScript survives. Put
-your TypeScript config first and the preset after:
+That shorter form does not work on `.tsx`. With no TypeScript parser the
+default one reaches the first type annotation and stops with
+`Parsing error: The keyword 'interface' is reserved`. Since bestax-bulma is a
+TypeScript library, the parser form above is the one most projects want.
 
-```js title="eslint.config.js"
-import bestax from '@allxsmith/eslint-plugin-bestax';
-import tseslint from 'typescript-eslint';
-
-export default [...tseslint.configs.recommended, bestax.configs.recommended];
-```
+:::
 
 To choose rules yourself, note that `files` is doing real work here: a flat
 config object without it inherits ESLint's default `**/*.{js,mjs,cjs}` set, so

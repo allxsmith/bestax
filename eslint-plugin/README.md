@@ -1,7 +1,7 @@
 # @allxsmith/eslint-plugin-bestax
 
-[![npm version](https://img.shields.io/npm/v/@allxsmith%2Feslint-plugin-bestax.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
-[![npm downloads](https://img.shields.io/npm/dm/@allxsmith%2Feslint-plugin-bestax.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
+[![npm version](https://img.shields.io/npm/v/@allxsmith/eslint-plugin-bestax.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
+[![npm downloads](https://img.shields.io/npm/dm/@allxsmith/eslint-plugin-bestax.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@allxsmith/eslint-plugin-bestax)](https://socket.dev/npm/package/@allxsmith/eslint-plugin-bestax/overview)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
@@ -35,6 +35,30 @@ The plugin is ESM-only, so it cannot be `require()`d from a legacy
 npm install --save-dev @allxsmith/eslint-plugin-bestax
 ```
 
+### TypeScript
+
+The preset sets no `parser`, so a TypeScript parser has to come from a config
+object of your own. Put it first; the preset after:
+
+```js
+// eslint.config.js
+import bestax from '@allxsmith/eslint-plugin-bestax';
+import parser from '@typescript-eslint/parser';
+
+export default [
+  { files: ['**/*.{ts,tsx}'], languageOptions: { parser } },
+  bestax.configs.recommended,
+];
+```
+
+Any TypeScript setup that sets a parser works the same way, `typescript-eslint`
+included, precisely because the preset does not set one of its own.
+
+### JavaScript and JSX
+
+With no TypeScript in the project, the preset alone is enough — it matches
+`.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, and turns on JSX parsing:
+
 ```js
 // eslint.config.js
 import bestax from '@allxsmith/eslint-plugin-bestax';
@@ -42,20 +66,15 @@ import bestax from '@allxsmith/eslint-plugin-bestax';
 export default [bestax.configs.recommended];
 ```
 
-The preset matches `.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, and enables JSX
-parsing. It sets no `parser`, so whatever you configure for TypeScript
-survives; put your TypeScript config first and this after:
+Do not use that form on a `.tsx` file. Without a TypeScript parser the default
+one reaches the first type annotation and stops:
+`Parsing error: The keyword 'interface' is reserved`.
 
-```js
-import bestax from '@allxsmith/eslint-plugin-bestax';
-import tseslint from 'typescript-eslint';
+### Picking rules yourself
 
-export default [...tseslint.configs.recommended, bestax.configs.recommended];
-```
-
-Or register it yourself and pick rules. `files` is load-bearing: a flat config
-object without it inherits ESLint's default `**/*.{js,mjs,cjs}` set, so leaving
-it out silently lints none of your JSX.
+`files` is load-bearing: a flat config object without it inherits ESLint's
+default `**/*.{js,mjs,cjs}` set, so leaving it out silently lints none of your
+JSX.
 
 ```js
 import bestax from '@allxsmith/eslint-plugin-bestax';
