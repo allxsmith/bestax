@@ -174,7 +174,7 @@ When using `as="p"`, the element is visually styled as a heading but semanticall
 | `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                              |
 | `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                        |
 | `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.        |
-| `...`         | All standard `<h1>`–`<h6>` attributes and Bulma helper props                                 | —       | See [Helper Props](../helpers/usebulmaclasses.md)               |
+| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)               |
 
 <!-- /bestax:generated props -->
 

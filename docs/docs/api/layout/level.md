@@ -292,10 +292,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 | `textColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
 | `className`       | `string`                                                                | —       | Additional CSS classes.                           |
 | `children`        | `React.ReactNode`                                                       | —       | Content.                                          |
-| `href`            | `string`                                                                | —       | Href for "a" tag.                                 |
-| `target`          | `string`                                                                | —       | Target for "a" tag                                |
-| `rel`             | `string`                                                                | —       | Rel for "a" tag                                   |
-| `...`             | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| `...`             | All standard `<a>` / `<div>` / `<p>` attributes and Bulma helper props  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

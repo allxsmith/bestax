@@ -92,8 +92,7 @@ const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);
  * typechecking cannot answer the question on its own. `Level.Item` declares
  * `href` on its props at every `as`, so `<Level.Item href="/x">` compiles --
  * but it renders a <div> and forwards `href` only when the tag is an `<a>`
- * (`bulma-ui/src/layout/Level.tsx:227`), so the attribute is dropped at
- * runtime. A table built from the types alone calls that supported; it is the
+ * (`LevelItem`'s anchor branch), so the attribute is dropped at runtime. A table built from the types alone calls that supported; it is the
  * same dead attribute this pass exists to remove.
  */
 const HREF_OK: Record<string, string> = {
@@ -287,7 +286,7 @@ export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
  *
  * They are excluded because the components disagree about what they forward,
  * so no shared set is right. `Menu.Item` strips `href` unless the tag is an
- * `<a>` or a custom component (`bulma-ui/src/components/Menu.tsx:212-222`),
+ * `<a>` or a custom component (`MenuItem`'s `isLinkLike` guard),
  * while `Button` routes everything but `'button'` through its anchor path and
  * would forward it. Keeping `href` beside `as="area"` therefore typechecks on
  * both and does nothing on one of them, which is the silently-dead attribute
@@ -333,12 +332,15 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
 /**
  * The link attributes a target accepts, where its props do not follow `as`.
  *
- * Most components here either follow `as` (the element decides, above) or
- * extend `AnchorHTMLAttributes` outright (`Pagination.*`, `Panel.Block`, so
- * everything is fine). `Level.Item` is the exception that enumerates: it
- * declares `href`, `target` and `rel` and nothing else, so `download`,
- * `hrefLang`, `ping` and `referrerPolicy` are type errors there even at
- * `as="a"`.
+ * Every component here either follows `as` (the element decides, above) or
+ * carries the anchor's attributes outright — `Pagination.*` and `Panel.Block`
+ * by extending `AnchorHTMLAttributes`, `Level.Item` since #672 by subtracting
+ * `HTMLAttributes` from it. So none is narrower than the element it renders,
+ * and none needs a row.
+ *
+ * A target that ENUMERATED a subset would be, and the rule would have to know:
+ * `Level.Item` listed `href`, `target` and `rel` and stopped, which made
+ * `download` a type error on its own `<a>`.
  *
  * A target absent from `HREF_OK` needs no row: a component that takes no
  * `href` at any `as` takes none of its siblings either -- verified for
@@ -346,7 +348,19 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
  * from that table rather than being a second list to keep.
  */
 const TARGET_LINK_ATTRS: Record<string, readonly string[]> = {
-  'Level.Item': ['target'],
+  // Empty since #672. `Level.Item` was the only row: it listed `href`, `target`
+  // and `rel` and stopped, so the element alone could not say that `download`
+  // was rejected. It now enumerates the anchor's attributes by SUBTRACTING
+  // `React.HTMLAttributes` from `React.AnchorHTMLAttributes`, which is all of
+  // them — and a row naming all of them decides nothing a row naming none does
+  // not, so the element decides and the row goes.
+  //
+  // The mechanism stays for a target that really is narrower than its element,
+  // and the e2e asserts the premise rather than assuming it: every href-capable
+  // target without a row accepts every link attribute on its anchor.
+  // `Level.Item` joins that sweep, so its coverage moved rather than going.
+  // NOTE that leaves the `rejectedBy = 'component'` arm with no live caller —
+  // worth deleting and restoring from git if nothing claims it.
 };
 
 /** The rows the type test holds to the library. */

@@ -287,37 +287,10 @@
           "required": false,
           "inherited": false,
           "deprecated": false
-        },
-        {
-          "name": "href",
-          "type": "string",
-          "default": null,
-          "description": "Href for \"a\" tag.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "target",
-          "type": "string",
-          "default": null,
-          "description": "Target for \"a\" tag",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "rel",
-          "type": "string",
-          "default": null,
-          "description": "Rel for \"a\" tag",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "catchAll": "All standard <a> / <div> / <p> attributes and Bulma helper props",
       "types": []
     }
   ],

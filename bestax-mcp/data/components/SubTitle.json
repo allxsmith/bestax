@@ -128,7 +128,7 @@
           "deprecated": false
         }
       ],
-      "catchAll": "All standard <h1>–<h6> attributes and Bulma helper props",
+      "catchAll": "All standard <h1>–<h6> / <p> attributes and Bulma helper props",
       "types": []
     }
   ],

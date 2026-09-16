@@ -241,6 +241,28 @@ test('every polymorphic component has a recognized `as` constraint', () => {
   assert.deepEqual(table('Button', 'Button').catchAll.asKinds, ['open']);
 });
 
+test('a union element base names every element, not the first', () => {
+  // `catchAllRow` read the base with `String.match` and no `/g`, so a component
+  // whose props extend `HTMLAttributes<A | B | C>` was described by whichever
+  // element came first. The regenerated pages are not the guard: a one-match
+  // implementation regenerates them just as incomplete, and `gen:*:check` calls
+  // that fresh.
+  assert.match(
+    table('Level', 'Level.Item').catchAll.text,
+    /`<a>` \/ `<div>` \/ `<p>` attributes/
+  );
+  for (const [component, path] of [
+    ['Title', 'Title'],
+    ['SubTitle', 'SubTitle'],
+  ]) {
+    assert.match(
+      table(component, path).catchAll.text,
+      /`<p>`/,
+      `${path} drops the <p> it also renders`
+    );
+  }
+});
+
 test('every polymorphic component names a concrete default element', () => {
   // A type parameter defaulting to the CONSTRAINT rather than to a tag —
   // `<T extends React.ElementType = React.ElementType>` — makes

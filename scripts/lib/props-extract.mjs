@@ -1188,8 +1188,14 @@ function catchAllRow(external, markdown = true) {
       );
       continue;
     }
-    const m = e.text.match(/HTML\w*Element/);
-    if (m) elements.add(DOM_ELEMENT_LABELS[m[0]] ?? 'HTML');
+    // Every match, not the first. A component whose base is a UNION of elements
+    // — `Level.Item` is `HTMLDivElement | HTMLParagraphElement | HTMLAnchorElement`
+    // — was described by whichever one came first, so its page and the MCP index
+    // both said "<div> attributes" and named neither the `<p>` nor the `<a>` it
+    // also renders.
+    for (const m of e.text.matchAll(/HTML\w*Element/g)) {
+      elements.add(DOM_ELEMENT_LABELS[m[0]] ?? 'HTML');
+    }
   }
   // Surfaced so a test can hold every polymorphic component to a RECOGNIZED
   // constraint. 'unknown' silently takes the open wording, which over-promises
