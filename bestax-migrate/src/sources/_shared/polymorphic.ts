@@ -92,8 +92,7 @@ const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);
  * typechecking cannot answer the question on its own. `Level.Item` declares
  * `href` on its props at every `as`, so `<Level.Item href="/x">` compiles --
  * but it renders a <div> and forwards `href` only when the tag is an `<a>`
- * (`bulma-ui/src/layout/Level.tsx:227`), so the attribute is dropped at
- * runtime. A table built from the types alone calls that supported; it is the
+ * (`LevelItem`'s anchor branch), so the attribute is dropped at runtime. A table built from the types alone calls that supported; it is the
  * same dead attribute this pass exists to remove.
  */
 const HREF_OK: Record<string, string> = {
@@ -287,7 +286,7 @@ export const AS_ANY_TARGETS: readonly string[] = [...AS_ANY].sort();
  *
  * They are excluded because the components disagree about what they forward,
  * so no shared set is right. `Menu.Item` strips `href` unless the tag is an
- * `<a>` or a custom component (`bulma-ui/src/components/Menu.tsx:212-222`),
+ * `<a>` or a custom component (`MenuItem`'s `isLinkLike` guard),
  * while `Button` routes everything but `'button'` through its anchor path and
  * would forward it. Keeping `href` beside `as="area"` therefore typechecks on
  * both and does nothing on one of them, which is the silently-dead attribute
