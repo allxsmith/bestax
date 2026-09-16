@@ -28,7 +28,9 @@ export type AnchorOnlyAttributes = Omit<
  * type drifts in the one direction that matters — the type accepts the new
  * attribute and the filter lets it leak onto a `<div>`.
  */
-export const ANCHOR_ONLY_ATTRS: Record<keyof AnchorOnlyAttributes, true> = {
+export const ANCHOR_ONLY_ATTRS: Readonly<
+  Record<keyof AnchorOnlyAttributes, true>
+> = {
   href: true,
   target: true,
   download: true,
@@ -49,13 +51,17 @@ export const ANCHOR_ONLY_ATTRS: Record<keyof AnchorOnlyAttributes, true> = {
  * because its own props never declared the rest. What IS shared is the derived
  * source of truth above and this function; each caller states its delta and why.
  */
-export function omitAttrs<T extends object>(
+export function omitAttrs<T extends object, K extends string>(
   props: T,
-  strip: Record<string, true>
-): T {
+  strip: Readonly<Record<K, true>>
+): Omit<T, K> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    if (!(key in strip)) out[key] = value;
+    // `hasOwnProperty`, not `key in strip`: `in` walks the prototype chain, so a
+    // prop named `toString`, `valueOf`, `constructor` or `hasOwnProperty` was
+    // stripped although no caller named it — and anything written to
+    // `Object.prototype` would start deleting props that share its keys.
+    if (!Object.prototype.hasOwnProperty.call(strip, key)) out[key] = value;
   }
-  return out as T;
+  return out as Omit<T, K>;
 }

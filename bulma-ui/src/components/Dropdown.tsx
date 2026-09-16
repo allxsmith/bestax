@@ -458,11 +458,13 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
   // plain-JS one, a loose `{...props}` spread, and the genericity a wrapping HOC
   // erases.
   //
-  // The whole link set, not `href` alone. Menu strips only `href` because its
-  // props never gained the rest; here they all arrive together under `as="a"`,
-  // and `bestax-migrate` already removes exactly this set (`LINK_ATTRS`) when it
-  // migrates onto a non-anchor — so stripping less would leave the codemod
-  // stricter than the component it migrates to.
+  // The whole link set, not `href` alone: they all arrive together under
+  // `as="a"`. Menu strips `href` only, because its `as` is open and a flat set
+  // would delete attributes legal on the element a caller named.
+  //
+  // `bestax-migrate` tracks the same question from the other side, per attribute
+  // per element (`LINK_ATTR_ELEMENTS`) rather than as one set — so the two lists
+  // are not interchangeable and neither derives from the other.
   //
   // Menu's condition also admits a custom component and a custom element, which
   // own their prop contracts. `as` is closed to three intrinsic tags here, so
@@ -484,7 +486,9 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       {...forwarded}
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
-      // Avatar defaults it the same way, and Dropdown's own trigger sets it.
+      // Dropdown's own trigger sets it. `Avatar` and `Menu.Item` do NOT get this
+      // right — Avatar spreads its default BEFORE `rest`, so `type={undefined}`
+      // arriving through a spread erases it, and Menu defaults none at all.
       //
       // After `forwarded`, reading through it rather than before it: React
       // treats `type={undefined}` as "remove the attribute", and a spread

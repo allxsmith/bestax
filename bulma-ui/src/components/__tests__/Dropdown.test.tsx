@@ -1304,15 +1304,38 @@ describe('href routing', () => {
     render(
       <Dropdown label="Menu" active>
         {/* @ts-expect-error a div takes no anchor attributes */}
-        <Dropdown.Item as="div" target="_blank" download="f" ping="/p">
+        <Dropdown.Item
+          as="div"
+          href="/x"
+          target="_blank"
+          download="f"
+          hrefLang="en"
+          ping="/p"
+          referrerPolicy="no-referrer"
+          media="print"
+          type="button"
+        >
           Static
         </Dropdown.Item>
       </Dropdown>
     );
     const item = screen.getByTestId('dropdown-item');
-    for (const attr of ['target', 'download', 'ping']) {
+    // Every attribute the strip set names, and each one supplied above — an
+    // assertion for a prop that was never passed proves nothing.
+    for (const attr of [
+      'href',
+      'target',
+      'download',
+      'hreflang',
+      'ping',
+      'referrerpolicy',
+      'media',
+    ]) {
       expect(item).not.toHaveAttribute(attr);
     }
+    // `type` is deliberately NOT stripped: `as="button"` takes one. That it
+    // reaches a <div> too is the per-tag gap the set does not express.
+    expect(item).toHaveAttribute('type');
   });
 
   it('keeps them on the anchor', () => {

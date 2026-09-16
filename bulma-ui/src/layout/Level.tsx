@@ -167,19 +167,25 @@ export const LevelRight: React.FC<LevelRightProps> = ({
   );
 };
 
+/** The derived set plus `rel`; see the note in the render body. */
+const STRIP_FROM_NON_ANCHOR: Readonly<
+  Record<keyof AnchorOnlyAttributes | 'rel', true>
+> = { ...ANCHOR_ONLY_ATTRS, rel: true };
+
 /**
  * Props for the LevelItem component.
  *
- * The anchor attributes are enumerated here, at every `as`, and forwarded only
- * when the tag is an `<a>` — so `<Level.Item as="p" download>` compiles and
+ * The anchor attributes arrive through `AnchorOnlyAttributes`, at every `as`, and
+ * are forwarded only when the tag is an `<a>` — so `<Level.Item as="p" download>` compiles and
  * renders a `<p>` without it. That asymmetry is deliberate for now: deriving
  * them from `as` instead is what makes the dead pair a type error, and it also
  * stops `const p: LevelItemProps = { href }` compiling for consumers who write
  * it today. #672 carries that half, labelled `next-major`.
  *
- * What this list must NOT become is a shorter one. Enumerating only `href`,
+ * What that set must NOT become is a hand-written list. Enumerating only `href`,
  * `target` and `rel` made every other anchor attribute a type error even at
- * `as="a"`, which is what #641 reported.
+ * `as="a"`, which is what #641 reported; `helpers/anchorAttrs.ts` derives it from
+ * React instead, and `ANCHOR_ONLY_ATTRS` there is the guard to protect.
  */
 export interface LevelItemProps
   extends
@@ -238,17 +244,11 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   // the runtime is what keeps `<Level.Item as="p" download>` from rendering a
   // dead attribute.
   //
-  // Keyed off `AnchorOnlyAttributes` rather than repeated as a list, because a
-  // hand list beside a derived type drifts in the one direction that matters:
-  // the day React adds an anchor attribute, the type would accept it at every
-  // `as` while the list let it leak onto a `<div>`. `Record` makes that a
-  // compile error here until this object catches up. #682 is the issue for
-  // sharing the rule with the two components that keep their own copies.
   // The derived set plus `rel`. `rel` is not an anchor-only attribute — React
   // declares it on every element — but this component has always withheld it
   // from a non-anchor, so it is named separately rather than folded in, and
-  // that separation is what says which names come from where.
-  const STRIP_FROM_NON_ANCHOR = { ...ANCHOR_ONLY_ATTRS, rel: true } as const;
+  // that separation is what says which names come from where. The annotation is
+  // what holds it: without it a typo adds a key nobody strips.
 
   if (Tag === 'a') {
     return (

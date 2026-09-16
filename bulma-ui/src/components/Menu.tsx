@@ -219,11 +219,17 @@ export const MenuItem = forwardRef(function MenuItem(
     Component === 'a' ||
     typeof Component !== 'string' ||
     isCustomElement(Component);
-  // `href` ALONE, which is where this component differs from its two siblings.
-  // `Dropdown.Item` and `Level.Item` derive their props from `as` and so gained
-  // the anchor's whole surface to withhold; this one's own props never declared
-  // the rest, so there is nothing else for a typed caller to deliver. A JS
-  // caller can still deliver them, and they are not stripped here — see #682.
+  // `href` ALONE, which is one of two ways this component differs from its
+  // siblings — the other is that it defaults no `type` for `as="button"`.
+  //
+  // Not because nothing else can arrive: `as` here is an open `React.ElementType`,
+  // and a non-fresh spread skips excess-property checking, so a typed caller
+  // CAN deliver `target` or `download` and they are forwarded. The set stays at
+  // `href` because widening it would be wrong for an open `as` — `referrerPolicy`
+  // on `as="img"`, `target` on `as="form"` and `media` on `as="source"` are all
+  // legal, and a flat strip would delete them. Getting that right needs a
+  // per-attribute-per-element rule, which `bestax-migrate` already models in
+  // `LINK_ATTR_ELEMENTS`.
   const linkProps = isLinkLike
     ? forwarded
     : omitAttrs(forwarded, { href: true });

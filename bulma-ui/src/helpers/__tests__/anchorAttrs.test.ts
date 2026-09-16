@@ -1,0 +1,68 @@
+import { ANCHOR_ONLY_ATTRS, omitAttrs } from '../anchorAttrs';
+
+describe('ANCHOR_ONLY_ATTRS', () => {
+  it('names exactly what an <a> adds over any element', () => {
+    // Keyed off `AnchorOnlyAttributes`, so a React addition breaks the
+    // declaration until it is named — this pins the other direction, that
+    // nothing has crept in that every element already has.
+    expect(Object.keys(ANCHOR_ONLY_ATTRS).sort()).toEqual([
+      'download',
+      'href',
+      'hrefLang',
+      'media',
+      'ping',
+      'referrerPolicy',
+      'target',
+      'type',
+    ]);
+  });
+
+  it('omits `rel`, which React declares on every element', () => {
+    expect('rel' in ANCHOR_ONLY_ATTRS).toBe(false);
+  });
+});
+
+describe('omitAttrs', () => {
+  it('drops only the keys named', () => {
+    expect(omitAttrs({ href: '/x', title: 't' }, { href: true })).toEqual({
+      title: 't',
+    });
+  });
+
+  it('keeps props that collide with Object.prototype', () => {
+    // `key in strip` walked the prototype chain, so these four were dropped
+    // although no caller named them. React props are arbitrary strings and a
+    // consumer may legitimately pass any of them through a spread.
+    const props = {
+      toString: 1,
+      valueOf: 2,
+      constructor: 3,
+      hasOwnProperty: 4,
+      href: '/x',
+    };
+    expect(Object.keys(omitAttrs(props, { href: true })).sort()).toEqual([
+      'constructor',
+      'hasOwnProperty',
+      'toString',
+      'valueOf',
+    ]);
+  });
+
+  it('is unaffected by writes to Object.prototype', () => {
+    // The amplified form of the same bug: anything polluting the prototype
+    // would have started deleting props sharing its keys, in every component.
+    const proto = Object.prototype as unknown as Record<string, unknown>;
+    proto.id = true;
+    try {
+      expect(omitAttrs({ id: 'keep-me' }, { href: true })).toEqual({
+        id: 'keep-me',
+      });
+    } finally {
+      delete proto.id;
+    }
+  });
+
+  it('leaves an empty strip set untouched', () => {
+    expect(omitAttrs({ a: 1, b: 2 }, {})).toEqual({ a: 1, b: 2 });
+  });
+});
