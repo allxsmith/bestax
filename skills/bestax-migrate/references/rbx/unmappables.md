@@ -91,9 +91,9 @@ on an `<a>` inside, or make the element one that takes it.
 `rel` is never touched: React declares it on `HTMLAttributes`, so it is valid on every element.
 
 A component can be narrower than its element. One that takes no `href` at any `as` takes none of
-these either, and `Level.Item` enumerates its anchor props rather than deriving them from `as`:
-it declares `href`, `target`, `rel`, `download`, `hrefLang`, `ping` and `referrerPolicy`, so only
-`media` goes to the TODO even at `as="a"`.
+these either. `Level.Item` is not narrower: it declares the anchor's whole attribute surface at
+every `as` and forwards it only on the `<a>`, so all of these survive at `as="a"` and none of
+them reaches a `<p>` or a `<div>`.
 
 ## `component:Generic` — rbx's base element
 

@@ -333,12 +333,15 @@ const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
 /**
  * The link attributes a target accepts, where its props do not follow `as`.
  *
- * Most components here either follow `as` (the element decides, above) or
- * extend `AnchorHTMLAttributes` outright (`Pagination.*`, `Panel.Block`, so
- * everything is fine). `Level.Item` is the exception that enumerates: it
- * enumerates: since #672 it declares `href`, `target`, `rel`, `download`,
- * `hrefLang`, `ping` and `referrerPolicy`, and still not `media` — so `media`
- * is a type error on its `<a>` where the element would take one.
+ * Every component here either follows `as` (the element decides, above) or
+ * carries the anchor's attributes outright — `Pagination.*` and `Panel.Block`
+ * by extending `AnchorHTMLAttributes`, `Level.Item` since #672 by subtracting
+ * `HTMLAttributes` from it. So none is narrower than the element it renders,
+ * and none needs a row.
+ *
+ * A target that ENUMERATED a subset would be, and the rule would have to know:
+ * `Level.Item` listed `href`, `target` and `rel` and stopped, which made
+ * `download` a type error on its own `<a>`.
  *
  * A target absent from `HREF_OK` needs no row: a component that takes no
  * `href` at any `as` takes none of its siblings either -- verified for
