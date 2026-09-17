@@ -87,6 +87,8 @@ const rule: Rule.RuleModule = {
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Write `{{prop}}="{{value}}"`.',
       numericInvalid:
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings. `"{{value}}"` is not a value it accepts either. Valid values: {{valid}}.',
+      shorthand:
+        '`{{prop}}` with no value reaches the library as `true`, which matches none of the strings {{prop}} accepts, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
     },
   },
   create(context) {
@@ -103,6 +105,19 @@ const rule: Rule.RuleModule = {
           const prop: string = attr.name.name;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;
+          // A bare attribute is `true`, which matches no tuple of strings. Same
+          // argument as the numeric case, one type further out.
+          if (attr.value === null || attr.value === undefined) {
+            context.report({
+              node: attr,
+              messageId: 'shorthand',
+              data: {
+                prop,
+                valid: valid.map(v => `\`${v}\``).join(', '),
+              },
+            });
+            continue;
+          }
           // A number never matches a tuple of strings, so it renders nothing
           // however plausible it looks. Worth its own message: the fix is the
           // quotes, not the value.

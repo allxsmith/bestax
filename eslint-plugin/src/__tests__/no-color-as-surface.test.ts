@@ -36,6 +36,13 @@ ruleTester.run('no-color-as-surface', rule, {
     imported('Box', '<Box color />'),
     // A spread may carry the background that silences this rule.
     imported('Box', '<Box {...rest} color="dark" />'),
+    // `textColor` is set but unreadable, so whether it wins is unknowable:
+    // the library does `color: textColor ?? color`, and telling the author to
+    // delete `color` costs them the fallback whenever it is undefined. This
+    // guard was the only uncovered statement in the rule.
+    imported('Box', '<Box textColor={maybe} color="primary" />'),
+    // The shade is unreadable, so the rule cannot state which class renders.
+    imported('Box', '<Box color="primary" colorShade={s} />'),
     // A compound part whose color is a real modifier, unlike its root.
     imported('Buttons', '<Buttons.Button color="primary" />'),
     // Not our Box.
@@ -55,6 +62,19 @@ ruleTester.run('no-color-as-surface', rule, {
       code: imported('Box', '<Box color={`primary`} />'),
       output: imported('Box', '<Box textColor={`primary`} />'),
       errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // A shade outside `validColorShades` is ignored by the library, which
+      // falls back to the unshaded class — so the message must not shade it.
+      // `addColorClass` shades only `if (shade && includes(shade))`.
+      code: imported('Box', '<Box color="primary" colorShade="99" />'),
+      output: imported('Box', '<Box textColor="primary" colorShade="99" />'),
+      errors: [
+        {
+          message:
+            '`color` on `Box` is a text-colour alias — it renders `has-text-primary`, and no `is-<color>` CSS exists for it. Write `textColor="primary"` to say so, or `bgColor="primary"` if you wanted a coloured surface.',
+        },
+      ],
     },
     {
       // `colorShade` changes the class the library emits, so the message has

@@ -35,6 +35,25 @@ The full worked walkthrough (including the SCSS side for extras) is
 `skills/bestax-custom-component/references/library-contributor.md` — follow it rather than
 improvising.
 
+## The `./constants` subpath
+
+`exports["./constants"]` serves `src/helpers/bulmaClassHelpers.ts` on its own,
+as `dist/constants.cjs` and `dist/constants.esm.js`, so tooling can read the
+helper value tuples (`validColors`, `validTextSizes`, …) without loading React
+or any component. `@allxsmith/eslint-plugin-bestax` validates against them that
+way rather than copying them.
+
+Two things keep it working, and both failed once:
+
+- That file must stay import-free. The rollup entry keeps the main bundle's
+  `external` so a future `useMemo` in it cannot inline React into a bundle
+  whose whole point is not needing React.
+- The CommonJS artifact must be `constants.cjs`, not `constants.cjs.js`. This
+  package is `"type": "module"`, so Node reads a `.js` file as ESM whatever
+  the bundle's format is, and under that reading the `exports.x = …`
+  assignments produce nothing: `require` returned an empty object rather than
+  failing.
+
 ## Conventions
 
 - Every component routes its Bulma helper props through `useBulmaClasses` and forwards

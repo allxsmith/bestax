@@ -29,10 +29,10 @@ rejects every one of those, and it does it well: `textAlign="center"` gets
 TS2820 with its own "Did you mean 'centered'?".
 
 So `valid-helper-value` is for the places that check does not reach:
-JavaScript and JSX projects, code in markdown and MDX that no `tsc` program
-includes, and lint stages that run before or instead of typechecking. Code in
-a documentation fence is the case worth dwelling on, since no `tsc` program
-includes it and it is the code readers copy.
+JavaScript and JSX projects, and lint stages that run before or instead of
+typechecking. The preset matches no `.md`/`.mdx`, so code in a documentation
+fence is out of reach without an ESLint markdown processor, and even then each
+fence needs its own import for the elements to resolve.
 
 `no-deprecated-props` and `no-inert-flex-props` are additive everywhere. No
 type error marks a deprecated prop, and none marks a flex prop that emits

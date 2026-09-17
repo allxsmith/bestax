@@ -27,7 +27,10 @@
  */
 import type { Rule } from 'eslint';
 import { TEXT_ALIAS_COLOR_ELEMENTS } from '../generated/metadata.js';
-import { validColors } from '@allxsmith/bestax-bulma/constants';
+import {
+  validColorShades,
+  validColors,
+} from '@allxsmith/bestax-bulma/constants';
 import {
   attributesOf,
   elementOf,
@@ -110,16 +113,28 @@ const rule: Rule.RuleModule = {
         const value = literalValue(color);
         if (value === null || !RENDERABLE.has(value)) return;
 
-        // `colorShade` makes the emitted class `has-text-<color>-<shade>`, so
-        // naming the unshaded one asserted a class the library would not emit.
-        const shade = literalValue(named('colorShade'));
+        // `colorShade` decides which class the library emits, and it applies
+        // the same membership test as every other value: `addColorClass`
+        // shades only `if (shade && validColorShades.includes(shade))`, and
+        // falls back to the unshaded class otherwise. So a shade outside the
+        // tuple means the unshaded class, and a shade this rule cannot read
+        // means it cannot state the class at all.
+        let shadeSuffix = '';
+        const shadeAttr = named('colorShade');
+        if (shadeAttr) {
+          const shade = literalValue(shadeAttr);
+          if (shade === null) return;
+          if (validColorShades.includes(shade as never)) {
+            shadeSuffix = `-${shade}`;
+          }
+        }
         context.report({
           node: color.name,
           messageId: 'ambiguous',
           data: {
             element,
             value,
-            rendered: `has-text-${value}${shade === null ? '' : `-${shade}`}`,
+            rendered: `has-text-${value}${shadeSuffix}`,
           },
           fix: fixer => fixer.replaceText(color.name, 'textColor'),
         });

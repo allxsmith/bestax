@@ -19,8 +19,7 @@ nothing and says nothing.
 **Scope, up front:** the helper props are typed as literal unions, so if you
 write bestax in `.tsx` and run `tsc`, it already catches a wrong literal. This
 plugin is for the places that check does not reach: JavaScript and JSX
-projects, code in markdown and MDX, and lint stages that run before or instead
-of typechecking. The deprecation and flex rules are additive everywhere, since
+projects, and lint stages that run before or instead of typechecking. The deprecation and flex rules are additive everywhere, since
 no type error marks a deprecated prop or a flex prop that emits nothing.
 
 ## Requirements

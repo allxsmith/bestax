@@ -21,7 +21,21 @@ import {
 } from '@allxsmith/bestax-bulma';
 ```
 
-All 19 constants are importable the same way.
+Every constant on this page is importable the same way.
+
+### Without loading the library
+
+Tooling that only needs the tuples can take them from the `./constants`
+subpath, which serves the value module on its own, with no React and no
+component code:
+
+```ts
+import { validColors } from '@allxsmith/bestax-bulma/constants';
+```
+
+It resolves from both ESM and CommonJS. This is how
+[`@allxsmith/eslint-plugin-bestax`](../../guides/getting-started/eslint-plugin.md)
+validates helper values at lint time rather than keeping a copy of them.
 
 ---
 

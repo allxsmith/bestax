@@ -34,6 +34,9 @@ ruleTester.run('valid-helper-value', rule, {
     "const Box = 'div';\nconst x = <Box textColor='nonsense' />;\n",
     // Not a helper prop at all.
     imported('Box', '<Box className="whatever" id="nope" />'),
+    // A boolean prop's shorthand is correct usage; only value props are wrong
+    // without one.
+    imported('Button', '<Button isFullwidth />'),
     // A spread AFTER the attribute can overwrite it, and JSX is last-wins
     // throughout, so the written value is not necessarily what renders. The
     // shorthand "an explicit attribute wins over a spread" is only true of a
@@ -60,6 +63,13 @@ ruleTester.run('valid-helper-value', rule, {
       // permutation that must still report.
       code: imported('Box', '<Box m="4" m="bogus" />'),
       errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // A bare attribute reaches the library as `true`, which matches none of
+      // the strings the prop accepts, so nothing renders. Same argument as the
+      // numeric case, one type further out.
+      code: imported('Box', '<Box mt />'),
+      errors: [{ messageId: 'shorthand' }],
     },
     {
       // A number never matches a tuple of strings, so it renders nothing
