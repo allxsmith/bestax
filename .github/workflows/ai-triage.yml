@@ -224,7 +224,7 @@ jobs:
       # the job that quietly loses egress monitoring when the old single job
       # was split. ENFORCED as of #487, and asserted below.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -459,7 +459,7 @@ jobs:
       # dependency, and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
       # so nothing attempts it. Denying and silencing beat allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -884,7 +884,7 @@ jobs:
       # through the PAT. What holds that is the publisher re-asserting each
       # body's invariants below, and the marker-scoped upsert.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -1021,7 +1021,7 @@ jobs:
       # not unwedge it at all was never an acceptable trade.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: block
           allowed-endpoints: >
