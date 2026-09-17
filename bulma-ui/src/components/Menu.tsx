@@ -2,6 +2,7 @@ import React, { createContext, forwardRef, useContext } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { omitAttrs } from '../helpers/anchorAttrs';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -178,6 +179,12 @@ export type MenuItemProps<T extends React.ElementType = 'a'> =
     };
 
 /**
+ * `href` alone — annotated so a typo is a compile error rather than a silent
+ * no-op, the way both siblings' sets are.
+ */
+const STRIP_FROM_NON_LINK: Readonly<Record<'href', true>> = { href: true };
+
+/**
  * The shape the implementation destructures. The public contract is the generic
  * `MenuItemProps<T>` above — the body cannot see through `T`.
  */
@@ -218,8 +225,20 @@ export const MenuItem = forwardRef(function MenuItem(
     Component === 'a' ||
     typeof Component !== 'string' ||
     isCustomElement(Component);
-  const { href: _href, ...withoutHref } = forwarded as { href?: string };
-  const linkProps = isLinkLike ? forwarded : withoutHref;
+  // `href` ALONE. `Dropdown.Item` strips every anchor-only attribute except
+  // `type`; `Level.Item` strips all of them, plus `rel`.
+  //
+  // Not because nothing else can arrive: `as` here is an open `React.ElementType`,
+  // and a non-fresh spread skips excess-property checking, so a typed caller
+  // CAN deliver `target` or `download` and they are forwarded. The set stays at
+  // `href` because widening it would be wrong for an open `as` — `referrerPolicy`
+  // on `as="img"`, `target` on `as="form"` and `media` on `as="source"` are all
+  // legal, and a flat strip would delete them. Getting that right needs a
+  // per-attribute-per-element rule, which `bestax-migrate` already models in
+  // `LINK_ATTR_ELEMENTS`.
+  const linkProps = isLinkLike
+    ? forwarded
+    : omitAttrs(forwarded, STRIP_FROM_NON_LINK);
   const itemClass = classNames(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses

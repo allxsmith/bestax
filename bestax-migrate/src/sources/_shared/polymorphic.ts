@@ -306,6 +306,20 @@ const ANCHOR = 'a';
  * `<Navbar.Link as="span" target="_blank">`, which does not compile either --
  * and the check has to run whether or not an `href` was there to start with,
  * since that shape is just as invalid without one.
+ *
+ * bulma-ui answers the same question from the other side, in
+ * `bulma-ui/src/helpers/anchorAttrs.ts`: which attributes an `<a>` adds over any
+ * element, subtracted from React's types rather than listed. The two are NOT
+ * interchangeable and neither derives from the other -- that set is per
+ * ATTRIBUTE, this table is per attribute per ELEMENT, because a codemod meets
+ * tags a component never renders.
+ *
+ * They also do not always AGREE, which is worth stating rather than asserting
+ * away: this package strips `target` from `<Menu.Item as="span">` where the
+ * component forwards it, because the codemod removes what the element cannot use
+ * while `Menu.Item` withholds `href` alone. A change to either still wants a look
+ * at the other, and #682 put bulma-ui's copy in one place so there is a single
+ * thing to look at.
  */
 const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
   target: ['a', 'area', 'base', 'form'],
