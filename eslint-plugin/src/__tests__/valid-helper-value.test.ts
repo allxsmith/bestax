@@ -37,6 +37,9 @@ ruleTester.run('valid-helper-value', rule, {
     // A boolean prop's shorthand is correct usage; only value props are wrong
     // without one.
     imported('Button', '<Button isFullwidth />'),
+    // `{false}` reads as switching the prop off, and the library skips a falsy
+    // value either way, so reporting it would be noise.
+    imported('Box', '<Box mt={false} />'),
     // A spread AFTER the attribute can overwrite it, and JSX is last-wins
     // throughout, so the written value is not necessarily what renders. The
     // shorthand "an explicit attribute wins over a spread" is only true of a
@@ -69,6 +72,12 @@ ruleTester.run('valid-helper-value', rule, {
       // the strings the prop accepts, so nothing renders. Same argument as the
       // numeric case, one type further out.
       code: imported('Box', '<Box mt />'),
+      errors: [{ messageId: 'shorthand' }],
+    },
+    {
+      // The explicit spelling of the same value. Both reach the library as
+      // `true`; only the bare one was reported.
+      code: imported('Box', '<Box mt={true} />'),
       errors: [{ messageId: 'shorthand' }],
     },
     {

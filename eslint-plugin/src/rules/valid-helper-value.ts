@@ -28,6 +28,7 @@
 import type { Rule } from 'eslint';
 import { HELPER_VALUES } from '../lib/values.js';
 import {
+  isTrueValue,
   literalValue,
   numericValue,
   elementOf,
@@ -88,7 +89,7 @@ const rule: Rule.RuleModule = {
       numericInvalid:
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings. `"{{value}}"` is not a value it accepts either. Valid values: {{valid}}.',
       shorthand:
-        '`{{prop}}` with no value reaches the library as `true`, which matches none of the strings {{prop}} accepts, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
+        '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
     },
   },
   create(context) {
@@ -105,9 +106,9 @@ const rule: Rule.RuleModule = {
           const prop: string = attr.name.name;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;
-          // A bare attribute is `true`, which matches no tuple of strings. Same
+          // `true`, bare or explicit, matches no tuple of strings. Same
           // argument as the numeric case, one type further out.
-          if (attr.value === null || attr.value === undefined) {
+          if (isTrueValue(attr)) {
             context.report({
               node: attr,
               messageId: 'shorthand',

@@ -12,6 +12,7 @@ import {
   collectImport,
   collectRequire,
   emptyImports,
+  isTrueValue,
   literalValue,
   namedAttr,
   numericValue,
@@ -140,6 +141,38 @@ describe('namedAttr', () => {
     expect(literalValue(namedAttr(attrs, 'color'))).toBe('danger');
     expect(namedAttr(attrs, 'absent')).toBeUndefined();
     expect(namedAttr([], 'color')).toBeUndefined();
+  });
+});
+
+describe('isTrueValue', () => {
+  it('accepts both spellings of true and nothing else', () => {
+    expect(isTrueValue({ value: null })).toBe(true);
+    expect(isTrueValue({})).toBe(true);
+    expect(
+      isTrueValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Literal', value: true },
+        },
+      })
+    ).toBe(true);
+    expect(
+      isTrueValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Literal', value: false },
+        },
+      })
+    ).toBe(false);
+    expect(isTrueValue({ value: { type: 'Literal', value: '4' } })).toBe(false);
+    expect(
+      isTrueValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Identifier', name: 'flag' },
+        },
+      })
+    ).toBe(false);
   });
 });
 

@@ -230,6 +230,25 @@ export function valuesThatRender(opening: any): any[] {
 }
 
 /**
+ * True when the attribute's value is `true`, either spelling.
+ *
+ * `<Box mt />` and `<Box mt={true} />` are the same value, both reach the
+ * library as `true`, and neither matches a tuple of strings — the bare one
+ * was reported and the explicit one was not. `{false}` is deliberately not
+ * included: it reads as switching the prop off, and the library skips a falsy
+ * value either way, so reporting it would be noise.
+ */
+export function isTrueValue(attr: any): boolean {
+  const v = attr?.value;
+  if (v === null || v === undefined) return true;
+  return (
+    v.type === 'JSXExpressionContainer' &&
+    v.expression?.type === 'Literal' &&
+    v.expression.value === true
+  );
+}
+
+/**
  * The string value of a JSX attribute, or null when it is not a plain string
  * literal. Anything computed is skipped by every rule here: a value the rule
  * cannot see is not a value it can judge.
