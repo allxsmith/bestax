@@ -84,6 +84,17 @@ describe('omitAttrs', () => {
     expect(Object.prototype.hasOwnProperty.call(out, 'hidden')).toBe(false);
   });
 
+  it('keeps an own `__proto__` as a plain prop, as a spread does', () => {
+    // Assignment consults the prototype chain for a setter and `__proto__` has
+    // one, so `out[key] = value` would drop the key AND install its value as the
+    // result's prototype. Both filters this replaced define rather than assign.
+    const props = { ['__proto__']: { polluted: true }, keep: 1 };
+    const out = omitAttrs(props, { href: true });
+    expect(Object.prototype.hasOwnProperty.call(out, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(out)).toBe(Object.prototype);
+    expect((out as Record<string, unknown>).keep).toBe(1);
+  });
+
   it('leaves an empty strip set untouched', () => {
     expect(omitAttrs({ a: 1, b: 2 }, {})).toEqual({ a: 1, b: 2 });
   });

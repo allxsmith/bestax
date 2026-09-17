@@ -57,10 +57,12 @@ export function omitAttrs<T extends object, K extends string>(
 ): Omit<T, K> {
   const out: Record<string | symbol, unknown> = {};
   // `Reflect.ownKeys`, not `Object.entries`: the latter drops symbol-keyed props.
-  // React enumerates string keys and ignores symbols, so nothing renders
-  // differently — but Menu previously filtered by rest-destructuring, which kept
-  // them, and this is the one input shape where "moves no output" would otherwise
-  // not be literally true.
+  // React enumerates props with `for...in`, which never reports a symbol, so
+  // nothing renders differently either way. It is not the same change for all
+  // three callers: Menu filtered by rest-destructure and kept them already,
+  // while Dropdown and Level filtered through `Object.entries` and did not, so
+  // this restores one and widens two. Symbols are the only shape where those
+  // two disagreed, and keeping them is the side a spread is on.
   for (const key of Reflect.ownKeys(props)) {
     // Enumerability, for the same reason in the other direction: `Reflect.ownKeys`
     // also reports NON-enumerable own props, which every filter this replaced left
@@ -76,7 +78,18 @@ export function omitAttrs<T extends object, K extends string>(
       typeof key === 'symbol' ||
       !Object.prototype.hasOwnProperty.call(strip, key)
     ) {
-      out[key] = value;
+      // `defineProperty`, not `out[key] = value`: assignment consults the
+      // prototype chain for a setter, and `__proto__` has one. A prop named
+      // `__proto__` would be swallowed by it — dropped from the result AND
+      // replacing the result's prototype with its value. A spread and a rest
+      // destructure both DEFINE, which is what makes them immune, so this has
+      // to define too.
+      Object.defineProperty(out, key, {
+        value,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
     }
   }
   return out as Omit<T, K>;

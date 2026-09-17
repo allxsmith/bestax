@@ -225,8 +225,8 @@ export const MenuItem = forwardRef(function MenuItem(
     Component === 'a' ||
     typeof Component !== 'string' ||
     isCustomElement(Component);
-  // `href` ALONE, which is one of two ways this component differs from its
-  // siblings — the other is that it defaults no `type` for `as="button"`.
+  // `href` ALONE, where `Dropdown.Item` strips the anchor set bar `type` and
+  // `Level.Item` strips it plus `rel`.
   //
   // Not because nothing else can arrive: `as` here is an open `React.ElementType`,
   // and a non-fresh spread skips excess-property checking, so a typed caller
