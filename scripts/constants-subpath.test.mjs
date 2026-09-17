@@ -1,6 +1,6 @@
 /**
- * Load every JavaScript target in bulma-ui's export map, the way a consumer
- * would, and assert the exports actually arrive.
+ * Load bulma-ui's `./constants` export the way a consumer would, and assert
+ * the exports actually arrive.
  *
  * This exists because prose was the only thing tying the rollup entry name to
  * the export-map target, and the same package proves that is not enough: its
@@ -13,6 +13,11 @@
  * A file's extension decides its module type here, not the bundle's format, so
  * a rename that looks cosmetic silently empties an entry point. This test is
  * the thing that notices.
+ *
+ * The main `.` entry is deliberately not loaded here: it carries the same
+ * defect, it is tracked as #688, and its bundle is not React-free, so the last
+ * assertion below does not generalise to it. Extending this file is the shape
+ * that fix should take.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -26,7 +31,6 @@ const PKG_DIR = join(REPO, 'bulma-ui');
 const manifest = JSON.parse(
   readFileSync(join(PKG_DIR, 'package.json'), 'utf8')
 );
-const require = createRequire(import.meta.url);
 
 /** Absolute path for an export-map target such as `./dist/constants.cjs`. */
 const target = spec => resolve(PKG_DIR, spec);
@@ -74,7 +78,16 @@ describe('bulma-ui export map', () => {
     }
     const entry = manifest.exports['./constants'];
 
-    const cjs = require(target(entry.require));
+    // Resolve by SPECIFIER, not by path, so Node's own condition matching is
+    // what picks the file. Loading `target(entry.require)` directly proves the
+    // file works and says nothing about the map choosing it: a `"default"`
+    // inserted above `"require"` would keep a path-based assertion green while
+    // handing consumers something else. The require anchor has to sit in a
+    // package that declares the dependency, since the linker is isolated.
+    const consumerRequire = createRequire(
+      pathToFileURL(join(REPO, 'eslint-plugin', 'package.json')).href
+    );
+    const cjs = consumerRequire('@allxsmith/bestax-bulma/constants');
     assert.ok(
       Array.isArray(cjs.validColors) && cjs.validColors.length > 0,
       'the require condition produced no validColors — the symptom of a ' +
