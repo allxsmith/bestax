@@ -50,9 +50,12 @@ Two things keep it working, and both failed once:
   whose whole point is not needing React.
 - The CommonJS artifact must be `constants.cjs`, not `constants.cjs.js`. This
   package is `"type": "module"`, so Node reads a `.js` file as ESM whatever
-  the bundle's format is, and under that reading the `exports.x = …`
-  assignments produce nothing: `require` returned an empty object rather than
-  failing.
+  the bundle's format is, and a bundle writing `exports.x = …` cannot load as
+  CommonJS under that reading. What a caller sees depends on the Node version,
+  which is why this is worth stating as the defect rather than as a symptom:
+  reviewers observed both a load-time throw and an empty namespace object on
+  different versions. Either way the tuples are not there, and the empty-object
+  case is the worse one because nothing fails.
 
 ## Conventions
 

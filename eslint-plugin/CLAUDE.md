@@ -112,6 +112,16 @@ negative on an opt-in rule, which is the safe direction; keying on the
 wants its own change. Until then the generated comment says so, because absence
 from that set does not mean the element has a real `is-<color>` modifier.
 
+## Running it
+
+The value tuples come from `bulma-ui/dist`, so this package's tests and
+typecheck need that build. `turbo.json` declares the edge, which means
+`pnpm exec turbo run test --filter=@allxsmith/eslint-plugin-bestax` builds it
+first — but `pnpm --filter … test` bypasses turbo entirely and fails on a bare
+`Cannot find module '@allxsmith/bestax-bulma/constants'`, which reads like a
+missing dependency rather than a missing build. Go through turbo, or build
+`bulma-ui` first.
+
 ## Tests
 
 `src/__tests__/*.test.ts`, ESLint's own `RuleTester`. Every rule here is
@@ -141,6 +151,23 @@ the element already sets.
 Thresholds 95% / 78% branches, matching the other non-library packages.
 `src/generated/` is excluded from coverage: its correctness is the generator's
 staleness gate, not a test here.
+
+## Why the peer range is `^10` only
+
+Nothing in the rules reaches past an ESLint 8.40-era API — `context.sourceCode`,
+`getScope`, flat config, `meta.version` — so `^9` would very likely work, and a
+review said so. It stays at `^10` anyway, because:
+
+- Nothing here is tested against 9.x. There is no ESLint 9 in the lockfile and
+  no 9/10 matrix analogous to bulma-ui's React 18/19 one, and this package has
+  now been through several rounds of "the claim was true of the code I ran and
+  false of the code I shipped".
+- `engines.node` is `>=22`, matching the repo. ESLint 9's own floor is Node 18,
+  so widening the peer range without lowering `engines` would only reach
+  someone on Node 22+ who is still on ESLint 9 — a narrow group to make an
+  untested promise for.
+
+Widening it is a small change once there is a matrix to back it. Do that first.
 
 ## Releases
 
