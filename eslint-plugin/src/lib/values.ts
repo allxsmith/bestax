@@ -87,6 +87,16 @@ const family = (
  * reporting — using it as a surface on a component where it means text — is
  * `no-color-as-surface`.
  *
+ * The `BulmaOtherProps` family is NOT covered: `float`, `overflow`,
+ * `interaction`, `cursor`, `radius`, `shadow` and `responsive`. They are
+ * dropped silently by `useOtherClasses` exactly like everything above, so
+ * `<Box float="center" />` renders nothing and this rule says nothing. The
+ * reason is structural: alone among the helper families, their values exist
+ * only as inline unions on the interface, with matching literal arrays inside
+ * the hook, and no exported tuple to import. Covering them means giving them
+ * tuples in `bulmaClassHelpers.ts` the way every other family has, which is a
+ * change to the library rather than a line here.
+ *
  * KEYED BY PROP, NOT BY ELEMENT, and that is a real limitation rather than a
  * simplification. A few components widen `bgColor` with the scheme colours
  * (`Box`, `Card`, `Container`, `Hero`, `Section`, `Footer`) and the rest do

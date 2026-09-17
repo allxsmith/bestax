@@ -74,7 +74,7 @@ export default [
 Any TypeScript setup that sets a parser works the same way, `typescript-eslint`
 included, precisely because the preset does not set one of its own.
 
-On a project with no TypeScript, the preset alone is enough:
+If the project contains no `.tsx` at all, the preset alone is enough:
 
 ```js title="eslint.config.js"
 import bestax from '@allxsmith/eslint-plugin-bestax';
@@ -82,12 +82,17 @@ import bestax from '@allxsmith/eslint-plugin-bestax';
 export default [bestax.configs.recommended];
 ```
 
-:::caution
+:::caution The parser is a requirement, not a nicety
 
-That shorter form does not work on `.tsx`. With no TypeScript parser the
-default one reaches the first type annotation and stops with
-`Parsing error: The keyword 'interface' is reserved`. Since bestax-bulma is a
-TypeScript library, the parser form above is the one most projects want.
+The preset matches `.tsx`, because that is where a TypeScript project's JSX
+lives and the rules have to reach it. With no parser supplied it hands that
+file to the default one, which stops at the first type annotation:
+`Parsing error: The keyword 'interface' is reserved`.
+
+The failure is loud on purpose. Leaving `.tsx` out of the preset's own `files`
+was the alternative, and it is worse: a TypeScript project would then get no
+rules on any `.tsx` file, silently, even with a parser configured, because a
+flat config object only applies to what its own `files` matches.
 
 :::
 
@@ -153,9 +158,15 @@ plugin. Those tuples come from the copy of the library this plugin resolves,
 which in an ordinary deduped install is the one your app uses; across a major
 bump it may not be, so keep the two in step.
 
-It deliberately skips component-specific `color` props, which have their own
-unions — `<Button color="ghost">` is correct, and the value rule has no business
-reporting it. It also knows the documented extras, so these are all accepted:
+Two families are outside its reach, both knowingly. Component-specific `color`
+props have their own unions, so `<Button color="ghost">` is correct and the
+value rule has no business reporting it. And the `BulmaOtherProps` helpers
+(`float`, `overflow`, `interaction`, `cursor`, `radius`, `shadow`,
+`responsive`) are dropped just as silently by the library, but their values
+exist only as inline unions with no exported tuple to check against, so they
+are not checked yet.
+
+It knows the documented extras, so these are all accepted:
 
 ```jsx
 <Box display="none" />             // ✓ display also takes `none`
@@ -217,7 +228,7 @@ It stays silent when the element sets a background explicitly, because then
 `color` is unambiguously the text half of a deliberate pairing:
 
 ```jsx
-<Box backgroundColor="light" color="dark" /> // ✓ surface and text, both meant
+<Box bgColor="info" color="primary" /> // ✓ surface and text, both meant
 ```
 
 Elements with a real `is-<color>` modifier are untouched, and the distinction

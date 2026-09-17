@@ -20,10 +20,14 @@ ruleTester.run('no-color-as-surface', rule, {
     // The unambiguous props, on an element that takes the alias.
     imported('Box', '<Box textColor="primary" bgColor="light" />'),
     // A deliberate pairing: the background is explicit, so `color` is plainly
-    // the text half and there is nothing ambiguous left to report. This is
-    // real usage lifted from the library's own margin-and-padding guide.
-    imported('Box', '<Box backgroundColor="light" color="dark" p="2" />'),
-    imported('Box', '<Box bgColor="primary" color="white" />'),
+    // the text half and there is nothing ambiguous left to report.
+    imported('Box', '<Box bgColor="info" color="primary" p="2" />'),
+    // `backgroundColor` is the other spelling this rule treats as a
+    // background. Box itself Omits that prop, so this exact element would not
+    // typecheck; it is here because components that do expose it must get the
+    // same silence, and the rule is syntactic so the fixture is honest as a
+    // lint input either way.
+    imported('Block', '<Block backgroundColor="light" color="primary" />'),
     // A value the rule cannot read is not judged, like everywhere else here.
     // It used to be reported, with the literal `<value>` in the message and a
     // fix applied sight unseen.

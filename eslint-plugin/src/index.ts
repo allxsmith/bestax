@@ -58,14 +58,26 @@ const plugin: ESLint.Plugin & {
  * `JSXOpeningElement`, spreading this preset on its own lint nothing at all
  * while reporting no error to say so.
  *
- * `.ts`/`.mts`/`.cts` are deliberately absent: TypeScript requires `.tsx` for
- * JSX, so those files can hold nothing these rules look at, and matching them
- * would hand espree TypeScript syntax it cannot parse in a preset-only setup.
+ * `.tsx` is in the glob and `.ts`/`.mts`/`.cts` are not, which is a real
+ * distinction rather than an oversight:
  *
- * `ecmaFeatures.jsx` makes `.jsx` parse under the default parser. `.tsx` still
- * needs a TypeScript parser, which the consumer supplies; flat config merges
- * `languageOptions`, so a `parser` set by an adjacent config object survives
- * this block.
+ *   - `.tsx` is where a TypeScript project's JSX lives, so the rules have to
+ *     reach it. Leaving it out was considered and is worse: with the extension
+ *     absent from this glob, a consumer who configures a TypeScript parser
+ *     still gets no rules on any `.tsx` file, silently, because a flat config
+ *     object only applies to what its own `files` matches. Silence for the
+ *     library's main audience beats nothing else here.
+ *   - `.ts`/`.mts`/`.cts` cannot hold JSX at all (TypeScript requires `.tsx`
+ *     for that), so matching them would add parse risk for zero reports.
+ *
+ * The cost of including `.tsx` is that a TypeScript parser is a REQUIREMENT,
+ * not a nicety: spread on its own against a `.tsx` file carrying type syntax,
+ * this preset produces `Parsing error: The keyword 'interface' is reserved`
+ * rather than a lint report. That is why the docs lead with the parser form.
+ *
+ * `ecmaFeatures.jsx` makes `.jsx` parse under the default parser. No `parser`
+ * is set here on purpose: flat config merges `languageOptions`, so whatever an
+ * adjacent config object sets survives this block.
  */
 plugin.configs.recommended = {
   files: ['**/*.{js,mjs,cjs,jsx,tsx}'],
