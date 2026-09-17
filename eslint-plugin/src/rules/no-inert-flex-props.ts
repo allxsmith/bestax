@@ -21,6 +21,7 @@ import {
   FLEX_DISPLAYS,
 } from '../lib/values.js';
 import {
+  isTrueValue,
   winningAttributes,
   hasSpread,
   literalValue,
@@ -63,8 +64,14 @@ const rule: Rule.RuleModule = {
         const displays = attrs.filter((a: { name: { name: string } }) =>
           DISPLAY.has(a.name.name)
         );
-        // An unreadable display value could be a flex one; say nothing.
-        if (displays.some((a: unknown) => literalValue(a) === null)) {
+        // An unreadable display value could be a flex one; say nothing. A
+        // value of `true` is not unreadable though — bare or explicit, it is
+        // knowably not `flex`, so it must not buy the element silence.
+        if (
+          displays.some(
+            (a: unknown) => literalValue(a) === null && !isTrueValue(a)
+          )
+        ) {
           return;
         }
         if (

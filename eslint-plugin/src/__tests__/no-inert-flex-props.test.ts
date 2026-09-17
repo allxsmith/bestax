@@ -35,6 +35,17 @@ ruleTester.run('no-inert-flex-props', rule, {
       errors: [{ messageId: 'inert' }],
     },
     {
+      // A `true` display is not an unreadable one: bare or explicit, it is
+      // knowably not `flex`, so it must not buy the element silence. The
+      // display itself is reported separately by `valid-helper-value`.
+      code: imported('Box', '<Box display justifyContent="center" />'),
+      errors: [{ messageId: 'inert' }],
+    },
+    {
+      code: imported('Box', '<Box display={true} justifyContent="center" />'),
+      errors: [{ messageId: 'inert' }],
+    },
+    {
       // A display that is present but not flex.
       code: imported('Box', '<Box display="block" alignItems="center" />'),
       errors: [{ messageId: 'inert' }],
