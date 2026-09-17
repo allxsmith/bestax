@@ -179,6 +179,12 @@ export type MenuItemProps<T extends React.ElementType = 'a'> =
     };
 
 /**
+ * `href` alone — annotated so a typo is a compile error rather than a silent
+ * no-op, the way both siblings' sets are.
+ */
+const STRIP_FROM_NON_LINK: Readonly<Record<'href', true>> = { href: true };
+
+/**
  * The shape the implementation destructures. The public contract is the generic
  * `MenuItemProps<T>` above — the body cannot see through `T`.
  */
@@ -232,7 +238,7 @@ export const MenuItem = forwardRef(function MenuItem(
   // `LINK_ATTR_ELEMENTS`.
   const linkProps = isLinkLike
     ? forwarded
-    : omitAttrs(forwarded, { href: true });
+    : omitAttrs(forwarded, STRIP_FROM_NON_LINK);
   const itemClass = classNames(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses

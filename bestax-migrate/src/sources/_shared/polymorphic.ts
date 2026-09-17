@@ -312,10 +312,14 @@ const ANCHOR = 'a';
  * element, subtracted from React's types rather than listed. The two are NOT
  * interchangeable and neither derives from the other -- that set is per
  * ATTRIBUTE, this table is per attribute per ELEMENT, because a codemod meets
- * tags a component never renders. They do have to agree about a component's
- * behaviour, though: this package strips what bulma-ui would drop at runtime, so
- * a change to either wants a look at the other. #682 moved bulma-ui's copy into
- * one place so there is a single thing to look at.
+ * tags a component never renders.
+ *
+ * They also do not always AGREE, which is worth stating rather than asserting
+ * away: this package strips `target` from `<Menu.Item as="span">` where the
+ * component forwards it, because the codemod removes what the element cannot use
+ * while `Menu.Item` withholds `href` alone. A change to either still wants a look
+ * at the other, and #682 put bulma-ui's copy in one place so there is a single
+ * thing to look at.
  */
 const LINK_ATTR_ELEMENTS: Record<string, readonly string[]> = {
   target: ['a', 'area', 'base', 'form'],

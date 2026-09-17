@@ -167,7 +167,17 @@ export const LevelRight: React.FC<LevelRightProps> = ({
   );
 };
 
-/** The derived set plus `rel`; see the note in the render body. */
+/**
+ * The derived set plus `rel`.
+ *
+ * `rel` is not an anchor-only attribute — React declares it on every element, so
+ * `AnchorOnlyAttributes` excludes it — but this component has always withheld it
+ * from a non-anchor, so it is named separately rather than folded into the shared
+ * set. That separation is what says which names come from where.
+ *
+ * The annotation is load-bearing: without it a typo adds a key nobody strips, and
+ * widening the key type to `string` also erases `omitAttrs`'s return type.
+ */
 const STRIP_FROM_NON_ANCHOR: Readonly<
   Record<keyof AnchorOnlyAttributes | 'rel', true>
 > = { ...ANCHOR_ONLY_ATTRS, rel: true };
@@ -243,12 +253,7 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   // declares them at every `as` — narrowing that is source-breaking (#672) — so
   // the runtime is what keeps `<Level.Item as="p" download>` from rendering a
   // dead attribute.
-  //
-  // The derived set plus `rel`. `rel` is not an anchor-only attribute — React
-  // declares it on every element — but this component has always withheld it
-  // from a non-anchor, so it is named separately rather than folded in, and
-  // that separation is what says which names come from where. The annotation is
-  // what holds it: without it a typo adds a key nobody strips.
+  // `STRIP_FROM_NON_ANCHOR` above names the set and why `rel` is in it.
 
   if (Tag === 'a') {
     return (

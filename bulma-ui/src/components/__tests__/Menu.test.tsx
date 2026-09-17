@@ -362,3 +362,45 @@ describe('Ref forwarding', () => {
     expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });
 });
+
+describe('anchor-only attributes on a non-link tag', () => {
+  it('withholds href and forwards the rest, which is the documented gap', () => {
+    // Pinned in BOTH directions on purpose. `Menu.Item`'s `as` is open, so a flat
+    // strip would delete attributes that are legal on the element a caller named
+    // — `referrerPolicy` on `as="img"`, `media` on `as="source"`. Closing the gap
+    // needs a per-attribute-per-element rule, and until then this records what
+    // actually happens so a widening cannot land quietly (#682).
+    render(
+      <Menu>
+        <Menu.List>
+          {/* @ts-expect-error a span takes none of these */}
+          <Menu.Item
+            as="span"
+            href="/x"
+            target="_blank"
+            download="f"
+            hrefLang="en"
+            ping="/p"
+            referrerPolicy="no-referrer"
+            media="print"
+            data-testid="item"
+          >
+            Static
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    const span = screen.getByTestId('item').querySelector('span');
+    expect(span).not.toHaveAttribute('href');
+    for (const attr of [
+      'target',
+      'download',
+      'hreflang',
+      'ping',
+      'referrerpolicy',
+      'media',
+    ]) {
+      expect(span).toHaveAttribute(attr);
+    }
+  });
+});

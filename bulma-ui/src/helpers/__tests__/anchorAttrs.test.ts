@@ -62,6 +62,16 @@ describe('omitAttrs', () => {
     }
   });
 
+  it('keeps symbol-keyed props', () => {
+    // Menu filtered by rest-destructuring before #682, which kept them; an
+    // `Object.entries` copy would drop them. React ignores symbols either way, so
+    // this is about the refactor moving no output for ANY input rather than about
+    // anything rendering.
+    const tag = Symbol('tag');
+    const out = omitAttrs({ [tag]: 'keep', href: '/x' }, { href: true });
+    expect((out as Record<symbol, unknown>)[tag]).toBe('keep');
+  });
+
   it('leaves an empty strip set untouched', () => {
     expect(omitAttrs({ a: 1, b: 2 }, {})).toEqual({ a: 1, b: 2 });
   });

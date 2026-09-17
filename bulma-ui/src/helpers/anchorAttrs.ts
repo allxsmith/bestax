@@ -55,13 +55,24 @@ export function omitAttrs<T extends object, K extends string>(
   props: T,
   strip: Readonly<Record<K, true>>
 ): Omit<T, K> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(props)) {
+  const out: Record<string | symbol, unknown> = {};
+  // `Reflect.ownKeys`, not `Object.entries`: the latter drops symbol-keyed props.
+  // React enumerates string keys and ignores symbols, so nothing renders
+  // differently — but Menu previously filtered by rest-destructuring, which kept
+  // them, and this is the one input shape where "moves no output" would otherwise
+  // not be literally true.
+  for (const key of Reflect.ownKeys(props)) {
+    const value = (props as Record<string | symbol, unknown>)[key];
     // `hasOwnProperty`, not `key in strip`: `in` walks the prototype chain, so a
     // prop named `toString`, `valueOf`, `constructor` or `hasOwnProperty` was
     // stripped although no caller named it — and anything written to
     // `Object.prototype` would start deleting props that share its keys.
-    if (!Object.prototype.hasOwnProperty.call(strip, key)) out[key] = value;
+    if (
+      typeof key === 'symbol' ||
+      !Object.prototype.hasOwnProperty.call(strip, key)
+    ) {
+      out[key] = value;
+    }
   }
   return out as Omit<T, K>;
 }
