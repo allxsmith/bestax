@@ -72,6 +72,18 @@ describe('omitAttrs', () => {
     expect((out as Record<symbol, unknown>)[tag]).toBe('keep');
   });
 
+  it('drops non-enumerable own props, as a spread does', () => {
+    // The other half of reading keys through `Reflect.ownKeys`: it reports
+    // non-enumerable own props, which rest-destructuring and `Object.entries`
+    // both skipped. Copying one out would add a prop the old filters dropped AND
+    // publish it as enumerable, so "moves no output" has to hold here too.
+    const props = { keep: 1 };
+    Object.defineProperty(props, 'hidden', { value: 2, enumerable: false });
+    const out = omitAttrs(props, { href: true });
+    expect(out).toEqual({ keep: 1 });
+    expect(Object.prototype.hasOwnProperty.call(out, 'hidden')).toBe(false);
+  });
+
   it('leaves an empty strip set untouched', () => {
     expect(omitAttrs({ a: 1, b: 2 }, {})).toEqual({ a: 1, b: 2 });
   });

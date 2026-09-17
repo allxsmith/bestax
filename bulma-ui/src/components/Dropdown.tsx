@@ -423,11 +423,12 @@ export type DropdownItemProps<
  * `<div>`; selecting the set from the rendered element would close that, and
  * moves output.
  *
- * Two attributes separate this set from `Level.Item`'s, not one. That is the
- * `type` above, and `rel`, which Level adds and this component does not: React
- * declares `rel` on `HTMLAttributes` for every element, so withholding it would
- * diverge from React's own typing — the call #641 recorded for `Navbar.Link`.
- * Level withholds it anyway, because it always has.
+ * This set differs from `Level.Item`'s in both directions, not just one. The
+ * `type` above, which Level strips and this component keeps, and `rel`, which
+ * Level adds and this component does not: React declares `rel` on
+ * `HTMLAttributes` for every element, so withholding it would diverge from
+ * React's own typing — the call #641 recorded for `Navbar.Link`. Level
+ * withholds it anyway, because it always has.
  */
 const STRIP_FROM_NON_ANCHOR: Readonly<
   Record<Exclude<keyof AnchorOnlyAttributes, 'type'>, true>

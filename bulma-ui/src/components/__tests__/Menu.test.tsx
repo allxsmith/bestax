@@ -383,6 +383,7 @@ describe('anchor-only attributes on a non-link tag', () => {
             ping="/p"
             referrerPolicy="no-referrer"
             media="print"
+            type="text/html"
             data-testid="item"
           >
             Static
@@ -399,6 +400,7 @@ describe('anchor-only attributes on a non-link tag', () => {
       'ping',
       'referrerpolicy',
       'media',
+      'type',
     ]) {
       expect(span).toHaveAttribute(attr);
     }
