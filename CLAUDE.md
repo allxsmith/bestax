@@ -33,7 +33,7 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 ## Commands
 
 ```bash
-pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, lint, format:check, storybook build
+pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
 pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin)
 pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint

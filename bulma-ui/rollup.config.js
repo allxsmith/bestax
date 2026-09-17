@@ -85,11 +85,11 @@ export default commandLineArgs => {
           format: 'cjs',
           sourcemap: true,
           // `.cjs`, not `.cjs.js`: this package is `"type": "module"`, so Node
-          // reads a `.js` file as ESM whatever the bundle's format is. Under
-          // that reading the CommonJS `exports.x = …` assignments produce
-          // nothing, and `require('@allxsmith/bestax-bulma/constants')`
-          // returned an empty object rather than failing — a subpath that
-          // silently exports nothing is worse than one that throws.
+          // reads a `.js` file as ESM whatever the bundle's format is, and a
+          // bundle writing `exports.x = …` cannot load as CommonJS under that
+          // reading. What a caller sees depends on the Node version — both a
+          // load-time throw and an empty namespace object have been observed —
+          // and the empty one is the worse case, because nothing fails.
           entryFileNames: 'constants.cjs',
           banner: aiBanner,
         },

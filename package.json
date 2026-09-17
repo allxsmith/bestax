@@ -27,7 +27,7 @@
     "gen:eslint-meta": "node scripts/gen-eslint-meta.mjs",
     "gen:eslint-meta:check": "node scripts/gen-eslint-meta.mjs && git add --intent-to-add --all eslint-plugin/src/generated && git diff --exit-code -- eslint-plugin/src/generated",
     "gen": "pnpm gen:api-docs && pnpm gen:catalog && pnpm gen:mcp && pnpm gen:skills && pnpm gen:eslint-meta",
-    "all": "turbo run build typecheck typecheck:tests test test:coverage bundle:stats && node --test \"scripts/*.test.mjs\" && pnpm run gen:eslint-meta:check && pnpm run lint && pnpm run format:check && turbo run build-storybook --filter=@allxsmith/bestax-bulma",
+    "all": "turbo run build typecheck typecheck:tests test test:coverage bundle:stats && node --test \"scripts/*.test.mjs\" && pnpm run check:conformance && pnpm run gen:catalog:check && pnpm run gen:mcp:check && pnpm run gen:eslint-meta:check && pnpm run lint && pnpm run format:check && turbo run build-storybook --filter=@allxsmith/bestax-bulma",
     "storybook": "turbo run storybook --filter=@allxsmith/bestax-bulma",
     "docs": "turbo run docs --filter=@allxsmith/bestax-docs",
     "release": "turbo run release",
