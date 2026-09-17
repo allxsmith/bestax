@@ -1,3 +1,14 @@
+## [5.15.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.3...@allxsmith/bestax-bulma@5.15.4) (2026-09-17)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** say where the two link rules disagree, not that they agree ([8468858](https://github.com/allxsmith/bestax/commit/846885833c4f57ca4ccac3a9999d858472f461c3)), closes [#682](https://github.com/allxsmith/bestax/issues/682)
+* **bulma-ui:** correct the sibling claim, and make the strip set's type check it ([7ffa0e7](https://github.com/allxsmith/bestax/commit/7ffa0e75077d9826fe49dbe874e91a4743ed33c7)), closes [#682](https://github.com/allxsmith/bestax/issues/682)
+* **bulma-ui:** define the kept props instead of assigning them ([b5722f2](https://github.com/allxsmith/bestax/commit/b5722f275e19a4cb17bdfb03a57ba0e00215cfb3)), closes [#682](https://github.com/allxsmith/bestax/issues/682)
+* **bulma-ui:** match a spread's enumerability, and close the `type` gap ([84b5cd2](https://github.com/allxsmith/bestax/commit/84b5cd2aae9785b8393d697474c5f6d1905b9bda)), closes [#682](https://github.com/allxsmith/bestax/issues/682)
+* **bulma-ui:** strip only the keys a caller named, and correct three claims ([7747335](https://github.com/allxsmith/bestax/commit/7747335acec4dcb27d253c7aeb9b4ae62bff14cb)), closes [#682](https://github.com/allxsmith/bestax/issues/682) [#682](https://github.com/allxsmith/bestax/issues/682)
+
 ## [5.15.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.2...@allxsmith/bestax-bulma@5.15.3) (2026-09-16)
 
 
