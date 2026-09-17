@@ -28,10 +28,10 @@
 import type { Rule } from 'eslint';
 import { HELPER_VALUES } from '../lib/values.js';
 import {
-  attributesOf,
   literalValue,
   numericValue,
   elementOf,
+  winningAttributes,
   withImports,
 } from '../lib/elements.js';
 
@@ -99,7 +99,7 @@ const rule: Rule.RuleModule = {
           attributes: unknown[];
         };
         if (elementOf(context, opening, imports) === null) return;
-        for (const attr of attributesOf(opening)) {
+        for (const attr of winningAttributes(opening)) {
           const prop: string = attr.name.name;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;

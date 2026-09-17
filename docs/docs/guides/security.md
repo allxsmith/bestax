@@ -12,8 +12,7 @@ where to report a vulnerability.
 ## What you install is what we built
 
 The packages released through CI — `@allxsmith/bestax-bulma`, `create-bestax`,
-`bestax-migrate`, `bestax-mcp` and `@allxsmith/eslint-plugin-bestax` — carry
-**npm provenance**: every
+`bestax-migrate` and `bestax-mcp` — carry **npm provenance**: every
 version in the supported release lines below carries a signed attestation
 generated at publish time that links the tarball on the registry to the exact
 source commit and the public CI run that built it. (Versions older than those
@@ -25,8 +24,8 @@ npm via **OIDC trusted publishing** (short-lived, per-run tokens), so there is
 no long-lived npm token that could leak and be used to push a rogue release.
 
 Only the **latest release line** of each package receives security fixes
-(currently bestax-bulma 5.x, create-bestax 4.x, bestax-migrate 2.x,
-bestax-mcp 1.x, and eslint-plugin-bestax 1.x). Releases are fully automated from `main` via semantic-release,
+(currently bestax-bulma 5.x, create-bestax 4.x, bestax-migrate 2.x, and
+bestax-mcp 1.x). Releases are fully automated from `main` via semantic-release,
 so the newest published version is always the patched one — staying current is
 the supported posture. See
 [SECURITY.md](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) for
@@ -37,10 +36,8 @@ the full policy.
 - **Provenance on npmjs.com** — the package pages for
   [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma),
   [`create-bestax`](https://www.npmjs.com/package/create-bestax),
-  [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate),
-  [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) and
-  [`@allxsmith/eslint-plugin-bestax`](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
-  each show a
+  [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate) and
+  [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) each show a
   _Provenance_ section linking an attested version to its source commit and
   build.
 - **`npm audit signatures`** — in projects installed with the npm CLI, run it

@@ -181,17 +181,26 @@ Reports props the library has deprecated, and fixes the renames.
 ```jsx
 <Button isFullWidth />       // ✗ → isFullwidth        (fixable)
 <Columns gapSize="3" />      // ✗ → gap                (fixable)
-<Icon icon="rocket" />       // ✗ → name               (fixable)
+<Icon icon="rocket" />       // ✗ → name               (reported, not fixed)
 <Sidebar fullWidth />        // ✗ → isFullwidth        (fixable)
 <Tabs color="info" />        // ✗ no `.tabs.is-<color>` CSS exists — no fix
 <Tags isMultiline />         // ✗ never had an effect — no fix
 ```
 
-A rename carries its replacement, so it is autofixable. Anything else is
-reported with the library's own reason and no fix: a prop retired outright (it
-emits a class no shipped CSS matches, or never did anything), and a note that
-names more than one replacement, such as `Icon`'s `libraryFeatures`, which
-became `variant` and `features`.
+A rename is autofixable when the swap cannot change what renders. Everything
+else is reported with the library's own reason and no fix:
+
+- A prop retired outright, which emits a class no shipped CSS matches or never
+  did anything, so there is nothing to rename it to.
+- A note naming more than one replacement, such as `Icon`'s `libraryFeatures`,
+  which became `variant` and `features`.
+- `icon` → `name`, because the two do not read their value the same way: the
+  library keeps only the last space-separated segment of `icon` and never
+  splits `name`, so renaming `icon="material-symbols-outlined home"` would turn
+  the `home` ligature into that string as literal text.
+- Two deprecated props on one element that rename to the same target, since the
+  library picks between them in a fixed order and promoting either one changes
+  the result.
 
 The table is generated from the library's TSDoc, so a rename reaches the plugin
 with the release that makes it.

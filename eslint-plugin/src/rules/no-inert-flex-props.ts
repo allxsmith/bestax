@@ -21,7 +21,7 @@ import {
   FLEX_DISPLAYS,
 } from '../lib/values.js';
 import {
-  attributesOf,
+  winningAttributes,
   hasSpread,
   literalValue,
   elementOf,
@@ -54,7 +54,7 @@ const rule: Rule.RuleModule = {
         if (elementOf(context, opening, imports) === null) return;
         if (hasSpread(opening)) return;
 
-        const attrs = attributesOf(opening);
+        const attrs = winningAttributes(opening);
         const containerProps = attrs.filter((a: { name: { name: string } }) =>
           CONTAINER.has(a.name.name)
         );

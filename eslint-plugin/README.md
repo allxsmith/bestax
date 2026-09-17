@@ -104,7 +104,7 @@ In `recommended` — each reports code that does not do what it says:
 | Rule                  | Fixable | What it catches                                                                                                         |
 | --------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `valid-helper-value`  | —       | Helper values the library silently drops: `textAlign="center"` (it is `centered`), `textSize="8"`, `mt="1rem"`          |
-| `no-deprecated-props` | yes     | Props the library deprecated: `isFullWidth`, `gapSize*`, `icon`. Also the retired ones that emit a class no CSS matches |
+| `no-deprecated-props` | partly  | Props the library deprecated: `isFullWidth`, `gapSize*`, `icon`. Fixes only the renames that cannot change what renders |
 | `no-inert-flex-props` | —       | `justifyContent` and friends without a flex `display`, which emit nothing                                               |
 
 Opt-in — this one reports code that works, and buys explicitness instead:

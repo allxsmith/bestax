@@ -25,6 +25,11 @@ ruleTester.run('no-deprecated-props', rule, {
     // read resolved these and reported a deprecation with an empty note.
     imported('Icon', '<Icon valueOf="x" hasOwnProperty="y" />'),
     imported('Button', '<Button constructor="x" toString="y" />'),
+    // A module that declares its own `require` is not calling the CommonJS
+    // one, so a call to it says nothing about our package.
+    "const require = (s) => ({ Button: 'button' });\n" +
+      "const { Button } = require('@allxsmith/bestax-bulma');\n" +
+      'const x = <Button isFullWidth />;\n',
     // A local that shadows the import is not the library's Button.
     "import { Button } from '@allxsmith/bestax-bulma';\n" +
       "function f() { const Button = 'button'; return <Button isFullWidth />; }\n",

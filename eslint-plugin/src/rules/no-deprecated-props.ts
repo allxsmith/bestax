@@ -12,7 +12,7 @@ import type { Rule } from 'eslint';
 import { DEPRECATED_PROPS } from '../generated/metadata.js';
 import type { Deprecation } from '../generated/metadata.js';
 import {
-  attributesOf,
+  winningAttributes,
   elementOf,
   hasSpread,
   withImports,
@@ -76,7 +76,7 @@ const rule: Rule.RuleModule = {
         const deprecations = own(DEPRECATED_PROPS, element);
         if (!deprecations) return;
 
-        const attrs = attributesOf(opening);
+        const attrs = winningAttributes(opening);
         const written = new Set(
           attrs.map((a: { name: { name: string } }) => a.name.name)
         );

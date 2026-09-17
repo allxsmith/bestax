@@ -147,7 +147,33 @@ export function numericValue(attr: any): number | null {
   const v = attr?.value;
   if (v?.type !== 'JSXExpressionContainer') return null;
   const e = v.expression;
-  return e?.type === 'Literal' && typeof e.value === 'number' ? e.value : null;
+  if (e?.type === 'Literal' && typeof e.value === 'number') return e.value;
+  // `m={-1}` parses as a unary minus over a literal, not as a negative
+  // literal, and the spacing scale is exactly where someone reaches for a
+  // negative (see the negative-gutter pattern in #678).
+  if (
+    e?.type === 'UnaryExpression' &&
+    (e.operator === '-' || e.operator === '+') &&
+    e.argument?.type === 'Literal' &&
+    typeof e.argument.value === 'number'
+  ) {
+    return e.operator === '-' ? -e.argument.value : e.argument.value;
+  }
+  return null;
+}
+
+/**
+ * Attributes with only the LAST occurrence of each name kept, in source order.
+ *
+ * Duplicate JSX attributes are legal JavaScript and React resolves them
+ * last-wins, so judging every occurrence reports a value the element does not
+ * render: `<Box m="bogus" m="4" />` renders `m="4"` and was reported anyway.
+ */
+export function winningAttributes(opening: any): any[] {
+  const attrs = attributesOf(opening);
+  const lastIndex = new Map<string, number>();
+  attrs.forEach((a, i) => lastIndex.set(a.name.name, i));
+  return attrs.filter((a, i) => lastIndex.get(a.name.name) === i);
 }
 
 /**
@@ -273,11 +299,37 @@ export function withImports(): {
     imports,
     visitor: {
       Program(node: unknown) {
-        for (const stmt of (node as { body?: unknown[] }).body ?? []) {
+        // A module that declares its own `require` is not calling the
+        // CommonJS one, so a call to it says nothing about our package. Read
+        // straight off the program body rather than through the scope API:
+        // `getScope(Program)` answers with the OUTERMOST scope, and a
+        // top-level `const require` lives in a child of it, so walking `upper`
+        // never saw the shadow. The collector only reads top-level
+        // declarations, so a top-level binding is the only shadow that can
+        // reach them.
+        const body = ((node as { body?: unknown[] }).body ?? []) as any[];
+        const requireShadowed = body.some(stmt => {
+          if (stmt?.type === 'FunctionDeclaration') {
+            return stmt.id?.name === 'require';
+          }
+          if (stmt?.type === 'VariableDeclaration') {
+            return (stmt.declarations ?? []).some(
+              (d: any) =>
+                d?.id?.type === 'Identifier' && d.id.name === 'require'
+            );
+          }
+          if (stmt?.type === 'ImportDeclaration') {
+            return (stmt.specifiers ?? []).some(
+              (sp: any) => sp?.local?.name === 'require'
+            );
+          }
+          return false;
+        });
+        for (const stmt of body) {
           const s = stmt as { type?: string; declarations?: unknown[] };
           if (s?.type === 'ImportDeclaration') {
             collectImport(stmt, imports);
-          } else if (s?.type === 'VariableDeclaration') {
+          } else if (s?.type === 'VariableDeclaration' && !requireShadowed) {
             for (const d of s.declarations ?? []) collectRequire(d, imports);
           }
         }
