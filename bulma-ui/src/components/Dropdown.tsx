@@ -9,7 +9,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
-import { ANCHOR_ONLY_ATTRS, omitAttrs } from '../helpers/anchorAttrs';
+import {
+  type AnchorOnlyAttributes,
+  ANCHOR_ONLY_ATTRS,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
 
 /**
  * Checks if code is running in a browser environment.
@@ -414,15 +418,20 @@ export type DropdownItemProps<
  * The anchor's attributes, minus the one a `<button>` legitimately takes.
  *
  * `type` stays: `as="button"` is a supported form and `type="submit"` is valid
- * there, so stripping it would remove a working attribute. That single
- * exclusion is the whole difference between this component and `Level.Item`,
- * which renders no `<button>` and strips the full set.
+ * there, so stripping it would remove a working attribute. The exclusion is per
+ * COMPONENT where the reason is per TAG, so it also lets a `type` reach a
+ * `<div>`; selecting the set from the rendered element would close that, and
+ * moves output.
  *
- * `rel` is absent from the derived set and not added back here: React declares
- * it on `HTMLAttributes` for every element, so withholding it would diverge
- * from React's own typing — the call #641 recorded for `Navbar.Link`.
+ * Two attributes separate this set from `Level.Item`'s, not one. That is the
+ * `type` above, and `rel`, which Level adds and this component does not: React
+ * declares `rel` on `HTMLAttributes` for every element, so withholding it would
+ * diverge from React's own typing — the call #641 recorded for `Navbar.Link`.
+ * Level withholds it anyway, because it always has.
  */
-const STRIP_FROM_NON_ANCHOR: Record<string, true> = (() => {
+const STRIP_FROM_NON_ANCHOR: Readonly<
+  Record<Exclude<keyof AnchorOnlyAttributes, 'type'>, true>
+> = (() => {
   const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
   return rest;
 })();
