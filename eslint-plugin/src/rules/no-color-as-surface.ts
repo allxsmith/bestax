@@ -93,14 +93,17 @@ const rule: Rule.RuleModule = {
 
         const textColor = named('textColor');
         if (textColor) {
-          // `color: textColor ?? color` — so `textColor` only wins when it is
-          // actually set. Told to remove `color` on the strength of a
-          // `textColor={maybe}` that turns out undefined, the author loses the
-          // fallback the element was rendering from.
-          // `textColor ?? color` ignores `color` only when `textColor` is
-          // non-nullish, which is stronger than readable: a readable `null`
-          // falls through and the element really does render `color`. A
+          // `color: textColor ?? color` ignores `color` only when `textColor`
+          // is non-nullish, which is stronger than readable: a readable `null`
+          // leaves the `??` resolving to `color`, so the element really does
+          // render it and "remove `color`" would delete what renders. A
           // readable `true` or number does win, so those still report.
+          //
+          // This rule RETURNS in that case rather than reporting `ambiguous`.
+          // The ambiguous message would be true — `color` is the value being
+          // used as a text alias — but its fix rewrites `color` to `textColor`,
+          // which on an element already carrying one emits a duplicate
+          // attribute. Silence on an opt-in rule beats that.
           if (!isKnownNonNullish(textColor)) return;
           context.report({
             node: color,
