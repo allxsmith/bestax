@@ -14,10 +14,17 @@
  *
  * Two things it must not do, both found by linting the library's own docs:
  *
- *   - Fire when the element also sets a background. `<Box backgroundColor="light"
- *     color="dark">` is a deliberate, correct pairing — surface from one prop,
- *     text from the other — and telling that author "color is not a background"
- *     is nonsense.
+ *   - Fire when the element also sets a background. `<Box bgColor="light"
+ *     color="primary">` is a deliberate, correct pairing — surface from one
+ *     prop, text from the other — and telling that author "color is not a
+ *     background" is nonsense.
+ *
+ *     `backgroundColor` counts as a background here too, and is checked,
+ *     because it reaches `useColorClasses` at runtime on every element: the
+ *     components spread `...props` into `useBulmaClasses` last. But most of
+ *     the text-alias elements `Omit` it from their PROPS, so that spelling is
+ *     a type error on them even though it renders. `bgColor` is the one to
+ *     write, and the one this comment names.
  *   - Fire on elements with a real `is-<color>` modifier. Those are absent from
  *     the generated set, so `<Button color="primary">` never reports.
  *

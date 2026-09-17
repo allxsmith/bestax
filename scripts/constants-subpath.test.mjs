@@ -35,7 +35,21 @@ const manifest = JSON.parse(
 /** Absolute path for an export-map target such as `./dist/constants.cjs`. */
 const target = spec => resolve(PKG_DIR, spec);
 
-const built = existsSync(join(PKG_DIR, 'dist'));
+/**
+ * These cases load built artifacts, so they need the build. They ASSERT that
+ * rather than skipping: a guard against an entry point that silently exports
+ * nothing must not itself be silenceable, and `node --test` exits 0 on a
+ * skip. `pnpm all` and ci.yml both build before testing, and turbo's
+ * `@allxsmith/eslint-plugin-bestax#test` edge builds `bulma-ui` for the
+ * package suite too.
+ */
+const requireBuilt = () =>
+  assert.ok(
+    existsSync(join(PKG_DIR, 'dist')),
+    'bulma-ui/dist is absent, so this suite cannot load what it exists to ' +
+      'check. Run `pnpm --filter @allxsmith/bestax-bulma build` first, or ' +
+      'the whole gate with `pnpm all`.'
+  );
 
 describe('bulma-ui export map', () => {
   it('declares the constants subpath with both conditions', () => {
@@ -57,11 +71,8 @@ describe('bulma-ui export map', () => {
     );
   });
 
-  it('points every constants condition at a file that exists', t => {
-    if (!built) {
-      t.skip('bulma-ui/dist is absent; run the build first');
-      return;
-    }
+  it('points every constants condition at a file that exists', () => {
+    requireBuilt();
     const entry = manifest.exports['./constants'];
     for (const condition of ['types', 'import', 'require']) {
       assert.ok(
@@ -71,11 +82,8 @@ describe('bulma-ui export map', () => {
     }
   });
 
-  it('really loads the constants tuples, by require and by import', async t => {
-    if (!built) {
-      t.skip('bulma-ui/dist is absent; run the build first');
-      return;
-    }
+  it('really loads the constants tuples, by require and by import', async () => {
+    requireBuilt();
     const entry = manifest.exports['./constants'];
 
     // Resolve by SPECIFIER, not by path, so Node's own condition matching is
@@ -108,11 +116,33 @@ describe('bulma-ui export map', () => {
     assert.deepEqual([...cjs.validColors], [...esm.validColors]);
   });
 
-  it('carries no React in the constants bundle', t => {
-    if (!built) {
-      t.skip('bulma-ui/dist is absent; run the build first');
-      return;
-    }
+  it("loads the plugin's own published entry", async () => {
+    requireBuilt();
+    const dist = join(REPO, 'eslint-plugin', 'dist', 'index.js');
+    assert.ok(
+      existsSync(dist),
+      'eslint-plugin/dist is absent; run its build first'
+    );
+    // Same gap as the subpath, one package over: `moduleResolution: bundler`
+    // accepts an extensionless relative import and `tsc` emits it verbatim,
+    // which Node ESM rejects — while jest's moduleNameMapper strips `.js` and
+    // so passes either spelling. Nothing else in the repo loads this file.
+    const plugin = await import(pathToFileURL(dist).href);
+    const p = plugin.default;
+    assert.equal(typeof p.meta?.version, 'string');
+    assert.deepEqual(Object.keys(p.rules).sort(), [
+      'no-color-as-surface',
+      'no-deprecated-props',
+      'no-inert-flex-props',
+      'valid-helper-value',
+    ]);
+    // Loading it also exercises `@allxsmith/bestax-bulma/constants` through
+    // Node's own resolver, since values.ts imports it by specifier.
+    assert.ok(Array.isArray(p.configs.recommended.files));
+  });
+
+  it('carries no React in the constants bundle', () => {
+    requireBuilt();
     // The whole reason the subpath exists: tooling reads the tuples without
     // loading React or any component.
     for (const condition of ['import', 'require']) {
