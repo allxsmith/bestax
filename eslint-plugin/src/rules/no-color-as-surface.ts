@@ -62,7 +62,7 @@ const rule: Rule.RuleModule = {
     schema: [],
     messages: {
       ambiguous:
-        '`color` on `{{element}}` is a text-colour alias — it renders `has-text-{{value}}`, and no `is-<color>` CSS exists for it. Write `textColor="{{value}}"` to say so, or `bgColor="{{value}}"` if you wanted a coloured surface.',
+        '`color` on `{{element}}` is a text-colour alias — it renders `{{rendered}}`, and no `is-<color>` CSS exists for it. Write `textColor="{{value}}"` to say so, or `bgColor="{{value}}"` if you wanted a coloured surface.',
       redundant:
         '`color` on `{{element}}` is ignored here: `textColor` is already set and takes precedence. Remove `color`.',
     },
@@ -110,10 +110,17 @@ const rule: Rule.RuleModule = {
         const value = literalValue(color);
         if (value === null || !RENDERABLE.has(value)) return;
 
+        // `colorShade` makes the emitted class `has-text-<color>-<shade>`, so
+        // naming the unshaded one asserted a class the library would not emit.
+        const shade = literalValue(named('colorShade'));
         context.report({
           node: color.name,
           messageId: 'ambiguous',
-          data: { element, value },
+          data: {
+            element,
+            value,
+            rendered: `has-text-${value}${shade === null ? '' : `-${shade}`}`,
+          },
           fix: fixer => fixer.replaceText(color.name, 'textColor'),
         });
       },

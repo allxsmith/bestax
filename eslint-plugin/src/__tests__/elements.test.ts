@@ -15,6 +15,7 @@ import {
   literalValue,
   namedAttr,
   numericValue,
+  patternBinds,
   resolveElement,
 } from '../lib/elements.js';
 
@@ -77,6 +78,54 @@ describe('collectRequire', () => {
     );
     collectRequire({ id: id('x') }, imports);
     expect(imports.named.size + imports.namespaces.size).toBe(0);
+  });
+});
+
+describe('patternBinds', () => {
+  const id = (name: string) => ({ type: 'Identifier', name });
+
+  it('finds the name through every destructuring shape', () => {
+    expect(patternBinds(id('require'), 'require')).toBe(true);
+    expect(
+      patternBinds(
+        {
+          type: 'ObjectPattern',
+          properties: [{ type: 'Property', value: id('require') }],
+        },
+        'require'
+      )
+    ).toBe(true);
+    expect(
+      patternBinds(
+        { type: 'ArrayPattern', elements: [id('require')] },
+        'require'
+      )
+    ).toBe(true);
+    expect(
+      patternBinds(
+        { type: 'AssignmentPattern', left: id('require') },
+        'require'
+      )
+    ).toBe(true);
+    expect(
+      patternBinds(
+        {
+          type: 'ObjectPattern',
+          properties: [{ type: 'RestElement', argument: id('require') }],
+        },
+        'require'
+      )
+    ).toBe(true);
+  });
+
+  it('says no for anything that does not bind it', () => {
+    expect(patternBinds(id('other'), 'require')).toBe(false);
+    expect(
+      patternBinds({ type: 'ObjectPattern', properties: [] }, 'require')
+    ).toBe(false);
+    expect(patternBinds({ type: 'ArrayPattern' }, 'require')).toBe(false);
+    expect(patternBinds({ type: 'Literal', value: 1 }, 'require')).toBe(false);
+    expect(patternBinds(null, 'require')).toBe(false);
   });
 });
 

@@ -67,6 +67,36 @@ export function collectImport(node: any, into: ImportedNames): void {
  *   const { Box: MyBox } = require(…);                    → aliased
  *   const B = require(…);                                 → namespace
  */
+/**
+ * Does this binding pattern bind `name` anywhere inside it?
+ *
+ * A shadow does not have to be a plain identifier: `const { require } = shim`
+ * and `const [require] = shims` bind the name just as well, and the first
+ * version of the shadow guard read only `id.name` and missed both. Both
+ * reviewers on #686 found that hole independently.
+ */
+export function patternBinds(pattern: any, name: string): boolean {
+  if (!pattern || typeof pattern !== 'object') return false;
+  switch (pattern.type) {
+    case 'Identifier':
+      return pattern.name === name;
+    case 'ObjectPattern':
+      return (pattern.properties ?? []).some((prop: any) =>
+        prop?.type === 'RestElement'
+          ? patternBinds(prop.argument, name)
+          : patternBinds(prop?.value, name)
+      );
+    case 'ArrayPattern':
+      return (pattern.elements ?? []).some((el: any) => patternBinds(el, name));
+    case 'AssignmentPattern':
+      return patternBinds(pattern.left, name);
+    case 'RestElement':
+      return patternBinds(pattern.argument, name);
+    default:
+      return false;
+  }
+}
+
 export function isLibraryRequire(declarator: any): boolean {
   const init = declarator?.init;
   return (
@@ -174,6 +204,29 @@ export function winningAttributes(opening: any): any[] {
   const lastIndex = new Map<string, number>();
   attrs.forEach((a, i) => lastIndex.set(a.name.name, i));
   return attrs.filter((a, i) => lastIndex.get(a.name.name) === i);
+}
+
+/**
+ * Attributes whose VALUE is the one that renders.
+ *
+ * `winningAttributes` settles duplicate names; this also drops anything a
+ * LATER spread could overwrite. JSX is last-wins throughout, spreads included,
+ * so "an explicit attribute wins over a spread" — which this package asserted
+ * in three places — holds only for a spread that comes FIRST.
+ * `<Box textAlign="center" {...rest} />` renders whatever `rest.textAlign`
+ * says, so the written value is not necessarily a value that renders at all.
+ *
+ * Only rules that judge a value need this. A rule reporting that a PROP is
+ * deprecated is right either way, because the author wrote the deprecated
+ * prop whether or not its value survives.
+ */
+export function valuesThatRender(opening: any): any[] {
+  const all = (opening?.attributes ?? []) as any[];
+  const lastSpread = all.reduce(
+    (found, a, i) => (a?.type === 'JSXSpreadAttribute' ? i : found),
+    -1
+  );
+  return winningAttributes(opening).filter(a => all.indexOf(a) > lastSpread);
 }
 
 /**
@@ -313,9 +366,8 @@ export function withImports(): {
             return stmt.id?.name === 'require';
           }
           if (stmt?.type === 'VariableDeclaration') {
-            return (stmt.declarations ?? []).some(
-              (d: any) =>
-                d?.id?.type === 'Identifier' && d.id.name === 'require'
+            return (stmt.declarations ?? []).some((d: any) =>
+              patternBinds(d?.id, 'require')
             );
           }
           if (stmt?.type === 'ImportDeclaration') {

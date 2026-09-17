@@ -34,6 +34,11 @@ ruleTester.run('valid-helper-value', rule, {
     "const Box = 'div';\nconst x = <Box textColor='nonsense' />;\n",
     // Not a helper prop at all.
     imported('Box', '<Box className="whatever" id="nope" />'),
+    // A spread AFTER the attribute can overwrite it, and JSX is last-wins
+    // throughout, so the written value is not necessarily what renders. The
+    // shorthand "an explicit attribute wins over a spread" is only true of a
+    // spread that comes first.
+    imported('Box', '<Box textAlign="center" {...rest} />'),
     // Duplicate JSX attributes are legal JavaScript and React resolves them
     // last-wins, so only the winner is judged. This renders `m="4"`.
     imported('Box', '<Box m="bogus" m="4" />'),
@@ -42,6 +47,12 @@ ruleTester.run('valid-helper-value', rule, {
     {
       // The CSS spelling, not Bulma's. The single most likely typo.
       code: imported('Box', '<Box textAlign="center" />'),
+      errors: [{ messageId: 'invalidWithSuggestion' }],
+    },
+    {
+      // A spread BEFORE the attribute cannot overwrite it, so this still
+      // reports — the other half of the last-wins rule.
+      code: imported('Box', '<Box {...rest} textAlign="center" />'),
       errors: [{ messageId: 'invalidWithSuggestion' }],
     },
     {

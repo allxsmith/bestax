@@ -57,6 +57,18 @@ ruleTester.run('no-color-as-surface', rule, {
       errors: [{ messageId: 'ambiguous' }],
     },
     {
+      // `colorShade` changes the class the library emits, so the message has
+      // to name the shaded one or it asserts a class that never renders.
+      code: imported('Box', '<Box color="primary" colorShade="30" />'),
+      output: imported('Box', '<Box textColor="primary" colorShade="30" />'),
+      errors: [
+        {
+          message:
+            '`color` on `Box` is a text-colour alias — it renders `has-text-primary-30`, and no `is-<color>` CSS exists for it. Write `textColor="primary"` to say so, or `bgColor="primary"` if you wanted a coloured surface.',
+        },
+      ],
+    },
+    {
       code: imported('Card', '<Card color="info" />'),
       output: imported('Card', '<Card textColor="info" />'),
       errors: [{ messageId: 'ambiguous' }],

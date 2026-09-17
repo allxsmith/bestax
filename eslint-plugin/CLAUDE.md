@@ -31,8 +31,13 @@ tissue, not as style.
   `no-inert-flex-props` go silent, because a spread may carry the prop that
   makes the code correct. `no-deprecated-props` reports but withholds its fix,
   because the deprecated prop is written explicitly while the fix's safety
-  guard is not knowable. `valid-helper-value` reports normally: an explicit
-  attribute wins over a spread, so a wrong literal is wrong regardless.
+  guard is not knowable. `valid-helper-value` judges only the values that
+  render, which means a LEADING spread does not silence it but a TRAILING one
+  does. JSX is last-wins throughout, spreads included, so the tempting
+  shorthand "an explicit attribute wins over a spread" is false of
+  `<Box textAlign="center" {...rest} />` — `rest.textAlign` is what renders.
+  `valuesThatRender()` owns that; `winningAttributes()` settles duplicate names
+  only.
 - **No autofix may change what the code renders, or stop it compiling.** Two
   ways that happened: renaming onto a prop a spread already set, and renaming
   two deprecated props onto the SAME replacement (`Tabs` deprecates both

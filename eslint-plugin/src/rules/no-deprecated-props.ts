@@ -12,6 +12,7 @@ import type { Rule } from 'eslint';
 import { DEPRECATED_PROPS } from '../generated/metadata.js';
 import type { Deprecation } from '../generated/metadata.js';
 import {
+  attributesOf,
   winningAttributes,
   elementOf,
   hasSpread,
@@ -100,11 +101,17 @@ const rule: Rule.RuleModule = {
         // the explicit attribute shadow a value the author meant to keep.
         // Report, but leave the edit to a human.
         const spread = hasSpread(opening);
-        // Two deprecated props on one element can rename to the SAME target:
-        // Tabs deprecates both `isFullWidth` and `fullwidth` in favour of
-        // `isFullwidth`. Fixing both produced `<Tabs isFullwidth isFullwidth>`,
-        // which is a duplicate JSX attribute and does not compile.
-        const claimed = new Set<string>();
+        // A name written twice is pathological, and fixing one occurrence
+        // leaves the other behind: `<Tabs isFullWidth isFullWidth />` became
+        // `<Tabs isFullWidth isFullwidth />`, still carrying a deprecated
+        // prop. Report, do not edit.
+        const doubled = new Set<string>();
+        const counts = new Map<string, number>();
+        for (const a of attributesOf(opening)) {
+          const k = a.name.name;
+          counts.set(k, (counts.get(k) ?? 0) + 1);
+          if ((counts.get(k) ?? 0) > 1) doubled.add(k);
+        }
 
         for (const attr of attrs) {
           const prop: string = attr.name.name;
@@ -115,10 +122,9 @@ const rule: Rule.RuleModule = {
             replacement !== null &&
             !spread &&
             !written.has(replacement) &&
-            !claimed.has(replacement) &&
             !contested.has(replacement) &&
+            !doubled.has(prop) &&
             !VALUE_GRAMMAR_DIFFERS.has(prop);
-          if (fixable) claimed.add(replacement);
           context.report({
             node: attr.name,
             messageId: 'deprecated',

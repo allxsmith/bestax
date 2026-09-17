@@ -120,8 +120,9 @@ Bulma's rules, and each skips a value it cannot read as a literal.
 A spread is handled by what it can change: `no-color-as-surface` and
 `no-inert-flex-props` go silent, since a spread may carry the prop that makes
 the code correct; `no-deprecated-props` reports but offers no fix; and
-`valid-helper-value` still reports, because an explicit attribute wins over a
-spread so a wrong literal is wrong regardless. No autofix changes what the code
+`valid-helper-value` judges only the values that actually render, so a spread
+BEFORE the attribute leaves it reporting and a spread after it does not: JSX is
+last-wins throughout, spreads included. No autofix changes what the code
 renders.
 
 ### valid-helper-value

@@ -25,6 +25,11 @@ ruleTester.run('no-deprecated-props', rule, {
     // read resolved these and reported a deprecation with an empty note.
     imported('Icon', '<Icon valueOf="x" hasOwnProperty="y" />'),
     imported('Button', '<Button constructor="x" toString="y" />'),
+    // A shadow does not have to be a plain identifier; both reviewers found
+    // this hole independently.
+    'const { require } = shim;\n' +
+      "const { Button } = require('@allxsmith/bestax-bulma');\n" +
+      'const x = <Button isFullWidth />;\n',
     // A module that declares its own `require` is not calling the CommonJS
     // one, so a call to it says nothing about our package.
     "const require = (s) => ({ Button: 'button' });\n" +
@@ -57,6 +62,14 @@ ruleTester.run('no-deprecated-props', rule, {
       code: imported('Tabs', '<Tabs isFullWidth fullwidth />'),
       output: null,
       errors: [{ messageId: 'deprecated' }, { messageId: 'deprecated' }],
+    },
+    {
+      // The same name written twice. Fixing one occurrence left the other
+      // behind, so the output still carried a deprecated prop: report, do not
+      // edit.
+      code: imported('Tabs', '<Tabs isFullWidth isFullWidth />'),
+      output: null,
+      errors: [{ messageId: 'deprecated' }],
     },
     {
       // The precedence case that made it a behaviour change rather than a

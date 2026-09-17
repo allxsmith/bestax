@@ -128,8 +128,9 @@ A spread is treated by what it can change. `no-color-as-surface` and
 `no-inert-flex-props` go silent, because a spread may carry the very prop that
 would make the code correct. `no-deprecated-props` still reports, since the
 deprecated prop is written right there, but offers no fix. `valid-helper-value`
-also still reports: an explicit attribute wins over a spread, so a wrong
-literal is wrong whatever the spread holds.
+judges only the values that actually render, so a spread _before_ the
+attribute leaves it reporting while a spread _after_ it does not — JSX is
+last-wins throughout, spreads included.
 
 No autofix here changes what the code renders. A false report on correct code
 is worse than a missed one, because it teaches people to switch the rule off.

@@ -31,7 +31,7 @@ import {
   literalValue,
   numericValue,
   elementOf,
-  winningAttributes,
+  valuesThatRender,
   withImports,
 } from '../lib/elements.js';
 
@@ -99,7 +99,7 @@ const rule: Rule.RuleModule = {
           attributes: unknown[];
         };
         if (elementOf(context, opening, imports) === null) return;
-        for (const attr of winningAttributes(opening)) {
+        for (const attr of valuesThatRender(opening)) {
           const prop: string = attr.name.name;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;
