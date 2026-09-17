@@ -21,11 +21,19 @@ switched off by accident.
 Every one of these was a shipped bug before it was a rule. Read them as scar
 tissue, not as style.
 
-- **A rule never guesses.** If a prop's value is not a readable string literal
-  the rule says nothing. Use `literalValue()` for this; do not hand-roll a
-  `Literal` check, which is how `no-color-as-surface` came to report
-  ``color={`primary`}`` with the string `<value>` in its message and to
-  autofix a bare `color` it had never read.
+- **A rule never guesses**, and the readers in `lib/elements.ts` are where the
+  judgement lives. Do not hand-roll an AST value check in a rule: that is how
+  `no-color-as-surface` came to report ``color={`primary`}`` with the string
+  `<value>` in its message and to autofix a bare `color` it had never read.
+  Three readers, and picking the wrong one is the recurring bug here:
+  - `literalValue()` for the value itself, when a rule needs to judge it.
+  - `isUnreadableValue()` for a "say nothing" guard. It separates genuinely
+    unknown (`{mode}`) from readable but of a type no tuple entry can be
+    (`true`, `{false}`, a number) — the second is knowably wrong, and a guard
+    testing "not a string literal" swallows it.
+  - `isKnownNonNullish()` where a guard stands in front of a `??`. `readable`
+    is too weak there: a readable `null` is still nullish, and using the wrong
+    one made `redundant` claim `color` was ignored on an element rendering it.
 - **A spread is handled by what it can change**, and the answer differs per
   rule, so state it in the rule's header. `no-color-as-surface` and
   `no-inert-flex-props` go silent, because a spread may carry the prop that

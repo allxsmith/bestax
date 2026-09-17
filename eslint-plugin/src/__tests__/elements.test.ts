@@ -12,7 +12,9 @@ import {
   collectImport,
   collectRequire,
   emptyImports,
+  isKnownNonNullish,
   isTrueValue,
+  isUnreadableValue,
   literalValue,
   namedAttr,
   numericValue,
@@ -141,6 +143,79 @@ describe('namedAttr', () => {
     expect(literalValue(namedAttr(attrs, 'color'))).toBe('danger');
     expect(namedAttr(attrs, 'absent')).toBeUndefined();
     expect(namedAttr([], 'color')).toBeUndefined();
+  });
+});
+
+describe('isUnreadableValue', () => {
+  it('separates genuinely unknown from readable but wrong', () => {
+    // Readable: a bare attribute, and every literal type.
+    expect(isUnreadableValue({ value: null })).toBe(false);
+    expect(isUnreadableValue({ value: { type: 'Literal', value: '4' } })).toBe(
+      false
+    );
+    for (const v of [true, false, 2, null]) {
+      expect(
+        isUnreadableValue({
+          value: {
+            type: 'JSXExpressionContainer',
+            expression: { type: 'Literal', value: v },
+          },
+        })
+      ).toBe(false);
+    }
+    // Unknown: an identifier, an interpolated template, and an attribute
+    // whose value is a JSX element rather than a container — legal JSX, and
+    // the one input that reaches the predicate's final return.
+    expect(
+      isUnreadableValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Identifier', name: 'mode' },
+        },
+      })
+    ).toBe(true);
+    expect(
+      isUnreadableValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: {
+            type: 'TemplateLiteral',
+            quasis: [{ value: { cooked: 'a' } }, { value: { cooked: 'b' } }],
+          },
+        },
+      })
+    ).toBe(true);
+    expect(isUnreadableValue({ value: { type: 'JSXElement' } })).toBe(true);
+  });
+});
+
+describe('isKnownNonNullish', () => {
+  const inContainer = (value: unknown) => ({
+    value: {
+      type: 'JSXExpressionContainer',
+      expression: { type: 'Literal', value },
+    },
+  });
+
+  it('is the predicate a guard in front of a `??` needs', () => {
+    // `color: textColor ?? color` — only a non-nullish textColor wins.
+    expect(isKnownNonNullish({ value: null })).toBe(true);
+    expect(isKnownNonNullish({ value: { type: 'Literal', value: 'x' } })).toBe(
+      true
+    );
+    expect(isKnownNonNullish(inContainer(true))).toBe(true);
+    expect(isKnownNonNullish(inContainer(0))).toBe(true);
+    // A readable null is readable and still nullish, which is the whole point.
+    expect(isKnownNonNullish(inContainer(null))).toBe(false);
+    // Unreadable is not knowably anything.
+    expect(
+      isKnownNonNullish({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Identifier', name: 'undefined' },
+        },
+      })
+    ).toBe(false);
   });
 });
 

@@ -260,6 +260,27 @@ export function isUnreadableValue(attr: any): boolean {
 }
 
 /**
+ * True when the value is readable AND knowably not nullish.
+ *
+ * `isUnreadableValue` is the wrong predicate in front of a `??`, and this is
+ * the one call site in the package that has one: the library resolves
+ * `color: textColor ?? color`, so `color` is ignored only when `textColor` is
+ * non-nullish. A readable `null` is readable and still nullish, which made the
+ * `redundant` report claim `color` was ignored on an element that renders it.
+ *
+ * `{undefined}` needs no case of its own: it parses as an identifier, so it is
+ * unreadable and falls out above.
+ */
+export function isKnownNonNullish(attr: any): boolean {
+  if (isUnreadableValue(attr)) return false;
+  const v = attr?.value;
+  // A bare attribute is `true`.
+  if (v === null || v === undefined) return true;
+  const expr = v.type === 'JSXExpressionContainer' ? v.expression : v;
+  return !(expr?.type === 'Literal' && expr.value === null);
+}
+
+/**
  * True when the attribute's value is `true`, either spelling.
  *
  * `<Box mt />` and `<Box mt={true} />` are the same value, both reach the

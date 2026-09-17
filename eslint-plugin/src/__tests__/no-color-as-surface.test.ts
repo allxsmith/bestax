@@ -36,6 +36,10 @@ ruleTester.run('no-color-as-surface', rule, {
     imported('Box', '<Box color />'),
     // A spread may carry the background that silences this rule.
     imported('Box', '<Box {...rest} color="dark" />'),
+    // A readable `null` is still nullish, so `textColor ?? color` falls
+    // through and the element really does render `color`. Reporting it
+    // `redundant` would have had the author delete the value that renders.
+    imported('Box', '<Box textColor={null} color="primary" />'),
     // `textColor` is set but unreadable, so whether it wins is unknowable:
     // the library does `color: textColor ?? color`, and telling the author to
     // delete `color` costs them the fallback whenever it is undefined. This

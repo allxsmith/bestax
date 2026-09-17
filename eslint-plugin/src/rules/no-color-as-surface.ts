@@ -35,6 +35,7 @@ import {
   attributesOf,
   elementOf,
   hasSpread,
+  isKnownNonNullish,
   isUnreadableValue,
   literalValue,
   namedAttr,
@@ -96,10 +97,11 @@ const rule: Rule.RuleModule = {
           // actually set. Told to remove `color` on the strength of a
           // `textColor={maybe}` that turns out undefined, the author loses the
           // fallback the element was rendering from.
-          // Unreadable means unknowable. A readable `true` or number is a
-          // different thing: `textColor ?? color` is non-nullish either way,
-          // so `color` really is ignored and saying so is accurate.
-          if (isUnreadableValue(textColor)) return;
+          // `textColor ?? color` ignores `color` only when `textColor` is
+          // non-nullish, which is stronger than readable: a readable `null`
+          // falls through and the element really does render `color`. A
+          // readable `true` or number does win, so those still report.
+          if (!isKnownNonNullish(textColor)) return;
           context.report({
             node: color,
             messageId: 'redundant',
