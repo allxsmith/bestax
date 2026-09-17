@@ -46,6 +46,16 @@ ruleTester.run('no-inert-flex-props', rule, {
       errors: [{ messageId: 'inert' }],
     },
     {
+      // Neither can a number or `{false}` be `flex`, so neither may buy
+      // silence. Readable-but-wrong is not the same as unreadable.
+      code: imported('Box', '<Box display={2} justifyContent="center" />'),
+      errors: [{ messageId: 'inert' }],
+    },
+    {
+      code: imported('Box', '<Box display={false} justifyContent="center" />'),
+      errors: [{ messageId: 'inert' }],
+    },
+    {
       // A display that is present but not flex.
       code: imported('Box', '<Box display="block" alignItems="center" />'),
       errors: [{ messageId: 'inert' }],

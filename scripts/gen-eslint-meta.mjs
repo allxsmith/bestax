@@ -158,8 +158,8 @@ export function collect() {
   }
 
   // `no-color-as-surface` rewrites `color` to `textColor` on every element in
-  // this set, so each one has to declare `textColor`. All nine do today and
-  // nothing held that — the same guard the deprecation replacements get.
+  // this set, so each one has to declare `textColor` — the same guard the
+  // deprecation replacements get, rather than a claim about how many do.
   for (const element of textAlias) {
     if (!knownProps.get(element)?.has('textColor')) {
       throw new Error(

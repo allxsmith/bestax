@@ -35,6 +35,7 @@ import {
   attributesOf,
   elementOf,
   hasSpread,
+  isUnreadableValue,
   literalValue,
   namedAttr,
   withImports,
@@ -95,7 +96,10 @@ const rule: Rule.RuleModule = {
           // actually set. Told to remove `color` on the strength of a
           // `textColor={maybe}` that turns out undefined, the author loses the
           // fallback the element was rendering from.
-          if (literalValue(textColor) === null) return;
+          // Unreadable means unknowable. A readable `true` or number is a
+          // different thing: `textColor ?? color` is non-nullish either way,
+          // so `color` really is ignored and saying so is accurate.
+          if (isUnreadableValue(textColor)) return;
           context.report({
             node: color,
             messageId: 'redundant',
@@ -122,9 +126,11 @@ const rule: Rule.RuleModule = {
         let shadeSuffix = '';
         const shadeAttr = named('colorShade');
         if (shadeAttr) {
+          if (isUnreadableValue(shadeAttr)) return;
+          // A readable shade that is not in the tuple leaves the class
+          // unshaded, which `addColorClass` does for `true` and a number too.
           const shade = literalValue(shadeAttr);
-          if (shade === null) return;
-          if (validColorShades.includes(shade as never)) {
+          if (shade !== null && validColorShades.includes(shade as never)) {
             shadeSuffix = `-${shade}`;
           }
         }

@@ -230,6 +230,36 @@ export function valuesThatRender(opening: any): any[] {
 }
 
 /**
+ * True only when the attribute's value cannot be read at all.
+ *
+ * This is the predicate every "say nothing" guard should use, and having three
+ * rounds of review find the same defect one rule at a time is what earned it a
+ * name. The rules kept conflating two different reasons to stay quiet:
+ *
+ *   - the value is genuinely unknown (`{mode}`, an interpolated template) —
+ *     it could be anything, including the right thing, so silence is correct
+ *   - the value is readable but of a type no tuple entry can ever be (`true`,
+ *     `{false}`, a number) — the library drops it, so it is knowably wrong
+ *
+ * Only the first is unreadable. Any guard that returns early on "not a string
+ * literal" swallows the second, which is how a bare `display` bought an
+ * element silence on its inert flex props.
+ */
+export function isUnreadableValue(attr: any): boolean {
+  const v = attr?.value;
+  // A bare attribute is `true`, which is a value, not an absence.
+  if (v === null || v === undefined) return false;
+  if (v.type === 'Literal') return false;
+  if (v.type === 'JSXExpressionContainer') {
+    const e = v.expression;
+    if (e?.type === 'Literal') return false;
+    if (e?.type === 'TemplateLiteral' && e.quasis?.length === 1) return false;
+    return true;
+  }
+  return true;
+}
+
+/**
  * True when the attribute's value is `true`, either spelling.
  *
  * `<Box mt />` and `<Box mt={true} />` are the same value, both reach the

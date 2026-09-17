@@ -64,6 +64,25 @@ ruleTester.run('no-color-as-surface', rule, {
       errors: [{ messageId: 'ambiguous' }],
     },
     {
+      // `addColorClass` shades only on a tuple member, so a `true` shade
+      // leaves the class unshaded — readable, therefore reportable.
+      code: imported('Box', '<Box color="primary" colorShade={true} />'),
+      output: imported('Box', '<Box textColor="primary" colorShade={true} />'),
+      errors: [
+        {
+          message:
+            '`color` on `Box` is a text-colour alias — it renders `has-text-primary`, and no `is-<color>` CSS exists for it. Write `textColor="primary"` to say so, or `bgColor="primary"` if you wanted a coloured surface.',
+        },
+      ],
+    },
+    {
+      // `textColor ?? color` is non-nullish for a readable `true`, so `color`
+      // really is ignored and saying so is accurate.
+      code: imported('Box', '<Box textColor={true} color="primary" />'),
+      output: null,
+      errors: [{ messageId: 'redundant' }],
+    },
+    {
       // A shade outside `validColorShades` is ignored by the library, which
       // falls back to the unshaded class — so the message must not shade it.
       // `addColorClass` shades only `if (shade && includes(shade))`.
