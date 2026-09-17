@@ -96,6 +96,35 @@ describe('plugin surface', () => {
     ]);
   });
 
+  // `.cjs` is the one file kind flat config parses as `sourceType: 'commonjs'`,
+  // where `import` is a syntax error — which is why the require collector
+  // exists at all. Every other fixture runs at sourceType module, so nothing
+  // exercised the combination the preset's own glob advertises.
+  it('lints a .cjs file through the preset, require and all', () => {
+    const linter = new Linter();
+    const messages = linter.verify(
+      "const { Box } = require('@allxsmith/bestax-bulma');\n" +
+        'const x = <Box textAlign="center" />;\n',
+      [configs.recommended],
+      'a.cjs'
+    );
+    expect(messages.map(m => m.ruleId)).toEqual([
+      '@allxsmith/bestax/valid-helper-value',
+    ]);
+  });
+
+  it('leaves a .cjs file alone when require is shadowed', () => {
+    const linter = new Linter();
+    const messages = linter.verify(
+      'const require = shim;\n' +
+        "const { Box } = require('@allxsmith/bestax-bulma');\n" +
+        'const x = <Box textAlign="center" />;\n',
+      [configs.recommended],
+      'a.cjs'
+    );
+    expect(messages.map(m => m.ruleId)).toEqual([]);
+  });
+
   it('carries a version, which ESLint folds into the --cache key', () => {
     // Without it an upgrade that adds or tightens a rule is served from a
     // stale cache and never runs.

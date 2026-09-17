@@ -4,8 +4,8 @@
 
 Security fixes land on the **latest release line only** — currently
 `@allxsmith/bestax-bulma` 5.x, `create-bestax` 4.x, `bestax-migrate` 2.x, and
-`bestax-mcp` 1.x. Every published package releases automatically from `main`
-(semantic-release), so the latest published version is always the patched one.
+`bestax-mcp` 1.x. Those release automatically from `main` (semantic-release),
+so the latest published version is always the patched one.
 Older majors may still work but receive no security updates; please upgrade.
 
 | Package                           | Supported        | Unsupported |

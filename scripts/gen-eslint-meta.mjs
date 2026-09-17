@@ -98,14 +98,13 @@ export function collect() {
   for (const name of names) {
     const info = extractComponent(name, { markdown: false });
     for (const table of info.tables ?? []) {
+      // Every element's own prop names, so a replacement or a rewrite target
+      // can be checked against what the element actually declares.
+      knownProps.set(table.path, new Set((table.rows ?? []).map(r => r.name)));
       for (const row of table.rows ?? []) {
         if (row.deprecated) {
           if (!deprecated.has(table.path))
             deprecated.set(table.path, new Map());
-          knownProps.set(
-            table.path,
-            new Set((table.rows ?? []).map(r => r.name))
-          );
           // A prop can appear under two parts of the same component; the first
           // reading wins and the note is identical either way.
           const props = deprecated.get(table.path);
@@ -155,6 +154,19 @@ export function collect() {
             `attribute name would corrupt a consumer's source.`
         );
       }
+    }
+  }
+
+  // `no-color-as-surface` rewrites `color` to `textColor` on every element in
+  // this set, so each one has to declare `textColor`. All nine do today and
+  // nothing held that — the same guard the deprecation replacements get.
+  for (const element of textAlias) {
+    if (!knownProps.get(element)?.has('textColor')) {
+      throw new Error(
+        `${element} is in the text-alias set but does not declare ` +
+          '`textColor`, which is what no-color-as-surface rewrites `color` ' +
+          'to. Writing it would produce a prop the element does not accept.'
+      );
     }
   }
 
