@@ -3,10 +3,15 @@
  * tuples rather than a copy of them.
  *
  * This import is why the package depends on `@allxsmith/bestax-bulma` at
- * runtime: the rule then validates against the tuples belonging to the
- * version the consumer actually installed, so it cannot drift. The
- * `/constants` subpath carries the tuples with no React and no component
- * code, so linting does not load the library proper.
+ * runtime: the rule validates against the library's own tuples rather than a
+ * copy of them. The `/constants` subpath carries those tuples with no React
+ * and no component code, so linting does not load the library proper.
+ *
+ * Be precise about the version it reads, because an earlier draft of this
+ * comment overclaimed it: the tuples come from the copy THIS PACKAGE resolves,
+ * which an ordinary deduped install makes the app's, but a major-version split
+ * does not. See eslint-plugin/CLAUDE.md, which also records why the dependency
+ * is a runtime one and must stay that way.
  */
 import {
   validAlignContents,

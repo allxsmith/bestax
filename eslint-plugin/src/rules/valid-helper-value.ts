@@ -12,9 +12,15 @@
  * This rule earns its place where that check is not running:
  *
  *   - JavaScript and JSX projects, which have no such check at all
- *   - code in markdown and MDX, which no `tsc` program includes; every real
- *     bug this rule has found so far was in a docs fence
  *   - editors and CI stages that lint before, or instead of, typechecking
+ *   - values `tsc` cannot see as literals, and numbers: `m={2}` typechecks
+ *     against a string union in neither direction anyone expects, and the
+ *     library's `includes` check never matches it
+ *
+ * Code in markdown is where this rule has found its real bugs in this repo,
+ * but reaching it needs an ESLint markdown processor and a per-fence way to
+ * resolve elements, since most fences carry no import. The preset does not
+ * match `.md`/`.mdx` and this rule claims nothing about them.
  *
  * It is deliberately not a substitute for typechecking, and the overlap on
  * `.tsx` is expected rather than a defect.
@@ -24,6 +30,7 @@ import { HELPER_VALUES } from '../lib/values.js';
 import {
   attributesOf,
   literalValue,
+  numericValue,
   elementOf,
   withImports,
 } from '../lib/elements.js';
@@ -76,6 +83,10 @@ const rule: Rule.RuleModule = {
         '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so the class is never emitted and nothing renders. Valid values: {{valid}}.',
       invalidWithSuggestion:
         '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so the class is never emitted and nothing renders. Did you mean {{suggestions}}?',
+      numeric:
+        '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Write `{{prop}}="{{value}}"`.',
+      numericInvalid:
+        '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings. `"{{value}}"` is not a value it accepts either. Valid values: {{valid}}.',
     },
   },
   create(context) {
@@ -92,6 +103,24 @@ const rule: Rule.RuleModule = {
           const prop: string = attr.name.name;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;
+          // A number never matches a tuple of strings, so it renders nothing
+          // however plausible it looks. Worth its own message: the fix is the
+          // quotes, not the value.
+          const numeric = numericValue(attr);
+          if (numeric !== null) {
+            context.report({
+              node: attr,
+              messageId: valid.includes(String(numeric))
+                ? 'numeric'
+                : 'numericInvalid',
+              data: {
+                prop,
+                value: String(numeric),
+                valid: valid.map(v => `\`${v}\``).join(', '),
+              },
+            });
+            continue;
+          }
           const value = literalValue(attr);
           if (value === null || valid.includes(value)) continue;
           const suggestions = suggest(value, valid);

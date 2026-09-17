@@ -10,8 +10,11 @@
 import { describe, expect, it } from '@jest/globals';
 import {
   collectImport,
+  collectRequire,
   emptyImports,
   literalValue,
+  namedAttr,
+  numericValue,
   resolveElement,
 } from '../lib/elements.js';
 
@@ -20,6 +23,99 @@ const member = (object: unknown, property: string) => ({
   type: 'JSXMemberExpression',
   object,
   property: jsxId(property),
+});
+
+describe('collectRequire', () => {
+  // A destructuring pattern binds plain Identifiers, not JSXIdentifiers.
+  const id = (name: string) => ({ type: 'Identifier', name });
+  const req = (target: unknown, arg = '@allxsmith/bestax-bulma') => ({
+    id: target,
+    init: {
+      type: 'CallExpression',
+      callee: { type: 'Identifier', name: 'require' },
+      arguments: [{ type: 'Literal', value: arg }],
+    },
+  });
+
+  it('reads the destructured, aliased and namespace forms', () => {
+    const imports = emptyImports();
+    collectRequire(
+      req({
+        type: 'ObjectPattern',
+        properties: [
+          { type: 'Property', key: id('Box'), value: id('Box') },
+          { type: 'Property', key: id('Card'), value: id('Surface') },
+        ],
+      }),
+      imports
+    );
+    collectRequire(req(id('B')), imports);
+    expect(imports.named.get('Box')).toBe('Box');
+    expect(imports.named.get('Surface')).toBe('Card');
+    expect(imports.namespaces.has('B')).toBe(true);
+  });
+
+  it('ignores a require of anything else, and a rest element', () => {
+    const imports = emptyImports();
+    collectRequire(req(id('x'), 'react'), imports);
+    collectRequire(
+      req({
+        type: 'ObjectPattern',
+        properties: [{ type: 'RestElement', argument: id('rest') }],
+      }),
+      imports
+    );
+    expect(imports.named.size).toBe(0);
+    expect(imports.namespaces.size).toBe(0);
+  });
+
+  it('ignores a declarator that is not a require call at all', () => {
+    const imports = emptyImports();
+    collectRequire(
+      { id: id('x'), init: { type: 'Literal', value: 1 } },
+      imports
+    );
+    collectRequire({ id: id('x') }, imports);
+    expect(imports.named.size + imports.namespaces.size).toBe(0);
+  });
+});
+
+describe('namedAttr', () => {
+  const attr = (name: string, v: string) => ({
+    name: { name },
+    value: { type: 'Literal', value: v },
+  });
+
+  it('returns the LAST match, the way JSX resolves duplicates', () => {
+    const attrs = [attr('color', 'primary'), attr('color', 'danger')];
+    expect(literalValue(namedAttr(attrs, 'color'))).toBe('danger');
+    expect(namedAttr(attrs, 'absent')).toBeUndefined();
+    expect(namedAttr([], 'color')).toBeUndefined();
+  });
+});
+
+describe('numericValue', () => {
+  it('reads a number in an expression container, and nothing else', () => {
+    expect(
+      numericValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Literal', value: 2 },
+        },
+      })
+    ).toBe(2);
+    // A string literal is literalValue's job, not this one.
+    expect(numericValue({ value: { type: 'Literal', value: '2' } })).toBeNull();
+    expect(
+      numericValue({
+        value: {
+          type: 'JSXExpressionContainer',
+          expression: { type: 'Identifier', name: 'n' },
+        },
+      })
+    ).toBeNull();
+    expect(numericValue({ value: null })).toBeNull();
+  });
 });
 
 describe('collectImport', () => {

@@ -27,11 +27,13 @@
  */
 import type { Rule } from 'eslint';
 import { TEXT_ALIAS_COLOR_ELEMENTS } from '../generated/metadata.js';
+import { validColors } from '@allxsmith/bestax-bulma/constants';
 import {
   attributesOf,
   elementOf,
   hasSpread,
   literalValue,
+  namedAttr,
   withImports,
 } from '../lib/elements.js';
 
@@ -39,6 +41,14 @@ const TEXT_ALIAS = new Set(TEXT_ALIAS_COLOR_ELEMENTS);
 
 /** Setting either of these shows the author knows where the surface comes from. */
 const BACKGROUND_PROPS = ['bgColor', 'backgroundColor'];
+
+/**
+ * Values for which the message's claim is true. `useColorClasses` emits
+ * nothing outside this set, so on anything else the rule would assert a class
+ * that never renders — and its fix would move a dead value to a different dead
+ * prop. A wrong value is `valid-helper-value`'s to report, not this rule's.
+ */
+const RENDERABLE = new Set<string>([...validColors, 'inherit', 'current']);
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -71,13 +81,18 @@ const rule: Rule.RuleModule = {
         if (hasSpread(opening)) return;
 
         const attrs = attributesOf(opening);
-        const named = (n: string) =>
-          attrs.find((a: { name: { name: string } }) => a.name.name === n);
+        const named = (n: string) => namedAttr(attrs, n);
 
         const color = named('color');
         if (!color) return;
 
-        if (named('textColor')) {
+        const textColor = named('textColor');
+        if (textColor) {
+          // `color: textColor ?? color` — so `textColor` only wins when it is
+          // actually set. Told to remove `color` on the strength of a
+          // `textColor={maybe}` that turns out undefined, the author loses the
+          // fallback the element was rendering from.
+          if (literalValue(textColor) === null) return;
           context.report({
             node: color,
             messageId: 'redundant',
@@ -93,7 +108,7 @@ const rule: Rule.RuleModule = {
         // computed value could be anything, and the message would have to say
         // so in place of the value, which is not advice anyone can act on.
         const value = literalValue(color);
-        if (value === null) return;
+        if (value === null || !RENDERABLE.has(value)) return;
 
         context.report({
           node: color.name,

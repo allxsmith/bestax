@@ -19,6 +19,22 @@ import {
 } from '../lib/elements.js';
 
 /**
+ * Renames whose fix is withheld because the two props do not share a value
+ * grammar, so swapping the name silently changes what renders.
+ *
+ * `icon` is the case: the library space-splits it and keeps only the LAST
+ * segment as the glyph ("Only its last segment is read", its own TSDoc says),
+ * while `name` is never split. So `icon="material-symbols-outlined home"`
+ * renders the `home` ligature and `name="material-symbols-outlined home"`
+ * renders that string as literal text. The deprecation is still reported; only
+ * the edit is left to a human.
+ *
+ * Declared rather than inferred: nothing in the generated note says whether
+ * two props read their value the same way.
+ */
+const VALUE_GRAMMAR_DIFFERS = new Set(['icon']);
+
+/**
  * Own-property reads only. The keys come from the user's source, so a plain
  * `table[name]` resolves `Object.prototype` members: `<Icon valueOf="x" />`
  * found `Object.prototype.valueOf`, passed the truthiness check, and reported
@@ -64,6 +80,22 @@ const rule: Rule.RuleModule = {
         const written = new Set(
           attrs.map((a: { name: { name: string } }) => a.name.name)
         );
+        // Two deprecated props on one element can rename to the same target,
+        // and the library picks between them in a fixed order: Tabs resolves
+        // `isFullwidth ?? isFullWidth ?? fullwidth`. Renaming the one that
+        // happens to come first in the source promotes it past the one that
+        // was winning, so `<Tabs fullwidth isFullWidth={false} />` (not
+        // fullwidth) became `<Tabs isFullwidth isFullWidth={false} />`
+        // (fullwidth). Whichever way it is resolved, the author has to decide,
+        // so no fix is offered to any of them.
+        const contested = new Set<string>();
+        const seen = new Set<string>();
+        for (const a of attrs) {
+          const target = own(deprecations, a.name.name)?.replacement;
+          if (!target) continue;
+          if (seen.has(target)) contested.add(target);
+          seen.add(target);
+        }
         // A spread can hold the replacement, and renaming onto it would let
         // the explicit attribute shadow a value the author meant to keep.
         // Report, but leave the edit to a human.
@@ -83,7 +115,9 @@ const rule: Rule.RuleModule = {
             replacement !== null &&
             !spread &&
             !written.has(replacement) &&
-            !claimed.has(replacement);
+            !claimed.has(replacement) &&
+            !contested.has(replacement) &&
+            !VALUE_GRAMMAR_DIFFERS.has(prop);
           if (fixable) claimed.add(replacement);
           context.report({
             node: attr.name,

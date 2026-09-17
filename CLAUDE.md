@@ -43,7 +43,7 @@ pnpm format         # prettier --write (format:check to verify; covers md/mdx to
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
 pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
 pnpm gen:skills     # regenerate the skill install rosters (conformance fails if stale)
-pnpm gen:eslint-meta # regenerate the ESLint plugin's metadata (CI fails if stale)
+pnpm gen:eslint-meta # regenerate the ESLint plugin's metadata (in `pnpm all`; no CI step yet)
 pnpm gen            # every generator (api docs, catalog, MCP index, skill rosters, eslint metadata)
 pnpm docs           # Docusaurus dev server :3000
 pnpm storybook      # Storybook dev server :6006
@@ -140,8 +140,8 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
   and every miss granted the exemption. A workspace **sibling** in `dependencies` or
   `optionalDependencies` is separately a violation however the specifier is spelled (#537), and
   the only way through is a line in `SIBLING_RUNTIME_DEPS` — same declared shape — for a
-  package that depends on a sibling at runtime on purpose (#644: the three CLIs on
-  `@allxsmith/bestax-bulma`, the way bulma-ui declares `bulma`); the test holds that declaration
+  package that depends on a sibling at runtime on purpose (#644: the three CLIs and
+  the ESLint plugin on `@allxsmith/bestax-bulma`, the way bulma-ui declares `bulma`); the test holds that declaration
   to the real manifests, so a removed dependency cannot leave a standing exemption.
 
 ## Workflow

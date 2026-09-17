@@ -84,7 +84,13 @@ export default commandLineArgs => {
           dir: 'dist',
           format: 'cjs',
           sourcemap: true,
-          entryFileNames: 'constants.cjs.js',
+          // `.cjs`, not `.cjs.js`: this package is `"type": "module"`, so Node
+          // reads a `.js` file as ESM whatever the bundle's format is. Under
+          // that reading the CommonJS `exports.x = …` assignments produce
+          // nothing, and `require('@allxsmith/bestax-bulma/constants')`
+          // returned an empty object rather than failing — a subpath that
+          // silently exports nothing is worse than one that throws.
+          entryFileNames: 'constants.cjs',
           banner: aiBanner,
         },
         {

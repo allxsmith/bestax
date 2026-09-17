@@ -27,8 +27,18 @@ describe('replacementFrom', () => {
     );
   });
 
-  it('reads a dotted replacement, for a compound sub-component', () => {
-    assert.equal(replacementFrom('Use `Tabs.Tab` instead.'), 'Tabs.Tab');
+  it('declines a dotted name, which no prop can be called', () => {
+    // This was pinned the other way round, as if a compound path were a valid
+    // replacement. It is the one shape that can never be a legal JSX
+    // attribute name, so writing it produces a file that does not parse:
+    // `--fix` on `<Tabs tab='a' />` emitted `<Tabs Tabs.Tab='a' />`.
+    // The library really does carry such a note, on Tabs.Item, and it escaped
+    // only because "with an" sits between the backtick and "instead".
+    assert.equal(replacementFrom('Use `Tabs.Tab` instead.'), null);
+    assert.equal(
+      replacementFrom('Use `Tabs.Tab` with an `index` prop instead.'),
+      null
+    );
   });
 
   it('declines a note naming more than one replacement', () => {

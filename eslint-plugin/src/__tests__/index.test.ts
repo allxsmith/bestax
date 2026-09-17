@@ -56,28 +56,52 @@ describe('plugin surface', () => {
   // The regression this file exists for. Every rule visits only
   // JSXOpeningElement, and a flat config object with no `files` inherits
   // ESLint's default `**/*.{js,mjs,cjs}` set — so the preset shipped linting
-  // nothing at all, silently, and the end-to-end check that should have caught
-  // it passed its own hand-written `files` instead of the preset's.
-  it.each(['a.jsx', 'a.tsx', 'a.js'])(
-    'the recommended preset alone actually lints %s',
+  // nothing at all, silently.
+  //
+  // The first version of this test was itself vacuous: it passed a config
+  // ARRAY whose own first object carried the same glob, which matched the file
+  // and suppressed the "no matching configuration" warning the assertion
+  // looked for, whatever the preset did. Rebuilding the preset without `files`
+  // left all three cases green. So: the preset is the ONLY config object, and
+  // the assertion is a real report from a real import, which cannot be
+  // satisfied by a file that was never linted.
+  it.each(['a.jsx', 'a.js'])(
+    'the recommended preset, alone and unaided, reports on %s',
     file => {
       const linter = new Linter();
       const messages = linter.verify(
-        'const x = <Box textAlign="center" />;',
-        [
-          { files: ['**/*.{js,mjs,cjs,jsx,tsx}'], languageOptions: {} },
-          configs.recommended,
-        ],
+        "import { Box } from '@allxsmith/bestax-bulma';\n" +
+          'const x = <Box textAlign="center" />;\n',
+        [configs.recommended],
         file
       );
-      // No library import, so no rule reports. What is being asserted is that
-      // the file was linted at all: an unmatched file yields the "no matching
-      // configuration" warning instead.
-      expect(
-        messages.filter(m => /no matching configuration/i.test(m.message))
-      ).toEqual([]);
+      expect(messages.map(m => m.ruleId)).toEqual([
+        '@allxsmith/bestax/valid-helper-value',
+      ]);
     }
   );
+
+  it('matches .tsx too, which is why a parser is a requirement', () => {
+    const linter = new Linter();
+    // Without type syntax the default parser copes, which is what proves the
+    // extension is in the glob at all.
+    const messages = linter.verify(
+      "import { Box } from '@allxsmith/bestax-bulma';\n" +
+        'const x = <Box textAlign="center" />;\n',
+      [configs.recommended],
+      'a.tsx'
+    );
+    expect(messages.map(m => m.ruleId)).toEqual([
+      '@allxsmith/bestax/valid-helper-value',
+    ]);
+  });
+
+  it('carries a version, which ESLint folds into the --cache key', () => {
+    // Without it an upgrade that adds or tightens a rule is served from a
+    // stale cache and never runs.
+    expect(typeof plugin.meta?.version).toBe('string');
+    expect(plugin.meta?.version).toMatch(/\S/);
+  });
 
   it('parses JSX under the default parser, with no parser of its own', () => {
     // `.jsx` must not need the consumer to supply ecmaFeatures themselves.

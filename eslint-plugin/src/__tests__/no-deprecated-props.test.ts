@@ -42,13 +42,22 @@ ruleTester.run('no-deprecated-props', rule, {
       errors: [{ messageId: 'deprecated' }],
     },
     {
-      // Tabs deprecates BOTH spellings in favour of the same replacement, so
-      // fixing both would emit `<Tabs isFullwidth isFullwidth />` — a
-      // duplicate JSX attribute, which is TS17001 and does not compile. Both
-      // report; only the first is rewritten, and a second pass then reports
-      // the leftover against the now-present replacement and leaves it too.
+      // Tabs deprecates BOTH spellings in favour of the same replacement, and
+      // the library picks between them in a fixed order:
+      // `isFullwidth ?? isFullWidth ?? fullwidth`. Renaming whichever appears
+      // first promotes it past the one that was winning, so
+      // `<Tabs fullwidth isFullWidth={false} />` (not fullwidth) became
+      // `<Tabs isFullwidth isFullWidth={false} />` (fullwidth). Both report,
+      // neither is fixed.
       code: imported('Tabs', '<Tabs isFullWidth fullwidth />'),
-      output: imported('Tabs', '<Tabs isFullwidth fullwidth />'),
+      output: null,
+      errors: [{ messageId: 'deprecated' }, { messageId: 'deprecated' }],
+    },
+    {
+      // The precedence case that made it a behaviour change rather than a
+      // duplicate-attribute crash.
+      code: imported('Tabs', '<Tabs fullwidth isFullWidth={false} />'),
+      output: null,
       errors: [{ messageId: 'deprecated' }, { messageId: 'deprecated' }],
     },
     {
@@ -72,8 +81,23 @@ ruleTester.run('no-deprecated-props', rule, {
       errors: [{ messageId: 'deprecated' }],
     },
     {
+      // `icon` and `name` do not share a value grammar: the library keeps only
+      // the LAST space-separated segment of `icon` as the glyph, and never
+      // splits `name`. So a bare rename turns
+      // `icon="material-symbols-outlined home"` from the `home` ligature into
+      // that string rendered as text. Single-segment values would be safe, but
+      // the rule cannot tell a safe one from the general case without knowing
+      // both grammars, so no `icon` rename is fixed.
       code: imported('Icon', '<Icon icon="rocket" />'),
-      output: imported('Icon', '<Icon name="rocket" />'),
+      output: null,
+      errors: [{ messageId: 'deprecated' }],
+    },
+    {
+      code: imported(
+        'Icon',
+        '<Icon library="material-symbols" icon="material-symbols-outlined home" />'
+      ),
+      output: null,
       errors: [{ messageId: 'deprecated' }],
     },
     {
@@ -105,6 +129,40 @@ ruleTester.run('no-deprecated-props', rule, {
       // A compound part carries its own table.
       code: imported('Buttons', '<Buttons.Button isFullWidth />'),
       output: imported('Buttons', '<Buttons.Button isFullwidth />'),
+      errors: [{ messageId: 'deprecated' }],
+    },
+    {
+      // The CommonJS shape. `.cjs` is in the preset's glob and parses as
+      // sourceType commonjs, where `import` is a syntax error, so without a
+      // `require` collector every rule was silent on those files.
+      code:
+        "const { Button } = require('@allxsmith/bestax-bulma');\n" +
+        'const x = <Button isFullWidth />;\n',
+      output:
+        "const { Button } = require('@allxsmith/bestax-bulma');\n" +
+        'const x = <Button isFullwidth />;\n',
+      errors: [{ messageId: 'deprecated' }],
+    },
+    {
+      // JSX nested two scopes below the import, which is the shape essentially
+      // all real consumer code takes and which no imported() fixture reaches.
+      code:
+        "import { Button } from '@allxsmith/bestax-bulma';\n" +
+        'export function App() {\n  const Inner = () => <Button isFullWidth />;\n  return Inner;\n}\n',
+      output:
+        "import { Button } from '@allxsmith/bestax-bulma';\n" +
+        'export function App() {\n  const Inner = () => <Button isFullwidth />;\n  return Inner;\n}\n',
+      errors: [{ messageId: 'deprecated' }],
+    },
+    {
+      // The import BELOW the JSX. Imports hoist, so this is legal and used to
+      // be silent; nothing in imported() can express it.
+      code:
+        'const x = <Button isFullWidth />;\n' +
+        "import { Button } from '@allxsmith/bestax-bulma';\n",
+      output:
+        'const x = <Button isFullwidth />;\n' +
+        "import { Button } from '@allxsmith/bestax-bulma';\n",
       errors: [{ messageId: 'deprecated' }],
     },
   ],

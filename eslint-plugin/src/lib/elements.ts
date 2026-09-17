@@ -55,6 +55,46 @@ export function collectImport(node: any, into: ImportedNames): void {
 }
 
 /**
+ * Record the library's bindings from a CommonJS `require`.
+ *
+ * The preset matches `.cjs`, and flat config parses those as `sourceType:
+ * 'commonjs'` where `import` is a syntax error — so without this every rule
+ * was permanently silent on exactly the JavaScript projects the README sells
+ * the plugin to. A CJS `.js` file in a `"type": "commonjs"` package is the
+ * same shape.
+ *
+ *   const { Box } = require('@allxsmith/bestax-bulma');   → named
+ *   const { Box: MyBox } = require(…);                    → aliased
+ *   const B = require(…);                                 → namespace
+ */
+export function isLibraryRequire(declarator: any): boolean {
+  const init = declarator?.init;
+  return (
+    init?.type === 'CallExpression' &&
+    init.callee?.name === 'require' &&
+    init.arguments?.length === 1 &&
+    init.arguments[0]?.value === PACKAGE
+  );
+}
+
+export function collectRequire(node: any, into: ImportedNames): void {
+  if (!isLibraryRequire(node)) return;
+  const id = node.id;
+  if (id?.type === 'Identifier') {
+    into.namespaces.add(id.name);
+    return;
+  }
+  if (id?.type !== 'ObjectPattern') return;
+  for (const prop of id.properties ?? []) {
+    // A rest element carries no name to bind.
+    if (prop?.type !== 'Property') continue;
+    const imported = prop.key?.name;
+    const local = prop.value?.type === 'Identifier' ? prop.value.name : null;
+    if (typeof imported === 'string' && local) into.named.set(local, imported);
+  }
+}
+
+/**
  * The canonical library name for a JSX element, or null when the element did
  * not come from the library. Returns null rather than guessing.
  *
@@ -94,6 +134,23 @@ export function resolveElement(
 }
 
 /**
+ * A numeric JSX attribute value, or null.
+ *
+ * Every tuple the library validates against holds strings, and its membership
+ * check is a plain `includes`, so `m={2}` never matches `'2'` and emits
+ * nothing. That is a knowably wrong value rather than an unreadable one, and
+ * `m={2}` is the natural spelling in exactly the JavaScript and JSX projects
+ * this package exists for, so it must not be lumped in with the values a rule
+ * declines to judge.
+ */
+export function numericValue(attr: any): number | null {
+  const v = attr?.value;
+  if (v?.type !== 'JSXExpressionContainer') return null;
+  const e = v.expression;
+  return e?.type === 'Literal' && typeof e.value === 'number' ? e.value : null;
+}
+
+/**
  * The string value of a JSX attribute, or null when it is not a plain string
  * literal. Anything computed is skipped by every rule here: a value the rule
  * cannot see is not a value it can judge.
@@ -110,6 +167,22 @@ export function literalValue(attr: any): string | null {
     }
   }
   return null;
+}
+
+/**
+ * The attribute that WINS for `name`, or undefined.
+ *
+ * Duplicate JSX attributes are legal JavaScript (only TypeScript rejects
+ * them) and React resolves them last-wins, so a first-match lookup read the
+ * losing one: `<Box color="primary" color="danger" />` renders
+ * `has-text-danger`, and hoisting the first to `textColor` changed that to
+ * `has-text-primary`.
+ */
+export function namedAttr(attrs: any[], name: string): any {
+  for (let i = attrs.length - 1; i >= 0; i--) {
+    if (attrs[i]?.name?.name === name) return attrs[i];
+  }
+  return undefined;
 }
 
 /** Plain-named attributes of an opening element, skipping spreads. */
@@ -150,8 +223,13 @@ export function bindsToImportAt(
     while (scope) {
       const variable = scope.variables.find((v: any) => v.name === name);
       if (variable) {
+        // An import binding, or the `const { Box } = require(…)` form, which
+        // is the same binding by another spelling. Anything else is a local
+        // that shadows ours.
         return (variable.defs ?? []).some(
-          (d: any) => d.type === 'ImportBinding'
+          (d: any) =>
+            d.type === 'ImportBinding' ||
+            (d.type === 'Variable' && isLibraryRequire(d.node))
         );
       }
       scope = scope.upper;
@@ -196,8 +274,11 @@ export function withImports(): {
     visitor: {
       Program(node: unknown) {
         for (const stmt of (node as { body?: unknown[] }).body ?? []) {
-          if ((stmt as { type?: string })?.type === 'ImportDeclaration') {
+          const s = stmt as { type?: string; declarations?: unknown[] };
+          if (s?.type === 'ImportDeclaration') {
             collectImport(stmt, imports);
+          } else if (s?.type === 'VariableDeclaration') {
+            for (const d of s.declarations ?? []) collectRequire(d, imports);
           }
         }
       },

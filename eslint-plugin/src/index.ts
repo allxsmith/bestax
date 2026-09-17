@@ -1,7 +1,7 @@
 /**
  * ESLint rules for `@allxsmith/bestax-bulma`.
  *
- * Flat config only (ESLint 9+): import the plugin and spread its recommended
+ * Flat config only (ESLint 10): import the plugin and spread its recommended
  * config, or register it under a name of your choosing and turn on the rules
  * you want.
  *
