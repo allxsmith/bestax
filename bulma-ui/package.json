@@ -124,6 +124,11 @@
     "agents",
     "agent-skills"
   ],
+  "typesVersions": {
+    "*": {
+      "constants": ["./dist/types/helpers/bulmaClassHelpers.d.ts"]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",

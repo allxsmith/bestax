@@ -83,6 +83,82 @@ export function replacementFrom(note) {
   return m ? m[1] : null;
 }
 
+/**
+ * Everything that must hold before this table is written, as a list rather
+ * than as five `throw`s inside `collect()`.
+ *
+ * Pure so a test can drive it: `collect()` reads the real library, so on the
+ * happy path every guard is dead code, and deleting one changed no output and
+ * left `gen:eslint-meta:check`, `pnpm all` and the node suite green. The same
+ * shape as `manifestViolations` in check-conformance.mjs, and extracted for
+ * the same reason.
+ *
+ * @param {{deprecated: Map, textAlias: Set, knownProps: Map}} collected
+ * @returns {string[]} one message per violation, empty when all guards hold
+ */
+export function guardViolations({ deprecated, textAlias, knownProps }) {
+  const violations = [];
+
+  if (!deprecated.size) {
+    violations.push(
+      'no deprecated props found — props-extract stopped reporting ' +
+        '`deprecated`, or every @deprecated tag was removed. Refusing to ' +
+        'write a table that would silently disable no-deprecated-props.'
+    );
+  }
+  if (!textAlias.size) {
+    violations.push(
+      `no text-alias color props found — the TSDoc phrase ${TEXT_ALIAS_MARKER.source} ` +
+        'no longer matches. Refusing to write a set that would silently ' +
+        'disable no-color-as-surface.'
+    );
+  }
+
+  // A replacement the rule will write as an attribute name has to be a prop
+  // the element actually declares. Parsing English into an edit is only safe
+  // while that holds, and this is what keeps it true rather than true by luck.
+  for (const [element, props] of deprecated) {
+    for (const [prop, { replacement }] of props) {
+      if (replacement === null) continue;
+      if (!knownProps.get(element)?.has(replacement)) {
+        violations.push(
+          `${element}.${prop} says its replacement is \`${replacement}\`, ` +
+            `which is not a prop ${element} declares. Either the note was ` +
+            `reworded or replacementFrom read it wrongly; writing that as an ` +
+            `attribute name would corrupt a consumer's source.`
+        );
+      }
+    }
+  }
+
+  // `no-color-as-surface` rewrites `color` to `textColor` on every element in
+  // this set, so each one has to declare `textColor` — the same guard the
+  // deprecation replacements get, rather than a claim about how many do.
+  for (const element of textAlias) {
+    if (!knownProps.get(element)?.has('textColor')) {
+      violations.push(
+        `${element} is in the text-alias set but does not declare ` +
+          '`textColor`, which is what no-color-as-surface rewrites `color` ' +
+          'to. Writing it would produce a prop the element does not accept.'
+      );
+    }
+  }
+
+  const missing = TEXT_ALIAS_ANCHORS.filter(n => !textAlias.has(n));
+  if (missing.length) {
+    violations.push(
+      `${missing.join(', ')} no longer ${
+        missing.length === 1 ? 'matches' : 'match'
+      } ${TEXT_ALIAS_MARKER.source}, so ` +
+        'no-color-as-surface would stop reporting them. If the TSDoc was ' +
+        'reworded on purpose, update TEXT_ALIAS_MARKER (or the anchors) here ' +
+        'in the same change.'
+    );
+  }
+
+  return violations;
+}
+
 export function collect() {
   const names = [...exportedModules().keys()]
     .filter(n => /^[A-Z]/.test(n))
@@ -126,61 +202,8 @@ export function collect() {
     }
   }
 
-  if (!deprecated.size) {
-    throw new Error(
-      'no deprecated props found — props-extract stopped reporting ' +
-        '`deprecated`, or every @deprecated tag was removed. Refusing to ' +
-        'write a table that would silently disable no-deprecated-props.'
-    );
-  }
-  if (!textAlias.size) {
-    throw new Error(
-      `no text-alias color props found — the TSDoc phrase ${TEXT_ALIAS_MARKER} ` +
-        'no longer matches. Refusing to write a set that would silently ' +
-        'disable no-color-as-surface.'
-    );
-  }
-  // A replacement the rule will write as an attribute name has to be a prop
-  // the element actually declares. Parsing English into an edit is only safe
-  // while that holds, and this is what keeps it true rather than true by luck.
-  for (const [element, props] of deprecated) {
-    for (const [prop, { replacement }] of props) {
-      if (replacement === null) continue;
-      if (!knownProps.get(element)?.has(replacement)) {
-        throw new Error(
-          `${element}.${prop} says its replacement is \`${replacement}\`, ` +
-            `which is not a prop ${element} declares. Either the note was ` +
-            `reworded or replacementFrom read it wrongly; writing that as an ` +
-            `attribute name would corrupt a consumer's source.`
-        );
-      }
-    }
-  }
-
-  // `no-color-as-surface` rewrites `color` to `textColor` on every element in
-  // this set, so each one has to declare `textColor` — the same guard the
-  // deprecation replacements get, rather than a claim about how many do.
-  for (const element of textAlias) {
-    if (!knownProps.get(element)?.has('textColor')) {
-      throw new Error(
-        `${element} is in the text-alias set but does not declare ` +
-          '`textColor`, which is what no-color-as-surface rewrites `color` ' +
-          'to. Writing it would produce a prop the element does not accept.'
-      );
-    }
-  }
-
-  const missing = TEXT_ALIAS_ANCHORS.filter(n => !textAlias.has(n));
-  if (missing.length) {
-    throw new Error(
-      `${missing.join(', ')} no longer ${
-        missing.length === 1 ? 'matches' : 'match'
-      } ${TEXT_ALIAS_MARKER}, so ` +
-        'no-color-as-surface would stop reporting them. If the TSDoc was ' +
-        'reworded on purpose, update TEXT_ALIAS_MARKER (or the anchors) here ' +
-        'in the same change.'
-    );
-  }
+  const violations = guardViolations({ deprecated, textAlias, knownProps });
+  if (violations.length) throw new Error(violations.join('\n'));
   return { deprecated, textAlias };
 }
 

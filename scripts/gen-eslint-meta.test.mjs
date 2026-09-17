@@ -8,7 +8,7 @@
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { replacementFrom } from './gen-eslint-meta.mjs';
+import { guardViolations, replacementFrom } from './gen-eslint-meta.mjs';
 
 describe('replacementFrom', () => {
   it('reads the single-replacement form the renames use', () => {
@@ -76,5 +76,88 @@ describe('replacementFrom', () => {
     assert.equal(replacementFrom(null), null);
     assert.equal(replacementFrom(''), null);
     assert.equal(replacementFrom('Use `` instead.'), null);
+  });
+});
+
+describe('guardViolations', () => {
+  // Synthetic input on purpose. `collect()` reads the real library, so on the
+  // happy path every one of these guards is unreachable — which is how each
+  // could have been deleted with the generator, its staleness gate, `pnpm all`
+  // and this suite all staying green.
+  const ok = () => ({
+    deprecated: new Map([
+      ['Button', new Map([['isFullWidth', { replacement: 'isFullwidth' }]])],
+    ]),
+    textAlias: new Set(['Box', 'Card', 'Content']),
+    knownProps: new Map([
+      ['Button', new Set(['isFullWidth', 'isFullwidth'])],
+      ['Box', new Set(['color', 'textColor'])],
+      ['Card', new Set(['color', 'textColor'])],
+      ['Content', new Set(['color', 'textColor'])],
+    ]),
+  });
+
+  it('passes a well-formed table', () => {
+    assert.deepEqual(guardViolations(ok()), []);
+  });
+
+  it('refuses an empty deprecation table', () => {
+    const c = ok();
+    c.deprecated = new Map();
+    const v = guardViolations(c);
+    assert.equal(v.length, 1);
+    assert.match(v[0], /no deprecated props found/);
+  });
+
+  it('refuses an empty text-alias set, and names the anchors too', () => {
+    const c = ok();
+    c.textAlias = new Set();
+    const v = guardViolations(c);
+    // Both the emptiness guard and the anchor guard fire, which is why they
+    // are collected rather than thrown one at a time.
+    assert.equal(v.length, 2);
+    assert.match(v.join('\n'), /no text-alias color props found/);
+    assert.match(v.join('\n'), /Box, Card, Content no longer match/);
+  });
+
+  it('refuses a replacement the element does not declare', () => {
+    const c = ok();
+    c.knownProps.set('Button', new Set(['isFullWidth']));
+    const v = guardViolations(c);
+    assert.equal(v.length, 1);
+    assert.match(v[0], /Button\.isFullWidth says its replacement/);
+    assert.match(v[0], /would corrupt a consumer's source/);
+  });
+
+  it('allows a deprecation with no replacement', () => {
+    const c = ok();
+    c.deprecated = new Map([
+      ['Tags', new Map([['isMultiline', { replacement: null }]])],
+    ]);
+    c.knownProps.set('Tags', new Set(['isMultiline']));
+    assert.deepEqual(guardViolations(c), []);
+  });
+
+  it('refuses a text-alias element that does not declare textColor', () => {
+    const c = ok();
+    c.knownProps.set('Card', new Set(['color']));
+    const v = guardViolations(c);
+    assert.equal(v.length, 1);
+    assert.match(v[0], /Card is in the text-alias set/);
+  });
+
+  it('refuses a dropped anchor, and says matches for one', () => {
+    const c = ok();
+    c.textAlias = new Set(['Box', 'Card']);
+    const v = guardViolations(c);
+    assert.equal(v.length, 1);
+    assert.match(v[0], /Content no longer matches/);
+  });
+
+  it('reports every violation at once rather than the first', () => {
+    const c = ok();
+    c.knownProps.set('Button', new Set(['isFullWidth']));
+    c.knownProps.set('Box', new Set(['color']));
+    assert.equal(guardViolations(c).length, 2);
   });
 });
