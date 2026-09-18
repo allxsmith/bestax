@@ -20,11 +20,10 @@ export interface ProgressProps
    * Bulma color modifier for the progress bar (renders `is-<color>`).
    *
    * Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`,
-   * `white`, `light`, and `dark` have shipped CSS for `.progress`. The other
-   * accepted values (`black-bis`, `black-ter`, `grey-darker`, `grey-dark`,
-   * `grey`, `grey-light`, `grey-lighter`) emit a class no CSS rule matches, so
-   * the bar renders unstyled; they log a console warning in development and
-   * will be removed from this union in the next major version.
+   * `white`, `light`, and `dark` have shipped CSS for `.progress`. Every
+   * other value the union accepts emits a class no CSS rule matches, so the
+   * bar renders unstyled; those log a console warning in development and will
+   * be removed from this union in the next major version.
    */
   color?: (typeof validColors)[number];
   /** Size modifier for the progress bar. */

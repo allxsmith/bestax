@@ -1,28 +1,38 @@
 import { useMemo } from 'react';
 import { classNames } from './classNames';
 import { useConfig } from './Config';
-import { createBulmaClassHelpers } from './bulmaClassHelpers';
+import {
+  createBulmaClassHelpers,
+  cursorClasses,
+  validCursors,
+  validFloats,
+  validInteractions,
+  validOverflows,
+  validRadii,
+  validResponsives,
+  validShadows,
+} from './bulmaClassHelpers';
 
 /**
  * Props for applying miscellaneous Bulma helper classes.
  */
 export interface BulmaOtherProps {
   /** Float direction (e.g., 'left', 'right'). */
-  float?: 'left' | 'right';
+  float?: (typeof validFloats)[number];
   /** Overflow behavior (e.g., 'clipped'). */
-  overflow?: 'clipped';
+  overflow?: (typeof validOverflows)[number];
   /** Applies overlay styling if true. */
   overlay?: boolean;
   /** Interaction behavior (e.g., 'unselectable', 'clickable'). */
-  interaction?: 'unselectable' | 'clickable';
+  interaction?: (typeof validInteractions)[number];
   /** Cursor style (e.g., 'pointer', 'help'). */
-  cursor?: 'pointer' | 'help';
+  cursor?: (typeof validCursors)[number];
   /** Border radius style (e.g., 'radiusless'). */
-  radius?: 'radiusless';
+  radius?: (typeof validRadii)[number];
   /** Shadow style (e.g., 'shadowless'). */
-  shadow?: 'shadowless';
+  shadow?: (typeof validShadows)[number];
   /** Responsive behavior (e.g., 'mobile', 'narrow'). */
-  responsive?: 'mobile' | 'narrow';
+  responsive?: (typeof validResponsives)[number];
   /** Add Bulma skeleton class if true. */
   skeleton?: boolean;
   /** Applies clearfix to fix floating children if true. */
@@ -69,32 +79,28 @@ export const useOtherClasses = (props: BulmaOtherProps): string => {
 
     // Other Helpers (no viewport support)
     if (float) {
-      addClassNoViewport('is-pulled', float, ['left', 'right']);
+      addClassNoViewport('is-pulled', float, validFloats);
     }
     if (overflow) {
-      addClassNoViewport('is', overflow, ['clipped']);
+      addClassNoViewport('is', overflow, validOverflows);
     }
     if (overlay) {
       addPrefixedClass('is-overlay');
     }
     if (interaction) {
-      addClassNoViewport('is', interaction, ['unselectable', 'clickable']);
+      addClassNoViewport('is', interaction, validInteractions);
     }
-    if (cursor) {
-      if (cursor === 'pointer') {
-        addPrefixedClass('is-clickable');
-      } else if (cursor === 'help') {
-        addPrefixedClass('is-cursor-help');
-      }
+    if (cursor && validCursors.includes(cursor)) {
+      addPrefixedClass(cursorClasses[cursor]);
     }
     if (radius) {
-      addClassNoViewport('is', radius, ['radiusless']);
+      addClassNoViewport('is', radius, validRadii);
     }
     if (shadow) {
-      addClassNoViewport('is', shadow, ['shadowless']);
+      addClassNoViewport('is', shadow, validShadows);
     }
     if (responsive) {
-      addClassNoViewport('is', responsive, ['mobile', 'narrow']);
+      addClassNoViewport('is', responsive, validResponsives);
     }
 
     // Bulma Skeleton Helper

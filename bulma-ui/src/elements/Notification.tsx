@@ -21,12 +21,10 @@ export interface NotificationProps
    * Bulma color modifier for the notification (renders `is-<color>`).
    *
    * Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`,
-   * `white`, `light`, and `dark` have shipped CSS for `.notification`. The
-   * other accepted values (`black-bis`, `black-ter`, `grey-darker`,
-   * `grey-dark`, `grey`, `grey-light`, `grey-lighter`) emit a class no CSS
-   * rule matches, so the notification renders unstyled; they log a console
-   * warning in development and will be removed from this union in the next
-   * major version.
+   * `white`, `light`, and `dark` have shipped CSS for `.notification`. Every
+   * other value the union accepts emits a class no CSS rule matches, so the
+   * notification renders unstyled; those log a console warning in development
+   * and will be removed from this union in the next major version.
    */
   color?: (typeof validColors)[number];
   /** Text color helper. */
@@ -112,12 +110,10 @@ export interface NotificationOptions {
    * Bulma color modifier for the notification (renders `is-<color>`).
    *
    * Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`,
-   * `white`, `light`, and `dark` have shipped CSS for `.notification`. The
-   * other accepted values (`black-bis`, `black-ter`, `grey-darker`,
-   * `grey-dark`, `grey`, `grey-light`, `grey-lighter`) emit a class no CSS
-   * rule matches, so the notification renders unstyled; they log a console
-   * warning in development and will be removed from this union in the next
-   * major version.
+   * `white`, `light`, and `dark` have shipped CSS for `.notification`. Every
+   * other value the union accepts emits a class no CSS rule matches, so the
+   * notification renders unstyled; those log a console warning in development
+   * and will be removed from this union in the next major version.
    */
   color?: (typeof validColors)[number];
   /** Use the light color variant. */

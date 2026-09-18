@@ -3,8 +3,16 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { useOtherClasses, BulmaOtherProps } from '../useOtherClasses';
 import { ConfigProvider } from '../Config';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  cursorClasses,
+  validCursors,
+  validFloats,
+  validInteractions,
+  validOverflows,
+  validRadii,
+  validResponsives,
+  validShadows,
+} from '../bulmaClassHelpers';
 
 describe('useOtherClasses', () => {
   // Helper function to render the hook with props and optional config
@@ -68,7 +76,7 @@ describe('useOtherClasses', () => {
 
   it('ignores invalid cursor and float values', () => {
     expect(
-      renderUseOtherClasses({ cursor: 'grab' as any, float: 'up' as any })
+      renderUseOtherClasses({ cursor: 'grab' as never, float: 'up' as never })
     ).toBe('');
   });
 
@@ -79,5 +87,114 @@ describe('useOtherClasses', () => {
         'bulma-'
       )
     ).toBe('bulma-is-pulled-right bulma-is-clickable bulma-is-skeleton');
+  });
+
+  // These accepted values used to be written twice: as an inline union on
+  // BulmaOtherProps and as a literal array inside the hook, with nothing
+  // holding the two together and nothing outside this module able to read
+  // either. That is what left `@allxsmith/eslint-plugin-bestax` no tuple to
+  // check `float="center"` against while every other helper family had one.
+  // These cases drive the tuples themselves, so a value added to one without
+  // teaching the hook to emit it fails here rather than shipping as a prop
+  // that typechecks and renders nothing.
+  describe('the exported tuples are what the hook emits from', () => {
+    const rendering: [string, BulmaOtherProps, string][] = [
+      ...validFloats.map(
+        v =>
+          [`float="${v}"`, { float: v }, `is-pulled-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validOverflows.map(
+        v =>
+          [`overflow="${v}"`, { overflow: v }, `is-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validInteractions.map(
+        v =>
+          [`interaction="${v}"`, { interaction: v }, `is-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validCursors.map(
+        v =>
+          [`cursor="${v}"`, { cursor: v }, cursorClasses[v]] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validRadii.map(
+        v =>
+          [`radius="${v}"`, { radius: v }, `is-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validShadows.map(
+        v =>
+          [`shadow="${v}"`, { shadow: v }, `is-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validResponsives.map(
+        v =>
+          [`responsive="${v}"`, { responsive: v }, `is-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+    ];
+
+    it.each(rendering)('%s renders %s', (_label, props, expected) => {
+      expect(renderUseOtherClasses(props)).toBe(expected);
+    });
+
+    // `as never` rather than `as any`: these values are deliberately outside
+    // the prop's union, and `never` is assignable to it, so the cast says
+    // "known to be invalid" instead of switching the checker off.
+    //
+    // The other direction: a value the tuple does not carry emits nothing,
+    // which is the silence the lint rule exists to report. Each case asserts
+    // its probe really is outside the tuple, so adding a value to one of them
+    // cannot leave a case that passes for the wrong reason.
+    const dropped: [string, readonly string[], string, BulmaOtherProps][] = [
+      ['float', validFloats, 'center', { float: 'center' as never }],
+      ['overflow', validOverflows, 'scroll', { overflow: 'scroll' as never }],
+      [
+        'interaction',
+        validInteractions,
+        'hover',
+        { interaction: 'hover' as never },
+      ],
+      ['cursor', validCursors, 'grab', { cursor: 'grab' as never }],
+      ['radius', validRadii, 'rounded', { radius: 'rounded' as never }],
+      ['shadow', validShadows, 'none', { shadow: 'none' as never }],
+      [
+        'responsive',
+        validResponsives,
+        'tablet',
+        { responsive: 'tablet' as never },
+      ],
+    ];
+
+    it.each(dropped)(
+      '%s renders nothing for "%s", which its tuple does not carry',
+      (_prop, values, probe, props) => {
+        expect(values).not.toContain(probe);
+        expect(renderUseOtherClasses(props)).toBe('');
+      }
+    );
   });
 });

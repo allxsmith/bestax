@@ -35,6 +35,57 @@ The full worked walkthrough (including the SCSS side for extras) is
 `skills/bestax-custom-component/references/library-contributor.md` — follow it rather than
 improvising.
 
+## The `./constants` subpath
+
+`exports["./constants"]` serves `src/helpers/bulmaClassHelpers.ts` on its own,
+as `dist/constants.cjs` and `dist/constants.esm.js`, so tooling can read the
+helper value tuples (`validColors`, `validTextSizes`, …) without loading React
+or any component. `@allxsmith/eslint-plugin-bestax` validates against them that
+way rather than copying them.
+
+It serves that module WHOLE, which is wider than "the value tuples": it also
+carries `createBulmaClassHelpers`, which is `@internal`, and `cursorClasses`,
+which the package root does not re-export. Read that as the subpath's actual
+contract rather than an oversight, and do not reach for `stripInternal` to
+narrow it — `@internal` marks props on `Button`, `Link`, `LinkButton`,
+`Navbar` and `Avatar` as well, so turning it on would drop those from the
+published component types, which is a change to the library's public surface
+and wants its own review. The narrowing that would be free is a second source
+file, and that would split the cursor tuple from the classes it maps to, which
+is the drift this file exists to prevent.
+
+These keep it working, and each of them failed once:
+
+- That file must stay import-free, and nothing relies on discipline alone to
+  keep it that way. The entry has no `resolve()`, so an extensionless relative
+  import fails the
+  bundle outright. It keeps the main bundle's `external`, so a future
+  `useMemo` in it cannot inline React into a bundle whose whole point is not
+  needing React, and the React-free assertion catches that anyway. An import
+  rollup resolves on its own is caught by the declaration check the `.d.cts`
+  rule below depends on.
+- The CommonJS artifact must be `constants.cjs`, not `constants.cjs.js`. This
+  package is `"type": "module"`, so Node reads a `.js` file as ESM whatever
+  the bundle's format is, and a bundle writing `exports.x = …` cannot load as
+  CommonJS under that reading. What a caller sees depends on the Node version,
+  which is why this is worth stating as the defect rather than as a symptom:
+  reviewers observed both a load-time throw and an empty namespace object on
+  different versions. Either way the tuples are not there, and the empty-object
+  case is the worse one because nothing fails.
+- Each condition needs its OWN `types`, and the `require` one must be
+  `constants.d.cts`. The same rule, one layer up and less visible: a `.d.ts`
+  in a `"type": "module"` package is read as ESM by TypeScript, so a
+  `module: node16` CommonJS consumer answered the subpath with TS1479 while
+  the file the require condition points at loaded perfectly. Runtime and types
+  each need the extension that says what they are. The `.d.cts` is written by
+  a rollup hook as a VERBATIM COPY of the declaration, not as a re-export of
+  it, because a `.d.cts` re-exporting from a `.d.ts` hits the identical error
+  one level down. Copying is only sound while the source module imports
+  nothing, which is the import-free rule above; the build and
+  `scripts/constants-subpath.test.mjs` both refuse if that stops being true,
+  and the test typechecks a real node16 CommonJS consumer rather than
+  asserting the map's shape.
+
 ## Conventions
 
 - Every component routes its Bulma helper props through `useBulmaClasses` and forwards

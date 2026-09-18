@@ -289,8 +289,6 @@ The `Control` component can also be used with radio buttons or checkboxes. This 
 
 <!-- /bestax:generated props -->
 
-\* [Bulma color] options include: `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'white-bis'`, `'white-ter'`.
-
 ---
 
 ## CSS & Sass Variables

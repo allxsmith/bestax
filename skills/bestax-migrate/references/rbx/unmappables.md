@@ -199,10 +199,6 @@ children — where it renders its own background and close button, both wired to
 form instead, which renders only what you wrote; there, wire your own `Modal.Background`'s
 `onClick` to the same `onClose`.
 
-## `prop:textColor="white-ter"` / `"white-bis"`
-
-The only two rbx colour names bestax does not carry. Use `white`, or a custom class.
-
 ## `value-reference` — a component used as a value
 
 `const X = Card.Header;` and similar. The codemod rewrites what it can prove safe and flags the

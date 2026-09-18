@@ -27,15 +27,6 @@ import type { ComponentMapping, PropAction } from '../../types.js';
 const DOCS = 'https://bestax.io/docs';
 
 /**
- * The two Bulma 0.6 shades bestax's `validColors` does not carry. Every other
- * colour and shade name of that era exists in bestax verbatim.
- */
-const SHADE_TODO = {
-  'white-ter': `\`white-ter\` is not a bestax colour; use \`white\` or a custom class (${DOCS}/api/helpers/usebulmaclasses)`,
-  'white-bis': `\`white-bis\` is not a bestax colour; use \`white\` or a custom class (${DOCS}/api/helpers/usebulmaclasses)`,
-};
-
-/**
  * `tag` is on nearly every bloomer component (`Bulma.Tag`, rendered through
  * `React.createElement(tag, …)`), but bestax declares `as` on only some
  * components, several of them constrained to a literal union (`Footer` is
@@ -79,7 +70,6 @@ const FULLWIDTH_OK: PropAction = {};
  */
 const TEXT_COLOR_OK: PropAction = {
   rename: 'textColor',
-  valueTodo: SHADE_TODO,
 };
 
 const size: PropAction = { rename: 'size' };

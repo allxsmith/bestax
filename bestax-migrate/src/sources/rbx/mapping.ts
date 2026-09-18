@@ -17,15 +17,6 @@ import type { ComponentMapping, PropAction } from '../../types.js';
 
 const DOCS = 'https://bestax.io/docs';
 
-/**
- * rbx's `shades` union that bestax's `validColors` does not carry. Every other
- * rbx colour and shade name exists in bestax verbatim.
- */
-const SHADE_TODO = {
-  'white-ter': `\`white-ter\` is not a bestax colour; use \`white\` or a custom class (${DOCS}/api/helpers/usebulmaclasses)`,
-  'white-bis': `\`white-bis\` is not a bestax colour; use \`white\` or a custom class (${DOCS}/api/helpers/usebulmaclasses)`,
-};
-
 /** rbx sizes are numbers; every bestax size prop takes the string form. */
 const numeric: PropAction = { numberToString: true };
 
@@ -64,8 +55,11 @@ const AS_OK: PropAction = {};
  */
 export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   // --- typography: values are identical on both sides ---------------------
-  backgroundColor: { rename: 'bgColor', valueTodo: SHADE_TODO },
-  textColor: { valueTodo: SHADE_TODO },
+  // Every rbx colour and shade name now exists in bestax verbatim, so both
+  // pass through unchanged. `white-bis`/`white-ter` were the exception and
+  // carried a TODO saying they were not bestax colours; they are.
+  backgroundColor: { rename: 'bgColor' },
+  textColor: {},
   textAlign: {}, // centered | justified | left | right — same union
   textTransform: {}, // capitalized | lowercase | uppercase — bestax adds italic
   textWeight: {}, // light | medium | normal | semibold | bold — same union

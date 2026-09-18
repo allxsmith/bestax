@@ -1,14 +1,16 @@
 # Independent Versioning Strategy
 
-`@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, and `bestax-mcp` are versioned
+`@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, and
+`@allxsmith/eslint-plugin-bestax` are versioned
 and released **independently**. Each package releases only when a commit is scoped to it — the
 version numbers are unrelated (e.g. bestax-bulma 5.x alongside create-bestax 3.x).
 
 The source of truth is the `releaseRules` in each package's semantic-release config:
 [`bulma-ui/release.config.js`](./bulma-ui/release.config.js),
 [`create-bestax/release.config.js`](./create-bestax/release.config.js),
-[`bestax-migrate/release.config.js`](./bestax-migrate/release.config.js), and
-[`bestax-mcp/release.config.js`](./bestax-mcp/release.config.js).
+[`bestax-migrate/release.config.js`](./bestax-migrate/release.config.js),
+[`bestax-mcp/release.config.js`](./bestax-mcp/release.config.js), and
+[`eslint-plugin/release.config.js`](./eslint-plugin/release.config.js).
 
 ## Release Rules
 
@@ -16,23 +18,25 @@ A commit releases **only** the package its scope names. Representative examples 
 `feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules apply to every package
 through its own scope:
 
-| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp |
-| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- |
-| `feat(bulma-ui): …`                                               | minor        | —             | —              | —          |
-| `fix(bulma-ui): …`                                                | patch        | —             | —              | —          |
-| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | —          |
-| `feat(create-bestax): …`                                          | —            | minor         | —              | —          |
-| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          |
-| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      |
-| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | —          |
-| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          |
+| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp | eslint-plugin |
+| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- | ------------- |
+| `feat(bulma-ui): …`                                               | minor        | —             | —              | —          | —             |
+| `fix(bulma-ui): …`                                                | patch        | —             | —              | —          | —             |
+| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | —          | —             |
+| `feat(create-bestax): …`                                          | —            | minor         | —              | —          | —             |
+| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          | —             |
+| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      | —             |
+| `feat(eslint-plugin): …`                                          | —            | —             | —              | —          | minor         |
+| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | —          | —             |
+| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          | —             |
 
 Notes:
 
 - **Breaking changes require a `BREAKING CHANGE:` footer** in the commit body. The angular
   commit-analyzer preset does **not** parse `feat(bulma-ui)!:` bang headers.
 - Commits of a scope-gated type (`feat`, `fix`, `perf`, `refactor`, `style`, `revert`) **must**
-  carry a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp` —
+  carry a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, or
+  `eslint-plugin` —
   enforced by commitlint ([`commitlint.config.js`](./commitlint.config.js)) via the husky
   `commit-msg` hook. This is what guarantees the per-scope release rules can't be bypassed by
   an unscoped commit.
@@ -57,6 +61,8 @@ Each package tags and logs its own releases:
 - `create-bestax@X.Y.Z` tags, changelog at `create-bestax/CHANGELOG.md`
 - `bestax-migrate@X.Y.Z` tags, changelog at `bestax-migrate/CHANGELOG.md`
 - `bestax-mcp@X.Y.Z` tags, changelog at `bestax-mcp/CHANGELOG.md`
+- `@allxsmith/eslint-plugin-bestax@X.Y.Z` tags, changelog at
+  `eslint-plugin/CHANGELOG.md`
 
 ## Release Process
 

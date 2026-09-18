@@ -255,7 +255,11 @@ describe('bloomer kitchen-sink e2e', () => {
       'prop:isLink',
       'prop:isDisplay',
       'prop:isHidden',
-      'prop:hasTextColor',
+      // `prop:hasTextColor` was here for `hasTextColor="white-ter"`, the one
+      // bloomer colour bestax could not render. `validColors` carries
+      // `white-bis` and `white-ter` now, so that line migrates cleanly and
+      // the prop no longer annotates anything. It stays in the fixture: the
+      // same element's `tag` still does.
     ]) {
       expect({ rule, present: rules.has(rule) }).toEqual({
         rule,

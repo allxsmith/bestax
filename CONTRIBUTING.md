@@ -254,7 +254,7 @@ Runs the real commit analysis + next-version calc, but publishes nothing:
 
 ```bash
 export GITHUB_TOKEN=<a token with repo read>   # the github plugin needs it even in dry-run
-for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp; do
+for pkg in bulma-ui create-bestax bestax-migrate bestax-mcp eslint-plugin; do
   ( cd "$pkg" && pnpm exec semantic-release --dry-run --no-ci )
 done
 ```
@@ -357,7 +357,7 @@ The short version for contributors:
 
 ## Semantic Release & Publishing
 
-We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of every package to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma), plus [`create-bestax`](https://www.npmjs.com/package/create-bestax), [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate) and [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp).
+We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of every package to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma), plus [`create-bestax`](https://www.npmjs.com/package/create-bestax), [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate), [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) and `eslint-plugin` as [`@allxsmith/eslint-plugin-bestax`](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax).
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases — see [Commit Message Guidelines](#commit-message-guidelines).
 - **Packages version and release independently, keyed off the commit scope** — `feat(bulma-ui)` releases only bestax-bulma. See [`VERSIONING.md`](./VERSIONING.md).
@@ -369,7 +369,7 @@ Publishing authenticates with npm via [OIDC trusted publishing](https://docs.npm
 
 For this to work, each published package must have a trusted publisher configured **once** on npmjs.com (Package → Settings → Trusted Publisher):
 
-- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate` and `bestax-mcp` — every publishable package, and a missing entry fails the publish _after_ the release commit and tag are pushed
+- Packages: `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp` and `@allxsmith/eslint-plugin-bestax` — every publishable package, and a missing entry fails the publish _after_ the release commit and tag are pushed
 - Provider: **GitHub Actions**
 - Repository: `allxsmith/bestax`
 - Workflow: `ci.yml`
@@ -396,8 +396,8 @@ commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlin
 - **Format:** `<type>(<scope>): <subject>` — imperative subject, blank line, then an optional
   body with bullet points and context.
 - **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, `style`
-  or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`
-  or `bestax-mcp` (repo-specific commitlint rule — the scope decides which package releases,
+  or `revert` **must** use a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`,
+  `bestax-mcp` or `eslint-plugin` (repo-specific commitlint rule — the scope decides which package releases,
   see [`VERSIONING.md`](./VERSIONING.md)). One correction worth knowing about `revert`:
   a scoped conventional `revert(<scope>): …` **releases nothing** — the only revert rule is
   commit-analyzer's default `{ revert: true, release: 'patch' }`, keyed on the angular

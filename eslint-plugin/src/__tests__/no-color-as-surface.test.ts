@@ -1,0 +1,144 @@
+/**
+ * Pins where this opt-in rule must stay silent, which is most of what it does.
+ *
+ * Two silences were found the hard way, by linting the library's own docs:
+ * an element with a real `is-<color>` modifier (`<Button color="primary">` is
+ * a filled button), and an element that pairs `color` with an explicit
+ * background (`<Box backgroundColor="light" color="dark">` is a deliberate,
+ * correct pairing — surface from one prop, text from the other).
+ */
+import rule from '../rules/no-color-as-surface.js';
+import { imported, ruleTester } from './helpers.js';
+
+ruleTester.run('no-color-as-surface', rule, {
+  valid: [
+    // Elements whose `color` really is a filled variant.
+    imported('Button', '<Button color="primary" />'),
+    imported('Hero', '<Hero color="info" />'),
+    imported('Notification', '<Notification color="warning" />'),
+    imported('Progress', '<Progress color="danger" />'),
+    // The unambiguous props, on an element that takes the alias.
+    imported('Box', '<Box textColor="primary" bgColor="light" />'),
+    // A deliberate pairing: the background is explicit, so `color` is plainly
+    // the text half and there is nothing ambiguous left to report.
+    imported('Box', '<Box bgColor="info" color="primary" p="2" />'),
+    // `backgroundColor` is the other spelling this rule treats as a
+    // background. Box itself Omits that prop, so this exact element would not
+    // typecheck; it is here because components that do expose it must get the
+    // same silence, and the rule is syntactic so the fixture is honest as a
+    // lint input either way.
+    imported('Block', '<Block backgroundColor="light" color="primary" />'),
+    // A value the rule cannot read is not judged, like everywhere else here.
+    // It used to be reported, with the literal `<value>` in the message and a
+    // fix applied sight unseen.
+    imported('Box', '<Box color={tone} />'),
+    // A bare boolean attribute has no value at all.
+    imported('Box', '<Box color />'),
+    // A spread may carry the background that silences this rule.
+    imported('Box', '<Box {...rest} color="dark" />'),
+    // A readable `null` is still nullish, so `textColor ?? color` falls
+    // through and the element really does render `color`. Reporting it
+    // `redundant` would have had the author delete the value that renders.
+    imported('Box', '<Box textColor={null} color="primary" />'),
+    // `textColor` is set but unreadable, so whether it wins is unknowable:
+    // the library does `color: textColor ?? color`, and telling the author to
+    // delete `color` costs them the fallback whenever it is undefined. This
+    // guard was the only uncovered statement in the rule.
+    imported('Box', '<Box textColor={maybe} color="primary" />'),
+    // The shade is unreadable, so the rule cannot state which class renders.
+    imported('Box', '<Box color="primary" colorShade={s} />'),
+    // A compound part whose color is a real modifier, unlike its root.
+    imported('Buttons', '<Buttons.Button color="primary" />'),
+    // Not our Box.
+    "const Box = 'div';\nconst x = <Box color='primary' />;\n",
+    // No color prop at all.
+    imported('Box', '<Box mt="4" />'),
+  ],
+  invalid: [
+    {
+      code: imported('Box', '<Box color="primary" />'),
+      output: imported('Box', '<Box textColor="primary" />'),
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // A single-quasi template is readable, so it is judged, and the message
+      // carries the real value rather than a placeholder.
+      code: imported('Box', '<Box color={`primary`} />'),
+      output: imported('Box', '<Box textColor={`primary`} />'),
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // `addColorClass` shades only on a tuple member, so a `true` shade
+      // leaves the class unshaded — readable, therefore reportable.
+      code: imported('Box', '<Box color="primary" colorShade={true} />'),
+      output: imported('Box', '<Box textColor="primary" colorShade={true} />'),
+      errors: [
+        {
+          message:
+            '`color` on `Box` is a text-colour alias — it renders `has-text-primary`, and no `is-<color>` CSS exists for it. Write `textColor="primary"` to say so, or `bgColor="primary"` if you wanted a coloured surface.',
+        },
+      ],
+    },
+    {
+      // `textColor ?? color` is non-nullish for a readable `true`, so `color`
+      // really is ignored and saying so is accurate.
+      code: imported('Box', '<Box textColor={true} color="primary" />'),
+      output: null,
+      errors: [{ messageId: 'redundant' }],
+    },
+    {
+      // A shade outside `validColorShades` is ignored by the library, which
+      // falls back to the unshaded class — so the message must not shade it.
+      // `addColorClass` shades only `if (shade && includes(shade))`.
+      code: imported('Box', '<Box color="primary" colorShade="99" />'),
+      output: imported('Box', '<Box textColor="primary" colorShade="99" />'),
+      errors: [
+        {
+          message:
+            '`color` on `Box` is a text-colour alias — it renders `has-text-primary`, and no `is-<color>` CSS exists for it. Write `textColor="primary"` to say so, or `bgColor="primary"` if you wanted a coloured surface.',
+        },
+      ],
+    },
+    {
+      // `colorShade` changes the class the library emits, so the message has
+      // to name the shaded one or it asserts a class that never renders.
+      code: imported('Box', '<Box color="primary" colorShade="30" />'),
+      output: imported('Box', '<Box textColor="primary" colorShade="30" />'),
+      errors: [
+        {
+          message:
+            '`color` on `Box` is a text-colour alias — it renders `has-text-primary-30`, and no `is-<color>` CSS exists for it. Write `textColor="primary"` to say so, or `bgColor="primary"` if you wanted a coloured surface.',
+        },
+      ],
+    },
+    {
+      code: imported('Card', '<Card color="info" />'),
+      output: imported('Card', '<Card textColor="info" />'),
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // The root of a compound whose parts differ from it.
+      code: imported('Buttons', '<Buttons color="link" />'),
+      output: imported('Buttons', '<Buttons textColor="link" />'),
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // A doubled `color` is read last-wins, so `primary` is what renders and
+      // the report is right. Renaming the winner would leave the loser behind
+      // as a dead `color`: correct output, because `textColor ?? color` still
+      // resolves to `primary`, and still an attribute nobody wants. Report
+      // without a fix, the way a doubled name is handled in
+      // `no-deprecated-props`.
+      code: imported('Box', '<Box color="bogus" color="primary" />'),
+      output: null,
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
+      // textColor already wins, so color does nothing — removing it is the
+      // author's call, so this reports without a fix.
+      code: imported('Box', '<Box color="primary" textColor="info" />'),
+      output: null,
+      errors: [{ messageId: 'redundant' }],
+    },
+  ],
+});

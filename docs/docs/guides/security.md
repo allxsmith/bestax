@@ -11,13 +11,15 @@ where to report a vulnerability.
 
 ## What you install is what we built
 
-Every published package — `@allxsmith/bestax-bulma`, `create-bestax`,
-`bestax-migrate` and `bestax-mcp` — is released with **npm provenance**: every
+The packages released through CI — `@allxsmith/bestax-bulma`, `create-bestax`,
+`bestax-migrate` and `bestax-mcp` — carry **npm provenance**: every
 version in the supported release lines below carries a signed attestation
 generated at publish time that links the tarball on the registry to the exact
 source commit and the public CI run that built it. (Versions older than those
 lines predate provenance and have none — another reason staying current is the
-supported posture.) Releases authenticate to
+supported posture. A package's very first version can also be a placeholder
+published by hand to create the name, which no laptop can attest; those are
+superseded by the first CI release.) Releases authenticate to
 npm via **OIDC trusted publishing** (short-lived, per-run tokens), so there is
 no long-lived npm token that could leak and be used to push a rogue release.
 

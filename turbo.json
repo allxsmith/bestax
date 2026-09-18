@@ -27,6 +27,16 @@
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
       "outputs": ["coverage/**"]
     },
+    "@allxsmith/eslint-plugin-bestax#typecheck": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"]
+    },
+    "@allxsmith/eslint-plugin-bestax#test": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"]
+    },
+    "@allxsmith/eslint-plugin-bestax#test:coverage": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
+      "outputs": ["coverage/**"]
+    },
     "bundle:stats": {
       "outputs": ["dist/**"]
     },

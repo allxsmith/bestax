@@ -54,6 +54,8 @@ Use the `textColor` prop to apply text colors. Most components re-expose Bulma's
 | `textColor="grey-light"`   | `has-text-grey-light`   | Light grey    |
 | `textColor="grey-lighter"` | `has-text-grey-lighter` | Lighter grey  |
 | `textColor="white"`        | `has-text-white`        | Pure white    |
+| `textColor="white-bis"`    | `has-text-white-bis`    | Almost white  |
+| `textColor="white-ter"`    | `has-text-white-ter`    | Off white     |
 
 ### Theme Colors
 
@@ -131,6 +133,8 @@ Use the `bgColor` prop to apply background colors. It accepts the same color val
 | `bgColor="grey-light"`   | `has-background-grey-light`   | Light grey background    |
 | `bgColor="grey-lighter"` | `has-background-grey-lighter` | Lighter grey background  |
 | `bgColor="white"`        | `has-background-white`        | White background         |
+| `bgColor="white-bis"`    | `has-background-white-bis`    | Almost white background  |
+| `bgColor="white-ter"`    | `has-background-white-ter`    | Off white background     |
 
 ### Theme Backgrounds
 

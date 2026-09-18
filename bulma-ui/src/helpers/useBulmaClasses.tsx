@@ -303,6 +303,13 @@ export {
   validAlignSelfs,
   validFlexGrowShrink,
   validViewports,
+  validFloats,
+  validOverflows,
+  validInteractions,
+  validCursors,
+  validRadii,
+  validShadows,
+  validResponsives,
 } from './bulmaClassHelpers';
 export type { BulmaViewportProps, BulmaDisplayProps };
 export * from './useColorClasses';
