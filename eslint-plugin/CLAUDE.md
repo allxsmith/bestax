@@ -165,7 +165,15 @@ not just invalid cases for what it should catch. Several of those silences came
 from linting the library's own documentation — a corpus of examples that are
 supposed to be correct, so anything reported there is either a docs bug or a
 rule bug. Running the rules over the docs' code fences is worth repeating
-whenever a rule changes. The autofix is pinned with
+whenever a rule changes.
+
+This package's OWN documented examples are a gate rather than a habit:
+`scripts/eslint-plugin-docs.test.mjs` reads every line in the README and the
+guide carrying a `✗` or `✓`, synthesises the import the fence omits, and
+asserts the real rules agree with the marker. It covers what a reader would
+copy and nothing else, so a false claim in prose still gets past it, which is
+how the README came to say a CommonJS config could not `require()` the
+plugin. The autofix is pinned with
 `output`, and `output: null` asserts that no fix is offered — which is the
 assertion for a deprecation with no replacement, and for a rename onto a prop
 the element already sets.
