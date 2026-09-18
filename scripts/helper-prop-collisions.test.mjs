@@ -86,19 +86,37 @@ function themeVarProps(source) {
   );
 }
 
+/**
+ * Every prop name any rule in the plugin judges.
+ *
+ * Wider than `HELPER_VALUES` on purpose. `color` is deliberately absent from
+ * that table and is what `no-color-as-surface` reads and rewrites, so a
+ * `--bulma-color` variable would collide for that rule while a table-only
+ * check saw nothing. The flex and display props are already table keys; they
+ * are listed anyway so this reads as the plugin's whole surface rather than as
+ * whichever part happened to get checked.
+ */
+const watchedProps = values =>
+  new Set([
+    ...values.HELPER_VALUES.keys(),
+    ...values.FLEX_CONTAINER_PROPS,
+    ...values.DISPLAY_PROPS,
+    'color',
+    'textColor',
+  ]);
+
 describe('helper prop collisions', () => {
-  it('declares every Theme prop name the value table must not judge', async () => {
+  it('declares every Theme prop name the plugin must not judge', async () => {
     assert.ok(
       existsSync(PLUGIN_VALUES),
       'eslint-plugin/dist is absent, so the declared table cannot be read. ' +
         'Run the build, or the whole gate with `pnpm all`.'
     );
-    const { HELPER_VALUES, NOT_A_HELPER_PROP } = await import(
-      pathToFileURL(PLUGIN_VALUES).href
-    );
+    const values = await import(pathToFileURL(PLUGIN_VALUES).href);
+    const { NOT_A_HELPER_PROP } = values;
 
     const intercepted = themeVarProps(readFileSync(THEME, 'utf8'));
-    const collisions = [...HELPER_VALUES.keys()]
+    const collisions = [...watchedProps(values)]
       .filter(prop => intercepted.has(prop))
       .sort();
     const declared = [...(NOT_A_HELPER_PROP.get('Theme') ?? [])].sort();
@@ -106,9 +124,9 @@ describe('helper prop collisions', () => {
     assert.deepEqual(
       declared,
       collisions,
-      'NOT_A_HELPER_PROP.get("Theme") and the real collision between ' +
-        "HELPER_VALUES and Theme's CSS-variable props disagree. A name in " +
-        'the real set and not the declared one is a false positive on ' +
+      'NOT_A_HELPER_PROP.get("Theme") and the real collision between the ' +
+        "props the plugin judges and Theme's CSS-variable props disagree. A " +
+        'name in the real set and not the declared one is a false positive on ' +
         'working code; the reverse is a prop going unchecked for no reason.'
     );
   });
