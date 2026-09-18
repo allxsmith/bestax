@@ -24,9 +24,18 @@
  *
  * It is deliberately not a substitute for typechecking, and the overlap on
  * `.tsx` is expected rather than a defect.
+ *
+ * The table is keyed by prop rather than by element, with one exception the
+ * rule has to know about: a name in it can mean something else entirely on a
+ * particular element, and then judging it reports working code.
+ * `NOT_A_HELPER_PROP` is that list, and `Theme`'s `radius` is why it exists.
  */
 import type { Rule } from 'eslint';
-import { HELPER_VALUES } from '../lib/values.js';
+import {
+  HELPER_VALUES,
+  NOT_A_HELPER_PROP,
+  REMOVES_ONLY,
+} from '../lib/values.js';
 import {
   isTrueValue,
   literalValue,
@@ -90,6 +99,8 @@ const rule: Rule.RuleModule = {
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings. `"{{value}}"` is not a value it accepts either. Valid values: {{valid}}.',
       shorthand:
         '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
+      shorthandRemoves:
+        '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so nothing renders. It is also not a switch: its only value {{valid}} REMOVES the {{thing}}. Omit `{{prop}}` to keep the {{thing}}, or write `{{prop}}="{{only}}"` to remove it.',
     },
   },
   create(context) {
@@ -101,19 +112,33 @@ const rule: Rule.RuleModule = {
           name: unknown;
           attributes: unknown[];
         };
-        if (elementOf(context, opening, imports) === null) return;
+        const element = elementOf(context, opening, imports);
+        if (element === null) return;
+        // A name in the table can mean something else on a particular
+        // element, in which case the table says nothing about it. `Theme`'s
+        // `radius` is the case; see NOT_A_HELPER_PROP.
+        const shadowed = NOT_A_HELPER_PROP.get(element);
         for (const attr of valuesThatRender(opening)) {
           const prop: string = attr.name.name;
+          if (shadowed?.has(prop)) continue;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;
           // `true`, bare or explicit, matches no tuple of strings. Same
           // argument as the numeric case, one type further out.
           if (isTrueValue(attr)) {
+            // `radius` and `shadow` are the props a shorthand is most natural
+            // on and most wrong on, because their one value removes rather
+            // than adds. The length check is what keeps "its only value" true
+            // rather than trusting the table to stay a single value.
+            const thing = REMOVES_ONLY.get(prop);
+            const removes = thing !== undefined && valid.length === 1;
             context.report({
               node: attr,
-              messageId: 'shorthand',
+              messageId: removes ? 'shorthandRemoves' : 'shorthand',
               data: {
                 prop,
+                thing: thing ?? '',
+                only: valid[0] ?? '',
                 valid: valid.map(v => `\`${v}\``).join(', '),
               },
             });

@@ -46,14 +46,16 @@ const OUT = join(REPO, 'eslint-plugin', 'src', 'generated', 'metadata.ts');
  * Block, Card, …), which is what makes it matchable at all.
  *
  * KNOWN INCOMPLETE, and deliberately so for now. The phrase is prose, not
- * behaviour: `Level`, `Section`, `Footer` and `Media` funnel `color` into the
- * helper's text slot with the same `color: textColor ?? color` construct as
- * `Box`, and emit no `is-<color>` class either, but word their TSDoc "Bulma
- * color modifier" and so are missed. The miss direction is a false negative on
- * an opt-in rule, which is the safe one; the fix is to key on that construct
- * instead of on the sentence, which is its own change with its own dogfooding.
- * Until then the generated comment says so rather than implying the set is
- * exhaustive.
+ * behaviour: other components funnel `color` into the helper's text slot with
+ * the same `color: textColor ?? color` construct as `Box`, and emit no
+ * `is-<color>` class either, but word their TSDoc "Bulma color modifier" and
+ * so are missed. Naming them here would be a closed list that goes stale and
+ * reads as exhaustive; the construct is what to grep for, and the miss set
+ * includes compound parts whose parent IS in the set. The miss direction is a
+ * false negative on an opt-in rule, which is the safe one; the fix is to key
+ * on that construct instead of on the sentence, which is its own change with
+ * its own dogfooding. Until then the generated comment says the set is
+ * partial rather than implying it is exhaustive.
  */
 const TEXT_ALIAS_MARKER = /Text color alias/i;
 
@@ -251,11 +253,11 @@ ${rows.join('\n')}
  * \`textColor\`, and a coloured background needs \`bgColor\`.
  *
  * NOT exhaustive. Membership is read from the TSDoc sentence the library uses
- * to say so, and components that behave identically but word it differently
- * (\`Level\`, \`Section\`, \`Footer\`, \`Media\`) are missed. So absence
- * here does NOT mean the element has a real \`is-<color>\` modifier — only
- * that no sentence claimed otherwise. Elements that genuinely do have one
- * (\`Button\`, \`Hero\`, \`Notification\`, \`Progress\`) are also absent.
+ * to say so, and components that behave identically while wording it
+ * differently are missed, compound parts included. So absence here does NOT
+ * mean the element has a real \`is-<color>\` modifier: it means no sentence
+ * claimed otherwise. Elements that genuinely do have one are also absent, so
+ * this set is evidence of a text alias and never of a real variant.
  */
 export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
 ${[...textAlias]

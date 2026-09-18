@@ -8,7 +8,11 @@
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { guardViolations, replacementFrom } from './gen-eslint-meta.mjs';
+import {
+  guardViolations,
+  render,
+  replacementFrom,
+} from './gen-eslint-meta.mjs';
 
 describe('replacementFrom', () => {
   it('reads the single-replacement form the renames use', () => {
@@ -159,5 +163,72 @@ describe('guardViolations', () => {
     c.knownProps.set('Button', new Set(['isFullWidth']));
     c.knownProps.set('Box', new Set(['color']));
     assert.equal(guardViolations(c).length, 2);
+  });
+});
+
+describe('render', () => {
+  const table = () => ({
+    deprecated: new Map([
+      [
+        'Tabs',
+        new Map([
+          [
+            'fullwidth',
+            { replacement: 'isFullwidth', note: 'Use `isFullwidth` instead.' },
+          ],
+          [
+            'color',
+            { replacement: null, note: 'No `.tabs.is-<color>` CSS exists.' },
+          ],
+        ]),
+      ],
+      [
+        'Button',
+        new Map([
+          [
+            'isFullWidth',
+            { replacement: 'isFullwidth', note: 'Use `isFullwidth` instead.' },
+          ],
+        ]),
+      ],
+    ]),
+    textAlias: new Set(['Content', 'Box']),
+  });
+
+  // The staleness gate is the only other thing that reads render(), and it
+  // reports a diff rather than saying what broke. These pin the properties the
+  // rules depend on, which a diff does not distinguish from a reordering.
+  it('sorts elements and props by code point, not by insertion', () => {
+    const out = render(table());
+    assert.ok(out.indexOf('"Button"') < out.indexOf('"Tabs"'));
+    assert.ok(out.indexOf('"color"') < out.indexOf('"fullwidth"'));
+    assert.ok(out.indexOf('"Box"') < out.indexOf('"Content"'));
+  });
+
+  it('writes a missing replacement as null rather than as a string', () => {
+    const out = render(table());
+    // `no-deprecated-props` keys its "offer no fix" branch off exactly this,
+    // and `"null"` would read as a prop name to rewrite to.
+    assert.match(out, /"color": \{ replacement: null,/);
+    assert.match(out, /"fullwidth": \{ replacement: "isFullwidth",/);
+  });
+
+  it('quotes every key, so a compound part survives as one key', () => {
+    const out = render({
+      deprecated: new Map([
+        [
+          'Navbar.Brand',
+          new Map([
+            ['icon', { replacement: 'name', note: 'Use `name` instead.' }],
+          ]),
+        ],
+      ]),
+      textAlias: new Set(['Box']),
+    });
+    assert.match(out, /"Navbar\.Brand": \{/);
+  });
+
+  it('is deterministic for the same input', () => {
+    assert.equal(render(table()), render(table()));
   });
 });

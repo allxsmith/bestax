@@ -139,7 +139,10 @@ keep the two in step.
 
 One family is outside its reach, knowingly: component-specific `color` props
 have their own unions, so `<Button color="ghost">` is correct and reporting it
-would be worse than reporting nothing.
+would be worse than reporting nothing. And one element shadows a helper name:
+`Theme` takes a prop per Bulma CSS variable, so its `radius` sets
+`--bulma-radius` rather than emitting a class, and the rule skips that one
+pair.
 
 ### no-deprecated-props
 

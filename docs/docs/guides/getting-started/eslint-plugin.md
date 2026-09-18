@@ -165,6 +165,12 @@ One family is outside its reach, knowingly: component-specific `color` props
 have their own unions, so `<Button color="ghost">` is correct and the value
 rule has no business reporting it.
 
+There is also one element where a helper name means something else, and the
+rule knows it. `Theme` accepts a prop for every Bulma CSS variable, and
+`--bulma-radius` gives it a `radius` prop, so `<Theme radius="6px">` sets the
+variable and is correct code. The rule skips `radius` on `Theme` alone: every
+other helper prop on it, and `radius` on everything else, is still checked.
+
 It knows the documented extras, so these are all accepted:
 
 ```jsx

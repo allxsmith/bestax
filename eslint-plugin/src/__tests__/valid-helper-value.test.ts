@@ -61,6 +61,13 @@ ruleTester.run('valid-helper-value', rule, {
     // The boolean members of the same interface take no value, so they must
     // stay out of the table: a shorthand on one of them is correct usage.
     imported('Box', '<Box overlay skeleton clearfix relative fullHeight />'),
+    // `radius` on `Theme` is the CSS variable `--bulma-radius`, not the
+    // helper: Theme mints a prop per Bulma variable and intercepts it before
+    // `useBulmaClasses` sees it, so this renders
+    // `style="--bulma-radius: 6px"` and is correct code. Reporting it was the
+    // first thing in this table to break the one-way invariant.
+    imported('Theme', '<Theme radius="6px">x</Theme>'),
+    imported('Theme', '<Theme radius="0">x</Theme>'),
   ],
   invalid: [
     {
@@ -194,9 +201,37 @@ ruleTester.run('valid-helper-value', rule, {
     {
       // The shape these props invite, because their one value reads like a
       // boolean. `<Box shadow />` looks like a request for a shadow and is
-      // matched against strings, so nothing renders either way.
+      // matched against strings, so nothing renders either way — and the
+      // generic remedy would send the author to `shadowless`, which is the
+      // opposite of what they asked for. Pinned by message, not messageId,
+      // because the wording is the whole point of the separate case.
       code: imported('Box', '<Box shadow />'),
-      errors: [{ messageId: 'shorthand' }],
+      errors: [
+        {
+          message:
+            '`shadow` is `true` here, and shadow is matched against strings, so nothing renders. It is also not a switch: its only value `shadowless` REMOVES the shadow. Omit `shadow` to keep the shadow, or write `shadow="shadowless"` to remove it.',
+        },
+      ],
+    },
+    {
+      // Same shape, and the reason the message names the thing rather than
+      // the prop: "removes the border radius" reads, "removes the radius"
+      // does not say which.
+      code: imported('Box', '<Box radius />'),
+      errors: [{ messageId: 'shorthandRemoves' }],
+    },
+    {
+      // The exception is per element and per prop, not a blanket pass on
+      // `Theme`: its other helper props still route through
+      // `useBulmaClasses`, so a wrong spacing value still reports.
+      code: imported('Theme', '<Theme m="9">x</Theme>'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // And `shadow` on `Theme` is still the helper prop, because
+      // `--bulma-shadow` is deliberately kept out of Theme's variable map.
+      code: imported('Theme', '<Theme shadow="none">x</Theme>'),
+      errors: [{ messageId: 'invalid' }],
     },
   ],
 });

@@ -113,12 +113,14 @@ it from a rule. Anchors rather than a count, so a legitimate addition needs no
 edit.
 
 **The text-alias set is known incomplete.** It is read from the sentence the
-library uses to say so, and `Level`, `Section`, `Footer` and `Media` funnel
-`color` the same way while wording their TSDoc differently. The miss is a false
-negative on an opt-in rule, which is the safe direction; keying on the
-`color: textColor ?? color` construct instead of on prose is the real fix and
-wants its own change. Until then the generated comment says so, because absence
-from that set does not mean the element has a real `is-<color>` modifier.
+library uses to say so, and other components funnel `color` the same way while
+wording their TSDoc differently. Grep the `color: textColor ?? color` construct
+rather than trusting a list here: the miss set is larger than it looks and
+includes compound parts whose parent is in the set. The miss is a false
+negative on an opt-in rule, which is the safe direction; keying on that
+construct instead of on prose is the real fix and wants its own change. Until
+then the generated comment says so, because absence from that set does not mean
+the element has a real `is-<color>` modifier.
 
 ## Running it
 
