@@ -152,7 +152,7 @@ function modifierElements() {
       if (!/\.tsx?$/.test(entry.name) || entry.name.includes('.stories.')) {
         continue;
       }
-      const source = readFileSync(path, 'utf8');
+      const source = codeOnly(readFileSync(path, 'utf8'));
       const component = entry.name.replace(/\.tsx?$/, '');
       const emits = /`is-\$\{color\}`/.test(source);
       if (emits && tupleTyped(component)) {
@@ -254,6 +254,18 @@ function stylesheet() {
   return readFileSync(CSS, 'utf8');
 }
 
+/**
+ * Source with comments removed, so counting occurrences counts CODE.
+ *
+ * The emission and warning counts are matched against each other, and both
+ * are found by matching text, so a TSDoc block quoting `` `is-${color}` ``
+ * would inflate one side and fail the comparison for a reason that has
+ * nothing to do with the library. These components document the class they
+ * render, so that is a live risk rather than a theoretical one.
+ */
+const codeOnly = source =>
+  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+
 /** Does the stylesheet carry this exact class, not a longer one starting with it? */
 const shipsClass = (css, cls) =>
   new RegExp(
@@ -304,6 +316,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       // a compound emitted. Component-scoping it needs the emission read
       // from the AST too, which is a bigger change than the gap justifies,
       // so the count is the proxy and this comment is the limit.
+      // `source` is already comment-stripped by `modifierElements`.
       const emissions = (source.match(/`is-\$\{color\}`/g) ?? []).length;
       const warnings = (source.match(/warnUnstyledColor\(/g) ?? []).length;
       assert.equal(
@@ -362,38 +375,32 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
     const shades = tupleFrom(HELPERS, 'validColorShades');
-    // EVERY shade whose name cannot be confused with a colour's, which is
-    // most of them. An earlier version probed the first numeric one only, so
-    // a colour shipping one shade and not another would have passed; the
-    // version after that probed all the numerics and dropped the four named
-    // ones as well, under a collision rationale that only two of them have.
+    // EVERY shade, with the ambiguity handled PER PAIR rather than per shade.
+    // This has been narrowed twice. First it probed one numeric shade, so a
+    // colour shipping one and not another would have passed. Then it probed
+    // the numerics and dropped the four named shades too, under a collision
+    // rationale only two of them have. Then it dropped `light` and `dark` for
+    // all nineteen colours when only `grey` is ambiguous in them.
     //
-    // The exclusion is COMPUTED rather than listed: a shade collides when
-    // some colour's name ends in it, which is true of `light` and `dark`
-    // (`has-text-grey-light` is the COLOUR `grey-light`, not `grey` shaded
-    // `light`) and false of `invert`, `soft`, `bold` and `on-scheme`. Listing
-    // it was how the four got dropped.
-    const collides = sh => colors.some(c => c.endsWith(`-${sh}`));
-    const probes = shades.filter(sh => !collides(sh));
-    assert.ok(
-      probes.length > shades.length / 2,
-      `only ${probes.length} of ${shades.length} shades are probeable, which ` +
-        'means the collision test is excluding far more than the two names ' +
-        'that genuinely collide. Check it against `validColors`.'
-    );
+    // A pair is ambiguous when the two names concatenate into a colour:
+    // `grey` + `light` is the colour `grey-light`, so `has-text-grey-light`
+    // cannot be read as `grey` shaded `light`. That is true of exactly two
+    // pairs and of no shade in general, so every shade is compared and only
+    // `grey` sits out of two of them.
+    const ambiguous = (color, shade) => colors.includes(`${color}-${shade}`);
 
     // Both families, because `colorShade` and `backgroundColorShade` have the
     // identical shape and an earlier version probed only the text one.
-    const live = colors.filter(c => !declared.has(c)).sort();
     for (const family of ['has-text', 'has-background']) {
-      for (const probe of probes) {
-        const shadeable = colors
-          .filter(c => shipsClass(css, `${family}-${c}-${probe}`))
+      for (const shade of shades) {
+        const judged = colors.filter(c => !ambiguous(c, shade));
+        const shadeable = judged
+          .filter(c => shipsClass(css, `${family}-${c}-${shade}`))
           .sort();
         assert.deepEqual(
           shadeable,
-          live,
-          `the colours the stylesheet shades \`-${probe}\` under ` +
+          judged.filter(c => !declared.has(c)).sort(),
+          `the colours the stylesheet shades \`-${shade}\` under ` +
             `\`${family}-\` and the colours with a live component modifier ` +
             'have diverged. They are the same set today, which is what lets ' +
             '`UNSTYLED_MODIFIER_COLORS` stand in for both; if they part ' +
@@ -413,10 +420,10 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           `\`${family}-${keyword}\` no longer ships, so the claim that these ` +
             'keywords are live unshaded has stopped being true.'
         );
-        for (const probe of probes) {
+        for (const shade of shades) {
           assert.ok(
-            !shipsClass(css, `${family}-${keyword}-${probe}`),
-            `\`${family}-${keyword}-${probe}\` ships now, so these keywords ` +
+            !shipsClass(css, `${family}-${keyword}-${shade}`),
+            `\`${family}-${keyword}-${shade}\` ships now, so these keywords ` +
               'are no longer part of the shade gap and `HELPER_VALUES` can ' +
               'say so.'
           );
