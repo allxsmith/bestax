@@ -55,9 +55,6 @@ const RBX = {
   displays: ['block', 'flex', 'inline', 'inline-block', 'inline-flex'],
 } as const;
 
-/** The two rbx shades bestax has no counterpart for — mapping.ts TODOs both. */
-const KNOWN_UNSUPPORTED_SHADES = ['white-ter', 'white-bis'];
-
 describe('rbx helper values that the mapping passes through unchanged', () => {
   it.each([
     ['textAlign', RBX.textAlignments, validAlignments as readonly string[]],
@@ -85,12 +82,15 @@ describe('rbx helper values that the mapping passes through unchanged', () => {
     expect(missing).toEqual([]);
   });
 
-  it('only the two known shades are unsupported', () => {
-    // If this list grows, mapping.ts's SHADE_TODO must grow with it —
-    // otherwise an unsupported shade passes through as a silent type error.
+  it('every rbx shade exists in bestax, so none needs a TODO', () => {
+    // `white-bis` and `white-ter` were the exception and carried a TODO
+    // saying they were not bestax colours. They are now, and the CSS had the
+    // classes all along. If a shade ever goes missing again, mapping.ts needs
+    // a `valueTodo` for it or it passes through as a silent type error, which
+    // is what this catches.
     const missing = RBX.shades.filter(
       v => !(validColors as readonly string[]).includes(v)
     );
-    expect(missing.sort()).toEqual([...KNOWN_UNSUPPORTED_SHADES].sort());
+    expect(missing).toEqual([]);
   });
 });

@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Button } from "@allxsmith/bestax-bulma";
 
 // TODO(bestax-migrate): `italic` maps to `textTransform="italic"`, but `textTransform` is already set on this element; reconcile by hand
-// TODO(bestax-migrate): `textColor="white-ter"` — `white-ter` is not a bestax colour; use `white` or a custom class (https://bestax.io/docs/api/helpers/usebulmaclasses)
 export const Helpers = () => (
   <Box
     bgColor="primary"
