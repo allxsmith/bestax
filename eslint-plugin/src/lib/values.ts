@@ -122,11 +122,16 @@ const family = (
  * of. Pre-existing for the greys and the black pair, widened by two when the
  * white shades were added, and a false negative either way.
  *
- * Closing it needs no new data, only a cross-prop check, and
- * `scripts/color-tuple-css.test.mjs` asserts the partition that makes that
- * possible. It is left open here because a rule reading two attributes at
- * once is a different shape from the rest of this table, and wants its own
- * dogfooding rather than riding along.
+ * For the text family that needs no new data, only a cross-prop check, and
+ * `scripts/color-tuple-css.test.mjs` asserts the partition that makes it
+ * possible. For the background family it needs a little more: `bgColor` takes
+ * `validSchemeColors` as well, which sit outside that partition, so
+ * `<Block bgColor="scheme-main" backgroundColorShade="15" />` is the same
+ * false negative and is not covered by it.
+ *
+ * Left open either way, because a rule reading two attributes at once is a
+ * different shape from the rest of this table and wants its own dogfooding
+ * rather than riding along.
  */
 export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
   ...SPACING_PROPS.map(p => [p, validSizes] as [string, readonly string[]]),

@@ -29,6 +29,13 @@
  * calling `warnUnstyledColor`, so a component that starts emitting the
  * modifier is compared whether or not anyone remembered to add it here.
  *
+ * Two things sit outside everything asserted here, and are worth naming so
+ * the scope reads as chosen rather than overlooked. `Hero` passes
+ * `extraUnstyled: ['inherit', 'current']`, values that are not in
+ * `validColors` at all, so no loop over the tuple reaches them. And `bgColor`
+ * accepts `validSchemeColors` on top of the tuple, which the shade assertion
+ * does not cover either. Both are pre-existing and both point the safe way.
+ *
  * The helper-class check is
  * narrower than it looks and it is worth saying why, rather than leaving the
  * next person to find out: the general form, "every colour the CSS names is in
@@ -46,6 +53,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
+import { extractComponent } from './lib/props-extract.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const CSS = join(REPO, 'bulma-ui', 'dist', 'bestax.css');
@@ -65,6 +73,37 @@ const DEPRECATIONS = join(
 );
 
 const SRC = join(REPO, 'bulma-ui', 'src');
+
+/**
+ * Is this component's `color` prop typed off `validColors`?
+ *
+ * Read from the TYPE, through the extractor behind the API docs, rather than
+ * by matching the declaration's source text. The text version was a one-line
+ * substring, so a prettier-wrapped union dropped the component out of the
+ * comparison and `elements.length > 0` kept the suite green on the survivors:
+ * weaker, on that one direction, than the hardcoded list it replaced. `Hero`
+ * makes the point on its own, with four such declarations across its parts.
+ *
+ * `TYPE_DISPLAY` renders `(typeof validColors)[number]` as `Bulma color`,
+ * which is the discriminator: `Button` comes back as its own spelled-out
+ * union and `Tag` as the alias `TagColor`, and neither should be in the loop.
+ * A component that aliased the tuple would read as its alias name and be
+ * missed here, which is what the two-way comparison below is for.
+ */
+function tupleTyped(component) {
+  let info;
+  try {
+    info = extractComponent(component, { markdown: false });
+  } catch {
+    // Not an exported component (a private sub-module, a helper file).
+    return false;
+  }
+  return (info.tables ?? []).some(table =>
+    (table.rows ?? []).some(
+      row => row.name === 'color' && /Bulma color/.test(row.type ?? '')
+    )
+  );
+}
 
 /**
  * The components whose `color` prop emits `is-<colour>` and is typed off
@@ -100,9 +139,10 @@ function modifierElements() {
       }
       const source = readFileSync(path, 'utf8');
       const component = entry.name.replace(/\.tsx?$/, '');
-      const typed = source.includes('color?: (typeof validColors)[number]');
       const emits = /`is-\$\{color\}`/.test(source);
-      if (typed && emits) found.push({ component, source, path });
+      if (emits && tupleTyped(component)) {
+        found.push({ component, source, path });
+      }
       // The helper declaring it is not a caller.
       if (
         /warnUnstyledColor\(/.test(source) &&
@@ -223,11 +263,23 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       // Emitting the modifier without warning about the dead values is the
       // defect one layer before this one, and deriving the list is what makes
       // it checkable at all.
-      assert.match(
-        source,
-        /warnUnstyledColor\(/,
-        `${path} emits \`is-\${color}\` off \`validColors\` and never calls ` +
-          '`warnUnstyledColor`, so its dead values render in silence.'
+      // Counted, not merely present. A bare `assert.match` passes a file
+      // where one part warns and a sibling emits without warning, which is
+      // the shape `Hero` would take if `Head` started emitting the modifier.
+      // Still FILE-scoped: the declarations come from the AST, but the
+      // emission is matched in source text, so this cannot say WHICH part of
+      // a compound emitted. Component-scoping it needs the emission read
+      // from the AST too, which is a bigger change than the gap justifies,
+      // so the count is the proxy and this comment is the limit.
+      const emissions = (source.match(/`is-\$\{color\}`/g) ?? []).length;
+      const warnings = (source.match(/warnUnstyledColor\(/g) ?? []).length;
+      assert.equal(
+        warnings,
+        emissions,
+        `${path} emits \`is-\${color}\` ${emissions} time(s) off ` +
+          `\`validColors\` and calls \`warnUnstyledColor\` ${warnings} ` +
+          'time(s). Each emission needs its own call, or the values with no ' +
+          'CSS render in silence for whichever part is missing one.'
       );
       const el = component.toLowerCase();
       assert.ok(
