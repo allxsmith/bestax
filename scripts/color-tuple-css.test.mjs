@@ -29,12 +29,22 @@
  * calling `warnUnstyledColor`, so a component that starts emitting the
  * modifier is compared whether or not anyone remembered to add it here.
  *
- * Two things sit outside everything asserted here, and are worth naming so
- * the scope reads as chosen rather than overlooked. `Hero` passes
+ * Two things sit outside the MODIFIER comparison, and are worth naming so the
+ * scope reads as chosen rather than overlooked. `Hero` passes
  * `extraUnstyled: ['inherit', 'current']`, values that are not in
- * `validColors` at all, so no loop over the tuple reaches them. And `bgColor`
- * accepts `validSchemeColors` on top of the tuple, which the shade assertion
- * does not cover either. Both are pre-existing and both point the safe way.
+ * `validColors` at all, so no loop over the tuple reaches them there — though
+ * the shade case does assert both of them, since they are part of that gap.
+ * And `bgColor` accepts `validSchemeColors` on top of the tuple, which
+ * nothing here covers, because a scheme value emits no class at all. Both are
+ * pre-existing and both point the safe way.
+ *
+ * One blind spot is worth naming with them: the type is read through
+ * `props-extract`, which resolves EXPORTED components, so a module that is
+ * not exported from `src/index.ts` cannot enter the comparison at all.
+ * `Calendar` and `TimeWheels` both emit `is-${color}` today and sit there.
+ * They are safe because their unions are narrow rather than because anything
+ * here checks it, and the hardcoded list this replaced missed them too. The
+ * cross-check below catches such a module only if it calls the warning.
  *
  * The helper-class check is
  * narrower than it looks and it is worth saying why, rather than leaving the
@@ -94,8 +104,13 @@ function tupleTyped(component) {
   let info;
   try {
     info = extractComponent(component, { markdown: false });
-  } catch {
-    // Not an exported component (a private sub-module, a helper file).
+  } catch (error) {
+    // NARROW. "not exported from src/index.ts" is the expected answer for a
+    // private sub-module or a helper file, and the only failure this guard
+    // should read as "no colour prop here". A blanket catch would let the
+    // extractor break and report the same thing, quietly shrinking the
+    // comparison to nothing, so anything else is rethrown.
+    if (!/is not exported from/.test(error.message)) throw error;
     return false;
   }
   return (info.tables ?? []).some(table =>
@@ -347,15 +362,24 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
     const shades = tupleFrom(HELPERS, 'validColorShades');
-    // EVERY numeric shade, not the first. Probing one would pass a colour
-    // that ships one shade and not another. The named shades are excluded
-    // because they collide with colour names: `has-text-grey-light` is the
-    // COLOUR `grey-light`, not `grey` shaded `light`, and a check that could
-    // not tell them apart reported `grey` as partly shadeable.
-    const probes = shades.filter(sh => /^\d+$/.test(sh));
+    // EVERY shade whose name cannot be confused with a colour's, which is
+    // most of them. An earlier version probed the first numeric one only, so
+    // a colour shipping one shade and not another would have passed; the
+    // version after that probed all the numerics and dropped the four named
+    // ones as well, under a collision rationale that only two of them have.
+    //
+    // The exclusion is COMPUTED rather than listed: a shade collides when
+    // some colour's name ends in it, which is true of `light` and `dark`
+    // (`has-text-grey-light` is the COLOUR `grey-light`, not `grey` shaded
+    // `light`) and false of `invert`, `soft`, `bold` and `on-scheme`. Listing
+    // it was how the four got dropped.
+    const collides = sh => colors.some(c => c.endsWith(`-${sh}`));
+    const probes = shades.filter(sh => !collides(sh));
     assert.ok(
-      probes.length > 1,
-      'fewer than two numeric shades to probe with; the tuple changed shape'
+      probes.length > shades.length / 2,
+      `only ${probes.length} of ${shades.length} shades are probeable, which ` +
+        'means the collision test is excluding far more than the two names ' +
+        'that genuinely collide. Check it against `validColors`.'
     );
 
     // Both families, because `colorShade` and `backgroundColorShade` have the
