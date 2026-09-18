@@ -40,6 +40,7 @@ import {
 } from '@allxsmith/bestax-bulma/constants';
 import {
   attributesOf,
+  doubledNames,
   elementOf,
   hasSpread,
   isKnownNonNullish,
@@ -154,7 +155,15 @@ const rule: Rule.RuleModule = {
             value,
             rendered: `has-text-${value}${shadeSuffix}`,
           },
-          fix: fixer => fixer.replaceText(color.name, 'textColor'),
+          // A doubled `color` is read last-wins, so the value above is the one
+          // that renders and the report is right. The FIX is not: renaming the
+          // winner leaves the loser behind as a dead `color`, which still
+          // resolves correctly through `textColor ?? color` and still wants
+          // deleting by hand. Same withholding `no-deprecated-props` does, for
+          // the same reason.
+          fix: doubledNames(opening).has('color')
+            ? null
+            : fixer => fixer.replaceText(color.name, 'textColor'),
         });
       },
     };

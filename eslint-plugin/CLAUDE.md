@@ -51,6 +51,18 @@ tissue, not as style.
   two deprecated props onto the SAME replacement (`Tabs` deprecates both
   `isFullWidth` and `fullwidth` in favour of `isFullwidth`), which emitted a
   duplicate JSX attribute. Track what a pass has already claimed.
+
+  There is a weaker version of the same rule, and it caught both
+  name-rewriting rules in turn: a fix may not leave DEAD source behind either.
+  A name written twice is read last-wins, so a rule reads the winner and
+  reports correctly, and then renaming the winner leaves the loser sitting
+  there. `<Tabs isFullWidth isFullWidth />` became
+  `<Tabs isFullWidth isFullwidth />`, still deprecated; `<Box color="bogus"
+color="primary" />` became `<Box color="bogus" textColor="primary" />`,
+  which renders right and carries a `color` nobody wants. `doubledNames()` is
+  the reader, and every fix that rewrites an attribute name withholds itself
+  on it.
+
 - **Resolve elements through the import AND through scope**, never by tag name
   alone. A project with its own `<Box>`, or a local shadowing the imported one,
   must not be linted against Bulma's. `elementOf()` is the entry point;

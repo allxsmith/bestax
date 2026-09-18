@@ -72,8 +72,7 @@ export function collectImport(node: any, into: ImportedNames): void {
  *
  * A shadow does not have to be a plain identifier: `const { require } = shim`
  * and `const [require] = shims` bind the name just as well, and the first
- * version of the shadow guard read only `id.name` and missed both. Both
- * reviewers on #686 found that hole independently.
+ * version of the shadow guard read only `id.name` and missed both.
  */
 export function patternBinds(pattern: any, name: string): boolean {
   if (!pattern || typeof pattern !== 'object') return false;
@@ -339,6 +338,29 @@ export function attributesOf(opening: any): any[] {
   return (opening?.attributes ?? []).filter(
     (a: any) => a?.type === 'JSXAttribute' && a.name?.type === 'JSXIdentifier'
   );
+}
+
+/**
+ * Attribute names written more than once on this element.
+ *
+ * Duplicates are legal JavaScript and React resolves them last-wins, so a
+ * rule can read the winner with `winningAttributes`. An AUTOFIX cannot: it
+ * edits one occurrence and leaves the other, which turned
+ * `<Tabs isFullWidth isFullWidth />` into `<Tabs isFullWidth isFullwidth />`,
+ * still carrying the deprecated prop. Every fix that rewrites an attribute
+ * name has to withhold itself here, so the check is a reader rather than a
+ * block copied into each rule.
+ */
+export function doubledNames(opening: any): Set<string> {
+  const counts = new Map<string, number>();
+  const doubled = new Set<string>();
+  for (const a of attributesOf(opening)) {
+    const name: string = a.name.name;
+    const n = (counts.get(name) ?? 0) + 1;
+    counts.set(name, n);
+    if (n > 1) doubled.add(name);
+  }
+  return doubled;
 }
 
 /** Does this element carry a spread, making its full prop set unknowable? */

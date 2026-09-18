@@ -12,7 +12,7 @@ import type { Rule } from 'eslint';
 import { DEPRECATED_PROPS } from '../generated/metadata.js';
 import type { Deprecation } from '../generated/metadata.js';
 import {
-  attributesOf,
+  doubledNames,
   winningAttributes,
   elementOf,
   hasSpread,
@@ -102,16 +102,9 @@ const rule: Rule.RuleModule = {
         // Report, but leave the edit to a human.
         const spread = hasSpread(opening);
         // A name written twice is pathological, and fixing one occurrence
-        // leaves the other behind: `<Tabs isFullWidth isFullWidth />` became
-        // `<Tabs isFullWidth isFullwidth />`, still carrying a deprecated
-        // prop. Report, do not edit.
-        const doubled = new Set<string>();
-        const counts = new Map<string, number>();
-        for (const a of attributesOf(opening)) {
-          const k = a.name.name;
-          counts.set(k, (counts.get(k) ?? 0) + 1);
-          if ((counts.get(k) ?? 0) > 1) doubled.add(k);
-        }
+        // leaves the other behind. `doubledNames` owns that; see its comment
+        // for the edit that made it necessary.
+        const doubled = doubledNames(opening);
 
         for (const attr of attrs) {
           const prop: string = attr.name.name;

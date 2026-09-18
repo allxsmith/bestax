@@ -123,6 +123,17 @@ ruleTester.run('no-color-as-surface', rule, {
       errors: [{ messageId: 'ambiguous' }],
     },
     {
+      // A doubled `color` is read last-wins, so `primary` is what renders and
+      // the report is right. Renaming the winner would leave the loser behind
+      // as a dead `color`: correct output, because `textColor ?? color` still
+      // resolves to `primary`, and still an attribute nobody wants. Report
+      // without a fix, the way a doubled name is handled in
+      // `no-deprecated-props`.
+      code: imported('Box', '<Box color="bogus" color="primary" />'),
+      output: null,
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
       // textColor already wins, so color does nothing — removing it is the
       // author's call, so this reports without a fix.
       code: imported('Box', '<Box color="primary" textColor="info" />'),
