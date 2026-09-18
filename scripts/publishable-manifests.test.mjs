@@ -1240,6 +1240,51 @@ test('inside an array, null means try the next entry', () => {
   assert.equal(literal.length, 1, literal.join('\n'));
 });
 
+test('an invalid target blocks rather than falling through', () => {
+  // A target that is not a relative "./…" specifier makes Node throw
+  // ERR_INVALID_PACKAGE_TARGET out of the enclosing conditions object, so the
+  // keys after it are never tried. Reading it as "maps nothing, keep looking"
+  // diagnosed a key require() never reaches...
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { import: './a.mjs', require: 'dist/bad.js', default: './d.js' },
+      },
+    }),
+    []
+  );
+
+  // ...and, the other way round, let a real failure hide behind one.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { import: './a.mjs', node: 'dist/bad.js', require: './r.js' },
+      },
+    }),
+    []
+  );
+});
+
+test('an array of nothing but blockers blocks the subpath', () => {
+  // `[]` is not the only array that resolves to null: one whose entries all
+  // block records that and returns it, so the condition after it is unreached.
+  for (const require of [[], [null], [null, null]]) {
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', require, default: './x.js' } },
+      }),
+      [],
+      JSON.stringify(require)
+    );
+  }
+});
+
 test('an empty fallback array blocks the subpath', () => {
   // Node resolves an empty array to null, which blocks rather than falling
   // through, so the `default` beside it is never reached.

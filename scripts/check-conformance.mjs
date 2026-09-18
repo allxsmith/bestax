@@ -2342,24 +2342,37 @@ export function manifestViolations(
   // it, or undefined when the map maps nothing for require.
   const resolveRequire = (node, label, via) => {
     if (typeof node === 'string') {
-      return node.startsWith('./') ? { label, target: node, via } : undefined;
+      // A target that is not a relative "./…" specifier is INVALID, and Node
+      // throws ERR_INVALID_PACKAGE_TARGET out of the enclosing conditions
+      // object rather than trying the next key. Treating it as "maps nothing,
+      // keep looking" both missed a real failure sitting behind it and
+      // diagnosed a key `require()` never reaches.
+      if (!node.startsWith('./')) return BLOCKED;
+      return { label, target: node, via };
     }
     if (Array.isArray(node)) {
       // An EMPTY fallback array resolves to null in Node, which blocks the
       // subpath rather than falling through to the next condition.
       if (node.length === 0) return BLOCKED;
+      // Inside an array, a blocking entry — a `null`, or an invalid target —
+      // means "try the next one", the opposite of what it means as a
+      // condition's value. Node records it and carries on. But if NOTHING in
+      // the array resolves, that record is what it returns, so an array of
+      // nothing but blockers blocks the subpath rather than falling through.
+      let sawBlocker = false;
       for (const [i, value] of node.entries()) {
-        // Inside an array, a `null` — literal, or one an entry resolves to —
-        // means "try the next entry", the opposite of what it means as a
-        // condition's value. Node records it and continues; treating it as a
-        // block here aborted the whole resolution and hid the entry that
-        // actually resolves.
-        if (value === null) continue;
+        if (value === null) {
+          sawBlocker = true;
+          continue;
+        }
         const hit = resolveRequire(value, `${label}.${i}`, via);
-        if (hit === BLOCKED) continue;
+        if (hit === BLOCKED) {
+          sawBlocker = true;
+          continue;
+        }
         if (hit) return hit;
       }
-      return undefined;
+      return sawBlocker ? BLOCKED : undefined;
     }
     if (!node || typeof node !== 'object') return undefined;
     for (const key of Object.keys(node)) {
