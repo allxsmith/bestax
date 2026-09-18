@@ -1723,6 +1723,26 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   };
   walk(pkg.exports, 'exports', undefined);
 
+  // `main` too. Nothing else in this gate reads it: the conformance rule never
+  // judges it (Node ignores it whenever `exports` exists), the load test
+  // resolves by specifier, which takes the `exports` map instead, and the walk
+  // above only covers conditions. Reverting `main` to `dist/index.cjs.js` left
+  // every check green, and `main` is half of the two-line fix this branch is
+  // for — legacy resolvers and pre-`exports` bundlers still read it.
+  assert.equal(typeof pkg.main, 'string', 'the manifest declares no main');
+  const mainName = basename(pkg.main);
+  assert.ok(
+    emitted.has(mainName),
+    `package.json main promises ${mainName}, which rollup.config.js does not emit`
+  );
+  assert.equal(
+    emitted.get(mainName),
+    'cjs',
+    `package.json main points at ${mainName}, which rollup emits as ` +
+      `'${emitted.get(mainName)}' — a legacy resolver reads main as CommonJS`
+  );
+  checked.push('main');
+
   // Fails closed: if the walk stops finding bundles, the assertions above stop
   // running and nothing would notice.
   assert.ok(

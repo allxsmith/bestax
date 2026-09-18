@@ -24,7 +24,7 @@
  * A seed makes a run reproducible, so a disagreement can be handed to someone
  * else verbatim.
  */
-import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -73,11 +73,33 @@ const KEYS = [
   'types',
 ];
 
+// Arrays get the shapes the resolver actually distinguishes, not just a pair of
+// strings: empty, a lone `null`, a `null` before a valid entry, and a nested
+// object or array. Those are exactly the branches `sawBlocker` and the
+// empty-array block exist for, so a generator emitting only string pairs could
+// never have produced the evidence for them.
+const makeArray = depth => {
+  switch (rnd(6)) {
+    case 0:
+      return [];
+    case 1:
+      return [null];
+    case 2:
+      return [null, pick(FILES)];
+    case 3:
+      return [makeMap(depth + 1), pick(FILES)];
+    case 4:
+      return [pick(FILES), makeMap(depth + 1)];
+    default:
+      return [pick(FILES), pick(FILES)];
+  }
+};
+
 const makeValue = depth => {
   const r = rnd(10);
   if (depth > 1 || r < 5) return pick(FILES);
   if (r === 5) return null;
-  if (r === 6) return [pick(FILES), pick(FILES)];
+  if (r === 6) return makeArray(depth);
   return makeMap(depth + 1);
 };
 const makeMap = depth => {
@@ -92,6 +114,12 @@ const makeMap = depth => {
 };
 
 const root = mkdtempSync(join(tmpdir(), 'exports-fuzz-'));
+// Hundreds of packages per run, so they go when the run does. Kept on a
+// disagreement, since the fixture is what someone would want to look at.
+let keepRoot = false;
+process.on('exit', () => {
+  if (!keepRoot) rmSync(root, { recursive: true, force: true });
+});
 let considered = 0;
 let disagreements = 0;
 
@@ -147,6 +175,7 @@ for (let i = 0; i < COUNT; i++) {
     landed !== null && landed.endsWith('.js') && !landed.endsWith('.cjs');
   if (nodeSaysBroken !== flagged.length > 0) {
     disagreements++;
+    keepRoot = true;
     if (disagreements <= 10) {
       console.log(
         'DISAGREE',
