@@ -38,6 +38,14 @@ const aiBanner =
  * would reintroduce TS1479 one level down.
  * `scripts/constants-subpath.test.mjs` asserts the copy byte for byte and
  * typechecks a real node16 CommonJS consumer against it.
+ *
+ * Three different things enforce the import-free property, which is worth
+ * knowing before relying on any one of them. This entry has no `resolve()`,
+ * so an extensionless relative import fails the bundle outright. A bare
+ * package import is externalised, and React specifically is caught by the
+ * React-free assertion in that same test. Only an import rollup can resolve
+ * on its own reaches the check below, which is why the check is here rather
+ * than being left to the test.
  */
 const constantsCjsTypes = () => ({
   name: 'bestax-constants-cjs-types',
@@ -57,7 +65,13 @@ const constantsCjsTypes = () => ({
           'entry.'
       );
     }
-    if (/^\s*(import|export)\b[^\n]*\bfrom\b/m.test(declaration)) {
+    // Both shapes a specifier can take in a declaration: a real
+    // `from '…'`, and the `import('./x').Y` form tsc emits for a type it
+    // reaches without an explicit import. Either one resolves as CommonJS
+    // inside a `.d.cts` and puts TS1479 back.
+    if (
+      /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(/m.test(declaration)
+    ) {
       throw new Error(
         `${from} now has module specifiers, so copying it to a .d.cts no ` +
           'longer describes a CommonJS module. Keep that file import-free, ' +

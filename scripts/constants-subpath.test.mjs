@@ -145,7 +145,10 @@ describe('bulma-ui export map', () => {
     );
     assert.doesNotMatch(
       esm,
-      /^\s*(?:import|export)\b[^\n]*\bfrom\b/m,
+      // The `from '…'` form and the `import('./x').Y` form tsc emits for a
+      // type it reaches without an explicit import. Either resolves as
+      // CommonJS inside a `.d.cts` and puts TS1479 back.
+      /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(/m,
       'the constants declaration now has module specifiers, so copying it ' +
         'to a .d.cts no longer describes a CommonJS module. Keep ' +
         'bulmaClassHelpers.ts import-free, which the subpath depends on ' +

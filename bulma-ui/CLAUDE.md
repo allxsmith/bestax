@@ -56,10 +56,14 @@ is the drift this file exists to prevent.
 
 These keep it working, and each of them failed once:
 
-- That file must stay import-free. The rollup entry keeps the main bundle's
-  `external` so a future `useMemo` in it cannot inline React into a bundle
-  whose whole point is not needing React. The `require` condition's types lean
-  on it as well, for the reason given below.
+- That file must stay import-free, and nothing relies on discipline alone to
+  keep it that way. The entry has no `resolve()`, so an extensionless relative
+  import fails the
+  bundle outright. It keeps the main bundle's `external`, so a future
+  `useMemo` in it cannot inline React into a bundle whose whole point is not
+  needing React, and the React-free assertion catches that anyway. An import
+  rollup resolves on its own is caught by the declaration check the `.d.cts`
+  rule below depends on.
 - The CommonJS artifact must be `constants.cjs`, not `constants.cjs.js`. This
   package is `"type": "module"`, so Node reads a `.js` file as ESM whatever
   the bundle's format is, and a bundle writing `exports.x = …` cannot load as
