@@ -248,6 +248,65 @@ export const validViewports = [
 ] as const;
 
 /**
+ * Valid Bulma float classes.
+ * @example 'left', 'right'
+ */
+export const validFloats = ['left', 'right'] as const;
+
+/**
+ * Valid Bulma overflow classes.
+ * @example 'clipped'
+ */
+export const validOverflows = ['clipped'] as const;
+
+/**
+ * Valid Bulma interaction classes.
+ * @example 'unselectable', 'clickable'
+ */
+export const validInteractions = ['unselectable', 'clickable'] as const;
+
+/**
+ * Valid Bulma cursor helper values.
+ *
+ * These share no class stem: `pointer` renders `is-clickable` and `help`
+ * renders `is-cursor-help`, so the class each one emits lives in
+ * `cursorClasses` rather than being built from the value.
+ * @example 'pointer', 'help'
+ */
+export const validCursors = ['pointer', 'help'] as const;
+
+/**
+ * Cursor helper value to the class it renders.
+ *
+ * A `Record` over `validCursors` on purpose: TypeScript then rejects a value
+ * added to the tuple with no class for it, and a class for a value the tuple
+ * does not carry, so the accepted set and the rendered classes cannot drift
+ * apart.
+ */
+export const cursorClasses: Record<(typeof validCursors)[number], string> = {
+  pointer: 'is-clickable',
+  help: 'is-cursor-help',
+};
+
+/**
+ * Valid Bulma border-radius helper classes.
+ * @example 'radiusless'
+ */
+export const validRadii = ['radiusless'] as const;
+
+/**
+ * Valid Bulma shadow helper classes.
+ * @example 'shadowless'
+ */
+export const validShadows = ['shadowless'] as const;
+
+/**
+ * Valid Bulma responsive helper classes.
+ * @example 'mobile', 'narrow'
+ */
+export const validResponsives = ['mobile', 'narrow'] as const;
+
+/**
  * Props for applying a Bulma viewport modifier to viewport-aware helper classes.
  */
 export interface BulmaViewportProps {

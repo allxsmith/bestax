@@ -30,6 +30,14 @@ describe('useBulmaClasses public re-exports', () => {
     'validAlignSelfs',
     'validFlexGrowShrink',
     'validViewports',
+    'validSchemeColors',
+    'validFloats',
+    'validOverflows',
+    'validInteractions',
+    'validCursors',
+    'validRadii',
+    'validShadows',
+    'validResponsives',
   ] as const;
 
   it.each(validatorNames)(

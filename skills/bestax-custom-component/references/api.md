@@ -72,7 +72,9 @@ Storybook `argTypes`/tests:
 `validAlignments`, `validTextTransforms`, `validTextWeights`, `validFontFamilies`,
 `validDisplays`, `validVisibilities`, `validFlexDirections`, `validFlexWraps`,
 `validJustifyContents`, `validAlignContents`, `validAlignItems`, `validAlignSelfs`,
-`validFlexGrowShrink`, `validViewports`.
+`validFlexGrowShrink`, `validViewports`, `validFloats`, `validOverflows`,
+`validInteractions`, `validCursors`, `validRadii`, `validShadows`,
+`validResponsives`.
 
 ```ts
 export type MyColor = (typeof validColors)[number];

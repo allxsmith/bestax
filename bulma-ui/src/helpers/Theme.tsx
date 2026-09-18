@@ -587,8 +587,8 @@ function cssVarToProp(varName: string): string {
  * Mapping of camelCase prop names to their Bulma CSS variable counterparts.
  *
  * `--bulma-shadow` is excluded: `cssVarToProp` would mint it as `shadow`,
- * which already exists as a `BulmaOtherProps` prop (`shadow?: 'shadowless'`,
- * applied via `useBulmaClasses`) — keeping it out of this map means that
+ * which already exists as a `BulmaOtherProps` prop applied via
+ * `useBulmaClasses` — keeping it out of this map means that
  * prop keeps its existing class-based meaning, while `--bulma-shadow` is
  * still reachable through the `bulmaVars` object.
  */
