@@ -11,34 +11,26 @@ import { useOtherClasses } from '../useOtherClasses';
 // constants from bulmaClassHelpers and the per-concern mini hooks. These tests
 // pin that public surface so a broken or dropped re-export is caught.
 describe('useBulmaClasses public re-exports', () => {
-  const validatorNames = [
-    'validColors',
-    'validColorShades',
-    'validSizes',
-    'validTextSizes',
-    'validAlignments',
-    'validTextTransforms',
-    'validTextWeights',
-    'validFontFamilies',
-    'validDisplays',
-    'validVisibilities',
-    'validFlexDirections',
-    'validFlexWraps',
-    'validJustifyContents',
-    'validAlignContents',
-    'validAlignItems',
-    'validAlignSelfs',
-    'validFlexGrowShrink',
-    'validViewports',
-    'validSchemeColors',
-    'validFloats',
-    'validOverflows',
-    'validInteractions',
-    'validCursors',
-    'validRadii',
-    'validShadows',
-    'validResponsives',
-  ] as const;
+  // DERIVED from the source module, not listed. A hardcoded allowlist only
+  // ever asserts barrel ⊇ list, so a tuple added to bulmaClassHelpers reached
+  // the `./constants` subpath automatically, missed the package root, and left
+  // every gate green. Reading the module's own exports is what closes that:
+  // the two surfaces are now the same set by construction.
+  // `Extract` rather than plain `keyof`, because the source module also
+  // exports `createBulmaClassHelpers` and `cursorClasses`, which the barrel
+  // deliberately does not re-export. Typing the names this way also makes a
+  // missing re-export a typecheck error here, not only a failing case.
+  type ValidatorName = Extract<keyof typeof source, `valid${string}`>;
+  const validatorNames = Object.keys(source).filter(
+    (name): name is ValidatorName => name.startsWith('valid')
+  );
+
+  it('finds the validator constants to check', () => {
+    // Guard against the derivation itself going quiet. If the filter stops
+    // matching, every case below vanishes and the suite passes having checked
+    // nothing — the failure mode a derived list trades for a stale one.
+    expect(validatorNames.length).toBeGreaterThan(10);
+  });
 
   it.each(validatorNames)(
     're-exports %s identical to bulmaClassHelpers',
