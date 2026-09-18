@@ -15,6 +15,7 @@
  * instead of switching a rule off.
  */
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
@@ -1490,6 +1491,29 @@ test('the remedy names reordering when a non-require condition served it', () =>
   assert.match(viaRequire, /Emit it with a `\.cjs` extension/);
 });
 
+test('a require reachable only under import does not make a map dual', () => {
+  // `require()` never enters an `import` branch, so a `require` key there is no
+  // evidence the author meant a CommonJS target — the map offers only the
+  // `default`, which is the ESM-only shape this abstention protects. Checked
+  // against Node: it resolves the `default` here.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: { require: './x.cjs' }, default: './x.js' } },
+    }),
+    []
+  );
+
+  // Under a condition `require()` does reach, the same nesting counts.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: { require: './bad.js' }, import: './a.mjs' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+});
+
 test('a map with no require condition is left alone', () => {
   // `require()` does fall through to `default` here, but an `import` key is not
   // enough to prove the package MEANT a CommonJS target: an ESM-only package
@@ -1781,26 +1805,31 @@ test('the root entry really loads through both conditions', async () => {
   );
   assert.ok(cjs.Button, 'the require condition served no Button');
 
-  // The import side is loaded by PATH: a bare specifier does not resolve from
-  // the repo root under the isolated linker, and the require side above is
-  // where specifier resolution is the thing under test.
-  const pkgManifest = JSON.parse(repoFile('bulma-ui/package.json'));
-  const esm = await import(
-    pathToFileURL(
-      join(
-        repo,
-        'bulma-ui',
-        pkgManifest.exports['.'].import.replace(/^\.\//, '')
-      )
-    ).href
+  // The import side by SPECIFIER too, from inside a package that declares the
+  // dependency. Loading the manifest's `import` target by path would prove the
+  // file works and say nothing about the map choosing it: a `default` or `node`
+  // condition inserted above `import` keeps a path-based assertion green while
+  // real consumers get the other target. `import.meta.resolve` ignores a parent
+  // argument here and a bare specifier does not resolve from the repo root
+  // under the isolated linker, so the resolution happens in a child process
+  // whose working directory IS the dependent package.
+  const esmNames = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        "const m = await import('@allxsmith/bestax-bulma');" +
+          'process.stdout.write(JSON.stringify(Object.keys(m)));',
+      ],
+      { cwd: join(repo, 'bestax-migrate'), encoding: 'utf8' }
+    )
   );
   // Both conditions must serve the same surface, or what a consumer gets
   // depends on how they happened to load it.
   assert.deepEqual(
     Object.keys(cjs).sort(),
-    Object.keys(esm)
-      .filter(k => k !== 'default')
-      .sort(),
+    esmNames.filter(k => k !== 'default').sort(),
     'the require and import conditions export different names'
   );
 });

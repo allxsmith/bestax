@@ -113,6 +113,27 @@ const makeMap = depth => {
   return out;
 };
 
+// The rule's documented abstention, restated here so the corpus tests the
+// MECHANISM (which target Node lands on) rather than the POLICY (which maps are
+// in scope at all). A `require` key is only evidence that the author meant a
+// CommonJS target if a `require()` can actually reach it — one nested under
+// `import` is unreachable, and the rule leaves such maps alone.
+const REQUIRE_REACHABLE = new Set([
+  'node-addons',
+  'node',
+  'module-sync',
+  'require',
+  'default',
+]);
+const declaresCjsForRequire = node => {
+  if (!node || typeof node !== 'object') return false;
+  if (Array.isArray(node)) return node.some(declaresCjsForRequire);
+  if (Object.hasOwn(node, 'require')) return true;
+  return Object.entries(node).some(
+    ([key, value]) => REQUIRE_REACHABLE.has(key) && declaresCjsForRequire(value)
+  );
+};
+
 const root = mkdtempSync(join(tmpdir(), 'exports-fuzz-'));
 // Hundreds of packages per run, so they go when the run does. Kept on a
 // disagreement, since the fixture is what someone would want to look at.
@@ -168,7 +189,7 @@ for (let i = 0; i < COUNT; i++) {
   // `module-sync` serves ESM by contract. Both are documented decisions rather
   // than agreement with Node, so they are excluded rather than counted wrong.
   const spelled = JSON.stringify(map);
-  if (!/"require"/.test(spelled) || /"module-sync"/.test(spelled)) continue;
+  if (!declaresCjsForRequire(map) || /"module-sync"/.test(spelled)) continue;
 
   considered++;
   const nodeSaysBroken =

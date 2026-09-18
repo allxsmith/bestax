@@ -2425,8 +2425,19 @@ export function manifestViolations(
   // sit inside a `node` wrapper, which is the shape Node's own docs use.
   const distinguishes = node => {
     if (!node || typeof node !== 'object') return false;
-    if (!Array.isArray(node) && Object.hasOwn(node, 'require')) return true;
-    return Object.values(node).some(distinguishes);
+    if (Array.isArray(node)) return node.some(distinguishes);
+    if (Object.hasOwn(node, 'require')) return true;
+    // Only branches a `require()` can actually enter. A `require` key nested
+    // under `import` is unreachable, so it says nothing about whether the map
+    // offers a CommonJS target — counting it made
+    // `{ import: { require: … }, default: "./x.js" }` look dual and flagged the
+    // `default`, which is the ESM-only shape this abstention exists to protect.
+    // Subpath keys are not conditions and are always followed.
+    return Object.entries(node).some(
+      ([key, value]) =>
+        (key.startsWith('.') || REQUIRE_MATCHING.has(key)) &&
+        distinguishes(value)
+    );
   };
 
   const judge = (node, label, sink) => {
