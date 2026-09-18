@@ -154,22 +154,39 @@ function modifierElements() {
   };
   walk(SRC);
 
-  // BOTH DIRECTIONS, because each signal can miss what the other sees. The
-  // emission is found by matching source text, so a component writing that
-  // class some other way is invisible to it — and would then be missing from
-  // this comparison as silently as the hand-maintained list used to miss one.
-  // A component that calls the warning is asserting it emits the modifier, so
-  // the two sets have to agree: a caller outside the derived set means the
-  // emission pattern has stopped matching, and a derived element that does
-  // not call it is the defect the loop below reports.
+  // BOTH DIRECTIONS, because each signal can miss what the other sees, and
+  // SEPARATELY, because the two failures have different causes and a single
+  // `deepEqual` could only explain one of them. An earlier version compared
+  // the sets in one assertion whose message named the emission pattern, so a
+  // component that emitted and never warned — the defect this exists for —
+  // failed with the wrong explanation and never reached the per-element check
+  // that names the file.
+  const derived = found.map(f => f.component);
+
+  // A component that emits the modifier and never warns renders its dead
+  // values in silence. This is the defect; the message has to say so.
+  const silent = derived.filter(c => !warns.includes(c)).sort();
   assert.deepEqual(
-    warns.sort(),
-    found.map(f => f.component).sort(),
-    'the components calling `warnUnstyledColor` and the components this ' +
-      'guard derives as emitting `is-${color}` disagree. A caller that is ' +
-      'not derived means the emission pattern in `modifierElements` has ' +
-      'stopped matching, so the comparison below is checking fewer elements ' +
-      'than it looks like it is.'
+    silent,
+    [],
+    `${silent.join(', ')} emit(s) \`is-\${color}\` off \`validColors\` and ` +
+      'never calls `warnUnstyledColor`, so the values with no CSS render in ' +
+      'silence.'
+  );
+
+  // The other way round is not a library defect but a defect in THIS guard: a
+  // component that warns is asserting it emits, so if the derivation did not
+  // find it, the derivation has stopped working and the comparisons below are
+  // checking fewer elements than they appear to.
+  const undetected = warns.filter(c => !derived.includes(c)).sort();
+  assert.deepEqual(
+    undetected,
+    [],
+    `${undetected.join(', ')} call(s) \`warnUnstyledColor\` but this guard ` +
+      'did not derive it as emitting `is-${color}` off `validColors`. The ' +
+      'emission pattern or the type read in `modifierElements` has stopped ' +
+      'matching, so the comparisons below cover fewer elements than they look ' +
+      'like they do.'
   );
   return found;
 }
@@ -279,7 +296,11 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         `${path} emits \`is-\${color}\` ${emissions} time(s) off ` +
           `\`validColors\` and calls \`warnUnstyledColor\` ${warnings} ` +
           'time(s). Each emission needs its own call, or the values with no ' +
-          'CSS render in silence for whichever part is missing one.'
+          'CSS render in silence for whichever part is missing one. If the ' +
+          'counts differ for a legitimate reason — one component emitting in ' +
+          'two branches of a render, or warning once for two props — this is ' +
+          'a count proxy standing in for per-component analysis, and the ' +
+          'proxy is what needs changing rather than the component.'
       );
       const el = component.toLowerCase();
       assert.ok(
@@ -370,12 +391,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
   });
 
   it('has every bis/ter variant the stylesheet emits a class for', () => {
-    assert.ok(
-      existsSync(CSS),
-      'bulma-ui/dist/bestax.css is absent, so the tuple cannot be compared ' +
-        'against the shipped CSS. Build first, or run `pnpm all`.'
-    );
-    const css = readFileSync(CSS, 'utf8');
+    const css = stylesheet();
     const colors = validColors();
 
     // Read the variants off the CSS rather than listing them, so a new base
