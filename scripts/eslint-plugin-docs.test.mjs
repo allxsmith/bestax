@@ -35,20 +35,43 @@ const DOCS = [
   ],
 ];
 
-/** Lines inside a jsx/tsx/js/ts fence that carry a ✗ or ✓ verdict. */
-function annotatedExamples(markdown) {
+/**
+ * Lines inside a jsx/tsx/js/ts fence that carry a ✗ or ✓ verdict, each tagged
+ * with the rule its section is about.
+ *
+ * Both documents give every rule its own `###` heading, so the nearest
+ * heading above an example names the rule the example is demonstrating. That
+ * matters for the ✗ cases: asserting only that SOMETHING reported passes an
+ * example whose intended rule has gone quiet while another one fires, which
+ * is the interesting way for these to rot. A heading that is not a rule name
+ * (a setup section, say) leaves `rule` null and the case falls back to
+ * asserting a report at all.
+ */
+function annotatedExamples(markdown, ruleNames) {
   const out = [];
-  const fence = /```(?:jsx|tsx|js|ts)[^\n]*\n([\s\S]*?)```/g;
-  let block;
-  while ((block = fence.exec(markdown))) {
-    for (const raw of block[1].split('\n')) {
+  // One pass over the document so headings and fences stay interleaved.
+  const token = /^###\s+(.+)$|```(?:jsx|tsx|js|ts)[^\n]*\n([\s\S]*?)```/gm;
+  let heading = null;
+  let m;
+  while ((m = token.exec(markdown))) {
+    if (m[1] !== undefined) {
+      const name = m[1].trim().replace(/^`|`$/g, '');
+      heading = ruleNames.includes(name) ? name : null;
+      continue;
+    }
+    for (const raw of m[2].split('\n')) {
       const marker = /\/\/\s*(✗|✓)/.exec(raw);
       if (!marker) continue;
       const code = raw.slice(0, marker.index).trim();
       // A verdict on a line that is not itself an element, such as a comment
       // introducing the next one, has nothing to lint.
       if (!code.startsWith('<')) continue;
-      out.push({ code, reports: marker[1] === '✗', line: raw.trim() });
+      out.push({
+        code,
+        reports: marker[1] === '✗',
+        rule: heading,
+        line: raw.trim(),
+      });
     }
   }
   return out;
@@ -93,8 +116,21 @@ describe('the plugin documents what it does', async () => {
     },
   ];
 
+  const ruleNames = Object.keys(plugin.rules);
+
   for (const [label, path] of DOCS) {
-    const examples = annotatedExamples(readFileSync(path, 'utf8'));
+    const examples = annotatedExamples(readFileSync(path, 'utf8'), ruleNames);
+
+    it(`attributes most ${label} examples to a named rule`, () => {
+      // If the heading pattern stops matching, every ✗ case quietly weakens
+      // to "something reported". This keeps that from happening silently.
+      const attributed = examples.filter(e => e.rule !== null).length;
+      assert.ok(
+        attributed > examples.length / 2,
+        `only ${attributed} of ${examples.length} ${label} examples sit under ` +
+          'a rule heading; the heading pattern has probably stopped matching'
+      );
+    });
 
     it(`finds annotated examples in the ${label}`, () => {
       // A derived list that silently empties would pass every case below
@@ -106,7 +142,7 @@ describe('the plugin documents what it does', async () => {
       );
     });
 
-    for (const { code, reports, line } of examples) {
+    for (const { code, reports, rule, line } of examples) {
       it(`${label}: ${line}`, () => {
         const roots = tagRoots(code);
         const source =
@@ -128,6 +164,15 @@ describe('the plugin documents what it does', async () => {
             messages.length > 0,
             'the docs mark this ✗ and no rule reports it'
           );
+          if (rule !== null) {
+            assert.ok(
+              messages.some(m => m.ruleId === `@allxsmith/bestax/${rule}`),
+              `the docs mark this ✗ under the \`${rule}\` heading, and that ` +
+                `rule did not report it. What did: ${messages
+                  .map(m => m.ruleId)
+                  .join(', ')}`
+            );
+          }
         } else {
           assert.deepEqual(
             messages.map(m => `${m.ruleId}: ${m.message}`),
