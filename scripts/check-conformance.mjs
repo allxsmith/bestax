@@ -2143,7 +2143,7 @@ const BLOCKED = Symbol('blocked');
  * deliberately does not touch, so the question is asked through a callback: the
  * async caller answers it by looking, and fixtures fall back to the root.
  */
-const rootTypeOf = pkg => target => pkg?.type ?? 'commonjs';
+const rootTypeOf = pkg => () => pkg?.type ?? 'commonjs';
 
 export function manifestViolations(
   dir,
