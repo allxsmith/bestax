@@ -22,9 +22,14 @@
  *
  * The component-modifier check is an equality, because the two sets partition
  * `validColors` exactly today, with no exceptions, and it is made per element
- * rather than across the three: asking whether a colour is dead on ALL of them
- * passes a colour Bulma ships on one and not the others, which would land in
- * neither set while one element renders a dead modifier unwarned. The helper-class check is
+ * rather than across them all: asking whether a colour is dead on EVERY
+ * element passes a colour Bulma ships on one and not the others, which would
+ * land in neither set while that one renders a dead modifier unwarned. The
+ * elements themselves are derived rather than listed, and each is held to
+ * calling `warnUnstyledColor`, so a component that starts emitting the
+ * modifier is compared whether or not anyone remembered to add it here.
+ *
+ * The helper-class check is
  * narrower than it looks and it is worth saying why, rather than leaving the
  * next person to find out: the general form, "every colour the CSS names is in
  * the tuple", is not available from the stylesheet, because `has-text-` is a
@@ -37,7 +42,7 @@
  * used by any other helper family, so that check is exact too.
  */
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
@@ -59,16 +64,54 @@ const DEPRECATIONS = join(
   'colorDeprecations.ts'
 );
 
+const SRC = join(REPO, 'bulma-ui', 'src');
+
 /**
  * The components whose `color` prop emits `is-<colour>` and is typed off
  * `validColors`, so that widening the tuple widens theirs.
  *
- * Read the partition below as the reason this list is short: these are the
- * elements where a colour with no matching rule renders nothing and the
- * library warns instead. `Button` is absent on purpose, since its union is
- * declared separately and narrower.
+ * DERIVED, not listed. A hand-maintained list was tied to nothing, so a
+ * fourth component emitting that modifier off the tuple would have sat
+ * outside the comparison entirely. Two conditions together identify them, and
+ * both are needed: plenty of components type `color` off `validColors` and
+ * emit no modifier at all — `Section`, `Footer`, `Level`, `Media` and the
+ * `Card` parts are text aliases — while `Button` declares its own narrower
+ * union and is therefore absent from the first condition.
+ *
+ * The component name doubles as the Bulma element class, which holds for
+ * these three and is asserted rather than assumed: a derivation that produced
+ * a name with no `.<class>.is-primary` rule would make every colour look dead
+ * and fail the comparison below for the wrong reason.
  */
-const MODIFIER_ELEMENTS = ['notification', 'progress', 'hero'];
+function modifierElements() {
+  const found = [];
+  const walk = dir => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (!/^(__tests__|__typetests__|skill-examples)$/.test(entry.name)) {
+          walk(path);
+        }
+        continue;
+      }
+      if (!entry.name.endsWith('.tsx') || entry.name.includes('.stories.')) {
+        continue;
+      }
+      const source = readFileSync(path, 'utf8');
+      const typed = source.includes('color?: (typeof validColors)[number]');
+      const emits = /`is-\$\{color\}`/.test(source);
+      if (typed && emits) {
+        found.push({
+          component: entry.name.replace(/\.tsx$/, ''),
+          source,
+          path,
+        });
+      }
+    }
+  };
+  walk(SRC);
+  return found;
+}
 
 /** A named `as const` string tuple, read from a source file. */
 function tupleFrom(path, name) {
@@ -101,6 +144,22 @@ function validColors() {
   return colors;
 }
 
+/**
+ * The stylesheet, or an actionable failure.
+ *
+ * Every case here reads it, and one of them read it without this guard, so
+ * running that case alone threw a raw `ENOENT` instead of saying what to do.
+ * In a full run the first case's guard fired first and hid it.
+ */
+function stylesheet() {
+  assert.ok(
+    existsSync(CSS),
+    'bulma-ui/dist/bestax.css is absent, so the tuples cannot be compared ' +
+      'against the shipped CSS. Build first, or run `pnpm all`.'
+  );
+  return readFileSync(CSS, 'utf8');
+}
+
 /** Does the stylesheet carry this exact class, not a longer one starting with it? */
 const shipsClass = (css, cls) =>
   new RegExp(
@@ -119,14 +178,17 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // The two sets partition `validColors` exactly, with no exceptions, so
     // this is an equality rather than a subset check: on each element a
     // colour is either backed by a rule or declared unstyled.
-    assert.ok(
-      existsSync(CSS),
-      'bulma-ui/dist/bestax.css is absent, so the tuples cannot be compared ' +
-        'against the shipped CSS. Build first, or run `pnpm all`.'
-    );
-    const css = readFileSync(CSS, 'utf8');
+    const css = stylesheet();
     const colors = validColors();
     const declared = tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS');
+
+    const elements = modifierElements();
+    assert.ok(
+      elements.length > 0,
+      'no component found that both types `color` off `validColors` and emits ' +
+        '`is-${color}`. The derivation has stopped matching, which would make ' +
+        'every assertion below vacuous.'
+    );
 
     // PER ELEMENT, not across all three. An earlier version asked whether a
     // colour was dead on every one of them, which holds only while the three
@@ -136,7 +198,23 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // three come off one upstream colour map, so this is the same assertion
     // made for a reason rather than by luck — and it fails the moment they
     // diverge, which is when the declaration needs a per-element shape.
-    for (const el of MODIFIER_ELEMENTS) {
+    for (const { component, source, path } of elements) {
+      // Emitting the modifier without warning about the dead values is the
+      // defect one layer before this one, and deriving the list is what makes
+      // it checkable at all.
+      assert.match(
+        source,
+        /warnUnstyledColor\(/,
+        `${path} emits \`is-\${color}\` off \`validColors\` and never calls ` +
+          '`warnUnstyledColor`, so its dead values render in silence.'
+      );
+      const el = component.toLowerCase();
+      assert.ok(
+        shipsClass(css, `${el}.is-primary`),
+        `no \`.${el}.is-primary\` rule, so \`${component}\` does not name a ` +
+          'Bulma element class and the comparison below would call every ' +
+          'colour dead. The component-name-to-class assumption has broken.'
+      );
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
       );
@@ -154,10 +232,11 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
   });
 
   it('shades exactly the colours that have component modifiers', () => {
-    // `colorShade` and `color` are judged independently by the lint rule, so
-    // `<Box textColor="white-bis" colorShade="15" />` passes while
-    // `useColorClasses` emits `has-text-white-bis-15`, which the stylesheet
-    // does not carry. That is a false negative rather than a wrong report, and
+    // The shade props and the colour props are judged independently by the
+    // lint rule, so `<Box textColor="white-bis" colorShade="15" />` passes
+    // while `useColorClasses` emits `has-text-white-bis-15`, which the
+    // stylesheet does not carry. `bgColor` with `backgroundColorShade` is the
+    // same shape, which is why both families are checked below. That is a false negative rather than a wrong report, and
     // the reason it stays one is this partition: the colours that take a shade
     // are exactly the ones NOT declared unstyled, so the rule would need no
     // new data to close it, only a cross-prop check. Asserting the partition
@@ -167,7 +246,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // colour names: `has-text-grey-light` is the COLOUR `grey-light`, not
     // `grey` shaded `light`, and a check that could not tell them apart
     // reported `grey` as partly shadeable.
-    const css = readFileSync(CSS, 'utf8');
+    const css = stylesheet();
     const colors = validColors();
     const declared = new Set(
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
@@ -176,18 +255,23 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     const probe = shades.find(sh => /^\d+$/.test(sh));
     assert.ok(probe, 'no numeric shade to probe with; the tuple changed shape');
 
-    const shadeable = colors
-      .filter(c => shipsClass(css, `has-text-${c}-${probe}`))
-      .sort();
-    assert.deepEqual(
-      shadeable,
-      colors.filter(c => !declared.has(c)).sort(),
-      'the colours the stylesheet shades and the colours with a live ' +
-        'component modifier have diverged. They are the same set today, ' +
-        'which is what lets `UNSTYLED_MODIFIER_COLORS` stand in for both; if ' +
-        'they part company, the shade gap needs naming on its own rather ' +
-        'than borrowing that declaration.'
-    );
+    // Both families, because `colorShade` and `backgroundColorShade` have the
+    // identical shape and an earlier version probed only the text one.
+    for (const family of ['has-text', 'has-background']) {
+      const shadeable = colors
+        .filter(c => shipsClass(css, `${family}-${c}-${probe}`))
+        .sort();
+      assert.deepEqual(
+        shadeable,
+        colors.filter(c => !declared.has(c)).sort(),
+        `the colours the stylesheet shades under \`${family}-\` and the ` +
+          'colours with a live component modifier have diverged. They are ' +
+          'the same set today, which is what lets ' +
+          '`UNSTYLED_MODIFIER_COLORS` stand in for both; if they part ' +
+          'company, the shade gap needs naming on its own rather than ' +
+          'borrowing that declaration.'
+      );
+    }
   });
 
   it('names the CSS-backed colours consistently in the warning', () => {

@@ -113,12 +113,13 @@ const family = (
  * direction is not available and the table has to be told: see
  * `NOT_A_HELPER_PROP` below.
  *
- * KEYED BY PROP also means each prop is judged ALONE, and `colorShade` is
+ * KEYED BY PROP also means each prop is judged ALONE, and the shade props are
  * where that shows. `<Box textColor="white-bis" colorShade="15" />` passes
  * both entries and renders `has-text-white-bis-15`, which the stylesheet does
- * not carry: only the colours with a live component modifier take a shade,
- * which is the same set `UNSTYLED_MODIFIER_COLORS` is the complement of.
- * Pre-existing for the greys and the black pair, widened by two when the
+ * not carry, and `bgColor` with `backgroundColorShade` is the same shape:
+ * only the colours with a live component modifier take a shade, in either
+ * family, which is the same set `UNSTYLED_MODIFIER_COLORS` is the complement
+ * of. Pre-existing for the greys and the black pair, widened by two when the
  * white shades were added, and a false negative either way.
  *
  * Closing it needs no new data, only a cross-prop check, and
