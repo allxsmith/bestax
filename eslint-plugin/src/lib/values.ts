@@ -122,12 +122,16 @@ const family = (
  * of. Pre-existing for the greys and the black pair, widened by two when the
  * white shades were added, and a false negative either way.
  *
- * Closing it needs no new data, only a cross-prop check, and
- * `scripts/color-tuple-css.test.mjs` asserts the partition that makes that
- * possible. The scheme colours are NOT another case of it: they emit no class
- * at all, arriving as an inline `background-color` instead, with the shade
- * documented as ignored, and only a few components widen `bgColor` to accept
- * them in the first place.
+ * A cross-prop check would close most of it off the partition
+ * `scripts/color-tuple-css.test.mjs` asserts, but not all: `inherit` and
+ * `current` are accepted by the same props, are live unshaded, and have no
+ * shaded class either, and they are not in `validColors` for that partition
+ * to cover. So the rule would need those two named as well.
+ *
+ * The scheme colours are NOT another case of it: they emit no class at all,
+ * arriving as an inline `background-color` instead, with the shade documented
+ * as ignored, and only a few components widen `bgColor` to accept them in the
+ * first place.
  *
  * Left open because a rule reading two attributes at once is a different
  * shape from the rest of this table, and wants its own dogfooding rather than

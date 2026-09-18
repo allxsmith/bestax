@@ -225,9 +225,10 @@ function validColors() {
 /**
  * The stylesheet, or an actionable failure.
  *
- * Every case here reads it, and one of them read it without this guard, so
- * running that case alone threw a raw `ENOENT` instead of saying what to do.
- * In a full run the first case's guard fired first and hid it.
+ * One case read it without this guard, so running that case alone threw a raw
+ * `ENOENT` instead of saying what to do, and in a full run the first case's
+ * guard fired first and hid it. Every case that reads the stylesheet goes
+ * through here now; the `CSS_BACKED` one reads no stylesheet at all.
  */
 function stylesheet() {
   assert.ok(
@@ -346,25 +347,57 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
     const shades = tupleFrom(HELPERS, 'validColorShades');
-    const probe = shades.find(sh => /^\d+$/.test(sh));
-    assert.ok(probe, 'no numeric shade to probe with; the tuple changed shape');
+    // EVERY numeric shade, not the first. Probing one would pass a colour
+    // that ships one shade and not another. The named shades are excluded
+    // because they collide with colour names: `has-text-grey-light` is the
+    // COLOUR `grey-light`, not `grey` shaded `light`, and a check that could
+    // not tell them apart reported `grey` as partly shadeable.
+    const probes = shades.filter(sh => /^\d+$/.test(sh));
+    assert.ok(
+      probes.length > 1,
+      'fewer than two numeric shades to probe with; the tuple changed shape'
+    );
 
     // Both families, because `colorShade` and `backgroundColorShade` have the
     // identical shape and an earlier version probed only the text one.
+    const live = colors.filter(c => !declared.has(c)).sort();
     for (const family of ['has-text', 'has-background']) {
-      const shadeable = colors
-        .filter(c => shipsClass(css, `${family}-${c}-${probe}`))
-        .sort();
-      assert.deepEqual(
-        shadeable,
-        colors.filter(c => !declared.has(c)).sort(),
-        `the colours the stylesheet shades under \`${family}-\` and the ` +
-          'colours with a live component modifier have diverged. They are ' +
-          'the same set today, which is what lets ' +
-          '`UNSTYLED_MODIFIER_COLORS` stand in for both; if they part ' +
-          'company, the shade gap needs naming on its own rather than ' +
-          'borrowing that declaration.'
-      );
+      for (const probe of probes) {
+        const shadeable = colors
+          .filter(c => shipsClass(css, `${family}-${c}-${probe}`))
+          .sort();
+        assert.deepEqual(
+          shadeable,
+          live,
+          `the colours the stylesheet shades \`-${probe}\` under ` +
+            `\`${family}-\` and the colours with a live component modifier ` +
+            'have diverged. They are the same set today, which is what lets ' +
+            '`UNSTYLED_MODIFIER_COLORS` stand in for both; if they part ' +
+            'company, the shade gap needs naming on its own rather than ' +
+            'borrowing that declaration.'
+        );
+      }
+
+      // Finding 1's half: `inherit` and `current` are accepted by the same
+      // props, are live UNSHADED, and have no shaded class at all. So they
+      // are the shade gap too, and they are outside the tuple the loop above
+      // walks — which is why `HELPER_VALUES` cannot close that gap from the
+      // partition alone.
+      for (const keyword of ['inherit', 'current']) {
+        assert.ok(
+          shipsClass(css, `${family}-${keyword}`),
+          `\`${family}-${keyword}\` no longer ships, so the claim that these ` +
+            'keywords are live unshaded has stopped being true.'
+        );
+        for (const probe of probes) {
+          assert.ok(
+            !shipsClass(css, `${family}-${keyword}-${probe}`),
+            `\`${family}-${keyword}-${probe}\` ships now, so these keywords ` +
+              'are no longer part of the shade gap and `HELPER_VALUES` can ' +
+              'say so.'
+          );
+        }
+      }
     }
   });
 
