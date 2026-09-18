@@ -2109,9 +2109,11 @@ export const SIBLING_RUNTIME_DEPS = new Map([
  * one function is the drift this repo keeps paying for.
  */
 /**
- * The conditions a `require()` matches besides `require` itself, in the order
- * Node tries them. Any of these standing before a `default` means `default` is
- * not what `require()` resolves.
+ * The conditions a `require()` matches. Membership only — this set has no
+ * order, and reading one into it would miss the point the rest of this rule is
+ * built on: what a `require()` resolves is decided by the MANIFEST's key order,
+ * so any of these standing before a `default` means `default` is not what it
+ * reaches.
  */
 const REQUIRE_MATCHING = new Set([
   'node-addons',
@@ -2130,6 +2132,22 @@ const REQUIRE_MATCHING_ESM = new Set(['module-sync']);
 
 /** A `null` target: the subpath is blocked, and Node throws rather than continuing. */
 const BLOCKED = Symbol('blocked');
+
+/**
+ * Whether Node would accept `target` as an exports target at all.
+ *
+ * It must be relative, and no segment may be `.`, `..` or `node_modules` — the
+ * segment rules are what stop a package pointing outside itself. An empty
+ * segment or a trailing slash is deprecated rather than rejected, so both stay
+ * valid here; blocking them would fail targets that resolve.
+ */
+const isValidTarget = target => {
+  if (!target.startsWith('./')) return false;
+  return !target
+    .split('/')
+    .slice(1)
+    .some(segment => /^(\.\.?|node_modules)$/i.test(segment));
+};
 
 /**
  * How a target's format is decided when nothing else knows better: the package
@@ -2342,12 +2360,17 @@ export function manifestViolations(
   // it, or undefined when the map maps nothing for require.
   const resolveRequire = (node, label, via) => {
     if (typeof node === 'string') {
-      // A target that is not a relative "./…" specifier is INVALID, and Node
-      // throws ERR_INVALID_PACKAGE_TARGET out of the enclosing conditions
-      // object rather than trying the next key. Treating it as "maps nothing,
-      // keep looking" both missed a real failure sitting behind it and
-      // diagnosed a key `require()` never reaches.
-      if (!node.startsWith('./')) return BLOCKED;
+      // A target Node rejects is INVALID, and it throws
+      // ERR_INVALID_PACKAGE_TARGET out of the enclosing conditions object
+      // rather than trying the next key. Treating one as "maps nothing, keep
+      // looking" both missed a real failure sitting behind it and diagnosed a
+      // key `require()` never reaches.
+      //
+      // The `./` prefix is only half the test: a `.`, `..` or `node_modules`
+      // SEGMENT is rejected too, wherever it appears. An empty segment
+      // (`./a//b.js`) and a trailing slash are deprecated rather than rejected,
+      // so neither may block — those targets still resolve.
+      if (!isValidTarget(node)) return BLOCKED;
       return { label, target: node, via };
     }
     if (Array.isArray(node)) {
@@ -2405,11 +2428,15 @@ export function manifestViolations(
     if (!distinguishes(node)) return;
     const hit = resolveRequire(node, label, []);
     if (!hit || hit === BLOCKED) return;
-    // Asked of the whole PATH, not the leaf key: `module-sync` is ordinarily
-    // spelled with a `types` of its own, so the key naming the file is
-    // `default`, and reading only that judged an ESM target Node serves to
-    // `require()` by design.
-    if (hit.via.some(key => REQUIRE_MATCHING_ESM.has(key))) return;
+    // Asked of the PATH rather than the leaf key, because `module-sync` is
+    // ordinarily spelled with a `types` of its own and the key naming the file
+    // is then `default` — reading only that judged an ESM target Node serves to
+    // `require()` by design. But a `require` key BELOW it names a CommonJS
+    // target explicitly, which the condition's promise does not cover, so the
+    // exemption stops there.
+    const esmFrom = hit.via.findIndex(key => REQUIRE_MATCHING_ESM.has(key));
+    if (esmFrom !== -1 && !hit.via.slice(esmFrom + 1).includes('require'))
+      return;
     sink.push([hit.label, hit.target, hit.via.at(-1)]);
   };
 

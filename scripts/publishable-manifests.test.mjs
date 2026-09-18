@@ -1269,6 +1269,69 @@ test('an invalid target blocks rather than falling through', () => {
   );
 });
 
+test('validity is about segments, not just the ./ prefix', () => {
+  // A `.`, `..` or `node_modules` segment makes Node throw
+  // ERR_INVALID_PACKAGE_TARGET wherever it appears, so such a target blocks.
+  for (const bad of ['./../esc.js', './d/../e.js', './node_modules/x.js']) {
+    // Inside an array it is skipped, and a later valid entry still resolves.
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', require: [bad, './a.cjs'] } },
+      }),
+      [],
+      bad
+    );
+    // As a condition value it blocks, so the keys after it are unreached.
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', node: bad, require: './r.js' } },
+      }),
+      [],
+      bad
+    );
+  }
+
+  // An empty segment and a trailing slash are DEPRECATED, not rejected, so
+  // they still resolve and a `.js` there is still a real failure.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './a//b.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+});
+
+test('a require nested under module-sync is still judged', () => {
+  // `module-sync` promises an ES module, which is why what it serves is
+  // exempt — but a `require` key below it names a CommonJS target explicitly,
+  // and that promise does not cover it.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': { 'module-sync': { require: './b.js' }, require: './a.cjs' },
+    },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('module-sync'), found[0]);
+
+  // The exemption still holds for everything the condition does promise.
+  for (const ms of ['./m.js', { types: './m.d.ts', default: './m.js' }]) {
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { 'module-sync': ms, require: './m.cjs' } },
+      }),
+      []
+    );
+  }
+});
+
 test('an array of nothing but blockers blocks the subpath', () => {
   // `[]` is not the only array that resolves to null: one whose entries all
   // block records that and returns it, so the condition after it is unreached.

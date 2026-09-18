@@ -109,6 +109,14 @@ export default commandLineArgs => {
           // module scope where `require` does not exist. The extension is the
           // only thing that overrides `type` (#688).
           entryFileNames: 'index.cjs',
+          // Chunks need the extension for the same reason the entry does. This
+          // build emits one chunk today, so nothing is currently wrong — but
+          // the first dynamic import would split it, and the default
+          // `[name]-[hash].js` would have `index.cjs` requiring `.js` files
+          // that Node reads as ESM. That is #688 again in a shape neither the
+          // manifest rule nor the artifact test can see, since neither looks
+          // past the entry points.
+          chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
         },
         {
