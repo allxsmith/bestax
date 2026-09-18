@@ -85,6 +85,7 @@ const SRC = join(REPO, 'bulma-ui', 'src');
  */
 function modifierElements() {
   const found = [];
+  const warns = [];
   const walk = dir => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const path = join(dir, entry.name);
@@ -94,22 +95,42 @@ function modifierElements() {
         }
         continue;
       }
-      if (!entry.name.endsWith('.tsx') || entry.name.includes('.stories.')) {
+      if (!/\.tsx?$/.test(entry.name) || entry.name.includes('.stories.')) {
         continue;
       }
       const source = readFileSync(path, 'utf8');
+      const component = entry.name.replace(/\.tsx?$/, '');
       const typed = source.includes('color?: (typeof validColors)[number]');
       const emits = /`is-\$\{color\}`/.test(source);
-      if (typed && emits) {
-        found.push({
-          component: entry.name.replace(/\.tsx$/, ''),
-          source,
-          path,
-        });
+      if (typed && emits) found.push({ component, source, path });
+      // The helper declaring it is not a caller.
+      if (
+        /warnUnstyledColor\(/.test(source) &&
+        component !== 'colorDeprecations'
+      ) {
+        warns.push(component);
       }
     }
   };
   walk(SRC);
+
+  // BOTH DIRECTIONS, because each signal can miss what the other sees. The
+  // emission is found by matching source text, so a component writing that
+  // class some other way is invisible to it — and would then be missing from
+  // this comparison as silently as the hand-maintained list used to miss one.
+  // A component that calls the warning is asserting it emits the modifier, so
+  // the two sets have to agree: a caller outside the derived set means the
+  // emission pattern has stopped matching, and a derived element that does
+  // not call it is the defect the loop below reports.
+  assert.deepEqual(
+    warns.sort(),
+    found.map(f => f.component).sort(),
+    'the components calling `warnUnstyledColor` and the components this ' +
+      'guard derives as emitting `is-${color}` disagree. A caller that is ' +
+      'not derived means the emission pattern in `modifierElements` has ' +
+      'stopped matching, so the comparison below is checking fewer elements ' +
+      'than it looks like it is.'
+  );
   return found;
 }
 
