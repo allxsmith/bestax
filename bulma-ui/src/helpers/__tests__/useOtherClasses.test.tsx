@@ -14,8 +14,6 @@ import {
   validShadows,
 } from '../bulmaClassHelpers';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 describe('useOtherClasses', () => {
   // Helper function to render the hook with props and optional config
   const renderUseOtherClasses = (
@@ -78,7 +76,7 @@ describe('useOtherClasses', () => {
 
   it('ignores invalid cursor and float values', () => {
     expect(
-      renderUseOtherClasses({ cursor: 'grab' as any, float: 'up' as any })
+      renderUseOtherClasses({ cursor: 'grab' as never, float: 'up' as never })
     ).toBe('');
   });
 
@@ -163,27 +161,31 @@ describe('useOtherClasses', () => {
       expect(renderUseOtherClasses(props)).toBe(expected);
     });
 
+    // `as never` rather than `as any`: these values are deliberately outside
+    // the prop's union, and `never` is assignable to it, so the cast says
+    // "known to be invalid" instead of switching the checker off.
+    //
     // The other direction: a value the tuple does not carry emits nothing,
     // which is the silence the lint rule exists to report. Each case asserts
     // its probe really is outside the tuple, so adding a value to one of them
     // cannot leave a case that passes for the wrong reason.
     const dropped: [string, readonly string[], string, BulmaOtherProps][] = [
-      ['float', validFloats, 'center', { float: 'center' as any }],
-      ['overflow', validOverflows, 'scroll', { overflow: 'scroll' as any }],
+      ['float', validFloats, 'center', { float: 'center' as never }],
+      ['overflow', validOverflows, 'scroll', { overflow: 'scroll' as never }],
       [
         'interaction',
         validInteractions,
         'hover',
-        { interaction: 'hover' as any },
+        { interaction: 'hover' as never },
       ],
-      ['cursor', validCursors, 'grab', { cursor: 'grab' as any }],
-      ['radius', validRadii, 'rounded', { radius: 'rounded' as any }],
-      ['shadow', validShadows, 'none', { shadow: 'none' as any }],
+      ['cursor', validCursors, 'grab', { cursor: 'grab' as never }],
+      ['radius', validRadii, 'rounded', { radius: 'rounded' as never }],
+      ['shadow', validShadows, 'none', { shadow: 'none' as never }],
       [
         'responsive',
         validResponsives,
         'tablet',
-        { responsive: 'tablet' as any },
+        { responsive: 'tablet' as never },
       ],
     ];
 
