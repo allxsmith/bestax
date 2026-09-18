@@ -1,3 +1,35 @@
+# [5.16.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.4...@allxsmith/bestax-bulma@5.16.0) (2026-09-18)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** restamp the index after the valid-values docs edit ([ff4512a](https://github.com/allxsmith/bestax/commit/ff4512a8d50cda3cab53d6b1877b5cf2eec472c1)), closes [#521](https://github.com/allxsmith/bestax/issues/521)
+* **bestax-migrate:** white-bis and white-ter are bestax colours now ([d951c2f](https://github.com/allxsmith/bestax/commit/d951c2fbeb8f549943b89a554e4b3599f6682049))
+* **bulma-ui:** catch the other shape a declaration specifier can take ([4f69e20](https://github.com/allxsmith/bestax/commit/4f69e20b698fabc14783a72d9c4c6d6673164eb5))
+* **bulma-ui:** give the constants subpath a CommonJS types target ([e97d609](https://github.com/allxsmith/bestax/commit/e97d6095860309c64f6882a04b8dc8666e843a5f))
+* **bulma-ui:** warn on the new white shades as component modifiers ([7c617a6](https://github.com/allxsmith/bestax/commit/7c617a6df9ff798d3d00b9d3864a69115195dfd7))
+* **eslint-plugin:** a `true` display no longer buys silence on inert flex props ([a350ba8](https://github.com/allxsmith/bestax/commit/a350ba8216d14aa1c4719f38029b3929caaceb1f))
+* **eslint-plugin:** a readable null is still nullish ([30ef3de](https://github.com/allxsmith/bestax/commit/30ef3dea81d1c8d22bbf3dddfc28ea24b322ab33))
+* **eslint-plugin:** guard the textColor rewrite the way replacements are guarded ([a4028ec](https://github.com/allxsmith/bestax/commit/a4028ec5279b4dda82bdc1f97f96459988c8ea96))
+* **eslint-plugin:** judge only the JSX attribute that wins ([fc740d1](https://github.com/allxsmith/bestax/commit/fc740d15a0b7af46711ddf8b382e00b713f80eb0)), closes [#686](https://github.com/allxsmith/bestax/issues/686) [#678](https://github.com/allxsmith/bestax/issues/678)
+* **eslint-plugin:** judge only the values a spread cannot overwrite ([0b8d61e](https://github.com/allxsmith/bestax/commit/0b8d61eb75b0d6677444f2d400e819563d44a697))
+* **eslint-plugin:** make the preset lint, and stop the fixes breaking code ([f39e49b](https://github.com/allxsmith/bestax/commit/f39e49b572625b15afe73729fdbd050fa0d1709b))
+* **eslint-plugin:** make the preset's file glob honest about its parser ([59d1a54](https://github.com/allxsmith/bestax/commit/59d1a54b4f364200218a29cf3e548ea990875cf0))
+* **eslint-plugin:** membership-test the shade before naming the class ([58599d1](https://github.com/allxsmith/bestax/commit/58599d166d6d5f63334ee03fb517c9db561f6fdf))
+* **eslint-plugin:** report both spellings of a `true` helper value ([ed3ddf9](https://github.com/allxsmith/bestax/commit/ed3ddf9581c36ddf19d8e33a5df6e6f4f71bcdf9))
+* **eslint-plugin:** stop reporting `radius` on Theme, which is a CSS variable ([b326ce5](https://github.com/allxsmith/bestax/commit/b326ce517ec75a2bbd2732cf5f49ead4133f3229))
+* **eslint-plugin:** stop three autofixes changing what renders ([4853aa5](https://github.com/allxsmith/bestax/commit/4853aa51d623b17a310778e2008161237e960453))
+* **eslint-plugin:** withhold the color fix when the name is doubled ([85fd556](https://github.com/allxsmith/bestax/commit/85fd556a62c70138b4021dcaa7919153df6b0d4c))
+
+
+### Features
+
+* **bulma-ui:** add ./constants subpath export ([595cf3e](https://github.com/allxsmith/bestax/commit/595cf3e1f4659cdca09482d237ea026e76074f4e))
+* **bulma-ui:** add the white-bis and white-ter colours the CSS already ships ([0597580](https://github.com/allxsmith/bestax/commit/0597580ad6027cb2567fed4b5213b53b867305f1))
+* **bulma-ui:** export the other-helper value tuples ([1346973](https://github.com/allxsmith/bestax/commit/1346973ad3e72657da3ce3fe44ec797951c89786))
+* **eslint-plugin:** add @allxsmith/eslint-plugin-bestax ([790d4e9](https://github.com/allxsmith/bestax/commit/790d4e966bc8e3e9a616c99c65f09c449f5d1983)), closes [#350](https://github.com/allxsmith/bestax/issues/350)
+* **eslint-plugin:** check the other-helper props now that they have tuples ([15fced4](https://github.com/allxsmith/bestax/commit/15fced4f57e085bb7ff702d55c0c3d189af183de))
+
 ## [5.15.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.3...@allxsmith/bestax-bulma@5.15.4) (2026-09-17)
 
 
