@@ -2134,6 +2134,16 @@ const REQUIRE_MATCHING_ESM = new Set(['module-sync']);
 const BLOCKED = Symbol('blocked');
 
 /**
+ * Node's own invalid-segment test, taken from its ESM resolver rather than
+ * reimplemented. Splitting on `/` and comparing strings looked equivalent and
+ * was not: `\` counts as a separator too, and a segment may be
+ * percent-encoded, so `./a\..\b.js` and `./%2e%2e/esc.js` are rejected by Node
+ * and were accepted here.
+ */
+const INVALID_SEGMENT =
+  /(^|\\|\/)((\.|%2e){1,2}|(n|%6e|%4e)(o|%6f|%4f)(d|%64|%44)(e|%65|%45)(_|%5f)(m|%6d|%4d)(o|%6f|%4f)(d|%64|%44)(u|%75|%55)(l|%6c|%4c)(e|%65|%45)(s|%73|%53))(\\|\/|$)/i;
+
+/**
  * Whether Node would accept `target` as an exports target at all.
  *
  * It must be relative, and no segment may be `.`, `..` or `node_modules` — the
@@ -2141,13 +2151,8 @@ const BLOCKED = Symbol('blocked');
  * segment or a trailing slash is deprecated rather than rejected, so both stay
  * valid here; blocking them would fail targets that resolve.
  */
-const isValidTarget = target => {
-  if (!target.startsWith('./')) return false;
-  return !target
-    .split('/')
-    .slice(1)
-    .some(segment => /^(\.\.?|node_modules)$/i.test(segment));
-};
+const isValidTarget = target =>
+  target.startsWith('./') && !INVALID_SEGMENT.test(target.slice(1));
 
 /**
  * How a target's format is decided when nothing else knows better: the package
@@ -2437,7 +2442,8 @@ export function manifestViolations(
     const esmFrom = hit.via.findIndex(key => REQUIRE_MATCHING_ESM.has(key));
     if (esmFrom !== -1 && !hit.via.slice(esmFrom + 1).includes('require'))
       return;
-    sink.push([hit.label, hit.target, hit.via.at(-1)]);
+    // The whole path, so the remedy can ask whether a `require` key is on it.
+    sink.push([hit.label, hit.target, hit.via]);
   };
 
   const exportsNode = pkg?.exports;
@@ -2466,24 +2472,30 @@ export function manifestViolations(
   // require target got this exactly backwards: that is the one case Node
   // guarantees `main` is unread, and it failed published packages whose maps
   // are correct.
-  for (const [where, target, viaKey] of requireTargets) {
+  for (const [where, target, via] of requireTargets) {
     if (!target.endsWith('.js')) continue;
     // Asked per TARGET, not once for the package: the file's own directory
     // may carry a manifest that overrides the root.
     if (typeOfTarget(target) !== 'module') continue;
-    // The remedy depends on WHICH condition served it. A `require` key names
-    // a CommonJS target, so the file is what is wrong. `node` or `default`
-    // serve `import` as well, so renaming their target would break the ESM
-    // side — what is wrong there is that `require()` reaches them before any
-    // `require` condition.
-    const remedy =
-      viaKey === 'require'
-        ? `Emit it with a \`.cjs\` extension and point ${where} at that — ` +
-          `the extension wins over \`type\`.`
-        : `\`require()\` matches \`${viaKey}\` before reaching any \`require\` ` +
-          `condition. Put a \`require\` condition ahead of it naming a ` +
-          `\`.cjs\` bundle — renaming this target would break the \`import\` ` +
-          `side, which resolves it too.`;
+    // The remedy depends on whether a `require` key is anywhere on the PATH
+    // that resolved this target, not on the key that happens to name the file.
+    // A `require` spelled as an object puts `default` at the leaf, and reading
+    // only that told the author there was no `require` condition — advice that
+    // cannot be followed, on the very shape this package's own `./constants`
+    // uses. Same leaf-versus-path mistake the `module-sync` exemption above
+    // already had corrected.
+    //
+    // With a `require` key on the path the target IS the CommonJS one, so the
+    // file is what is wrong. Without one, `require()` reached a condition that
+    // serves `import` too, and renaming its target would break the ESM side:
+    // the fault there is the order.
+    const remedy = via.includes('require')
+      ? `Emit it with a \`.cjs\` extension and point ${where} at that — ` +
+        `the extension wins over \`type\`.`
+      : `\`require()\` matches \`${via[0]}\` before reaching any \`require\` ` +
+        `condition. Put a \`require\` condition ahead of it naming a ` +
+        `\`.cjs\` bundle — renaming this target would break the \`import\` ` +
+        `side, which resolves it too.`;
     violations.push(
       `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
         `is \`"type": "module"\`, so Node reads a \`.js\` file as ESM whatever ` +
@@ -2684,7 +2696,9 @@ export function hookScripts(pkg) {
  */
 export async function nearestType(root, target, rootType) {
   let at = dirname(join(root, target));
-  while (at.startsWith(root) && at !== root) {
+  // A path boundary, not a string prefix: `startsWith` alone would treat
+  // `/repo/pkg-extras` as inside `/repo/pkg` and read a neighbour's `type`.
+  while (at !== root && (at === root || at.startsWith(root + sep))) {
     try {
       const nested = JSON.parse(
         await readFile(join(at, 'package.json'), 'utf8')

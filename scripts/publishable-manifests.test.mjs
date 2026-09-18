@@ -1305,6 +1305,51 @@ test('validity is about segments, not just the ./ prefix', () => {
   assert.equal(found.length, 1, found.join('\n'));
 });
 
+test('the remedy asks the path, not the leaf key', () => {
+  // A `require` spelled as an object — this package's own `./constants` shape —
+  // puts `default` at the leaf. Reading only that told the author there was no
+  // `require` condition, which is both false and unfollowable.
+  const [asObject] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': {
+        import: './a.mjs',
+        require: { types: './d.d.cts', default: './bad.js' },
+      },
+    },
+  });
+  assert.match(asObject, /Emit it with a `\.cjs` extension/);
+
+  // With no `require` key on the path, the fault really is the order.
+  const [viaDefault] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.match(viaDefault, /before reaching any `require` condition/);
+});
+
+test('segment validity follows Node, including separators and encodings', () => {
+  // Splitting on `/` and comparing strings is not the same test: `\` is also a
+  // separator, and a segment may be percent-encoded.
+  for (const bad of [
+    './%2e%2e/esc.js',
+    './node%5fmodules/x.js',
+    './%6eode_modules/x.js',
+  ]) {
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', require: bad } },
+      }),
+      [],
+      bad
+    );
+  }
+});
+
 test('a require nested under module-sync is still judged', () => {
   // `module-sync` promises an ES module, which is why what it serves is
   // exempt — but a `require` key below it names a CommonJS target explicitly,
@@ -1564,11 +1609,39 @@ test('nested export conditions are walked, not just the top level', () => {
   assert.ok(found[0].includes('exports["./constants"].require'));
 });
 
-test('every published manifest loads through the condition it advertises', () => {
+test('every published manifest loads through the condition it advertises', async () => {
+  // Wired the way the real gate wires it — through `nearestType`, not the
+  // synchronous root-type default. The two answer differently the day a package
+  // grows a nested `dist/package.json`, which is the whole reason the callback
+  // exists, so a test using the default would stop describing the gate at
+  // exactly the moment it started to matter.
+  const repo = fileURLToPath(new URL('..', import.meta.url));
   for (const dir of parseWorkspacePackages(repoFile('pnpm-workspace.yaml'))) {
     const pkg = JSON.parse(repoFile(`${dir}/package.json`));
+    const root = join(repo, dir);
+    const targets = new Set();
+    const collect = node => {
+      if (typeof node === 'string') {
+        if (node.startsWith('./')) targets.add(node);
+        return;
+      }
+      if (node && typeof node === 'object')
+        Object.values(node).forEach(collect);
+    };
+    collect(pkg.exports);
+    if (typeof pkg.main === 'string') targets.add(pkg.main);
+    const types = new Map();
+    for (const target of targets) {
+      types.set(target, await nearestType(root, target, pkg.type));
+    }
+    const found = manifestViolations(
+      dir,
+      pkg,
+      new Map(),
+      target => types.get(target) ?? pkg.type ?? 'commonjs'
+    ).filter(v => v.includes('#688'));
     assert.deepEqual(
-      entryViolations(pkg),
+      found,
       [],
       `${dir} advertises an entry point Node cannot load as the format it claims`
     );

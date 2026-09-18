@@ -169,6 +169,10 @@ export default commandLineArgs => {
           // load-time throw and an empty namespace object have been observed —
           // and the empty one is the worse case, because nothing fails.
           entryFileNames: 'constants.cjs',
+          // Same reason as the main bundle's: a split chunk under rollup's
+          // default `[name]-[hash].js` would be required by a `.cjs` and read
+          // as ESM.
+          chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
           // On this output rather than the entry's, because what it writes
           // serves the `require` condition specifically.
