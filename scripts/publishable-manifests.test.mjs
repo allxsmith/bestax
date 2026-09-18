@@ -1213,6 +1213,39 @@ test('a dual pair nested under a wrapper condition is judged', () => {
   assert.ok(found[0].includes('exports["."].node.require'), found[0]);
 });
 
+test('a null target blocks the subpath rather than falling through', () => {
+  // Node stops on `null` and throws ERR_PACKAGE_PATH_NOT_EXPORTED; it does not
+  // try the next key. Continuing past it flagged a target require() never
+  // reaches.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', require: null, default: './x.js' } },
+    }),
+    []
+  );
+});
+
+test('module-sync is recognised however it is spelled', () => {
+  // It is ordinarily written with a `types` of its own, so the key that names
+  // the file is `default`. Reading the exemption off that leaf key judged an
+  // ESM target Node serves to require() by design.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': {
+          'module-sync': { types: './m.d.ts', default: './m.js' },
+          require: './m.cjs',
+        },
+      },
+    }),
+    []
+  );
+});
+
 test('module-sync serves ESM by contract and is not judged', () => {
   // It matches a `require()`, but it exists so that require() can be handed an
   // ES module deliberately — a `.js` target there is the condition working.

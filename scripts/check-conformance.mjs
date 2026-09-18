@@ -2128,6 +2128,9 @@ const REQUIRE_MATCHING = new Set([
  */
 const REQUIRE_MATCHING_ESM = new Set(['module-sync']);
 
+/** A `null` target: the subpath is blocked, and Node throws rather than continuing. */
+const BLOCKED = Symbol('blocked');
+
 export function manifestViolations(dir, pkg, siblings = new Map()) {
   if (pkg?.private) return [];
 
@@ -2319,15 +2322,14 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   //
   // Returns the target `require()` lands on, with the condition key that served
   // it, or undefined when the map maps nothing for require.
-  const resolveRequire = (node, label, viaKey) => {
+  const resolveRequire = (node, label, via) => {
     if (typeof node === 'string') {
-      return node.startsWith('./')
-        ? { label, target: node, viaKey }
-        : undefined;
+      return node.startsWith('./') ? { label, target: node, via } : undefined;
     }
     if (Array.isArray(node)) {
       for (const [i, value] of node.entries()) {
-        const hit = resolveRequire(value, `${label}.${i}`, viaKey);
+        if (value === null) continue;
+        const hit = resolveRequire(value, `${label}.${i}`, via);
         if (hit) return hit;
       }
       return undefined;
@@ -2335,7 +2337,12 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
     if (!node || typeof node !== 'object') return undefined;
     for (const key of Object.keys(node)) {
       if (!REQUIRE_MATCHING.has(key)) continue;
-      const hit = resolveRequire(node[key], `${label}.${key}`, key);
+      // `null` is not "no mapping, keep looking": it BLOCKS the subpath, and
+      // Node throws ERR_PACKAGE_PATH_NOT_EXPORTED rather than trying the next
+      // key. Falling through flagged a target `require()` never reaches.
+      if (node[key] === null) return BLOCKED;
+      const hit = resolveRequire(node[key], `${label}.${key}`, [...via, key]);
+      if (hit === BLOCKED) return BLOCKED;
       if (hit) return hit;
     }
     return undefined;
@@ -2359,9 +2366,14 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
 
   const judge = (node, label, sink) => {
     if (!distinguishes(node)) return;
-    const hit = resolveRequire(node, label, undefined);
-    if (!hit || REQUIRE_MATCHING_ESM.has(hit.viaKey)) return;
-    sink.push([hit.label, hit.target, hit.viaKey]);
+    const hit = resolveRequire(node, label, []);
+    if (!hit || hit === BLOCKED) return;
+    // Asked of the whole PATH, not the leaf key: `module-sync` is ordinarily
+    // spelled with a `types` of its own, so the key naming the file is
+    // `default`, and reading only that judged an ESM target Node serves to
+    // `require()` by design.
+    if (hit.via.some(key => REQUIRE_MATCHING_ESM.has(key))) return;
+    sink.push([hit.label, hit.target, hit.via.at(-1)]);
   };
 
   const exportsNode = pkg?.exports;

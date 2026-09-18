@@ -23,10 +23,9 @@
  * typechecking a real consumer rather than asserting the map's shape and
  * hoping.
  *
- * The main `.` entry is deliberately not loaded here: it carries the same
- * defect, it is tracked as #688, and its bundle is not React-free, so the last
- * assertion below does not generalise to it. Extending this file is the shape
- * that fix should take.
+ * The root `.` entry is not loaded here: its bundle is not React-free, so the
+ * last assertion below does not generalise to it. It has a load test of its
+ * own in `publishable-manifests.test.mjs`, added with the #688 fix.
  */
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
