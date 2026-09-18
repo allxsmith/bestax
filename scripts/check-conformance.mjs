@@ -2137,7 +2137,7 @@ const BLOCKED = Symbol('blocked');
  * file instead, so the mainstream dual layout — `require` pointing into a
  * `dist/commonjs/` that carries its own `{"type":"commonjs"}` — loads perfectly
  * while a root-only reading calls it broken. Judging this repo's manifests that
- * way flagged 25 installed packages that load fine.
+ * way failed real published packages that resolve correctly.
  *
  * Seeing the nested manifest needs the filesystem, which this function
  * deliberately does not touch, so the question is asked through a callback: the
@@ -2366,9 +2366,11 @@ export function manifestViolations(
     return undefined;
   };
 
-  // Whether the map says anywhere that it distinguishes the two formats. With
-  // no `require` or `import` key at all, the same `.js` target is what an
-  // honestly ESM-only package writes and there is nothing to tell them apart.
+  // Whether the map says anywhere that it distinguishes the two formats. An
+  // explicit `require` key is the only thing that says so without inferring:
+  // `import` beside `default` is equally the shape of an ESM-only package
+  // naming one file twice, and reading it as dual told such packages to ship a
+  // `.cjs` they have no build for.
   // Asked over the whole subtree rather than at one level, because the pair can
   // sit inside a `node` wrapper, which is the shape Node's own docs use.
   const distinguishes = node => {
@@ -2413,8 +2415,8 @@ export function manifestViolations(
   // package distinguishes the formats — so every shape where it could be judged
   // is one where the answer is a guess. Judging it whenever `exports` resolved a
   // require target got this exactly backwards: that is the one case Node
-  // guarantees `main` is unread, and it is what flagged `node-emoji` and
-  // `unplugin`, whose maps are correct.
+  // guarantees `main` is unread, and it failed published packages whose maps
+  // are correct.
   for (const [where, target, viaKey] of requireTargets) {
     if (!target.endsWith('.js')) continue;
     // Asked per TARGET, not once for the package: the file's own directory
@@ -2617,6 +2619,39 @@ export function hookScripts(pkg) {
   return [...referenced];
 }
 
+/**
+ * The module type Node would read for `target` inside the package at `root`.
+ *
+ * Node takes it from the NEAREST `package.json` above the file, not the
+ * package's own: a `dist/commonjs/` carrying its own manifest makes a `.js`
+ * there CommonJS however the root is declared. The nearest manifest wins even
+ * when it declares no `type` at all — a `dist/package.json` holding only
+ * `sideEffects` still stops the search, and the absent `type` means CommonJS.
+ * Climbing past it read those targets as ESM and failed packages that load.
+ *
+ * Exported so the walk has a test of its own: it is the one part of this rule
+ * that touches the filesystem, and the branch that matters only runs where a
+ * nested manifest exists, which no workspace package has today.
+ */
+export async function nearestType(root, target, rootType) {
+  let at = dirname(join(root, target));
+  while (at.startsWith(root) && at !== root) {
+    try {
+      const nested = JSON.parse(
+        await readFile(join(at, 'package.json'), 'utf8')
+      );
+      // Present and parseable ends the search, `type` or no `type`.
+      if (nested && typeof nested === 'object') {
+        return typeof nested.type === 'string' ? nested.type : 'commonjs';
+      }
+    } catch {
+      // No manifest here, or an unreadable one: keep walking up.
+    }
+    at = dirname(at);
+  }
+  return rootType ?? 'commonjs';
+}
+
 async function checkPublishableManifests() {
   const violations = [];
 
@@ -2663,27 +2698,8 @@ async function checkPublishableManifests() {
   );
 
   for (const { dir, pkg } of manifests) {
-    // Answer the format question by LOOKING, which the pure function cannot.
-    // Node reads `type` from the nearest package.json above the file, so a
-    // `dist/commonjs/` carrying its own manifest makes a `.js` target there
-    // CommonJS and correct. Walk up from the target to the package root and
-    // take the first `type` found; fall back to the root's own.
-    const typeOfTarget = async target => {
-      let at = dirname(join(REPO, dir, target));
-      const root = join(REPO, dir);
-      while (at.startsWith(root) && at !== root) {
-        try {
-          const nested = JSON.parse(
-            await readFile(join(at, 'package.json'), 'utf8')
-          );
-          if (nested && typeof nested.type === 'string') return nested.type;
-        } catch {
-          // No manifest here, or an unreadable one: keep walking up.
-        }
-        at = dirname(at);
-      }
-      return pkg?.type ?? 'commonjs';
-    };
+    const typeOfTarget = target =>
+      nearestType(join(REPO, dir), target, pkg?.type);
     // Resolved ahead of the call because manifestViolations is synchronous and
     // pure, which is what lets the fixtures drive it. Every "./…" string in the
     // manifest is looked up rather than only the ones that will be judged —

@@ -15,6 +15,8 @@
  * instead of switching a rule off.
  */
 import { createRequire } from 'node:module';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -24,6 +26,7 @@ import assert from 'node:assert/strict';
 
 import {
   SIBLING_RUNTIME_DEPS,
+  nearestType,
   dependencyTarget,
   hookScripts,
   manifestViolations,
@@ -1349,8 +1352,7 @@ test('main is never judged', () => {
   // An `exports` map means Node does not read `main` at all, and without one
   // there is no `require` condition to say the package distinguishes the
   // formats. Judging it whenever `exports` resolved a require target had it
-  // exactly backwards, and flagged real packages (`node-emoji`, `unplugin`)
-  // whose maps are correct.
+  // exactly backwards, and failed published packages whose maps are correct.
   assert.deepEqual(
     entryViolations({
       name: 'x',
@@ -1545,4 +1547,82 @@ test('the root entry really loads through both conditions', async () => {
       .sort(),
     'the require and import conditions export different names'
   );
+});
+
+/**
+ * The nearest-manifest walk (#688).
+ *
+ * This is the one part of the rule that reads the filesystem, and the branch
+ * that matters — a manifest sitting below the package root — is one no workspace
+ * package has, so nothing else here would ever execute it. Driven against real
+ * directories rather than a stubbed reader, because what is being checked is
+ * agreement with Node, and Node reads the disk.
+ */
+const scratch = () => mkdtempSync(join(tmpdir(), 'nearest-type-'));
+
+test('nearestType falls back to the package root when nothing is nested', async () => {
+  const root = scratch();
+  mkdirSync(join(root, 'dist'), { recursive: true });
+  assert.equal(await nearestType(root, './dist/index.js', 'module'), 'module');
+  assert.equal(
+    await nearestType(root, './dist/index.js', undefined),
+    'commonjs'
+  );
+});
+
+test('nearestType takes a nested manifest over the root', async () => {
+  const root = scratch();
+  mkdirSync(join(root, 'dist', 'commonjs'), { recursive: true });
+  writeFileSync(
+    join(root, 'dist', 'commonjs', 'package.json'),
+    JSON.stringify({ type: 'commonjs' })
+  );
+  // The mainstream dual layout: the root says module, the target is CommonJS.
+  assert.equal(
+    await nearestType(root, './dist/commonjs/index.js', 'module'),
+    'commonjs'
+  );
+  // A sibling directory with no manifest of its own still reads as the root.
+  mkdirSync(join(root, 'dist', 'esm'), { recursive: true });
+  assert.equal(
+    await nearestType(root, './dist/esm/index.js', 'module'),
+    'module'
+  );
+});
+
+test('a nested manifest with no type still ends the search', async () => {
+  // Node stops at the nearest package.json whether or not it declares `type`,
+  // and an absent `type` means CommonJS. Climbing past a `sideEffects`-only
+  // dist manifest read its targets as ESM and failed a package that loads —
+  // verified against Node before fixing.
+  const root = scratch();
+  mkdirSync(join(root, 'dist'), { recursive: true });
+  writeFileSync(
+    join(root, 'dist', 'package.json'),
+    JSON.stringify({ sideEffects: false })
+  );
+  assert.equal(
+    await nearestType(root, './dist/index.js', 'module'),
+    'commonjs'
+  );
+});
+
+test('nearestType ignores an unreadable nested manifest and keeps climbing', async () => {
+  const root = scratch();
+  mkdirSync(join(root, 'a', 'b'), { recursive: true });
+  writeFileSync(join(root, 'a', 'b', 'package.json'), '{ this is not json');
+  writeFileSync(
+    join(root, 'a', 'package.json'),
+    JSON.stringify({ type: 'commonjs' })
+  );
+  assert.equal(await nearestType(root, './a/b/index.js', 'module'), 'commonjs');
+});
+
+test('nearestType never climbs above the package root', async () => {
+  // The parent of a scratch dir is a temp directory that may hold anything;
+  // reading a manifest there would attribute someone else's `type` to this
+  // package.
+  const root = join(scratch(), 'inner');
+  mkdirSync(join(root, 'dist'), { recursive: true });
+  assert.equal(await nearestType(root, './dist/index.js', 'module'), 'module');
 });
