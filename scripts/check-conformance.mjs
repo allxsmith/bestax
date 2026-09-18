@@ -2473,6 +2473,12 @@ export function manifestViolations(
   // guarantees `main` is unread, and it failed published packages whose maps
   // are correct.
   for (const [where, target, via] of requireTargets) {
+    // `.js` only, deliberately. A `.mjs` behind a `require` condition fails the
+    // same way — Node reads it as ESM whatever the scope says — but an author
+    // who typed `.mjs` cannot have believed it was CommonJS, whereas `.js` is
+    // the spelling whose meaning depends on the scope, which is the trap this
+    // rule exists for. Recorded so the case reads as considered rather than
+    // missed; widening it is a judgement call, not a bug fix.
     if (!target.endsWith('.js')) continue;
     // Asked per TARGET, not once for the package: the file's own directory
     // may carry a manifest that overrides the root.
@@ -2489,18 +2495,23 @@ export function manifestViolations(
     // file is what is wrong. Without one, `require()` reached a condition that
     // serves `import` too, and renaming its target would break the ESM side:
     // the fault there is the order.
+    const reached = via.length
+      ? `\`require()\` matches \`${via[0]}\` before reaching any \`require\` condition`
+      : `\`require()\` reaches this before any \`require\` condition`;
     const remedy = via.includes('require')
       ? `Emit it with a \`.cjs\` extension and point ${where} at that — ` +
-        `the extension wins over \`type\`.`
-      : `\`require()\` matches \`${via[0]}\` before reaching any \`require\` ` +
-        `condition. Put a \`require\` condition ahead of it naming a ` +
+        `the extension wins over the scope's \`type\`.`
+      : `${reached}. Put a \`require\` condition ahead of it naming a ` +
         `\`.cjs\` bundle — renaming this target would break the \`import\` ` +
         `side, which resolves it too.`;
+    // The scope, not the package: the format comes from the NEAREST manifest
+    // above the file, so naming the package's own `type` here would contradict
+    // the lookup in exactly the case it was added for — a target inside a
+    // directory whose own manifest overrides the root.
     violations.push(
-      `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
-        `is \`"type": "module"\`, so Node reads a \`.js\` file as ESM whatever ` +
-        `the bundle actually contains, and a CommonJS bundle cannot load that ` +
-        `way. ${remedy} (#688)`
+      `${dir}/package.json: ${where} points at \`${target}\`, which is in ESM ` +
+        `scope, so Node reads it as an ES module whatever the bundle actually ` +
+        `contains, and a CommonJS bundle cannot load that way. ${remedy} (#688)`
     );
   }
 

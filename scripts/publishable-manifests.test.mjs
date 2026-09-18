@@ -1055,6 +1055,10 @@ test('every declared runtime sibling matches the real manifests', () => {
  * Fixture-driven like the rules above, plus one test against the real
  * manifests so the repo cannot drift back into it.
  */
+// Every fixture below came from a disagreement `scripts/exports-resolve-fuzz.mjs`
+// found between this rule's resolver and a real `require()`. That script is the
+// evidence these fixtures summarise: run it when the resolver is edited, since
+// a hand-written corpus only covers the shapes someone already thought of.
 const entryViolations = pkg =>
   manifestViolations('pkg', pkg).filter(v => v.includes('#688'));
 
@@ -1337,6 +1341,10 @@ test('segment validity follows Node, including separators and encodings', () => 
     './%2e%2e/esc.js',
     './node%5fmodules/x.js',
     './%6eode_modules/x.js',
+    // The separator the comment on INVALID_SEGMENT names, and the reason a
+    // split on `/` was not equivalent — untested until now.
+    './a\\..\\b.js',
+    './a\\node_modules\\x.js',
   ]) {
     assert.deepEqual(
       entryViolations({
