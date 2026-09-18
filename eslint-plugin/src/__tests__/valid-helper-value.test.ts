@@ -48,6 +48,19 @@ ruleTester.run('valid-helper-value', rule, {
     // Duplicate JSX attributes are legal JavaScript and React resolves them
     // last-wins, so only the winner is judged. This renders `m="4"`.
     imported('Box', '<Box m="bogus" m="4" />'),
+    // The `BulmaOtherProps` family, every accepted value. These were the last
+    // helper props with no tuple to check against, and the single-value ones
+    // (`overflow`, `radius`, `shadow`) are where an off-by-one table entry
+    // would show up first.
+    imported('Box', '<Box float="left" overflow="clipped" />'),
+    imported('Box', '<Box float="right" interaction="unselectable" />'),
+    imported('Box', '<Box interaction="clickable" cursor="pointer" />'),
+    imported('Box', '<Box cursor="help" radius="radiusless" />'),
+    imported('Box', '<Box shadow="shadowless" responsive="mobile" />'),
+    imported('Box', '<Box responsive="narrow" />'),
+    // The boolean members of the same interface take no value, so they must
+    // stay out of the table: a shorthand on one of them is correct usage.
+    imported('Box', '<Box overlay skeleton clearfix relative fullHeight />'),
   ],
   invalid: [
     {
@@ -142,6 +155,48 @@ ruleTester.run('valid-helper-value', rule, {
       // Two bad props on one element report twice.
       code: imported('Box', '<Box mt="huge" textSize="0" />'),
       errors: [{ messageId: 'invalid' }, { messageId: 'invalid' }],
+    },
+    {
+      // The CSS value rather than Bulma's, on the prop whose name is the CSS
+      // property. `useOtherClasses` drops it and renders no float at all.
+      code: imported('Box', '<Box float="center" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // `overflow` takes only the one value Bulma ships a helper for, so
+      // every CSS overflow keyword renders nothing.
+      code: imported('Box', '<Box overflow="scroll" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      code: imported('Box', '<Box interaction="hover" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // A CSS cursor keyword. `cursor` accepts the two Bulma has classes for,
+      // and those two share no class stem, which is why the library maps them
+      // rather than building the class from the value.
+      code: imported('Box', '<Box cursor="grab" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // Reads as "round the corners" and does the opposite of nothing: the
+      // prop exists only to REMOVE the radius.
+      code: imported('Box', '<Box radius="rounded" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // A viewport name, which `responsive` is not: it takes the two column
+      // and table modifiers, and `validViewports` is a different axis.
+      code: imported('Box', '<Box responsive="tablet" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // The shape these props invite, because their one value reads like a
+      // boolean. `<Box shadow />` looks like a request for a shadow and is
+      // matched against strings, so nothing renders either way.
+      code: imported('Box', '<Box shadow />'),
+      errors: [{ messageId: 'shorthand' }],
     },
   ],
 });

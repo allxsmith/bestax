@@ -151,6 +151,8 @@ Reports helper values the library will drop.
 <Box textSize="8" />         // ✗ the scale is 1–7
 <Box mt="1rem" />            // ✗ the scale is 0–6 and auto
 <Box textColor="blue" />     // ✗ not a Bulma colour
+<Box float="center" />       // ✗ float pulls left or right
+<Box shadow />               // ✗ reads as a boolean; the value is `shadowless`
 ```
 
 The valid values are read from the library's own exported tuples at lint time,
@@ -159,13 +161,9 @@ plugin. Those tuples come from the copy of the library this plugin resolves,
 which in an ordinary deduped install is the one your app uses; across a major
 bump it may not be, so keep the two in step.
 
-Two families are outside its reach, both knowingly. Component-specific `color`
-props have their own unions, so `<Button color="ghost">` is correct and the
-value rule has no business reporting it. And the `BulmaOtherProps` helpers
-(`float`, `overflow`, `interaction`, `cursor`, `radius`, `shadow`,
-`responsive`) are dropped just as silently by the library, but their values
-exist only as inline unions with no exported tuple to check against, so they
-are not checked yet.
+One family is outside its reach, knowingly: component-specific `color` props
+have their own unions, so `<Button color="ghost">` is correct and the value
+rule has no business reporting it.
 
 It knows the documented extras, so these are all accepted:
 

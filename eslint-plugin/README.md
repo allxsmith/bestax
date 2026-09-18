@@ -137,13 +137,9 @@ package. The version those tuples come from is the copy of
 install is the same one your app uses; across a major bump it may not be, so
 keep the two in step.
 
-Two families are outside its reach, both knowingly. Component-specific `color`
-props have their own unions, so `<Button color="ghost">` is correct and
-reporting it would be worse than reporting nothing. And the `BulmaOtherProps`
-helpers (`float`, `overflow`, `interaction`, `cursor`, `radius`, `shadow`,
-`responsive`) are dropped just as silently by the library, but their values
-exist only as inline unions with no exported tuple to check against, so they
-are not checked yet.
+One family is outside its reach, knowingly: component-specific `color` props
+have their own unions, so `<Button color="ghost">` is correct and reporting it
+would be worse than reporting nothing.
 
 ### no-deprecated-props
 
