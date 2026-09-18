@@ -1437,31 +1437,35 @@ test('both runtimes are judged, and neither reports the other twice', () => {
   assert.equal(shared.length, 1, shared.join('\n'));
 });
 
-test('a require nested under module-sync is still judged', () => {
-  // `module-sync` promises an ES module, which is why what it serves is
-  // exempt — but a `require` key below it names a CommonJS target explicitly,
-  // and that promise does not cover it.
+test('a require below module-sync is exempt, because it loads', () => {
+  // An earlier round asked for the opposite, and running the shape settled it:
+  // `{ "module-sync": { "require": "./b.js" }, "require": "./c.cjs" }` loads
+  // `b.js` on a runtime that matches the condition and `c.cjs` on one that does
+  // not. `module-sync` promises exactly that require() of an ES module works
+  // here, so nothing under it is a failure — and the older runtime's own
+  // resolution is judged separately.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { 'module-sync': { require: './b.js' }, require: './c.cjs' },
+      },
+    }),
+    []
+  );
+
+  // What IS judged behind the condition is the target the older runtime reaches
+  // when that target is itself broken.
   const found = entryViolations({
     name: 'x',
     type: 'module',
     exports: {
-      '.': { 'module-sync': { require: './b.js' }, require: './a.cjs' },
+      '.': { 'module-sync': { require: './b.js' }, require: './broken.js' },
     },
   });
   assert.equal(found.length, 1, found.join('\n'));
-  assert.ok(found[0].includes('module-sync'), found[0]);
-
-  // The exemption still holds for everything the condition does promise.
-  for (const ms of ['./m.js', { types: './m.d.ts', default: './m.js' }]) {
-    assert.deepEqual(
-      entryViolations({
-        name: 'x',
-        type: 'module',
-        exports: { '.': { 'module-sync': ms, require: './m.cjs' } },
-      }),
-      []
-    );
-  }
+  assert.ok(found[0].includes('broken.js'), found[0]);
 });
 
 test('an array of nothing but blockers blocks the subpath', () => {
@@ -1782,6 +1786,30 @@ test('every entry point the manifest advertises is emitted in that format', asyn
     }
   }
   assert.ok(emitted.size > 0, 'rollup.config.js emits no named entry points');
+
+  // Chunks, not just entries. A CommonJS output that splits under rollup's
+  // default `[name]-[hash].js` would have a `.cjs` requiring files Node reads
+  // as ESM — this issue again, one level down. The guards against that were
+  // prose only: deleting either `chunkFileNames` left the whole suite green.
+  const cjsChunks = [];
+  for (const entry of rollup) {
+    for (const output of [].concat(entry.output ?? [])) {
+      if (!output.entryFileNames || output.format !== 'cjs') continue;
+      cjsChunks.push([output.entryFileNames, output.chunkFileNames]);
+    }
+  }
+  assert.ok(
+    cjsChunks.length > 0,
+    'no CommonJS outputs found in rollup.config.js'
+  );
+  for (const [entryName, chunkName] of cjsChunks) {
+    assert.ok(
+      typeof chunkName === 'string' && chunkName.endsWith('.cjs'),
+      `the CommonJS output emitting ${entryName} names its chunks ` +
+        `${chunkName ?? "'[name]-[hash].js' (rollup's default)"}, which Node ` +
+        `would read as ESM when required from a .cjs`
+    );
+  }
 
   // `require` must land on a CommonJS bundle and `import` on an ES one. Walked
   // rather than read off `exports['.']`, since `./constants` spells both as

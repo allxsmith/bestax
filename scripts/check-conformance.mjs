@@ -2459,12 +2459,15 @@ export function manifestViolations(
     // on exemption missed the case where the modern resolution BLOCKS — a
     // `module-sync` of `null` or an invalid target — while the older runtime
     // skips the key and lands on a real failure behind it.
-    const exempt = hit => {
-      const from = hit.via.findIndex(key => REQUIRE_MATCHING_ESM.has(key));
-      // A `require` key BELOW the condition names a CommonJS target
-      // explicitly, which the condition's ESM promise does not cover.
-      return from !== -1 && !hit.via.slice(from + 1).includes('require');
-    };
+    // Anything under `module-sync` is exempt, including a `require` key below
+    // it. That carve-out was tried and is wrong: the condition's promise is
+    // that this runtime supports `require()` of an ES module, so what it serves
+    // LOADS — checked in both modes, where
+    // `{ "module-sync": { "require": "./b.js" }, "require": "./c.cjs" }` loads
+    // `b.js` on a modern runtime and `c.cjs` on one without the condition. The
+    // older runtime's own resolution is judged separately below, which is where
+    // a genuine failure behind the condition shows up.
+    const exempt = hit => hit.via.some(key => REQUIRE_MATCHING_ESM.has(key));
 
     const found = [];
     const modern = resolveRequire(node, label, []);
