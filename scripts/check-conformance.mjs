@@ -2268,49 +2268,76 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   // what `.js` means. A `"type": "module"` package's `.js` is ESM whatever a
   // bundler wrote into it, so a CommonJS bundle at `dist/index.cjs.js` cannot
   // load through `require` — the `require(...)` calls inside it are evaluated
-  // in module scope. Only the extension escapes it: `.cjs` is CommonJS and
-  // `.mjs` is ESM regardless of `type`. The mirror is a real failure too, so
-  // both directions are checked rather than the one that bit (#688).
+  // in module scope. Only the extension escapes it: `.cjs` is CommonJS
+  // regardless of `type` (#688).
+  //
+  // Only the `require` direction is judged. The mirror looks symmetrical and is
+  // not: Node's `import` condition matches regardless of the target's format,
+  // and importing a CommonJS file is legal, so a `.js` import target says
+  // nothing about whether the file loads. Judging it failed a package serving
+  // one CJS file to both conditions, and advised a rename that would have
+  // broken it.
   //
   // Worth knowing for anyone reading a failure: this does not always throw.
-  // Depending on the Node version a consumer can instead get an empty
-  // namespace object, which is the worse outcome, because nothing fails and
-  // the package merely appears to export nothing.
+  // Depending on the Node version a consumer can instead get an empty namespace
+  // object, which is worse, because nothing fails and the package merely
+  // appears to export nothing.
   const esm = pkg?.type === 'module';
-  const conditionEntries = [];
-  if (typeof pkg?.main === 'string') {
-    // `main` is the legacy require path, so it is read as CommonJS.
-    conditionEntries.push(['main', pkg.main, 'require']);
-  }
-  const walkExports = (node, path) => {
-    if (typeof node === 'string') return;
+  const requireTargets = [];
+
+  // A format condition fixes how everything BELOW it is read, so it has to be
+  // carried down the recursion. `"require": { "types": …, "default": … }` is the
+  // ordinary dual-package spelling — the shape bulma-ui's own `./constants`
+  // subpath uses — and a walk that only recorded string-valued `require` keys
+  // saw nothing in it. `types` names a declaration file and is not judged here.
+  const walkExports = (node, label, format) => {
+    if (typeof node === 'string') {
+      if (format === 'require') requireTargets.push([label, node]);
+      return;
+    }
     if (!node || typeof node !== 'object') return;
+    const keys = Object.keys(node);
+    // `default` is the branch `require()` falls through to when the object
+    // offers `import` and no `require` of its own, so there it IS a require
+    // path. With a `require` sibling present, that sibling matches first and
+    // `default` is serving some other condition.
+    const defaultIsRequire =
+      keys.includes('import') && !keys.includes('require');
     for (const [key, value] of Object.entries(node)) {
-      if (typeof value === 'string') {
-        if (key === 'require' || key === 'import') {
-          conditionEntries.push([`exports${path}.${key}`, value, key]);
-        }
-      } else {
-        walkExports(value, `${path}[${JSON.stringify(key)}]`);
-      }
+      if (key === 'types') continue;
+      const seg = key.startsWith('.') ? `[${JSON.stringify(key)}]` : `.${key}`;
+      const inner =
+        key === 'require' || (key === 'default' && defaultIsRequire)
+          ? 'require'
+          : key === 'import'
+            ? 'import'
+            : format;
+      walkExports(value, `${label}${seg}`, inner);
     }
   };
-  walkExports(pkg?.exports, '');
+  walkExports(pkg?.exports, 'exports', undefined);
 
-  for (const [where, target, condition] of conditionEntries) {
-    // A `require` target is CommonJS; an `import` target is ESM. Each is
-    // misread only when `type` disagrees with the extension.
-    const wantsCjs = condition === 'require';
-    if (wantsCjs !== esm || !target.endsWith('.js')) continue;
-    const fix = wantsCjs ? '.cjs' : '.mjs';
-    violations.push(
-      `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
-        `is \`"type": "${pkg?.type ?? 'commonjs'}"\`, so Node reads a \`.js\` file as ` +
-        `${esm ? 'ESM' : 'CommonJS'} whatever the bundle actually contains. ` +
-        `A ${wantsCjs ? 'CommonJS' : 'ESM'} bundle cannot load that way. ` +
-        `Emit it with a \`${fix}\` extension and point ${where} at that — the ` +
-        `extension wins over \`type\` (#688).`
-    );
+  // `main` is NOT simply a require path: with no `exports` map, Node's ESM
+  // resolver reaches it too, through legacyMainResolve, so `"type": "module"`
+  // plus `"main": "dist/index.js"` is the ordinary ESM-only package and
+  // perfectly correct. It is judged as CommonJS only when the manifest also
+  // declares a require path — that is what makes the package dual, and makes
+  // `main` the entry old resolvers and bundlers take as CommonJS.
+  if (typeof pkg?.main === 'string' && requireTargets.length) {
+    requireTargets.push(['main', pkg.main]);
+  }
+
+  if (esm) {
+    for (const [where, target] of requireTargets) {
+      if (!target.endsWith('.js')) continue;
+      violations.push(
+        `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
+          `is \`"type": "module"\`, so Node reads a \`.js\` file as ESM whatever ` +
+          `the bundle actually contains, and a CommonJS bundle cannot load that ` +
+          `way. Emit it with a \`.cjs\` extension and point ${where} at that — ` +
+          `the extension wins over \`type\` (#688).`
+      );
+    }
   }
 
   return violations;

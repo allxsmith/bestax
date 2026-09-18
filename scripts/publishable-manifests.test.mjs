@@ -1077,21 +1077,111 @@ test('a type:module package requiring a .cjs entry is fine', () => {
   );
 });
 
-test('the mirror case is caught too: a commonjs package importing a .js entry', () => {
-  // Same failure in the other direction — `.js` under the default `type` is
-  // CommonJS, so an ESM bundle cannot load through `import`.
-  const found = entryViolations({
-    name: 'x',
-    exports: { '.': { import: './dist/index.esm.js' } },
-  });
-  assert.equal(found.length, 1, found.join('\n'));
-  assert.ok(found[0].includes('`.mjs`'));
+test('the import direction is deliberately not judged', () => {
+  // It looks symmetrical and is not. Node's `import` condition matches
+  // regardless of the target's format, and importing a CommonJS file is legal,
+  // so a `.js` import target says nothing about whether the file loads. Judging
+  // it failed a CommonJS package serving one file to both conditions, and
+  // advised a `.mjs` rename that would have broken it.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      exports: { '.': { import: './index.js', require: './index.js' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      exports: { '.': { import: './dist/index.esm.js' } },
+    }),
+    []
+  );
 });
 
-test('a commonjs package may require a .js entry, and main is a require path', () => {
-  // `main` is how `require` finds a package without an exports map, so it is
-  // judged as CommonJS. Under the default `type` a `.js` main is correct.
+test('default is a require path when it is the branch require() reaches', () => {
+  // `import` and `default` with no `require`: `require()` falls through to
+  // `default`, so a `.js` target there fails exactly like a spelled-out
+  // `require` would.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', default: './index.cjs.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].default'), found[0]);
+});
+
+test('default is not a require path when a require sibling outranks it', () => {
+  // `require` matches first, so `default` is serving some other condition and
+  // judging it would flag a correct manifest.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { import: './a.js', require: './a.cjs', default: './a.js' },
+      },
+    }),
+    []
+  );
+});
+
+test('a commonjs package may point main at a .js entry', () => {
   assert.deepEqual(entryViolations({ name: 'x', main: 'dist/index.js' }), []);
+});
+
+test('an ESM-only package may point main at a .js entry', () => {
+  // `main` is not simply a require path: with no `exports`, Node's ESM resolver
+  // reaches it through legacyMainResolve, so this is the ordinary ESM-only
+  // package. Judging `main` unconditionally reported it as broken, with advice
+  // that would have pointed an ESM entry at a `.cjs` file.
+  assert.deepEqual(
+    entryViolations({ name: 'x', type: 'module', main: 'dist/index.js' }),
+    []
+  );
+});
+
+test('main is judged once a require condition makes the package dual', () => {
+  // A declared `require` condition is what makes `main` the CommonJS entry that
+  // old resolvers and bundlers take.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    main: 'dist/index.cjs.js',
+    exports: { '.': { require: './dist/index.cjs' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('main points at'));
+});
+
+test('a require condition spelled as an object is walked into', () => {
+  // The standard dual-package shape, with per-condition types. A walk that
+  // recorded only string-valued `require` keys saw nothing here — the exact
+  // #688 defect, invisible to the gate meant to catch it.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': { require: { types: './d.d.cts', default: './dist/index.cjs.js' } },
+    },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require.default'), found[0]);
+});
+
+test('a types condition is never judged as code', () => {
+  // `types` names a declaration file, which has its own extension rules.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { types: './dist/types/index.d.ts', require: './x.cjs' },
+      },
+    }),
+    []
+  );
 });
 
 test('nested export conditions are walked, not just the top level', () => {
@@ -1115,4 +1205,65 @@ test('every published manifest loads through the condition it advertises', () =>
       `${dir} advertises an entry point Node cannot load as the format it claims`
     );
   }
+});
+
+test('every entry point the manifest advertises is emitted in that format', async () => {
+  // The manifest half of #688 is the conformance rule; this is the artifact
+  // half. Nothing in this suite builds the package, so the rule alone would let
+  // a rollup change ship a manifest promising a file the build no longer writes
+  // — or, worse, writes in the other format under the right name.
+  //
+  // The config is IMPORTED rather than pattern-matched, so this reads what
+  // rollup is actually configured to emit: a name matched by regex would pass
+  // while `entryFileNames` sat in the wrong output block.
+  const rollup = (await import('../bulma-ui/rollup.config.js')).default({});
+  const emitted = new Map();
+  for (const entry of rollup) {
+    for (const output of [].concat(entry.output ?? [])) {
+      if (output.entryFileNames)
+        emitted.set(output.entryFileNames, output.format);
+    }
+  }
+  assert.ok(emitted.size > 0, 'rollup.config.js emits no named entry points');
+
+  // `require` must land on a CommonJS bundle and `import` on an ES one. Walked
+  // rather than read off `exports['.']`, since `./constants` spells both as
+  // objects.
+  const expected = { require: 'cjs', import: 'esm' };
+  const pkg = JSON.parse(repoFile('bulma-ui/package.json'));
+  const checked = [];
+  const walk = (node, label, condition) => {
+    if (typeof node === 'string') {
+      if (!condition) return;
+      const name = basename(node);
+      // Only entries this build names; CSS and SCSS targets are not bundles.
+      if (!emitted.has(name)) return;
+      checked.push(label);
+      assert.equal(
+        emitted.get(name),
+        expected[condition],
+        `${label} points at ${name}, which rollup emits as ` +
+          `'${emitted.get(name)}' rather than '${expected[condition]}'`
+      );
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'types') continue;
+      const seg = key.startsWith('.') ? `[${JSON.stringify(key)}]` : `.${key}`;
+      walk(
+        value,
+        `${label}${seg}`,
+        key === 'require' || key === 'import' ? key : condition
+      );
+    }
+  };
+  walk(pkg.exports, 'exports', undefined);
+
+  // Fails closed: if the walk stops finding bundles, the assertions above stop
+  // running and nothing would notice.
+  assert.ok(
+    checked.length >= 4,
+    `only checked ${checked.length} entry points: ${checked.join(', ')}`
+  );
 });
