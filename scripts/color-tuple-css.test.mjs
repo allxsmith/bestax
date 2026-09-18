@@ -21,7 +21,10 @@
  * here rather than one.
  *
  * The component-modifier check is an equality, because the two sets partition
- * `validColors` exactly today, with no exceptions. The helper-class check is
+ * `validColors` exactly today, with no exceptions, and it is made per element
+ * rather than across the three: asking whether a colour is dead on ALL of them
+ * passes a colour Bulma ships on one and not the others, which would land in
+ * neither set while one element renders a dead modifier unwarned. The helper-class check is
  * narrower than it looks and it is worth saying why, rather than leaving the
  * next person to find out: the general form, "every colour the CSS names is in
  * the tuple", is not available from the stylesheet, because `has-text-` is a
@@ -114,8 +117,8 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // while `black-ter` warned, because only the black pair was declared.
     //
     // The two sets partition `validColors` exactly, with no exceptions, so
-    // this is an equality rather than a subset check: a colour is either
-    // backed by a rule on all three elements or declared unstyled.
+    // this is an equality rather than a subset check: on each element a
+    // colour is either backed by a rule or declared unstyled.
     assert.ok(
       existsSync(CSS),
       'bulma-ui/dist/bestax.css is absent, so the tuples cannot be compared ' +
@@ -125,16 +128,65 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     const colors = validColors();
     const declared = tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS');
 
-    const dead = colors.filter(color =>
-      MODIFIER_ELEMENTS.every(el => !shipsClass(css, `${el}.is-${color}`))
+    // PER ELEMENT, not across all three. An earlier version asked whether a
+    // colour was dead on every one of them, which holds only while the three
+    // agree: a colour Bulma shipped on `.hero` and not `.notification` would
+    // land in neither set, the equality would pass, and one element would
+    // render a dead modifier with no warning. They do agree today, since the
+    // three come off one upstream colour map, so this is the same assertion
+    // made for a reason rather than by luck — and it fails the moment they
+    // diverge, which is when the declaration needs a per-element shape.
+    for (const el of MODIFIER_ELEMENTS) {
+      const dead = colors.filter(
+        color => !shipsClass(css, `${el}.is-${color}`)
+      );
+      assert.deepEqual(
+        [...dead].sort(),
+        [...declared].sort(),
+        `UNSTYLED_MODIFIER_COLORS and the colours with no \`.${el}.is-…\` ` +
+          'rule disagree. A colour in the real set and not the declared one ' +
+          'renders a dead modifier with no warning, which is the silence the ' +
+          'warning exists to break; the reverse warns about a colour that ' +
+          'works. If the elements have genuinely diverged, this declaration ' +
+          'has to become per element before it can be true of all of them.'
+      );
+    }
+  });
+
+  it('shades exactly the colours that have component modifiers', () => {
+    // `colorShade` and `color` are judged independently by the lint rule, so
+    // `<Box textColor="white-bis" colorShade="15" />` passes while
+    // `useColorClasses` emits `has-text-white-bis-15`, which the stylesheet
+    // does not carry. That is a false negative rather than a wrong report, and
+    // the reason it stays one is this partition: the colours that take a shade
+    // are exactly the ones NOT declared unstyled, so the rule would need no
+    // new data to close it, only a cross-prop check. Asserting the partition
+    // is what keeps that true.
+    //
+    // A numeric shade is the probe, because the named ones collide with
+    // colour names: `has-text-grey-light` is the COLOUR `grey-light`, not
+    // `grey` shaded `light`, and a check that could not tell them apart
+    // reported `grey` as partly shadeable.
+    const css = readFileSync(CSS, 'utf8');
+    const colors = validColors();
+    const declared = new Set(
+      tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
+    const shades = tupleFrom(HELPERS, 'validColorShades');
+    const probe = shades.find(sh => /^\d+$/.test(sh));
+    assert.ok(probe, 'no numeric shade to probe with; the tuple changed shape');
+
+    const shadeable = colors
+      .filter(c => shipsClass(css, `has-text-${c}-${probe}`))
+      .sort();
     assert.deepEqual(
-      [...dead].sort(),
-      [...declared].sort(),
-      'UNSTYLED_MODIFIER_COLORS and the colours with no component-modifier ' +
-        'rule disagree. A colour in the real set and not the declared one ' +
-        'renders a dead modifier with no warning, which is the silence the ' +
-        'warning exists to break; the reverse warns about a colour that works.'
+      shadeable,
+      colors.filter(c => !declared.has(c)).sort(),
+      'the colours the stylesheet shades and the colours with a live ' +
+        'component modifier have diverged. They are the same set today, ' +
+        'which is what lets `UNSTYLED_MODIFIER_COLORS` stand in for both; if ' +
+        'they part company, the shade gap needs naming on its own rather ' +
+        'than borrowing that declaration.'
     );
   });
 

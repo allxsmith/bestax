@@ -112,6 +112,20 @@ const family = (
  * Where a prop name means something else ENTIRELY on some element, the safe
  * direction is not available and the table has to be told: see
  * `NOT_A_HELPER_PROP` below.
+ *
+ * KEYED BY PROP also means each prop is judged ALONE, and `colorShade` is
+ * where that shows. `<Box textColor="white-bis" colorShade="15" />` passes
+ * both entries and renders `has-text-white-bis-15`, which the stylesheet does
+ * not carry: only the colours with a live component modifier take a shade,
+ * which is the same set `UNSTYLED_MODIFIER_COLORS` is the complement of.
+ * Pre-existing for the greys and the black pair, widened by two when the
+ * white shades were added, and a false negative either way.
+ *
+ * Closing it needs no new data, only a cross-prop check, and
+ * `scripts/color-tuple-css.test.mjs` asserts the partition that makes that
+ * possible. It is left open here because a rule reading two attributes at
+ * once is a different shape from the rest of this table, and wants its own
+ * dogfooding rather than riding along.
  */
 export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
   ...SPACING_PROPS.map(p => [p, validSizes] as [string, readonly string[]]),
