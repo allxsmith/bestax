@@ -2114,10 +2114,11 @@ export const SIBLING_RUNTIME_DEPS = new Map([
  * not what `require()` resolves.
  */
 const REQUIRE_MATCHING = new Set([
-  'require',
-  'node',
   'node-addons',
+  'node',
   'module-sync',
+  'require',
+  'default',
 ]);
 
 export function manifestViolations(dir, pkg, siblings = new Map()) {
@@ -2297,51 +2298,57 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   const esm = pkg?.type === 'module';
   const requireTargets = [];
 
-  // A format condition fixes how everything BELOW it is read, so it has to be
-  // carried down the recursion. `"require": { "types": …, "default": … }` is the
-  // ordinary dual-package spelling — the shape bulma-ui's own `./constants`
-  // subpath uses — and a walk that only recorded string-valued `require` keys
-  // saw nothing in it. `types` names a declaration file and is not judged here.
-  const walkExports = (node, label, format, sink) => {
+  // Node resolves a conditions object by walking its keys IN ORDER and taking
+  // the first one that matches, so which target `require()` gets is a question
+  // about order, not about which keys are present. Reading them as an unordered
+  // set missed `{ "default": "./a.js", "require": "./a.cjs" }`, where `default`
+  // stands first and is what `require()` actually resolves.
+  //
+  // `types` is not in the matched set, so it is never mistaken for code, and a
+  // `require` nested inside `import` is unreachable because `import` is not a
+  // key `require()` matches.
+  const walkExports = (node, label, inRequire, sink) => {
     if (typeof node === 'string') {
-      if (format === 'require') sink.push([label, node]);
+      if (inRequire) sink.push([label, node]);
+      return;
+    }
+    if (Array.isArray(node)) {
+      // A fallback array: any entry can be the one that resolves.
+      node.forEach((value, i) =>
+        walkExports(value, `${label}.${i}`, inRequire, sink)
+      );
       return;
     }
     if (!node || typeof node !== 'object') return;
-    const keys = Object.keys(node);
-    // `default` is the branch `require()` falls through to — but only where
-    // nothing it also matches stands in front of it. `require` is not the only
-    // such condition: `node`, `node-addons` and `module-sync` all match a
-    // `require()`, so any of them resolves first and leaves `default` serving
-    // something else. And inside an `import` condition, `default` is import's
-    // own fallback, which `require()` never reaches. Judging those shapes
-    // failed correct manifests — the same error as inferring a format from the
-    // `import` condition: asking what a key is called instead of what Node
-    // matches ahead of it.
-    const defaultIsRequire =
-      format === undefined &&
-      keys.includes('import') &&
-      !keys.some(key => REQUIRE_MATCHING.has(key));
-    for (const [key, value] of Object.entries(node)) {
-      if (key === 'types') continue;
-      const seg = key.startsWith('.') ? `[${JSON.stringify(key)}]` : `.${key}`;
-      const inner =
-        key === 'require' || (key === 'default' && defaultIsRequire)
-          ? 'require'
-          : key === 'import'
-            ? 'import'
-            : format;
-      walkExports(value, `${label}${seg}`, inner, sink);
-    }
-  };
-  walkExports(pkg?.exports, 'exports', undefined, requireTargets);
 
-  // `main` is NOT simply a require path: with no `exports` map, Node's ESM
-  // resolver reaches it too, through legacyMainResolve, so `"type": "module"`
-  // plus `"main": "dist/index.js"` is the ordinary ESM-only package and
-  // perfectly correct. It is judged as CommonJS only when the manifest also
-  // declares a require path — that is what makes the package dual, and makes
-  // `main` the entry old resolvers and bundlers take as CommonJS.
+    const keys = Object.keys(node);
+    const subpaths = keys.filter(key => key.startsWith('.'));
+    if (subpaths.length) {
+      for (const key of subpaths) {
+        walkExports(
+          node[key],
+          `exports[${JSON.stringify(key)}]`,
+          inRequire,
+          sink
+        );
+      }
+      return;
+    }
+
+    // Before entering any condition, a map has to SAY it distinguishes the two
+    // formats before its targets can be judged. Without a `require` or `import`
+    // key the same `.js` target is what an honestly ESM-only package writes,
+    // and there is nothing to tell the two apart. Once inside a require branch
+    // that question is settled and every level below it resolves for `require`.
+    if (!inRequire && !keys.includes('require') && !keys.includes('import')) {
+      return;
+    }
+    const matched = keys.find(key => REQUIRE_MATCHING.has(key));
+    if (matched === undefined) return;
+    walkExports(node[matched], `${label}.${matched}`, true, sink);
+  };
+  walkExports(pkg?.exports, 'exports', false, requireTargets);
+
   // Judged against the ROOT entry only. A subpath declaring `require` says
   // nothing about `main`, which names the package's own entry — flagging
   // `main` because `./sub` is dual reported a correct manifest.
@@ -2352,7 +2359,7 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
         : pkg.exports
       : undefined;
   const rootRequire = [];
-  walkExports(rootExports, 'exports', undefined, rootRequire);
+  walkExports(rootExports, 'exports', false, rootRequire);
   if (typeof pkg?.main === 'string' && rootRequire.length) {
     requireTargets.push(['main', pkg.main]);
   }

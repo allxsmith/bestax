@@ -3,12 +3,13 @@
  * the exports actually arrive.
  *
  * This exists because prose was the only thing tying the rollup entry name to
- * the export-map target, and the same package proves that is not enough: its
- * main `require` condition points at `dist/index.cjs.js`, a `.js` file
- * carrying `exports.*` inside a `"type": "module"` package, so Node reads it
- * as ESM and the assignments never land. That has been shipping green because
- * nothing loaded it (#688). The `./constants` subpath had the identical defect
- * until it was emitted as `.cjs`.
+ * the export-map target, and the same package proves that is not enough: the
+ * root `require` condition pointed at `dist/index.cjs.js`, a `.js` file
+ * carrying `exports.*` inside a `"type": "module"` package, so Node read it as
+ * ESM and the assignments never landed (#688). The `./constants` subpath had
+ * the identical defect until it was emitted as `.cjs`. Both entries are loaded
+ * by a test now — this one, and its counterpart in
+ * `publishable-manifests.test.mjs` for the root.
  *
  * A file's extension decides its module type here, not the bundle's format, so
  * a rename that looks cosmetic silently empties an entry point. This test is

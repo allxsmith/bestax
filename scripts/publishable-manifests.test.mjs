@@ -1102,6 +1102,79 @@ test('the import direction is deliberately not judged', () => {
   );
 });
 
+test('condition ORDER decides the require path, not membership', () => {
+  // Node walks a conditions object in key order and takes the first match, so
+  // a `default` written above `require` is what `require()` actually resolves.
+  // Reading the keys as an unordered set left exactly that shape silent.
+  const first = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.equal(first.length, 1, first.join('\n'));
+  assert.ok(first[0].includes('exports["."].default'), first[0]);
+
+  // `node` matches a require() too, so it outranks a later `require`.
+  const second = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: './x.js', require: './x.cjs' } },
+  });
+  assert.equal(second.length, 1, second.join('\n'));
+  assert.ok(second[0].includes('exports["."].node'), second[0]);
+
+  // Written the right way round, the same targets are correct.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { require: './a.cjs', default: './a.js' } },
+    }),
+    []
+  );
+});
+
+test('a require nested inside import is unreachable and not judged', () => {
+  // `import` is not a key `require()` matches, so nothing below it resolves for
+  // require — the mirror of the over-reach this rule kept making.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: { require: './a.js' } } },
+    }),
+    []
+  );
+});
+
+test('a map that does not distinguish the formats is left alone', () => {
+  // Without a `require` or `import` key there is nothing to tell a CommonJS
+  // target from what an honestly ESM-only package writes, so both the bare
+  // string and a `default`-only map stay unjudged.
+  assert.deepEqual(
+    entryViolations({ name: 'x', type: 'module', exports: './index.js' }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { default: './index.js' } },
+    }),
+    []
+  );
+});
+
+test('an array fallback is judged entry by entry', () => {
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: ['./a.cjs', './b.js'] } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require.1'), found[0]);
+});
+
 test('default is a require path when it is the branch require() reaches', () => {
   // `import` and `default` with no `require`: `require()` falls through to
   // `default`, so a `.js` target there fails exactly like a spelled-out
@@ -1224,9 +1297,9 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   for (const entry of rollup) {
     for (const output of [].concat(entry.output ?? [])) {
       if (!output.entryFileNames) continue;
-      // Rollup treats `es`, `esm` and `module` as one format, and this very
-      // config spells the SCSS bundles `es`, so comparing the literal would
-      // fail a correct build that spelled the ES output the other way.
+      // Rollup treats `es`, `esm` and `module` as one format, so comparing the
+      // literal would fail a correct build that spelled the ES output any of
+      // the other ways.
       const format = ['es', 'esm', 'module'].includes(output.format)
         ? 'esm'
         : output.format;
