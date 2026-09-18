@@ -136,9 +136,14 @@
       "require": "./dist/index.cjs.js"
     },
     "./constants": {
-      "types": "./dist/types/helpers/bulmaClassHelpers.d.ts",
-      "import": "./dist/constants.esm.js",
-      "require": "./dist/constants.cjs"
+      "import": {
+        "types": "./dist/types/helpers/bulmaClassHelpers.d.ts",
+        "default": "./dist/constants.esm.js"
+      },
+      "require": {
+        "types": "./dist/constants.d.cts",
+        "default": "./dist/constants.cjs"
+      }
     },
     "./dist/extras.css": {
       "default": "./dist/extras.css"

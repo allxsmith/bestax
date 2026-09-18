@@ -14,14 +14,31 @@
  * a rename that looks cosmetic silently empties an entry point. This test is
  * the thing that notices.
  *
+ * The same rule governs the TYPES half, one step less obviously. A single
+ * `types` target is read as ESM in a `"type": "module"` package however the
+ * runtime file is spelled, so a `module: node16` CommonJS consumer answered
+ * the subpath with TS1479 while the require condition it points at loaded
+ * fine. Hence a `.d.cts` per condition, and hence the last case here
+ * typechecking a real consumer rather than asserting the map's shape and
+ * hoping.
+ *
  * The main `.` entry is deliberately not loaded here: it carries the same
  * defect, it is tracked as #688, and its bundle is not React-free, so the last
  * assertion below does not generalise to it. Extending this file is the shape
  * that fix should take.
  */
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, it } from 'node:test';
@@ -51,35 +68,89 @@ const requireBuilt = () =>
       'the whole gate with `pnpm all`.'
   );
 
+/**
+ * Every file the `./constants` entry names, as [label, path] pairs, whichever
+ * shape the map is written in. Both conditions carry a `types` of their own,
+ * so a flat read would miss half of them.
+ */
+const constantsTargets = () => {
+  const entry = manifest.exports['./constants'];
+  return ['import', 'require'].flatMap(condition =>
+    ['types', 'default'].map(field => [
+      `${condition}.${field}`,
+      entry[condition][field],
+    ])
+  );
+};
+
 describe('bulma-ui export map', () => {
-  it('declares the constants subpath with both conditions', () => {
+  it('declares the constants subpath with per-condition types', () => {
     const entry = manifest.exports['./constants'];
     assert.ok(entry, 'exports["./constants"] is missing');
-    for (const condition of ['types', 'import', 'require']) {
-      assert.ok(
-        typeof entry[condition] === 'string',
-        `exports["./constants"].${condition} is missing`
-      );
+    for (const condition of ['import', 'require']) {
+      for (const field of ['types', 'default']) {
+        assert.equal(
+          typeof entry[condition]?.[field],
+          'string',
+          `exports["./constants"].${condition}.${field} is missing. Both ` +
+            'conditions need their own `types`, because one target cannot ' +
+            'describe an ESM and a CommonJS reading of the same module.'
+        );
+      }
     }
-    // The extension is the load-bearing part: inside a `"type": "module"`
-    // package only `.cjs` is read as CommonJS.
+    // The extensions are the load-bearing part. Inside a `"type": "module"`
+    // package only `.cjs` is read as CommonJS by Node, and only `.d.cts` is
+    // read as CommonJS by TypeScript.
     assert.match(
-      entry.require,
+      entry.require.default,
       /\.cjs$/,
       'the require condition must end in .cjs, or Node reads it as ESM and ' +
         'the CommonJS exports never land'
     );
+    assert.match(
+      entry.require.types,
+      /\.d\.cts$/,
+      "the require condition's types must end in .d.cts, or a node16 " +
+        'CommonJS consumer gets TS1479 on an entry that loads fine'
+    );
+    assert.match(entry.import.default, /\.esm\.js$/);
+    assert.match(entry.import.types, /(?<!\.c)\.d\.ts$/);
   });
 
   it('points every constants condition at a file that exists', () => {
     requireBuilt();
-    const entry = manifest.exports['./constants'];
-    for (const condition of ['types', 'import', 'require']) {
+    for (const [label, spec] of constantsTargets()) {
       assert.ok(
-        existsSync(target(entry[condition])),
-        `exports["./constants"].${condition} points at a missing file: ${entry[condition]}`
+        existsSync(target(spec)),
+        `exports["./constants"].${label} points at a missing file: ${spec}`
       );
     }
+  });
+
+  it('serves the CommonJS types as a copy of the ESM ones', () => {
+    requireBuilt();
+    const entry = manifest.exports['./constants'];
+    // The build copies the declaration rather than re-exporting from it,
+    // which is sound only while the source module imports nothing: a `.d.cts`
+    // re-exporting from a `.d.ts` reintroduces the same TS1479 one level
+    // down. Byte equality is what holds the copy to that, and the absence of
+    // specifiers is what makes the copy legitimate at all.
+    const esm = readFileSync(target(entry.import.types), 'utf8');
+    const cjs = readFileSync(target(entry.require.types), 'utf8');
+    assert.equal(
+      cjs,
+      esm,
+      'the .d.cts is not a copy of the .d.ts, so the two conditions describe ' +
+        'different surfaces'
+    );
+    assert.doesNotMatch(
+      esm,
+      /^\s*(?:import|export)\b[^\n]*\bfrom\b/m,
+      'the constants declaration now has module specifiers, so copying it ' +
+        'to a .d.cts no longer describes a CommonJS module. Keep ' +
+        'bulmaClassHelpers.ts import-free, which the subpath depends on ' +
+        'anyway.'
+    );
   });
 
   it('really loads the constants tuples, by require and by import', async () => {
@@ -103,7 +174,7 @@ describe('bulma-ui export map', () => {
         'on a Node with require(esm) and throws on an older one'
     );
 
-    const esm = await import(pathToFileURL(target(entry.import)).href);
+    const esm = await import(pathToFileURL(target(entry.import.default)).href);
     assert.ok(Array.isArray(esm.validColors) && esm.validColors.length > 0);
 
     // Both conditions must serve the same surface, or a consumer's behaviour
@@ -147,7 +218,7 @@ describe('bulma-ui export map', () => {
     // loading React or any component.
     for (const condition of ['import', 'require']) {
       const source = readFileSync(
-        target(manifest.exports['./constants'][condition]),
+        target(manifest.exports['./constants'][condition].default),
         'utf8'
       );
       assert.doesNotMatch(
@@ -156,5 +227,63 @@ describe('bulma-ui export map', () => {
         `${condition} bundle mentions react; the subpath must stay React-free`
       );
     }
+  });
+
+  it('typechecks from a node16 CommonJS consumer', () => {
+    requireBuilt();
+    // The case the per-condition `types` exists for, and the only one that
+    // would have caught its absence: the map's shape can be right while
+    // resolution still fails, and asserting the shape proves only the shape.
+    // A plain `package.json` with no `type` makes the fixture CommonJS, which
+    // is what turns a `.d.ts` target into TS1479.
+    const dir = mkdtempSync(join(tmpdir(), 'bestax-constants-'));
+    mkdirSync(join(dir, 'src'), { recursive: true });
+    mkdirSync(join(dir, 'node_modules', '@allxsmith'), { recursive: true });
+    symlinkSync(
+      PKG_DIR,
+      join(dir, 'node_modules', '@allxsmith', 'bestax-bulma'),
+      'dir'
+    );
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({ name: 'cjs-consumer', version: '1.0.0', private: true })
+    );
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          module: 'node16',
+          moduleResolution: 'node16',
+          target: 'es2022',
+          strict: true,
+          noEmit: true,
+          types: [],
+        },
+        include: ['src'],
+      })
+    );
+    writeFileSync(
+      join(dir, 'src', 'index.ts'),
+      "import { validColors } from '@allxsmith/bestax-bulma/constants';\n" +
+        'export const first: string = validColors[0];\n'
+    );
+
+    const localRequire = createRequire(import.meta.url);
+    const tsc = join(
+      dirname(localRequire.resolve('typescript')),
+      '..',
+      'bin',
+      'tsc'
+    );
+    const run = spawnSync(process.execPath, [tsc, '-p', dir], {
+      encoding: 'utf8',
+    });
+    assert.equal(
+      run.status,
+      0,
+      `a node16 CommonJS consumer does not typecheck against the subpath:\n${
+        run.stdout || run.stderr
+      }`
+    );
   });
 });

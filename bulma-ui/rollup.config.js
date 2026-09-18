@@ -1,3 +1,4 @@
+import { readFile, writeFile } from 'node:fs/promises';
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
@@ -16,6 +17,56 @@ const scssBase = {
 
 const aiBanner =
   '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
+
+/**
+ * Write `dist/constants.d.cts`, the `types` target for the `require`
+ * condition of the `./constants` export.
+ *
+ * One `types` target cannot describe both conditions here. This package is
+ * `"type": "module"`, so TypeScript reads a `.d.ts` as ESM, and a
+ * `module: node16` CommonJS consumer answers
+ * `import { validColors } from '@allxsmith/bestax-bulma/constants'` with
+ * TS1479 — "the referenced file is an ECMAScript module and cannot be
+ * imported with 'require'" — even though the file the require condition
+ * points at is genuine CommonJS and loads fine. The same shape as the
+ * `constants.cjs` naming below: the runtime and the types each need the
+ * extension that says what they are.
+ *
+ * Copying the declaration verbatim is sound only because
+ * `bulmaClassHelpers.ts` imports nothing, so its declaration has no
+ * specifiers to resolve. A `.d.cts` that re-exported from the `.d.ts`
+ * would reintroduce TS1479 one level down.
+ * `scripts/constants-subpath.test.mjs` asserts the copy byte for byte and
+ * typechecks a real node16 CommonJS consumer against it.
+ */
+const constantsCjsTypes = () => ({
+  name: 'bestax-constants-cjs-types',
+  async writeBundle() {
+    const from = 'dist/types/helpers/bulmaClassHelpers.d.ts';
+    const to = 'dist/constants.d.cts';
+    let declaration;
+    try {
+      declaration = await readFile(from, 'utf8');
+    } catch {
+      // The main bundle's declaration pass writes this, and an array of
+      // rollup configs is built in order, so it is already there. Fail loudly
+      // rather than shipping an export whose types resolve to nothing.
+      throw new Error(
+        `${from} is missing, so ${to} cannot be written. It comes from the ` +
+          "main bundle's declaration pass, which has to run before this " +
+          'entry.'
+      );
+    }
+    if (/^\s*(import|export)\b[^\n]*\bfrom\b/m.test(declaration)) {
+      throw new Error(
+        `${from} now has module specifiers, so copying it to a .d.cts no ` +
+          'longer describes a CommonJS module. Keep that file import-free, ' +
+          'which the ./constants export depends on anyway.'
+      );
+    }
+    await writeFile(to, declaration, 'utf8');
+  },
+});
 
 const variationBuild = name => ({
   input: `src/scss/versions/${name}.scss`,
@@ -92,6 +143,9 @@ export default commandLineArgs => {
           // and the empty one is the worse case, because nothing fails.
           entryFileNames: 'constants.cjs',
           banner: aiBanner,
+          // On this output rather than the entry's, because what it writes
+          // serves the `require` condition specifically.
+          plugins: [constantsCjsTypes()],
         },
         {
           dir: 'dist',

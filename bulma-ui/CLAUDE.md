@@ -43,11 +43,12 @@ helper value tuples (`validColors`, `validTextSizes`, …) without loading React
 or any component. `@allxsmith/eslint-plugin-bestax` validates against them that
 way rather than copying them.
 
-Two things keep it working, and both failed once:
+These keep it working, and each of them failed once:
 
 - That file must stay import-free. The rollup entry keeps the main bundle's
   `external` so a future `useMemo` in it cannot inline React into a bundle
-  whose whole point is not needing React.
+  whose whole point is not needing React. The `require` condition's types lean
+  on it as well, for the reason given below.
 - The CommonJS artifact must be `constants.cjs`, not `constants.cjs.js`. This
   package is `"type": "module"`, so Node reads a `.js` file as ESM whatever
   the bundle's format is, and a bundle writing `exports.x = …` cannot load as
@@ -56,6 +57,19 @@ Two things keep it working, and both failed once:
   reviewers observed both a load-time throw and an empty namespace object on
   different versions. Either way the tuples are not there, and the empty-object
   case is the worse one because nothing fails.
+- Each condition needs its OWN `types`, and the `require` one must be
+  `constants.d.cts`. The same rule, one layer up and less visible: a `.d.ts`
+  in a `"type": "module"` package is read as ESM by TypeScript, so a
+  `module: node16` CommonJS consumer answered the subpath with TS1479 while
+  the file the require condition points at loaded perfectly. Runtime and types
+  each need the extension that says what they are. The `.d.cts` is written by
+  a rollup hook as a VERBATIM COPY of the declaration, not as a re-export of
+  it, because a `.d.cts` re-exporting from a `.d.ts` hits the identical error
+  one level down. Copying is only sound while the source module imports
+  nothing, which is the import-free rule above; the build and
+  `scripts/constants-subpath.test.mjs` both refuse if that stops being true,
+  and the test typechecks a real node16 CommonJS consumer rather than
+  asserting the map's shape.
 
 ## Conventions
 
