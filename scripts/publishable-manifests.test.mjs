@@ -14,7 +14,10 @@
  * whenever it met a shape it did not know. Here, a wrong reading fails a test
  * instead of switching a rule off.
  */
+import { createRequire } from 'node:module';
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -1220,8 +1223,14 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   const emitted = new Map();
   for (const entry of rollup) {
     for (const output of [].concat(entry.output ?? [])) {
-      if (output.entryFileNames)
-        emitted.set(output.entryFileNames, output.format);
+      if (!output.entryFileNames) continue;
+      // Rollup treats `es`, `esm` and `module` as one format, and this very
+      // config spells the SCSS bundles `es`, so comparing the literal would
+      // fail a correct build that spelled the ES output the other way.
+      const format = ['es', 'esm', 'module'].includes(output.format)
+        ? 'esm'
+        : output.format;
+      emitted.set(output.entryFileNames, format);
     }
   }
   assert.ok(emitted.size > 0, 'rollup.config.js emits no named entry points');
@@ -1236,9 +1245,17 @@ test('every entry point the manifest advertises is emitted in that format', asyn
     if (typeof node === 'string') {
       if (!condition) return;
       const name = basename(node);
-      // Only entries this build names; CSS and SCSS targets are not bundles.
-      if (!emitted.has(name)) return;
+      // Judged by EXTENSION, not by whether the name happens to be emitted:
+      // skipping unknown names let a newly advertised bundle pointing at a file
+      // rollup never writes pass unnoticed. CSS and SCSS targets are not
+      // bundles and have no format to check.
+      if (!/\.(js|cjs|mjs)$/.test(name)) return;
       checked.push(label);
+      assert.ok(
+        emitted.has(name),
+        `${label} points at ${name}, which rollup.config.js does not emit ` +
+          `(it emits ${[...emitted.keys()].join(', ')})`
+      );
       assert.equal(
         emitted.get(name),
         expected[condition],
@@ -1265,5 +1282,59 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   assert.ok(
     checked.length >= 4,
     `only checked ${checked.length} entry points: ${checked.join(', ')}`
+  );
+});
+
+test('the root entry really loads through both conditions', async () => {
+  // #688 is a LOADING failure, and the rest of this gate is static — the
+  // manifest rule reads JSON, the rollup test reads config. Neither would
+  // notice the bundle itself becoming unloadable, which is the thing the issue
+  // was actually about. `./constants` has had a real load test since #686; this
+  // is the same check one subpath up.
+  const repo = fileURLToPath(new URL('..', import.meta.url));
+  assert.ok(
+    existsSync(join(repo, 'bulma-ui', 'dist')),
+    'bulma-ui/dist is absent, so this cannot load what it exists to check. ' +
+      'Run `pnpm --filter @allxsmith/bestax-bulma build` first, or the whole ' +
+      'gate with `pnpm all`.'
+  );
+
+  // Resolved by SPECIFIER so Node's own condition matching picks the file:
+  // loading the path out of the manifest would prove the file works and say
+  // nothing about the map choosing it. The anchor sits in a package that
+  // declares the dependency, because the linker is isolated.
+  const consumerRequire = createRequire(
+    pathToFileURL(join(repo, 'bestax-migrate', 'package.json')).href
+  );
+  const cjs = consumerRequire('@allxsmith/bestax-bulma');
+  assert.ok(
+    Object.keys(cjs).length > 0,
+    'the require condition produced no exports — the symptom of a CommonJS ' +
+      'bundle being read as ESM, which yields an empty namespace object on a ' +
+      'Node with require(esm) and throws on an older one (#688)'
+  );
+  assert.ok(cjs.Button, 'the require condition served no Button');
+
+  // The import side is loaded by PATH: a bare specifier does not resolve from
+  // the repo root under the isolated linker, and the require side above is
+  // where specifier resolution is the thing under test.
+  const pkgManifest = JSON.parse(repoFile('bulma-ui/package.json'));
+  const esm = await import(
+    pathToFileURL(
+      join(
+        repo,
+        'bulma-ui',
+        pkgManifest.exports['.'].import.replace(/^\.\//, '')
+      )
+    ).href
+  );
+  // Both conditions must serve the same surface, or what a consumer gets
+  // depends on how they happened to load it.
+  assert.deepEqual(
+    Object.keys(cjs).sort(),
+    Object.keys(esm)
+      .filter(k => k !== 'default')
+      .sort(),
+    'the require and import conditions export different names'
   );
 });

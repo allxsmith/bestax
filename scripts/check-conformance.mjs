@@ -2108,6 +2108,18 @@ export const SIBLING_RUNTIME_DEPS = new Map([
  * not re-derive the predicate that produced it. Two copies of one rule inside
  * one function is the drift this repo keeps paying for.
  */
+/**
+ * The conditions a `require()` matches besides `require` itself, in the order
+ * Node tries them. Any of these standing before a `default` means `default` is
+ * not what `require()` resolves.
+ */
+const REQUIRE_MATCHING = new Set([
+  'require',
+  'node',
+  'node-addons',
+  'module-sync',
+]);
+
 export function manifestViolations(dir, pkg, siblings = new Map()) {
   if (pkg?.private) return [];
 
@@ -2290,19 +2302,26 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   // ordinary dual-package spelling — the shape bulma-ui's own `./constants`
   // subpath uses — and a walk that only recorded string-valued `require` keys
   // saw nothing in it. `types` names a declaration file and is not judged here.
-  const walkExports = (node, label, format) => {
+  const walkExports = (node, label, format, sink) => {
     if (typeof node === 'string') {
-      if (format === 'require') requireTargets.push([label, node]);
+      if (format === 'require') sink.push([label, node]);
       return;
     }
     if (!node || typeof node !== 'object') return;
     const keys = Object.keys(node);
-    // `default` is the branch `require()` falls through to when the object
-    // offers `import` and no `require` of its own, so there it IS a require
-    // path. With a `require` sibling present, that sibling matches first and
-    // `default` is serving some other condition.
+    // `default` is the branch `require()` falls through to — but only where
+    // nothing it also matches stands in front of it. `require` is not the only
+    // such condition: `node`, `node-addons` and `module-sync` all match a
+    // `require()`, so any of them resolves first and leaves `default` serving
+    // something else. And inside an `import` condition, `default` is import's
+    // own fallback, which `require()` never reaches. Judging those shapes
+    // failed correct manifests — the same error as inferring a format from the
+    // `import` condition: asking what a key is called instead of what Node
+    // matches ahead of it.
     const defaultIsRequire =
-      keys.includes('import') && !keys.includes('require');
+      format === undefined &&
+      keys.includes('import') &&
+      !keys.some(key => REQUIRE_MATCHING.has(key));
     for (const [key, value] of Object.entries(node)) {
       if (key === 'types') continue;
       const seg = key.startsWith('.') ? `[${JSON.stringify(key)}]` : `.${key}`;
@@ -2312,10 +2331,10 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
           : key === 'import'
             ? 'import'
             : format;
-      walkExports(value, `${label}${seg}`, inner);
+      walkExports(value, `${label}${seg}`, inner, sink);
     }
   };
-  walkExports(pkg?.exports, 'exports', undefined);
+  walkExports(pkg?.exports, 'exports', undefined, requireTargets);
 
   // `main` is NOT simply a require path: with no `exports` map, Node's ESM
   // resolver reaches it too, through legacyMainResolve, so `"type": "module"`
@@ -2323,7 +2342,18 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   // perfectly correct. It is judged as CommonJS only when the manifest also
   // declares a require path — that is what makes the package dual, and makes
   // `main` the entry old resolvers and bundlers take as CommonJS.
-  if (typeof pkg?.main === 'string' && requireTargets.length) {
+  // Judged against the ROOT entry only. A subpath declaring `require` says
+  // nothing about `main`, which names the package's own entry — flagging
+  // `main` because `./sub` is dual reported a correct manifest.
+  const rootExports =
+    pkg?.exports && typeof pkg.exports === 'object'
+      ? Object.keys(pkg.exports).some(key => key.startsWith('.'))
+        ? pkg.exports['.']
+        : pkg.exports
+      : undefined;
+  const rootRequire = [];
+  walkExports(rootExports, 'exports', undefined, rootRequire);
+  if (typeof pkg?.main === 'string' && rootRequire.length) {
     requireTargets.push(['main', pkg.main]);
   }
 
