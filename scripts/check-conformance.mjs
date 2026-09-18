@@ -2363,7 +2363,7 @@ export function manifestViolations(
   //
   // Returns the target `require()` lands on, with the condition key that served
   // it, or undefined when the map maps nothing for require.
-  const resolveRequire = (node, label, via) => {
+  const resolveRequire = (node, label, via, opts = {}) => {
     if (typeof node === 'string') {
       // A target Node rejects is INVALID, and it throws
       // ERR_INVALID_PACKAGE_TARGET out of the enclosing conditions object
@@ -2393,7 +2393,7 @@ export function manifestViolations(
           sawBlocker = true;
           continue;
         }
-        const hit = resolveRequire(value, `${label}.${i}`, via);
+        const hit = resolveRequire(value, `${label}.${i}`, via, opts);
         if (hit === BLOCKED) {
           sawBlocker = true;
           continue;
@@ -2409,7 +2409,13 @@ export function manifestViolations(
       // Node throws ERR_PACKAGE_PATH_NOT_EXPORTED rather than trying the next
       // key. Falling through flagged a target `require()` never reaches.
       if (node[key] === null) return BLOCKED;
-      const hit = resolveRequire(node[key], `${label}.${key}`, [...via, key]);
+      if (opts.skipEsmConditions && REQUIRE_MATCHING_ESM.has(key)) continue;
+      const hit = resolveRequire(
+        node[key],
+        `${label}.${key}`,
+        [...via, key],
+        opts
+      );
       if (hit === BLOCKED) return BLOCKED;
       if (hit) return hit;
     }
@@ -2451,8 +2457,20 @@ export function manifestViolations(
     // target explicitly, which the condition's promise does not cover, so the
     // exemption stops there.
     const esmFrom = hit.via.findIndex(key => REQUIRE_MATCHING_ESM.has(key));
-    if (esmFrom !== -1 && !hit.via.slice(esmFrom + 1).includes('require'))
+    if (esmFrom !== -1 && !hit.via.slice(esmFrom + 1).includes('require')) {
+      // Exempt on a Node that matches `module-sync` — but not every Node does.
+      // It arrived in 22.10, and `--no-experimental-require-module` turns it
+      // off, so an older consumer's `require()` skips the key entirely and
+      // lands on whatever comes next. Rather than model two Node versions
+      // everywhere, resolve once more with the condition removed, which is
+      // exactly what those runtimes see, and judge THAT target.
+      const older = resolveRequire(node, label, [], {
+        skipEsmConditions: true,
+      });
+      if (!older || older === BLOCKED) return;
+      sink.push([older.label, older.target, older.via]);
       return;
+    }
     // The whole path, so the remedy can ask whether a `require` key is on it.
     sink.push([hit.label, hit.target, hit.via]);
   };

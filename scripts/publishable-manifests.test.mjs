@@ -1359,6 +1359,39 @@ test('segment validity follows Node, including separators and encodings', () => 
   }
 });
 
+test('module-sync does not hide what an older Node reaches behind it', () => {
+  // `module-sync` arrived in Node 22.10, and `--no-experimental-require-module`
+  // turns it off, so an older consumer's `require()` skips the key and lands on
+  // whatever follows. Exempting the whole resolution hid a broken fallback from
+  // exactly those runtimes.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { 'module-sync': './m.js', require: './broken.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('broken.js'), found[0]);
+
+  // A sound fallback stays silent on both runtimes, and so does a map that
+  // offers nothing else for `require()` to reach.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { 'module-sync': './m.js', require: './m.cjs' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { 'module-sync': './m.js', import: './m.js' } },
+    }),
+    []
+  );
+});
+
 test('a require nested under module-sync is still judged', () => {
   // `module-sync` promises an ES module, which is why what it serves is
   // exempt — but a `require` key below it names a CommonJS target explicitly,
