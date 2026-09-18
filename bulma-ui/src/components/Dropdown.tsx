@@ -9,6 +9,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
+import {
+  type AnchorOnlyAttributes,
+  ANCHOR_ONLY_ATTRS,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
 
 /**
  * Checks if code is running in a browser environment.
@@ -410,34 +415,27 @@ export type DropdownItemProps<
   };
 
 /**
- * The anchor-only attributes, withheld from a `<div>` or a `<button>`.
+ * The anchor's attributes, minus the one a `<button>` legitimately takes.
  *
- * Mirrors `LINK_ATTRS` in `bestax-migrate/src/sources/_shared/polymorphic.ts`,
- * which drops the same set when a migration lands one on a non-anchor. `rel` is
- * absent from both on purpose: React declares it on `HTMLAttributes<T>` — every
- * element — so withholding it would diverge from React's own typing, the same
- * call #641 recorded for `Navbar.Link`.
+ * `type` stays: `as="button"` is a supported form and `type="submit"` is valid
+ * there, so stripping it would remove a working attribute. The exclusion is per
+ * COMPONENT where the reason is per TAG, so it also lets a `type` reach a
+ * `<div>`; selecting the set from the rendered element would close that, and
+ * moves output.
+ *
+ * This set differs from `Level.Item`'s in both directions, not just one. The
+ * `type` above, which Level strips and this component keeps, and `rel`, which
+ * Level adds and this component does not: React declares `rel` on
+ * `HTMLAttributes` for every element, so withholding it would diverge from
+ * React's own typing — the call #641 recorded for `Navbar.Link`. Level
+ * withholds it anyway, because it always has.
  */
-const LINK_ONLY_ATTRS = [
-  'href',
-  'target',
-  'download',
-  'hrefLang',
-  'ping',
-  'referrerPolicy',
-  'media',
-] as const;
-
-/** `props` without any attribute only an anchor can carry. */
-function omitLinkAttrs(
-  props: Record<string, unknown>
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(props)) {
-    if (!(LINK_ONLY_ATTRS as readonly string[]).includes(key)) out[key] = value;
-  }
-  return out;
-}
+const STRIP_FROM_NON_ANCHOR: Readonly<
+  Record<Exclude<keyof AnchorOnlyAttributes, 'type'>, true>
+> = (() => {
+  const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
+  return rest;
+})();
 
 /**
  * The shape the implementation destructures. The public contract is the generic
@@ -470,17 +468,19 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
   // plain-JS one, a loose `{...props}` spread, and the genericity a wrapping HOC
   // erases.
   //
-  // The whole link set, not `href` alone. Menu strips only `href` because its
-  // props never gained the rest; here they all arrive together under `as="a"`,
-  // and `bestax-migrate` already removes exactly this set (`LINK_ATTRS`) when it
-  // migrates onto a non-anchor — so stripping less would leave the codemod
-  // stricter than the component it migrates to.
+  // The whole link set, not `href` alone: they all arrive together under
+  // `as="a"`. Menu strips `href` only, because its `as` is open and a flat set
+  // would delete attributes legal on the element a caller named.
+  //
+  // `bestax-migrate` tracks the same question from the other side, per attribute
+  // per element (`LINK_ATTR_ELEMENTS`) rather than as one set — so the two lists
+  // are not interchangeable and neither derives from the other.
   //
   // Menu's condition also admits a custom component and a custom element, which
   // own their prop contracts. `as` is closed to three intrinsic tags here, so
   // neither can arrive and the anchor test is the whole rule.
   const forwarded =
-    Component === 'a' ? rest : (omitLinkAttrs(rest) as typeof rest);
+    Component === 'a' ? rest : omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
   return (
     <Component
       className={classNames(
@@ -496,7 +496,9 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       {...forwarded}
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
-      // Avatar defaults it the same way, and Dropdown's own trigger sets it.
+      // Dropdown's own trigger sets it. `Avatar` and `Menu.Item` do NOT get this
+      // right — Avatar spreads its default BEFORE `rest`, so `type={undefined}`
+      // arriving through a spread erases it, and Menu defaults none at all.
       //
       // After `forwarded`, reading through it rather than before it: React
       // treats `type={undefined}` as "remove the attribute", and a spread
