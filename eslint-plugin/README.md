@@ -24,8 +24,12 @@ no type error marks a deprecated prop or a flex prop that emits nothing.
 ## Requirements
 
 ESLint 10, using [flat config](https://eslint.org/docs/latest/use/configure/configuration-files).
-The plugin is ESM-only, so it cannot be `require()`d from a legacy
-`.eslintrc.js`.
+The plugin is ESM-only, which does not rule out a CommonJS config. An
+`eslint.config.cjs` can `require()` it on a Node that supports `require(esm)`,
+and `configs.recommended` reads straight off the result with no interop hop,
+because `rules` and `configs` are named exports alongside the default. On a
+Node without that support it throws `ERR_REQUIRE_ESM`, and an `import` from
+`eslint.config.mjs` works either way.
 
 ## Setup
 

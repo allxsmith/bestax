@@ -43,7 +43,11 @@ nothing.
 ## Setup
 
 Requires ESLint 10 with [flat config](https://eslint.org/docs/latest/use/configure/configuration-files).
-The plugin is ESM-only and cannot be `require()`d from a legacy `.eslintrc.js`.
+The plugin is ESM-only, which does not rule out a CommonJS config: an
+`eslint.config.cjs` can `require()` it on a Node that supports `require(esm)`,
+reading `configs.recommended` straight off the result. Without that support it
+throws `ERR_REQUIRE_ESM`, and an `import` from `eslint.config.mjs` works
+either way.
 
 <PackageManagerTabs>
 

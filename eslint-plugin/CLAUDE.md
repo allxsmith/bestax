@@ -174,6 +174,23 @@ Thresholds 95% / 78% branches, matching the other non-library packages.
 `src/generated/` is excluded from coverage: its correctness is the generator's
 staleness gate, not a test here.
 
+## ESM-only, and what that does not mean
+
+The package ships ESM and no CommonJS build, and the README said that made it
+unusable from a CommonJS config. That is false on the Node range this package
+supports. `require(esm)` handles a module with no top-level await, and
+`dist/index.js` has none, so an `eslint.config.cjs` can `require()` the plugin
+and read `configs.recommended` straight off the result: `rules` and `configs`
+are named exports alongside the default, so there is no `.default` hop either.
+Verified both ways, the second with `--no-experimental-require-module`, which
+throws `ERR_REQUIRE_ESM` the way an older Node does.
+
+Worth writing down because the false version is the intuitive one, and because
+it was reasoning about ESLint 10 rather than about Node: ESLint 10 dropped
+eslintrc entirely, so the `.eslintrc.js` the claim named cannot be used at all,
+and the config format a CommonJS user actually reaches for is flat config in a
+`.cjs` file.
+
 ## Why the peer range is `^10` only
 
 Nothing in the rules reaches past an ESLint 8.40-era API — `context.sourceCode`,
