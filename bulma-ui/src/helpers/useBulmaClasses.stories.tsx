@@ -52,6 +52,8 @@ const meta: Meta<typeof UseBulmaClassesDemo> = {
         'grey-light',
         'grey-lighter',
         'white',
+        'white-bis',
+        'white-ter',
         'inherit',
         'current',
       ],

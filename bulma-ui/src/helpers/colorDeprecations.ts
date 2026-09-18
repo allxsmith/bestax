@@ -9,6 +9,8 @@
 export const UNSTYLED_MODIFIER_COLORS = [
   'black-bis',
   'black-ter',
+  'white-bis',
+  'white-ter',
   'grey-darker',
   'grey-dark',
   'grey',
