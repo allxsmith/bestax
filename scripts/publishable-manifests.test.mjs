@@ -1776,12 +1776,17 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   for (const entry of rollup) {
     for (const output of [].concat(entry.output ?? [])) {
       if (!output.entryFileNames) continue;
-      // Rollup treats `es`, `esm` and `module` as one format, so comparing the
-      // literal would fail a correct build that spelled the ES output any of
-      // the other ways.
-      const format = ['es', 'esm', 'module'].includes(output.format)
+      // Rollup's format aliases, both directions: `es`/`esm`/`module` are one
+      // format and `cjs`/`commonjs` are another, so comparing the literal would
+      // fail a correct build that spelled either the other way. An omitted
+      // `format` is `es` to rollup, and recorded `undefined` here — which also
+      // dropped such an output out of the CommonJS chunk check below.
+      const spelled = output.format ?? 'es';
+      const format = ['es', 'esm', 'module'].includes(spelled)
         ? 'esm'
-        : output.format;
+        : spelled === 'commonjs'
+          ? 'cjs'
+          : spelled;
       emitted.set(output.entryFileNames, format);
     }
   }
@@ -1794,7 +1799,9 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   const cjsChunks = [];
   for (const entry of rollup) {
     for (const output of [].concat(entry.output ?? [])) {
-      if (!output.entryFileNames || output.format !== 'cjs') continue;
+      const spelled = output.format ?? 'es';
+      const isCjs = spelled === 'cjs' || spelled === 'commonjs';
+      if (!output.entryFileNames || !isCjs) continue;
       cjsChunks.push([output.entryFileNames, output.chunkFileNames]);
     }
   }

@@ -33,6 +33,19 @@ import { manifestViolations } from './check-conformance.mjs';
 
 const COUNT = Number(process.argv[2] ?? 900);
 const SEED = Number(process.argv[3] ?? 1);
+// A floor, because "0 disagreements" over nothing reads exactly like a clean
+// run. A mistyped count and a count of 0 both produced that success line while
+// comparing no maps at all — and the two ways this goes quiet are both edits to
+// the resolver it exists to certify.
+const MIN_CONSIDERED = 25;
+if (!Number.isInteger(COUNT) || COUNT < 1) {
+  console.error(`count must be a positive integer, got ${process.argv[2]}`);
+  process.exit(2);
+}
+if (!Number.isInteger(SEED)) {
+  console.error(`seed must be an integer, got ${process.argv[3]}`);
+  process.exit(2);
+}
 
 // A small deterministic PRNG, so a seed reproduces a run exactly. Math.random
 // cannot be seeded, and an unreproducible counterexample is not much use.
@@ -218,4 +231,12 @@ for (let i = 0; i < COUNT; i++) {
 console.log(
   `seed ${SEED}: ${considered} maps considered, ${disagreements} disagreements`
 );
+if (considered < MIN_CONSIDERED) {
+  console.error(
+    `only ${considered} maps reached the comparison (floor ${MIN_CONSIDERED}). ` +
+      `Raise the count, or check whether the abstention filter has widened to ` +
+      `swallow the corpus.`
+  );
+  process.exit(2);
+}
 process.exit(disagreements === 0 ? 0 : 1);
