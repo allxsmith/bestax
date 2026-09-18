@@ -69,6 +69,13 @@ ruleTester.run('valid-helper-value', rule, {
     // reportable, so the pair is skipped: both cases here, not just the first.
     imported('Theme', '<Theme radius="6px">x</Theme>'),
     imported('Theme', '<Theme radius="radiusless">x</Theme>'),
+    // The exception keys on the RESOLVED element, so it follows an alias and
+    // a namespace the same way the rest of the rule does. A tag-name check
+    // would get these two wrong in opposite directions.
+    'import { Theme as T } from \'@allxsmith/bestax-bulma\';\nconst x = <T radius="6px">y</T>;\n',
+    'import * as B from \'@allxsmith/bestax-bulma\';\nconst x = <B.Theme radius="6px">y</B.Theme>;\n',
+    // Not our element at all, whatever it is called.
+    "const Theme = 'div';\nconst x = <Theme radius='6px'>y</Theme>;\n",
   ],
   invalid: [
     {
@@ -232,6 +239,15 @@ ruleTester.run('valid-helper-value', rule, {
       // And `shadow` on `Theme` is still the helper prop, because
       // `--bulma-shadow` is deliberately kept out of Theme's variable map.
       code: imported('Theme', '<Theme shadow="none">x</Theme>'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // The other direction of the resolution point above: a tag spelled
+      // `Theme` that is really `Box` gets no exception, because the exception
+      // is about the element, not the name in the source.
+      code:
+        "import { Box as Theme } from '@allxsmith/bestax-bulma';\n" +
+        'const x = <Theme radius="6px">y</Theme>;\n',
       errors: [{ messageId: 'invalid' }],
     },
   ],
