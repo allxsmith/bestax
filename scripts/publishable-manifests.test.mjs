@@ -1165,14 +1165,83 @@ test('a map that does not distinguish the formats is left alone', () => {
   );
 });
 
-test('an array fallback is judged entry by entry', () => {
+test('an array fallback stops at the first valid target', () => {
+  // Node does not keep going past a valid "./…" entry, so a later one is
+  // unreachable. Judging every entry reddened a manifest that loads — this test
+  // asserted the wrong behaviour until the resolver replaced the walk.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', require: ['./a.cjs', './b.js'] } },
+    }),
+    []
+  );
+
+  // The first entry is the one that resolves, so a bad one there is real.
   const found = entryViolations({
     name: 'x',
     type: 'module',
-    exports: { '.': { import: './a.mjs', require: ['./a.cjs', './b.js'] } },
+    exports: { '.': { import: './a.mjs', require: ['./b.js', './a.cjs'] } },
   });
   assert.equal(found.length, 1, found.join('\n'));
-  assert.ok(found[0].includes('exports["."].require.1'), found[0]);
+  assert.ok(found[0].includes('exports["."].require.0'), found[0]);
+});
+
+test('a branch that maps nothing falls through to the next condition', () => {
+  // Node does not stop at the first key it MATCHES, only at the first that
+  // resolves: a `node` wrapper with no require mapping inside leaves the
+  // `require` beside it still reachable.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: { import: './a.mjs' }, require: './b.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require'), found[0]);
+});
+
+test('a dual pair nested under a wrapper condition is judged', () => {
+  // The shape Node's own docs use. Asking whether the map distinguishes the
+  // formats one level up returned before ever reaching the `require` key.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: { require: './a.js', import: './a.mjs' } } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].node.require'), found[0]);
+});
+
+test('module-sync serves ESM by contract and is not judged', () => {
+  // It matches a `require()`, but it exists so that require() can be handed an
+  // ES module deliberately — a `.js` target there is the condition working.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { 'module-sync': './m.js', require: './m.cjs' } },
+    }),
+    []
+  );
+});
+
+test('the remedy names reordering when a non-require condition served it', () => {
+  // Renaming a `node` or `default` target would break the import side, which
+  // resolves the same file.
+  const [viaDefault] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.match(viaDefault, /Put a `require` condition ahead of it/);
+
+  const [viaRequire] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './a.js' } },
+  });
+  assert.match(viaRequire, /Emit it with a `\.cjs` extension/);
 });
 
 test('default is a require path when it is the branch require() reaches', () => {

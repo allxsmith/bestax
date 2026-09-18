@@ -2121,6 +2121,13 @@ const REQUIRE_MATCHING = new Set([
   'default',
 ]);
 
+/**
+ * Of those, the conditions that promise an ES module. `module-sync` exists so a
+ * `require()` can be served ESM deliberately, on a Node that supports it, so a
+ * `.js` target there is the condition working rather than failing.
+ */
+const REQUIRE_MATCHING_ESM = new Set(['module-sync']);
+
 export function manifestViolations(dir, pkg, siblings = new Map()) {
   if (pkg?.private) return [];
 
@@ -2298,81 +2305,117 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   const esm = pkg?.type === 'module';
   const requireTargets = [];
 
-  // Node resolves a conditions object by walking its keys IN ORDER and taking
-  // the first one that matches, so which target `require()` gets is a question
-  // about order, not about which keys are present. Reading them as an unordered
-  // set missed `{ "default": "./a.js", "require": "./a.cjs" }`, where `default`
-  // stands first and is what `require()` actually resolves.
+  // A reduced PACKAGE_TARGET_RESOLVE for the `require` side. The earlier
+  // versions of this rule each modelled a PIECE of that algorithm — first the
+  // set of condition keys, then their order — and each missed a different way
+  // Node actually walks the map. This follows the algorithm instead:
   //
-  // `types` is not in the matched set, so it is never mistaken for code, and a
-  // `require` nested inside `import` is unreachable because `import` is not a
-  // key `require()` matches.
-  const walkExports = (node, label, inRequire, sink) => {
+  //   * conditions are tried IN KEY ORDER, first match wins;
+  //   * a branch that resolves to nothing does NOT end the search — Node
+  //     continues with the parent's remaining keys, so a `node` wrapper with no
+  //     require mapping inside it falls through to the `require` beside it;
+  //   * an array is a fallback list, but Node stops at the first VALID target,
+  //     so a later entry in `["./a.cjs", "./b.js"]` is never reached.
+  //
+  // Returns the target `require()` lands on, with the condition key that served
+  // it, or undefined when the map maps nothing for require.
+  const resolveRequire = (node, label, viaKey) => {
     if (typeof node === 'string') {
-      if (inRequire) sink.push([label, node]);
-      return;
+      return node.startsWith('./')
+        ? { label, target: node, viaKey }
+        : undefined;
     }
     if (Array.isArray(node)) {
-      // A fallback array: any entry can be the one that resolves.
-      node.forEach((value, i) =>
-        walkExports(value, `${label}.${i}`, inRequire, sink)
-      );
-      return;
-    }
-    if (!node || typeof node !== 'object') return;
-
-    const keys = Object.keys(node);
-    const subpaths = keys.filter(key => key.startsWith('.'));
-    if (subpaths.length) {
-      for (const key of subpaths) {
-        walkExports(
-          node[key],
-          `exports[${JSON.stringify(key)}]`,
-          inRequire,
-          sink
-        );
+      for (const [i, value] of node.entries()) {
+        const hit = resolveRequire(value, `${label}.${i}`, viaKey);
+        if (hit) return hit;
       }
-      return;
+      return undefined;
     }
-
-    // Before entering any condition, a map has to SAY it distinguishes the two
-    // formats before its targets can be judged. Without a `require` or `import`
-    // key the same `.js` target is what an honestly ESM-only package writes,
-    // and there is nothing to tell the two apart. Once inside a require branch
-    // that question is settled and every level below it resolves for `require`.
-    if (!inRequire && !keys.includes('require') && !keys.includes('import')) {
-      return;
+    if (!node || typeof node !== 'object') return undefined;
+    for (const key of Object.keys(node)) {
+      if (!REQUIRE_MATCHING.has(key)) continue;
+      const hit = resolveRequire(node[key], `${label}.${key}`, key);
+      if (hit) return hit;
     }
-    const matched = keys.find(key => REQUIRE_MATCHING.has(key));
-    if (matched === undefined) return;
-    walkExports(node[matched], `${label}.${matched}`, true, sink);
+    return undefined;
   };
-  walkExports(pkg?.exports, 'exports', false, requireTargets);
+
+  // Whether the map says anywhere that it distinguishes the two formats. With
+  // no `require` or `import` key at all, the same `.js` target is what an
+  // honestly ESM-only package writes and there is nothing to tell them apart.
+  // Asked over the whole subtree rather than at one level, because the pair can
+  // sit inside a `node` wrapper, which is the shape Node's own docs use.
+  const distinguishes = node => {
+    if (!node || typeof node !== 'object') return false;
+    if (
+      !Array.isArray(node) &&
+      (Object.hasOwn(node, 'require') || Object.hasOwn(node, 'import'))
+    ) {
+      return true;
+    }
+    return Object.values(node).some(distinguishes);
+  };
+
+  const judge = (node, label, sink) => {
+    if (!distinguishes(node)) return;
+    const hit = resolveRequire(node, label, undefined);
+    if (!hit || REQUIRE_MATCHING_ESM.has(hit.viaKey)) return;
+    sink.push([hit.label, hit.target, hit.viaKey]);
+  };
+
+  const exportsNode = pkg?.exports;
+  const subpathKeys =
+    exportsNode &&
+    typeof exportsNode === 'object' &&
+    !Array.isArray(exportsNode)
+      ? Object.keys(exportsNode).filter(key => key.startsWith('.'))
+      : [];
+  let rootExports;
+  if (subpathKeys.length) {
+    for (const key of subpathKeys) {
+      judge(
+        exportsNode[key],
+        `exports[${JSON.stringify(key)}]`,
+        requireTargets
+      );
+    }
+    rootExports = exportsNode['.'];
+  } else if (exportsNode && typeof exportsNode === 'object') {
+    judge(exportsNode, 'exports', requireTargets);
+    rootExports = exportsNode;
+  }
 
   // Judged against the ROOT entry only. A subpath declaring `require` says
   // nothing about `main`, which names the package's own entry — flagging
   // `main` because `./sub` is dual reported a correct manifest.
-  const rootExports =
-    pkg?.exports && typeof pkg.exports === 'object'
-      ? Object.keys(pkg.exports).some(key => key.startsWith('.'))
-        ? pkg.exports['.']
-        : pkg.exports
-      : undefined;
   const rootRequire = [];
-  walkExports(rootExports, 'exports', false, rootRequire);
+  judge(rootExports, 'exports', rootRequire);
   if (typeof pkg?.main === 'string' && rootRequire.length) {
-    requireTargets.push(['main', pkg.main]);
+    requireTargets.push(['main', pkg.main, 'require']);
   }
 
   if (esm) {
-    for (const [where, target] of requireTargets) {
+    for (const [where, target, viaKey] of requireTargets) {
       if (!target.endsWith('.js')) continue;
+      // The remedy depends on WHICH condition served it. A `require` key names
+      // a CommonJS target, so the file is what is wrong. `node` or `default`
+      // serve `import` as well, so renaming their target would break the ESM
+      // side — what is wrong there is that `require()` reaches them before any
+      // `require` condition.
+      const remedy =
+        viaKey === 'require'
+          ? `Emit it with a \`.cjs\` extension and point ${where} at that — ` +
+            `the extension wins over \`type\`.`
+          : `\`require()\` matches \`${viaKey}\` before reaching any \`require\` ` +
+            `condition. Put a \`require\` condition ahead of it naming a ` +
+            `\`.cjs\` bundle — renaming this target would break the \`import\` ` +
+            `side, which resolves it too.`;
       violations.push(
         `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
           `is \`"type": "module"\`, so Node reads a \`.js\` file as ESM whatever ` +
           `the bundle actually contains, and a CommonJS bundle cannot load that ` +
-          `way. Emit it with a \`.cjs\` extension and point ${where} at that — ` +
-          `the extension wins over \`type\` (#688).`
+          `way. ${remedy} (#688)`
       );
     }
   }
