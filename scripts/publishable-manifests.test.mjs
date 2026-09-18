@@ -1062,7 +1062,9 @@ test('a type:module package may not require a .js entry', () => {
     main: 'dist/index.cjs.js',
     exports: { '.': { require: './dist/index.cjs.js' } },
   });
-  assert.equal(found.length, 2, found.join('\n'));
+  // Only the exports condition. `main` is not judged: an `exports` map means
+  // Node never reads it.
+  assert.equal(found.length, 1, found.join('\n'));
   assert.ok(found.every(v => v.includes('`.cjs`')));
 });
 
@@ -1277,14 +1279,37 @@ test('the remedy names reordering when a non-require condition served it', () =>
   assert.match(viaRequire, /Emit it with a `\.cjs` extension/);
 });
 
-test('default is a require path when it is the branch require() reaches', () => {
-  // `import` and `default` with no `require`: `require()` falls through to
-  // `default`, so a `.js` target there fails exactly like a spelled-out
-  // `require` would.
+test('a map with no require condition is left alone', () => {
+  // `require()` does fall through to `default` here, but an `import` key is not
+  // enough to prove the package MEANT a CommonJS target: an ESM-only package
+  // naming one file for both conditions has the same shape, and telling it to
+  // ship a `.cjs` it has no build for is the false positive this rule kept
+  // producing. An explicit `require` key is the signal that is not a guess.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', default: './index.cjs.js' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './x.js', default: './x.js' } },
+    }),
+    []
+  );
+});
+
+test('a default below an explicit require IS judged', () => {
+  // With a `require` key present the package is declaring a dual build, so the
+  // ordering bug is real rather than ambiguous.
   const found = entryViolations({
     name: 'x',
     type: 'module',
-    exports: { '.': { import: './a.mjs', default: './index.cjs.js' } },
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
   });
   assert.equal(found.length, 1, found.join('\n'));
   assert.ok(found[0].includes('exports["."].default'), found[0]);
@@ -1320,17 +1345,25 @@ test('an ESM-only package may point main at a .js entry', () => {
   );
 });
 
-test('main is judged once a require condition makes the package dual', () => {
-  // A declared `require` condition is what makes `main` the CommonJS entry that
-  // old resolvers and bundlers take.
-  const found = entryViolations({
-    name: 'x',
-    type: 'module',
-    main: 'dist/index.cjs.js',
-    exports: { '.': { require: './dist/index.cjs' } },
-  });
-  assert.equal(found.length, 1, found.join('\n'));
-  assert.ok(found[0].includes('main points at'));
+test('main is never judged', () => {
+  // An `exports` map means Node does not read `main` at all, and without one
+  // there is no `require` condition to say the package distinguishes the
+  // formats. Judging it whenever `exports` resolved a require target had it
+  // exactly backwards, and flagged real packages (`node-emoji`, `unplugin`)
+  // whose maps are correct.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      main: 'dist/index.cjs.js',
+      exports: { '.': { require: './dist/index.cjs' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({ name: 'x', type: 'module', main: 'dist/index.cjs.js' }),
+    []
+  );
 });
 
 test('a require condition spelled as an object is walked into', () => {

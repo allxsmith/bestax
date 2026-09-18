@@ -2131,7 +2131,26 @@ const REQUIRE_MATCHING_ESM = new Set(['module-sync']);
 /** A `null` target: the subpath is blocked, and Node throws rather than continuing. */
 const BLOCKED = Symbol('blocked');
 
-export function manifestViolations(dir, pkg, siblings = new Map()) {
+/**
+ * How a target's format is decided when nothing else knows better: the package
+ * root's own `type`. Node reads it from the NEAREST `package.json` above the
+ * file instead, so the mainstream dual layout — `require` pointing into a
+ * `dist/commonjs/` that carries its own `{"type":"commonjs"}` — loads perfectly
+ * while a root-only reading calls it broken. Judging this repo's manifests that
+ * way flagged 25 installed packages that load fine.
+ *
+ * Seeing the nested manifest needs the filesystem, which this function
+ * deliberately does not touch, so the question is asked through a callback: the
+ * async caller answers it by looking, and fixtures fall back to the root.
+ */
+const rootTypeOf = pkg => target => pkg?.type ?? 'commonjs';
+
+export function manifestViolations(
+  dir,
+  pkg,
+  siblings = new Map(),
+  typeOfTarget = rootTypeOf(pkg)
+) {
   if (pkg?.private) return [];
 
   // The declaration is consulted HERE rather than by the caller, so that a test
@@ -2305,7 +2324,6 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   // Depending on the Node version a consumer can instead get an empty namespace
   // object, which is worse, because nothing fails and the package merely
   // appears to export nothing.
-  const esm = pkg?.type === 'module';
   const requireTargets = [];
 
   // A reduced PACKAGE_TARGET_RESOLVE for the `require` side. The earlier
@@ -2355,12 +2373,7 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
   // sit inside a `node` wrapper, which is the shape Node's own docs use.
   const distinguishes = node => {
     if (!node || typeof node !== 'object') return false;
-    if (
-      !Array.isArray(node) &&
-      (Object.hasOwn(node, 'require') || Object.hasOwn(node, 'import'))
-    ) {
-      return true;
-    }
+    if (!Array.isArray(node) && Object.hasOwn(node, 'require')) return true;
     return Object.values(node).some(distinguishes);
   };
 
@@ -2383,7 +2396,6 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
     !Array.isArray(exportsNode)
       ? Object.keys(exportsNode).filter(key => key.startsWith('.'))
       : [];
-  let rootExports;
   if (subpathKeys.length) {
     for (const key of subpathKeys) {
       judge(
@@ -2392,44 +2404,41 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
         requireTargets
       );
     }
-    rootExports = exportsNode['.'];
   } else if (exportsNode && typeof exportsNode === 'object') {
     judge(exportsNode, 'exports', requireTargets);
-    rootExports = exportsNode;
   }
 
-  // Judged against the ROOT entry only. A subpath declaring `require` says
-  // nothing about `main`, which names the package's own entry — flagging
-  // `main` because `./sub` is dual reported a correct manifest.
-  const rootRequire = [];
-  judge(rootExports, 'exports', rootRequire);
-  if (typeof pkg?.main === 'string' && rootRequire.length) {
-    requireTargets.push(['main', pkg.main, 'require']);
-  }
-
-  if (esm) {
-    for (const [where, target, viaKey] of requireTargets) {
-      if (!target.endsWith('.js')) continue;
-      // The remedy depends on WHICH condition served it. A `require` key names
-      // a CommonJS target, so the file is what is wrong. `node` or `default`
-      // serve `import` as well, so renaming their target would break the ESM
-      // side — what is wrong there is that `require()` reaches them before any
-      // `require` condition.
-      const remedy =
-        viaKey === 'require'
-          ? `Emit it with a \`.cjs\` extension and point ${where} at that — ` +
-            `the extension wins over \`type\`.`
-          : `\`require()\` matches \`${viaKey}\` before reaching any \`require\` ` +
-            `condition. Put a \`require\` condition ahead of it naming a ` +
-            `\`.cjs\` bundle — renaming this target would break the \`import\` ` +
-            `side, which resolves it too.`;
-      violations.push(
-        `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
-          `is \`"type": "module"\`, so Node reads a \`.js\` file as ESM whatever ` +
-          `the bundle actually contains, and a CommonJS bundle cannot load that ` +
-          `way. ${remedy} (#688)`
-      );
-    }
+  // `main` is deliberately never judged. An `exports` map means Node does not
+  // read it at all, and without one there is no `require` condition to say the
+  // package distinguishes the formats — so every shape where it could be judged
+  // is one where the answer is a guess. Judging it whenever `exports` resolved a
+  // require target got this exactly backwards: that is the one case Node
+  // guarantees `main` is unread, and it is what flagged `node-emoji` and
+  // `unplugin`, whose maps are correct.
+  for (const [where, target, viaKey] of requireTargets) {
+    if (!target.endsWith('.js')) continue;
+    // Asked per TARGET, not once for the package: the file's own directory
+    // may carry a manifest that overrides the root.
+    if (typeOfTarget(target) !== 'module') continue;
+    // The remedy depends on WHICH condition served it. A `require` key names
+    // a CommonJS target, so the file is what is wrong. `node` or `default`
+    // serve `import` as well, so renaming their target would break the ESM
+    // side — what is wrong there is that `require()` reaches them before any
+    // `require` condition.
+    const remedy =
+      viaKey === 'require'
+        ? `Emit it with a \`.cjs\` extension and point ${where} at that — ` +
+          `the extension wins over \`type\`.`
+        : `\`require()\` matches \`${viaKey}\` before reaching any \`require\` ` +
+          `condition. Put a \`require\` condition ahead of it naming a ` +
+          `\`.cjs\` bundle — renaming this target would break the \`import\` ` +
+          `side, which resolves it too.`;
+    violations.push(
+      `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
+        `is \`"type": "module"\`, so Node reads a \`.js\` file as ESM whatever ` +
+        `the bundle actually contains, and a CommonJS bundle cannot load that ` +
+        `way. ${remedy} (#688)`
+    );
   }
 
   return violations;
@@ -2654,10 +2663,59 @@ async function checkPublishableManifests() {
   );
 
   for (const { dir, pkg } of manifests) {
+    // Answer the format question by LOOKING, which the pure function cannot.
+    // Node reads `type` from the nearest package.json above the file, so a
+    // `dist/commonjs/` carrying its own manifest makes a `.js` target there
+    // CommonJS and correct. Walk up from the target to the package root and
+    // take the first `type` found; fall back to the root's own.
+    const typeOfTarget = async target => {
+      let at = dirname(join(REPO, dir, target));
+      const root = join(REPO, dir);
+      while (at.startsWith(root) && at !== root) {
+        try {
+          const nested = JSON.parse(
+            await readFile(join(at, 'package.json'), 'utf8')
+          );
+          if (nested && typeof nested.type === 'string') return nested.type;
+        } catch {
+          // No manifest here, or an unreadable one: keep walking up.
+        }
+        at = dirname(at);
+      }
+      return pkg?.type ?? 'commonjs';
+    };
+    // Resolved ahead of the call because manifestViolations is synchronous and
+    // pure, which is what lets the fixtures drive it. Every "./…" string in the
+    // manifest is looked up rather than only the ones that will be judged —
+    // deciding which those are is the pure function's job, and duplicating it
+    // here is how the two would drift apart.
+    const targets = new Set();
+    const collect = node => {
+      if (typeof node === 'string') {
+        if (node.startsWith('./')) targets.add(node);
+        return;
+      }
+      if (node && typeof node === 'object')
+        Object.values(node).forEach(collect);
+    };
+    collect(pkg?.exports);
+    if (typeof pkg?.main === 'string') targets.add(pkg.main);
+    const nestedTypes = new Map();
+    for (const target of targets) {
+      nestedTypes.set(target, await typeOfTarget(target));
+    }
+
     // The private check lives in manifestViolations, not here, so there is one
     // copy of it. hookScripts still runs for private packages: a broken pack
     // hook is worth reporting whether or not the package publishes.
-    violations.push(...manifestViolations(dir, pkg, siblings));
+    violations.push(
+      ...manifestViolations(
+        dir,
+        pkg,
+        siblings,
+        target => nestedTypes.get(target) ?? pkg?.type ?? 'commonjs'
+      )
+    );
     violations.push(...siblingViolations(dir, pkg, siblings));
 
     // Naming a script is not the same as shipping it. A hook pointing at a
