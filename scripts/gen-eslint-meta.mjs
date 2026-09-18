@@ -161,10 +161,24 @@ export function guardViolations({ deprecated, textAlias, knownProps }) {
   return violations;
 }
 
-export function collect() {
-  const names = [...exportedModules().keys()]
-    .filter(n => /^[A-Z]/.test(n))
-    .sort();
+/**
+ * Read the library and build the tables, refusing to return a bad one.
+ *
+ * The extractor is a parameter with the real one as its default, which is the
+ * only way a test reaches the `throw` below. Everything else here is pure or
+ * tested: `replacementFrom` and `guardViolations` have their own suites, and
+ * `render` has one. The line that turns a violation list into a failure had
+ * none, because on the real library every guard is dead code — deleting it
+ * changed no output and left the node suite, `gen:eslint-meta:check` and
+ * `pnpm all` green, which is a bad property for the thing standing between a
+ * corrupt table and a consumer's source.
+ *
+ * @param {{exportedModules?: Function, extractComponent?: Function}} [deps]
+ */
+export function collect(deps = {}) {
+  const readModules = deps.exportedModules ?? exportedModules;
+  const readComponent = deps.extractComponent ?? extractComponent;
+  const names = [...readModules().keys()].filter(n => /^[A-Z]/.test(n)).sort();
 
   /** element path → prop → { replacement, note } */
   const deprecated = new Map();
@@ -174,7 +188,7 @@ export function collect() {
   const textAlias = new Set();
 
   for (const name of names) {
-    const info = extractComponent(name, { markdown: false });
+    const info = readComponent(name, { markdown: false });
     for (const table of info.tables ?? []) {
       // Every element's own prop names, so a replacement or a rewrite target
       // can be checked against what the element actually declares.

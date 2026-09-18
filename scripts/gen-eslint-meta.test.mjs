@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  collect,
   guardViolations,
   render,
   replacementFrom,
@@ -230,5 +231,95 @@ describe('render', () => {
 
   it('is deterministic for the same input', () => {
     assert.equal(render(table()), render(table()));
+  });
+});
+
+describe('collect', () => {
+  /**
+   * A library of exactly the components named, shaped the way props-extract
+   * reports them. `tablesFor` is called per name so a case can give each
+   * component its own rows.
+   */
+  const library = (names, tablesFor) => ({
+    exportedModules: () => new Map(names.map(n => [n, {}])),
+    extractComponent: name => ({ tables: tablesFor(name) }),
+  });
+
+  /** A text-alias `color` row pair, which every anchor has to carry. */
+  const aliasRows = path => [
+    { name: 'color', description: `Text color alias for ${path}.` },
+    { name: 'textColor', description: 'Text colour.' },
+  ];
+
+  // The guards exist to stop a bad table being written. On the real library
+  // every one of them is dead code, so the line that turns a violation into a
+  // failure was reached by nothing — deleting it left every gate green. The
+  // extractor is a parameter so these two cases can reach it.
+  it('refuses a table whose replacement is not a prop of the element', () => {
+    assert.throws(
+      () =>
+        collect(
+          library(['Box', 'Card', 'Content'], path => [
+            {
+              path,
+              rows: [
+                // The note names a replacement the element never declares,
+                // which is the edit that would corrupt a consumer's source.
+                ...(path === 'Box'
+                  ? [
+                      {
+                        name: 'isFullWidth',
+                        deprecated: true,
+                        deprecationNote: 'Use `isFullwidth` instead.',
+                      },
+                    ]
+                  : []),
+                ...aliasRows(path),
+              ],
+            },
+          ])
+        ),
+      /is not a prop Box declares/
+    );
+  });
+
+  it('reports every violation in one error rather than the first', () => {
+    // No deprecations and no text alias, so both emptiness guards fire.
+    try {
+      collect(library(['Box'], path => [{ path, rows: [{ name: 'color' }] }]));
+      assert.fail('collect should have refused this table');
+    } catch (error) {
+      assert.match(error.message, /no deprecated props found/);
+      assert.match(error.message, /no text-alias color props found/);
+    }
+  });
+
+  it('returns the tables when every guard holds', () => {
+    // Every anchor has to be a text alias, so the happy path needs all three.
+    const { deprecated, textAlias } = collect(
+      library(['Box', 'Card', 'Content'], path => [
+        {
+          path,
+          rows: [
+            ...(path === 'Box'
+              ? [
+                  {
+                    name: 'isFullWidth',
+                    deprecated: true,
+                    deprecationNote: 'Use `isFullwidth` instead.',
+                  },
+                  { name: 'isFullwidth', description: 'Full width.' },
+                ]
+              : []),
+            ...aliasRows(path),
+          ],
+        },
+      ])
+    );
+    assert.equal(
+      deprecated.get('Box').get('isFullWidth').replacement,
+      'isFullwidth'
+    );
+    assert.ok(textAlias.has('Box'));
   });
 });

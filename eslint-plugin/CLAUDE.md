@@ -185,11 +185,19 @@ staleness gate, not a test here.
 ## ESM-only, and what that does not mean
 
 The package ships ESM and no CommonJS build, and the README said that made it
-unusable from a CommonJS config. That is false on the Node range this package
-supports. `require(esm)` handles a module with no top-level await, and
-`dist/index.js` has none, so an `eslint.config.cjs` can `require()` the plugin
-and read `configs.recommended` straight off the result: `rules` and `configs`
-are named exports alongside the default, so there is no `.default` hop either.
+unusable from a CommonJS config. That is not what being ESM-only means.
+`require(esm)` handles a module with no top-level await, and `dist/index.js`
+has none, so on a Node that supports it an `eslint.config.cjs` can `require()`
+the plugin and read `configs.recommended` straight off the result: `rules` and
+`configs` are named exports alongside the default, so there is no `.default`
+hop either.
+
+Not the whole supported range, which is worth stating precisely because the
+first correction of this overshot. `engines.node` is `>=22`, and `require(esm)`
+needs a flag on the early 22.x releases, so the claim was true there and false
+from the version that unflagged it onward. The README and the guide hedge on
+the capability rather than naming a version, which is the form that stays
+true.
 Verified both ways, the second with `--no-experimental-require-module`, which
 throws `ERR_REQUIRE_ESM` the way an older Node does.
 
