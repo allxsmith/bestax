@@ -43,6 +43,17 @@ helper value tuples (`validColors`, `validTextSizes`, …) without loading React
 or any component. `@allxsmith/eslint-plugin-bestax` validates against them that
 way rather than copying them.
 
+It serves that module WHOLE, which is wider than "the value tuples": it also
+carries `createBulmaClassHelpers`, which is `@internal`, and `cursorClasses`,
+which the package root does not re-export. Read that as the subpath's actual
+contract rather than an oversight, and do not reach for `stripInternal` to
+narrow it — `@internal` marks props on `Button`, `Link`, `LinkButton`,
+`Navbar` and `Avatar` as well, so turning it on would drop those from the
+published component types, which is a change to the library's public surface
+and wants its own review. The narrowing that would be free is a second source
+file, and that would split the cursor tuple from the classes it maps to, which
+is the drift this file exists to prevent.
+
 These keep it working, and each of them failed once:
 
 - That file must stay import-free. The rollup entry keeps the main bundle's
