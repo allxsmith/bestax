@@ -2345,9 +2345,18 @@ export function manifestViolations(
       return node.startsWith('./') ? { label, target: node, via } : undefined;
     }
     if (Array.isArray(node)) {
+      // An EMPTY fallback array resolves to null in Node, which blocks the
+      // subpath rather than falling through to the next condition.
+      if (node.length === 0) return BLOCKED;
       for (const [i, value] of node.entries()) {
+        // Inside an array, a `null` — literal, or one an entry resolves to —
+        // means "try the next entry", the opposite of what it means as a
+        // condition's value. Node records it and continues; treating it as a
+        // block here aborted the whole resolution and hid the entry that
+        // actually resolves.
         if (value === null) continue;
         const hit = resolveRequire(value, `${label}.${i}`, via);
+        if (hit === BLOCKED) continue;
         if (hit) return hit;
       }
       return undefined;

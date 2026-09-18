@@ -1218,6 +1218,53 @@ test('a dual pair nested under a wrapper condition is judged', () => {
   assert.ok(found[0].includes('exports["."].node.require'), found[0]);
 });
 
+test('inside an array, null means try the next entry', () => {
+  // The opposite of what `null` means as a condition's value. Node records it
+  // and continues; aborting the resolution there hid the entry that resolves.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': { import: './a.mjs', require: [{ node: null }, './b.js'] },
+    },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require.1'), found[0]);
+
+  // A literal null entry behaves the same way.
+  const literal = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: [null, './b.js'] } },
+  });
+  assert.equal(literal.length, 1, literal.join('\n'));
+});
+
+test('an empty fallback array blocks the subpath', () => {
+  // Node resolves an empty array to null, which blocks rather than falling
+  // through, so the `default` beside it is never reached.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', require: [], default: './x.js' } },
+    }),
+    []
+  );
+});
+
+test('a bare conditions map with no subpath keys is judged', () => {
+  // The sugar form: `exports` is the root conditions object itself rather than
+  // a map of subpaths.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { import: './a.mjs', require: './index.cjs.js' },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports.require'), found[0]);
+});
+
 test('a null target blocks the subpath rather than falling through', () => {
   // Node stops on `null` and throws ERR_PACKAGE_PATH_NOT_EXPORTED; it does not
   // try the next key. Continuing past it flagged a target require() never
@@ -1619,10 +1666,31 @@ test('nearestType ignores an unreadable nested manifest and keeps climbing', asy
 });
 
 test('nearestType never climbs above the package root', async () => {
-  // The parent of a scratch dir is a temp directory that may hold anything;
-  // reading a manifest there would attribute someone else's `type` to this
-  // package.
-  const root = join(scratch(), 'inner');
+  // The parent of a package directory belongs to somebody else, and reading a
+  // manifest there would attribute their `type` to this package.
+  //
+  // The parent therefore declares the OPPOSITE type to the fallback: asserting
+  // the fallback value alone proves nothing, since that is also what the walk
+  // returns when it finds nothing. This has to fail if the boundary goes.
+  const outer = scratch();
+  writeFileSync(
+    join(outer, 'package.json'),
+    JSON.stringify({ type: 'commonjs' })
+  );
+  const root = join(outer, 'inner');
   mkdirSync(join(root, 'dist'), { recursive: true });
   assert.equal(await nearestType(root, './dist/index.js', 'module'), 'module');
+
+  // And the mirror, so neither direction can pass by coincidence.
+  const outer2 = scratch();
+  writeFileSync(
+    join(outer2, 'package.json'),
+    JSON.stringify({ type: 'module' })
+  );
+  const root2 = join(outer2, 'inner');
+  mkdirSync(join(root2, 'dist'), { recursive: true });
+  assert.equal(
+    await nearestType(root2, './dist/index.js', 'commonjs'),
+    'commonjs'
+  );
 });
