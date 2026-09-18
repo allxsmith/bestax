@@ -1392,6 +1392,51 @@ test('module-sync does not hide what an older Node reaches behind it', () => {
   );
 });
 
+test('both runtimes are judged, and neither reports the other twice', () => {
+  // A `module-sync` that BLOCKS on a modern runtime — null, or an invalid
+  // target — still lets an older one skip the key and land on what follows.
+  // Judging only the modern resolution, and re-resolving only when it was
+  // exempted, missed these entirely.
+  for (const map of [
+    { 'module-sync': null, require: './b.js' },
+    { 'module-sync': 'bad.js', require: './b.js' },
+    { 'module-sync': null, default: './b.js', require: './a.cjs' },
+  ]) {
+    const found = entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': map },
+    });
+    assert.equal(
+      found.length,
+      1,
+      `${JSON.stringify(map)} → ${found.join('\n')}`
+    );
+  }
+
+  // Where the older runtime reaches NOTHING, there is nothing to add: the
+  // `require` here is unreachable for it once `module-sync` is skipped, since
+  // `import` is not a condition a require() matches.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { 'module-sync': './m.js', require: { import: './x.mjs' } },
+      },
+    }),
+    []
+  );
+
+  // And where both runtimes land on the same target, it is reported once.
+  const shared = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './bad.js' } },
+  });
+  assert.equal(shared.length, 1, shared.join('\n'));
+});
+
 test('a require nested under module-sync is still judged', () => {
   // `module-sync` promises an ES module, which is why what it serves is
   // exempt — but a `require` key below it names a CommonJS target explicitly,

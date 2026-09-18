@@ -2405,11 +2405,14 @@ export function manifestViolations(
     if (!node || typeof node !== 'object') return undefined;
     for (const key of Object.keys(node)) {
       if (!REQUIRE_MATCHING.has(key)) continue;
+      // Skipped BEFORE the `null` test: a runtime that does not match this
+      // condition does not see its value either, so a `module-sync: null` must
+      // not block the very resolution that exists to ignore the key.
+      if (opts.skipEsmConditions && REQUIRE_MATCHING_ESM.has(key)) continue;
       // `null` is not "no mapping, keep looking": it BLOCKS the subpath, and
       // Node throws ERR_PACKAGE_PATH_NOT_EXPORTED rather than trying the next
       // key. Falling through flagged a target `require()` never reaches.
       if (node[key] === null) return BLOCKED;
-      if (opts.skipEsmConditions && REQUIRE_MATCHING_ESM.has(key)) continue;
       const hit = resolveRequire(
         node[key],
         `${label}.${key}`,
@@ -2448,31 +2451,35 @@ export function manifestViolations(
 
   const judge = (node, label, sink) => {
     if (!distinguishes(node)) return;
-    const hit = resolveRequire(node, label, []);
-    if (!hit || hit === BLOCKED) return;
-    // Asked of the PATH rather than the leaf key, because `module-sync` is
-    // ordinarily spelled with a `types` of its own and the key naming the file
-    // is then `default` — reading only that judged an ESM target Node serves to
-    // `require()` by design. But a `require` key BELOW it names a CommonJS
-    // target explicitly, which the condition's promise does not cover, so the
-    // exemption stops there.
-    const esmFrom = hit.via.findIndex(key => REQUIRE_MATCHING_ESM.has(key));
-    if (esmFrom !== -1 && !hit.via.slice(esmFrom + 1).includes('require')) {
-      // Exempt on a Node that matches `module-sync` — but not every Node does.
-      // It arrived in 22.10, and `--no-experimental-require-module` turns it
-      // off, so an older consumer's `require()` skips the key entirely and
-      // lands on whatever comes next. Rather than model two Node versions
-      // everywhere, resolve once more with the condition removed, which is
-      // exactly what those runtimes see, and judge THAT target.
-      const older = resolveRequire(node, label, [], {
-        skipEsmConditions: true,
-      });
-      if (!older || older === BLOCKED) return;
-      sink.push([older.label, older.target, older.via]);
-      return;
+
+    // `module-sync` arrived in Node 22.10, and `--no-experimental-require-module`
+    // turns it off, so two runtimes resolve the same map differently. BOTH are
+    // resolved and both judged, because a manifest only has to break one of
+    // them to break consumers. Resolving the modern one and re-resolving only
+    // on exemption missed the case where the modern resolution BLOCKS — a
+    // `module-sync` of `null` or an invalid target — while the older runtime
+    // skips the key and lands on a real failure behind it.
+    const exempt = hit => {
+      const from = hit.via.findIndex(key => REQUIRE_MATCHING_ESM.has(key));
+      // A `require` key BELOW the condition names a CommonJS target
+      // explicitly, which the condition's ESM promise does not cover.
+      return from !== -1 && !hit.via.slice(from + 1).includes('require');
+    };
+
+    const found = [];
+    const modern = resolveRequire(node, label, []);
+    if (modern && modern !== BLOCKED && !exempt(modern)) found.push(modern);
+    const older = resolveRequire(node, label, [], { skipEsmConditions: true });
+    if (
+      older &&
+      older !== BLOCKED &&
+      !found.some(seen => seen.target === older.target)
+    ) {
+      found.push(older);
     }
+
     // The whole path, so the remedy can ask whether a `require` key is on it.
-    sink.push([hit.label, hit.target, hit.via]);
+    for (const hit of found) sink.push([hit.label, hit.target, hit.via]);
   };
 
   const exportsNode = pkg?.exports;

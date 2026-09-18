@@ -185,9 +185,14 @@ for (let i = 0; i < COUNT; i++) {
     exports: { '.': map },
   }).filter(v => v.includes('#688'));
 
-  // The rule abstains where the map does not distinguish the formats, and where
-  // `module-sync` serves ESM by contract. Both are documented decisions rather
-  // than agreement with Node, so they are excluded rather than counted wrong.
+  // Two exclusions, for different reasons. A map that does not distinguish the
+  // formats is a documented abstention rather than a disagreement with Node.
+  // `module-sync` is excluded because this oracle cannot answer it: the rule
+  // judges what BOTH a modern and a pre-22.10 runtime resolve, and a single
+  // `require.resolve()` here only ever reports the modern one. Checking that
+  // mechanism needs a second child process under
+  // `--no-experimental-require-module`; until then those maps are carried by
+  // fixtures, not by this corpus.
   const spelled = JSON.stringify(map);
   if (!declaresCjsForRequire(map) || /"module-sync"/.test(spelled)) continue;
 
