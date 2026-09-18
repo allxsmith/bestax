@@ -18,6 +18,8 @@ export const validColors = [
   'grey-light',
   'grey-lighter',
   'white',
+  'white-bis',
+  'white-ter',
   'light',
   'dark',
 ] as const;
