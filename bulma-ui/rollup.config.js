@@ -103,7 +103,12 @@ export default commandLineArgs => {
           dir: 'dist',
           format: 'cjs',
           sourcemap: true,
-          entryFileNames: 'index.cjs.js',
+          // `.cjs`, not `.cjs.js`: this package is `"type": "module"`, so
+          // Node reads a `.js` file as ESM whatever format rollup wrote into
+          // it, and this bundle's `require(...)` calls are then evaluated in
+          // module scope where `require` does not exist. The extension is the
+          // only thing that overrides `type` (#688).
+          entryFileNames: 'index.cjs',
           banner: aiBanner,
         },
         {

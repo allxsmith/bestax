@@ -2,7 +2,7 @@
   "name": "@allxsmith/bestax-bulma",
   "version": "5.16.0",
   "description": "A fully-typed React component library for the Bulma CSS framework. Build modern UIs quickly with reusable, accessible, and customizable Bulma-based React components.",
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "types": "dist/types/index.d.ts",
   "type": "module",
@@ -135,7 +135,7 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs"
     },
     "./constants": {
       "import": {

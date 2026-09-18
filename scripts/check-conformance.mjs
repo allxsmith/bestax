@@ -2264,6 +2264,55 @@ export function manifestViolations(dir, pkg, siblings = new Map()) {
     })
   );
 
+  // An entry point's EXTENSION decides how Node reads it, and `type` decides
+  // what `.js` means. A `"type": "module"` package's `.js` is ESM whatever a
+  // bundler wrote into it, so a CommonJS bundle at `dist/index.cjs.js` cannot
+  // load through `require` — the `require(...)` calls inside it are evaluated
+  // in module scope. Only the extension escapes it: `.cjs` is CommonJS and
+  // `.mjs` is ESM regardless of `type`. The mirror is a real failure too, so
+  // both directions are checked rather than the one that bit (#688).
+  //
+  // Worth knowing for anyone reading a failure: this does not always throw.
+  // Depending on the Node version a consumer can instead get an empty
+  // namespace object, which is the worse outcome, because nothing fails and
+  // the package merely appears to export nothing.
+  const esm = pkg?.type === 'module';
+  const conditionEntries = [];
+  if (typeof pkg?.main === 'string') {
+    // `main` is the legacy require path, so it is read as CommonJS.
+    conditionEntries.push(['main', pkg.main, 'require']);
+  }
+  const walkExports = (node, path) => {
+    if (typeof node === 'string') return;
+    if (!node || typeof node !== 'object') return;
+    for (const [key, value] of Object.entries(node)) {
+      if (typeof value === 'string') {
+        if (key === 'require' || key === 'import') {
+          conditionEntries.push([`exports${path}.${key}`, value, key]);
+        }
+      } else {
+        walkExports(value, `${path}[${JSON.stringify(key)}]`);
+      }
+    }
+  };
+  walkExports(pkg?.exports, '');
+
+  for (const [where, target, condition] of conditionEntries) {
+    // A `require` target is CommonJS; an `import` target is ESM. Each is
+    // misread only when `type` disagrees with the extension.
+    const wantsCjs = condition === 'require';
+    if (wantsCjs !== esm || !target.endsWith('.js')) continue;
+    const fix = wantsCjs ? '.cjs' : '.mjs';
+    violations.push(
+      `${dir}/package.json: ${where} points at \`${target}\`, but the package ` +
+        `is \`"type": "${pkg?.type ?? 'commonjs'}"\`, so Node reads a \`.js\` file as ` +
+        `${esm ? 'ESM' : 'CommonJS'} whatever the bundle actually contains. ` +
+        `A ${wantsCjs ? 'CommonJS' : 'ESM'} bundle cannot load that way. ` +
+        `Emit it with a \`${fix}\` extension and point ${where} at that — the ` +
+        `extension wins over \`type\` (#688).`
+    );
+  }
+
   return violations;
 }
 

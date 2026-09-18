@@ -1039,3 +1039,80 @@ test('every declared runtime sibling matches the real manifests', () => {
     }
   }
 });
+
+/**
+ * Entry-point extensions (#688).
+ *
+ * `type` decides what a `.js` file means, so a `"type": "module"` package's
+ * CommonJS bundle at `dist/index.cjs.js` is read as ESM and cannot load
+ * through `require`. The extension is the only thing that overrides `type`.
+ * Fixture-driven like the rules above, plus one test against the real
+ * manifests so the repo cannot drift back into it.
+ */
+const entryViolations = pkg =>
+  manifestViolations('pkg', pkg).filter(v => v.includes('#688'));
+
+test('a type:module package may not require a .js entry', () => {
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    main: 'dist/index.cjs.js',
+    exports: { '.': { require: './dist/index.cjs.js' } },
+  });
+  assert.equal(found.length, 2, found.join('\n'));
+  assert.ok(found.every(v => v.includes('`.cjs`')));
+});
+
+test('a type:module package requiring a .cjs entry is fine', () => {
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      main: 'dist/index.cjs',
+      exports: {
+        '.': { import: './dist/index.esm.js', require: './dist/index.cjs' },
+      },
+    }),
+    []
+  );
+});
+
+test('the mirror case is caught too: a commonjs package importing a .js entry', () => {
+  // Same failure in the other direction — `.js` under the default `type` is
+  // CommonJS, so an ESM bundle cannot load through `import`.
+  const found = entryViolations({
+    name: 'x',
+    exports: { '.': { import: './dist/index.esm.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('`.mjs`'));
+});
+
+test('a commonjs package may require a .js entry, and main is a require path', () => {
+  // `main` is how `require` finds a package without an exports map, so it is
+  // judged as CommonJS. Under the default `type` a `.js` main is correct.
+  assert.deepEqual(entryViolations({ name: 'x', main: 'dist/index.js' }), []);
+});
+
+test('nested export conditions are walked, not just the top level', () => {
+  // A subpath's condition is as loadable-or-not as the root's, and the rule
+  // that only read `exports['.']` would have passed the package that bit.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { './constants': { require: './dist/constants.cjs.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["./constants"].require'));
+});
+
+test('every published manifest loads through the condition it advertises', () => {
+  for (const dir of parseWorkspacePackages(repoFile('pnpm-workspace.yaml'))) {
+    const pkg = JSON.parse(repoFile(`${dir}/package.json`));
+    assert.deepEqual(
+      entryViolations(pkg),
+      [],
+      `${dir} advertises an entry point Node cannot load as the format it claims`
+    );
+  }
+});
