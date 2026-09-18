@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 14737
+          "bytes": 14762
         }
       ],
       "examples": [
@@ -93,12 +93,12 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 24371
+          "bytes": 23979
         },
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 16354
+          "bytes": 16154
         },
         {
           "id": "css-migration",
@@ -113,12 +113,12 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 11798
+          "bytes": 11708
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 13539
+          "bytes": 13404
         },
         {
           "id": "react-bulma-components-component-map",
@@ -166,7 +166,7 @@
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 20270
+          "bytes": 20784
         }
       ],
       "examples": [

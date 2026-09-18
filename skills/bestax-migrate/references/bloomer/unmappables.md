@@ -257,11 +257,6 @@ prop conditionally:
 counterpart in bestax (only `isNarrowTouch`) — Bulma keeps the `is-*-touch` classes, so use
 `className`.
 
-## `prop:hasTextColor="white-ter"` / `"white-bis"`
-
-Two Bulma 0.6 shades bestax has no colour for. Use `white`, or a custom class. Every other colour
-and shade of that era exists in bestax verbatim.
-
 ## `value-reference` — a component used as a value
 
 `const Wrapped = Box` and `{ Subtitle }` are rewritten to the bestax binding (`Hero.Foot`,

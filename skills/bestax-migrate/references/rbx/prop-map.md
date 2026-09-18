@@ -28,8 +28,7 @@ rbx mixes these into every component via `HelpersProps`.
 | `shadowless`                      | `shadow="shadowless"`        |                                                            |
 | `unselectable`                    | `interaction="unselectable"` |                                                            |
 
-Two rbx colour names have no bestax equivalent: **`white-ter`** and **`white-bis`**. Everything
-else in rbx's `colors` and `shades` unions exists in bestax verbatim.
+Every name in rbx's `colors` and `shades` unions exists in bestax verbatim.
 
 ## Bare boolean modifiers → `is*`
 
