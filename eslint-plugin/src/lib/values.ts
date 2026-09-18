@@ -176,13 +176,19 @@ export const REMOVES_ONLY: ReadonlyMap<string, string> = new Map([
  * must not be applied to it.
  *
  * `Theme` mints a prop for every Bulma CSS variable, and `--bulma-radius`
- * collides with the `radius` helper. On `Theme` the variable wins:
- * `<Theme radius="6px" />` is correct code that renders
- * `style="--bulma-radius: 6px"` and never reaches `useBulmaClasses`, so
- * judging it against `validRadii` reports working code and offers a remedy
- * that breaks it. `--bulma-shadow` would collide the same way and is filtered
- * out of that map for exactly this reason, which is why `shadow` is a helper
- * prop on `Theme` and needs no entry here.
+ * collides with the `radius` helper. On `Theme` the variable wins at runtime
+ * while the declared type stays the helper union, so the two disagree and the
+ * rule cannot say anything true about the pair (#694). Both readings:
+ * `<Theme radius="6px" />` does not typecheck and does set the variable, so
+ * reporting it is a false positive in the JS and JSX projects this rule is
+ * for; `<Theme radius="radiusless" />` typechecks and renders
+ * `style="--bulma-radius: radiusless"`, so the value the rule would call
+ * correct is the one that does nothing. Silence is the only honest answer
+ * until #694 picks a meaning.
+ *
+ * `--bulma-shadow` would collide the same way and is filtered out of that map
+ * for exactly this reason, which is why `shadow` is a helper prop on `Theme`
+ * and needs no entry here. That filter is the precedent #694 would follow.
  *
  * This is the one-way invariant above being held rather than abandoned:
  * silence on a wrong value is the direction to be wrong in, and a report on a

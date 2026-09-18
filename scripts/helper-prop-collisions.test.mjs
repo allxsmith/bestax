@@ -5,8 +5,11 @@
  * that is safe only while a name means the same thing everywhere. `Theme`
  * breaks it: it mints a prop for every Bulma CSS variable, so `--bulma-radius`
  * becomes a `radius` prop that sets the variable and never reaches
- * `useBulmaClasses`. `<Theme radius="6px" />` is correct code, and the rule
- * reported it until the exception was declared.
+ * `useBulmaClasses`, while its declared type stays the helper union. The rule
+ * reported `<Theme radius="6px" />`, which is how a JSX consumer sets that
+ * variable, and called `radiusless` the fix, which on `Theme` renders
+ * `--bulma-radius: radiusless` and does nothing. Neither reading is
+ * reportable, so the pair is skipped. The library-side disagreement is #694.
  *
  * A declaration no test can falsify becomes a fiction, which is the argument
  * `check-conformance.mjs` makes for `SIBLING_RUNTIME_DEPS`, so this recomputes

@@ -61,13 +61,14 @@ ruleTester.run('valid-helper-value', rule, {
     // The boolean members of the same interface take no value, so they must
     // stay out of the table: a shorthand on one of them is correct usage.
     imported('Box', '<Box overlay skeleton clearfix relative fullHeight />'),
-    // `radius` on `Theme` is the CSS variable `--bulma-radius`, not the
-    // helper: Theme mints a prop per Bulma variable and intercepts it before
-    // `useBulmaClasses` sees it, so this renders
-    // `style="--bulma-radius: 6px"` and is correct code. Reporting it was the
-    // first thing in this table to break the one-way invariant.
+    // `radius` on `Theme` is the CSS variable `--bulma-radius` at runtime and
+    // the helper union in its type, and those disagree (#694). `6px` is how a
+    // JSX consumer sets that variable, and `radiusless` is what this rule
+    // would have called the fix while rendering
+    // `--bulma-radius: radiusless`, which does nothing. Neither is
+    // reportable, so the pair is skipped: both cases here, not just the first.
     imported('Theme', '<Theme radius="6px">x</Theme>'),
-    imported('Theme', '<Theme radius="0">x</Theme>'),
+    imported('Theme', '<Theme radius="radiusless">x</Theme>'),
   ],
   invalid: [
     {
