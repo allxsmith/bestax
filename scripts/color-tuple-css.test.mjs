@@ -143,24 +143,31 @@ function simpleSelectors(css) {
     for (const chunk of css.split('{')) {
       // Each `{` is preceded by a prelude; the selector is whatever follows
       // the last `}` in it.
-      const prelude = chunk.slice(chunk.lastIndexOf('}') + 1);
+      // Functional pseudo-class ARGUMENTS go before anything is split, and
+      // the order matters twice over. `:not(…)` names classes the element
+      // must not carry, so reading them as present lets
+      // `.notification:not(.is-light)` answer the query
+      // `notification.is-light` — a rule that excludes the pair reporting it
+      // live, which is the silent direction. And the arguments can contain
+      // commas: `.navbar-item:not(.is-active,.is-selected)` is one selector,
+      // so splitting the list first fragments it and leaves `is-active`
+      // looking like a class the element carries. Stripping first solves
+      // both.
+      //
+      // `:is()` and `:where()` lose their classes to the same strip. Those
+      // are alternatives rather than requirements, so dropping them makes the
+      // exact match demand fewer classes than the selector really needs and
+      // under-report, which is the safe way to be wrong. Keeping them would
+      // mean modelling branches, which is more parser than this file should
+      // carry.
+      const prelude = chunk
+        .slice(chunk.lastIndexOf('}') + 1)
+        .replace(/:[a-z-]+\([^()]*\)/gi, '');
       for (const part of prelude.split(',')) {
         for (const simple of part.split(/[\s>+~]+/)) {
           if (!simple.includes('.')) continue;
-          // `:not(…)` names classes the element must NOT carry, so reading
-          // them as present lets `.notification:not(.is-light)` answer the
-          // query `notification.is-light` — a rule that explicitly excludes
-          // the pair reporting it live, which is the silent direction.
-          // Dropped before extraction. `:is()` and `:where()` are left alone:
-          // their classes are alternatives, so counting them makes the exact
-          // match demand too many and under-report, which is the safe way to
-          // be wrong.
-          const matchable = simple.replace(/:not\([^)]*\)/g, '');
-          if (!matchable.includes('.')) continue;
           sets.push(
-            new Set(
-              [...matchable.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(m => m[1])
-            )
+            new Set([...simple.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(m => m[1]))
           );
         }
       }
@@ -412,7 +419,7 @@ function acceptedKeywords(component, keywords) {
 /** The colours `CSS_BACKED` names to the developer as ones that work. */
 function cssBackedColors() {
   const source = readFileSync(DEPRECATIONS, 'utf8');
-  const line = /const CSS_BACKED =\s*\n?\s*'([^']+)'/.exec(source);
+  const line = /const CSS_BACKED =\s*\n?\s*['"]([^'"]+)['"]/.exec(source);
   assert.ok(line, 'could not find `CSS_BACKED` in colorDeprecations.ts');
   return line[1].split(',').map(v => v.trim());
 }
