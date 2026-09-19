@@ -114,6 +114,10 @@ export const declarationExtensions = (root = 'dist/types') => {
     // sibling output's emit, and losing that race republishes extensionless
     // declarations with a green build. `closeBundle` runs once, after every
     // output is on disk.
+    //
+    // It is also not available per output: `closeBundle` is absent from
+    // rollup's `OutputPluginHooks`, so an output-level placement would not fire
+    // once per output — it would not fire at all.
     // The `error` parameter is the fourth route here, and the only one neither
     // latch sees: when a SIBLING plugin throws from its own `buildEnd`, this
     // plugin's `buildEnd` is called with nothing while `closeBundle` is handed

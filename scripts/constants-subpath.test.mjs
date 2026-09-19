@@ -661,17 +661,23 @@ describe('the declaration-extension guard', () => {
       'index.d.cts': "export * from './a.cjs';\nexport * from './plain';\n",
       'a.d.cts': 'export {};\n',
       'plain.d.ts': 'export {};\n',
-      'esm.d.mts': "export * from './b.mjs';\n",
+      // The `.d.mts` carries an EXTENSIONLESS specifier, so the file has to be
+      // rewritten rather than merely read: narrowing the walk to `.d.c?ts`
+      // leaves this one untouched, which an assertion on already-extensioned
+      // content would not notice.
+      'esm.d.mts': "export * from './b.mjs';\nexport * from './plain';\n",
       'b.d.mts': 'export {};\n',
     });
     await run(root);
     // The extensioned specifiers are accepted because the declaration each
-    // maps to exists, and the extensionless one in a .d.cts is still rewritten.
+    // maps to exists, and the extensionless ones in both files are rewritten.
     assert.match(
       readFileSync(join(root, 'index.d.cts'), 'utf8'),
       /'\.\/plain\.js'/
     );
-    assert.match(readFileSync(join(root, 'esm.d.mts'), 'utf8'), /'\.\/b\.mjs'/);
+    const mts = readFileSync(join(root, 'esm.d.mts'), 'utf8');
+    assert.match(mts, /'\.\/b\.mjs'/);
+    assert.match(mts, /'\.\/plain\.js'/);
   });
 
   it('fails when a .cjs specifier has only a .d.ts beside it', async () => {
@@ -751,8 +757,32 @@ describe('the declaration-extension guard', () => {
     noOutput.renderStart();
     await noOutput.closeBundle();
 
-    // And the latches reset, so a failure does not silence the next rebuild
-    // under `--watch`.
+    // The COUNTERS reset too, not just `failed`. Without that, a rebuild whose
+    // output started and never finished leaves `started` ahead of `wrote` for
+    // the life of the process, so every later rebuild is skipped — `--watch`
+    // silenced permanently by one failure.
+    const valid = tree({
+      'index.d.ts': "export * from './a';\n",
+      'a.d.ts': 'export declare const a: number;\n',
+    });
+    const watching = declarationExtensions(valid);
+    watching.buildStart();
+    watching.buildEnd();
+    watching.renderStart();
+    await watching.closeBundle();
+    watching.buildStart();
+    watching.buildEnd();
+    watching.renderStart();
+    watching.writeBundle();
+    await watching.closeBundle();
+    assert.match(
+      readFileSync(join(valid, 'index.d.ts'), 'utf8'),
+      /'\.\/a\.js'/,
+      'the rebuild after an unfinished one was skipped'
+    );
+
+    // And the failure latch resets, so a failed build does not silence the
+    // next rebuild either.
     const reused = declarationExtensions(missing);
     reused.buildStart();
     reused.buildEnd(new Error('first build failed'));
