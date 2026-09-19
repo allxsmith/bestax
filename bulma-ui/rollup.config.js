@@ -66,11 +66,13 @@ const resolvesToDeclaration = (file, spec) => {
  * emits something that RESOLVES, so the post-pass cannot see it.
  *
  * Both directory arms probe `index.d.ts` and emit `.js` whatever the containing
- * file's flavour, so inside a `.d.cts` or `.d.mts` they would pick a
- * declaration TypeScript will not accept — and it resolves, so the post-pass is
- * blind to that too. No `.cts` or `.mts` source exists here and `dist/types`
- * carries none; this is the one member of that class left unaddressed rather
- * than unreachable by accident.
+ * file's flavour. This package is `type: module` and `dist/types` adds no
+ * manifest of its own, so that index is an ESM declaration: picked from inside
+ * a `.d.cts` it is TS1479 under `moduleResolution: node16` and accepted under
+ * `nodenext`, which allows `require` of ESM. Wrong against the older setting
+ * only, and it resolves either way, so the post-pass is blind to it. No `.cts`
+ * or `.mts` source exists here and `dist/types` carries none; this is the one
+ * member of that class left unaddressed rather than unreachable by accident.
  */
 export const declarationExtensions = (root = 'dist/types') => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
@@ -331,7 +333,8 @@ const constantsCjsTypes = () => ({
     // Both shapes a specifier can take in a declaration: a real
     // `from '…'`, and the `import('./x').Y` form tsc emits for a type it
     // reaches without an explicit import. Either one resolves as CommonJS
-    // inside a `.d.cts` and puts TS1479 back.
+    // inside a `.d.cts`, which is what puts TS1479 back for the `node16`
+    // consumer this file exists to serve.
     if (
       /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(/m.test(declaration)
     ) {

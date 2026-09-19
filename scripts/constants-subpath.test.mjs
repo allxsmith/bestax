@@ -668,10 +668,12 @@ describe('the declaration-extension guard', () => {
       //
       // What it is rewritten TO is pinned here as `.js` probed against
       // `.d.ts`, which is what the code does — and is arguably not what a
-      // `.d.cts` or `.d.mts` should get, since in a `"type": "module"` package
-      // a `.d.cts` importing `./plain.js` is TS1479. Unreachable today: no
-      // `.cts` or `.mts` source exists and `dist/types` carries none, so this
-      // records the current answer rather than endorsing it.
+      // `.d.cts` should get, since in a `"type": "module"` package a `.d.cts`
+      // importing `./plain.js` is TS1479 under `node16`. A `nodenext`
+      // consumer accepts the same import, so the answer is wrong against the
+      // older setting rather than wrong outright. Unreachable today: no `.cts`
+      // or `.mts` source exists and `dist/types` carries none, so this records
+      // the current answer rather than endorsing it.
       'esm.d.mts': "export * from './b.mjs';\nexport * from './plain';\n",
       'b.d.mts': 'export {};\n',
     });
