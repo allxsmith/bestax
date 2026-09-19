@@ -440,7 +440,9 @@ export default commandLineArgs => {
           // `constantsCjsTypes` reads a declaration the MAIN bundle's pass
           // writes — this config emits none — so it belongs on a config that
           // runs after that one. Rollup builds the configs in the array in
-          // order, which is what makes that true.
+          // order, which is what makes that true. It sits on the OUTPUT rather
+          // than in this config's plugin array only because `writeBundle` is an
+          // output hook; either would run late enough.
           plugins: [constantsCjsTypes()],
         },
         {

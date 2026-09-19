@@ -845,6 +845,32 @@ describe('the declaration-extension guard', () => {
     await assert.rejects(run(root), /resolves to neither/);
   });
 
+  it('fails on a reference path that resolves nowhere', async () => {
+    // The `.d.ts` arm of `resolvesToDeclaration` is the only probe a reference
+    // path ever gets, and only its acceptance was pinned: stubbing that arm to
+    // `true` left every case green while a dangling reference shipped.
+    const root = tree({
+      'index.d.ts': '/// <reference path="./gone.d.ts" />\nexport {};\n',
+    });
+    await assert.rejects(run(root), /resolve to no declaration/);
+  });
+
+  it('prefers the index for a bare dot even when a sibling declaration exists', async () => {
+    // Pins the bare-dot branch's POSITION ahead of the file probe, not just its
+    // result. With the order reversed, `..` from `pkg/deep` finds the stale
+    // `pkg.d.ts` and emits `'..js'` — a specifier the post-pass pattern cannot
+    // match at all, so the build stays green and ships this issue's own shape.
+    const root = tree({
+      'pkg.d.ts': 'export {};\n',
+      'pkg/index.d.ts': 'export declare const a: number;\n',
+      'pkg/deep/index.d.ts': "export * from '..';\n",
+    });
+    await run(root);
+    const out = readFileSync(join(root, 'pkg/deep/index.d.ts'), 'utf8');
+    assert.match(out, /'\.\.\/index\.js'/);
+    assert.doesNotMatch(out, /'\.\.js'/);
+  });
+
   it('fails on a bare dot naming a directory with no index', async () => {
     const root = tree({ 'deep/index.d.ts': "export * from '..';\n" });
     await assert.rejects(run(root), /no index declaration/);
