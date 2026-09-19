@@ -6,7 +6,7 @@
  * the export-map target, and the same package proves that is not enough: the
  * root `require` condition pointed at `dist/index.cjs.js`, a `.js` file
  * carrying `exports.*` inside a `"type": "module"` package, so Node read it as
- * ESM and the assignments never landed (#688). The `./constants` subpath had
+ * ESM, which no CommonJS bundle survives (#688). The `./constants` subpath had
  * the identical defect until it was emitted as `.cjs`. Both entries are loaded
  * by a test now — this one, and its counterpart in
  * `publishable-manifests.test.mjs` for the root.
@@ -172,9 +172,9 @@ describe('bulma-ui export map', () => {
     const cjs = consumerRequire('@allxsmith/bestax-bulma/constants');
     assert.ok(
       Array.isArray(cjs.validColors) && cjs.validColors.length > 0,
-      'the require condition produced no validColors — the symptom of a ' +
-        'CommonJS bundle being read as ESM, which is what a `.js` target in ' +
-        'this package means whatever the bundle contains'
+      'the require condition produced no validColors, which is what a ' +
+        'CommonJS bundle read as ESM looks like when it does not throw ' +
+        'outright — a `.js` target here is read that way whatever it contains'
     );
 
     const esm = await import(pathToFileURL(target(entry.import.default)).href);

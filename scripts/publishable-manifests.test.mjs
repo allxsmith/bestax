@@ -1942,9 +1942,12 @@ test('the root entry really loads through both conditions', async () => {
   const cjs = consumerRequire('@allxsmith/bestax-bulma');
   assert.ok(
     Object.keys(cjs).length > 0,
-    'the require condition produced no exports — the symptom of a CommonJS ' +
-      'bundle being read as ESM, where its own require/exports references ' +
-      'throw at module scope — an older runtime refuses it outright (#688)'
+    // Deliberately does not explain the symptom. This assertion can only run
+    // after `require()` SUCCEEDED, so any mechanism that throws cannot be the
+    // one that produced it — the previous wording named two, and both would
+    // have failed before reaching here.
+    'the require condition produced no exports, which is what a CommonJS ' +
+      'bundle read as ESM looks like when it does not throw outright (#688)'
   );
   assert.ok(cjs.Button, 'the require condition served no Button');
 
