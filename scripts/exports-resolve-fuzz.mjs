@@ -19,7 +19,12 @@
  * committed fixtures in `scripts/publishable-manifests.test.mjs` are what CI
  * runs; every one of them came from a disagreement this found.
  *
- *   node scripts/exports-resolve-fuzz.mjs [count] [seed]
+ *   node scripts/exports-resolve-fuzz.mjs [count] [seed] [resolve|load]
+ *
+ * `resolve` (the default) is fast and in-process; `load` is slower and is the
+ * only mode that certifies the `module-sync` family, because it runs the
+ * runtime those maps are about. Both are worth running when the resolver
+ * changes.
  *
  * A seed makes a run reproducible, so a disagreement can be handed to someone
  * else verbatim.
@@ -45,7 +50,12 @@ const MODE = process.argv[4] ?? 'resolve';
 // run. A mistyped count and a count of 0 both produced that success line while
 // comparing no maps at all — and the two ways this goes quiet are both edits to
 // the resolver it exists to certify.
-const MIN_CONSIDERED = 25;
+// Counted over DECISIVE maps — ones where Node reports a failure, or the rule
+// flags, or both. Most of a generated corpus resolves nothing at all, so those
+// comparisons are `false === false` and could not have failed however wrong the
+// rule was; a floor on the total would pass on a corpus with no live cases in
+// it, which is the same vacuous-success shape the count floor was added for.
+const MIN_DECISIVE = 10;
 if (!Number.isInteger(COUNT) || COUNT < 1) {
   console.error(`count must be a positive integer, got ${process.argv[2]}`);
   process.exit(2);
@@ -167,6 +177,7 @@ process.on('exit', () => {
   if (!keepRoot) rmSync(root, { recursive: true, force: true });
 });
 let considered = 0;
+let decisive = 0;
 let disagreements = 0;
 
 for (let i = 0; i < COUNT; i++) {
@@ -249,10 +260,15 @@ for (let i = 0; i < COUNT; i++) {
   }
 
   considered++;
+  // A comparison only discriminates when something is claimed: Node found a
+  // failure, or the rule reported one. Agreement on "nothing here" proves
+  // nothing about the rule.
+  if (nodeSaysBroken || flagged.length > 0) decisive++;
   if (nodeSaysBroken !== flagged.length > 0) {
     disagreements++;
     keepRoot = true;
     if (disagreements <= 10) {
+      if (disagreements === 1) console.log('fixtures kept in', root);
       console.log(
         'DISAGREE',
         spelled,
@@ -266,13 +282,15 @@ for (let i = 0; i < COUNT; i++) {
 }
 
 console.log(
-  `seed ${SEED}: ${considered} maps considered, ${disagreements} disagreements`
+  `seed ${SEED} (${MODE}): ${considered} maps considered, ${decisive} decisive, ` +
+    `${disagreements} disagreements`
 );
-if (considered < MIN_CONSIDERED) {
+if (decisive < MIN_DECISIVE) {
   console.error(
-    `only ${considered} maps reached the comparison (floor ${MIN_CONSIDERED}). ` +
-      `Raise the count, or check whether the abstention filter has widened to ` +
-      `swallow the corpus.`
+    `only ${decisive} of ${considered} comparisons were decisive (floor ` +
+      `${MIN_DECISIVE}) — the rest agreed that nothing was wrong, which any ` +
+      `rule would. Raise the count, or check whether the generator or the ` +
+      `abstention filter has stopped producing broken maps.`
   );
   process.exit(2);
 }
