@@ -39,10 +39,10 @@ const aiBanner =
  * declarations honest about the module kind, so that import is rejected where
  * it is written.
  *
- * Most specifiers name a file and take a `.js`; a few name a directory — a
- * clean emit carries three `import("..")` — and take `/index.js`. The plugin
- * resolves each rather than assuming which, and throws on anything that is
- * neither.
+ * Most specifiers name a file and take a `.js`; some name a directory and take
+ * `/index.js`. Which it is, is resolved rather than assumed, and anything that
+ * is neither throws — including a bare `.` or `..`, which skips the file probe
+ * but is still held to having an index.
  */
 const declarationExtensions = () => ({
   name: 'bestax-declaration-extensions',
@@ -77,12 +77,24 @@ const declarationExtensions = () => ({
       const before = await readFile(file, 'utf8');
       const after = before.replace(SPECIFIER, (whole, head, _q, spec, tail) => {
         if (/\.[cm]?js$/.test(spec)) return whole;
-        // A bare `.` or `..` names a directory by definition, so it takes the
-        // index branch without asking the filesystem. Probing first would let a
-        // stale `dist/types/..d.ts` — `dist` is never cleaned — send it down the
-        // file branch and emit the nonsense `...js`, which ends in `.js` and so
-        // passes the post-pass untouched.
-        if (/^\.\.?$/.test(spec)) return `${head}${spec}/index.js${tail}`;
+        // A bare `.` or `..` names a directory by definition, so it skips the
+        // file probe. Probing first would let a stale declaration — `dist` is
+        // never cleaned — send it down the file branch and emit a specifier
+        // ending in `.js` that resolves nowhere, which the post-pass would then
+        // pass through untouched. The index is still checked: this branch has
+        // to throw like the others, or it becomes the one path that can emit
+        // something unresolvable in silence.
+        if (/^\.\.?$/.test(spec)) {
+          if (
+            existsSync(join(resolvePath(dirname(file), spec), 'index.d.ts'))
+          ) {
+            return `${head}${spec}/index.js${tail}`;
+          }
+          throw new Error(
+            `${file}: '${spec}' names a directory with no index declaration, ` +
+              'so no extension can be chosen for it.'
+          );
+        }
         const resolved = resolvePath(dirname(file), spec);
         if (existsSync(`${resolved}.d.ts`)) return `${head}${spec}.js${tail}`;
         if (existsSync(join(resolved, 'index.d.ts'))) {
@@ -96,8 +108,9 @@ const declarationExtensions = () => ({
       if (after !== before) await writeFile(file, after, 'utf8');
     }
 
-    // The rewrite can only fix shapes its pattern matches, and it has missed
-    // two already — the double-quoted `import("./x")` form, and a bare `..`.
+    // The rewrite can only fix shapes its pattern matches, and several have
+    // escaped it in the writing — the double-quoted `import("./x")` form, a
+    // bare `..`, and a side-effect `import './x';` in neither position.
     // An unmatched specifier fails silently, so the tree is re-read and any
     // relative specifier still lacking an extension is an error here rather
     // than a TS2834 in a consumer's build.

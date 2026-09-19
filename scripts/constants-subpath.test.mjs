@@ -290,6 +290,85 @@ describe('bulma-ui export map', () => {
     );
   });
 
+  it('pins the node16 boundary: ESM resolves, CommonJS is the known #698 gap', () => {
+    requireBuilt();
+    // #696 names `node16` as well as `nodenext`, and the two fixtures below
+    // cover only the latter. The pair is asserted together because the
+    // interesting fact is the BOUNDARY: under `node16` an ESM consumer is fine,
+    // and a CommonJS one meets TS1479 because a single ESM-flavoured `types`
+    // target serves both conditions. That failure is #698 and pre-existing —
+    // the same consumer got TS2305 before this change — and pinning it means
+    // fixing #698 fails this test, which is when it should be revisited.
+    const build = type => {
+      const dir = mkdtempSync(join(tmpdir(), `bestax-node16-${type}-`));
+      mkdirSync(join(dir, 'src'), { recursive: true });
+      mkdirSync(join(dir, 'node_modules', '@allxsmith'), { recursive: true });
+      symlinkSync(
+        PKG_DIR,
+        join(dir, 'node_modules', '@allxsmith', 'bestax-bulma'),
+        'dir'
+      );
+      writeFileSync(
+        join(dir, 'package.json'),
+        JSON.stringify({
+          name: `node16-${type}`,
+          version: '1.0.0',
+          private: true,
+          ...(type === 'esm' ? { type: 'module' } : {}),
+        })
+      );
+      writeFileSync(
+        join(dir, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            module: 'node16',
+            moduleResolution: 'node16',
+            target: 'es2022',
+            jsx: 'react-jsx',
+            strict: true,
+            noEmit: true,
+            skipLibCheck: true,
+          },
+          include: ['src'],
+        })
+      );
+      writeFileSync(
+        join(dir, 'src', 'index.ts'),
+        "import { Box } from '@allxsmith/bestax-bulma';\nexport { Box };\n"
+      );
+      const localRequire = createRequire(import.meta.url);
+      const tsc = join(
+        dirname(localRequire.resolve('typescript')),
+        '..',
+        'bin',
+        'tsc'
+      );
+      return spawnSync(process.execPath, [tsc, '-p', dir], {
+        encoding: 'utf8',
+      });
+    };
+
+    const esm = build('esm');
+    assert.equal(
+      esm.status,
+      0,
+      `a node16 ESM consumer does not typecheck:\n${esm.stdout || esm.stderr}`
+    );
+
+    const cjs = build('cjs');
+    assert.notEqual(
+      cjs.status,
+      0,
+      'a node16 CommonJS consumer now typechecks — #698 may be fixed, in ' +
+        'which case this expectation is what needs updating'
+    );
+    assert.match(
+      cjs.stdout,
+      /TS1479/,
+      `expected the known #698 failure, got:\n${cjs.stdout || cjs.stderr}`
+    );
+  });
+
   it('typechecks the ROOT entry from an ESM consumer, and rejects a default import', () => {
     requireBuilt();
     // The other half of the matrix from the CommonJS case below, and the half
