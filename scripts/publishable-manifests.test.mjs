@@ -14,13 +14,20 @@
  * whenever it met a shape it did not know. Here, a wrong reading fails a test
  * instead of switching a rule off.
  */
+import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
   SIBLING_RUNTIME_DEPS,
+  nearestType,
   dependencyTarget,
   hookScripts,
   manifestViolations,
@@ -1038,4 +1045,1036 @@ test('every declared runtime sibling matches the real manifests', () => {
       );
     }
   }
+});
+
+/**
+ * Entry-point extensions (#688).
+ *
+ * `type` decides what a `.js` file means, so a `"type": "module"` package's
+ * CommonJS bundle at `dist/index.cjs.js` is read as ESM and cannot load
+ * through `require`. The extension is the only thing that overrides `type`.
+ * Fixture-driven like the rules above, plus one test against the real
+ * manifests so the repo cannot drift back into it.
+ */
+// `scripts/exports-resolve-fuzz.mjs` is the differential these fixtures sit
+// alongside: run it when the resolver is edited, since a hand-written corpus
+// only covers the shapes someone already thought of. Its header says which of
+// these it can produce and which it cannot see at all.
+const entryViolations = pkg =>
+  manifestViolations('pkg', pkg).filter(v => v.includes('#688'));
+
+test('a type:module package may not require a .js entry', () => {
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    main: 'dist/index.cjs.js',
+    exports: { '.': { require: './dist/index.cjs.js' } },
+  });
+  // Only the exports condition. `main` is not judged: an `exports` map means
+  // Node never reads it.
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found.every(v => v.includes('`.cjs`')));
+});
+
+test('a type:module package requiring a .cjs entry is fine', () => {
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      main: 'dist/index.cjs',
+      exports: {
+        '.': { import: './dist/index.esm.js', require: './dist/index.cjs' },
+      },
+    }),
+    []
+  );
+});
+
+test('the import direction is deliberately not judged', () => {
+  // It looks symmetrical and is not. Node's `import` condition matches
+  // regardless of the target's format, and importing a CommonJS file is legal,
+  // so a `.js` import target says nothing about whether the file loads. Judging
+  // it failed a CommonJS package serving one file to both conditions, and
+  // advised a `.mjs` rename that would have broken it.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      exports: { '.': { import: './index.js', require: './index.js' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      exports: { '.': { import: './dist/index.esm.js' } },
+    }),
+    []
+  );
+});
+
+test('condition ORDER decides the require path, not membership', () => {
+  // Node walks a conditions object in key order and takes the first match, so
+  // a `default` written above `require` is what `require()` actually resolves.
+  // Reading the keys as an unordered set left exactly that shape silent.
+  const first = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.equal(first.length, 1, first.join('\n'));
+  assert.ok(first[0].includes('exports["."].default'), first[0]);
+
+  // `node` matches a require() too, so it outranks a later `require`.
+  const second = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: './x.js', require: './x.cjs' } },
+  });
+  assert.equal(second.length, 1, second.join('\n'));
+  assert.ok(second[0].includes('exports["."].node'), second[0]);
+
+  // Written the right way round, the same targets are correct.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { require: './a.cjs', default: './a.js' } },
+    }),
+    []
+  );
+});
+
+test('a require nested inside import is unreachable and not judged', () => {
+  // `import` is not a key `require()` matches, so nothing below it resolves for
+  // require — the mirror of the over-reach this rule kept making.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: { require: './a.js' } } },
+    }),
+    []
+  );
+});
+
+test('a map that does not distinguish the formats is left alone', () => {
+  // Without a `require` or `import` key there is nothing to tell a CommonJS
+  // target from what an honestly ESM-only package writes, so both the bare
+  // string and a `default`-only map stay unjudged.
+  assert.deepEqual(
+    entryViolations({ name: 'x', type: 'module', exports: './index.js' }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { default: './index.js' } },
+    }),
+    []
+  );
+});
+
+test('an array fallback stops at the first valid target', () => {
+  // Node does not keep going past a valid "./…" entry, so a later one is
+  // unreachable. Judging every entry reddened a manifest that loads — this test
+  // asserted the wrong behaviour until the resolver replaced the walk.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', require: ['./a.cjs', './b.js'] } },
+    }),
+    []
+  );
+
+  // The first entry is the one that resolves, so a bad one there is real.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: ['./b.js', './a.cjs'] } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require.0'), found[0]);
+});
+
+test('a branch that maps nothing falls through to the next condition', () => {
+  // Node does not stop at the first key it MATCHES, only at the first that
+  // resolves: a `node` wrapper with no require mapping inside leaves the
+  // `require` beside it still reachable.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: { import: './a.mjs' }, require: './b.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require'), found[0]);
+});
+
+test('a dual pair nested under a wrapper condition is judged', () => {
+  // The shape Node's own docs use. Asking whether the map distinguishes the
+  // formats one level up returned before ever reaching the `require` key.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: { require: './a.js', import: './a.mjs' } } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].node.require'), found[0]);
+});
+
+test('inside an array, null means try the next entry', () => {
+  // The opposite of what `null` means as a condition's value. Node records it
+  // and continues; aborting the resolution there hid the entry that resolves.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': { import: './a.mjs', require: [{ node: null }, './b.js'] },
+    },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require.1'), found[0]);
+
+  // A literal null entry behaves the same way.
+  const literal = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: [null, './b.js'] } },
+  });
+  assert.equal(literal.length, 1, literal.join('\n'));
+});
+
+test('an invalid target blocks rather than falling through', () => {
+  // A target that is not a relative "./…" specifier makes Node throw
+  // ERR_INVALID_PACKAGE_TARGET out of the enclosing conditions object, so the
+  // keys after it are never tried. Reading it as "maps nothing, keep looking"
+  // diagnosed a key require() never reaches...
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { import: './a.mjs', require: 'dist/bad.js', default: './d.js' },
+      },
+    }),
+    []
+  );
+
+  // ...and, the other way round, let a real failure hide behind one.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { import: './a.mjs', node: 'dist/bad.js', require: './r.js' },
+      },
+    }),
+    []
+  );
+});
+
+test('validity is about segments, not just the ./ prefix', () => {
+  // A `.`, `..` or `node_modules` segment makes Node throw
+  // ERR_INVALID_PACKAGE_TARGET wherever it appears, so such a target blocks.
+  for (const bad of ['./../esc.js', './d/../e.js', './node_modules/x.js']) {
+    // Inside an array it is skipped, and a later valid entry still resolves.
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', require: [bad, './a.cjs'] } },
+      }),
+      [],
+      bad
+    );
+    // As a condition value it blocks, so the keys after it are unreached.
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', node: bad, require: './r.js' } },
+      }),
+      [],
+      bad
+    );
+  }
+
+  // An empty segment and a trailing slash are DEPRECATED, not rejected, so
+  // they still resolve and a `.js` there is still a real failure.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './a//b.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+});
+
+test('the remedy asks the path, not the leaf key', () => {
+  // A `require` spelled as an object — this package's own `./constants` shape —
+  // puts `default` at the leaf. Reading only that told the author there was no
+  // `require` condition, which is both false and unfollowable.
+  const [asObject] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': {
+        import: './a.mjs',
+        require: { types: './d.d.cts', default: './bad.js' },
+      },
+    },
+  });
+  assert.match(asObject, /Emit it with a `\.cjs` extension/);
+
+  // With no `require` key on the path, the fault really is the order.
+  const [viaDefault] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.match(viaDefault, /before reaching any `require` condition/);
+});
+
+test('segment validity follows Node, including separators and encodings', () => {
+  // Splitting on `/` and comparing strings is not the same test: `\` is also a
+  // separator, and a segment may be percent-encoded.
+  for (const bad of [
+    './%2e%2e/esc.js',
+    './node%5fmodules/x.js',
+    './%6eode_modules/x.js',
+    // The separator the comment on INVALID_SEGMENT names, and the reason a
+    // split on `/` was not equivalent — untested until now.
+    './a\\..\\b.js',
+    './a\\node_modules\\x.js',
+  ]) {
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', require: bad } },
+      }),
+      [],
+      bad
+    );
+  }
+});
+
+test('module-sync does not hide what an older Node reaches behind it', () => {
+  // `module-sync` arrived in Node 22.10, and `--no-experimental-require-module`
+  // turns it off, so an older consumer's `require()` skips the key and lands on
+  // whatever follows. Exempting the whole resolution hid a broken fallback from
+  // exactly those runtimes.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { 'module-sync': './m.js', require: './broken.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('broken.js'), found[0]);
+
+  // A sound fallback stays silent on both runtimes, and so does a map that
+  // offers nothing else for `require()` to reach.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { 'module-sync': './m.js', require: './m.cjs' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { 'module-sync': './m.js', import: './m.js' } },
+    }),
+    []
+  );
+});
+
+test('both runtimes are judged, and neither reports the other twice', () => {
+  // A `module-sync` that BLOCKS on a modern runtime — null, or an invalid
+  // target — still lets an older one skip the key and land on what follows.
+  // Judging only the modern resolution, and re-resolving only when it was
+  // exempted, missed these entirely.
+  for (const map of [
+    { 'module-sync': null, require: './b.js' },
+    { 'module-sync': 'bad.js', require: './b.js' },
+    { 'module-sync': null, default: './b.js', require: './a.cjs' },
+  ]) {
+    const found = entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': map },
+    });
+    assert.equal(
+      found.length,
+      1,
+      `${JSON.stringify(map)} → ${found.join('\n')}`
+    );
+  }
+
+  // Where the older runtime reaches NOTHING, there is nothing to add: the
+  // `require` here is unreachable for it once `module-sync` is skipped, since
+  // `import` is not a condition a require() matches.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { 'module-sync': './m.js', require: { import: './x.mjs' } },
+      },
+    }),
+    []
+  );
+
+  // And where both runtimes land on the same target, it is reported once.
+  const shared = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './bad.js' } },
+  });
+  assert.equal(shared.length, 1, shared.join('\n'));
+});
+
+test('a require below module-sync is exempt, because it loads', () => {
+  // An earlier round asked for the opposite, and running the shape settled it:
+  // `{ "module-sync": { "require": "./b.js" }, "require": "./c.cjs" }` loads
+  // `b.js` on a runtime that matches the condition and `c.cjs` on one that does
+  // not. `module-sync` promises exactly that require() of an ES module works
+  // here, so nothing under it is a failure — and the older runtime's own
+  // resolution is judged separately.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { 'module-sync': { require: './b.js' }, require: './c.cjs' },
+      },
+    }),
+    []
+  );
+
+  // What IS judged behind the condition is the target the older runtime reaches
+  // when that target is itself broken.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': { 'module-sync': { require: './b.js' }, require: './broken.js' },
+    },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('broken.js'), found[0]);
+});
+
+test('an array of nothing but blockers blocks the subpath', () => {
+  // `[]` is not the only array that resolves to null: one whose entries all
+  // block records that and returns it, so the condition after it is unreached.
+  for (const require of [[], [null], [null, null]]) {
+    assert.deepEqual(
+      entryViolations({
+        name: 'x',
+        type: 'module',
+        exports: { '.': { import: './a.mjs', require, default: './x.js' } },
+      }),
+      [],
+      JSON.stringify(require)
+    );
+  }
+});
+
+test('an empty fallback array blocks the subpath', () => {
+  // Node resolves an empty array to null, which blocks rather than falling
+  // through, so the `default` beside it is never reached.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', require: [], default: './x.js' } },
+    }),
+    []
+  );
+});
+
+test('a bare conditions map with no subpath keys is judged', () => {
+  // The sugar form: `exports` is the root conditions object itself rather than
+  // a map of subpaths.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { import: './a.mjs', require: './index.cjs.js' },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports.require'), found[0]);
+});
+
+test('an mjs target behind a require condition is judged', () => {
+  // It fails exactly as a `.js` in ESM scope does — ERR_REQUIRE_ESM for every
+  // consumer whose runtime refuses require(esm) — and the load-mode corpus
+  // reports it. No version is named here for the reason the rule gives: the
+  // support was backported, so a single cutoff misleads. Abstaining
+  // on it was an argument about the author's intent where the rule is about the
+  // consumer's outcome.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './a.mjs' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+
+  // And in a package with no `type` at all, where `.js` is CommonJS and fine
+  // but `.mjs` is still an ES module.
+  const plain = entryViolations({
+    name: 'x',
+    exports: { '.': { import: './a.mjs', require: './a.mjs' } },
+  });
+  assert.equal(plain.length, 1, plain.join('\n'));
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      exports: { '.': { import: './a.mjs', require: './a.js' } },
+    }),
+    []
+  );
+});
+
+test('a null target blocks the subpath rather than falling through', () => {
+  // Node stops on `null` and throws ERR_PACKAGE_PATH_NOT_EXPORTED; it does not
+  // try the next key. Continuing past it flagged a target require() never
+  // reaches.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', require: null, default: './x.js' } },
+    }),
+    []
+  );
+});
+
+test('module-sync is recognised however it is spelled', () => {
+  // It is ordinarily written with a `types` of its own, so the key that names
+  // the file is `default`. Reading the exemption off that leaf key judged an
+  // ESM target Node serves to require() by design.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': {
+          'module-sync': { types: './m.d.ts', default: './m.js' },
+          require: './m.cjs',
+        },
+      },
+    }),
+    []
+  );
+});
+
+test('module-sync serves ESM by contract and is not judged', () => {
+  // It matches a `require()`, but it exists so that require() can be handed an
+  // ES module deliberately — a `.js` target there is the condition working.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { 'module-sync': './m.js', require: './m.cjs' } },
+    }),
+    []
+  );
+});
+
+test('the remedy names reordering when a non-require condition served it', () => {
+  // Renaming a `node` or `default` target would break the import side, which
+  // resolves the same file.
+  const [viaDefault] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.match(viaDefault, /Put a `require` condition ahead of it/);
+
+  const [viaRequire] = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './a.js' } },
+  });
+  assert.match(viaRequire, /Emit it with a `\.cjs` extension/);
+});
+
+test('a require reachable only under import does not make a map dual', () => {
+  // `require()` never enters an `import` branch, so a `require` key there is no
+  // evidence the author meant a CommonJS target — the map offers only the
+  // `default`, which is the ESM-only shape this abstention protects. Checked
+  // against Node: it resolves the `default` here.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: { require: './x.cjs' }, default: './x.js' } },
+    }),
+    []
+  );
+
+  // Under a condition `require()` does reach, the same nesting counts.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { node: { require: './bad.js' }, import: './a.mjs' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+});
+
+test('a map with no require condition is left alone', () => {
+  // `require()` does fall through to `default` here, but an `import` key is not
+  // enough to prove the package MEANT a CommonJS target: an ESM-only package
+  // naming one file for both conditions has the same shape, and telling it to
+  // ship a `.cjs` it has no build for is the false positive this rule kept
+  // producing. An explicit `require` key is the signal that is not a guess.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './a.mjs', default: './index.cjs.js' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: { '.': { import: './x.js', default: './x.js' } },
+    }),
+    []
+  );
+});
+
+test('a default below an explicit require IS judged', () => {
+  // With a `require` key present the package is declaring a dual build, so the
+  // ordering bug is real rather than ambiguous.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { default: './a.js', require: './a.cjs' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].default'), found[0]);
+});
+
+test('default is not a require path when a require sibling outranks it', () => {
+  // `require` matches first, so `default` is serving some other condition and
+  // judging it would flag a correct manifest.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { import: './a.js', require: './a.cjs', default: './a.js' },
+      },
+    }),
+    []
+  );
+});
+
+test('a commonjs package may point main at a .js entry', () => {
+  assert.deepEqual(entryViolations({ name: 'x', main: 'dist/index.js' }), []);
+});
+
+test('an ESM-only package may point main at a .js entry', () => {
+  // `main` is not simply a require path: with no `exports`, Node's ESM resolver
+  // reaches it through legacyMainResolve, so this is the ordinary ESM-only
+  // package. Judging `main` unconditionally reported it as broken, with advice
+  // that would have pointed an ESM entry at a `.cjs` file.
+  assert.deepEqual(
+    entryViolations({ name: 'x', type: 'module', main: 'dist/index.js' }),
+    []
+  );
+});
+
+test('main is never judged', () => {
+  // An `exports` map means Node does not read `main` at all, and without one
+  // there is no `require` condition to say the package distinguishes the
+  // formats. Judging it whenever `exports` resolved a require target had it
+  // exactly backwards, and failed published packages whose maps are correct.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      main: 'dist/index.cjs.js',
+      exports: { '.': { require: './dist/index.cjs' } },
+    }),
+    []
+  );
+  assert.deepEqual(
+    entryViolations({ name: 'x', type: 'module', main: 'dist/index.cjs.js' }),
+    []
+  );
+});
+
+test('a require condition spelled as an object is walked into', () => {
+  // The standard dual-package shape, with per-condition types. A walk that
+  // recorded only string-valued `require` keys saw nothing here — the exact
+  // #688 defect, invisible to the gate meant to catch it.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: {
+      '.': { require: { types: './d.d.cts', default: './dist/index.cjs.js' } },
+    },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["."].require.default'), found[0]);
+});
+
+test('a types condition is never judged as code', () => {
+  // `types` names a declaration file, which has its own extension rules.
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      type: 'module',
+      exports: {
+        '.': { types: './dist/types/index.d.ts', require: './x.cjs' },
+      },
+    }),
+    []
+  );
+});
+
+test('nested export conditions are walked, not just the top level', () => {
+  // A subpath's condition is as loadable-or-not as the root's, and the rule
+  // that only read `exports['.']` would have passed the package that bit.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { './constants': { require: './dist/constants.cjs.js' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.ok(found[0].includes('exports["./constants"].require'));
+});
+
+test('every published manifest loads through the condition it advertises', async () => {
+  // Wired the way the real gate wires it — through `nearestType`, not the
+  // synchronous root-type default. The two answer differently the day a package
+  // grows a nested `dist/package.json`, which is the whole reason the callback
+  // exists, so a test using the default would stop describing the gate at
+  // exactly the moment it started to matter.
+  const repo = fileURLToPath(new URL('..', import.meta.url));
+  for (const dir of parseWorkspacePackages(repoFile('pnpm-workspace.yaml'))) {
+    const pkg = JSON.parse(repoFile(`${dir}/package.json`));
+    const root = join(repo, dir);
+    const targets = new Set();
+    const collect = node => {
+      if (typeof node === 'string') {
+        if (node.startsWith('./')) targets.add(node);
+        return;
+      }
+      if (node && typeof node === 'object')
+        Object.values(node).forEach(collect);
+    };
+    collect(pkg.exports);
+    if (typeof pkg.main === 'string') targets.add(pkg.main);
+    const types = new Map();
+    for (const target of targets) {
+      types.set(target, await nearestType(root, target, pkg.type));
+    }
+    const found = manifestViolations(
+      dir,
+      pkg,
+      new Map(),
+      target => types.get(target) ?? pkg.type ?? 'commonjs'
+    ).filter(v => v.includes('#688'));
+    assert.deepEqual(
+      found,
+      [],
+      `${dir} advertises an entry point Node cannot load as the format it claims`
+    );
+  }
+});
+
+test('every entry point the manifest advertises is emitted in that format', async () => {
+  // The manifest half of #688 is the conformance rule; this is the artifact
+  // half. Nothing in this suite builds the package, so the rule alone would let
+  // a rollup change ship a manifest promising a file the build no longer writes
+  // — or, worse, writes in the other format under the right name.
+  //
+  // The config is IMPORTED rather than pattern-matched, so this reads what
+  // rollup is actually configured to emit: a name matched by regex would pass
+  // while `entryFileNames` sat in the wrong output block.
+  const rollup = (await import('../bulma-ui/rollup.config.js')).default({});
+  const emitted = new Map();
+  for (const entry of rollup) {
+    for (const output of [].concat(entry.output ?? [])) {
+      if (!output.entryFileNames) continue;
+      // Rollup's format aliases, both directions: `es`/`esm`/`module` are one
+      // format and `cjs`/`commonjs` are another, so comparing the literal would
+      // fail a correct build that spelled either the other way. An omitted
+      // `format` is `es` to rollup, and recorded `undefined` here — which also
+      // dropped such an output out of the CommonJS chunk check below.
+      const spelled = output.format ?? 'es';
+      const format = ['es', 'esm', 'module'].includes(spelled)
+        ? 'esm'
+        : spelled === 'commonjs'
+          ? 'cjs'
+          : spelled;
+      emitted.set(output.entryFileNames, format);
+    }
+  }
+  assert.ok(emitted.size > 0, 'rollup.config.js emits no named entry points');
+
+  // Chunks, not just entries. A CommonJS output that splits under rollup's
+  // default `[name]-[hash].js` would have a `.cjs` requiring files Node reads
+  // as ESM — this issue again, one level down. The guards against that were
+  // prose only: deleting either `chunkFileNames` left the whole suite green.
+  const cjsChunks = [];
+  for (const entry of rollup) {
+    for (const output of [].concat(entry.output ?? [])) {
+      const spelled = output.format ?? 'es';
+      const isCjs = spelled === 'cjs' || spelled === 'commonjs';
+      if (!output.entryFileNames || !isCjs) continue;
+      cjsChunks.push([output.entryFileNames, output.chunkFileNames]);
+    }
+  }
+  assert.ok(
+    cjsChunks.length > 0,
+    'no CommonJS outputs found in rollup.config.js'
+  );
+  for (const [entryName, chunkName] of cjsChunks) {
+    assert.ok(
+      typeof chunkName === 'string' && chunkName.endsWith('.cjs'),
+      `the CommonJS output emitting ${entryName} names its chunks ` +
+        `${chunkName ?? "'[name]-[hash].js' (rollup's default)"}, which Node ` +
+        `would read as ESM when required from a .cjs`
+    );
+  }
+
+  // `require` must land on a CommonJS bundle and `import` on an ES one. Walked
+  // rather than read off `exports['.']`, since `./constants` spells both as
+  // objects.
+  const expected = { require: 'cjs', import: 'esm' };
+  const pkg = JSON.parse(repoFile('bulma-ui/package.json'));
+  const checked = [];
+  const walk = (node, label, condition) => {
+    if (typeof node === 'string') {
+      if (!condition) return;
+      const name = basename(node);
+      // Judged by EXTENSION, not by whether the name happens to be emitted:
+      // skipping unknown names let a newly advertised bundle pointing at a file
+      // rollup never writes pass unnoticed. CSS and SCSS targets are not
+      // bundles and have no format to check.
+      if (!/\.(js|cjs|mjs)$/.test(name)) return;
+      checked.push(label);
+      assert.ok(
+        emitted.has(name),
+        `${label} points at ${name}, which rollup.config.js does not emit ` +
+          `(it emits ${[...emitted.keys()].join(', ')})`
+      );
+      assert.equal(
+        emitted.get(name),
+        expected[condition],
+        `${label} points at ${name}, which rollup emits as ` +
+          `'${emitted.get(name)}' rather than '${expected[condition]}'`
+      );
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'types') continue;
+      const seg = key.startsWith('.') ? `[${JSON.stringify(key)}]` : `.${key}`;
+      walk(
+        value,
+        `${label}${seg}`,
+        key === 'require' || key === 'import' ? key : condition
+      );
+    }
+  };
+  walk(pkg.exports, 'exports', undefined);
+
+  // `main` too. Nothing else in this gate reads it: the conformance rule never
+  // judges it (Node ignores it whenever `exports` exists), the load test
+  // resolves by specifier, which takes the `exports` map instead, and the walk
+  // above only covers conditions. Reverting `main` to `dist/index.cjs.js` left
+  // every check green, and `main` is half of the two-line fix this branch is
+  // for — legacy resolvers and pre-`exports` bundlers still read it.
+  assert.equal(typeof pkg.main, 'string', 'the manifest declares no main');
+  const mainName = basename(pkg.main);
+  assert.ok(
+    emitted.has(mainName),
+    `package.json main promises ${mainName}, which rollup.config.js does not emit`
+  );
+  assert.equal(
+    emitted.get(mainName),
+    'cjs',
+    `package.json main points at ${mainName}, which rollup emits as ` +
+      `'${emitted.get(mainName)}' — a legacy resolver reads main as CommonJS`
+  );
+  checked.push('main');
+
+  // Fails closed: if the walk stops finding bundles, the assertions above stop
+  // running and nothing would notice.
+  assert.ok(
+    checked.length >= 4,
+    `only checked ${checked.length} entry points: ${checked.join(', ')}`
+  );
+});
+
+test('the root entry really loads through both conditions', async () => {
+  // #688 is a LOADING failure, and the rest of this gate is static — the
+  // manifest rule reads JSON, the rollup test reads config. Neither would
+  // notice the bundle itself becoming unloadable, which is the thing the issue
+  // was actually about. `./constants` has had a real load test since #686; this
+  // is the same check one subpath up.
+  const repo = fileURLToPath(new URL('..', import.meta.url));
+  assert.ok(
+    existsSync(join(repo, 'bulma-ui', 'dist')),
+    'bulma-ui/dist is absent, so this cannot load what it exists to check. ' +
+      'Run `pnpm --filter @allxsmith/bestax-bulma build` first, or the whole ' +
+      'gate with `pnpm all`.'
+  );
+
+  // Resolved by SPECIFIER so Node's own condition matching picks the file:
+  // loading the path out of the manifest would prove the file works and say
+  // nothing about the map choosing it. The anchor sits in a package that
+  // declares the dependency, because the linker is isolated.
+  const consumerRequire = createRequire(
+    pathToFileURL(join(repo, 'bestax-migrate', 'package.json')).href
+  );
+  const cjs = consumerRequire('@allxsmith/bestax-bulma');
+  assert.ok(
+    Object.keys(cjs).length > 0,
+    // Deliberately does not explain the symptom. This assertion can only run
+    // after `require()` SUCCEEDED, so any mechanism that throws cannot be the
+    // one that produced it — the previous wording named two, and both would
+    // have failed before reaching here.
+    'the require condition produced no exports, which is what a CommonJS ' +
+      'bundle read as ESM looks like when it does not throw outright (#688)'
+  );
+  assert.ok(cjs.Button, 'the require condition served no Button');
+
+  // The import side by SPECIFIER too, from inside a package that declares the
+  // dependency. Loading the manifest's `import` target by path would prove the
+  // file works and say nothing about the map choosing it: a `default` or `node`
+  // condition inserted above `import` keeps a path-based assertion green while
+  // real consumers get the other target. `import.meta.resolve` ignores a parent
+  // argument here and a bare specifier does not resolve from the repo root
+  // under the isolated linker, so the resolution happens in a child process
+  // whose working directory IS the dependent package.
+  const esmNames = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        "const m = await import('@allxsmith/bestax-bulma');" +
+          'process.stdout.write(JSON.stringify(Object.keys(m)));',
+      ],
+      { cwd: join(repo, 'bestax-migrate'), encoding: 'utf8' }
+    )
+  );
+  // Both conditions must serve the same surface, or what a consumer gets
+  // depends on how they happened to load it.
+  assert.deepEqual(
+    Object.keys(cjs).sort(),
+    esmNames.filter(k => k !== 'default').sort(),
+    'the require and import conditions export different names'
+  );
+});
+
+/**
+ * The nearest-manifest walk (#688).
+ *
+ * This is the one part of the rule that reads the filesystem, and the branch
+ * that matters — a manifest sitting below the package root — is one no workspace
+ * package has, so nothing else here would ever execute it. Driven against real
+ * directories rather than a stubbed reader, because what is being checked is
+ * agreement with Node, and Node reads the disk.
+ */
+const scratch = () => mkdtempSync(join(tmpdir(), 'nearest-type-'));
+
+test('nearestType falls back to the package root when nothing is nested', async () => {
+  const root = scratch();
+  mkdirSync(join(root, 'dist'), { recursive: true });
+  assert.equal(await nearestType(root, './dist/index.js', 'module'), 'module');
+  assert.equal(
+    await nearestType(root, './dist/index.js', undefined),
+    'commonjs'
+  );
+});
+
+test('nearestType takes a nested manifest over the root', async () => {
+  const root = scratch();
+  mkdirSync(join(root, 'dist', 'commonjs'), { recursive: true });
+  writeFileSync(
+    join(root, 'dist', 'commonjs', 'package.json'),
+    JSON.stringify({ type: 'commonjs' })
+  );
+  // The mainstream dual layout: the root says module, the target is CommonJS.
+  assert.equal(
+    await nearestType(root, './dist/commonjs/index.js', 'module'),
+    'commonjs'
+  );
+  // A sibling directory with no manifest of its own still reads as the root.
+  mkdirSync(join(root, 'dist', 'esm'), { recursive: true });
+  assert.equal(
+    await nearestType(root, './dist/esm/index.js', 'module'),
+    'module'
+  );
+});
+
+test('a nested manifest with no type still ends the search', async () => {
+  // Node stops at the nearest package.json whether or not it declares `type`,
+  // and an absent `type` means CommonJS. Climbing past a `sideEffects`-only
+  // dist manifest read its targets as ESM and failed a package that loads —
+  // verified against Node before fixing.
+  const root = scratch();
+  mkdirSync(join(root, 'dist'), { recursive: true });
+  writeFileSync(
+    join(root, 'dist', 'package.json'),
+    JSON.stringify({ sideEffects: false })
+  );
+  assert.equal(
+    await nearestType(root, './dist/index.js', 'module'),
+    'commonjs'
+  );
+});
+
+test('nearestType ignores an unreadable nested manifest and keeps climbing', async () => {
+  const root = scratch();
+  mkdirSync(join(root, 'a', 'b'), { recursive: true });
+  writeFileSync(join(root, 'a', 'b', 'package.json'), '{ this is not json');
+  writeFileSync(
+    join(root, 'a', 'package.json'),
+    JSON.stringify({ type: 'commonjs' })
+  );
+  assert.equal(await nearestType(root, './a/b/index.js', 'module'), 'commonjs');
+});
+
+test('nearestType never climbs above the package root', async () => {
+  // The parent of a package directory belongs to somebody else, and reading a
+  // manifest there would attribute their `type` to this package.
+  //
+  // The parent therefore declares the OPPOSITE type to the fallback: asserting
+  // the fallback value alone proves nothing, since that is also what the walk
+  // returns when it finds nothing. This has to fail if the boundary goes.
+  const outer = scratch();
+  writeFileSync(
+    join(outer, 'package.json'),
+    JSON.stringify({ type: 'commonjs' })
+  );
+  const root = join(outer, 'inner');
+  mkdirSync(join(root, 'dist'), { recursive: true });
+  assert.equal(await nearestType(root, './dist/index.js', 'module'), 'module');
+
+  // And the mirror, so neither direction can pass by coincidence.
+  const outer2 = scratch();
+  writeFileSync(
+    join(outer2, 'package.json'),
+    JSON.stringify({ type: 'module' })
+  );
+  const root2 = join(outer2, 'inner');
+  mkdirSync(join(root2, 'dist'), { recursive: true });
+  assert.equal(
+    await nearestType(root2, './dist/index.js', 'commonjs'),
+    'commonjs'
+  );
 });

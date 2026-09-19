@@ -3,12 +3,13 @@
  * the exports actually arrive.
  *
  * This exists because prose was the only thing tying the rollup entry name to
- * the export-map target, and the same package proves that is not enough: its
- * main `require` condition points at `dist/index.cjs.js`, a `.js` file
- * carrying `exports.*` inside a `"type": "module"` package, so Node reads it
- * as ESM and the assignments never land. That has been shipping green because
- * nothing loaded it (#688). The `./constants` subpath had the identical defect
- * until it was emitted as `.cjs`.
+ * the export-map target, and the same package proves that is not enough: the
+ * root `require` condition pointed at `dist/index.cjs.js`, a `.js` file
+ * carrying `exports.*` inside a `"type": "module"` package, so Node read it as
+ * ESM, which no CommonJS bundle survives (#688). The `./constants` subpath had
+ * the identical defect until it was emitted as `.cjs`. Both entries are loaded
+ * by a test now — this one, and its counterpart in
+ * `publishable-manifests.test.mjs` for the root.
  *
  * A file's extension decides its module type here, not the bundle's format, so
  * a rename that looks cosmetic silently empties an entry point. This test is
@@ -22,10 +23,9 @@
  * typechecking a real consumer rather than asserting the map's shape and
  * hoping.
  *
- * The main `.` entry is deliberately not loaded here: it carries the same
- * defect, it is tracked as #688, and its bundle is not React-free, so the last
- * assertion below does not generalise to it. Extending this file is the shape
- * that fix should take.
+ * The root `.` entry is not loaded here: its bundle is not React-free, so the
+ * last assertion below does not generalise to it. It has a load test of its
+ * own in `publishable-manifests.test.mjs`, added with the #688 fix.
  */
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -172,9 +172,9 @@ describe('bulma-ui export map', () => {
     const cjs = consumerRequire('@allxsmith/bestax-bulma/constants');
     assert.ok(
       Array.isArray(cjs.validColors) && cjs.validColors.length > 0,
-      'the require condition produced no validColors — the symptom of a ' +
-        'CommonJS bundle being read as ESM, which yields an empty namespace ' +
-        'on a Node with require(esm) and throws on an older one'
+      'the require condition produced no validColors, which is what a ' +
+        'CommonJS bundle read as ESM looks like when it does not throw ' +
+        'outright — a `.js` target here is read that way whatever it contains'
     );
 
     const esm = await import(pathToFileURL(target(entry.import.default)).href);

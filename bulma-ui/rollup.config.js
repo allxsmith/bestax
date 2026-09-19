@@ -103,7 +103,20 @@ export default commandLineArgs => {
           dir: 'dist',
           format: 'cjs',
           sourcemap: true,
-          entryFileNames: 'index.cjs.js',
+          // `.cjs`, not `.cjs.js`: this package is `"type": "module"`, so
+          // Node reads a `.js` file as ESM whatever format rollup wrote into
+          // it, and this bundle's `require(...)` calls are then evaluated in
+          // module scope where `require` does not exist. The extension is the
+          // only thing that overrides `type` (#688).
+          entryFileNames: 'index.cjs',
+          // Chunks need the extension for the same reason the entry does. This
+          // build emits one chunk today, so nothing is currently wrong — but
+          // the first dynamic import would split it, and the default
+          // `[name]-[hash].js` would have `index.cjs` requiring `.js` files
+          // that Node reads as ESM. That is #688 again in a shape neither the
+          // manifest rule nor the artifact test can see, since neither looks
+          // past the entry points.
+          chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
         },
         {
@@ -152,10 +165,16 @@ export default commandLineArgs => {
           // `.cjs`, not `.cjs.js`: this package is `"type": "module"`, so Node
           // reads a `.js` file as ESM whatever the bundle's format is, and a
           // bundle writing `exports.x = …` cannot load as CommonJS under that
-          // reading. What a caller sees depends on the Node version — both a
-          // load-time throw and an empty namespace object have been observed —
-          // and the empty one is the worse case, because nothing fails.
+          // reading. What a caller SEES varies with the bundle's own code and
+          // the runtime, so it is not worth predicting here: this package's
+          // bundles throw on both, and packages exist that load with a
+          // populated namespace instead. The reason to use `.cjs` does not
+          // depend on which.
           entryFileNames: 'constants.cjs',
+          // Same reason as the main bundle's: a split chunk under rollup's
+          // default `[name]-[hash].js` would be required by a `.cjs` and read
+          // as ESM.
+          chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
           // On this output rather than the entry's, because what it writes
           // serves the `require` condition specifically.
