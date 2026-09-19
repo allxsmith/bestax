@@ -544,8 +544,9 @@ describe('the declaration-extension guard', () => {
     // Rollup calls these hooks with a plugin context; `meta` is the object the
     // failure guard reads, and it is shared across a build's hooks.
     const plugin = declarationExtensions(root);
-    const ctx = { meta: {} };
-    return plugin.closeBundle.call(ctx);
+    plugin.buildStart();
+    plugin.buildEnd();
+    return plugin.closeBundle();
   };
 
   it('adds the extension a plain specifier is missing', async () => {
@@ -695,13 +696,31 @@ describe('the declaration-extension guard', () => {
     const { declarationExtensions } = await import(
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
-    const plugin = declarationExtensions(join(tree({}), 'not-emitted'));
-    // The same context object rollup carries between a build's hooks.
-    const ctx = { meta: {} };
-    plugin.buildEnd.call(ctx, new Error('the real build error'));
-    // Returns quietly: the missing directory is a symptom of the failure, not
-    // a finding of its own.
-    await plugin.closeBundle.call(ctx);
+    const missing = join(tree({}), 'not-emitted');
+
+    // Build-phase failure.
+    const onBuildEnd = declarationExtensions(missing);
+    onBuildEnd.buildStart();
+    onBuildEnd.buildEnd(new Error('the real build error'));
+    await onBuildEnd.closeBundle();
+
+    // Output-phase failure, which reaches a different hook — `meta` could not
+    // have carried this, since every output hook gets its own.
+    const onRender = declarationExtensions(missing);
+    onRender.buildStart();
+    onRender.buildEnd();
+    onRender.renderError(new Error('the real output error'));
+    await onRender.closeBundle();
+
+    // And the latch resets, so a failure does not silence the next rebuild
+    // under `--watch`.
+    const reused = declarationExtensions(missing);
+    reused.buildStart();
+    reused.buildEnd(new Error('first build failed'));
+    await reused.closeBundle();
+    reused.buildStart();
+    reused.buildEnd();
+    await assert.rejects(reused.closeBundle(), /holds no declarations/);
   });
 
   it('fails the same way whether the declaration directory is empty or absent', async () => {

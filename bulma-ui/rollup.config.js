@@ -63,163 +63,185 @@ const resolvesToDeclaration = (file, spec) => {
  * is neither throws — including a bare `.` or `..`, which skips the file probe
  * but is still held to having an index.
  */
-export const declarationExtensions = (root = 'dist/types') => ({
-  name: 'bestax-declaration-extensions',
-  // `closeBundle` fires on the FAILURE path too, where `dist/types` is absent
-  // or stale because the build never got that far. Without this the hook's own
-  // error replaces the real one, and a compile failure is reported as a missing
-  // declaration directory — on the publish job's clean checkout, every time.
-  buildEnd(error) {
-    this.meta.bestaxBuildFailed = Boolean(error);
-  },
-  // `closeBundle`, not `writeBundle`. The TypeScript plugin re-emits the whole
-  // declaration set for EVERY output of a config, and rollup's CLI writes a
-  // config's outputs concurrently — so a per-output hook races the sibling
-  // output's emit, and losing that race republishes extensionless declarations
-  // with a green build. `closeBundle` runs once, after every output is on disk.
-  async closeBundle() {
-    if (this.meta.bestaxBuildFailed) return;
-    const files = [];
-    const walk = async dir => {
-      let entries;
-      try {
-        entries = await readdir(dir, { withFileTypes: true });
-      } catch (error) {
-        if (dir !== root || error.code !== 'ENOENT') throw error;
-        // Absent and empty are the same mistake — the declaration pass has not
-        // run — and a raw ENOENT names neither the cause nor the fix.
-        return;
-      }
-      for (const entry of entries) {
-        const full = join(dir, entry.name);
-        if (entry.isDirectory()) await walk(full);
-        // `.d.cts` and `.d.mts` are declarations too, and skipping them left
-        // their specifiers neither rewritten nor checked.
-        else if (/\.d\.[cm]?ts$/.test(entry.name)) files.push(full);
-      }
-    };
-    await walk(root);
-    if (!files.length) {
-      throw new Error(
-        `${root} holds no declarations, so the emitted specifiers cannot be ` +
-          'rewritten. The declaration pass has to run before this entry.'
-      );
-    }
-
-    // Both shapes a specifier takes in a declaration: a real `from '…'`, and
-    // the `import('./x').Y` form tsc emits for a type it reaches without an
-    // explicit import. BOTH quote styles, because tsc writes the inline form
-    // with double quotes — missing that left a TS2834 visible only with
-    // `skipLibCheck` off, which is how most consumers would first meet it.
-    // `.` and `..` on their own are specifiers too — a bare parent-directory
-    // import resolves to that directory's `index`, and a pattern requiring a
-    // `/` after the dots skipped them silently.
-    const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
-    for (const file of files) {
-      const before = await readFile(file, 'utf8');
-      const after = before.replace(SPECIFIER, (whole, head, _q, spec, tail) => {
-        // An extension already present is still checked. The post-pass would
-        // catch a dangling one too, since it asks about resolution rather than
-        // about extensions — this is the earlier and better-worded of the two
-        // errors, not the only net. Nothing in `src/` spells an extension
-        // today; the point is that no branch is held to a weaker test.
-        const extensioned = spec.match(/\.([cm]?)js$/);
-        if (extensioned) {
-          // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
-          // `.d.ts` for either verifies a file TypeScript will not consult.
-          const declared = `.d.${extensioned[1]}ts`;
-          const asFile = resolvePath(dirname(file), spec).replace(
-            /\.[cm]?js$/,
-            declared
-          );
-          if (existsSync(asFile)) return whole;
-          throw new Error(
-            `${file}: '${spec}' already carries an extension but resolves to ` +
-              'no declaration, so it would ship pointing nowhere.'
-          );
+export const declarationExtensions = (root = 'dist/types') => {
+  // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
+  // or stale because the build never got that far. Without a latch this hook's
+  // own error replaces the real one — a compile failure reported as a missing
+  // declaration directory, on the publish job's clean checkout, every time.
+  //
+  // The latch is a closure variable rather than `this.meta`, because `meta` is
+  // shared only between BUILD hooks: every output hook gets its own, one per
+  // output, invisible to `closeBundle`. A closure is shared by all of them, so
+  // it can carry `renderError` too — the output-phase failure, which otherwise
+  // collapses into a `SuppressedError` with no cause printed at all.
+  let failed = false;
+  return {
+    name: 'bestax-declaration-extensions',
+    buildStart() {
+      // Reset per build: under `--watch` one instance serves every rebuild, and
+      // a failure must not silence the runs after it.
+      failed = false;
+    },
+    buildEnd(error) {
+      if (error) failed = true;
+    },
+    renderError() {
+      failed = true;
+    },
+    // `closeBundle`, not `writeBundle`. The TypeScript plugin re-emits the
+    // whole declaration set for EVERY output of a config, and rollup's CLI
+    // writes a config's outputs concurrently — so a per-output hook races the
+    // sibling output's emit, and losing that race republishes extensionless
+    // declarations with a green build. `closeBundle` runs once, after every
+    // output is on disk.
+    async closeBundle() {
+      if (failed) return;
+      const files = [];
+      const walk = async dir => {
+        let entries;
+        try {
+          entries = await readdir(dir, { withFileTypes: true });
+        } catch (error) {
+          if (dir !== root || error.code !== 'ENOENT') throw error;
+          // Absent and empty are the same mistake — the declaration pass has not
+          // run — and a raw ENOENT names neither the cause nor the fix.
+          return;
         }
-        // A bare `.` or `..` names a directory by definition, so it skips the
-        // file probe. Probing first would let a stale declaration — `dist` is
-        // never cleaned — send it down the file branch and emit a specifier
-        // ending in `.js` that resolves nowhere, which the post-pass would then
-        // pass through untouched. The index is still checked: this branch has
-        // to throw like the others, or it becomes the one path that can emit
-        // something unresolvable in silence.
-        if (/^\.\.?$/.test(spec)) {
-          if (
-            existsSync(join(resolvePath(dirname(file), spec), 'index.d.ts'))
-          ) {
-            return `${head}${spec}/index.js${tail}`;
+        for (const entry of entries) {
+          const full = join(dir, entry.name);
+          if (entry.isDirectory()) await walk(full);
+          // `.d.cts` and `.d.mts` are declarations too, and skipping them left
+          // their specifiers neither rewritten nor checked.
+          else if (/\.d\.[cm]?ts$/.test(entry.name)) files.push(full);
+        }
+      };
+      await walk(root);
+      if (!files.length) {
+        throw new Error(
+          `${root} holds no declarations, so the emitted specifiers cannot be ` +
+            'rewritten. The declaration pass has to run before this entry.'
+        );
+      }
+
+      // Both shapes a specifier takes in a declaration: a real `from '…'`, and
+      // the `import('./x').Y` form tsc emits for a type it reaches without an
+      // explicit import. BOTH quote styles, because tsc writes the inline form
+      // with double quotes — missing that left a TS2834 visible only with
+      // `skipLibCheck` off, which is how most consumers would first meet it.
+      // `.` and `..` on their own are specifiers too — a bare parent-directory
+      // import resolves to that directory's `index`, and a pattern requiring a
+      // `/` after the dots skipped them silently.
+      const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
+      for (const file of files) {
+        const before = await readFile(file, 'utf8');
+        const after = before.replace(
+          SPECIFIER,
+          (whole, head, _q, spec, tail) => {
+            // An extension already present is still checked. The post-pass would
+            // catch a dangling one too, since it asks about resolution rather than
+            // about extensions — this is the earlier and better-worded of the two
+            // errors, not the only net. Nothing in `src/` spells an extension
+            // today; the point is that no branch is held to a weaker test.
+            const extensioned = spec.match(/\.([cm]?)js$/);
+            if (extensioned) {
+              // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
+              // `.d.ts` for either verifies a file TypeScript will not consult.
+              const declared = `.d.${extensioned[1]}ts`;
+              const asFile = resolvePath(dirname(file), spec).replace(
+                /\.[cm]?js$/,
+                declared
+              );
+              if (existsSync(asFile)) return whole;
+              throw new Error(
+                `${file}: '${spec}' already carries an extension but resolves to ` +
+                  'no declaration, so it would ship pointing nowhere.'
+              );
+            }
+            // A bare `.` or `..` names a directory by definition, so it skips the
+            // file probe. Probing first would let a stale declaration — `dist` is
+            // never cleaned — send it down the file branch and emit a specifier
+            // ending in `.js` that resolves nowhere, which the post-pass would then
+            // pass through untouched. The index is still checked: this branch has
+            // to throw like the others, or it becomes the one path that can emit
+            // something unresolvable in silence.
+            if (/^\.\.?$/.test(spec)) {
+              if (
+                existsSync(join(resolvePath(dirname(file), spec), 'index.d.ts'))
+              ) {
+                return `${head}${spec}/index.js${tail}`;
+              }
+              throw new Error(
+                `${file}: '${spec}' names a directory with no index declaration, ` +
+                  'so no extension can be chosen for it.'
+              );
+            }
+            const resolved = resolvePath(dirname(file), spec);
+            if (existsSync(`${resolved}.d.ts`))
+              return `${head}${spec}.js${tail}`;
+            if (existsSync(join(resolved, 'index.d.ts'))) {
+              return `${head}${spec}/index.js${tail}`;
+            }
+            throw new Error(
+              `${file}: '${spec}' resolves to neither a declaration nor a ` +
+                'directory holding one, so no extension can be chosen for it.'
+            );
           }
+        );
+        if (after !== before) await writeFile(file, after, 'utf8');
+      }
+
+      // The rewrite can only fix shapes its pattern matches, and several escaped
+      // it in the writing — the double-quoted `import("./x")` form, a bare `..`,
+      // and a side-effect `import './x';` in neither position. An unmatched
+      // specifier fails silently, so the tree is re-read here.
+      for (const file of files) {
+        const text = await readFile(file, 'utf8');
+        // EVERY quoted relative string, and the question is whether it RESOLVES.
+        //
+        // Both halves of that are deliberate. Reading only the positions the
+        // rewrite matches makes this a restatement of the rewrite rather than a
+        // check on it — narrowing the two to the same `from`/`import(` prefix let
+        // a side-effect import escape both at once. And asking merely whether an
+        // extension is present let three shapes ship a specifier pointing
+        // nowhere: one outside those positions, one already carrying an
+        // extension, and a `./dir/` that a stale sibling turned into `./dir/.js`.
+        // Resolvability is one question covering all of them, and it is the
+        // property a consumer actually depends on.
+        //
+        // The cost of reading raw text is that neither pass can tell a specifier
+        // from anything else quoted beside it. A string-literal type such as
+        // `export type P = './foo.js'`, or a relative `./data.json` import, fails
+        // the build; and in the other direction the rewrite will happily edit a
+        // relative path quoted inside a preserved TSDoc `@example`, which this
+        // tree carries plenty of. No source here quotes a relative path anywhere
+        // but a specifier. The two directions are not equally safe: a false
+        // failure is loud and stops the build, while an edit inside a comment
+        // ships silently WHEN the path it names happens to resolve from that
+        // declaration's directory — one that does not throws like any other.
+        // Narrowing the scan is what opened the hole it was widened to close, so
+        // the answer if this ever bites is to exempt comment bodies, not to
+        // re-anchor it.
+        const broken = [
+          ...new Set(
+            [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
+              .map(m => m[1])
+              .filter(spec => !resolvesToDeclaration(file, spec))
+          ),
+        ];
+        if (broken.length) {
           throw new Error(
-            `${file}: '${spec}' names a directory with no index declaration, ` +
-              'so no extension can be chosen for it.'
+            `${file} has relative specifiers that resolve to no declaration ` +
+              `after the rewrite: ${broken.join(', ')}. They would ship ` +
+              'pointing nowhere. If this names a file you did not expect, ' +
+              '`dist` is never cleaned — a declaration left by an earlier emit ' +
+              'is held to the same standard, and `pnpm --filter ' +
+              '@allxsmith/bestax-bulma clean` clears it.'
           );
         }
-        const resolved = resolvePath(dirname(file), spec);
-        if (existsSync(`${resolved}.d.ts`)) return `${head}${spec}.js${tail}`;
-        if (existsSync(join(resolved, 'index.d.ts'))) {
-          return `${head}${spec}/index.js${tail}`;
-        }
-        throw new Error(
-          `${file}: '${spec}' resolves to neither a declaration nor a ` +
-            'directory holding one, so no extension can be chosen for it.'
-        );
-      });
-      if (after !== before) await writeFile(file, after, 'utf8');
-    }
-
-    // The rewrite can only fix shapes its pattern matches, and several escaped
-    // it in the writing — the double-quoted `import("./x")` form, a bare `..`,
-    // and a side-effect `import './x';` in neither position. An unmatched
-    // specifier fails silently, so the tree is re-read here.
-    for (const file of files) {
-      const text = await readFile(file, 'utf8');
-      // EVERY quoted relative string, and the question is whether it RESOLVES.
-      //
-      // Both halves of that are deliberate. Reading only the positions the
-      // rewrite matches makes this a restatement of the rewrite rather than a
-      // check on it — narrowing the two to the same `from`/`import(` prefix let
-      // a side-effect import escape both at once. And asking merely whether an
-      // extension is present let three shapes ship a specifier pointing
-      // nowhere: one outside those positions, one already carrying an
-      // extension, and a `./dir/` that a stale sibling turned into `./dir/.js`.
-      // Resolvability is one question covering all of them, and it is the
-      // property a consumer actually depends on.
-      //
-      // The cost of reading raw text is that neither pass can tell a specifier
-      // from anything else quoted beside it. A string-literal type such as
-      // `export type P = './foo.js'`, or a relative `./data.json` import, fails
-      // the build; and in the other direction the rewrite will happily edit a
-      // relative path quoted inside a preserved TSDoc `@example`, which this
-      // tree carries plenty of. No source here quotes a relative path anywhere
-      // but a specifier. The two directions are not equally safe: a false
-      // failure is loud and stops the build, while an edit inside a comment
-      // ships silently WHEN the path it names happens to resolve from that
-      // declaration's directory — one that does not throws like any other.
-      // Narrowing the scan is what opened the hole it was widened to close, so
-      // the answer if this ever bites is to exempt comment bodies, not to
-      // re-anchor it.
-      const broken = [
-        ...new Set(
-          [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
-            .map(m => m[1])
-            .filter(spec => !resolvesToDeclaration(file, spec))
-        ),
-      ];
-      if (broken.length) {
-        throw new Error(
-          `${file} has relative specifiers that resolve to no declaration ` +
-            `after the rewrite: ${broken.join(', ')}. They would ship ` +
-            'pointing nowhere. If this names a file you did not expect, ' +
-            '`dist` is never cleaned — a declaration left by an earlier emit ' +
-            'is held to the same standard, and `pnpm --filter ' +
-            '@allxsmith/bestax-bulma clean` clears it.'
-        );
       }
-    }
-  },
-});
+    },
+  };
+};
 
 /**
  * Write `dist/constants.d.cts`, the `types` target for the `require`
