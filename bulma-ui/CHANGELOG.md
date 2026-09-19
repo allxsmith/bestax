@@ -1,3 +1,19 @@
+## [5.16.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.0...@allxsmith/bestax-bulma@5.16.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** chunk the constants bundle as .cjs, and ask the path for the remedy ([83223f7](https://github.com/allxsmith/bestax/commit/83223f703a707dd1a1c6f77b57e042c1fb7fe32c)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** emit the CommonJS bundle as .cjs, so require() can load it ([f64286c](https://github.com/allxsmith/bestax/commit/f64286ccfce8b173bcd8461911532355f921db73)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** exempt everything module-sync serves, and pin the chunk guards ([c87f6a7](https://github.com/allxsmith/bestax/commit/c87f6a731e81f1e49ec55aae0ad7ebcadc7ad96c)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** give the CommonJS chunks the extension too, and finish the target test ([bdcba5c](https://github.com/allxsmith/bestax/commit/bdcba5ca4546368dff3db957cc978753c729a972)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** judge an mjs require target, and certify module-sync by loading ([ce984f5](https://github.com/allxsmith/bestax/commit/ce984f569189dbf8fc0027ed0a66103583881fe0)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** judge both runtimes, not the modern one with a fallback ([525ef79](https://github.com/allxsmith/bestax/commit/525ef79b961f6e6be67490596227a551e5ae2c32)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** judge only the branches a require() can enter ([10ffd2e](https://github.com/allxsmith/bestax/commit/10ffd2e5430c96f6ac0c14c0b9fa0a9041986b2a)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** judge what an older Node reaches behind module-sync ([5b4dd6d](https://github.com/allxsmith/bestax/commit/5b4dd6d2a164f032a7266004e3c73e8e9d6bae9d)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+* **bulma-ui:** match compound selectors in either class order ([1cb026e](https://github.com/allxsmith/bestax/commit/1cb026ea9915f0d276731dadb4ee04a998e3bcba))
+* **bulma-ui:** stop predicting the symptom, and drop a claim about the corpus ([2af4883](https://github.com/allxsmith/bestax/commit/2af4883c29b7fe0884ef0ec6f0eb83c7f3181da2)), closes [#688](https://github.com/allxsmith/bestax/issues/688)
+
 # [5.16.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.15.4...@allxsmith/bestax-bulma@5.16.0) (2026-09-18)
 
 
