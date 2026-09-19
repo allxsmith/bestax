@@ -289,4 +289,152 @@ describe('bulma-ui export map', () => {
       }`
     );
   });
+
+  it('typechecks the ROOT entry from an ESM consumer, and rejects a default import', () => {
+    requireBuilt();
+    // The other half of the matrix from the CommonJS case below, and the half
+    // that a per-condition `types` split (#698) would keep green while ESM
+    // consumers regressed.
+    //
+    // The default import is the point of the second assertion. The declarations
+    // could be made to resolve by declaring `dist/types` CommonJS instead of
+    // adding extensions, and that was tried: it resolves, and it also makes
+    // `import pkg from '@allxsmith/bestax-bulma'` typecheck clean while the ESM
+    // bundle underneath throws `does not provide an export named 'default'` at
+    // runtime. Extensions keep the declarations honest about the module kind,
+    // so the bad import is rejected where it is written — TS1192, not a crash.
+    const dir = mkdtempSync(join(tmpdir(), 'bestax-root-esm-'));
+    mkdirSync(join(dir, 'src'), { recursive: true });
+    mkdirSync(join(dir, 'node_modules', '@allxsmith'), { recursive: true });
+    symlinkSync(
+      PKG_DIR,
+      join(dir, 'node_modules', '@allxsmith', 'bestax-bulma'),
+      'dir'
+    );
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({
+        name: 'esm-consumer',
+        version: '1.0.0',
+        private: true,
+        type: 'module',
+      })
+    );
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          module: 'nodenext',
+          moduleResolution: 'nodenext',
+          target: 'es2022',
+          jsx: 'react-jsx',
+          strict: true,
+          noEmit: true,
+        },
+        include: ['src'],
+      })
+    );
+    // No `skipLibCheck`: the declarations themselves have to resolve, and the
+    // first miss in this rewrite was visible only with it off.
+    writeFileSync(
+      join(dir, 'src', 'index.ts'),
+      "import { Box } from '@allxsmith/bestax-bulma';\n" +
+        "import type { ButtonProps } from '@allxsmith/bestax-bulma';\n" +
+        "export const ok: ButtonProps = { color: 'primary' };\n" +
+        '// @ts-expect-error a wrong colour must still be rejected\n' +
+        "export const bad: ButtonProps = { color: 'not-a-colour' };\n" +
+        '// @ts-expect-error the bundle is ESM and has no default export\n' +
+        "import pkg from '@allxsmith/bestax-bulma';\n" +
+        'export { Box, pkg };\n'
+    );
+
+    const localRequire = createRequire(import.meta.url);
+    const tsc = join(
+      dirname(localRequire.resolve('typescript')),
+      '..',
+      'bin',
+      'tsc'
+    );
+    const run = spawnSync(process.execPath, [tsc, '-p', dir], {
+      encoding: 'utf8',
+    });
+    assert.equal(
+      run.status,
+      0,
+      `an ESM consumer does not typecheck against the root entry:\n${
+        run.stdout || run.stderr
+      }`
+    );
+  });
+
+  it('typechecks the ROOT entry from a nodenext consumer', () => {
+    requireBuilt();
+    // The root's declarations are emitted by `tsc`, which writes relative
+    // specifiers exactly as the source spells them — extensionless. Under
+    // `"type": "module"` TypeScript reads a `.d.ts` as an ES module, where such
+    // a specifier does not resolve, so every re-export in `dist/types/index.d.ts`
+    // failed and the root's whole type surface came out empty: TS2305 on each
+    // named import (#696). The build gives them extensions, which is what they
+    // were always spelled for.
+    //
+    // Checked by TYPECHECKING rather than by reading the emitted files: their
+    // contents say nothing about whether resolution succeeds, and a shape
+    // assertion is what let this ship.
+    const dir = mkdtempSync(join(tmpdir(), 'bestax-root-types-'));
+    mkdirSync(join(dir, 'src'), { recursive: true });
+    mkdirSync(join(dir, 'node_modules', '@allxsmith'), { recursive: true });
+    symlinkSync(
+      PKG_DIR,
+      join(dir, 'node_modules', '@allxsmith', 'bestax-bulma'),
+      'dir'
+    );
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({ name: 'root-consumer', version: '1.0.0', private: true })
+    );
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          module: 'nodenext',
+          moduleResolution: 'nodenext',
+          target: 'es2022',
+          jsx: 'react-jsx',
+          strict: true,
+          noEmit: true,
+        },
+        include: ['src'],
+      })
+    );
+    // A named import proves resolution, and a wrong prop proves the types are
+    // real rather than collapsed to `any` — an empty surface would pass a test
+    // that only imported something.
+    writeFileSync(
+      join(dir, 'src', 'index.ts'),
+      "import { Box } from '@allxsmith/bestax-bulma';\n" +
+        "import type { ButtonProps } from '@allxsmith/bestax-bulma';\n" +
+        "export const ok: ButtonProps = { color: 'primary' };\n" +
+        '// @ts-expect-error a wrong colour must still be rejected\n' +
+        "export const bad: ButtonProps = { color: 'not-a-colour' };\n" +
+        'export { Box };\n'
+    );
+
+    const localRequire = createRequire(import.meta.url);
+    const tsc = join(
+      dirname(localRequire.resolve('typescript')),
+      '..',
+      'bin',
+      'tsc'
+    );
+    const run = spawnSync(process.execPath, [tsc, '-p', dir], {
+      encoding: 'utf8',
+    });
+    assert.equal(
+      run.status,
+      0,
+      `a nodenext consumer does not typecheck against the root entry:\n${
+        run.stdout || run.stderr
+      }`
+    );
+  });
 });

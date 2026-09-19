@@ -1,4 +1,6 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { dirname, join, resolve as resolvePath } from 'node:path';
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
@@ -17,6 +19,104 @@ const scssBase = {
 
 const aiBanner =
   '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
+
+/**
+ * Give every relative specifier in the emitted declarations a `.js` extension.
+ *
+ * `tsc` writes specifiers exactly as the source spells them, so the
+ * declarations say `export * from './columns/Column'`. This package is
+ * `"type": "module"`, so TypeScript reads a `.d.ts` as an ES module, where an
+ * extensionless relative specifier does not resolve — `node16`/`nodenext`
+ * consumers got TS2834 on every re-export, the root's type surface came out
+ * empty, and each named import failed with TS2305 (#696). `skipLibCheck` does
+ * not help: it stops declarations being CHECKED, not RESOLVED.
+ *
+ * The extension is added rather than the directory being marked CommonJS,
+ * which also makes them resolve. Marking would make the declarations describe
+ * a CommonJS module while the bundle they describe is ESM, and TypeScript then
+ * accepts `import pkg from '…'` — which typechecks clean and throws
+ * `does not provide an export named 'default'` at runtime. Extensions keep the
+ * declarations honest about the module kind, so that import is rejected where
+ * it is written.
+ *
+ * Most specifiers name a file and take a `.js`; a few name a directory — a
+ * clean emit carries three `import("..")` — and take `/index.js`. The plugin
+ * resolves each rather than assuming which, and throws on anything that is
+ * neither.
+ */
+const declarationExtensions = () => ({
+  name: 'bestax-declaration-extensions',
+  async writeBundle() {
+    const root = 'dist/types';
+    const files = [];
+    const walk = async dir => {
+      for (const entry of await readdir(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) await walk(full);
+        else if (entry.name.endsWith('.d.ts')) files.push(full);
+      }
+    };
+    await walk(root);
+    if (!files.length) {
+      throw new Error(
+        `${root} holds no declarations, so the emitted specifiers cannot be ` +
+          'rewritten. The declaration pass has to run before this entry.'
+      );
+    }
+
+    // Both shapes a specifier takes in a declaration: a real `from '…'`, and
+    // the `import('./x').Y` form tsc emits for a type it reaches without an
+    // explicit import. BOTH quote styles, because tsc writes the inline form
+    // with double quotes — missing that left a TS2834 visible only with
+    // `skipLibCheck` off, which is how most consumers would first meet it.
+    // `.` and `..` on their own are specifiers too — a bare parent-directory
+    // import resolves to that directory's `index`, and a pattern requiring a
+    // `/` after the dots skipped them silently.
+    const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
+    for (const file of files) {
+      const before = await readFile(file, 'utf8');
+      const after = before.replace(SPECIFIER, (whole, head, _q, spec, tail) => {
+        if (/\.[cm]?js$/.test(spec)) return whole;
+        const resolved = resolvePath(dirname(file), spec);
+        if (existsSync(`${resolved}.d.ts`)) return `${head}${spec}.js${tail}`;
+        if (existsSync(join(resolved, 'index.d.ts'))) {
+          return `${head}${spec}/index.js${tail}`;
+        }
+        throw new Error(
+          `${file}: '${spec}' resolves to neither a declaration nor a ` +
+            'directory holding one, so no extension can be chosen for it.'
+        );
+      });
+      if (after !== before) await writeFile(file, after, 'utf8');
+    }
+
+    // The rewrite can only fix shapes its pattern matches, and it has missed
+    // two already — the double-quoted `import("./x")` form, and a bare `..`.
+    // An unmatched specifier fails silently, so the tree is re-read and any
+    // relative specifier still lacking an extension is an error here rather
+    // than a TS2834 in a consumer's build.
+    for (const file of files) {
+      const text = await readFile(file, 'utf8');
+      // EVERY quoted relative string, deliberately — not the positions the
+      // rewrite matches. Sharing its pattern makes this a restatement of the
+      // rewrite rather than a check on it: narrowing the two to the same
+      // `from`/`import(` prefix let a bare `import './x';`, which tsc preserves
+      // verbatim, escape both at once. What keeps a
+      // `/// <reference path="./x.d.ts" />` from failing here is the extension
+      // it already carries, not where it sits.
+      const missed = [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
+        .map(m => m[1])
+        .filter(spec => !/\.([cm]?js|d\.[cm]?ts)$/.test(spec));
+      if (missed.length) {
+        throw new Error(
+          `${file} still has extensionless relative specifiers after the ` +
+            `rewrite: ${[...new Set(missed)].join(', ')}. They will not ` +
+            'resolve when TypeScript reads this declaration as ESM.'
+        );
+      }
+    }
+  },
+});
 
 /**
  * Write `dist/constants.d.cts`, the `types` target for the `require`
@@ -176,9 +276,12 @@ export default commandLineArgs => {
           // as ESM.
           chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
-          // On this output rather than the entry's, because what it writes
-          // serves the `require` condition specifically.
-          plugins: [constantsCjsTypes()],
+          // Both run after the declaration pass, which is what they read and
+          // rewrite; rollup builds the config array in order, so this output is
+          // simply the first place they can run. `constantsCjsTypes` serves the
+          // `require` condition specifically, `declarationExtensions` the
+          // shared root `types` target.
+          plugins: [declarationExtensions(), constantsCjsTypes()],
         },
         {
           dir: 'dist',
