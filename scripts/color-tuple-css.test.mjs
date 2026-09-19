@@ -31,12 +31,14 @@
  * What the single signal gives up is stated rather than papered over: a
  * component that emits the modifier and never warns is not detected, which is
  * the shape of the defect that started this. Several do emit it without
- * warning and are invisible here, and nothing is exposed by that: each
- * narrows `color` to a union whose every value has CSS. The detection gap is
- * real, their exposure to it is not, and the way to find them is to grep the
- * emission rather than trust a list in this comment. Closing it wants the
- * library to say which components warn, rather than a test guessing from
- * source.
+ * warning and are invisible here, and something IS exposed by that: the time
+ * wheels take a public `color` and put `is-<colour>` on an element with no
+ * colour rule, so the value is dead and silent. An earlier version of this
+ * comment claimed otherwise on the grounds that each narrows `color` to a
+ * CSS-backed union, which is true of the union and says nothing about the
+ * element the class lands on. Grep the emission rather than trusting a list
+ * here. Closing the gap wants the library to say which components warn,
+ * rather than a test guessing from source.
  *
  * `codeOnly` is a textual strip, with the limit that implies: a comment
  * opener inside a string literal removes real code along with itself — `//`
@@ -95,11 +97,65 @@ function stylesheet() {
   return readFileSync(CSS, 'utf8');
 }
 
-/** Does the stylesheet carry this exact class, not a longer one starting with it? */
-const shipsClass = (css, cls) =>
-  new RegExp(
-    `\\.${cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z0-9-])`
-  ).test(css);
+/**
+ * Does the stylesheet carry this exact class, not a longer one starting with
+ * it?
+ *
+ * Single classes are matched literally. A COMPOUND (`notification.is-primary`)
+ * is matched order-independently, because CSS does not care and Bulma does not
+ * either: it writes `.notification.is-primary` and `.is-primary.input`. An
+ * element-first-only regex called the second one absent, which is how a live
+ * modifier could have read as dead.
+ *
+ * Indexed by class rather than scanned per query. Walking every selector for
+ * every pair took the first case from a third of a second to six, because
+ * this file asks the question a few thousand times.
+ */
+function shipsClass(css, cls) {
+  const parts = cls.split('.');
+  const index = classIndex(css);
+  if (parts.length === 1) return index.has(cls);
+  // Start from the rarest class so the scan is over the shortest list.
+  const lists = parts.map(part => index.get(part) ?? new Set());
+  if (lists.some(l => l.size === 0)) return false;
+  const smallest = lists.reduce((a, b) => (a.size <= b.size ? a : b));
+  for (const id of smallest) {
+    if (lists.every(l => l.has(id))) return true;
+  }
+  return false;
+}
+
+/**
+ * class name → the selector parts carrying it, as a set of part ids.
+ *
+ * One pass over the stylesheet per file read. A part is one comma-separated
+ * selector, so a class list matching within a single part is what counts,
+ * rather than the whole selector list mentioning them somewhere apart.
+ */
+const indexCache = new Map();
+function classIndex(css) {
+  if (!indexCache.has(css)) {
+    const index = new Map();
+    let id = 0;
+    // Split rather than matched. `/([^{}]+)\{/g` over 800KB of minified CSS
+    // took six seconds for 6,483 selectors, which is backtracking rather than
+    // work; this is five milliseconds for the same index. Each `{` is
+    // preceded by a prelude, and the selector is whatever follows the last
+    // `}` in it.
+    for (const chunk of css.split('{')) {
+      const prelude = chunk.slice(chunk.lastIndexOf('}') + 1);
+      for (const part of prelude.split(',')) {
+        id += 1;
+        for (const c of part.matchAll(/\.([A-Za-z0-9_-]+)/g)) {
+          if (!index.has(c[1])) index.set(c[1], new Set());
+          index.get(c[1]).add(id);
+        }
+      }
+    }
+    indexCache.set(css, index);
+  }
+  return indexCache.get(css);
+}
 
 /**
  * Source with comments removed, so scanning it finds CODE.
@@ -217,11 +273,24 @@ function warningCallers() {
         let depth = 0;
         let started = false;
         let text = '';
+        let quote = '';
         for (let i = m.index; i < source.length; i++) {
-          if (source[i] === '(') {
+          const c = source[i];
+          // Parens inside a string literal are not structure. A `)` in one
+          // truncated the call text and dropped its later arguments, which is
+          // exactly the silent empty read the assertion below exists to stop.
+          if (quote) {
+            if (c === quote && source[i - 1] !== '\\') quote = '';
+            continue;
+          }
+          if (c === '"' || c === "'" || c === '`') {
+            quote = c;
+            continue;
+          }
+          if (c === '(') {
             depth += 1;
             started = true;
-          } else if (source[i] === ')') {
+          } else if (c === ')') {
             depth -= 1;
           }
           // `started` matters: without it the loop ends on the first
@@ -245,9 +314,21 @@ function warningCallers() {
         const inner = text.slice(text.indexOf('(') + 1, -1);
         const args = [];
         let argDepth = 0;
+        let argQuote = '';
         let start = 0;
         for (let i = 0; i < inner.length; i++) {
           const c = inner[i];
+          // Same reason the balancer above skips strings: a bracket or comma
+          // inside one is text, not structure, and counting it mis-split the
+          // arguments so the validated third one was the wrong slice.
+          if (argQuote) {
+            if (c === argQuote && inner[i - 1] !== '\\') argQuote = '';
+            continue;
+          }
+          if (c === '"' || c === "'" || c === '`') {
+            argQuote = c;
+            continue;
+          }
           if (c === '(' || c === '[' || c === '{') argDepth += 1;
           if (c === ')' || c === ']' || c === '}') argDepth -= 1;
           if (c === ',' && argDepth === 0) {
@@ -367,15 +448,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         );
       }
 
-      // NOT widened by `extraColors`, though that reads as the obvious thing
-      // to do. `CSS_BACKED` is pinned to exactly `validColors` minus
-      // `declared`, and the check just above forbids an element declaring a
-      // colour that list names, so any colour in `extraUnstyled` is already
-      // in `declared` and the union was provably a no-op. The real conclusion
-      // is a fact about the library: while that message is one global list, a
-      // colour dead on a single element cannot be expressed without the
-      // warning contradicting itself, which leaves `extraUnstyled` useful for
-      // values outside `validColors` — what `inherit` and `current` are.
+      // `declared` alone. Widening this by the element's own `extraUnstyled`
+      // colours reads as the obvious thing to do and is provably a no-op:
+      // `CSS_BACKED` is pinned to exactly `validColors` minus `declared`, and
+      // the check just above forbids an element declaring a colour that list
+      // names, so such a colour is already in `declared`. The fact underneath
+      // is about the library: while that message is one global list, a colour
+      // dead on a single element cannot be expressed without the warning
+      // contradicting itself, which leaves `extraUnstyled` useful for values
+      // outside `validColors` — what `inherit` and `current` are.
       const expected = [...declared].sort();
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
@@ -388,8 +469,8 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'declared one renders a dead modifier with no warning, which is ' +
           'the silence the warning exists to break; the reverse warns about ' +
           'a colour that works. The declared set is ' +
-          '`UNSTYLED_MODIFIER_COLORS` plus whatever this call passes as ' +
-          '`extraUnstyled`.'
+          '`UNSTYLED_MODIFIER_COLORS`; a colour dead on this element alone ' +
+          'cannot be declared while `CSS_BACKED` is one global list.'
       );
 
       // The CSS-wide keywords, in both halves. An element that WIDENS its
