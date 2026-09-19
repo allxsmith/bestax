@@ -166,8 +166,17 @@ function simpleSelectors(css) {
       for (const part of prelude.split(',')) {
         for (const simple of part.split(/[\s>+~]+/)) {
           if (!simple.includes('.')) continue;
+          // A class name may escape a character with a backslash, which is
+          // how Bulma spells the fractional gap helpers: `.is-gap-0\\.5` is
+          // ONE class called `is-gap-0.5`. Reading the escape as a separator
+          // splits it into `is-gap-0` and `5`, which both invents a class and
+          // inflates the set past the exact-size check.
           sets.push(
-            new Set([...simple.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(m => m[1]))
+            new Set(
+              [...simple.matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)].map(m =>
+                m[1].replace(/\\(.)/g, '$1')
+              )
+            )
           );
         }
       }
