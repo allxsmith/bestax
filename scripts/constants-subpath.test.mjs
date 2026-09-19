@@ -865,8 +865,9 @@ describe('the declaration-extension guard', () => {
   it('prefers the index for a bare dot even when a sibling declaration exists', async () => {
     // Pins the bare-dot branch's POSITION ahead of the file probe, not just its
     // result. With the order reversed, `..` from `pkg/deep` finds the stale
-    // `pkg.d.ts` and emits `'..js'` — a specifier the post-pass pattern cannot
-    // match at all, so the build stays green and ships this issue's own shape.
+    // `pkg.d.ts` and emits `'...js'` — `..` with `.js` appended, a specifier the
+    // post-pass pattern cannot match at all, so the build stays green and ships
+    // this issue's own shape.
     const root = tree({
       'pkg.d.ts': 'export {};\n',
       'pkg/index.d.ts': 'export declare const a: number;\n',
@@ -875,7 +876,10 @@ describe('the declaration-extension guard', () => {
     await run(root);
     const out = readFileSync(join(root, 'pkg/deep/index.d.ts'), 'utf8');
     assert.match(out, /'\.\.\/index\.js'/);
-    assert.doesNotMatch(out, /'\.\.js'/);
+    // The shape the reversal actually produces. An earlier version of this
+    // guard looked for `'..js'`, which the reversal never emits, so it could
+    // not have failed — the positive assertion above was doing all the work.
+    assert.doesNotMatch(out, /'\.\.\.js'/);
   });
 
   it('prefers a file over a same-named directory, as TypeScript does', async () => {

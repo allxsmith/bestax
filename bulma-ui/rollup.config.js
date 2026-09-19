@@ -61,7 +61,16 @@ const resolvesToDeclaration = (file, spec) => {
  * Most specifiers name a file and take a `.js`; some name a directory and take
  * `/index.js`. Which it is, is resolved rather than assumed, and anything that
  * is neither throws — including a bare `.` or `..`, which skips the file probe
- * but is still held to having an index.
+ * but is still held to having an index. The file probe comes first because
+ * TypeScript prefers a file to a same-named directory, and a reversal there
+ * emits something that RESOLVES, so the post-pass cannot see it.
+ *
+ * Both directory arms probe `index.d.ts` and emit `.js` whatever the containing
+ * file's flavour, so inside a `.d.cts` or `.d.mts` they would pick a
+ * declaration TypeScript will not accept — and it resolves, so the post-pass is
+ * blind to that too. No `.cts` or `.mts` source exists here and `dist/types`
+ * carries none; this is the one member of that class left unaddressed rather
+ * than unreachable by accident.
  */
 export const declarationExtensions = (root = 'dist/types') => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
