@@ -30,18 +30,21 @@
  *
  * What the single signal gives up is stated rather than papered over: a
  * component that emits the modifier and never warns is not detected, which is
- * the shape of the defect that started this. `Calendar` and `TimeWheels` emit
- * it today without warning and so are invisible here, but nothing is exposed
- * by that: both narrow `color` to the six semantic values, none of which can
- * be dead. The detection gap is real, their exposure to it is not. Closing it
- * wants the library to say which components warn, rather than a test guessing
- * from source.
+ * the shape of the defect that started this. Several do emit it without
+ * warning and are invisible here, and nothing is exposed by that: each
+ * narrows `color` to a union whose every value has CSS. The detection gap is
+ * real, their exposure to it is not, and the way to find them is to grep the
+ * emission rather than trust a list in this comment. Closing it wants the
+ * library to say which components warn, rather than a test guessing from
+ * source.
  *
- * `codeOnly` is a textual strip, with the limit that implies: a `//` inside a
- * string literal on the same line as a call would remove that call from both
- * the count and the parse together, dropping the element out with only the
- * "found at least one caller" floor behind it. A tokenizer would close that,
- * and would be another reader of the kind this file has been shedding.
+ * `codeOnly` is a textual strip, with the limit that implies: a comment
+ * opener inside a string literal removes real code along with itself — `//`
+ * to the end of that line, a block opener as far as the next closer — and a
+ * call caught in that span leaves both the count and the parse together, so
+ * only the "found at least one caller" floor is behind it. A tokenizer would
+ * close it, and would be another reader of the kind this file has been
+ * shedding.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -263,10 +266,12 @@ function warningCallers() {
         callers.push({
           component: named[1],
           path,
-          // Only the literals inside a bracketed list, so a nested call in
-          // another argument cannot contribute one.
-          extraUnstyled: [...text.matchAll(/\[([^\]]*)\]/g)].flatMap(a =>
-            [...a[1].matchAll(/'([^']+)'/g)].map(x => x[1])
+          // From `args[2]` alone, the argument validated just above. Taking
+          // every bracketed span in the call text let a bracketed expression
+          // in an earlier argument contribute a value, failing with a message
+          // naming something the library never declared.
+          extraUnstyled: [...(args[2] ?? '').matchAll(/'([^']+)'/g)].map(
+            x => x[1]
           ),
         });
       }
@@ -362,7 +367,16 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         );
       }
 
-      const expected = [...new Set([...declared, ...extraColors])].sort();
+      // NOT widened by `extraColors`, though that reads as the obvious thing
+      // to do. `CSS_BACKED` is pinned to exactly `validColors` minus
+      // `declared`, and the check just above forbids an element declaring a
+      // colour that list names, so any colour in `extraUnstyled` is already
+      // in `declared` and the union was provably a no-op. The real conclusion
+      // is a fact about the library: while that message is one global list, a
+      // colour dead on a single element cannot be expressed without the
+      // warning contradicting itself, which leaves `extraUnstyled` useful for
+      // values outside `validColors` — what `inherit` and `current` are.
+      const expected = [...declared].sort();
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
       );
