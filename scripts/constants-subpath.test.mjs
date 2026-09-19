@@ -665,6 +665,13 @@ describe('the declaration-extension guard', () => {
       // rewritten rather than merely read: narrowing the walk to `.d.c?ts`
       // leaves this one untouched, which an assertion on already-extensioned
       // content would not notice.
+      //
+      // What it is rewritten TO is pinned here as `.js` probed against
+      // `.d.ts`, which is what the code does — and is arguably not what a
+      // `.d.cts` or `.d.mts` should get, since in a `"type": "module"` package
+      // a `.d.cts` importing `./plain.js` is TS1479. Unreachable today: no
+      // `.cts` or `.mts` source exists and `dist/types` carries none, so this
+      // records the current answer rather than endorsing it.
       'esm.d.mts': "export * from './b.mjs';\nexport * from './plain';\n",
       'b.d.mts': 'export {};\n',
     });
@@ -869,6 +876,23 @@ describe('the declaration-extension guard', () => {
     const out = readFileSync(join(root, 'pkg/deep/index.d.ts'), 'utf8');
     assert.match(out, /'\.\.\/index\.js'/);
     assert.doesNotMatch(out, /'\.\.js'/);
+  });
+
+  it('prefers a file over a same-named directory, as TypeScript does', async () => {
+    // The file probe sits ahead of the index probe and that order is
+    // load-bearing: when `./dir` can resolve BOTH ways, TypeScript takes
+    // `dir.d.ts`. Reversing the probes emits `'./dir/index.js'`, which resolves
+    // — so the post-pass waves it through and the build ships a specifier
+    // pointing at the wrong declaration. Only this ordering case catches it.
+    const root = tree({
+      'index.d.ts': "export * from './dir';\n",
+      'dir.d.ts': 'export declare const fromFile: number;\n',
+      'dir/index.d.ts': 'export declare const fromIndex: number;\n',
+    });
+    await run(root);
+    const out = readFileSync(join(root, 'index.d.ts'), 'utf8');
+    assert.match(out, /'\.\/dir\.js'/);
+    assert.doesNotMatch(out, /'\.\/dir\/index\.js'/);
   });
 
   it('fails on a bare dot naming a directory with no index', async () => {
