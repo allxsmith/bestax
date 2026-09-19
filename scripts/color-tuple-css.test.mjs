@@ -29,14 +29,18 @@
  * calling `warnUnstyledColor`, so a component that starts emitting the
  * modifier is compared whether or not anyone remembered to add it here.
  *
- * Two things sit outside the MODIFIER comparison, and are worth naming so the
- * scope reads as chosen rather than overlooked. `Hero` passes
- * `extraUnstyled: ['inherit', 'current']`, values that are not in
- * `validColors` at all, so no loop over the tuple reaches them there — though
- * the shade case does assert both of them, since they are part of that gap.
- * And `bgColor` accepts `validSchemeColors` on top of the tuple, which
- * nothing here covers, because a scheme value emits no class at all. Both are
- * pre-existing and both point the safe way.
+ * The CSS-wide keywords are handled alongside the tuple rather than skipped.
+ * They are not in `validColors`, so no loop over it reaches them, and both
+ * cases assert them separately: the shade case in both directions, since they
+ * are part of that gap, and the modifier case by pinning them dead, since
+ * `Hero` passes them as `extraUnstyled` and a rule shipping for one would
+ * turn that warning into a complaint about a value that works. The keywords
+ * themselves are read from the hook that accepts them.
+ *
+ * One thing does sit outside, and is worth naming so the scope reads as
+ * chosen rather than overlooked: `bgColor` accepts `validSchemeColors` on top
+ * of the tuple, which nothing here covers, because a scheme value emits no
+ * class at all. Pre-existing, and it points the safe way.
  *
  * One blind spot is worth naming with them: the type is read through
  * `props-extract`, which resolves EXPORTED components, so a module that is
@@ -73,6 +77,13 @@ const HELPERS = join(
   'src',
   'helpers',
   'bulmaClassHelpers.ts'
+);
+const COLOR_CLASSES = join(
+  REPO,
+  'bulma-ui',
+  'src',
+  'helpers',
+  'useColorClasses.tsx'
 );
 const DEPRECATIONS = join(
   REPO,
@@ -204,6 +215,36 @@ function modifierElements() {
       'like they do.'
   );
   return found;
+}
+
+/**
+ * The CSS-wide keywords the colour props accept beyond `validColors`.
+ *
+ * Read from the membership test in `useColorClasses`, which spells the
+ * accepted set as `[...validColors, 'inherit', 'current']`, rather than
+ * listed here. It was the last hand-maintained list in this guard, and a
+ * third keyword added there would have gone unprobed while the prose in
+ * `values.ts` naming two of them quietly became incomplete — the same shape
+ * as every list this change removed.
+ */
+function colorKeywords() {
+  const source = readFileSync(COLOR_CLASSES, 'utf8');
+  const block = /!\[\.\.\.validColors,([^\]]*)\]\.includes\(value\)/.exec(
+    source
+  );
+  assert.ok(
+    block,
+    'could not find the accepted-value test in useColorClasses, so the ' +
+      'CSS-wide keywords cannot be read. Fix the pattern in the same change ' +
+      'that moved it.'
+  );
+  const keywords = [...block[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  assert.ok(
+    keywords.length > 0,
+    'the accepted-value test named no keyword beyond `validColors`, which ' +
+      'would make the keyword assertions below vacuous.'
+  );
+  return keywords;
 }
 
 /** A named `as const` string tuple, read from a source file. */
@@ -338,6 +379,21 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'Bulma element class and the comparison below would call every ' +
           'colour dead. The component-name-to-class assumption has broken.'
       );
+      // `Hero` passes these to `warnUnstyledColor` as `extraUnstyled`, so
+      // the library warns about them on every element that does. If Bulma
+      // ever shipped a rule for one, that warning would be the "reverse"
+      // failure this case's own message names: a complaint about a value
+      // that works. The shade case pins both directions for these two; this
+      // pins the half that matters here.
+      for (const keyword of colorKeywords()) {
+        assert.ok(
+          !shipsClass(css, `${el}.is-${keyword}`),
+          `\`.${el}.is-${keyword}\` ships now, so warning about ` +
+            `\`${keyword}\` on \`${component}\` complains about a value ` +
+            'that works. `extraUnstyled` needs it removed.'
+        );
+      }
+
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
       );
@@ -361,14 +417,10 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // stylesheet does not carry. `bgColor` with `backgroundColorShade` is the
     // same shape, which is why both families are checked below. That is a false negative rather than a wrong report, and
     // the reason it stays one is this partition: the colours that take a shade
-    // are exactly the ones NOT declared unstyled, so the rule would need no
-    // new data to close it, only a cross-prop check. Asserting the partition
-    // is what keeps that true.
+    // are exactly the ones NOT declared unstyled. What closing it would take
+    // is in `HELPER_VALUES`'s own comment, which is the one place that should
+    // say so.
     //
-    // A numeric shade is the probe, because the named ones collide with
-    // colour names: `has-text-grey-light` is the COLOUR `grey-light`, not
-    // `grey` shaded `light`, and a check that could not tell them apart
-    // reported `grey` as partly shadeable.
     const css = stylesheet();
     const colors = validColors();
     const declared = new Set(
@@ -414,7 +466,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       // are the shade gap too, and they are outside the tuple the loop above
       // walks — which is why `HELPER_VALUES` cannot close that gap from the
       // partition alone.
-      for (const keyword of ['inherit', 'current']) {
+      for (const keyword of colorKeywords()) {
         assert.ok(
           shipsClass(css, `${family}-${keyword}`),
           `\`${family}-${keyword}\` no longer ships, so the claim that these ` +
