@@ -191,7 +191,11 @@ function warningCallers() {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const path = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (!/^(__tests__|__typetests__|skill-examples)$/.test(entry.name)) {
+        if (
+          !/^(__tests__|__typetests__|__mocks__|skill-examples)$/.test(
+            entry.name
+          )
+        ) {
           walk(path);
         }
         continue;
@@ -229,6 +233,33 @@ function warningCallers() {
         // to an element, and is counted below rather than skipped quietly.
         if (!named) continue;
         parsed += 1;
+
+        // A third argument that is not an inline list reads as no extras,
+        // which silently empties both the expected set and the
+        // warns-about-a-working-value check. Split on TOP-LEVEL commas so a
+        // nested call or array in an earlier argument does not shift the
+        // count.
+        const inner = text.slice(text.indexOf('(') + 1, -1);
+        const args = [];
+        let argDepth = 0;
+        let start = 0;
+        for (let i = 0; i < inner.length; i++) {
+          const c = inner[i];
+          if (c === '(' || c === '[' || c === '{') argDepth += 1;
+          if (c === ')' || c === ']' || c === '}') argDepth -= 1;
+          if (c === ',' && argDepth === 0) {
+            args.push(inner.slice(start, i).trim());
+            start = i + 1;
+          }
+        }
+        args.push(inner.slice(start).trim());
+        assert.ok(
+          args.length < 3 || args[2].startsWith('['),
+          `${path} passes \`${args[2]}\` as \`extraUnstyled\` to ` +
+            `\`${named[1]}\`, which this guard can only read as an inline ` +
+            'list. Read as none, it would empty the expected set and pass ' +
+            'the checks that use it without testing anything.'
+        );
         callers.push({
           component: named[1],
           path,
@@ -279,6 +310,14 @@ function acceptedKeywords(component, keywords) {
   return keywords.filter(k => (row?.type ?? '').includes(`'${k}'`));
 }
 
+/** The colours `CSS_BACKED` names to the developer as ones that work. */
+function cssBackedColors() {
+  const source = readFileSync(DEPRECATIONS, 'utf8');
+  const line = /const CSS_BACKED =\s*\n?\s*'([^']+)'/.exec(source);
+  assert.ok(line, 'could not find `CSS_BACKED` in colorDeprecations.ts');
+  return line[1].split(',').map(v => v.trim());
+}
+
 describe('the colour tuples agree with the shipped stylesheet', () => {
   it('declares every colour whose component modifier has no CSS', () => {
     const css = stylesheet();
@@ -305,6 +344,24 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       // use with a message calling the value unwarned when it is precisely
       // the warned one.
       const extraColors = extraUnstyled.filter(v => colors.includes(v));
+
+      // A colour this element declares dead must not be named as a working
+      // one by the very warning it triggers. `CSS_BACKED` is the message's
+      // list of values that do work, and it is global, so a per-element
+      // addition can contradict it: the user is told the value is unstyled
+      // and, in the same sentence, offered it as an alternative.
+      const backed = cssBackedColors();
+      for (const color of extraColors) {
+        assert.ok(
+          !backed.includes(color),
+          `\`${component}\` declares \`${color}\` unstyled while ` +
+            '`CSS_BACKED` still names it as one that works, so the warning ' +
+            'contradicts itself in a single message. Either the colour is ' +
+            'dead everywhere and belongs in `UNSTYLED_MODIFIER_COLORS`, or ' +
+            'the message needs to be per element.'
+        );
+      }
+
       const expected = [...new Set([...declared, ...extraColors])].sort();
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
@@ -341,10 +398,10 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'too — check how `color` is declared before changing the warning.'
       );
       // EVERYTHING it warns about has to be dead, not only the keywords.
-      // Filtering the equality above to keywords left a dead COLOUR in
-      // `extraUnstyled` reaching no check at all, so a component warning
-      // about a value that works kept this green. The invariant is simpler
-      // than the equality: if you warn about it, no rule may exist for it.
+      // For colours the equality above now reaches this first, since a
+      // working colour in `extraUnstyled` puts it in `expected` and not in
+      // `dead`. This stays as the direct statement of the invariant, and is
+      // the only check covering the keywords, which that equality excludes.
       for (const value of [...new Set([...extraUnstyled, ...accepted])]) {
         assert.ok(
           !shipsClass(css, `${el}.is-${value}`),
@@ -421,17 +478,11 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // for the console. It is the complement of the declared set, so it can go
     // stale the same way and tell a developer to use a value that is dead or
     // missing.
-    const source = readFileSync(DEPRECATIONS, 'utf8');
-    const line = /const CSS_BACKED =\s*\n?\s*'([^']+)'/.exec(source);
-    assert.ok(line, 'could not find `CSS_BACKED` in colorDeprecations.ts');
     const declared = new Set(
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
     assert.deepEqual(
-      line[1]
-        .split(',')
-        .map(v => v.trim())
-        .sort(),
+      cssBackedColors().sort(),
       tupleFrom(HELPERS, 'validColors')
         .filter(c => !declared.has(c))
         .sort(),
