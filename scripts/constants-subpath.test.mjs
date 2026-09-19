@@ -173,6 +173,9 @@ describe('bulma-ui export map', () => {
       'export type X = import("./a").Y;\n',
       '/// <reference path="./a.d.ts" />\n',
       "import x = require('./a');\n",
+      // No binding, so nothing with `from` in it, and nothing downstream
+      // re-reads this file before it becomes the .d.cts.
+      "import './a';\n",
     ]) {
       assert.equal(hasModuleSpecifiers(body), true, `not caught: ${body}`);
     }
@@ -681,6 +684,11 @@ describe('the declaration-extension guard', () => {
     for (const body of [
       "export type Odd = '/* not a comment';\nexport * from './B';\n",
       "export type T = `a${`/*`}b`;\nexport * from './B';\n",
+      // The third is the one only a PARSER gets right. A bare scanner does not
+      // re-scan the brace closing a substitution as template continuation, so
+      // everything after it is read as code, and the `/*` there opens a comment
+      // that runs to the end of the file.
+      "export type T = `a${string}/*b`;\nexport * from './B';\n",
     ]) {
       const root = tree({ 'index.d.ts': body, 'B.d.ts': 'export {};\n' });
       await run(root);
@@ -949,12 +957,41 @@ describe('the declaration-extension guard', () => {
       '/// <reference path="./gone.d.ts" resolution-mode="import" />\n',
       '  /// <reference path="./gone.d.ts" />\n',
       '/** doc */\n/// <reference path="./gone.d.ts" />\n',
+      // These two are why the list comes from TypeScript's parse rather than a
+      // pattern of ours. TypeScript honours both, and a pattern anchored on
+      // `path` right after `<reference` matched neither, so they shipped.
+      '/// <reference resolution-mode="import" path="./gone.d.ts" />\n',
+      '/// <Reference Path="./gone.d.ts" />\n',
     ]) {
       const root = tree({ 'index.d.ts': `${head}export {};\n` });
       await assert.rejects(
         run(root),
         /gone\.d\.ts/,
         `a dangling reference spelled this way shipped: ${head}`
+      );
+    }
+  });
+
+  it('refuses a specifier that resolves outside the published tree', async () => {
+    // `existsSync` answers a question about the build machine; only what sits
+    // under the declaration root is published. A specifier climbing out can
+    // resolve here and dangle for every consumer, so each probe asks about
+    // containment as well as existence.
+    const outer = tree({
+      'outside.d.ts': 'export {};\n',
+      'types/placeholder.d.ts': 'export {};\n',
+    });
+    const root = join(outer, 'types');
+    for (const body of [
+      "export * from '../outside.js';\n",
+      "export * from '../outside';\n",
+      '/// <reference path="../outside.d.ts" />\nexport {};\n',
+    ]) {
+      writeFileSync(join(root, 'index.d.ts'), body);
+      await assert.rejects(
+        run(root),
+        /outside/,
+        `a specifier leaving the published tree was certified: ${body}`
       );
     }
   });

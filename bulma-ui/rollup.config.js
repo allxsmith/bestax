@@ -1,6 +1,12 @@
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { dirname, join, resolve as resolvePath } from 'node:path';
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve as resolvePath,
+} from 'node:path';
 import ts from 'typescript';
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
@@ -30,44 +36,60 @@ const aiBanner =
  * is unresolved, which is the one question worth asking after the rewrite.
  */
 /**
- * The `[start, end)` offsets of every comment in `text`.
+ * Parse a declaration with TypeScript, once, for the two questions both passes
+ * ask of it: where the comments are, and which files it references.
  *
- * Both passes read raw declaration text, so a relative path quoted inside a
- * preserved TSDoc `@example` read exactly like a specifier: rewritten when it
- * resolved, and a build failure when it did not. This tree emits `@example`
- * blocks in quantity, so that was a live shape rather than a theoretical one.
+ * Both passes read raw text, so a relative path quoted inside a preserved TSDoc
+ * `@example` read exactly like a specifier: rewritten when it resolved, and a
+ * build failure when it did not. This tree emits `@example` blocks in quantity,
+ * so that was a live shape rather than a theoretical one.
  *
- * TypeScript's own scanner does the tokenising, rather than a hand-rolled pass
- * over quotes and slashes. The hand-rolled version agreed with it on all 2007
- * comments in the built tree and still diverged on 138 of 4000 random inputs,
- * and one divergence class was the dangerous direction: given a template
- * literal nesting another inside `${…}`, it reported a comment where there was
- * none. A false comment range is the worst failure this file can have, because
- * BOTH passes consult it — the specifier inside would be neither rewritten nor
- * checked, and would ship. Declarations can carry template literal types, so
- * that was not a shape to wave off.
+ * The comment map went through two wrong implementations before this one, both
+ * failing the same way — reporting a comment where there is none, which is the
+ * worst failure available here, because BOTH passes consult the map and a false
+ * range switches them off together. The specifier inside is then neither
+ * rewritten nor checked, and ships.
  *
- * `typescript` is a devDependency here and the plugin above already loads it,
- * so this borrows a correct tokeniser rather than paying for one.
+ * A hand-rolled walk over quotes and slashes miscounted the backticks of a
+ * template nesting another inside a substitution. `createScanner` fixed that
+ * and kept a subtler version of it: a bare scanner never re-scans the brace
+ * closing a substitution as template continuation, so the text AFTER it is
+ * scanned as code, and a `/*` in that text opens a comment that runs to the end
+ * of the file. Only the parser tracks that state, so the parser is what runs
+ * here. Declarations do carry template literal types, so neither was theoretical.
+ *
+ * `getLeadingCommentRanges` reports only real comment trivia at a position the
+ * parser chose, so this cannot invent a range. It can MISS one — a comment
+ * before a token that is not itself a node — and that direction is safe: the
+ * text is then read as code, which is where this file started.
  */
-const commentRanges = text => {
-  const ranges = [];
-  const scanner = ts.createScanner(
+const parseDeclaration = text =>
+  ts.createSourceFile(
+    'declaration.d.ts',
+    text,
     ts.ScriptTarget.Latest,
-    // Keep trivia: comments ARE the thing being located.
+    // No parent pointers: nothing here walks upward.
     false,
-    ts.LanguageVariant.Standard,
-    text
+    ts.ScriptKind.TS
   );
-  let kind;
-  while ((kind = scanner.scan()) !== ts.SyntaxKind.EndOfFileToken) {
-    if (
-      kind === ts.SyntaxKind.SingleLineCommentTrivia ||
-      kind === ts.SyntaxKind.MultiLineCommentTrivia
-    ) {
-      ranges.push([scanner.getTokenStart(), scanner.getTokenEnd()]);
-    }
-  }
+
+const commentRanges = (text, sourceFile) => {
+  const ranges = [];
+  const seen = new Set();
+  const add = range => {
+    const key = `${range.pos}:${range.end}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    ranges.push([range.pos, range.end]);
+  };
+  const visit = node => {
+    ts.getLeadingCommentRanges(text, node.pos)?.forEach(add);
+    ts.getTrailingCommentRanges(text, node.end)?.forEach(add);
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  // A file whose last thing is a comment keeps it on the EOF token.
+  ts.getLeadingCommentRanges(text, sourceFile.endOfFileToken.pos)?.forEach(add);
   return ranges;
 };
 
@@ -75,19 +97,51 @@ const inComment = (ranges, at) =>
   ranges.some(([start, end]) => at >= start && at < end);
 
 /**
- * A `reference path` is a line comment that TypeScript nonetheless follows, so
- * it is the one comment shape carrying a load-bearing specifier. Exempting
- * comment bodies has to spare it, or a dangling reference ships unchecked.
+ * The relative `reference path` targets TypeScript would follow.
+ *
+ * A reference directive is a line comment that TypeScript nonetheless reads, so
+ * exempting comment bodies had to spare it. Taking the list from the parse
+ * rather than from a pattern of our own is what makes "spare it" exact in both
+ * directions. A hand-written pattern was wrong both ways at once: it missed a
+ * reversed attribute order and a capitalised `<Reference Path=`, which
+ * TypeScript honours and which therefore shipped dangling; and it caught
+ * directives after the first statement, which TypeScript ignores, failing the
+ * build over a line that means nothing.
  */
-const REFERENCE_PATH = /\/\/\/\s*<reference\s+path\s*=\s*(['"])([^'"]*)\1/g;
+const referencedPaths = sourceFile =>
+  sourceFile.referencedFiles
+    .map(reference => reference.fileName)
+    .filter(spec => /^\.\.?(\/|$)/.test(spec));
 
-const resolvesToDeclaration = (file, spec) => {
+/**
+ * Whether `target` is a real declaration INSIDE `root`.
+ *
+ * `existsSync` alone answers a question about the build machine, not about the
+ * tarball. A specifier climbing out of `dist/types` — `../../src/x.d.ts`, or a
+ * `..` too many — can resolve here and dangle for every consumer, because only
+ * what is under `dist/types` gets published. Containment is the half that makes
+ * the probe mean what the surrounding code reads it as.
+ */
+const declarationUnder = (root, target) => {
+  const inside = relative(resolvePath(root), target);
+  if (inside === '' || inside.startsWith('..') || isAbsolute(inside)) {
+    return false;
+  }
+  return existsSync(target);
+};
+
+const resolvesToDeclaration = (root, file, spec) => {
   const from = dirname(file);
-  if (/\.d\.[cm]?ts$/.test(spec)) return existsSync(resolvePath(from, spec));
+  if (/\.d\.[cm]?ts$/.test(spec)) {
+    return declarationUnder(root, resolvePath(from, spec));
+  }
   const runtime = spec.match(/\.([cm]?)js$/);
   if (runtime) {
     const declared = `.d.${runtime[1]}ts`;
-    return existsSync(resolvePath(from, spec).replace(/\.[cm]?js$/, declared));
+    return declarationUnder(
+      root,
+      resolvePath(from, spec).replace(/\.[cm]?js$/, declared)
+    );
   }
   return false;
 };
@@ -264,7 +318,7 @@ export const declarationExtensions = (root = 'dist/types') => {
       const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
       for (const file of files) {
         const before = await readFile(file, 'utf8');
-        const comments = commentRanges(before);
+        const comments = commentRanges(before, parseDeclaration(before));
         const after = before.replace(
           SPECIFIER,
           (whole, head, _q, spec, tail, offset) => {
@@ -286,7 +340,7 @@ export const declarationExtensions = (root = 'dist/types') => {
                 /\.[cm]?js$/,
                 declared
               );
-              if (existsSync(asFile)) return whole;
+              if (declarationUnder(root, asFile)) return whole;
               throw new Error(
                 `${file}: '${spec}' already carries an extension but resolves to ` +
                   'no declaration, so it would ship pointing nowhere.'
@@ -301,7 +355,10 @@ export const declarationExtensions = (root = 'dist/types') => {
             // something unresolvable in silence.
             if (/^\.\.?$/.test(spec)) {
               if (
-                existsSync(join(resolvePath(dirname(file), spec), 'index.d.ts'))
+                declarationUnder(
+                  root,
+                  join(resolvePath(dirname(file), spec), 'index.d.ts')
+                )
               ) {
                 return `${head}${spec}/index.js${tail}`;
               }
@@ -311,9 +368,9 @@ export const declarationExtensions = (root = 'dist/types') => {
               );
             }
             const resolved = resolvePath(dirname(file), spec);
-            if (existsSync(`${resolved}.d.ts`))
+            if (declarationUnder(root, `${resolved}.d.ts`))
               return `${head}${spec}.js${tail}`;
-            if (existsSync(join(resolved, 'index.d.ts'))) {
+            if (declarationUnder(root, join(resolved, 'index.d.ts'))) {
               return `${head}${spec}/index.js${tail}`;
             }
             throw new Error(
@@ -356,19 +413,18 @@ export const declarationExtensions = (root = 'dist/types') => {
         // Narrowing the scan is what opened the hole it was widened to close, so
         // the answer if this ever bites is to exempt comment bodies, not to
         // re-anchor it.
-        const comments = commentRanges(text);
+        const parsed = parseDeclaration(text);
+        const comments = commentRanges(text, parsed);
         const quoted = [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
           .filter(m => !inComment(comments, m.index))
           .map(m => m[1]);
         // The one comment shape that stays in scope, because TypeScript
         // follows it. Relative only, which is what the scan above asked too.
-        const referenced = [...text.matchAll(REFERENCE_PATH)]
-          .map(m => m[2])
-          .filter(spec => /^\.\.?(\/|$)/.test(spec));
+        const referenced = referencedPaths(parsed);
         const broken = [
           ...new Set(
             [...quoted, ...referenced].filter(
-              spec => !resolvesToDeclaration(file, spec)
+              spec => !resolvesToDeclaration(root, file, spec)
             )
           ),
         ];
@@ -391,10 +447,12 @@ export const declarationExtensions = (root = 'dist/types') => {
  * Whether a declaration carries anything that makes copying it to a `.d.cts`
  * unsound.
  *
- * Four shapes. A real `from '…'` and the `import('./x').Y` form tsc emits for a
- * type it reaches without an explicit import both resolve as CommonJS inside a
+ * A real `from '…'` and the `import('./x').Y` form tsc emits for a type it
+ * reaches without an explicit import both resolve as CommonJS inside a
  * `.d.cts`, which is what puts TS1479 back for the `node16` consumer that file
- * exists to serve.
+ * exists to serve. A side-effect `import './x';` is the same problem with no
+ * binding attached, and nothing downstream re-reads this file, so a pattern
+ * built around `from` let the one shape with no `from` through.
  *
  * The other two matter for a second reason as well: they are relative, and the
  * copy lands one directory up, so their targets would shift even if the flavour
@@ -407,7 +465,7 @@ export const declarationExtensions = (root = 'dist/types') => {
  * describing a narrower rule than it checks.
  */
 export const hasModuleSpecifiers = text =>
-  /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(|^\s*\/\/\/\s*<reference\b|\bimport\s+[A-Za-z_$][\w$]*\s*=\s*require\s*\(/m.test(
+  /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(|^\s*\/\/\/\s*<reference\b|\bimport\s+[A-Za-z_$][\w$]*\s*=\s*require\s*\(|^\s*import\s*['"]/m.test(
     text
   );
 
