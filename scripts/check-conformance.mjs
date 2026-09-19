@@ -2343,10 +2343,14 @@ export function manifestViolations(
   // one CJS file to both conditions, and advised a rename that would have
   // broken it.
   //
-  // Worth knowing for anyone reading a failure: it does not always look the
-  // same. An older runtime refuses the require outright; a newer one reads the
-  // bundle as ESM, where the bundle's own `require` and `exports` references
-  // throw at module scope. Either way it does not load as CommonJS.
+  // The message deliberately stops at "cannot load as CommonJS" and does not
+  // describe the symptom. Three attempts at that clause were each falsified: a
+  // version cutoff (wrong, the support was backported), an empty namespace
+  // (wrong, this repo's own bundles throw), and a module-scope throw (wrong,
+  // real packages exist that load with a populated namespace). What a newer
+  // runtime does depends on what the bundle's code references, which the rule
+  // cannot see from a manifest. Older runtimes refuse it outright; that much
+  // holds, and it is enough to act on.
   const requireTargets = [];
 
   // A reduced PACKAGE_TARGET_RESOLVE for the `require` side. The earlier
@@ -2561,9 +2565,7 @@ export function manifestViolations(
     violations.push(
       `${dir}/package.json: ${where} points at \`${target}\`, which Node reads ` +
         `as an ES module, so a \`require()\` of it cannot load a CommonJS ` +
-        `bundle whatever the file actually contains: older runtimes refuse it ` +
-        `outright, and newer ones read the bundle as ESM, where its own ` +
-        `\`require\` and \`exports\` references do not exist. ${remedy} (#688)`
+        `bundle whatever the file actually contains. ${remedy} (#688)`
     );
   }
 

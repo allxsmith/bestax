@@ -165,9 +165,11 @@ export default commandLineArgs => {
           // `.cjs`, not `.cjs.js`: this package is `"type": "module"`, so Node
           // reads a `.js` file as ESM whatever the bundle's format is, and a
           // bundle writing `exports.x = …` cannot load as CommonJS under that
-          // reading. What a caller sees depends on the Node version — both a
-          // load-time throw and an empty namespace object have been observed —
-          // and the empty one is the worse case, because nothing fails.
+          // reading. What a caller SEES varies with the bundle's own code and
+          // the runtime, so it is not worth predicting here: this package's
+          // bundles throw on both, and packages exist that load with a
+          // populated namespace instead. The reason to use `.cjs` does not
+          // depend on which.
           entryFileNames: 'constants.cjs',
           // Same reason as the main bundle's: a split chunk under rollup's
           // default `[name]-[hash].js` would be required by a `.cjs` and read

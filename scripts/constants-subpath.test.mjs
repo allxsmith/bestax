@@ -173,8 +173,8 @@ describe('bulma-ui export map', () => {
     assert.ok(
       Array.isArray(cjs.validColors) && cjs.validColors.length > 0,
       'the require condition produced no validColors — the symptom of a ' +
-        'CommonJS bundle being read as ESM, which yields an empty namespace ' +
-        'on a Node with require(esm) and throws on an older one'
+        'CommonJS bundle being read as ESM, which is what a `.js` target in ' +
+        'this package means whatever the bundle contains'
     );
 
     const esm = await import(pathToFileURL(target(entry.import.default)).href);

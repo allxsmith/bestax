@@ -18,7 +18,9 @@
  * Not part of `pnpm test`: it writes hundreds of temp packages and takes
  * seconds, and its value is as a tool to run when this resolver is edited. The
  * committed fixtures in `scripts/publishable-manifests.test.mjs` are what CI
- * runs; every one of them came from a disagreement this found.
+ * runs, and several of them started as disagreements this found. Others pin
+ * decisions it cannot see at all — it never generates `main`, a subpath other
+ * than `"."`, or the remedy text — so those are hand-written and stay so.
  *
  *   node scripts/exports-resolve-fuzz.mjs [count] [seed] [resolve|load]
  *
