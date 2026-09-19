@@ -2512,16 +2512,20 @@ export function manifestViolations(
   // guarantees `main` is unread, and it failed published packages whose maps
   // are correct.
   for (const [where, target, via] of requireTargets) {
-    // `.js` only, deliberately. A `.mjs` behind a `require` condition fails the
-    // same way — Node reads it as ESM whatever the scope says — but an author
-    // who typed `.mjs` cannot have believed it was CommonJS, whereas `.js` is
-    // the spelling whose meaning depends on the scope, which is the trap this
-    // rule exists for. Recorded so the case reads as considered rather than
-    // missed; widening it is a judgement call, not a bug fix.
-    if (!target.endsWith('.js')) continue;
-    // Asked per TARGET, not once for the package: the file's own directory
-    // may carry a manifest that overrides the root.
-    if (typeOfTarget(target) !== 'module') continue;
+    // Is this target an ES module? `.mjs` always is, whatever the scope says.
+    // `.js` depends on the nearest manifest above the file, asked per TARGET
+    // rather than once for the package, because a directory can override the
+    // root. `.cjs` never is.
+    //
+    // `.mjs` was abstained on for a while, on the argument that an author who
+    // typed it cannot have believed it was CommonJS. That is about intent and
+    // the rule is about outcome: `{ "require": "./x.mjs" }` throws
+    // ERR_REQUIRE_ESM for every consumer below Node 22.12, exactly as a `.js`
+    // in ESM scope does, and the load-mode corpus reports it as a real failure.
+    const esm = target.endsWith('.mjs')
+      ? true
+      : target.endsWith('.js') && typeOfTarget(target) === 'module';
+    if (!esm) continue;
     // The remedy depends on whether a `require` key is anywhere on the PATH
     // that resolved this target, not on the key that happens to name the file.
     // A `require` spelled as an object puts `default` at the leaf, and reading
@@ -2548,9 +2552,9 @@ export function manifestViolations(
     // the lookup in exactly the case it was added for — a target inside a
     // directory whose own manifest overrides the root.
     violations.push(
-      `${dir}/package.json: ${where} points at \`${target}\`, which is in ESM ` +
-        `scope, so Node reads it as an ES module whatever the bundle actually ` +
-        `contains, and a CommonJS bundle cannot load that way. ${remedy} (#688)`
+      `${dir}/package.json: ${where} points at \`${target}\`, which Node reads ` +
+        `as an ES module, so a \`require()\` of it throws below Node 22.12 ` +
+        `whatever the bundle actually contains. ${remedy} (#688)`
     );
   }
 

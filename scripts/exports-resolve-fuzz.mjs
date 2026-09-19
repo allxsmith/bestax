@@ -28,11 +28,19 @@ import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { manifestViolations } from './check-conformance.mjs';
 
 const COUNT = Number(process.argv[2] ?? 900);
 const SEED = Number(process.argv[3] ?? 1);
+// `resolve` (default) asks which TARGET Node lands on, in-process and fast.
+// `load` asks whether a `require()` actually fails, by loading the fixture in a
+// child process under `--no-experimental-require-module` — the runtime without
+// `module-sync`, and the one whose consumers this rule is protecting. That mode
+// is slower but its oracle is independent of the rule's policy, and it is the
+// only way to certify the `module-sync` family, which `resolve` cannot see.
+const MODE = process.argv[4] ?? 'resolve';
 // A floor, because "0 disagreements" over nothing reads exactly like a clean
 // run. A mistyped count and a count of 0 both produced that success line while
 // comparing no maps at all — and the two ways this goes quiet are both edits to
@@ -44,6 +52,10 @@ if (!Number.isInteger(COUNT) || COUNT < 1) {
 }
 if (!Number.isInteger(SEED)) {
   console.error(`seed must be an integer, got ${process.argv[3]}`);
+  process.exit(2);
+}
+if (MODE !== 'resolve' && MODE !== 'load') {
+  console.error(`mode must be 'resolve' or 'load', got ${MODE}`);
   process.exit(2);
 }
 
@@ -162,13 +174,21 @@ for (let i = 0; i < COUNT; i++) {
   const dir = join(root, `p${i}`);
   const pkgDir = join(dir, 'node_modules', 'subject');
   mkdirSync(pkgDir, { recursive: true });
-  for (const f of ['./a.cjs', './a.js', './a.mjs']) {
-    writeFileSync(join(pkgDir, f.slice(2)), 'module.exports={};\n');
-  }
+  // Each file carries the format its extension implies in a `type: module`
+  // package, so the `load` oracle sees a real failure rather than a fixture
+  // that happens to parse either way.
+  writeFileSync(join(pkgDir, 'a.cjs'), 'module.exports={};\n');
+  writeFileSync(join(pkgDir, 'a.js'), 'export const x = 1;\n');
+  writeFileSync(join(pkgDir, 'a.mjs'), 'export const x = 1;\n');
   // The file a deprecated double slash actually resolves to. Without it, a
   // valid-but-unusual target throws MODULE_NOT_FOUND and looks invalid.
   mkdirSync(join(pkgDir, 'a'), { recursive: true });
-  writeFileSync(join(pkgDir, 'a', 'b.js'), 'module.exports={};\n');
+  writeFileSync(join(pkgDir, 'a', 'b.js'), 'export const x = 1;\n');
+  writeFileSync(
+    join(dir, 'probe.cjs'),
+    "try { require('subject'); process.stdout.write('ok'); }\n" +
+      'catch (e) { process.stdout.write(String(e.code)); }\n'
+  );
   writeFileSync(
     join(pkgDir, 'package.json'),
     JSON.stringify({
@@ -183,35 +203,52 @@ for (let i = 0; i < COUNT; i++) {
     JSON.stringify({ name: 'host', version: '1.0.0' })
   );
 
-  let landed;
-  try {
-    landed = createRequire(
-      pathToFileURL(join(dir, 'package.json')).href
-    ).resolve('subject');
-  } catch {
-    landed = null;
-  }
-
   const flagged = manifestViolations('subject', {
     name: 'subject',
     type: 'module',
     exports: { '.': map },
   }).filter(v => v.includes('#688'));
 
-  // Two exclusions, for different reasons. A map that does not distinguish the
-  // formats is a documented abstention rather than a disagreement with Node.
-  // `module-sync` is excluded because this oracle cannot answer it: the rule
-  // judges what BOTH a modern and a pre-22.10 runtime resolve, and a single
-  // `require.resolve()` here only ever reports the modern one. Checking that
-  // mechanism needs a second child process under
-  // `--no-experimental-require-module`; until then those maps are carried by
-  // fixtures, not by this corpus.
+  // A map that does not distinguish the formats is a documented abstention
+  // rather than a disagreement with Node, so it is excluded in both modes.
+  // `module-sync` is excluded in `resolve` only: that oracle reports the modern
+  // runtime's target alone, and the rule judges what BOTH runtimes reach.
   const spelled = JSON.stringify(map);
-  if (!declaresCjsForRequire(map) || /"module-sync"/.test(spelled)) continue;
+  if (!declaresCjsForRequire(map)) continue;
+  if (MODE === 'resolve' && /"module-sync"/.test(spelled)) continue;
+
+  let landed;
+  let nodeSaysBroken;
+  if (MODE === 'load') {
+    // The runtime WITHOUT `module-sync`, which is the one this rule protects:
+    // a `.js` in ESM scope reached by `require()` throws ERR_REQUIRE_ESM there
+    // and loads on a modern one. Any other error means the package does not
+    // resolve at all, which is a different problem from this issue.
+    landed = execFileSync(
+      process.execPath,
+      ['--no-experimental-require-module', join(dir, 'probe.cjs')],
+      { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
+    ).trim();
+    nodeSaysBroken = landed === 'ERR_REQUIRE_ESM';
+  } else {
+    try {
+      landed = createRequire(
+        pathToFileURL(join(dir, 'package.json')).href
+      ).resolve('subject');
+    } catch {
+      landed = null;
+    }
+    // The fixture package is `type: module`, so both `.js` and `.mjs` are ES
+    // modules there and only `.cjs` is not. `load` mode checks this by actually
+    // requiring the package; here it is inferred from the extension, which is
+    // the reason that mode exists.
+    nodeSaysBroken =
+      landed !== null &&
+      (landed.endsWith('.mjs') ||
+        (landed.endsWith('.js') && !landed.endsWith('.cjs')));
+  }
 
   considered++;
-  const nodeSaysBroken =
-    landed !== null && landed.endsWith('.js') && !landed.endsWith('.cjs');
   if (nodeSaysBroken !== flagged.length > 0) {
     disagreements++;
     keepRoot = true;
@@ -220,7 +257,7 @@ for (let i = 0; i < COUNT; i++) {
         'DISAGREE',
         spelled,
         '| node →',
-        landed && landed.split('/').pop(),
+        landed && String(landed).split('/').pop(),
         '| rule flags:',
         flagged.length > 0
       );

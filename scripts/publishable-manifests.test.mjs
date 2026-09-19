@@ -1509,6 +1509,34 @@ test('a bare conditions map with no subpath keys is judged', () => {
   assert.ok(found[0].includes('exports.require'), found[0]);
 });
 
+test('an mjs target behind a require condition is judged', () => {
+  // It fails exactly as a `.js` in ESM scope does — ERR_REQUIRE_ESM for every
+  // consumer below Node 22.12 — and the load-mode corpus reports it. Abstaining
+  // on it was an argument about the author's intent where the rule is about the
+  // consumer's outcome.
+  const found = entryViolations({
+    name: 'x',
+    type: 'module',
+    exports: { '.': { import: './a.mjs', require: './a.mjs' } },
+  });
+  assert.equal(found.length, 1, found.join('\n'));
+
+  // And in a package with no `type` at all, where `.js` is CommonJS and fine
+  // but `.mjs` is still an ES module.
+  const plain = entryViolations({
+    name: 'x',
+    exports: { '.': { import: './a.mjs', require: './a.mjs' } },
+  });
+  assert.equal(plain.length, 1, plain.join('\n'));
+  assert.deepEqual(
+    entryViolations({
+      name: 'x',
+      exports: { '.': { import: './a.mjs', require: './a.js' } },
+    }),
+    []
+  );
+});
+
 test('a null target blocks the subpath rather than falling through', () => {
   // Node stops on `null` and throws ERR_PACKAGE_PATH_NOT_EXPORTED; it does not
   // try the next key. Continuing past it flagged a target require() never
