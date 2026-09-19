@@ -546,6 +546,7 @@ describe('the declaration-extension guard', () => {
     const plugin = declarationExtensions(root);
     plugin.buildStart();
     plugin.buildEnd();
+    plugin.writeBundle();
     return plugin.closeBundle();
   };
 
@@ -712,14 +713,32 @@ describe('the declaration-extension guard', () => {
     onRender.renderError(new Error('the real output error'));
     await onRender.closeBundle();
 
-    // And the latch resets, so a failure does not silence the next rebuild
+    // A sibling plugin's throw: this plugin's `buildEnd` is called with
+    // nothing, and the error arrives at `closeBundle` instead — the one route
+    // neither latch can see.
+    const onSibling = declarationExtensions(missing);
+    onSibling.buildStart();
+    onSibling.buildEnd();
+    onSibling.writeBundle();
+    await onSibling.closeBundle(new Error('a sibling plugin threw'));
+
+    // Nothing written at all: the write phase failed after `renderError`'s
+    // window closed, so no latch is set and no error arrives.
+    const noOutput = declarationExtensions(missing);
+    noOutput.buildStart();
+    noOutput.buildEnd();
+    await noOutput.closeBundle();
+
+    // And the latches reset, so a failure does not silence the next rebuild
     // under `--watch`.
     const reused = declarationExtensions(missing);
     reused.buildStart();
     reused.buildEnd(new Error('first build failed'));
+    reused.writeBundle();
     await reused.closeBundle();
     reused.buildStart();
     reused.buildEnd();
+    reused.writeBundle();
     await assert.rejects(reused.closeBundle(), /holds no declarations/);
   });
 

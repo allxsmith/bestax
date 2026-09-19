@@ -75,12 +75,14 @@ export const declarationExtensions = (root = 'dist/types') => {
   // it can carry `renderError` too — the output-phase failure, which otherwise
   // collapses into a `SuppressedError` with no cause printed at all.
   let failed = false;
+  let wrote = false;
   return {
     name: 'bestax-declaration-extensions',
     buildStart() {
       // Reset per build: under `--watch` one instance serves every rebuild, and
       // a failure must not silence the runs after it.
       failed = false;
+      wrote = false;
     },
     buildEnd(error) {
       if (error) failed = true;
@@ -88,14 +90,27 @@ export const declarationExtensions = (root = 'dist/types') => {
     renderError() {
       failed = true;
     },
+    writeBundle() {
+      // A POSITIVE latch, because the negative ones cannot see the write phase:
+      // `renderError` covers `renderStart` through `generateBundle`, and a
+      // failure writing a file to disk happens after it and reaches
+      // `closeBundle` with no error at all. If nothing was written, there is
+      // nothing for this pass to have been run against.
+      wrote = true;
+    },
     // `closeBundle`, not `writeBundle`. The TypeScript plugin re-emits the
     // whole declaration set for EVERY output of a config, and rollup's CLI
     // writes a config's outputs concurrently — so a per-output hook races the
     // sibling output's emit, and losing that race republishes extensionless
     // declarations with a green build. `closeBundle` runs once, after every
     // output is on disk.
-    async closeBundle() {
-      if (failed) return;
+    // The `error` parameter is the fourth route here, and the only one neither
+    // latch sees: when a SIBLING plugin throws from its own `buildEnd`, this
+    // plugin's `buildEnd` is called with nothing while `closeBundle` is handed
+    // the error. Verified against rollup's own API — without this, that error
+    // is replaced by whatever this hook says next.
+    async closeBundle(error) {
+      if (failed || error || !wrote) return;
       const files = [];
       const walk = async dir => {
         let entries;
