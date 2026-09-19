@@ -541,7 +541,11 @@ describe('the declaration-extension guard', () => {
     const { declarationExtensions } = await import(
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
-    return declarationExtensions(root).closeBundle();
+    // Rollup calls these hooks with a plugin context; `meta` is the object the
+    // failure guard reads, and it is shared across a build's hooks.
+    const plugin = declarationExtensions(root);
+    const ctx = { meta: {} };
+    return plugin.closeBundle.call(ctx);
   };
 
   it('adds the extension a plain specifier is missing', async () => {
@@ -681,6 +685,23 @@ describe('the declaration-extension guard', () => {
     // declarations stay extensionless — which is #696 returning.
     const root = tree({ 'placeholder.txt': 'not a declaration\n' });
     await assert.rejects(run(root), /holds no declarations/);
+  });
+
+  it('stays out of the way when the build itself failed', async () => {
+    // `closeBundle` fires on rollup's failure path too, where `dist/types` is
+    // absent because the build never got that far. Without the `buildEnd`
+    // guard this hook's error replaces the real one, and a compile failure is
+    // reported as a missing declaration directory.
+    const { declarationExtensions } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    const plugin = declarationExtensions(join(tree({}), 'not-emitted'));
+    // The same context object rollup carries between a build's hooks.
+    const ctx = { meta: {} };
+    plugin.buildEnd.call(ctx, new Error('the real build error'));
+    // Returns quietly: the missing directory is a symptom of the failure, not
+    // a finding of its own.
+    await plugin.closeBundle.call(ctx);
   });
 
   it('fails the same way whether the declaration directory is empty or absent', async () => {

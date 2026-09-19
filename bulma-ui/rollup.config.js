@@ -65,12 +65,20 @@ const resolvesToDeclaration = (file, spec) => {
  */
 export const declarationExtensions = (root = 'dist/types') => ({
   name: 'bestax-declaration-extensions',
+  // `closeBundle` fires on the FAILURE path too, where `dist/types` is absent
+  // or stale because the build never got that far. Without this the hook's own
+  // error replaces the real one, and a compile failure is reported as a missing
+  // declaration directory — on the publish job's clean checkout, every time.
+  buildEnd(error) {
+    this.meta.bestaxBuildFailed = Boolean(error);
+  },
   // `closeBundle`, not `writeBundle`. The TypeScript plugin re-emits the whole
   // declaration set for EVERY output of a config, and rollup's CLI writes a
   // config's outputs concurrently — so a per-output hook races the sibling
   // output's emit, and losing that race republishes extensionless declarations
   // with a green build. `closeBundle` runs once, after every output is on disk.
   async closeBundle() {
+    if (this.meta.bestaxBuildFailed) return;
     const files = [];
     const walk = async dir => {
       let entries;
