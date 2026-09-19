@@ -197,8 +197,10 @@ for (let i = 0; i < COUNT; i++) {
   writeFileSync(join(pkgDir, 'a', 'b.js'), 'export const x = 1;\n');
   writeFileSync(
     join(dir, 'probe.cjs'),
-    "try { require('subject'); process.stdout.write('ok'); }\n" +
-      'catch (e) { process.stdout.write(String(e.code)); }\n'
+    "let p = '';\n" +
+      "try { p = require.resolve('subject'); } catch {}\n" +
+      "try { require('subject'); process.stdout.write('ok\\t' + p); }\n" +
+      "catch (e) { process.stdout.write(String(e.code) + '\\t' + p); }\n"
   );
   writeFileSync(
     join(pkgDir, 'package.json'),
@@ -229,6 +231,7 @@ for (let i = 0; i < COUNT; i++) {
   if (MODE === 'resolve' && /"module-sync"/.test(spelled)) continue;
 
   let landed;
+  let landedPath;
   let nodeSaysBroken;
   if (MODE === 'load') {
     // The runtime WITHOUT `module-sync`, which is the one this rule protects:
@@ -240,7 +243,12 @@ for (let i = 0; i < COUNT; i++) {
       ['--no-experimental-require-module', join(dir, 'probe.cjs')],
       { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
     ).trim();
-    nodeSaysBroken = landed === 'ERR_REQUIRE_ESM';
+    // The probe reports `CODE<TAB>resolvedPath`, so this mode compares the file
+    // too rather than only the verdict. `module-sync` maps are the family only
+    // this mode can see, and certifying them by a boolean was the weaker half.
+    const [code, resolved] = landed.split('\t');
+    nodeSaysBroken = code === 'ERR_REQUIRE_ESM';
+    landedPath = resolved || null;
   } else {
     try {
       landed = createRequire(
@@ -257,6 +265,7 @@ for (let i = 0; i < COUNT; i++) {
       landed !== null &&
       (landed.endsWith('.mjs') ||
         (landed.endsWith('.js') && !landed.endsWith('.cjs')));
+    landedPath = landed;
   }
 
   considered++;
@@ -267,15 +276,24 @@ for (let i = 0; i < COUNT; i++) {
 
   // Comparing verdicts alone would let the rule agree for the wrong reason: it
   // can name a different file than Node resolved and still say "broken". Most
-  // of the valid targets here are ES modules, so a genuine resolution
-  // divergence has better than even odds of being masked. In `resolve` mode
-  // the landed path is known, so the FILE is compared too.
+  // of the valid targets here are ES modules, so a genuine divergence had
+  // better than even odds of being masked. Both modes report a landed path now,
+  // so both compare the FILE — matched on the full path rather than the
+  // basename, since a second `./dist/a.js` beside `./a.js` would silently
+  // re-open that masking, and as a SUFFIX rather than by slicing off the
+  // package directory, because macOS resolves `/var` to `/private/var` and the
+  // path Node reports shares no prefix with the one this script built.
   let wrongTarget = false;
-  if (MODE === 'resolve' && nodeSaysBroken && flagged.length > 0) {
-    const landedName = String(landed).split('/').pop();
-    wrongTarget = !flagged.some(v => v.includes(`/${landedName}\``));
+  if (nodeSaysBroken && flagged.length > 0 && landedPath) {
+    const resolved = String(landedPath).replace(/\/+/g, '/');
+    wrongTarget = !flagged.some(v => {
+      const named = v.match(/points at `([^`]+)`/)?.[1];
+      if (!named) return false;
+      // The manifest may spell it `./a//b.js`; Node reports it collapsed.
+      const tail = named.replace(/^\.\//, '').replace(/\/+/g, '/');
+      return resolved.endsWith(`/${tail}`);
+    });
   }
-
   if (wrongTarget || nodeSaysBroken !== flagged.length > 0) {
     disagreements++;
     keepRoot = true;

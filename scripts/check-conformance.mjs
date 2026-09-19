@@ -2523,10 +2523,12 @@ export function manifestViolations(
     // exactly as a `.js` in ESM scope does, and the load-mode corpus reports it.
     //
     // No version is named, deliberately. `require(esm)` landed in 22.12 and was
-    // backported to 20.19 and 23.0, and where it IS supported the failure does
-    // not disappear — it becomes the silent empty-namespace form. A single
-    // cutoff in the message would tell a reader that a 20.19 consumer is safe
-    // from this class, which is the opposite of true.
+    // backported to 20.19 and 23.0, so a single cutoff would tell a reader that
+    // a 20.19 consumer is safe from this class. Where the support exists the
+    // failure changes shape rather than going away: the bundle is read as ESM,
+    // and its own `require`/`exports` references throw at module scope —
+    // checked against this repo's own CommonJS bundle, which fails that way on
+    // a current Node.
     const esm = target.endsWith('.mjs')
       ? true
       : target.endsWith('.js') && typeOfTarget(target) === 'module';
@@ -2559,9 +2561,9 @@ export function manifestViolations(
     violations.push(
       `${dir}/package.json: ${where} points at \`${target}\`, which Node reads ` +
         `as an ES module, so a \`require()\` of it cannot load a CommonJS ` +
-        `bundle whatever the file actually contains — older runtimes throw, ` +
-        `and the ones that support \`require(esm)\` hand back an empty ` +
-        `namespace instead. ${remedy} (#688)`
+        `bundle whatever the file actually contains: older runtimes refuse it ` +
+        `outright, and newer ones read the bundle as ESM, where its own ` +
+        `\`require\` and \`exports\` references do not exist. ${remedy} (#688)`
     );
   }
 
