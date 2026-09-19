@@ -666,19 +666,30 @@ describe('the declaration-extension guard', () => {
     await assert.rejects(run(root), /\.\/gone\.d\.ts/);
   });
 
-  it('does not treat a `/*` inside a string as opening a comment', async () => {
-    // The comment scan has to track string literals, or a type carrying `/*`
-    // would blind the rest of the file to the pass.
-    const root = tree({
-      'index.d.ts':
-        "export type Odd = '/* not a comment';\nexport * from './B';\n",
-      'B.d.ts': 'export {};\n',
-    });
-    await run(root);
-    assert.match(
-      readFileSync(join(root, 'index.d.ts'), 'utf8'),
-      /export \* from '\.\/B\.js';/
-    );
+  it('does not mistake a string or a nested template for a comment', async () => {
+    // A FALSE comment range is the worst thing this file can get wrong, because
+    // both passes consult it: the specifier inside would be neither rewritten
+    // nor checked, and would ship. Both inputs below produced one under a
+    // hand-rolled scan over quotes and slashes, which is why the tokenising is
+    // TypeScript's now.
+    //
+    // The second is the one that matters. A hand-rolled pass counts the
+    // backticks of `a${`/*`}b` wrong, decides a block comment opens at the
+    // `/*`, finds no `*/`, and swallows the REST OF THE FILE — including the
+    // specifier on the next line. Declarations can carry template literal
+    // types, so it is not a shape to wave off.
+    for (const body of [
+      "export type Odd = '/* not a comment';\nexport * from './B';\n",
+      "export type T = `a${`/*`}b`;\nexport * from './B';\n",
+    ]) {
+      const root = tree({ 'index.d.ts': body, 'B.d.ts': 'export {};\n' });
+      await run(root);
+      assert.match(
+        readFileSync(join(root, 'index.d.ts'), 'utf8'),
+        /export \* from '\.\/B\.js';/,
+        `the specifier was not rewritten, so the scan swallowed it: ${body}`
+      );
+    }
   });
 
   it('fails on a dangling specifier wherever it sits, not only after `from`', async () => {
