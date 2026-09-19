@@ -137,10 +137,33 @@ function shipsClass(css, cls) {
  * linear.
  */
 const indexCache = new Map();
+
+/**
+ * Stands in for a requirement the tokeniser does not model.
+ *
+ * The exact-size rule in `shipsClass` is the whole defence against a rule
+ * that needs a third class answering a two-class query, so anything that
+ * quietly shortens a class set defeats it. Where a selector demands
+ * something this file will not parse, one of these goes in the set instead,
+ * and the query stops matching. `assertUnmodelledIsUnused` holds the name to
+ * being absent from the stylesheet, so it cannot collide with a real class.
+ */
+const UNMODELLED = 'bestax-guard-unmodelled-requirement';
+
 function simpleSelectors(css) {
   if (!indexCache.has(css)) {
+    assert.ok(
+      !css.includes(UNMODELLED),
+      `the stylesheet contains \`${UNMODELLED}\`, which this file uses as a ` +
+        'name no real class can have. Rename the sentinel.'
+    );
     const sets = [];
-    for (const chunk of css.split('{')) {
+    // Comments go first, or their words become classes: the minireset
+    // banner and the trailing sourceMappingURL contribute sets like
+    // `{com, css}` today. None of those is queried, but a comment that
+    // happened to name a compound would answer for it, and that reads as a
+    // live modifier — the silent direction again.
+    for (const chunk of css.replace(/\/\*[\s\S]*?\*\//g, '').split('{')) {
       // Each `{` is preceded by a prelude; the selector is whatever follows
       // the last `}` in it.
       // Functional pseudo-class ARGUMENTS go before anything is split, and
@@ -151,18 +174,23 @@ function simpleSelectors(css) {
       // live, which is the silent direction. And the arguments can contain
       // commas: `.navbar-item:not(.is-active,.is-selected)` is one selector,
       // so splitting the list first fragments it and leaves `is-active`
-      // looking like a class the element carries. Stripping first solves
+      // looking like a class the element carries. Handling them first solves
       // both.
       //
-      // `:is()` and `:where()` lose their classes to the same strip. Those
-      // are alternatives rather than requirements, so dropping them makes the
-      // exact match demand fewer classes than the selector really needs and
-      // under-report, which is the safe way to be wrong. Keeping them would
-      // mean modelling branches, which is more parser than this file should
-      // carry.
+      // Only `:not()` DROPS. Its argument is a prohibition, so the rest of
+      // the selector already says everything the element must carry. Every
+      // other functional pseudo-class adds a requirement, and deleting its
+      // argument shortens the set: `.notification.is-primary:where(.is-light)`
+      // would answer `notification.is-primary`, which is the same
+      // over-reporting the exact-size rule exists to stop. They leave an
+      // `UNMODELLED` behind instead, so the set grows rather than shrinks and
+      // the query reads dead. That direction is a false alarm, which is the
+      // one this guard is allowed to be wrong in.
       const prelude = chunk
         .slice(chunk.lastIndexOf('}') + 1)
-        .replace(/:[a-z-]+\([^()]*\)/gi, '');
+        .replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name) =>
+          name.toLowerCase() === 'not' ? '' : `.${UNMODELLED}`
+        );
       for (const part of prelude.split(',')) {
         for (const simple of part.split(/[\s>+~]+/)) {
           if (!simple.includes('.')) continue;
@@ -434,6 +462,99 @@ function cssBackedColors() {
 }
 
 describe('the colour tuples agree with the shipped stylesheet', () => {
+  // The matcher itself, on selectors written for the purpose. Every finding
+  // this file has taken was a matcher bug rather than a library one, and each
+  // was found by measuring the built stylesheet, which only covers the shapes
+  // Bulma happens to write today. Two of the four `:has()` selectors that ship
+  // come from our own SCSS, so the shapes are ours to grow. These pin the
+  // DIRECTION: reading a compound as live when it is not is a missed defect,
+  // reading it as dead when it is live is a false alarm, and the matcher is
+  // only ever allowed the second.
+  it('never reads a compound as live that the selector does not ship', () => {
+    const live = (css, query) => shipsClass(css, query);
+
+    // A pseudo-class that ADDS a requirement. Deleting its argument would
+    // leave a two-class set answering a two-class query, when the rule needs
+    // three.
+    assert.equal(
+      live(
+        '.notification.is-primary:where(.is-light){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      '`:where()` adds a class the element must carry, so dropping it lets a ' +
+        'rule that needs three classes answer a two-class query as live.'
+    );
+    assert.equal(
+      live('.title.is-spaced:has(+.subtitle){color:red}', 'title.is-spaced'),
+      false,
+      '`:has()` adds a requirement the element must satisfy, so the compound ' +
+        'before it is not on its own a live rule.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:nth-child(even){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'a structural pseudo-class is a requirement too: the compound renders ' +
+        'for some elements and not others, which is not what this guard calls ' +
+        'live.'
+    );
+
+    // A pseudo-class that FORBIDS. The rest of the selector already says
+    // everything the element carries, so the classes inside are not its own.
+    assert.equal(
+      live('.notification:not(.is-light){color:red}', 'notification'),
+      true,
+      '`:not()` is a prohibition, so the compound outside it is still live.'
+    );
+    assert.equal(
+      live(
+        '.navbar-item:not(.is-active,.is-selected){color:red}',
+        'navbar-item.is-active'
+      ),
+      false,
+      'a class the rule EXCLUDES must not read as one the element carries, ' +
+        'and a multi-argument `:not()` must not fragment on its own commas.'
+    );
+
+    // The plain case still answers, or the three above would be vacuous.
+    assert.equal(
+      live('.notification.is-primary{color:red}', 'notification.is-primary'),
+      true,
+      'a plain compound rule is exactly what this guard calls live.'
+    );
+
+    // A comment is not a selector, and an escaped dot is not a separator.
+    assert.equal(
+      live(
+        '/* .notification.is-primary */ .box{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'a comment naming a compound would answer for it, which reads as a ' +
+        'live modifier.'
+    );
+    // `shipsClass` spells a compound with a `.`, so a class carrying a
+    // literal dot cannot be asked for at all. What matters is that it
+    // invents nothing: `.is-gap-0\\.5` is ONE class, and reading the escape
+    // as a separator both fabricates a compound and fabricates a shorter
+    // class, either of which answers a query the stylesheet never backs.
+    assert.equal(
+      live('.is-gap-0\\.5{gap:.5rem}', 'is-gap-0.5'),
+      false,
+      'an escaped dot read as a separator turns one class into a compound ' +
+        'of two, and the exact-size rule then matches it.'
+    );
+    assert.equal(
+      live('.is-gap-0\\.5{gap:.5rem}', 'is-gap-0'),
+      false,
+      'the fractional helper is not the integer one, and a stylesheet that ' +
+        'ships only the first must not answer for the second.'
+    );
+  });
+
   it('declares every colour whose component modifier has no CSS', () => {
     const css = stylesheet();
     const colors = tupleFrom(HELPERS, 'validColors');
