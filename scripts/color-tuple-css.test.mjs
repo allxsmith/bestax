@@ -19,29 +19,19 @@
  * pair was declared in `UNSTYLED_MODIFIER_COLORS`. Fixing the first defect
  * created the second, which is why both are checked here.
  *
- * ON THE SHAPE OF THIS FILE, because it got there the hard way. An earlier
- * version inferred which components to compare by scanning source for a
- * `color` prop typed off the tuple AND a `` `is-${color}` `` emission, then
- * cross-checked the two signals, counted occurrences, stripped comments and
- * balanced parentheses to do it. Review found the same class of defect in
- * that machinery five rounds running: a one-line substring standing in for a
- * type, a first-match standing in for a prop, a truncating regex reading as
- * "warns about nothing". Each fix added a reader and the next reader had the
- * same flaw.
+ * ON THE SHAPE OF THIS FILE. The element list comes from one signal, the
+ * `warnUnstyledColor` call sites: a function call with a string literal, and
+ * a component calling it is declaring that its colour values can be dead,
+ * which is exactly the set compared here. Everything else is DATA — tuples
+ * and stylesheet rules — rather than behaviour inferred from how code is
+ * written. Inferring it instead, by matching a prop's declared type and a
+ * class emission in source text, needs a reader per signal and gives each its
+ * own way to be wrong about a library that is fine.
  *
- * So the inference is gone. The element list comes from one signal, the
- * `warnUnstyledColor` call sites, which is a function call with a string
- * literal and the least fragile thing available: a component calling it is
- * declaring that its colour values can be dead. Everything else compared here
- * is DATA — tuples and stylesheet rules — rather than behaviour inferred from
- * how code is written.
- *
- * What that gives up is stated rather than papered over: a component that
- * emits the modifier and never warns is not detected. Three attempts to cover
- * it are what produced those five rounds, and each introduced a way for the
- * guard to fail while the library was fine. The same gap already applies to
- * `Calendar` and `TimeWheels`, which emit it today and are not exported from
- * `src/index.ts`. Closing it properly wants the library to say which
+ * What the single signal gives up is stated rather than papered over: a
+ * component that emits the modifier and never warns is not detected. The same
+ * gap applies to `Calendar` and `TimeWheels`, which emit it today and are not
+ * exported from `src/index.ts`. Closing it wants the library to say which
  * components warn, not a test to guess.
  */
 import assert from 'node:assert/strict';
@@ -99,6 +89,16 @@ const shipsClass = (css, cls) =>
     `\\.${cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z0-9-])`
   ).test(css);
 
+/**
+ * Source with comments removed, so scanning it finds CODE.
+ *
+ * The caller scan looks for a function call by name, and these components
+ * document the helper they call, so a comment quoting the call would invent
+ * an element and fail the comparison for a reason unrelated to the library.
+ */
+const codeOnly = source =>
+  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+
 /** A named `as const` string tuple, read from a source file. */
 function tupleFrom(path, name) {
   const source = readFileSync(path, 'utf8');
@@ -127,10 +127,21 @@ function tupleFrom(path, name) {
  * which keywords apply should not depend on which runs.
  */
 function colorKeywords() {
-  const source = readFileSync(COLOR_CLASSES, 'utf8');
+  const source = codeOnly(readFileSync(COLOR_CLASSES, 'utf8'));
   const copies = [
     ...source.matchAll(/\[\s*\.\.\.validColors\s*,([^\]]*)\]/g),
   ].map(m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]));
+  // Counted against the spellings that EXIST, not against zero. A `> 0`
+  // guard let a copy this pattern stopped matching drop out silently while
+  // the function claimed to read every one of them.
+  const spellings = (source.match(/\.\.\.validColors/g) ?? []).length;
+  assert.equal(
+    copies.length,
+    spellings,
+    `useColorClasses spreads \`validColors\` ${spellings} time(s) and this ` +
+      `pattern parsed ${copies.length} of them, so the copies compared below ` +
+      'are not all of them.'
+  );
   assert.ok(
     copies.length > 0,
     'could not find `[...validColors, …]` in useColorClasses, so the ' +
@@ -179,7 +190,7 @@ function warningCallers() {
       if (!/\.tsx?$/.test(entry.name) || entry.name.includes('.stories.')) {
         continue;
       }
-      const source = readFileSync(path, 'utf8');
+      const source = codeOnly(readFileSync(path, 'utf8'));
       for (const m of source.matchAll(
         /warnUnstyledColor\(\s*'([^']+)'\s*,([\s\S]*?)\);/g
       )) {
