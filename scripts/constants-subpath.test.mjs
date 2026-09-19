@@ -127,7 +127,7 @@ describe('bulma-ui export map', () => {
     }
   });
 
-  it('serves the CommonJS types as a copy of the ESM ones', () => {
+  it('serves the CommonJS types as a copy of the ESM ones', async () => {
     requireBuilt();
     const entry = manifest.exports['./constants'];
     // The build copies the declaration rather than re-exporting from it,
@@ -143,17 +143,47 @@ describe('bulma-ui export map', () => {
       'the .d.cts is not a copy of the .d.ts, so the two conditions describe ' +
         'different surfaces'
     );
-    assert.doesNotMatch(
-      esm,
-      // The `from '…'` form and the `import('./x').Y` form tsc emits for a
-      // type it reaches without an explicit import. Either resolves as
-      // CommonJS inside a `.d.cts` and puts TS1479 back.
-      /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(/m,
+    // The same predicate the build gates on, rather than a second copy of its
+    // pattern: spelled twice, widening one left the other checking less than
+    // it claimed.
+    const { hasModuleSpecifiers } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    assert.equal(
+      hasModuleSpecifiers(esm),
+      false,
       'the constants declaration now has module specifiers, so copying it ' +
         'to a .d.cts no longer describes a CommonJS module. Keep ' +
         'bulmaClassHelpers.ts import-free, which the subpath depends on ' +
         'anyway.'
     );
+  });
+
+  it('rejects every shape that would make the .d.cts copy unsound', async () => {
+    const { hasModuleSpecifiers } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    // The first two are wrong because they resolve as CommonJS inside the
+    // copy, putting TS1479 back. The last two are wrong for that AND because
+    // the copy lands a directory up, so a relative target moves — and a
+    // pattern anchored on `from` saw neither, one being a comment and the
+    // other carrying no `from`.
+    for (const body of [
+      "export * from './a';\n",
+      'export type X = import("./a").Y;\n',
+      '/// <reference path="./a.d.ts" />\n',
+      "import x = require('./a');\n",
+    ]) {
+      assert.equal(hasModuleSpecifiers(body), true, `not caught: ${body}`);
+    }
+    // And it stays quiet on a declaration that really is self-contained,
+    // including one whose prose merely mentions an import.
+    for (const body of [
+      'export declare const A: number;\n',
+      "/**\n * @example\n * import { A } from './a';\n */\nexport {};\n",
+    ]) {
+      assert.equal(hasModuleSpecifiers(body), false, `false alarm: ${body}`);
+    }
   });
 
   it('really loads the constants tuples, by require and by import', async () => {
@@ -589,6 +619,65 @@ describe('the declaration-extension guard', () => {
     assert.match(
       readFileSync(join(root, 'index.d.ts'), 'utf8'),
       /"\.\/x\.d\.ts"/
+    );
+  });
+
+  it('leaves a relative path in a comment alone, both directions', async () => {
+    // Both passes read raw text, so a path quoted in a preserved TSDoc
+    // `@example` read exactly like a specifier. This tree emits `@example`
+    // blocks in quantity, so the only thing standing between that and a live
+    // bug was none of them happening to quote a relative path.
+    //
+    // The two directions failed differently and both are pinned here. A path
+    // that RESOLVES was silently rewritten, which ships; one that does not
+    // failed the build, naming a `dist/types` file rather than the source
+    // comment it came from.
+    const root = tree({
+      'index.d.ts':
+        "/**\n * @example\n * import { B } from './B';\n" +
+        " * import { theme } from './my-app/theme';\n */\n" +
+        "export * from './B';\n",
+      'B.d.ts': 'export {};\n',
+    });
+    await run(root);
+    const out = readFileSync(join(root, 'index.d.ts'), 'utf8');
+    // The example keeps BOTH of its paths verbatim: the resolvable one is not
+    // rewritten, and the unresolvable one does not throw.
+    assert.match(out, /\* import \{ B \} from '\.\/B';/);
+    assert.match(out, /\* import \{ theme \} from '\.\/my-app\/theme';/);
+    // The real specifier on the line below still gets its extension, so the
+    // exemption is scoped to comments rather than switching the pass off.
+    assert.match(out, /^export \* from '\.\/B\.js';$/m);
+  });
+
+  it('still checks a reference path, the one specifier inside a comment', async () => {
+    // `reference path` is a line comment that TypeScript follows, so exempting
+    // comment bodies had to spare it. Without that exemption-to-the-exemption
+    // a dangling reference ships: the case below is the same tree as the
+    // dangling-reference test, and it passes only because the post-pass reads
+    // reference directives specifically.
+    const root = tree({
+      'index.d.ts':
+        "/**\n * @example\n * import x from './nope';\n */\n" +
+        '/// <reference path="./gone.d.ts" />\nexport {};\n',
+    });
+    // The `@example` beside it is ignored, so the reference is the only thing
+    // this can be complaining about.
+    await assert.rejects(run(root), /\.\/gone\.d\.ts/);
+  });
+
+  it('does not treat a `/*` inside a string as opening a comment', async () => {
+    // The comment scan has to track string literals, or a type carrying `/*`
+    // would blind the rest of the file to the pass.
+    const root = tree({
+      'index.d.ts':
+        "export type Odd = '/* not a comment';\nexport * from './B';\n",
+      'B.d.ts': 'export {};\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /export \* from '\.\/B\.js';/
     );
   });
 

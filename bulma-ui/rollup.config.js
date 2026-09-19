@@ -28,6 +28,56 @@ const aiBanner =
  * triple-slash `reference path` names the declaration directly. Anything else
  * is unresolved, which is the one question worth asking after the rewrite.
  */
+/**
+ * The `[start, end)` offsets of every comment in `text`.
+ *
+ * Both passes read raw declaration text, so a relative path quoted inside a
+ * preserved TSDoc `@example` read exactly like a specifier: rewritten when it
+ * resolved, and a build failure when it did not. This tree emits plenty of
+ * `@example` blocks, so that was a live shape rather than a theoretical one.
+ *
+ * Finding comments means tracking string literals too, since a `/*` inside a
+ * string opens nothing. Template literals count: a declaration can carry one
+ * in a type position.
+ */
+const commentRanges = text => {
+  const ranges = [];
+  let i = 0;
+  while (i < text.length) {
+    const two = text.slice(i, i + 2);
+    if (two === '//') {
+      const nl = text.indexOf('\n', i);
+      const end = nl === -1 ? text.length : nl;
+      ranges.push([i, end]);
+      i = end;
+    } else if (two === '/*') {
+      const close = text.indexOf('*/', i + 2);
+      const end = close === -1 ? text.length : close + 2;
+      ranges.push([i, end]);
+      i = end;
+    } else if (text[i] === '"' || text[i] === "'" || text[i] === '`') {
+      const quote = text[i];
+      i += 1;
+      while (i < text.length && text[i] !== quote)
+        i += text[i] === '\\' ? 2 : 1;
+      i += 1;
+    } else {
+      i += 1;
+    }
+  }
+  return ranges;
+};
+
+const inComment = (ranges, at) =>
+  ranges.some(([start, end]) => at >= start && at < end);
+
+/**
+ * A `reference path` is a line comment that TypeScript nonetheless follows, so
+ * it is the one comment shape carrying a load-bearing specifier. Exempting
+ * comment bodies has to spare it, or a dangling reference ships unchecked.
+ */
+const REFERENCE_PATH = /\/\/\/\s*<reference\s+path\s*=\s*(['"])([^'"]*)\1/g;
+
 const resolvesToDeclaration = (file, spec) => {
   const from = dirname(file);
   if (/\.d\.[cm]?ts$/.test(spec)) return existsSync(resolvePath(from, spec));
@@ -100,6 +150,27 @@ export const declarationExtensions = (root = 'dist/types') => {
   // that starts must also finish.
   let started = 0;
   let wrote = 0;
+  // One route stays outside all of it, and is left there on purpose. If a
+  // plugin ordered AFTER this one had a `writeBundle` that threw, `wrote` would
+  // already have been incremented and `closeBundle` would be handed no error,
+  // so the latch would read a clean build. Rollup offers no signal for a
+  // sibling's write failure: `writeBundle` hooks run in parallel and the
+  // rejection surfaces from `bundle.write()`, which a plugin cannot observe,
+  // and `order: 'post'` does not help because the hooks still all run.
+  //
+  // It is harmless, which is why there is no sixth latch. Declarations reach
+  // disk as bundle assets, written by rollup BEFORE any `writeBundle` fires —
+  // measured on this config: zero declarations at `renderStart`, the full set
+  // at each output's `writeBundle`. So on that route the pass reads a COMPLETE
+  // tree, which is the one thing the latch exists to guarantee, and it has
+  // nothing to complain about and nothing to throw. Re-running over an
+  // already-rewritten tree changes nothing either.
+  //
+  // Do not answer this by moving the throw. Failing from `closeBundle` is
+  // reported normally on its own, and collapses into `SuppressedError: An
+  // error was suppressed during disposal` only when another error is already in
+  // flight — which is exactly the case a latch is for, and exactly the case
+  // this route is not.
   return {
     name: 'bestax-declaration-extensions',
     buildStart() {
@@ -179,9 +250,14 @@ export const declarationExtensions = (root = 'dist/types') => {
       const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
       for (const file of files) {
         const before = await readFile(file, 'utf8');
+        const comments = commentRanges(before);
         const after = before.replace(
           SPECIFIER,
-          (whole, head, _q, spec, tail) => {
+          (whole, head, _q, spec, tail, offset) => {
+            // A quoted path inside a comment is prose, not a specifier. Left in
+            // the scan it was silently rewritten whenever it resolved, which is
+            // how a TSDoc `@example` showing a consumer-side import got edited.
+            if (inComment(comments, offset)) return whole;
             // An extension already present is still checked. The post-pass would
             // catch a dangling one too, since it asks about resolution rather than
             // about extensions — this is the earlier and better-worded of the two
@@ -266,11 +342,20 @@ export const declarationExtensions = (root = 'dist/types') => {
         // Narrowing the scan is what opened the hole it was widened to close, so
         // the answer if this ever bites is to exempt comment bodies, not to
         // re-anchor it.
+        const comments = commentRanges(text);
+        const quoted = [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
+          .filter(m => !inComment(comments, m.index))
+          .map(m => m[1]);
+        // The one comment shape that stays in scope, because TypeScript
+        // follows it. Relative only, which is what the scan above asked too.
+        const referenced = [...text.matchAll(REFERENCE_PATH)]
+          .map(m => m[2])
+          .filter(spec => /^\.\.?(\/|$)/.test(spec));
         const broken = [
           ...new Set(
-            [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
-              .map(m => m[1])
-              .filter(spec => !resolvesToDeclaration(file, spec))
+            [...quoted, ...referenced].filter(
+              spec => !resolvesToDeclaration(file, spec)
+            )
           ),
         ];
         if (broken.length) {
@@ -287,6 +372,30 @@ export const declarationExtensions = (root = 'dist/types') => {
     },
   };
 };
+
+/**
+ * Whether a declaration carries anything that makes copying it to a `.d.cts`
+ * unsound.
+ *
+ * Four shapes. A real `from '…'` and the `import('./x').Y` form tsc emits for a
+ * type it reaches without an explicit import both resolve as CommonJS inside a
+ * `.d.cts`, which is what puts TS1479 back for the `node16` consumer that file
+ * exists to serve.
+ *
+ * The other two matter for a second reason as well: they are relative, and the
+ * copy lands one directory up, so their targets would shift even if the flavour
+ * were fine. A `/// <reference path>` is a comment, which is exactly why a
+ * pattern built around `from` could not see it, and `import x = require('./y')`
+ * carries no `from` at all.
+ *
+ * Exported because the export-map test asserts the same property against the
+ * real built declaration. Spelled once, or widening one leaves the other
+ * describing a narrower rule than it checks.
+ */
+export const hasModuleSpecifiers = text =>
+  /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(|^\s*\/\/\/\s*<reference\b|\bimport\s+[A-Za-z_$][\w$]*\s*=\s*require\s*\(/m.test(
+    text
+  );
 
 /**
  * Write `dist/constants.d.cts`, the `types` target for the `require`
@@ -335,18 +444,12 @@ const constantsCjsTypes = () => ({
           'entry.'
       );
     }
-    // Both shapes a specifier can take in a declaration: a real
-    // `from '…'`, and the `import('./x').Y` form tsc emits for a type it
-    // reaches without an explicit import. Either one resolves as CommonJS
-    // inside a `.d.cts`, which is what puts TS1479 back for the `node16`
-    // consumer this file exists to serve.
-    if (
-      /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(/m.test(declaration)
-    ) {
+    if (hasModuleSpecifiers(declaration)) {
       throw new Error(
         `${from} now has module specifiers, so copying it to a .d.cts no ` +
-          'longer describes a CommonJS module. Keep that file import-free, ' +
-          'which the ./constants export depends on anyway.'
+          'longer describes a CommonJS module, and any relative target would ' +
+          'move with the copy. Keep that file import-free, which the ' +
+          './constants export depends on anyway.'
       );
     }
     await writeFile(to, declaration, 'utf8');
