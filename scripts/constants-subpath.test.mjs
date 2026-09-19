@@ -641,6 +641,39 @@ describe('the declaration-extension guard', () => {
     );
   });
 
+  it('walks .d.cts and .d.mts, and probes the declaration each maps to', async () => {
+    // Three coupled behaviours with nothing exercising them: the walk collects
+    // all three declaration extensions, a `.cjs` specifier is declared by
+    // `.d.cts`, and a `.mjs` by `.d.mts`. No `.mts`/`.cts` source exists, so no
+    // real build reaches any of them — which is exactly why a regression here
+    // would be invisible.
+    const root = tree({
+      'index.d.cts': "export * from './a.cjs';\nexport * from './plain';\n",
+      'a.d.cts': 'export {};\n',
+      'plain.d.ts': 'export {};\n',
+      'esm.d.mts': "export * from './b.mjs';\n",
+      'b.d.mts': 'export {};\n',
+    });
+    await run(root);
+    // The extensioned specifiers are accepted because the declaration each
+    // maps to exists, and the extensionless one in a .d.cts is still rewritten.
+    assert.match(
+      readFileSync(join(root, 'index.d.cts'), 'utf8'),
+      /'\.\/plain\.js'/
+    );
+    assert.match(readFileSync(join(root, 'esm.d.mts'), 'utf8'), /'\.\/b\.mjs'/);
+  });
+
+  it('fails when a .cjs specifier has only a .d.ts beside it', async () => {
+    // The mapping is the point: probing `.d.ts` for a `.cjs` would accept this
+    // tree, and TypeScript would then find no declaration for the target.
+    const root = tree({
+      'index.d.cts': "export * from './a.cjs';\n",
+      'a.d.ts': 'export {};\n',
+    });
+    await assert.rejects(run(root), /resolves to no declaration/);
+  });
+
   it('fails on a bare dot naming a directory with no index', async () => {
     const root = tree({ 'deep/index.d.ts': "export * from '..';\n" });
     await assert.rejects(run(root), /no index declaration/);

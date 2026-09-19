@@ -21,6 +21,25 @@ const aiBanner =
   '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
 
 /**
+ * Whether `spec`, written inside `file`, names a declaration that exists.
+ *
+ * A declaration spells its imports the way the runtime will: `./x.js` is
+ * declared by `./x.d.ts`, and the `.cjs`/`.mjs` forms by `.d.cts`/`.d.mts`. A
+ * triple-slash `reference path` names the declaration directly. Anything else
+ * is unresolved, which is the one question worth asking after the rewrite.
+ */
+const resolvesToDeclaration = (file, spec) => {
+  const from = dirname(file);
+  if (/\.d\.[cm]?ts$/.test(spec)) return existsSync(resolvePath(from, spec));
+  const runtime = spec.match(/\.([cm]?)js$/);
+  if (runtime) {
+    const declared = `.d.${runtime[1]}ts`;
+    return existsSync(resolvePath(from, spec).replace(/\.[cm]?js$/, declared));
+  }
+  return false;
+};
+
+/**
  * Give every relative specifier in the emitted declarations a `.js` extension.
  *
  * `tsc` writes specifiers exactly as the source spells them, so the
@@ -44,25 +63,6 @@ const aiBanner =
  * is neither throws — including a bare `.` or `..`, which skips the file probe
  * but is still held to having an index.
  */
-/**
- * Whether `spec`, written inside `file`, names a declaration that exists.
- *
- * A declaration spells its imports the way the runtime will: `./x.js` is
- * declared by `./x.d.ts`, and the `.cjs`/`.mjs` forms by `.d.cts`/`.d.mts`. A
- * triple-slash `reference path` names the declaration directly. Anything else
- * is unresolved, which is the one question worth asking after the rewrite.
- */
-const resolvesToDeclaration = (file, spec) => {
-  const from = dirname(file);
-  if (/\.d\.[cm]?ts$/.test(spec)) return existsSync(resolvePath(from, spec));
-  const runtime = spec.match(/\.([cm]?)js$/);
-  if (runtime) {
-    const declared = `.d.${runtime[1]}ts`;
-    return existsSync(resolvePath(from, spec).replace(/\.[cm]?js$/, declared));
-  }
-  return false;
-};
-
 export const declarationExtensions = (root = 'dist/types') => ({
   name: 'bestax-declaration-extensions',
   async writeBundle() {
@@ -171,9 +171,11 @@ export const declarationExtensions = (root = 'dist/types') => ({
       // the build; and in the other direction the rewrite will happily edit a
       // relative path quoted inside a preserved TSDoc `@example`, which this
       // tree carries plenty of. No source here quotes a relative path anywhere
-      // but a specifier, both directions are visible at build time rather than
-      // in a consumer's, and narrowing the scan is what opened the hole it was
-      // widened to close.
+      // but a specifier. The two directions are not equally safe, which is
+      // worth stating plainly: a false failure is loud and stops the build,
+      // while an edit inside a comment is silent and ships. Narrowing the scan
+      // is what opened the hole it was widened to close, so the answer if this
+      // ever bites is to exempt comment bodies, not to re-anchor it.
       const broken = [
         ...new Set(
           [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
