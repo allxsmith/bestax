@@ -96,11 +96,11 @@ export const declarationExtensions = (root = 'dist/types') => ({
     for (const file of files) {
       const before = await readFile(file, 'utf8');
       const after = before.replace(SPECIFIER, (whole, head, _q, spec, tail) => {
-        // An extension already present is still checked, or this becomes the
-        // one branch that neither resolves nor throws: the post-pass only looks
-        // for a MISSING extension, so a dangling `./gone.js` would survive both
-        // passes and ship. Nothing in `src/` spells an extension today; the
-        // point is that the plugin holds every branch to the same standard.
+        // An extension already present is still checked. The post-pass would
+        // catch a dangling one too, since it asks about resolution rather than
+        // about extensions — this is the earlier and better-worded of the two
+        // errors, not the only net. Nothing in `src/` spells an extension
+        // today; the point is that no branch is held to a weaker test.
         const extensioned = spec.match(/\.([cm]?)js$/);
         if (extensioned) {
           // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
@@ -165,10 +165,15 @@ export const declarationExtensions = (root = 'dist/types') => ({
       // Resolvability is one question covering all of them, and it is the
       // property a consumer actually depends on.
       //
-      // The cost is that a quoted relative string which is NOT a specifier —
-      // a string-literal type such as `export type P = './foo.js'` — fails the
-      // build. No source here spells one, it fails loudly rather than shipping,
-      // and the alternative is the hole above.
+      // The cost of reading raw text is that neither pass can tell a specifier
+      // from anything else quoted beside it. A string-literal type such as
+      // `export type P = './foo.js'`, or a relative `./data.json` import, fails
+      // the build; and in the other direction the rewrite will happily edit a
+      // relative path quoted inside a preserved TSDoc `@example`, which this
+      // tree carries plenty of. No source here quotes a relative path anywhere
+      // but a specifier, both directions are visible at build time rather than
+      // in a consumer's, and narrowing the scan is what opened the hole it was
+      // widened to close.
       const broken = [
         ...new Set(
           [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]

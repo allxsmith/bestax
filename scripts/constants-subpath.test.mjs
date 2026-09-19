@@ -564,8 +564,8 @@ describe('the declaration-extension guard', () => {
   });
 
   it('fails on a specifier that carries an extension and resolves nowhere', async () => {
-    // The post-pass only looks for a MISSING extension, so this one is caught
-    // by the rewrite or not at all.
+    // Caught by the rewrite's extensioned branch, and by the post-pass behind
+    // it — both ask whether the specifier resolves.
     const root = tree({ 'index.d.ts': "export * from './gone.js';\n" });
     await assert.rejects(run(root), /resolves to no declaration/);
   });
