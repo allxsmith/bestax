@@ -169,6 +169,17 @@ export const declarationExtensions = (root = 'dist/types') => {
   // nothing to complain about and nothing to throw. Re-running over an
   // already-rewritten tree changes nothing either.
   //
+  // That rests on two properties of the config rather than on rollup, so both
+  // are worth knowing before either is changed. `@rollup/plugin-typescript`
+  // emits declarations with `this.emitFile`, which makes them rollup's assets
+  // to write rather than files the plugin writes itself; and `declarationDir`
+  // sits INSIDE each output's `dir`, so those assets land in the tree this pass
+  // walks. Move the declarations outside the output directory, or to a plugin
+  // that writes them directly, and the timing above stops holding — the route
+  // comes back and this comment is the thing to revisit. It does not depend on
+  // the number of outputs: every output writes the full set before its own
+  // `writeBundle`.
+  //
   // Do not answer this by moving the throw. Failing from `closeBundle` is
   // reported normally on its own, and collapses into `SuppressedError: An
   // error was suppressed during disposal` only when another error is already in

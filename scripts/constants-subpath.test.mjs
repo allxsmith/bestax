@@ -933,6 +933,32 @@ describe('the declaration-extension guard', () => {
     );
   });
 
+  it('catches a dangling reference however it is spelled', async () => {
+    // The post-pass reads reference directives with a pattern of its own,
+    // because exempting comment bodies would otherwise have hidden them. That
+    // pattern is deliberately LOOSER than the one TypeScript honours — it is
+    // not anchored to the start of a line — so that every directive TypeScript
+    // would follow is a subset of what this checks. Tightening it to match
+    // TypeScript exactly is the plausible future edit, and these are the
+    // spellings that would start shipping if it were.
+    for (const head of [
+      '///<reference path="./gone.d.ts"/>\n',
+      '///   <reference   path  =  "./gone.d.ts"   />\n',
+      "/// <reference path='./gone.d.ts' />\n",
+      '///\t<reference\tpath\t=\t"./gone.d.ts" />\n',
+      '/// <reference path="./gone.d.ts" resolution-mode="import" />\n',
+      '  /// <reference path="./gone.d.ts" />\n',
+      '/** doc */\n/// <reference path="./gone.d.ts" />\n',
+    ]) {
+      const root = tree({ 'index.d.ts': `${head}export {};\n` });
+      await assert.rejects(
+        run(root),
+        /gone\.d\.ts/,
+        `a dangling reference spelled this way shipped: ${head}`
+      );
+    }
+  });
+
   it('resolves a reference path spelled .d.cts as well as .d.ts', async () => {
     // The declaration-extension arm of `resolvesToDeclaration` was driven only
     // by the `.d.ts` spelling, while its `.cjs`/`.mjs` sibling had cases.
