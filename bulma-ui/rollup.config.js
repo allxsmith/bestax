@@ -171,11 +171,13 @@ export const declarationExtensions = (root = 'dist/types') => ({
       // the build; and in the other direction the rewrite will happily edit a
       // relative path quoted inside a preserved TSDoc `@example`, which this
       // tree carries plenty of. No source here quotes a relative path anywhere
-      // but a specifier. The two directions are not equally safe, which is
-      // worth stating plainly: a false failure is loud and stops the build,
-      // while an edit inside a comment is silent and ships. Narrowing the scan
-      // is what opened the hole it was widened to close, so the answer if this
-      // ever bites is to exempt comment bodies, not to re-anchor it.
+      // but a specifier. The two directions are not equally safe: a false
+      // failure is loud and stops the build, while an edit inside a comment
+      // ships silently WHEN the path it names happens to resolve from that
+      // declaration's directory — one that does not throws like any other.
+      // Narrowing the scan is what opened the hole it was widened to close, so
+      // the answer if this ever bites is to exempt comment bodies, not to
+      // re-anchor it.
       const broken = [
         ...new Set(
           [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
@@ -187,7 +189,10 @@ export const declarationExtensions = (root = 'dist/types') => ({
         throw new Error(
           `${file} has relative specifiers that resolve to no declaration ` +
             `after the rewrite: ${broken.join(', ')}. They would ship ` +
-            'pointing nowhere.'
+            'pointing nowhere. If this names a file you did not expect, ' +
+            '`dist` is never cleaned — a declaration left by an earlier emit ' +
+            'is held to the same standard, and `pnpm --filter ' +
+            '@allxsmith/bestax-bulma clean` clears it.'
         );
       }
     }
@@ -285,6 +290,13 @@ export default commandLineArgs => {
           // module scope where `require` does not exist. The extension is the
           // only thing that overrides `type` (#688).
           entryFileNames: 'index.cjs',
+          // The declaration rewrite runs on THIS config, the one whose
+          // TypeScript pass writes `dist/types` — not on a later entry in the
+          // array. `rollup -c` builds them in order so either placement works
+          // for a publish, but `--watch` rebuilds only the config whose inputs
+          // changed: editing a component under the `dev` script re-emitted the
+          // declarations extensionless with the pass never running.
+          plugins: [declarationExtensions()],
           // Chunks need the extension for the same reason the entry does. This
           // build emits one chunk today, so nothing is currently wrong — but
           // the first dynamic import would split it, and the default
@@ -352,12 +364,9 @@ export default commandLineArgs => {
           // as ESM.
           chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
-          // Both run after the declaration pass, which is what they read and
-          // rewrite; rollup builds the config array in order, so this output is
-          // simply the first place they can run. `constantsCjsTypes` serves the
-          // `require` condition specifically, `declarationExtensions` the
-          // shared root `types` target.
-          plugins: [declarationExtensions(), constantsCjsTypes()],
+          // `constantsCjsTypes` reads the declaration this bundle's own entry
+          // produces, so it belongs here, after that pass has written it.
+          plugins: [constantsCjsTypes()],
         },
         {
           dir: 'dist',

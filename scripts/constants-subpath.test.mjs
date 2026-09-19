@@ -674,6 +674,22 @@ describe('the declaration-extension guard', () => {
     await assert.rejects(run(root), /resolves to no declaration/);
   });
 
+  it('fails when the declaration pass has not run, rather than passing quietly', async () => {
+    // The ordering guard, and the only arm with no second net behind it: if
+    // `dist/types` is empty when this runs, every later check has nothing to
+    // look at, so a weakened guard leaves the build green while the published
+    // declarations stay extensionless — which is #696 returning.
+    const root = tree({ 'placeholder.txt': 'not a declaration\n' });
+    await assert.rejects(run(root), /holds no declarations/);
+  });
+
+  it('fails on a specifier naming neither a declaration nor a directory', async () => {
+    // The rewrite's final throw. The post-pass would also catch this one, but
+    // this is the earlier and more specific error, and nothing pinned it.
+    const root = tree({ 'index.d.ts': "export * from './nowhere';\n" });
+    await assert.rejects(run(root), /resolves to neither/);
+  });
+
   it('fails on a bare dot naming a directory with no index', async () => {
     const root = tree({ 'deep/index.d.ts': "export * from '..';\n" });
     await assert.rejects(run(root), /no index declaration/);
