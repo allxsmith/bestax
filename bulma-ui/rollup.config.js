@@ -65,14 +65,16 @@ const resolvesToDeclaration = (file, spec) => {
  * TypeScript prefers a file to a same-named directory, and a reversal there
  * emits something that RESOLVES, so the post-pass cannot see it.
  *
- * Both directory arms probe `index.d.ts` and emit `.js` whatever the containing
- * file's flavour. This package is `type: module` and `dist/types` adds no
- * manifest of its own, so that index is an ESM declaration: picked from inside
- * a `.d.cts` it is TS1479 under `moduleResolution: node16` and accepted under
- * `nodenext`, which allows `require` of ESM. Wrong against the older setting
- * only, and it resolves either way, so the post-pass is blind to it. No `.cts`
- * or `.mts` source exists here and `dist/types` carries none; this is the one
- * member of that class left unaddressed rather than unreachable by accident.
+ * Every arm emits `.js` and probes `.d.ts` whatever the containing file's
+ * flavour — the file arm as much as the two directory ones. This package is
+ * `type: module` and `dist/types` adds no manifest of its own, so what they
+ * pick is an ESM declaration, and reaching one from a `.d.cts` is TS1479 under
+ * `moduleResolution: node16`. Under `nodenext` the same import is clean, since
+ * that setting allows `require` of ESM, and from a `.d.mts` it is clean under
+ * both. So the gap is one flavour against one setting, and it resolves either
+ * way, so the post-pass is blind to it. No `.cts` or `.mts` source exists here
+ * and `dist/types` carries none; this is the one member of that class left
+ * unaddressed rather than unreachable by accident.
  */
 export const declarationExtensions = (root = 'dist/types') => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
