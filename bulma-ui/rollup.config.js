@@ -147,27 +147,28 @@ export const declarationExtensions = (root = 'dist/types') => ({
       if (after !== before) await writeFile(file, after, 'utf8');
     }
 
-    // The rewrite can only fix shapes its pattern matches, and several have
-    // escaped it in the writing — the double-quoted `import("./x")` form, a
-    // bare `..`, and a side-effect `import './x';` in neither position.
-    // An unmatched specifier fails silently, so the tree is re-read and any
-    // relative specifier still lacking an extension is an error here rather
-    // than a TS2834 in a consumer's build.
+    // The rewrite can only fix shapes its pattern matches, and several escaped
+    // it in the writing — the double-quoted `import("./x")` form, a bare `..`,
+    // and a side-effect `import './x';` in neither position. An unmatched
+    // specifier fails silently, so the tree is re-read here.
     for (const file of files) {
       const text = await readFile(file, 'utf8');
-      // EVERY quoted relative string, deliberately — not the positions the
-      // rewrite matches. Sharing its pattern makes this a restatement of the
-      // rewrite rather than a check on it: narrowing the two to the same
-      // `from`/`import(` prefix let a bare `import './x';`, which tsc preserves
-      // verbatim, escape both at once. What keeps a
-      // `/// <reference path="./x.d.ts" />` from failing here is the extension
-      // it already carries, not where it sits.
-      // Every relative string has to RESOLVE, not merely carry an extension.
-      // Testing the extension alone left three shapes shipping a dangling
-      // specifier: one outside a `from`/`import(` position, one already
-      // carrying an extension, and a `./dir/` whose stale sibling turned into
-      // `./dir/.js`. Resolvability is one question covering all of them, and it
-      // is the property that actually matters to a consumer.
+      // EVERY quoted relative string, and the question is whether it RESOLVES.
+      //
+      // Both halves of that are deliberate. Reading only the positions the
+      // rewrite matches makes this a restatement of the rewrite rather than a
+      // check on it — narrowing the two to the same `from`/`import(` prefix let
+      // a side-effect import escape both at once. And asking merely whether an
+      // extension is present let three shapes ship a specifier pointing
+      // nowhere: one outside those positions, one already carrying an
+      // extension, and a `./dir/` that a stale sibling turned into `./dir/.js`.
+      // Resolvability is one question covering all of them, and it is the
+      // property a consumer actually depends on.
+      //
+      // The cost is that a quoted relative string which is NOT a specifier —
+      // a string-literal type such as `export type P = './foo.js'` — fails the
+      // build. No source here spells one, it fails loudly rather than shipping,
+      // and the alternative is the hole above.
       const broken = [
         ...new Set(
           [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]

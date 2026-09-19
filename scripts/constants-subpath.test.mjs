@@ -625,6 +625,22 @@ describe('the declaration-extension guard', () => {
     assert.match(out, /'\.\.\/shared\.js'/);
   });
 
+  it('sends a non-bare directory specifier to its index', async () => {
+    // The branch a real build never reaches: every directory import this
+    // package emits is a bare `..`, which takes the shortcut above it. A
+    // regression in the non-bare path would therefore be silent, since neither
+    // the build nor the other fixtures exercise it.
+    const root = tree({
+      'index.d.ts': "export * from './dir';\n",
+      'dir/index.d.ts': 'export {};\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /'\.\/dir\/index\.js'/
+    );
+  });
+
   it('fails on a bare dot naming a directory with no index', async () => {
     const root = tree({ 'deep/index.d.ts': "export * from '..';\n" });
     await assert.rejects(run(root), /no index declaration/);
