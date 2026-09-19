@@ -516,3 +516,74 @@ describe('bulma-ui export map', () => {
     );
   });
 });
+
+/**
+ * The declaration-extension guard (#696).
+ *
+ * The rewrite is a regex over raw declaration text, so what it does NOT match
+ * is the whole risk. A post-pass re-reads the tree and fails the build on
+ * anything still unresolvable, and until now that guard was described in a
+ * comment and observed by hand rather than tested. Driven here against
+ * synthetic trees, because the shapes that matter are ones this package's own
+ * source does not produce.
+ */
+describe('the declaration-extension guard', () => {
+  const tree = files => {
+    const root = mkdtempSync(join(tmpdir(), 'bestax-decl-guard-'));
+    for (const [name, body] of Object.entries(files)) {
+      const full = join(root, name);
+      mkdirSync(dirname(full), { recursive: true });
+      writeFileSync(full, body);
+    }
+    return root;
+  };
+  const run = async root => {
+    const { declarationExtensions } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    return declarationExtensions(root).writeBundle();
+  };
+
+  it('adds the extension a plain specifier is missing', async () => {
+    const root = tree({
+      'index.d.ts': "export * from './a';\n",
+      'a.d.ts': 'export declare const a: number;\n',
+    });
+    await run(root);
+    assert.match(readFileSync(join(root, 'index.d.ts'), 'utf8'), /'\.\/a\.js'/);
+  });
+
+  it('fails on a side-effect import, which the rewrite cannot match', async () => {
+    // Neither a `from` nor an `import(` position, so only the post-pass sees
+    // it. This is the shape that escaped both when the two shared a pattern.
+    const root = tree({
+      'index.d.ts': "import './side';\n",
+      'side.d.ts': 'export {};\n',
+    });
+    await assert.rejects(run(root), /still has extensionless/);
+  });
+
+  it('fails on a specifier that carries an extension and resolves nowhere', async () => {
+    // The post-pass only looks for a MISSING extension, so this one is caught
+    // by the rewrite or not at all.
+    const root = tree({ 'index.d.ts': "export * from './gone.js';\n" });
+    await assert.rejects(run(root), /resolves to no declaration/);
+  });
+
+  it('spares a reference path, which is correct as written', async () => {
+    const root = tree({
+      'index.d.ts': '/// <reference path="./x.d.ts" />\nexport {};\n',
+      'x.d.ts': 'export {};\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /"\.\/x\.d\.ts"/
+    );
+  });
+
+  it('fails on a bare dot naming a directory with no index', async () => {
+    const root = tree({ 'deep/index.d.ts': "export * from '..';\n" });
+    await assert.rejects(run(root), /no index declaration/);
+  });
+});

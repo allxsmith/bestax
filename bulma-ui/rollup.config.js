@@ -44,16 +44,17 @@ const aiBanner =
  * is neither throws — including a bare `.` or `..`, which skips the file probe
  * but is still held to having an index.
  */
-const declarationExtensions = () => ({
+export const declarationExtensions = (root = 'dist/types') => ({
   name: 'bestax-declaration-extensions',
   async writeBundle() {
-    const root = 'dist/types';
     const files = [];
     const walk = async dir => {
       for (const entry of await readdir(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) await walk(full);
-        else if (entry.name.endsWith('.d.ts')) files.push(full);
+        // `.d.cts` and `.d.mts` are declarations too, and skipping them left
+        // their specifiers neither rewritten nor checked.
+        else if (/\.d\.[cm]?ts$/.test(entry.name)) files.push(full);
       }
     };
     await walk(root);
@@ -81,10 +82,14 @@ const declarationExtensions = () => ({
         // for a MISSING extension, so a dangling `./gone.js` would survive both
         // passes and ship. Nothing in `src/` spells an extension today; the
         // point is that the plugin holds every branch to the same standard.
-        if (/\.[cm]?js$/.test(spec)) {
+        const extensioned = spec.match(/\.([cm]?)js$/);
+        if (extensioned) {
+          // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
+          // `.d.ts` for either verifies a file TypeScript will not consult.
+          const declared = `.d.${extensioned[1]}ts`;
           const asFile = resolvePath(dirname(file), spec).replace(
             /\.[cm]?js$/,
-            '.d.ts'
+            declared
           );
           if (existsSync(asFile)) return whole;
           throw new Error(
