@@ -69,12 +69,15 @@ const resolvesToDeclaration = (file, spec) => {
  * flavour — the file arm as much as the two directory ones. This package is
  * `type: module` and `dist/types` adds no manifest of its own, so what they
  * pick is an ESM declaration, and reaching one from a `.d.cts` is TS1479 under
- * `moduleResolution: node16`. Under `nodenext` the same import is clean, since
- * that setting allows `require` of ESM, and from a `.d.mts` it is clean under
- * both. So the gap is one flavour against one setting, and it resolves either
- * way, so the post-pass is blind to it. No `.cts` or `.mts` source exists here
- * and `dist/types` carries none; this is the one member of that class left
- * unaddressed rather than unreachable by accident.
+ * `module: node16` or `node18`. Under `module: nodenext` the same import is
+ * clean, since that setting models `require` of ESM. The knob is `module`
+ * rather than `moduleResolution`, and the two are set separately, so
+ * `module: nodenext` with `moduleResolution: node16` is clean as well. From a
+ * `.d.mts` it is clean throughout. So the gap is one flavour against one
+ * setting, and it resolves either way, so the post-pass is blind to it. No
+ * `.cts` or `.mts` source exists here and `dist/types` carries none; this is
+ * the one member of that class left unaddressed rather than unreachable by
+ * accident.
  */
 export const declarationExtensions = (root = 'dist/types') => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
