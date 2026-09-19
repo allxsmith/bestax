@@ -541,11 +541,12 @@ describe('the declaration-extension guard', () => {
     const { declarationExtensions } = await import(
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
-    // Rollup calls these hooks with a plugin context; `meta` is the object the
-    // failure guard reads, and it is shared across a build's hooks.
+    // Driven through the hooks rollup calls, in the order it calls them.
     const plugin = declarationExtensions(root);
     plugin.buildStart();
     plugin.buildEnd();
+    // One output, started and finished — the shape a successful build presents.
+    plugin.renderStart();
     plugin.writeBundle();
     return plugin.closeBundle();
   };
@@ -703,15 +704,31 @@ describe('the declaration-extension guard', () => {
     const onBuildEnd = declarationExtensions(missing);
     onBuildEnd.buildStart();
     onBuildEnd.buildEnd(new Error('the real build error'));
+    onBuildEnd.renderStart();
+    onBuildEnd.writeBundle();
     await onBuildEnd.closeBundle();
 
     // Output-phase failure, which reaches a different hook — `meta` could not
-    // have carried this, since every output hook gets its own.
+    // have carried this, since every output hook gets its own. The output is
+    // started AND written here so the count check cannot short-circuit: the
+    // earlier version of this case passed with `renderError` emptied out.
     const onRender = declarationExtensions(missing);
     onRender.buildStart();
     onRender.buildEnd();
+    onRender.renderStart();
     onRender.renderError(new Error('the real output error'));
+    onRender.writeBundle();
     await onRender.closeBundle();
+
+    // Two outputs, one of which never finished: a sibling completing its write
+    // must not unlatch the one that failed, which a single boolean allowed.
+    const partial = declarationExtensions(missing);
+    partial.buildStart();
+    partial.buildEnd();
+    partial.renderStart();
+    partial.renderStart();
+    partial.writeBundle();
+    await partial.closeBundle();
 
     // A sibling plugin's throw: this plugin's `buildEnd` is called with
     // nothing, and the error arrives at `closeBundle` instead — the one route
@@ -719,6 +736,7 @@ describe('the declaration-extension guard', () => {
     const onSibling = declarationExtensions(missing);
     onSibling.buildStart();
     onSibling.buildEnd();
+    onSibling.renderStart();
     onSibling.writeBundle();
     await onSibling.closeBundle(new Error('a sibling plugin threw'));
 
@@ -727,6 +745,7 @@ describe('the declaration-extension guard', () => {
     const noOutput = declarationExtensions(missing);
     noOutput.buildStart();
     noOutput.buildEnd();
+    noOutput.renderStart();
     await noOutput.closeBundle();
 
     // And the latches reset, so a failure does not silence the next rebuild
@@ -734,10 +753,12 @@ describe('the declaration-extension guard', () => {
     const reused = declarationExtensions(missing);
     reused.buildStart();
     reused.buildEnd(new Error('first build failed'));
+    reused.renderStart();
     reused.writeBundle();
     await reused.closeBundle();
     reused.buildStart();
     reused.buildEnd();
+    reused.renderStart();
     reused.writeBundle();
     await assert.rejects(reused.closeBundle(), /holds no declarations/);
   });

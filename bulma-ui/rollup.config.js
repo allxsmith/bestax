@@ -73,16 +73,25 @@ export const declarationExtensions = (root = 'dist/types') => {
   // shared only between BUILD hooks: every output hook gets its own, one per
   // output, invisible to `closeBundle`. A closure is shared by all of them, so
   // it can carry `renderError` too — the output-phase failure, which otherwise
-  // collapses into a `SuppressedError` with no cause printed at all.
+  // collapses into a `SuppressedError` with no cause printed at all. That catch
+  // closes before `generateBundle`, so it does not cover the whole phase, which
+  // is why the counted latch below exists as well.
   let failed = false;
-  let wrote = false;
+  // COUNTED, not flagged. One boolean is per plugin, not per output, so a
+  // sibling output completing its write unlatches a failure in the other —
+  // and `generateBundle` and everything after it sit outside `renderError`'s
+  // catch, so that failure need not have set `failed` either. Every output
+  // that starts must also finish.
+  let started = 0;
+  let wrote = 0;
   return {
     name: 'bestax-declaration-extensions',
     buildStart() {
       // Reset per build: under `--watch` one instance serves every rebuild, and
       // a failure must not silence the runs after it.
       failed = false;
-      wrote = false;
+      started = 0;
+      wrote = 0;
     },
     buildEnd(error) {
       if (error) failed = true;
@@ -90,13 +99,14 @@ export const declarationExtensions = (root = 'dist/types') => {
     renderError() {
       failed = true;
     },
+    renderStart() {
+      started += 1;
+    },
     writeBundle() {
-      // A POSITIVE latch, because the negative ones cannot see the write phase:
-      // `renderError` covers `renderStart` through `generateBundle`, and a
-      // failure writing a file to disk happens after it and reaches
-      // `closeBundle` with no error at all. If nothing was written, there is
-      // nothing for this pass to have been run against.
-      wrote = true;
+      // A POSITIVE latch, because the negative ones cannot see the whole write
+      // phase: `renderError`'s catch closes before `generateBundle`, and a
+      // failure after that reaches `closeBundle` with no error at all.
+      wrote += 1;
     },
     // `closeBundle`, not `writeBundle`. The TypeScript plugin re-emits the
     // whole declaration set for EVERY output of a config, and rollup's CLI
@@ -110,7 +120,7 @@ export const declarationExtensions = (root = 'dist/types') => {
     // the error. Verified against rollup's own API — without this, that error
     // is replaced by whatever this hook says next.
     async closeBundle(error) {
-      if (failed || error || !wrote) return;
+      if (failed || error || started === 0 || wrote !== started) return;
       const files = [];
       const walk = async dir => {
         let entries;
@@ -423,8 +433,9 @@ export default commandLineArgs => {
           // as ESM.
           chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
-          // `constantsCjsTypes` reads the declaration this bundle's own entry
-          // produces, so it belongs here, after that pass has written it.
+          // `constantsCjsTypes` reads a declaration the MAIN bundle's pass
+          // writes — this config emits none — so it belongs on an output that
+          // runs after that config has finished.
           plugins: [constantsCjsTypes()],
         },
         {

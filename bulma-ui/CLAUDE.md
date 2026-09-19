@@ -72,6 +72,16 @@ These keep it working, and each of them failed once:
   — this package's bundles throw, and packages exist that load with a populated
   namespace instead — so any prediction about the symptom dates quickly. The
   reason to use `.cjs` does not depend on which one appears.
+- The emitted declarations need `.js` on every relative specifier, added by a
+  build step. `tsc` writes them exactly as the source spells them, and this
+  package is `"type": "module"`, so TypeScript reads a `.d.ts` as ESM where an
+  extensionless specifier does not resolve — every re-export failed and the root
+  had no usable types at all (#696). Marking `dist/types` CommonJS also makes
+  them resolve and was rejected: it would describe a CommonJS module while the
+  bundle is ESM, so a default import typechecks and then throws at runtime. The
+  step runs from `closeBundle` at the main config's level, because the
+  declarations are re-emitted per output and rollup writes a config's outputs
+  concurrently.
 - Each condition needs its OWN `types`, and the `require` one must be
   `constants.d.cts`. The same rule, one layer up and less visible: a `.d.ts`
   in a `"type": "module"` package is read as ESM by TypeScript, so a
