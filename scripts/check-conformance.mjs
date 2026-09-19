@@ -2528,11 +2528,7 @@ export function manifestViolations(
     //
     // No version is named, deliberately. `require(esm)` landed in 22.12 and was
     // backported to 20.19 and 23.0, so a single cutoff would tell a reader that
-    // a 20.19 consumer is safe from this class. Where the support exists the
-    // failure changes shape rather than going away: the bundle is read as ESM,
-    // and its own `require`/`exports` references throw at module scope —
-    // checked against this repo's own CommonJS bundle, which fails that way on
-    // a current Node.
+    // a 20.19 consumer is safe from this class.
     const esm = target.endsWith('.mjs')
       ? true
       : target.endsWith('.js') && typeOfTarget(target) === 'module';

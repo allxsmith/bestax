@@ -67,11 +67,11 @@ These keep it working, and each of them failed once:
 - The CommonJS artifact must be `constants.cjs`, not `constants.cjs.js`. This
   package is `"type": "module"`, so Node reads a `.js` file as ESM whatever
   the bundle's format is, and a bundle writing `exports.x = …` cannot load as
-  CommonJS under that reading. What a caller sees depends on the Node version,
-  which is why this is worth stating as the defect rather than as a symptom:
-  reviewers observed both a load-time throw and an empty namespace object on
-  different versions. Either way the tuples are not there, and the empty-object
-  case is the worse one because nothing fails.
+  CommonJS under that reading. State it as the defect rather than as a symptom:
+  what a caller actually sees varies with the bundle's own code and the runtime
+  — this package's bundles throw, and packages exist that load with a populated
+  namespace instead — so any prediction about the symptom dates quickly. The
+  reason to use `.cjs` does not depend on which one appears.
 - Each condition needs its OWN `types`, and the `require` one must be
   `constants.d.cts`. The same rule, one layer up and less visible: a `.d.ts`
   in a `"type": "module"` package is read as ESM by TypeScript, so a

@@ -1056,10 +1056,10 @@ test('every declared runtime sibling matches the real manifests', () => {
  * Fixture-driven like the rules above, plus one test against the real
  * manifests so the repo cannot drift back into it.
  */
-// Every fixture below came from a disagreement `scripts/exports-resolve-fuzz.mjs`
-// found between this rule's resolver and a real `require()`. That script is the
-// evidence these fixtures summarise: run it when the resolver is edited, since
-// a hand-written corpus only covers the shapes someone already thought of.
+// `scripts/exports-resolve-fuzz.mjs` is the differential these fixtures sit
+// alongside: run it when the resolver is edited, since a hand-written corpus
+// only covers the shapes someone already thought of. Its header says which of
+// these it can produce and which it cannot see at all.
 const entryViolations = pkg =>
   manifestViolations('pkg', pkg).filter(v => v.includes('#688'));
 
