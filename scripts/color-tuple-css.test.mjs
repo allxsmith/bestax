@@ -145,10 +145,64 @@ const indexCache = new Map();
  * that needs a third class answering a two-class query, so anything that
  * quietly shortens a class set defeats it. Where a selector demands
  * something this file will not parse, one of these goes in the set instead,
- * and the query stops matching. `assertUnmodelledIsUnused` holds the name to
- * being absent from the stylesheet, so it cannot collide with a real class.
+ * and the query stops matching. `simpleSelectors` asserts the name is absent
+ * from the stylesheet before indexing, so it cannot collide with a real
+ * class.
  */
 const UNMODELLED = 'bestax-guard-unmodelled-requirement';
+
+/**
+ * A selector prelude with everything that is not a class made explicit.
+ *
+ * A simple selector is only as live as its WHOLE set of requirements, and
+ * the exact-size rule in `shipsClass` counts classes. So anything else the
+ * selector demands has to end up in that count, or a rule needing more than
+ * the query answers it — over-reporting, and the silent direction.
+ *
+ * Three kinds of thing appear, and they are not alike:
+ *
+ * - `:not(…)` is a PROHIBITION. Its argument names classes the element must
+ *   NOT carry, so reading them as present lets `.notification:not(.is-light)`
+ *   answer `notification.is-light` — a rule that excludes the pair reporting
+ *   it live. It drops, argument and all, and what remains already says
+ *   everything the element carries.
+ * - A pseudo-ELEMENT does not restrict anything. `.delete::before` styles a
+ *   box generated for a delete, so the delete is live and calling it dead
+ *   would be a plain misreading. Those are left alone.
+ * - Everything else — a pseudo-class with parentheses or without, and an
+ *   attribute selector — narrows WHICH elements carrying those classes
+ *   match. `.notification.is-primary:where(.is-light)` and
+ *   `.notification.is-primary:first-child` are the same shape, and treating
+ *   only the parenthesised one as a requirement is how this file came to
+ *   contradict itself. Both leave an `UNMODELLED` behind, so the set grows
+ *   rather than shrinks and the query reads dead. A false alarm is the one
+ *   way this guard may be wrong.
+ *
+ * Order carries three separate reasons. Arguments are resolved before the
+ * caller splits on commas, because they contain commas:
+ * `.navbar-item:not(.is-active,.is-selected)` is ONE selector, and splitting
+ * first fragments it and leaves `is-active` looking like a class the element
+ * carries. Attribute selectors go before bare pseudo-classes, because an
+ * attribute VALUE may contain a colon. And the argument pass repeats to a
+ * fixed point, because `[^()]*` cannot cross a parenthesis and `replace`
+ * does not re-scan its own output: a single pass over
+ * `:has(:not(.is-light))` resolves the inner call and leaves an empty
+ * `:has()` that matches nothing, so the set shrinks back to the size of the
+ * query. Each pass removes at least one pair of parentheses, so it ends.
+ */
+function requirements(prelude) {
+  let text = prelude;
+  let previous;
+  do {
+    previous = text;
+    text = text.replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name) =>
+      name.toLowerCase() === 'not' ? '' : `.${UNMODELLED}`
+    );
+  } while (text !== previous);
+  return text
+    .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
+    .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`);
+}
 
 function simpleSelectors(css) {
   if (!indexCache.has(css)) {
@@ -158,39 +212,14 @@ function simpleSelectors(css) {
         'name no real class can have. Rename the sentinel.'
     );
     const sets = [];
-    // Comments go first, or their words become classes: the minireset
-    // banner and the trailing sourceMappingURL contribute sets like
-    // `{com, css}` today. None of those is queried, but a comment that
-    // happened to name a compound would answer for it, and that reads as a
-    // live modifier — the silent direction again.
+    // Comments go first, or their words become classes. A banner or a
+    // sourceMappingURL contributes nothing anyone queries, but a comment
+    // that happened to name a compound would answer for it, and that reads
+    // as a live modifier — the silent direction again.
     for (const chunk of css.replace(/\/\*[\s\S]*?\*\//g, '').split('{')) {
       // Each `{` is preceded by a prelude; the selector is whatever follows
       // the last `}` in it.
-      // Functional pseudo-class ARGUMENTS go before anything is split, and
-      // the order matters twice over. `:not(…)` names classes the element
-      // must not carry, so reading them as present lets
-      // `.notification:not(.is-light)` answer the query
-      // `notification.is-light` — a rule that excludes the pair reporting it
-      // live, which is the silent direction. And the arguments can contain
-      // commas: `.navbar-item:not(.is-active,.is-selected)` is one selector,
-      // so splitting the list first fragments it and leaves `is-active`
-      // looking like a class the element carries. Handling them first solves
-      // both.
-      //
-      // Only `:not()` DROPS. Its argument is a prohibition, so the rest of
-      // the selector already says everything the element must carry. Every
-      // other functional pseudo-class adds a requirement, and deleting its
-      // argument shortens the set: `.notification.is-primary:where(.is-light)`
-      // would answer `notification.is-primary`, which is the same
-      // over-reporting the exact-size rule exists to stop. They leave an
-      // `UNMODELLED` behind instead, so the set grows rather than shrinks and
-      // the query reads dead. That direction is a false alarm, which is the
-      // one this guard is allowed to be wrong in.
-      const prelude = chunk
-        .slice(chunk.lastIndexOf('}') + 1)
-        .replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name) =>
-          name.toLowerCase() === 'not' ? '' : `.${UNMODELLED}`
-        );
+      const prelude = requirements(chunk.slice(chunk.lastIndexOf('}') + 1));
       for (const part of prelude.split(',')) {
         for (const simple of part.split(/[\s>+~]+/)) {
           if (!simple.includes('.')) continue;
@@ -500,6 +529,69 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'a structural pseudo-class is a requirement too: the compound renders ' +
         'for some elements and not others, which is not what this guard calls ' +
         'live.'
+    );
+
+    // A requirement written WITHOUT parentheses is the same requirement.
+    // Treating only the parenthesised ones as real is how this file came to
+    // assert `:nth-child(even)` dead while answering `:first-child` live.
+    assert.equal(
+      live(
+        '.notification.is-primary:first-child{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'a structural pseudo-class restricts which elements match whether or ' +
+        'not it takes an argument.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:hover{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'a rule that applies only on hover does not show the compound renders ' +
+        'on its own.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary[disabled]{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'an attribute selector is a requirement the class set has to account ' +
+        'for.'
+    );
+
+    // A pseudo-ELEMENT is not a requirement. It styles a box generated FOR
+    // the compound, so the compound renders.
+    assert.equal(
+      live(".delete::before{content:''}", 'delete'),
+      true,
+      'a pseudo-element rule renders something for the element it hangs ' +
+        'off, so calling that element dead would be a plain misreading.'
+    );
+
+    // Nested parentheses. One pass resolves the INNER call and leaves an
+    // empty `:has()` behind, which matches nothing and shrinks the set back
+    // to the size of the query.
+    assert.equal(
+      live(
+        '.notification.is-primary:has(:not(.is-light)){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'a pseudo-class emptied by resolving its own nested argument still ' +
+        'requires something, so it must not vanish.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:not(:is(.is-light)){color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'a prohibition stays a prohibition however its argument is written: ' +
+        'resolving the inner call has to leave a `:not()` that then DROPS, ' +
+        'or the compound outside it reads dead.'
     );
 
     // A pseudo-class that FORBIDS. The rest of the selector already says
