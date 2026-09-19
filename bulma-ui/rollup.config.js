@@ -434,8 +434,9 @@ export default commandLineArgs => {
           chunkFileNames: '[name]-[hash].cjs',
           banner: aiBanner,
           // `constantsCjsTypes` reads a declaration the MAIN bundle's pass
-          // writes — this config emits none — so it belongs on an output that
-          // runs after that config has finished.
+          // writes — this config emits none — so it belongs on a config that
+          // runs after that one. Rollup builds the configs in the array in
+          // order, which is what makes that true.
           plugins: [constantsCjsTypes()],
         },
         {

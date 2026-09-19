@@ -542,11 +542,14 @@ describe('the declaration-extension guard', () => {
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
     // Driven through the hooks rollup calls, in the order it calls them.
+    // TWO outputs, started and finished — the shape the real config presents,
+    // and the reason this runs from `closeBundle` rather than per output.
     const plugin = declarationExtensions(root);
     plugin.buildStart();
     plugin.buildEnd();
-    // One output, started and finished — the shape a successful build presents.
     plugin.renderStart();
+    plugin.renderStart();
+    plugin.writeBundle();
     plugin.writeBundle();
     return plugin.closeBundle();
   };
@@ -761,6 +764,25 @@ describe('the declaration-extension guard', () => {
     reused.renderStart();
     reused.writeBundle();
     await assert.rejects(reused.closeBundle(), /holds no declarations/);
+  });
+
+  it('does nothing when no output was ever started', async () => {
+    // The skip side of the counted latch that no arm reached: a build that
+    // produced no output at all has nothing for this pass to run against, and
+    // the tree must come back untouched rather than rewritten or rejected.
+    const root = tree({
+      'index.d.ts': "export * from './a';\n",
+      'a.d.ts': 'export declare const a: number;\n',
+    });
+    const before = readFileSync(join(root, 'index.d.ts'), 'utf8');
+    const { declarationExtensions } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    const plugin = declarationExtensions(root);
+    plugin.buildStart();
+    plugin.buildEnd();
+    await plugin.closeBundle();
+    assert.equal(readFileSync(join(root, 'index.d.ts'), 'utf8'), before);
   });
 
   it('fails the same way whether the declaration directory is empty or absent', async () => {
