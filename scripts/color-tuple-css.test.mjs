@@ -191,19 +191,53 @@ function warningCallers() {
         continue;
       }
       const source = codeOnly(readFileSync(path, 'utf8'));
-      for (const m of source.matchAll(
-        /warnUnstyledColor\(\s*'([^']+)'\s*,([\s\S]*?)\);/g
-      )) {
+      // Every call, and each bounded by its OWN closing paren. Ending at the
+      // first `);` reads past the arguments whenever the call is not its own
+      // statement — wrapped in a `useEffect` with a dependency array, say —
+      // and would take that array for `extraUnstyled`.
+      const calls = (source.match(/warnUnstyledColor\(/g) ?? []).length;
+      let parsed = 0;
+      for (const m of source.matchAll(/warnUnstyledColor\(/g)) {
+        let depth = 0;
+        let started = false;
+        let text = '';
+        for (let i = m.index; i < source.length; i++) {
+          if (source[i] === '(') {
+            depth += 1;
+            started = true;
+          } else if (source[i] === ')') {
+            depth -= 1;
+          }
+          // `started` matters: without it the loop ends on the first
+          // character, since depth is already 0 before any paren is seen.
+          if (started && depth === 0) {
+            text = source.slice(m.index, i + 1);
+            break;
+          }
+        }
+        const named = /warnUnstyledColor\(\s*'([^']+)'/.exec(text);
+        // A call whose component is not a string literal cannot be attributed
+        // to an element, and is counted below rather than skipped quietly.
+        if (!named) continue;
+        parsed += 1;
         callers.push({
-          component: m[1],
+          component: named[1],
           path,
           // Only the literals inside a bracketed list, so a nested call in
           // another argument cannot contribute one.
-          extraUnstyled: [...m[2].matchAll(/\[([^\]]*)\]/g)].flatMap(a =>
+          extraUnstyled: [...text.matchAll(/\[([^\]]*)\]/g)].flatMap(a =>
             [...a[1].matchAll(/'([^']+)'/g)].map(x => x[1])
           ),
         });
       }
+      assert.equal(
+        parsed,
+        calls,
+        `${path} has ${calls} \`warnUnstyledColor\` call(s) and ${parsed} ` +
+          'could be attributed to a component. A call naming its component ' +
+          'by anything but a string literal cannot be compared, so this ' +
+          'guard covers fewer elements than it appears to.'
+      );
     }
   };
   walk(SRC);
@@ -283,14 +317,22 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'keyword(s) on `color` and warns about ' +
           `${extraUnstyled.join(', ') || 'none'}. A keyword it accepts and ` +
           'does not warn about renders a dead modifier in silence; one it ' +
-          'warns about and does not accept cannot be passed.'
+          'warns about and does not accept cannot be passed. The accepted ' +
+          'side is read from the rendered type, so a union spelled through ' +
+          'an alias or an indexed access hides the literals and lands here ' +
+          'too — check how `color` is declared before changing the warning.'
       );
-      for (const keyword of accepted) {
+      // EVERYTHING it warns about has to be dead, not only the keywords.
+      // Filtering the equality above to keywords left a dead COLOUR in
+      // `extraUnstyled` reaching no check at all, so a component warning
+      // about a value that works kept this green. The invariant is simpler
+      // than the equality: if you warn about it, no rule may exist for it.
+      for (const value of [...new Set([...extraUnstyled, ...accepted])]) {
         assert.ok(
-          !shipsClass(css, `${el}.is-${keyword}`),
-          `\`.${el}.is-${keyword}\` ships now, so warning about ` +
-            `\`${keyword}\` on \`${component}\` complains about a value that ` +
-            'works. `extraUnstyled` needs it removed.'
+          !shipsClass(css, `${el}.is-${value}`),
+          `\`.${el}.is-${value}\` ships, so warning about \`${value}\` on ` +
+            `\`${component}\` complains about a value that works. ` +
+            '`extraUnstyled` needs it removed.'
         );
       }
     }
