@@ -31,11 +31,14 @@
  *
  * The CSS-wide keywords are handled alongside the tuple rather than skipped.
  * They are not in `validColors`, so no loop over it reaches them, and both
- * cases assert them separately: the shade case in both directions, since they
- * are part of that gap, and the modifier case by pinning them dead, since
- * `Hero` passes them as `extraUnstyled` and a rule shipping for one would
- * turn that warning into a complaint about a value that works. The keywords
- * themselves are read from the hook that accepts them.
+ * cases assert them separately. The shade case pins both directions, since
+ * they are part of that gap. The modifier case works per element and in two
+ * halves: an element that WIDENS its `color` union with a keyword has to warn
+ * about it, because the union is why the warning exists, and Bulma must ship
+ * no rule for it, or that warning complains about a value that works. Only
+ * `Hero` widens today, which is why `Notification` and `Progress` come out
+ * of that comparison empty rather than exempt. The keywords themselves are
+ * read from the hook that accepts them, every copy of the set it spells.
  *
  * One thing does sit outside, and is worth naming so the scope reads as
  * chosen rather than overlooked: `bgColor` accepts `validSchemeColors` on top
@@ -228,23 +231,67 @@ function modifierElements() {
  * as every list this change removed.
  */
 function colorKeywords() {
-  const source = readFileSync(COLOR_CLASSES, 'utf8');
-  const block = /!\[\.\.\.validColors,([^\]]*)\]\.includes\(value\)/.exec(
-    source
+  const source = codeOnly(readFileSync(COLOR_CLASSES, 'utf8'));
+  // EVERY copy. The hook spells the set twice — once in the membership test
+  // that decides whether a value is accepted at all, once in the `addClass`
+  // call that gates emission — and reading one left the other unchecked.
+  const copies = [...source.matchAll(/\[\.\.\.validColors,([^\]]*)\]/g)].map(
+    m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])
   );
   assert.ok(
-    block,
-    'could not find the accepted-value test in useColorClasses, so the ' +
+    copies.length > 0,
+    'could not find `[...validColors, …]` in useColorClasses, so the ' +
       'CSS-wide keywords cannot be read. Fix the pattern in the same change ' +
       'that moved it.'
   );
-  const keywords = [...block[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  for (const copy of copies) {
+    assert.deepEqual(
+      copy,
+      copies[0],
+      `useColorClasses spells the accepted set ${copies.length} times and the ` +
+        'copies disagree, so which keywords a value is judged against depends ' +
+        'on which one runs.'
+    );
+  }
   assert.ok(
-    keywords.length > 0,
-    'the accepted-value test named no keyword beyond `validColors`, which ' +
-      'would make the keyword assertions below vacuous.'
+    copies[0].length > 0,
+    'the accepted set named no keyword beyond `validColors`, which would ' +
+      'make the keyword assertions below vacuous.'
   );
-  return keywords;
+  return copies[0];
+}
+
+/**
+ * The keywords an element both ACCEPTS and warns about, read per element.
+ *
+ * Two halves, and asserting only the first was the gap. `Hero` widens its
+ * `color` union with these and passes them to `warnUnstyledColor` as
+ * `extraUnstyled`, so the warning exists because the union does. Pinning only
+ * "Bulma ships no rule for it" left that hand-written argument free to lose an
+ * entry with the whole repo green, which would render a dead modifier in
+ * silence. `Notification` and `Progress` accept no keyword and pass none, so
+ * they are correctly empty here rather than exempt.
+ */
+function elementKeywords({ component, source }, keywords) {
+  let accepted;
+  try {
+    const info = extractComponent(component, { markdown: false });
+    const row = (info.tables ?? [])
+      .flatMap(t => t.rows ?? [])
+      .find(r => r.name === 'color');
+    accepted = keywords.filter(k => (row?.type ?? '').includes(`'${k}'`));
+  } catch (error) {
+    // Narrowed the same way `tupleTyped` is: only the "not exported" answer
+    // means "no declaration to read here". Anything else is the extractor
+    // breaking, and must not read as "this element accepts no keyword".
+    if (!/is not exported from/.test(error.message)) throw error;
+    accepted = [];
+  }
+  const call = new RegExp(
+    `warnUnstyledColor\\(\\s*'${component}'\\s*,[^,)]*,([^)]*)\\)`
+  ).exec(source);
+  const warned = call ? [...call[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : [];
+  return { accepted, warned };
 }
 
 /** A named `as const` string tuple, read from a source file. */
@@ -330,6 +377,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     const declared = tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS');
 
     const elements = modifierElements();
+    const keywords = colorKeywords();
     assert.ok(
       elements.length > 0,
       'no component found that both types `color` off `validColors` and emits ' +
@@ -379,13 +427,26 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'Bulma element class and the comparison below would call every ' +
           'colour dead. The component-name-to-class assumption has broken.'
       );
-      // `Hero` passes these to `warnUnstyledColor` as `extraUnstyled`, so
-      // the library warns about them on every element that does. If Bulma
-      // ever shipped a rule for one, that warning would be the "reverse"
-      // failure this case's own message names: a complaint about a value
-      // that works. The shade case pins both directions for these two; this
-      // pins the half that matters here.
-      for (const keyword of colorKeywords()) {
+      // The CSS-wide keywords, per element and in both halves. An element
+      // that WIDENS its `color` union with one has to warn about it, because
+      // the union is why the warning exists; and Bulma must ship no rule for
+      // it, or that warning complains about a value that works. Asserting
+      // only the second left the hand-written `extraUnstyled` argument free
+      // to lose an entry with the whole repo green.
+      const { accepted, warned } = elementKeywords(
+        { component, source },
+        keywords
+      );
+      assert.deepEqual(
+        [...warned].sort(),
+        [...accepted].sort(),
+        `\`${component}\` accepts ${accepted.join(', ') || 'no'} CSS-wide ` +
+          `keyword(s) on \`color\` and warns about ` +
+          `${warned.join(', ') || 'none'}. A keyword it accepts and does not ` +
+          'warn about renders a dead modifier in silence; one it warns about ' +
+          'and does not accept cannot be passed.'
+      );
+      for (const keyword of accepted) {
         assert.ok(
           !shipsClass(css, `${el}.is-${keyword}`),
           `\`.${el}.is-${keyword}\` ships now, so warning about ` +
