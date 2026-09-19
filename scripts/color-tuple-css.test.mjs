@@ -168,7 +168,11 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
  *   everything the element carries.
  * - A pseudo-ELEMENT does not restrict anything. `.delete::before` styles a
  *   box generated for a delete, so the delete is live and calling it dead
- *   would be a plain misreading. Those are left alone.
+ *   would be a plain misreading. The `::` spelling is left alone. The legacy
+ *   one-colon spellings are NOT recognised as pseudo-elements and take a
+ *   sentinel like any other bare pseudo-class, which lands them on the false
+ *   -alarm side rather than the silent one. Telling `:after` from `:hover`
+ *   means keeping a list of them, and nothing yet needs it.
  * - Everything else — a pseudo-class with parentheses or without, and an
  *   attribute selector — narrows WHICH elements carrying those classes
  *   match. `.notification.is-primary:where(.is-light)` and
@@ -185,10 +189,13 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
  * carries. Attribute selectors go before bare pseudo-classes, because an
  * attribute VALUE may contain a colon. And the argument pass repeats to a
  * fixed point, because `[^()]*` cannot cross a parenthesis and `replace`
- * does not re-scan its own output: a single pass over
- * `:has(:not(.is-light))` resolves the inner call and leaves an empty
- * `:has()` that matches nothing, so the set shrinks back to the size of the
- * query. Each pass removes at least one pair of parentheses, so it ends.
+ * does not re-scan its own output. What needs the repeat is a nested call
+ * inside a `:not()`: one pass over `:not(:is(.is-light))` resolves the inner
+ * call and leaves `:not(.UNMODELLED)`, and unless the `:not` is reached
+ * again it never drops, so a prohibition reads as a requirement. Nesting
+ * the other way round needs nothing — one pass over `:has(:not(…))` leaves
+ * an empty `:has()`, which the bare pass then sentinels anyway. Each pass
+ * removes at least one pair of parentheses, so it ends.
  */
 function requirements(prelude) {
   let text = prelude;
@@ -199,9 +206,47 @@ function requirements(prelude) {
       name.toLowerCase() === 'not' ? '' : `.${UNMODELLED}`
     );
   } while (text !== previous);
-  return text
-    .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
-    .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`);
+  return (
+    text
+      .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
+      .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`)
+      .replace(/#[A-Za-z0-9_-]+/g, `.${UNMODELLED}`)
+      // Pseudo-elements last, and removed rather than replaced. What is left
+      // by then is a `::` spelling, so no other pass can mistake it for the
+      // qualifier check in `classesOf`.
+      .replace(/::[a-z-]+/gi, '')
+  );
+}
+
+/**
+ * The classes a simple selector requires, sentinel included.
+ *
+ * `requirements` handles everything a selector can say ABOUT an element.
+ * What it cannot see is the element itself: a type selector is not a token
+ * to substitute but the absence of one, and only the shape of a simple
+ * selector tells you it is there. `a.dropdown-item.is-selected` is the only
+ * form Bulma ships that pair in, so reading it as two classes says a plain
+ * `<div class="dropdown-item is-selected">` renders — over-reporting, and
+ * the silent direction.
+ *
+ * So anything left over once the classes are removed is a qualifier and
+ * takes a sentinel. `*` is the exception: it matches everything, so it
+ * requires nothing.
+ */
+function classesOf(simple) {
+  const classes = [...simple.matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)].map(m =>
+    // A class name may escape a character with a backslash, which is how
+    // Bulma spells the fractional gap helpers: `.is-gap-0\\.5` is ONE class
+    // called `is-gap-0.5`. Reading the escape as a separator splits it into
+    // `is-gap-0` and `5`, which both invents a class and inflates the set
+    // past the exact-size check.
+    m[1].replace(/\\(.)/g, '$1')
+  );
+  const qualifier = simple
+    .replace(/\.(?:\\.|[A-Za-z0-9_-])+/g, '')
+    .replace(/\*/g, '')
+    .trim();
+  return new Set(qualifier ? [...classes, UNMODELLED] : classes);
 }
 
 function simpleSelectors(css) {
@@ -223,18 +268,7 @@ function simpleSelectors(css) {
       for (const part of prelude.split(',')) {
         for (const simple of part.split(/[\s>+~]+/)) {
           if (!simple.includes('.')) continue;
-          // A class name may escape a character with a backslash, which is
-          // how Bulma spells the fractional gap helpers: `.is-gap-0\\.5` is
-          // ONE class called `is-gap-0.5`. Reading the escape as a separator
-          // splits it into `is-gap-0` and `5`, which both invents a class and
-          // inflates the set past the exact-size check.
-          sets.push(
-            new Set(
-              [...simple.matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)].map(m =>
-                m[1].replace(/\\(.)/g, '$1')
-              )
-            )
-          );
+          sets.push(classesOf(simple));
         }
       }
     }
@@ -494,11 +528,11 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
   // The matcher itself, on selectors written for the purpose. Every finding
   // this file has taken was a matcher bug rather than a library one, and each
   // was found by measuring the built stylesheet, which only covers the shapes
-  // Bulma happens to write today. Two of the four `:has()` selectors that ship
-  // come from our own SCSS, so the shapes are ours to grow. These pin the
-  // DIRECTION: reading a compound as live when it is not is a missed defect,
-  // reading it as dead when it is live is a false alarm, and the matcher is
-  // only ever allowed the second.
+  // Bulma happens to write today. Some of what ships comes from our own SCSS,
+  // so the shapes are ours to grow. These pin the DIRECTION: reading a
+  // compound as live when it is not is a missed defect, reading it as dead
+  // when it is live is a false alarm, and the matcher is only ever allowed
+  // the second.
   it('never reads a compound as live that the selector does not ship', () => {
     const live = (css, query) => shipsClass(css, query);
 
@@ -592,6 +626,39 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'a prohibition stays a prohibition however its argument is written: ' +
         'resolving the inner call has to leave a `:not()` that then DROPS, ' +
         'or the compound outside it reads dead.'
+    );
+
+    // A TYPE or ID selector is a requirement the tokeniser cannot see as a
+    // token, only as what is left over once the classes are removed.
+    assert.equal(
+      live(
+        'a.dropdown-item.is-selected{color:red}',
+        'dropdown-item.is-selected'
+      ),
+      false,
+      'a type selector means the rule needs that element, so the classes on ' +
+        'their own do not render.'
+    );
+    assert.equal(
+      live(
+        '#main.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'an ID selector is a requirement too.'
+    );
+    assert.equal(
+      live('*.notification.is-primary{color:red}', 'notification.is-primary'),
+      true,
+      'the universal selector matches everything, so it requires nothing.'
+    );
+    assert.equal(
+      live(
+        '.dropdown-item.is-selected{color:red}',
+        'dropdown-item.is-selected'
+      ),
+      true,
+      'an unqualified compound is live, or the three above would be vacuous.'
     );
 
     // A pseudo-class that FORBIDS. The rest of the selector already says
