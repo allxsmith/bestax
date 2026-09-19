@@ -147,8 +147,20 @@ function simpleSelectors(css) {
       for (const part of prelude.split(',')) {
         for (const simple of part.split(/[\s>+~]+/)) {
           if (!simple.includes('.')) continue;
+          // `:not(…)` names classes the element must NOT carry, so reading
+          // them as present lets `.notification:not(.is-light)` answer the
+          // query `notification.is-light` — a rule that explicitly excludes
+          // the pair reporting it live, which is the silent direction.
+          // Dropped before extraction. `:is()` and `:where()` are left alone:
+          // their classes are alternatives, so counting them makes the exact
+          // match demand too many and under-report, which is the safe way to
+          // be wrong.
+          const matchable = simple.replace(/:not\([^)]*\)/g, '');
+          if (!matchable.includes('.')) continue;
           sets.push(
-            new Set([...simple.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(m => m[1]))
+            new Set(
+              [...matchable.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(m => m[1])
+            )
           );
         }
       }
