@@ -76,7 +76,22 @@ const declarationExtensions = () => ({
     for (const file of files) {
       const before = await readFile(file, 'utf8');
       const after = before.replace(SPECIFIER, (whole, head, _q, spec, tail) => {
-        if (/\.[cm]?js$/.test(spec)) return whole;
+        // An extension already present is still checked, or this becomes the
+        // one branch that neither resolves nor throws: the post-pass only looks
+        // for a MISSING extension, so a dangling `./gone.js` would survive both
+        // passes and ship. Nothing in `src/` spells an extension today; the
+        // point is that the plugin holds every branch to the same standard.
+        if (/\.[cm]?js$/.test(spec)) {
+          const asFile = resolvePath(dirname(file), spec).replace(
+            /\.[cm]?js$/,
+            '.d.ts'
+          );
+          if (existsSync(asFile)) return whole;
+          throw new Error(
+            `${file}: '${spec}' already carries an extension but resolves to ` +
+              'no declaration, so it would ship pointing nowhere.'
+          );
+        }
         // A bare `.` or `..` names a directory by definition, so it skips the
         // file probe. Probing first would let a stale declaration — `dist` is
         // never cleaned — send it down the file branch and emit a specifier

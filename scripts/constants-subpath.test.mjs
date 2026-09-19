@@ -327,7 +327,6 @@ describe('bulma-ui export map', () => {
             jsx: 'react-jsx',
             strict: true,
             noEmit: true,
-            skipLibCheck: true,
           },
           include: ['src'],
         })
