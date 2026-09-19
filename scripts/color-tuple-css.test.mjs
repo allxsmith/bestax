@@ -276,9 +276,14 @@ function elementKeywords({ component, source }, keywords) {
   let accepted;
   try {
     const info = extractComponent(component, { markdown: false });
-    const row = (info.tables ?? [])
-      .flatMap(t => t.rows ?? [])
-      .find(r => r.name === 'color');
+    // The ROOT table only. A compound's parts declare their own `color`, and
+    // it is a different prop: `Hero.color` is the `is-<colour>` modifier
+    // while `Hero.Head.color` is a text colour, where `has-text-inherit` and
+    // `has-text-current` genuinely ship. Taking the first `color` row across
+    // every table agreed with this only because all four spell the same
+    // union, which is source order deciding a correctness question.
+    const root = (info.tables ?? []).find(t => t.path === component);
+    const row = (root?.rows ?? []).find(r => r.name === 'color');
     accepted = keywords.filter(k => (row?.type ?? '').includes(`'${k}'`));
   } catch (error) {
     // Narrowed the same way `tupleTyped` is: only the "not exported" answer
@@ -287,10 +292,33 @@ function elementKeywords({ component, source }, keywords) {
     if (!/is not exported from/.test(error.message)) throw error;
     accepted = [];
   }
-  const call = new RegExp(
-    `warnUnstyledColor\\(\\s*'${component}'\\s*,[^,)]*,([^)]*)\\)`
-  ).exec(source);
-  const warned = call ? [...call[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : [];
+
+  // Balanced to the closing paren rather than matched with `[^)]*`, so a
+  // nested call in any argument (`String(color)`) cannot truncate the text
+  // and read as "warns about nothing", which would fail blaming the component
+  // for a limitation of this guard.
+  const open = source.indexOf(`warnUnstyledColor('${component}'`);
+  let call = '';
+  if (open !== -1) {
+    let depth = 0;
+    for (let i = source.indexOf('(', open); i < source.length; i++) {
+      if (source[i] === '(') depth += 1;
+      if (source[i] === ')') depth -= 1;
+      if (depth === 0) {
+        call = source.slice(open, i + 1);
+        break;
+      }
+    }
+  }
+
+  // Filtered to `keywords` on BOTH sides. `extraUnstyled` takes extra
+  // unstyled VALUES, so a per-component dead colour is a legitimate entry
+  // there, and collecting every literal made such an entry red this
+  // comparison with a message that is false about the library. Those entries
+  // are outside this particular equality rather than wrong.
+  const warned = [...call.matchAll(/'([^']+)'/g)]
+    .map(m => m[1])
+    .filter(v => keywords.includes(v));
   return { accepted, warned };
 }
 
