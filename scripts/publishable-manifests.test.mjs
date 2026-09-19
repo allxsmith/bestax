@@ -1511,7 +1511,9 @@ test('a bare conditions map with no subpath keys is judged', () => {
 
 test('an mjs target behind a require condition is judged', () => {
   // It fails exactly as a `.js` in ESM scope does — ERR_REQUIRE_ESM for every
-  // consumer below Node 22.12 — and the load-mode corpus reports it. Abstaining
+  // consumer whose runtime refuses require(esm) — and the load-mode corpus
+  // reports it. No version is named here for the reason the rule gives: the
+  // support was backported, so a single cutoff misleads. Abstaining
   // on it was an argument about the author's intent where the rule is about the
   // consumer's outcome.
   const found = entryViolations({
@@ -1941,8 +1943,8 @@ test('the root entry really loads through both conditions', async () => {
   assert.ok(
     Object.keys(cjs).length > 0,
     'the require condition produced no exports — the symptom of a CommonJS ' +
-      'bundle being read as ESM, which yields an empty namespace object on a ' +
-      'Node with require(esm) and throws on an older one (#688)'
+      'bundle being read as ESM, where its own require/exports references ' +
+      'throw at module scope — an older runtime refuses it outright (#688)'
   );
   assert.ok(cjs.Button, 'the require condition served no Button');
 

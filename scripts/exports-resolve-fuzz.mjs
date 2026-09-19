@@ -4,7 +4,8 @@
  * `manifestViolations` carries a reduced implementation of Node's
  * PACKAGE_TARGET_RESOLVE, because deciding whether a `require()` lands on a
  * file Node reads as ESM means knowing which target it lands on at all. That
- * model was wrong in a different way eleven times, and each time the evidence
+ * model has been wrong in a different way many times over, and each time the
+ * evidence
  * that fixed it was a generated manifest resolved by Node — not a reading of
  * the spec, which the implementation departs from in at least one place (an
  * array records a `null` and keeps going).
@@ -83,7 +84,8 @@ const pick = a => a[rnd(a.length)];
 
 // Valid targets, deprecated-but-valid spellings, and every way a target can be
 // invalid: bare, escaping, `node_modules`, a `..` segment, percent-encoded, and
-// backslash-separated. The invalid ones are what found the last four bugs.
+// backslash-separated. The invalid spellings are the ones that have historically
+// found the divergences; see #688 for the series.
 const FILES = [
   './a.cjs',
   './a.js',
@@ -278,11 +280,13 @@ for (let i = 0; i < COUNT; i++) {
   // can name a different file than Node resolved and still say "broken". Most
   // of the valid targets here are ES modules, so a genuine divergence had
   // better than even odds of being masked. Both modes report a landed path now,
-  // so both compare the FILE — matched on the full path rather than the
-  // basename, since a second `./dist/a.js` beside `./a.js` would silently
-  // re-open that masking, and as a SUFFIX rather than by slicing off the
-  // package directory, because macOS resolves `/var` to `/private/var` and the
-  // path Node reports shares no prefix with the one this script built.
+  // so both compare the file rather than the basename alone — a second
+  // `./dist/a.js` beside `./a.js` would otherwise silently re-open that
+  // masking. Matched as a path SUFFIX, because macOS resolves `/var` to
+  // `/private/var` and the path Node reports shares no prefix with the one this
+  // script built. A suffix is weaker than a full comparison: it would still
+  // collide between `./a.js` and `./sub/a.js`, which is safe only because no
+  // generated target nests a duplicate basename.
   let wrongTarget = false;
   if (nodeSaysBroken && flagged.length > 0 && landedPath) {
     const resolved = String(landedPath).replace(/\/+/g, '/');

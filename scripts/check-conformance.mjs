@@ -2343,10 +2343,10 @@ export function manifestViolations(
   // one CJS file to both conditions, and advised a rename that would have
   // broken it.
   //
-  // Worth knowing for anyone reading a failure: this does not always throw.
-  // Depending on the Node version a consumer can instead get an empty namespace
-  // object, which is worse, because nothing fails and the package merely
-  // appears to export nothing.
+  // Worth knowing for anyone reading a failure: it does not always look the
+  // same. An older runtime refuses the require outright; a newer one reads the
+  // bundle as ESM, where the bundle's own `require` and `exports` references
+  // throw at module scope. Either way it does not load as CommonJS.
   const requireTargets = [];
 
   // A reduced PACKAGE_TARGET_RESOLVE for the `require` side. The earlier
