@@ -77,6 +77,12 @@ const declarationExtensions = () => ({
       const before = await readFile(file, 'utf8');
       const after = before.replace(SPECIFIER, (whole, head, _q, spec, tail) => {
         if (/\.[cm]?js$/.test(spec)) return whole;
+        // A bare `.` or `..` names a directory by definition, so it takes the
+        // index branch without asking the filesystem. Probing first would let a
+        // stale `dist/types/..d.ts` — `dist` is never cleaned — send it down the
+        // file branch and emit the nonsense `...js`, which ends in `.js` and so
+        // passes the post-pass untouched.
+        if (/^\.\.?$/.test(spec)) return `${head}${spec}/index.js${tail}`;
         const resolved = resolvePath(dirname(file), spec);
         if (existsSync(`${resolved}.d.ts`)) return `${head}${spec}.js${tail}`;
         if (existsSync(join(resolved, 'index.d.ts'))) {
