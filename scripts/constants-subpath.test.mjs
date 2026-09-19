@@ -972,6 +972,36 @@ describe('the declaration-extension guard', () => {
     }
   });
 
+  it('abandons its writes when a rebuild starts mid-pass', async () => {
+    // `rollup --watch` does not await `result.close()`, so a rebuild can begin
+    // while this pass is still walking. Without a generation check the pass
+    // finishes writing rewrites of text the new emit has already replaced,
+    // leaving a stale declaration on disk until the rebuild after that.
+    const root = tree({
+      'index.d.ts': "export * from './a';\n",
+      'a.d.ts': "export * from './b';\n",
+      'b.d.ts': 'export {};\n',
+    });
+    const { declarationExtensions } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    const plugin = declarationExtensions(root);
+    plugin.buildStart();
+    plugin.buildEnd();
+    plugin.renderStart();
+    plugin.writeBundle();
+    // Start the pass, then let a rebuild begin before it can write.
+    const pass = plugin.closeBundle();
+    plugin.buildStart();
+    await pass;
+    // Nothing rewritten: every specifier is still extensionless.
+    assert.equal(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      "export * from './a';\n",
+      'the abandoned pass wrote anyway, so a rebuild can be overwritten by it'
+    );
+  });
+
   it('refuses a specifier that resolves outside the published tree', async () => {
     // `existsSync` answers a question about the build machine; only what sits
     // under the declaration root is published. A specifier climbing out can

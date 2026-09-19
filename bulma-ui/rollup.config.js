@@ -207,6 +207,14 @@ export const declarationExtensions = (root = 'dist/types') => {
   // that starts must also finish.
   let started = 0;
   let wrote = 0;
+  // Which build this is. `rollup --watch` does NOT await `result.close()`, so a
+  // rebuild can begin while the previous build's pass is still walking the
+  // tree: the pass reads a declaration, the new emit overwrites it, and then the
+  // pass writes its rewrite of the OLD text back on top. Transient and
+  // dev-only — the next rebuild corrects it, and no publish runs under watch —
+  // but a stale declaration on disk is confusing to debug, and a generation
+  // check is cheaper than the confusion.
+  let generation = 0;
   // One route stays outside all of it, and is left there on purpose. If a
   // plugin ordered AFTER this one had a `writeBundle` that threw, `wrote` would
   // already have been incremented and `closeBundle` would be handed no error,
@@ -247,6 +255,7 @@ export const declarationExtensions = (root = 'dist/types') => {
       failed = false;
       started = 0;
       wrote = 0;
+      generation += 1;
     },
     buildEnd(error) {
       if (error) failed = true;
@@ -280,6 +289,9 @@ export const declarationExtensions = (root = 'dist/types') => {
     // is replaced by whatever this hook says next.
     async closeBundle(error) {
       if (failed || error || started === 0 || wrote !== started) return;
+      // Pinned at entry, compared before every write: a rebuild that starts
+      // mid-pass makes this pass's remaining writes stale.
+      const building = generation;
       const files = [];
       const walk = async dir => {
         let entries;
@@ -379,6 +391,7 @@ export const declarationExtensions = (root = 'dist/types') => {
             );
           }
         );
+        if (generation !== building) return;
         if (after !== before) await writeFile(file, after, 'utf8');
       }
 
