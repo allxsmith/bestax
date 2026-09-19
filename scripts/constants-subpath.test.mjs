@@ -560,7 +560,7 @@ describe('the declaration-extension guard', () => {
       'index.d.ts': "import './side';\n",
       'side.d.ts': 'export {};\n',
     });
-    await assert.rejects(run(root), /still has extensionless/);
+    await assert.rejects(run(root), /resolve to no declaration/);
   });
 
   it('fails on a specifier that carries an extension and resolves nowhere', async () => {
@@ -580,6 +580,49 @@ describe('the declaration-extension guard', () => {
       readFileSync(join(root, 'index.d.ts'), 'utf8'),
       /"\.\/x\.d\.ts"/
     );
+  });
+
+  it('fails on a dangling specifier wherever it sits, not only after `from`', async () => {
+    // The rewrite only probes `from`/`import(` positions, so these three are
+    // the post-pass's alone — and testing for a missing extension rather than
+    // for resolvability let each of them ship a specifier pointing nowhere.
+    for (const body of [
+      "import './gone.js';\n",
+      "declare module './gone.js';\n",
+      "import y = require('./gone.js');\n",
+    ]) {
+      await assert.rejects(
+        run(tree({ 'index.d.ts': body })),
+        /resolve to no declaration/,
+        body.trim()
+      );
+    }
+  });
+
+  it('fails on a trailing-slash specifier that a stale sibling would mask', async () => {
+    // `./dir/` with a stale `dir.d.ts` beside it became `./dir/.js`, which ends
+    // in `.js` and so passed a check that only looked at the extension.
+    const root = tree({
+      'index.d.ts': "export * from './dir/';\n",
+      'dir.d.ts': 'export {};\n',
+    });
+    await assert.rejects(run(root), /resolve to no declaration/);
+  });
+
+  it('accepts the directory and double-quoted forms a real build produces', async () => {
+    // The two shapes the post-pass was written for, on their SUCCESS path —
+    // every real build exercises both, but the synthetic suite had neither.
+    const root = tree({
+      'deep/index.d.ts':
+        'export declare const via: import("..").Thing;\n' +
+        "export * from '../shared';\n",
+      'index.d.ts': 'export interface Thing { a: number }\n',
+      'shared.d.ts': 'export {};\n',
+    });
+    await run(root);
+    const out = readFileSync(join(root, 'deep/index.d.ts'), 'utf8');
+    assert.match(out, /import\("\.\.\/index\.js"\)/);
+    assert.match(out, /'\.\.\/shared\.js'/);
   });
 
   it('fails on a bare dot naming a directory with no index', async () => {

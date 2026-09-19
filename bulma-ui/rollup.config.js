@@ -44,6 +44,25 @@ const aiBanner =
  * is neither throws — including a bare `.` or `..`, which skips the file probe
  * but is still held to having an index.
  */
+/**
+ * Whether `spec`, written inside `file`, names a declaration that exists.
+ *
+ * A declaration spells its imports the way the runtime will: `./x.js` is
+ * declared by `./x.d.ts`, and the `.cjs`/`.mjs` forms by `.d.cts`/`.d.mts`. A
+ * triple-slash `reference path` names the declaration directly. Anything else
+ * is unresolved, which is the one question worth asking after the rewrite.
+ */
+const resolvesToDeclaration = (file, spec) => {
+  const from = dirname(file);
+  if (/\.d\.[cm]?ts$/.test(spec)) return existsSync(resolvePath(from, spec));
+  const runtime = spec.match(/\.([cm]?)js$/);
+  if (runtime) {
+    const declared = `.d.${runtime[1]}ts`;
+    return existsSync(resolvePath(from, spec).replace(/\.[cm]?js$/, declared));
+  }
+  return false;
+};
+
 export const declarationExtensions = (root = 'dist/types') => ({
   name: 'bestax-declaration-extensions',
   async writeBundle() {
@@ -143,14 +162,24 @@ export const declarationExtensions = (root = 'dist/types') => ({
       // verbatim, escape both at once. What keeps a
       // `/// <reference path="./x.d.ts" />` from failing here is the extension
       // it already carries, not where it sits.
-      const missed = [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
-        .map(m => m[1])
-        .filter(spec => !/\.([cm]?js|d\.[cm]?ts)$/.test(spec));
-      if (missed.length) {
+      // Every relative string has to RESOLVE, not merely carry an extension.
+      // Testing the extension alone left three shapes shipping a dangling
+      // specifier: one outside a `from`/`import(` position, one already
+      // carrying an extension, and a `./dir/` whose stale sibling turned into
+      // `./dir/.js`. Resolvability is one question covering all of them, and it
+      // is the property that actually matters to a consumer.
+      const broken = [
+        ...new Set(
+          [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
+            .map(m => m[1])
+            .filter(spec => !resolvesToDeclaration(file, spec))
+        ),
+      ];
+      if (broken.length) {
         throw new Error(
-          `${file} still has extensionless relative specifiers after the ` +
-            `rewrite: ${[...new Set(missed)].join(', ')}. They will not ` +
-            'resolve when TypeScript reads this declaration as ESM.'
+          `${file} has relative specifiers that resolve to no declaration ` +
+            `after the rewrite: ${broken.join(', ')}. They would ship ` +
+            'pointing nowhere.'
         );
       }
     }
