@@ -29,10 +29,19 @@
  * own way to be wrong about a library that is fine.
  *
  * What the single signal gives up is stated rather than papered over: a
- * component that emits the modifier and never warns is not detected. The same
- * gap applies to `Calendar` and `TimeWheels`, which emit it today and are not
- * exported from `src/index.ts`. Closing it wants the library to say which
- * components warn, not a test to guess.
+ * component that emits the modifier and never warns is not detected, which is
+ * the shape of the defect that started this. `Calendar` and `TimeWheels` emit
+ * it today without warning and so are invisible here, but nothing is exposed
+ * by that: both narrow `color` to the six semantic values, none of which can
+ * be dead. The detection gap is real, their exposure to it is not. Closing it
+ * wants the library to say which components warn, rather than a test guessing
+ * from source.
+ *
+ * `codeOnly` is a textual strip, with the limit that implies: a `//` inside a
+ * string literal on the same line as a call would remove that call from both
+ * the count and the parse together, dropping the element out with only the
+ * "found at least one caller" floor behind it. A tokenizer would close that,
+ * and would be another reader of the kind this file has been shedding.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -290,17 +299,26 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'colour dead. The component-name-to-class assumption has broken.'
       );
 
+      // The declared set is GLOBAL plus this element's own additions.
+      // `extraUnstyled` exists to name a colour that is live in general and
+      // dead here, so comparing against the global tuple alone failed that
+      // use with a message calling the value unwarned when it is precisely
+      // the warned one.
+      const extraColors = extraUnstyled.filter(v => colors.includes(v));
+      const expected = [...new Set([...declared, ...extraColors])].sort();
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
       );
       assert.deepEqual(
         [...dead].sort(),
-        [...declared].sort(),
-        `UNSTYLED_MODIFIER_COLORS and the colours with no \`.${el}.is-…\` ` +
-          'rule disagree. A colour in the real set and not the declared one ' +
-          'renders a dead modifier with no warning, which is the silence the ' +
-          'warning exists to break; the reverse warns about a colour that ' +
-          'works.'
+        expected,
+        `the colours with no \`.${el}.is-…\` rule and the colours declared ` +
+          'unstyled for it disagree. A colour in the real set and not the ' +
+          'declared one renders a dead modifier with no warning, which is ' +
+          'the silence the warning exists to break; the reverse warns about ' +
+          'a colour that works. The declared set is ' +
+          '`UNSTYLED_MODIFIER_COLORS` plus whatever this call passes as ' +
+          '`extraUnstyled`.'
       );
 
       // The CSS-wide keywords, in both halves. An element that WIDENS its
