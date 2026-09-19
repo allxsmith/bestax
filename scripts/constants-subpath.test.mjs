@@ -972,6 +972,29 @@ describe('the declaration-extension guard', () => {
     }
   });
 
+  it('sees a comment wherever trivia can attach, not just before a node', async () => {
+    // Missing a comment is NOT the harmless direction it looks like. The
+    // post-pass then reads the comment as code and fails the build over a
+    // relative path written in prose. `forEachChild` skips punctuation, so a
+    // comment before a closing brace — or alone inside an empty interface — was
+    // leading trivia of a token nothing visited, and both failed the build.
+    // Each body below carries an unresolvable path inside a comment, so a
+    // missed range shows up as a rejection.
+    for (const body of [
+      "/** see './nope/x' */\nexport declare const A: 1;\n",
+      "export declare const A: 1; // see './nope/x'\n",
+      "export interface I {\n  a: 1;\n  // see './nope/x'\n}\n",
+      "export interface I {\n  // see './nope/x'\n}\n",
+      "export /* see './nope/x' */ declare const A: 1;\n",
+      "export declare const A: 1;\n// see './nope/x'\n",
+      "export declare function f(\n  // see './nope/x'\n  a: 1\n): void;\n",
+      "export declare const A: 1;\n/* see './nope/x' */\nexport declare const B: 2;\n",
+    ]) {
+      const root = tree({ 'index.d.ts': body });
+      await run(root);
+    }
+  });
+
   it('abandons its writes when a rebuild starts mid-pass', async () => {
     // `rollup --watch` does not await `result.close()`, so a rebuild can begin
     // while this pass is still walking. Without a generation check the pass

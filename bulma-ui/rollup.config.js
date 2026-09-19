@@ -68,8 +68,9 @@ const parseDeclaration = text =>
     'declaration.d.ts',
     text,
     ts.ScriptTarget.Latest,
-    // No parent pointers: nothing here walks upward.
-    false,
+    // Parent pointers, because the comment walk below descends through TOKENS
+    // rather than nodes, and `getChildren` needs them.
+    true,
     ts.ScriptKind.TS
   );
 
@@ -82,14 +83,18 @@ const commentRanges = (text, sourceFile) => {
     seen.add(key);
     ranges.push([range.pos, range.end]);
   };
+  // TOKENS, not nodes. `forEachChild` skips punctuation, and a comment sitting
+  // before a closing brace — or alone inside an empty interface — is leading
+  // trivia of that brace and nothing else. Missing one is not harmless the way
+  // it first looks: the post-pass then reads the comment as code and FAILS THE
+  // BUILD over a relative path in prose. Descending through tokens reaches
+  // every position trivia can attach to.
   const visit = node => {
     ts.getLeadingCommentRanges(text, node.pos)?.forEach(add);
     ts.getTrailingCommentRanges(text, node.end)?.forEach(add);
-    ts.forEachChild(node, visit);
+    for (const child of node.getChildren(sourceFile)) visit(child);
   };
   visit(sourceFile);
-  // A file whose last thing is a comment keeps it on the EOF token.
-  ts.getLeadingCommentRanges(text, sourceFile.endOfFileToken.pos)?.forEach(add);
   return ranges;
 };
 
@@ -290,7 +295,11 @@ export const declarationExtensions = (root = 'dist/types') => {
     async closeBundle(error) {
       if (failed || error || started === 0 || wrote !== started) return;
       // Pinned at entry, compared before every write: a rebuild that starts
-      // mid-pass makes this pass's remaining writes stale.
+      // mid-pass makes this pass's remaining writes stale. This NARROWS the
+      // window rather than closing it — a rebuild landing between the check and
+      // the `writeFile` beside it still lands — and closing it properly would
+      // mean locking the tree. What is left is one stale declaration, corrected
+      // by the rebuild that caused it, under `--watch` only.
       const building = generation;
       const files = [];
       const walk = async dir => {
