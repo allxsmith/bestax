@@ -264,7 +264,19 @@ for (let i = 0; i < COUNT; i++) {
   // failure, or the rule reported one. Agreement on "nothing here" proves
   // nothing about the rule.
   if (nodeSaysBroken || flagged.length > 0) decisive++;
-  if (nodeSaysBroken !== flagged.length > 0) {
+
+  // Comparing verdicts alone would let the rule agree for the wrong reason: it
+  // can name a different file than Node resolved and still say "broken". Most
+  // of the valid targets here are ES modules, so a genuine resolution
+  // divergence has better than even odds of being masked. In `resolve` mode
+  // the landed path is known, so the FILE is compared too.
+  let wrongTarget = false;
+  if (MODE === 'resolve' && nodeSaysBroken && flagged.length > 0) {
+    const landedName = String(landed).split('/').pop();
+    wrongTarget = !flagged.some(v => v.includes(`/${landedName}\``));
+  }
+
+  if (wrongTarget || nodeSaysBroken !== flagged.length > 0) {
     disagreements++;
     keepRoot = true;
     if (disagreements <= 10) {
@@ -275,7 +287,8 @@ for (let i = 0; i < COUNT; i++) {
         '| node →',
         landed && String(landed).split('/').pop(),
         '| rule flags:',
-        flagged.length > 0
+        flagged.length > 0,
+        wrongTarget ? '| NAMED A DIFFERENT FILE' : ''
       );
     }
   }

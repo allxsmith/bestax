@@ -2519,9 +2519,14 @@ export function manifestViolations(
     //
     // `.mjs` was abstained on for a while, on the argument that an author who
     // typed it cannot have believed it was CommonJS. That is about intent and
-    // the rule is about outcome: `{ "require": "./x.mjs" }` throws
-    // ERR_REQUIRE_ESM for every consumer below Node 22.12, exactly as a `.js`
-    // in ESM scope does, and the load-mode corpus reports it as a real failure.
+    // the rule is about outcome: `{ "require": "./x.mjs" }` fails a consumer
+    // exactly as a `.js` in ESM scope does, and the load-mode corpus reports it.
+    //
+    // No version is named, deliberately. `require(esm)` landed in 22.12 and was
+    // backported to 20.19 and 23.0, and where it IS supported the failure does
+    // not disappear — it becomes the silent empty-namespace form. A single
+    // cutoff in the message would tell a reader that a 20.19 consumer is safe
+    // from this class, which is the opposite of true.
     const esm = target.endsWith('.mjs')
       ? true
       : target.endsWith('.js') && typeOfTarget(target) === 'module';
@@ -2553,8 +2558,10 @@ export function manifestViolations(
     // directory whose own manifest overrides the root.
     violations.push(
       `${dir}/package.json: ${where} points at \`${target}\`, which Node reads ` +
-        `as an ES module, so a \`require()\` of it throws below Node 22.12 ` +
-        `whatever the bundle actually contains. ${remedy} (#688)`
+        `as an ES module, so a \`require()\` of it cannot load a CommonJS ` +
+        `bundle whatever the file actually contains — older runtimes throw, ` +
+        `and the ones that support \`require(esm)\` hand back an empty ` +
+        `namespace instead. ${remedy} (#688)`
     );
   }
 
