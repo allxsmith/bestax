@@ -15,55 +15,34 @@
  * because it renders a class. `Notification.color`, `Progress.color` and
  * `Hero.color` are typed off the tuple and emit `is-<colour>`, so adding the
  * white shades made `<Notification color="white-ter">` emit a dead modifier,
- * and it did so without the development warning that `black-ter` gets, since
- * only the black pair was declared in `UNSTYLED_MODIFIER_COLORS`. Fixing the
- * first defect created the second, which is the argument for checking both
- * here rather than one.
+ * and without the development warning `black-ter` gets, since only the black
+ * pair was declared in `UNSTYLED_MODIFIER_COLORS`. Fixing the first defect
+ * created the second, which is why both are checked here.
  *
- * The component-modifier check is an equality, because the two sets partition
- * `validColors` exactly today, with no exceptions, and it is made per element
- * rather than across them all: asking whether a colour is dead on EVERY
- * element passes a colour Bulma ships on one and not the others, which would
- * land in neither set while that one renders a dead modifier unwarned. The
- * elements themselves are derived rather than listed, and each is held to
- * calling `warnUnstyledColor`, so a component that starts emitting the
- * modifier is compared whether or not anyone remembered to add it here.
+ * ON THE SHAPE OF THIS FILE, because it got there the hard way. An earlier
+ * version inferred which components to compare by scanning source for a
+ * `color` prop typed off the tuple AND a `` `is-${color}` `` emission, then
+ * cross-checked the two signals, counted occurrences, stripped comments and
+ * balanced parentheses to do it. Review found the same class of defect in
+ * that machinery five rounds running: a one-line substring standing in for a
+ * type, a first-match standing in for a prop, a truncating regex reading as
+ * "warns about nothing". Each fix added a reader and the next reader had the
+ * same flaw.
  *
- * The CSS-wide keywords are handled alongside the tuple rather than skipped.
- * They are not in `validColors`, so no loop over it reaches them, and both
- * cases assert them separately. The shade case pins both directions, since
- * they are part of that gap. The modifier case works per element and in two
- * halves: an element that WIDENS its `color` union with a keyword has to warn
- * about it, because the union is why the warning exists, and Bulma must ship
- * no rule for it, or that warning complains about a value that works. Only
- * `Hero` widens today, which is why `Notification` and `Progress` come out
- * of that comparison empty rather than exempt. The keywords themselves are
- * read from the hook that accepts them, every copy of the set it spells.
+ * So the inference is gone. The element list comes from one signal, the
+ * `warnUnstyledColor` call sites, which is a function call with a string
+ * literal and the least fragile thing available: a component calling it is
+ * declaring that its colour values can be dead. Everything else compared here
+ * is DATA — tuples and stylesheet rules — rather than behaviour inferred from
+ * how code is written.
  *
- * One thing does sit outside, and is worth naming so the scope reads as
- * chosen rather than overlooked: `bgColor` accepts `validSchemeColors` on top
- * of the tuple, which nothing here covers, because a scheme value emits no
- * class at all. Pre-existing, and it points the safe way.
- *
- * One blind spot is worth naming with them: the type is read through
- * `props-extract`, which resolves EXPORTED components, so a module that is
- * not exported from `src/index.ts` cannot enter the comparison at all.
- * `Calendar` and `TimeWheels` both emit `is-${color}` today and sit there.
- * They are safe because their unions are narrow rather than because anything
- * here checks it, and the hardcoded list this replaced missed them too. The
- * cross-check below catches such a module only if it calls the warning.
- *
- * The helper-class check is
- * narrower than it looks and it is worth saying why, rather than leaving the
- * next person to find out: the general form, "every colour the CSS names is in
- * the tuple", is not available from the stylesheet, because `has-text-` is a
- * shared namespace carrying alignment (`has-text-centered`), weight
- * (`has-text-weight-bold`) and the CSS-wide keywords alongside the colours,
- * crossed with every shade in `validColorShades` plus a `-100` that tuple does
- * not carry. Separating those needs a hand-maintained exception list, a bigger
- * and more fragile thing than the defect it would catch. The `-bis`/`-ter`
- * family needs none: those suffixes are not shades, not viewports, and not
- * used by any other helper family, so that check is exact too.
+ * What that gives up is stated rather than papered over: a component that
+ * emits the modifier and never warns is not detected. Three attempts to cover
+ * it are what produced those five rounds, and each introduced a way for the
+ * guard to fail while the library was fine. The same gap already applies to
+ * `Calendar` and `TimeWheels`, which emit it today and are not exported from
+ * `src/index.ts`. Closing it properly wants the library to say which
+ * components warn, not a test to guess.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -73,6 +52,7 @@ import { describe, it } from 'node:test';
 import { extractComponent } from './lib/props-extract.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
+const SRC = join(REPO, 'bulma-ui', 'src');
 const CSS = join(REPO, 'bulma-ui', 'dist', 'bestax.css');
 const HELPERS = join(
   REPO,
@@ -96,231 +76,28 @@ const DEPRECATIONS = join(
   'colorDeprecations.ts'
 );
 
-const SRC = join(REPO, 'bulma-ui', 'src');
-
 /**
- * Is this component's `color` prop typed off `validColors`?
+ * The stylesheet, or an actionable failure.
  *
- * Read from the TYPE, through the extractor behind the API docs, rather than
- * by matching the declaration's source text. The text version was a one-line
- * substring, so a prettier-wrapped union dropped the component out of the
- * comparison and `elements.length > 0` kept the suite green on the survivors:
- * weaker, on that one direction, than the hardcoded list it replaced. `Hero`
- * makes the point on its own, with four such declarations across its parts.
- *
- * `TYPE_DISPLAY` renders `(typeof validColors)[number]` as `Bulma color`,
- * which is the discriminator: `Button` comes back as its own spelled-out
- * union and `Tag` as the alias `TagColor`, and neither should be in the loop.
- * A component that aliased the tuple would read as its alias name and be
- * missed here, which is what the two-way comparison below is for.
+ * One case read it without this guard, so running that case alone threw a raw
+ * `ENOENT` instead of saying what to do, and in a full run the first case's
+ * guard fired first and hid it. Every case that reads the stylesheet goes
+ * through here; the `CSS_BACKED` one reads no stylesheet at all.
  */
-function tupleTyped(component) {
-  let info;
-  try {
-    info = extractComponent(component, { markdown: false });
-  } catch (error) {
-    // NARROW. "not exported from src/index.ts" is the expected answer for a
-    // private sub-module or a helper file, and the only failure this guard
-    // should read as "no colour prop here". A blanket catch would let the
-    // extractor break and report the same thing, quietly shrinking the
-    // comparison to nothing, so anything else is rethrown.
-    if (!/is not exported from/.test(error.message)) throw error;
-    return false;
-  }
-  return (info.tables ?? []).some(table =>
-    (table.rows ?? []).some(
-      row => row.name === 'color' && /Bulma color/.test(row.type ?? '')
-    )
-  );
-}
-
-/**
- * The components whose `color` prop emits `is-<colour>` and is typed off
- * `validColors`, so that widening the tuple widens theirs.
- *
- * DERIVED, not listed. A hand-maintained list was tied to nothing, so a
- * fourth component emitting that modifier off the tuple would have sat
- * outside the comparison entirely. Two conditions together identify them, and
- * both are needed: plenty of components type `color` off `validColors` and
- * emit no modifier at all — `Section`, `Footer`, `Level`, `Media` and the
- * `Card` parts are text aliases — while `Button` declares its own narrower
- * union and is therefore absent from the first condition.
- *
- * The component name doubles as the Bulma element class, which holds for
- * these three and is asserted rather than assumed: a derivation that produced
- * a name with no `.<class>.is-primary` rule would make every colour look dead
- * and fail the comparison below for the wrong reason.
- */
-function modifierElements() {
-  const found = [];
-  const warns = [];
-  const walk = dir => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (!/^(__tests__|__typetests__|skill-examples)$/.test(entry.name)) {
-          walk(path);
-        }
-        continue;
-      }
-      if (!/\.tsx?$/.test(entry.name) || entry.name.includes('.stories.')) {
-        continue;
-      }
-      const source = codeOnly(readFileSync(path, 'utf8'));
-      const component = entry.name.replace(/\.tsx?$/, '');
-      const emits = /`is-\$\{color\}`/.test(source);
-      if (emits && tupleTyped(component)) {
-        found.push({ component, source, path });
-      }
-      // The helper declaring it is not a caller.
-      if (
-        /warnUnstyledColor\(/.test(source) &&
-        component !== 'colorDeprecations'
-      ) {
-        warns.push(component);
-      }
-    }
-  };
-  walk(SRC);
-
-  // BOTH DIRECTIONS, because each signal can miss what the other sees, and
-  // SEPARATELY, because the two failures have different causes and a single
-  // `deepEqual` could only explain one of them. An earlier version compared
-  // the sets in one assertion whose message named the emission pattern, so a
-  // component that emitted and never warned — the defect this exists for —
-  // failed with the wrong explanation and never reached the per-element check
-  // that names the file.
-  const derived = found.map(f => f.component);
-
-  // A component that emits the modifier and never warns renders its dead
-  // values in silence. This is the defect; the message has to say so.
-  const silent = derived.filter(c => !warns.includes(c)).sort();
-  assert.deepEqual(
-    silent,
-    [],
-    `${silent.join(', ')} emit(s) \`is-\${color}\` off \`validColors\` and ` +
-      'never calls `warnUnstyledColor`, so the values with no CSS render in ' +
-      'silence.'
-  );
-
-  // The other way round is not a library defect but a defect in THIS guard: a
-  // component that warns is asserting it emits, so if the derivation did not
-  // find it, the derivation has stopped working and the comparisons below are
-  // checking fewer elements than they appear to.
-  const undetected = warns.filter(c => !derived.includes(c)).sort();
-  assert.deepEqual(
-    undetected,
-    [],
-    `${undetected.join(', ')} call(s) \`warnUnstyledColor\` but this guard ` +
-      'did not derive it as emitting `is-${color}` off `validColors`. The ' +
-      'emission pattern or the type read in `modifierElements` has stopped ' +
-      'matching, so the comparisons below cover fewer elements than they look ' +
-      'like they do.'
-  );
-  return found;
-}
-
-/**
- * The CSS-wide keywords the colour props accept beyond `validColors`.
- *
- * Read from the membership test in `useColorClasses`, which spells the
- * accepted set as `[...validColors, 'inherit', 'current']`, rather than
- * listed here. It was the last hand-maintained list in this guard, and a
- * third keyword added there would have gone unprobed while the prose in
- * `values.ts` naming two of them quietly became incomplete — the same shape
- * as every list this change removed.
- */
-function colorKeywords() {
-  const source = codeOnly(readFileSync(COLOR_CLASSES, 'utf8'));
-  // EVERY copy. The hook spells the set twice — once in the membership test
-  // that decides whether a value is accepted at all, once in the `addClass`
-  // call that gates emission — and reading one left the other unchecked.
-  const copies = [...source.matchAll(/\[\.\.\.validColors,([^\]]*)\]/g)].map(
-    m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])
-  );
+function stylesheet() {
   assert.ok(
-    copies.length > 0,
-    'could not find `[...validColors, …]` in useColorClasses, so the ' +
-      'CSS-wide keywords cannot be read. Fix the pattern in the same change ' +
-      'that moved it.'
+    existsSync(CSS),
+    'bulma-ui/dist/bestax.css is absent, so the tuples cannot be compared ' +
+      'against the shipped CSS. Build first, or run `pnpm all`.'
   );
-  for (const copy of copies) {
-    assert.deepEqual(
-      copy,
-      copies[0],
-      `useColorClasses spells the accepted set ${copies.length} times and the ` +
-        'copies disagree, so which keywords a value is judged against depends ' +
-        'on which one runs.'
-    );
-  }
-  assert.ok(
-    copies[0].length > 0,
-    'the accepted set named no keyword beyond `validColors`, which would ' +
-      'make the keyword assertions below vacuous.'
-  );
-  return copies[0];
+  return readFileSync(CSS, 'utf8');
 }
 
-/**
- * The keywords an element both ACCEPTS and warns about, read per element.
- *
- * Two halves, and asserting only the first was the gap. `Hero` widens its
- * `color` union with these and passes them to `warnUnstyledColor` as
- * `extraUnstyled`, so the warning exists because the union does. Pinning only
- * "Bulma ships no rule for it" left that hand-written argument free to lose an
- * entry with the whole repo green, which would render a dead modifier in
- * silence. `Notification` and `Progress` accept no keyword and pass none, so
- * they are correctly empty here rather than exempt.
- */
-function elementKeywords({ component, source }, keywords) {
-  let accepted;
-  try {
-    const info = extractComponent(component, { markdown: false });
-    // The ROOT table only. A compound's parts declare their own `color`, and
-    // it is a different prop: `Hero.color` is the `is-<colour>` modifier
-    // while `Hero.Head.color` is a text colour, where `has-text-inherit` and
-    // `has-text-current` genuinely ship. Taking the first `color` row across
-    // every table agreed with this only because all four spell the same
-    // union, which is source order deciding a correctness question.
-    const root = (info.tables ?? []).find(t => t.path === component);
-    const row = (root?.rows ?? []).find(r => r.name === 'color');
-    accepted = keywords.filter(k => (row?.type ?? '').includes(`'${k}'`));
-  } catch (error) {
-    // Narrowed the same way `tupleTyped` is: only the "not exported" answer
-    // means "no declaration to read here". Anything else is the extractor
-    // breaking, and must not read as "this element accepts no keyword".
-    if (!/is not exported from/.test(error.message)) throw error;
-    accepted = [];
-  }
-
-  // Balanced to the closing paren rather than matched with `[^)]*`, so a
-  // nested call in any argument (`String(color)`) cannot truncate the text
-  // and read as "warns about nothing", which would fail blaming the component
-  // for a limitation of this guard.
-  const open = source.indexOf(`warnUnstyledColor('${component}'`);
-  let call = '';
-  if (open !== -1) {
-    let depth = 0;
-    for (let i = source.indexOf('(', open); i < source.length; i++) {
-      if (source[i] === '(') depth += 1;
-      if (source[i] === ')') depth -= 1;
-      if (depth === 0) {
-        call = source.slice(open, i + 1);
-        break;
-      }
-    }
-  }
-
-  // Filtered to `keywords` on BOTH sides. `extraUnstyled` takes extra
-  // unstyled VALUES, so a per-component dead colour is a legitimate entry
-  // there, and collecting every literal made such an entry red this
-  // comparison with a message that is false about the library. Those entries
-  // are outside this particular equality rather than wrong.
-  const warned = [...call.matchAll(/'([^']+)'/g)]
-    .map(m => m[1])
-    .filter(v => keywords.includes(v));
-  return { accepted, warned };
-}
+/** Does the stylesheet carry this exact class, not a longer one starting with it? */
+const shipsClass = (css, cls) =>
+  new RegExp(
+    `\\.${cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z0-9-])`
+  ).test(css);
 
 /** A named `as const` string tuple, read from a source file. */
 function tupleFrom(path, name) {
@@ -339,115 +116,127 @@ function tupleFrom(path, name) {
   return values;
 }
 
-/** The `validColors` members, read from the source rather than the build. */
-function validColors() {
-  const source = readFileSync(HELPERS, 'utf8');
-  const block = /export const validColors = \[(.*?)\] as const;/s.exec(source);
+/**
+ * The CSS-wide keywords the colour props accept beyond `validColors`.
+ *
+ * Read from `useColorClasses`, which spells the accepted set as
+ * `[...validColors, 'inherit', 'current']`, rather than listed here — the
+ * list was the last hand-maintained one in this guard. The hook spells it
+ * more than once, so every copy is read and they are held to each other: one
+ * decides whether a value is accepted at all, another gates emission, and
+ * which keywords apply should not depend on which runs.
+ */
+function colorKeywords() {
+  const source = readFileSync(COLOR_CLASSES, 'utf8');
+  const copies = [
+    ...source.matchAll(/\[\s*\.\.\.validColors\s*,([^\]]*)\]/g),
+  ].map(m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]));
   assert.ok(
-    block,
-    'could not find the `validColors` tuple in bulmaClassHelpers.ts, so this ' +
-      'guard cannot run. Fix the pattern in the same change that moved it.'
+    copies.length > 0,
+    'could not find `[...validColors, …]` in useColorClasses, so the ' +
+      'CSS-wide keywords cannot be read. Fix the pattern in the same change ' +
+      'that moved it.'
   );
-  const colors = [...block[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
-  assert.ok(colors.length > 0, 'the `validColors` tuple read as empty');
-  return colors;
+  for (const copy of copies) {
+    assert.deepEqual(
+      copy,
+      copies[0],
+      `useColorClasses spells the accepted set ${copies.length} times and ` +
+        'the copies disagree, so which keywords a value is judged against ' +
+        'depends on which one runs.'
+    );
+  }
+  assert.ok(
+    copies[0].length > 0,
+    'the accepted set named no keyword beyond `validColors`, which would ' +
+      'make the keyword assertions below vacuous.'
+  );
+  return copies[0];
 }
 
 /**
- * The stylesheet, or an actionable failure.
+ * Every `warnUnstyledColor` call in the library, as
+ * `{ component, extraUnstyled }`.
  *
- * One case read it without this guard, so running that case alone threw a raw
- * `ENOENT` instead of saying what to do, and in a full run the first case's
- * guard fired first and hid it. Every case that reads the stylesheet goes
- * through here now; the `CSS_BACKED` one reads no stylesheet at all.
+ * ONE signal, deliberately. A component calling this is declaring that its
+ * colour values can be dead, which is exactly the set this file compares
+ * against the stylesheet, and a call with a string literal is the least
+ * fragile thing to read. Matched globally so a file with two calls yields
+ * two, and the component name comes from the argument rather than the
+ * filename.
  */
-function stylesheet() {
+function warningCallers() {
+  const callers = [];
+  const walk = dir => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (!/^(__tests__|__typetests__|skill-examples)$/.test(entry.name)) {
+          walk(path);
+        }
+        continue;
+      }
+      if (!/\.tsx?$/.test(entry.name) || entry.name.includes('.stories.')) {
+        continue;
+      }
+      const source = readFileSync(path, 'utf8');
+      for (const m of source.matchAll(
+        /warnUnstyledColor\(\s*'([^']+)'\s*,([\s\S]*?)\);/g
+      )) {
+        callers.push({
+          component: m[1],
+          path,
+          // Only the literals inside a bracketed list, so a nested call in
+          // another argument cannot contribute one.
+          extraUnstyled: [...m[2].matchAll(/\[([^\]]*)\]/g)].flatMap(a =>
+            [...a[1].matchAll(/'([^']+)'/g)].map(x => x[1])
+          ),
+        });
+      }
+    }
+  };
+  walk(SRC);
   assert.ok(
-    existsSync(CSS),
-    'bulma-ui/dist/bestax.css is absent, so the tuples cannot be compared ' +
-      'against the shipped CSS. Build first, or run `pnpm all`.'
+    callers.length > 0,
+    'no `warnUnstyledColor` call sites found, which would make every ' +
+      'per-element assertion below vacuous. The call or this pattern moved.'
   );
-  return readFileSync(CSS, 'utf8');
+  return callers;
 }
 
-/**
- * Source with comments removed, so counting occurrences counts CODE.
- *
- * The emission and warning counts are matched against each other, and both
- * are found by matching text, so a TSDoc block quoting `` `is-${color}` ``
- * would inflate one side and fail the comparison for a reason that has
- * nothing to do with the library. These components document the class they
- * render, so that is a live risk rather than a theoretical one.
- */
-const codeOnly = source =>
-  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
-
-/** Does the stylesheet carry this exact class, not a longer one starting with it? */
-const shipsClass = (css, cls) =>
-  new RegExp(
-    `\\.${cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z0-9-])`
-  ).test(css);
+/** The CSS-wide keywords a component's ROOT `color` prop accepts. */
+function acceptedKeywords(component, keywords) {
+  let info;
+  try {
+    info = extractComponent(component, { markdown: false });
+  } catch (error) {
+    // Only "not exported" means there is no declaration to read. Anything
+    // else is the extractor breaking and must not read as "accepts none".
+    if (!/is not exported from/.test(error.message)) throw error;
+    return [];
+  }
+  // The ROOT table only. A compound's parts declare their own `color` and it
+  // is a different prop: `Hero.color` is the `is-<colour>` modifier while
+  // `Hero.Head.color` is a text colour, where `has-text-inherit` genuinely
+  // ships. Reading the first `color` row across every table agreed with this
+  // only because all four spell the same union.
+  const root = (info.tables ?? []).find(t => t.path === component);
+  const row = (root?.rows ?? []).find(r => r.name === 'color');
+  return keywords.filter(k => (row?.type ?? '').includes(`'${k}'`));
+}
 
 describe('the colour tuples agree with the shipped stylesheet', () => {
   it('declares every colour whose component modifier has no CSS', () => {
-    // The defect this catches, which the `-bis`/`-ter` check below does not:
-    // `Notification.color`, `Progress.color` and `Hero.color` are typed off
-    // `validColors` and emit `is-<colour>`, so widening the tuple widened
-    // theirs. `.notification.is-white-ter` does not exist, so
-    // `<Notification color="white-ter">` rendered a dead modifier SILENTLY
-    // while `black-ter` warned, because only the black pair was declared.
-    //
-    // The two sets partition `validColors` exactly, with no exceptions, so
-    // this is an equality rather than a subset check: on each element a
-    // colour is either backed by a rule or declared unstyled.
     const css = stylesheet();
-    const colors = validColors();
+    const colors = tupleFrom(HELPERS, 'validColors');
     const declared = tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS');
-
-    const elements = modifierElements();
     const keywords = colorKeywords();
-    assert.ok(
-      elements.length > 0,
-      'no component found that both types `color` off `validColors` and emits ' +
-        '`is-${color}`. The derivation has stopped matching, which would make ' +
-        'every assertion below vacuous.'
-    );
 
-    // PER ELEMENT, not across all three. An earlier version asked whether a
-    // colour was dead on every one of them, which holds only while the three
-    // agree: a colour Bulma shipped on `.hero` and not `.notification` would
-    // land in neither set, the equality would pass, and one element would
-    // render a dead modifier with no warning. They do agree today, since the
-    // three come off one upstream colour map, so this is the same assertion
-    // made for a reason rather than by luck — and it fails the moment they
-    // diverge, which is when the declaration needs a per-element shape.
-    for (const { component, source, path } of elements) {
-      // Emitting the modifier without warning about the dead values is the
-      // defect one layer before this one, and deriving the list is what makes
-      // it checkable at all.
-      // Counted, not merely present. A bare `assert.match` passes a file
-      // where one part warns and a sibling emits without warning, which is
-      // the shape `Hero` would take if `Head` started emitting the modifier.
-      // Still FILE-scoped: the declarations come from the AST, but the
-      // emission is matched in source text, so this cannot say WHICH part of
-      // a compound emitted. Component-scoping it needs the emission read
-      // from the AST too, which is a bigger change than the gap justifies,
-      // so the count is the proxy and this comment is the limit.
-      // `source` is already comment-stripped by `modifierElements`.
-      const emissions = (source.match(/`is-\$\{color\}`/g) ?? []).length;
-      const warnings = (source.match(/warnUnstyledColor\(/g) ?? []).length;
-      assert.equal(
-        warnings,
-        emissions,
-        `${path} emits \`is-\${color}\` ${emissions} time(s) off ` +
-          `\`validColors\` and calls \`warnUnstyledColor\` ${warnings} ` +
-          'time(s). Each emission needs its own call, or the values with no ' +
-          'CSS render in silence for whichever part is missing one. If the ' +
-          'counts differ for a legitimate reason — one component emitting in ' +
-          'two branches of a render, or warning once for two props — this is ' +
-          'a count proxy standing in for per-component analysis, and the ' +
-          'proxy is what needs changing rather than the component.'
-      );
+    // PER ELEMENT, not across them all: asking whether a colour is dead on
+    // EVERY element passes a colour Bulma ships on one and not the others,
+    // which would land in neither set while that one renders a dead modifier
+    // unwarned.
+    for (const { component, extraUnstyled } of warningCallers()) {
       const el = component.toLowerCase();
       assert.ok(
         shipsClass(css, `${el}.is-primary`),
@@ -455,33 +244,6 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'Bulma element class and the comparison below would call every ' +
           'colour dead. The component-name-to-class assumption has broken.'
       );
-      // The CSS-wide keywords, per element and in both halves. An element
-      // that WIDENS its `color` union with one has to warn about it, because
-      // the union is why the warning exists; and Bulma must ship no rule for
-      // it, or that warning complains about a value that works. Asserting
-      // only the second left the hand-written `extraUnstyled` argument free
-      // to lose an entry with the whole repo green.
-      const { accepted, warned } = elementKeywords(
-        { component, source },
-        keywords
-      );
-      assert.deepEqual(
-        [...warned].sort(),
-        [...accepted].sort(),
-        `\`${component}\` accepts ${accepted.join(', ') || 'no'} CSS-wide ` +
-          `keyword(s) on \`color\` and warns about ` +
-          `${warned.join(', ') || 'none'}. A keyword it accepts and does not ` +
-          'warn about renders a dead modifier in silence; one it warns about ' +
-          'and does not accept cannot be passed.'
-      );
-      for (const keyword of accepted) {
-        assert.ok(
-          !shipsClass(css, `${el}.is-${keyword}`),
-          `\`.${el}.is-${keyword}\` ships now, so warning about ` +
-            `\`${keyword}\` on \`${component}\` complains about a value ` +
-            'that works. `extraUnstyled` needs it removed.'
-        );
-      }
 
       const dead = colors.filter(
         color => !shipsClass(css, `${el}.is-${color}`)
@@ -493,9 +255,33 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'rule disagree. A colour in the real set and not the declared one ' +
           'renders a dead modifier with no warning, which is the silence the ' +
           'warning exists to break; the reverse warns about a colour that ' +
-          'works. If the elements have genuinely diverged, this declaration ' +
-          'has to become per element before it can be true of all of them.'
+          'works.'
       );
+
+      // The CSS-wide keywords, in both halves. An element that WIDENS its
+      // `color` union with one has to warn about it, because the union is why
+      // the warning exists; and Bulma must ship no rule for it, or that
+      // warning complains about a value that works. `extraUnstyled` also
+      // takes dead COLOURS, which are outside this equality rather than
+      // wrong, so both sides are filtered to the keywords.
+      const accepted = acceptedKeywords(component, keywords);
+      assert.deepEqual(
+        extraUnstyled.filter(v => keywords.includes(v)).sort(),
+        [...accepted].sort(),
+        `\`${component}\` accepts ${accepted.join(', ') || 'no'} CSS-wide ` +
+          'keyword(s) on `color` and warns about ' +
+          `${extraUnstyled.join(', ') || 'none'}. A keyword it accepts and ` +
+          'does not warn about renders a dead modifier in silence; one it ' +
+          'warns about and does not accept cannot be passed.'
+      );
+      for (const keyword of accepted) {
+        assert.ok(
+          !shipsClass(css, `${el}.is-${keyword}`),
+          `\`.${el}.is-${keyword}\` ships now, so warning about ` +
+            `\`${keyword}\` on \`${component}\` complains about a value that ` +
+            'works. `extraUnstyled` needs it removed.'
+        );
+      }
     }
   });
 
@@ -504,42 +290,31 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // lint rule, so `<Box textColor="white-bis" colorShade="15" />` passes
     // while `useColorClasses` emits `has-text-white-bis-15`, which the
     // stylesheet does not carry. `bgColor` with `backgroundColorShade` is the
-    // same shape, which is why both families are checked below. That is a false negative rather than a wrong report, and
-    // the reason it stays one is this partition: the colours that take a shade
-    // are exactly the ones NOT declared unstyled. What closing it would take
-    // is in `HELPER_VALUES`'s own comment, which is the one place that should
-    // say so.
-    //
+    // same shape, which is why both families are checked. It stays a false
+    // negative rather than a wrong report because of this partition: the
+    // colours that take a shade are exactly the ones NOT declared unstyled.
+    // What closing it would take is in `HELPER_VALUES`'s own comment.
     const css = stylesheet();
-    const colors = validColors();
+    const colors = tupleFrom(HELPERS, 'validColors');
+    const shades = tupleFrom(HELPERS, 'validColorShades');
     const declared = new Set(
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
-    const shades = tupleFrom(HELPERS, 'validColorShades');
-    // EVERY shade, with the ambiguity handled PER PAIR rather than per shade.
-    // This has been narrowed twice. First it probed one numeric shade, so a
-    // colour shipping one and not another would have passed. Then it probed
-    // the numerics and dropped the four named shades too, under a collision
-    // rationale only two of them have. Then it dropped `light` and `dark` for
-    // all nineteen colours when only `grey` is ambiguous in them.
-    //
-    // A pair is ambiguous when the two names concatenate into a colour:
-    // `grey` + `light` is the colour `grey-light`, so `has-text-grey-light`
-    // cannot be read as `grey` shaded `light`. That is true of exactly two
-    // pairs and of no shade in general, so every shade is compared and only
-    // `grey` sits out of two of them.
+    const keywords = colorKeywords();
+
+    // EVERY shade, with the ambiguity handled PER PAIR. A pair is ambiguous
+    // when the two names concatenate into a colour: `grey` plus `light` is
+    // the colour `grey-light`, so `has-text-grey-light` cannot be read as
+    // `grey` shaded `light`. That is true of exactly two pairs and of no
+    // shade in general, so excluding whole shades dropped comparisons that
+    // should have run.
     const ambiguous = (color, shade) => colors.includes(`${color}-${shade}`);
 
-    // Both families, because `colorShade` and `backgroundColorShade` have the
-    // identical shape and an earlier version probed only the text one.
     for (const family of ['has-text', 'has-background']) {
       for (const shade of shades) {
         const judged = colors.filter(c => !ambiguous(c, shade));
-        const shadeable = judged
-          .filter(c => shipsClass(css, `${family}-${c}-${shade}`))
-          .sort();
         assert.deepEqual(
-          shadeable,
+          judged.filter(c => shipsClass(css, `${family}-${c}-${shade}`)).sort(),
           judged.filter(c => !declared.has(c)).sort(),
           `the colours the stylesheet shades \`-${shade}\` under ` +
             `\`${family}-\` and the colours with a live component modifier ` +
@@ -550,12 +325,9 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         );
       }
 
-      // Finding 1's half: `inherit` and `current` are accepted by the same
-      // props, are live UNSHADED, and have no shaded class at all. So they
-      // are the shade gap too, and they are outside the tuple the loop above
-      // walks — which is why `HELPER_VALUES` cannot close that gap from the
-      // partition alone.
-      for (const keyword of colorKeywords()) {
+      // The keywords are part of the same gap and outside the tuple: live
+      // unshaded, dead shaded.
+      for (const keyword of keywords) {
         assert.ok(
           shipsClass(css, `${family}-${keyword}`),
           `\`${family}-${keyword}\` no longer ships, so the claim that these ` +
@@ -575,18 +347,21 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
 
   it('names the CSS-backed colours consistently in the warning', () => {
     // `CSS_BACKED` is the message's half of the same fact, written as prose
-    // for the console. It is the complement of the set above, so it can go
-    // stale the same way and say the wrong thing to a developer.
+    // for the console. It is the complement of the declared set, so it can go
+    // stale the same way and tell a developer to use a value that is dead or
+    // missing.
     const source = readFileSync(DEPRECATIONS, 'utf8');
     const line = /const CSS_BACKED =\s*\n?\s*'([^']+)'/.exec(source);
     assert.ok(line, 'could not find `CSS_BACKED` in colorDeprecations.ts');
-    const named = line[1].split(',').map(v => v.trim());
     const declared = new Set(
       tupleFrom(DEPRECATIONS, 'UNSTYLED_MODIFIER_COLORS')
     );
     assert.deepEqual(
-      [...named].sort(),
-      validColors()
+      line[1]
+        .split(',')
+        .map(v => v.trim())
+        .sort(),
+      tupleFrom(HELPERS, 'validColors')
         .filter(c => !declared.has(c))
         .sort(),
       'the colours `CSS_BACKED` names and the colours not declared unstyled ' +
@@ -596,11 +371,18 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
   });
 
   it('has every bis/ter variant the stylesheet emits a class for', () => {
+    // The first defect, and the narrowest check here. The general form —
+    // every colour the CSS names is in the tuple — is not available, because
+    // `has-text-` is a shared namespace carrying alignment
+    // (`has-text-centered`), weight (`has-text-weight-bold`) and the CSS-wide
+    // keywords alongside the colours, crossed with every shade plus a `-100`
+    // the tuple does not carry. Separating those needs a hand-maintained
+    // exception list, a bigger and more fragile thing than the defect it
+    // would catch. The `-bis`/`-ter` family needs none: those suffixes are
+    // not shades, not viewports, and not used by any other helper family.
     const css = stylesheet();
-    const colors = validColors();
+    const colors = tupleFrom(HELPERS, 'validColors');
 
-    // Read the variants off the CSS rather than listing them, so a new base
-    // colour gaining a shade is covered without an edit here.
     const shipped = [];
     for (const color of colors) {
       for (const suffix of ['bis', 'ter']) {
@@ -613,21 +395,19 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         }
       }
     }
-
     assert.ok(
       shipped.length > 0,
       'no -bis or -ter colour classes found in the stylesheet, which would ' +
         'make this guard vacuous. Either Bulma dropped them or the class ' +
         'naming changed.'
     );
-
     const missing = shipped.filter(v => !colors.includes(v));
     assert.deepEqual(
       missing,
       [],
       `the stylesheet ships ${missing.join(', ')} but validColors does not ` +
-        'carry them, so the library drops the value and renders nothing while ' +
-        'the CSS for it exists.'
+        'carry them, so the library drops the value and renders nothing ' +
+        'while the CSS for it exists.'
     );
   });
 });
