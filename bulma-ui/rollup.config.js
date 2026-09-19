@@ -65,10 +65,24 @@ const resolvesToDeclaration = (file, spec) => {
  */
 export const declarationExtensions = (root = 'dist/types') => ({
   name: 'bestax-declaration-extensions',
-  async writeBundle() {
+  // `closeBundle`, not `writeBundle`. The TypeScript plugin re-emits the whole
+  // declaration set for EVERY output of a config, and rollup's CLI writes a
+  // config's outputs concurrently — so a per-output hook races the sibling
+  // output's emit, and losing that race republishes extensionless declarations
+  // with a green build. `closeBundle` runs once, after every output is on disk.
+  async closeBundle() {
     const files = [];
     const walk = async dir => {
-      for (const entry of await readdir(dir, { withFileTypes: true })) {
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch (error) {
+        if (dir !== root || error.code !== 'ENOENT') throw error;
+        // Absent and empty are the same mistake — the declaration pass has not
+        // run — and a raw ENOENT names neither the cause nor the fix.
+        return;
+      }
+      for (const entry of entries) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) await walk(full);
         // `.d.cts` and `.d.mts` are declarations too, and skipping them left
@@ -290,13 +304,6 @@ export default commandLineArgs => {
           // module scope where `require` does not exist. The extension is the
           // only thing that overrides `type` (#688).
           entryFileNames: 'index.cjs',
-          // The declaration rewrite runs on THIS config, the one whose
-          // TypeScript pass writes `dist/types` — not on a later entry in the
-          // array. `rollup -c` builds them in order so either placement works
-          // for a publish, but `--watch` rebuilds only the config whose inputs
-          // changed: editing a component under the `dev` script re-emitted the
-          // declarations extensionless with the pass never running.
-          plugins: [declarationExtensions()],
           // Chunks need the extension for the same reason the entry does. This
           // build emits one chunk today, so nothing is currently wrong — but
           // the first dynamic import would split it, and the default
@@ -316,6 +323,13 @@ export default commandLineArgs => {
         },
       ],
       plugins: [
+        // Config level, so `closeBundle` fires once after BOTH outputs have
+        // written — the declarations are re-emitted for each of them, and the
+        // CLI writes a config's outputs concurrently. It is also this config
+        // whose TypeScript pass produces `dist/types`, which is what makes it
+        // correct under `--watch`: that rebuilds only the config whose inputs
+        // changed, so a rewrite hung off any other entry never runs.
+        declarationExtensions(),
         resolve(),
         commonjs(),
         typescript({

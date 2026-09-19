@@ -541,7 +541,7 @@ describe('the declaration-extension guard', () => {
     const { declarationExtensions } = await import(
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
-    return declarationExtensions(root).writeBundle();
+    return declarationExtensions(root).closeBundle();
   };
 
   it('adds the extension a plain specifier is missing', async () => {
@@ -681,6 +681,29 @@ describe('the declaration-extension guard', () => {
     // declarations stay extensionless — which is #696 returning.
     const root = tree({ 'placeholder.txt': 'not a declaration\n' });
     await assert.rejects(run(root), /holds no declarations/);
+  });
+
+  it('fails the same way whether the declaration directory is empty or absent', async () => {
+    // Absent and empty are one mistake — the declaration pass has not run — and
+    // a raw ENOENT names neither the cause nor the fix.
+    await assert.rejects(
+      run(join(tree({ 'placeholder.txt': 'x\n' }), 'not-emitted')),
+      /holds no declarations/
+    );
+  });
+
+  it('resolves a reference path spelled .d.cts as well as .d.ts', async () => {
+    // The declaration-extension arm of `resolvesToDeclaration` was driven only
+    // by the `.d.ts` spelling, while its `.cjs`/`.mjs` sibling had cases.
+    const root = tree({
+      'index.d.cts': '/// <reference path="./x.d.cts" />\nexport {};\n',
+      'x.d.cts': 'export {};\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.cts'), 'utf8'),
+      /"\.\/x\.d\.cts"/
+    );
   });
 
   it('fails on a specifier naming neither a declaration nor a directory', async () => {
