@@ -98,61 +98,62 @@ function stylesheet() {
 }
 
 /**
- * Does the stylesheet carry this exact class, not a longer one starting with
- * it?
+ * Does the stylesheet carry this class, or this exact compound?
  *
- * Single classes are matched literally. A COMPOUND (`notification.is-primary`)
- * is matched order-independently, because CSS does not care and Bulma does not
- * either: it writes `.notification.is-primary` and `.is-primary.input`. An
- * element-first-only regex called the second one absent, which is how a live
- * modifier could have read as dead.
+ * A single class is matched literally. A COMPOUND (`notification.is-primary`)
+ * has to appear as one SIMPLE selector carrying exactly those classes, which
+ * is narrower than it sounds and deliberately so.
  *
- * Indexed by class rather than scanned per query. Walking every selector for
- * every pair took the first case from a third of a second to six, because
- * this file asks the question a few thousand times.
+ * Order does not matter, because CSS does not care and Bulma does not either:
+ * it writes `.notification.is-primary` and `.is-primary.input`. Matching
+ * element-first only called the second absent, so a live modifier read as
+ * dead.
+ *
+ * But co-occurrence is not a match. Indexing per comma-separated part made
+ * `.hero.is-primary .tabs` answer the query `tabs.is-primary`, since all
+ * three classes sit in that one part, and that is the silent direction: a
+ * dead modifier reading as live, which is a missed defect rather than a false
+ * alarm. Parts are split into simple selectors on the combinators, and the
+ * class set has to match exactly, so a rule needing a third class does not
+ * answer for two.
  */
 function shipsClass(css, cls) {
-  const parts = cls.split('.');
-  const index = classIndex(css);
-  if (parts.length === 1) return index.has(cls);
-  // Start from the rarest class so the scan is over the shortest list.
-  const lists = parts.map(part => index.get(part) ?? new Set());
-  if (lists.some(l => l.size === 0)) return false;
-  const smallest = lists.reduce((a, b) => (a.size <= b.size ? a : b));
-  for (const id of smallest) {
-    if (lists.every(l => l.has(id))) return true;
+  const wanted = cls.split('.');
+  const index = simpleSelectors(css);
+  if (wanted.length === 1) {
+    return index.some(classes => classes.has(cls));
   }
-  return false;
+  return index.some(
+    classes =>
+      classes.size === wanted.length && wanted.every(w => classes.has(w))
+  );
 }
 
 /**
- * class name → the selector parts carrying it, as a set of part ids.
+ * The class sets of every simple selector in the stylesheet.
  *
- * One pass over the stylesheet per file read. A part is one comma-separated
- * selector, so a class list matching within a single part is what counts,
- * rather than the whole selector list mentioning them somewhere apart.
+ * One pass per file read. Split rather than matched: a `[^{}]+` scan over a
+ * minified stylesheet of this size backtracks badly, where splitting is
+ * linear.
  */
 const indexCache = new Map();
-function classIndex(css) {
+function simpleSelectors(css) {
   if (!indexCache.has(css)) {
-    const index = new Map();
-    let id = 0;
-    // Split rather than matched. `/([^{}]+)\{/g` over 800KB of minified CSS
-    // took six seconds for 6,483 selectors, which is backtracking rather than
-    // work; this is five milliseconds for the same index. Each `{` is
-    // preceded by a prelude, and the selector is whatever follows the last
-    // `}` in it.
+    const sets = [];
     for (const chunk of css.split('{')) {
+      // Each `{` is preceded by a prelude; the selector is whatever follows
+      // the last `}` in it.
       const prelude = chunk.slice(chunk.lastIndexOf('}') + 1);
       for (const part of prelude.split(',')) {
-        id += 1;
-        for (const c of part.matchAll(/\.([A-Za-z0-9_-]+)/g)) {
-          if (!index.has(c[1])) index.set(c[1], new Set());
-          index.get(c[1]).add(id);
+        for (const simple of part.split(/[\s>+~]+/)) {
+          if (!simple.includes('.')) continue;
+          sets.push(
+            new Set([...simple.matchAll(/\.([A-Za-z0-9_-]+)/g)].map(m => m[1]))
+          );
         }
       }
     }
-    indexCache.set(css, index);
+    indexCache.set(css, sets);
   }
   return indexCache.get(css);
 }
@@ -179,7 +180,7 @@ function tupleFrom(path, name) {
     `could not find the \`${name}\` tuple in ${path}, so this guard cannot ` +
       'run. Fix the pattern in the same change that moved it.'
   );
-  const values = [...block[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  const values = [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map(m => m[1]);
   assert.ok(values.length > 0, `the \`${name}\` tuple read as empty`);
   return values;
 }
@@ -198,7 +199,7 @@ function colorKeywords() {
   const source = codeOnly(readFileSync(COLOR_CLASSES, 'utf8'));
   const copies = [
     ...source.matchAll(/\[\s*\.\.\.validColors\s*,([^\]]*)\]/g),
-  ].map(m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]));
+  ].map(m => [...m[1].matchAll(/['"]([^'"]+)['"]/g)].map(x => x[1]));
   // Counted against the spellings that EXIST, not against zero. A `> 0`
   // guard let a copy this pattern stopped matching drop out silently while
   // the function claimed to read every one of them.
@@ -300,7 +301,7 @@ function warningCallers() {
             break;
           }
         }
-        const named = /warnUnstyledColor\(\s*'([^']+)'/.exec(text);
+        const named = /warnUnstyledColor\(\s*['"]([^'"]+)['"]/.exec(text);
         // A call whose component is not a string literal cannot be attributed
         // to an element, and is counted below rather than skipped quietly.
         if (!named) continue;
@@ -351,7 +352,7 @@ function warningCallers() {
           // every bracketed span in the call text let a bracketed expression
           // in an earlier argument contribute a value, failing with a message
           // naming something the library never declared.
-          extraUnstyled: [...(args[2] ?? '').matchAll(/'([^']+)'/g)].map(
+          extraUnstyled: [...(args[2] ?? '').matchAll(/['"]([^'"]+)['"]/g)].map(
             x => x[1]
           ),
         });
