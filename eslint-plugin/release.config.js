@@ -87,7 +87,19 @@ export default {
         // commenting on the whole history cannot. Restoring the default is a
         // one-line change once a tag exists and the range is bounded to this
         // package's own commits — #706 tracks that.
-        successComment: false,
+        // `successCommentCondition: false`, not `successComment: false`.
+        // Both skip the walk in 12.0.9 — `success.js` branches on each — but
+        // the second logs "DEPRECATION: 'false' for 'successComment' is
+        // deprecated and will be removed in a future major version. Use
+        // 'successCommentCondition' instead." A removal there would restore
+        // the default template and reinstate exactly the commenting this
+        // block exists to prevent, silently, on a version bump.
+        successCommentCondition: false,
+        // Redundant while the comment skip stands, because 12.0.9 applies the
+        // label inside the comment's own try block, so no comment means no
+        // label. Kept because that coupling is an implementation detail of
+        // one version rather than a contract, and this is the option that
+        // says what is wanted if a later version separates them.
         releasedLabels: false,
       },
     ],

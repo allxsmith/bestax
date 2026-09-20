@@ -684,7 +684,7 @@ jobs:
     # The status-check function is load-bearing, not decoration. An `if` with no
     # status function is implicitly `success() && (...)`, which means EVERY job
     # in `needs` must succeed — so adding `consumer-sbom` here would make one
-    # flaky `npm install` in any of four matrix legs skip this job entirely and
+    # flaky `npm install` in any one matrix leg skip this job entirely and
     # ship the release with its *repository* SBOMs unsigned. That is a
     # Signed-Releases score of 0 (#404) caused by an unrelated registry hiccup.
     #

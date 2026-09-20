@@ -25,7 +25,7 @@
  *
  * `release.tag_name` is `<pkg>@X.Y.Z` (VERSIONING.md, and the `tagFormat` in
  * each package's release.config.js), so the exact version IS available for
- * that one leg. The other three necessarily stay on `latest` — a release says
+ * that one leg. Every other leg necessarily stays on `latest` — a release says
  * nothing about them, and pretending otherwise would pin them to whatever
  * happened to be current when an unrelated package shipped.
  *
@@ -146,7 +146,7 @@ export function parseReleaseTag(tag) {
  * release makes a claim about.
  *
  * Note what is deliberately NOT done: no attempt to guess a version for the
- * other three legs from the repository, the changelog, or the previous run. A
+ * other legs from the repository, the changelog, or the previous run. A
  * consumer SBOM describes what a consumer installs today, and today for those
  * three is whatever `latest` resolves to.
  */
