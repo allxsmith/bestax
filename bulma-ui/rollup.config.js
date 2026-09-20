@@ -49,22 +49,18 @@ const aiBanner =
  * None of that machinery is left. Asking the parser WHICH STRINGS NAME MODULES
  * removes the question the comment map existed to answer: prose is not a
  * specifier because it is not a node, rather than because a range said so.
- * `setParentNodes` is on because `referencedPaths` and `moduleSpecifiers` both
- * walk from here.
  */
 const parseDeclaration = text =>
   ts.createSourceFile(
     'declaration.d.ts',
     text,
     ts.ScriptTarget.Latest,
-    // Parent pointers: the last carry-over from the comment walk that descended
-    // through TOKENS and so needed `getChildren`. Nothing reads a parent now —
+    // No parent pointers. The comment walk this replaced descended through
+    // TOKENS and so needed `getChildren`, which needs them; nothing here does.
     // `referencedPaths` maps `referencedFiles`, `moduleSpecifiers` uses
     // `forEachChild`, and `getStart(sourceFile)` skips trivia on the text it is
-    // handed. Kept because turning it off is a behaviour change nobody asked
-    // for, and said plainly rather than justified by a reason that stopped
-    // being true.
-    true,
+    // handed. Keeping them was explaining a carry-over rather than removing it.
+    false,
     ts.ScriptKind.TS
   );
 
