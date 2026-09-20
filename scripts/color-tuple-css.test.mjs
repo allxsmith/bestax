@@ -201,7 +201,18 @@ const CONDITIONAL_AT_RULE = /^@(media|supports|container|scope)\b/i;
  * stylesheet knows about. Every other at-rule prelude is a condition, where
  * a length like `1.5rem` would tokenise as a class called `5rem`.
  */
-const SCOPE_AT_RULE = /^@scope\b/i;
+const SCOPE_AT_RULE = /^@scope(?![\w-])/i;
+
+/**
+ * A numeric escape, which names a character by code point.
+ *
+ * `.\\31 23` is the class `123`, and the tokeniser reads every escape as one
+ * character, so it would take `31` and lose the real name. That is the quiet
+ * direction, and decoding them properly means a CSS identifier reader, which
+ * is more than this file should carry. Every path that reads a class name
+ * checks for one and stops instead.
+ */
+const NUMERIC_ESCAPE = /\\[0-9a-f]/i;
 
 /** A class selector wherever it appears, with its name captured. */
 const CLASS_TOKEN = /\.((?:\\.|[A-Za-z0-9_-])+)/g;
@@ -450,8 +461,11 @@ function withoutAttributes(selector) {
       continue;
     }
     // Inside a bracket now: skip to its unescaped close, or to the end if
-    // it never comes. An unterminated bracket dropping the rest of the
-    // selector is the loud side — it can only shorten what is read.
+    // it never comes. Only the membership index reads this text, so an
+    // unterminated bracket loses the names after it rather than mis-sizing
+    // a set — and losing them is right: a selector with an unclosed bracket
+    // is a parse error, so the browser drops that rule and the stylesheet
+    // ships none of the classes in it.
     i += 1;
     while (i < selector.length && selector[i] !== ']') {
       if (selector[i] === '\\') i += 1;
@@ -553,9 +567,15 @@ function simpleSelectors(css) {
         // contributes no subject set. Every other prelude stays out, since
         // a condition carries lengths and `1.5rem` tokenises as a class.
         if (SCOPE_AT_RULE.test(heading)) {
-          for (const [, name] of withoutAttributes(heading).matchAll(
-            CLASS_TOKEN
-          )) {
+          const roots = withoutAttributes(heading);
+          assert.ok(
+            !NUMERIC_ESCAPE.test(roots),
+            `the scope root \`${heading}\` carries a numeric escape, which ` +
+              'this file reads as a single character and would silently ' +
+              'rename. Teach it CSS identifier decoding in the same change ' +
+              'that introduced the escape.'
+          );
+          for (const [, name] of roots.matchAll(CLASS_TOKEN)) {
             names.add(name.replace(/\\(.)/g, '$1'));
           }
         }
@@ -591,7 +611,7 @@ function simpleSelectors(css) {
       // escape inside an attribute value, which cannot rename anything,
       // does not halt the guard.
       assert.ok(
-        !/\\[0-9a-f]/i.test(selectorText),
+        !NUMERIC_ESCAPE.test(selectorText),
         `the selector \`${heading}\` carries a numeric escape, which this ` +
           'file reads as a single character and would silently rename. ' +
           'Teach it CSS identifier decoding in the same change that ' +
@@ -1200,17 +1220,35 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'a class named as a scope root is a class the stylesheet knows, and ' +
         'skipping every at-rule prelude lost it.'
     );
+    // ONLY for names. A compound query cannot see the difference — the
+    // prelude's classes never all appear in one query — so this asks the
+    // question that can: whether the root is a rule of its own.
     assert.equal(
-      live('@scope(.the-root){.box{color:red}}', 'the-root.box'),
+      alone('@scope(.the-root){.box{color:red}}', 'the-root'),
       false,
-      'but a scope root is not a rule that styles anything, so it ' +
-        'contributes no compound.'
+      'a scope root is not a rule that styles anything, so it must reach ' +
+        'the membership index without reaching the subject sets.'
     );
     assert.equal(
-      live('@media (min-width:1.5rem){.box{color:red}}', '5rem'),
+      live('@container (min-width:1.5rem){.box{color:red}}', '5rem'),
       false,
       'and only `@scope`: every other prelude is a condition, where a ' +
-        'length would tokenise as a class.'
+        'length tokenises as a class called `5rem`.'
+    );
+    assert.equal(
+      live('@scope-foo (1.5rem){.box{color:red}}', '5rem'),
+      false,
+      'and only `@scope` itself — a word boundary holds before a hyphen, ' +
+        'so an unknown at-rule spelled that way would have its condition ' +
+        'harvested.'
+    );
+    assert.throws(
+      () => live('@scope(.\\31 23){.box{color:red}}', '123'),
+      /numeric escape/,
+      'the harvest reads class names, so it needs the same guard the ' +
+        'style-rule path has: without it the root registers as `31` and ' +
+        'the name it was spelling is lost, which is the quiet direction ' +
+        'inside the branch added to close the quiet direction.'
     );
 
     // Attribute selectors this file reads loosely. Both shapes below make
@@ -1233,8 +1271,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'notification.is-primary'
       ),
       false,
-      'an unterminated bracket swallows the rest of the selector, which ' +
-        'can only shorten what is read.'
+      'an unterminated bracket swallows the rest of the selector, so the ' +
+        'compound after it is not read.'
+    );
+    assert.equal(
+      live('.a[b.fake{color:red}', 'fake'),
+      false,
+      'and the names after it go too, which is right rather than merely ' +
+        'safe: a selector with an unclosed bracket is a parse error, so ' +
+        'the browser drops the rule and none of those classes ship.'
     );
 
     // A NUMERIC escape names a character by code point, which this file
