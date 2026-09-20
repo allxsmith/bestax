@@ -176,6 +176,9 @@ describe('bulma-ui export map', () => {
       // No binding, so nothing with `from` in it, and nothing downstream
       // re-reads this file before it becomes the .d.cts.
       "import './a';\n",
+      // Matched for its TARGET rather than its flavour: the copy lands a
+      // directory up, so a relative one moves.
+      "declare module './a' {}\n",
     ]) {
       assert.equal(hasModuleSpecifiers(body), true, `not caught: ${body}`);
     }
@@ -184,6 +187,9 @@ describe('bulma-ui export map', () => {
     for (const body of [
       'export declare const A: number;\n',
       "/**\n * @example\n * import { A } from './a';\n */\nexport {};\n",
+      // A package augmentation names no path, so nothing moves when the file is
+      // copied. `src/elements/Icon.tsx` carries exactly this shape.
+      "declare module 'react' {}\n",
     ]) {
       assert.equal(hasModuleSpecifiers(body), false, `false alarm: ${body}`);
     }

@@ -423,6 +423,12 @@ export const declarationExtensions = (root = 'dist/types') => {
         if (after !== before) await writeFile(file, after, 'utf8');
       }
 
+      // Re-READ from disk, and parsed again, rather than carrying the rewrite's
+      // result forward. That independence is the point: this loop is checking
+      // the rewrite, and reusing its output would make it a restatement. The
+      // second parse costs a fraction of a percent of build time, measured
+      // against the whole package build, which is not a trade worth making.
+      //
       // The rewrite can only fix shapes its pattern matches, and several escaped
       // it in the writing — the double-quoted `import("./x")` form, a bare `..`,
       // and a side-effect `import './x';` in neither position. An unmatched
@@ -507,6 +513,12 @@ export const declarationExtensions = (root = 'dist/types') => {
  * binding attached, and nothing downstream re-reads this file, so a pattern
  * built around `from` let the one shape with no `from` through.
  *
+ * `declare module './x'` is matched for its target rather than its flavour: the
+ * copy lands a directory up, so a relative one moves. Only the relative spelling
+ * counts — `declare module 'react'` is an augmentation of a package and names no
+ * path, which is why the one in `src/elements/Icon.tsx` is not a problem and the
+ * post-pass ignores it too.
+ *
  * The other two matter for a second reason as well: they are relative, and the
  * copy lands one directory up, so their targets would shift even if the flavour
  * were fine. A `/// <reference path>` is a comment, which is exactly why a
@@ -518,7 +530,7 @@ export const declarationExtensions = (root = 'dist/types') => {
  * describing a narrower rule than it checks.
  */
 export const hasModuleSpecifiers = text =>
-  /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(|^\s*\/\/\/\s*<reference\b|\bimport\s+[A-Za-z_$][\w$]*\s*=\s*require\s*\(|^\s*import\s*['"]/m.test(
+  /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(|^\s*\/\/\/\s*<reference\b|\bimport\s+[A-Za-z_$][\w$]*\s*=\s*require\s*\(|^\s*import\s*['"]|^\s*declare\s+module\s*['"]\./m.test(
     text
   );
 
