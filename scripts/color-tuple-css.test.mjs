@@ -192,7 +192,7 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
  * `@font-face` and the rest do not, so a rule under one of those is as live
  * as a rule at the top level.
  */
-const CONDITIONAL_AT_RULE = /^@(media|supports|container|scope)\b/i;
+const CONDITIONAL_AT_RULE = /^@(media|supports|container|scope)(?![\w-])/i;
 
 /**
  * The at-rule whose prelude is a selector list rather than a condition.
@@ -231,7 +231,9 @@ const CLASS_SELECTOR = /\.(?:\\.|[A-Za-z0-9_-])+/g;
  * separator first leaves one unambiguous pattern per part.
  */
 const onlyClasses = argument =>
-  argument.trim() !== '' &&
+  // No emptiness check up front: `''.split(',')` is `['']`, and the
+  // per-part test below rejects that already, so a clause here could never
+  // decide anything.
   argument.split(',').every(part => {
     // Whatever is left once the class selectors come out has to be nothing.
     // A COMPOUND of them counts — `:not(.is-a.is-b)` prohibits carrying both
@@ -1236,11 +1238,36 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'length tokenises as a class called `5rem`.'
     );
     assert.equal(
+      live(
+        '@media-foo (min-width:10px){.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      true,
+      'an unknown at-rule is not a condition, and a word boundary holds ' +
+        'before a hyphen, so both at-rule patterns have to say so the ' +
+        'same way.'
+    );
+    assert.equal(
       live('@scope-foo (1.5rem){.box{color:red}}', '5rem'),
       false,
       'and only `@scope` itself — a word boundary holds before a hyphen, ' +
         'so an unknown at-rule spelled that way would have its condition ' +
         'harvested.'
+    );
+    // The harvest has three readers and each needs its own case. The
+    // escape decode is the quiet one: without it the name the CSS ships
+    // drops out of the index under a spelling nobody queries.
+    assert.equal(
+      live('@scope(.a\\[b){.box{color:red}}', 'a[b'),
+      true,
+      'a scope root spelled with an escape is the class that escape ' +
+        'names, so the harvest has to decode it like every other reader.'
+    );
+    assert.equal(
+      live('@scope([data-x=\\.fake]){.box{color:red}}', 'fake'),
+      false,
+      'and an attribute selector in a scope prelude is not a class, the ' +
+        'same as anywhere else.'
     );
     assert.throws(
       () => live('@scope(.\\31 23){.box{color:red}}', '123'),
@@ -1693,6 +1720,47 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'the fractional helper is not the integer one, and a stylesheet that ' +
         'ships only the first must not answer for the second.'
+    );
+  });
+
+  // `codeOnly` is the one reader below the matcher with nothing holding
+  // it. The others fail loudly when broken, each through a guard of its
+  // own: `tupleFrom` cannot find its block or reads it short, and
+  // `colorKeywords` counts the copies it parsed against the spellings that
+  // exist and refuses an empty one. This has no such guard, because what it
+  // protects against is text that is not there — so it needs cases.
+  it('reads code rather than prose', () => {
+    const call = 'warnUnstyledColor';
+
+    // The caller scan looks for a call by name, and these components
+    // document the helper they call. A comment quoting the call invents an
+    // element, and an invented element is compared against the stylesheet
+    // as though the library had one.
+    assert.equal(
+      codeOnly(`/* ${call}('Fake', x) */\nconst a = 1;`).includes(call),
+      false,
+      'a block comment quoting the call must not be read as the call.'
+    );
+    assert.equal(
+      codeOnly(`// ${call}('Fake', x)\nconst a = 1;`).includes(call),
+      false,
+      'nor must a line comment, which is how these components are actually ' +
+        'annotated.'
+    );
+    assert.equal(
+      codeOnly(`${call}('Real', x);`).includes(call),
+      true,
+      'and the real call has to survive, or the scan finds nothing and the ' +
+        'comparison it feeds is vacuous.'
+    );
+
+    // It reads values too, so a quoted word in a comment inside a tuple
+    // would become a value the library does not accept.
+    assert.equal(
+      codeOnly("const t = [/* 'ghost' */ 'real'] as const;").includes('ghost'),
+      false,
+      'a quoted word in a comment is not a value, and `tupleFrom` reads ' +
+        'through this on its way to the tuple.'
     );
   });
 
