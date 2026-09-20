@@ -28,72 +28,38 @@ const aiBanner =
   '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
 
 /**
- * Parse a declaration with TypeScript, once, for the two questions both passes
- * ask of it: where the comments are, and which files it references.
+ * Parse a declaration with TypeScript.
  *
- * Both passes read raw text, so a relative path quoted inside a preserved TSDoc
- * `@example` read exactly like a specifier: rewritten when it resolved, and a
- * build failure when it did not. This tree emits `@example` blocks in quantity,
- * so that was a live shape rather than a theoretical one.
+ * Both passes used to read raw text, and a relative path quoted inside a
+ * preserved TSDoc `@example` read exactly like a specifier: rewritten when it
+ * resolved, and a build failure when it did not. This tree emits `@example`
+ * blocks in quantity, so that was live rather than theoretical.
  *
- * The comment map went through two wrong implementations before this one, both
- * failing the same way — reporting a comment where there is none, which is the
- * worst failure available here, because BOTH passes consult the map and a false
- * range switches them off together. The specifier inside is then neither
- * rewritten nor checked, and ships.
+ * The answer was a map of where the comments are, so their bodies could be
+ * exempted — and that map was wrong twice before it was right, both times in
+ * the direction that matters. A hand-rolled walk over quotes and slashes
+ * miscounted the backticks of a template nesting another inside a substitution;
+ * `createScanner` fixed that and kept a subtler version, since a bare scanner
+ * never re-scans the brace closing a substitution as template continuation, so
+ * a `/*` in the text after it opened a comment running to the end of the file.
+ * A false range is the worst failure available here, because both passes
+ * consulted the map and the specifier inside was then neither rewritten nor
+ * checked.
  *
- * A hand-rolled walk over quotes and slashes miscounted the backticks of a
- * template nesting another inside a substitution. `createScanner` fixed that
- * and kept a subtler version of it: a bare scanner never re-scans the brace
- * closing a substitution as template continuation, so the text AFTER it is
- * scanned as code, and a `/*` in that text opens a comment that runs to the end
- * of the file. Only the parser tracks that state, so the parser is what runs
- * here. Declarations do carry template literal types, so neither was theoretical.
- *
- * `getLeadingCommentRanges` reports only real comment trivia at a position the
- * parser chose, so this cannot invent a range — which is the failure that
- * matters, since a false range switches both passes off at once. Missing one is
- * not the harmless opposite, though: the text is then read as code, and a
- * relative path written in prose fails the build. That is why the walk below
- * descends through tokens rather than nodes.
+ * None of that machinery is left. Asking the parser WHICH STRINGS NAME MODULES
+ * removes the question the comment map existed to answer: prose is not a
+ * specifier because it is not a node, rather than because a range said so.
+ * `setParentNodes` is on because `referencedPaths` and `moduleSpecifiers` both
+ * walk from here.
  */
 const parseDeclaration = text =>
   ts.createSourceFile(
     'declaration.d.ts',
     text,
     ts.ScriptTarget.Latest,
-    // Parent pointers, because the comment walk below descends through TOKENS
-    // rather than nodes, and `getChildren` needs them.
     true,
     ts.ScriptKind.TS
   );
-
-const commentRanges = (text, sourceFile) => {
-  const ranges = [];
-  const seen = new Set();
-  const add = range => {
-    const key = `${range.pos}:${range.end}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    ranges.push([range.pos, range.end]);
-  };
-  // TOKENS, not nodes. `forEachChild` skips punctuation, and a comment sitting
-  // before a closing brace — or alone inside an empty interface — is leading
-  // trivia of that brace and nothing else. Missing one is not harmless the way
-  // it first looks: the post-pass then reads the comment as code and FAILS THE
-  // BUILD over a relative path in prose. Descending through tokens reaches
-  // every position trivia can attach to.
-  const visit = node => {
-    ts.getLeadingCommentRanges(text, node.pos)?.forEach(add);
-    ts.getTrailingCommentRanges(text, node.end)?.forEach(add);
-    for (const child of node.getChildren(sourceFile)) visit(child);
-  };
-  visit(sourceFile);
-  return ranges;
-};
-
-const inComment = (ranges, at) =>
-  ranges.some(([start, end]) => at >= start && at < end);
 
 /**
  * The relative `reference path` targets TypeScript would follow.
@@ -114,6 +80,73 @@ const inComment = (ranges, at) =>
  * the parse was meant to remove. An absolute target is kept too: it cannot be
  * inside the published tree, so containment refuses it and says so.
  */
+/**
+ * Every module specifier in a parsed declaration, with the offsets of the
+ * string's CONTENT — inside the quotes, so a rewrite replaces the path and
+ * leaves the quoting alone.
+ *
+ * This replaced a regex over `from` / `import(` positions, and with it the
+ * comment map both passes needed. A pattern cannot tell a specifier from
+ * anything else quoted beside it, which cost this file a rewrite inside a TSDoc
+ * `@example`, a build failure on a relative path written in prose, and a comment
+ * scanner that was wrong twice before it was right. The parser knows which
+ * strings name modules, so none of that has to be inferred.
+ *
+ * A `declare module` name is deliberately absent. Only an ambient declaration
+ * takes a string name, and a relative one is TS2436 — "Ambient module
+ * declaration cannot specify relative module name" — so the shape this would
+ * rewrite cannot legally exist, and a bare one names a package rather than a
+ * path.
+ */
+/**
+ * The string names of ambient module declarations.
+ *
+ * Checked but never rewritten, and the split is deliberate. A relative ambient
+ * name is TS2436 — "Ambient module declaration cannot specify relative module
+ * name" — so tsc cannot emit one and there is no correct extension to give it.
+ * But this pass walks FILES rather than a compilation, `dist` is never cleaned,
+ * and a declaration left by an earlier emit is held to the same standard as a
+ * fresh one. Verifying costs nothing and keeps a dangling one from going quiet.
+ */
+const ambientModuleNames = sourceFile => {
+  const found = [];
+  const visit = node => {
+    if (ts.isModuleDeclaration(node) && ts.isStringLiteral(node.name)) {
+      found.push(node.name.text);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return found;
+};
+
+const moduleSpecifiers = sourceFile => {
+  const found = [];
+  const take = node => {
+    if (!node || !ts.isStringLiteral(node)) return;
+    found.push({
+      start: node.getStart(sourceFile) + 1,
+      end: node.getEnd() - 1,
+      text: node.text,
+    });
+  };
+  const visit = node => {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      take(node.moduleSpecifier);
+    } else if (ts.isImportTypeNode(node)) {
+      // The `import('./x').Y` form tsc emits for a type it reaches without an
+      // explicit import.
+      const argument = node.argument;
+      if (argument && ts.isLiteralTypeNode(argument)) take(argument.literal);
+    } else if (ts.isExternalModuleReference(node)) {
+      take(node.expression);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return found;
+};
+
 const referencedPaths = sourceFile =>
   sourceFile.referencedFiles.map(reference => reference.fileName);
 
@@ -343,7 +376,62 @@ export const declarationExtensions = (root = 'dist/types') => {
       // `.` and `..` on their own are specifiers too — a bare parent-directory
       // import resolves to that directory's `index`, and a pattern requiring a
       // `/` after the dots skipped them silently.
-      const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
+      // What a single specifier becomes, or a throw naming why it cannot.
+      // Returns null when it is already correct and needs no edit.
+      const rewritten = (file, spec) => {
+        // An extension already present is still checked. The post-pass would
+        // catch a dangling one too, since it asks about resolution rather than
+        // about extensions — this is the earlier and better-worded of the two
+        // errors, not the only net.
+        const extensioned = spec.match(/\.([cm]?)js$/);
+        if (extensioned) {
+          // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
+          // `.d.ts` for either verifies a file TypeScript will not consult.
+          const declared = `.d.${extensioned[1]}ts`;
+          const asFile = resolvePath(dirname(file), spec).replace(
+            /\.[cm]?js$/,
+            declared
+          );
+          if (declarationUnder(root, asFile)) return null;
+          throw new Error(
+            `${file}: '${spec}' already carries an extension but resolves to ` +
+              'no declaration, so it would ship pointing nowhere.'
+          );
+        }
+        // A bare `.` or `..` names a directory by definition, so it skips the
+        // file probe. Probing first would let a stale declaration — `dist` is
+        // never cleaned — send it down the file branch and emit a specifier
+        // ending in `.js` that resolves nowhere. The index is still checked:
+        // this branch has to throw like the others, or it becomes the one path
+        // that can emit something unresolvable in silence.
+        if (/^\.\.?$/.test(spec)) {
+          if (
+            declarationUnder(
+              root,
+              join(resolvePath(dirname(file), spec), 'index.d.ts')
+            )
+          ) {
+            return `${spec}/index.js`;
+          }
+          throw new Error(
+            `${file}: '${spec}' names a directory with no index declaration, ` +
+              'so no extension can be chosen for it.'
+          );
+        }
+        const resolved = resolvePath(dirname(file), spec);
+        // The file probe comes first because TypeScript prefers a file to a
+        // same-named directory, and a reversal emits something that RESOLVES,
+        // so the post-pass cannot see it.
+        if (declarationUnder(root, `${resolved}.d.ts`)) return `${spec}.js`;
+        if (declarationUnder(root, join(resolved, 'index.d.ts'))) {
+          return `${spec}/index.js`;
+        }
+        throw new Error(
+          `${file}: '${spec}' resolves to neither a declaration nor a ` +
+            'directory holding one, so no extension can be chosen for it.'
+        );
+      };
+
       for (const file of files) {
         // Checked before the work, not only before the write. The rewrite below
         // THROWS on a specifier it cannot resolve, and a pass whose build has
@@ -351,73 +439,22 @@ export const declarationExtensions = (root = 'dist/types') => {
         // that superseded it.
         if (generation !== building) return;
         const before = await readFile(file, 'utf8');
-        const comments = commentRanges(before, parseDeclaration(before));
-        let after;
+        let edits;
         try {
-          after = before.replace(
-            SPECIFIER,
-            (whole, head, _q, spec, tail, offset) => {
-              // A quoted path inside a comment is prose, not a specifier. Left in
-              // the scan it was silently rewritten whenever it resolved, which is
-              // how a TSDoc `@example` showing a consumer-side import got edited.
-              if (inComment(comments, offset)) return whole;
-              // An extension already present is still checked. The post-pass would
-              // catch a dangling one too, since it asks about resolution rather than
-              // about extensions — this is the earlier and better-worded of the two
-              // errors, not the only net. Nothing in `src/` spells an extension
-              // today; the point is that no branch is held to a weaker test.
-              const extensioned = spec.match(/\.([cm]?)js$/);
-              if (extensioned) {
-                // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
-                // `.d.ts` for either verifies a file TypeScript will not consult.
-                const declared = `.d.${extensioned[1]}ts`;
-                const asFile = resolvePath(dirname(file), spec).replace(
-                  /\.[cm]?js$/,
-                  declared
-                );
-                if (declarationUnder(root, asFile)) return whole;
-                throw new Error(
-                  `${file}: '${spec}' already carries an extension but resolves to ` +
-                    'no declaration, so it would ship pointing nowhere.'
-                );
-              }
-              // A bare `.` or `..` names a directory by definition, so it skips the
-              // file probe. Probing first would let a stale declaration — `dist` is
-              // never cleaned — send it down the file branch and emit a specifier
-              // ending in `.js` that resolves nowhere, which the post-pass would then
-              // pass through untouched. The index is still checked: this branch has
-              // to throw like the others, or it becomes the one path that can emit
-              // something unresolvable in silence.
-              if (/^\.\.?$/.test(spec)) {
-                if (
-                  declarationUnder(
-                    root,
-                    join(resolvePath(dirname(file), spec), 'index.d.ts')
-                  )
-                ) {
-                  return `${head}${spec}/index.js${tail}`;
-                }
-                throw new Error(
-                  `${file}: '${spec}' names a directory with no index declaration, ` +
-                    'so no extension can be chosen for it.'
-                );
-              }
-              const resolved = resolvePath(dirname(file), spec);
-              if (declarationUnder(root, `${resolved}.d.ts`))
-                return `${head}${spec}.js${tail}`;
-              if (declarationUnder(root, join(resolved, 'index.d.ts'))) {
-                return `${head}${spec}/index.js${tail}`;
-              }
-              throw new Error(
-                `${file}: '${spec}' resolves to neither a declaration nor a ` +
-                  'directory holding one, so no extension can be chosen for it.'
-              );
-            }
-          );
+          edits = moduleSpecifiers(parseDeclaration(before))
+            .filter(found => /^\.\.?(\/|$)/.test(found.text))
+            .map(found => ({ ...found, to: rewritten(file, found.text) }))
+            .filter(edit => edit.to !== null);
         } catch (error) {
           // Same reason, for the window between that check and this throw.
           if (generation !== building) return;
           throw error;
+        }
+        // Applied from the END backwards, so an earlier edit cannot move the
+        // offsets of a later one.
+        let after = before;
+        for (const edit of edits.sort((a, b) => b.start - a.start)) {
+          after = after.slice(0, edit.start) + edit.to + after.slice(edit.end);
         }
         if (generation !== building) return;
         if (after !== before) await writeFile(file, after, 'utf8');
@@ -449,42 +486,34 @@ export const declarationExtensions = (root = 'dist/types') => {
         // else here has a failing case behind it.
         if (generation !== building) return;
         const text = await readFile(file, 'utf8');
-        // EVERY quoted relative string, and the question is whether it RESOLVES.
+        // The question is whether every specifier RESOLVES, asked of what is
+        // actually on disk.
         //
-        // Both halves of that are deliberate. Reading only the positions the
-        // rewrite matches makes this a restatement of the rewrite rather than a
-        // check on it — narrowing the two to the same `from`/`import(` prefix let
-        // a side-effect import escape both at once. And asking merely whether an
-        // extension is present let three shapes ship a specifier pointing
-        // nowhere: one outside those positions, one already carrying an
-        // extension, and a `./dir/` that a stale sibling turned into `./dir/.js`.
-        // Resolvability is one question covering all of them, and it is the
-        // property a consumer actually depends on.
+        // This is no longer a second way of FINDING specifiers — both passes
+        // ask the parser now, so a scan for something the rewrite might have
+        // missed would only restate it. What it checks instead is the WRITE:
+        // the file is re-read and re-parsed, so a mis-applied offset, a
+        // corrupted string, or a pick that resolves nowhere is caught here
+        // rather than shipped. Resolvability is still the property a consumer
+        // depends on, and it is the one thing the rewrite cannot verify about
+        // its own output.
         //
-        // The cost of reading raw text is that neither pass can tell a specifier
-        // from anything else quoted beside it. A string-literal type such as
-        // `export type P = './foo.js'`, or a relative `./data.json` import, fails
-        // the build; and in the other direction the rewrite will happily edit a
-        // relative path quoted inside a preserved TSDoc `@example`, which this
-        // tree carries plenty of. No source here quotes a relative path anywhere
-        // but a specifier. The two directions are not equally safe: a false
-        // failure is loud and stops the build, while an edit inside a comment
-        // ships silently WHEN the path it names happens to resolve from that
-        // declaration's directory — one that does not throws like any other.
-        // Narrowing the scan is what opened the hole it was widened to close, so
-        // the answer if this ever bites is to exempt comment bodies, not to
-        // re-anchor it.
+        // What this no longer has to worry about is everything the raw-text
+        // version did: a string-literal type, a relative path in a preserved
+        // TSDoc `@example`, a `./data.json` import. None of them name a module,
+        // so none of them are collected, and the comment map that used to be
+        // needed to tell them apart is gone.
         const parsed = parseDeclaration(text);
-        const comments = commentRanges(text, parsed);
-        const quoted = [...text.matchAll(/['"](\.\.?(?:\/[^'"]*)?)['"]/g)]
-          .filter(m => !inComment(comments, m.index))
-          .map(m => m[1]);
-        // The one comment shape that stays in scope, because TypeScript
-        // follows it. Relative only, which is what the scan above asked too.
+        const named = [
+          ...moduleSpecifiers(parsed).map(found => found.text),
+          ...ambientModuleNames(parsed),
+        ].filter(spec => /^\.\.?(\/|$)/.test(spec));
+        // A `reference path` is a comment TypeScript nonetheless follows, so it
+        // is not a module specifier and has to be collected separately.
         const referenced = referencedPaths(parsed);
         const broken = [
           ...new Set(
-            [...quoted, ...referenced].filter(
+            [...named, ...referenced].filter(
               spec => !resolvesToDeclaration(root, file, spec)
             )
           ),
