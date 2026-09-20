@@ -118,24 +118,29 @@ function stylesheet() {
  * answer for two.
  */
 function shipsClass(css, cls) {
-  // The two paths answer differently ON PURPOSE, because their callers fail
-  // in opposite directions. A COMPOUND query asks whether a modifier
-  // renders, and the answer feeds a set compared against the colours the
-  // library warns about: saying live where nothing renders removes a real
-  // defect from that comparison and the test still passes, so the exact-size
-  // rule is there to stop it. A SINGLE-class query asks whether the
-  // stylesheet knows a name at all, and every caller of that is shaped so
-  // saying yes too often fails loudly — the shade `deepEqual`, the `-bis`
-  // and `-ter` sweep whose extra entry has nowhere to land, the `assert.ok`
-  // on a keyword that must NOT ship. Tightening the membership test into an
-  // exact match would move those toward the quiet side, so it stays
-  // membership.
+  // Two questions, two indexes, and they are not the same question.
+  //
+  // A COMPOUND query asks whether a modifier RENDERS. Its answer feeds a
+  // set compared against the colours the library warns about, so saying
+  // live where nothing renders drops a real defect out of that comparison
+  // and the test still passes. That is why it reads the subject sets and
+  // why the size has to match exactly: a rule needing a third class must
+  // not answer for two.
+  //
+  // A SINGLE-class query asks whether the stylesheet KNOWS a name. Every
+  // caller of that one fails loudly on a yes it should not have given — the
+  // shade `deepEqual`, the `-bis`/`-ter` sweep whose extra entry has
+  // nowhere to land, the `assert.ok` on a keyword that must NOT ship — and
+  // quietly on a no. So it reads every name mentioned anywhere, subject or
+  // not: answering it from the subject sets would have hidden a class that
+  // only ever appears as an ancestor, and a colour the CSS ships and the
+  // tuple lacks is the first defect this file was written for.
   const wanted = cls.split('.');
-  const index = simpleSelectors(css);
+  const { sets, names } = simpleSelectors(css);
   if (wanted.length === 1) {
-    return index.some(classes => classes.has(cls));
+    return names.has(cls);
   }
-  return index.some(
+  return sets.some(
     classes =>
       classes.size === wanted.length && wanted.every(w => classes.has(w))
   );
@@ -242,12 +247,10 @@ const onlyClasses = argument =>
  *   rather than shrinks and the query reads dead. A false alarm is the one
  *   way this guard may be wrong.
  *
- * Order carries two reasons. Arguments are handled before the caller splits
- * on commas, because they contain commas:
- * `.navbar-item:not(.is-active,.is-selected)` is ONE selector, and splitting
- * first fragments it and leaves `is-active` looking like a class the element
- * carries. Attribute selectors go before bare pseudo-classes, because an
- * attribute VALUE may contain a colon.
+ * Arguments are handled before the caller splits on commas, because they
+ * contain commas: `.navbar-item:not(.is-active,.is-selected)` is ONE
+ * selector, and splitting first fragments it and leaves `is-active` looking
+ * like a class the element carries.
  *
  * One pass, and this is the part that took longest to get right. `[^()]*`
  * cannot cross a parenthesis, so a nested call leaves its enclosing one
@@ -277,12 +280,18 @@ function requirements(prelude) {
         ? '*'
         : `.${UNMODELLED}`
     )
+    // Attribute selectors are SUBSTITUTED rather than left to the residue
+    // check, because their VALUE is arbitrary text: `[data-x=".foo"]`
+    // otherwise puts `foo` in the class set, which is a class the element
+    // does not carry. Nothing else here needs a pass of its own. A bare
+    // pseudo-class and an ID cannot contain a `.`, so they reach the
+    // residue check intact and are counted there, and adding passes for
+    // them changed no answer and no set — they were parser for its own
+    // sake.
     .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
-    .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`)
-    .replace(/#[A-Za-z0-9_-]+/g, `.${UNMODELLED}`)
-    // Pseudo-elements last, and removed rather than replaced. What is left
-    // by then is a `::` spelling, so no other pass can mistake it for the
-    // qualifier check in `classesOf`.
+    // Pseudo-elements are removed rather than replaced, and last, so that
+    // the `::` spelling never reaches the residue check and is not read as
+    // a requirement.
     .replace(/::[a-z-]+/gi, '');
   while (/\([^()]*\)/.test(text)) text = text.replace(/\([^()]*\)/g, '');
   return text;
@@ -339,6 +348,7 @@ function simpleSelectors(css) {
         'name no real class can have. Rename the sentinel.'
     );
     const sets = [];
+    const names = new Set();
     // Comments go first, or their words become classes. A banner or a
     // sourceMappingURL contributes nothing anyone queries, but a comment
     // that happened to name a compound would answer for it, and that reads
@@ -363,16 +373,28 @@ function simpleSelectors(css) {
       // The last chunk is whatever trails the final `{`, and opens nothing.
       if (i === chunks.length - 1) break;
       // Each `{` is preceded by a prelude, which is whatever follows the
-      // last `}` in the chunk — and then whatever follows the last `;` in
-      // THAT, because a statement at-rule ends in a semicolon rather than a
-      // block and so shares a chunk with what comes after it. `@charset
-      // "utf-8";@media print` would otherwise be tested as one heading,
-      // and it starts with `@charset`, so the media query it is glued to
-      // would open as unconditional. `@import url(…);.box` is the same
-      // shape and skips a real rule. Declarations end in semicolons too,
-      // but they sit before the closing brace and are already gone.
+      // last `}` in the chunk. A STATEMENT at-rule ends in a semicolon
+      // rather than a block, so it shares that text with whatever comes
+      // after it: `@charset "utf-8";@media print` read as one heading
+      // starts with `@charset`, so the media query glued to it opens as
+      // unconditional, and `@import "x";.box` skips a real rule.
+      //
+      // Only a statement at-rule may be cut away, though. A DECLARATION
+      // before a heading means native CSS nesting, and cutting there hands
+      // back `.tabs.is-boxed` from `.hero{color:red;.tabs.is-boxed{…}}` as
+      // though it stood alone — the flattened form of that same rule reads
+      // dead, so it would be a hole rather than a fix. Left whole, the
+      // declaration text lands in the qualifier residue and the nested rule
+      // reads dead too, which is the answer this file wants until it models
+      // nesting properly.
       const afterBlock = chunk.slice(chunk.lastIndexOf('}') + 1);
-      const heading = afterBlock.slice(afterBlock.lastIndexOf(';') + 1).trim();
+      const statements = afterBlock.split(';');
+      const trailing = statements.pop();
+      const heading = statements.every(
+        one => one.trim() === '' || one.trim().startsWith('@')
+      )
+        ? trailing.trim()
+        : afterBlock.trim();
       // An at-rule prelude is not a selector. Reading it as one indexed
       // `@media (hover:hover)` as a class set, and the rules INSIDE it are
       // what this is really about.
@@ -390,12 +412,18 @@ function simpleSelectors(css) {
         // simple selector, and it carries a requirement of its own whenever
         // anything precedes it.
         const simples = part.split(/[\s>+~]+/).filter(Boolean);
+        // Every class MENTIONED, wherever it stands. That is a different
+        // question from the one the sets answer, and `shipsClass` says why.
+        for (const simple of simples) {
+          for (const name of classesOf(simple, false)) names.add(name);
+        }
         const subject = simples[simples.length - 1];
         if (!subject?.includes('.')) continue;
         sets.push(classesOf(subject, simples.length > 1 || conditional));
       }
     }
-    indexCache.set(css, sets);
+    names.delete(UNMODELLED);
+    indexCache.set(css, { sets, names });
   }
   return indexCache.get(css);
 }
@@ -746,9 +774,10 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'as a requirement would call a live modifier dead.'
     );
 
-    // Nested parentheses. One pass resolves the INNER call and leaves an
-    // empty `:has()` behind, which matches nothing and shrinks the set back
-    // to the size of the query.
+    // Nested parentheses. One pass resolves the INNER call, which leaves
+    // the enclosing one unmatched — and that is the answer, not a gap: a
+    // call whose argument could not be read is a requirement, and the
+    // residue check counts it.
     assert.equal(
       live(
         '.notification.is-primary:has(:not(.is-light)){color:red}',
@@ -866,15 +895,22 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       true,
       'and it must not swallow a real rule either.'
     );
-
-    // An at-rule prelude read as a selector finds classes in it. A decimal
-    // is the shape that bites: the tokeniser sees `.5rem` and calls it one.
+    // A DECLARATION before a heading is native nesting, not a statement
+    // at-rule, and cutting at the semicolon there hands back a nested rule
+    // as though it stood alone.
     assert.equal(
-      live('@media (min-width:1.5rem){.box{color:red}}', '5rem'),
+      live('.hero{color:red;.tabs.is-boxed{color:blue}}', 'tabs.is-boxed'),
       false,
-      'a length in a media condition is not a class, and reading the ' +
-        'prelude as a selector is how it becomes one.'
+      'a nested rule renders only inside its parent, the same as the ' +
+        'flattened `.hero .tabs.is-boxed` it compiles to.'
     );
+
+    // Nothing asserts that an at-rule prelude is not INDEXED, and nothing
+    // can: a condition is parenthesised, the paren strip removes it before
+    // any tokenising, and what survives outside carries no `.` in any
+    // at-rule CSS defines. Two attempts at pinning it both passed with the
+    // skip removed. What the skip really decides is which entry goes on the
+    // condition stack, and the two assertions above hold that.
 
     // An argument the passes could not resolve leaves its TEXT behind, and
     // the caller splits on commas.
@@ -902,14 +938,23 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'a rule styles its subject, so indexing the ancestor too says a rule ' +
         'renders something it only renders inside.'
     );
-    // A COMPOUND query cannot tell which simple selector was indexed, since
-    // the contextual sentinel makes either one too wide to match. Asking
-    // for the ancestor by NAME can.
+    // Naming the ancestor asks the OTHER question, and gets the other
+    // answer. Whether a rule styles `.hero` and whether the stylesheet has
+    // heard of `hero` are not the same thing, and this file needs both.
     assert.equal(
       live('.hero.is-primary .tabs{color:red}', 'hero'),
+      true,
+      'a class the stylesheet mentions anywhere is a class it knows, even ' +
+        'where the rule mentioning it styles something else.'
+    );
+
+    // An attribute VALUE is arbitrary text, and a class inside one is not a
+    // class the element carries.
+    assert.equal(
+      live('.box[data-x=".fake-class"]{color:red}', 'fake-class'),
       false,
-      'the ancestor of a rule is not styled by it, so the stylesheet does ' +
-        'not know that name from this rule alone.'
+      'a class name inside an attribute value is a string, and reading it ' +
+        'as a selector invents a class the stylesheet does not ship.'
     );
 
     // A prohibition standing on its own is still an element, and the
