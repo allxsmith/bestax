@@ -636,14 +636,44 @@ describe('the declaration-extension guard', () => {
     assert.match(readFileSync(join(root, 'index.d.ts'), 'utf8'), /'\.\/a\.js'/);
   });
 
-  it('fails on a side-effect import, which the rewrite cannot match', async () => {
-    // Neither a `from` nor an `import(` position, so only the post-pass sees
-    // it. This is the shape that escaped both when the two shared a pattern.
+  it('leaves a bare package specifier alone', async () => {
+    // The rewrite asks the parser for module specifiers, which includes bare
+    // ones — `react` is in the real emitted tree. Only relative specifiers name
+    // a file this pass can give an extension to; a bare one names a package and
+    // resolves through node_modules, so probing it against the declaration root
+    // finds nothing and would fail the build on every declaration that imports
+    // React. The filter that prevents this had no case behind it.
+    const root = tree({
+      'index.d.ts':
+        "import { FC } from 'react';\n" +
+        "export * from '@scope/pkg';\n" +
+        "export * from './local';\n",
+      'local.d.ts': 'export {};\n',
+    });
+    await run(root);
+    const out = readFileSync(join(root, 'index.d.ts'), 'utf8');
+    assert.match(out, /from 'react';/);
+    assert.match(out, /from '@scope\/pkg';/);
+    // And the relative one beside them is still rewritten, so this pins the
+    // filter rather than the pass being switched off.
+    assert.match(out, /from '\.\/local\.js';/);
+  });
+
+  it('rewrites a side-effect import like any other specifier', async () => {
+    // It used to FAIL the build. Neither a `from` nor an `import(` position, so
+    // the regex rewrite could not match it, it kept its missing extension, and
+    // the post-pass rejected it — a real specifier the pass could see was wrong
+    // and could not fix. Asking the parser removes the distinction: a module
+    // specifier is a module specifier wherever it sits.
     const root = tree({
       'index.d.ts': "import './side';\n",
       'side.d.ts': 'export {};\n',
     });
-    await assert.rejects(run(root), /resolve to no declaration/);
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /import '\.\/side\.js';/
+    );
   });
 
   it('fails on a specifier that carries an extension and resolves nowhere', async () => {
@@ -741,20 +771,34 @@ describe('the declaration-extension guard', () => {
   });
 
   it('fails on a dangling specifier wherever it sits, not only after `from`', async () => {
-    // The rewrite only probes `from`/`import(` positions, so these three are
-    // the post-pass's alone — and testing for a missing extension rather than
-    // for resolvability let each of them ship a specifier pointing nowhere.
+    // Every position a specifier can occupy, each pointing nowhere. These used
+    // to be the post-pass's alone, because the rewrite's pattern could not
+    // reach them; now the rewrite sees them too and throws first, with the
+    // better-worded of the two errors. Both messages are accepted here so the
+    // case pins that the build STOPS rather than which pass stopped it.
     for (const body of [
       "import './gone.js';\n",
-      "declare module './gone.js';\n",
       "import y = require('./gone.js');\n",
+      "export * from './gone.js';\n",
+      "export type P = import('./gone.js').Q;\n",
     ]) {
       await assert.rejects(
         run(tree({ 'index.d.ts': body })),
-        /resolve to no declaration/,
+        /resolves? to no declaration/,
         body.trim()
       );
     }
+  });
+
+  it('fails on a dangling ambient module name, which is never rewritten', async () => {
+    // A relative ambient name is TS2436, so tsc cannot emit one and there is no
+    // correct extension to give it — it is checked but never rewritten. `dist`
+    // is never cleaned, so a stale declaration carrying one is still held to
+    // resolving.
+    await assert.rejects(
+      run(tree({ 'index.d.ts': "declare module './gone.js';\n" })),
+      /resolve to no declaration/
+    );
   });
 
   it('fails on a trailing-slash specifier that a stale sibling would mask', async () => {
