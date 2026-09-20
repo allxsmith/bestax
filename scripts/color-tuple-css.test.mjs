@@ -232,7 +232,7 @@ const NUMERIC_ESCAPE = /\\[0-9a-f]/i;
  * the shape wherever it appears rather than teaching one caller about
  * keyframes.
  */
-const IDENTIFIER_START = /^-?[A-Za-z_\\]/;
+const IDENTIFIER_START = /^(?:--|-?[A-Za-z_\\])/;
 
 /** A class selector wherever it appears, with its name captured. */
 const CLASS_TOKEN = /\.((?:\\.|[A-Za-z0-9_-])+)/g;
@@ -413,6 +413,66 @@ function classesOf(simple, contextual) {
  * linear.
  */
 /**
+ * The stylesheet with everything that is not block structure taken out.
+ *
+ * This is the one place the file reads raw text before it knows any
+ * structure, so it is where every leak has come from, and it took a while
+ * to find the rule underneath them. The first version removed comments.
+ * Then strings, because `content:"}"` closed a block. Then unquoted url
+ * tokens, because they may carry a brace with no quotes to protect it.
+ * Then escapes, because `.a\\"b` opened a string at its own quote. Each
+ * addition was one more construct that can hide a `{`, and the list was
+ * never going to end: `\\75 rl(`, `\\url(`, `u\\rl(` and `ur\\l(` all spell
+ * the same function, and matching a literal `url(` catches none of them.
+ *
+ * The rule is simpler than the list. Inside parentheses or brackets,
+ * `{`, `}` and `;` are NEVER block structure — CSS has no way to open a
+ * block in there — so it does not matter what the function is called or
+ * how its name is spelled. A depth counter handles every spelling at
+ * once, and an attribute value carrying a brace comes free with it.
+ *
+ * Comments go. Strings keep their delimiters and lose their contents, so
+ * the text around them keeps its shape. Escape pairs are consumed whole,
+ * which is what stops an escaped delimiter from opening anything.
+ */
+function nonStructure(css) {
+  let out = '';
+  let depth = 0;
+  for (let i = 0; i < css.length; i += 1) {
+    const ch = css[i];
+    if (ch === '\\') {
+      out += css.slice(i, i + 2);
+      i += 1;
+      continue;
+    }
+    if (ch === '/' && css[i + 1] === '*') {
+      const end = css.indexOf('*/', i + 2);
+      i = end === -1 ? css.length : end + 1;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      out += ch + ch;
+      i += 1;
+      while (i < css.length && css[i] !== ch) {
+        if (css[i] === '\\') i += 1;
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '(' || ch === '[') depth += 1;
+    else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+    // A brace or semicolon inside either kind of bracket is content. Held
+    // as a space so the text keeps its length and nothing fuses across it.
+    else if (depth > 0 && (ch === '{' || ch === '}' || ch === ';')) {
+      out += ' ';
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+/**
  * Every position in `text` where `char` appears UNESCAPED.
  *
  * A scan rather than a lookbehind. Escape-awareness arrived here one
@@ -506,73 +566,7 @@ function simpleSelectors(css) {
     );
     const sets = [];
     const names = new Set();
-    // Comments, strings and url tokens, in ONE left-to-right pass.
-    //
-    // Each of them has to go. A comment's words become classes, and one
-    // naming a compound would answer for it. A string is where `{`, `}`,
-    // `;` and `.` appear meaning no structure at all, so `content:"}"`
-    // closed a block that was still open. An unquoted url token may legally
-    // carry `{`, `}` and `;` with no quotes to protect them, so
-    // `url(x}y)` does the same thing.
-    //
-    // One pass rather than three, because the order between them is not
-    // decidable: a `/*` inside a string is not a comment, and a `"` inside
-    // a comment is not a string. Stripping comments first ate from a `/*`
-    // in a string to the next `*/`, and a span like that can swallow a `{`
-    // without its `}` — which makes the stack SHALLOWER, so a nested rule
-    // stops reading nested. That is the silent direction, and a paragraph
-    // here claimed otherwise until it was measured. Whichever construct
-    // starts first wins, which is what CSS itself does.
-    //
-    // Comments go; strings and url tokens are emptied rather than removed,
-    // so their delimiters stay where they are and the text around them
-    // keeps its shape. Everything below this line reads STRUCTURE out of raw
-    // text — blocks split on `{`, headings cut at `;`, classes tokenised on
-    // `.` — and a string is the one place those characters appear without
-    // meaning any of it. `content:"}"` popped the nesting stack, which made
-    // a rule nested inside another read as though it stood alone, and
-    // `[data-x=";.fake-class"]` put a class that does not exist into the
-    // membership index. Emptying them first is one rule instead of a
-    // special case at each of the three.
-    const stripped = css.replace(
-      /\\[\s\S]|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|url\((?:[^)"'\\]|\\[\s\S])*\)/gi,
-      match => {
-        // An escape pair comes back untouched. It has to be CONSUMED here
-        // rather than skipped, or the character it escapes can open one of
-        // the spans below: a class name spelled `.a\\"b` started a string
-        // at its own quote, and the match ran to the next quote in the
-        // file, emptying the `{` of a rule in between. The stack never got
-        // deeper and what was nested inside read as top level.
-        if (match[0] === '\\') return match;
-        if (match.startsWith('/*')) return '';
-        if (match.slice(0, 4).toLowerCase() === 'url(') return 'url()';
-        return match[0] + match[0];
-      }
-    );
-
-    // No numeric escape survives into the text this file reads as
-    // structure. Strings, comments and url tokens are gone by now, so one
-    // that is left sits in a selector or a declaration, and both are read
-    // by patterns that match literal spellings: `\\75 rl(` IS `url(` and
-    // would not be recognised as one, leaking whatever its parentheses
-    // hold. Decoding identifiers is a CSS reader's job and more than this
-    // file should carry, so it stops instead of guessing.
-    // Bracketed spans come out first. A numeric escape in an attribute
-    // value renames nothing — attribute selectors are removed before any
-    // class is read, and in the sets path they land in the qualifier
-    // residue — so halting there would be a false alarm over text this
-    // file never reads as either a selector or a function.
-    const structural = withoutAttributes(stripped);
-    const numeric = NUMERIC_ESCAPE.exec(structural);
-    assert.ok(
-      !numeric,
-      `the stylesheet carries a numeric escape near ` +
-        `\`${structural.slice(Math.max(0, numeric?.index - 40), (numeric?.index ?? 0) + 40).trim()}\`, ` +
-        'which names a character by code point. This file matches literal ' +
-        'spellings, so it would read neither the class nor the function ' +
-        'that escape spells. Teach it CSS identifier decoding in the same ' +
-        'change that introduced the escape.'
-    );
+    const stripped = nonStructure(css);
     const chunks = splitUnescaped(stripped, '{');
     // One entry per block still open. `conditional` marks a block that only
     // applies sometimes, which is the same thing `:first-child` says about
@@ -1267,18 +1261,35 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'match runs past the rule that follows and takes its brace.'
     );
 
-    // A numeric escape can spell a FUNCTION name as well as a class one,
-    // and this file matches literal spellings.
-    assert.throws(
-      () =>
+    // A function's NAME does not matter. Every one of these spells `url`
+    // and none of them is the literal `url(` an alternation would look
+    // for, which is why the rule is about the parentheses instead: inside
+    // them CSS has no way to open a block, so nothing in there is
+    // structure whatever the function is called.
+    for (const [label, value] of [
+      ['plain', 'url(x}y)'],
+      ['upper case', 'URL(x}y)'],
+      ['numeric escape', '\\75 rl(x}y)'],
+      ['escaped first letter', '\\url(x}y)'],
+      ['escaped middle letter', 'u\\rl(x}y)'],
+      ['a function this file has never heard of', 'foo(x}y)'],
+    ]) {
+      assert.equal(
         live(
-          '.a{background:\\75 rl(x}y);.tabs.is-boxed{color:red}}',
+          `.a{background:${value};.tabs.is-boxed{color:red}}`,
           'tabs.is-boxed'
         ),
-      /numeric escape/,
-      '`\\75 rl(` is `url(`, which would not be recognised as one, so the ' +
-        'brace inside its parentheses would leak. The guard stops rather ' +
-        'than guessing.'
+        false,
+        `a brace inside a function's parentheses is content, and ${label} ` +
+          'is one more spelling an alternation would have had to know.'
+      );
+    }
+    assert.equal(
+      live('.hero{grid:[a}b];.tabs.is-boxed{color:red}}', 'tabs.is-boxed'),
+      false,
+      'and a bracket block is the same shape: CSS drops the declaration, ' +
+        'but error recovery keeps the block structure, so the rule really ' +
+        'is nested.'
     );
 
     // A KEYFRAME selector is a percentage, and a percentage is not a class.
@@ -1287,6 +1298,13 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'a CSS identifier cannot begin with a digit, so a decimal read as a ' +
         'class was never a class.'
+    );
+    assert.equal(
+      live('.--foo{color:red}', '--foo'),
+      true,
+      'but a double hyphen IS a legal class name, and rejecting anything ' +
+        'not starting with a letter dropped it — the quiet direction for ' +
+        'the index that looks for a colour the CSS ships.'
     );
 
     // A STRING is content, not structure. Everything this matcher does
@@ -1381,6 +1399,12 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'and an attribute selector in a scope prelude is not a class, the ' +
         'same as anywhere else.'
+    );
+    assert.equal(
+      live('@scope(.5x){.box{color:red}}', '5x'),
+      false,
+      'and a token that cannot be an identifier is not a class here ' +
+        'either — the harvest needs every filter the style-rule path has.'
     );
     assert.throws(
       () => live('@scope(.\\31 23){.box{color:red}}', '123'),
