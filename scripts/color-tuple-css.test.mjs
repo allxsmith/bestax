@@ -297,8 +297,9 @@ const onlyClasses = argument =>
  *   else, checked as written; anything else is a requirement like any
  *   other. A nested call counts as anything else: `:not(:is(.is-light))`
  *   is never matched here at all, because the pattern cannot cross the
- *   inner parenthesis, and the bare pass reads the `:not` as the
- *   requirement it could not verify.
+ *   inner parenthesis, so the `:not` survives into the qualifier residue
+ *   in `classesOf` and is counted there as the requirement it could not
+ *   verify.
  * - A pseudo-ELEMENT does not restrict anything. `.delete::before` styles a
  *   box generated for a delete, so the delete is live and calling it dead
  *   would be a plain misreading. A bare `::` spelling is exempted. Two
@@ -325,7 +326,7 @@ const onlyClasses = argument =>
  * cannot cross a parenthesis, so a nested call leaves its enclosing one
  * unmatched, and `replace` does not re-scan what it wrote. That is the
  * correct answer rather than a gap: a construct whose argument could not be
- * read is a requirement, and the bare pass sentinels it. Repeating to a
+ * read is a requirement, and the residue check counts it. Repeating to a
  * fixed point looked like an improvement and was the opposite — it resolved
  * the inner call to something CLASS-SHAPED, which `onlyClasses` then
  * accepted, so `:not(:nth-last-child(1))` dropped and read live while the
@@ -335,8 +336,8 @@ const onlyClasses = argument =>
 function requirements(prelude) {
   // Whatever is still inside parentheses once the passes above have run is
   // the argument of a call none of them could resolve, and it has already
-  // been accounted for: the bare pass turned the call's NAME into a
-  // sentinel. Leaving the text behind is what hurts, because the caller
+  // been accounted for: the call's NAME survives into the qualifier
+  // residue in `classesOf`, which sentinels it there. Leaving the text behind is what hurts, because the caller
   // splits on commas and an argument may hold them —
   // `:has(:nth-child(2),.notification.is-primary,.z)` fragments into a
   // clean `.notification.is-primary` with no sentinel on it, which reads
@@ -406,13 +407,6 @@ function classesOf(simple, contextual) {
 }
 
 /**
- * The class sets of every simple selector in the stylesheet.
- *
- * One pass per file read. Split rather than matched: a `[^{}]+` scan over a
- * minified stylesheet of this size backtracks badly, where splitting is
- * linear.
- */
-/**
  * The stylesheet with everything that is not block structure taken out.
  *
  * This is the one place the file reads raw text before it knows any
@@ -445,7 +439,15 @@ function nonStructure(css) {
       i += 1;
       continue;
     }
-    if (ch === '/' && css[i + 1] === '*') {
+    // A comment opener is content in here as well, and this was the one
+    // character the depth counter was not consulted for. An unquoted url
+    // token may hold `/*`, and opening a comment there ran the span to the
+    // next `*/` or to the end of the file, taking every rule after it —
+    // that is a whole stylesheet's classes leaving the membership index
+    // quietly. The `url(…)` alternation this scan replaced was covering
+    // the shape without saying so. CSS agrees: a comment cannot start
+    // inside a url token or an attribute value.
+    if (ch === '/' && css[i + 1] === '*' && depth === 0) {
       const end = css.indexOf('*/', i + 2);
       i = end === -1 ? css.length : end + 1;
       continue;
@@ -460,7 +462,7 @@ function nonStructure(css) {
       continue;
     }
     if (ch === '(' || ch === '[') depth += 1;
-    else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+    else if (ch === ')' || ch === ']') depth -= 1;
     // A brace or semicolon inside either kind of bracket is content. Held
     // as a space so the text keeps its length and nothing fuses across it.
     else if (depth > 0 && (ch === '{' || ch === '}' || ch === ';')) {
@@ -469,6 +471,19 @@ function nonStructure(css) {
     }
     out += ch;
   }
+  // Brackets have to balance, and a floor on the counter was the wrong way
+  // to handle their not doing. One unclosed `(` parks the depth above zero
+  // for the rest of the file, after which no `{` is read as structure and
+  // every later rule leaves both indexes — the quiet direction, and over
+  // the whole stylesheet at once. A stylesheet that gets here malformed is
+  // something this file cannot read, so it says so.
+  assert.equal(
+    depth,
+    0,
+    'the stylesheet has unbalanced brackets, so this file cannot tell ' +
+      'which of its braces open blocks. Every rule after the imbalance ' +
+      'would drop out of both indexes silently.'
+  );
   return out;
 }
 
@@ -557,6 +572,13 @@ function withoutAttributes(selector) {
   return out;
 }
 
+/**
+ * The class sets of every simple selector in the stylesheet.
+ *
+ * One pass per file read. Split rather than matched: a `[^{}]+` scan over a
+ * minified stylesheet of this size backtracks badly, where splitting is
+ * linear.
+ */
 function simpleSelectors(css) {
   if (!indexCache.has(css)) {
     assert.ok(
@@ -949,7 +971,9 @@ function acceptedKeywords(component, keywords) {
 /** The colours `CSS_BACKED` names to the developer as ones that work. */
 function cssBackedColors() {
   const source = codeOnly(readFileSync(DEPRECATIONS, 'utf8'));
-  const line = /const CSS_BACKED =\s*\n?\s*(['"])([^'"]+)\1/.exec(source);
+  const line = new RegExp(
+    `const CSS_BACKED =\\s*\\n?\\s*${QUOTED.source}`
+  ).exec(source);
   assert.ok(line, 'could not find `CSS_BACKED` in colorDeprecations.ts');
   return line[2].split(',').map(v => v.trim());
 }
@@ -1284,6 +1308,28 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           'is one more spelling an alternation would have had to know.'
       );
     }
+    // A comment opener inside a url token is content too, and it was the
+    // one character the depth counter was not consulted for.
+    assert.equal(
+      live(
+        '.a{background:url(x/*y)}.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'a `/*` inside an unquoted url token does not open a comment, or ' +
+        'the span runs to the end of the file and takes every rule after ' +
+        'it out of both indexes.'
+    );
+    assert.equal(
+      live(
+        '.a{background:url(x/*y)*/}.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'and it does not open one that closes later either, which would eat ' +
+        'the `)` as well and never let the depth return to zero.'
+    );
+
     assert.equal(
       live('.hero{grid:[a}b];.tabs.is-boxed{color:red}}', 'tabs.is-boxed'),
       false,
@@ -1429,21 +1475,33 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'so the rule contributes no subject — a false alarm, and it stays ' +
         'on that side.'
     );
-    assert.equal(
-      live(
-        '.notification.is-primary[data-x{color:red}',
-        'notification.is-primary'
-      ),
-      false,
-      'an unterminated bracket swallows the rest of the selector, so the ' +
-        'compound after it is not read.'
+    // An unterminated bracket is a REFUSAL, not an answer. It used to
+    // produce one — dead, because the swallowed tail carried the compound
+    // away with it — and that was right by luck rather than by reasoning:
+    // one unclosed bracket parks the depth counter above zero for the rest
+    // of the file, after which no `{` is read as structure and every later
+    // rule leaves both indexes. A stylesheet this file cannot tell the
+    // block structure of is one it has to stop on.
+    assert.throws(
+      () =>
+        live(
+          '.notification.is-primary[data-x{color:red}',
+          'notification.is-primary'
+        ),
+      /unbalanced brackets/,
+      'a stylesheet whose brackets do not balance has to stop the guard, ' +
+        'because the alternative is every rule after the imbalance ' +
+        'dropping out of both indexes without a word.'
     );
-    assert.equal(
-      live('.a[b.fake{color:red}', 'fake'),
-      false,
-      'and the names after it go too, which is right rather than merely ' +
-        'safe: a selector with an unclosed bracket is a parse error, so ' +
-        'the browser drops the rule and none of those classes ship.'
+    assert.throws(
+      () =>
+        live(
+          '.a{background:foo(x}.notification.is-primary{color:red}',
+          'notification.is-primary'
+        ),
+      /unbalanced brackets/,
+      'and an unclosed parenthesis is the same thing: it is the shape that ' +
+        'costs the WHOLE stylesheet rather than one selector.'
     );
 
     // A NUMERIC escape names a character by code point, which this file
