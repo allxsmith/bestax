@@ -427,7 +427,9 @@ function classesOf(simple, contextual) {
  *
  * Strings keep their delimiters and lose their contents, so the text
  * around them keeps its shape. Nothing downstream counts a quote, so that
- * is legibility rather than an answer, and no case can hold it. Escape pairs are consumed whole, which is
+ * is legibility rather than an answer, and no case can hold it. The space
+ * left where a neutralised delimiter stood is the same: it keeps text from
+ * fusing across the gap, and no query can tell. Escape pairs are consumed whole, which is
  * what stops an escaped delimiter from opening anything. Comments go at
  * depth zero, for the reason the loop gives where it decides that.
  *
@@ -471,7 +473,13 @@ function nonStructure(css) {
     if (ch === '"' || ch === "'") {
       out += ch + ch;
       i += 1;
-      while (i < css.length && css[i] !== ch) {
+      // A newline ends it, which is what CSS does: an unterminated string
+      // is a parse error bounded by the line it started on. Running to the
+      // next quote in the FILE instead deleted every rule in between, both
+      // indexes, no assertion — the last way one malformed character could
+      // cost the whole stylesheet quietly. A line continuation still
+      // works, because the escape is consumed with the newline after it.
+      while (i < css.length && css[i] !== ch && css[i] !== '\n') {
         if (css[i] === '\\') i += 1;
         i += 1;
       }
@@ -1172,6 +1180,52 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'compound renders, the same as one that applies only to a first ' +
         'child.'
     );
+    // The boundary keeps the transparent list to ONE at-rule. Without it
+    // every at-rule beginning with those letters joins it, which is the
+    // shape that made `@media-foo` read as a condition two commits before
+    // this one, one at-rule to the left.
+    assert.equal(
+      live(
+        '@layer-foo{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'an at-rule that merely starts with `layer` is not `@layer`, and ' +
+        'calling it transparent is the forbidden direction on the one ' +
+        'at-rule this file trusts.'
+    );
+    assert.equal(
+      live(
+        '@layerx{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'and a word boundary alone would not have caught this one.'
+    );
+
+    // An unterminated STRING is bounded by its line, the way CSS bounds
+    // it. Running to the next quote in the file deleted every rule in
+    // between.
+    assert.equal(
+      live(
+        '.a{content:"oops\n}.notification.is-primary{color:red}\n.b{content:""}',
+        'notification.is-primary'
+      ),
+      true,
+      'a string that never closes ends at the newline, so the rules after ' +
+        'it are still rules.'
+    );
+
+    // A semicolon inside brackets is content, and that is observable: the
+    // heading is cut at the last semicolon, so leaving one in there cuts
+    // away the classes before it.
+    assert.equal(
+      live('.box[data-x=a;b].is-real{color:red}', 'box'),
+      true,
+      'a semicolon in an attribute value does not end a statement, and ' +
+        'reading it as one loses every class before it.'
+    );
+
     assert.equal(
       live(
         '@layer base{.notification.is-primary{color:red}}',
