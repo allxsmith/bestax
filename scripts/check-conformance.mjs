@@ -4138,7 +4138,7 @@ async function checkTurboTasks() {
  * A branch that LOWERS a version was cut after the release it undoes, so the tag
  * is in its history and the comparison bites.
  */
-async function checkVersionRegression() {
+async function checkVersionRegression(allowUntagged = false) {
   const { packages } = await publishablePackages();
   const git = args => {
     try {
@@ -4179,6 +4179,7 @@ async function checkVersionRegression() {
 
   return findVersionRegressions({
     packages,
+    allowUntagged,
     anyTagsExist: all.trim().length > 0,
     tagsFor: name => {
       const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
@@ -4209,13 +4210,14 @@ const CHECKS = {
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
   'turbo-tasks': checkTurboTasks,
-  'version-regression': checkVersionRegression,
+  'version-regression': null, // handled below (takes the flag)
   'inline-style': null, // handled below (takes the flag)
 };
 
 async function main() {
   const args = process.argv.slice(2);
   const updateBaseline = args.includes('--update-baseline');
+  const allowUntagged = args.includes('--allow-untagged');
   const only = args
     .filter(a => a.startsWith('--only='))
     .flatMap(a => a.slice(7).split(','));
@@ -4235,7 +4237,9 @@ async function main() {
     const run =
       name === 'inline-style'
         ? () => checkInlineStyle(updateBaseline)
-        : CHECKS[name];
+        : name === 'version-regression'
+          ? () => checkVersionRegression(allowUntagged)
+          : CHECKS[name];
     const violations = await run();
     if (violations.length) {
       failed += violations.length;

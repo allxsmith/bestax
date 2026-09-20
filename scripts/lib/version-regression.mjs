@@ -99,6 +99,7 @@ export const findVersionRegressions = ({
   tagsFor,
   anyTagsExist,
   tagFormatFor,
+  allowUntagged = false,
 }) => {
   const problems = [];
 
@@ -107,13 +108,21 @@ export const findVersionRegressions = ({
   // are shallow by default and `fetch-depth: 0` does not imply tags, so this is
   // the likely way for it to happen rather than an exotic one.
   if (!anyTagsExist) {
+    // An ERROR, not a skip, because a check that silently answers nothing is
+    // worse than an absent one — but an error with a way out, which every other
+    // rule in this file has and this one did not. The two ways to reach it are
+    // both environmental and neither is fixable by editing source, and it sits
+    // early in `pnpm all`'s `&&` chain, where one failure takes the rest of the
+    // gates down with it.
+    if (allowUntagged) return [];
     return [
       'version-regression: the repository has no tags, so no released ' +
-        'version could be compared against and every package passed without ' +
-        'being checked. Fetch tags before running this — in CI that is ' +
-        '`fetch-depth: 0` AND tags on the checkout step; locally, ' +
-        '`git fetch --tags`. This is deliberately an error rather than a skip, ' +
-        'because a check that silently answers nothing is worse than an absent one.',
+        'version could be compared against and every package would pass ' +
+        'without being checked. The fix is to fetch them: `git fetch --tags`, ' +
+        'or `git fetch --tags --unshallow` in a `--depth` clone. If you ' +
+        'genuinely cannot, re-run with `--allow-untagged`, which turns THIS ' +
+        'rule off and leaves the rest of the run intact. Never pass that in ' +
+        'CI: it is the difference between a gate and a tick.',
     ];
   }
 

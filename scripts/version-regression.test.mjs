@@ -11,11 +11,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { readFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import {
   compareVersions,
   expectedTagFormat,
   findVersionRegressions,
+  tagGlob,
 } from './lib/version-regression.mjs';
+import { publishablePackages } from './check-conformance.mjs';
+
+const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const run = ({ packages, tags = {}, anyTagsExist = true, formats = {} } = {}) =>
   findVersionRegressions({
@@ -192,4 +200,116 @@ test('checks every package, not only the first that passes', () => {
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /^b\/package\.json/);
+});
+
+test('the tag strings are what git and semantic-release actually use', () => {
+  // Spelled out rather than derived. `run()` below hands the check its own
+  // `expectedTagFormat`, so every other test compares the function with itself
+  // and cannot see it change; and `tagGlob` builds the real
+  // `git tag --merged HEAD --list` pattern, so a wrong one matches nothing,
+  // takes the no-tags-for-this-package exit, and prints a tick with the gate
+  // entirely off.
+  assert.equal(expectedTagFormat('@scope/pkg'), '@scope/pkg@${version}');
+  assert.equal(tagGlob('@scope/pkg'), '@scope/pkg@*');
+});
+
+test('every real release config spells the tagFormat this check assumes', async () => {
+  // Against the REAL configs, loaded rather than pattern-matched, which is the
+  // shape publishable-manifests uses for the same reason: the check derives tag
+  // names from the package name, so a package that adopts another format would
+  // match no tags and be exempted in silence. Here that fails a test instead.
+  const { packages } = await publishablePackages(REPO);
+  assert.ok(packages.length >= 4, 'no publishable packages were found');
+  let configs = 0;
+  for (const pkg of packages) {
+    let text;
+    try {
+      text = await readFile(join(REPO, pkg.dir, 'release.config.js'), 'utf8');
+    } catch {
+      continue;
+    }
+    configs += 1;
+    const declared = /tagFormat:\s*'([^']*)'/.exec(text);
+    assert.ok(declared, `${pkg.dir}/release.config.js declares no tagFormat`);
+    assert.equal(
+      declared[1],
+      expectedTagFormat(pkg.name),
+      `${pkg.dir} tags its releases differently from what this check looks for`
+    );
+  }
+  assert.ok(configs >= 4, `only ${configs} release configs were read`);
+});
+
+test('reports every package that regressed, not just the first', () => {
+  // The motivating shape is multi-package: one `git reset --soft` re-stages
+  // EVERY manifest it touches. A check that reported one would have a
+  // contributor fix it, re-run, and meet the next — so the aggregation is the
+  // thing this rule exists to do, and it needs pinning as much as the
+  // comparison does.
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: '2.0.0' },
+      { dir: 'c', name: 'c', version: '3.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => [`${name}@9.9.9`],
+    tagFormatFor: dir => expectedTagFormat(dir),
+  });
+  assert.equal(problems.length, 3);
+  // In package order, so the list reads the way the workspace does.
+  assert.match(problems[0], /^a\/package\.json/);
+  assert.match(problems[1], /^b\/package\.json/);
+  assert.match(problems[2], /^c\/package\.json/);
+});
+
+test('mixes regressions with other problems rather than stopping at one', () => {
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: 'nightly' },
+      { dir: 'c', name: 'c', version: '1.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => [`${name}@2.0.0`],
+    tagFormatFor: dir => (dir === 'c' ? 'v${version}' : expectedTagFormat(dir)),
+  });
+  assert.equal(problems.length, 3);
+  assert.match(problems[0], /BELOW/);
+  assert.match(problems[1], /nightly/);
+  assert.match(problems[2], /tagFormat/);
+});
+
+test('--allow-untagged turns off this rule and nothing else', () => {
+  const args = {
+    packages: [{ dir: 'a', name: 'a', version: '0.1.0' }],
+    tagsFor: () => [],
+    tagFormatFor: () => expectedTagFormat('a'),
+  };
+  // Without it, the tagless repository is an error rather than a silent pass.
+  assert.equal(
+    findVersionRegressions({ ...args, anyTagsExist: false }).length,
+    1
+  );
+  // With it, this rule stands down — an in-band remedy, which the other rules
+  // in this file all have and this one did not.
+  assert.deepEqual(
+    findVersionRegressions({
+      ...args,
+      anyTagsExist: false,
+      allowUntagged: true,
+    }),
+    []
+  );
+  // And it is not a blanket mute: with tags present it changes nothing.
+  assert.equal(
+    findVersionRegressions({
+      packages: [{ dir: 'a', name: 'a', version: '0.1.0' }],
+      anyTagsExist: true,
+      allowUntagged: true,
+      tagsFor: () => ['a@0.2.0'],
+      tagFormatFor: () => expectedTagFormat('a'),
+    }).length,
+    1
+  );
 });
