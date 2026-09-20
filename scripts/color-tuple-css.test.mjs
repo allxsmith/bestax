@@ -466,10 +466,19 @@ function simpleSelectors(css) {
       // heading rather than from `requirements`, which replaces those
       // arguments wholesale — a class the stylesheet names only in a
       // `:not()` is still a class it names, and the membership path is the
-      // one place that matters. An attribute value cannot fabricate a name
-      // here: a quoted one was emptied with every other string, and an
-      // unquoted one is an identifier, which cannot contain a `.`.
-      for (const [, name] of heading.matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)) {
+      // one place that matters.
+      //
+      // Attribute selectors come out first. A quoted value was emptied with
+      // every other string, but an UNQUOTED one is an identifier, and an
+      // identifier may escape a dot: `[data-x=\.fake-class]` is one legal
+      // value this scan would otherwise read as a class. The sets path does
+      // not need this — a fabricated class there makes the set bigger, so
+      // the exact-size rule refuses it — but the membership path has no
+      // size to check against, and the two spellings of one attribute have
+      // to answer the same.
+      for (const [, name] of heading
+        .replace(/\[[^\]]*\]/g, '')
+        .matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)) {
         names.add(name.replace(/\\(.)/g, '$1'));
       }
       const prelude = requirements(heading);
@@ -1034,6 +1043,13 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'a class name inside an attribute value is a string, and reading it ' +
         'as a selector invents a class the stylesheet does not ship.'
+    );
+    assert.equal(
+      live('.box[data-x=\\.fake-class]{color:red}', 'fake-class'),
+      false,
+      'and an UNQUOTED attribute value is an identifier rather than a ' +
+        'string, so emptying strings does not reach it — the two spellings ' +
+        'of one attribute have to answer the same.'
     );
     assert.equal(
       live(
