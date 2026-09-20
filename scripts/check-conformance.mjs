@@ -111,7 +111,11 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
-import { findVersionRegressions, tagGlob } from './lib/version-regression.mjs';
+import {
+  findVersionRegressions,
+  tagGlob,
+  UNREADABLE,
+} from './lib/version-regression.mjs';
 import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -4173,8 +4177,12 @@ async function checkVersionRegression(allowUntagged = false) {
       // what holds a publishable package to having one.
       continue;
     }
-    const match = /tagFormat:\s*'([^']*)'/.exec(text);
-    if (match) formats.set(pkg.dir, match[1]);
+    // All three literal spellings. Reading only `'…'` meant a backtick-spelled
+    // format produced no entry, which is indistinguishable from having no
+    // release config — so the package was exempted by the very branch written
+    // to catch it. `UNREADABLE` keeps the two apart.
+    const match = /tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(text);
+    formats.set(pkg.dir, match ? match[2] : UNREADABLE);
   }
 
   return findVersionRegressions({
@@ -4183,9 +4191,14 @@ async function checkVersionRegression(allowUntagged = false) {
     anyTagsExist: all.trim().length > 0,
     tagsFor: name => {
       const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
-      return out === null ? [] : out.split('\n').filter(Boolean);
+      // A FAILED git call is not an empty answer. Collapsed into `[]` it read
+      // as "never released", which exempted that one package while the run
+      // still printed a tick.
+      if (out === null) throw new Error(`git tag --merged failed for ${name}`);
+      return out.split('\n').filter(Boolean);
     },
     tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
+    unreadableTagFormat: UNREADABLE,
   });
 }
 

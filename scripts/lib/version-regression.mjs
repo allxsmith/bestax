@@ -83,6 +83,15 @@ export const compareVersions = (a, b) => {
 export const expectedTagFormat = name => `${name}@\${version}`;
 
 /**
+ * A release config was found and its `tagFormat` could not be read from it.
+ *
+ * Distinct from `null`, which means there is no config at all. Collapsing the
+ * two exempted a package whose format this could not parse — the opposite of
+ * what reading the format is for.
+ */
+export const UNREADABLE = Symbol('unreadable tagFormat');
+
+/**
  * The tag prefix to list for a package.
  */
 export const tagGlob = name => `${name}@*`;
@@ -100,14 +109,22 @@ export const findVersionRegressions = ({
   anyTagsExist,
   tagFormatFor,
   allowUntagged = false,
+  unreadableTagFormat = UNREADABLE,
 }) => {
   const problems = [];
 
-  // Without tags every package below matches nothing and passes, which is worse
-  // than not running at all: a green check that asked no question. CI checkouts
-  // are shallow by default and `fetch-depth: 0` does not imply tags, so this is
-  // the likely way for it to happen rather than an exotic one.
-  if (!anyTagsExist) {
+  // Guarded on what the DECISIONS below actually read, which is reachability,
+  // not existence. Those are not the same question and a shallow clone is where
+  // they part: `git fetch --tags` into a `--depth 1` checkout leaves every tag
+  // present and none of them reachable, so an existence guard passes, every
+  // package takes the nothing-released exit, and the check prints a tick having
+  // compared nothing. That is the exact vacuous pass this guard was written to
+  // stop, waved through by asking the wrong question one line earlier.
+  const reachable = packages.reduce(
+    (total, pkg) => total + tagsFor(pkg.name).length,
+    0
+  );
+  if (!reachable) {
     // An ERROR, not a skip, because a check that silently answers nothing is
     // worse than an absent one — but an error with a way out, which every other
     // rule in this file has and this one did not. The two ways to reach it are
@@ -115,20 +132,35 @@ export const findVersionRegressions = ({
     // early in `pnpm all`'s `&&` chain, where one failure takes the rest of the
     // gates down with it.
     if (allowUntagged) return [];
+    // The two ways to get here read almost identically and want different
+    // fixes, so the message says which one happened.
+    const cause = anyTagsExist
+      ? 'this checkout has tags but none of them is reachable from HEAD, ' +
+        'which is what a shallow clone looks like — `git fetch --tags` into a ' +
+        '`--depth` clone leaves every tag present and unreachable'
+      : 'this checkout has no tags at all';
     return [
-      'version-regression: the repository has no tags, so no released ' +
-        'version could be compared against and every package would pass ' +
-        'without being checked. The fix is to fetch them: `git fetch --tags`, ' +
-        'or `git fetch --tags --unshallow` in a `--depth` clone. If you ' +
-        'genuinely cannot, re-run with `--allow-untagged`, which turns THIS ' +
-        'rule off and leaves the rest of the run intact. Never pass that in ' +
-        'CI: it is the difference between a gate and a tick.',
+      `version-regression: ${cause}, so no released version could be compared ` +
+        'against and every package would pass without being checked. The fix ' +
+        'is `git fetch --tags --unshallow`, or a full clone. If you genuinely ' +
+        'cannot, re-run with `--allow-untagged`, which turns THIS rule off and ' +
+        'leaves the rest of the run intact. Never pass that in CI: it is the ' +
+        'difference between a gate and a tick.',
     ];
   }
 
   for (const pkg of packages) {
     const declared = tagFormatFor(pkg.dir);
     const expected = expectedTagFormat(pkg.name);
+    if (declared === unreadableTagFormat) {
+      problems.push(
+        `${pkg.dir}/release.config.js: a \`tagFormat\` is declared in a form ` +
+          `this cannot read, so ${pkg.name} would be compared against no tags ` +
+          `and exempted in silence. Spell it as a plain literal, or teach ` +
+          `scripts/lib/version-regression.mjs the form it uses.`
+      );
+      continue;
+    }
     if (declared !== null && declared !== expected) {
       problems.push(
         `${pkg.dir}/release.config.js: tagFormat is \`${declared}\`, but this ` +

@@ -20,6 +20,7 @@ import {
   expectedTagFormat,
   findVersionRegressions,
   tagGlob,
+  UNREADABLE,
 } from './lib/version-regression.mjs';
 import { publishablePackages } from './check-conformance.mjs';
 
@@ -115,10 +116,63 @@ test('accepts a branch cut before a release it does not carry', () => {
   );
 });
 
-test('accepts a package with no tag reachable from here', () => {
-  // A new package, or a branch cut before its first release. Nothing released
-  // to regress against.
-  assert.deepEqual(run({ packages: [pkg('0.0.0-development')], tags: {} }), []);
+test('accepts one package with no tags beside others that have them', () => {
+  // A new package, or a branch cut before its first release: nothing released
+  // to regress against. This is `eslint-plugin`'s real shape — a
+  // `0.0.0-development` placeholder with no tag, next to four packages that
+  // have them.
+  assert.deepEqual(
+    findVersionRegressions({
+      packages: [
+        { dir: 'new', name: 'new', version: '0.0.0-development' },
+        { dir: 'old', name: 'old', version: '5.16.3' },
+      ],
+      anyTagsExist: true,
+      tagsFor: name => (name === 'old' ? ['old@5.16.3'] : []),
+      tagFormatFor: dir => expectedTagFormat(dir),
+    }),
+    []
+  );
+});
+
+test('stops when NO package has a reachable tag, tags present or not', () => {
+  // The predicate has to be the one the comparisons use. Guarding on whether
+  // tags EXIST let a shallow clone through: `git fetch --tags` into a
+  // `--depth 1` checkout leaves every tag present and none reachable, so the
+  // existence guard passed, every package took the nothing-released exit, and
+  // the run printed a tick having compared nothing.
+  const shallow = run({
+    packages: [pkg('5.15.0')],
+    tags: {},
+    anyTagsExist: true,
+  });
+  assert.equal(shallow.length, 1);
+  // And it says WHICH of the two happened, because they want different fixes.
+  assert.match(shallow[0], /none of them is reachable/);
+  assert.match(shallow[0], /shallow/);
+
+  const bare = run({
+    packages: [pkg('5.15.0')],
+    tags: {},
+    anyTagsExist: false,
+  });
+  assert.equal(bare.length, 1);
+  assert.match(bare[0], /no tags at all/);
+});
+
+test('flags a tagFormat present in a form it cannot read', () => {
+  // Distinct from having no release config. Collapsed together, a
+  // backtick-spelled format produced no entry, read as "no config", and
+  // exempted the package — the opposite of what reading the format is for.
+  const problems = findVersionRegressions({
+    packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
+    anyTagsExist: true,
+    tagsFor: () => ['a@2.0.0'],
+    tagFormatFor: () => UNREADABLE,
+  });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /cannot read/);
+  assert.doesNotMatch(problems[0], /BELOW/);
 });
 
 test('refuses to run at all when the repository has no tags', () => {
@@ -311,5 +365,23 @@ test('--allow-untagged turns off this rule and nothing else', () => {
       tagFormatFor: () => expectedTagFormat('a'),
     }).length,
     1
+  );
+});
+
+test('a failed tag lookup is not an empty answer', () => {
+  // Collapsed into `[]` a failed `git tag --merged` read as "never released",
+  // which exempted that one package while the run still printed a tick. The
+  // failure has to reach the runner, so nothing here may catch it.
+  assert.throws(
+    () =>
+      findVersionRegressions({
+        packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
+        anyTagsExist: true,
+        tagsFor: () => {
+          throw new Error('git tag --merged failed for a');
+        },
+        tagFormatFor: dir => expectedTagFormat(dir),
+      }),
+    /git tag --merged failed/
   );
 });
