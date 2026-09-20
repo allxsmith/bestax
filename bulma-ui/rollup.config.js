@@ -428,6 +428,18 @@ export const declarationExtensions = (root = 'dist/types') => {
       // and a side-effect `import './x';` in neither position. An unmatched
       // specifier fails silently, so the tree is re-read here.
       for (const file of files) {
+        // The same check the rewrite loop makes, for the same reason: this loop
+        // throws too, and the rewrite loop's own check cannot cover the gap
+        // between its last write and this loop's first read.
+        //
+        // Unlike every other clause here this one is NOT pinned by a case, and
+        // the honest reason is that the window cannot be hit deterministically
+        // through the hooks: a rebuild started from outside lands inside the
+        // rewrite loop, where the check above already returns. It is here for
+        // symmetry with the loop that is pinned, not on the strength of a
+        // reproduction — which is worth saying plainly, because a clause with no
+        // failing case behind it is exactly what this file keeps getting wrong.
+        if (generation !== building) return;
         const text = await readFile(file, 'utf8');
         // EVERY quoted relative string, and the question is whether it RESOLVES.
         //
