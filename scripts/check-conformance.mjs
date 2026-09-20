@@ -4172,9 +4172,13 @@ async function checkVersionRegression(allowUntagged = false) {
     let text;
     try {
       text = await readFile(join(REPO, pkg.dir, 'release.config.js'), 'utf8');
-    } catch {
-      // No release config is not this check's business: `release-docs-sync` is
-      // what holds a publishable package to having one.
+    } catch (error) {
+      // ABSENT is not this check's business: `release-docs-sync` is what holds
+      // a publishable package to having a release config. Present-but-unreadable
+      // is a different thing, and collapsing the two exempted a package because
+      // of a permissions problem.
+      if (error.code === 'ENOENT') continue;
+      formats.set(pkg.dir, UNREADABLE);
       continue;
     }
     // All three literal spellings. Reading only `'…'` meant a backtick-spelled

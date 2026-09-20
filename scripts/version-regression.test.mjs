@@ -385,3 +385,22 @@ test('a failed tag lookup is not an empty answer', () => {
     /git tag --merged failed/
   );
 });
+
+test('compares numeric identifiers without losing precision', () => {
+  // `Number` loses precision past 2^53, and the answer it produced was EQUAL —
+  // the one answer that matters, because a manifest matching the highest tag is
+  // what this check waves through. Digit strings compare by length then
+  // lexically, which is what semver means by "numerically".
+  assert.ok(
+    compareVersions('9007199254740992.0.0', '9007199254740993.0.0') < 0
+  );
+  assert.ok(
+    compareVersions('1.0.0-9007199254740992', '1.0.0-9007199254740993') < 0
+  );
+  // Length before lexical order, or `9` would sort above `10`.
+  assert.ok(compareVersions('9.0.0', '10.0.0') < 0);
+  assert.ok(compareVersions('1.0.0-9', '1.0.0-10') < 0);
+  // Leading zeros are discounted rather than compared as text.
+  assert.equal(compareVersions('1.0.0-01', '1.0.0-1'), 0);
+  assert.ok(compareVersions('1.0.0-02', '1.0.0-10') < 0);
+});

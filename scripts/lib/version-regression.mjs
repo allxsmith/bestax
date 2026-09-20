@@ -35,15 +35,30 @@ export const compareVersions = (a, b) => {
       /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(
         String(value).trim()
       );
+    // Kept as STRINGS. `Number` loses precision past 2^53, which made
+    // `9007199254740992.0.0` and `…93.0.0` compare equal — and equal is the one
+    // answer that matters here, because a manifest matching the highest tag is
+    // exactly what this check waves through. Absurd version numbers, but the
+    // failure is silent and comparing digits costs nothing.
     return match
-      ? { core: [+match[1], +match[2], +match[3]], pre: match[4] }
+      ? { core: [match[1], match[2], match[3]], pre: match[4] }
       : null;
+  };
+  // Semver compares numeric identifiers numerically, which for arbitrary-length
+  // digit strings is length first and then lexically, once leading zeros are
+  // discounted.
+  const compareNumeric = (a, b) => {
+    const x = a.replace(/^0+(?=\d)/, '');
+    const y = b.replace(/^0+(?=\d)/, '');
+    if (x.length !== y.length) return x.length - y.length;
+    return x < y ? -1 : x > y ? 1 : 0;
   };
   const left = parse(a);
   const right = parse(b);
   if (!left || !right) return null;
   for (let i = 0; i < 3; i += 1) {
-    if (left.core[i] !== right.core[i]) return left.core[i] - right.core[i];
+    const order = compareNumeric(left.core[i], right.core[i]);
+    if (order !== 0) return order;
   }
   if (left.pre === undefined && right.pre === undefined) return 0;
   if (left.pre === undefined) return 1;
@@ -59,7 +74,8 @@ export const compareVersions = (a, b) => {
     const oneNumeric = /^\d+$/.test(one);
     const twoNumeric = /^\d+$/.test(two);
     if (oneNumeric && twoNumeric) {
-      if (+one !== +two) return +one - +two;
+      const order = compareNumeric(one, two);
+      if (order !== 0) return order;
     } else if (oneNumeric !== twoNumeric) {
       // Numeric identifiers sort below alphanumeric ones.
       return oneNumeric ? -1 : 1;
