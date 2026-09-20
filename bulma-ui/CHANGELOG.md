@@ -1,3 +1,10 @@
+## [5.16.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.1...@allxsmith/bestax-bulma@5.16.2) (2026-09-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give the emitted declarations extensions, so their specifiers resolve ([#702](https://github.com/allxsmith/bestax/issues/702)) ([2a4672f](https://github.com/allxsmith/bestax/commit/2a4672f94ebe774c3825e076455286f01bf2b8c4))
+
 ## [5.16.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.0...@allxsmith/bestax-bulma@5.16.1) (2026-09-19)
 
 
