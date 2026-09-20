@@ -126,48 +126,18 @@ export const findVersionRegressions = ({
   tagFormatFor,
   allowUntagged = false,
   unreadableTagFormat = UNREADABLE,
+  headExists = true,
 }) => {
   const problems = [];
 
-  // Guarded on what the DECISIONS below actually read, which is reachability,
-  // not existence. Those are not the same question and a shallow clone is where
-  // they part: `git fetch --tags` into a `--depth 1` checkout leaves every tag
-  // present and none of them reachable, so an existence guard passes, every
-  // package takes the nothing-released exit, and the check prints a tick having
-  // compared nothing. That is the exact vacuous pass this guard was written to
-  // stop, waved through by asking the wrong question one line earlier.
-  const reachable = packages.reduce(
-    (total, pkg) => total + tagsFor(pkg.name).length,
-    0
-  );
-  if (!reachable) {
-    // An ERROR, not a skip, because a check that silently answers nothing is
-    // worse than an absent one — but an error with a way out, which every other
-    // rule in this file has and this one did not. The two ways to reach it are
-    // both environmental and neither is fixable by editing source, and it sits
-    // early in `pnpm all`'s `&&` chain, where one failure takes the rest of the
-    // gates down with it.
-    if (allowUntagged) return [];
-    // The two ways to get here read almost identically and want different
-    // fixes, so the message says which one happened.
-    const cause = anyTagsExist
-      ? 'this checkout has tags but none of them is reachable from HEAD, ' +
-        'which is what a shallow clone looks like — `git fetch --tags` into a ' +
-        '`--depth` clone leaves every tag present and unreachable'
-      : 'this checkout has no tags at all';
-    return [
-      `version-regression: ${cause}, so no released version could be compared ` +
-        'against and every package would pass without being checked. The fix ' +
-        'is `git fetch --tags --unshallow`, or a full clone. If you genuinely ' +
-        'cannot, re-run with `--allow-untagged`, which turns THIS rule off and ' +
-        'leaves the rest of the run intact. Never pass that in CI: it is the ' +
-        'difference between a gate and a tick.',
-    ];
-  }
-
+  // The tagFormat contract comes FIRST, and runs whatever the environment is
+  // doing. It is the one rule here about SOURCE rather than surroundings, so
+  // the environment hatch below must not reach it — muting a violation someone
+  // can fix by editing a file, because their clone is shallow, is not what that
+  // flag is for.
+  const comparable = [];
   for (const pkg of packages) {
     const declared = tagFormatFor(pkg.dir);
-    const expected = expectedTagFormat(pkg.name);
     if (declared === unreadableTagFormat) {
       problems.push(
         `${pkg.dir}/release.config.js: a \`tagFormat\` is declared in a form ` +
@@ -177,6 +147,7 @@ export const findVersionRegressions = ({
       );
       continue;
     }
+    const expected = expectedTagFormat(pkg.name);
     if (declared !== null && declared !== expected) {
       problems.push(
         `${pkg.dir}/release.config.js: tagFormat is \`${declared}\`, but this ` +
@@ -187,7 +158,63 @@ export const findVersionRegressions = ({
       );
       continue;
     }
+    comparable.push(pkg);
+  }
 
+  // Nothing to compare is not the same as nothing reachable, and saying
+  // "shallow clone" to someone whose workspace list is empty sends them after
+  // the wrong thing.
+  if (!comparable.length) return problems;
+
+  if (!headExists) {
+    if (allowUntagged) return problems;
+    return [
+      ...problems,
+      'version-regression: HEAD names no commit — an unborn branch, or a fresh ' +
+        '`git init` — so nothing is reachable and no released version could be ' +
+        'compared against. Commit something, or re-run with `--allow-untagged`.',
+    ];
+  }
+
+  // Guarded on what the DECISIONS below actually read, which is reachability,
+  // not existence. Those are not the same question and a shallow clone is where
+  // they part: `git fetch --tags` into a `--depth 1` checkout leaves every tag
+  // present and none of them reachable, so an existence guard passes, every
+  // package takes the nothing-released exit, and the check prints a tick having
+  // compared nothing.
+  //
+  // Summed across packages rather than asked per package, which is a real limit
+  // and not an oversight: one package legitimately has no tags — a new one, or
+  // the `0.0.0-development` placeholder — so a per-package stop would red it on
+  // every run. The cost is that a history where only SOME packages lost their
+  // tags still exempts those, quietly. Nothing distinguishes that from a
+  // package that was never released.
+  const reachable = comparable.reduce(
+    (total, pkg) => total + tagsFor(pkg.name).length,
+    0
+  );
+  if (!reachable) {
+    if (allowUntagged) return problems;
+    // Several states land here and they want different fixes, so the message
+    // says which one this is rather than guessing at the commonest.
+    const cause = anyTagsExist
+      ? 'this checkout has tags but none of them is reachable from HEAD, which ' +
+        'is what a shallow clone looks like — `git fetch --tags` into a ' +
+        '`--depth` clone leaves every tag present and unreachable, and a ' +
+        'grafted or truncated history does the same'
+      : 'this checkout has no tags at all';
+    return [
+      ...problems,
+      `version-regression: ${cause}, so no released version could be compared ` +
+        'against and every package would pass without being checked. The fix ' +
+        'is `git fetch --tags --unshallow`, or a full clone. If you genuinely ' +
+        'cannot, re-run with `--allow-untagged`, which turns THIS rule off and ' +
+        'leaves the rest of the run intact. Never pass that in CI: it is the ' +
+        'difference between a gate and a tick.',
+    ];
+  }
+
+  for (const pkg of comparable) {
     const tags = tagsFor(pkg.name);
     // A package with no tag reachable from here has not been released on this
     // line — a new package, or a branch cut before its first release. Nothing

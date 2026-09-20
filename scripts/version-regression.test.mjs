@@ -329,9 +329,90 @@ test('mixes regressions with other problems rather than stopping at one', () => 
     tagFormatFor: dir => (dir === 'c' ? 'v${version}' : expectedTagFormat(dir)),
   });
   assert.equal(problems.length, 3);
-  assert.match(problems[0], /BELOW/);
-  assert.match(problems[1], /nightly/);
-  assert.match(problems[2], /tagFormat/);
+  // Contract violations first, then the comparisons. The tagFormat rule is
+  // about SOURCE and it gates whether a comparison can be trusted at all, so it
+  // is answered before anything reads the environment — which is also what
+  // keeps `--allow-untagged` from muting it.
+  assert.match(problems[0], /tagFormat/);
+  assert.match(problems[1], /BELOW/);
+  assert.match(problems[2], /nightly/);
+});
+
+test('--allow-untagged mutes the environment stop, never the contract', () => {
+  // The hatch is for a state nobody can fix by editing a file. A `tagFormat`
+  // that this cannot read is exactly the opposite, and it was being muted along
+  // with the stop — in precisely the situation the hatch exists for, so it
+  // would have been muted for the people most likely to pass it.
+  // Two packages, so one is still comparable and the environment stop is
+  // genuinely reached rather than short-circuited.
+  const args = {
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: '1.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: () => [],
+    tagFormatFor: dir => (dir === 'a' ? 'v${version}' : expectedTagFormat('b')),
+  };
+  const stopped = findVersionRegressions(args);
+  assert.equal(stopped.length, 2);
+  assert.match(stopped[0], /tagFormat/);
+  assert.match(stopped[1], /none of them is reachable/);
+
+  // The hatch takes the stop and leaves the contract violation standing.
+  const muted = findVersionRegressions({ ...args, allowUntagged: true });
+  assert.equal(muted.length, 1);
+  assert.match(muted[0], /tagFormat/);
+});
+
+test('a package excluded by the contract is not also called unreachable', () => {
+  // When the contract rules out every package there is nothing left to compare,
+  // so the environment stop is moot and saying it too would send someone after
+  // their clone instead of the config in front of them.
+  const problems = findVersionRegressions({
+    packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
+    anyTagsExist: true,
+    tagsFor: () => [],
+    tagFormatFor: () => 'v${version}',
+  });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /tagFormat/);
+});
+
+test('an unborn HEAD is its own state, not a shallow clone', () => {
+  // `git tag --merged HEAD` fails outright here, which the reader treats as an
+  // error rather than an empty answer — correct, but it threw before the flag
+  // was ever read. Asked as a state, it gets its own message and the hatch
+  // works.
+  const args = {
+    packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
+    anyTagsExist: true,
+    headExists: false,
+    tagsFor: () => {
+      throw new Error('git tag --merged failed for a');
+    },
+    tagFormatFor: dir => expectedTagFormat(dir),
+  };
+  const problems = findVersionRegressions(args);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /HEAD names no commit/);
+  assert.doesNotMatch(problems[0], /shallow/);
+  assert.deepEqual(
+    findVersionRegressions({ ...args, allowUntagged: true }),
+    []
+  );
+});
+
+test('an empty package list is not reported as a shallow clone', () => {
+  assert.deepEqual(
+    findVersionRegressions({
+      packages: [],
+      anyTagsExist: true,
+      tagsFor: () => [],
+      tagFormatFor: () => null,
+    }),
+    []
+  );
 });
 
 test('--allow-untagged turns off this rule and nothing else', () => {

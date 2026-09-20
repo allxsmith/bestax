@@ -4192,6 +4192,11 @@ async function checkVersionRegression(allowUntagged = false) {
   return findVersionRegressions({
     packages,
     allowUntagged,
+    // An unborn branch or a fresh `git init` has no HEAD to be reachable from,
+    // so `git tag --merged HEAD` fails — which the reader below rightly treats
+    // as an error rather than an empty answer. Asked here instead, it becomes a
+    // state with its own message and a working escape hatch.
+    headExists: git(['rev-parse', '--verify', 'HEAD']) !== null,
     anyTagsExist: all.trim().length > 0,
     tagsFor: name => {
       const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
