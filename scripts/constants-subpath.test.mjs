@@ -636,63 +636,67 @@ describe('the declaration-extension guard', () => {
     assert.match(readFileSync(join(root, 'index.d.ts'), 'utf8'), /'\.\/a\.js'/);
   });
 
-  it('refuses a declaration-spelled specifier, but not a reference path', async () => {
-    // The rewrite and the post-pass disagreed about this exact string. The
-    // post-pass called `./a.d.ts` resolvable; the rewrite fell past its
-    // `.js` test, probed for `a.d.ts.d.ts`, and reported that nothing
-    // resolved — true, and the wrong thing to say. It was invisible while the
-    // regex could not reach a side-effect import, and reachable the moment the
-    // collector asked the parser.
+  it('answers a declaration-spelled specifier by position, not by name', async () => {
+    // The rewrite and the post-pass disagreed about `./a.d.ts`: one refused
+    // every spelling, the other accepted every spelling, and TypeScript does
+    // neither. Measured rather than assumed — TS2846 fires on a VALUE import of
+    // a declaration file and not on a type-only one, so the position is the
+    // whole question:
     //
-    // TypeScript settles it: a declaration file is not importable as a module
-    // specifier (TS2846), and it asks for the runtime spelling. A `reference
-    // path` names a declaration directly and stays correct, which is why the
-    // two questions no longer share one predicate.
+    //   import type { T } from './a.d.ts'      accepted
+    //   export type X = import('./a.d.ts').T   accepted
+    //   export type { T } from './a.d.ts'      accepted
+    //   import { A } from './a.d.ts'           TS2846
+    //   export * from './a.d.ts'               TS2846
+    //
+    // A type-only position resolves the declaration directly, so there is no
+    // extension to add and nothing to fix.
+    const beside = {
+      'a.d.ts': 'export declare const A: number;\nexport type T = string;\n',
+    };
     for (const body of [
-      "import './a.d.ts';\nexport {};\n",
+      "import type { T } from './a.d.ts';\nexport type X = T;\n",
+      "export type X = import('./a.d.ts').T;\n",
+      "export type { T } from './a.d.ts';\n",
+    ]) {
+      const root = tree({ 'index.d.ts': body, ...beside });
+      await run(root);
+      assert.equal(
+        readFileSync(join(root, 'index.d.ts'), 'utf8'),
+        body,
+        `a type-only position was edited: ${body.trim()}`
+      );
+    }
+    for (const body of [
+      "import { A } from './a.d.ts';\nexport declare const x: typeof A;\n",
       "export * from './a.d.ts';\n",
     ]) {
       await assert.rejects(
-        run(tree({ 'index.d.ts': body, 'a.d.ts': 'export {};\n' })),
+        run(tree({ 'index.d.ts': body, ...beside })),
         /names a declaration file/,
         body.trim()
       );
     }
+    // Type-only does not mean unchecked: a dangling one still fails.
+    await assert.rejects(
+      run(
+        tree({
+          'index.d.ts':
+            "import type { T } from './gone.d.ts';\nexport type X = T;\n",
+        })
+      ),
+      /does not exist/
+    );
+    // And a reference path names a declaration directly in any position.
     const root = tree({
       'index.d.ts': '/// <reference path="./a.d.ts" />\nexport {};\n',
-      'a.d.ts': 'export {};\n',
+      ...beside,
     });
     await run(root);
     assert.match(
       readFileSync(join(root, 'index.d.ts'), 'utf8'),
       /"\.\/a\.d\.ts"/
     );
-  });
-
-  it('the specifier predicate refuses what the rewrite refuses', async () => {
-    // Driven directly, because the rewrite throws on a declaration-spelled
-    // specifier before the post-pass runs — so this clause cannot be reached
-    // through the hooks, and swapping it back for the reference-path predicate
-    // changes no observable behaviour. It exists to stop the two drifting apart
-    // again, which only a direct case can hold it to.
-    const { specifierResolves } = await import(
-      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
-    );
-    const root = tree({
-      'index.d.ts': 'export {};\n',
-      'a.d.ts': 'export {};\n',
-      'b.d.cts': 'export {};\n',
-    });
-    const from = join(root, 'index.d.ts');
-    // The runtime spelling resolves to the declaration beside it.
-    assert.equal(specifierResolves(root, from, './a.js'), true);
-    assert.equal(specifierResolves(root, from, './b.cjs'), true);
-    // The declaration spelling does not, however real the file is — that is
-    // TS2846, and the whole point of the split.
-    assert.equal(specifierResolves(root, from, './a.d.ts'), false);
-    assert.equal(specifierResolves(root, from, './b.d.cts'), false);
-    // Extensionless is not resolvable either; the rewrite is what adds one.
-    assert.equal(specifierResolves(root, from, './a'), false);
   });
 
   it('rewrites an import-equals-require specifier', async () => {

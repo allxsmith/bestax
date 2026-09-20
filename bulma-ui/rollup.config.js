@@ -62,43 +62,6 @@ const parseDeclaration = text =>
   );
 
 /**
- * The relative `reference path` targets TypeScript would follow.
- *
- * A reference directive is a line comment that TypeScript nonetheless reads, so
- * exempting comment bodies had to spare it. Taking the list from the parse
- * rather than from a pattern of our own is what makes "spare it" exact in both
- * directions. A hand-written pattern was wrong both ways at once: it missed a
- * reversed attribute order and a capitalised `<Reference Path=`, which
- * TypeScript honours and which therefore shipped dangling; and it caught
- * directives after the first statement, which TypeScript ignores, failing the
- * build over a line that means nothing.
- *
- * Every entry is taken, with no filter of our own. A reference target is a path
- * relative to the containing file, never a package name, so `gone.d.ts` and
- * `sub/gone.d.ts` are as real as `./gone.d.ts` — and a relative-looking prefix
- * test threw exactly those two away, which put the narrowing back that adopting
- * the parse was meant to remove. An absolute target is kept too: it cannot be
- * inside the published tree, so containment refuses it and says so.
- */
-/**
- * Every module specifier in a parsed declaration, with the offsets of the
- * string's CONTENT — inside the quotes, so a rewrite replaces the path and
- * leaves the quoting alone.
- *
- * This replaced a regex over `from` / `import(` positions, and with it the
- * comment map both passes needed. A pattern cannot tell a specifier from
- * anything else quoted beside it, which cost this file a rewrite inside a TSDoc
- * `@example`, a build failure on a relative path written in prose, and a comment
- * scanner that was wrong twice before it was right. The parser knows which
- * strings name modules, so none of that has to be inferred.
- *
- * A `declare module` name is deliberately absent. Only an ambient declaration
- * takes a string name, and a relative one is TS2436 — "Ambient module
- * declaration cannot specify relative module name" — so the shape this would
- * rewrite cannot legally exist, and a bare one names a package rather than a
- * path.
- */
-/**
  * The string names of ambient module declarations.
  *
  * Checked but never rewritten, and the split is deliberate. A relative ambient
@@ -120,26 +83,52 @@ const ambientModuleNames = sourceFile => {
   return found;
 };
 
+/**
+ * Every module specifier in a parsed declaration, with the offsets of the
+ * string's CONTENT — inside the quotes, so a rewrite replaces the path and
+ * leaves the quoting alone.
+ *
+ * This replaced a regex over `from` / `import(` positions, and with it the
+ * comment map both passes needed. A pattern cannot tell a specifier from
+ * anything else quoted beside it, which cost this file a rewrite inside a TSDoc
+ * `@example`, a build failure on a relative path written in prose, and a comment
+ * scanner that was wrong twice before it was right. The parser knows which
+ * strings name modules, so none of that has to be inferred.
+ *
+ * A `declare module` name is deliberately absent. Only an ambient declaration
+ * takes a string name, and a relative one is TS2436 — "Ambient module
+ * declaration cannot specify relative module name" — so the shape this would
+ * rewrite cannot legally exist, and a bare one names a package rather than a
+ * path.
+ */
 const moduleSpecifiers = sourceFile => {
   const found = [];
-  const take = node => {
+  const take = (node, typeOnly) => {
     if (!node || !ts.isStringLiteral(node)) return;
     found.push({
       start: node.getStart(sourceFile) + 1,
       end: node.getEnd() - 1,
       text: node.text,
+      typeOnly,
     });
   };
   const visit = node => {
-    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
-      take(node.moduleSpecifier);
+    if (ts.isImportDeclaration(node)) {
+      // `import type { T } from …` may name a declaration file; a value import
+      // may not. An INLINE `{ type T }` is not type-only here, and tsc treats
+      // it the same way — the declaration still imports at runtime.
+      take(node.moduleSpecifier, Boolean(node.importClause?.isTypeOnly));
+    } else if (ts.isExportDeclaration(node)) {
+      take(node.moduleSpecifier, Boolean(node.isTypeOnly));
     } else if (ts.isImportTypeNode(node)) {
       // The `import('./x').Y` form tsc emits for a type it reaches without an
-      // explicit import.
+      // explicit import. Always a type position.
       const argument = node.argument;
-      if (argument && ts.isLiteralTypeNode(argument)) take(argument.literal);
+      if (argument && ts.isLiteralTypeNode(argument)) {
+        take(argument.literal, true);
+      }
     } else if (ts.isExternalModuleReference(node)) {
-      take(node.expression);
+      take(node.expression, false);
     }
     ts.forEachChild(node, visit);
   };
@@ -147,6 +136,25 @@ const moduleSpecifiers = sourceFile => {
   return found;
 };
 
+/**
+ * The relative `reference path` targets TypeScript would follow.
+ *
+ * A reference directive is a line comment that TypeScript nonetheless reads, so
+ * exempting comment bodies had to spare it. Taking the list from the parse
+ * rather than from a pattern of our own is what makes "spare it" exact in both
+ * directions. A hand-written pattern was wrong both ways at once: it missed a
+ * reversed attribute order and a capitalised `<Reference Path=`, which
+ * TypeScript honours and which therefore shipped dangling; and it caught
+ * directives after the first statement, which TypeScript ignores, failing the
+ * build over a line that means nothing.
+ *
+ * Every entry is taken, with no filter of our own. A reference target is a path
+ * relative to the containing file, never a package name, so `gone.d.ts` and
+ * `sub/gone.d.ts` are as real as `./gone.d.ts` — and a relative-looking prefix
+ * test threw exactly those two away, which put the narrowing back that adopting
+ * the parse was meant to remove. An absolute target is kept too: it cannot be
+ * inside the published tree, so containment refuses it and says so.
+ */
 const referencedPaths = sourceFile =>
   sourceFile.referencedFiles.map(reference => reference.fileName);
 
@@ -203,7 +211,14 @@ const resolvesToDeclaration = (root, file, spec) => {
  * unpinned clause kept honest by nothing. It is here to stop the two
  * predicates drifting apart again, and the test drives it directly.
  */
-export const specifierResolves = (root, file, spec) => {
+export const specifierResolves = (root, file, spec, typeOnly = false) => {
+  // A declaration-spelled specifier resolves directly, and only a type-only
+  // position may use one. Answering by name rather than by position was the
+  // disagreement: the rewrite refused every spelling and this accepted every
+  // spelling, and TypeScript does neither.
+  if (/\.d\.[cm]?ts$/.test(spec)) {
+    return typeOnly && declarationUnder(root, resolvePath(dirname(file), spec));
+  }
   const runtime = spec.match(/\.([cm]?)js$/);
   if (!runtime) return false;
   const declared = `.d.${runtime[1]}ts`;
@@ -390,27 +405,36 @@ export const declarationExtensions = (root = 'dist/types') => {
         );
       }
 
-      // Both shapes a specifier takes in a declaration: a real `from '…'`, and
-      // the `import('./x').Y` form tsc emits for a type it reaches without an
-      // explicit import. BOTH quote styles, because tsc writes the inline form
-      // with double quotes — missing that left a TS2834 visible only with
-      // `skipLibCheck` off, which is how most consumers would first meet it.
-      // `.` and `..` on their own are specifiers too — a bare parent-directory
-      // import resolves to that directory's `index`, and a pattern requiring a
-      // `/` after the dots skipped them silently.
       // What a single specifier becomes, or a throw naming why it cannot.
       // Returns null when it is already correct and needs no edit.
-      const rewritten = (file, spec) => {
-        // A declaration-spelled specifier is refused by name, because the
-        // probes below would look for `x.d.ts.d.ts` and report that nothing
-        // resolves — true, and the wrong thing to say. TypeScript rejects this
-        // spelling with TS2846 and asks for the runtime one.
+      //
+      // Every shape reaching here comes from the parser, so the quoting and the
+      // position are already settled. What is left is a question about the
+      // filesystem: which of `.js`, `/index.js` or nothing this path needs, and
+      // whether the declaration it would then name exists.
+      const rewritten = (file, spec, typeOnly) => {
+        // A declaration-spelled specifier is answered by position, not by
+        // name. In a TYPE position TypeScript accepts it and resolves it
+        // directly, so it is already correct and needs no extension. In a value
+        // position it is TS2846, and the probes below would otherwise look for
+        // `x.d.ts.d.ts` and report that nothing resolves — true, and the wrong
+        // thing to say.
         if (/\.d\.[cm]?ts$/.test(spec)) {
+          if (typeOnly) {
+            if (declarationUnder(root, resolvePath(dirname(file), spec))) {
+              return null;
+            }
+            throw new Error(
+              `${file}: '${spec}' names a declaration that does not exist, so ` +
+                'it would ship pointing nowhere.'
+            );
+          }
           const runtime = spec.replace(/\.d\.([cm]?)ts$/, '.$1js');
           throw new Error(
-            `${file}: '${spec}' names a declaration file, which TypeScript ` +
-              `refuses as a module specifier (TS2846). Write '${runtime}' ` +
-              'instead — the declaration beside it is what gets read.'
+            `${file}: '${spec}' names a declaration file, and TypeScript ` +
+              'refuses that outside a type-only import (TS2846). Write ' +
+              `'${runtime}' instead, or make the import type-only — the ` +
+              'declaration beside it is what gets read either way.'
           );
         }
         // An extension already present is still checked. The post-pass would
@@ -477,7 +501,10 @@ export const declarationExtensions = (root = 'dist/types') => {
         try {
           edits = moduleSpecifiers(parseDeclaration(before))
             .filter(found => /^\.\.?(\/|$)/.test(found.text))
-            .map(found => ({ ...found, to: rewritten(file, found.text) }))
+            .map(found => ({
+              ...found,
+              to: rewritten(file, found.text, found.typeOnly),
+            }))
             .filter(edit => edit.to !== null);
         } catch (error) {
           // Same reason, for the window between that check and this throw.
@@ -539,16 +566,23 @@ export const declarationExtensions = (root = 'dist/types') => {
         // needed to tell them apart is gone.
         const parsed = parseDeclaration(text);
         const named = [
-          ...moduleSpecifiers(parsed).map(found => found.text),
-          ...ambientModuleNames(parsed),
-        ].filter(spec => /^\.\.?(\/|$)/.test(spec));
+          ...moduleSpecifiers(parsed).map(found => [
+            found.text,
+            found.typeOnly,
+          ]),
+          // An ambient name is never a type-only position.
+          ...ambientModuleNames(parsed).map(name => [name, false]),
+        ].filter(([spec]) => /^\.\.?(\/|$)/.test(spec));
         // A `reference path` is a comment TypeScript nonetheless follows, so it
         // is not a module specifier and has to be collected separately.
         const referenced = referencedPaths(parsed);
         const broken = [
           ...new Set(
             [
-              ...named.map(spec => [spec, specifierResolves(root, file, spec)]),
+              ...named.map(([spec, typeOnly]) => [
+                spec,
+                specifierResolves(root, file, spec, typeOnly),
+              ]),
               ...referenced.map(spec => [
                 spec,
                 resolvesToDeclaration(root, file, spec),
