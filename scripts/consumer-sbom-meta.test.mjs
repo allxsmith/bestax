@@ -10,9 +10,10 @@
  *
  * Two assertions are load-bearing beyond their apparent size:
  *
- *   - the two-`@` scoped-package case. Three of the four packages are
+ *   - the two-`@` scoped-package case. Most of the packages are
  *     unscoped, so a lastIndexOf/indexOf slip passes every test that does not
- *     name @allxsmith/bestax-bulma and then mis-pins the one package whose
+ *     name a scoped package, then trips the `at < 1` guard on one that is
+ *     scoped and leaves that leg on `latest` rather than the version whose
  *     release triggered the run.
  *   - ARTIFACT_PREFIX. `sign-sbom` and `attach-sbom` glob on that string from
  *     other jobs and cannot read a step output across a job boundary, so
@@ -41,6 +42,7 @@ import {
 } from './consumer-sbom-meta.mjs';
 
 const SCOPED = '@allxsmith/bestax-bulma';
+const SCOPED_PLUGIN = '@allxsmith/eslint-plugin-bestax';
 
 /** A scratch consumer tree with one installed package, as npm would leave it. */
 function tree(pkg, version) {
@@ -63,7 +65,7 @@ test('parseReleaseTag splits a scoped tag on the LAST @', () => {
   });
 });
 
-test('parseReleaseTag handles the three unscoped packages', () => {
+test('parseReleaseTag handles the unscoped packages', () => {
   for (const pkg of ['create-bestax', 'bestax-migrate', 'bestax-mcp']) {
     assert.deepEqual(parseReleaseTag(`${pkg}@1.2.3`), {
       package: pkg,
@@ -93,10 +95,18 @@ test('installSpec pins the package the release names', () => {
   );
 });
 
-test('installSpec leaves the other three legs on latest during a release', () => {
+test('installSpec leaves every other leg on latest during a release', () => {
   // The whole asymmetry of item 1: a bulma-ui release says nothing about what
-  // version of bestax-migrate a consumer installs today.
-  for (const pkg of ['create-bestax', 'bestax-migrate', 'bestax-mcp']) {
+  // version of bestax-migrate a consumer installs today. Every leg the matrix
+  // carries belongs here, including the scoped one this list used to omit —
+  // `consumer-sbom` runs on no PR event, so these assertions are the only
+  // thing standing behind a new leg until someone fires a dispatch.
+  for (const pkg of [
+    'create-bestax',
+    'bestax-migrate',
+    'bestax-mcp',
+    SCOPED_PLUGIN,
+  ]) {
     assert.equal(
       installSpec({
         package: pkg,

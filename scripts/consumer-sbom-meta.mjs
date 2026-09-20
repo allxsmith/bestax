@@ -11,7 +11,7 @@
  *
  * ## Why `spec` exists at all (item 1)
  *
- * The job used to install the mutable `latest` dist-tag for all four packages.
+ * The job used to install the mutable `latest` dist-tag for every package.
  * For the ONE package a release names that is wrong twice over, and both are
  * real rather than theoretical:
  *
@@ -25,7 +25,7 @@
  *
  * `release.tag_name` is `<pkg>@X.Y.Z` (VERSIONING.md, and the `tagFormat` in
  * each package's release.config.js), so the exact version IS available for
- * that one leg. The other three necessarily stay on `latest` — a release says
+ * that one leg. Every other leg necessarily stays on `latest` — a release says
  * nothing about them, and pretending otherwise would pin them to whatever
  * happened to be current when an unrelated package shipped.
  *
@@ -70,7 +70,7 @@
  * Deliberately no shell-side parsing of what this returns. An earlier draft had
  * the workflow derive `expect` from `spec` with `${spec##*@}`, which is the
  * same last-`@` split parseReleaseTag already does — reimplemented in YAML,
- * untested, one character away from being wrong for the scoped package.
+ * untested, one character away from being wrong for a scoped package.
  *
  * Exit codes: 0 fine,
  *             1 an assertion failed,
@@ -116,8 +116,9 @@ export function forLog(value) {
  *
  * Split on the LAST `@`, not the first: `@allxsmith/bestax-bulma@5.12.0` has
  * two, and splitting on the first yields the empty package name and
- * `allxsmith/bestax-bulma@5.12.0` as a version. Three of the four packages are
- * unscoped and would hide this bug completely.
+ * `allxsmith/bestax-bulma@5.12.0` as a version. Most of the packages here are
+ * unscoped and would hide this bug completely, so the scoped ones are the
+ * only legs that exercise it.
  *
  * Returns null for anything that is not `<name>@<version>` rather than
  * throwing: a tag this cannot parse is not an error, it is a release this job
@@ -145,9 +146,9 @@ export function parseReleaseTag(tag) {
  * release makes a claim about.
  *
  * Note what is deliberately NOT done: no attempt to guess a version for the
- * other three legs from the repository, the changelog, or the previous run. A
- * consumer SBOM describes what a consumer installs today, and today for those
- * three is whatever `latest` resolves to.
+ * other legs from the repository, the changelog, or the previous run. A
+ * consumer SBOM describes what a consumer installs today, and today for the
+ * rest is whatever `latest` resolves to.
  */
 export function installSpec({ package: pkg, eventName, tagName } = {}) {
   if (!pkg) throw new Error('installSpec requires a package name');

@@ -10,10 +10,10 @@
  * of ours reimplementing a subset. #532 moved the other three, so this is now
  * how the whole workspace publishes.
  *
- * It lives here rather than in each release.config.js because the four configs
- * were identical and the reasons below are not obvious from the code. Four
- * copies of an explanation is four chances for three of them to go stale, and
- * every flag here is load-bearing in a way that fails quietly.
+ * It lives here rather than in each release.config.js because those configs
+ * were identical and the reasons below are not obvious from the code. A copy
+ * of an explanation per package is a chance per package for it to go stale,
+ * and every flag here is load-bearing in a way that fails quietly.
  */
 import path from 'node:path';
 // `sh` quotes the paths below for /bin/sh: a checkout under a directory with a
