@@ -103,32 +103,47 @@ const ambientModuleNames = sourceFile => {
  */
 const moduleSpecifiers = sourceFile => {
   const found = [];
-  const take = (node, typeOnly) => {
+  const take = (node, declarationAllowed) => {
     if (!node || !ts.isStringLiteral(node)) return;
     found.push({
       start: node.getStart(sourceFile) + 1,
       end: node.getEnd() - 1,
       text: node.text,
-      typeOnly,
+      declarationAllowed,
     });
   };
   const visit = node => {
     if (ts.isImportDeclaration(node)) {
-      // `import type { T } from …` may name a declaration file; a value import
-      // may not. An INLINE `{ type T }` is not type-only here, and tsc treats
-      // it the same way — the declaration still imports at runtime.
-      take(node.moduleSpecifier, Boolean(node.importClause?.isTypeOnly));
+      // TS2846 reads the CLAUSE, so what matters is whether this import binds a
+      // value — not whether it is spelled `type`. Measured against tsc:
+      //
+      //   import type { T } from './a.d.ts'   accepted   type-only clause
+      //   import './a.d.ts'                   accepted   NO clause to bind
+      //   import { A } from './a.d.ts'        TS2846     binds a value
+      //   import { type T } from './a.d.ts'   TS2846     inline, still a value
+      //   import {} from './a.d.ts'           TS2846     empty is still a clause
+      //
+      // So a side-effect import belongs with the accepting forms, which is why
+      // "type-only" was the wrong question to ask.
+      const clause = node.importClause;
+      take(node.moduleSpecifier, !clause || Boolean(clause.isTypeOnly));
     } else if (ts.isExportDeclaration(node)) {
       take(node.moduleSpecifier, Boolean(node.isTypeOnly));
+    } else if (ts.isImportEqualsDeclaration(node)) {
+      // `import type a = require('./a.d.ts')` is accepted; the value form is
+      // TS2846. The flag lives on the declaration, not on the reference below
+      // it, so reading the reference alone marked every one a value.
+      if (ts.isExternalModuleReference(node.moduleReference)) {
+        take(node.moduleReference.expression, Boolean(node.isTypeOnly));
+      }
     } else if (ts.isImportTypeNode(node)) {
       // The `import('./x').Y` form tsc emits for a type it reaches without an
-      // explicit import. Always a type position.
+      // explicit import. Always a type position: the only non-clause route to
+      // TS2846 needs a CallExpression, which this is not.
       const argument = node.argument;
       if (argument && ts.isLiteralTypeNode(argument)) {
         take(argument.literal, true);
       }
-    } else if (ts.isExternalModuleReference(node)) {
-      take(node.expression, false);
     }
     ts.forEachChild(node, visit);
   };
@@ -185,10 +200,9 @@ const declarationUnder = (root, target) => {
  */
 const resolvesToDeclaration = (root, file, spec) => {
   const from = dirname(file);
-  // A `reference path` names a declaration DIRECTLY, and is the only shape
-  // here that may. A module specifier spelled the same way is TS2846 — "A
-  // declaration file cannot be imported without 'import type'" — which is why
-  // the two contexts no longer share one predicate.
+  // A `reference path` names a declaration DIRECTLY, in any position. A module
+  // specifier spelled the same way depends on whether its import binds a value,
+  // which is why the two contexts no longer share one predicate.
   if (/\.d\.[cm]?ts$/.test(spec)) {
     return declarationUnder(root, resolvePath(from, spec));
   }
@@ -202,22 +216,31 @@ const resolvesToDeclaration = (root, file, spec) => {
  * Split from the reference-path question because the two disagreed about the
  * same string. A specifier spelled `./x.d.ts` was accepted here and hard-failed
  * by the rewrite — invisible while the rewrite's pattern could not reach a
- * side-effect import, and reachable the moment it asked the parser instead. The
- * rewrite was right: TypeScript rejects that spelling and asks for the runtime
- * one, so this refuses it too rather than the two contradicting each other.
+ * side-effect import, and reachable the moment it asked the parser instead.
+ * Neither was right: TS2846 turns on whether the import BINDS A VALUE, so the
+ * spelling is fine in a type-only position and refused in a value one, and both
+ * passes now ask that question rather than answering by name.
  *
  * Exported because the rewrite throws on that shape FIRST, so this refusal
  * cannot be reached through the plugin's hooks and would otherwise be an
  * unpinned clause kept honest by nothing. It is here to stop the two
  * predicates drifting apart again, and the test drives it directly.
  */
-export const specifierResolves = (root, file, spec, typeOnly = false) => {
+export const specifierResolves = (
+  root,
+  file,
+  spec,
+  declarationAllowed = false
+) => {
   // A declaration-spelled specifier resolves directly, and only a type-only
   // position may use one. Answering by name rather than by position was the
   // disagreement: the rewrite refused every spelling and this accepted every
   // spelling, and TypeScript does neither.
   if (/\.d\.[cm]?ts$/.test(spec)) {
-    return typeOnly && declarationUnder(root, resolvePath(dirname(file), spec));
+    return (
+      declarationAllowed &&
+      declarationUnder(root, resolvePath(dirname(file), spec))
+    );
   }
   const runtime = spec.match(/\.([cm]?)js$/);
   if (!runtime) return false;
@@ -412,7 +435,7 @@ export const declarationExtensions = (root = 'dist/types') => {
       // position are already settled. What is left is a question about the
       // filesystem: which of `.js`, `/index.js` or nothing this path needs, and
       // whether the declaration it would then name exists.
-      const rewritten = (file, spec, typeOnly) => {
+      const rewritten = (file, spec, declarationAllowed) => {
         // A declaration-spelled specifier is answered by position, not by
         // name. In a TYPE position TypeScript accepts it and resolves it
         // directly, so it is already correct and needs no extension. In a value
@@ -420,7 +443,7 @@ export const declarationExtensions = (root = 'dist/types') => {
         // `x.d.ts.d.ts` and report that nothing resolves — true, and the wrong
         // thing to say.
         if (/\.d\.[cm]?ts$/.test(spec)) {
-          if (typeOnly) {
+          if (declarationAllowed) {
             if (declarationUnder(root, resolvePath(dirname(file), spec))) {
               return null;
             }
@@ -431,8 +454,8 @@ export const declarationExtensions = (root = 'dist/types') => {
           }
           const runtime = spec.replace(/\.d\.([cm]?)ts$/, '.$1js');
           throw new Error(
-            `${file}: '${spec}' names a declaration file, and TypeScript ` +
-              'refuses that outside a type-only import (TS2846). Write ' +
+            `${file}: '${spec}' names a declaration file from an import that ` +
+              'binds a value, which TypeScript refuses with TS2846. Write ' +
               `'${runtime}' instead, or make the import type-only — the ` +
               'declaration beside it is what gets read either way.'
           );
@@ -503,7 +526,7 @@ export const declarationExtensions = (root = 'dist/types') => {
             .filter(found => /^\.\.?(\/|$)/.test(found.text))
             .map(found => ({
               ...found,
-              to: rewritten(file, found.text, found.typeOnly),
+              to: rewritten(file, found.text, found.declarationAllowed),
             }))
             .filter(edit => edit.to !== null);
         } catch (error) {
@@ -568,7 +591,7 @@ export const declarationExtensions = (root = 'dist/types') => {
         const named = [
           ...moduleSpecifiers(parsed).map(found => [
             found.text,
-            found.typeOnly,
+            found.declarationAllowed,
           ]),
           // An ambient name is never a type-only position.
           ...ambientModuleNames(parsed).map(name => [name, false]),
@@ -579,9 +602,9 @@ export const declarationExtensions = (root = 'dist/types') => {
         const broken = [
           ...new Set(
             [
-              ...named.map(([spec, typeOnly]) => [
+              ...named.map(([spec, declarationAllowed]) => [
                 spec,
-                specifierResolves(root, file, spec, typeOnly),
+                specifierResolves(root, file, spec, declarationAllowed),
               ]),
               ...referenced.map(spec => [
                 spec,

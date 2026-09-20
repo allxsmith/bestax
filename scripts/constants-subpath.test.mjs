@@ -656,8 +656,18 @@ describe('the declaration-extension guard', () => {
     };
     for (const body of [
       "import type { T } from './a.d.ts';\nexport type X = T;\n",
+      "import type * as ns from './a.d.ts';\nexport type X = ns.T;\n",
       "export type X = import('./a.d.ts').T;\n",
+      "export type X = typeof import('./a.d.ts');\n",
       "export type { T } from './a.d.ts';\n",
+      "export type * from './a.d.ts';\n",
+      // The two with no clause to read, which is where naming this
+      // "type-only" went wrong. TS2846 turns on whether the import BINDS A
+      // VALUE: a side-effect import binds nothing, and the type-only
+      // import-equals form carries its flag on the declaration rather than on
+      // the reference below it. Both are accepted by tsc and were refused here.
+      "import './a.d.ts';\n",
+      "import type a = require('./a.d.ts');\nexport type X = a.T;\n",
     ]) {
       const root = tree({ 'index.d.ts': body, ...beside });
       await run(root);
@@ -669,7 +679,13 @@ describe('the declaration-extension guard', () => {
     }
     for (const body of [
       "import { A } from './a.d.ts';\nexport declare const x: typeof A;\n",
+      // An inline `{ type T }` reads type-only and is not; an EMPTY clause is
+      // still a clause. Both are TS2846, measured.
+      "import { type T } from './a.d.ts';\nexport type X = T;\n",
+      "import {} from './a.d.ts';\n",
       "export * from './a.d.ts';\n",
+      "export { A } from './a.d.ts';\n",
+      "import a = require('./a.d.ts');\nexport = a;\n",
     ]) {
       await assert.rejects(
         run(tree({ 'index.d.ts': body, ...beside })),
