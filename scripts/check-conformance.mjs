@@ -46,6 +46,10 @@
  *                        cannot resolve (#412). Which packages publish with
  *                        `pnpm publish` is declared, not inferred (#436,
  *                        #532)
+ *   version-regression    no publishable manifest sits below a release tag
+ *                         reachable from HEAD. `--allow-untagged` stands this
+ *                         one rule down for a checkout git cannot answer for;
+ *                         never pass it in CI.
  *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
@@ -111,11 +115,7 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
-import {
-  findVersionRegressions,
-  tagGlob,
-  UNREADABLE,
-} from './lib/version-regression.mjs';
+import { versionRegressionProblems } from './lib/version-regression.mjs';
 import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -4153,103 +4153,23 @@ async function checkTurboTasks() {
  */
 async function checkVersionRegression(allowUntagged = false) {
   const { packages, unreadable, unnamed } = await publishablePackages();
-  const git = args => {
-    try {
-      return execFileSync('git', args, {
-        cwd: REPO,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore'],
-      });
-    } catch {
-      return null;
-    }
-  };
-
-  // A manifest too broken to parse drops its package from the list above, which
-  // would exempt it from this check without a word. `checkPublishableManifests`
-  // reds the same state in a full run; saying it here too costs a line and
-  // keeps `--only=version-regression` honest.
-  const skipped = [...unreadable, ...unnamed];
-  const problems = skipped.map(
-    dir =>
-      `${dir}/package.json could not be read, or names no package, so ${dir} ` +
-      'was not compared against its released version. Fix the manifest — a ' +
-      'truncated, invalid or nameless one exempts the package from this check ' +
-      'entirely.'
-  );
-
-  // Read BEFORE any environment answer is acted on. Every environment stop
-  // belongs to `findVersionRegressions`, which runs the contract first and
-  // unconditionally — and returning early from HERE is what handed the hatch
-  // the contract again, two rounds after fixing exactly that. There is nothing
-  // to return early for: reading release configs does not need git.
-  //
-  // Read up front: the matching below is synchronous so it can be unit-tested
-  // without a git fixture or a filesystem.
-  const formats = new Map();
-  for (const pkg of packages) {
-    let text;
-    try {
-      text = await readFile(join(REPO, pkg.dir, 'release.config.js'), 'utf8');
-    } catch (error) {
-      // ABSENT is not this check's business: `publishable-manifests.test.mjs`
-      // is what holds a publishable package to having a release config, by
-      // loading each one. Present-but-unreadable
-      // is a different thing, and collapsing the two exempted a package because
-      // of a permissions problem.
-      if (error.code === 'ENOENT') continue;
-      formats.set(pkg.dir, UNREADABLE);
-      continue;
-    }
-    // All three literal spellings. Reading only `'…'` meant a backtick-spelled
-    // format produced no entry, which is indistinguishable from having no
-    // release config — so the package was exempted by the very branch written
-    // to catch it. `UNREADABLE` keeps the two apart.
-    const match = /tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(text);
-    formats.set(pkg.dir, match ? match[2] : UNREADABLE);
-  }
-
-  const all = git(['tag', '--list']);
-  return [
-    ...problems,
-    ...findVersionRegressions({
-      packages,
-      allowUntagged,
-      // An unborn branch or a fresh `git init` has no HEAD to be reachable from,
-      // so `git tag --merged HEAD` fails — which the reader below rightly treats
-      // as an error rather than an empty answer. Asked here instead, it becomes a
-      // state with its own message and a working escape hatch.
-      // PEELED to a commit. `--verify HEAD` resolves the ref without proving the
-      // object is in the store, so a corrupt one answered "yes" here and then
-      // threw out of the tag lookup, past every flag read — the state this
-      // question was added to turn into a message.
-      headExists:
-        all !== null &&
-        git(['rev-parse', '--verify', 'HEAD^{commit}']) !== null,
-      // `null` means git could not answer at all, which is a different state
-      // from a repository with no tags — and one the contract must still run
-      // ahead of.
-      tagsReadable: all !== null,
-      anyTagsExist: all !== null && all.trim().length > 0,
-      tagsFor: name => {
-        if (all === null) return [];
-        const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
-        // A FAILED git call is not an empty answer. Collapsed into `[]` it read
-        // as "never released", which exempted that one package while the run
-        // still printed a tick.
-        if (out === null)
-          throw new Error(`git tag --merged failed for ${name}`);
-        return out.split('\n').filter(Boolean);
-      },
-      tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
-      unreadableTagFormat: UNREADABLE,
-      // Packages this never saw at all. Without them `partial` counts only the
-      // contract's exclusions, and an unreadable manifest holding the reachable
-      // tags would be answered with a shallow-clone diagnosis and an
-      // `--unshallow` that fixes nothing.
-      skippedCount: skipped.length,
-    }),
-  ];
+  return versionRegressionProblems({
+    packages,
+    skipped: [...unreadable, ...unnamed],
+    allowUntagged,
+    git: args => {
+      try {
+        return execFileSync('git', args, {
+          cwd: REPO,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+        });
+      } catch {
+        return null;
+      }
+    },
+    readConfig: dir => readFile(join(REPO, dir, 'release.config.js'), 'utf8'),
+  });
 }
 
 const CHECKS = {

@@ -21,6 +21,8 @@ import {
   findVersionRegressions,
   tagGlob,
   UNREADABLE,
+  readTagFormat,
+  versionRegressionProblems,
 } from './lib/version-regression.mjs';
 import { publishablePackages } from './check-conformance.mjs';
 
@@ -283,10 +285,17 @@ test('every real release config spells the tagFormat this check assumes', async 
       continue;
     }
     configs += 1;
-    const declared = /tagFormat:\s*'([^']*)'/.exec(text);
-    assert.ok(declared, `${pkg.dir}/release.config.js declares no tagFormat`);
+    // Through the SAME reader the build uses. This re-implemented that pattern
+    // single-quote-only while production read all three spellings, so the two
+    // could drift and the test would keep passing.
+    const declared = readTagFormat(text);
+    assert.notEqual(
+      declared,
+      UNREADABLE,
+      `${pkg.dir}/release.config.js declares no tagFormat this can read`
+    );
     assert.equal(
-      declared[1],
+      declared,
       expectedTagFormat(pkg.name),
       `${pkg.dir} tags its releases differently from what this check looks for`
     );
@@ -568,4 +577,107 @@ test('an unreadable git is an environment stop like the others', () => {
   const muted = findVersionRegressions({ ...args, allowUntagged: true });
   assert.equal(muted.length, 1);
   assert.match(muted[0], /tagFormat/);
+});
+
+const enoent = () => {
+  const error = new Error('ENOENT');
+  error.code = 'ENOENT';
+  return Promise.reject(error);
+};
+
+test('readTagFormat reads every literal spelling, and says when it cannot', () => {
+  // The test used to re-implement this pattern to hold the real configs to it,
+  // which is a second place for it to be wrong — and it WAS wrong there,
+  // single-quote-only, while production read all three.
+  assert.equal(readTagFormat("tagFormat: 'pkg@${version}',"), 'pkg@${version}');
+  assert.equal(readTagFormat('tagFormat: "pkg@${version}",'), 'pkg@${version}');
+  assert.equal(readTagFormat('tagFormat: `pkg@${version}`,'), 'pkg@${version}');
+  // Present but unreadable is NOT the same as absent, and collapsing them
+  // exempted the package.
+  assert.equal(readTagFormat('tagFormat: someVariable,'), UNREADABLE);
+  assert.equal(readTagFormat('no tag format here'), UNREADABLE);
+});
+
+test('the contract is answered before any environment state, through the wiring', async () => {
+  // THE invariant, and the reason this path is drivable at all. It was broken
+  // three times — once by ordering, twice by a caller returning first — and
+  // each fix was local to the shape in front of it. Ordering inside
+  // `findVersionRegressions` cannot enforce it while a caller may return
+  // early, so the whole path is exercised here rather than the half of it that
+  // was already pinned.
+  const packages = [
+    { dir: 'a', name: 'a', version: '1.0.0' },
+    { dir: 'b', name: 'b', version: '1.0.0' },
+  ];
+  // git answers nothing at all: the most tempting place to return early.
+  const problems = await versionRegressionProblems({
+    packages,
+    git: () => null,
+    readConfig: dir =>
+      Promise.resolve(
+        dir === 'a' ? "tagFormat: 'v${version}'," : "tagFormat: 'b@${version}',"
+      ),
+  });
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /tagFormat/);
+  assert.match(problems[1], /`git tag` failed/);
+
+  // And the hatch takes the environment answer while the contract stands.
+  const muted = await versionRegressionProblems({
+    packages,
+    allowUntagged: true,
+    git: () => null,
+    readConfig: dir =>
+      Promise.resolve(
+        dir === 'a' ? "tagFormat: 'v${version}'," : "tagFormat: 'b@${version}',"
+      ),
+  });
+  assert.equal(muted.length, 1);
+  assert.match(muted[0], /tagFormat/);
+});
+
+test('a skipped manifest is reported and counted by the wiring', async () => {
+  // `unnamed` and `unreadable` both arrive as `skipped`. Reported, and counted
+  // toward the partial diagnosis so the stop does not blame the checkout for
+  // tags a manifest this could not read may be holding.
+  const problems = await versionRegressionProblems({
+    packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
+    skipped: ['nameless'],
+    git: args => (args[1] === '--list' ? 'a@2.0.0\n' : ''),
+    readConfig: () => Promise.resolve("tagFormat: 'a@${version}',"),
+  });
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /nameless\/package\.json/);
+  assert.match(
+    problems[1],
+    /the ones excluded above may be where the tags are/
+  );
+});
+
+test('the wiring compares, and flags a real regression end to end', async () => {
+  const problems = await versionRegressionProblems({
+    packages: [{ dir: 'a', name: 'a', version: '5.15.0' }],
+    git: args =>
+      args[1] === '--list'
+        ? 'a@5.16.3\n'
+        : args[0] === 'rev-parse'
+          ? 'sha\n'
+          : 'a@5.16.3\n',
+    readConfig: () => Promise.resolve("tagFormat: 'a@${version}',"),
+  });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /BELOW `5\.16\.3`/);
+
+  // A missing release config is not this check's business.
+  const noConfig = await versionRegressionProblems({
+    packages: [{ dir: 'a', name: 'a', version: '5.16.3' }],
+    git: args =>
+      args[1] === '--list'
+        ? 'a@5.16.3\n'
+        : args[0] === 'rev-parse'
+          ? 'sha\n'
+          : 'a@5.16.3\n',
+    readConfig: enoent,
+  });
+  assert.deepEqual(noConfig, []);
 });

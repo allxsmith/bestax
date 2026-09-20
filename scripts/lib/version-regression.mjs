@@ -303,3 +303,102 @@ export const findVersionRegressions = ({
 
   return problems;
 };
+
+/**
+ * The `tagFormat` literal a release config declares, or `UNREADABLE`.
+ *
+ * All three literal spellings. Reading only `'…'` meant a backtick-spelled
+ * format produced no entry, which is indistinguishable from having no release
+ * config — so the package was exempted by the very branch written to catch it.
+ *
+ * Exported rather than inlined because the test used to re-implement this
+ * pattern to assert the real configs match it, and a copy of a regex is a
+ * second place for it to be wrong.
+ */
+export const readTagFormat = text => {
+  const match = /tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(text);
+  return match ? match[2] : UNREADABLE;
+};
+
+/**
+ * Everything `check:conformance` does for this rule, with git and the
+ * filesystem injected.
+ *
+ * Extracted because the invariant below was broken three times, and each fix
+ * was local to the shape in front of it: the contract must be answered before
+ * ANY environment state is. Ordering it inside `findVersionRegressions` cannot
+ * enforce that while a caller is free to return first — which is exactly what
+ * happened, two rounds after the ordering went in. With the reads injected, a
+ * case can drive the whole path and the invariant is pinned rather than
+ * remembered.
+ *
+ * @param packages [{ dir, name, version }] the publishable workspace packages
+ * @param skipped  dirs whose manifest could not be read or named nothing
+ * @param git      (args) => string|null, `null` when git could not answer
+ * @param readConfig (dir) => Promise<string>, rejecting with ENOENT when absent
+ */
+export const versionRegressionProblems = async ({
+  packages,
+  skipped = [],
+  allowUntagged = false,
+  git,
+  readConfig,
+}) => {
+  const problems = skipped.map(
+    dir =>
+      `${dir}/package.json could not be read, or names no package, so ${dir} ` +
+      'was not compared against its released version. Fix the manifest — a ' +
+      'truncated, invalid or nameless one exempts the package from this check ' +
+      'entirely.'
+  );
+
+  // Read BEFORE any environment answer is acted on, and with nothing to return
+  // early for: reading release configs does not need git.
+  const formats = new Map();
+  for (const pkg of packages) {
+    let text;
+    try {
+      text = await readConfig(pkg.dir);
+    } catch (error) {
+      // ABSENT is not this check's business: `publishable-manifests.test.mjs`
+      // holds a publishable package to having a release config, by loading each
+      // one. Present-but-unreadable is a different thing, and collapsing the
+      // two exempted a package over a permissions problem.
+      if (error.code === 'ENOENT') continue;
+      formats.set(pkg.dir, UNREADABLE);
+      continue;
+    }
+    formats.set(pkg.dir, readTagFormat(text));
+  }
+
+  const all = git(['tag', '--list']);
+  return [
+    ...problems,
+    ...findVersionRegressions({
+      packages,
+      allowUntagged,
+      skippedCount: skipped.length,
+      // PEELED to a commit. `--verify HEAD` resolves the ref without proving
+      // the object is in the store, so a corrupt one answered yes here and then
+      // threw out of the tag lookup, past every flag read.
+      headExists:
+        all !== null &&
+        git(['rev-parse', '--verify', 'HEAD^{commit}']) !== null,
+      // `null` means git could not answer at all, which is a different state
+      // from a repository with no tags — and one the contract runs ahead of.
+      tagsReadable: all !== null,
+      anyTagsExist: all !== null && all.trim().length > 0,
+      tagsFor: name => {
+        const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
+        // A FAILED git call is not an empty answer. Collapsed into `[]` it read
+        // as "never released", which exempted that one package while the run
+        // still printed a tick.
+        if (out === null)
+          throw new Error(`git tag --merged failed for ${name}`);
+        return out.split('\n').filter(Boolean);
+      },
+      tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
+      unreadableTagFormat: UNREADABLE,
+    }),
+  ];
+};
