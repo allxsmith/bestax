@@ -425,13 +425,29 @@ function classesOf(simple, contextual) {
  * how its name is spelled. A depth counter handles every spelling at
  * once, and an attribute value carrying a brace comes free with it.
  *
- * Comments go. Strings keep their delimiters and lose their contents, so
- * the text around them keeps its shape. Escape pairs are consumed whole,
- * which is what stops an escaped delimiter from opening anything.
+ * Strings keep their delimiters and lose their contents, so the text
+ * around them keeps its shape. Nothing downstream counts a quote, so that
+ * is legibility rather than an answer, and no case can hold it. Escape pairs are consumed whole, which is
+ * what stops an escaped delimiter from opening anything. Comments go at
+ * depth zero, for the reason the loop gives where it decides that.
+ *
+ * The limit worth knowing: at depth the scan treats a comment opener as
+ * content, which is right inside a url token or an attribute value and
+ * wrong inside `rgb()`, `calc()` or `:is()`, where CSS does allow one.
+ * Telling those apart means reading the function's name, and reading names
+ * is what this scan was written to stop doing — `\75 rl(`, `\url(` and
+ * `u\rl(` are all the same function. A comment inside parentheses
+ * carrying an odd quote or an unmatched bracket therefore stops the guard
+ * rather than being ignored, which is loud, and no stylesheet this repo
+ * builds has one.
  */
 function nonStructure(css) {
   let out = '';
   let depth = 0;
+  // Where a closer arrived with nothing open. Recorded rather than
+  // asserted in the loop, because a message built per character is a
+  // message built eight hundred thousand times.
+  let stray = -1;
   for (let i = 0; i < css.length; i += 1) {
     const ch = css[i];
     if (ch === '\\') {
@@ -462,7 +478,10 @@ function nonStructure(css) {
       continue;
     }
     if (ch === '(' || ch === '[') depth += 1;
-    else if (ch === ')' || ch === ']') depth -= 1;
+    else if (ch === ')' || ch === ']') {
+      if (depth === 0 && stray < 0) stray = i;
+      depth -= 1;
+    }
     // A brace or semicolon inside either kind of bracket is content. Held
     // as a space so the text keeps its length and nothing fuses across it.
     else if (depth > 0 && (ch === '{' || ch === '}' || ch === ';')) {
@@ -471,18 +490,27 @@ function nonStructure(css) {
     }
     out += ch;
   }
-  // Brackets have to balance, and a floor on the counter was the wrong way
-  // to handle their not doing. One unclosed `(` parks the depth above zero
-  // for the rest of the file, after which no `{` is read as structure and
-  // every later rule leaves both indexes — the quiet direction, and over
-  // the whole stylesheet at once. A stylesheet that gets here malformed is
-  // something this file cannot read, so it says so.
+  // Brackets have to balance, and they have to balance AS THEY GO. The
+  // first version floored the counter at zero, which hid a stray closer;
+  // the second checked only the net at the end, which is weaker still — a
+  // stray closer and a later unclosed opener cancel out, and the span
+  // between them was read at a depth one too low, so a brace inside a
+  // function came back as block structure. Either way what follows the
+  // imbalance leaves both indexes, which is the quiet direction applied to
+  // a whole stylesheet at once, so both halves are checked.
+  assert.ok(
+    stray < 0,
+    'the stylesheet closes a bracket that was never opened, near ' +
+      `\`${css.slice(Math.max(0, stray - 40), stray + 40).trim()}\`. ` +
+      'Everything after it is read one bracket too shallow, so a brace ' +
+      'inside a function would be taken for block structure.'
+  );
   assert.equal(
     depth,
     0,
-    'the stylesheet has unbalanced brackets, so this file cannot tell ' +
-      'which of its braces open blocks. Every rule after the imbalance ' +
-      'would drop out of both indexes silently.'
+    'the stylesheet leaves a bracket open, so this file cannot tell which ' +
+      'of its braces open blocks. Every rule after it would drop out of ' +
+      'both indexes silently.'
   );
   return out;
 }
@@ -1488,7 +1516,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           '.notification.is-primary[data-x{color:red}',
           'notification.is-primary'
         ),
-      /unbalanced brackets/,
+      /leaves a bracket open/,
       'a stylesheet whose brackets do not balance has to stop the guard, ' +
         'because the alternative is every rule after the imbalance ' +
         'dropping out of both indexes without a word.'
@@ -1499,9 +1527,25 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
           '.a{background:foo(x}.notification.is-primary{color:red}',
           'notification.is-primary'
         ),
-      /unbalanced brackets/,
+      /leaves a bracket open/,
       'and an unclosed parenthesis is the same thing: it is the shape that ' +
         'costs the WHOLE stylesheet rather than one selector.'
+    );
+    // They have to balance AS THEY GO, not just on the net. A stray closer
+    // and a later unclosed opener cancel out, and everything between them
+    // was read one bracket too shallow — which is a brace inside a
+    // function coming back as block structure.
+    assert.throws(
+      () =>
+        live(
+          '.a{color:red)}.hero{color:red;.tabs.is-boxed{color:red}}' +
+            '.b{background:foo(x}',
+          'tabs.is-boxed'
+        ),
+      /never opened/,
+      'a stray closing bracket has to be caught where it happens: its net ' +
+        'cancels against a later unclosed opener, and the span between ' +
+        'them is where the wrong answers come from.'
     );
 
     // A NUMERIC escape names a character by code point, which this file
