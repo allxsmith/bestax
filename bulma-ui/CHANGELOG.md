@@ -1,3 +1,10 @@
+## [5.16.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.2...@allxsmith/bestax-bulma@5.16.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** a compound matches one simple selector, not co-occurrence ([#703](https://github.com/allxsmith/bestax/issues/703)) ([ce20396](https://github.com/allxsmith/bestax/commit/ce2039691ec93fb3f4d708c881be85f061eaaa73))
+
 ## [5.16.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.1...@allxsmith/bestax-bulma@5.16.2) (2026-09-20)
 
 
