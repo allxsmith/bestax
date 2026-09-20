@@ -1361,13 +1361,11 @@ describe('the declaration-extension guard', () => {
   });
 
   it('sees a comment wherever trivia can attach, not just before a node', async () => {
-    // Missing a comment is NOT the harmless direction it looks like. The
-    // post-pass then reads the comment as code and fails the build over a
-    // relative path written in prose. `forEachChild` skips punctuation, so a
-    // comment before a closing brace — or alone inside an empty interface — was
-    // leading trivia of a token nothing visited, and both failed the build.
-    // Each body below carries an unresolvable path inside a comment, so a
-    // missed range shows up as a rejection.
+    // Prose is not a specifier, so none of these paths is collected and none
+    // has to resolve. This pinned a comment MAP before the parser made one
+    // unnecessary; it is kept because the property it asserts is the one the
+    // whole change is for, and it should hold however the specifiers are
+    // found. Each body puts an unresolvable path somewhere trivia can attach.
     for (const body of [
       "/** see './nope/x' */\nexport declare const A: 1;\n",
       "export declare const A: 1; // see './nope/x'\n",
