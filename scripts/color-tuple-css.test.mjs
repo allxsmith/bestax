@@ -141,13 +141,7 @@ function shipsClass(css, cls) {
   );
 }
 
-/**
- * The class sets of every simple selector in the stylesheet.
- *
- * One pass per file read. Split rather than matched: a `[^{}]+` scan over a
- * minified stylesheet of this size backtracks badly, where splitting is
- * linear.
- */
+/** Built once per stylesheet, keyed by its text. */
 const indexCache = new Map();
 
 /**
@@ -163,8 +157,22 @@ const indexCache = new Map();
  */
 const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 
-/** A pseudo-class argument that is a class selector list and nothing else. */
-const ONLY_CLASSES = /^(?:\s*\.(?:\\.|[A-Za-z0-9_-])+\s*,?)+$/;
+/** One class selector, escapes included. */
+const CLASS_SELECTOR = /^\.(?:\\.|[A-Za-z0-9_-])+$/;
+
+/**
+ * Is this pseudo-class argument a class selector list and nothing else?
+ *
+ * Split rather than matched. Writing the list as one pattern puts a
+ * quantifier holding optional whitespace inside another quantifier, and the
+ * two `\s*` can divide a run of spaces between them in exponentially many
+ * ways: `.a .a .a …` against such a pattern takes seconds by a couple of
+ * dozen terms, and CodeQL fails the build over it. Splitting on the
+ * separator first leaves one unambiguous pattern per part.
+ */
+const onlyClasses = argument =>
+  argument.trim() !== '' &&
+  argument.split(',').every(part => CLASS_SELECTOR.test(part.trim()));
 
 /**
  * A selector prelude with everything that is not a class made explicit.
@@ -179,8 +187,18 @@ const ONLY_CLASSES = /^(?:\s*\.(?:\\.|[A-Za-z0-9_-])+\s*,?)+$/;
  * - `:not(…)` over CLASSES is a PROHIBITION. Its argument names classes the
  *   element must NOT carry, so reading them as present lets
  *   `.notification:not(.is-light)` answer `notification.is-light` — a rule
- *   that excludes the pair reporting it live. It drops, argument and all,
- *   and what remains already says everything the element carries.
+ *   that excludes the pair reporting it live. What remains already says
+ *   everything the element carries, so it goes, argument and all, and
+ *   leaves a `*` where it stood.
+ *
+ *   The `*` is not decoration. A prohibition that is the WHOLE simple
+ *   selector leaves nothing behind if it drops to empty, and the combinator
+ *   before it then has no subject — `.hero.is-primary :not(.is-light)`
+ *   collapses to `.hero.is-primary`, which hands the ancestor the subject
+ *   position and says a rule renders the hero when it renders something
+ *   inside it. The universal selector is exactly what a prohibition leaves:
+ *   it matches everything, it holds the position, and it is already
+ *   discarded as a qualifier.
  *
  *   Only over classes. `:not(:last-child)` prohibits a POSITION, and
  *   dropping it answers live where the mirror `.box:first-child` answers
@@ -228,8 +246,8 @@ function requirements(prelude) {
   do {
     previous = text;
     text = text.replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name, argument) =>
-      name.toLowerCase() === 'not' && ONLY_CLASSES.test(argument)
-        ? ''
+      name.toLowerCase() === 'not' && onlyClasses(argument)
+        ? '*'
         : `.${UNMODELLED}`
     );
   } while (text !== previous);
@@ -281,6 +299,13 @@ function classesOf(simple, contextual) {
   return new Set(qualifier || contextual ? [...classes, UNMODELLED] : classes);
 }
 
+/**
+ * The class sets of every simple selector in the stylesheet.
+ *
+ * One pass per file read. Split rather than matched: a `[^{}]+` scan over a
+ * minified stylesheet of this size backtracks badly, where splitting is
+ * linear.
+ */
 function simpleSelectors(css) {
   if (!indexCache.has(css)) {
     assert.ok(
@@ -321,16 +346,19 @@ function simpleSelectors(css) {
  * document the helper they call, so a comment quoting the call would invent
  * an element and fail the comparison for a reason unrelated to the library.
  */
-/**
- * A quoted string literal, opening and closing quote the SAME character.
- *
- * `['"]…['"]` accepts a mismatched pair, which is not a literal any of these
- * sources could contain. Callers read `[2]`.
- */
-const QUOTED = /(['"])([^'"]+)\1/g;
-
 const codeOnly = source =>
   source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+
+/**
+ * A quoted string literal: same character either end, anything between.
+ *
+ * `['"]…['"]` accepts a mismatched pair, which is not a literal any source
+ * can hold. Excluding both quote characters from the BODY instead is the
+ * other way to be wrong: a literal containing the other one then matches
+ * nothing at all, which is the silent empty read rather than a bad value.
+ * The backreference settles both. Callers read `[2]`.
+ */
+const QUOTED = /(['"])((?:(?!\1).)+)\1/g;
 
 /** A named `as const` string tuple, read from a source file. */
 function tupleFrom(path, name) {
@@ -717,6 +745,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'a rule styles its subject, so indexing the ancestor too says a rule ' +
         'renders something it only renders inside.'
+    );
+
+    // A prohibition standing on its own is still an element, and the
+    // combinator before it still has a subject.
+    assert.equal(
+      live('.hero.is-primary :not(.is-light){color:red}', 'hero.is-primary'),
+      false,
+      'a `:not()` that IS the simple selector must not vanish and hand the ' +
+        'subject position back to its ancestor.'
     );
 
     // A pseudo-class that FORBIDS. The rest of the selector already says
