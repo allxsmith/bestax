@@ -150,15 +150,13 @@ function shipsClass(css, cls) {
   // as an ancestor, and a colour the CSS ships and the tuple lacks is the
   // first defect this file was written for.
   //
-  // Most of its callers fail loudly on a yes they should not have been
-  // given and quietly on a no — the shade `deepEqual`, the `-bis`/`-ter`
-  // sweep whose extra entry has nowhere to land, the `assert.ok` on a
-  // keyword that must NOT ship — so the wide reading is the right way
-  // round for them. One runs the other way: the `assert.ok` that a keyword
-  // MUST ship passes on a yes, so a fabricated name would quiet it. The
-  // only text that can fabricate one is a declaration or an attribute
-  // value, and neither reaches this index: the heading is cut at the last
-  // semicolon, and a quoted value was emptied with every other string.
+  // Every caller of it fails loudly on a yes it should not have been given
+  // and quietly on a no — the shade `deepEqual`, the `-bis`/`-ter` sweep
+  // whose extra entry has nowhere to land, the `assert.ok` on a keyword
+  // that must NOT ship — so the wide reading is the right way round. The
+  // one caller that ran the other way, requiring a keyword to ship, asks
+  // `rendersAlone` instead, because a name in someone else's selector is
+  // not a helper anybody can use.
   const wanted = cls.split('.');
   const { sets, names } = simpleSelectors(css);
   if (wanted.length === 1) {
@@ -310,10 +308,15 @@ function requirements(prelude) {
     // `classesOf` and are counted there, so a pass apiece would be parser
     // for its own sake.
     //
-    // Pseudo-elements are the exception, removed rather than replaced and
-    // last, so the `::` spelling never reaches the residue check and is
-    // not read as a requirement.
-    .replace(/::[a-z-]+/gi, '');
+    // Pseudo-elements are the exception: they restrict nothing, so they
+    // must not reach the residue check and be read as a requirement. They
+    // leave a `*` rather than nothing, for the same reason `:not()` does —
+    // `::before` can BE the whole simple selector, and removing it outright
+    // left `.hero.is-primary ::before` as `.hero.is-primary`, which hands
+    // the ancestor the subject position. That was the last pass here that
+    // deleted text instead of standing something in its place, and it was
+    // the last door into the one hole this file has closed four times.
+    .replace(/::[a-z-]+/gi, '*');
   while (/\([^()]*\)/.test(text)) text = text.replace(/\([^()]*\)/g, '');
   return text;
 }
@@ -370,20 +373,27 @@ function simpleSelectors(css) {
     );
     const sets = [];
     const names = new Set();
-    // Comments go first, or their words become classes. A banner or a
-    // sourceMappingURL contributes nothing anyone queries, but a comment
-    // that happened to name a compound would answer for it, and that reads
-    // as a live modifier — the silent direction again.
+    // Comments, strings and url tokens, in ONE left-to-right pass.
     //
-    // Then string literals, emptied rather than removed so the quotes stay
-    // where they are. That order is the wrong way round for one shape — a
-    // comment opener inside a string eats to the next closer, because the
-    // string that would have protected it has not been emptied yet — and
-    // doing it properly needs a real tokeniser rather than two passes.
-    // Exercised, it lands on the loud side: the text the strip merges
-    // carries the open rule or at-rule it came from, so what follows reads
-    // MORE nested or conditional, which is dead. A false alarm is the one
-    // way this guard may be wrong, so two passes stay. Everything below this line reads STRUCTURE out of raw
+    // Each of them has to go. A comment's words become classes, and one
+    // naming a compound would answer for it. A string is where `{`, `}`,
+    // `;` and `.` appear meaning no structure at all, so `content:"}"`
+    // closed a block that was still open. An unquoted url token may legally
+    // carry `{`, `}` and `;` with no quotes to protect them, so
+    // `url(x}y)` does the same thing.
+    //
+    // One pass rather than three, because the order between them is not
+    // decidable: a `/*` inside a string is not a comment, and a `"` inside
+    // a comment is not a string. Stripping comments first ate from a `/*`
+    // in a string to the next `*/`, and a span like that can swallow a `{`
+    // without its `}` — which makes the stack SHALLOWER, so a nested rule
+    // stops reading nested. That is the silent direction, and a paragraph
+    // here claimed otherwise until it was measured. Whichever construct
+    // starts first wins, which is what CSS itself does.
+    //
+    // Comments go; strings and url tokens are emptied rather than removed,
+    // so their delimiters stay where they are and the text around them
+    // keeps its shape. Everything below this line reads STRUCTURE out of raw
     // text — blocks split on `{`, headings cut at `;`, classes tokenised on
     // `.` — and a string is the one place those characters appear without
     // meaning any of it. `content:"}"` popped the nesting stack, which made
@@ -392,10 +402,13 @@ function simpleSelectors(css) {
     // membership index. Emptying them first is one rule instead of a
     // special case at each of the three.
     const chunks = css
-      .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(
-        /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g,
-        match => match[0] + match[0]
+        /\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|url\([^)"']*\)/g,
+        match => {
+          if (match.startsWith('/*')) return '';
+          if (match.startsWith('url(')) return 'url()';
+          return match[0] + match[0];
+        }
       )
       .split('{');
     // One entry per block still open. `conditional` marks a block that only
@@ -985,6 +998,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'a rule of its own is what makes a helper live, or the two above ' +
         'would be vacuous.'
     );
+    // The class NAME has to come out unescaped, and this is the only query
+    // that can see it: a compound query spells itself with a `.`, so it
+    // cannot ask for a class that contains one.
+    assert.equal(
+      alone('.is-gap-0\\.5{gap:.5rem}', 'is-gap-0.5'),
+      true,
+      'an escaped dot is part of the name, so the name the stylesheet ' +
+        'ships is `is-gap-0.5` and that is what it has to answer to.'
+    );
 
     // A STRING is content, not structure. Everything this matcher does
     // reads structure out of raw text, and a string is where `{`, `}`, `;`
@@ -1045,6 +1067,69 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       live(".a{content:'}';.b.is-x{color:red}}", 'b.is-x'),
       false,
       'and a single-quoted string is a string too.'
+    );
+    // The single-quoted half needs its own escape cases, both sides, for
+    // the same reason the double-quoted half does.
+    assert.equal(
+      live(
+        ".hero{content:'a\\'b}';.tabs.is-boxed{color:red}}",
+        'tabs.is-boxed'
+      ),
+      false,
+      'an escaped apostrophe does not end the string it sits in.'
+    );
+    assert.equal(
+      live(
+        ".hero{content:'}a\\'b';.tabs.is-boxed{color:red}}",
+        'tabs.is-boxed'
+      ),
+      false,
+      'and it has to be consumed rather than stopped at, here too.'
+    );
+
+    // A COMMENT opener inside a string is not a comment, and a quote
+    // inside a comment is not a string. Whichever starts first wins, or a
+    // span from one to the other swallows a brace and the stack gets
+    // SHALLOWER, which reads less nested rather than more.
+    assert.equal(
+      live(
+        '@charset "/*";/* */.hero{color:red;.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'a comment opener inside a string must not begin a comment, or the ' +
+        'span to the next closer eats the brace that opened the rule this ' +
+        'one is nested in.'
+    );
+    assert.equal(
+      live(
+        '.a{background:url("a/*b")}.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'and the rule after such a string is still a rule.'
+    );
+
+    // An UNQUOTED url token may carry `{`, `}` and `;` with no quotes to
+    // protect them.
+    assert.equal(
+      live(
+        '.a{background:url(x}y);.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'a brace inside an unquoted url token must not close a block, the ' +
+        'same as one inside a string.'
+    );
+
+    // A pseudo-element can BE the whole simple selector, and removing it
+    // outright hands the ancestor the subject position.
+    assert.equal(
+      live('.hero.is-primary ::before{content:""}', 'hero.is-primary'),
+      false,
+      'a rule styling a pseudo-element of a descendant does not style the ' +
+        'ancestor, so removing the `::` part must leave something standing ' +
+        'in its place.'
     );
 
     // Both flags read the WHOLE stack, not the innermost block. A
@@ -1204,6 +1289,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'two prohibitions make a requirement, so dropping both leaves a rule ' +
         'that needs a third class answering a two-class query.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:not(.is-a,.is-b){color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'a LIST of classes is still classes and nothing else, so the ' +
+        'argument is read a part at a time rather than whole.'
     );
     assert.equal(
       live(
