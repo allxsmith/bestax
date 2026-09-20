@@ -118,6 +118,18 @@ function stylesheet() {
  * answer for two.
  */
 function shipsClass(css, cls) {
+  // The two paths answer differently ON PURPOSE, because their callers fail
+  // in opposite directions. A COMPOUND query asks whether a modifier
+  // renders, and the answer feeds a set compared against the colours the
+  // library warns about: saying live where nothing renders removes a real
+  // defect from that comparison and the test still passes, so the exact-size
+  // rule is there to stop it. A SINGLE-class query asks whether the
+  // stylesheet knows a name at all, and every caller of that is shaped so
+  // saying yes too often fails loudly — the shade `deepEqual`, the `-bis`
+  // and `-ter` sweep whose extra entry has nowhere to land, the `assert.ok`
+  // on a keyword that must NOT ship. Tightening the membership test into an
+  // exact match would move those toward the quiet side, so it stays
+  // membership.
   const wanted = cls.split('.');
   const index = simpleSelectors(css);
   if (wanted.length === 1) {
@@ -151,6 +163,9 @@ const indexCache = new Map();
  */
 const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 
+/** A pseudo-class argument that is a class selector list and nothing else. */
+const ONLY_CLASSES = /^(?:\s*\.(?:\\.|[A-Za-z0-9_-])+\s*,?)+$/;
+
 /**
  * A selector prelude with everything that is not a class made explicit.
  *
@@ -161,11 +176,21 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
  *
  * Three kinds of thing appear, and they are not alike:
  *
- * - `:not(…)` is a PROHIBITION. Its argument names classes the element must
- *   NOT carry, so reading them as present lets `.notification:not(.is-light)`
- *   answer `notification.is-light` — a rule that excludes the pair reporting
- *   it live. It drops, argument and all, and what remains already says
- *   everything the element carries.
+ * - `:not(…)` over CLASSES is a PROHIBITION. Its argument names classes the
+ *   element must NOT carry, so reading them as present lets
+ *   `.notification:not(.is-light)` answer `notification.is-light` — a rule
+ *   that excludes the pair reporting it live. It drops, argument and all,
+ *   and what remains already says everything the element carries.
+ *
+ *   Only over classes. `:not(:last-child)` prohibits a POSITION, and
+ *   dropping it answers live where the mirror `.box:first-child` answers
+ *   dead, which is the same requirement read two ways. And a prohibition
+ *   can add a requirement after all: `:not(:not(.x))` needs `.x`, and two
+ *   drops leave nothing. So the argument has to be classes and nothing
+ *   else, checked as written; anything else is a requirement like any
+ *   other. Resolution runs innermost-first, so `:not(:is(.is-light))`
+ *   reaches this test as `:not(.UNMODELLED)` and still drops, which is
+ *   right — it is a prohibition however its argument is spelled.
  * - A pseudo-ELEMENT does not restrict anything. `.delete::before` styles a
  *   box generated for a delete, so the delete is live and calling it dead
  *   would be a plain misreading. The `::` spelling is left alone. The legacy
@@ -202,8 +227,10 @@ function requirements(prelude) {
   let previous;
   do {
     previous = text;
-    text = text.replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name) =>
-      name.toLowerCase() === 'not' ? '' : `.${UNMODELLED}`
+    text = text.replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name, argument) =>
+      name.toLowerCase() === 'not' && ONLY_CLASSES.test(argument)
+        ? ''
+        : `.${UNMODELLED}`
     );
   } while (text !== previous);
   return (
@@ -224,16 +251,21 @@ function requirements(prelude) {
  * `requirements` handles everything a selector can say ABOUT an element.
  * What it cannot see is the element itself: a type selector is not a token
  * to substitute but the absence of one, and only the shape of a simple
- * selector tells you it is there. `a.dropdown-item.is-selected` is the only
- * form Bulma ships that pair in, so reading it as two classes says a plain
+ * selector tells you it is there. Bulma ships the `dropdown-item` selected
+ * pair type-qualified and no other way, so reading `a.dropdown-item
+ * .is-selected` as two classes says a plain
  * `<div class="dropdown-item is-selected">` renders — over-reporting, and
  * the silent direction.
  *
  * So anything left over once the classes are removed is a qualifier and
  * takes a sentinel. `*` is the exception: it matches everything, so it
  * requires nothing.
+ *
+ * A combinator is the same kind of thing one level up. `.hero .tabs.is-boxed`
+ * styles a boxed tabs only inside a hero, so the pair on its own does not
+ * render, and `contextual` is how the caller says so.
  */
-function classesOf(simple) {
+function classesOf(simple, contextual) {
   const classes = [...simple.matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)].map(m =>
     // A class name may escape a character with a backslash, which is how
     // Bulma spells the fractional gap helpers: `.is-gap-0\\.5` is ONE class
@@ -246,7 +278,7 @@ function classesOf(simple) {
     .replace(/\.(?:\\.|[A-Za-z0-9_-])+/g, '')
     .replace(/\*/g, '')
     .trim();
-  return new Set(qualifier ? [...classes, UNMODELLED] : classes);
+  return new Set(qualifier || contextual ? [...classes, UNMODELLED] : classes);
 }
 
 function simpleSelectors(css) {
@@ -266,10 +298,15 @@ function simpleSelectors(css) {
       // the last `}` in it.
       const prelude = requirements(chunk.slice(chunk.lastIndexOf('}') + 1));
       for (const part of prelude.split(',')) {
-        for (const simple of part.split(/[\s>+~]+/)) {
-          if (!simple.includes('.')) continue;
-          sets.push(classesOf(simple));
-        }
+        // Only the SUBJECT of a part is styled by it. `.hero .tabs` styles
+        // the tabs, so indexing the hero as well says a rule renders it when
+        // that rule renders something inside it. The subject is the last
+        // simple selector, and it carries a requirement of its own whenever
+        // anything precedes it.
+        const simples = part.split(/[\s>+~]+/).filter(Boolean);
+        const subject = simples[simples.length - 1];
+        if (!subject?.includes('.')) continue;
+        sets.push(classesOf(subject, simples.length > 1));
       }
     }
     indexCache.set(css, sets);
@@ -284,12 +321,20 @@ function simpleSelectors(css) {
  * document the helper they call, so a comment quoting the call would invent
  * an element and fail the comparison for a reason unrelated to the library.
  */
+/**
+ * A quoted string literal, opening and closing quote the SAME character.
+ *
+ * `['"]…['"]` accepts a mismatched pair, which is not a literal any of these
+ * sources could contain. Callers read `[2]`.
+ */
+const QUOTED = /(['"])([^'"]+)\1/g;
+
 const codeOnly = source =>
   source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
 
 /** A named `as const` string tuple, read from a source file. */
 function tupleFrom(path, name) {
-  const source = readFileSync(path, 'utf8');
+  const source = codeOnly(readFileSync(path, 'utf8'));
   const block = new RegExp(
     `export const ${name} = \\[(.*?)\\] as const;`,
     's'
@@ -299,7 +344,7 @@ function tupleFrom(path, name) {
     `could not find the \`${name}\` tuple in ${path}, so this guard cannot ` +
       'run. Fix the pattern in the same change that moved it.'
   );
-  const values = [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map(m => m[1]);
+  const values = [...block[1].matchAll(QUOTED)].map(m => m[2]);
   assert.ok(values.length > 0, `the \`${name}\` tuple read as empty`);
   return values;
 }
@@ -318,7 +363,7 @@ function colorKeywords() {
   const source = codeOnly(readFileSync(COLOR_CLASSES, 'utf8'));
   const copies = [
     ...source.matchAll(/\[\s*\.\.\.validColors\s*,([^\]]*)\]/g),
-  ].map(m => [...m[1].matchAll(/['"]([^'"]+)['"]/g)].map(x => x[1]));
+  ].map(m => [...m[1].matchAll(QUOTED)].map(x => x[2]));
   // Counted against the spellings that EXIST, not against zero. A `> 0`
   // guard let a copy this pattern stopped matching drop out silently while
   // the function claimed to read every one of them.
@@ -420,7 +465,7 @@ function warningCallers() {
             break;
           }
         }
-        const named = /warnUnstyledColor\(\s*['"]([^'"]+)['"]/.exec(text);
+        const named = /warnUnstyledColor\(\s*(['"])([^'"]+)\1/.exec(text);
         // A call whose component is not a string literal cannot be attributed
         // to an element, and is counted below rather than skipped quietly.
         if (!named) continue;
@@ -460,20 +505,18 @@ function warningCallers() {
         assert.ok(
           args.length < 3 || args[2].startsWith('['),
           `${path} passes \`${args[2]}\` as \`extraUnstyled\` to ` +
-            `\`${named[1]}\`, which this guard can only read as an inline ` +
+            `\`${named[2]}\`, which this guard can only read as an inline ` +
             'list. Read as none, it would empty the expected set and pass ' +
             'the checks that use it without testing anything.'
         );
         callers.push({
-          component: named[1],
+          component: named[2],
           path,
           // From `args[2]` alone, the argument validated just above. Taking
           // every bracketed span in the call text let a bracketed expression
           // in an earlier argument contribute a value, failing with a message
           // naming something the library never declared.
-          extraUnstyled: [...(args[2] ?? '').matchAll(/['"]([^'"]+)['"]/g)].map(
-            x => x[1]
-          ),
+          extraUnstyled: [...(args[2] ?? '').matchAll(QUOTED)].map(x => x[2]),
         });
       }
       assert.equal(
@@ -518,10 +561,10 @@ function acceptedKeywords(component, keywords) {
 
 /** The colours `CSS_BACKED` names to the developer as ones that work. */
 function cssBackedColors() {
-  const source = readFileSync(DEPRECATIONS, 'utf8');
-  const line = /const CSS_BACKED =\s*\n?\s*['"]([^'"]+)['"]/.exec(source);
+  const source = codeOnly(readFileSync(DEPRECATIONS, 'utf8'));
+  const line = /const CSS_BACKED =\s*\n?\s*(['"])([^'"]+)\1/.exec(source);
   assert.ok(line, 'could not find `CSS_BACKED` in colorDeprecations.ts');
-  return line[1].split(',').map(v => v.trim());
+  return line[2].split(',').map(v => v.trim());
 }
 
 describe('the colour tuples agree with the shipped stylesheet', () => {
@@ -661,12 +704,43 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'an unqualified compound is live, or the three above would be vacuous.'
     );
 
+    // A COMBINATOR is a requirement one level up, and only the subject of a
+    // part is styled by it.
+    assert.equal(
+      live('.hero .tabs.is-boxed{color:red}', 'tabs.is-boxed'),
+      false,
+      'a compound that renders only inside an ancestor does not render on ' +
+        'its own.'
+    );
+    assert.equal(
+      live('.hero.is-primary .tabs{color:red}', 'hero.is-primary'),
+      false,
+      'a rule styles its subject, so indexing the ancestor too says a rule ' +
+        'renders something it only renders inside.'
+    );
+
     // A pseudo-class that FORBIDS. The rest of the selector already says
     // everything the element carries, so the classes inside are not its own.
     assert.equal(
       live('.notification:not(.is-light){color:red}', 'notification'),
       true,
       '`:not()` is a prohibition, so the compound outside it is still live.'
+    );
+    assert.equal(
+      live('.box.is-primary:not(:last-child){color:red}', 'box.is-primary'),
+      false,
+      'a prohibition over a POSITION is the same requirement as the ' +
+        '`:first-child` above, read the other way round, and must answer ' +
+        'the same.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:not(:not(.is-light)){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'two prohibitions make a requirement, so dropping both leaves a rule ' +
+        'that needs a third class answering a two-class query.'
     );
     assert.equal(
       live(
@@ -686,14 +760,27 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
 
     // A comment is not a selector, and an escaped dot is not a separator.
+    // Comments. Indexing only the subject already stops a comment BEFORE a
+    // rule from answering for itself, so what the strip is still for is the
+    // other half: its words land in the residue of the real selector that
+    // follows and qualify a rule nothing qualifies.
     assert.equal(
       live(
         '/* .notification.is-primary */ .box{color:red}',
         'notification.is-primary'
       ),
       false,
-      'a comment naming a compound would answer for it, which reads as a ' +
-        'live modifier.'
+      'a comment naming a compound must not answer for it.'
+    );
+    assert.equal(
+      live(
+        '.a{color:red}/* note */.notification.is-primary{color:blue}',
+        'notification.is-primary'
+      ),
+      true,
+      'a comment sitting against the selector that follows it is not part ' +
+        'of that selector, and reading it as one makes a live compound read ' +
+        'dead.'
     );
     // `shipsClass` spells a compound with a `.`, so a class carrying a
     // literal dot cannot be asked for at all. What matters is that it
