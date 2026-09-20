@@ -4143,7 +4143,7 @@ async function checkTurboTasks() {
  * is in its history and the comparison bites.
  */
 async function checkVersionRegression(allowUntagged = false) {
-  const { packages } = await publishablePackages();
+  const { packages, unreadable } = await publishablePackages();
   const git = args => {
     try {
       return execFileSync('git', args, {
@@ -4156,9 +4156,21 @@ async function checkVersionRegression(allowUntagged = false) {
     }
   };
 
+  // A manifest too broken to parse drops its package from the list above, which
+  // would exempt it from this check without a word. `checkPublishableManifests`
+  // reds the same state in a full run; saying it here too costs a line and
+  // keeps `--only=version-regression` honest.
+  const problems = unreadable.map(
+    dir =>
+      `${dir}/package.json could not be read, so ${dir} was not compared ` +
+      'against its released version. Fix the manifest — a truncated or ' +
+      'invalid one exempts the package from this check entirely.'
+  );
+
   const all = git(['tag', '--list']);
   if (all === null) {
     return [
+      ...problems,
       'version-regression: `git tag` failed, so no released version could be ' +
         'compared against. This check needs to run inside the git repository ' +
         'rather than an extracted tarball.',
@@ -4189,26 +4201,34 @@ async function checkVersionRegression(allowUntagged = false) {
     formats.set(pkg.dir, match ? match[2] : UNREADABLE);
   }
 
-  return findVersionRegressions({
-    packages,
-    allowUntagged,
-    // An unborn branch or a fresh `git init` has no HEAD to be reachable from,
-    // so `git tag --merged HEAD` fails — which the reader below rightly treats
-    // as an error rather than an empty answer. Asked here instead, it becomes a
-    // state with its own message and a working escape hatch.
-    headExists: git(['rev-parse', '--verify', 'HEAD']) !== null,
-    anyTagsExist: all.trim().length > 0,
-    tagsFor: name => {
-      const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
-      // A FAILED git call is not an empty answer. Collapsed into `[]` it read
-      // as "never released", which exempted that one package while the run
-      // still printed a tick.
-      if (out === null) throw new Error(`git tag --merged failed for ${name}`);
-      return out.split('\n').filter(Boolean);
-    },
-    tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
-    unreadableTagFormat: UNREADABLE,
-  });
+  return [
+    ...problems,
+    ...findVersionRegressions({
+      packages,
+      allowUntagged,
+      // An unborn branch or a fresh `git init` has no HEAD to be reachable from,
+      // so `git tag --merged HEAD` fails — which the reader below rightly treats
+      // as an error rather than an empty answer. Asked here instead, it becomes a
+      // state with its own message and a working escape hatch.
+      // PEELED to a commit. `--verify HEAD` resolves the ref without proving the
+      // object is in the store, so a corrupt one answered "yes" here and then
+      // threw out of the tag lookup, past every flag read — the state this
+      // question was added to turn into a message.
+      headExists: git(['rev-parse', '--verify', 'HEAD^{commit}']) !== null,
+      anyTagsExist: all.trim().length > 0,
+      tagsFor: name => {
+        const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
+        // A FAILED git call is not an empty answer. Collapsed into `[]` it read
+        // as "never released", which exempted that one package while the run
+        // still printed a tick.
+        if (out === null)
+          throw new Error(`git tag --merged failed for ${name}`);
+        return out.split('\n').filter(Boolean);
+      },
+      tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
+      unreadableTagFormat: UNREADABLE,
+    }),
+  ];
 }
 
 const CHECKS = {

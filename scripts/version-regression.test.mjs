@@ -357,7 +357,9 @@ test('--allow-untagged mutes the environment stop, never the contract', () => {
   const stopped = findVersionRegressions(args);
   assert.equal(stopped.length, 2);
   assert.match(stopped[0], /tagFormat/);
-  assert.match(stopped[1], /none of them is reachable/);
+  // Partial, because `a` was excluded by the contract — so the stop says the
+  // excluded package may be where the tags are, rather than blaming the clone.
+  assert.match(stopped[1], /the ones excluded above may be where the tags are/);
 
   // The hatch takes the stop and leaves the contract violation standing.
   const muted = findVersionRegressions({ ...args, allowUntagged: true });
@@ -403,16 +405,46 @@ test('an unborn HEAD is its own state, not a shallow clone', () => {
   );
 });
 
-test('an empty package list is not reported as a shallow clone', () => {
-  assert.deepEqual(
-    findVersionRegressions({
-      packages: [],
-      anyTagsExist: true,
-      tagsFor: () => [],
-      tagFormatFor: () => null,
-    }),
-    []
+test('an empty package list is reported, not passed', () => {
+  // It used to error, and correcting the WORDING deleted the answer with the
+  // message. No publishable package at all means the list this reads was not
+  // built, which is a workspace problem — and a tick says the opposite. Only
+  // `--only=version-regression` saw the silence, because a full run reds the
+  // same state through `release-docs-sync`.
+  const problems = findVersionRegressions({
+    packages: [],
+    anyTagsExist: true,
+    tagsFor: () => [],
+    tagFormatFor: () => null,
+  });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /no publishable packages/);
+  // And it does NOT blame the checkout for it.
+  assert.doesNotMatch(problems[0], /what a shallow clone looks like/);
+});
+
+test('does not blame the checkout when the contract excluded the tagged packages', () => {
+  // The excluded package may be the one holding the reachable tags, so the
+  // shallow-clone wording would be false about a checkout that demonstrably is
+  // not one.
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: '1.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => (name === 'a' ? ['a@2.0.0'] : []),
+    tagFormatFor: dir => (dir === 'a' ? 'v${version}' : expectedTagFormat('b')),
+  });
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /tagFormat/);
+  assert.match(
+    problems[1],
+    /the ones excluded above may be where the tags are/
   );
+  // Not `/shallow/`: the remediation text names `--unshallow`, so what this
+  // asserts is the absence of the CLAIM, not of the word.
+  assert.doesNotMatch(problems[1], /what a shallow clone looks like/);
 });
 
 test('--allow-untagged turns off this rule and nothing else', () => {

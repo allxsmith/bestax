@@ -161,9 +161,24 @@ export const findVersionRegressions = ({
     comparable.push(pkg);
   }
 
-  // Nothing to compare is not the same as nothing reachable, and saying
-  // "shallow clone" to someone whose workspace list is empty sends them after
-  // the wrong thing.
+  // An EMPTY workspace list is its own answer, and it used to be one. Folding
+  // it in with "the contract excluded everything" turned it into a tick — and
+  // a tick is the wrong answer here, because no publishable package at all
+  // means the list this reads was not built, not that there is nothing to
+  // check. `release-docs-sync` reds the same state in a full run, so only
+  // `--only=version-regression` saw the silence.
+  if (!packages.length) {
+    return [
+      ...problems,
+      'version-regression: no publishable packages were found, so nothing was ' +
+        'compared. That is a workspace problem rather than a version one — ' +
+        'check the `packages:` block in pnpm-workspace.yaml, and that the ' +
+        'manifests it names are readable and not private.',
+    ];
+  }
+  // Where the CONTRACT emptied the list, every package already carries a
+  // message naming what to fix, and adding "nothing is reachable" on top would
+  // send someone after their checkout instead.
   if (!comparable.length) return problems;
 
   if (!headExists) {
@@ -197,12 +212,18 @@ export const findVersionRegressions = ({
     if (allowUntagged) return problems;
     // Several states land here and they want different fixes, so the message
     // says which one this is rather than guessing at the commonest.
-    const cause = anyTagsExist
-      ? 'this checkout has tags but none of them is reachable from HEAD, which ' +
-        'is what a shallow clone looks like — `git fetch --tags` into a ' +
-        '`--depth` clone leaves every tag present and unreachable, and a ' +
-        'grafted or truncated history does the same'
-      : 'this checkout has no tags at all';
+    // A package excluded by the contract may have been the one holding the
+    // reachable tags, so blaming the checkout there would be false about it.
+    const partial = comparable.length < packages.length;
+    const cause = !anyTagsExist
+      ? 'this checkout has no tags at all'
+      : partial
+        ? 'none of the packages this could still compare has a tag reachable ' +
+          'from HEAD — the ones excluded above may be where the tags are'
+        : 'this checkout has tags but none of them is reachable from HEAD, ' +
+          'which is what a shallow clone looks like — `git fetch --tags` into ' +
+          'a `--depth` clone leaves every tag present and unreachable, and a ' +
+          'grafted or truncated history does the same';
     return [
       ...problems,
       `version-regression: ${cause}, so no released version could be compared ` +
