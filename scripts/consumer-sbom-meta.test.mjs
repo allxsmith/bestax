@@ -12,7 +12,8 @@
  *
  *   - the two-`@` scoped-package case. Most of the packages are
  *     unscoped, so a lastIndexOf/indexOf slip passes every test that does not
- *     name a scoped package and then mis-pins the scoped one whose
+ *     name a scoped package, then trips the `at < 1` guard on one that is
+ *     scoped and leaves that leg on `latest` rather than the version whose
  *     release triggered the run.
  *   - ARTIFACT_PREFIX. `sign-sbom` and `attach-sbom` glob on that string from
  *     other jobs and cannot read a step output across a job boundary, so
