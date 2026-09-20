@@ -200,7 +200,10 @@ const resolvesToDeclaration = (root, file, spec) => {
   if (/\.d\.[cm]?ts$/.test(spec)) {
     return declarationUnder(root, resolvePath(from, spec));
   }
-  return specifierResolves(root, file, spec);
+  // Never a declaration spelling by the time it gets here — the branch above
+  // took those — so the position cannot matter, and passing it explicitly says
+  // that rather than leaning on a default no input can reach.
+  return specifierResolves(root, file, spec, false);
 };
 
 /**
@@ -220,12 +223,7 @@ const resolvesToDeclaration = (root, file, spec) => {
  * unpinned clause kept honest by nothing. It is here to stop the two
  * predicates drifting apart again, and the test drives it directly.
  */
-export const specifierResolves = (
-  root,
-  file,
-  spec,
-  declarationAllowed = false
-) => {
+export const specifierResolves = (root, file, spec, declarationAllowed) => {
   // A declaration-spelled specifier resolves directly, and only a type-only
   // position may use one. Answering by name rather than by position was the
   // disagreement: the rewrite refused every spelling and this accepted every
