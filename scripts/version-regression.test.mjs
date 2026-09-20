@@ -175,7 +175,7 @@ test('flags a tagFormat present in a form it cannot read', () => {
     tagFormatFor: () => UNREADABLE,
   });
   assert.equal(problems.length, 1);
-  assert.match(problems[0], /cannot read/);
+  assert.match(problems[0], /could not be read unambiguously/);
   assert.doesNotMatch(problems[0], /BELOW/);
 });
 
@@ -600,6 +600,57 @@ test('readTagFormat reads every literal spelling, and says when it cannot', () =
   assert.equal(readTagFormat('no tag format here'), UNREADABLE);
 });
 
+test('an ambiguous tagFormat is refused, not resolved by position', () => {
+  // Taking the FIRST match let a `tagFormat` in a comment or a string outrank
+  // the real declaration below it. The dangerous direction is the decoy that
+  // happens to match what this check expects: the contract then PASSES, the
+  // package is compared against tags spelled the other way, finds none, and is
+  // skipped with no comparison and no message — a silent exemption, which is
+  // the one outcome this rule exists to prevent.
+  const decoyInComment =
+    "// renamed from tagFormat: 'pkg@${version}' in #123\n" +
+    "export default { tagFormat: 'v${version}' };\n";
+  assert.equal(readTagFormat(decoyInComment), UNREADABLE);
+
+  const decoyInString =
+    'const note = \'tagFormat: "v${version}"\';\n' +
+    "export default { tagFormat: 'pkg@${version}' };\n";
+  assert.equal(readTagFormat(decoyInString), UNREADABLE);
+
+  // Telling a comment from code needs a tokeniser this file has no business
+  // carrying, so ambiguity is refused rather than guessed at. One declaration
+  // still reads cleanly.
+  assert.equal(
+    readTagFormat("export default { tagFormat: 'pkg@${version}' };\n"),
+    'pkg@${version}'
+  );
+});
+
+test('a decoy cannot make a mis-spelled tagFormat look correct', () => {
+  // End to end, through the wiring: the shape above with the decoy matching
+  // what the check expects used to leave the package comparable and then
+  // silently uncompared. It is now a violation that names the file.
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'pkg', name: 'pkg', version: '1.0.0' },
+      { dir: 'other', name: 'other', version: '9.9.9' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => (name === 'other' ? ['other@9.9.9'] : []),
+    tagFormatFor: dir =>
+      dir === 'pkg'
+        ? readTagFormat(
+            "// renamed from tagFormat: 'pkg${'@'}${version}' in #123\n" +
+              "export default { tagFormat: 'v${version}' };\n"
+          )
+        : expectedTagFormat('other'),
+  });
+  assert.ok(
+    problems.some(p => /^pkg\/release\.config\.js/.test(p)),
+    `pkg was exempted in silence: ${JSON.stringify(problems)}`
+  );
+});
+
 test('the contract is answered before any environment state, through the wiring', async () => {
   // THE invariant, and the reason this path is drivable at all. It was broken
   // three times — once by ordering, twice by a caller returning first — and
@@ -777,7 +828,7 @@ test('only an ABSENT release config is exempt, not an unreadable one', async () 
     },
   });
   assert.equal(unreadable.length, 1);
-  assert.match(unreadable[0], /cannot read/);
+  assert.match(unreadable[0], /could not be read unambiguously/);
 });
 
 test('a nameless manifest is produced as its own channel', async () => {

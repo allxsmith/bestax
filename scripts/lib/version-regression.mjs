@@ -142,10 +142,12 @@ export const findVersionRegressions = ({
     const declared = tagFormatFor(pkg.dir);
     if (declared === unreadableTagFormat) {
       problems.push(
-        `${pkg.dir}/release.config.js: a \`tagFormat\` is declared in a form ` +
-          `this cannot read, so ${pkg.name} would be compared against no tags ` +
-          `and exempted in silence. Spell it as a plain literal, or teach ` +
-          `scripts/lib/version-regression.mjs the form it uses.`
+        `${pkg.dir}/release.config.js: its \`tagFormat\` could not be read ` +
+          `unambiguously, so ${pkg.name} would be compared against no tags and ` +
+          `exempted in silence. Either it is not a plain string literal, or ` +
+          `\`tagFormat\` appears more than once — a mention in a comment or a ` +
+          `string counts, and this refuses to guess which one is live rather ` +
+          `than picking the first. Leave exactly one.`
       );
       continue;
     }
@@ -311,13 +313,29 @@ export const findVersionRegressions = ({
  * format produced no entry, which is indistinguishable from having no release
  * config — so the package was exempted by the very branch written to catch it.
  *
+ * AMBIGUITY is refused rather than resolved, and that is the whole of the
+ * second lesson here. Taking the FIRST match let a `tagFormat` written in a
+ * comment or a string outrank the real declaration below it — and the dangerous
+ * direction is the decoy that happens to match what this check expects, because
+ * the contract then passes, the package is compared against tags spelled the
+ * OTHER way, finds none, and is skipped with no comparison and no message. A
+ * silent exemption, which is the one outcome this rule exists to prevent.
+ *
+ * Telling a comment from code needs a tokeniser, and this file has no business
+ * carrying one. Refusing to guess costs a build on a config that mentions
+ * `tagFormat` twice and says exactly how to fix it, which is the right trade
+ * for a rule whose failure mode is silence.
+ *
  * Exported rather than inlined because the test used to re-implement this
  * pattern to assert the real configs match it, and a copy of a regex is a
  * second place for it to be wrong.
  */
 export const readTagFormat = text => {
-  const match = /tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/.exec(text);
-  return match ? match[2] : UNREADABLE;
+  const matches = [
+    ...text.matchAll(/tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g),
+  ];
+  if (matches.length !== 1) return UNREADABLE;
+  return matches[0][2];
 };
 
 /**
