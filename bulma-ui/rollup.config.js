@@ -62,28 +62,6 @@ const parseDeclaration = text =>
   );
 
 /**
- * The string names of ambient module declarations.
- *
- * Checked but never rewritten, and the split is deliberate. A relative ambient
- * name is TS2436 — "Ambient module declaration cannot specify relative module
- * name" — so tsc cannot emit one and there is no correct extension to give it.
- * But this pass walks FILES rather than a compilation, `dist` is never cleaned,
- * and a declaration left by an earlier emit is held to the same standard as a
- * fresh one. Verifying costs nothing and keeps a dangling one from going quiet.
- */
-const ambientModuleNames = sourceFile => {
-  const found = [];
-  const visit = node => {
-    if (ts.isModuleDeclaration(node) && ts.isStringLiteral(node.name)) {
-      found.push(node.name.text);
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(sourceFile);
-  return found;
-};
-
-/**
  * Every module specifier in a parsed declaration, with the offsets of the
  * string's CONTENT — inside the quotes, so a rewrite replaces the path and
  * leaves the quoting alone.
@@ -136,6 +114,18 @@ const moduleSpecifiers = sourceFile => {
       if (ts.isExternalModuleReference(node.moduleReference)) {
         take(node.moduleReference.expression, Boolean(node.isTypeOnly));
       }
+    } else if (ts.isModuleDeclaration(node) && ts.isStringLiteral(node.name)) {
+      // An AUGMENTATION names a module the same way an import does, so its
+      // specifier needs the same extension. Only in a file that is itself a
+      // module, though: the same syntax in a global file is an ambient
+      // declaration, where a relative name is TS2436 and there is no right
+      // answer to rewrite it to.
+      //
+      // The earlier reading of TS2436 was too broad — it is guarded on the
+      // declaration's parent being a global source file and skipped entirely
+      // for an augmentation, so tsc does emit these. Left un-rewritten, an
+      // extensionless one failed a build this can fix.
+      if (ts.isExternalModule(sourceFile)) take(node.name, false);
     } else if (ts.isImportTypeNode(node)) {
       // The `import('./x').Y` form tsc emits for a type it reaches without an
       // explicit import. Always a type position: the only non-clause route to
@@ -588,14 +578,9 @@ export const declarationExtensions = (root = 'dist/types') => {
         // so none of them are collected, and the comment map that used to be
         // needed to tell them apart is gone.
         const parsed = parseDeclaration(text);
-        const named = [
-          ...moduleSpecifiers(parsed).map(found => [
-            found.text,
-            found.declarationAllowed,
-          ]),
-          // An ambient name is never a type-only position.
-          ...ambientModuleNames(parsed).map(name => [name, false]),
-        ].filter(([spec]) => /^\.\.?(\/|$)/.test(spec));
+        const named = moduleSpecifiers(parsed)
+          .map(found => [found.text, found.declarationAllowed])
+          .filter(([spec]) => /^\.\.?(\/|$)/.test(spec));
         // A `reference path` is a comment TypeScript nonetheless follows, so it
         // is not a module specifier and has to be collected separately.
         const referenced = referencedPaths(parsed);
