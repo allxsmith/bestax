@@ -740,7 +740,7 @@ describe('the declaration-extension guard', () => {
     //
     // This case existed and was destroyed by a bad splice of mine, which is
     // exactly the hole it was written to cover: the clause went unpinned and
-    // three separate mutants of it stayed green.
+    // several mutants of it stayed green.
     const { specifierResolves } = await import(
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
@@ -766,7 +766,7 @@ describe('the declaration-extension guard', () => {
 
   it('a rewritten augmentation still merges for a real consumer', async () => {
     // Everything else about augmentations here is pinned against synthetic
-    // trees, which is how this one field got answered wrong four times: each
+    // trees, which is how this one field kept being answered wrong: each
     // version was internally consistent and wrong about the compiler. So this
     // case runs `tsc`.
     //
