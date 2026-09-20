@@ -571,9 +571,14 @@ export const declarationExtensions = (root = 'dist/types') => {
         // This is no longer a second way of FINDING specifiers — both passes
         // ask the parser now, so a scan for something the rewrite might have
         // missed would only restate it. What it checks instead is the WRITE:
-        // the file is re-read and re-parsed, so a mis-applied offset, a
-        // corrupted string, or a pick that resolves nowhere is caught here
-        // rather than shipped. Resolvability is still the property a consumer
+        // the file is re-read and re-parsed, so a pick that resolves nowhere is
+        // caught here rather than shipped.
+        //
+        // Its reach is narrower than "any corruption", and worth stating so
+        // nobody leans on it for more: it only sees strings that still parse as
+        // a module specifier AND still look relative. A write that broke either
+        // property is invisible to it — the specifier is simply no longer one
+        // of the things it collects. Resolvability is still the property a consumer
         // depends on, and it is the one thing the rewrite cannot verify about
         // its own output.
         //

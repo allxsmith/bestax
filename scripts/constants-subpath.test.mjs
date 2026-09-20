@@ -731,6 +731,39 @@ describe('the declaration-extension guard', () => {
     );
   });
 
+  it('the specifier predicate refuses what the rewrite refuses', async () => {
+    // Driven directly, because the rewrite throws on a declaration-spelled
+    // specifier in a value position before the post-pass runs — so this clause
+    // cannot be reached through the hooks, and swapping it back changes no
+    // observable behaviour. It exists to stop the two predicates drifting apart
+    // again, which only a direct case can hold it to.
+    //
+    // This case existed and was destroyed by a bad splice of mine, which is
+    // exactly the hole it was written to cover: the clause went unpinned and
+    // three separate mutants of it stayed green.
+    const { specifierResolves } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    const root = tree({
+      'index.d.ts': 'export {};\n',
+      'a.d.ts': 'export {};\n',
+      'b.d.cts': 'export {};\n',
+    });
+    const from = join(root, 'index.d.ts');
+    // The runtime spelling resolves to the declaration beside it, in any
+    // position.
+    assert.equal(specifierResolves(root, from, './a.js', false), true);
+    assert.equal(specifierResolves(root, from, './b.cjs', false), true);
+    // The declaration spelling is correct ONLY where the import allows one.
+    assert.equal(specifierResolves(root, from, './a.d.ts', false), false);
+    assert.equal(specifierResolves(root, from, './a.d.ts', true), true);
+    assert.equal(specifierResolves(root, from, './b.d.cts', true), true);
+    // Allowed does not mean unchecked: the file still has to be there.
+    assert.equal(specifierResolves(root, from, './gone.d.ts', true), false);
+    // Extensionless resolves nowhere; the rewrite is what adds one.
+    assert.equal(specifierResolves(root, from, './a', true), false);
+  });
+
   it('a rewritten augmentation still merges for a real consumer', async () => {
     // Everything else about augmentations here is pinned against synthetic
     // trees, which is how this one field got answered wrong four times: each
@@ -1005,13 +1038,32 @@ describe('the declaration-extension guard', () => {
     );
 
     // But it is still CHECKED. `main` failed the build on a dangling one and
-    // this keeps that, in both the global and the augmenting form.
+    // this keeps that, in both the global and the augmenting form, and in the
+    // shorthand spelling with no body.
     for (const body of [
       "declare module './gone.js' { export const x: number; }\n",
+      "declare module './gone.js';\n",
       "export {};\ndeclare module './gone' { export const x: number; }\n",
     ]) {
       await assert.rejects(run(tree({ 'index.d.ts': body })), /gone/, body);
     }
+
+    // THE case that discriminates: a global file naming an EXTENSIONLESS target
+    // that really exists. It cannot be rewritten — TS2436 means there is no
+    // right answer — and extensionless does not resolve, so the only correct
+    // outcome is a refusal. Rewrite it and the build goes quietly green, which
+    // is what both the `rewritable` filter and the `isExternalModule` gate are
+    // there to prevent. An already-extensioned global name is a no-op either
+    // way, which is why the earlier version of this case could not see them.
+    await assert.rejects(
+      run(
+        tree({
+          'index.d.ts': "declare module './a' { export const x: number; }\n",
+          'a.d.ts': 'export {};\n',
+        })
+      ),
+      /\.\/a/
+    );
 
     // A bare augmentation names a package, so there is no path to extend.
     const bare = tree({
