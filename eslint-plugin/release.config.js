@@ -60,6 +60,36 @@ export default {
         author: 'Alex Smith <asmith62378@gmail.com>',
       },
     ],
-    '@semantic-release/github',
+    [
+      '@semantic-release/github',
+      {
+        // The other four configs pass this plugin bare. This one does not,
+        // and the difference is the first release rather than the package.
+        //
+        // With no `@allxsmith/eslint-plugin-bestax@*` tag there is no
+        // `lastRelease`, so the first run's commit range is the whole
+        // repository history. The scope in `releaseRules` above does not
+        // narrow it — those rules decide the release TYPE, not which commits
+        // land in `context.commits` — which the repo demonstrates on itself:
+        // bestax-migrate's own changelog carries `**bulma-ui:**` entries.
+        //
+        // Left bare, `@semantic-release/github` then walks that range for
+        // associated PRs and issues and, on each, posts "This PR is included
+        // in version 1.0.0" and adds a `released` label. Every one of those
+        // is a false claim about a PR that predates this package, it is not
+        // reversible, and each is a comment event in a repository with
+        // comment-triggered automation. The first releases of the other three
+        // packages did exactly that — PR #300 carries four such notices, two
+        // of them from 1.0.0 releases of packages it has nothing to do with.
+        //
+        // Precedent for the noise is not a reason to add more of it, and the
+        // asymmetry decides it: not commenting can be undone later, whereas
+        // commenting on the whole history cannot. Restoring the default is a
+        // one-line change once a tag exists and the range is bounded to this
+        // package's own commits — #706 tracks that.
+        successComment: false,
+        releasedLabels: false,
+      },
+    ],
   ],
 };

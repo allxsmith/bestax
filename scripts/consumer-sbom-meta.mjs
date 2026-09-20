@@ -116,8 +116,9 @@ export function forLog(value) {
  *
  * Split on the LAST `@`, not the first: `@allxsmith/bestax-bulma@5.12.0` has
  * two, and splitting on the first yields the empty package name and
- * `allxsmith/bestax-bulma@5.12.0` as a version. Three of the four packages are
- * unscoped and would hide this bug completely.
+ * `allxsmith/bestax-bulma@5.12.0` as a version. Most of the packages here are
+ * unscoped and would hide this bug completely, so the scoped ones are the
+ * only legs that exercise it.
  *
  * Returns null for anything that is not `<name>@<version>` rather than
  * throwing: a tag this cannot parse is not an error, it is a release this job

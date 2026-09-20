@@ -51,6 +51,15 @@ jobs:
       - name: MCP index up to date
         run: pnpm run gen:mcp:check
 
+      # The plugin reads its deprecation and text-alias metadata from a
+      # committed table generated off the same extractor as the API docs, so a
+      # stale one lints against props that have moved. Placed beside the other
+      # generated-artefact gates so they fail together rather than a build
+      # apart; it runs after install because the extractor resolves the
+      # library the same way gen:mcp:check does.
+      - name: ESLint plugin metadata up to date
+        run: pnpm run gen:eslint-meta:check
+
       # House-convention gates (listings, docs sections, SCSS pattern,
       # stories, inline-style ratchet). Error messages name the file and fix.
       - name: Conformance checks
@@ -139,6 +148,7 @@ jobs:
             create-bestax/coverage
             bestax-migrate/coverage
             bestax-mcp/coverage
+            eslint-plugin/coverage
           retention-days: 7
 
       - name: Archive Bundle Stats
@@ -346,6 +356,29 @@ jobs:
 
       - name: Semantic Release (bestax-mcp)
         working-directory: bestax-mcp
+        env:
+          GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git log -1 --show-signature
+          pnpm exec semantic-release
+
+      # After Semantic Release (bulma-ui), which is load-bearing rather than
+      # tidy: the plugin declares @allxsmith/bestax-bulma in runtime
+      # dependencies, and pnpm publish resolves workspace:^ against
+      # bulma-ui/package.json at pack time. Run before that step in a release
+      # bumping both and the published range is computed from the version
+      # bulma-ui had on the way in — so a consumer resolving it can land on a
+      # version predating whatever that release added, which for the plugin
+      # means the ./constants subpath it imports.
+      #
+      # Every step here shares the constraint of preceding the MCP restamp
+      # below: none of them is guarded, so a failure in any one skips it and
+      # leaves main carrying a stale index (#521). This adds one more step
+      # that can do that rather than a new way for it to happen.
+      - name: Semantic Release (eslint-plugin)
+        working-directory: eslint-plugin
         env:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
