@@ -217,8 +217,14 @@ const TRANSPARENT_AT_RULE = /^@layer(?![\w-])/i;
  */
 const SELECTOR_PRELUDE = /^@(scope|supports)(?![\w-])/i;
 
-/** The half of that pair whose WHOLE prelude is selectors. */
-const SCOPE_AT_RULE = /^@scope(?![\w-])/i;
+/**
+ * The half of that pair whose WHOLE prelude is selectors.
+ *
+ * No boundary of its own: nothing reaches this that `SELECTOR_PRELUDE` has
+ * not already matched with one, so a second copy would be unreachable
+ * rather than merely unexercised.
+ */
+const SCOPE_AT_RULE = /^@scope/i;
 
 /**
  * A numeric escape, which names a character by code point.
@@ -554,6 +560,45 @@ function nonStructure(css) {
 }
 
 /**
+ * The selector conditions of a `@supports` prelude, contents only.
+ *
+ * A balanced scan, because the shape this exists for has a parenthesis
+ * inside it: `selector(.a:has(.b))` is the example its own docblock gives,
+ * and a pattern that cannot cross a parenthesis harvested neither name from
+ * it. Only these contents are read — the rest of a feature query is a
+ * condition, and a condition can spell a class name by accident, which is
+ * loud everywhere except the shade comparison, where a fabricated entry
+ * makes an equality hold that should have failed.
+ *
+ * Two shapes are still lost rather than read, both quietly, and both are
+ * worth naming because neither is worth guessing at. A nested grouping
+ * paren, `((selector(.a)))`, is not reached. And the function is found by
+ * its literal spelling, which is the reading `nonStructure` was rewritten
+ * to stop doing, so `\73 elector(` and `s\elector(` name the same
+ * function and match nothing. Reading them means decoding identifiers; the
+ * alternative to losing a name here is fabricating one, and the shade
+ * comparison is where a fabricated name stops being loud. No stylesheet
+ * this repo builds carries `@supports` at all.
+ */
+function selectorConditions(prelude) {
+  const found = [];
+  const at = /selector\(/gi;
+  for (let m = at.exec(prelude); m; m = at.exec(prelude)) {
+    let depth = 1;
+    let i = m.index + m[0].length;
+    const from = i;
+    for (; i < prelude.length && depth > 0; i += 1) {
+      if (prelude[i] === '\\') i += 1;
+      else if (prelude[i] === '(') depth += 1;
+      else if (prelude[i] === ')') depth -= 1;
+    }
+    found.push(prelude.slice(from, depth === 0 ? i - 1 : i));
+    at.lastIndex = i;
+  }
+  return found.join(' ');
+}
+
+/**
  * Every position in `text` where `char` appears UNESCAPED.
  *
  * A scan rather than a lookbehind. Escape-awareness arrived here one
@@ -716,9 +761,7 @@ function simpleSelectors(css) {
           // divergence rather than raising one.
           const prelude = SCOPE_AT_RULE.test(heading)
             ? heading
-            : [...heading.matchAll(/selector\(([^()]*)\)/gi)]
-                .map(m => m[1])
-                .join(' ');
+            : selectorConditions(heading);
           const roots = withoutAttributes(prelude);
           assert.ok(
             !NUMERIC_ESCAPE.test(roots),
@@ -1317,6 +1360,40 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'a class named inside a feature query is a class the stylesheet ' +
         'knows, and skipping every prelude but one lost it.'
     );
+    // The shape that exists has a parenthesis inside it, which is why the
+    // extraction is a balanced scan and not a pattern.
+    assert.equal(
+      live(
+        '@supports selector(.the-root:has(.inner)){.box{color:red}}',
+        'the-root'
+      ),
+      true,
+      'a nested parenthesis inside the condition must not end it, or the ' +
+        'one shape this branch was written for harvests nothing at all.'
+    );
+    assert.equal(
+      live(
+        '@supports selector(.the-root:has(.inner)){.box{color:red}}',
+        'inner'
+      ),
+      true,
+      'and the name inside the nested call is a name too.'
+    );
+    assert.equal(
+      live(
+        '@supports selector(.one) and selector(.two){.box{color:red}}',
+        'two'
+      ),
+      true,
+      'and a prelude may carry more than one of them.'
+    );
+    // `@scope` keeps its WHOLE prelude, which is a selector list by spec.
+    assert.equal(
+      live('@scope (.the-root) to (.the-limit){.box{color:red}}', 'the-limit'),
+      true,
+      'a scope limit is a selector as much as its root is, so the whole ' +
+        'prelude is read rather than a function inside it.'
+    );
 
     // A semicolon inside brackets is content, and that is observable: the
     // heading is cut at the last semicolon, so leaving one in there cuts
@@ -1607,6 +1684,14 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'that has not heard of one drops it WITH its block, so nothing ' +
         'inside renders. Listing the conditions instead of the exceptions ' +
         'waved every unknown one through as live.'
+    );
+    assert.equal(
+      live('@supports-foo selector(.the-root){.box{color:red}}', 'the-root'),
+      false,
+      'the boundary is on the gate that lets a prelude be read at all, so ' +
+        'the case has to reach it: an at-rule merely starting with those ' +
+        'letters must not have its prelude harvested, and the `@scope-foo` ' +
+        'spelling answers dead on the scope branch either way.'
     );
     assert.equal(
       live('@scope-foo (.the-root){.box{color:red}}', 'the-root'),
