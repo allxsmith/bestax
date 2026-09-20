@@ -150,13 +150,22 @@ function shipsClass(css, cls) {
   // as an ancestor, and a colour the CSS ships and the tuple lacks is the
   // first defect this file was written for.
   //
-  // Every caller of it fails loudly on a yes it should not have been given
-  // and quietly on a no — the shade `deepEqual`, the `-bis`/`-ter` sweep
-  // whose extra entry has nowhere to land, the `assert.ok` on a keyword
-  // that must NOT ship — so the wide reading is the right way round. The
-  // one caller that ran the other way, requiring a keyword to ship, asks
-  // `rendersAlone` instead, because a name in someone else's selector is
-  // not a helper anybody can use.
+  // Most callers of it fail loudly on a yes they should not have been
+  // given and quietly on a no — the `-bis`/`-ter` sweep whose extra entry
+  // has nowhere to land, the `assert.ok` on a keyword that must NOT ship —
+  // so the wide reading is the right way round for them. The one that
+  // required a keyword to SHIP asks `rendersAlone` instead, because a name
+  // in someone else's selector is not a helper anybody can use.
+  //
+  // One caller is quiet on a bad yes, and it is worth being exact about
+  // because it is what bounds the widening: the shade `deepEqual` compares
+  // two computed lists, so a fabricated name added to the left can make an
+  // equality hold that should have failed, hiding a real divergence rather
+  // than raising it. That is why every source of a fabricated name is
+  // enumerated rather than waved at — declaration text is cut at the
+  // semicolon, attribute values are stripped, at-rule conditions are not
+  // harvested, and a token that cannot be an identifier is refused. What
+  // is left is named where it happens, in `selectorConditions`.
   const wanted = cls.split('.');
   const { sets, names } = simpleSelectors(css);
   if (wanted.length === 1) {
@@ -587,7 +596,10 @@ function nonStructure(css) {
  */
 function selectorConditions(prelude) {
   const found = [];
-  const at = /selector\(/gi;
+  // A boundary before the name, or the substring also matches the tail of
+  // a longer identifier: `x-selector(.fake)` is not a selector condition,
+  // and reading it as one invents that name.
+  const at = /(?<![\w-])selector\(/gi;
   for (let m = at.exec(prelude); m; m = at.exec(prelude)) {
     let depth = 1;
     let i = m.index + m[0].length;
@@ -673,12 +685,11 @@ function withoutAttributes(selector) {
       out += selector[i];
       continue;
     }
-    // Inside a bracket now: skip to its unescaped close, or to the end if
-    // it never comes. Only the membership index reads this text, so an
-    // unterminated bracket loses the names after it rather than mis-sizing
-    // a set — and losing them is right: a selector with an unclosed bracket
-    // is a parse error, so the browser drops that rule and the stylesheet
-    // ships none of the classes in it.
+    // Inside a bracket now: skip to its unescaped close. The bound on the
+    // loop is defensive rather than a case anything reaches — `nonStructure`
+    // neutralises a brace inside brackets, so a bracket span never crosses
+    // a block boundary, and it asserts balance as it goes, so an
+    // unterminated bracket stops the guard before a heading is ever read.
     i += 1;
     while (i < selector.length && selector[i] !== ']') {
       if (selector[i] === '\\') i += 1;
@@ -1409,12 +1420,46 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'a class the stylesheet does not ship.'
     );
 
-    // An at-rule keyword and a function name are both case-insensitive.
+    // CSS is case-insensitive about every keyword on this path, and each
+    // of the three places that reads one needs its own case: the gate that
+    // admits a prelude, the lookup that finds the function inside it, the
+    // test that decides which half of the pair it is, the transparent
+    // at-rule, and the escape the guard refuses to decode.
     assert.equal(
       live('@SUPPORTS SELECTOR(.the-root){.box{color:red}}', 'the-root'),
       true,
-      'CSS does not care how either of these is cased, so neither the ' +
-        'gate nor the function lookup may.'
+      'the gate that admits a prelude and the lookup that finds the ' +
+        'function in it both have to ignore case.'
+    );
+    assert.equal(
+      live('@SCOPE(.the-root){.box{color:red}}', 'the-root'),
+      true,
+      'and so does the test that decides which half of the pair this is, ' +
+        'or an upper-case scope root drops out of the index silently.'
+    );
+    assert.equal(
+      live(
+        '@LAYER base{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      true,
+      'and the transparent at-rule, or an upper-case layer reads as a ' +
+        'condition and everything inside it reads dead.'
+    );
+    assert.throws(
+      () => live('@scope(.\\A1 x){.box{color:red}}', 'x'),
+      /numeric escape/,
+      'and the escape this file refuses to decode, whose hex digits may ' +
+        'be upper case.'
+    );
+
+    // The function is found at a boundary, or the substring matches the
+    // tail of a longer identifier.
+    assert.equal(
+      live('@supports x-selector(.fake){.box{color:red}}', 'fake'),
+      false,
+      'an identifier ending in `selector` is not a selector condition, ' +
+        'and reading it as one invents the name inside it.'
     );
 
     // A nested grouping paren is reached, because the function is found
