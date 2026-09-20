@@ -158,7 +158,7 @@ const indexCache = new Map();
 const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 
 /** One class selector, escapes included. */
-const CLASS_SELECTOR = /^\.(?:\\.|[A-Za-z0-9_-])+$/;
+const CLASS_SELECTOR = /\.(?:\\.|[A-Za-z0-9_-])+/g;
 
 /**
  * Is this pseudo-class argument a class selector list and nothing else?
@@ -172,7 +172,14 @@ const CLASS_SELECTOR = /^\.(?:\\.|[A-Za-z0-9_-])+$/;
  */
 const onlyClasses = argument =>
   argument.trim() !== '' &&
-  argument.split(',').every(part => CLASS_SELECTOR.test(part.trim()));
+  argument.split(',').every(part => {
+    // Whatever is left once the class selectors come out has to be nothing.
+    // A COMPOUND of them counts — `:not(.is-a.is-b)` prohibits carrying both
+    // and names no other kind of thing — but a space does not, because a
+    // descendant inside the argument is a shape this file does not model.
+    const trimmed = part.trim();
+    return trimmed !== '' && trimmed.replace(CLASS_SELECTOR, '') === '';
+  });
 
 /**
  * A selector prelude with everything that is not a class made explicit.
@@ -237,8 +244,8 @@ const onlyClasses = argument =>
  * call and leaves `:not(.UNMODELLED)`, and unless the `:not` is reached
  * again it never drops, so a prohibition reads as a requirement. Nesting
  * the other way round needs nothing — one pass over `:has(:not(…))` leaves
- * an empty `:has()`, which the bare pass then sentinels anyway. Each pass
- * removes at least one pair of parentheses, so it ends.
+ * `:has(*)`, which the bare pass then sentinels anyway. Each pass removes at
+ * least one pair of parentheses, so it ends.
  */
 function requirements(prelude) {
   let text = prelude;
@@ -669,11 +676,18 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
 
     // A pseudo-ELEMENT is not a requirement. It styles a box generated FOR
     // the compound, so the compound renders.
+    // A COMPOUND query, because a single-class one takes the membership
+    // path and never reaches the exact-size rule, so it would pass whether
+    // `::` is stripped or sentinelled.
     assert.equal(
-      live(".delete::before{content:''}", 'delete'),
+      live(
+        ".notification.is-primary::before{content:''}",
+        'notification.is-primary'
+      ),
       true,
       'a pseudo-element rule renders something for the element it hangs ' +
-        'off, so calling that element dead would be a plain misreading.'
+        'off — `.delete::before` is how the X gets drawn — so treating it ' +
+        'as a requirement would call a live modifier dead.'
     );
 
     // Nested parentheses. One pass resolves the INNER call and leaves an
@@ -762,6 +776,24 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       live('.notification:not(.is-light){color:red}', 'notification'),
       true,
       '`:not()` is a prohibition, so the compound outside it is still live.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:not(.is-a.is-b){color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'a COMPOUND of classes is still classes and nothing else, so ' +
+        'prohibiting it prohibits and does not require.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:not(.is-a .is-b){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'a descendant inside the argument is a shape this file does not ' +
+        'model, so it is a requirement like anything else it cannot read.'
     );
     assert.equal(
       live('.box.is-primary:not(:last-child){color:red}', 'box.is-primary'),
