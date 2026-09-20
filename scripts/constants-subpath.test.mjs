@@ -962,6 +962,12 @@ describe('the declaration-extension guard', () => {
       // `path` right after `<reference` matched neither, so they shipped.
       '/// <reference resolution-mode="import" path="./gone.d.ts" />\n',
       '/// <Reference Path="./gone.d.ts" />\n',
+      // And these two are why the list carries NO filter of our own. A
+      // reference target is a path relative to the containing file, never a
+      // package name, so both are as real as `./gone.d.ts` — and a
+      // relative-looking prefix test discarded exactly them.
+      '/// <reference path="gone.d.ts" />\n',
+      '/// <reference path="sub/gone.d.ts" />\n',
     ]) {
       const root = tree({ 'index.d.ts': `${head}export {};\n` });
       await assert.rejects(
@@ -970,6 +976,28 @@ describe('the declaration-extension guard', () => {
         `a dangling reference spelled this way shipped: ${head}`
       );
     }
+  });
+
+  it('does not fail the build that superseded it', async () => {
+    // The rewrite throws on a specifier it cannot resolve, so the generation
+    // check has to sit before that work and not only before the write —
+    // otherwise an abandoned pass reports the previous build's problem against
+    // the rebuild that replaced it, which is the confusing shape the whole
+    // latch exists to avoid.
+    const root = tree({ 'index.d.ts': "export * from './nowhere';\n" });
+    const { declarationExtensions } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    const plugin = declarationExtensions(root);
+    plugin.buildStart();
+    plugin.buildEnd();
+    plugin.renderStart();
+    plugin.writeBundle();
+    const pass = plugin.closeBundle();
+    plugin.buildStart();
+    // Resolves rather than rejects: the unresolvable specifier belongs to a
+    // build nobody is waiting on any more.
+    await pass;
   });
 
   it('sees a comment wherever trivia can attach, not just before a node', async () => {

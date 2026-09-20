@@ -28,14 +28,6 @@ const aiBanner =
   '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
 
 /**
- * Whether `spec`, written inside `file`, names a declaration that exists.
- *
- * A declaration spells its imports the way the runtime will: `./x.js` is
- * declared by `./x.d.ts`, and the `.cjs`/`.mjs` forms by `.d.cts`/`.d.mts`. A
- * triple-slash `reference path` names the declaration directly. Anything else
- * is unresolved, which is the one question worth asking after the rewrite.
- */
-/**
  * Parse a declaration with TypeScript, once, for the two questions both passes
  * ask of it: where the comments are, and which files it references.
  *
@@ -59,9 +51,11 @@ const aiBanner =
  * here. Declarations do carry template literal types, so neither was theoretical.
  *
  * `getLeadingCommentRanges` reports only real comment trivia at a position the
- * parser chose, so this cannot invent a range. It can MISS one — a comment
- * before a token that is not itself a node — and that direction is safe: the
- * text is then read as code, which is where this file started.
+ * parser chose, so this cannot invent a range — which is the failure that
+ * matters, since a false range switches both passes off at once. Missing one is
+ * not the harmless opposite, though: the text is then read as code, and a
+ * relative path written in prose fails the build. That is why the walk below
+ * descends through tokens rather than nodes.
  */
 const parseDeclaration = text =>
   ts.createSourceFile(
@@ -112,11 +106,16 @@ const inComment = (ranges, at) =>
  * TypeScript honours and which therefore shipped dangling; and it caught
  * directives after the first statement, which TypeScript ignores, failing the
  * build over a line that means nothing.
+ *
+ * Every entry is taken, with no filter of our own. A reference target is a path
+ * relative to the containing file, never a package name, so `gone.d.ts` and
+ * `sub/gone.d.ts` are as real as `./gone.d.ts` — and a relative-looking prefix
+ * test threw exactly those two away, which put the narrowing back that adopting
+ * the parse was meant to remove. An absolute target is kept too: it cannot be
+ * inside the published tree, so containment refuses it and says so.
  */
 const referencedPaths = sourceFile =>
-  sourceFile.referencedFiles
-    .map(reference => reference.fileName)
-    .filter(spec => /^\.\.?(\/|$)/.test(spec));
+  sourceFile.referencedFiles.map(reference => reference.fileName);
 
 /**
  * Whether `target` is a real declaration INSIDE `root`.
@@ -135,6 +134,14 @@ const declarationUnder = (root, target) => {
   return existsSync(target);
 };
 
+/**
+ * Whether `spec`, written inside `file`, names a declaration that exists.
+ *
+ * A declaration spells its imports the way the runtime will: `./x.js` is
+ * declared by `./x.d.ts`, and the `.cjs`/`.mjs` forms by `.d.cts`/`.d.mts`. A
+ * triple-slash `reference path` names the declaration directly. Anything else
+ * is unresolved, which is the one question worth asking after the rewrite.
+ */
 const resolvesToDeclaration = (root, file, spec) => {
   const from = dirname(file);
   if (/\.d\.[cm]?ts$/.test(spec)) {
@@ -338,68 +345,80 @@ export const declarationExtensions = (root = 'dist/types') => {
       // `/` after the dots skipped them silently.
       const SPECIFIER = /((?:from|import\()\s*(['"]))(\.\.?(?:\/[^'"]*)?)(\2)/g;
       for (const file of files) {
+        // Checked before the work, not only before the write. The rewrite below
+        // THROWS on a specifier it cannot resolve, and a pass whose build has
+        // already been superseded must not be the thing that fails the build
+        // that superseded it.
+        if (generation !== building) return;
         const before = await readFile(file, 'utf8');
         const comments = commentRanges(before, parseDeclaration(before));
-        const after = before.replace(
-          SPECIFIER,
-          (whole, head, _q, spec, tail, offset) => {
-            // A quoted path inside a comment is prose, not a specifier. Left in
-            // the scan it was silently rewritten whenever it resolved, which is
-            // how a TSDoc `@example` showing a consumer-side import got edited.
-            if (inComment(comments, offset)) return whole;
-            // An extension already present is still checked. The post-pass would
-            // catch a dangling one too, since it asks about resolution rather than
-            // about extensions — this is the earlier and better-worded of the two
-            // errors, not the only net. Nothing in `src/` spells an extension
-            // today; the point is that no branch is held to a weaker test.
-            const extensioned = spec.match(/\.([cm]?)js$/);
-            if (extensioned) {
-              // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
-              // `.d.ts` for either verifies a file TypeScript will not consult.
-              const declared = `.d.${extensioned[1]}ts`;
-              const asFile = resolvePath(dirname(file), spec).replace(
-                /\.[cm]?js$/,
-                declared
-              );
-              if (declarationUnder(root, asFile)) return whole;
-              throw new Error(
-                `${file}: '${spec}' already carries an extension but resolves to ` +
-                  'no declaration, so it would ship pointing nowhere.'
-              );
-            }
-            // A bare `.` or `..` names a directory by definition, so it skips the
-            // file probe. Probing first would let a stale declaration — `dist` is
-            // never cleaned — send it down the file branch and emit a specifier
-            // ending in `.js` that resolves nowhere, which the post-pass would then
-            // pass through untouched. The index is still checked: this branch has
-            // to throw like the others, or it becomes the one path that can emit
-            // something unresolvable in silence.
-            if (/^\.\.?$/.test(spec)) {
-              if (
-                declarationUnder(
-                  root,
-                  join(resolvePath(dirname(file), spec), 'index.d.ts')
-                )
-              ) {
+        let after;
+        try {
+          after = before.replace(
+            SPECIFIER,
+            (whole, head, _q, spec, tail, offset) => {
+              // A quoted path inside a comment is prose, not a specifier. Left in
+              // the scan it was silently rewritten whenever it resolved, which is
+              // how a TSDoc `@example` showing a consumer-side import got edited.
+              if (inComment(comments, offset)) return whole;
+              // An extension already present is still checked. The post-pass would
+              // catch a dangling one too, since it asks about resolution rather than
+              // about extensions — this is the earlier and better-worded of the two
+              // errors, not the only net. Nothing in `src/` spells an extension
+              // today; the point is that no branch is held to a weaker test.
+              const extensioned = spec.match(/\.([cm]?)js$/);
+              if (extensioned) {
+                // `.cjs` is declared by `.d.cts` and `.mjs` by `.d.mts`; probing
+                // `.d.ts` for either verifies a file TypeScript will not consult.
+                const declared = `.d.${extensioned[1]}ts`;
+                const asFile = resolvePath(dirname(file), spec).replace(
+                  /\.[cm]?js$/,
+                  declared
+                );
+                if (declarationUnder(root, asFile)) return whole;
+                throw new Error(
+                  `${file}: '${spec}' already carries an extension but resolves to ` +
+                    'no declaration, so it would ship pointing nowhere.'
+                );
+              }
+              // A bare `.` or `..` names a directory by definition, so it skips the
+              // file probe. Probing first would let a stale declaration — `dist` is
+              // never cleaned — send it down the file branch and emit a specifier
+              // ending in `.js` that resolves nowhere, which the post-pass would then
+              // pass through untouched. The index is still checked: this branch has
+              // to throw like the others, or it becomes the one path that can emit
+              // something unresolvable in silence.
+              if (/^\.\.?$/.test(spec)) {
+                if (
+                  declarationUnder(
+                    root,
+                    join(resolvePath(dirname(file), spec), 'index.d.ts')
+                  )
+                ) {
+                  return `${head}${spec}/index.js${tail}`;
+                }
+                throw new Error(
+                  `${file}: '${spec}' names a directory with no index declaration, ` +
+                    'so no extension can be chosen for it.'
+                );
+              }
+              const resolved = resolvePath(dirname(file), spec);
+              if (declarationUnder(root, `${resolved}.d.ts`))
+                return `${head}${spec}.js${tail}`;
+              if (declarationUnder(root, join(resolved, 'index.d.ts'))) {
                 return `${head}${spec}/index.js${tail}`;
               }
               throw new Error(
-                `${file}: '${spec}' names a directory with no index declaration, ` +
-                  'so no extension can be chosen for it.'
+                `${file}: '${spec}' resolves to neither a declaration nor a ` +
+                  'directory holding one, so no extension can be chosen for it.'
               );
             }
-            const resolved = resolvePath(dirname(file), spec);
-            if (declarationUnder(root, `${resolved}.d.ts`))
-              return `${head}${spec}.js${tail}`;
-            if (declarationUnder(root, join(resolved, 'index.d.ts'))) {
-              return `${head}${spec}/index.js${tail}`;
-            }
-            throw new Error(
-              `${file}: '${spec}' resolves to neither a declaration nor a ` +
-                'directory holding one, so no extension can be chosen for it.'
-            );
-          }
-        );
+          );
+        } catch (error) {
+          // Same reason, for the window between that check and this throw.
+          if (generation !== building) return;
+          throw error;
+        }
         if (generation !== building) return;
         if (after !== before) await writeFile(file, after, 'utf8');
       }
