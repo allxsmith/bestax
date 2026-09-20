@@ -177,18 +177,40 @@ const declarationUnder = (root, target) => {
  */
 const resolvesToDeclaration = (root, file, spec) => {
   const from = dirname(file);
+  // A `reference path` names a declaration DIRECTLY, and is the only shape
+  // here that may. A module specifier spelled the same way is TS2846 — "A
+  // declaration file cannot be imported without 'import type'" — which is why
+  // the two contexts no longer share one predicate.
   if (/\.d\.[cm]?ts$/.test(spec)) {
     return declarationUnder(root, resolvePath(from, spec));
   }
+  return specifierResolves(root, file, spec);
+};
+
+/**
+ * Whether `spec`, used as a MODULE SPECIFIER inside `file`, names a declaration
+ * that exists.
+ *
+ * Split from the reference-path question because the two disagreed about the
+ * same string. A specifier spelled `./x.d.ts` was accepted here and hard-failed
+ * by the rewrite — invisible while the rewrite's pattern could not reach a
+ * side-effect import, and reachable the moment it asked the parser instead. The
+ * rewrite was right: TypeScript rejects that spelling and asks for the runtime
+ * one, so this refuses it too rather than the two contradicting each other.
+ *
+ * Exported because the rewrite throws on that shape FIRST, so this refusal
+ * cannot be reached through the plugin's hooks and would otherwise be an
+ * unpinned clause kept honest by nothing. It is here to stop the two
+ * predicates drifting apart again, and the test drives it directly.
+ */
+export const specifierResolves = (root, file, spec) => {
   const runtime = spec.match(/\.([cm]?)js$/);
-  if (runtime) {
-    const declared = `.d.${runtime[1]}ts`;
-    return declarationUnder(
-      root,
-      resolvePath(from, spec).replace(/\.[cm]?js$/, declared)
-    );
-  }
-  return false;
+  if (!runtime) return false;
+  const declared = `.d.${runtime[1]}ts`;
+  return declarationUnder(
+    root,
+    resolvePath(dirname(file), spec).replace(/\.[cm]?js$/, declared)
+  );
 };
 
 /**
@@ -379,6 +401,18 @@ export const declarationExtensions = (root = 'dist/types') => {
       // What a single specifier becomes, or a throw naming why it cannot.
       // Returns null when it is already correct and needs no edit.
       const rewritten = (file, spec) => {
+        // A declaration-spelled specifier is refused by name, because the
+        // probes below would look for `x.d.ts.d.ts` and report that nothing
+        // resolves — true, and the wrong thing to say. TypeScript rejects this
+        // spelling with TS2846 and asks for the runtime one.
+        if (/\.d\.[cm]?ts$/.test(spec)) {
+          const runtime = spec.replace(/\.d\.([cm]?)ts$/, '.$1js');
+          throw new Error(
+            `${file}: '${spec}' names a declaration file, which TypeScript ` +
+              `refuses as a module specifier (TS2846). Write '${runtime}' ` +
+              'instead — the declaration beside it is what gets read.'
+          );
+        }
         // An extension already present is still checked. The post-pass would
         // catch a dangling one too, since it asks about resolution rather than
         // about extensions — this is the earlier and better-worded of the two
@@ -513,9 +547,15 @@ export const declarationExtensions = (root = 'dist/types') => {
         const referenced = referencedPaths(parsed);
         const broken = [
           ...new Set(
-            [...named, ...referenced].filter(
-              spec => !resolvesToDeclaration(root, file, spec)
-            )
+            [
+              ...named.map(spec => [spec, specifierResolves(root, file, spec)]),
+              ...referenced.map(spec => [
+                spec,
+                resolvesToDeclaration(root, file, spec),
+              ]),
+            ]
+              .filter(([, resolved]) => !resolved)
+              .map(([spec]) => spec)
           ),
         ];
         if (broken.length) {

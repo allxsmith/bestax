@@ -636,6 +636,80 @@ describe('the declaration-extension guard', () => {
     assert.match(readFileSync(join(root, 'index.d.ts'), 'utf8'), /'\.\/a\.js'/);
   });
 
+  it('refuses a declaration-spelled specifier, but not a reference path', async () => {
+    // The rewrite and the post-pass disagreed about this exact string. The
+    // post-pass called `./a.d.ts` resolvable; the rewrite fell past its
+    // `.js` test, probed for `a.d.ts.d.ts`, and reported that nothing
+    // resolved — true, and the wrong thing to say. It was invisible while the
+    // regex could not reach a side-effect import, and reachable the moment the
+    // collector asked the parser.
+    //
+    // TypeScript settles it: a declaration file is not importable as a module
+    // specifier (TS2846), and it asks for the runtime spelling. A `reference
+    // path` names a declaration directly and stays correct, which is why the
+    // two questions no longer share one predicate.
+    for (const body of [
+      "import './a.d.ts';\nexport {};\n",
+      "export * from './a.d.ts';\n",
+    ]) {
+      await assert.rejects(
+        run(tree({ 'index.d.ts': body, 'a.d.ts': 'export {};\n' })),
+        /names a declaration file/,
+        body.trim()
+      );
+    }
+    const root = tree({
+      'index.d.ts': '/// <reference path="./a.d.ts" />\nexport {};\n',
+      'a.d.ts': 'export {};\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /"\.\/a\.d\.ts"/
+    );
+  });
+
+  it('the specifier predicate refuses what the rewrite refuses', async () => {
+    // Driven directly, because the rewrite throws on a declaration-spelled
+    // specifier before the post-pass runs — so this clause cannot be reached
+    // through the hooks, and swapping it back for the reference-path predicate
+    // changes no observable behaviour. It exists to stop the two drifting apart
+    // again, which only a direct case can hold it to.
+    const { specifierResolves } = await import(
+      pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
+    );
+    const root = tree({
+      'index.d.ts': 'export {};\n',
+      'a.d.ts': 'export {};\n',
+      'b.d.cts': 'export {};\n',
+    });
+    const from = join(root, 'index.d.ts');
+    // The runtime spelling resolves to the declaration beside it.
+    assert.equal(specifierResolves(root, from, './a.js'), true);
+    assert.equal(specifierResolves(root, from, './b.cjs'), true);
+    // The declaration spelling does not, however real the file is — that is
+    // TS2846, and the whole point of the split.
+    assert.equal(specifierResolves(root, from, './a.d.ts'), false);
+    assert.equal(specifierResolves(root, from, './b.d.cts'), false);
+    // Extensionless is not resolvable either; the rewrite is what adds one.
+    assert.equal(specifierResolves(root, from, './a'), false);
+  });
+
+  it('rewrites an import-equals-require specifier', async () => {
+    // The only collected node kind with no success-path case: it appeared only
+    // as a dangling one, which throws before any offset is used, so the offsets
+    // for this shape were never exercised.
+    const root = tree({
+      'index.d.ts': "import a = require('./a');\nexport = a;\n",
+      'a.d.ts': 'export {};\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /import a = require\('\.\/a\.js'\);/
+    );
+  });
+
   it('leaves a bare package specifier alone', async () => {
     // The rewrite asks the parser for module specifiers, which includes bare
     // ones — `react` is in the real emitted tree. Only relative specifiers name
