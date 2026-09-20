@@ -570,15 +570,20 @@ function nonStructure(css) {
  * loud everywhere except the shade comparison, where a fabricated entry
  * makes an equality hold that should have failed.
  *
- * Two shapes are still lost rather than read, both quietly, and both are
- * worth naming because neither is worth guessing at. A nested grouping
- * paren, `((selector(.a)))`, is not reached. And the function is found by
- * its literal spelling, which is the reading `nonStructure` was rewritten
- * to stop doing, so `\73 elector(` and `s\elector(` name the same
- * function and match nothing. Reading them means decoding identifiers; the
- * alternative to losing a name here is fabricating one, and the shade
- * comparison is where a fabricated name stops being loud. No stylesheet
- * this repo builds carries `@supports` at all.
+ * Two shapes go wrong and both are worth naming, because neither is worth
+ * guessing at. The function is found by its literal spelling, which is the
+ * reading `nonStructure` was rewritten to stop doing, so `\73 elector(` and
+ * `s\elector(` name the same function and match nothing — those names are
+ * lost. And a comment inside a condition survives, because the scan treats
+ * a comment opener at depth as content, so `selector(.fake)` written inside
+ * one is read and that name is fabricated. Reading the first means decoding
+ * identifiers and avoiding the second means parsing comments the scan
+ * deliberately does not; the alternative to each is worse than the loss. No
+ * stylesheet this repo builds carries `@supports` at all.
+ *
+ * A nested grouping paren is fine, incidentally — `((selector(.a)))` is
+ * reached and harvested, since the scan looks for the function wherever it
+ * sits rather than at a fixed depth.
  */
 function selectorConditions(prelude) {
   const found = [];
@@ -1387,6 +1392,39 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       true,
       'and a prelude may carry more than one of them.'
     );
+    // The scan consumes escape pairs, so an escaped parenthesis inside
+    // the condition does not end it. Without that, the class comes back as
+    // `a` instead of `a)b` — a name changed rather than lost, which no
+    // other case here can see.
+    assert.equal(
+      live('@supports selector(.a\\)b){.box{color:red}}', 'a)b'),
+      true,
+      'an escaped parenthesis is part of the class name, so the scan has ' +
+        'to step over it rather than close on it.'
+    );
+    assert.equal(
+      live('@supports selector(.a\\)b){.box{color:red}}', 'a'),
+      false,
+      'and closing on it would leave the truncated name behind, which is ' +
+        'a class the stylesheet does not ship.'
+    );
+
+    // An at-rule keyword and a function name are both case-insensitive.
+    assert.equal(
+      live('@SUPPORTS SELECTOR(.the-root){.box{color:red}}', 'the-root'),
+      true,
+      'CSS does not care how either of these is cased, so neither the ' +
+        'gate nor the function lookup may.'
+    );
+
+    // A nested grouping paren is reached, because the function is found
+    // wherever it sits rather than at a fixed depth.
+    assert.equal(
+      live('@supports ((selector(.the-root))){.box{color:red}}', 'the-root'),
+      true,
+      'a condition wrapped in grouping parentheses is still a condition.'
+    );
+
     // `@scope` keeps its WHOLE prelude, which is a selector list by spec.
     assert.equal(
       live('@scope (.the-root) to (.the-limit){.box{color:red}}', 'the-limit'),
