@@ -256,11 +256,12 @@ const onlyClasses = argument =>
  *   requirement it could not verify.
  * - A pseudo-ELEMENT does not restrict anything. `.delete::before` styles a
  *   box generated for a delete, so the delete is live and calling it dead
- *   would be a plain misreading. The `::` spelling is left alone. The legacy
- *   one-colon spellings are NOT recognised as pseudo-elements and take a
- *   sentinel like any other bare pseudo-class, which lands them on the false
- *   -alarm side rather than the silent one. Telling `:after` from `:hover`
- *   means keeping a list of them, and nothing yet needs it.
+ *   would be a plain misreading. A bare `::` spelling is exempted. Two
+ *   kinds are not, and both land on the false-alarm side: the legacy
+ *   one-colon spellings, which are indistinguishable from `:hover` without
+ *   keeping a list, and the functional ones like `::part(x)`, which the
+ *   argument pass takes first because it matches any name before a
+ *   parenthesis.
  * - Everything else — a pseudo-class with parentheses or without, and an
  *   attribute selector — narrows WHICH elements carrying those classes
  *   match. `.notification.is-primary:where(.is-light)` and
@@ -313,9 +314,11 @@ function requirements(prelude) {
     // leave a `*` rather than nothing, for the same reason `:not()` does —
     // `::before` can BE the whole simple selector, and removing it outright
     // left `.hero.is-primary ::before` as `.hero.is-primary`, which hands
-    // the ancestor the subject position. That was the last pass here that
-    // deleted text instead of standing something in its place, and it was
-    // the last door into the one hole this file has closed four times.
+    // the ancestor the subject position — the same hole the prohibition
+    // opened, through the last SUBSTITUTION pass that was still deleting.
+    // The paren-residue loop below deletes too, and is allowed to: by the
+    // time it runs the enclosing call's name is already a sentinel outside
+    // the parentheses, so it can only shorten an argument.
     .replace(/::[a-z-]+/gi, '*');
   while (/\([^()]*\)/.test(text)) text = text.replace(/\([^()]*\)/g, '');
   return text;
@@ -403,14 +406,14 @@ function simpleSelectors(css) {
     // special case at each of the three.
     const chunks = css
       .replace(
-        /\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|url\([^)"']*\)/g,
+        /\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|url\((?:[^)"'\\]|\\[\s\S])*\)/gi,
         match => {
           if (match.startsWith('/*')) return '';
-          if (match.startsWith('url(')) return 'url()';
+          if (match.slice(0, 4).toLowerCase() === 'url(') return 'url()';
           return match[0] + match[0];
         }
       )
-      .split('{');
+      .split(/(?<!\\)\{/);
     // One entry per block still open. `conditional` marks a block that only
     // applies sometimes, which is the same thing `:first-child` says about
     // elements, so a rule inside one carries a requirement rather than a
@@ -430,7 +433,7 @@ function simpleSelectors(css) {
       // The braces in this chunk close blocks opened before it, so they are
       // popped before the block this chunk's own `{` opens is pushed.
       for (
-        let closed = (chunk.match(/}/g) ?? []).length;
+        let closed = (chunk.match(/(?<!\\)}/g) ?? []).length;
         closed > 0;
         closed--
       ) {
@@ -1007,6 +1010,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'an escaped dot is part of the name, so the name the stylesheet ' +
         'ships is `is-gap-0.5` and that is what it has to answer to.'
     );
+    // An escaped BRACE in a class name, which only this query can ask
+    // about, for the same reason: splitting the stylesheet on a brace it
+    // cannot see cuts the name in half.
+    assert.equal(
+      alone('.a\\{b{color:red}', 'a{b'),
+      true,
+      'a class name may escape a brace, and the split that finds blocks ' +
+        'has to skip that one.'
+    );
 
     // A STRING is content, not structure. Everything this matcher does
     // reads structure out of raw text, and a string is where `{`, `}`, `;`
@@ -1120,6 +1132,42 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'a brace inside an unquoted url token must not close a block, the ' +
         'same as one inside a string.'
+    );
+    assert.equal(
+      live(
+        '.a{background:URL(x}y);.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'and `url` is a keyword rather than a name, so its case does not ' +
+        'decide whether the brace inside it counts.'
+    );
+    assert.equal(
+      live(
+        '.a{background:url(x\\)y}z);.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'an escaped paren does not end the url token, so the brace after it ' +
+        'is still inside one.'
+    );
+    assert.equal(
+      live('.a{content:"x\\\ny}";.tabs.is-boxed{color:red}}', 'tabs.is-boxed'),
+      false,
+      'a backslash-newline is a line continuation, so the string it sits ' +
+        'in has not ended.'
+    );
+
+    // An escaped brace is part of a CLASS NAME. Neither the split nor the
+    // count of closes can see the escape on its own.
+    assert.equal(
+      live(
+        '.hero{color:red;.a\\}b{color:red}.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'an escaped brace in a class name must not close the rule the next ' +
+        'one is nested in.'
     );
 
     // A pseudo-element can BE the whole simple selector, and removing it
