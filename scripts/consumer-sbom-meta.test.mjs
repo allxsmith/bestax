@@ -10,9 +10,9 @@
  *
  * Two assertions are load-bearing beyond their apparent size:
  *
- *   - the two-`@` scoped-package case. Three of the four packages are
+ *   - the two-`@` scoped-package case. Most of the packages are
  *     unscoped, so a lastIndexOf/indexOf slip passes every test that does not
- *     name @allxsmith/bestax-bulma and then mis-pins the one package whose
+ *     name @allxsmith/bestax-bulma and then mis-pins any package whose
  *     release triggered the run.
  *   - ARTIFACT_PREFIX. `sign-sbom` and `attach-sbom` glob on that string from
  *     other jobs and cannot read a step output across a job boundary, so
@@ -93,7 +93,7 @@ test('installSpec pins the package the release names', () => {
   );
 });
 
-test('installSpec leaves the other three legs on latest during a release', () => {
+test('installSpec leaves every other leg on latest during a release', () => {
   // The whole asymmetry of item 1: a bulma-ui release says nothing about what
   // version of bestax-migrate a consumer installs today.
   for (const pkg of ['create-bestax', 'bestax-migrate', 'bestax-mcp']) {

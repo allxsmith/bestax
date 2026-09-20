@@ -363,7 +363,7 @@ jobs:
         # legs no release names, and the workflow does no parsing of its own —
         # deriving the version from the spec here would reimplement the
         # last-`@` split in untested YAML, one character from being wrong for
-        # the one scoped package.
+        # a scoped package.
         run: |
           node scripts/consumer-sbom-meta.mjs spec \
             --package "$PACKAGE" --event "$EVENT" --tag "$TAG"

@@ -11,7 +11,7 @@
  *
  * ## Why `spec` exists at all (item 1)
  *
- * The job used to install the mutable `latest` dist-tag for all four packages.
+ * The job used to install the mutable `latest` dist-tag for every package.
  * For the ONE package a release names that is wrong twice over, and both are
  * real rather than theoretical:
  *
@@ -70,7 +70,7 @@
  * Deliberately no shell-side parsing of what this returns. An earlier draft had
  * the workflow derive `expect` from `spec` with `${spec##*@}`, which is the
  * same last-`@` split parseReleaseTag already does — reimplemented in YAML,
- * untested, one character away from being wrong for the scoped package.
+ * untested, one character away from being wrong for a scoped package.
  *
  * Exit codes: 0 fine,
  *             1 an assertion failed,
