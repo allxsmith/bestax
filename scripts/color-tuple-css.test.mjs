@@ -217,6 +217,9 @@ const TRANSPARENT_AT_RULE = /^@layer(?![\w-])/i;
  */
 const SELECTOR_PRELUDE = /^@(scope|supports)(?![\w-])/i;
 
+/** The half of that pair whose WHOLE prelude is selectors. */
+const SCOPE_AT_RULE = /^@scope(?![\w-])/i;
+
 /**
  * A numeric escape, which names a character by code point.
  *
@@ -500,7 +503,14 @@ function nonStructure(css) {
       // continuation still works, since the escape is consumed together
       // with whichever break follows it.
       while (i < css.length && css[i] !== ch && !LINE_BREAK.test(css[i])) {
-        if (css[i] === '\\') i += 1;
+        // A CRLF is ONE line ending. Consuming only the carriage return
+        // left the line feed to end the string, which opens a phantom at
+        // the next quote and drops rules out of both indexes — this leak
+        // one line-ending shape further out, and the third time this
+        // branch has closed it.
+        if (css[i] === '\\') {
+          i += css[i + 1] === '\r' && css[i + 2] === '\n' ? 2 : 1;
+        }
         i += 1;
       }
       continue;
@@ -684,18 +694,36 @@ function simpleSelectors(css) {
           conditional: !TRANSPARENT_AT_RULE.test(heading),
           rule: false,
         });
-        // One at-rule prelude is made of SELECTORS rather than a condition,
-        // and its class names are names the stylesheet knows. Skipping
-        // every prelude wholesale lost them, which is the membership
-        // index's quiet direction. Only `@scope`, and only for names: what
-        // a scope root matches is not a rule that styles anything, so it
-        // contributes no subject set. Every other prelude stays out, since
-        // a condition carries lengths and `1.5rem` tokenises as a class.
+        // Two at-rule preludes name SELECTORS rather than conditions, and
+        // their class names are names the stylesheet knows. Skipping every
+        // prelude wholesale lost them, which is the membership index's
+        // quiet direction.
+        //
+        // For names only: what a scope root or a feature query matches is
+        // not a rule that styles anything, so neither contributes a
+        // subject set. And for `@supports`, only the part inside
+        // `selector(…)` — the rest is a condition, and a condition can
+        // spell a name by accident.
         if (SELECTOR_PRELUDE.test(heading)) {
-          const roots = withoutAttributes(heading);
+          // For `@supports`, only what sits inside `selector(…)`. The rest
+          // of a feature query is a condition, and a condition can spell a
+          // class name by accident — `(background:url(x.svg))` offers
+          // `svg`, which the identifier filter cannot refuse because it is
+          // a perfectly good name. A fabricated name is usually loud, but
+          // not everywhere: the shade comparison asks which colours the
+          // stylesheet shades, and a fabricated entry there can make an
+          // equality hold that should have failed, which hides a real
+          // divergence rather than raising one.
+          const prelude = SCOPE_AT_RULE.test(heading)
+            ? heading
+            : [...heading.matchAll(/selector\(([^()]*)\)/gi)]
+                .map(m => m[1])
+                .join(' ');
+          const roots = withoutAttributes(prelude);
           assert.ok(
             !NUMERIC_ESCAPE.test(roots),
-            `the scope root \`${heading}\` carries a numeric escape, which ` +
+            `the selector prelude \`${heading}\` carries a numeric escape, ` +
+              'which ' +
               'this file reads as a single character and would silently ' +
               'rename. Teach it CSS identifier decoding in the same change ' +
               'that introduced the escape.'
@@ -1257,6 +1285,31 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'and so does a form feed.'
     );
 
+    // A CRLF is ONE line ending, so an escape has to consume both halves.
+    // The brace inside the string is what makes the case move: without it
+    // the early end changes no structure, and with the phantom unbounded
+    // the rule under test is eaten rather than answered.
+    assert.equal(
+      live(
+        '.hero{content:"x\\\r\n}y"\n;.tabs.is-boxed{color:red}}\n',
+        'tabs.is-boxed'
+      ),
+      false,
+      'a line continuation spelled with a CRLF does not end the string, so ' +
+        'the brace inside it is still content and the rule after it is ' +
+        'still nested.'
+    );
+
+    // Only what sits inside `selector(…)` of a feature query. The rest is
+    // a condition, and a condition can spell a class name by accident.
+    assert.equal(
+      live('@supports (background:url(x.svg)){.box{color:red}}', 'svg'),
+      false,
+      'a filename in a feature condition is not a class, and the ' +
+        'identifier filter cannot refuse it because `svg` is a name a ' +
+        'class could have.'
+    );
+
     // `@supports selector(…)` is the other prelude made of selectors.
     assert.equal(
       live('@supports selector(.the-root){.box{color:red}}', 'the-root'),
@@ -1541,8 +1594,8 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     assert.equal(
       live('@container (min-width:1.5rem){.box{color:red}}', '5rem'),
       false,
-      'and only `@scope`: every other prelude is a condition, where a ' +
-        'length tokenises as a class called `5rem`.'
+      'and not every prelude: a condition is not a selector list, and a ' +
+        'length in one would tokenise as a class called `5rem`.'
     );
     assert.equal(
       live(
@@ -1558,7 +1611,8 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     assert.equal(
       live('@scope-foo (.the-root){.box{color:red}}', 'the-root'),
       false,
-      'and only `@scope` itself. A word boundary holds before a hyphen, ' +
+      'and the name has to match exactly. A word boundary holds before ' +
+        'a hyphen, ' +
         'so an at-rule merely starting with those letters would have its ' +
         'prelude read — and the case has to offer a real class name, ' +
         'because a length is refused by the identifier filter first and ' +
@@ -1712,7 +1766,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
-        '.hero{content:"}a\\"b";\n.tabs.is-boxed{color:red}}\n',
+        '.hero{content:"}a\\"b"\n;.tabs.is-boxed{color:red}}\n',
         'tabs.is-boxed'
       ),
       false,
@@ -1729,7 +1783,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // the same reason the double-quoted half does.
     assert.equal(
       live(
-        ".hero{content:'a\\'b}';\n.tabs.is-boxed{color:red}}\n",
+        ".hero{content:'a\\'b}'\n;.tabs.is-boxed{color:red}}\n",
         'tabs.is-boxed'
       ),
       false,
@@ -1737,7 +1791,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
-        ".hero{content:'}a\\'b';\n.tabs.is-boxed{color:red}}\n",
+        ".hero{content:'}a\\'b'\n;.tabs.is-boxed{color:red}}\n",
         'tabs.is-boxed'
       ),
       false,
