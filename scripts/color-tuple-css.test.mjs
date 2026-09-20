@@ -157,6 +157,15 @@ const indexCache = new Map();
  */
 const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 
+/**
+ * An at-rule whose contents apply only sometimes.
+ *
+ * `@media`, `@supports` and `@container` each wrap their rules in a
+ * condition. `@layer` and `@font-face` and the rest do not, so a rule under
+ * one of those is as live as a rule at the top level.
+ */
+const CONDITIONAL_AT_RULE = /^@(media|supports|container)\b/i;
+
 /** One class selector, escapes included. */
 const CLASS_SELECTOR = /\.(?:\\.|[A-Za-z0-9_-])+/g;
 
@@ -232,34 +241,32 @@ const onlyClasses = argument =>
  *   rather than shrinks and the query reads dead. A false alarm is the one
  *   way this guard may be wrong.
  *
- * Order carries three separate reasons. Arguments are resolved before the
- * caller splits on commas, because they contain commas:
+ * Order carries two reasons. Arguments are handled before the caller splits
+ * on commas, because they contain commas:
  * `.navbar-item:not(.is-active,.is-selected)` is ONE selector, and splitting
  * first fragments it and leaves `is-active` looking like a class the element
  * carries. Attribute selectors go before bare pseudo-classes, because an
- * attribute VALUE may contain a colon. And the argument pass repeats to a
- * fixed point, because `[^()]*` cannot cross a parenthesis and `replace`
- * does not re-scan its own output. What needs the repeat is a nested call
- * inside a `:not()`: one pass over `:not(:is(.is-light))` resolves the inner
- * call and leaves `:not(.UNMODELLED)`, and unless the `:not` is reached
- * again it never drops, so a prohibition reads as a requirement. Nesting
- * the other way round needs nothing — one pass over `:has(:not(…))` leaves
- * `:has(*)`, which the bare pass then sentinels anyway. Each pass removes at
- * least one pair of parentheses, so it ends.
+ * attribute VALUE may contain a colon.
+ *
+ * One pass, and this is the part that took longest to get right. `[^()]*`
+ * cannot cross a parenthesis, so a nested call leaves its enclosing one
+ * unmatched, and `replace` does not re-scan what it wrote. That is the
+ * correct answer rather than a gap: a construct whose argument could not be
+ * read is a requirement, and the bare pass sentinels it. Repeating to a
+ * fixed point looked like an improvement and was the opposite — it resolved
+ * the inner call to something CLASS-SHAPED, which `onlyClasses` then
+ * accepted, so `:not(:nth-last-child(1))` dropped and read live while the
+ * identical `:not(:last-child)` read dead. One pass keeps them the same,
+ * and keeps the one that is wrong on the loud side.
  */
 function requirements(prelude) {
-  let text = prelude;
-  let previous;
-  do {
-    previous = text;
-    text = text.replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name, argument) =>
-      name.toLowerCase() === 'not' && onlyClasses(argument)
-        ? '*'
-        : `.${UNMODELLED}`
-    );
-  } while (text !== previous);
   return (
-    text
+    prelude
+      .replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name, argument) =>
+        name.toLowerCase() === 'not' && onlyClasses(argument)
+          ? '*'
+          : `.${UNMODELLED}`
+      )
       .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
       .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`)
       .replace(/#[A-Za-z0-9_-]+/g, `.${UNMODELLED}`)
@@ -325,10 +332,38 @@ function simpleSelectors(css) {
     // sourceMappingURL contributes nothing anyone queries, but a comment
     // that happened to name a compound would answer for it, and that reads
     // as a live modifier — the silent direction again.
-    for (const chunk of css.replace(/\/\*[\s\S]*?\*\//g, '').split('{')) {
+    const chunks = css.replace(/\/\*[\s\S]*?\*\//g, '').split('{');
+    // One entry per block still open, true where that block only applies
+    // under a condition. A rule inside one renders for some readers and not
+    // others, which is the same thing `:first-child` says about elements,
+    // so it is a requirement and not a class.
+    const open = [];
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      // The braces in this chunk close blocks opened before it, so they are
+      // popped before the block this chunk's own `{` opens is pushed.
+      for (
+        let closed = (chunk.match(/}/g) ?? []).length;
+        closed > 0;
+        closed--
+      ) {
+        open.pop();
+      }
+      // The last chunk is whatever trails the final `{`, and opens nothing.
+      if (i === chunks.length - 1) break;
       // Each `{` is preceded by a prelude; the selector is whatever follows
       // the last `}` in it.
-      const prelude = requirements(chunk.slice(chunk.lastIndexOf('}') + 1));
+      const heading = chunk.slice(chunk.lastIndexOf('}') + 1).trim();
+      // An at-rule prelude is not a selector. Reading it as one indexed
+      // `@media (hover:hover)` as a class set, and the rules INSIDE it are
+      // what this is really about.
+      if (heading.startsWith('@')) {
+        open.push(CONDITIONAL_AT_RULE.test(heading));
+        continue;
+      }
+      const conditional = open.some(Boolean);
+      open.push(false);
+      const prelude = requirements(heading);
       for (const part of prelude.split(',')) {
         // Only the SUBJECT of a part is styled by it. `.hero .tabs` styles
         // the tabs, so indexing the hero as well says a rule renders it when
@@ -338,7 +373,7 @@ function simpleSelectors(css) {
         const simples = part.split(/[\s>+~]+/).filter(Boolean);
         const subject = simples[simples.length - 1];
         if (!subject?.includes('.')) continue;
-        sets.push(classesOf(subject, simples.length > 1));
+        sets.push(classesOf(subject, simples.length > 1 || conditional));
       }
     }
     indexCache.set(css, sets);
@@ -500,7 +535,9 @@ function warningCallers() {
             break;
           }
         }
-        const named = /warnUnstyledColor\(\s*(['"])([^'"]+)\1/.exec(text);
+        const named = new RegExp(
+          `warnUnstyledColor\\(\\s*${QUOTED.source}`
+        ).exec(text);
         // A call whose component is not a string literal cannot be attributed
         // to an element, and is counted below rather than skipped quietly.
         if (!named) continue;
@@ -707,10 +744,19 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         '.notification.is-primary:not(:is(.is-light)){color:red}',
         'notification.is-primary'
       ),
-      true,
-      'a prohibition stays a prohibition however its argument is written: ' +
-        'resolving the inner call has to leave a `:not()` that then DROPS, ' +
-        'or the compound outside it reads dead.'
+      false,
+      'a prohibition whose argument had to be resolved away is no longer ' +
+        'readable as one, and guessing is how the identical ' +
+        '`:not(:nth-last-child(1))` and `:not(:last-child)` came to answer ' +
+        'differently.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:not(:nth-last-child(1)){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'and the two spellings of that one requirement answer the same.'
     );
 
     // A TYPE or ID selector is a requirement the tokeniser cannot see as a
@@ -746,6 +792,42 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'an unqualified compound is live, or the three above would be vacuous.'
     );
 
+    // An AT-RULE condition is a requirement on the reader rather than the
+    // element, and it counts the same way.
+    assert.equal(
+      live(
+        '@media print{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a rule that applies only under a media query does not show the ' +
+        'compound renders, the same as one that applies only to a first ' +
+        'child.'
+    );
+    assert.equal(
+      live(
+        '@layer base{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      true,
+      'a layer is not a condition, so a rule inside one is as live as a ' +
+        'rule at the top level.'
+    );
+    assert.equal(
+      live(
+        '@media print{.box{color:red}}.notification.is-primary{color:blue}',
+        'notification.is-primary'
+      ),
+      true,
+      'the condition has to be popped when its block closes, or every rule ' +
+        'after a media query reads conditional.'
+    );
+    assert.equal(
+      live('@media (hover:hover){.box{color:red}}', 'hover'),
+      false,
+      'an at-rule prelude is not a selector and its words are not classes.'
+    );
+
     // A COMBINATOR is a requirement one level up, and only the subject of a
     // part is styled by it.
     assert.equal(
@@ -759,6 +841,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'a rule styles its subject, so indexing the ancestor too says a rule ' +
         'renders something it only renders inside.'
+    );
+    // A COMPOUND query cannot tell which simple selector was indexed, since
+    // the contextual sentinel makes either one too wide to match. Asking
+    // for the ancestor by NAME can.
+    assert.equal(
+      live('.hero.is-primary .tabs{color:red}', 'hero'),
+      false,
+      'the ancestor of a rule is not styled by it, so the stylesheet does ' +
+        'not know that name from this rule alone.'
     );
 
     // A prohibition standing on its own is still an element, and the
