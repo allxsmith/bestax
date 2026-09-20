@@ -188,10 +188,20 @@ describe('bulma-ui export map', () => {
       'export type P = import("./a").A;\n',
       "export type P = import('./a', { with: { 'resolution-mode': 'import' } }).A;\n",
       "import A = require('./a');\n",
+      // Valid since TS 4.2, and declaration emit prints `type` between the
+      // keyword and the name, so a pattern matching an identifier straight
+      // after `import` cannot span it.
+      "import type A = require('./a');\n",
+      "export import A = require('./a');\n",
+      // Not first on its line: tsc emits a leading block comment followed by a
+      // space rather than a newline, so an anchored pattern misses the whole
+      // statement.
+      "/** doc */ export * from './a';\n",
       "declare module './a' {}\n",
       'declare module "./a";\n',
       '/// <reference path="./a.d.ts" />\n',
       '/// <reference types="node" />\n',
+      '/// <reference lib="es2015" />\n',
       "import { A } from './a' with { type: 'json' };\n",
       // The two the old pattern could not see: `from` is not on the `import`
       // line. tsc does not wrap this today, which is why it was never live.

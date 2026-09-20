@@ -434,17 +434,19 @@ export const declarationExtensions = (root = 'dist/types') => {
       // and a side-effect `import './x';` in neither position. An unmatched
       // specifier fails silently, so the tree is re-read here.
       for (const file of files) {
-        // The same check the rewrite loop makes, for the same reason: this loop
-        // throws too, and the rewrite loop's own check cannot cover the gap
-        // between its last write and this loop's first read.
+        // The FIRST guard on a real window, not a copy of the one above. A
+        // rebuild landing during the rewrite loop's final `writeFile` has
+        // already passed both of that loop's checks, and the loop makes no
+        // further one — so this is the only thing that sees it, and this loop
+        // throws.
         //
-        // Unlike every other clause here this one is NOT pinned by a case, and
-        // the honest reason is that the window cannot be hit deterministically
-        // through the hooks: a rebuild started from outside lands inside the
-        // rewrite loop, where the check above already returns. It is here for
-        // symmetry with the loop that is pinned, not on the strength of a
-        // reproduction — which is worth saying plainly, because a clause with no
-        // failing case behind it is exactly what this file keeps getting wrong.
+        // It is not pinned by a case, and that is a limit of the seam rather
+        // than a judgement about the clause: driving it needs the generation to
+        // move while that `writeFile` is in flight, and `readFile`/`writeFile`
+        // come straight from `node:fs/promises` with nothing to hook. A
+        // `setTimeout` would produce a flaky test wearing a pinned test's
+        // clothes. Worth stating rather than leaving implied, since everything
+        // else here has a failing case behind it.
         if (generation !== building) return;
         const text = await readFile(file, 'utf8');
         // EVERY quoted relative string, and the question is whether it RESOLVES.
@@ -537,10 +539,14 @@ export const declarationExtensions = (root = 'dist/types') => {
  */
 export const hasModuleSpecifiers = text => {
   const sourceFile = parseDeclaration(text);
-  // Both triple-slash forms. `path` moves with the copy; `types` does not, but
-  // the pattern this replaced flagged it and nothing here needs it loosened.
+  // All THREE triple-slash forms. Only `path` moves with the copy; `types` and
+  // `lib` do not, but the pattern this replaced flagged every `<reference`, and
+  // swapping it for the parser was meant to close holes rather than open one.
+  // `lib` is here because leaving it out is precisely the loosening the line
+  // above told itself not to do.
   if (sourceFile.referencedFiles.length) return true;
   if (sourceFile.typeReferenceDirectives.length) return true;
+  if (sourceFile.libReferenceDirectives.length) return true;
   let found = false;
   const visit = node => {
     if (found) return;
