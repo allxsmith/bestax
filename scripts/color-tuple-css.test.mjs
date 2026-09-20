@@ -185,14 +185,20 @@ const indexCache = new Map();
 const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 
 /**
- * An at-rule whose contents apply only sometimes.
+ * An at-rule whose contents apply exactly as they would at the top level.
  *
- * `@media`, `@supports`, `@container` and `@scope` each wrap their rules in
- * a condition — a viewport, a feature, a size, a subtree. `@layer` and
- * `@font-face` and the rest do not, so a rule under one of those is as live
- * as a rule at the top level.
+ * Listed the other way round on purpose. Naming the CONDITIONS instead —
+ * `@media`, `@supports`, `@container`, `@scope` — waves through every
+ * at-rule this file has not heard of, and a browser that has not heard of
+ * one drops it WITH its block, so nothing inside renders at all. That made
+ * `@media-foo`, `@page` and `@starting-style` read live, which is the
+ * direction this file forbids, and the commit before this one pinned it.
+ *
+ * `@layer` is the only at-rule whose contents are ordinary style rules that
+ * always apply. `@keyframes` and `@font-face` hold no style rules to begin
+ * with, so calling them conditional costs nothing.
  */
-const CONDITIONAL_AT_RULE = /^@(media|supports|container|scope)(?![\w-])/i;
+const TRANSPARENT_AT_RULE = /^@layer(?![\w-])/i;
 
 /**
  * The at-rule whose prelude is a selector list rather than a condition.
@@ -213,6 +219,20 @@ const SCOPE_AT_RULE = /^@scope(?![\w-])/i;
  * checks for one and stops instead.
  */
 const NUMERIC_ESCAPE = /\\[0-9a-f]/i;
+
+/**
+ * A name a CSS class can actually have.
+ *
+ * An identifier may not begin with a digit, nor with a hyphen followed by
+ * one, so anything that does was never a class — it is a number this file
+ * read as one. A keyframe selector is where that happens:
+ * `@keyframes f{33.3%{…}}` offers `.3` to the class tokeniser and it comes
+ * back as the name `3`. Fabricating a name is the loud direction for the
+ * membership index, so this is tidiness rather than a fix, and it closes
+ * the shape wherever it appears rather than teaching one caller about
+ * keyframes.
+ */
+const IDENTIFIER_START = /^-?[A-Za-z_\\]/;
 
 /** A class selector wherever it appears, with its name captured. */
 const CLASS_TOKEN = /\.((?:\\.|[A-Za-z0-9_-])+)/g;
@@ -515,12 +535,43 @@ function simpleSelectors(css) {
     // membership index. Emptying them first is one rule instead of a
     // special case at each of the three.
     const stripped = css.replace(
-      /\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|url\((?:[^)"'\\]|\\[\s\S])*\)/gi,
+      /\\[\s\S]|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|url\((?:[^)"'\\]|\\[\s\S])*\)/gi,
       match => {
+        // An escape pair comes back untouched. It has to be CONSUMED here
+        // rather than skipped, or the character it escapes can open one of
+        // the spans below: a class name spelled `.a\\"b` started a string
+        // at its own quote, and the match ran to the next quote in the
+        // file, emptying the `{` of a rule in between. The stack never got
+        // deeper and what was nested inside read as top level.
+        if (match[0] === '\\') return match;
         if (match.startsWith('/*')) return '';
         if (match.slice(0, 4).toLowerCase() === 'url(') return 'url()';
         return match[0] + match[0];
       }
+    );
+
+    // No numeric escape survives into the text this file reads as
+    // structure. Strings, comments and url tokens are gone by now, so one
+    // that is left sits in a selector or a declaration, and both are read
+    // by patterns that match literal spellings: `\\75 rl(` IS `url(` and
+    // would not be recognised as one, leaking whatever its parentheses
+    // hold. Decoding identifiers is a CSS reader's job and more than this
+    // file should carry, so it stops instead of guessing.
+    // Bracketed spans come out first. A numeric escape in an attribute
+    // value renames nothing — attribute selectors are removed before any
+    // class is read, and in the sets path they land in the qualifier
+    // residue — so halting there would be a false alarm over text this
+    // file never reads as either a selector or a function.
+    const structural = withoutAttributes(stripped);
+    const numeric = NUMERIC_ESCAPE.exec(structural);
+    assert.ok(
+      !numeric,
+      `the stylesheet carries a numeric escape near ` +
+        `\`${structural.slice(Math.max(0, numeric?.index - 40), (numeric?.index ?? 0) + 40).trim()}\`, ` +
+        'which names a character by code point. This file matches literal ' +
+        'spellings, so it would read neither the class nor the function ' +
+        'that escape spells. Teach it CSS identifier decoding in the same ' +
+        'change that introduced the escape.'
     );
     const chunks = splitUnescaped(stripped, '{');
     // One entry per block still open. `conditional` marks a block that only
@@ -558,7 +609,7 @@ function simpleSelectors(css) {
       // condition.
       if (heading.startsWith('@')) {
         open.push({
-          conditional: CONDITIONAL_AT_RULE.test(heading),
+          conditional: !TRANSPARENT_AT_RULE.test(heading),
           rule: false,
         });
         // One at-rule prelude is made of SELECTORS rather than a condition,
@@ -578,6 +629,7 @@ function simpleSelectors(css) {
               'that introduced the escape.'
           );
           for (const [, name] of roots.matchAll(CLASS_TOKEN)) {
+            if (!IDENTIFIER_START.test(name)) continue;
             names.add(name.replace(/\\(.)/g, '$1'));
           }
         }
@@ -627,6 +679,7 @@ function simpleSelectors(css) {
       // `:not()` is still a class it names, and the membership path is the
       // one place that matters.
       for (const [, name] of selectorText.matchAll(CLASS_TOKEN)) {
+        if (!IDENTIFIER_START.test(name)) continue;
         names.add(name.replace(/\\(.)/g, '$1'));
       }
       const prelude = requirements(heading);
@@ -1177,6 +1230,65 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'has to skip that one.'
     );
 
+    // An at-rule this file has not heard of is not transparent. Naming
+    // the conditions instead of the exceptions waved every unknown one
+    // through as live, and a browser that has not heard of an at-rule
+    // drops it WITH its block.
+    assert.equal(
+      live(
+        '@page{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a page context is not the top level, so a compound inside one is ' +
+        'not shown to render.'
+    );
+    assert.equal(
+      live(
+        '@starting-style{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'and neither is a starting style, which is exactly the kind of ' +
+        'at-rule an allow-list of conditions cannot know about.'
+    );
+
+    // An escaped quote inside a CLASS NAME is not the start of a string.
+    // The span from it to the next quote in the file emptied the brace of
+    // a rule in between, so the stack never got deeper and what was
+    // nested inside read as top level.
+    assert.equal(
+      live(
+        '.a\\"b{color:red}.hero{content:"}";.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'an escaped quote in a class name must not open a string, or the ' +
+        'match runs past the rule that follows and takes its brace.'
+    );
+
+    // A numeric escape can spell a FUNCTION name as well as a class one,
+    // and this file matches literal spellings.
+    assert.throws(
+      () =>
+        live(
+          '.a{background:\\75 rl(x}y);.tabs.is-boxed{color:red}}',
+          'tabs.is-boxed'
+        ),
+      /numeric escape/,
+      '`\\75 rl(` is `url(`, which would not be recognised as one, so the ' +
+        'brace inside its parentheses would leak. The guard stops rather ' +
+        'than guessing.'
+    );
+
+    // A KEYFRAME selector is a percentage, and a percentage is not a class.
+    assert.equal(
+      live('@keyframes f{33.3%{opacity:1}}', '3'),
+      false,
+      'a CSS identifier cannot begin with a digit, so a decimal read as a ' +
+        'class was never a class.'
+    );
+
     // A STRING is content, not structure. Everything this matcher does
     // reads structure out of raw text, and a string is where `{`, `}`, `;`
     // and `.` appear meaning none of it.
@@ -1242,10 +1354,11 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         '@media-foo (min-width:10px){.notification.is-primary{color:red}}',
         'notification.is-primary'
       ),
-      true,
-      'an unknown at-rule is not a condition, and a word boundary holds ' +
-        'before a hyphen, so both at-rule patterns have to say so the ' +
-        'same way.'
+      false,
+      'an at-rule this file has not heard of is not transparent: a browser ' +
+        'that has not heard of one drops it WITH its block, so nothing ' +
+        'inside renders. Listing the conditions instead of the exceptions ' +
+        'waved every unknown one through as live.'
     );
     assert.equal(
       live('@scope-foo (1.5rem){.box{color:red}}', '5rem'),
