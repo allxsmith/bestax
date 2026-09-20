@@ -458,6 +458,20 @@ function simpleSelectors(css) {
         });
         continue;
       }
+      // A NUMERIC escape names a character by code point — `.\31 23` is
+      // the class `123` — and the class tokeniser reads every escape as
+      // one character, so it would take `31` and lose the real name. That
+      // is the quiet direction, and decoding them properly means a real
+      // CSS identifier reader. Nothing this repo builds carries one, so
+      // the guard says it cannot read the stylesheet rather than reading
+      // it wrongly.
+      assert.ok(
+        !/\\[0-9a-f]/i.test(heading),
+        `the selector \`${heading}\` carries a numeric escape, which this ` +
+          'file reads as a single character and would silently rename. ' +
+          'Teach it CSS identifier decoding in the same change that ' +
+          'introduced the escape.'
+      );
       const conditional = open.some(block => block.conditional);
       const nested = open.some(block => block.rule);
       open.push({ conditional: false, rule: true });
@@ -476,8 +490,14 @@ function simpleSelectors(css) {
       // the exact-size rule refuses it — but the membership path has no
       // size to check against, and the two spellings of one attribute have
       // to answer the same.
+      // The strip has to see its own escapes, both ends. An escaped `[`
+      // is part of a class name and must not open an attribute selector —
+      // matching it deletes the real classes after it, which LOSES a name,
+      // the quiet direction for this index. An escaped `]` does not close
+      // one either, and stopping at it leaves the tail to be read as
+      // selector text, which fabricates one.
       for (const [, name] of heading
-        .replace(/\[[^\]]*\]/g, '')
+        .replace(/(?<!\\)\[(?:[^\]\\]|\\[\s\S])*\]/g, '')
         .matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)) {
         names.add(name.replace(/\\(.)/g, '$1'));
       }
@@ -1050,6 +1070,29 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'and an UNQUOTED attribute value is an identifier rather than a ' +
         'string, so emptying strings does not reach it — the two spellings ' +
         'of one attribute have to answer the same.'
+    );
+    // That strip has to see its own escapes, at both ends.
+    assert.equal(
+      live('.a\\[b.is-real[d=e]{color:red}', 'is-real'),
+      true,
+      'an escaped bracket is part of a class name, so it must not open an ' +
+        'attribute selector and take the real classes after it with it.'
+    );
+    assert.equal(
+      live('.box[data-x=a\\]b-fake]{color:red}', 'boxb-fake'),
+      false,
+      'and an escaped bracket does not close one either: stopping at it ' +
+        'leaves the tail to be read as selector text, which fuses onto ' +
+        'the class before the attribute and invents a name.'
+    );
+
+    // A NUMERIC escape names a character by code point, which this file
+    // cannot decode. It says so rather than renaming the class quietly.
+    assert.throws(
+      () => live('.\\31 23{color:red}', '123'),
+      /numeric escape/,
+      'a stylesheet carrying a numeric escape has to fail loudly, because ' +
+        'reading it as one character loses the name it was spelling.'
     );
     assert.equal(
       live(
