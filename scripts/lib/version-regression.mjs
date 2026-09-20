@@ -331,6 +331,15 @@ export const findVersionRegressions = ({
  * second place for it to be wrong.
  */
 export const readTagFormat = text => {
+  // MENTIONS first, before asking which are literals. Counting only the
+  // literal matches narrowed the decoy class without closing it: a real
+  // declaration that is not a string literal — `tagFormat: build(name)` —
+  // produces no match at all, which leaves a decoy in a comment unopposed and
+  // sole. It then reads as the single clean declaration, and if it happens to
+  // match what this check expects, the package is compared against tags spelled
+  // the other way, finds none, and is exempted in silence.
+  const mentions = [...text.matchAll(/\btagFormat\s*:/g)];
+  if (mentions.length !== 1) return UNREADABLE;
   const matches = [
     ...text.matchAll(/tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g),
   ];

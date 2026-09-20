@@ -272,10 +272,12 @@ test('the tag strings are what git and semantic-release actually use', () => {
 });
 
 test('every real release config spells the tagFormat this check assumes', async () => {
-  // Against the REAL configs, loaded rather than pattern-matched, which is the
-  // shape publishable-manifests uses for the same reason: the check derives tag
-  // names from the package name, so a package that adopts another format would
-  // match no tags and be exempted in silence. Here that fails a test instead.
+  // Against the REAL configs, through the SAME reader the build uses. That is
+  // deliberate and it is also the limit of this case: a config that fools the
+  // reader fools this too, so what it pins is that the five real configs are
+  // spelled the way the check assumes — not that the reader cannot be fooled.
+  // The decoy cases below are what hold that, and they are where to add one if
+  // a new shape turns up.
   const { packages } = await publishablePackages(REPO);
   assert.ok(packages.length >= 4, 'no publishable packages were found');
   let configs = 0;
@@ -616,6 +618,23 @@ test('an ambiguous tagFormat is refused, not resolved by position', () => {
     'const note = \'tagFormat: "v${version}"\';\n' +
     "export default { tagFormat: 'pkg@${version}' };\n";
   assert.equal(readTagFormat(decoyInString), UNREADABLE);
+
+  // The shape that survived the first fix: when the REAL declaration is not a
+  // string literal it produces no match at all, so counting only literal
+  // matches left the decoy unopposed and sole — and a decoy that happens to
+  // match the expected format then exempts the package in silence. Mentions
+  // are counted before literals for exactly this.
+  const decoyBesideNonLiteral =
+    "// keep in sync with tagFormat: 'pkg${'@'}${version}'\n" +
+    'export default { tagFormat: buildTagFormat(name) };\n';
+  assert.equal(readTagFormat(decoyBesideNonLiteral), UNREADABLE);
+
+  // A declaration this cannot read, alone, is still refused rather than
+  // treated as absent.
+  assert.equal(
+    readTagFormat('export default { tagFormat: buildTagFormat(name) };\n'),
+    UNREADABLE
+  );
 
   // Telling a comment from code needs a tokeniser this file has no business
   // carrying, so ambiguity is refused rather than guessed at. One declaration
