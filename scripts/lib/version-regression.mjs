@@ -128,6 +128,7 @@ export const findVersionRegressions = ({
   unreadableTagFormat = UNREADABLE,
   headExists = true,
   skippedCount = 0,
+  tagsReadable = true,
 }) => {
   const problems = [];
 
@@ -181,6 +182,19 @@ export const findVersionRegressions = ({
   // message naming what to fix, and adding "nothing is reachable" on top would
   // send someone after their checkout instead.
   if (!comparable.length) return problems;
+
+  // git could not answer at all — a tarball, or a broken object store. An
+  // environment state like the others, reaching the hatch through the same
+  // door rather than around the contract.
+  if (!tagsReadable) {
+    if (allowUntagged) return problems;
+    return [
+      ...problems,
+      'version-regression: `git tag` failed, so no released version could be ' +
+        'compared against. This check needs to run inside the git repository ' +
+        'rather than an extracted tarball.',
+    ];
+  }
 
   if (!headExists) {
     if (allowUntagged) return problems;

@@ -543,3 +543,29 @@ test('a skipped manifest counts toward the partial diagnosis', () => {
   assert.match(partial[0], /the ones excluded above may be where the tags are/);
   assert.doesNotMatch(partial[0], /what a shallow clone looks like/);
 });
+
+test('an unreadable git is an environment stop like the others', () => {
+  // It used to short-circuit in the WIRING, before the contract loop ran at
+  // all — so letting the hatch reach it handed it the contract too, two rounds
+  // after that exact bug was fixed inside this function. Every environment
+  // answer belongs here, behind the contract, or the next one reopens it.
+  const args = {
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: '1.0.0' },
+    ],
+    anyTagsExist: false,
+    tagsReadable: false,
+    tagsFor: () => [],
+    tagFormatFor: dir => (dir === 'a' ? 'v${version}' : expectedTagFormat('b')),
+  };
+  const stopped = findVersionRegressions(args);
+  assert.equal(stopped.length, 2);
+  assert.match(stopped[0], /tagFormat/);
+  assert.match(stopped[1], /`git tag` failed/);
+
+  // The hatch takes the environment stop and leaves the contract standing.
+  const muted = findVersionRegressions({ ...args, allowUntagged: true });
+  assert.equal(muted.length, 1);
+  assert.match(muted[0], /tagFormat/);
+});

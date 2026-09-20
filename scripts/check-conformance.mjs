@@ -4178,20 +4178,12 @@ async function checkVersionRegression(allowUntagged = false) {
       'entirely.'
   );
 
-  const all = git(['tag', '--list']);
-  if (all === null) {
-    // The one environment stop the hatch could not reach, because it returned
-    // before the flag was consulted. A repository git cannot read is exactly
-    // the shape `--allow-untagged` exists for.
-    if (allowUntagged) return problems;
-    return [
-      ...problems,
-      'version-regression: `git tag` failed, so no released version could be ' +
-        'compared against. This check needs to run inside the git repository ' +
-        'rather than an extracted tarball.',
-    ];
-  }
-
+  // Read BEFORE any environment answer is acted on. Every environment stop
+  // belongs to `findVersionRegressions`, which runs the contract first and
+  // unconditionally — and returning early from HERE is what handed the hatch
+  // the contract again, two rounds after fixing exactly that. There is nothing
+  // to return early for: reading release configs does not need git.
+  //
   // Read up front: the matching below is synchronous so it can be unit-tested
   // without a git fixture or a filesystem.
   const formats = new Map();
@@ -4200,8 +4192,9 @@ async function checkVersionRegression(allowUntagged = false) {
     try {
       text = await readFile(join(REPO, pkg.dir, 'release.config.js'), 'utf8');
     } catch (error) {
-      // ABSENT is not this check's business: `release-docs-sync` is what holds
-      // a publishable package to having a release config. Present-but-unreadable
+      // ABSENT is not this check's business: `publishable-manifests.test.mjs`
+      // is what holds a publishable package to having a release config, by
+      // loading each one. Present-but-unreadable
       // is a different thing, and collapsing the two exempted a package because
       // of a permissions problem.
       if (error.code === 'ENOENT') continue;
@@ -4216,6 +4209,7 @@ async function checkVersionRegression(allowUntagged = false) {
     formats.set(pkg.dir, match ? match[2] : UNREADABLE);
   }
 
+  const all = git(['tag', '--list']);
   return [
     ...problems,
     ...findVersionRegressions({
@@ -4229,9 +4223,16 @@ async function checkVersionRegression(allowUntagged = false) {
       // object is in the store, so a corrupt one answered "yes" here and then
       // threw out of the tag lookup, past every flag read — the state this
       // question was added to turn into a message.
-      headExists: git(['rev-parse', '--verify', 'HEAD^{commit}']) !== null,
-      anyTagsExist: all.trim().length > 0,
+      headExists:
+        all !== null &&
+        git(['rev-parse', '--verify', 'HEAD^{commit}']) !== null,
+      // `null` means git could not answer at all, which is a different state
+      // from a repository with no tags — and one the contract must still run
+      // ahead of.
+      tagsReadable: all !== null,
+      anyTagsExist: all !== null && all.trim().length > 0,
       tagsFor: name => {
+        if (all === null) return [];
         const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
         // A FAILED git call is not an empty answer. Collapsed into `[]` it read
         // as "never released", which exempted that one package while the run
