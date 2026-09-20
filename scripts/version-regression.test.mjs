@@ -25,6 +25,8 @@ import {
   versionRegressionProblems,
 } from './lib/version-regression.mjs';
 import { publishablePackages } from './check-conformance.mjs';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -680,4 +682,128 @@ test('the wiring compares, and flags a real regression end to end', async () => 
     readConfig: enoent,
   });
   assert.deepEqual(noConfig, []);
+});
+
+test('the wiring maps git onto the questions the rule asks', async () => {
+  // The mapping is drivable and was undriven, so four clauses in it survived
+  // mutation — two of them drop-in reverts of fixes from earlier rounds. Each
+  // assertion below names the clause it holds.
+  const packages = [{ dir: 'a', name: 'a', version: '1.0.0' }];
+  const config = () => Promise.resolve("tagFormat: 'a@${version}',");
+  const calls = [];
+  const git = args => {
+    calls.push(args.join(' '));
+    if (args[1] === '--list' && args.length === 2) return 'a@1.0.0\n';
+    if (args[0] === 'rev-parse') return 'deadbeef\n';
+    return 'a@1.0.0\n';
+  };
+  assert.deepEqual(
+    await versionRegressionProblems({ packages, git, readConfig: config }),
+    []
+  );
+  // `tagGlob` is what makes the per-package lookup select that package's tags.
+  assert.ok(
+    calls.some(c => c === 'tag --merged HEAD --list a@*'),
+    `the tag lookup did not use the package glob: ${calls.join(' | ')}`
+  );
+  // PEELED. `--verify HEAD` resolves a ref without proving the object exists,
+  // which answered yes on a corrupt store and then threw past every flag read.
+  assert.ok(
+    calls.includes('rev-parse --verify HEAD^{commit}'),
+    `HEAD was not peeled to a commit: ${calls.join(' | ')}`
+  );
+
+  // A FAILED per-package lookup is not an empty answer. Collapsed to `[]` it
+  // read as "never released" and exempted that package while the run ticked.
+  await assert.rejects(
+    versionRegressionProblems({
+      packages,
+      readConfig: config,
+      git: args =>
+        args[1] === '--list' && args.length === 2
+          ? 'a@1.0.0\n'
+          : args[0] === 'rev-parse'
+            ? 'x\n'
+            : null,
+    }),
+    /git tag --merged failed/
+  );
+
+  // Tags exist but none is reachable: the shallow-clone shape, which must be
+  // told apart from having no tags at all.
+  const shallow = await versionRegressionProblems({
+    packages,
+    readConfig: config,
+    git: args =>
+      args[1] === '--list' && args.length === 2
+        ? 'a@9.9.9\n'
+        : args[0] === 'rev-parse'
+          ? 'x\n'
+          : '',
+  });
+  assert.equal(shallow.length, 1);
+  assert.match(shallow[0], /none of them is reachable/);
+});
+
+test('only an ABSENT release config is exempt, not an unreadable one', async () => {
+  // Pinned on the absent side only, so deleting the discrimination — and
+  // exempting a package over a permissions error — kept the suite green.
+  const packages = [{ dir: 'a', name: 'a', version: '1.0.0' }];
+  const git = args =>
+    args[1] === '--list' && args.length === 2
+      ? 'a@1.0.0\n'
+      : args[0] === 'rev-parse'
+        ? 'x\n'
+        : 'a@1.0.0\n';
+
+  const absent = await versionRegressionProblems({
+    packages,
+    git,
+    readConfig: () => {
+      const error = new Error('ENOENT');
+      error.code = 'ENOENT';
+      return Promise.reject(error);
+    },
+  });
+  assert.deepEqual(absent, []);
+
+  const unreadable = await versionRegressionProblems({
+    packages,
+    git,
+    readConfig: () => {
+      const error = new Error('EACCES');
+      error.code = 'EACCES';
+      return Promise.reject(error);
+    },
+  });
+  assert.equal(unreadable.length, 1);
+  assert.match(unreadable[0], /cannot read/);
+});
+
+test('a nameless manifest is produced as its own channel', async () => {
+  // The CONSUMER was pinned and the producer was not, so the old predicate
+  // stayed a drop-in revert: it dropped a nameless package on the floor and
+  // nothing noticed.
+  const root = mkdtempSync(join(tmpdir(), 'unnamed-'));
+  writeFileSync(
+    join(root, 'pnpm-workspace.yaml'),
+    'packages:\n  - good\n  - nameless\n  - hidden\n'
+  );
+  for (const [dir, body] of [
+    ['good', '{"name":"good","version":"1.0.0"}'],
+    ['nameless', '{"version":"1.0.0"}'],
+    ['hidden', '{"private":true}'],
+  ]) {
+    mkdirSync(join(root, dir), { recursive: true });
+    writeFileSync(join(root, dir, 'package.json'), body);
+  }
+  const { packages, unreadable, unnamed } = await publishablePackages(root);
+  assert.deepEqual(
+    packages.map(p => p.dir),
+    ['good']
+  );
+  assert.deepEqual(unreadable, []);
+  // Private is a deliberate choice and stays quiet; nameless is a broken
+  // manifest wearing the same clothes.
+  assert.deepEqual(unnamed, ['nameless']);
 });
