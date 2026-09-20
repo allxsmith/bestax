@@ -517,3 +517,29 @@ test('compares numeric identifiers without losing precision', () => {
   assert.equal(compareVersions('1.0.0-01', '1.0.0-1'), 0);
   assert.ok(compareVersions('1.0.0-02', '1.0.0-10') < 0);
 });
+
+test('a skipped manifest counts toward the partial diagnosis', () => {
+  // `partial` decides whether the stop blames the checkout. It was written
+  // against the contract's exclusions, and the same commit opened a second
+  // channel it could not see: a manifest unreadable or nameless never becomes
+  // a package at all, so it may be exactly where the reachable tags are — and
+  // answering that with "shallow clone, run --unshallow" is both wrong and
+  // inert.
+  const args = {
+    packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
+    anyTagsExist: true,
+    tagsFor: () => [],
+    tagFormatFor: dir => expectedTagFormat(dir),
+  };
+  // No skipped manifests: every package this knows about is comparable, so a
+  // checkout diagnosis is the honest one.
+  const whole = findVersionRegressions(args);
+  assert.equal(whole.length, 1);
+  assert.match(whole[0], /what a shallow clone looks like/);
+
+  // One skipped: the tags may be there, so the message stops blaming the clone.
+  const partial = findVersionRegressions({ ...args, skippedCount: 1 });
+  assert.equal(partial.length, 1);
+  assert.match(partial[0], /the ones excluded above may be where the tags are/);
+  assert.doesNotMatch(partial[0], /what a shallow clone looks like/);
+});

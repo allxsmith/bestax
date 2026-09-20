@@ -127,6 +127,7 @@ export const findVersionRegressions = ({
   allowUntagged = false,
   unreadableTagFormat = UNREADABLE,
   headExists = true,
+  skippedCount = 0,
 }) => {
   const problems = [];
 
@@ -214,7 +215,9 @@ export const findVersionRegressions = ({
     // says which one this is rather than guessing at the commonest.
     // A package excluded by the contract may have been the one holding the
     // reachable tags, so blaming the checkout there would be false about it.
-    const partial = comparable.length < packages.length;
+    // Both channels: the contract's exclusions, and the manifests the caller
+    // could not turn into packages at all. Either may be where the tags are.
+    const partial = comparable.length < packages.length + skippedCount;
     const cause = !anyTagsExist
       ? 'this checkout has no tags at all'
       : partial

@@ -1709,6 +1709,7 @@ export function releaseDocViolations(docs, packages) {
 export async function publishablePackages(root = REPO) {
   const packages = [];
   const unreadable = [];
+  const unnamed = [];
   const yaml = await readFile(join(root, 'pnpm-workspace.yaml'), 'utf8');
   for (const dir of parseWorkspacePackages(yaml)) {
     let pkg;
@@ -1728,10 +1729,18 @@ export async function publishablePackages(root = REPO) {
       unreadable.push(dir);
       continue;
     }
-    if (!pkg.private && pkg.name)
+    // A manifest that PARSES but names nothing lands nowhere otherwise: not in
+    // `packages`, not in `unreadable`, so every check reading this list skips
+    // it in silence. Private is a deliberate choice and stays quiet; nameless
+    // is a broken manifest wearing the same clothes.
+    if (!pkg.private && !pkg.name) {
+      unnamed.push(dir);
+      continue;
+    }
+    if (!pkg.private)
       packages.push({ dir, name: pkg.name, version: pkg.version });
   }
-  return { packages, unreadable };
+  return { packages, unreadable, unnamed };
 }
 
 async function checkReleaseDocsSync() {
@@ -4143,7 +4152,7 @@ async function checkTurboTasks() {
  * is in its history and the comparison bites.
  */
 async function checkVersionRegression(allowUntagged = false) {
-  const { packages, unreadable } = await publishablePackages();
+  const { packages, unreadable, unnamed } = await publishablePackages();
   const git = args => {
     try {
       return execFileSync('git', args, {
@@ -4160,15 +4169,21 @@ async function checkVersionRegression(allowUntagged = false) {
   // would exempt it from this check without a word. `checkPublishableManifests`
   // reds the same state in a full run; saying it here too costs a line and
   // keeps `--only=version-regression` honest.
-  const problems = unreadable.map(
+  const skipped = [...unreadable, ...unnamed];
+  const problems = skipped.map(
     dir =>
-      `${dir}/package.json could not be read, so ${dir} was not compared ` +
-      'against its released version. Fix the manifest — a truncated or ' +
-      'invalid one exempts the package from this check entirely.'
+      `${dir}/package.json could not be read, or names no package, so ${dir} ` +
+      'was not compared against its released version. Fix the manifest — a ' +
+      'truncated, invalid or nameless one exempts the package from this check ' +
+      'entirely.'
   );
 
   const all = git(['tag', '--list']);
   if (all === null) {
+    // The one environment stop the hatch could not reach, because it returned
+    // before the flag was consulted. A repository git cannot read is exactly
+    // the shape `--allow-untagged` exists for.
+    if (allowUntagged) return problems;
     return [
       ...problems,
       'version-regression: `git tag` failed, so no released version could be ' +
@@ -4227,6 +4242,11 @@ async function checkVersionRegression(allowUntagged = false) {
       },
       tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
       unreadableTagFormat: UNREADABLE,
+      // Packages this never saw at all. Without them `partial` counts only the
+      // contract's exclusions, and an unreadable manifest holding the reachable
+      // tags would be answered with a shallow-clone diagnosis and an
+      // `--unshallow` that fixes nothing.
+      skippedCount: skipped.length,
     }),
   ];
 }
