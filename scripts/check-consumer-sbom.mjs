@@ -308,7 +308,7 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     // produced no problem, and identities() rendered its missing version as
     // `?` — so when both syft runs omitted the same metadata the floor and the
     // cross-check agreed with each other and a malformed document shipped.
-    // Measured before requiring it: 428 entries across the four closures, none
+    // Measured before requiring it: 428 entries across the closures, none
     // missing either field.
     if (typeof e.name !== 'string' || e.name === '') {
       problems.push(
@@ -439,7 +439,7 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
   // A warning names the count and the offenders, which is enough for a human
   // reading a dispatch to recognise "every package is listed twice" instantly,
   // and cannot fail a release on its own. Measured: zero duplicates across all
-  // 208 catalogued entries in the four closures of run 33263381732.
+  // 208 catalogued entries in the closures of run 33263381732.
   const seen = new Map();
   for (const e of catalogued) {
     const id = `${e.name}@${e.version ?? '?'}`;

@@ -78,9 +78,9 @@ export default {
         // in version 1.0.0" and adds a `released` label. Every one of those
         // is a false claim about a PR that predates this package, it is not
         // reversible, and each is a comment event in a repository with
-        // comment-triggered automation. The first releases of the other three
-        // packages did exactly that — PR #300 carries four such notices, two
-        // of them from 1.0.0 releases of packages it has nothing to do with.
+        // comment-triggered automation. Every earlier first release did
+        // exactly that, and old PRs carry the notices to prove it — #706
+        // names one and how to look.
         //
         // Precedent for the noise is not a reason to add more of it, and the
         // asymmetry decides it: not commenting can be undone later, whereas
