@@ -11,9 +11,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   compareVersions,
@@ -21,7 +20,7 @@ import {
   findVersionRegressions,
   tagGlob,
   UNREADABLE,
-  readTagFormat,
+  loadTagFormat,
   versionRegressionProblems,
 } from './lib/version-regression.mjs';
 import { publishablePackages } from './check-conformance.mjs';
@@ -175,7 +174,7 @@ test('flags a tagFormat present in a form it cannot read', () => {
     tagFormatFor: () => UNREADABLE,
   });
   assert.equal(problems.length, 1);
-  assert.match(problems[0], /could not be read unambiguously/);
+  assert.match(problems[0], /could not be read/);
   assert.doesNotMatch(problems[0], /BELOW/);
 });
 
@@ -280,19 +279,14 @@ test('every real release config spells the tagFormat this check assumes', async 
   // a new shape turns up.
   const { packages } = await publishablePackages(REPO);
   assert.ok(packages.length >= 4, 'no publishable packages were found');
+  const importReal = dir =>
+    import(pathToFileURL(join(REPO, dir, 'release.config.js')).href);
   let configs = 0;
   for (const pkg of packages) {
-    let text;
-    try {
-      text = await readFile(join(REPO, pkg.dir, 'release.config.js'), 'utf8');
-    } catch {
-      continue;
-    }
+    // Through the SAME loader the build uses.
+    const declared = await loadTagFormat(pkg.dir, importReal);
+    if (declared === null) continue;
     configs += 1;
-    // Through the SAME reader the build uses. This re-implemented that pattern
-    // single-quote-only while production read all three spellings, so the two
-    // could drift and the test would keep passing.
-    const declared = readTagFormat(text);
     assert.notEqual(
       declared,
       UNREADABLE,
@@ -583,90 +577,53 @@ test('an unreadable git is an environment stop like the others', () => {
   assert.match(muted[0], /tagFormat/);
 });
 
-const enoent = () => {
-  const error = new Error('ENOENT');
-  error.code = 'ENOENT';
+// A release config as the loader sees it: an evaluated module, not text.
+const config = tagFormat => () => Promise.resolve({ default: { tagFormat } });
+const noConfig = () => {
+  const error = new Error('not found');
+  error.code = 'ERR_MODULE_NOT_FOUND';
   return Promise.reject(error);
 };
 
-test('readTagFormat reads every literal spelling, and says when it cannot', () => {
-  // The test used to re-implement this pattern to hold the real configs to it,
-  // which is a second place for it to be wrong — and it WAS wrong there,
-  // single-quote-only, while production read all three.
-  assert.equal(readTagFormat("tagFormat: 'pkg@${version}',"), 'pkg@${version}');
-  assert.equal(readTagFormat('tagFormat: "pkg@${version}",'), 'pkg@${version}');
-  assert.equal(readTagFormat('tagFormat: `pkg@${version}`,'), 'pkg@${version}');
-  // Present but unreadable is NOT the same as absent, and collapsing them
-  // exempted the package.
-  assert.equal(readTagFormat('tagFormat: someVariable,'), UNREADABLE);
-  assert.equal(readTagFormat('no tag format here'), UNREADABLE);
+test('loadTagFormat reads what the config declares, however it is written', async () => {
+  // The MODULE, not its text. Two rounds of pattern-matching over the file
+  // could not see any of these, and each read wrong SILENTLY: a computed or
+  // quoted key has no `tagFormat:` to match, a spread puts the declaration in
+  // another file entirely, and a concatenation has one mention and one literal
+  // that is not the value.
+  const load = tagFormat => loadTagFormat('pkg', config(tagFormat));
+  assert.equal(await load('pkg@${version}'), 'pkg@${version}');
+  // Whatever the expression evaluates to is what the release will use, so it is
+  // what this must compare — including a value no literal in the file spells.
+  assert.equal(await load('pkg@${version}' + '-rc'), 'pkg@${version}-rc');
 });
 
-test('an ambiguous tagFormat is refused, not resolved by position', () => {
-  // Taking the FIRST match let a `tagFormat` in a comment or a string outrank
-  // the real declaration below it. The dangerous direction is the decoy that
-  // happens to match what this check expects: the contract then PASSES, the
-  // package is compared against tags spelled the other way, finds none, and is
-  // skipped with no comparison and no message — a silent exemption, which is
-  // the one outcome this rule exists to prevent.
-  const decoyInComment =
-    "// renamed from tagFormat: 'pkg@${version}' in #123\n" +
-    "export default { tagFormat: 'v${version}' };\n";
-  assert.equal(readTagFormat(decoyInComment), UNREADABLE);
-
-  const decoyInString =
-    'const note = \'tagFormat: "v${version}"\';\n' +
-    "export default { tagFormat: 'pkg@${version}' };\n";
-  assert.equal(readTagFormat(decoyInString), UNREADABLE);
-
-  // The shape that survived the first fix: when the REAL declaration is not a
-  // string literal it produces no match at all, so counting only literal
-  // matches left the decoy unopposed and sole — and a decoy that happens to
-  // match the expected format then exempts the package in silence. Mentions
-  // are counted before literals for exactly this.
-  const decoyBesideNonLiteral =
-    "// keep in sync with tagFormat: 'pkg${'@'}${version}'\n" +
-    'export default { tagFormat: buildTagFormat(name) };\n';
-  assert.equal(readTagFormat(decoyBesideNonLiteral), UNREADABLE);
-
-  // A declaration this cannot read, alone, is still refused rather than
-  // treated as absent.
+test('loadTagFormat tells absent from unusable', async () => {
+  // Absent is not this check's business; anything else is a violation rather
+  // than an exemption, because an exemption is the failure this rule exists to
+  // prevent.
+  assert.equal(await loadTagFormat('pkg', noConfig), null);
   assert.equal(
-    readTagFormat('export default { tagFormat: buildTagFormat(name) };\n'),
+    await loadTagFormat('pkg', () => Promise.resolve({ default: {} })),
     UNREADABLE
   );
-
-  // Telling a comment from code needs a tokeniser this file has no business
-  // carrying, so ambiguity is refused rather than guessed at. One declaration
-  // still reads cleanly.
+  // Declared, but not a string: a function, a template built at call time.
   assert.equal(
-    readTagFormat("export default { tagFormat: 'pkg@${version}' };\n"),
-    'pkg@${version}'
+    await loadTagFormat('pkg', () =>
+      Promise.resolve({ default: { tagFormat: () => 'x' } })
+    ),
+    UNREADABLE
   );
-});
-
-test('a decoy cannot make a mis-spelled tagFormat look correct', () => {
-  // End to end, through the wiring: the shape above with the decoy matching
-  // what the check expects used to leave the package comparable and then
-  // silently uncompared. It is now a violation that names the file.
-  const problems = findVersionRegressions({
-    packages: [
-      { dir: 'pkg', name: 'pkg', version: '1.0.0' },
-      { dir: 'other', name: 'other', version: '9.9.9' },
-    ],
-    anyTagsExist: true,
-    tagsFor: name => (name === 'other' ? ['other@9.9.9'] : []),
-    tagFormatFor: dir =>
-      dir === 'pkg'
-        ? readTagFormat(
-            "// renamed from tagFormat: 'pkg${'@'}${version}' in #123\n" +
-              "export default { tagFormat: 'v${version}' };\n"
-          )
-        : expectedTagFormat('other'),
-  });
-  assert.ok(
-    problems.some(p => /^pkg\/release\.config\.js/.test(p)),
-    `pkg was exempted in silence: ${JSON.stringify(problems)}`
+  // A config that throws on import — a syntax error, a bad require — must not
+  // throw out of the middle of the run.
+  assert.equal(
+    await loadTagFormat('pkg', () => Promise.reject(new SyntaxError('boom'))),
+    UNREADABLE
+  );
+  // No default export at all.
+  assert.equal(
+    await loadTagFormat('pkg', () => Promise.resolve({})),
+    UNREADABLE
   );
 });
 
@@ -685,10 +642,10 @@ test('the contract is answered before any environment state, through the wiring'
   const problems = await versionRegressionProblems({
     packages,
     git: () => null,
-    readConfig: dir =>
-      Promise.resolve(
-        dir === 'a' ? "tagFormat: 'v${version}'," : "tagFormat: 'b@${version}',"
-      ),
+    importConfig: dir =>
+      Promise.resolve({
+        default: { tagFormat: dir === 'a' ? 'v${version}' : 'b@${version}' },
+      }),
   });
   assert.equal(problems.length, 2);
   assert.match(problems[0], /tagFormat/);
@@ -699,10 +656,10 @@ test('the contract is answered before any environment state, through the wiring'
     packages,
     allowUntagged: true,
     git: () => null,
-    readConfig: dir =>
-      Promise.resolve(
-        dir === 'a' ? "tagFormat: 'v${version}'," : "tagFormat: 'b@${version}',"
-      ),
+    importConfig: dir =>
+      Promise.resolve({
+        default: { tagFormat: dir === 'a' ? 'v${version}' : 'b@${version}' },
+      }),
   });
   assert.equal(muted.length, 1);
   assert.match(muted[0], /tagFormat/);
@@ -716,7 +673,7 @@ test('a skipped manifest is reported and counted by the wiring', async () => {
     packages: [{ dir: 'a', name: 'a', version: '1.0.0' }],
     skipped: ['nameless'],
     git: args => (args[1] === '--list' ? 'a@2.0.0\n' : ''),
-    readConfig: () => Promise.resolve("tagFormat: 'a@${version}',"),
+    importConfig: config('a@${version}'),
   });
   assert.equal(problems.length, 2);
   assert.match(problems[0], /nameless\/package\.json/);
@@ -735,13 +692,13 @@ test('the wiring compares, and flags a real regression end to end', async () => 
         : args[0] === 'rev-parse'
           ? 'sha\n'
           : 'a@5.16.3\n',
-    readConfig: () => Promise.resolve("tagFormat: 'a@${version}',"),
+    importConfig: config('a@${version}'),
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /BELOW `5\.16\.3`/);
 
   // A missing release config is not this check's business.
-  const noConfig = await versionRegressionProblems({
+  const absent = await versionRegressionProblems({
     packages: [{ dir: 'a', name: 'a', version: '5.16.3' }],
     git: args =>
       args[1] === '--list'
@@ -749,9 +706,9 @@ test('the wiring compares, and flags a real regression end to end', async () => 
         : args[0] === 'rev-parse'
           ? 'sha\n'
           : 'a@5.16.3\n',
-    readConfig: enoent,
+    importConfig: noConfig,
   });
-  assert.deepEqual(noConfig, []);
+  assert.deepEqual(absent, []);
 });
 
 test('the wiring maps git onto the questions the rule asks', async () => {
@@ -759,7 +716,7 @@ test('the wiring maps git onto the questions the rule asks', async () => {
   // mutation — two of them drop-in reverts of fixes from earlier rounds. Each
   // assertion below names the clause it holds.
   const packages = [{ dir: 'a', name: 'a', version: '1.0.0' }];
-  const config = () => Promise.resolve("tagFormat: 'a@${version}',");
+
   const calls = [];
   const git = args => {
     calls.push(args.join(' '));
@@ -768,7 +725,11 @@ test('the wiring maps git onto the questions the rule asks', async () => {
     return 'a@1.0.0\n';
   };
   assert.deepEqual(
-    await versionRegressionProblems({ packages, git, readConfig: config }),
+    await versionRegressionProblems({
+      packages,
+      git,
+      importConfig: config('a@${version}'),
+    }),
     []
   );
   // `tagGlob` is what makes the per-package lookup select that package's tags.
@@ -788,7 +749,7 @@ test('the wiring maps git onto the questions the rule asks', async () => {
   await assert.rejects(
     versionRegressionProblems({
       packages,
-      readConfig: config,
+      importConfig: config('a@${version}'),
       git: args =>
         args[1] === '--list' && args.length === 2
           ? 'a@1.0.0\n'
@@ -803,7 +764,7 @@ test('the wiring maps git onto the questions the rule asks', async () => {
   // told apart from having no tags at all.
   const shallow = await versionRegressionProblems({
     packages,
-    readConfig: config,
+    importConfig: config('a@${version}'),
     git: args =>
       args[1] === '--list' && args.length === 2
         ? 'a@9.9.9\n'
@@ -829,25 +790,17 @@ test('only an ABSENT release config is exempt, not an unreadable one', async () 
   const absent = await versionRegressionProblems({
     packages,
     git,
-    readConfig: () => {
-      const error = new Error('ENOENT');
-      error.code = 'ENOENT';
-      return Promise.reject(error);
-    },
+    importConfig: noConfig,
   });
   assert.deepEqual(absent, []);
 
   const unreadable = await versionRegressionProblems({
     packages,
     git,
-    readConfig: () => {
-      const error = new Error('EACCES');
-      error.code = 'EACCES';
-      return Promise.reject(error);
-    },
+    importConfig: () => Promise.reject(new SyntaxError('boom')),
   });
   assert.equal(unreadable.length, 1);
-  assert.match(unreadable[0], /could not be read unambiguously/);
+  assert.match(unreadable[0], /could not be read/);
 });
 
 test('a nameless manifest is produced as its own channel', async () => {

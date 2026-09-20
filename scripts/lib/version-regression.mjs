@@ -99,11 +99,11 @@ export const compareVersions = (a, b) => {
 export const expectedTagFormat = name => `${name}@\${version}`;
 
 /**
- * A release config was found and its `tagFormat` could not be read from it.
+ * A release config exists and its `tagFormat` could not be read from it.
  *
  * Distinct from `null`, which means there is no config at all. Collapsing the
- * two exempted a package whose format this could not parse — the opposite of
- * what reading the format is for.
+ * two exempted a package whose format could not be established — the opposite
+ * of what reading the format is for.
  */
 export const UNREADABLE = Symbol('unreadable tagFormat');
 
@@ -142,12 +142,11 @@ export const findVersionRegressions = ({
     const declared = tagFormatFor(pkg.dir);
     if (declared === unreadableTagFormat) {
       problems.push(
-        `${pkg.dir}/release.config.js: its \`tagFormat\` could not be read ` +
-          `unambiguously, so ${pkg.name} would be compared against no tags and ` +
-          `exempted in silence. Either it is not a plain string literal, or ` +
-          `\`tagFormat\` appears more than once — a mention in a comment or a ` +
-          `string counts, and this refuses to guess which one is live rather ` +
-          `than picking the first. Leave exactly one.`
+        `${pkg.dir}/release.config.js: its \`tagFormat\` could not be read, so ` +
+          `${pkg.name} would be compared against no tags and exempted in ` +
+          `silence. The config is loaded and \`tagFormat\` read off it, so this ` +
+          `means it is absent, not a string, or the module would not import — ` +
+          `check that the file evaluates and declares one.`
       );
       continue;
     }
@@ -307,44 +306,51 @@ export const findVersionRegressions = ({
 };
 
 /**
- * The `tagFormat` literal a release config declares, or `UNREADABLE`.
+ * The `tagFormat` a release config actually declares, read off the evaluated
+ * module. `UNREADABLE` when it declares one this cannot use, `null` when there
+ * is no config at all.
  *
- * All three literal spellings. Reading only `'…'` meant a backtick-spelled
- * format produced no entry, which is indistinguishable from having no release
- * config — so the package was exempted by the very branch written to catch it.
+ * This replaced a regex over the file text, twice, and the second replacement
+ * was still wrong. Text-matching has a ceiling here and the ceiling is not a
+ * spelling problem: the declared value need not be a literal in that file at
+ * all. Five shapes got past the last version, every one of them silently —
  *
- * AMBIGUITY is refused rather than resolved, and that is the whole of the
- * second lesson here. Taking the FIRST match let a `tagFormat` written in a
- * comment or a string outrank the real declaration below it — and the dangerous
- * direction is the decoy that happens to match what this check expects, because
- * the contract then passes, the package is compared against tags spelled the
- * OTHER way, finds none, and is skipped with no comparison and no message. A
- * silent exemption, which is the one outcome this rule exists to prevent.
+ *   { ["tagFormat"]: build(name) }   no colon after the identifier
+ *   { "tagFormat": build(name) }     likewise
+ *   { ...base }                      the declaration is in another file
+ *   export { default } from …        likewise
+ *   tagFormat: "pkg@" + SUFFIX       one mention, one literal, wrong value
  *
- * Telling a comment from code needs a tokeniser, and this file has no business
- * carrying one. Refusing to guess costs a build on a config that mentions
- * `tagFormat` twice and says exactly how to fix it, which is the right trade
- * for a rule whose failure mode is silence.
+ * — and the last needs no decoy beside it, which is what settles it: there is
+ * no ambiguity to refuse, the count is exactly one, and the answer is wrong.
+ * Widening the pattern closes the first two at the cost of red-lining any
+ * comment that says the word, and does nothing for the rest.
  *
- * Exported rather than inlined because the test used to re-implement this
- * pattern to assert the real configs match it, and a copy of a regex is a
- * second place for it to be wrong.
+ * Reading the module is authoritative for all five, and the repo already does
+ * it: `scripts/lib/release-config.mjs` imports these same files and
+ * `publishable-manifests.test.mjs` loads all five on every run. That is not the
+ * mistake `publishable-manifests` records — that one was inferring a verdict
+ * from plugin SHAPES it might not recognise, and this is one top-level scalar,
+ * neither inferred nor a shape.
+ *
+ * The import is caught, so a config with a syntax error becomes `UNREADABLE`
+ * rather than a throw out of the middle of the run.
  */
-export const readTagFormat = text => {
-  // MENTIONS first, before asking which are literals. Counting only the
-  // literal matches narrowed the decoy class without closing it: a real
-  // declaration that is not a string literal — `tagFormat: build(name)` —
-  // produces no match at all, which leaves a decoy in a comment unopposed and
-  // sole. It then reads as the single clean declaration, and if it happens to
-  // match what this check expects, the package is compared against tags spelled
-  // the other way, finds none, and is exempted in silence.
-  const mentions = [...text.matchAll(/\btagFormat\s*:/g)];
-  if (mentions.length !== 1) return UNREADABLE;
-  const matches = [
-    ...text.matchAll(/tagFormat:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g),
-  ];
-  if (matches.length !== 1) return UNREADABLE;
-  return matches[0][2];
+export const loadTagFormat = async (dir, importConfig) => {
+  let config;
+  try {
+    const module = await importConfig(dir);
+    config = module?.default;
+  } catch (error) {
+    // ABSENT is not this check's business: `publishable-manifests.test.mjs`
+    // holds a publishable package to having a release config, by loading each
+    // one. Anything else — a syntax error, a throwing import — is a config this
+    // cannot read, which is a violation rather than an exemption.
+    if (error?.code === 'ERR_MODULE_NOT_FOUND') return null;
+    return UNREADABLE;
+  }
+  const declared = config?.tagFormat;
+  return typeof declared === 'string' ? declared : UNREADABLE;
 };
 
 /**
@@ -362,14 +368,15 @@ export const readTagFormat = text => {
  * @param packages [{ dir, name, version }] the publishable workspace packages
  * @param skipped  dirs whose manifest could not be read or named nothing
  * @param git      (args) => string|null, `null` when git could not answer
- * @param readConfig (dir) => Promise<string>, rejecting with ENOENT when absent
+ * @param importConfig (dir) => Promise<module>, rejecting with
+ *   ERR_MODULE_NOT_FOUND when the package has no release config
  */
 export const versionRegressionProblems = async ({
   packages,
   skipped = [],
   allowUntagged = false,
   git,
-  readConfig,
+  importConfig,
 }) => {
   const problems = skipped.map(
     dir =>
@@ -380,22 +387,11 @@ export const versionRegressionProblems = async ({
   );
 
   // Read BEFORE any environment answer is acted on, and with nothing to return
-  // early for: reading release configs does not need git.
+  // early for: loading release configs does not need git.
   const formats = new Map();
   for (const pkg of packages) {
-    let text;
-    try {
-      text = await readConfig(pkg.dir);
-    } catch (error) {
-      // ABSENT is not this check's business: `publishable-manifests.test.mjs`
-      // holds a publishable package to having a release config, by loading each
-      // one. Present-but-unreadable is a different thing, and collapsing the
-      // two exempted a package over a permissions problem.
-      if (error.code === 'ENOENT') continue;
-      formats.set(pkg.dir, UNREADABLE);
-      continue;
-    }
-    formats.set(pkg.dir, readTagFormat(text));
+    const declared = await loadTagFormat(pkg.dir, importConfig);
+    if (declared !== null) formats.set(pkg.dir, declared);
   }
 
   const all = git(['tag', '--list']);

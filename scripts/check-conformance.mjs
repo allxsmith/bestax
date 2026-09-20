@@ -4168,7 +4168,11 @@ async function checkVersionRegression(allowUntagged = false) {
         return null;
       }
     },
-    readConfig: dir => readFile(join(REPO, dir, 'release.config.js'), 'utf8'),
+    // The MODULE, not its text. What the config declares need not be a literal
+    // in the file — it can be spread from a base, computed, or concatenated —
+    // and two rounds of pattern-matching could not see any of that.
+    importConfig: dir =>
+      import(pathToFileURL(join(REPO, dir, 'release.config.js')).href),
   });
 }
 
