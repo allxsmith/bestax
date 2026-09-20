@@ -117,6 +117,23 @@ function stylesheet() {
  * class set has to match exactly, so a rule needing a third class does not
  * answer for two.
  */
+/**
+ * Does the stylesheet style this class ON ITS OWN?
+ *
+ * `shipsClass` answers two questions and neither is this one. A bare class
+ * there means MENTIONED, which is right where a yes that should have been a
+ * no fails loudly — but one caller runs the other way. The assertion that
+ * `has-text-inherit` and its kin MUST ship passes on a yes, so a class the
+ * stylesheet merely mentions somewhere would satisfy it, and a helper the
+ * library hands the user has to be a rule of its own rather than a name in
+ * someone else's selector.
+ */
+function rendersAlone(css, cls) {
+  return simpleSelectors(css).sets.some(
+    classes => classes.size === 1 && classes.has(cls)
+  );
+}
+
 function shipsClass(css, cls) {
   // Two questions, two indexes, and they are not the same question.
   //
@@ -932,6 +949,27 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       true,
       'and it must not swallow a real rule either.'
     );
+    // `rendersAlone` is the third question, and the one caller that needs
+    // it passes on a YES, so it must not be satisfied by a mention.
+    const alone = (css, cls) => rendersAlone(css, cls);
+    assert.equal(
+      alone('.a.has-text-inherit{color:red}', 'has-text-inherit'),
+      false,
+      'a helper compounded with something else is not a helper the user ' +
+        'can reach on its own.'
+    );
+    assert.equal(
+      alone('.hero .has-text-inherit{color:red}', 'has-text-inherit'),
+      false,
+      'nor is one that only renders inside an ancestor.'
+    );
+    assert.equal(
+      alone('.has-text-inherit{color:inherit}', 'has-text-inherit'),
+      true,
+      'a rule of its own is what makes a helper live, or the two above ' +
+        'would be vacuous.'
+    );
+
     // A STRING is content, not structure. Everything this matcher does
     // reads structure out of raw text, and a string is where `{`, `}`, `;`
     // and `.` appear meaning none of it.
@@ -969,6 +1007,33 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'an escaped quote does not end the string it sits in, and reading it ' +
         'as though it did hands a nested rule back as a standalone one.'
+    );
+
+    assert.equal(
+      live(".a{content:'}';.b.is-x{color:red}}", 'b.is-x'),
+      false,
+      'and a single-quoted string is a string too.'
+    );
+
+    // Both flags read the WHOLE stack, not the innermost block. A
+    // non-conditional at-rule between a condition and a rule does not
+    // cancel the condition, and the same goes for nesting.
+    assert.equal(
+      live(
+        '@media print{@layer base{.notification.is-primary{color:red}}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a layer inside a media query does not escape the media query.'
+    );
+    assert.equal(
+      live(
+        '.hero{color:red;@layer base{.tabs.is-boxed{color:red}}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'and a layer inside a rule does not make what it holds stop being ' +
+        'nested in that rule.'
     );
 
     // NESTING is read off the brace stack rather than the text. A rule
@@ -1010,12 +1075,17 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'reads this path.'
     );
 
-    // Nothing here asserts that an at-rule prelude is not INDEXED, and
-    // nothing can: a condition is parenthesised, the paren strip removes it
-    // before any tokenising, and what survives outside carries no `.` in
-    // any at-rule CSS defines. What the skip decides that IS observable is
-    // which entry goes on the condition stack, and the assertions above
-    // hold that.
+    // An at-rule prelude must not be read for class names either. This
+    // was unpinnable while the membership index came from the normalised
+    // prelude, because the paren strip removed the condition before any
+    // tokenising; the index reads the RAW heading now, so a decimal in a
+    // length reaches it and `1.5rem` tokenises as a class called `5rem`.
+    assert.equal(
+      live('@media (min-width:1.5rem){.box{color:red}}', '5rem'),
+      false,
+      'a length in a media condition is not a class, and the membership ' +
+        'index reads the heading before anything strips the condition out.'
+    );
 
     // An argument the passes could not resolve leaves its TEXT behind, and
     // the caller splits on commas.
@@ -1309,9 +1379,10 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       // unshaded, dead shaded.
       for (const keyword of keywords) {
         assert.ok(
-          shipsClass(css, `${family}-${keyword}`),
-          `\`${family}-${keyword}\` no longer ships, so the claim that these ` +
-            'keywords are live unshaded has stopped being true.'
+          rendersAlone(css, `${family}-${keyword}`),
+          `\`${family}-${keyword}\` no longer ships as a rule of its own, so ` +
+            'the claim that these keywords are live unshaded has stopped ' +
+            'being true.'
         );
         for (const shade of shades) {
           assert.ok(
