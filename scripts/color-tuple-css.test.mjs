@@ -367,6 +367,49 @@ function classesOf(simple, contextual) {
  * minified stylesheet of this size backtracks badly, where splitting is
  * linear.
  */
+/**
+ * Every position in `text` where `char` appears UNESCAPED.
+ *
+ * A scan rather than a lookbehind. Escape-awareness arrived here one
+ * delimiter at a time — the split on `{`, then the count of `}`, then the
+ * two `lastIndexOf` calls feeding them — and each arrival was a `(?<!\\)`
+ * in front of one pattern. That is not the same rule: a lookbehind sees the
+ * backslash before the delimiter without knowing whether the backslash is
+ * itself escaped, so a class name ending in a literal backslash refuses a
+ * real block opener. Consuming the escape and the character after it, left
+ * to right, is the rule CSS actually has, and one function holds it for
+ * every delimiter that needs it.
+ */
+function unescaped(text, char) {
+  const at = [];
+  for (let i = 0; i < text.length; i += 1) {
+    if (text[i] === '\\') {
+      i += 1;
+      continue;
+    }
+    if (text[i] === char) at.push(i);
+  }
+  return at;
+}
+
+/** `text` split on every unescaped `char`. */
+function splitUnescaped(text, char) {
+  const parts = [];
+  let from = 0;
+  for (const at of unescaped(text, char)) {
+    parts.push(text.slice(from, at));
+    from = at + 1;
+  }
+  parts.push(text.slice(from));
+  return parts;
+}
+
+/** Whatever follows the last unescaped `char`, or all of `text`. */
+function afterLastUnescaped(text, char) {
+  const at = unescaped(text, char);
+  return text.slice((at.length ? at[at.length - 1] : -1) + 1);
+}
+
 function simpleSelectors(css) {
   if (!indexCache.has(css)) {
     assert.ok(
@@ -404,16 +447,15 @@ function simpleSelectors(css) {
     // `[data-x=";.fake-class"]` put a class that does not exist into the
     // membership index. Emptying them first is one rule instead of a
     // special case at each of the three.
-    const chunks = css
-      .replace(
-        /\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|url\((?:[^)"'\\]|\\[\s\S])*\)/gi,
-        match => {
-          if (match.startsWith('/*')) return '';
-          if (match.slice(0, 4).toLowerCase() === 'url(') return 'url()';
-          return match[0] + match[0];
-        }
-      )
-      .split(/(?<!\\)\{/);
+    const stripped = css.replace(
+      /\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|url\((?:[^)"'\\]|\\[\s\S])*\)/gi,
+      match => {
+        if (match.startsWith('/*')) return '';
+        if (match.slice(0, 4).toLowerCase() === 'url(') return 'url()';
+        return match[0] + match[0];
+      }
+    );
+    const chunks = splitUnescaped(stripped, '{');
     // One entry per block still open. `conditional` marks a block that only
     // applies sometimes, which is the same thing `:first-child` says about
     // elements, so a rule inside one carries a requirement rather than a
@@ -432,11 +474,7 @@ function simpleSelectors(css) {
       const chunk = chunks[i];
       // The braces in this chunk close blocks opened before it, so they are
       // popped before the block this chunk's own `{` opens is pushed.
-      for (
-        let closed = (chunk.match(/(?<!\\)}/g) ?? []).length;
-        closed > 0;
-        closed--
-      ) {
+      for (let closed = unescaped(chunk, '}').length; closed > 0; closed--) {
         open.pop();
       }
       // The last chunk is whatever trails the final `{`, and opens nothing.
@@ -447,8 +485,8 @@ function simpleSelectors(css) {
       // STATEMENT at-rule like `@charset "utf-8";`, and a DECLARATION in
       // the rule this one is nested inside. Neither is part of the heading,
       // and neither should reach the class tokeniser, so both are cut.
-      const afterBlock = chunk.slice(chunk.lastIndexOf('}') + 1);
-      const heading = afterBlock.slice(afterBlock.lastIndexOf(';') + 1).trim();
+      const afterBlock = afterLastUnescaped(chunk, '}');
+      const heading = afterLastUnescaped(afterBlock, ';').trim();
       // An at-rule prelude is not a selector, and what it opens may be a
       // condition.
       if (heading.startsWith('@')) {
@@ -458,47 +496,55 @@ function simpleSelectors(css) {
         });
         continue;
       }
-      // A NUMERIC escape names a character by code point — `.\31 23` is
-      // the class `123` — and the class tokeniser reads every escape as
-      // one character, so it would take `31` and lose the real name. That
-      // is the quiet direction, and decoding them properly means a real
-      // CSS identifier reader. Nothing this repo builds carries one, so
-      // the guard says it cannot read the stylesheet rather than reading
-      // it wrongly.
+      const conditional = open.some(block => block.conditional);
+      const nested = open.some(block => block.rule);
+      open.push({ conditional: false, rule: true });
+
+      // Attribute selectors come out before any class is read. A quoted
+      // value was emptied with every other string, but an UNQUOTED one is
+      // an identifier, and an identifier may escape a dot:
+      // `[data-x=\.fake-class]` is one legal value that would otherwise be
+      // read as a class. The sets path does not need this — a fabricated
+      // class there makes the set bigger, so the exact-size rule refuses
+      // it — but the membership path has no size to check against, and the
+      // two spellings of one attribute have to answer the same.
+      //
+      // The strip sees its own escapes at both ends, and the two ends fail
+      // in opposite directions. An escaped `[` is part of a class name, and
+      // matching it opens an attribute selector that swallows the real
+      // classes after it, which LOSES a name. An escaped `]` does not close
+      // one, and stopping at it leaves the tail to be read as selector
+      // text, which invents one.
+      const selectorText = heading.replace(
+        /(?<!\\)\[(?:[^\]\\]|\\[\s\S])*\]/g,
+        ''
+      );
+
+      // A NUMERIC escape names a character by code point — `.\31 23` is the
+      // class `123` — and the tokeniser below reads every escape as one
+      // character, so it would take `31` and lose the real name. That is
+      // quiet, and decoding them properly means a CSS identifier reader,
+      // which is more than this file should carry. It stops instead. The
+      // check runs on the text the tokeniser will actually read, so an
+      // escape inside an attribute value, which cannot rename anything,
+      // does not halt the guard.
       assert.ok(
-        !/\\[0-9a-f]/i.test(heading),
+        !/\\[0-9a-f]/i.test(selectorText),
         `the selector \`${heading}\` carries a numeric escape, which this ` +
           'file reads as a single character and would silently rename. ' +
           'Teach it CSS identifier decoding in the same change that ' +
           'introduced the escape.'
       );
-      const conditional = open.some(block => block.conditional);
-      const nested = open.some(block => block.rule);
-      open.push({ conditional: false, rule: true });
-      // Every class this heading MENTIONS, wherever it stands: as an
+
+      // Every class this selector MENTIONS, wherever it stands: as an
       // ancestor, inside a prohibition, inside an `:is()`. Read from the
       // heading rather than from `requirements`, which replaces those
       // arguments wholesale — a class the stylesheet names only in a
       // `:not()` is still a class it names, and the membership path is the
       // one place that matters.
-      //
-      // Attribute selectors come out first. A quoted value was emptied with
-      // every other string, but an UNQUOTED one is an identifier, and an
-      // identifier may escape a dot: `[data-x=\.fake-class]` is one legal
-      // value this scan would otherwise read as a class. The sets path does
-      // not need this — a fabricated class there makes the set bigger, so
-      // the exact-size rule refuses it — but the membership path has no
-      // size to check against, and the two spellings of one attribute have
-      // to answer the same.
-      // The strip has to see its own escapes, both ends. An escaped `[`
-      // is part of a class name and must not open an attribute selector —
-      // matching it deletes the real classes after it, which LOSES a name,
-      // the quiet direction for this index. An escaped `]` does not close
-      // one either, and stopping at it leaves the tail to be read as
-      // selector text, which fabricates one.
-      for (const [, name] of heading
-        .replace(/(?<!\\)\[(?:[^\]\\]|\\[\s\S])*\]/g, '')
-        .matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)) {
+      for (const [, name] of selectorText.matchAll(
+        /\.((?:\\.|[A-Za-z0-9_-])+)/g
+      )) {
         names.add(name.replace(/\\(.)/g, '$1'));
       }
       const prelude = requirements(heading);
@@ -1087,7 +1133,16 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
 
     // A NUMERIC escape names a character by code point, which this file
-    // cannot decode. It says so rather than renaming the class quietly.
+    // cannot decode. It says so rather than renaming the class quietly —
+    // but only where it could rename something. Inside an attribute value
+    // it cannot, and halting there would be a false alarm over text this
+    // file never reads as a selector.
+    assert.equal(
+      live('.box[data-x=\\31 2]{color:red}', 'box'),
+      true,
+      'a numeric escape inside an attribute value renames nothing, so it ' +
+        'must not stop the guard.'
+    );
     assert.throws(
       () => live('.\\31 23{color:red}', '123'),
       /numeric escape/,
@@ -1215,6 +1270,32 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'a backslash-newline is a line continuation, so the string it sits ' +
         'in has not ended.'
+    );
+
+    // Escaped DELIMITERS in a class name, and the scan that finds blocks
+    // has to see every one of them. Escape-awareness arrived here one
+    // delimiter at a time, and the two slices that feed the split were the
+    // last to get it — an escaped closing brace or semicolon truncated the
+    // heading and took the name with it, which is this index quietly
+    // losing a class.
+    assert.equal(
+      alone('.a\\}b{color:red}', 'a}b'),
+      true,
+      'an escaped closing brace is part of the name, so the slice looking ' +
+        'for the end of the last block must step over it.'
+    );
+    assert.equal(
+      alone('.a\\;b{color:red}', 'a;b'),
+      true,
+      'and so is an escaped semicolon, which the slice looking for a ' +
+        'statement has to step over too.'
+    );
+    assert.equal(
+      alone('.a\\\\{color:red}', 'a\\'),
+      true,
+      'a class name ending in a literal backslash is followed by a REAL ' +
+        'brace, which a lookbehind reads as escaped and a left-to-right ' +
+        'scan does not — which is why this is a scan.'
     );
 
     // An escaped brace is part of a CLASS NAME. Neither the split nor the
