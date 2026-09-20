@@ -60,6 +60,48 @@ export default {
         author: 'Alex Smith <asmith62378@gmail.com>',
       },
     ],
-    '@semantic-release/github',
+    [
+      '@semantic-release/github',
+      {
+        // The other four configs pass this plugin bare. This one does not,
+        // and the difference is the first release rather than the package.
+        //
+        // With no `@allxsmith/eslint-plugin-bestax@*` tag there is no
+        // `lastRelease`, so the first run's commit range is the whole
+        // repository history. The scope in `releaseRules` above does not
+        // narrow it — those rules decide the release TYPE, not which commits
+        // land in `context.commits` — which the repo demonstrates on itself:
+        // bestax-migrate's own changelog carries `**bulma-ui:**` entries.
+        //
+        // Left bare, `@semantic-release/github` then walks that range for
+        // associated PRs and issues and, on each, posts "This PR is included
+        // in version 1.0.0" and adds a `released` label. Every one of those
+        // is a false claim about a PR that predates this package, it is not
+        // reversible, and each is a comment event in a repository with
+        // comment-triggered automation. Every earlier first release did
+        // exactly that, and old PRs carry the notices to prove it — #706
+        // names one and how to look.
+        //
+        // Precedent for the noise is not a reason to add more of it, and the
+        // asymmetry decides it: not commenting can be undone later, whereas
+        // commenting on the whole history cannot. Restoring the default is a
+        // one-line change once a tag exists and the range is bounded to this
+        // package's own commits — #706 tracks that.
+        // `successCommentCondition: false`, not `successComment: false`.
+        // Both skip the walk in 12.0.9 — `success.js` branches on each — but
+        // the second logs "DEPRECATION: 'false' for 'successComment' is
+        // deprecated and will be removed in a future major version. Use
+        // 'successCommentCondition' instead." A removal there would restore
+        // the default template and reinstate exactly the commenting this
+        // block exists to prevent, silently, on a version bump.
+        successCommentCondition: false,
+        // Redundant while the comment skip stands, because 12.0.9 applies the
+        // label inside the comment's own try block, so no comment means no
+        // label. Kept because that coupling is an implementation detail of
+        // one version rather than a contract, and this is the option that
+        // says what is wanted if a later version separates them.
+        releasedLabels: false,
+      },
+    ],
   ],
 };

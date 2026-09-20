@@ -92,7 +92,8 @@ color="primary" />` became `<Box color="bogus" textColor="primary" />`,
 
 - **`src/generated/` is generated.** `pnpm gen:eslint-meta` writes it from the
   library's TSDoc via `scripts/gen-eslint-meta.mjs`; `gen:eslint-meta:check`
-  regenerates and diffs, and runs in `pnpm all`. Never hand-edit it, and never
+  regenerates and diffs, and runs in CI as well as `pnpm all`. Never
+  hand-edit it, and never
   hand-maintain a second copy of what it holds.
 - **The preset must declare `files`.** A flat config object without it inherits
   ESLint's default `**/*.{js,mjs,cjs}` set, and since every rule here visits

@@ -2094,9 +2094,9 @@ const PNPM_PUBLISHED = new Set([
 
 /**
  * Workspace siblings a published package depends on AT RUNTIME, on purpose
- * (#644): the three CLIs are built for `@allxsmith/bestax-bulma` and their
- * manifests say so, the way bulma-ui declares `bulma` without ever importing
- * it. This is
+ * (#644): the CLIs and the ESLint plugin are built for
+ * `@allxsmith/bestax-bulma` and their manifests say so, the way bulma-ui
+ * declares `bulma` without ever importing it. This is
  * the exemption the sibling rule below reserved for "the PR that needs one",
  * and it takes the PNPM_PUBLISHED shape for the same reason: a declaration
  * cannot be misparsed, and scripts/publishable-manifests.test.mjs checks it

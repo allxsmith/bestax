@@ -43,7 +43,7 @@ pnpm format         # prettier --write (format:check to verify; covers md/mdx to
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
 pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
 pnpm gen:skills     # regenerate the skill install rosters (conformance fails if stale)
-pnpm gen:eslint-meta # regenerate the ESLint plugin's metadata (in `pnpm all`; no CI step yet)
+pnpm gen:eslint-meta # regenerate the ESLint plugin's metadata (CI fails if stale)
 pnpm gen            # every generator (api docs, catalog, MCP index, skill rosters, eslint metadata)
 pnpm docs           # Docusaurus dev server :3000
 pnpm storybook      # Storybook dev server :6006
@@ -60,8 +60,10 @@ Enforced by CI (`.github/workflows/ci.yml`):
 
 - Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics);
   every other jest package 95% (78% branches). `docs` has no jest suite.
-- Stale skill catalog fails (`gen:catalog:check`) and a stale MCP index fails
-  (`gen:mcp:check`); build, typecheck, lint, format, audit.
+- A stale generated artefact fails its own step: the skill catalog
+  (`gen:catalog:check`), the MCP index (`gen:mcp:check`) and the ESLint
+  plugin's metadata (`gen:eslint-meta:check`). Plus build, typecheck, lint,
+  format, audit.
 - **Tests and stories are type-checked too**, by a second project
   (`bulma-ui/tsconfig.test.json`, script `typecheck:tests`) — `tsconfig.json` excludes
   them because it is also the build's program. ts-jest transpiles rather than checks
