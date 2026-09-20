@@ -570,10 +570,17 @@ test('a manifest that parses to null is unreadable, not a crash', async () => {
   // every remaining conformance check instead of reporting the one broken
   // package through the violation written for exactly this case.
   await fixtureWorkspace(
-    { good: '{"name": "good", "private": false}', broken: 'null' },
+    {
+      good: '{"name": "good", "private": false, "version": "1.0.0"}',
+      broken: 'null',
+    },
     async root => {
       const { packages, unreadable } = await publishablePackages(root);
-      assert.deepEqual(packages, [{ dir: 'good', name: 'good' }]);
+      // `version` rides along for the version-regression check (#705); a
+      // publishable package has one, so the fixture carries one too.
+      assert.deepEqual(packages, [
+        { dir: 'good', name: 'good', version: '1.0.0' },
+      ]);
       assert.deepEqual(unreadable, ['broken']);
     }
   );

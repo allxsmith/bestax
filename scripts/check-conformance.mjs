@@ -111,6 +111,8 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
+import { findVersionRegressions, tagGlob } from './lib/version-regression.mjs';
+import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -1722,7 +1724,8 @@ export async function publishablePackages(root = REPO) {
       unreadable.push(dir);
       continue;
     }
-    if (!pkg.private && pkg.name) packages.push({ dir, name: pkg.name });
+    if (!pkg.private && pkg.name)
+      packages.push({ dir, name: pkg.name, version: pkg.version });
   }
   return { packages, unreadable };
 }
@@ -4124,6 +4127,67 @@ async function checkTurboTasks() {
   return violations;
 }
 
+/**
+ * Hold every publishable manifest to the highest release tag REACHABLE FROM
+ * HEAD.
+ *
+ * Reachable, not "the highest tag that exists", and the difference is the whole
+ * usability of the check. A branch cut before a release legitimately carries the
+ * older manifest, and that release's tag is not in its history — comparing
+ * against every tag would red every un-rebased PR the moment a release landed.
+ * A branch that LOWERS a version was cut after the release it undoes, so the tag
+ * is in its history and the comparison bites.
+ */
+async function checkVersionRegression() {
+  const { packages } = await publishablePackages();
+  const git = args => {
+    try {
+      return execFileSync('git', args, {
+        cwd: REPO,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const all = git(['tag', '--list']);
+  if (all === null) {
+    return [
+      'version-regression: `git tag` failed, so no released version could be ' +
+        'compared against. This check needs to run inside the git repository ' +
+        'rather than an extracted tarball.',
+    ];
+  }
+
+  // Read up front: the matching below is synchronous so it can be unit-tested
+  // without a git fixture or a filesystem.
+  const formats = new Map();
+  for (const pkg of packages) {
+    let text;
+    try {
+      text = await readFile(join(REPO, pkg.dir, 'release.config.js'), 'utf8');
+    } catch {
+      // No release config is not this check's business: `release-docs-sync` is
+      // what holds a publishable package to having one.
+      continue;
+    }
+    const match = /tagFormat:\s*'([^']*)'/.exec(text);
+    if (match) formats.set(pkg.dir, match[1]);
+  }
+
+  return findVersionRegressions({
+    packages,
+    anyTagsExist: all.trim().length > 0,
+    tagsFor: name => {
+      const out = git(['tag', '--merged', 'HEAD', '--list', tagGlob(name)]);
+      return out === null ? [] : out.split('\n').filter(Boolean);
+    },
+    tagFormatFor: dir => (formats.has(dir) ? formats.get(dir) : null),
+  });
+}
+
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
@@ -4145,6 +4209,7 @@ const CHECKS = {
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
   'turbo-tasks': checkTurboTasks,
+  'version-regression': checkVersionRegression,
   'inline-style': null, // handled below (takes the flag)
 };
 
