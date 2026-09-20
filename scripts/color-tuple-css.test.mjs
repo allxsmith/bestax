@@ -98,6 +98,23 @@ function stylesheet() {
 }
 
 /**
+ * Does the stylesheet style this class ON ITS OWN?
+ *
+ * `shipsClass` answers two questions and neither is this one. A bare class
+ * there means MENTIONED, which is right where a yes that should have been a
+ * no fails loudly — but one caller runs the other way. The assertion that
+ * `has-text-inherit` and its kin MUST ship passes on a yes, so a class the
+ * stylesheet merely mentions somewhere would satisfy it, and a helper the
+ * library hands the user has to be a rule of its own rather than a name in
+ * someone else's selector.
+ */
+function rendersAlone(css, cls) {
+  return simpleSelectors(css).sets.some(
+    classes => classes.size === 1 && classes.has(cls)
+  );
+}
+
+/**
  * Does the stylesheet carry this class, or this exact compound?
  *
  * A single class is matched literally. A COMPOUND (`notification.is-primary`)
@@ -117,23 +134,6 @@ function stylesheet() {
  * class set has to match exactly, so a rule needing a third class does not
  * answer for two.
  */
-/**
- * Does the stylesheet style this class ON ITS OWN?
- *
- * `shipsClass` answers two questions and neither is this one. A bare class
- * there means MENTIONED, which is right where a yes that should have been a
- * no fails loudly — but one caller runs the other way. The assertion that
- * `has-text-inherit` and its kin MUST ship passes on a yes, so a class the
- * stylesheet merely mentions somewhere would satisfy it, and a helper the
- * library hands the user has to be a rule of its own rather than a name in
- * someone else's selector.
- */
-function rendersAlone(css, cls) {
-  return simpleSelectors(css).sets.some(
-    classes => classes.size === 1 && classes.has(cls)
-  );
-}
-
 function shipsClass(css, cls) {
   // Two questions, two indexes, and they are not the same question.
   //
@@ -376,7 +376,14 @@ function simpleSelectors(css) {
     // as a live modifier — the silent direction again.
     //
     // Then string literals, emptied rather than removed so the quotes stay
-    // where they are. Everything below this line reads STRUCTURE out of raw
+    // where they are. That order is the wrong way round for one shape — a
+    // comment opener inside a string eats to the next closer, because the
+    // string that would have protected it has not been emptied yet — and
+    // doing it properly needs a real tokeniser rather than two passes.
+    // Exercised, it lands on the loud side: the text the strip merges
+    // carries the open rule or at-rule it came from, so what follows reads
+    // MORE nested or conditional, which is dead. A false alarm is the one
+    // way this guard may be wrong, so two passes stay. Everything below this line reads STRUCTURE out of raw
     // text — blocks split on `{`, headings cut at `;`, classes tokenised on
     // `.` — and a string is the one place those characters appear without
     // meaning any of it. `content:"}"` popped the nesting stack, which made
@@ -904,6 +911,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
+        '@supports (display:grid){.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a feature query is a condition: the rule applies where the feature ' +
+        'is there and nowhere else.'
+    );
+    assert.equal(
+      live(
         '@container (min-width:10px){.notification.is-primary{color:red}}',
         'notification.is-primary'
       ),
@@ -999,6 +1015,13 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // the escaped quote leaks the rest of it — including a `}` — back into
     // the text, and a leaked brace closes a block that is still open, so
     // the rule nested in it stops looking nested.
+    // Two cases, because the two ways of getting this wrong leak on
+    // opposite sides of the escape. Ignoring the backslash entirely ends
+    // the string at the escaped quote and leaks whatever follows it;
+    // stopping at the backslash without consuming the pair re-pairs from
+    // the escaped quote to the next one, and leaks whatever PRECEDED it. A
+    // brace on the wrong side of the escape is swallowed by accident, so
+    // one case each.
     assert.equal(
       live(
         '.hero{content:"a\\"b}";.tabs.is-boxed{color:red}}',
@@ -1006,7 +1029,16 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       ),
       false,
       'an escaped quote does not end the string it sits in, and reading it ' +
-        'as though it did hands a nested rule back as a standalone one.'
+        'as though it did leaks the brace that follows it.'
+    );
+    assert.equal(
+      live(
+        '.hero{content:"}a\\"b";.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
+      ),
+      false,
+      'and the escape has to be CONSUMED, not just stopped at, or the ' +
+        'pattern re-pairs from it and leaks the brace before it.'
     );
 
     assert.equal(
