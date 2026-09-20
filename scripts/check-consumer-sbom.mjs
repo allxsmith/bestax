@@ -308,8 +308,11 @@ export function inspect(doc, { package: pkg, slug, version, minPackages }) {
     // produced no problem, and identities() rendered its missing version as
     // `?` — so when both syft runs omitted the same metadata the floor and the
     // cross-check agreed with each other and a malformed document shipped.
-    // Measured before requiring it: 428 entries across the closures, none
-    // missing either field.
+    // Measured before requiring it, across every closure of run
+    // 33263381732: no entry was missing either field. The bound matters as
+    // much as the result — a measurement with no run behind it is a number
+    // that was true once, and the sibling check below carries its run id for
+    // the same reason.
     if (typeof e.name !== 'string' || e.name === '') {
       problems.push(
         `an entry has no usable name (${forLog(e.name)}). An inventory record ` +

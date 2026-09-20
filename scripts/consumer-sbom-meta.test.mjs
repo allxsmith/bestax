@@ -12,7 +12,7 @@
  *
  *   - the two-`@` scoped-package case. Most of the packages are
  *     unscoped, so a lastIndexOf/indexOf slip passes every test that does not
- *     name @allxsmith/bestax-bulma and then mis-pins any package whose
+ *     name a scoped package and then mis-pins the scoped one whose
  *     release triggered the run.
  *   - ARTIFACT_PREFIX. `sign-sbom` and `attach-sbom` glob on that string from
  *     other jobs and cannot read a step output across a job boundary, so
