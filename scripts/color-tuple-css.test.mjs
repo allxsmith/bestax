@@ -201,13 +201,21 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 const TRANSPARENT_AT_RULE = /^@layer(?![\w-])/i;
 
 /**
- * The at-rule whose prelude is a selector list rather than a condition.
+ * An at-rule whose prelude can name classes.
  *
- * `@scope (.root) to (.limit)` names classes, and they are classes the
- * stylesheet knows about. Every other at-rule prelude is a condition, where
- * a length like `1.5rem` would tokenise as a class called `5rem`.
+ * Two of them do. `@scope (.root) to (.limit)` is a selector list outright,
+ * and `@supports selector(.a:has(.b))` carries one inside a condition.
+ * Those are classes the stylesheet knows about, and skipping every prelude
+ * lost them — the membership index's quiet direction.
+ *
+ * The rest stay out on their own merit rather than by this list: a
+ * condition carries lengths, and `IDENTIFIER_START` already refuses the
+ * `5rem` a decimal would offer. Keeping the list to the two that mean it
+ * is the narrower claim, and a name fabricated from a prelude would be
+ * loud rather than quiet, so the cost of being wrong here is a false
+ * alarm.
  */
-const SCOPE_AT_RULE = /^@scope(?![\w-])/i;
+const SELECTOR_PRELUDE = /^@(scope|supports)(?![\w-])/i;
 
 /**
  * A numeric escape, which names a character by code point.
@@ -219,6 +227,15 @@ const SCOPE_AT_RULE = /^@scope(?![\w-])/i;
  * checks for one and stops instead.
  */
 const NUMERIC_ESCAPE = /\\[0-9a-f]/i;
+
+/**
+ * A character CSS ends an unterminated string at.
+ *
+ * Line feed, carriage return and form feed, all three. Bounding on the
+ * newline alone left the leak this closed open for a stylesheet with CR or
+ * FF endings, which is the same shape one character to the side.
+ */
+const LINE_BREAK = /[\n\r\f]/;
 
 /**
  * A name a CSS class can actually have.
@@ -473,13 +490,16 @@ function nonStructure(css) {
     if (ch === '"' || ch === "'") {
       out += ch + ch;
       i += 1;
-      // A newline ends it, which is what CSS does: an unterminated string
-      // is a parse error bounded by the line it started on. Running to the
-      // next quote in the FILE instead deleted every rule in between, both
-      // indexes, no assertion — the last way one malformed character could
-      // cost the whole stylesheet quietly. A line continuation still
-      // works, because the escape is consumed with the newline after it.
-      while (i < css.length && css[i] !== ch && css[i] !== '\n') {
+      // A line break ends it, which is what CSS does: an unterminated
+      // string is a parse error bounded by the line it started on. Running
+      // to the next quote in the FILE instead deleted every rule in
+      // between, both indexes, no assertion — the last way one malformed
+      // character could cost the whole stylesheet quietly. All three of
+      // CSS's line breaks count, because bounding on the newline alone
+      // left the same hole open one character to the side. A line
+      // continuation still works, since the escape is consumed together
+      // with whichever break follows it.
+      while (i < css.length && css[i] !== ch && !LINE_BREAK.test(css[i])) {
         if (css[i] === '\\') i += 1;
         i += 1;
       }
@@ -671,7 +691,7 @@ function simpleSelectors(css) {
         // a scope root matches is not a rule that styles anything, so it
         // contributes no subject set. Every other prelude stays out, since
         // a condition carries lengths and `1.5rem` tokenises as a class.
-        if (SCOPE_AT_RULE.test(heading)) {
+        if (SELECTOR_PRELUDE.test(heading)) {
           const roots = withoutAttributes(heading);
           assert.ok(
             !NUMERIC_ESCAPE.test(roots),
@@ -1216,6 +1236,35 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'it are still rules.'
     );
 
+    // CSS ends an unterminated string at any of its three line breaks.
+    // Bounding on the newline alone left the same leak open one character
+    // to the side, for a stylesheet with CR or FF endings.
+    assert.equal(
+      live(
+        '.a{content:"oops\r}.notification.is-primary{color:red}\r.b{content:""}',
+        'notification.is-primary'
+      ),
+      true,
+      'a carriage return ends an unterminated string, so the rules after ' +
+        'it are still rules.'
+    );
+    assert.equal(
+      live(
+        '.a{content:"oops\f}.notification.is-primary{color:red}\f.b{content:""}',
+        'notification.is-primary'
+      ),
+      true,
+      'and so does a form feed.'
+    );
+
+    // `@supports selector(…)` is the other prelude made of selectors.
+    assert.equal(
+      live('@supports selector(.the-root){.box{color:red}}', 'the-root'),
+      true,
+      'a class named inside a feature query is a class the stylesheet ' +
+        'knows, and skipping every prelude but one lost it.'
+    );
+
     // A semicolon inside brackets is content, and that is observable: the
     // heading is cut at the last semicolon, so leaving one in there cuts
     // away the classes before it.
@@ -1507,11 +1556,13 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'waved every unknown one through as live.'
     );
     assert.equal(
-      live('@scope-foo (1.5rem){.box{color:red}}', '5rem'),
+      live('@scope-foo (.the-root){.box{color:red}}', 'the-root'),
       false,
-      'and only `@scope` itself — a word boundary holds before a hyphen, ' +
-        'so an unknown at-rule spelled that way would have its condition ' +
-        'harvested.'
+      'and only `@scope` itself. A word boundary holds before a hyphen, ' +
+        'so an at-rule merely starting with those letters would have its ' +
+        'prelude read — and the case has to offer a real class name, ' +
+        'because a length is refused by the identifier filter first and ' +
+        'would answer dead either way.'
     );
     // The harvest has three readers and each needs its own case. The
     // escape decode is the quiet one: without it the name the CSS ships
@@ -1640,9 +1691,19 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // the escaped quote to the next one, and leaks whatever PRECEDED it. A
     // brace on the wrong side of the escape is swallowed by accident, so
     // one case each.
+    // The line break and the semicolon are both load-bearing IN THE CASE
+    // rather than in the shape, and it took two goes to get them right.
+    // Without the break, a mis-paired quote opens a phantom string that
+    // runs to the end of the input and eats the rule being asked about, so
+    // a broken scan answers dead by deletion. With the break but no
+    // semicolon after it, the phantom leaves its two delimiters sitting in
+    // front of the subject, where they read as a qualifier and sentinel it
+    // — dead again, for a third wrong reason. The semicolon cuts them off
+    // the heading, so the rule reaches the index clean and a broken scan
+    // finally reads it live.
     assert.equal(
       live(
-        '.hero{content:"a\\"b}";.tabs.is-boxed{color:red}}',
+        '.hero{content:"a\\"b}"\n;.tabs.is-boxed{color:red}}\n',
         'tabs.is-boxed'
       ),
       false,
@@ -1651,7 +1712,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
-        '.hero{content:"}a\\"b";.tabs.is-boxed{color:red}}',
+        '.hero{content:"}a\\"b";\n.tabs.is-boxed{color:red}}\n',
         'tabs.is-boxed'
       ),
       false,
@@ -1668,7 +1729,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     // the same reason the double-quoted half does.
     assert.equal(
       live(
-        ".hero{content:'a\\'b}';.tabs.is-boxed{color:red}}",
+        ".hero{content:'a\\'b}';\n.tabs.is-boxed{color:red}}\n",
         'tabs.is-boxed'
       ),
       false,
@@ -1676,7 +1737,7 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
-        ".hero{content:'}a\\'b';.tabs.is-boxed{color:red}}",
+        ".hero{content:'}a\\'b';\n.tabs.is-boxed{color:red}}\n",
         'tabs.is-boxed'
       ),
       false,
