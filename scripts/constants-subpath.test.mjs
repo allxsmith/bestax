@@ -32,6 +32,7 @@ import { spawnSync } from 'node:child_process';
 import {
   existsSync,
   mkdirSync,
+  copyFileSync,
   mkdtempSync,
   readFileSync,
   symlinkSync,
@@ -730,6 +731,78 @@ describe('the declaration-extension guard', () => {
     );
   });
 
+  it('a rewritten augmentation still merges for a real consumer', async () => {
+    // Everything else about augmentations here is pinned against synthetic
+    // trees, which is how this one field got answered wrong four times: each
+    // version was internally consistent and wrong about the compiler. So this
+    // case runs `tsc`.
+    //
+    // The question a synthetic tree cannot answer is whether giving an
+    // augmentation's specifier an extension keeps it pointing at the same
+    // module. If the rewrite produced a name resolving to nothing, the
+    // augmentation would silently declare a NEW ambient module instead of
+    // merging — the file would look right and `extra` would not exist.
+    const root = tree({
+      'a.d.ts': 'export declare const base: number;\n',
+      'index.d.ts':
+        "export {};\ndeclare module './a' {\n  export const extra: string;\n}\n",
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /declare module '\.\/a\.js'/
+    );
+
+    const dir = mkdtempSync(join(tmpdir(), 'bestax-augment-'));
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({ name: 'aug-consumer', version: '1.0.0', type: 'module' })
+    );
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          module: 'nodenext',
+          moduleResolution: 'nodenext',
+          noEmit: true,
+          strict: true,
+          skipLibCheck: false,
+        },
+        files: ['use.ts'],
+      })
+    );
+    copyFileSync(join(root, 'a.d.ts'), join(dir, 'a.d.ts'));
+    copyFileSync(join(root, 'index.d.ts'), join(dir, 'index.d.ts'));
+    // Reads BOTH members: `base` from the module and `extra` from the
+    // augmentation. A broken merge loses `extra`.
+    writeFileSync(
+      join(dir, 'use.ts'),
+      "import './index.js';\n" +
+        "import type { base, extra } from './a.js';\n" +
+        'export type B = typeof base;\n' +
+        'export type E = typeof extra;\n'
+    );
+    // The JS entry, not `.bin/tsc` — that is a shell wrapper and `node` cannot
+    // run it. Resolved the way the consumer fixtures below do.
+    const localRequire = createRequire(join(PKG_DIR, 'package.json'));
+    const tsc = join(
+      dirname(localRequire.resolve('typescript')),
+      '..',
+      'bin',
+      'tsc'
+    );
+    const compiled = spawnSync(process.execPath, [tsc, '-p', dir], {
+      encoding: 'utf8',
+    });
+    assert.equal(
+      compiled.status,
+      0,
+      `the rewritten augmentation no longer merges:\n${
+        compiled.stdout || compiled.stderr
+      }`
+    );
+  });
+
   it('leaves a bare package specifier alone', async () => {
     // The rewrite asks the parser for module specifiers, which includes bare
     // ones — `react` is in the real emitted tree. Only relative specifiers name
@@ -884,17 +957,14 @@ describe('the declaration-extension guard', () => {
     }
   });
 
-  it('rewrites a module augmentation, but not an ambient declaration', async () => {
+  it('rewrites a module augmentation, and checks an ambient declaration', async () => {
     // These look identical and are not. In a file that is itself a MODULE,
-    // `declare module './a'` is an augmentation: it names a module the same way
-    // an import does, tsc emits it, and its specifier needs the same extension.
-    // In a GLOBAL file the same syntax is an ambient declaration, where a
-    // relative name is TS2436 and there is no right answer to rewrite it to.
-    //
-    // The first reading of TS2436 here was too broad — it is guarded on the
-    // declaration sitting in a global source file and skipped entirely for an
-    // augmentation. Left un-rewritten, an extensionless augmentation failed a
-    // build this can fix.
+    // `declare module './a'` is an augmentation: it names a module the way an
+    // import does, tsc emits it, and its specifier needs the same extension. In
+    // a GLOBAL file the same syntax is an ambient declaration, where a relative
+    // name is TS2436 and there is nothing correct to rewrite it to — so those
+    // are checked but never rewritten, because `pnpm build` is not a type gate
+    // and erroring source still emits.
     const augmented = tree({
       'index.d.ts':
         "export {};\ndeclare module './a' { export const x: number; }\n",
@@ -906,17 +976,42 @@ describe('the declaration-extension guard', () => {
       /declare module '\.\/a\.js'/
     );
 
-    // A global file keeps its name verbatim: nothing here can make TS2436 into
-    // valid code, and guessing an extension would only hide it.
+    // A module NAME has no import or export ancestor, and TS2846 is raised from
+    // one expression that requires one — so a declaration spelling is accepted
+    // here where a value import of the same string is not. Refusing it was this
+    // field being carried over from the shape it replaced rather than asked
+    // about afresh.
+    const spelled = tree({
+      'index.d.ts':
+        "export {};\ndeclare module './a.d.ts' { export const x: number; }\n",
+      'a.d.ts': 'export {};\n',
+    });
+    await run(spelled);
+    assert.match(
+      readFileSync(join(spelled, 'index.d.ts'), 'utf8'),
+      /declare module '\.\/a\.d\.ts'/
+    );
+
+    // A global file keeps a resolvable name verbatim: nothing here can turn
+    // TS2436 into valid code, and guessing an extension would hide it.
     const ambient = tree({
-      'index.d.ts': "declare module './a' { export const x: number; }\n",
+      'index.d.ts': "declare module './a.js' { export const x: number; }\n",
       'a.d.ts': 'export {};\n',
     });
     await run(ambient);
     assert.match(
       readFileSync(join(ambient, 'index.d.ts'), 'utf8'),
-      /declare module '\.\/a'/
+      /declare module '\.\/a\.js'/
     );
+
+    // But it is still CHECKED. `main` failed the build on a dangling one and
+    // this keeps that, in both the global and the augmenting form.
+    for (const body of [
+      "declare module './gone.js' { export const x: number; }\n",
+      "export {};\ndeclare module './gone' { export const x: number; }\n",
+    ]) {
+      await assert.rejects(run(tree({ 'index.d.ts': body })), /gone/, body);
+    }
 
     // A bare augmentation names a package, so there is no path to extend.
     const bare = tree({
@@ -928,171 +1023,6 @@ describe('the declaration-extension guard', () => {
       readFileSync(join(bare, 'index.d.ts'), 'utf8'),
       /declare module 'react'/
     );
-
-    // And an augmentation naming nothing still fails, as any specifier would.
-    await assert.rejects(
-      run(
-        tree({
-          'index.d.ts':
-            "export {};\ndeclare module './gone' { export const x: number; }\n",
-        })
-      ),
-      /resolves to neither a declaration/
-    );
-  });
-
-  it('leaves a bare package specifier alone', async () => {
-    // The rewrite asks the parser for module specifiers, which includes bare
-    // ones — `react` is in the real emitted tree. Only relative specifiers name
-    // a file this pass can give an extension to; a bare one names a package and
-    // resolves through node_modules, so probing it against the declaration root
-    // finds nothing and would fail the build on every declaration that imports
-    // React. The filter that prevents this had no case behind it.
-    const root = tree({
-      'index.d.ts':
-        "import { FC } from 'react';\n" +
-        "export * from '@scope/pkg';\n" +
-        "export * from './local';\n",
-      'local.d.ts': 'export {};\n',
-    });
-    await run(root);
-    const out = readFileSync(join(root, 'index.d.ts'), 'utf8');
-    assert.match(out, /from 'react';/);
-    assert.match(out, /from '@scope\/pkg';/);
-    // And the relative one beside them is still rewritten, so this pins the
-    // filter rather than the pass being switched off.
-    assert.match(out, /from '\.\/local\.js';/);
-  });
-
-  it('rewrites a side-effect import like any other specifier', async () => {
-    // It used to FAIL the build. Neither a `from` nor an `import(` position, so
-    // the regex rewrite could not match it, it kept its missing extension, and
-    // the post-pass rejected it — a real specifier the pass could see was wrong
-    // and could not fix. Asking the parser removes the distinction: a module
-    // specifier is a module specifier wherever it sits.
-    const root = tree({
-      'index.d.ts': "import './side';\n",
-      'side.d.ts': 'export {};\n',
-    });
-    await run(root);
-    assert.match(
-      readFileSync(join(root, 'index.d.ts'), 'utf8'),
-      /import '\.\/side\.js';/
-    );
-  });
-
-  it('fails on a specifier that carries an extension and resolves nowhere', async () => {
-    // Caught by the rewrite's extensioned branch, and by the post-pass behind
-    // it — both ask whether the specifier resolves.
-    const root = tree({ 'index.d.ts': "export * from './gone.js';\n" });
-    await assert.rejects(run(root), /resolves to no declaration/);
-  });
-
-  it('spares a reference path, which is correct as written', async () => {
-    const root = tree({
-      'index.d.ts': '/// <reference path="./x.d.ts" />\nexport {};\n',
-      'x.d.ts': 'export {};\n',
-    });
-    await run(root);
-    assert.match(
-      readFileSync(join(root, 'index.d.ts'), 'utf8'),
-      /"\.\/x\.d\.ts"/
-    );
-  });
-
-  it('leaves a relative path in a comment alone, both directions', async () => {
-    // Both passes read raw text, so a path quoted in a preserved TSDoc
-    // `@example` read exactly like a specifier. This tree emits `@example`
-    // blocks in quantity, so the only thing standing between that and a live
-    // bug was none of them happening to quote a relative path.
-    //
-    // The two directions failed differently and both are pinned here. A path
-    // that RESOLVES was silently rewritten, which ships; one that does not
-    // failed the build, naming a `dist/types` file rather than the source
-    // comment it came from.
-    const root = tree({
-      'index.d.ts':
-        "/**\n * @example\n * import { B } from './B';\n" +
-        " * import { theme } from './my-app/theme';\n */\n" +
-        "export * from './B';\n",
-      'B.d.ts': 'export {};\n',
-    });
-    await run(root);
-    const out = readFileSync(join(root, 'index.d.ts'), 'utf8');
-    // The example keeps BOTH of its paths verbatim: the resolvable one is not
-    // rewritten, and the unresolvable one does not throw.
-    assert.match(out, /\* import \{ B \} from '\.\/B';/);
-    assert.match(out, /\* import \{ theme \} from '\.\/my-app\/theme';/);
-    // The real specifier on the line below still gets its extension, so the
-    // exemption is scoped to comments rather than switching the pass off.
-    assert.match(out, /^export \* from '\.\/B\.js';$/m);
-  });
-
-  it('still checks a reference path, the one specifier inside a comment', async () => {
-    // `reference path` is a line comment that TypeScript follows, so exempting
-    // comment bodies had to spare it. Without that exemption-to-the-exemption
-    // a dangling reference ships: the case below is the same tree as the
-    // dangling-reference test, and it passes only because the post-pass reads
-    // reference directives specifically.
-    const root = tree({
-      'index.d.ts':
-        "/**\n * @example\n * import x from './nope';\n */\n" +
-        '/// <reference path="./gone.d.ts" />\nexport {};\n',
-    });
-    // The `@example` beside it is ignored, so the reference is the only thing
-    // this can be complaining about.
-    await assert.rejects(run(root), /\.\/gone\.d\.ts/);
-  });
-
-  it('does not mistake a string or a nested template for a comment', async () => {
-    // A FALSE comment range is the worst thing this file can get wrong, because
-    // both passes consult it: the specifier inside would be neither rewritten
-    // nor checked, and would ship. Both inputs below produced one under a
-    // hand-rolled scan over quotes and slashes, which is why the tokenising is
-    // TypeScript's now.
-    //
-    // The second is the one that matters. A hand-rolled pass counts the
-    // backticks of `a${`/*`}b` wrong, decides a block comment opens at the
-    // `/*`, finds no `*/`, and swallows the REST OF THE FILE — including the
-    // specifier on the next line. Declarations can carry template literal
-    // types, so it is not a shape to wave off.
-    for (const body of [
-      "export type Odd = '/* not a comment';\nexport * from './B';\n",
-      "export type T = `a${`/*`}b`;\nexport * from './B';\n",
-      // The third is the one only a PARSER gets right. A bare scanner does not
-      // re-scan the brace closing a substitution as template continuation, so
-      // everything after it is read as code, and the `/*` there opens a comment
-      // that runs to the end of the file.
-      "export type T = `a${string}/*b`;\nexport * from './B';\n",
-    ]) {
-      const root = tree({ 'index.d.ts': body, 'B.d.ts': 'export {};\n' });
-      await run(root);
-      assert.match(
-        readFileSync(join(root, 'index.d.ts'), 'utf8'),
-        /export \* from '\.\/B\.js';/,
-        `the specifier was not rewritten, so the scan swallowed it: ${body}`
-      );
-    }
-  });
-
-  it('fails on a dangling specifier wherever it sits, not only after `from`', async () => {
-    // Every position a specifier can occupy, each pointing nowhere. These used
-    // to be the post-pass's alone, because the rewrite's pattern could not
-    // reach them; now the rewrite sees them too and throws first, with the
-    // better-worded of the two errors. Both messages are accepted here so the
-    // case pins that the build STOPS rather than which pass stopped it.
-    for (const body of [
-      "import './gone.js';\n",
-      "import y = require('./gone.js');\n",
-      "export * from './gone.js';\n",
-      "export type P = import('./gone.js').Q;\n",
-    ]) {
-      await assert.rejects(
-        run(tree({ 'index.d.ts': body })),
-        /resolves? to no declaration/,
-        body.trim()
-      );
-    }
   });
 
   it('fails on a trailing-slash specifier that a stale sibling would mask', async () => {
