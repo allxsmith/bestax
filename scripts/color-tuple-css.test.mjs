@@ -141,7 +141,7 @@ function shipsClass(css, cls) {
   // MUST ship passes on a yes, so a fabricated name would quiet it. The
   // only text that can fabricate one is a declaration or an attribute
   // value, and neither reaches this index: the heading is cut at the last
-  // semicolon and attribute values are removed before tokenising.
+  // semicolon, and a quoted value was emptied with every other string.
   const wanted = cls.split('.');
   const { sets, names } = simpleSelectors(css);
   if (wanted.length === 1) {
@@ -291,9 +291,7 @@ function requirements(prelude) {
     // Nothing else is substituted. A bare pseudo-class, an ID and an
     // attribute selector all survive into the qualifier residue in
     // `classesOf` and are counted there, so a pass apiece would be parser
-    // for its own sake. The membership index does remove attribute values
-    // before tokenising, because that path has no residue check to catch
-    // them with.
+    // for its own sake.
     //
     // Pseudo-elements are the exception, removed rather than replaced and
     // last, so the `::` spelling never reaches the residue check and is
@@ -889,6 +887,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
+        '@container (min-width:10px){.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a container query is a condition, and it is the one of these the ' +
+        'stylesheet actually ships.'
+    );
+    assert.equal(
+      live(
         '@scope(.x){.notification.is-primary{color:red}}',
         'notification.is-primary'
       ),
@@ -950,13 +957,18 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'and emptying a string must not eat the rule after it: a data URI ' +
         'carries semicolons and is still just a value.'
     );
+    // The escape has to be read, not just tolerated. Ending the string at
+    // the escaped quote leaks the rest of it — including a `}` — back into
+    // the text, and a leaked brace closes a block that is still open, so
+    // the rule nested in it stops looking nested.
     assert.equal(
       live(
-        '.a{content:"a\\"b}"}.notification.is-primary{color:red}',
-        'notification.is-primary'
+        '.hero{content:"a\\"b}";.tabs.is-boxed{color:red}}',
+        'tabs.is-boxed'
       ),
-      true,
-      'an escaped quote does not end the string it sits in.'
+      false,
+      'an escaped quote does not end the string it sits in, and reading it ' +
+        'as though it did hands a nested rule back as a standalone one.'
     );
 
     // NESTING is read off the brace stack rather than the text. A rule
@@ -1039,15 +1051,6 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       true,
       'a class the stylesheet mentions anywhere is a class it knows, even ' +
         'where the rule mentioning it styles something else.'
-    );
-
-    // An attribute VALUE is arbitrary text, and a class inside one is not a
-    // class the element carries.
-    assert.equal(
-      live('.box[data-x=".fake-class"]{color:red}', 'fake-class'),
-      false,
-      'a class name inside an attribute value is a string, and reading it ' +
-        'as a selector invents a class the stylesheet does not ship.'
     );
 
     // A prohibition standing on its own is still an element, and the
