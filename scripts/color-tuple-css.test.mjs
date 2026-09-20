@@ -194,6 +194,18 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
  */
 const CONDITIONAL_AT_RULE = /^@(media|supports|container|scope)\b/i;
 
+/**
+ * The at-rule whose prelude is a selector list rather than a condition.
+ *
+ * `@scope (.root) to (.limit)` names classes, and they are classes the
+ * stylesheet knows about. Every other at-rule prelude is a condition, where
+ * a length like `1.5rem` would tokenise as a class called `5rem`.
+ */
+const SCOPE_AT_RULE = /^@scope\b/i;
+
+/** A class selector wherever it appears, with its name captured. */
+const CLASS_TOKEN = /\.((?:\\.|[A-Za-z0-9_-])+)/g;
+
 /** One class selector, escapes included. */
 const CLASS_SELECTOR = /\.(?:\\.|[A-Za-z0-9_-])+/g;
 
@@ -410,6 +422,45 @@ function afterLastUnescaped(text, char) {
   return text.slice((at.length ? at[at.length - 1] : -1) + 1);
 }
 
+/**
+ * A selector with its attribute selectors removed.
+ *
+ * Same scan as the delimiters above, and for the same reason. A lookbehind
+ * in front of the opening bracket cannot tell an escaped `[` from a real
+ * one whose own backslash was escaped, and this was the last pattern still
+ * using one, so `unescaped` was documenting a rule the file had not
+ * finished applying.
+ *
+ * Both ends matter, and they fail in opposite directions. An escaped `[` is
+ * part of a class name, and reading it as an opening bracket deletes the
+ * real classes after it, which LOSES a name. An escaped `]` does not close
+ * one, and stopping at it leaves the tail to be read as selector text,
+ * which invents one.
+ */
+function withoutAttributes(selector) {
+  let out = '';
+  for (let i = 0; i < selector.length; i += 1) {
+    if (selector[i] === '\\') {
+      out += selector.slice(i, i + 2);
+      i += 1;
+      continue;
+    }
+    if (selector[i] !== '[') {
+      out += selector[i];
+      continue;
+    }
+    // Inside a bracket now: skip to its unescaped close, or to the end if
+    // it never comes. An unterminated bracket dropping the rest of the
+    // selector is the loud side — it can only shorten what is read.
+    i += 1;
+    while (i < selector.length && selector[i] !== ']') {
+      if (selector[i] === '\\') i += 1;
+      i += 1;
+    }
+  }
+  return out;
+}
+
 function simpleSelectors(css) {
   if (!indexCache.has(css)) {
     assert.ok(
@@ -494,6 +545,20 @@ function simpleSelectors(css) {
           conditional: CONDITIONAL_AT_RULE.test(heading),
           rule: false,
         });
+        // One at-rule prelude is made of SELECTORS rather than a condition,
+        // and its class names are names the stylesheet knows. Skipping
+        // every prelude wholesale lost them, which is the membership
+        // index's quiet direction. Only `@scope`, and only for names: what
+        // a scope root matches is not a rule that styles anything, so it
+        // contributes no subject set. Every other prelude stays out, since
+        // a condition carries lengths and `1.5rem` tokenises as a class.
+        if (SCOPE_AT_RULE.test(heading)) {
+          for (const [, name] of withoutAttributes(heading).matchAll(
+            CLASS_TOKEN
+          )) {
+            names.add(name.replace(/\\(.)/g, '$1'));
+          }
+        }
         continue;
       }
       const conditional = open.some(block => block.conditional);
@@ -515,10 +580,7 @@ function simpleSelectors(css) {
       // classes after it, which LOSES a name. An escaped `]` does not close
       // one, and stopping at it leaves the tail to be read as selector
       // text, which invents one.
-      const selectorText = heading.replace(
-        /(?<!\\)\[(?:[^\]\\]|\\[\s\S])*\]/g,
-        ''
-      );
+      const selectorText = withoutAttributes(heading);
 
       // A NUMERIC escape names a character by code point — `.\31 23` is the
       // class `123` — and the tokeniser below reads every escape as one
@@ -542,9 +604,7 @@ function simpleSelectors(css) {
       // arguments wholesale — a class the stylesheet names only in a
       // `:not()` is still a class it names, and the membership path is the
       // one place that matters.
-      for (const [, name] of selectorText.matchAll(
-        /\.((?:\\.|[A-Za-z0-9_-])+)/g
-      )) {
+      for (const [, name] of selectorText.matchAll(CLASS_TOKEN)) {
         names.add(name.replace(/\\(.)/g, '$1'));
       }
       const prelude = requirements(heading);
@@ -1130,6 +1190,51 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       'and an escaped bracket does not close one either: stopping at it ' +
         'leaves the tail to be read as selector text, which fuses onto ' +
         'the class before the attribute and invents a name.'
+    );
+
+    // A `@scope` prelude is a selector list, not a condition, so the
+    // classes in it are classes the stylesheet knows.
+    assert.equal(
+      live('@scope(.the-root){.box{color:red}}', 'the-root'),
+      true,
+      'a class named as a scope root is a class the stylesheet knows, and ' +
+        'skipping every at-rule prelude lost it.'
+    );
+    assert.equal(
+      live('@scope(.the-root){.box{color:red}}', 'the-root.box'),
+      false,
+      'but a scope root is not a rule that styles anything, so it ' +
+        'contributes no compound.'
+    );
+    assert.equal(
+      live('@media (min-width:1.5rem){.box{color:red}}', '5rem'),
+      false,
+      'and only `@scope`: every other prelude is a condition, where a ' +
+        'length would tokenise as a class.'
+    );
+
+    // Attribute selectors this file reads loosely. Both shapes below make
+    // the rule read DEAD, which is the direction it is allowed to be wrong
+    // in, and these assertions are here so a change cannot quietly flip
+    // either one to live.
+    assert.equal(
+      live(
+        '.notification.is-primary[data-x = y]{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'whitespace inside an attribute selector splits the simple selector, ' +
+        'so the rule contributes no subject — a false alarm, and it stays ' +
+        'on that side.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary[data-x{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'an unterminated bracket swallows the rest of the selector, which ' +
+        'can only shorten what is read.'
     );
 
     // A NUMERIC escape names a character by code point, which this file
