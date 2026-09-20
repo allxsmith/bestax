@@ -172,11 +172,12 @@ const UNMODELLED = 'bestax-guard-unmodelled-requirement';
 /**
  * An at-rule whose contents apply only sometimes.
  *
- * `@media`, `@supports` and `@container` each wrap their rules in a
- * condition. `@layer` and `@font-face` and the rest do not, so a rule under
- * one of those is as live as a rule at the top level.
+ * `@media`, `@supports`, `@container` and `@scope` each wrap their rules in
+ * a condition — a viewport, a feature, a size, a subtree. `@layer` and
+ * `@font-face` and the rest do not, so a rule under one of those is as live
+ * as a rule at the top level.
  */
-const CONDITIONAL_AT_RULE = /^@(media|supports|container)\b/i;
+const CONDITIONAL_AT_RULE = /^@(media|supports|container|scope)\b/i;
 
 /** One class selector, escapes included. */
 const CLASS_SELECTOR = /\.(?:\\.|[A-Za-z0-9_-])+/g;
@@ -358,7 +359,23 @@ function simpleSelectors(css) {
     // sourceMappingURL contributes nothing anyone queries, but a comment
     // that happened to name a compound would answer for it, and that reads
     // as a live modifier — the silent direction again.
-    const chunks = css.replace(/\/\*[\s\S]*?\*\//g, '').split('{');
+    //
+    // Then string literals, emptied rather than removed so the quotes stay
+    // where they are. Everything below this line reads STRUCTURE out of raw
+    // text — blocks split on `{`, headings cut at `;`, classes tokenised on
+    // `.` — and a string is the one place those characters appear without
+    // meaning any of it. `content:"}"` popped the nesting stack, which made
+    // a rule nested inside another read as though it stood alone, and
+    // `[data-x=";.fake-class"]` put a class that does not exist into the
+    // membership index. Emptying them first is one rule instead of a
+    // special case at each of the three.
+    const chunks = css
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(
+        /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g,
+        match => match[0] + match[0]
+      )
+      .split('{');
     // One entry per block still open. `conditional` marks a block that only
     // applies sometimes, which is the same thing `:first-child` says about
     // elements, so a rule inside one carries a requirement rather than a
@@ -411,11 +428,10 @@ function simpleSelectors(css) {
       // heading rather than from `requirements`, which replaces those
       // arguments wholesale — a class the stylesheet names only in a
       // `:not()` is still a class it names, and the membership path is the
-      // one place that matters. Attribute VALUES come out first, since a
-      // class name inside one is a string rather than a selector.
-      for (const [, name] of heading
-        .replace(/\[[^\]]*\]/g, '')
-        .matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)) {
+      // one place that matters. An attribute value cannot fabricate a name
+      // here: a quoted one was emptied with every other string, and an
+      // unquoted one is an identifier, which cannot contain a `.`.
+      for (const [, name] of heading.matchAll(/\.((?:\\.|[A-Za-z0-9_-])+)/g)) {
         names.add(name.replace(/\\(.)/g, '$1'));
       }
       const prelude = requirements(heading);
@@ -433,7 +449,6 @@ function simpleSelectors(css) {
         );
       }
     }
-    names.delete(UNMODELLED);
     indexCache.set(css, { sets, names });
   }
   return indexCache.get(css);
@@ -874,6 +889,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
     );
     assert.equal(
       live(
+        '@scope(.x){.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a scope is a condition though: the rule applies inside a subtree ' +
+        'rather than everywhere.'
+    );
+    assert.equal(
+      live(
         '@media print{.box{color:red}}.notification.is-primary{color:blue}',
         'notification.is-primary'
       ),
@@ -901,6 +925,40 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       true,
       'and it must not swallow a real rule either.'
     );
+    // A STRING is content, not structure. Everything this matcher does
+    // reads structure out of raw text, and a string is where `{`, `}`, `;`
+    // and `.` appear meaning none of it.
+    assert.equal(
+      live('.a{content:"}";.b.is-x{color:red}}', 'b.is-x'),
+      false,
+      'a brace inside a string must not close a block, or a rule nested ' +
+        'in another reads as though it stood alone.'
+    );
+    assert.equal(
+      live('.box[data-x=";.fake-class"]{color:red}', 'fake-class'),
+      false,
+      'a class name inside an attribute value is a string, and reading it ' +
+        'as a selector invents a class the stylesheet does not ship.'
+    );
+    assert.equal(
+      live(
+        '.a{background:url("data:image/svg;base64,xx")}' +
+          '.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'and emptying a string must not eat the rule after it: a data URI ' +
+        'carries semicolons and is still just a value.'
+    );
+    assert.equal(
+      live(
+        '.a{content:"a\\"b}"}.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'an escaped quote does not end the string it sits in.'
+    );
+
     // NESTING is read off the brace stack rather than the text. A rule
     // open inside a style rule is nested whatever punctuation precedes it.
     assert.equal(
