@@ -147,8 +147,8 @@ export function parseReleaseTag(tag) {
  *
  * Note what is deliberately NOT done: no attempt to guess a version for the
  * other legs from the repository, the changelog, or the previous run. A
- * consumer SBOM describes what a consumer installs today, and today for those
- * three is whatever `latest` resolves to.
+ * consumer SBOM describes what a consumer installs today, and today for the
+ * rest is whatever `latest` resolves to.
  */
 export function installSpec({ package: pkg, eventName, tagName } = {}) {
   if (!pkg) throw new Error('installSpec requires a package name');
