@@ -36,7 +36,7 @@ const aiBanner =
  * blocks in quantity, so that was live rather than theoretical.
  *
  * The answer was a map of where the comments are, so their bodies could be
- * exempted — and that map was wrong twice before it was right, both times in
+ * exempted — and that map was wrong more than once before it was right, each time in
  * the direction that matters. A hand-rolled walk over quotes and slashes
  * miscounted the backticks of a template nesting another inside a substitution;
  * `createScanner` fixed that and kept a subtler version, since a bare scanner
@@ -57,6 +57,13 @@ const parseDeclaration = text =>
     'declaration.d.ts',
     text,
     ts.ScriptTarget.Latest,
+    // Parent pointers: the last carry-over from the comment walk that descended
+    // through TOKENS and so needed `getChildren`. Nothing reads a parent now —
+    // `referencedPaths` maps `referencedFiles`, `moduleSpecifiers` uses
+    // `forEachChild`, and `getStart(sourceFile)` skips trivia on the text it is
+    // handed. Kept because turning it off is a behaviour change nobody asked
+    // for, and said plainly rather than justified by a reason that stopped
+    // being true.
     true,
     ts.ScriptKind.TS
   );
@@ -70,7 +77,7 @@ const parseDeclaration = text =>
  * comment map both passes needed. A pattern cannot tell a specifier from
  * anything else quoted beside it, which cost this file a rewrite inside a TSDoc
  * `@example`, a build failure on a relative path written in prose, and a comment
- * scanner that was wrong twice before it was right. The parser knows which
+ * scanner that was wrong more than once before it was right. The parser knows which
  * strings name modules, so none of that has to be inferred.
  *
  * A `declare module` name is collected too, and carries `rewritable` to say
@@ -126,7 +133,7 @@ const moduleSpecifiers = sourceFile => {
       // `declarationAllowed` is true here because TS2846 is raised from one
       // expression that needs an import or export ancestor, and a module name
       // has none. So `declare module './a.d.ts'` typechecks, and refusing it
-      // was this branch getting that field wrong for the fourth time — each
+      // was this field being carried over from the shape it replaced — each
       // time by carrying a value over from the shape it replaced rather than
       // asking what the compiler does with THIS one.
       take(node.name, true, ts.isExternalModule(sourceFile));
@@ -192,19 +199,17 @@ const declarationUnder = (root, target) => {
  * triple-slash `reference path` names the declaration directly. Anything else
  * is unresolved, which is the one question worth asking after the rewrite.
  */
-const resolvesToDeclaration = (root, file, spec) => {
-  const from = dirname(file);
-  // A `reference path` names a declaration DIRECTLY, in any position. A module
-  // specifier spelled the same way depends on whether its import binds a value,
-  // which is why the two contexts no longer share one predicate.
-  if (/\.d\.[cm]?ts$/.test(spec)) {
-    return declarationUnder(root, resolvePath(from, spec));
-  }
-  // Never a declaration spelling by the time it gets here — the branch above
-  // took those — so the position cannot matter, and passing it explicitly says
-  // that rather than leaning on a default no input can reach.
-  return specifierResolves(root, file, spec, false);
-};
+const resolvesToDeclaration = (root, file, spec) =>
+  // A `reference path` names a declaration DIRECTLY, in ANY position — which is
+  // exactly what `declarationAllowed` means, so this is the same question with
+  // that flag set rather than a second predicate.
+  //
+  // It used to branch on the declaration spelling here and then delegate with
+  // `false`, which made the branch load-bearing: deleting it as an obvious
+  // duplicate — `specifierResolves` carries the same test — would silently have
+  // started refusing `reference path="./x.d.ts"`. Written this way there is
+  // nothing to delete wrongly.
+  specifierResolves(root, file, spec, true);
 
 /**
  * Whether `spec`, used as a MODULE SPECIFIER inside `file`, names a declaration
@@ -580,11 +585,14 @@ export const declarationExtensions = (root = 'dist/types') => {
         // depends on, and it is the one thing the rewrite cannot verify about
         // its own output.
         //
-        // What this no longer has to worry about is everything the raw-text
-        // version did: a string-literal type, a relative path in a preserved
-        // TSDoc `@example`, a `./data.json` import. None of them name a module,
-        // so none of them are collected, and the comment map that used to be
-        // needed to tell them apart is gone.
+        // What this no longer has to worry about is what the raw-text version
+        // could not tell apart: a string-literal type, and a relative path in a
+        // preserved TSDoc `@example`. Neither names a module, so neither is
+        // collected, and the comment map that existed to distinguish them is
+        // gone. A relative `./data.json` import is NOT in that group — it is a
+        // real module specifier, it is collected, and it still fails the build
+        // from the rewrite, which is the honest answer for a path that no
+        // declaration sits beside.
         const parsed = parseDeclaration(text);
         const named = moduleSpecifiers(parsed)
           .map(found => [found.text, found.declarationAllowed])
