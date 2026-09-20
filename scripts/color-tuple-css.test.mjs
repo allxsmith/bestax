@@ -157,15 +157,16 @@ function shipsClass(css, cls) {
   // required a keyword to SHIP asks `rendersAlone` instead, because a name
   // in someone else's selector is not a helper anybody can use.
   //
-  // One caller is quiet on a bad yes, and it is worth being exact about
-  // because it is what bounds the widening: the shade `deepEqual` compares
-  // two computed lists, so a fabricated name added to the left can make an
-  // equality hold that should have failed, hiding a real divergence rather
-  // than raising it. That is why every source of a fabricated name is
-  // enumerated rather than waved at — declaration text is cut at the
-  // semicolon, attribute values are stripped, at-rule conditions are not
-  // harvested, and a token that cannot be an identifier is refused. What
-  // is left is named where it happens, in `selectorConditions`.
+  // There used to be a caller that was quiet on a bad yes — the shade
+  // `deepEqual`, which compares two computed lists, so a fabricated name
+  // on the left could make an equality hold that should have failed. It
+  // asks `rendersAlone` now. That is the point worth keeping: this path is
+  // safe because no caller reads it in a direction where a wrong yes is
+  // quiet, and that is a property of the call sites rather than of the
+  // index. A name can still be fabricated — a comment inside a selector's
+  // parentheses survives the strip by design and is read — so the check
+  // when adding a caller is which way it fails, not whether the index can
+  // be wrong.
   const wanted = cls.split('.');
   const { sets, names } = simpleSelectors(css);
   if (wanted.length === 1) {
@@ -585,9 +586,7 @@ function nonStructure(css) {
  * inside it: `selector(.a:has(.b))` is the example its own docblock gives,
  * and a pattern that cannot cross a parenthesis harvested neither name from
  * it. Only these contents are read — the rest of a feature query is a
- * condition, and a condition can spell a class name by accident, which is
- * loud everywhere except the shade comparison, where a fabricated entry
- * makes an equality hold that should have failed.
+ * condition, and a condition can spell a class name by accident.
  *
  * Two shapes go wrong and both are worth naming, because neither is worth
  * guessing at. The function is found by its literal spelling, which is the
@@ -780,11 +779,7 @@ function simpleSelectors(css) {
           // of a feature query is a condition, and a condition can spell a
           // class name by accident — `(background:url(x.svg))` offers
           // `svg`, which the identifier filter cannot refuse because it is
-          // a perfectly good name. A fabricated name is usually loud, but
-          // not everywhere: the shade comparison asks which colours the
-          // stylesheet shades, and a fabricated entry there can make an
-          // equality hold that should have failed, which hides a real
-          // divergence rather than raising one.
+          // a perfectly good name.
           const prelude = SCOPE_AT_RULE.test(heading)
             ? heading
             : selectorConditions(heading);
@@ -1428,6 +1423,23 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'and closing on it would leave the truncated name behind, which is ' +
         'a class the stylesheet does not ship.'
+    );
+
+    // A comment inside a selector's parentheses IS read, and the name in
+    // it is fabricated. That is the direction the scan chose deliberately —
+    // a comment opener at depth is content, which is what keeps an
+    // unquoted url token from opening one — and it is recorded here rather
+    // than fixed, because it is safe by where it lands rather than by
+    // being impossible: every caller of the membership path fails loudly
+    // on a yes it should not have been given. The case exists so that the
+    // day one of them stops doing that, this is already written down.
+    assert.equal(
+      live('.box:is(/* .zz */ .a){color:red}', 'zz'),
+      true,
+      'a comment inside parentheses survives the strip, so the name in it ' +
+        'reaches the membership index — loud at every caller today, and ' +
+        'the reason the safety argument is about the callers rather than ' +
+        'about the index.'
     );
 
     // A mismatched bracket KIND defeats both halves of the balance check
