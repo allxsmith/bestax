@@ -222,9 +222,10 @@ const onlyClasses = argument =>
  *   can add a requirement after all: `:not(:not(.x))` needs `.x`, and two
  *   drops leave nothing. So the argument has to be classes and nothing
  *   else, checked as written; anything else is a requirement like any
- *   other. Resolution runs innermost-first, so `:not(:is(.is-light))`
- *   reaches this test as `:not(.UNMODELLED)` and still drops, which is
- *   right — it is a prohibition however its argument is spelled.
+ *   other. A nested call counts as anything else: `:not(:is(.is-light))`
+ *   is never matched here at all, because the pattern cannot cross the
+ *   inner parenthesis, and the bare pass reads the `:not` as the
+ *   requirement it could not verify.
  * - A pseudo-ELEMENT does not restrict anything. `.delete::before` styles a
  *   box generated for a delete, so the delete is live and calling it dead
  *   would be a plain misreading. The `::` spelling is left alone. The legacy
@@ -260,21 +261,31 @@ const onlyClasses = argument =>
  * and keeps the one that is wrong on the loud side.
  */
 function requirements(prelude) {
-  return (
-    prelude
-      .replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name, argument) =>
-        name.toLowerCase() === 'not' && onlyClasses(argument)
-          ? '*'
-          : `.${UNMODELLED}`
-      )
-      .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
-      .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`)
-      .replace(/#[A-Za-z0-9_-]+/g, `.${UNMODELLED}`)
-      // Pseudo-elements last, and removed rather than replaced. What is left
-      // by then is a `::` spelling, so no other pass can mistake it for the
-      // qualifier check in `classesOf`.
-      .replace(/::[a-z-]+/gi, '')
-  );
+  // Whatever is still inside parentheses once the passes above have run is
+  // the argument of a call none of them could resolve, and it has already
+  // been accounted for: the bare pass turned the call's NAME into a
+  // sentinel. Leaving the text behind is what hurts, because the caller
+  // splits on commas and an argument may hold them —
+  // `:has(:nth-child(2),.notification.is-primary,.z)` fragments into a
+  // clean `.notification.is-primary` with no sentinel on it, which reads
+  // live. Removing it is text-level and cannot turn a requirement into a
+  // class, which is the mistake the fixed-point loop made. Innermost first,
+  // and each round removes a pair, so it ends.
+  let text = prelude
+    .replace(/:([a-z-]+)\(([^()]*)\)/gi, (_, name, argument) =>
+      name.toLowerCase() === 'not' && onlyClasses(argument)
+        ? '*'
+        : `.${UNMODELLED}`
+    )
+    .replace(/\[[^\]]*\]/g, `.${UNMODELLED}`)
+    .replace(/(?<!:):(?!:)[a-z-]+/gi, `.${UNMODELLED}`)
+    .replace(/#[A-Za-z0-9_-]+/g, `.${UNMODELLED}`)
+    // Pseudo-elements last, and removed rather than replaced. What is left
+    // by then is a `::` spelling, so no other pass can mistake it for the
+    // qualifier check in `classesOf`.
+    .replace(/::[a-z-]+/gi, '');
+  while (/\([^()]*\)/.test(text)) text = text.replace(/\([^()]*\)/g, '');
+  return text;
 }
 
 /**
@@ -351,9 +362,17 @@ function simpleSelectors(css) {
       }
       // The last chunk is whatever trails the final `{`, and opens nothing.
       if (i === chunks.length - 1) break;
-      // Each `{` is preceded by a prelude; the selector is whatever follows
-      // the last `}` in it.
-      const heading = chunk.slice(chunk.lastIndexOf('}') + 1).trim();
+      // Each `{` is preceded by a prelude, which is whatever follows the
+      // last `}` in the chunk — and then whatever follows the last `;` in
+      // THAT, because a statement at-rule ends in a semicolon rather than a
+      // block and so shares a chunk with what comes after it. `@charset
+      // "utf-8";@media print` would otherwise be tested as one heading,
+      // and it starts with `@charset`, so the media query it is glued to
+      // would open as unconditional. `@import url(…);.box` is the same
+      // shape and skips a real rule. Declarations end in semicolons too,
+      // but they sit before the closing brace and are already gone.
+      const afterBlock = chunk.slice(chunk.lastIndexOf('}') + 1);
+      const heading = afterBlock.slice(afterBlock.lastIndexOf(';') + 1).trim();
       // An at-rule prelude is not a selector. Reading it as one indexed
       // `@media (hover:hover)` as a class set, and the rules INSIDE it are
       // what this is really about.
@@ -826,6 +845,47 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       live('@media (hover:hover){.box{color:red}}', 'hover'),
       false,
       'an at-rule prelude is not a selector and its words are not classes.'
+    );
+
+    // A STATEMENT at-rule ends in a semicolon rather than a block, so it
+    // shares a chunk with whatever follows it.
+    assert.equal(
+      live(
+        '@charset "utf-8";@media print{.notification.is-primary{color:red}}',
+        'notification.is-primary'
+      ),
+      false,
+      'a statement at-rule glued to the media query after it must not be ' +
+        'what decides whether that media query is a condition.'
+    );
+    assert.equal(
+      live(
+        '@import "x.css";.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'and it must not swallow a real rule either.'
+    );
+
+    // An at-rule prelude read as a selector finds classes in it. A decimal
+    // is the shape that bites: the tokeniser sees `.5rem` and calls it one.
+    assert.equal(
+      live('@media (min-width:1.5rem){.box{color:red}}', '5rem'),
+      false,
+      'a length in a media condition is not a class, and reading the ' +
+        'prelude as a selector is how it becomes one.'
+    );
+
+    // An argument the passes could not resolve leaves its TEXT behind, and
+    // the caller splits on commas.
+    assert.equal(
+      live(
+        '.x:has(:nth-child(2), .notification.is-primary, .z){color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'an unresolved argument must not fragment on its own commas and hand ' +
+        'back a clean compound with no requirement on it.'
     );
 
     // A COMBINATOR is a requirement one level up, and only the subject of a
