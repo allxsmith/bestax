@@ -519,6 +519,12 @@ export const declarationExtensions = (root = 'dist/types') => {
  * path, which is why the one in `src/elements/Icon.tsx` is not a problem and the
  * post-pass ignores it too.
  *
+ * The parser answers this, because the pattern that used to had grown one
+ * alternative per review round and was patched rather than complete: it wanted
+ * `from` on the same line as its `import`, so a wrapped import list named a
+ * module it could not see. Enumerating the shapes instead of extending the
+ * pattern is what found that, and the enumeration is in the test.
+ *
  * The other two matter for a second reason as well: they are relative, and the
  * copy lands one directory up, so their targets would shift even if the flavour
  * were fine. A `/// <reference path>` is a comment, which is exactly why a
@@ -529,10 +535,36 @@ export const declarationExtensions = (root = 'dist/types') => {
  * real built declaration. Spelled once, or widening one leaves the other
  * describing a narrower rule than it checks.
  */
-export const hasModuleSpecifiers = text =>
-  /^\s*(?:import|export)\b[^\n]*\bfrom\b|\bimport\s*\(|^\s*\/\/\/\s*<reference\b|\bimport\s+[A-Za-z_$][\w$]*\s*=\s*require\s*\(|^\s*import\s*['"]|^\s*declare\s+module\s*['"]\./m.test(
-    text
-  );
+export const hasModuleSpecifiers = text => {
+  const sourceFile = parseDeclaration(text);
+  // Both triple-slash forms. `path` moves with the copy; `types` does not, but
+  // the pattern this replaced flagged it and nothing here needs it loosened.
+  if (sourceFile.referencedFiles.length) return true;
+  if (sourceFile.typeReferenceDirectives.length) return true;
+  let found = false;
+  const visit = node => {
+    if (found) return;
+    if (
+      ts.isImportDeclaration(node) ||
+      ts.isImportTypeNode(node) ||
+      ts.isExternalModuleReference(node) ||
+      // `export { A }` with no `from` names nothing, so the specifier is what
+      // makes it one of these rather than the keyword.
+      (ts.isExportDeclaration(node) && node.moduleSpecifier) ||
+      // `declare module './x'` moves with the copy; `declare module 'react'`
+      // augments a package and names no path.
+      (ts.isModuleDeclaration(node) &&
+        ts.isStringLiteral(node.name) &&
+        /^\.\.?(\/|$)/.test(node.name.text))
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return found;
+};
 
 /**
  * Write `dist/constants.d.cts`, the `types` target for the `require`

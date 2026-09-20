@@ -163,33 +163,57 @@ describe('bulma-ui export map', () => {
     const { hasModuleSpecifiers } = await import(
       pathToFileURL(join(PKG_DIR, 'rollup.config.js')).href
     );
-    // The first two are wrong because they resolve as CommonJS inside the
-    // copy, putting TS1479 back. The last two are wrong for that AND because
-    // the copy lands a directory up, so a relative target moves — and a
-    // pattern anchored on `from` saw neither, one being a comment and the
-    // other carrying no `from`.
+    // An ENUMERATION rather than a sample. The predicate this replaced grew one
+    // alternative per review round, which is how it ended up wanting `from` on
+    // the same line as its `import` and missing a wrapped import list entirely.
+    // Listing the ways a declaration can name another module is what found that,
+    // so the list is the test.
+    //
+    // Two reasons a shape belongs here. It resolves as CommonJS inside the copy,
+    // putting TS1479 back; or its target is relative and the copy lands a
+    // directory up, so the target moves. Most qualify on both counts.
     for (const body of [
+      "import { A } from './a';\n",
+      "import A from './a';\n",
+      "import * as A from './a';\n",
+      "import type { A } from './a';\n",
+      "import type A from './a';\n",
+      "export { A } from './a';\n",
       "export * from './a';\n",
-      'export type X = import("./a").Y;\n',
-      '/// <reference path="./a.d.ts" />\n',
-      "import x = require('./a');\n",
-      // No binding, so nothing with `from` in it, and nothing downstream
-      // re-reads this file before it becomes the .d.cts.
+      "export * as ns from './a';\n",
+      "export type { A } from './a';\n",
+      "export { default as A } from './a';\n",
+      // No binding at all, so nothing with `from` in it.
       "import './a';\n",
-      // Matched for its TARGET rather than its flavour: the copy lands a
-      // directory up, so a relative one moves.
+      'export type P = import("./a").A;\n',
+      "export type P = import('./a', { with: { 'resolution-mode': 'import' } }).A;\n",
+      "import A = require('./a');\n",
       "declare module './a' {}\n",
+      'declare module "./a";\n',
+      '/// <reference path="./a.d.ts" />\n',
+      '/// <reference types="node" />\n',
+      "import { A } from './a' with { type: 'json' };\n",
+      // The two the old pattern could not see: `from` is not on the `import`
+      // line. tsc does not wrap this today, which is why it was never live.
+      "import {\n  A,\n} from './a';\n",
+      "export {\n  A,\n} from './a';\n",
     ]) {
       assert.equal(hasModuleSpecifiers(body), true, `not caught: ${body}`);
     }
-    // And it stays quiet on a declaration that really is self-contained,
-    // including one whose prose merely mentions an import.
+    // The other half of asking the parser: a keyword is not a specifier. These
+    // name no module, and flagging any of them would fail the build on a
+    // declaration that is perfectly safe to copy.
     for (const body of [
       'export declare const A: number;\n',
       "/**\n * @example\n * import { A } from './a';\n */\nexport {};\n",
       // A package augmentation names no path, so nothing moves when the file is
       // copied. `src/elements/Icon.tsx` carries exactly this shape.
       "declare module 'react' {}\n",
+      "declare module '@scope/pkg' {}\n",
+      // `export` with no module specifier — the shape a naive AST check flags.
+      'export {};\n',
+      'declare const A = 1;\nexport { A };\n',
+      'declare const A = 1;\nexport = A;\n',
     ]) {
       assert.equal(hasModuleSpecifiers(body), false, `false alarm: ${body}`);
     }
