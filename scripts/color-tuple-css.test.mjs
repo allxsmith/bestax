@@ -480,8 +480,15 @@ function classesOf(simple, contextual) {
  */
 function nonStructure(css) {
   let out = '';
-  let depth = 0;
-  // Where a closer arrived with nothing open. Recorded rather than
+  // The KINDS of bracket still open, innermost last. A single counter
+  // could not tell a `]` closing a `(` from a real close, so `foo(]`
+  // balanced and everything after it was read one bracket too shallow — a
+  // brace inside a function coming back as block structure, which is the
+  // direction this file forbids. Both halves of the balance check missed
+  // it: the stray only fires on a closer with nothing open at all, and the
+  // final check reads only the net.
+  const open = [];
+  // Where a closer arrived that did not match. Recorded rather than
   // asserted in the loop, because a message built per character is a
   // message built eight hundred thousand times.
   let stray = -1;
@@ -500,7 +507,7 @@ function nonStructure(css) {
     // quietly. The `url(…)` alternation this scan replaced was covering
     // the shape without saying so. CSS agrees: a comment cannot start
     // inside a url token or an attribute value.
-    if (ch === '/' && css[i + 1] === '*' && depth === 0) {
+    if (ch === '/' && css[i + 1] === '*' && open.length === 0) {
       const end = css.indexOf('*/', i + 2);
       i = end === -1 ? css.length : end + 1;
       continue;
@@ -530,14 +537,16 @@ function nonStructure(css) {
       }
       continue;
     }
-    if (ch === '(' || ch === '[') depth += 1;
+    if (ch === '(' || ch === '[') open.push(ch);
     else if (ch === ')' || ch === ']') {
-      if (depth === 0 && stray < 0) stray = i;
-      depth -= 1;
+      const wanted = ch === ')' ? '(' : '[';
+      if (open[open.length - 1] !== wanted) {
+        if (stray < 0) stray = i;
+      } else open.pop();
     }
     // A brace or semicolon inside either kind of bracket is content. Held
     // as a space so the text keeps its length and nothing fuses across it.
-    else if (depth > 0 && (ch === '{' || ch === '}' || ch === ';')) {
+    else if (open.length > 0 && (ch === '{' || ch === '}' || ch === ';')) {
       out += ' ';
       continue;
     }
@@ -553,13 +562,14 @@ function nonStructure(css) {
   // a whole stylesheet at once, so both halves are checked.
   assert.ok(
     stray < 0,
-    'the stylesheet closes a bracket that was never opened, near ' +
+    'the stylesheet closes a bracket that was never opened, or closes one ' +
+      'kind with the other, near ' +
       `\`${css.slice(Math.max(0, stray - 40), stray + 40).trim()}\`. ` +
       'Everything after it is read one bracket too shallow, so a brace ' +
       'inside a function would be taken for block structure.'
   );
   assert.equal(
-    depth,
+    open.length,
     0,
     'the stylesheet leaves a bracket open, so this file cannot tell which ' +
       'of its braces open blocks. Every rule after it would drop out of ' +
@@ -1418,6 +1428,59 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       false,
       'and closing on it would leave the truncated name behind, which is ' +
         'a class the stylesheet does not ship.'
+    );
+
+    // A mismatched bracket KIND defeats both halves of the balance check
+    // on its own: the stray only fires on a closer with nothing open, and
+    // the net reads the same either way.
+    assert.throws(
+      () =>
+        live(
+          '.hero{a:foo(]}.notification.is-primary{color:red}[)}',
+          'notification.is-primary'
+        ),
+      /never opened, or closes one kind with the other/,
+      'a `]` does not close a `(`, and reading it as though it did leaves ' +
+        'everything after it one bracket too shallow, so a brace inside a ' +
+        'function comes back as block structure.'
+    );
+    assert.equal(
+      live(
+        '.a{b:foo([x])}.notification.is-primary{color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'and the kinds nest normally, so a bracket inside a function is ' +
+        'still just content.'
+    );
+
+    // The pseudo-class keywords are case-insensitive too, in all three
+    // places `requirements` reads one.
+    assert.equal(
+      live(
+        '.notification.is-primary:NOT(.is-a){color:red}',
+        'notification.is-primary'
+      ),
+      true,
+      'a prohibition spelled in upper case is still a prohibition, or it ' +
+        'reads as a requirement and the compound goes dead.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary:HOVER{color:red}',
+        'notification.is-primary'
+      ),
+      false,
+      'and a pseudo-class spelled in upper case is still a requirement.'
+    );
+    assert.equal(
+      live(
+        '.notification.is-primary::BEFORE{content:""}',
+        'notification.is-primary'
+      ),
+      true,
+      'and a pseudo-element spelled in upper case is still exempt, or the ' +
+        'compound it hangs off reads dead.'
     );
 
     // CSS is case-insensitive about every keyword on this path, and each
@@ -2472,7 +2535,18 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
       for (const shade of shades) {
         const judged = colors.filter(c => !ambiguous(c, shade));
         assert.deepEqual(
-          judged.filter(c => shipsClass(css, `${family}-${c}-${shade}`)).sort(),
+          // `rendersAlone`, not membership. A shade helper is a rule of its
+          // own or it is not a helper, and asking the narrow question is
+          // what stops this comparison being the one place a fabricated
+          // name is quiet: it is between two computed lists, so an extra
+          // entry on the left can make an equality hold that should have
+          // failed. Every shade helper the stylesheet ships is a sole
+          // subject today, so no case can tell the two questions apart
+          // here — this is the mechanism being right rather than a
+          // behaviour a revert would catch.
+          judged
+            .filter(c => rendersAlone(css, `${family}-${c}-${shade}`))
+            .sort(),
           judged.filter(c => !declared.has(c)).sort(),
           `the colours the stylesheet shades \`-${shade}\` under ` +
             `\`${family}-\` and the colours with a live component modifier ` +
