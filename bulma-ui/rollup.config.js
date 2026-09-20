@@ -73,21 +73,22 @@ const parseDeclaration = text =>
  * scanner that was wrong twice before it was right. The parser knows which
  * strings name modules, so none of that has to be inferred.
  *
- * A `declare module` name is deliberately absent. Only an ambient declaration
- * takes a string name, and a relative one is TS2436 — "Ambient module
- * declaration cannot specify relative module name" — so the shape this would
- * rewrite cannot legally exist, and a bare one names a package rather than a
- * path.
+ * A `declare module` name is collected too, and carries `rewritable` to say
+ * whether an extension may be chosen for it. Inside a file that is itself a
+ * module it is an augmentation, naming a module the way an import does; in a
+ * global file it is an ambient declaration, where a relative name is TS2436 and
+ * there is nothing correct to rewrite it to. Both are checked.
  */
 const moduleSpecifiers = sourceFile => {
   const found = [];
-  const take = (node, declarationAllowed) => {
+  const take = (node, declarationAllowed, rewritable = true) => {
     if (!node || !ts.isStringLiteral(node)) return;
     found.push({
       start: node.getStart(sourceFile) + 1,
       end: node.getEnd() - 1,
       text: node.text,
       declarationAllowed,
+      rewritable,
     });
   };
   const visit = node => {
@@ -116,16 +117,19 @@ const moduleSpecifiers = sourceFile => {
       }
     } else if (ts.isModuleDeclaration(node) && ts.isStringLiteral(node.name)) {
       // An AUGMENTATION names a module the same way an import does, so its
-      // specifier needs the same extension. Only in a file that is itself a
-      // module, though: the same syntax in a global file is an ambient
-      // declaration, where a relative name is TS2436 and there is no right
-      // answer to rewrite it to.
+      // specifier needs the same extension — but only in a file that is itself
+      // a module. The same syntax in a global file is an ambient declaration,
+      // where a relative name is TS2436 and there is no right answer to rewrite
+      // it to; those are still CHECKED, because `pnpm build` is not a type gate
+      // and erroring source still emits.
       //
-      // The earlier reading of TS2436 was too broad — it is guarded on the
-      // declaration's parent being a global source file and skipped entirely
-      // for an augmentation, so tsc does emit these. Left un-rewritten, an
-      // extensionless one failed a build this can fix.
-      if (ts.isExternalModule(sourceFile)) take(node.name, false);
+      // `declarationAllowed` is true here because TS2846 is raised from one
+      // expression that needs an import or export ancestor, and a module name
+      // has none. So `declare module './a.d.ts'` typechecks, and refusing it
+      // was this branch getting that field wrong for the fourth time — each
+      // time by carrying a value over from the shape it replaced rather than
+      // asking what the compiler does with THIS one.
+      take(node.name, true, ts.isExternalModule(sourceFile));
     } else if (ts.isImportTypeNode(node)) {
       // The `import('./x').Y` form tsc emits for a type it reaches without an
       // explicit import. Always a type position: the only non-clause route to
@@ -513,6 +517,7 @@ export const declarationExtensions = (root = 'dist/types') => {
         let edits;
         try {
           edits = moduleSpecifiers(parseDeclaration(before))
+            .filter(found => found.rewritable)
             .filter(found => /^\.\.?(\/|$)/.test(found.text))
             .map(found => ({
               ...found,
