@@ -291,7 +291,10 @@ export const specifierResolves = (root, file, spec, declarationAllowed) => {
  * the one member of that class left unaddressed rather than unreachable by
  * accident.
  */
-export const declarationExtensions = (root = 'dist/types') => {
+export const declarationExtensions = (
+  root = 'dist/types',
+  mirror = 'dist/types-cjs'
+) => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
   // or stale because the build never got that far. Without a latch this hook's
   // own error replaces the real one — a compile failure reported as a missing
@@ -630,8 +633,56 @@ export const declarationExtensions = (root = 'dist/types') => {
           );
         }
       }
+
+      // The CommonJS mirror, HERE rather than in a plugin of its own, because
+      // `closeBundle` is a PARALLEL hook: rollup runs every plugin's copy at
+      // once, so a separate plugin raced this one and copied `dist/types`
+      // mid-rewrite. That is not theoretical — three builds produced 184, 182
+      // and 180 extensionless specifiers in the mirror, varying run to run,
+      // and the consumer fixture passed only because `index.d.ts` happened to
+      // be rewritten before the copy reached it.
+      //
+      // Plugin ORDER buys nothing here. Ordering within one hook is what buys
+      // it, which is why this is a step rather than a neighbour.
+      if (mirror) await mirrorAsCommonjs(root, mirror);
     },
   };
+};
+
+/**
+ * Copy a finished declaration tree and mark the copy CommonJS (#698).
+ *
+ * The package is `type: module`, so every emitted `.d.ts` reads as an ES module
+ * and a `moduleResolution: node16` consumer that REQUIRES the package meets
+ * TS1479. One `types` target cannot describe both conditions.
+ *
+ * A nested `{"type":"commonjs"}` does the whole job, which is why this is a copy
+ * rather than a second declaration emit: flavour comes from the nearest
+ * manifest, so the same bytes read as CommonJS from under the copy — no `.d.cts`
+ * renaming, and no rewriting `./x.js` to `./x.cjs`, because inside that tree
+ * `./x.js` already resolves to a CommonJS `x.d.ts`.
+ *
+ * No `rm` before the copy. `pnpm all` hands `build` and `bundle:stats` to one
+ * `turbo run` with no edge between them, and both are `rollup -c` over this same
+ * `dist`, so they run concurrently. Two processes writing identical bytes is
+ * harmless; one clearing the directory first is not, and the quiet outcome —
+ * an `rm` landing after the other wrote the manifest — leaves a tree with no
+ * `package.json`, which falls back to the root `type: module` and puts TS1479
+ * back with everything green.
+ */
+const mirrorAsCommonjs = async (from, to) => {
+  // Worth knowing that no conformance rule judges this: `types` is absent from
+  // the require-matching condition set, so a `types` target is never descended
+  // into at any extension. The consumer fixtures are what hold this tree
+  // honest.
+
+  await cp(from, to, { recursive: true });
+  // The whole mechanism: one line, and without it the copy reads as ESM again.
+  await writeFile(
+    join(to, 'package.json'),
+    `${JSON.stringify({ type: 'commonjs' }, null, 2)}\n`,
+    'utf8'
+  );
 };
 
 /**
@@ -731,107 +782,6 @@ export const hasModuleSpecifiers = text => {
  * on its own reaches the check below, which is why the check is here rather
  * than being left to the test.
  */
-/**
- * Mirror `dist/types` into `dist/types-cjs` and mark it CommonJS, so the
- * `require` condition has declarations of the right flavour (#698).
- *
- * The package is `type: module`, so every emitted `.d.ts` reads as an ES module
- * and a `moduleResolution: node16` consumer that REQUIRES the package meets
- * TS1479 — "the referenced file is an ECMAScript module and cannot be imported
- * with 'require'". One `types` target cannot describe both conditions.
- *
- * A nested `{"type":"commonjs"}` does the whole job, which is why this is a copy
- * rather than a second declaration emit. Flavour comes from the nearest manifest,
- * so the same bytes read as CommonJS from under `dist/types-cjs` — no `.d.cts`
- * renaming, and no rewriting `./x.js` to `./x.cjs`, because inside that tree
- * `./x.js` already resolves to a CommonJS `x.d.ts`. The specifiers the main pass
- * wrote are correct here unchanged, which is the whole reason this is cheap.
- *
- * Measured before choosing it: all five consumer shapes — node16 and nodenext,
- * CommonJS and ESM, plus bundler — typecheck clean against a package laid out
- * this way, where node16 CommonJS is TS1479 without it. The cost is one extra
- * copy of the declarations, about 6% of unpacked `dist`.
- *
- * Runs from `closeBundle` at config level, after `declarationExtensions` has
- * given every specifier its extension — copying before that would mirror a tree
- * whose specifiers do not resolve, and the post-pass there would never see the
- * copy.
- */
-const commonjsDeclarationTypes = (
-  from = 'dist/types',
-  to = 'dist/types-cjs'
-) => {
-  let failed = false;
-  let started = 0;
-  let wrote = 0;
-  return {
-    name: 'bestax-commonjs-declaration-types',
-    buildStart() {
-      failed = false;
-      started = 0;
-      wrote = 0;
-    },
-    buildEnd(error) {
-      if (error) failed = true;
-    },
-    renderError() {
-      failed = true;
-    },
-    renderStart() {
-      started += 1;
-    },
-    writeBundle() {
-      wrote += 1;
-    },
-    async closeBundle(error) {
-      // The same latch `declarationExtensions` carries, for the same reason:
-      // `closeBundle` fires on every failure path too, and this hook's own
-      // error would replace the real one.
-      if (failed || error || started === 0 || wrote !== started) return;
-      let entries;
-      try {
-        entries = await readdir(from, { withFileTypes: true });
-      } catch (readError) {
-        if (readError.code === 'ENOENT') {
-          throw new Error(
-            `${from} is missing, so ${to} cannot be written. It comes from the ` +
-              'declaration pass, which has to run before this.'
-          );
-        }
-        throw readError;
-      }
-      if (!entries.length) {
-        throw new Error(
-          `${from} is empty, so ${to} would describe nothing. The declaration ` +
-            'pass has to run before this.'
-        );
-      }
-      // NO `rm` first, deliberately. `pnpm all` hands `build` and
-      // `bundle:stats` to one `turbo run` with no edge between them, and both
-      // are `rollup -c` over this same `dist` — so they run concurrently. Two
-      // processes writing identical bytes is harmless and is what happened
-      // before this plugin existed; one of them clearing the directory first is
-      // not. The loud outcome is a `cp` that fails mid-walk; the quiet one is an
-      // `rm` landing after the other process wrote the manifest, leaving a tree
-      // with no `package.json`, which falls back to the root `type: module` and
-      // puts TS1479 back with a green gate.
-      //
-      // `cp` overwrites, so a rebuild refreshes every file that still exists. A
-      // declaration deleted from `src` leaves a stale copy here — the same thing
-      // `dist` already does everywhere else, since nothing cleans it, and the
-      // extension pass holds the source tree to resolving rather than this one.
-      await cp(from, to, { recursive: true });
-      // The whole mechanism. Flavour is decided by the nearest manifest, so this
-      // one line is what makes the copied declarations CommonJS.
-      await writeFile(
-        join(to, 'package.json'),
-        `${JSON.stringify({ type: 'commonjs' }, null, 2)}\n`,
-        'utf8'
-      );
-    },
-  };
-};
-
 const constantsCjsTypes = () => ({
   name: 'bestax-constants-cjs-types',
   async writeBundle() {
@@ -915,8 +865,6 @@ export default commandLineArgs => {
         // correct under `--watch`: that rebuilds only the config whose inputs
         // changed, so a rewrite hung off any other entry never runs.
         declarationExtensions(),
-        // After it: this mirrors what that pass has finished rewriting.
-        commonjsDeclarationTypes(),
         resolve(),
         commonjs(),
         typescript({
