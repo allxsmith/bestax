@@ -1,4 +1,4 @@
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { cp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import {
   dirname,
@@ -724,6 +724,94 @@ export const hasModuleSpecifiers = text => {
  * on its own reaches the check below, which is why the check is here rather
  * than being left to the test.
  */
+/**
+ * Mirror `dist/types` into `dist/types-cjs` and mark it CommonJS, so the
+ * `require` condition has declarations of the right flavour (#698).
+ *
+ * The package is `type: module`, so every emitted `.d.ts` reads as an ES module
+ * and a `moduleResolution: node16` consumer that REQUIRES the package meets
+ * TS1479 — "the referenced file is an ECMAScript module and cannot be imported
+ * with 'require'". One `types` target cannot describe both conditions.
+ *
+ * A nested `{"type":"commonjs"}` does the whole job, which is why this is a copy
+ * rather than a second declaration emit. Flavour comes from the nearest manifest,
+ * so the same bytes read as CommonJS from under `dist/types-cjs` — no `.d.cts`
+ * renaming, and no rewriting `./x.js` to `./x.cjs`, because inside that tree
+ * `./x.js` already resolves to a CommonJS `x.d.ts`. The specifiers the main pass
+ * wrote are correct here unchanged, which is the whole reason this is cheap.
+ *
+ * Measured before choosing it: all five consumer shapes — node16 and nodenext,
+ * CommonJS and ESM, plus bundler — typecheck clean against a package laid out
+ * this way, where node16 CommonJS is TS1479 without it. The cost is one extra
+ * copy of the declarations, about 6% of unpacked `dist`.
+ *
+ * Runs from `closeBundle` at config level, after `declarationExtensions` has
+ * given every specifier its extension — copying before that would mirror a tree
+ * whose specifiers do not resolve, and the post-pass there would never see the
+ * copy.
+ */
+const commonjsDeclarationTypes = (
+  from = 'dist/types',
+  to = 'dist/types-cjs'
+) => {
+  let failed = false;
+  let started = 0;
+  let wrote = 0;
+  return {
+    name: 'bestax-commonjs-declaration-types',
+    buildStart() {
+      failed = false;
+      started = 0;
+      wrote = 0;
+    },
+    buildEnd(error) {
+      if (error) failed = true;
+    },
+    renderError() {
+      failed = true;
+    },
+    renderStart() {
+      started += 1;
+    },
+    writeBundle() {
+      wrote += 1;
+    },
+    async closeBundle(error) {
+      // The same latch `declarationExtensions` carries, for the same reason:
+      // `closeBundle` fires on every failure path too, and this hook's own
+      // error would replace the real one.
+      if (failed || error || started === 0 || wrote !== started) return;
+      let entries;
+      try {
+        entries = await readdir(from, { withFileTypes: true });
+      } catch (readError) {
+        if (readError.code === 'ENOENT') {
+          throw new Error(
+            `${from} is missing, so ${to} cannot be written. It comes from the ` +
+              'declaration pass, which has to run before this.'
+          );
+        }
+        throw readError;
+      }
+      if (!entries.length) {
+        throw new Error(
+          `${from} is empty, so ${to} would describe nothing. The declaration ` +
+            'pass has to run before this.'
+        );
+      }
+      await rm(to, { recursive: true, force: true });
+      await cp(from, to, { recursive: true });
+      // The whole mechanism. Flavour is decided by the nearest manifest, so this
+      // one line is what makes the copied declarations CommonJS.
+      await writeFile(
+        join(to, 'package.json'),
+        `${JSON.stringify({ type: 'commonjs' }, null, 2)}\n`,
+        'utf8'
+      );
+    },
+  };
+};
+
 const constantsCjsTypes = () => ({
   name: 'bestax-constants-cjs-types',
   async writeBundle() {
@@ -807,6 +895,8 @@ export default commandLineArgs => {
         // correct under `--watch`: that rebuilds only the config whose inputs
         // changed, so a rewrite hung off any other entry never runs.
         declarationExtensions(),
+        // After it: this mirrors what that pass has finished rewriting.
+        commonjsDeclarationTypes(),
         resolve(),
         commonjs(),
         typescript({
