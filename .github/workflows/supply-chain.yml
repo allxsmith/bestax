@@ -1026,7 +1026,8 @@ jobs:
           cd "$RUNNER_TEMP/verify"
           npm init -y > /dev/null
           npm install --ignore-scripts \
-            @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp
+            @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp \
+            @allxsmith/eslint-plugin-bestax
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -1052,7 +1053,7 @@ jobs:
       # No package list here on purpose. It reads the roster back out of the
       # scratch tree, so the install step above is the single place the
       # packages are named. Listing them twice made "keep these in sync" a
-      # hand-maintained invariant with nothing enforcing it — add a fifth
+      # hand-maintained invariant with nothing enforcing it — add a newly
       # published package to one and not the other and it ships unverified,
       # silently, green.
       - name: Assert the attestations say this repository built these tarballs
