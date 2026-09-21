@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Pre-flight for the packages that publish with `pnpm publish` (#436, #532),
- * which is all four of them.
+ * which is all of them.
  *
  * Each hands its publish step to `@semantic-release/exec` running
  * `pnpm publish`, because `npm publish` does not resolve pnpm's `workspace:`

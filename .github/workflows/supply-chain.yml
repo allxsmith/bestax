@@ -137,6 +137,8 @@ jobs:
             slug: bestax-migrate
           - package: bestax-mcp
             slug: bestax-mcp
+          - package: '@allxsmith/eslint-plugin-bestax'
+            slug: allxsmith-eslint-plugin-bestax
 
     steps:
       # Rule 10: a new job ships at `block`. The jobs in this file that carry
@@ -318,7 +320,7 @@ jobs:
       # self-evidently the scan container instead of a phantom dependency.
       #
       # WHICH VERSION gets installed is decided by consumer-sbom-meta.mjs
-      # (#530 item 1), not by resolving `latest` for all four legs as this
+      # (#530 item 1), not by resolving `latest` for every leg as this
       # step used to.
       #
       # For the ONE package a release names, `release.tag_name` is `<pkg>@X.Y.Z`
@@ -361,7 +363,7 @@ jobs:
         # legs no release names, and the workflow does no parsing of its own —
         # deriving the version from the spec here would reimplement the
         # last-`@` split in untested YAML, one character from being wrong for
-        # the one scoped package.
+        # a scoped package.
         run: |
           node scripts/consumer-sbom-meta.mjs spec \
             --package "$PACKAGE" --event "$EVENT" --tag "$TAG"
@@ -682,7 +684,7 @@ jobs:
     # The status-check function is load-bearing, not decoration. An `if` with no
     # status function is implicitly `success() && (...)`, which means EVERY job
     # in `needs` must succeed — so adding `consumer-sbom` here would make one
-    # flaky `npm install` in any of four matrix legs skip this job entirely and
+    # flaky `npm install` in any one matrix leg skip this job entirely and
     # ship the release with its *repository* SBOMs unsigned. That is a
     # Signed-Releases score of 0 (#404) caused by an unrelated registry hiccup.
     #
