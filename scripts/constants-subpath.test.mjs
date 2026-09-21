@@ -403,8 +403,9 @@ describe('bulma-ui export map', () => {
 
   it('typechecks a node16 consumer through BOTH conditions', () => {
     requireBuilt();
-    // #696 names `node16` as well as `nodenext`, and the other fixtures cover
-    // only the latter. This pair is asserted together because it used to be a
+    // The ROOT entry under `node16`, both conditions. The `./constants` subpath
+    // has its own node16 pair; this is the root's, which is where #698 bit.
+    // Asserted together because it used to be a
     // BOUNDARY: an ESM consumer was fine and a CommonJS one met TS1479, because
     // one ESM-flavoured `types` target served both conditions.
     //
