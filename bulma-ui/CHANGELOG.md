@@ -1,3 +1,14 @@
+## [5.16.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.4...@allxsmith/bestax-bulma@5.16.5) (2026-09-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** a module name has no import ancestor, so TS2846 cannot reach it ([f60bca1](https://github.com/allxsmith/bestax/commit/f60bca1cc55587fcf3cb3275e11f6f9716b90067)), closes [#708](https://github.com/allxsmith/bestax/issues/708) [#704](https://github.com/allxsmith/bestax/issues/704)
+* **bulma-ui:** answer a declaration-spelled specifier by position, not by name ([979b5fd](https://github.com/allxsmith/bestax/commit/979b5fdd866b0684d7385c928a53d8eb2857656a)), closes [#704](https://github.com/allxsmith/bestax/issues/704)
+* **bulma-ui:** read the clause, not the keyword, for a declaration specifier ([f6b7f3f](https://github.com/allxsmith/bestax/commit/f6b7f3fde7b7ec119329b9df3a2571304d4ef626)), closes [#708](https://github.com/allxsmith/bestax/issues/708) [#704](https://github.com/allxsmith/bestax/issues/704)
+* **bulma-ui:** rewrite a module augmentation, which TS2436 does not forbid ([ea93b8b](https://github.com/allxsmith/bestax/commit/ea93b8b9ddabd5f5e5d3de86e1c17952c44acead)), closes [#704](https://github.com/allxsmith/bestax/issues/704)
+* **bulma-ui:** settle what a declaration-spelled specifier means ([7ef9439](https://github.com/allxsmith/bestax/commit/7ef9439b0c31a6aff4099dc6068812d4f5bed18a)), closes [#704](https://github.com/allxsmith/bestax/issues/704)
+
 ## [5.16.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.3...@allxsmith/bestax-bulma@5.16.4) (2026-09-21)
 
 
