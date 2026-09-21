@@ -55,16 +55,18 @@ const parseDeclaration = text =>
     'declaration.d.ts',
     text,
     ts.ScriptTarget.Latest,
-    // No parent pointers, because none of the three readers of this parse wants
-    // one: `moduleSpecifiers` and `hasModuleSpecifiers` walk with
-    // `forEachChild`, `referencedPaths` maps `referencedFiles` without walking,
-    // and `getStart(sourceFile)` skips trivia on the text it is handed.
+    // No parent pointers, because nothing that reads this parse wants one.
+    // Three functions do: `moduleSpecifiers` and `hasModuleSpecifiers` walk it
+    // with `forEachChild`, and both of the latter's reference lists —
+    // `referencedFiles`, `typeReferenceDirectives`, `libReferenceDirectives` —
+    // are read off the source file directly, as `referencedPaths` reads the
+    // first of them. `getStart(sourceFile)` skips trivia on the text it is
+    // handed. None of that descends through a parent.
     //
-    // They were a carry-over from the comment walk that descended through
-    // TOKENS via `getChildren`. That is not because `getChildren` needs them —
-    // it falls back to `getSourceFile()` only when no source file is passed, and
-    // that walk passed one, so it worked either way. Measured rather than
-    // reasoned: the same walk visits the same nodes with parents on and off.
+    // They were a carry-over from the comment walk that went through TOKENS via
+    // `getChildren`, and not because that call needed them: it falls back to
+    // `getSourceFile()` only when no source file is passed, and the walk passed
+    // one.
     false,
     ts.ScriptKind.TS
   );
