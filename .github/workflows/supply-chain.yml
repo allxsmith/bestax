@@ -393,16 +393,30 @@ jobs:
           # item 1 would trade "the SBOM names the wrong version" for "the
           # released package has no SBOM at all", which is a worse deal — the
           # released leg is the one the release actually cares about.
-          for attempt in 1 2 3; do
-            if npm install --ignore-scripts "$SPEC"; then
-              break
-            fi
-            if [ "$attempt" = 3 ]; then
-              echo "::error::npm install $SPEC failed three times"
+          #
+          # `--prefer-online` is what makes a retry mean anything. npm caches
+          # the packument it fetched on the way in, so without it a retry can
+          # re-read the same pre-publish document out of `~/.npm` and fail with
+          # an identical ETARGET; the sleeps then only prove the cache agrees
+          # with itself. This forces every attempt to revalidate against the
+          # registry.
+          #
+          # A deadline rather than a fixed attempt count, because the thing
+          # being waited on is not this job. The `release` event fires when the
+          # GitHub release is created, and the version becomes installable when
+          # the registry finishes serving it: a different clock, and nothing
+          # here can hurry it. The budget was well under a minute when every
+          # release-triggered run began failing at this step.
+          deadline=$(( SECONDS + 600 ))
+          attempt=0
+          until npm install --prefer-online --ignore-scripts "$SPEC"; do
+            attempt=$(( attempt + 1 ))
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::npm install $SPEC did not succeed within the propagation budget. If that version never published, the release step earlier in the pipeline is where to look; if it did publish, the registry took longer to serve it than this budget allows."
               exit 1
             fi
             echo "npm install $SPEC failed (attempt $attempt); retrying"
-            sleep $((attempt * 10))
+            sleep 20
           done
 
           # A scan directory holding ONLY the lockfile (#530 item 5). syft used
