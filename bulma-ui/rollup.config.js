@@ -57,7 +57,7 @@ const parseDeclaration = text =>
     ts.ScriptTarget.Latest,
     // No parent pointers, because nothing that reads this parse wants one.
     // Three functions do: `moduleSpecifiers` and `hasModuleSpecifiers` walk it
-    // with `forEachChild`, and both of the latter's reference lists —
+    // with `forEachChild`, and the latter's three reference lists —
     // `referencedFiles`, `typeReferenceDirectives`, `libReferenceDirectives` —
     // are read off the source file directly, as `referencedPaths` reads the
     // first of them. `getStart(sourceFile)` skips trivia on the text it is
