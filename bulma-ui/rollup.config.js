@@ -1,4 +1,4 @@
-import { cp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import {
   dirname,
@@ -799,7 +799,20 @@ const commonjsDeclarationTypes = (
             'pass has to run before this.'
         );
       }
-      await rm(to, { recursive: true, force: true });
+      // NO `rm` first, deliberately. `pnpm all` hands `build` and
+      // `bundle:stats` to one `turbo run` with no edge between them, and both
+      // are `rollup -c` over this same `dist` — so they run concurrently. Two
+      // processes writing identical bytes is harmless and is what happened
+      // before this plugin existed; one of them clearing the directory first is
+      // not. The loud outcome is a `cp` that fails mid-walk; the quiet one is an
+      // `rm` landing after the other process wrote the manifest, leaving a tree
+      // with no `package.json`, which falls back to the root `type: module` and
+      // puts TS1479 back with a green gate.
+      //
+      // `cp` overwrites, so a rebuild refreshes every file that still exists. A
+      // declaration deleted from `src` leaves a stale copy here — the same thing
+      // `dist` already does everywhere else, since nothing cleans it, and the
+      // extension pass holds the source tree to resolving rather than this one.
       await cp(from, to, { recursive: true });
       // The whole mechanism. Flavour is decided by the nearest manifest, so this
       // one line is what makes the copied declarations CommonJS.
