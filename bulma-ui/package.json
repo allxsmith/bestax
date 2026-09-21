@@ -133,9 +133,14 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.esm.js"
+      },
+      "require": {
+        "types": "./dist/types-cjs/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./constants": {
       "import": {

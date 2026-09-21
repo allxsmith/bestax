@@ -364,15 +364,55 @@ describe('bulma-ui export map', () => {
     );
   });
 
-  it('pins the node16 boundary: ESM resolves, CommonJS is the known #698 gap', () => {
+  it('gives each root condition declarations of its own flavour', () => {
     requireBuilt();
-    // #696 names `node16` as well as `nodenext`, and the two fixtures below
-    // cover only the latter. The pair is asserted together because the
-    // interesting fact is the BOUNDARY: under `node16` an ESM consumer is fine,
-    // and a CommonJS one meets TS1479 because a single ESM-flavoured `types`
-    // target serves both conditions. That failure is #698 and pre-existing —
-    // the same consumer got TS2305 before this change — and pinning it means
-    // fixing #698 fails this test, which is when it should be revisited.
+    // #698: the package is `type: module`, so every emitted `.d.ts` reads as an
+    // ES module, and one `types` target cannot describe both conditions — a
+    // `require` consumer on `node16` met TS1479. The consumer fixture below is
+    // what proves the fix; this case pins the SHAPE, so a change that keeps the
+    // types resolving but collapses the conditions is caught here rather than by
+    // a typecheck that happens to still pass.
+    const root = manifest.exports['.'];
+    assert.equal(
+      typeof root.import?.types,
+      'string',
+      'the import condition has no types target of its own'
+    );
+    assert.equal(
+      typeof root.require?.types,
+      'string',
+      'the require condition has no types target of its own'
+    );
+    assert.notEqual(
+      root.import.types,
+      root.require.types,
+      'both conditions point at the same declarations, which is the #698 bug'
+    );
+    // Both targets exist.
+    for (const spec of [root.import.types, root.require.types]) {
+      assert.ok(existsSync(target(spec)), `${spec} does not exist`);
+    }
+    // And the mechanism: flavour comes from the nearest manifest, so the CJS
+    // tree carries one saying so. Without this line the copied declarations
+    // read as ES modules again and the fix silently undoes itself.
+    const nested = JSON.parse(
+      readFileSync(join(PKG_DIR, 'dist', 'types-cjs', 'package.json'), 'utf8')
+    );
+    assert.equal(nested.type, 'commonjs');
+  });
+
+  it('typechecks a node16 consumer through BOTH conditions', () => {
+    requireBuilt();
+    // #696 names `node16` as well as `nodenext`, and the other fixtures cover
+    // only the latter. This pair is asserted together because it used to be a
+    // BOUNDARY: an ESM consumer was fine and a CommonJS one met TS1479, because
+    // one ESM-flavoured `types` target served both conditions.
+    //
+    // That was #698, and this case was written to fail when it was fixed — which
+    // it did, on the commit that gave the `require` condition its own
+    // CommonJS-flavoured declarations. Both sides pass now, and the pair stays
+    // because the interesting property is still the pair: giving `require` its
+    // own types must not cost the `import` side anything.
     const build = type => {
       const dir = mkdtempSync(join(tmpdir(), `bestax-node16-${type}-`));
       mkdirSync(join(dir, 'src'), { recursive: true });
@@ -429,16 +469,12 @@ describe('bulma-ui export map', () => {
     );
 
     const cjs = build('cjs');
-    assert.notEqual(
+    assert.equal(
       cjs.status,
       0,
-      'a node16 CommonJS consumer now typechecks — #698 may be fixed, in ' +
-        'which case this expectation is what needs updating'
-    );
-    assert.match(
-      cjs.stdout,
-      /TS1479/,
-      `expected the known #698 failure, got:\n${cjs.stdout || cjs.stderr}`
+      `a node16 CommonJS consumer does not typecheck:\n${
+        cjs.stdout || cjs.stderr
+      }`
     );
   });
 
