@@ -1,3 +1,10 @@
+## [5.16.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.3...@allxsmith/bestax-bulma@5.16.4) (2026-09-21)
+
+
+### Bug Fixes
+
+* refuse an ambiguous tagFormat rather than taking the first one ([e31c922](https://github.com/allxsmith/bestax/commit/e31c92256dd808a904300b7fda42e51194fd9e3b)), closes [#123](https://github.com/allxsmith/bestax/issues/123) [#705](https://github.com/allxsmith/bestax/issues/705)
+
 ## [5.16.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.2...@allxsmith/bestax-bulma@5.16.3) (2026-09-20)
 
 
