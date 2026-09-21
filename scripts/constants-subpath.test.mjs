@@ -35,12 +35,13 @@ import {
   copyFileSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, it } from 'node:test';
 
@@ -399,6 +400,42 @@ describe('bulma-ui export map', () => {
       readFileSync(join(PKG_DIR, 'dist', 'types-cjs', 'package.json'), 'utf8')
     );
     assert.equal(nested.type, 'commonjs');
+
+    // BYTE-IDENTICAL, every file, because the copy is the only thing making the
+    // two trees agree. A consumer fixture cannot see this: it typechecks one
+    // entry, so a mirror captured mid-rewrite still passes as long as the files
+    // that entry reaches happen to be finished.
+    //
+    // That is not hypothetical. `closeBundle` is a PARALLEL hook, so when the
+    // copy lived in its own plugin it raced the rewrite — three builds produced
+    // 184, 182 and 180 extensionless specifiers in the mirror, and the fixture
+    // passed all three.
+    const esm = join(PKG_DIR, 'dist', 'types');
+    const cjs = join(PKG_DIR, 'dist', 'types-cjs');
+    const walk = (dir, base = dir, out = []) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) walk(full, base, out);
+        else if (/\.d\.[cm]?ts$/.test(entry.name))
+          out.push(relative(base, full));
+      }
+      return out;
+    };
+    const declarations = walk(esm);
+    assert.ok(declarations.length > 0, 'no declarations to mirror');
+    const missing = declarations.filter(f => !existsSync(join(cjs, f)));
+    assert.deepEqual(missing, [], 'the mirror is missing declarations');
+    const differing = declarations.filter(
+      f =>
+        readFileSync(join(esm, f), 'utf8') !==
+        readFileSync(join(cjs, f), 'utf8')
+    );
+    assert.deepEqual(
+      differing,
+      [],
+      'the mirror does not match the declarations it copied — it was taken ' +
+        'while they were still being rewritten'
+    );
   });
 
   it('typechecks a node16 consumer through BOTH conditions', () => {
