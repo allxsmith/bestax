@@ -46,6 +46,10 @@
  *                        cannot resolve (#412). Which packages publish with
  *                        `pnpm publish` is declared, not inferred (#436,
  *                        #532)
+ *   version-regression    no publishable manifest sits below a release tag
+ *                         reachable from HEAD. `--allow-untagged` stands this
+ *                         one rule down for a checkout git cannot answer for;
+ *                         never pass it in CI.
  *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
@@ -111,6 +115,8 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
+import { versionRegressionProblems } from './lib/version-regression.mjs';
+import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -1703,6 +1709,7 @@ export function releaseDocViolations(docs, packages) {
 export async function publishablePackages(root = REPO) {
   const packages = [];
   const unreadable = [];
+  const unnamed = [];
   const yaml = await readFile(join(root, 'pnpm-workspace.yaml'), 'utf8');
   for (const dir of parseWorkspacePackages(yaml)) {
     let pkg;
@@ -1722,9 +1729,18 @@ export async function publishablePackages(root = REPO) {
       unreadable.push(dir);
       continue;
     }
-    if (!pkg.private && pkg.name) packages.push({ dir, name: pkg.name });
+    // A manifest that PARSES but names nothing lands nowhere otherwise: not in
+    // `packages`, not in `unreadable`, so every check reading this list skips
+    // it in silence. Private is a deliberate choice and stays quiet; nameless
+    // is a broken manifest wearing the same clothes.
+    if (!pkg.private && !pkg.name) {
+      unnamed.push(dir);
+      continue;
+    }
+    if (!pkg.private)
+      packages.push({ dir, name: pkg.name, version: pkg.version });
   }
-  return { packages, unreadable };
+  return { packages, unreadable, unnamed };
 }
 
 async function checkReleaseDocsSync() {
@@ -4124,6 +4140,42 @@ async function checkTurboTasks() {
   return violations;
 }
 
+/**
+ * Hold every publishable manifest to the highest release tag REACHABLE FROM
+ * HEAD.
+ *
+ * Reachable, not "the highest tag that exists", and the difference is the whole
+ * usability of the check. A branch cut before a release legitimately carries the
+ * older manifest, and that release's tag is not in its history — comparing
+ * against every tag would red every un-rebased PR the moment a release landed.
+ * A branch that LOWERS a version was cut after the release it undoes, so the tag
+ * is in its history and the comparison bites.
+ */
+async function checkVersionRegression(allowUntagged = false) {
+  const { packages, unreadable, unnamed } = await publishablePackages();
+  return versionRegressionProblems({
+    packages,
+    skipped: [...unreadable, ...unnamed],
+    allowUntagged,
+    git: args => {
+      try {
+        return execFileSync('git', args, {
+          cwd: REPO,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+        });
+      } catch {
+        return null;
+      }
+    },
+    // The MODULE, not its text. What the config declares need not be a literal
+    // in the file — it can be spread from a base, computed, or concatenated —
+    // and two rounds of pattern-matching could not see any of that.
+    importConfig: dir =>
+      import(pathToFileURL(join(REPO, dir, 'release.config.js')).href),
+  });
+}
+
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
@@ -4145,12 +4197,14 @@ const CHECKS = {
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
   'turbo-tasks': checkTurboTasks,
+  'version-regression': null, // handled below (takes the flag)
   'inline-style': null, // handled below (takes the flag)
 };
 
 async function main() {
   const args = process.argv.slice(2);
   const updateBaseline = args.includes('--update-baseline');
+  const allowUntagged = args.includes('--allow-untagged');
   const only = args
     .filter(a => a.startsWith('--only='))
     .flatMap(a => a.slice(7).split(','));
@@ -4170,7 +4224,9 @@ async function main() {
     const run =
       name === 'inline-style'
         ? () => checkInlineStyle(updateBaseline)
-        : CHECKS[name];
+        : name === 'version-regression'
+          ? () => checkVersionRegression(allowUntagged)
+          : CHECKS[name];
     const violations = await run();
     if (violations.length) {
       failed += violations.length;
