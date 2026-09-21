@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.0.0...@allxsmith/eslint-plugin-bestax@1.0.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* refuse an ambiguous tagFormat rather than taking the first one ([e31c922](https://github.com/allxsmith/bestax/commit/e31c92256dd808a904300b7fda42e51194fd9e3b)), closes [#123](https://github.com/allxsmith/bestax/issues/123) [#705](https://github.com/allxsmith/bestax/issues/705)
+
 # 1.0.0 (2026-09-20)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/eslint-plugin-bestax",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ESLint rules for @allxsmith/bestax-bulma — catches helper-prop values the library silently drops, deprecated props, and the color-as-surface mistake",
   "type": "module",
   "main": "dist/index.js",
