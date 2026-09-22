@@ -36,10 +36,15 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { forLog } from './consumer-sbom-meta.mjs';
 
-// Ten minutes because the budget has to cover a clock nobody here controls,
-// and no run has ever measured how long that clock actually takes: every one
-// of them gave up long before propagation finished. Generous rather than
-// clever, and cheap — this fires per release event, not per PR.
+// The budget covers a clock nobody here controls: the gap between a release
+// going up and the registry writing the new version into the packument. That
+// gap has now been measured across the releases preceding this change, and it
+// is usually under a couple of minutes but was once an order of magnitude
+// worse — the numbers and how they were taken are on #716. This is set to
+// clear the worst observed case with margin rather than the typical one,
+// because the cost of being generous falls only on a release that was already
+// broken, and it is cheap either way: this fires per release event, not per
+// PR.
 //
 // These are what production runs on. The workflow passes neither flag, so
 // changing a value here changes every release with no diff in
@@ -47,7 +52,7 @@ import { forLog } from './consumer-sbom-meta.mjs';
 // exist for the tests and for running the script by hand, not because
 // anything configures them: the step hardcodes --spec and --dir, and
 // workflow_dispatch on this workflow declares no inputs at all.
-export const DEFAULT_BUDGET_SECONDS = 600;
+export const DEFAULT_BUDGET_SECONDS = 900;
 export const DEFAULT_SLEEP_SECONDS = 20;
 
 /**
@@ -149,7 +154,7 @@ export async function installWithRetry({
  * converting a busy runner into a red release. A process that started and was
  * killed by a signal stays retryable for the same reason.
  */
-export function runNpmInstall(spec, cwd, spawn = spawnSync) {
+export function runNpmInstall(spec, cwd, spawn = spawnSync, log = console.log) {
   const result = spawn('npm', [...INSTALL_ARGS, spec], {
     cwd,
     stdio: 'inherit',
@@ -164,6 +169,14 @@ export function runNpmInstall(spec, cwd, spawn = spawnSync) {
         `could not run npm in ${forLog(cwd)}: ${result.error.message}`
       );
     }
+    // Said out loud because nothing else will. `stdio: 'inherit'` carries
+    // npm's own diagnosis when npm runs, but a spawn that failed produced no
+    // output to inherit, so without this the errno is nowhere and the run
+    // shows a column of bare retry lines under a propagation diagnosis that
+    // does not fit.
+    log(
+      `npm could not be started (${result.error.code}), treating as a failed attempt`
+    );
     return false;
   }
   return result.status === 0;
@@ -229,14 +242,19 @@ export function positiveInteger(value, name, fallback) {
  * `spawn` instead leaves that wiring in the path and stubs only the
  * subprocess.
  */
+/**
+ * The real wait, exported so a test can time it.
+ *
+ * As an inline default it was the one function in this module nothing could
+ * call, and dropping the `ms` argument left every case green while turning a
+ * few dozen packument reads into a few thousand inside the same budget.
+ */
+export function defaultSleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function main(argv = process.argv.slice(2), deps = {}) {
-  const {
-    run,
-    spawn,
-    now,
-    sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
-    log = console.log,
-  } = deps;
+  const { run, spawn, now, sleep = defaultSleep, log = console.log } = deps;
   let flags;
   let budgetSeconds;
   let sleepSeconds;
@@ -264,7 +282,9 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
       spec: flags.spec,
       budgetSeconds,
       sleepSeconds,
-      run: run ?? (spec => runNpmInstall(spec, flags.dir, spawn ?? spawnSync)),
+      run:
+        run ??
+        (spec => runNpmInstall(spec, flags.dir, spawn ?? spawnSync, log)),
       now,
       sleep,
       log,

@@ -32,6 +32,7 @@ import assert from 'node:assert/strict';
 import {
   installWithRetry,
   runNpmInstall,
+  defaultSleep,
   FATAL_SPAWN_CODES,
   parseArgs,
   positiveInteger,
@@ -149,10 +150,41 @@ test('a failed attempt names itself in the log, in order', async () => {
   ]);
 });
 
+test('the real sleep actually waits', async () => {
+  // The one function an injected clock cannot cover, and the mutant is quiet:
+  // dropping the `ms` argument leaves every other case green, because they
+  // all supply their own sleep, while turning a few dozen packument reads
+  // into a few thousand inside the same budget.
+  const start = Date.now();
+  await defaultSleep(60);
+  const waited = Date.now() - start;
+  assert.equal(
+    waited >= 50,
+    true,
+    `returned after ${waited}ms, expected a wait`
+  );
+});
+
+test('a spawn that failed says so, since it prints nothing itself', async () => {
+  // stdio inherit carries npm's own diagnosis when npm runs. A spawn-level
+  // failure produced no output to inherit, so without this line the errno is
+  // nowhere and the log is a column of bare retry lines.
+  const lines = [];
+  const spawn = () => ({
+    error: Object.assign(new Error('spawn npm EAGAIN'), { code: 'EAGAIN' }),
+  });
+  assert.equal(
+    runNpmInstall('pkg@1.0.0', '/tmp', spawn, l => lines.push(l)),
+    false
+  );
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /EAGAIN/);
+});
+
 test('the defaults are the ones the workflow relies on', () => {
   // The workflow passes no budget, so a change to either of these changes
   // production behaviour with no diff in supply-chain.yml to notice it.
-  assert.equal(DEFAULT_BUDGET_SECONDS, 600);
+  assert.equal(DEFAULT_BUDGET_SECONDS, 900);
   assert.equal(DEFAULT_SLEEP_SECONDS, 20);
 });
 
@@ -210,11 +242,20 @@ test('a non-numeric budget is an error, not a silent default', () => {
 test('a usage error exits 2, distinct from an exhausted budget', async () => {
   // 1 means "the registry never served it" and 2 means "this was called
   // wrong". A caller that cannot tell those apart cannot act on either.
-  assert.equal(await main(['--spec', 'pkg@1.0.0']), 2);
+  //
+  // The log is captured rather than left to fall through to console.log:
+  // these messages are `::error::` workflow commands, and on a runner an
+  // uncaptured one is filed as a failure annotation against a green test run.
+  const lines = [];
+  const log = l => lines.push(l);
+  assert.equal(await main(['--spec', 'pkg@1.0.0'], { log }), 2);
   assert.equal(
-    await main(['--nonsense', 'x', '--spec', 'p@1.0.0', '--dir', '/tmp']),
+    await main(['--nonsense', 'x', '--spec', 'p@1.0.0', '--dir', '/tmp'], {
+      log,
+    }),
     2
   );
+  assert.equal(lines.length, 2, 'each usage error says why');
 });
 
 test('main exits 0 when the install succeeds, and says nothing', async () => {
