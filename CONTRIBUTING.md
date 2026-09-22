@@ -322,10 +322,13 @@ The short version for contributors:
   `ai-loop` and iterates with the AI reviewers until it converges, then a human reviews and
   squash-merges. Don't add or remove the loop labels (`ai-loop`, `needs-human-review`,
   `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
-- **Hand-driven PRs that want a deep review**: apply `deep-review` once at open, fix everything
-  it raised, then re-apply it once. The re-run settles its own open threads — verified fixed,
-  still wrong, or conceded — and raises nothing new; when the newer commits themselves want
-  reviewing, ask for a full pass with a `deep-review: fresh` comment before re-applying. CodeRabbit reviews incrementally
+- **Hand-driven PRs that want a deep review**: applying the `deep-review` label is what starts
+  a run — pushing a commit does not, and neither does commenting — and a label that is still on
+  the PR emits no event when applied again, so every re-run means removing it and adding it
+  back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
+  open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
+  newer commits themselves want reviewing, post a `deep-review: fresh` comment first, then
+  toggle the label to start the run. CodeRabbit reviews incrementally
   on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
   its window reopens.
   Do not relabel per push: each application spends a full opus session, and relabeling after
