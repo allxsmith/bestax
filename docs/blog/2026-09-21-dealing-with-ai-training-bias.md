@@ -1,7 +1,7 @@
 ---
 slug: dealing-with-ai-training-bias
-title: Dealing with AI Training Bias
-description: "I built a full React component library for Bulma and did the usual things to get people to find it. Then I noticed coding agents were the ones picking libraries. This is how that's gone."
+title: Me Dealing with AI Training Bias
+description: "Bulma v1 came out in 2024 and I couldn't find a React package that supported it. I filled that gap, tried to get the package found, and then ran into how coding agents pick libraries."
 authors: [asmith]
 tags: [ai, bulma, react, opensource]
 canonical_url: https://bestax.io/blog/dealing-with-ai-training-bias
@@ -12,17 +12,17 @@ cover_image: /img/fighting-ai-training-bias.png
 
 ![Fighting AI Training Bias, drawn as pixel art: a robot coding agent turns away from a toppling stack of identical gray cartridges under a most popular marquee toward a glowing bestax cartridge seated in a retro console whose screen reads llms.txt](/img/fighting-ai-training-bias.svg)
 
-In 2025 I decided to build a React component library for Bulma. A full one. [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) is that library. I didn't want another thin wrapper, the kind of package that hangs a React prop off a Bulma class and stops there. I wanted something you could actually build an app with, on Bulma v1.
+This started for me in 2024, when Bulma v1 came out. I went looking for a React package that supported it. There wasn't one yet. The packages people already knew were still on the older Bulma, and from where I sat they looked dormant. So I decided to fill that gap. I worked on it until I had what I considered a minimum viable product, and then I started trying to get the package recognized and used.
 
 <!-- truncate -->
 
 ## What I Tried First
 
-In 2025 I did the things that are supposed to get a package used. I wrote a real README, for npm and for GitHub. I posted about it. I posted on Reddit. I kept adding to it, and I kept thinking people would go looking once it was obviously worth finding.
+That effort was 2025. I wrote a real README, for npm and for GitHub, and I treated it like the front door. I posted about the package. I posted on Reddit. Between posts I kept enhancing it, small improvements, the kind of work you do when you figure the next person who comes looking should find something obviously worth using. I was pretty sure people would go looking.
 
 They mostly didn't. As I write this in September 2026, the repo has [eleven GitHub stars](https://github.com/allxsmith/bestax).
 
-That first year I spent a lot of time on the old ways of being found. SEO, so Google would find the site. Cloudflare in front of it, so the docs would be fast. A docs site I put a ridiculous number of hours into. Blog posts, here and on dev.to and Medium. Still not much traction.
+I also spent a lot of 2025 on being findable in the usual places. SEO, so Google would surface the site. Cloudflare in front of it, so the docs would be fast. A docs site I put a ridiculous number of hours into, then went back and polished again. Blog posts, here and on dev.to and Medium. I'd publish something, check whether anyone had noticed, and wait. Still not much traction. The odd part was how quiet it stayed while I was doing all the things that used to be enough.
 
 ## Early 2026
 
