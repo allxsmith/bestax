@@ -131,7 +131,7 @@ I pulled the numbers so this wasn't only a feeling. Weekly downloads are npm's p
 | [Bulma](https://github.com/jgthms/bulma)                     | about 279,000     | about 50,000  |
 | [Foundation](https://github.com/foundation/foundation-sites) | about 87,000      | about 30,000  |
 
-Tailwind did about 96 million downloads that week. Bootstrap about 5.1 million. Bulma about 279,000. Foundation about 87,000. So Tailwind was somewhere around 340 times Bulma, and Bootstrap around 18 times. Stars are a different pile, because they add up over years. Bootstrap has about 175,000, Tailwind about 98,000, Bulma about 50,000, Foundation about 30,000. Foundation's last release on npm was September 2024. Bulma on npm is still 1.0.4, from April 2025, but the [repository](https://github.com/jgthms/bulma) took fixes on September 21, 2026. I don't think Bulma is dead. It's small, and that size is what I keep running into.
+Tailwind did about 96 million downloads that week. Bootstrap about 5.1 million. Bulma about 279,000. Foundation about 87,000. So Tailwind was somewhere around 340 times Bulma, and Bootstrap around 18 times. Stars are a different pile, because they add up over years. Bootstrap has about 175,000, Tailwind about 98,000, Bulma about 50,000, Foundation about 30,000. Foundation's last release on npm was September 2024. Bulma on npm is still 1.0.4, from April 2025, but the [repository](https://github.com/jgthms/bulma) took fixes on September 21, 2026. I don't think people have given up on it. It's small, and that size is what I keep running into.
 
 ## Why I'm Still on Bulma
 
