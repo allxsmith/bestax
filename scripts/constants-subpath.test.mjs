@@ -410,8 +410,11 @@ describe('bulma-ui export map', () => {
     // copy lived in its own plugin it raced the rewrite — three builds produced
     // 184, 182 and 180 extensionless specifiers in the mirror, and the fixture
     // passed all three.
-    const esm = join(PKG_DIR, 'dist', 'types');
-    const cjs = join(PKG_DIR, 'dist', 'types-cjs');
+    // DERIVED from the manifest, not hardcoded: a `require.types` repointed at
+    // some other existing declaration would otherwise leave this green while
+    // pointing consumers somewhere else entirely.
+    const esm = dirname(target(root.import.types));
+    const cjs = dirname(target(root.require.types));
     const walk = (dir, base = dir, out = []) => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
@@ -425,6 +428,15 @@ describe('bulma-ui export map', () => {
     assert.ok(declarations.length > 0, 'no declarations to mirror');
     const missing = declarations.filter(f => !existsSync(join(cjs, f)));
     assert.deepEqual(missing, [], 'the mirror is missing declarations');
+    // BOTH directions. One-directional, a stale file left in the mirror by an
+    // earlier emit stays green — and `dist` is never cleaned, so that is the
+    // likely shape rather than an exotic one.
+    const extra = walk(cjs).filter(f => !existsSync(join(esm, f)));
+    assert.deepEqual(
+      extra,
+      [],
+      'the mirror carries declarations the source tree does not'
+    );
     const differing = declarations.filter(
       f =>
         readFileSync(join(esm, f), 'utf8') !==
@@ -907,6 +919,32 @@ describe('the declaration-extension guard', () => {
       `the rewritten augmentation no longer merges:\n${
         compiled.stdout || compiled.stderr
       }`
+    );
+  });
+
+  it('writes nothing outside the tree it was given', async () => {
+    // The mirror target is DERIVED from `root`. A literal default is resolved
+    // against `cwd`, so every case here copied its fixtures into a real
+    // `dist/types-cjs` — and with `cwd` at `bulma-ui` that is the shipped
+    // CommonJS declaration tree this whole PR exists to produce. Gitignored, so
+    // nothing showed it: the tests were overwriting the artefact under test.
+    const root = tree({
+      'index.d.ts': "export * from './a';\n",
+      'a.d.ts': 'export {};\n',
+    });
+    const outside = join(PKG_DIR, 'dist', 'types-cjs');
+    const before = existsSync(outside) ? readdirSync(outside).length : null;
+    await run(root);
+    // The mirror lands beside the fixture, not beside the package.
+    assert.ok(
+      existsSync(`${root}-cjs`),
+      'the mirror was not written beside the tree it was given'
+    );
+    const after = existsSync(outside) ? readdirSync(outside).length : null;
+    assert.equal(
+      after,
+      before,
+      `the guard wrote into ${outside}, which is the shipped CommonJS tree`
     );
   });
 

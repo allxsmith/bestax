@@ -293,7 +293,13 @@ export const specifierResolves = (root, file, spec, declarationAllowed) => {
  */
 export const declarationExtensions = (
   root = 'dist/types',
-  mirror = 'dist/types-cjs'
+  // DERIVED from `root`, never a default of its own. A literal
+  // `'dist/types-cjs'` is resolved against `cwd`, so every guard case — which
+  // passes a temp fixture as `root` — copied its fixtures into a real
+  // `dist/types-cjs` instead of beside the tree it was given. With `cwd` at
+  // `bulma-ui` that path is the shipped CommonJS declaration tree, and it is
+  // gitignored, so nothing showed it.
+  mirror = `${root}-cjs`
 ) => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
   // or stale because the build never got that far. Without a latch this hook's
