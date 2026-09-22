@@ -21,8 +21,9 @@
  * larger budget and every case would stay green.
  *
  * Nothing here reaches the network or spawns anything. Both the runner and the
- * clock are injected, so a ten-minute budget costs no time and a crafted spec
- * is never handed to a real subprocess that might give it a second reading.
+ * clock are injected, so the whole budget costs no time however large it is
+ * set, and a crafted spec is never handed to a real subprocess that might give
+ * it a second reading.
  *
  * `.mjs` and `node --test` rather than jest: root-level scripts with no
  * package of their own, matching consumer-sbom-meta.test.mjs.
@@ -42,8 +43,9 @@ import {
   DEFAULT_SLEEP_SECONDS,
 } from './npm-install-retry.mjs';
 
-// A clock that only moves when the policy sleeps, so a ten-minute budget costs
-// a test nothing and the assertions stay about spend rather than timing.
+// A clock that only moves when the policy sleeps, so the budget costs a test
+// nothing whatever it is set to and the assertions stay about spend rather
+// than timing.
 function harness({ succeedOnAttempt = Infinity, budgetSeconds, sleepSeconds }) {
   const state = { t: 0, attempts: 0, sleeps: [], logs: [] };
   return {
@@ -75,6 +77,8 @@ test('a spec that resolves first time costs one attempt and no sleep', async () 
   });
   assert.deepEqual(await h.promise, { ok: true, attempts: 1 });
   assert.equal(h.state.sleeps.length, 0);
+  // Silent on the happy path: every release that resolves first time would
+  // otherwise carry a measurement of zero.
   assert.equal(h.state.logs.length, 0);
 });
 
@@ -147,6 +151,10 @@ test('a failed attempt names itself in the log, in order', async () => {
   assert.deepEqual(h.state.logs, [
     'npm install "pkg@1.0.0" failed (attempt 1); retrying',
     'npm install "pkg@1.0.0" failed (attempt 2); retrying',
+    // The measurement, emitted only when it took more than one go. This is
+    // the number that sizing the budget had to be reconstructed from, release
+    // by release, out of the registry API.
+    'resolved after 40s and 3 attempts',
   ]);
 });
 
@@ -358,7 +366,7 @@ test('a signal-killed npm stays retryable', () => {
   assert.equal(runNpmInstall('pkg@1.0.0', '/tmp', spawn), false);
 });
 
-test('an npm that never started is fatal, not retried for ten minutes', async () => {
+test('an npm that never started is fatal, not retried to the deadline', async () => {
   // Retrying a missing binary spends the whole budget and then blames
   // propagation for something propagation cannot explain.
   const spawn = () => ({
@@ -400,11 +408,16 @@ test('a spawn failure a wait could fix stays retryable', () => {
     const spawn = () => ({
       error: Object.assign(new Error(`spawn npm ${code}`), { code }),
     });
+    // The log is captured, not left to console.log: the diagnosis line this
+    // path now emits would otherwise print during `pnpm test`, which is the
+    // leak #723 is about.
+    const lines = [];
     assert.equal(
-      runNpmInstall('pkg@1.0.0', '/tmp', spawn),
+      runNpmInstall('pkg@1.0.0', '/tmp', spawn, l => lines.push(l)),
       false,
       `${code} must be a failed attempt, not a fatal error`
     );
+    assert.match(lines[0], new RegExp(code));
   }
 });
 

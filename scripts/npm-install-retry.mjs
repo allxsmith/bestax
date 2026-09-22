@@ -99,11 +99,23 @@ export async function installWithRetry({
   sleep,
   log = console.log,
 } = {}) {
-  const deadline = now() + budgetSeconds * 1000;
+  const started = now();
+  const deadline = started + budgetSeconds * 1000;
   let attempt = 0;
   for (;;) {
     attempt += 1;
-    if (await run(spec)) return { ok: true, attempts: attempt };
+    if (await run(spec)) {
+      // Said out loud when it took more than one go, because this is the
+      // measurement nobody had: sizing the budget meant reading publish
+      // timestamps out of the registry API afterwards, release by release.
+      // A leg that waited now reports what it waited for, so the next person
+      // to weigh this number reads it off the runs instead.
+      if (attempt > 1) {
+        const waited = Math.round((now() - started) / 1000);
+        log(`resolved after ${waited}s and ${attempt} attempts`);
+      }
+      return { ok: true, attempts: attempt };
+    }
     // Checked after the attempt rather than before it, so the budget always
     // buys at least one try however small it is set.
     //
@@ -223,6 +235,17 @@ export function positiveInteger(value, name, fallback) {
 }
 
 /**
+ * The real wait, exported so a test can time it.
+ *
+ * As an inline default it was the one function in this module nothing could
+ * call, and dropping the `ms` argument left every case green while turning a
+ * few dozen packument reads into a few thousand inside the same budget.
+ */
+export function defaultSleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Exit codes stay distinct for a reader rather than for a caller: 0 installed,
  * 1 the registry never served the spec, 2 this was called wrong or could not
  * run npm at all. Nothing branches on them — the step is a plain `run:` under
@@ -242,17 +265,6 @@ export function positiveInteger(value, name, fallback) {
  * `spawn` instead leaves that wiring in the path and stubs only the
  * subprocess.
  */
-/**
- * The real wait, exported so a test can time it.
- *
- * As an inline default it was the one function in this module nothing could
- * call, and dropping the `ms` argument left every case green while turning a
- * few dozen packument reads into a few thousand inside the same budget.
- */
-export function defaultSleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export async function main(argv = process.argv.slice(2), deps = {}) {
   const { run, spawn, now, sleep = defaultSleep, log = console.log } = deps;
   let flags;
