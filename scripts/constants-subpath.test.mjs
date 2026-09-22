@@ -394,14 +394,6 @@ describe('bulma-ui export map', () => {
     for (const spec of [root.import.types, root.require.types]) {
       assert.ok(existsSync(target(spec)), `${spec} does not exist`);
     }
-    // And the mechanism: flavour comes from the nearest manifest, so the CJS
-    // tree carries one saying so. Without this line the copied declarations
-    // read as ES modules again and the fix silently undoes itself.
-    const nested = JSON.parse(
-      readFileSync(join(PKG_DIR, 'dist', 'types-cjs', 'package.json'), 'utf8')
-    );
-    assert.equal(nested.type, 'commonjs');
-
     // BYTE-IDENTICAL, every file, because the copy is the only thing making the
     // two trees agree. A consumer fixture cannot see this: it typechecks one
     // entry, so a mirror captured mid-rewrite still passes as long as the files
@@ -416,6 +408,14 @@ describe('bulma-ui export map', () => {
     // pointing consumers somewhere else entirely.
     const esm = dirname(target(root.import.types));
     const cjs = dirname(target(root.require.types));
+    // And the mechanism: flavour comes from the nearest manifest, so the CJS
+    // tree carries one saying so. Without this line the copied declarations
+    // read as ES modules again and the fix silently undoes itself. Read through
+    // `cjs` rather than a spelled-out path, so it is the tree the export map
+    // actually serves that is asked, not the one this file assumed.
+    const nested = JSON.parse(readFileSync(join(cjs, 'package.json'), 'utf8'));
+    assert.equal(nested.type, 'commonjs');
+
     // The walk below compares two directories, so it disarms ITSELF if they are
     // ever the same one: `dirname` would collapse both sides and every
     // comparison would pass vacuously — including the case where `require.types`
@@ -954,6 +954,21 @@ describe('the declaration-extension guard', () => {
     // so `readdirSync(...).length` is unchanged on the next run and the check
     // passes while the write is still happening. Size and mtime move when the
     // copy lands, whether or not the entry set does.
+    // Two literals would assert "nothing landed in THESE two places", not
+    // "nothing landed outside the tree" — a default spelled `'types-cjs'` or
+    // `'../types-cjs'` lands where neither looks, and only the sibling check
+    // below would notice, which is the assertion this one exists to not lean
+    // on.
+    //
+    // So close the family rather than enumerate it. Every spelling that goes
+    // wrong here goes wrong the same way: it is CWD-RELATIVE. Run the guard
+    // from an empty sandbox and all of them land inside it, whatever they are
+    // spelled. Then the net is "the sandbox is still empty", which no literal
+    // has to anticipate.
+    //
+    // The two real trees stay watched by name. They are absolute, so a chdir
+    // does not move them, and they are the ones that have actually been hit.
+    const sandbox = mkdtempSync(join(tmpdir(), 'bestax-decl-cwd-'));
     const outside = [
       resolve('dist', 'types-cjs'),
       join(PKG_DIR, 'dist', 'types-cjs'),
@@ -969,8 +984,20 @@ describe('the declaration-extension guard', () => {
             .join('|')
         : null;
     const before = outside.map(snapshot);
-    await run(root);
+    const cwd = process.cwd();
+    try {
+      process.chdir(sandbox);
+      await run(root);
+    } finally {
+      process.chdir(cwd);
+    }
     const after = outside.map(snapshot);
+    // Nothing cwd-relative escaped, whatever it was spelled.
+    assert.deepEqual(
+      readdirSync(sandbox),
+      [],
+      'the guard resolved a path against the working directory'
+    );
     // The outside-write check comes FIRST. The sibling assertion below also
     // fails on today's mutant, and asserting that first would shadow this one —
     // leaving it unfalsifiable a second time, for a different reason than round
@@ -979,7 +1006,7 @@ describe('the declaration-extension guard', () => {
       assert.equal(
         after[i],
         before[i],
-        `the guard wrote into ${dir}, which is the shipped CommonJS tree`
+        `the guard wrote into ${dir}, which is outside the tree it was given`
       );
     }
     // The mirror lands beside the fixture, not beside the package.
