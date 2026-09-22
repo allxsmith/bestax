@@ -416,6 +416,17 @@ describe('bulma-ui export map', () => {
     // pointing consumers somewhere else entirely.
     const esm = dirname(target(root.import.types));
     const cjs = dirname(target(root.require.types));
+    // The walk below compares two directories, so it disarms ITSELF if they are
+    // ever the same one: `dirname` would collapse both sides and every
+    // comparison would pass vacuously — including the case where `require.types`
+    // was moved back into the ESM tree, which is #698 undone and precisely what
+    // this exists to notice.
+    assert.notEqual(
+      esm,
+      cjs,
+      'both conditions resolve into one directory, so the comparison below ' +
+        'would be comparing that directory with itself'
+    );
     const walk = (dir, base = dir, out = []) => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
