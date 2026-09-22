@@ -44,8 +44,9 @@ import { forLog } from './consumer-sbom-meta.mjs';
 // These are what production runs on. The workflow passes neither flag, so
 // changing a value here changes every release with no diff in
 // supply-chain.yml to notice it, which is why a test pins both. The flags
-// exist for the tests and for a hand-run dispatch, not because anything
-// configures them.
+// exist for the tests and for running the script by hand, not because
+// anything configures them: the step hardcodes --spec and --dir, and
+// workflow_dispatch on this workflow declares no inputs at all.
 export const DEFAULT_BUDGET_SECONDS = 600;
 export const DEFAULT_SLEEP_SECONDS = 20;
 
@@ -106,6 +107,12 @@ export async function installWithRetry({
     // an attempt whose result the loop has already decided to discard — so a
     // leg that cannot be fixed by waiting reports its failure an interval
     // later than it knew it.
+    //
+    // The first half is redundant while `wait` is positive, which
+    // positiveInteger currently guarantees by rejecting zero. It stays as the
+    // condition that means what it says: the budget is spent. The second is a
+    // refinement of it, and would silently allow one extra attempt at exactly
+    // the deadline if a zero interval ever became reachable.
     const wait = sleepSeconds * 1000;
     if (now() >= deadline || now() + wait > deadline) {
       return { ok: false, attempts: attempt };
@@ -214,10 +221,18 @@ export function positiveInteger(value, name, fallback) {
  * let it shell out to the real registry, which puts the network inside
  * `pnpm test` and hands a crafted spec to whatever npm decides to invoke for
  * it.
+ *
+ * `run` and `spawn` are separate on purpose. Injecting `run` replaces the
+ * installer wholesale, which is what most cases want, but it also skips the
+ * line that maps the parsed flags onto `runNpmInstall` — so an argument
+ * swapped there would fail every release with the suite green. Injecting
+ * `spawn` instead leaves that wiring in the path and stubs only the
+ * subprocess.
  */
 export async function main(argv = process.argv.slice(2), deps = {}) {
   const {
     run,
+    spawn,
     now,
     sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
     log = console.log,
@@ -249,7 +264,7 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
       spec: flags.spec,
       budgetSeconds,
       sleepSeconds,
-      run: run ?? (spec => runNpmInstall(spec, flags.dir)),
+      run: run ?? (spec => runNpmInstall(spec, flags.dir, spawn ?? spawnSync)),
       now,
       sleep,
       log,

@@ -170,6 +170,19 @@ test('parseArgs rejects an unknown flag rather than ignoring it', () => {
   );
 });
 
+test('parseArgs rejects a bare value where a flag belongs', () => {
+  // `--spec --dir /tmp` would otherwise read `--dir` as the spec and leave
+  // the real dir as a stray positional.
+  assert.throws(
+    () => parseArgs(['pkg@1.0.0', '--dir', '/tmp']),
+    /unexpected argument/
+  );
+  assert.throws(
+    () => parseArgs(['--spec', 'pkg@1.0.0', '/tmp']),
+    /unexpected argument/
+  );
+});
+
 test('parseArgs rejects a flag with no value', () => {
   assert.throws(
     () => parseArgs(['--spec', 'p@1.0.0', '--dir']),
@@ -216,6 +229,30 @@ test('main exits 0 when the install succeeds, and says nothing', async () => {
   });
   assert.equal(code, 0);
   assert.deepEqual(lines, [], 'a clean install must annotate nothing');
+});
+
+test('main hands the spec and the dir to npm the right way round', async () => {
+  // The one production line between parseArgs and spawnSync: injecting `run`
+  // replaces the installer and skips it, so this case stubs `spawn` instead
+  // and leaves the wiring in the path. Swapping the two arguments here fails
+  // every release with exit 2 while every other case stays green.
+  const calls = [];
+  const code = await main(['--spec', 'pkg@2.3.4', '--dir', '/somewhere'], {
+    spawn: (cmd, args, opts) => {
+      calls.push({ cmd, args, opts });
+      return { status: 0 };
+    },
+    sleep: () => Promise.resolve(),
+    log: () => {},
+  });
+  assert.equal(code, 0);
+  assert.deepEqual(calls, [
+    {
+      cmd: 'npm',
+      args: ['install', '--prefer-online', '--ignore-scripts', 'pkg@2.3.4'],
+      opts: { cwd: '/somewhere', stdio: 'inherit' },
+    },
+  ]);
 });
 
 test('an exhausted budget exits 1 and says where to look', async () => {
@@ -286,9 +323,12 @@ test('an npm that never started is fatal, not retried for ten minutes', async ()
   const spawn = () => ({
     error: Object.assign(new Error('spawn npm ENOENT'), { code: 'ENOENT' }),
   });
+  // The directory is part of the message on purpose: libuv reports a failed
+  // chdir identically to a missing binary, so `/could not run npm/` alone
+  // passes with the cwd removed and the reader still sent to PATH.
   assert.throws(
-    () => runNpmInstall('pkg@1.0.0', '/tmp', spawn),
-    /could not run npm/
+    () => runNpmInstall('pkg@1.0.0', '/tmp/nowhere', spawn),
+    /could not run npm in "\/tmp\/nowhere"/
   );
 
   const lines = [];
