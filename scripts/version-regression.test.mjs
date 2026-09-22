@@ -122,9 +122,8 @@ test('accepts a branch cut before a release it does not carry', () => {
 
 test('accepts one package with no tags beside others that have them', () => {
   // A new package, or a branch cut before its first release: nothing released
-  // to regress against. Every package in the repo has tags today, so this is
-  // the shape the next new one arrives in rather than anything currently in
-  // the tree — a placeholder with no tag, beside packages that have them.
+  // to regress against. The shape is a placeholder with no tag, beside
+  // packages that have them.
   assert.deepEqual(
     findVersionRegressions({
       packages: [
