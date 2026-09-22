@@ -24,9 +24,9 @@
  *
  * Written out because the repo carries no `semver` dependency and this is not
  * worth adding one for. Build metadata is ignored, per the spec. A prerelease
- * sorts BELOW the release it leads to, which is the rule that matters here:
- * `eslint-plugin` sits at `0.0.0-development` as a deliberate placeholder, and
- * treating that as newer than a real tag would exempt the one package whose
+ * sorts BELOW the release it leads to, which is the rule that matters here: a
+ * package published by hand to claim its name carries a placeholder version,
+ * and treating that as newer than a real tag would exempt the package whose
  * version is least trustworthy.
  */
 export const compareVersions = (a, b) => {
@@ -215,11 +215,11 @@ export const findVersionRegressions = ({
   // compared nothing.
   //
   // Summed across packages rather than asked per package, which is a real limit
-  // and not an oversight: one package legitimately has no tags — a new one, or
-  // the `0.0.0-development` placeholder — so a per-package stop would red it on
-  // every run. The cost is that a history where only SOME packages lost their
-  // tags still exempts those, quietly. Nothing distinguishes that from a
-  // package that was never released.
+  // and not an oversight: a package can legitimately have no tags — a new one,
+  // or one whose only release is a hand-published placeholder — so a
+  // per-package stop would red it on every run. The cost is that a history
+  // where only SOME packages lost their tags still exempts those, quietly.
+  // Nothing distinguishes that from a package that was never released.
   const reachable = comparable.reduce(
     (total, pkg) => total + tagsFor(pkg.name).length,
     0

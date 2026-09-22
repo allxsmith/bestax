@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@allxsmith/eslint-plugin-bestax.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
 [![npm downloads](https://img.shields.io/npm/dm/@allxsmith/eslint-plugin-bestax.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax#provenance)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Socket Badge](https://badge.socket.dev/npm/package/@allxsmith/eslint-plugin-bestax/latest)](https://socket.dev/npm/package/@allxsmith/eslint-plugin-bestax/overview)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)

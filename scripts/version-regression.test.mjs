@@ -56,7 +56,8 @@ test('compareVersions orders release versions', () => {
 test('compareVersions puts a prerelease below the release it leads to', () => {
   assert.ok(compareVersions('1.0.0-alpha', '1.0.0') < 0);
   assert.ok(compareVersions('1.0.0', '1.0.0-alpha') > 0);
-  // The shape that matters here: the placeholder eslint-plugin sits at.
+  // The shape that matters here: the placeholder a hand-published first
+  // version carries.
   assert.ok(compareVersions('0.0.0-development', '0.0.1') < 0);
 });
 
@@ -121,9 +122,8 @@ test('accepts a branch cut before a release it does not carry', () => {
 
 test('accepts one package with no tags beside others that have them', () => {
   // A new package, or a branch cut before its first release: nothing released
-  // to regress against. This is `eslint-plugin`'s real shape — a
-  // `0.0.0-development` placeholder with no tag, next to four packages that
-  // have them.
+  // to regress against. The shape is a placeholder with no tag, beside
+  // packages that have them.
   assert.deepEqual(
     findVersionRegressions({
       packages: [
@@ -235,8 +235,8 @@ test('reports rather than skips a version it cannot compare', () => {
 });
 
 test('holds a prerelease placeholder to a real released tag', () => {
-  // If the eslint-plugin placeholder is ever left in place after a real
-  // release, that is the same regression wearing different clothes.
+  // If a placeholder is ever left in place after a real release, that is the
+  // same regression wearing different clothes.
   const problems = run({
     packages: [pkg('0.0.0-development')],
     tags: { 'pkg-a': ['pkg-a@0.1.0'] },
