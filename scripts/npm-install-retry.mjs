@@ -101,20 +101,26 @@ export async function installWithRetry({
 } = {}) {
   const started = now();
   const deadline = started + budgetSeconds * 1000;
+  const elapsed = () => Math.round((now() - started) / 1000);
   let attempt = 0;
   for (;;) {
     attempt += 1;
     if (await run(spec)) {
-      // Said out loud when it took more than one go, because this is the
-      // measurement nobody had: sizing the budget meant reading publish
-      // timestamps out of the registry API afterwards, release by release.
-      // A leg that waited now reports what it waited for, so the next person
-      // to weigh this number reads it off the runs instead.
+      // Said out loud when it took more than one go, because nothing used to
+      // record it: sizing the budget meant reading publish timestamps out of
+      // the registry API afterwards, release by release.
+      //
+      // Read it as how long this leg waited, which is an UPPER bound on how
+      // long propagation took and not the same quantity. The version may have
+      // become servable at any point in the interval before the attempt that
+      // saw it, and this figure also absorbs each failed attempt's own
+      // duration. Good enough to show the budget is nowhere near, or that it
+      // nearly was; too coarse to resize the budget on its own.
+      const waited = elapsed();
       if (attempt > 1) {
-        const waited = Math.round((now() - started) / 1000);
         log(`resolved after ${waited}s and ${attempt} attempts`);
       }
-      return { ok: true, attempts: attempt };
+      return { ok: true, attempts: attempt, waited };
     }
     // Checked after the attempt rather than before it, so the budget always
     // buys at least one try however small it is set.
@@ -132,7 +138,7 @@ export async function installWithRetry({
     // the deadline if a zero interval ever became reachable.
     const wait = sleepSeconds * 1000;
     if (now() >= deadline || now() + wait > deadline) {
-      return { ok: false, attempts: attempt };
+      return { ok: false, attempts: attempt, waited: elapsed() };
     }
     // forLog here as well as on the exhaustion message. This line prints on
     // every attempt rather than once, so it is the likelier of the two to
@@ -289,8 +295,9 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
 
   let ok;
   let attempts;
+  let waited;
   try {
-    ({ ok, attempts } = await installWithRetry({
+    ({ ok, attempts, waited } = await installWithRetry({
       spec: flags.spec,
       budgetSeconds,
       sleepSeconds,
@@ -310,7 +317,8 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
   if (!ok) {
     log(
       `::error::npm install ${forLog(flags.spec)} did not succeed within the ` +
-        `propagation budget (${budgetSeconds}s, ${attempts} attempts). If that ` +
+        `propagation budget (${waited}s of ${budgetSeconds}s, ${attempts} ` +
+        `attempts). If that ` +
         `version never published, the release step earlier in the pipeline is ` +
         `where to look; if it did publish, the registry took longer to serve ` +
         `it than this budget allows.`
