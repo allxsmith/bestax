@@ -1,3 +1,13 @@
+## [5.16.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.5...@allxsmith/bestax-bulma@5.16.6) (2026-09-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** closeBundle is parallel, so the mirror must be a step not a peer ([d4376bb](https://github.com/allxsmith/bestax/commit/d4376bb48d88267e3a39a9cee67e7753a0184096)), closes [#715](https://github.com/allxsmith/bestax/issues/715) [#698](https://github.com/allxsmith/bestax/issues/698)
+* **bulma-ui:** derive the mirror from root, so the tests stop writing to dist ([7e4d255](https://github.com/allxsmith/bestax/commit/7e4d2558ff04ad61f6c25be6d42cf2c350cb6a5f)), closes [#715](https://github.com/allxsmith/bestax/issues/715) [#698](https://github.com/allxsmith/bestax/issues/698)
+* **bulma-ui:** drop the mirror's rm, which made two safe writers a race ([914e70d](https://github.com/allxsmith/bestax/commit/914e70df07a66510451cf857eda10ba9bdec0c40)), closes [#698](https://github.com/allxsmith/bestax/issues/698) [#698](https://github.com/allxsmith/bestax/issues/698)
+* **bulma-ui:** give the require condition CommonJS-flavoured declarations ([f79cd2c](https://github.com/allxsmith/bestax/commit/f79cd2c4f604bec6119a919a4b22936c0c91977d)), closes [#688](https://github.com/allxsmith/bestax/issues/688) [#698](https://github.com/allxsmith/bestax/issues/698) [#698](https://github.com/allxsmith/bestax/issues/698) [#698](https://github.com/allxsmith/bestax/issues/698)
+
 ## [5.16.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.4...@allxsmith/bestax-bulma@5.16.5) (2026-09-21)
 
 
