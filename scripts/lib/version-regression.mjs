@@ -217,9 +217,9 @@ export const findVersionRegressions = ({
   // Summed across packages rather than asked per package, which is a real limit
   // and not an oversight: a package can legitimately have no tags — a new one,
   // or one whose only release is a hand-published placeholder — so a
-  // per-package stop would red it on every run. The cost is that a history where only SOME packages lost their
-  // tags still exempts those, quietly. Nothing distinguishes that from a
-  // package that was never released.
+  // per-package stop would red it on every run. The cost is that a history
+  // where only SOME packages lost their tags still exempts those, quietly.
+  // Nothing distinguishes that from a package that was never released.
   const reachable = comparable.reduce(
     (total, pkg) => total + tagsFor(pkg.name).length,
     0
