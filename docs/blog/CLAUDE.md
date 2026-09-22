@@ -10,8 +10,10 @@ Posts are written in Alex's voice. The register is conversational; the copy is c
 doubt, reread the `:::info` admonition in the v2 release post (owning the accidental 2.0.0
 version bump) and the intro of the first State of React edition: candid, plain, direct.
 
-- **Get to the point.** The first sentence of the post, and of most sections, states the point.
-  Background comes after, briefly, as a "why" before the "what".
+- **Get to the point.** On a release post or a how-to, the first sentence states the point.
+  Background comes after, briefly, as a "why" before the "what". On a story post, that rule
+  is what opens [Fighting AI Training Bias](https://bestax.io/blog/fighting-ai-training-bias)
+  on a thesis. A story opens where the work started. See **Story posts** below.
 - **Conversational register.** Contractions always. Short plain sentences. Write to one reader,
   not an audience. A rhetorical question is a good move ("So which one do you import?"), about
   one per post. Casual markers are welcome where they'd land in speech: "cool", "yeah",
@@ -28,7 +30,8 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   absence-titles read as missing features (#471). The v3 post's "no date library in your
   bundle" paragraph is the model.
 - **Every post stands alone for a stranger.** These posts syndicate; assume a reader who has
-  never seen bestax or its repo. Introduce the project in a clause, tell one story with an arc,
+  never seen bestax or its repo. On a release post, introduce the project in a clause. On a
+  story post, withhold the package name until the story needs it. Tell one story with an arc,
   and retell any prior post's needed context in a sentence or two instead of pointing at it.
   Repo artifacts — issue/PR numbers, internal file and check names, series numbering — are link
   receipts behind descriptive words, never narrative glue: "a form label [never wired to its
@@ -56,8 +59,79 @@ version bump) and the intro of the first State of React edition: candid, plain, 
 - **Clean mechanics.** Casual voice, boring spelling. Proofread and prettier-format; the fast
   loose typos of email and chat don't ship.
 
+## Story posts
+
+[Fighting AI Training Bias](https://bestax.io/blog/fighting-ai-training-bias) is what the voice
+rules above produce when the assignment is personal and the writer composes a new essay.
+It opens on a thesis ("A coding agent can't one-shot a library its training data barely saw"),
+says the post is everything that ships today, then tours the tools: a skill list with blurbs,
+Two Ways to Install, a demo whose job is to impress, Meeting Agents in `node_modules`, an MCP
+"coming soon," and Point Your Agent at It. It closes on an install menu, "a star on the repo
+is the whole marketing budget," and a slogan. "Post six of the catch-up series" is in the
+prose. Do not write that again when the post is a story.
+
+[Me Dealing with AI Training Bias](https://bestax.io/blog/dealing-with-ai-training-bias) is the
+same material after Alex told it himself. The job is to clean that telling: spelling, true
+dates, order, and a linked source where he guessed. Leave his sequence and his feelings. Do
+not throw the telling out and write the essay the bullets above describe.
+
+- **Clean his telling. Do not write a new one.** He already said the hole in 2024, the README
+  and Reddit and the docs site, eleven stars, the models steering to Tailwind and shadcn/ui,
+  the old Bulma package, the forms work, the messy source, `llms.txt` and skills and the
+  types, and the hope that it moves slowly. The sentences should still sound like that
+  telling.
+- **Tell it in the order it happened, with the year.** 2024 was Bulma v1 and no React package
+  ready for it. 2025 was trying to get found. Early 2026 was the forms redo. Summer 2026 was
+  the AI work. Do not compress that into one season. A star count or a download week is "as I
+  write this," dated, not the plot.
+- **Say the feeling he would actually say.** "It was disappointing. I had talked myself into
+  thinking it would take off" replaced "The odd part was how quiet it stayed." "Slow and
+  steady, and I didn't give up" replaced "Slow, and I didn't stop." Do not upgrade a feeling
+  into a slogan.
+- **No coined verdicts.** A short sentence that announces the moral is the failure. Rejected:
+  "Next to those numbers it is a thin slice," "Dead was the wrong guess," "Small is the
+  accurate description," "The pages looked acceptable. The source did not," "Read that again
+  before you take it as a win," "That was a useful embarrassment." If a sentence could be a
+  pull quote, rewrite it as what happened.
+- **Do not sell, and do not organize the post as a tour of the tools.** No feature inventory,
+  and no "the guide has the list if you want to look." No install command in a story that is
+  not a how-to. Links stay as receipts. The close is for another maintainer in the same spot,
+  not an invitation to adopt the library. "I hope the steady work makes the library more
+  appealing" was the pitch. "I hope the steady work wasn't wasted" was the post.
+- **Headings name the stretch of time or the event**, not the moral. "A Summer of Trying
+  Things," not "What I Built So a Model Could Read It."
+- **Do not stack "So" at the start of sentences.** "I spent those months on the parts a real
+  app needs" replaced "So I spent those months..."
+- **Do not use a word stronger than the fact.** Bulma is not "dead" while the repo still ships
+  fixes. People are not reaching for it. That is the claim.
+- **Do not invent a second finding from a study about something else.** "I figure npm search
+  is in the same place" came out. The Google point is a real article: [Pew, July
+  2025](https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/),
+  on clicks when an AI summary is on the page (8% versus 15%; the session ended there 26%
+  versus 16%). Link it. Say what it measured. Then say what you do not have a study for.
+- **When a model's answer is the scene, show the prompt and the opening of the reply.** A
+  fenced prompt, then the first few sentences, and whether effort had to be turned up. From
+  this post: "What react library would you recommend for a new web app that uses Bulma"
+  (effort up) and "What is the best react bulma library" (without). Do not paraphrase the
+  reply into a smoother ad.
+- **Keep his image if he used one.** The tortoise and Field of Dreams stayed because they were
+  his. Do not swap in a cleverer one, and do not add extras. The era-reference rule above
+  still caps new ones the writer thought of.
+- **The fold stays 1–3 sentences** even when the story continues right under it. Five
+  sentences above `<!-- truncate -->` fails. The rest of the opening moves below the marker.
+- **Cover alt text describes the picture, including the words drawn in it.** A shared drawing
+  that says "Fighting AI Training Bias" keeps that description, and the SVG `aria-label`
+  stays in lockstep. Do not retitle the alt to match a different post.
+
+Release posts and how-tos still follow the bullets above this subsection. Contractions, no em
+dashes, MLA titles, no "We're excited to announce," cited numbers, and plain markdown when the
+post syndicates all still hold.
+
 ## Post conventions (all posts)
 
+- **A published post stays what it was.** A different piece, even on the same theme, is a new
+  file and a new slug. _Fighting AI Training Bias_ stayed the tool tour. _Me Dealing with AI
+  Training Bias_ is the separate story. Do not "improve" a live post into a different one.
 - **File naming:** `docs/blog/YYYY-MM-DD-slug.md`. The date prefix is the publish date; there
   is no `date:` frontmatter field. If a PR merges after the date in its filename, rename
   before merging. A post that will syndicate stays a **flat `.md` even when it ships images**
