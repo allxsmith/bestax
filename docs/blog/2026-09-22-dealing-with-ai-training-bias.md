@@ -12,9 +12,11 @@ cover_image: /img/fighting-ai-training-bias.png
 
 ![Fighting AI Training Bias, drawn as pixel art: a robot coding agent turns away from a toppling stack of identical gray cartridges under a most popular marquee toward a glowing bestax cartridge seated in a retro console whose screen reads llms.txt](/img/fighting-ai-training-bias.svg)
 
-This started for me in 2024, when Bulma v1 came out. I went looking for a React package that supported it. There wasn't one yet. The packages people already knew were still on the older Bulma, and from where I sat they looked dormant. So I decided to fill that gap. I worked on it until I had what I considered a minimum viable product, and then I started trying to get the package recognized and used.
+This started for me in 2024, when Bulma v1 came out. I went looking for a React package that supported it. There wasn't one yet.
 
 <!-- truncate -->
+
+The packages people already knew were still on the older Bulma, and from where I sat they looked dormant. So I decided to fill that gap. I worked on it until I had what I considered a minimum viable product, and then I started trying to get the package recognized and used.
 
 ## What I Tried First
 
@@ -88,7 +90,7 @@ Since 5.8.0 the published tarball also has `llms.txt`, `AGENTS.md`, and `CLAUDE.
 
 I put the skills in the scaffolder too, and a `CLAUDE.md` that remembers the choices someone just made. CSS flavor, class prefix, icon library. Almost nobody was starting a new app with it. I did the work anyway. Field of Dreams, a little. If you build it, they will come. When an agent is the one building, those files do seem to help. When a person is, I still don't know. There haven't been many people.
 
-The [MCP server](https://www.npmjs.com/package/bestax-mcp) came later in the summer. Same hope, another way for an agent to ask instead of guess. What I got was about the same as the skills. Not a breakthrough. Better looking sites, and the source finally using my components instead of a pile of custom markup. I was glad, and I was also tired.
+The [MCP server](https://www.npmjs.com/package/bestax-mcp) came later in the summer. Same hope, another way for an agent to ask instead of guess. What I got was about the same as the skills. Not a breakthrough. Better-looking sites, and the source finally using my components instead of a pile of custom markup. I was glad, and I was also tired.
 
 ## Some of Them Started Recommending It
 
@@ -122,16 +124,16 @@ This is just what I was seeing in the chats I ran in September 2026. Ask for a w
 
 I hope the steady work wasn't wasted. It's still slow, and most days it feels slow. Training bias is real. Ask for a web app and you still get anything but Bulma, unless you force the question. There's a ton of stuff built on Bulma. It's still a tiny fraction of Tailwind, Bootstrap, and Foundation. I feel that every time I open a new chat.
 
-I pulled the numbers so this wasn't only a feeling. Weekly downloads are npm's public counts for the week of September 14 to 20, 2026. Stars are GitHub's counts on September 21.
+I pulled the numbers so this wasn't only a feeling. Weekly downloads are [npm's public counts](https://api.npmjs.org/downloads/point/2026-09-14:2026-09-20/tailwindcss,bootstrap,bulma,foundation-sites) for September 14 to 20, 2026. Stars are the GitHub counts on September 21, linked from the table. GitHub doesn't keep a separate page for a star count on a past day, so the repo is the source.
 
-| Framework                                                    | Weekly downloads  | GitHub stars  |
-| ------------------------------------------------------------ | ----------------- | ------------- |
-| [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss)  | about 96 million  | about 98,000  |
-| [Bootstrap](https://github.com/twbs/bootstrap)               | about 5.1 million | about 175,000 |
-| [Bulma](https://github.com/jgthms/bulma)                     | about 279,000     | about 50,000  |
-| [Foundation](https://github.com/foundation/foundation-sites) | about 87,000      | about 30,000  |
+| Framework                                                    | Weekly downloads                                                                             | GitHub stars                                                   |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss)  | [about 96 million](https://api.npmjs.org/downloads/point/2026-09-14:2026-09-20/tailwindcss)  | [about 98,000](https://github.com/tailwindlabs/tailwindcss)    |
+| [Bootstrap](https://github.com/twbs/bootstrap)               | [about 5.1 million](https://api.npmjs.org/downloads/point/2026-09-14:2026-09-20/bootstrap)   | [about 175,000](https://github.com/twbs/bootstrap)             |
+| [Bulma](https://github.com/jgthms/bulma)                     | [about 279,000](https://api.npmjs.org/downloads/point/2026-09-14:2026-09-20/bulma)           | [about 50,000](https://github.com/jgthms/bulma)                |
+| [Foundation](https://github.com/foundation/foundation-sites) | [about 87,000](https://api.npmjs.org/downloads/point/2026-09-14:2026-09-20/foundation-sites) | [about 30,000](https://github.com/foundation/foundation-sites) |
 
-Tailwind did about 96 million downloads that week. Bootstrap about 5.1 million. Bulma about 279,000. Foundation about 87,000. So Tailwind was somewhere around 340 times Bulma, and Bootstrap around 18 times. Stars are a different pile, because they add up over years. Bootstrap has about 175,000, Tailwind about 98,000, Bulma about 50,000, Foundation about 30,000. Foundation's last release on npm was September 2024. Bulma on npm is still 1.0.4, from April 2025, but the [repository](https://github.com/jgthms/bulma) took fixes on September 21, 2026. I don't think people have given up on it. It's small, and that size is what I keep running into.
+Tailwind did about 96 million downloads that week. Bootstrap about 5.1 million. Bulma about 279,000. Foundation about 87,000. So Tailwind was somewhere around 340 times Bulma, and Bootstrap around 18 times. Stars are a different pile, because they add up over years. Bootstrap has about 175,000, Tailwind about 98,000, Bulma about 50,000, Foundation about 30,000. Foundation's last release on npm was [September 2024](https://www.npmjs.com/package/foundation-sites/v/6.9.0). Bulma on npm is still [1.0.4](https://www.npmjs.com/package/bulma/v/1.0.4), from April 2025, but the [repository](https://github.com/jgthms/bulma) took fixes on September 21, 2026. I don't think people have given up on it. It's small, and that size is what I keep running into.
 
 ## Why I'm Still on Bulma
 
