@@ -36,6 +36,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
@@ -932,19 +933,48 @@ describe('the declaration-extension guard', () => {
       'index.d.ts': "export * from './a';\n",
       'a.d.ts': 'export {};\n',
     });
-    const outside = join(PKG_DIR, 'dist', 'types-cjs');
-    const before = existsSync(outside) ? readdirSync(outside).length : null;
+    // A literal default is resolved against `cwd`, and this suite runs as
+    // `node --test "scripts/*.test.mjs"` from the repo root — so the leak lands
+    // in `<repo>/dist/types-cjs`, NOT under `bulma-ui`. Watching only the latter
+    // is an assertion that cannot fail from the cwd the suite is run in; both
+    // are watched so the case fails from either.
+    //
+    // Identity, not a count: a previous leak leaves the same file NAMES behind,
+    // so `readdirSync(...).length` is unchanged on the next run and the check
+    // passes while the write is still happening. Size and mtime move when the
+    // copy lands, whether or not the entry set does.
+    const outside = [
+      resolve('dist', 'types-cjs'),
+      join(PKG_DIR, 'dist', 'types-cjs'),
+    ];
+    const snapshot = dir =>
+      existsSync(dir)
+        ? readdirSync(dir)
+            .sort()
+            .map(name => {
+              const s = statSync(join(dir, name));
+              return `${name}:${s.size}:${s.mtimeMs}`;
+            })
+            .join('|')
+        : null;
+    const before = outside.map(snapshot);
     await run(root);
+    const after = outside.map(snapshot);
+    // The outside-write check comes FIRST. The sibling assertion below also
+    // fails on today's mutant, and asserting that first would shadow this one —
+    // leaving it unfalsifiable a second time, for a different reason than round
+    // 3 found. This is the assertion that names the harm.
+    for (const [i, dir] of outside.entries()) {
+      assert.equal(
+        after[i],
+        before[i],
+        `the guard wrote into ${dir}, which is the shipped CommonJS tree`
+      );
+    }
     // The mirror lands beside the fixture, not beside the package.
     assert.ok(
       existsSync(`${root}-cjs`),
       'the mirror was not written beside the tree it was given'
-    );
-    const after = existsSync(outside) ? readdirSync(outside).length : null;
-    assert.equal(
-      after,
-      before,
-      `the guard wrote into ${outside}, which is the shipped CommonJS tree`
     );
   });
 
