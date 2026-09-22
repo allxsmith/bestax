@@ -1,3 +1,14 @@
+## [5.16.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.6...@allxsmith/bestax-bulma@5.16.7) (2026-09-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** serve the Socket badge from badge.socket.dev ([2fe0a45](https://github.com/allxsmith/bestax/commit/2fe0a45672a552c55b329ffff31f1b6e6df9d474))
+* **bestax-migrate:** serve the Socket badge from badge.socket.dev ([1cd6dab](https://github.com/allxsmith/bestax/commit/1cd6dabe0841f62c57b68c0a81a76ad063606b09))
+* **bulma-ui:** serve the Socket badge from badge.socket.dev ([fa03c7e](https://github.com/allxsmith/bestax/commit/fa03c7e4db1ab2f468a1d467b162ca62ef766a70))
+* **create-bestax:** serve the Socket badge from badge.socket.dev ([d473c07](https://github.com/allxsmith/bestax/commit/d473c07cee439d57f908300e6e4788818d361385))
+* **eslint-plugin:** serve the Socket badge from badge.socket.dev ([15d4d9b](https://github.com/allxsmith/bestax/commit/15d4d9b4184f72ea35272c7a4fefe17be254841f))
+
 ## [5.16.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.5...@allxsmith/bestax-bulma@5.16.6) (2026-09-22)
 
 
