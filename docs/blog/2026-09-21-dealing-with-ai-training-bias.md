@@ -30,7 +30,7 @@ In 2026 I revamped how I was approaching the library. Early in the year I starte
 
 I kept going, like the tortoise in that race. Slow, and I didn't stop.
 
-That's when I got serious about not being a dumb wrapper. If someone already knows the Bulma classes, a thin binding doesn't give them much of a reason to import a package. So I built the parts I actually wanted in an app. Real form controls. A carousel, dialogs, toasts, a sidebar, a switch, a slider, autocomplete, a tag input, a rating. An avatar and a badge came later. The [Bulma v1 guide](/docs/guides/features/bulma-v1) has the list, if you want to look. I was trying to make bestax a full component library, more like MUI.
+That's when I got serious about not being a dumb wrapper. If someone already knows the classes, a thin package doesn't give them a reason to bother, and I was starting to feel that. So I spent those months on the parts a real app needs. The forms redo was the long one. Around it I built things Bulma doesn't ship, a carousel, dialogs, toasts, an avatar, that kind of thing. I was trying to make a full component library, closer to MUI than to a handful of bindings. A lot of nights. I didn't know yet that doing all of that still wouldn't matter to a model.
 
 I wrote a couple more posts. The dev.to and Medium pieces were part of that. I built more of the docs, and then I went back over them and refined them.
 
@@ -58,13 +58,13 @@ I tried some prompts of my own. The sites looked sort of okay. Not polished, not
 
 There's a stale version of the same problem. A model trained in the spring has never seen a component I shipped in July. And even a model that met bestax once met an older bestax. The package has grown since then.
 
-## llms.txt, Skills, and an MCP Server
+## A Summer of Trying Things
 
-I asked what I could do to help. It suggested a few things. `llms.txt`, since I already had the docs on Docusaurus. Skills. And an MCP server. So, still in the summer, I started building those.
+I asked what I could do to help. It suggested a few things. `llms.txt`, since I already had the docs on Docusaurus. Skills. And an MCP server. So, still in the summer, I started building those. I was tired, and I did it anyway.
 
 ![The LLM docs pipeline, drawn as pixel art: a dot matrix printer feeds a long perforated sheet labeled llms-full.txt, a card index box labeled llms.txt sits on the desk beside it, and a docs page marked button stands next to its glowing twin marked button.md](/img/fighting-ai-training-bias-docs.png)
 
-`llms.txt` turned out to be the simple one. I enabled [`docusaurus-plugin-llms`](https://www.npmjs.com/package/docusaurus-plugin-llms). Every build writes three things. [`llms.txt`](https://bestax.io/llms.txt) is a short index of the docs. [`llms-full.txt`](https://bestax.io/llms-full.txt) is the whole documentation in one file. And every docs page has a markdown twin, so a URL like [bestax.io/docs/api/elements/button.md](https://bestax.io/docs/api/elements/button.md) is just that one component. They get regenerated when the site deploys, so they don't drift off from what's actually published. The [LLMs guide](/docs/guides/llms) is where I wrote this down properly.
+`llms.txt` was the easy one, and I was grateful, because nothing else that year had been easy. I turned on [`docusaurus-plugin-llms`](https://www.npmjs.com/package/docusaurus-plugin-llms). The build writes a short index, the docs as one big file, and a markdown copy of each page, and it does that again on every deploy, so this particular thing can't drift away from me. That was the whole win. It did not make the models know the library.
 
 I also made sure [`robots.txt`](https://bestax.io/robots.txt) was set up. It carries a content signal, `search=yes, ai-input=yes, ai-train=yes`. Search means building an index. ai-input means a model can use the page when it's answering. ai-train means training. Some people would turn the training one off. I want this library in the next round of training data, so I left all three on.
 
@@ -72,23 +72,23 @@ Then I turned on Cloudflare's [Markdown for Agents](https://blog.cloudflare.com/
 
 ![Agent skills as pixel art game cartridges: a robot snaps a glowing cartridge labeled form into its open chest slot while six more cartridges labeled layout, theming, icons, custom, optimize, and migrate wait in a wall rack](/img/fighting-ai-training-bias-skills.png)
 
-Skills were harder. I started writing them, and the output still wasn't great. So I kept building sites with an agent, looking at what came out, and rewriting the skill. That did help. A skill is a folder of instructions the agent can load, and I ended up with a handful, one per job. Layout, forms, theming, icons, and a few others. The [skills overview](/docs/skills/intro) lists them. Knowing the props and knowing how I actually want a page built are different, and the early skills made that obvious.
+Skills were harder, and they stung more, because I could watch them almost work. I wrote them, generated a site, and the result was still wrong. So I did that again, and again, rewriting the skill each time. A skill is just a folder of instructions an agent can load. I ended up with a [handful](/docs/skills/intro), layout, forms, theming, icons, and a few others. Knowing the props is not the same as knowing how you actually want a page built. The early ones taught me that by failing. The loop did help. It just never helped all the way.
 
 ![The component catalog as a pixel art inventory screen: item slots labeled Button, Tooltip, Avatar, and Badge with the Tooltip slot glowing, a robot hand at a crafting bench lowering a half built duplicate tooltip, and a shield stamped with a check marked ci guard at the corner of the grid](/img/fighting-ai-training-bias-catalog.png)
 
-One thing I watched happen, more than once, was an agent lovingly building its own tooltip while [Tooltip](/docs/api/components/tooltip) was already there. Shipped, tested, documented. A wrong prop fails in the type checker, so you see it. A handmade component kind of works, and then you own it forever. The custom-component skill now starts from a generated catalog of every documented component, names and a one-line description, so it has a chance to use the one that exists. CI fails if an exported component has no API page, and that list is built from those pages. If the catalog can't see it, the agent is going to rebuild it.
+One thing I watched more than once was an agent happily building its own tooltip while mine was already there, shipped and documented. That one hurt. A wrong prop at least shows up in the type checker. A homemade component kind of works, and then you own it. I started putting a generated list of every component at the front of one of the skills, just the name and a line about what it's for. CI fails now if something ships without a docs page, because that's what the list is built from. I learned the hard way that if the agent can't see it, the agent will rebuild it.
 
 Even with the skills, it didn't always use them. I'd ask it to build something and it would just go off on its own. I asked what it was actually using. It said the types.
 
 ![Meeting agents in node_modules, drawn as pixel art: a robot holding a lantern kneels in a dark mine of stacked crates labeled node_modules before three glowing files labeled llms.txt, AGENTS.md, and CLAUDE.md, beside a signpost pointing to a lit doorway labeled bestax.io](/img/fighting-ai-training-bias-node-modules.png)
 
-That sent me back into the code. The docs on the types weren't very good, so an agent reading TypeScript was reading a weak version of the library. I revised the TSDoc. On this project those comments are also what generates the props tables in the docs, so fixing them fixed both. This is the part I'd tell another package author to look at. The comments ship in the package. An agent will open `node_modules` and never read your post.
+That sent me back into the code, which was a humbling place to end up after all the docs work. The comments on the types weren't very good, so an agent reading TypeScript was reading a weak version of the library. I rewrote them. On this project those comments also generate the props tables, so fixing them fixed both, and I wish I had noticed sooner. If you maintain a package, this is the part that got me. The comments ship inside `node_modules`. An agent will open that and never read your post.
 
 Since 5.8.0 the published tarball also has `llms.txt`, `AGENTS.md`, and `CLAUDE.md` sitting at the root. They're short pointers back to the site, named that way because that's what a lot of the tools look for by filename. The guide's section on [what the npm package carries](/docs/guides/llms#in-the-npm-package) is the list. I didn't want a second copy of the docs in the tarball, going stale between releases.
 
-I added the skills to the scaffolder too. `pnpm create bestax@latest` can drop them into the new app's `.claude/skills/`, and it writes a `CLAUDE.md` that records the choices you just made. CSS flavor, class prefix, icon library. I figured if anyone uses the scaffolder, which probably isn't many people, at least a new project starts with the skills already there. Field of Dreams, a little. If you build it, they will come. And it does seem to help when the one building the site is an agent.
+I put the skills in the scaffolder too, and a `CLAUDE.md` that remembers the choices someone just made. CSS flavor, class prefix, icon library. Almost nobody was starting a new app with it. I did the work anyway. Field of Dreams, a little. If you build it, they will come. When an agent is the one building, those files do seem to help. When a person is, I still don't know. There haven't been many people.
 
-The MCP server came later in the summer. [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) is a [Model Context Protocol](https://modelcontextprotocol.io) server, so an agent can ask for props, examples, and the skills while it builds. The [LLMs guide](/docs/guides/llms#mcp-server) covers how it works. What I saw from using it was about the same as the skills. Equally good. Better looking sites, and the source using the components instead of a pile of custom markup.
+The [MCP server](https://www.npmjs.com/package/bestax-mcp) came later in the summer. Same hope, another way for an agent to ask instead of guess. What I got was about the same as the skills. Not a breakthrough. Better looking sites, and the source finally using my components instead of a pile of custom markup. I was glad, and I was also tired.
 
 ## Some of Them Started Recommending It
 
@@ -102,7 +102,7 @@ With Claude, I have to turn the effort up to extra before it recommends bestax. 
 
 This is just what I was seeing in the chats I ran in September 2026. Ask for a web app with no other hint and it's still React, Tailwind, and shadcn/ui. Bulma only comes up when you ask for Bulma. And even then, a common answer is the 2022 package, followed by "you might be happier with the classes."
 
-I hope the steady work makes the library more appealing to the models and to actual people. It's still slow. Training bias is real, and the models still recommend something other than Bulma almost every time you don't force the question. I hope that sticking with the Bulma ecosystem gives them something to find later. There's a ton of stuff built on Bulma. It's still a tiny fraction of Tailwind, Bootstrap, and Foundation.
+I hope the steady work wasn't wasted. It's still slow, and most days it feels slow. Training bias is real. Ask for a web app and you still get anything but Bulma, unless you force the question. There's a ton of stuff built on Bulma. It's still a tiny fraction of Tailwind, Bootstrap, and Foundation. I feel that every time I open a new chat.
 
 I pulled the numbers so this wasn't only a feeling. Weekly downloads are npm's public counts for the week of September 14 to 20, 2026. Stars are GitHub's counts on September 21.
 
@@ -125,6 +125,6 @@ When a model talks about those numbers, it treats them like one framework is bet
 
 I hope the labs training these models do something about how one-note the training data is, and the bias that comes out of it. Otherwise I think the internet, and a lot of what we know how to build, converges on a single kind of answer. One CSS approach, one component library, and the rest fade out. Diversity dies. I don't want that, and I don't think it has to go that way, but it will if the training data stays this lopsided and nobody pushes the other direction.
 
-This is my attempt to push. I'm trying to get the library adopted, and I'm trying to give Bulma a better shot at being one of the things a model can name. It's a work in progress. There's a long, long way to go. I'm going to keep trying, and if you're maintaining a package the models don't know, I hope you do too. Don't get discouraged. It doesn't happen overnight. If you keep at it, you will see it move. Slowly.
+This is me trying anyway. I'm still building, and I'm still hoping a model can name more than the one popular answer. It's a work in progress. There's a long, long way to go. If you're maintaining a package the models don't know, I hope you keep going too. The quiet is awful. Don't take it as a verdict. It doesn't happen overnight. If you keep at it, you will see it move. Slowly. Some days that is a very small comfort.
 
 I might be inconsequential. The model might only recommend my package to the few people who ask in a particular way. Heck, it's a start.
