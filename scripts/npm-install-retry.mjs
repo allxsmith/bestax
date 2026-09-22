@@ -44,6 +44,17 @@ export const DEFAULT_BUDGET_SECONDS = 600;
 export const DEFAULT_SLEEP_SECONDS = 20;
 
 /**
+ * The arguments every attempt carries, as data so a test can assert them.
+ *
+ * `--prefer-online` is load-bearing and its absence is invisible: drop it and
+ * the retries still run, still log, still respect the budget, and still cannot
+ * see a new answer, which is half of what kept #716 broken for a week. A
+ * driven test cannot catch that — a stub runner never consults a cache — so
+ * the list is pinned here instead of spelled inline at the call.
+ */
+export const INSTALL_ARGS = ['install', '--prefer-online', '--ignore-scripts'];
+
+/**
  * Retry `run` until it succeeds or the budget is spent.
  *
  * Every dependency that touches the outside world is injected so the policy
@@ -80,7 +91,10 @@ export async function installWithRetry({
     if (now() >= deadline || now() + wait > deadline) {
       return { ok: false, attempts: attempt };
     }
-    log(`npm install ${spec} failed (attempt ${attempt}); retrying`);
+    // forLog here as well as on the exhaustion message. This line prints on
+    // every attempt rather than once, so it is the likelier of the two to
+    // carry a crafted spec into a workflow command, not the safer one.
+    log(`npm install ${forLog(spec)} failed (attempt ${attempt}); retrying`);
     await sleep(wait);
   }
 }
@@ -91,13 +105,25 @@ export async function installWithRetry({
  *
  * An argument array, never a shell string: the spec reaches this from argv,
  * and a shell would give anything in it a second reading.
+ *
+ * `spawn` is injected so a test can read the argv this builds. That is the
+ * only way to catch a dropped `--prefer-online`, since the flag's effect is a
+ * cache decision inside npm rather than anything the caller observes.
+ *
+ * A spawn that never started is thrown rather than returned as a failed
+ * attempt. No amount of waiting installs anything when `npm` is not on PATH,
+ * so retrying it would spend the whole budget and then blame propagation for
+ * a missing binary. A process that started and was killed by a signal stays
+ * retryable: that is transient in the way this loop exists to absorb.
  */
-export function runNpmInstall(spec, cwd) {
-  const result = spawnSync(
-    'npm',
-    ['install', '--prefer-online', '--ignore-scripts', spec],
-    { cwd, stdio: 'inherit' }
-  );
+export function runNpmInstall(spec, cwd, spawn = spawnSync) {
+  const result = spawn('npm', [...INSTALL_ARGS, spec], {
+    cwd,
+    stdio: 'inherit',
+  });
+  if (result.error) {
+    throw new Error(`could not run npm: ${result.error.message}`);
+  }
   return result.status === 0;
 }
 
@@ -141,7 +167,24 @@ export function positiveInteger(value, name, fallback) {
   return Number(value);
 }
 
-export async function main(argv = process.argv.slice(2)) {
+/**
+ * Exit codes are read by the workflow step, so they stay distinct: 0 installed,
+ * 1 the registry never served the spec, 2 this was called wrong or could not
+ * run npm at all. A caller that cannot tell those apart cannot act on any of
+ * them.
+ *
+ * `deps` exists for the tests. Without it the only way to drive `main` is to
+ * let it shell out to the real registry, which puts the network inside
+ * `pnpm test` and hands a crafted spec to whatever npm decides to invoke for
+ * it.
+ */
+export async function main(argv = process.argv.slice(2), deps = {}) {
+  const {
+    run,
+    now,
+    sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+    log = console.log,
+  } = deps;
   let flags;
   let budgetSeconds;
   let sleepSeconds;
@@ -158,20 +201,30 @@ export async function main(argv = process.argv.slice(2)) {
       DEFAULT_SLEEP_SECONDS
     );
   } catch (error) {
-    console.log(`::error::${error.message}`);
+    log(`::error::${error.message}`);
     return 2;
   }
 
-  const { ok, attempts } = await installWithRetry({
-    spec: flags.spec,
-    budgetSeconds,
-    sleepSeconds,
-    run: spec => runNpmInstall(spec, flags.dir),
-    sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
-  });
+  let ok;
+  let attempts;
+  try {
+    ({ ok, attempts } = await installWithRetry({
+      spec: flags.spec,
+      budgetSeconds,
+      sleepSeconds,
+      run: run ?? (spec => runNpmInstall(spec, flags.dir)),
+      now,
+      sleep,
+      log,
+    }));
+  } catch (error) {
+    // Only runNpmInstall throws, and only when the process never started.
+    log(`::error::${error.message}`);
+    return 2;
+  }
 
   if (!ok) {
-    console.log(
+    log(
       `::error::npm install ${forLog(flags.spec)} did not succeed within the ` +
         `propagation budget (${budgetSeconds}s, ${attempts} attempts). If that ` +
         `version never published, the release step earlier in the pipeline is ` +

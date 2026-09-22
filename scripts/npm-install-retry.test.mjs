@@ -16,7 +16,13 @@
  *
  * `--prefer-online` is asserted on the real argv rather than the policy,
  * because it is the half of the fix a driven test cannot observe: a stub `run`
- * succeeds or fails on command and never consults a cache.
+ * succeeds or fails on command and never consults a cache. Deleting the flag
+ * has to fail something here, or the outage it caused could return under a
+ * larger budget and every case would stay green.
+ *
+ * Nothing here reaches the network or spawns anything. Both the runner and the
+ * clock are injected, so a ten-minute budget costs no time and a crafted spec
+ * is never handed to a real subprocess that might give it a second reading.
  *
  * `.mjs` and `node --test` rather than jest: root-level scripts with no
  * package of their own, matching consumer-sbom-meta.test.mjs.
@@ -25,15 +31,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   installWithRetry,
+  runNpmInstall,
   parseArgs,
   positiveInteger,
   main,
+  INSTALL_ARGS,
   DEFAULT_BUDGET_SECONDS,
   DEFAULT_SLEEP_SECONDS,
 } from './npm-install-retry.mjs';
-import fs from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
 
 // A clock that only moves when the policy sleeps, so a ten-minute budget costs
 // a test nothing and the assertions stay about spend rather than timing.
@@ -125,9 +130,12 @@ test('a failed attempt names itself in the log, in order', async () => {
     sleepSeconds: 20,
   });
   await h.promise;
+  // Quoted, because the spec goes through forLog on the way out. The quotes
+  // are the visible edge of that: an unquoted spec here means the neutralising
+  // was removed.
   assert.deepEqual(h.state.logs, [
-    'npm install pkg@1.0.0 failed (attempt 1); retrying',
-    'npm install pkg@1.0.0 failed (attempt 2); retrying',
+    'npm install "pkg@1.0.0" failed (attempt 1); retrying',
+    'npm install "pkg@1.0.0" failed (attempt 2); retrying',
   ]);
 });
 
@@ -187,60 +195,124 @@ test('a usage error exits 2, distinct from an exhausted budget', async () => {
 });
 
 test('an exhausted budget exits 1 and says where to look', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'npm-retry-'));
   const lines = [];
-  const realLog = console.log;
-  console.log = line => lines.push(String(line));
-  try {
-    // A spec no registry can serve, and a budget small enough that the real
-    // npm is asked exactly once.
-    const code = await main([
-      '--spec',
-      '@allxsmith/this-package-does-not-exist@0.0.0-nope',
-      '--dir',
-      dir,
-      '--budget-seconds',
-      '1',
-    ]);
-    assert.equal(code, 1);
-  } finally {
-    console.log = realLog;
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
+  const code = await main(
+    ['--spec', 'pkg@1.0.0', '--dir', '/tmp', '--budget-seconds', '1'],
+    {
+      run: () => false,
+      sleep: () => Promise.resolve(),
+      log: l => lines.push(l),
+    }
+  );
+  assert.equal(code, 1);
   const error = lines.find(l => l.startsWith('::error::'));
   assert.ok(error, 'an exhausted budget must annotate the run');
   assert.match(error, /did not succeed within the propagation budget/);
   assert.match(error, /the release step earlier in the pipeline/);
 });
 
-test('the spec is neutralised before it reaches a workflow command', async () => {
-  // forLog, for the reason its own header gives: the failure message is
-  // printed as `::error::…`, a workflow command is newline-terminated, and
-  // the spec arrives from argv. A raw interpolation would let a crafted spec
-  // forge a second command out of the complaint about it.
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'npm-retry-'));
-  const lines = [];
-  const realLog = console.log;
-  console.log = line => lines.push(String(line));
-  try {
-    await main([
-      '--spec',
-      'pkg@1.0.0\n::error::forged',
-      '--dir',
-      dir,
-      '--budget-seconds',
-      '1',
-    ]);
-  } finally {
-    console.log = realLog;
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
-  const error = lines.find(l => l.startsWith('::error::npm install'));
-  assert.ok(error, 'the exhaustion message must still be emitted');
-  assert.equal(
-    error.includes('\n'),
-    false,
-    'the annotation must stay one line, or the spec can forge a command'
+test('every attempt carries --prefer-online, and the spec comes last', () => {
+  // Row 1 of the third review: the flag whose absence caused the outage was
+  // the one thing no test read. It cannot be observed through the policy,
+  // because a stub runner never consults a cache, so it is read off the argv
+  // the real runner builds.
+  const calls = [];
+  const spawn = (cmd, args, opts) => {
+    calls.push({ cmd, args, opts });
+    return { status: 0 };
+  };
+  assert.equal(runNpmInstall('pkg@1.0.0', '/somewhere', spawn), true);
+  assert.deepEqual(calls, [
+    {
+      cmd: 'npm',
+      args: ['install', '--prefer-online', '--ignore-scripts', 'pkg@1.0.0'],
+      opts: { cwd: '/somewhere', stdio: 'inherit' },
+    },
+  ]);
+  // Pinned as data too, so dropping it from the constant fails here even if
+  // the call site is rewritten.
+  assert.equal(INSTALL_ARGS.includes('--prefer-online'), true);
+  assert.equal(INSTALL_ARGS.includes('--ignore-scripts'), true);
+});
+
+test('a non-zero npm exit is a failed attempt, not a crash', () => {
+  const spawn = () => ({ status: 1 });
+  assert.equal(runNpmInstall('pkg@1.0.0', '/tmp', spawn), false);
+});
+
+test('a signal-killed npm stays retryable', () => {
+  // status null with no spawn error: the process ran and was killed. That is
+  // the transient case this loop exists to absorb, so it must not be fatal.
+  const spawn = () => ({ status: null, signal: 'SIGKILL' });
+  assert.equal(runNpmInstall('pkg@1.0.0', '/tmp', spawn), false);
+});
+
+test('an npm that never started is fatal, not retried for ten minutes', async () => {
+  // Retrying a missing binary spends the whole budget and then blames
+  // propagation for something propagation cannot explain.
+  const spawn = () => ({ error: new Error('spawn npm ENOENT') });
+  assert.throws(
+    () => runNpmInstall('pkg@1.0.0', '/tmp', spawn),
+    /could not run npm/
   );
-  assert.match(error, /\\n::error::forged/);
+
+  const lines = [];
+  const code = await main(['--spec', 'pkg@1.0.0', '--dir', '/tmp'], {
+    run: () => {
+      throw new Error('could not run npm: spawn npm ENOENT');
+    },
+    sleep: () => Promise.resolve(),
+    log: l => lines.push(l),
+  });
+  assert.equal(
+    code,
+    2,
+    'a missing npm is an environment failure, not a slow registry'
+  );
+  assert.ok(
+    lines.some(l => l.includes('could not run npm')),
+    'the annotation must name the real cause'
+  );
+});
+
+test('the spec is neutralised in both places it is printed', async () => {
+  // forLog, for the reason its own header gives: these print as `::error::`
+  // and `npm install …` lines, a workflow command ends at a newline, and the
+  // spec arrives from argv. The retry line is the one printed on EVERY
+  // attempt, and it was the one still interpolating raw.
+  const crafted = 'pkg@1.0.0\n::error::forged';
+  const lines = [];
+  // The clock is injected alongside the sleep. An instant sleep with a real
+  // clock does not skip the wait, it busy-loops until the budget elapses in
+  // wall-clock time — which is how this case first took the better part of a
+  // minute to assert something instant.
+  let clock = 0;
+  const code = await main(
+    ['--spec', crafted, '--dir', '/tmp', '--budget-seconds', '60'],
+    {
+      run: () => false,
+      now: () => clock,
+      sleep: ms => {
+        clock += ms;
+        return Promise.resolve();
+      },
+      log: l => lines.push(String(l)),
+    }
+  );
+  assert.equal(code, 1);
+  assert.ok(
+    lines.length > 1,
+    'the budget must have bought at least one retry line'
+  );
+  for (const line of lines) {
+    assert.equal(
+      line.includes('\n'),
+      false,
+      `a printed line carried a raw newline and could forge a command: ${JSON.stringify(line)}`
+    );
+  }
+  assert.ok(
+    lines.some(l => /failed \(attempt 1\); retrying/.test(l)),
+    'the retry line is the one printed on every attempt, so it must be covered'
+  );
 });
