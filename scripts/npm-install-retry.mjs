@@ -1,0 +1,188 @@
+/**
+ * Install one published spec, outlasting the registry that has to serve it.
+ *
+ * `consumer-sbom` pins the released leg to an exact version, and an exact
+ * version is the one thing `latest` never was: unresolvable for a while after
+ * `npm publish` returns. The `release` event fires when the GitHub release is
+ * created, the version becomes installable when the registry finishes
+ * propagating it, and nothing in CI can hurry the second clock.
+ *
+ * This lived as a shell loop in supply-chain.yml and was wrong in two ways at
+ * once, on every release-triggered run for over a week, with nothing able to
+ * catch it (#716):
+ *
+ *   - it retried without `--prefer-online`, so npm answered attempts two and
+ *     three from the `~/.npm` packument attempt one had just cached. The
+ *     sleeps proved the cache agreed with itself and nothing more.
+ *   - it spent a fixed attempt count rather than a duration, and the count
+ *     bought well under a minute.
+ *
+ * It is here rather than in the workflow because rule 9 of .github/CLAUDE.md
+ * puts logic worth testing outside YAML, and this logic is worth testing for a
+ * specific reason: `consumer-sbom` runs on `release`, `schedule` and
+ * `workflow_dispatch`, so no PR event reaches it, and the released-leg path
+ * fires ONLY on a real release. The test sibling is the only thing that can
+ * fail when this policy is wrong. The version it replaces had no such thing,
+ * which is exactly how it stayed broken.
+ *
+ * What this deliberately does NOT do is treat a version that will never exist
+ * differently from one that has not propagated yet. Both return the same
+ * `ETARGET / No matching version found`: the packument resolves and the
+ * version is absent, with nothing to say whether it is absent forever. Since
+ * the error cannot distinguish them, waiting is the only correct response, and
+ * the message on exhaustion names the release step as the place to look.
+ */
+import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
+import { forLog } from './consumer-sbom-meta.mjs';
+
+// Ten minutes because the budget has to cover a clock nobody here controls,
+// and no run has ever measured how long that clock actually takes: every one
+// of them gave up long before propagation finished. Generous rather than
+// clever, and cheap — this fires per release event, not per PR.
+export const DEFAULT_BUDGET_SECONDS = 600;
+export const DEFAULT_SLEEP_SECONDS = 20;
+
+/**
+ * Retry `run` until it succeeds or the budget is spent.
+ *
+ * Every dependency that touches the outside world is injected so the policy
+ * can be driven without a registry, a subprocess, or a real wait: `run`
+ * reports success, `now` is the clock, `sleep` is the delay.
+ *
+ * The deadline is read only BETWEEN attempts, so an install that hangs rather
+ * than failing is bounded by the job timeout instead of this budget. That was
+ * true of the shell loop too, and it is not something a retry policy can fix.
+ */
+export async function installWithRetry({
+  spec,
+  budgetSeconds = DEFAULT_BUDGET_SECONDS,
+  sleepSeconds = DEFAULT_SLEEP_SECONDS,
+  run,
+  now = () => Date.now(),
+  sleep,
+  log = console.log,
+} = {}) {
+  const deadline = now() + budgetSeconds * 1000;
+  let attempt = 0;
+  for (;;) {
+    attempt += 1;
+    if (await run(spec)) return { ok: true, attempts: attempt };
+    // Checked after the attempt rather than before it, so the budget always
+    // buys at least one try however small it is set.
+    //
+    // The second half stops a wait that would land past the deadline. Without
+    // it a budget shorter than one interval still sleeps a full one, to make
+    // an attempt whose result the loop has already decided to discard — so a
+    // leg that cannot be fixed by waiting reports its failure an interval
+    // later than it knew it.
+    const wait = sleepSeconds * 1000;
+    if (now() >= deadline || now() + wait > deadline) {
+      return { ok: false, attempts: attempt };
+    }
+    log(`npm install ${spec} failed (attempt ${attempt}); retrying`);
+    await sleep(wait);
+  }
+}
+
+/**
+ * One real `npm install`, inheriting stdio so the runner log keeps npm's own
+ * diagnosis of each failure.
+ *
+ * An argument array, never a shell string: the spec reaches this from argv,
+ * and a shell would give anything in it a second reading.
+ */
+export function runNpmInstall(spec, cwd) {
+  const result = spawnSync(
+    'npm',
+    ['install', '--prefer-online', '--ignore-scripts', spec],
+    { cwd, stdio: 'inherit' }
+  );
+  return result.status === 0;
+}
+
+export function parseArgs(argv) {
+  const flags = {};
+  for (let i = 0; i < argv.length; i += 2) {
+    const key = argv[i];
+    if (!key.startsWith('--'))
+      throw new Error(`unexpected argument ${forLog(key)}`);
+    if (i + 1 >= argv.length) throw new Error(`${key} needs a value`);
+    flags[key.slice(2)] = argv[i + 1];
+  }
+  // Unknown flags are rejected rather than ignored, for the reason the sibling
+  // script gives: every optional flag here weakens the policy by being absent,
+  // so a typo would silently restore the behaviour this replaced.
+  const known = ['spec', 'dir', 'budget-seconds', 'sleep-seconds'];
+  for (const name of Object.keys(flags)) {
+    if (!known.includes(name)) {
+      throw new Error(`unknown flag --${name}`);
+    }
+  }
+  for (const name of ['spec', 'dir']) {
+    if (!flags[name]) throw new Error(`--${name} is required`);
+  }
+  return flags;
+}
+
+/**
+ * Read a positive integer flag, rejecting anything else.
+ *
+ * A non-numeric budget silently becoming the default is the same class of
+ * quiet downgrade as an ignored flag, so it is an error instead.
+ */
+export function positiveInteger(value, name, fallback) {
+  if (value === undefined) return fallback;
+  if (!/^[0-9]+$/.test(String(value)) || Number(value) === 0) {
+    throw new Error(
+      `--${name} must be a positive integer, got ${forLog(value)}`
+    );
+  }
+  return Number(value);
+}
+
+export async function main(argv = process.argv.slice(2)) {
+  let flags;
+  let budgetSeconds;
+  let sleepSeconds;
+  try {
+    flags = parseArgs(argv);
+    budgetSeconds = positiveInteger(
+      flags['budget-seconds'],
+      'budget-seconds',
+      DEFAULT_BUDGET_SECONDS
+    );
+    sleepSeconds = positiveInteger(
+      flags['sleep-seconds'],
+      'sleep-seconds',
+      DEFAULT_SLEEP_SECONDS
+    );
+  } catch (error) {
+    console.log(`::error::${error.message}`);
+    return 2;
+  }
+
+  const { ok, attempts } = await installWithRetry({
+    spec: flags.spec,
+    budgetSeconds,
+    sleepSeconds,
+    run: spec => runNpmInstall(spec, flags.dir),
+    sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
+  });
+
+  if (!ok) {
+    console.log(
+      `::error::npm install ${forLog(flags.spec)} did not succeed within the ` +
+        `propagation budget (${budgetSeconds}s, ${attempts} attempts). If that ` +
+        `version never published, the release step earlier in the pipeline is ` +
+        `where to look; if it did publish, the registry took longer to serve ` +
+        `it than this budget allows.`
+    );
+    return 1;
+  }
+  return 0;
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  process.exitCode = await main();
+}

@@ -394,30 +394,17 @@ jobs:
           # released package has no SBOM at all", which is a worse deal — the
           # released leg is the one the release actually cares about.
           #
-          # `--prefer-online` is what makes a retry mean anything. npm caches
-          # the packument it fetched on the way in, so without it a retry can
-          # re-read the same pre-publish document out of `~/.npm` and fail with
-          # an identical ETARGET; the sleeps then only prove the cache agrees
-          # with itself. This forces every attempt to revalidate against the
-          # registry.
-          #
-          # A deadline rather than a fixed attempt count, because the thing
-          # being waited on is not this job. The `release` event fires when the
-          # GitHub release is created, and the version becomes installable when
-          # the registry finishes serving it: a different clock, and nothing
-          # here can hurry it. The budget was well under a minute when every
-          # release-triggered run began failing at this step (#716).
-          deadline=$(( SECONDS + 600 ))
-          attempt=0
-          until npm install --prefer-online --ignore-scripts "$SPEC"; do
-            attempt=$(( attempt + 1 ))
-            if [ "$SECONDS" -ge "$deadline" ]; then
-              echo "::error::npm install $SPEC did not succeed within the propagation budget. If that version never published, the release step earlier in the pipeline is where to look; if it did publish, the registry took longer to serve it than this budget allows."
-              exit 1
-            fi
-            echo "npm install $SPEC failed (attempt $attempt); retrying"
-            sleep 20
-          done
+          # The policy itself is in scripts/npm-install-retry.mjs with a
+          # node --test sibling, per rule 9: no PR event reaches this job and
+          # the pinned path fires only on a real release, so those tests are
+          # the only thing that can fail when the policy is wrong. The shell
+          # loop they replace was wrong in two ways at once — retrying without
+          # `--prefer-online`, so npm could answer from the packument it had
+          # just cached, and spending a fixed attempt count rather than a
+          # duration — on every release-triggered run for over a week, with
+          # nothing able to catch it (#716).
+          node "$GITHUB_WORKSPACE/scripts/npm-install-retry.mjs" \
+            --spec "$SPEC" --dir "$RUNNER_TEMP/consumer"
 
           # A scan directory holding ONLY the lockfile (#530 item 5). syft used
           # to be pointed at the consumer tree and recursively walked every file
