@@ -115,9 +115,10 @@ export async function installWithRetry({
       // is already some way into the job and later still than the publish, and
       // it has one-interval granularity because the version may have become
       // servable anywhere in the wait before the attempt that noticed. What it
-      // is good for is the comparison the message makes — waited against the
-      // budget, both measured from the same instant — which shows whether the
-      // budget is nowhere near being spent or nearly was.
+      // is good for is comparing against the budget, which starts at the same
+      // instant, to see whether the budget is nowhere near being spent or
+      // nearly was. This line prints the spend alone; the exhaustion message
+      // is the one that prints both.
       //
       // It also only lives in the run log, so it is a rolling window rather
       // than a record: read it while the runs still exist.
@@ -306,9 +307,7 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
       spec: flags.spec,
       budgetSeconds,
       sleepSeconds,
-      run:
-        run ??
-        (spec => runNpmInstall(spec, flags.dir, spawn ?? spawnSync, log)),
+      run: run ?? (spec => runNpmInstall(spec, flags.dir, spawn, log)),
       now,
       sleep,
       log,
