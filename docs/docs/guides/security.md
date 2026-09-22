@@ -15,13 +15,14 @@ The packages released through CI — `@allxsmith/bestax-bulma`, `create-bestax`,
 `bestax-migrate`, `bestax-mcp` and `@allxsmith/eslint-plugin-bestax` — carry
 **npm provenance**: every version in the supported release lines below carries
 a signed attestation generated at publish time that links the tarball on the
-registry to the exact source commit and the public CI run that built it. (Versions older than those
-lines predate provenance and have none — another reason staying current is the
-supported posture. A package's very first version can also be a placeholder
-published by hand to create the name, which no laptop can attest; those are
-superseded by the first CI release.) Releases authenticate to
-npm via **OIDC trusted publishing** (short-lived, per-run tokens), so there is
-no long-lived npm token that could leak and be used to push a rogue release.
+registry to the exact source commit and the public CI run that built it.
+(Versions older than those lines predate provenance and have none — another
+reason staying current is the supported posture. A package's very first
+version can also be a placeholder published by hand to create the name, which
+no laptop can attest; those are superseded by the first CI release.) Releases
+authenticate to npm via **OIDC trusted publishing** (short-lived, per-run
+tokens), so there is no long-lived npm token that could leak and be used to
+push a rogue release.
 
 Only the **latest release line** of each package receives security fixes
 (currently bestax-bulma 5.x, create-bestax 4.x, bestax-migrate 2.x, bestax-mcp
