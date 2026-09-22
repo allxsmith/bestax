@@ -1,4 +1,4 @@
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { cp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import {
   dirname,
@@ -55,11 +55,18 @@ const parseDeclaration = text =>
     'declaration.d.ts',
     text,
     ts.ScriptTarget.Latest,
-    // No parent pointers. The comment walk this replaced descended through
-    // TOKENS and so needed `getChildren`, which needs them; nothing here does.
-    // `referencedPaths` maps `referencedFiles`, `moduleSpecifiers` uses
-    // `forEachChild`, and `getStart(sourceFile)` skips trivia on the text it is
-    // handed. Keeping them was explaining a carry-over rather than removing it.
+    // No parent pointers, because nothing that reads this parse wants one.
+    // Three functions do: `moduleSpecifiers` and `hasModuleSpecifiers` walk it
+    // with `forEachChild`, and both of the latter's reference lists —
+    // `referencedFiles`, `typeReferenceDirectives`, `libReferenceDirectives` —
+    // are read off the source file directly, as `referencedPaths` reads the
+    // first of them. `getStart(sourceFile)` skips trivia on the text it is
+    // handed. None of that descends through a parent.
+    //
+    // They were a carry-over from the comment walk that went through TOKENS via
+    // `getChildren`, and not because that call needed them: it falls back to
+    // `getSourceFile()` only when no source file is passed, and the walk passed
+    // one.
     false,
     ts.ScriptKind.TS
   );
@@ -284,7 +291,16 @@ export const specifierResolves = (root, file, spec, declarationAllowed) => {
  * the one member of that class left unaddressed rather than unreachable by
  * accident.
  */
-export const declarationExtensions = (root = 'dist/types') => {
+export const declarationExtensions = (
+  root = 'dist/types',
+  // DERIVED from `root`, never a default of its own. A literal
+  // `'dist/types-cjs'` is resolved against `cwd`, so every guard case — which
+  // passes a temp fixture as `root` — copied its fixtures into a real
+  // `dist/types-cjs` instead of beside the tree it was given. With `cwd` at
+  // `bulma-ui` that path is the shipped CommonJS declaration tree, and it is
+  // gitignored, so nothing showed it.
+  mirror = `${root}-cjs`
+) => {
   // `closeBundle` fires on every FAILURE path too, where `dist/types` is absent
   // or stale because the build never got that far. Without a latch this hook's
   // own error replaces the real one — a compile failure reported as a missing
@@ -623,8 +639,56 @@ export const declarationExtensions = (root = 'dist/types') => {
           );
         }
       }
+
+      // The CommonJS mirror, HERE rather than in a plugin of its own, because
+      // `closeBundle` is a PARALLEL hook: rollup runs every plugin's copy at
+      // once, so a separate plugin raced this one and copied `dist/types`
+      // mid-rewrite. That is not theoretical — three builds produced 184, 182
+      // and 180 extensionless specifiers in the mirror, varying run to run,
+      // and the consumer fixture passed only because `index.d.ts` happened to
+      // be rewritten before the copy reached it.
+      //
+      // Plugin ORDER buys nothing here. Ordering within one hook is what buys
+      // it, which is why this is a step rather than a neighbour.
+      if (mirror) await mirrorAsCommonjs(root, mirror);
     },
   };
+};
+
+/**
+ * Copy a finished declaration tree and mark the copy CommonJS (#698).
+ *
+ * The package is `type: module`, so every emitted `.d.ts` reads as an ES module
+ * and a `moduleResolution: node16` consumer that REQUIRES the package meets
+ * TS1479. One `types` target cannot describe both conditions.
+ *
+ * A nested `{"type":"commonjs"}` does the whole job, which is why this is a copy
+ * rather than a second declaration emit: flavour comes from the nearest
+ * manifest, so the same bytes read as CommonJS from under the copy — no `.d.cts`
+ * renaming, and no rewriting `./x.js` to `./x.cjs`, because inside that tree
+ * `./x.js` already resolves to a CommonJS `x.d.ts`.
+ *
+ * No `rm` before the copy. `pnpm all` hands `build` and `bundle:stats` to one
+ * `turbo run` with no edge between them, and both are `rollup -c` over this same
+ * `dist`, so they run concurrently. Two processes writing identical bytes is
+ * harmless; one clearing the directory first is not, and the quiet outcome —
+ * an `rm` landing after the other wrote the manifest — leaves a tree with no
+ * `package.json`, which falls back to the root `type: module` and puts TS1479
+ * back with everything green.
+ */
+const mirrorAsCommonjs = async (from, to) => {
+  // Worth knowing that no conformance rule judges this: `types` is absent from
+  // the require-matching condition set, so a `types` target is never descended
+  // into at any extension. The consumer fixtures are what hold this tree
+  // honest.
+
+  await cp(from, to, { recursive: true });
+  // The whole mechanism: one line, and without it the copy reads as ESM again.
+  await writeFile(
+    join(to, 'package.json'),
+    `${JSON.stringify({ type: 'commonjs' }, null, 2)}\n`,
+    'utf8'
+  );
 };
 
 /**
