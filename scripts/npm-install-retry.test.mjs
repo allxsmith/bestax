@@ -32,6 +32,7 @@ import assert from 'node:assert/strict';
 import {
   installWithRetry,
   runNpmInstall,
+  FATAL_SPAWN_CODES,
   parseArgs,
   positiveInteger,
   main,
@@ -117,10 +118,19 @@ test('a budget smaller than one interval still buys an attempt, and no wait', as
 });
 
 test('the last wait never lands past the deadline', async () => {
-  const h = harness({ budgetSeconds: 600, sleepSeconds: 20 });
-  await h.promise;
+  // A budget the interval does NOT divide. With 600 and 20 the final sleep
+  // lands exactly ON the deadline, so the overshoot guard changes nothing and
+  // this case passed with the guard deleted — it was asserting arithmetic, not
+  // behaviour. 50 and 20 leave a remainder, which is the only shape that can
+  // tell the two policies apart.
+  const h = harness({ budgetSeconds: 50, sleepSeconds: 20 });
+  const result = await h.promise;
   const spent = h.state.sleeps.reduce((a, b) => a + b, 0);
-  assert.equal(spent <= 600 * 1000, true, 'slept past the budget');
+  assert.equal(spent, 40 * 1000, 'stopped at the last wait that fits');
+  assert.equal(spent <= 50 * 1000, true, 'slept past the budget');
+  // Without the guard this is 4: a fourth attempt bought by a sleep that
+  // overshot to 60s on a 50s budget.
+  assert.equal(result.attempts, 3);
 });
 
 test('a failed attempt names itself in the log, in order', async () => {
@@ -196,11 +206,20 @@ test('a usage error exits 2, distinct from an exhausted budget', async () => {
 
 test('an exhausted budget exits 1 and says where to look', async () => {
   const lines = [];
+  // The clock is injected as well as the sleep. Without it this case's runtime
+  // depends on the code under test: it is instant only because the production
+  // overshoot guard stops after one attempt, and it busy-looped for a real
+  // second under the mutant that removed that guard.
+  let clock = 0;
   const code = await main(
     ['--spec', 'pkg@1.0.0', '--dir', '/tmp', '--budget-seconds', '1'],
     {
       run: () => false,
-      sleep: () => Promise.resolve(),
+      now: () => clock,
+      sleep: ms => {
+        clock += ms;
+        return Promise.resolve();
+      },
       log: l => lines.push(l),
     }
   );
@@ -250,7 +269,9 @@ test('a signal-killed npm stays retryable', () => {
 test('an npm that never started is fatal, not retried for ten minutes', async () => {
   // Retrying a missing binary spends the whole budget and then blames
   // propagation for something propagation cannot explain.
-  const spawn = () => ({ error: new Error('spawn npm ENOENT') });
+  const spawn = () => ({
+    error: Object.assign(new Error('spawn npm ENOENT'), { code: 'ENOENT' }),
+  });
   assert.throws(
     () => runNpmInstall('pkg@1.0.0', '/tmp', spawn),
     /could not run npm/
@@ -273,6 +294,31 @@ test('an npm that never started is fatal, not retried for ten minutes', async ()
     lines.some(l => l.includes('could not run npm')),
     'the annotation must name the real cause'
   );
+});
+
+test('a spawn failure a wait could fix stays retryable', () => {
+  // EAGAIN from a fork and EMFILE are a busy machine, which is what the budget
+  // is for. Treating every spawn-level error as permanent turned those into a
+  // red release, and the shell loop retried them by accident of treating all
+  // failures alike.
+  for (const code of ['EAGAIN', 'EMFILE']) {
+    const spawn = () => ({
+      error: Object.assign(new Error(`spawn npm ${code}`), { code }),
+    });
+    assert.equal(
+      runNpmInstall('pkg@1.0.0', '/tmp', spawn),
+      false,
+      `${code} must be a failed attempt, not a fatal error`
+    );
+  }
+});
+
+test('the fatal codes are the ones no wait can fix', () => {
+  assert.deepEqual([...FATAL_SPAWN_CODES].sort(), [
+    'EACCES',
+    'ENOENT',
+    'EPERM',
+  ]);
 });
 
 test('the spec is neutralised in both places it is printed', async () => {
