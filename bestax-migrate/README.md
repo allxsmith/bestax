@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/bestax-migrate.svg)](https://www.npmjs.com/package/bestax-migrate)
 [![npm downloads](https://img.shields.io/npm/dm/bestax-migrate.svg)](https://www.npmjs.com/package/bestax-migrate)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Socket Badge](https://socket.dev/api/badge/npm/package/bestax-migrate)](https://socket.dev/npm/package/bestax-migrate/overview)
+[![Socket Badge](https://badge.socket.dev/npm/package/bestax-migrate/latest)](https://socket.dev/npm/package/bestax-migrate/overview)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14361/badge)](https://www.bestpractices.dev/projects/14361)
 [![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/bestax-migrate#provenance)
