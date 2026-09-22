@@ -110,12 +110,17 @@ export async function installWithRetry({
       // record it: sizing the budget meant reading publish timestamps out of
       // the registry API afterwards, release by release.
       //
-      // Read it as how long this leg waited, which is an UPPER bound on how
-      // long propagation took and not the same quantity. The version may have
-      // become servable at any point in the interval before the attempt that
-      // saw it, and this figure also absorbs each failed attempt's own
-      // duration. Good enough to show the budget is nowhere near, or that it
-      // nearly was; too coarse to resize the budget on its own.
+      // Read it as how long this leg waited, and nothing more. It is not a
+      // measurement of propagation: it starts when this script starts, which
+      // is already some way into the job and later still than the publish, and
+      // it has one-interval granularity because the version may have become
+      // servable anywhere in the wait before the attempt that noticed. What it
+      // is good for is the comparison the message makes — waited against the
+      // budget, both measured from the same instant — which shows whether the
+      // budget is nowhere near being spent or nearly was.
+      //
+      // It also only lives in the run log, so it is a rolling window rather
+      // than a record: read it while the runs still exist.
       const waited = elapsed();
       if (attempt > 1) {
         log(`resolved after ${waited}s and ${attempt} attempts`);
