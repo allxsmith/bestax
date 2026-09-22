@@ -219,8 +219,8 @@ jobs:
           exit 1
 
       # New in #530: this job runs scripts from scripts/, per rule 9 — the
-      # install policy, the install/stamp logic and the closure guard — so it
-      # needs the repository on disk. That adds a third-party action to a job that had
+      # install/stamp logic and the closure guard, and the install policy since
+      # #716 — so it needs the repository on disk. That adds a third-party action to a job that had
       # none, which is the honest cost rather than something to elide: it is on
       # the repo-wide pin (rule 1) and `persist-credentials: false` means no
       # token reaches the runner's git config. The job's `allowed-endpoints`
