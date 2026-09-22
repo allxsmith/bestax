@@ -133,6 +133,12 @@ test('the last wait never lands past the deadline', async () => {
   const spent = h.state.sleeps.reduce((a, b) => a + b, 0);
   assert.equal(spent, 40 * 1000, 'stopped at the last wait that fits');
   assert.equal(spent <= 50 * 1000, true, 'slept past the budget');
+  // The elapsed figure on the FAILURE return, which needs a budget where the
+  // true answer is not zero. The small-budget case above cannot pin this:
+  // there the real elapsed is 0, so `waited: 0` is indistinguishable from the
+  // figure never being computed, and an exhausted release would report
+  // `0s of 900s` forever.
+  assert.equal(result.waited, 40, 'an exhausted leg must report what it spent');
   // Without the guard this is 4: a fourth attempt bought by a sleep that
   // overshot to 60s on a 50s budget.
   assert.equal(result.attempts, 3);
@@ -329,7 +335,10 @@ test('an exhausted budget exits 1 and says where to look', async () => {
   // second under the mutant that removed that guard.
   let clock = 0;
   const code = await main(
-    ['--spec', 'pkg@1.0.0', '--dir', '/tmp', '--budget-seconds', '1'],
+    // A budget with room for real waits, so the message pins a spend that is
+    // not zero. With a one-second budget the true elapsed IS zero, and then
+    // `0s` proves nothing about whether the figure was computed at all.
+    ['--spec', 'pkg@1.0.0', '--dir', '/tmp', '--budget-seconds', '50'],
     {
       run: () => false,
       now: () => clock,
@@ -345,6 +354,11 @@ test('an exhausted budget exits 1 and says where to look', async () => {
   assert.ok(error, 'an exhausted budget must annotate the run');
   assert.match(error, /did not succeed within the propagation budget/);
   assert.match(error, /the release step earlier in the pipeline/);
+  assert.match(
+    error,
+    /\(40s of 50s, 3 attempts\)/,
+    'the message carries the spend'
+  );
 });
 
 test('every attempt carries --prefer-online, and the spec comes last', () => {
