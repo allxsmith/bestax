@@ -328,7 +328,10 @@ The short version for contributors:
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
   open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
   newer commits themselves want reviewing, post a `deep-review: fresh` comment first, then
-  toggle the label to start the run. CodeRabbit reviews incrementally
+  toggle the label to start the run. That steer sticks: the run reads your newest
+  `deep-review:` comment every time, so every later toggle stays fresh until you post a newer
+  steer or delete that one — the settle-my-threads pass is the default only until the first
+  time you ask for a fresh one. CodeRabbit reviews incrementally
   on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
   its window reopens.
   Do not relabel per push: each application spends a full opus session, and relabeling after

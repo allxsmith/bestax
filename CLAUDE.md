@@ -172,17 +172,20 @@ green and every AI review thread is resolved.
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
-  PR to run the Claude deep review on it. Everything else about the loop looks like a
-  trigger and is not: `claude-review.yml` fires on `pull_request: [opened, labeled]` —
-  deliberately not on `synchronize`, to stop reviewer/fixer ping-pong — so pushing a commit
-  starts no review, and neither does a comment. Re-applying a label that is **already
+  PR to run the Claude deep review on it. `claude-review.yml` fires on
+  `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
+  reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
+  comment. Re-applying a label that is **already
   present** emits no `labeled` event either, so a re-run needs the label removed and added
   back, not just added. A loop driven by pushes and steer comments alone stalls silently and
   looks exactly like a review that is merely slow.
   Re-applying the label settles that review's own open threads and raises nothing new — it
   does not review the commits pushed since, so a steer comment starting `deep-review: fresh`
   is what asks for a full review of the current code. That comment selects the MODE of a run
-  the label toggle starts; it does not start one.
+  the label toggle starts; it does not start one — and it **stays** selected: the run reads
+  the newest `deep-review:` comment per author every time, so once a `fresh` steer exists,
+  every later toggle is fresh until its author posts a newer steer or deletes that one.
+  Getting a verify pass back is a comment edit, not a label action.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
