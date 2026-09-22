@@ -55,6 +55,13 @@ export const DEFAULT_SLEEP_SECONDS = 20;
 export const INSTALL_ARGS = ['install', '--prefer-online', '--ignore-scripts'];
 
 /**
+ * Spawn failures no wait can fix: npm absent, or present and not runnable.
+ * Everything else `spawnSync` reports as an error is a busy machine, and a
+ * busy machine is what the budget is for.
+ */
+export const FATAL_SPAWN_CODES = new Set(['ENOENT', 'EACCES', 'EPERM']);
+
+/**
  * Retry `run` until it succeeds or the budget is spent.
  *
  * Every dependency that touches the outside world is injected so the policy
@@ -110,11 +117,18 @@ export async function installWithRetry({
  * only way to catch a dropped `--prefer-online`, since the flag's effect is a
  * cache decision inside npm rather than anything the caller observes.
  *
- * A spawn that never started is thrown rather than returned as a failed
+ * A spawn that could never start is thrown rather than returned as a failed
  * attempt. No amount of waiting installs anything when `npm` is not on PATH,
- * so retrying it would spend the whole budget and then blame propagation for
- * a missing binary. A process that started and was killed by a signal stays
- * retryable: that is transient in the way this loop exists to absorb.
+ * so retrying would spend the whole budget and then blame propagation for a
+ * missing binary.
+ *
+ * Only the permanent codes though. `spawnSync` also reports resource failures
+ * this way — `EAGAIN` from a fork, `EMFILE` — and those are precisely the
+ * transient class this loop exists to absorb, which the shell loop happened to
+ * retry by treating every non-zero result the same. Narrowing to the codes a
+ * wait cannot fix keeps the fast failure for a missing binary without
+ * converting a busy runner into a red release. A process that started and was
+ * killed by a signal stays retryable for the same reason.
  */
 export function runNpmInstall(spec, cwd, spawn = spawnSync) {
   const result = spawn('npm', [...INSTALL_ARGS, spec], {
@@ -122,7 +136,10 @@ export function runNpmInstall(spec, cwd, spawn = spawnSync) {
     stdio: 'inherit',
   });
   if (result.error) {
-    throw new Error(`could not run npm: ${result.error.message}`);
+    if (FATAL_SPAWN_CODES.has(result.error.code)) {
+      throw new Error(`could not run npm: ${result.error.message}`);
+    }
+    return false;
   }
   return result.status === 0;
 }
@@ -168,10 +185,12 @@ export function positiveInteger(value, name, fallback) {
 }
 
 /**
- * Exit codes are read by the workflow step, so they stay distinct: 0 installed,
+ * Exit codes stay distinct for a reader rather than for a caller: 0 installed,
  * 1 the registry never served the spec, 2 this was called wrong or could not
- * run npm at all. A caller that cannot tell those apart cannot act on any of
- * them.
+ * run npm at all. Nothing branches on them — the step is a plain `run:` under
+ * `bash -e`, so 1 and 2 both simply fail it — but the number is in the log
+ * next to the message, and "called wrong" and "the registry never served it"
+ * send a human to different places.
  *
  * `deps` exists for the tests. Without it the only way to drive `main` is to
  * let it shell out to the real registry, which puts the network inside
