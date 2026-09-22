@@ -406,7 +406,7 @@ jobs:
           # GitHub release is created, and the version becomes installable when
           # the registry finishes serving it: a different clock, and nothing
           # here can hurry it. The budget was well under a minute when every
-          # release-triggered run began failing at this step.
+          # release-triggered run began failing at this step (#716).
           deadline=$(( SECONDS + 600 ))
           attempt=0
           until npm install --prefer-online --ignore-scripts "$SPEC"; do
