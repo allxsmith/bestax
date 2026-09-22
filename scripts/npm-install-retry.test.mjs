@@ -75,7 +75,7 @@ test('a spec that resolves first time costs one attempt and no sleep', async () 
     budgetSeconds: 600,
     sleepSeconds: 20,
   });
-  assert.deepEqual(await h.promise, { ok: true, attempts: 1 });
+  assert.deepEqual(await h.promise, { ok: true, attempts: 1, waited: 0 });
   assert.equal(h.state.sleeps.length, 0);
   // Silent on the happy path: every release that resolves first time would
   // otherwise carry a measurement of zero.
@@ -89,7 +89,7 @@ test('a spec that propagates mid-wait is installed, not abandoned', async () => 
     budgetSeconds: 600,
     sleepSeconds: 20,
   });
-  assert.deepEqual(await h.promise, { ok: true, attempts: 5 });
+  assert.deepEqual(await h.promise, { ok: true, attempts: 5, waited: 80 });
   assert.equal(h.state.sleeps.length, 4);
 });
 
@@ -118,7 +118,7 @@ test('a budget smaller than one interval still buys an attempt, and no wait', as
   // rather than spending a full interval on an attempt the loop has already
   // decided to discard.
   const h = harness({ budgetSeconds: 1, sleepSeconds: 20 });
-  assert.deepEqual(await h.promise, { ok: false, attempts: 1 });
+  assert.deepEqual(await h.promise, { ok: false, attempts: 1, waited: 0 });
   assert.equal(h.state.sleeps.length, 0);
 });
 
@@ -136,6 +136,23 @@ test('the last wait never lands past the deadline', async () => {
   // Without the guard this is 4: a fourth attempt bought by a sleep that
   // overshot to 60s on a 50s budget.
   assert.equal(result.attempts, 3);
+});
+
+test('the measurement starts at the first retry, not the second', async () => {
+  // The boundary of `attempt > 1`. With only a succeeds-on-3 case above it,
+  // `attempt > 2` survives the suite while silently dropping the modal case:
+  // one failure, one wait, then resolved.
+  const h = harness({
+    succeedOnAttempt: 2,
+    budgetSeconds: 900,
+    sleepSeconds: 20,
+  });
+  const result = await h.promise;
+  assert.deepEqual(result, { ok: true, attempts: 2, waited: 20 });
+  assert.deepEqual(h.state.logs, [
+    'npm install "pkg@1.0.0" failed (attempt 1); retrying',
+    'resolved after 20s and 2 attempts',
+  ]);
 });
 
 test('a failed attempt names itself in the log, in order', async () => {

@@ -218,9 +218,9 @@ jobs:
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
 
-      # New in #530: this job now runs two scripts from scripts/, per rule 9 —
-      # the install/stamp logic and the closure guard — so it needs the
-      # repository on disk. That adds a third-party action to a job that had
+      # New in #530: this job runs scripts from scripts/, per rule 9 — the
+      # install policy, the install/stamp logic and the closure guard — so it
+      # needs the repository on disk. That adds a third-party action to a job that had
       # none, which is the honest cost rather than something to elide: it is on
       # the repo-wide pin (rule 1) and `persist-credentials: false` means no
       # token reaches the runner's git config. The job's `allowed-endpoints`
