@@ -22,23 +22,23 @@ That effort was 2025. I wrote a real README, for npm and for GitHub, and I treat
 
 They mostly didn't. As I write this in September 2026, the repo has [eleven GitHub stars](https://github.com/allxsmith/bestax).
 
-I also spent a lot of 2025 on being findable in the usual places. SEO, so Google would surface the site. Cloudflare in front of it, so the docs would be fast. A docs site I put a ridiculous number of hours into, then went back and polished again. Blog posts, here and on dev.to and Medium. I'd publish something, check whether anyone had noticed, and wait. Still not much traction. The odd part was how quiet it stayed while I was doing all the things that used to be enough.
+I also spent a lot of 2025 on being findable in the usual places. SEO, so Google would surface the site. Cloudflare in front of it, so the docs would be fast. A docs site I put a ridiculous number of hours into, then went back and polished again. Blog posts, here and on dev.to and Medium. I'd publish something, check whether anyone had noticed, and wait. Still not much traction. It was disappointing. I had talked myself into thinking it would take off if I kept doing the work, and it didn't.
 
 ## Early 2026
 
 In 2026 I revamped how I was approaching the library. Early in the year I started the major redo of the forms. The big release of that work landed in June, but the redo itself started in those first months.
 
-I kept going, like the tortoise in that race. Slow, and I didn't stop.
+I kept going, like the tortoise in that race. Slow and steady, and I didn't give up.
 
-That's when I got serious about not being a dumb wrapper. If someone already knows the classes, a thin package doesn't give them a reason to bother, and I was starting to feel that. So I spent those months on the parts a real app needs. The forms redo was the long one. Around it I built things Bulma doesn't ship, a carousel, dialogs, toasts, an avatar, that kind of thing. I was trying to make a full component library, closer to MUI than to a handful of bindings. A lot of nights. I didn't know yet that doing all of that still wouldn't matter to a model.
+That's when I got serious about not being a dumb wrapper. If someone already knows the classes, a thin package doesn't give them a reason to bother, and I was starting to feel that. I spent those months on the parts a real app needs. The forms redo was the long one. Around it I built things Bulma doesn't ship, a carousel, dialogs, toasts, an avatar, that kind of thing. I was trying to make a full component library, closer to MUI than to a handful of bindings. A lot of nights. I didn't know yet that doing all of that still wouldn't matter to a model.
 
 I wrote a couple more posts. The dev.to and Medium pieces were part of that. I built more of the docs, and then I went back over them and refined them.
 
 ## Asking the Models What They'd Use
 
-By summer I had two explanations, and I still go back and forth on them. One is that Bulma is dead. That doesn't feel true, but maybe. The other is that people have moved over to AI, and if that's how they're picking tools now, then the old ways of getting someone to notice a package don't work the way they used to.
+By summer I had two explanations, and I still go back and forth on them. One is that people just aren't using Bulma much anymore. I don't think the project is abandoned. The repo still gets fixes. A framework can be maintained and still not be what anyone reaches for. The other explanation is that people have moved over to AI, and if that's how they're picking tools now, then the old ways of getting someone to notice a package don't work the way they used to.
 
-I'd been hearing that people aren't really searching Google for this stuff anymore, because they ask an AI. I figure npm search is in the same place. And I don't think people are sitting down to read an article about a library when an AI will just write the integration. I can't prove any of that. It's what it felt like, looking at eleven stars.
+Articles were coming out about search itself changing. In July 2025 [Pew Research Center](https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/) looked at real Google visits. When the results page had an AI summary, people clicked a normal result 8% of the time, compared with 15% when there was no summary. They were also more likely to end the session on that page, 26% versus 16%. The answer was sitting there, and a lot of people never went further. I don't have a study like that for npm. What I do know is I had been counting on people to search, click, and read, and I don't think they sit down with an article about a library when a model will write the integration. Looking at eleven stars, that felt less like a theory and more like my year.
 
 So I started testing it. If people are mostly using AI, then maybe the AI is the thing finding libraries, and maybe people aren't trying new ones because the model picks for them. I opened chats and asked what it would use to build a web app, and what it would start a new project with.
 
@@ -96,9 +96,27 @@ I kept asking. Silly prompts, the kind where you just want to see which name com
 
 My Cloudflare numbers started going up around then. AI bots, and some of it might be people. Hard to tell which is which. The one-shot web apps started to look better, and the agent started using my components instead of making its own.
 
-I asked again later, plain questions this time. It does recommend bestax now, when the question is about Bulma. But sometimes, and really most of the time, it still questions why someone would use mine. It recommends react-bulma-components, and then the honest recommendation is to use the plain CSS classes.
+I asked again later, plain questions this time. The wording mattered, and so did the effort setting.
 
-With Claude, I have to turn the effort up to extra before it recommends bestax. Unless I do that, it feels like the model is sitting on older data. Grok has recommended the package without me turning anything up. ChatGPT and Gemini have recommended it too. And Google, for the search "what's the best Bulma React library", has been recommending mine.
+This one only brought my package up when I turned the effort up:
+
+```text
+What react library would you recommend for a new web app that uses Bulma
+```
+
+With effort up, Grok's first few sentences were: "For a new React app on Bulma, I'd use @allxsmith/bestax-bulma. It targets Bulma v1 and it's still being worked on. react-bulma-components is the older package people remember, and it hasn't shipped a release since 2022."
+
+This one did better, and I didn't have to turn anything up:
+
+```text
+What is the best react bulma library
+```
+
+Grok opened with: "The best React library for Bulma right now is @allxsmith/bestax-bulma. It's still maintained, and it targets Bulma v1. The other name that comes up a lot is react-bulma-components, which last published in 2022."
+
+Claude was pickier. I have to turn the effort up to extra before it recommends bestax. Unless I do that, it feels like the model is sitting on older data, and even then it often still names react-bulma-components and lands on plain classes as the honest advice. ChatGPT and Gemini have recommended mine too. And Google, for the search "what's the best Bulma React library", has been recommending mine.
+
+It does show up now, when the question is about Bulma. But sometimes, and really most of the time, a model still questions why someone would use mine. It recommends react-bulma-components, and then the honest recommendation is to use the plain CSS classes.
 
 This is just what I was seeing in the chats I ran in September 2026. Ask for a web app with no other hint and it's still React, Tailwind, and shadcn/ui. Bulma only comes up when you ask for Bulma. And even then, a common answer is the 2022 package, followed by "you might be happier with the classes."
 
