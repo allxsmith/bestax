@@ -40,6 +40,12 @@ import { forLog } from './consumer-sbom-meta.mjs';
 // and no run has ever measured how long that clock actually takes: every one
 // of them gave up long before propagation finished. Generous rather than
 // clever, and cheap — this fires per release event, not per PR.
+//
+// These are what production runs on. The workflow passes neither flag, so
+// changing a value here changes every release with no diff in
+// supply-chain.yml to notice it, which is why a test pins both. The flags
+// exist for the tests and for a hand-run dispatch, not because anything
+// configures them.
 export const DEFAULT_BUDGET_SECONDS = 600;
 export const DEFAULT_SLEEP_SECONDS = 20;
 
@@ -56,8 +62,14 @@ export const INSTALL_ARGS = ['install', '--prefer-online', '--ignore-scripts'];
 
 /**
  * Spawn failures no wait can fix: npm absent, or present and not runnable.
- * Everything else `spawnSync` reports as an error is a busy machine, and a
- * busy machine is what the budget is for.
+ *
+ * An allowlist of fatal codes rather than a denylist of transient ones, so an
+ * unrecognised spawn error is retried instead of ending the run. That trade is
+ * deliberate but it is not free: a permanent failure outside this set
+ * (`ENOEXEC`, `ENAMETOOLONG`) spends the whole budget and is then reported
+ * with a propagation diagnosis it does not deserve. Wasting the budget on a
+ * doomed leg is recoverable by reading the log; failing a release because a
+ * runner was briefly out of file descriptors is not.
  */
 export const FATAL_SPAWN_CODES = new Set(['ENOENT', 'EACCES', 'EPERM']);
 
@@ -137,7 +149,13 @@ export function runNpmInstall(spec, cwd, spawn = spawnSync) {
   });
   if (result.error) {
     if (FATAL_SPAWN_CODES.has(result.error.code)) {
-      throw new Error(`could not run npm: ${result.error.message}`);
+      // The cwd is named because libuv reports a failed chdir in the child
+      // exactly as it reports a missing binary: both arrive as ENOENT, and
+      // "spawn npm ENOENT" alone sends a reader to PATH when the directory
+      // is what is missing.
+      throw new Error(
+        `could not run npm in ${forLog(cwd)}: ${result.error.message}`
+      );
     }
     return false;
   }

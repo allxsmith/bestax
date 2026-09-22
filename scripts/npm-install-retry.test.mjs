@@ -204,6 +204,20 @@ test('a usage error exits 2, distinct from an exhausted budget', async () => {
   );
 });
 
+test('main exits 0 when the install succeeds, and says nothing', async () => {
+  // The entry point's success path. Everything below main was covered and
+  // this was not, so `return 0` could become `return 1` with the whole suite
+  // green while every leg of every release failed under `bash -e`.
+  const lines = [];
+  const code = await main(['--spec', 'pkg@1.0.0', '--dir', '/tmp'], {
+    run: () => true,
+    sleep: () => Promise.resolve(),
+    log: l => lines.push(l),
+  });
+  assert.equal(code, 0);
+  assert.deepEqual(lines, [], 'a clean install must annotate nothing');
+});
+
 test('an exhausted budget exits 1 and says where to look', async () => {
   const lines = [];
   // The clock is injected as well as the sleep. Without it this case's runtime
