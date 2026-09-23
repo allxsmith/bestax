@@ -183,8 +183,9 @@ green and every AI review thread is resolved.
   does not review the commits pushed since, so a steer comment starting `deep-review: fresh`
   is what asks for a full review of the current code. That comment selects the MODE of a run
   the label toggle starts; it does not start one — and it **stays** selected: the run reads
-  the newest `deep-review:` comment per author every time, so once a `fresh` steer exists,
-  every later toggle is fresh until its author posts a newer steer or deletes that one.
+  the newest `deep-review:` comment it can attribute to a triage+ author every time, so once
+  a `fresh` steer exists, every later toggle is fresh until a newer triage+ steer supersedes
+  it or it is deleted — not only one from the same author.
   Getting a verify pass back is a comment edit, not a label action.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
