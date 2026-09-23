@@ -328,11 +328,13 @@ The short version for contributors:
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
   open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
   newer commits themselves want reviewing, post a `deep-review: fresh` comment first, then
-  toggle the label to start the run. Both the label and the steer are triage+ only, so on a
-  PR you do not have those rights on, this is a maintainer's move to make rather than yours.
+  toggle the label to start the run. Both the label and the steer are triage+ only, so this is a
+  maintainer's move rather than yours. On a PR from a fork it is nobody's move: the job runs
+  only for same-repo PRs, so the label does nothing there whoever applies it, and the run
+  reports skipped.
   That steer sticks: the run re-reads the newest `deep-review:` comment it can attribute to a
-  triage+ author, so later toggles stay fresh until a newer such steer supersedes it or it is
-  deleted — the settle-my-threads pass is the default only until the
+  triage+ author, so later toggles stay fresh for as long as it is still the newest triage+ steer the run
+  can see — the settle-my-threads pass is the default only until the
   first time someone asks for a fresh one. CodeRabbit reviews incrementally
   on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
   its window reopens.

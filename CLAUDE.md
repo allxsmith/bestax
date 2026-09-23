@@ -174,7 +174,8 @@ green and every AI review thread is resolved.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
   head repository to be this one, so labelling a fork PR is a no-op: the job
-  reports skipped and no review appears. `claude-review.yml` fires on
+  reports skipped and no review appears. That gate also requires the loop switch to be on,
+  so a label does nothing while it is off either — see the kill switches below. `claude-review.yml` fires on
   `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
   reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
   comment. Re-applying a label that is **already
@@ -186,11 +187,13 @@ green and every AI review thread is resolved.
   is what asks for a full review of the current code. That comment selects the MODE of a run
   the label toggle starts; it does not start one — and it **stays** selected: the run reads
   the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
-  steer exists, later toggles stay fresh until a newer triage+ steer supersedes it or it is
-  deleted — not only one from the same author. A steer the run cannot read leaves it
+  steer exists, later toggles stay fresh for as long as it is still the newest triage+ steer
+  the run can see — which a newer steer from any triage+ author displaces, not only one from
+  the same person. A steer the run cannot read leaves it
   unfocused and in verify rather than failing, so an unexpected verify pass can mean a
   lookup that did not resolve rather than a steer that was never posted.
-  Getting a verify pass back is a comment edit, not a label action.
+  Getting a verify pass back means changing the steer — editing, deleting or superseding
+  it — never a label action.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
