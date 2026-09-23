@@ -173,8 +173,8 @@ green and every AI review thread is resolved.
   an auto-applied `claude-assisted` provenance label.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
-  head repository to be this one, so labelling a fork PR is a no-op with a green skipped job
-  and no review. `claude-review.yml` fires on
+  head repository to be this one, so labelling a fork PR is a no-op: the job
+  reports skipped and no review appears. `claude-review.yml` fires on
   `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
   reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
   comment. Re-applying a label that is **already
