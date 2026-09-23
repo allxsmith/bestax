@@ -172,10 +172,29 @@ green and every AI review thread is resolved.
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
-  PR to run the Claude deep review on it. Re-applying the label settles that review's own
-  open threads and raises nothing new — it does not review the commits pushed since, so a
-  steer comment starting `deep-review: fresh` is what asks for a full review of the current
-  code. A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
+  same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
+  head repository to be this one, so labelling a fork PR is a no-op: the job
+  reports skipped and no review appears. That gate also requires the loop switch to be on,
+  so a label does nothing while it is off either — see the kill switches below. `claude-review.yml` fires on
+  `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
+  reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
+  comment. Re-applying a label that is **already
+  present** emits no `labeled` event either, so a re-run needs the label removed and added
+  back, not just added. A loop driven by pushes and steer comments alone stalls silently and
+  looks exactly like a review that is merely slow.
+  Re-applying the label settles that review's own open threads and raises nothing new — it
+  does not review the commits pushed since, so a steer comment starting `deep-review: fresh`
+  is what asks for a full review of the current code. That comment selects the MODE of a run
+  the label toggle starts; it does not start one — and it **stays** selected: the run reads
+  the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
+  steer exists, later toggles stay fresh for as long as it is still the newest triage+ steer
+  the run can see — which a newer steer from any triage+ author displaces, not only one from
+  the same person. A steer the run cannot read leaves it
+  unfocused and in verify rather than failing, so an unexpected verify pass can mean a
+  lookup that did not resolve rather than a steer that was never posted.
+  Getting a verify pass back means changing the steer — editing, deleting or superseding
+  it — never a label action.
+  A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
   look for that review comment (not the current head's checks) and verify its findings
