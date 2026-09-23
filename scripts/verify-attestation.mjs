@@ -172,7 +172,7 @@ export function parseArgs(argv) {
  *
  * This exists so the workflow does not have to name the roster twice. Listing
  * it in both the install step and the verify step made "keep these in sync" a
- * hand-maintained invariant with nothing enforcing it — add a fifth published
+ * hand-maintained invariant with nothing enforcing it — add a newly published
  * package to one and not the other and it ships unverified, silently, green.
  * Reading it back from the tree makes the two structurally incapable of
  * disagreeing.

@@ -35,12 +35,14 @@ import {
   copyFileSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, it } from 'node:test';
 
@@ -364,15 +366,115 @@ describe('bulma-ui export map', () => {
     );
   });
 
-  it('pins the node16 boundary: ESM resolves, CommonJS is the known #698 gap', () => {
+  it('gives each root condition declarations of its own flavour', () => {
     requireBuilt();
-    // #696 names `node16` as well as `nodenext`, and the two fixtures below
-    // cover only the latter. The pair is asserted together because the
-    // interesting fact is the BOUNDARY: under `node16` an ESM consumer is fine,
-    // and a CommonJS one meets TS1479 because a single ESM-flavoured `types`
-    // target serves both conditions. That failure is #698 and pre-existing —
-    // the same consumer got TS2305 before this change — and pinning it means
-    // fixing #698 fails this test, which is when it should be revisited.
+    // #698: the package is `type: module`, so every emitted `.d.ts` reads as an
+    // ES module, and one `types` target cannot describe both conditions — a
+    // `require` consumer on `node16` met TS1479. The consumer fixture below is
+    // what proves the fix; this case pins the SHAPE, so a change that keeps the
+    // types resolving but collapses the conditions is caught here rather than by
+    // a typecheck that happens to still pass.
+    const root = manifest.exports['.'];
+    assert.equal(
+      typeof root.import?.types,
+      'string',
+      'the import condition has no types target of its own'
+    );
+    assert.equal(
+      typeof root.require?.types,
+      'string',
+      'the require condition has no types target of its own'
+    );
+    assert.notEqual(
+      root.import.types,
+      root.require.types,
+      'both conditions point at the same declarations, which is the #698 bug'
+    );
+    // Both targets exist.
+    for (const spec of [root.import.types, root.require.types]) {
+      assert.ok(existsSync(target(spec)), `${spec} does not exist`);
+    }
+    // And the mechanism: flavour comes from the nearest manifest, so the CJS
+    // tree carries one saying so. Without this line the copied declarations
+    // read as ES modules again and the fix silently undoes itself.
+    const nested = JSON.parse(
+      readFileSync(join(PKG_DIR, 'dist', 'types-cjs', 'package.json'), 'utf8')
+    );
+    assert.equal(nested.type, 'commonjs');
+
+    // BYTE-IDENTICAL, every file, because the copy is the only thing making the
+    // two trees agree. A consumer fixture cannot see this: it typechecks one
+    // entry, so a mirror captured mid-rewrite still passes as long as the files
+    // that entry reaches happen to be finished.
+    //
+    // That is not hypothetical. `closeBundle` is a PARALLEL hook, so when the
+    // copy lived in its own plugin it raced the rewrite — three builds produced
+    // 184, 182 and 180 extensionless specifiers in the mirror, and the fixture
+    // passed all three.
+    // DERIVED from the manifest, not hardcoded: a `require.types` repointed at
+    // some other existing declaration would otherwise leave this green while
+    // pointing consumers somewhere else entirely.
+    const esm = dirname(target(root.import.types));
+    const cjs = dirname(target(root.require.types));
+    // The walk below compares two directories, so it disarms ITSELF if they are
+    // ever the same one: `dirname` would collapse both sides and every
+    // comparison would pass vacuously — including the case where `require.types`
+    // was moved back into the ESM tree, which is #698 undone and precisely what
+    // this exists to notice.
+    assert.notEqual(
+      esm,
+      cjs,
+      'both conditions resolve into one directory, so the comparison below ' +
+        'would be comparing that directory with itself'
+    );
+    const walk = (dir, base = dir, out = []) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) walk(full, base, out);
+        else if (/\.d\.[cm]?ts$/.test(entry.name))
+          out.push(relative(base, full));
+      }
+      return out;
+    };
+    const declarations = walk(esm);
+    assert.ok(declarations.length > 0, 'no declarations to mirror');
+    const missing = declarations.filter(f => !existsSync(join(cjs, f)));
+    assert.deepEqual(missing, [], 'the mirror is missing declarations');
+    // BOTH directions. One-directional, a stale file left in the mirror by an
+    // earlier emit stays green — and `dist` is never cleaned, so that is the
+    // likely shape rather than an exotic one.
+    const extra = walk(cjs).filter(f => !existsSync(join(esm, f)));
+    assert.deepEqual(
+      extra,
+      [],
+      'the mirror carries declarations the source tree does not'
+    );
+    const differing = declarations.filter(
+      f =>
+        readFileSync(join(esm, f), 'utf8') !==
+        readFileSync(join(cjs, f), 'utf8')
+    );
+    assert.deepEqual(
+      differing,
+      [],
+      'the mirror does not match the declarations it copied — it was taken ' +
+        'while they were still being rewritten'
+    );
+  });
+
+  it('typechecks a node16 consumer through BOTH conditions', () => {
+    requireBuilt();
+    // The ROOT entry under `node16`, both conditions. The `./constants` subpath
+    // has its own node16 pair; this is the root's, which is where #698 bit.
+    // Asserted together because it used to be a
+    // BOUNDARY: an ESM consumer was fine and a CommonJS one met TS1479, because
+    // one ESM-flavoured `types` target served both conditions.
+    //
+    // That was #698, and this case was written to fail when it was fixed — which
+    // it did, on the commit that gave the `require` condition its own
+    // CommonJS-flavoured declarations. Both sides pass now, and the pair stays
+    // because the interesting property is still the pair: giving `require` its
+    // own types must not cost the `import` side anything.
     const build = type => {
       const dir = mkdtempSync(join(tmpdir(), `bestax-node16-${type}-`));
       mkdirSync(join(dir, 'src'), { recursive: true });
@@ -429,16 +531,12 @@ describe('bulma-ui export map', () => {
     );
 
     const cjs = build('cjs');
-    assert.notEqual(
+    assert.equal(
       cjs.status,
       0,
-      'a node16 CommonJS consumer now typechecks — #698 may be fixed, in ' +
-        'which case this expectation is what needs updating'
-    );
-    assert.match(
-      cjs.stdout,
-      /TS1479/,
-      `expected the known #698 failure, got:\n${cjs.stdout || cjs.stderr}`
+      `a node16 CommonJS consumer does not typecheck:\n${
+        cjs.stdout || cjs.stderr
+      }`
     );
   });
 
@@ -833,6 +931,61 @@ describe('the declaration-extension guard', () => {
       `the rewritten augmentation no longer merges:\n${
         compiled.stdout || compiled.stderr
       }`
+    );
+  });
+
+  it('writes nothing outside the tree it was given', async () => {
+    // The mirror target is DERIVED from `root`. A literal default is resolved
+    // against `cwd`, so every case here copied its fixtures into a real
+    // `dist/types-cjs` — and with `cwd` at `bulma-ui` that is the shipped
+    // CommonJS declaration tree this whole PR exists to produce. Gitignored, so
+    // nothing showed it: the tests were overwriting the artefact under test.
+    const root = tree({
+      'index.d.ts': "export * from './a';\n",
+      'a.d.ts': 'export {};\n',
+    });
+    // A literal default is resolved against `cwd`, and this suite runs as
+    // `node --test "scripts/*.test.mjs"` from the repo root — so the leak lands
+    // in `<repo>/dist/types-cjs`, NOT under `bulma-ui`. Watching only the latter
+    // is an assertion that cannot fail from the cwd the suite is run in; both
+    // are watched so the case fails from either.
+    //
+    // Identity, not a count: a previous leak leaves the same file NAMES behind,
+    // so `readdirSync(...).length` is unchanged on the next run and the check
+    // passes while the write is still happening. Size and mtime move when the
+    // copy lands, whether or not the entry set does.
+    const outside = [
+      resolve('dist', 'types-cjs'),
+      join(PKG_DIR, 'dist', 'types-cjs'),
+    ];
+    const snapshot = dir =>
+      existsSync(dir)
+        ? readdirSync(dir)
+            .sort()
+            .map(name => {
+              const s = statSync(join(dir, name));
+              return `${name}:${s.size}:${s.mtimeMs}`;
+            })
+            .join('|')
+        : null;
+    const before = outside.map(snapshot);
+    await run(root);
+    const after = outside.map(snapshot);
+    // The outside-write check comes FIRST. The sibling assertion below also
+    // fails on today's mutant, and asserting that first would shadow this one —
+    // leaving it unfalsifiable a second time, for a different reason than round
+    // 3 found. This is the assertion that names the harm.
+    for (const [i, dir] of outside.entries()) {
+      assert.equal(
+        after[i],
+        before[i],
+        `the guard wrote into ${dir}, which is the shipped CommonJS tree`
+      );
+    }
+    // The mirror lands beside the fixture, not beside the package.
+    assert.ok(
+      existsSync(`${root}-cjs`),
+      'the mirror was not written beside the tree it was given'
     );
   });
 

@@ -7,7 +7,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@allxsmith/bestax-bulma)](https://socket.dev/npm/package/@allxsmith/bestax-bulma/overview)
+[![Socket Badge](https://badge.socket.dev/npm/package/@allxsmith/bestax-bulma/latest)](https://socket.dev/npm/package/@allxsmith/bestax-bulma/overview)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14361/badge)](https://www.bestpractices.dev/projects/14361)
 [![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma#provenance)

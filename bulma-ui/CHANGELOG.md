@@ -1,3 +1,24 @@
+## [5.16.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.6...@allxsmith/bestax-bulma@5.16.7) (2026-09-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** serve the Socket badge from badge.socket.dev ([2fe0a45](https://github.com/allxsmith/bestax/commit/2fe0a45672a552c55b329ffff31f1b6e6df9d474))
+* **bestax-migrate:** serve the Socket badge from badge.socket.dev ([1cd6dab](https://github.com/allxsmith/bestax/commit/1cd6dabe0841f62c57b68c0a81a76ad063606b09))
+* **bulma-ui:** serve the Socket badge from badge.socket.dev ([fa03c7e](https://github.com/allxsmith/bestax/commit/fa03c7e4db1ab2f468a1d467b162ca62ef766a70))
+* **create-bestax:** serve the Socket badge from badge.socket.dev ([d473c07](https://github.com/allxsmith/bestax/commit/d473c07cee439d57f908300e6e4788818d361385))
+* **eslint-plugin:** serve the Socket badge from badge.socket.dev ([15d4d9b](https://github.com/allxsmith/bestax/commit/15d4d9b4184f72ea35272c7a4fefe17be254841f))
+
+## [5.16.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.5...@allxsmith/bestax-bulma@5.16.6) (2026-09-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** closeBundle is parallel, so the mirror must be a step not a peer ([d4376bb](https://github.com/allxsmith/bestax/commit/d4376bb48d88267e3a39a9cee67e7753a0184096)), closes [#715](https://github.com/allxsmith/bestax/issues/715) [#698](https://github.com/allxsmith/bestax/issues/698)
+* **bulma-ui:** derive the mirror from root, so the tests stop writing to dist ([7e4d255](https://github.com/allxsmith/bestax/commit/7e4d2558ff04ad61f6c25be6d42cf2c350cb6a5f)), closes [#715](https://github.com/allxsmith/bestax/issues/715) [#698](https://github.com/allxsmith/bestax/issues/698)
+* **bulma-ui:** drop the mirror's rm, which made two safe writers a race ([914e70d](https://github.com/allxsmith/bestax/commit/914e70df07a66510451cf857eda10ba9bdec0c40)), closes [#698](https://github.com/allxsmith/bestax/issues/698) [#698](https://github.com/allxsmith/bestax/issues/698)
+* **bulma-ui:** give the require condition CommonJS-flavoured declarations ([f79cd2c](https://github.com/allxsmith/bestax/commit/f79cd2c4f604bec6119a919a4b22936c0c91977d)), closes [#688](https://github.com/allxsmith/bestax/issues/688) [#698](https://github.com/allxsmith/bestax/issues/698) [#698](https://github.com/allxsmith/bestax/issues/698) [#698](https://github.com/allxsmith/bestax/issues/698)
+
 ## [5.16.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.4...@allxsmith/bestax-bulma@5.16.5) (2026-09-21)
 
 

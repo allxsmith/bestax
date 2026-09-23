@@ -218,9 +218,9 @@ jobs:
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
 
-      # New in #530: this job now runs two scripts from scripts/, per rule 9 —
-      # the install/stamp logic and the closure guard — so it needs the
-      # repository on disk. That adds a third-party action to a job that had
+      # New in #530: this job runs scripts from scripts/, per rule 9 — the
+      # install/stamp logic and the closure guard, and the install policy since
+      # #716 — so it needs the repository on disk. That adds a third-party action to a job that had
       # none, which is the honest cost rather than something to elide: it is on
       # the repo-wide pin (rule 1) and `persist-credentials: false` means no
       # token reaches the runner's git config. The job's `allowed-endpoints`
@@ -393,17 +393,18 @@ jobs:
           # item 1 would trade "the SBOM names the wrong version" for "the
           # released package has no SBOM at all", which is a worse deal — the
           # released leg is the one the release actually cares about.
-          for attempt in 1 2 3; do
-            if npm install --ignore-scripts "$SPEC"; then
-              break
-            fi
-            if [ "$attempt" = 3 ]; then
-              echo "::error::npm install $SPEC failed three times"
-              exit 1
-            fi
-            echo "npm install $SPEC failed (attempt $attempt); retrying"
-            sleep $((attempt * 10))
-          done
+          #
+          # The policy itself is in scripts/npm-install-retry.mjs with a
+          # node --test sibling, per rule 9: no PR event reaches this job and
+          # the pinned path fires only on a real release, so those tests are
+          # the only thing that can fail when the policy is wrong. The shell
+          # loop they replace was wrong in two ways at once — retrying without
+          # `--prefer-online`, so npm could answer from the packument it had
+          # just cached, and spending a fixed attempt count rather than a
+          # duration — on every release-triggered run for over a week, with
+          # nothing able to catch it (#716).
+          node "$GITHUB_WORKSPACE/scripts/npm-install-retry.mjs" \
+            --spec "$SPEC" --dir "$RUNNER_TEMP/consumer"
 
           # A scan directory holding ONLY the lockfile (#530 item 5). syft used
           # to be pointed at the consumer tree and recursively walked every file
@@ -1026,7 +1027,8 @@ jobs:
           cd "$RUNNER_TEMP/verify"
           npm init -y > /dev/null
           npm install --ignore-scripts \
-            @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp
+            @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp \
+            @allxsmith/eslint-plugin-bestax
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -1052,7 +1054,7 @@ jobs:
       # No package list here on purpose. It reads the roster back out of the
       # scratch tree, so the install step above is the single place the
       # packages are named. Listing them twice made "keep these in sync" a
-      # hand-maintained invariant with nothing enforcing it — add a fifth
+      # hand-maintained invariant with nothing enforcing it — add a newly
       # published package to one and not the other and it ships unverified,
       # silently, green.
       - name: Assert the attestations say this repository built these tarballs
