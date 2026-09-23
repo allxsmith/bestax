@@ -172,7 +172,9 @@ green and every AI review thread is resolved.
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
-  PR to run the Claude deep review on it. `claude-review.yml` fires on
+  same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
+  head repository to be this one, so labelling a fork PR is a no-op with a green skipped job
+  and no review. `claude-review.yml` fires on
   `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
   reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
   comment. Re-applying a label that is **already
@@ -183,9 +185,11 @@ green and every AI review thread is resolved.
   does not review the commits pushed since, so a steer comment starting `deep-review: fresh`
   is what asks for a full review of the current code. That comment selects the MODE of a run
   the label toggle starts; it does not start one — and it **stays** selected: the run reads
-  the newest `deep-review:` comment it can attribute to a triage+ author every time, so once
-  a `fresh` steer exists, every later toggle is fresh until a newer triage+ steer supersedes
-  it or it is deleted — not only one from the same author.
+  the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
+  steer exists, later toggles stay fresh until a newer triage+ steer supersedes it or it is
+  deleted — not only one from the same author. A steer the run cannot read leaves it
+  unfocused and in verify rather than failing, so an unexpected verify pass can mean a
+  lookup that did not resolve rather than a steer that was never posted.
   Getting a verify pass back is a comment edit, not a label action.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
