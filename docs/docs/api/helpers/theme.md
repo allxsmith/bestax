@@ -259,7 +259,6 @@ function StyledTheme() {
       p="5"
       m="3"
       textAlign="centered"
-      backgroundColor="light"
     >
       <Title>Styled Theme Container</Title>
       <Button color="primary">Styled Button</Button>
@@ -277,14 +276,7 @@ function NestedThemes() {
       <Title>Outer Theme (Blue)</Title>
       <Button color="primary">Blue Primary</Button>
 
-      <Theme
-        primaryH="120"
-        primaryS="70%"
-        primaryL="40%"
-        p="3"
-        mt="4"
-        backgroundColor="light"
-      >
+      <Theme primaryH="120" primaryS="70%" primaryL="40%" p="3" mt="4">
         <Title size="4">Inner Theme (Green)</Title>
         <Button color="primary">Green Primary</Button>
       </Theme>

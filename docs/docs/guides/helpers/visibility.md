@@ -73,13 +73,7 @@ function DisplayExamples() {
         <strong>Block Display:</strong> Takes full width and starts on a new
         line
       </Content>
-      <Box
-        display="block"
-        backgroundColor="primary"
-        textColor="white"
-        p="2"
-        mb="3"
-      >
+      <Box display="block" bgColor="primary" textColor="white" p="2" mb="3">
         Block element
       </Box>
 
@@ -88,7 +82,7 @@ function DisplayExamples() {
       </Content>
       <p>
         Here is some text with an
-        <Box display="inline" backgroundColor="info" textColor="white" px="2">
+        <Box display="inline" bgColor="info" textColor="white" px="2">
           inline element
         </Box>
         in the middle of the sentence.
@@ -101,7 +95,7 @@ function DisplayExamples() {
         Text with
         <Box
           display="inline-block"
-          backgroundColor="success"
+          bgColor="success"
           textColor="white"
           p="2"
           mr="1"
@@ -247,8 +241,8 @@ function ViewportSpecificExample() {
         displayMobile="none"
         displayTablet="block"
         displayDesktop="flex"
-        backgroundColor="primary"
-        color="white"
+        bgColor="primary"
+        textColor="white"
         p="3"
       >
         Hide on mobile, show as block on tablet, flex on desktop+
@@ -273,7 +267,7 @@ function GenericDisplayExample() {
       <Box
         display="none"
         viewport="mobile"
-        backgroundColor="warning"
+        bgColor="warning"
         textColor="dark"
         p="3"
         mb="3"
@@ -283,7 +277,7 @@ function GenericDisplayExample() {
       <Box
         display="block"
         viewport="desktop"
-        backgroundColor="success"
+        bgColor="success"
         textColor="white"
         p="3"
       >
@@ -351,8 +345,8 @@ function PrecedenceExample() {
         display="block"
         viewport="mobile"
         displayMobile="flex"
-        backgroundColor="danger"
-        color="white"
+        bgColor="danger"
+        textColor="white"
         p="3"
       >
         Will be flex on mobile, not block (viewport-specific wins!)
@@ -383,8 +377,8 @@ function ResponsiveShowHideExamples() {
       <Box
         displayMobile="block"
         displayTablet="none"
-        backgroundColor="primary"
-        color="white"
+        bgColor="primary"
+        textColor="white"
         p="3"
         mb="3"
       >
@@ -398,8 +392,8 @@ function ResponsiveShowHideExamples() {
         displayMobile="none"
         displayTablet="block"
         displayDesktop="none"
-        backgroundColor="info"
-        color="white"
+        bgColor="info"
+        textColor="white"
         p="3"
         mb="3"
       >
@@ -414,8 +408,8 @@ function ResponsiveShowHideExamples() {
         displayTablet="none"
         displayDesktop="block"
         displayWidescreen="none"
-        backgroundColor="success"
-        color="white"
+        bgColor="success"
+        textColor="white"
         p="3"
         mb="3"
       >
@@ -429,8 +423,8 @@ function ResponsiveShowHideExamples() {
         displayDesktop="none"
         displayWidescreen="block"
         displayFullhd="none"
-        backgroundColor="warning"
-        color="dark"
+        bgColor="warning"
+        textColor="dark"
         p="3"
         mb="3"
       >
@@ -443,8 +437,8 @@ function ResponsiveShowHideExamples() {
       <Box
         displayWidescreen="none"
         displayFullhd="block"
-        backgroundColor="danger"
-        color="white"
+        bgColor="danger"
+        textColor="white"
         p="3"
         mb="3"
       >
@@ -458,8 +452,8 @@ function ResponsiveShowHideExamples() {
       <Box
         displayMobile="none"
         displayTablet="block"
-        backgroundColor="grey"
-        color="white"
+        bgColor="grey"
+        textColor="white"
         p="3"
         mb="3"
       >
@@ -474,8 +468,8 @@ function ResponsiveShowHideExamples() {
         displayMobile="block"
         displayTablet="block"
         displayDesktop="none"
-        backgroundColor="black"
-        color="white"
+        bgColor="black"
+        textColor="white"
         p="3"
       >
         📱📱 Visible on mobile and tablet, hidden from desktop up
@@ -550,7 +544,7 @@ function HideExamples() {
             <Box
               displayMobile="none"
               displayTablet="block"
-              backgroundColor="light"
+              bgColor="light"
               textColor="dark"
               p="3"
               style={{ width: '200px' }}
@@ -581,8 +575,8 @@ function HideExamples() {
           <Box
             displayMobile="none"
             displayTablet="block"
-            backgroundColor="info"
-            color="white"
+            bgColor="info"
+            textColor="white"
             p="3"
             mb="3"
           >
@@ -594,8 +588,8 @@ function HideExamples() {
             displayMobile="none"
             displayTablet="none"
             displayDesktop="block"
-            backgroundColor="success"
-            color="white"
+            bgColor="success"
+            textColor="white"
             p="3"
           >
             Extended content only visible on desktop and larger screens.
@@ -635,7 +629,7 @@ Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to 
 <Box
   visibilityMobile="hidden"
   visibilityDesktop="invisible"
-  backgroundColor="warning"
+  bgColor="warning"
   p="3"
 >
   Hidden on mobile, invisible on desktop and up, visible on tablet.
@@ -692,7 +686,7 @@ function OtherVisibilityExamples() {
         <Icon name="star" ariaLabel="Star rating" />
       </Box>
 
-      <Content mt="4" textSize="7" color="grey">
+      <Content mt="4" textSize="7" textColor="grey">
         The text between the stars is only visible to screen readers, providing
         context for users with visual impairments.
       </Content>
@@ -758,7 +752,7 @@ function AccessibleToggleExample() {
           <Box
             display={isExpanded ? 'block' : 'none'}
             mt="3"
-            backgroundColor="light"
+            bgColor="light"
             textColor="dark"
             p="3"
           >
@@ -851,7 +845,7 @@ function MobileFirstExample() {
             <Box
               displayMobile="none"
               displayTablet="block"
-              backgroundColor="light"
+              bgColor="light"
               textColor="dark"
               p="3"
               mt="2"
@@ -865,8 +859,8 @@ function MobileFirstExample() {
             <Box
               displayMobile="none"
               displayDesktop="block"
-              backgroundColor="primary"
-              color="white"
+              bgColor="primary"
+              textColor="white"
               p="3"
               mt="2"
             >

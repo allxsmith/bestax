@@ -35,7 +35,7 @@
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<Message color=\"danger\" title=\"Mixed Approach\">\n  <Message.Body bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n    <Paragraph>\n      This message uses the title prop but compound components for the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
+      "code": "<Message color=\"danger\" title=\"Mixed Approach\">\n  <Message.Body>\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n    <Paragraph>\n      This message uses the title prop but compound components for the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
     }
   ],
   "accessibility": "- The message is rendered as `<article class=\"message\">`.\n- If `onClose` is provided, a close button with `aria-label=\"delete\"` is rendered.\n- For optimal accessibility, use clear and descriptive titles/content.\n\n:::note\nAlways provide a visible or accessible way to dismiss important, interruptive messages.\n:::",

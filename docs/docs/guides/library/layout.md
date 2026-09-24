@@ -48,7 +48,7 @@ A visually striking section for headers, banners, or landing areas. Supports col
 A semantic, accessible site footer for copyright, links, or extra info. Supports color, background, and custom content.
 
 ```tsx live
-<Footer backgroundColor="dark">
+<Footer bgColor="dark">
   <Content textAlign="centered">
     <p>Copyright © 2025 Bestax-Bulma</p>
   </Content>

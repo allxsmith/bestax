@@ -174,7 +174,7 @@ You can combine the traditional prop-based API with compound components:
 
 ```tsx live
 <Message color="danger" title="Mixed Approach">
-  <Message.Body bgColor="light">
+  <Message.Body>
     <Paragraph>
       You can mix prop-based and compound component approaches!
     </Paragraph>

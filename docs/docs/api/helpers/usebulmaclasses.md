@@ -271,42 +271,42 @@ Use the `backgroundColor` prop to set the background color. Pair it with a text 
 ```tsx live
 <Columns isMultiline>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" textColor="white">
+    <Box bgColor="primary" textColor="white">
       Primary
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="link" textColor="white">
+    <Box bgColor="link" textColor="white">
       Link
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="info" textColor="white">
+    <Box bgColor="info" textColor="white">
       Info
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="success" textColor="white">
+    <Box bgColor="success" textColor="white">
       Success
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="warning" textColor="black">
+    <Box bgColor="warning" textColor="black">
       Warning
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="danger" textColor="white">
+    <Box bgColor="danger" textColor="white">
       Danger
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="black" textColor="white">
+    <Box bgColor="black" textColor="white">
       Black
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="white" textColor="black">
+    <Box bgColor="white" textColor="black">
       White
     </Box>
   </Column>
@@ -386,31 +386,27 @@ Background shades use their own prop: `backgroundColorShade` pairs with `backgro
 ```tsx live
 <Columns isMultiline>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" backgroundColorShade="10" textColor="white">
+    <Box bgColor="primary" backgroundColorShade="10" textColor="white">
       Primary 10
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" backgroundColorShade="30" textColor="white">
+    <Box bgColor="primary" backgroundColorShade="30" textColor="white">
       Primary 30
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" backgroundColorShade="60" textColor="black">
+    <Box bgColor="primary" backgroundColorShade="60" textColor="black">
       Primary 60
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" backgroundColorShade="90" textColor="black">
+    <Box bgColor="primary" backgroundColorShade="90" textColor="black">
       Primary 90
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box
-      backgroundColor="primary"
-      backgroundColorShade="invert"
-      textColor="white"
-    >
+    <Box bgColor="primary" backgroundColorShade="invert" textColor="white">
       Primary Invert
     </Box>
   </Column>
@@ -421,7 +417,7 @@ Because the two shade props are independent, you can shade the text and the back
 
 ```tsx live
 <Box
-  backgroundColor="primary"
+  bgColor="primary"
   backgroundColorShade="15"
   textColor="primary"
   colorShade="85"

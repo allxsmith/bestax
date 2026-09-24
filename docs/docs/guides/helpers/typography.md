@@ -140,13 +140,7 @@ import { Content, Box } from '@allxsmith/bestax-bulma';
 function AlignmentExamples() {
   return (
     <Box p="4">
-      <Content
-        textAlign="left"
-        mb="3"
-        backgroundColor="light"
-        color="dark"
-        p="3"
-      >
+      <Content textAlign="left" mb="3" bgColor="light" textColor="dark" p="3">
         Left aligned text - This text is aligned to the left side of the
         container.
       </Content>
@@ -154,25 +148,19 @@ function AlignmentExamples() {
       <Content
         textAlign="centered"
         mb="3"
-        backgroundColor="light"
-        color="dark"
+        bgColor="light"
+        textColor="dark"
         p="3"
       >
         Centered text - This text is centered within the container.
       </Content>
 
-      <Content
-        textAlign="right"
-        mb="3"
-        backgroundColor="light"
-        color="dark"
-        p="3"
-      >
+      <Content textAlign="right" mb="3" bgColor="light" textColor="dark" p="3">
         Right aligned text - This text is aligned to the right side of the
         container.
       </Content>
 
-      <Content textAlign="justified" backgroundColor="light" color="dark" p="3">
+      <Content textAlign="justified" bgColor="light" textColor="dark" p="3">
         Justified text - This longer text is justified, which means it spreads
         out to fill the entire width of the container, creating straight edges
         on both sides by adjusting the spacing between words.
@@ -366,7 +354,7 @@ function CombinedTypographyExample() {
             textSize="1"
             textAlign="centered"
             textWeight="bold"
-            color="primary"
+            textColor="primary"
             mb="3"
           >
             Main Heading
@@ -376,7 +364,7 @@ function CombinedTypographyExample() {
             textSize="4"
             textAlign="centered"
             textWeight="light"
-            color="grey"
+            textColor="grey"
             textTransform="uppercase"
             mb="5"
           >
@@ -400,7 +388,7 @@ function CombinedTypographyExample() {
             textAlign="right"
             textWeight="medium"
             textTransform="italic"
-            color="grey-dark"
+            textColor="grey-dark"
             fontFamily="secondary"
           >
             — Author Name, Publication Date
@@ -440,7 +428,7 @@ function ArticleExample() {
             textSize="5"
             textWeight="normal"
             textAlign="centered"
-            color="grey"
+            textColor="grey"
             mb="2"
           >
             Exploring modern approaches to web fonts and text layout
@@ -450,7 +438,7 @@ function ArticleExample() {
             textSize="7"
             textAlign="centered"
             textTransform="uppercase"
-            color="grey-light"
+            textColor="grey-light"
             textWeight="medium"
             mb="6"
           >
@@ -472,13 +460,7 @@ function ArticleExample() {
           </Content>
 
           {/* Pull Quote */}
-          <Box
-            backgroundColor="light"
-            p="4"
-            my="5"
-            borderLeft="4px solid"
-            borderColor="primary"
-          >
+          <Box bgColor="light" p="4" my="5">
             <Content
               textSize="4"
               textWeight="medium"

@@ -53,8 +53,8 @@ function FloatExamples() {
           <Content>
             <Box
               float="left"
-              backgroundColor="primary"
-              color="white"
+              bgColor="primary"
+              textColor="white"
               p="3"
               mr="3"
               mb="2"
@@ -78,8 +78,8 @@ function FloatExamples() {
           <Content>
             <Box
               float="right"
-              backgroundColor="info"
-              color="white"
+              bgColor="info"
+              textColor="white"
               p="3"
               ml="3"
               mb="2"
@@ -151,11 +151,11 @@ function ClearfixExamples() {
           <Content mb="3">
             This container doesn't clear its floating children, so it collapses:
           </Content>
-          <Box backgroundColor="danger" p="3" color="white">
-            <Box float="left" backgroundColor="white" color="dark" p="2" mr="2">
+          <Box bgColor="danger" p="3" textColor="white">
+            <Box float="left" bgColor="white" textColor="dark" p="2" mr="2">
               Float Left
             </Box>
-            <Box float="right" backgroundColor="white" color="dark" p="2">
+            <Box float="right" bgColor="white" textColor="dark" p="2">
               Float Right
             </Box>
             {/* Container collapses because it doesn't clear floats */}
@@ -171,11 +171,11 @@ function ClearfixExamples() {
           <Content mb="3">
             This container properly contains its floating children:
           </Content>
-          <Box backgroundColor="success" p="3" color="white" clearfix>
-            <Box float="left" backgroundColor="white" color="dark" p="2" mr="2">
+          <Box bgColor="success" p="3" textColor="white" clearfix>
+            <Box float="left" bgColor="white" textColor="dark" p="2" mr="2">
               Float Left
             </Box>
-            <Box float="right" backgroundColor="white" color="dark" p="2">
+            <Box float="right" bgColor="white" textColor="dark" p="2">
               Float Right
             </Box>
             {/* Container properly wraps around floating children */}
@@ -226,13 +226,13 @@ function OverlayExamples() {
             />
             <Box
               overlay={true}
-              backgroundColor="dark"
+              bgColor="dark"
               style={{ opacity: 0.7 }}
               display="flex"
               alignItems="center"
               justifyContent="center"
             >
-              <Title color="white" size="4" textAlign="centered">
+              <Title textColor="white" size="4" textAlign="centered">
                 Overlay Content
               </Title>
             </Box>
@@ -246,10 +246,9 @@ function OverlayExamples() {
         </Card.Header>
         <Card.Content>
           <Box
-            position="relative"
-            backgroundColor="light"
+            bgColor="light"
             p="4"
-            style={{ height: '150px' }}
+            style={{ height: '150px', position: 'relative' }}
           >
             <Content>
               <p>
@@ -261,7 +260,7 @@ function OverlayExamples() {
 
             <Box
               overlay={true}
-              backgroundColor="white"
+              bgColor="white"
               style={{ opacity: 0.9 }}
               display="flex"
               alignItems="center"
@@ -306,8 +305,8 @@ function OverflowExamples() {
         </Card.Header>
         <Card.Content>
           <Box
-            backgroundColor="danger"
-            color="white"
+            bgColor="danger"
+            textColor="white"
             p="3"
             style={{ height: '100px', width: '200px' }}
           >
@@ -324,8 +323,8 @@ function OverflowExamples() {
         </Card.Header>
         <Card.Content>
           <Box
-            backgroundColor="success"
-            color="white"
+            bgColor="success"
+            textColor="white"
             p="3"
             overflow="clipped"
             style={{ height: '100px', width: '200px' }}
@@ -369,8 +368,8 @@ function BorderRadiusExamples() {
               Rounded Button
             </Button>
             <Box
-              backgroundColor="info"
-              color="white"
+              bgColor="info"
+              textColor="white"
               p="3"
               mr="2"
               mb="2"
@@ -397,8 +396,8 @@ function BorderRadiusExamples() {
               Square Button
             </Button>
             <Box
-              backgroundColor="info"
-              color="white"
+              bgColor="info"
+              textColor="white"
               p="3"
               mr="2"
               mb="2"
@@ -451,7 +450,7 @@ function ShadowExamples() {
             </Card>
 
             <Box
-              backgroundColor="white"
+              bgColor="white"
               p="3"
               style={{
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -485,7 +484,7 @@ function ShadowExamples() {
             </Card>
 
             <Box
-              backgroundColor="white"
+              bgColor="white"
               p="3"
               shadow="shadowless"
               style={{ border: '1px solid #e8e8e8' }}
@@ -529,8 +528,8 @@ function InteractionExamples() {
           </Content>
 
           <Box
-            backgroundColor="info"
-            color="white"
+            bgColor="info"
+            textColor="white"
             p="3"
             mb="3"
             interaction="unselectable"
@@ -539,7 +538,7 @@ function InteractionExamples() {
             elements, labels, or decorative text that shouldn't be copyable.
           </Box>
 
-          <Box backgroundColor="light" p="3">
+          <Box bgColor="light" p="3">
             This text can be selected normally. Users can highlight and copy
             this content as they would expect with regular text.
           </Box>
@@ -557,8 +556,8 @@ function InteractionExamples() {
 
           <Box display="flex" flexDirection="column" style={{ gap: '1rem' }}>
             <Box
-              backgroundColor="primary"
-              color="white"
+              bgColor="primary"
+              textColor="white"
               p="3"
               interaction="clickable"
               onClick={() => alert('Clicked!')}
@@ -567,8 +566,8 @@ function InteractionExamples() {
             </Box>
 
             <Box
-              backgroundColor="success"
-              color="white"
+              bgColor="success"
+              textColor="white"
               p="3"
               interaction="clickable"
               textTransform="uppercase"
@@ -577,7 +576,7 @@ function InteractionExamples() {
               This box is clickable with uppercase text
             </Box>
 
-            <Box backgroundColor="light" p="3">
+            <Box bgColor="light" p="3">
               This box shows the default cursor (not clickable)
             </Box>
           </Box>
@@ -605,16 +604,10 @@ import { Box } from '@allxsmith/bestax-bulma';
 function CursorExamples() {
   return (
     <Box p="4">
-      <Box
-        cursor="pointer"
-        backgroundColor="primary"
-        color="white"
-        p="3"
-        mb="3"
-      >
+      <Box cursor="pointer" bgColor="primary" textColor="white" p="3" mb="3">
         Cursor: pointer (is-clickable)
       </Box>
-      <Box cursor="help" backgroundColor="info" color="white" p="3">
+      <Box cursor="help" bgColor="info" textColor="white" p="3">
         Cursor: help (is-cursor-help)
       </Box>
     </Box>
@@ -677,7 +670,7 @@ function PositionRelativeExamples() {
 
           <Box
             relative
-            backgroundColor="light"
+            bgColor="light"
             p="4"
             style={{ height: '200px', border: '2px dashed #ccc' }}
           >
@@ -742,8 +735,8 @@ function CombinedHelpersExample() {
 
             {/* Sale badge overlay */}
             <Box
-              backgroundColor="danger"
-              color="white"
+              bgColor="danger"
+              textColor="white"
               p="2"
               interaction="unselectable"
               style={{

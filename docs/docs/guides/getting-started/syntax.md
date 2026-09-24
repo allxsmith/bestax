@@ -161,7 +161,7 @@ The library integrates with Bulma's helper classes through the `useBulmaClasses`
       display="flex"
       justifyContent="center"
       alignItems="center"
-      backgroundColor="dark"
+      bgColor="dark"
       p="5"
     >
       <Button color="primary">Centered Button</Button>
@@ -181,17 +181,17 @@ Color properties map to Bulma's text and background color classes:
   <Block>
     <Title>Text colors</Title>
     <Box>
-      <Title color="primary">Primary text → has-text-primary</Title>
-      <Title color="grey-dark">Dark grey text → has-text-grey-dark</Title>
+      <Title textColor="primary">Primary text → has-text-primary</Title>
+      <Title textColor="grey-dark">Dark grey text → has-text-grey-dark</Title>
     </Box>
   </Block>
 
   <Block>
     <Title>Background colors</Title>
-    <Box backgroundColor="info" color="dark">
+    <Box bgColor="info" textColor="dark">
       Info background → has-background-info
     </Box>
-    <Box backgroundColor="light" color="dark">
+    <Box bgColor="light" textColor="dark">
       Light background → has-background-light
     </Box>
   </Block>
