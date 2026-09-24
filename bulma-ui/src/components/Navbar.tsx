@@ -504,7 +504,18 @@ export interface NavbarLinkOwnProps extends Omit<
 export type NavbarLinkProps<T extends React.ElementType = 'a'> =
   NavbarLinkOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarLinkOwnProps | 'as'> & {
-      /** Render as another intrinsic element (`'button'`, `'span'`) or a custom component. Defaults to `'a'`. */
+      /**
+       * Render as another intrinsic element (`'button'`, `'span'`) or a custom component. Defaults to `'a'`.
+       *
+       * Inside a `Navbar.Dropdown` this also decides the trigger's semantics. A custom
+       * component is taken to be interactive already — a router link, typically — so it
+       * keeps its own role and click behaviour. An intrinsic tag is judged on what it is:
+       * `'button'`, or anything carrying an `href`, is left alone, and everything else
+       * (`'span'`, a bare `'a'`, a custom element) gets `role="button"`, `tabIndex` and a
+       * click that opens the dropdown. So a custom component rendering something
+       * non-interactive has to pass its own `role` and `tabIndex` — they reach the element —
+       * and open the dropdown from its own `onClick`; the keyboard path is attached either way.
+       */
       as?: T;
     };
 
@@ -549,7 +560,24 @@ export const NavbarLink = forwardRef(function NavbarLink(
 
   const dropdownContext = useContext(NavbarDropdownContext);
   const hasHref = rest.href !== undefined;
-  const isNativeInteractive = Component === 'button' || hasHref;
+  // What a custom component renders cannot be read off its input props, and the
+  // prop that ends in an anchor belongs to the router, not to us — `to`, `state`,
+  // `params` and a dozen further spellings all get there. Sniffing for more names
+  // trades one wrong guess for another, so a non-string `as` counts as
+  // interactive: announcing a real anchor as a button, and layering a synthetic
+  // click over its navigation, is the worse of the two failures (#668).
+  //
+  // A custom ELEMENT stays out of it. A hyphenated tag is a real DOM element and
+  // none of those is natively interactive, so `<x-trigger>` keeps the fallback
+  // exactly like `as="span"` — the same line `Avatar` draws for `role="img"`.
+  //
+  // The cost is a custom component that renders something non-interactive: it no
+  // longer receives `role`/`tabIndex`, nor the click that stands in for a missing
+  // default action, and has to supply them. Its own `role` and `tabIndex` reach
+  // the element (`rest` spreads ahead of this block), and the keyboard path is
+  // attached either way, so what is left to replace is the click.
+  const isNativeInteractive =
+    Component === 'button' || typeof Component !== 'string' || hasHref;
 
   // Guarded like Button's disabled blocker: these run on whatever `as` renders,
   // and a custom target's callback need not take a DOM event. One declaring

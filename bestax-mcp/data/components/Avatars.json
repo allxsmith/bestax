@@ -137,7 +137,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": null,
-          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.",
+          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. This also decides whether the avatar is treated as interactive, which is what keeps `role=\"img\"` and the `alt=\"\"` decorative opt-out off a link or button. A custom component always counts — a router link takes `to` rather than this component's `href`, so its own props cannot say — while `'a'`, `'button'`, and a custom element given an `href` count for the reason they read. Pass an explicit `role` to override.",
           "required": false,
           "inherited": false,
           "deprecated": false
