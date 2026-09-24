@@ -128,9 +128,10 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `domRef`
 
-bestax components don't take `domRef`, but many forward a plain `ref` — the form controls
-and `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and
-`Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel`. On those, rename `domRef` to
+bestax components don't take `domRef`, but many forward a plain `ref` — the form controls,
+plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`,
+`LinkButton`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
+`Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast`. On those, rename `domRef` to
 `ref` and it works; do not restructure the markup. Everywhere else there is no ref to
 forward — attach the ref to a DOM element inside, or wrap the component in a `<div ref={…}>`.
 

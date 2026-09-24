@@ -161,6 +161,7 @@ value is flagged. The same conversion covers the modifiers bestax has no prop fo
 
 ## Refs
 
-bloomer forwarded no refs. bestax forwards a ref from the form controls and from `Button`,
-`LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`,
-`Sidebar`, `Toast` and `Carousel` — pass `ref` directly on those.
+bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Avatar`,
+`Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Menu.Item`,
+`Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar`
+and `Toast` — pass `ref` directly on those.
