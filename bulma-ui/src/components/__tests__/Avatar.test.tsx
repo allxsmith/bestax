@@ -384,6 +384,74 @@ describe('Custom element targets', () => {
   });
 });
 
+describe('Custom component targets (#668)', () => {
+  // A router link: it takes `to`, builds the anchor itself, and never sees
+  // Avatar's own `href` — so Avatar cannot read "link" off the props it got.
+  const RouterLink = ({
+    to,
+    children,
+    ...rest
+  }: { to: string } & React.ComponentProps<'a'>) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  );
+
+  it('keeps link semantics for an initials avatar with no href of ours', () => {
+    render(<Avatar as={RouterLink} to="/profile" name="Ada" data-testid="a" />);
+    const el = screen.getByTestId('a');
+    expect(el).toHaveAttribute('href', '/profile');
+    expect(el).not.toHaveAttribute('role', 'img');
+    // A link still needs its accessible name.
+    expect(el).toHaveAttribute('aria-label', 'Ada');
+  });
+
+  it('does not let alt="" mark a custom link decorative', () => {
+    render(
+      <Avatar as={RouterLink} to="/profile" alt="" name="Ada" data-testid="a" />
+    );
+    const el = screen.getByTestId('a');
+    expect(el).not.toHaveAttribute('aria-hidden');
+    expect(el).toHaveAttribute('aria-label', 'Ada');
+  });
+
+  it('leaves an image avatar unchanged', () => {
+    render(
+      <Avatar
+        as={RouterLink}
+        to="/profile"
+        src="/photo.jpg"
+        alt="Ada"
+        data-testid="a"
+      />
+    );
+    const el = screen.getByTestId('a');
+    expect(el).not.toHaveAttribute('role', 'img');
+    expect(screen.getByAltText('Ada')).toHaveAttribute('src', '/photo.jpg');
+  });
+
+  it('leaves a plain <figure> avatar unchanged', () => {
+    render(<Avatar name="Ada" data-testid="a" />);
+    const el = screen.getByTestId('a');
+    expect(el.tagName).toBe('FIGURE');
+    expect(el).toHaveAttribute('role', 'img');
+    expect(el).toHaveAttribute('aria-label', 'Ada');
+  });
+
+  it('lets a caller override the role on a custom target', () => {
+    render(
+      <Avatar
+        as={RouterLink}
+        to="/profile"
+        name="Ada"
+        role="img"
+        data-testid="a"
+      />
+    );
+    expect(screen.getByTestId('a')).toHaveAttribute('role', 'img');
+  });
+});
+
 describe('Ref forwarding', () => {
   // Avatar gained ref forwarding with #641. The ref lands on the root element,
   // which `as` names — not on the inner <img>.

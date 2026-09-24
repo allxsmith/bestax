@@ -170,7 +170,15 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
     React.ComponentPropsWithoutRef<T>,
     Exclude<keyof AvatarOwnProps, AvatarForwardedProp> | 'as'
   > & {
-    /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
+    /**
+     * Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.
+     *
+     * This also decides whether the avatar is treated as interactive, which is what keeps
+     * `role="img"` and the `alt=""` decorative opt-out off a link or button. A custom
+     * component always counts — a router link takes `to` rather than this component's
+     * `href`, so its own props cannot say — while `'a'`, `'button'`, and a custom element
+     * given an `href` count for the reason they read. Pass an explicit `role` to override.
+     */
     as?: T;
   };
 
@@ -276,14 +284,20 @@ export const Avatar = forwardRef(function Avatar(
   const initialsClass = usePrefixedClassNames('avatar-initials');
 
   const Tag: React.ElementType = as ?? (href ? 'a' : 'figure');
-  // A custom `as` component given an href is being used as a link — the same
-  // condition under which isLinkLike forwards href/target/rel below — so it
-  // counts as interactive too. Otherwise alt="" would mark a real link
-  // decorative (aria-hidden) and it could render nameless.
+  // A custom component counts as interactive whether or not it was given OUR
+  // href: a router link takes `to`, creates the anchor itself, and cannot be
+  // classified from the props it arrives with (#668). Marking a real link as a
+  // picture is the worse failure — and `alt=""` would go further and mark it
+  // decorative (aria-hidden), leaving it nameless.
+  //
+  // A custom ELEMENT still needs the href. A hyphenated tag renders a real DOM
+  // element of that name, so nothing is hidden from us: without a link to follow
+  // it is still a picture. `Navbar.Link` draws the same line for `role="button"`.
   const isInteractive =
     Tag === 'a' ||
     Tag === 'button' ||
-    ((typeof Tag !== 'string' || isCustomElement(Tag)) && href != null);
+    typeof Tag !== 'string' ||
+    (isCustomElement(Tag) && href != null);
 
   // Only forward link attributes when rendering an anchor or a custom (non-DOM)
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
