@@ -99,7 +99,14 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   className?: string;
   /** Image URL. On load error (or if absent), falls back to initials, then `icon`. */
   src?: string;
-  /** Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. */
+  /**
+   * Alternate text for the image (used for the accessible name in every render mode). An
+   * explicit `alt=""` marks a non-interactive avatar as decorative.
+   *
+   * A link or button avatar is never decorative — it keeps an accessible name — and a custom
+   * component passed to `as` counts as one unless it states otherwise (see `as`), so
+   * `alt=""` on a custom wrapper needs an explicit `role` or `aria-hidden` alongside it.
+   */
   alt?: string;
   /** Derives initials and a deterministic background color when no `src` is shown. */
   name?: string;
@@ -175,18 +182,27 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      *
      * This also decides whether the avatar is treated as interactive, which is what keeps
      * `role="img"` and the `alt=""` decorative opt-out off a link or button. A custom
-     * component always counts — a router link takes `to` rather than this component's
-     * `href`, so its own props cannot say — while `'a'`, `'button'`, and a custom element
-     * given an `href` count for the reason they read. Pass an explicit `role` to override.
+     * component counts — a router link takes `to` rather than this component's `href`, so
+     * its own props cannot say — while `'a'`, `'button'`, and a custom element given an
+     * `href` count for the reason they read.
+     *
+     * If your custom component renders something that really is just a picture, say so with
+     * an explicit `role` (or `aria-hidden`) and it is treated as one, `alt=""` included. A
+     * genuine `'a'`/`'button'`/`href` avatar keeps its accessible name either way.
      */
     as?: T;
   };
 
 /**
  * The shape the implementation destructures. The public contract is the generic
- * `AvatarProps<T>` above — the body cannot see through `T`.
+ * `AvatarProps<T>` above — the body cannot see through `T`, so it names the
+ * handful of DOM props it actually reads back off `rest`.
  */
-type AvatarImplProps = AvatarOwnProps & { as?: React.ElementType };
+type AvatarImplProps = AvatarOwnProps & {
+  as?: React.ElementType;
+  role?: React.AriaRole;
+  'aria-hidden'?: React.AriaAttributes['aria-hidden'];
+};
 
 /**
  * The `Avatar` component represents a person or entity as a compact image.
@@ -293,10 +309,25 @@ export const Avatar = forwardRef(function Avatar(
   // A custom ELEMENT still needs the href. A hyphenated tag renders a real DOM
   // element of that name, so nothing is hidden from us: without a link to follow
   // it is still a picture. `Navbar.Link` draws the same line for `role="button"`.
+  //
+  // Where we are guessing, the caller settles it: an explicit `role` or
+  // `aria-hidden` states the semantics, so a custom component that really is a
+  // wrapper gets `role="img"` and its `alt=""` opt-out back. `role` alone would
+  // be a half-override — interactivity also drives the decorative opt-out and the
+  // name fallback, and overriding one of the three is worse than overriding none.
+  // This reaches the GUESS only. `as="a"`, `as="button"` and an `href` are known,
+  // and there the rule that an interactive element always carries an accessible
+  // name is not the caller's to waive.
+  // Value-based, not `in`: an explicit `role={undefined}` states nothing, and the
+  // key existing is not the signal — the same distinction `linkProps` draws below.
+  const customTargetStatesSemantics =
+    typeof Tag !== 'string' &&
+    (rest.role !== undefined || rest['aria-hidden'] !== undefined);
+
   const isInteractive =
     Tag === 'a' ||
     Tag === 'button' ||
-    typeof Tag !== 'string' ||
+    (typeof Tag !== 'string' && !customTargetStatesSemantics) ||
     (isCustomElement(Tag) && href != null);
 
   // Only forward link attributes when rendering an anchor or a custom (non-DOM)
