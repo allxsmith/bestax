@@ -27,6 +27,7 @@ import {
   type DropdownItemProps,
 } from '../components/Dropdown';
 import { Menu } from '../components/Menu';
+import type { PolymorphicProps } from '../helpers/polymorphic';
 import { Navbar } from '../components/Navbar';
 import { Reveal } from '../components/Reveal';
 import { Button, type ButtonProps } from '../elements/Button';
@@ -426,6 +427,34 @@ export const menuItemNeverShadowedHref = (
     </Menu.Item>
   </>
 );
+
+// The set is `href`, `target` and `rel`, so a required `target` is demanded too.
+// Dropping a name from it would go unnoticed on the strength of `href` alone —
+// only a key that is NOT an own prop fails to compile, and each of these is one.
+const NeedsTarget = (props: { target: string }) => <span>{props.target}</span>;
+
+export const everyForwardedPropIsWired = (
+  <>
+    {/* @ts-expect-error the target's required `target` is not hidden either */}
+    <Avatar as={NeedsTarget} name="Ada" />
+    <Avatar as={NeedsTarget} target="_blank" name="Ada" />
+  </>
+);
+
+// `PolymorphicProps` is public API, and a consumer's wrapper can hand it a UNION
+// `Own`. Naming no forwarded props has to leave `Own` alone rather than route it
+// through an `Omit` that names no keys: `Omit` keys off `keyof Own`, which for a
+// union is only what the members SHARE, so both of these lost every own prop.
+interface AlphaOwn {
+  alpha?: string;
+}
+interface BetaOwn {
+  beta?: string;
+}
+export const unionOwnKeepsEachMember: [
+  PolymorphicProps<'div', AlphaOwn | BetaOwn>,
+  PolymorphicProps<'div', AlphaOwn | BetaOwn>,
+] = [{ alpha: 'x' }, { beta: 'y' }];
 
 /** A target whose required prop `Menu.Item` spends on its wrapping `<li>`. */
 const NeedsTitle = (props: { title: string; children?: React.ReactNode }) => (

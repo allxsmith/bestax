@@ -227,7 +227,7 @@
           "name": "href",
           "type": "string",
           "default": null,
-          "description": "When set, renders the avatar as a link. An `as` target declaring its own `href` supersedes this one: that declaration's type and its requiredness are what apply.",
+          "description": "When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An `as` target declaring its own `href` supersedes this one, and its type and its requiredness are what apply.",
           "required": false,
           "inherited": false,
           "deprecated": false

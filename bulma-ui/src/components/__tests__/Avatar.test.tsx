@@ -300,8 +300,9 @@ describe('Avatar', () => {
   });
 
   it('omits the link props it has no value for, rather than forwarding undefined', () => {
-    // A key that merely EXISTS is not free: it replaces a target's default
-    // parameter, and reads as a link to a target that tests for the key. The
+    // A key that merely EXISTS is not free: it reads as a link to a target that
+    // tests for one, and it travels on through a target's own `{...rest}`. NOT a
+    // destructuring default, which an explicit `undefined` triggers anyway. The
     // type is what stops a TypeScript caller omitting an `href` the target
     // requires; this is the shape a plain-JavaScript caller or a loose spread
     // arrives in (#665).
@@ -320,22 +321,6 @@ describe('Avatar', () => {
     expect(seen[0]).not.toHaveProperty('href');
     expect(seen[0]).not.toHaveProperty('target');
     expect(seen[0]).not.toHaveProperty('rel');
-  });
-
-  it("keeps a custom target's own default for a link prop it was not given", () => {
-    const Defaulted: React.FC<{
-      href?: string;
-      children?: React.ReactNode;
-    }> = ({ href = '/fallback', children }) => (
-      <a data-testid="defaulted" href={href}>
-        {children}
-      </a>
-    );
-    render(<Avatar name="Ada" as={Defaulted} />);
-    expect(screen.getByTestId('defaulted')).toHaveAttribute(
-      'href',
-      '/fallback'
-    );
   });
 
   it('respects an explicit as override', () => {
