@@ -746,9 +746,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // bestax's `Navbar.Dropdown` forwards a ref, but it is the one such target
     // the `innerRef: { rename: 'ref' }` entries in mapping.ts cannot reach:
     // that table is keyed on the rbx name (`Navbar.Item`), and only this
-    // handler knows which of the two targets was picked. A plain
-    // `Navbar.Item` is still a function component, so the rename is
-    // conditional — there, `innerRef` is left alone.
+    // handler knows which of the two targets was picked. The condition is
+    // about that, not about ref support: a plain `Navbar.Item` forwards one
+    // too since #661, so leaving `innerRef` alone there is a rename this
+    // handler declines rather than one the target cannot take. Widening it
+    // changes emitted output on code that migrates today, so it is #734 and
+    // not folded in here — the prop maps name the hand-rename instead.
     const renamedInnerRef: string[] = [];
     if (target === 'Navbar.Dropdown') {
       const innerRefAttr = findAttr(element, 'innerRef');
