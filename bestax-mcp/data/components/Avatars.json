@@ -227,7 +227,7 @@
           "name": "href",
           "type": "string",
           "default": null,
-          "description": "When set, renders the avatar as a link.",
+          "description": "When set, renders the avatar as a link. An `as` target declaring its own `href` supersedes this one: that declaration's type and its requiredness are what apply.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -236,7 +236,7 @@
           "name": "target",
           "type": "string",
           "default": null,
-          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).",
+          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -245,7 +245,7 @@
           "name": "rel",
           "type": "string",
           "default": null,
-          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).",
+          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is.",
           "required": false,
           "inherited": false,
           "deprecated": false

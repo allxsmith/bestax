@@ -37,14 +37,36 @@ export type PolymorphicRef<T extends React.ElementType> =
 /**
  * A component's own props, plus the attributes of the element `as` names.
  *
- * `Own` wins every collision — a component that declares `color` as a Bulma
- * variant keeps it, rather than inheriting the DOM attribute of the same name.
- * That subtraction is the ONLY one. `color` used to be dropped here as well, to
- * stop the deprecated presentational HTML attribute reaching the three
- * components whose own props do not declare one — but doing it in the shared
- * type also stripped `color` from a CUSTOM target that legitimately has one.
- * Those three declare `color?: never` themselves instead, which lands in
- * `keyof Own` and reaches the same result without a special case here.
+ * `Own` wins a collision by default — a component that declares
+ * `color` as a Bulma variant keeps it, rather than inheriting the DOM attribute
+ * of the same name. `color` used to be dropped here as well, to stop the
+ * deprecated presentational HTML attribute reaching the components whose own
+ * props do not declare one — but doing it in the shared type also stripped
+ * `color` from a CUSTOM target that legitimately has one. Those components
+ * declare `color?: never` themselves instead, which lands in `keyof Own` and
+ * reaches the same result without a special case here.
+ *
+ * `Forwarded` names the own props the component hands STRAIGHT to the target
+ * instead of consuming, and the subtraction runs the other way for them: the
+ * TARGET's declaration wins, and the own one is what covers a target that has
+ * no such prop. Subtracting them threw the target's declaration away, so an
+ * OPTIONAL own prop hid a REQUIRED one — `<Avatar as={NextLink} name="Ada" />`
+ * compiled because Avatar's `href?: string` survived while `next/link`'s
+ * required `href` was omitted, and the target threw on what it never received
+ * (#665). The target wins rather than both declarations applying at once,
+ * because for a prop the component only passes along its own type has no
+ * standing: `next/link` accepts a URL object as well as a string, and
+ * intersecting Avatar's `string` with that would refuse the object.
+ *
+ * `Forwarded` defaults to `never`, so a prop the component CONSUMES stays
+ * subtracted — the common case, and the one `color` needs. What that costs is
+ * that a target REQUIRING a consumed prop is still satisfiable with the prop
+ * omitted, and the value goes wherever the component sends it: `Menu.Item` pins
+ * `title` and `style` to its wrapping `<li>`, so such a target never sees
+ * either. Erroring on it needs a category this pair cannot express, since
+ * `className` is consumed too and yet every component composes one and passes
+ * it on. It is pinned as a limitation in `__typetests__/polymorphic.tsx` rather
+ * than guessed at here.
  *
  * Distributive over `T` on purpose. `Omit<A | B, K>` keys off `keyof (A | B)`,
  * which is only what A and B share — so a union-typed `as` (a ternary, or a
@@ -62,9 +84,13 @@ export type PolymorphicRef<T extends React.ElementType> =
 export type PolymorphicProps<
   T extends React.ElementType,
   Own,
+  Forwarded extends keyof Own = never,
 > = T extends unknown
-  ? Own &
-      Omit<React.ComponentPropsWithoutRef<T>, keyof Own | 'as'> & {
+  ? Omit<Own, Extract<Forwarded, keyof React.ComponentPropsWithoutRef<T>>> &
+      Omit<
+        React.ComponentPropsWithoutRef<T>,
+        Exclude<keyof Own, Forwarded> | 'as'
+      > & {
         /** The element or component to render. */
         as?: T;
       }
@@ -101,12 +127,18 @@ export type PolymorphicProps<
  * const MemoButton = React.memo(Button) as typeof Button;
  * ```
  */
-export interface PolymorphicComponent<Own, Default extends React.ElementType> {
+export interface PolymorphicComponent<
+  Own,
+  Default extends React.ElementType,
+  Forwarded extends keyof Own = never,
+> {
   <T extends React.ElementType = Default>(
-    props: PolymorphicProps<T, Own> & { ref?: PolymorphicRef<T> }
+    props: PolymorphicProps<T, Own, Forwarded> & { ref?: PolymorphicRef<T> }
   ): React.ReactElement | null;
   (
-    props: PolymorphicProps<Default, Own> & { ref?: PolymorphicRef<Default> }
+    props: PolymorphicProps<Default, Own, Forwarded> & {
+      ref?: PolymorphicRef<Default>;
+    }
   ): React.ReactElement | null;
   displayName?: string;
 }
@@ -117,18 +149,23 @@ export interface PolymorphicComponent<Own, Default extends React.ElementType> {
  * For components that own the node they observe — `Reveal` keeps its own ref on
  * the element it watches for scroll intersection, which is not always the
  * element `as` names.
+ *
+ * It carries `Forwarded` even with no component passing one today: the default
+ * is the behaviour without it, and a component that grows a forwarded own prop
+ * would otherwise reintroduce #665 here with nothing to say so.
  */
 export interface PolymorphicComponentWithoutRef<
   Own,
   Default extends React.ElementType,
+  Forwarded extends keyof Own = never,
 > {
   <T extends React.ElementType = Default>(
-    props: PolymorphicProps<T, Own>
+    props: PolymorphicProps<T, Own, Forwarded>
   ): React.ReactElement | null;
   // The same derivation overload `PolymorphicComponent` carries, for the same
   // reason: without it `React.ComponentProps<typeof Reveal>` instantiates at the
   // constraint and collapses to `any`.
-  (props: PolymorphicProps<Default, Own>): React.ReactElement | null;
+  (props: PolymorphicProps<Default, Own, Forwarded>): React.ReactElement | null;
   displayName?: string;
 }
 
@@ -160,13 +197,14 @@ export interface ConstrainedPolymorphicComponentWithoutRef<
   Own,
   Allowed extends React.ElementType,
   Default extends Allowed,
+  Forwarded extends keyof Own = never,
 > {
   <T extends Allowed = Default>(
-    props: PolymorphicProps<T, Own>
+    props: PolymorphicProps<T, Own, Forwarded>
   ): React.ReactElement | null;
   // The derivation overload `PolymorphicComponent` documents, for the same
   // reason: without it `React.ComponentProps<typeof DropdownItem>` instantiates
   // at the constraint and collapses to `any`.
-  (props: PolymorphicProps<Default, Own>): React.ReactElement | null;
+  (props: PolymorphicProps<Default, Own, Forwarded>): React.ReactElement | null;
   displayName?: string;
 }
