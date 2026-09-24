@@ -61,12 +61,20 @@ export type PolymorphicRef<T extends React.ElementType> =
  * `Forwarded` defaults to `never`, so a prop the component CONSUMES stays
  * subtracted — the common case, and the one `color` needs. What that costs is
  * that a target REQUIRING a consumed prop is still satisfiable with the prop
- * omitted, and the value goes wherever the component sends it: `Menu.Item` pins
- * `title` and `style` to its wrapping `<li>`, so such a target never sees
- * either. Erroring on it needs a category this pair cannot express, since
- * `className` is consumed too and yet every component composes one and passes
- * it on. It is pinned as a limitation in `__typetests__/polymorphic.tsx` rather
- * than guessed at here.
+ * omitted, and the value goes wherever the component sends it: `Menu.Item`
+ * spends several of its own props on its wrapping `<li>`, `title` and `style`
+ * among them, so a target requiring one of those never sees it. Erroring on
+ * that needs a category this pair cannot express, since `className` is consumed
+ * too and yet every component composes one and passes it on. It is pinned as a
+ * limitation in `__typetests__/polymorphic.tsx` rather than guessed at here.
+ *
+ * `Own` is returned untouched when nothing is forwarded, rather than run through
+ * an `Omit` that names no keys. `Omit` is not the identity it looks like: it
+ * keys off `keyof Own`, which for a UNION `Own` is only what the members share,
+ * so `PolymorphicProps<'div', A | B>` lost every prop of both. It is public API
+ * and a consumer's wrapper can pass a union; the untouched branch also keeps
+ * each own prop's TSDoc reaching an IDE, which a mapped type drops. The
+ * forwarded branch distributes over `Own` for the same reason.
  *
  * Distributive over `T` on purpose. `Omit<A | B, K>` keys off `keyof (A | B)`,
  * which is only what A and B share — so a union-typed `as` (a ternary, or a
@@ -86,7 +94,11 @@ export type PolymorphicProps<
   Own,
   Forwarded extends keyof Own = never,
 > = T extends unknown
-  ? Omit<Own, Extract<Forwarded, keyof React.ComponentPropsWithoutRef<T>>> &
+  ? ([Forwarded] extends [never]
+      ? Own
+      : Own extends unknown
+        ? Omit<Own, Extract<Forwarded, keyof React.ComponentPropsWithoutRef<T>>>
+        : never) &
       Omit<
         React.ComponentPropsWithoutRef<T>,
         Exclude<keyof Own, Forwarded> | 'as'

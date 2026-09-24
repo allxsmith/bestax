@@ -148,8 +148,9 @@ Rules that keep components consistent:
   does — and the target's declaration wins, while the own one still covers a
   target that has no such prop. It defaults to naming none, which is the right
   answer for a prop the component CONSUMES. Withholding an undefined value at
-  runtime belongs with it: a key that merely exists replaces a target's default
-  parameter.
+  runtime belongs with it: a key that merely exists reads as a value to a target
+  that tests for one, and travels on through its `{...rest}`. Not to a
+  destructuring default, which an explicit `undefined` triggers anyway.
 
 - **Element sizing uses an inline `'small' | 'medium' | 'large'` union**, mapped to `is-small` /
   `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`

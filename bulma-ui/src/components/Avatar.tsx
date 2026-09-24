@@ -113,7 +113,7 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   shape?: AvatarShape;
   /** Background color for initials/icon avatars (else auto-derived from `name`). */
   color?: AvatarColor;
-  /** When set, renders the avatar as a link. An `as` target declaring its own `href` supersedes this one: that declaration's type and its requiredness are what apply. */
+  /** When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An `as` target declaring its own `href` supersedes this one, and its type and its requiredness are what apply. */
   href?: string;
   /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
   target?: string;
@@ -291,12 +291,13 @@ export const Avatar = forwardRef(function Avatar(
     Tag === 'a' || typeof Tag !== 'string' || isCustomElement(Tag);
   // Present-only, not `{ href, target, rel }`. An unconditional spread hands the
   // target these keys whatever the caller passed, and a key existing is not free:
-  // a target with a default parameter has its default replaced by the
-  // `undefined`, and one that tests for the key sees a link where there is none.
-  // What stops a target that REQUIRES one from being rendered without it is the
-  // type (#665) — this is the smaller half, and the backstop for the callers a
-  // type does not reach: a plain-JavaScript one and a loose spread, the same pair
-  // `Button` and `Menu.Item` keep their own filters for.
+  // a target that tests for one sees a link where there is none, and one that
+  // spreads its own `{...rest}` onward passes the nothing along. It is NOT about
+  // a destructuring default, which an explicit `undefined` triggers just as an
+  // absent key does. What stops a target that REQUIRES one from being rendered
+  // without it is the type (#665) — this is the smaller half, and the backstop for
+  // the callers a type does not reach: a plain-JavaScript one and a loose spread,
+  // the same pair `Button` and `Menu.Item` keep their own filters for.
   const linkProps = isLinkLike
     ? {
         ...(href !== undefined && { href }),
