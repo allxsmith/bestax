@@ -438,17 +438,53 @@ describe('Custom component targets (#668)', () => {
     expect(el).toHaveAttribute('aria-label', 'Ada');
   });
 
-  it('lets a caller override the role on a custom target', () => {
-    render(
-      <Avatar
-        as={RouterLink}
-        to="/profile"
-        name="Ada"
-        role="img"
-        data-testid="a"
-      />
+  // The guess is the caller's to correct — and correcting it has to reach every
+  // behaviour interactivity drives, not just the role attribute.
+  describe('an explicit role/aria-hidden settles the guess', () => {
+    const Wrapper = (props: React.ComponentProps<'figure'>) => (
+      <figure {...props} />
     );
-    expect(screen.getByTestId('a')).toHaveAttribute('role', 'img');
+
+    it('treats a custom target declaring a role as the picture it says it is', () => {
+      render(<Avatar as={Wrapper} name="Ada" role="img" data-testid="a" />);
+      const el = screen.getByTestId('a');
+      expect(el).toHaveAttribute('role', 'img');
+      expect(el).toHaveAttribute('aria-label', 'Ada');
+    });
+
+    it('restores the alt="" decorative opt-out, without a stray label', () => {
+      render(
+        <Avatar as={Wrapper} alt="" name="Ada" role="img" data-testid="a" />
+      );
+      const el = screen.getByTestId('a');
+      expect(el).toHaveAttribute('aria-hidden', 'true');
+      expect(el).not.toHaveAttribute('aria-label');
+    });
+
+    it('accepts aria-hidden as the signal too', () => {
+      render(
+        <Avatar as={Wrapper} alt="" name="Ada" aria-hidden data-testid="a" />
+      );
+      const el = screen.getByTestId('a');
+      expect(el).toHaveAttribute('aria-hidden', 'true');
+      expect(el).not.toHaveAttribute('aria-label');
+    });
+
+    it('keeps a decorative image avatar free of the name fallback', () => {
+      render(
+        <Avatar as={Wrapper} src="/p.jpg" alt="" role="img" data-testid="a" />
+      );
+      expect(screen.getByTestId('a')).not.toHaveAttribute('aria-label');
+    });
+
+    it('does not let the signal waive the name on a real link, where we are not guessing', () => {
+      render(
+        <Avatar href="/profile" alt="" name="Ada" role="img" data-testid="a" />
+      );
+      const el = screen.getByTestId('a');
+      expect(el).not.toHaveAttribute('aria-hidden');
+      expect(el).toHaveAttribute('aria-label', 'Ada');
+    });
   });
 });
 

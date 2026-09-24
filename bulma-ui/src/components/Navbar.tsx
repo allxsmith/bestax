@@ -512,9 +512,11 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
        * keeps its own role and click behaviour. An intrinsic tag is judged on what it is:
        * `'button'`, or anything carrying an `href`, is left alone, and everything else
        * (`'span'`, a bare `'a'`, a custom element) gets `role="button"`, `tabIndex` and a
-       * click that opens the dropdown. So a custom component rendering something
-       * non-interactive has to pass its own `role` and `tabIndex` — they reach the element —
-       * and open the dropdown from its own `onClick`; the keyboard path is attached either way.
+       * click that opens the dropdown.
+       *
+       * If your custom component renders something non-interactive, pass `role="button"`
+       * (with a `tabIndex`) and it takes that fallback too, click included. The keyboard path
+       * is attached either way.
        */
       as?: T;
     };
@@ -527,6 +529,7 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
 type NavbarLinkImplProps = NavbarLinkOwnProps & {
   as?: React.ElementType;
   href?: string;
+  role?: React.AriaRole;
   onKeyDown?: React.KeyboardEventHandler<HTMLAnchorElement>;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
@@ -571,13 +574,20 @@ export const NavbarLink = forwardRef(function NavbarLink(
   // none of those is natively interactive, so `<x-trigger>` keeps the fallback
   // exactly like `as="span"` — the same line `Avatar` draws for `role="img"`.
   //
-  // The cost is a custom component that renders something non-interactive: it no
-  // longer receives `role`/`tabIndex`, nor the click that stands in for a missing
-  // default action, and has to supply them. Its own `role` and `tabIndex` reach
-  // the element (`rest` spreads ahead of this block), and the keyboard path is
-  // attached either way, so what is left to replace is the click.
+  // Where we are guessing, the caller settles it: a custom target that declares
+  // `role="button"` is saying it is a button and not a link, so it takes the
+  // fallback — including the click, which is the half it cannot supply itself
+  // (its own `role` and `tabIndex` already reach the element, since `rest`
+  // spreads ahead of this block, and the keyboard path is attached either way).
+  // `Avatar` gives the same escape hatch to the same guess. An `href` still wins:
+  // a target with somewhere to navigate is a link whatever role it claims.
+  const customTargetIsButton =
+    typeof Component !== 'string' && rest.role === 'button';
+
   const isNativeInteractive =
-    Component === 'button' || typeof Component !== 'string' || hasHref;
+    Component === 'button' ||
+    (typeof Component !== 'string' && !customTargetIsButton) ||
+    hasHref;
 
   // Guarded like Button's disabled blocker: these run on whatever `as` renders,
   // and a custom target's callback need not take a DOM event. One declaring

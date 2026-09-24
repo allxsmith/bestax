@@ -839,26 +839,57 @@ describe('Navbar.Link', () => {
       expect(link).toHaveAttribute('tabIndex', '0');
     });
 
-    it('lets a custom non-interactive target supply its own role and tabIndex', () => {
+    // The guess is the caller's to correct: a custom target declaring itself a
+    // button gets the whole fallback back, including the click it cannot wire up
+    // for itself.
+    describe('a custom target declaring role="button"', () => {
       const DivTrigger = (props: ComponentProps<'div'>) => <div {...props} />;
-      render(
-        <Navbar.Dropdown>
-          <Navbar.Link
-            as={DivTrigger}
-            role="button"
-            tabIndex={0}
-            data-testid="navlink"
-          >
-            More
-          </Navbar.Link>
-          <Navbar.DropdownMenu>
-            <Navbar.Item href="#">A</Navbar.Item>
-          </Navbar.DropdownMenu>
-        </Navbar.Dropdown>
-      );
-      const link = screen.getByTestId('navlink');
-      expect(link).toHaveAttribute('role', 'button');
-      expect(link).toHaveAttribute('tabIndex', '0');
+
+      it('takes the fallback click, so a mouse can open the dropdown', () => {
+        const onActiveChange = jest.fn();
+        render(
+          <Navbar.Dropdown onActiveChange={onActiveChange}>
+            <Navbar.Link
+              as={DivTrigger}
+              role="button"
+              tabIndex={0}
+              data-testid="navlink"
+            >
+              More
+            </Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#">A</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        );
+        const link = screen.getByTestId('navlink');
+        expect(link).toHaveAttribute('role', 'button');
+        expect(link).toHaveAttribute('tabIndex', '0');
+        fireEvent.click(link);
+        expect(onActiveChange).toHaveBeenCalledWith(true);
+      });
+
+      it('still loses to an href — somewhere to navigate makes it a link', () => {
+        const onActiveChange = jest.fn();
+        render(
+          <Navbar.Dropdown onActiveChange={onActiveChange}>
+            <Navbar.Link
+              as={RouterLink}
+              to="/x"
+              href="/x"
+              role="button"
+              data-testid="navlink"
+            >
+              More
+            </Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#">A</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        );
+        fireEvent.click(screen.getByTestId('navlink'));
+        expect(onActiveChange).not.toHaveBeenCalled();
+      });
     });
   });
 
