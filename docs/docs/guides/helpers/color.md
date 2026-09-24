@@ -74,15 +74,6 @@ Use the `textColor` prop to apply text colors. Most components re-expose Bulma's
 ### Example Usage
 
 ```tsx live
-import {
-  Title,
-  SubTitle,
-  Button,
-  Buttons,
-  Box,
-  Span,
-} from '@allxsmith/bestax-bulma';
-
 function ColorExamples() {
   return (
     <Box p="4">
