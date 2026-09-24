@@ -299,6 +299,45 @@ describe('Avatar', () => {
     );
   });
 
+  it('omits the link props it has no value for, rather than forwarding undefined', () => {
+    // A key that merely EXISTS is not free: it replaces a target's default
+    // parameter, and reads as a link to a target that tests for the key. The
+    // type is what stops a TypeScript caller omitting an `href` the target
+    // requires; this is the shape a plain-JavaScript caller or a loose spread
+    // arrives in (#665).
+    const seen: Record<string, unknown>[] = [];
+    const Probe: React.FC<{
+      href?: string;
+      target?: string;
+      rel?: string;
+      children?: React.ReactNode;
+    }> = props => {
+      seen.push(props);
+      return <a data-testid="probe">{props.children}</a>;
+    };
+    render(<Avatar name="Ada" as={Probe} />);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).not.toHaveProperty('href');
+    expect(seen[0]).not.toHaveProperty('target');
+    expect(seen[0]).not.toHaveProperty('rel');
+  });
+
+  it("keeps a custom target's own default for a link prop it was not given", () => {
+    const Defaulted: React.FC<{
+      href?: string;
+      children?: React.ReactNode;
+    }> = ({ href = '/fallback', children }) => (
+      <a data-testid="defaulted" href={href}>
+        {children}
+      </a>
+    );
+    render(<Avatar name="Ada" as={Defaulted} />);
+    expect(screen.getByTestId('defaulted')).toHaveAttribute(
+      'href',
+      '/fallback'
+    );
+  });
+
   it('respects an explicit as override', () => {
     const { container } = render(<Avatar name="Ada" as="div" />);
     expect(container.firstChild?.nodeName).toBe('DIV');

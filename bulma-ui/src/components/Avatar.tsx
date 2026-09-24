@@ -113,11 +113,11 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   shape?: AvatarShape;
   /** Background color for initials/icon avatars (else auto-derived from `name`). */
   color?: AvatarColor;
-  /** When set, renders the avatar as a link. */
+  /** When set, renders the avatar as a link. An `as` target declaring its own `href` supersedes this one: that declaration's type and its requiredness are what apply. */
   href?: string;
-  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component). */
+  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
   target?: string;
-  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component). */
+  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
   rel?: string;
   /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
@@ -134,13 +134,23 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
 }
 
 /**
+ * The own props Avatar hands to the element `as` names rather than consuming.
+ *
+ * They are what *chooses* the element when `as` is absent — an `<a>` with an
+ * `href`, a `<figure>` without one — so Avatar has to accept them before `as` is
+ * known. Declaring them is only half of it. `PolymorphicProps` explains what
+ * naming them here buys, and what leaving them unnamed cost (#665).
+ */
+type AvatarForwardedProp = 'href' | 'target' | 'rel';
+
+/**
  * Props for the Avatar component. The DOM attributes and the `ref` both follow
  * `as`.
  *
- * `href`, `target` and `rel` stay Avatar's own props rather than being derived:
- * they are what *chooses* the element when `as` is absent (an `<a>` with an
- * `href`, a `<figure>` without one), so they have to be accepted before `as` is
- * known.
+ * `href`, `target` and `rel` are Avatar's own props only for a target that has
+ * none of its own: `<Avatar href="/x" />` needs no `as`, while
+ * `<Avatar as={NextLink} />` takes `next/link`'s `href` — required, and a URL
+ * object as readily as a string.
  *
  * The type parameter defaults to `'figure'`, not to `React.ElementType`.
  * Defaulting to the constraint sounds truer to a runtime default that is
@@ -152,12 +162,17 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
  *
  * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.
  */
-export type AvatarProps<T extends React.ElementType = 'figure'> =
-  AvatarOwnProps &
-    Omit<React.ComponentPropsWithoutRef<T>, keyof AvatarOwnProps | 'as'> & {
-      /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
-      as?: T;
-    };
+export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
+  AvatarOwnProps,
+  Extract<AvatarForwardedProp, keyof React.ComponentPropsWithoutRef<T>>
+> &
+  Omit<
+    React.ComponentPropsWithoutRef<T>,
+    Exclude<keyof AvatarOwnProps, AvatarForwardedProp> | 'as'
+  > & {
+    /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
+    as?: T;
+  };
 
 /**
  * The shape the implementation destructures. The public contract is the generic
@@ -274,7 +289,21 @@ export const Avatar = forwardRef(function Avatar(
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
   const isLinkLike =
     Tag === 'a' || typeof Tag !== 'string' || isCustomElement(Tag);
-  const linkProps = isLinkLike ? { href, target, rel } : {};
+  // Present-only, not `{ href, target, rel }`. An unconditional spread hands the
+  // target these keys whatever the caller passed, and a key existing is not free:
+  // a target with a default parameter has its default replaced by the
+  // `undefined`, and one that tests for the key sees a link where there is none.
+  // What stops a target that REQUIRES one from being rendered without it is the
+  // type (#665) — this is the smaller half, and the backstop for the callers a
+  // type does not reach: a plain-JavaScript one and a loose spread, the same pair
+  // `Button` and `Menu.Item` keep their own filters for.
+  const linkProps = isLinkLike
+    ? {
+        ...(href !== undefined && { href }),
+        ...(target !== undefined && { target }),
+        ...(rel !== undefined && { rel }),
+      }
+    : {};
 
   // alt coalesces with ?? (not ||) so an explicit alt="" survives as the
   // standard decorative marker instead of being overridden by name.
@@ -330,7 +359,7 @@ export const Avatar = forwardRef(function Avatar(
       {showDefaultIcon && <DefaultAvatarIcon />}
     </Tag>
   );
-}) as PolymorphicComponent<AvatarOwnProps, 'figure'>;
+}) as PolymorphicComponent<AvatarOwnProps, 'figure', AvatarForwardedProp>;
 
 Avatar.displayName = 'Avatar';
 

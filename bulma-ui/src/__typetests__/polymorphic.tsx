@@ -344,6 +344,107 @@ export const rejected = (
 );
 
 // --------------------------------------------------------------------------
+// #665 — an optional own prop must not hide a REQUIRED prop of the `as` target.
+//
+// `Own` is subtracted from the target's props so a Bulma `color` survives
+// instead of the DOM attribute of the same name. Avatar's `href`, `target` and
+// `rel` are the other kind of own prop: it FORWARDS them rather than consuming
+// them, so the subtraction runs the other way and the target's declaration is
+// the one that stands.
+// --------------------------------------------------------------------------
+
+/**
+ * `next/link`'s shape: `href` is required, takes a URL object as well as a
+ * string, and the component throws without one.
+ */
+const NextLink = React.forwardRef<
+  HTMLAnchorElement,
+  {
+    href: string | { pathname: string };
+    target?: string;
+    children?: React.ReactNode;
+  }
+>(function NextLink({ href, target, children }, ref) {
+  return (
+    <a
+      href={typeof href === 'string' ? href : href.pathname}
+      target={target}
+      ref={ref}
+    >
+      {children}
+    </a>
+  );
+});
+
+export const forwardedOwnPropTakesTheTargetsRequiredness = (
+  <>
+    {/* @ts-expect-error #665 — NextLink requires an href; Avatar's optional one no longer hides it */}
+    <Avatar as={NextLink} name="Ada" />
+    <Avatar as={NextLink} href="/ada" name="Ada" />
+  </>
+);
+
+// The other direction, and the reason the props are Avatar's at all: the own
+// declaration is what OFFERS them to a target that has none. Avatar's element is
+// CHOSEN by `href` — an `<a>` with one, a `<figure>` without — so yielding to the
+// target must not turn it into a prop only some targets accept.
+export const forwardedOwnPropSurvivesATargetWithout = (
+  <>
+    <Avatar href="/ada" name="Ada" />
+    <Avatar as="figure" href="/ada" name="Ada" />
+    <Avatar as="a" href="/ada" target="_blank" rel="noreferrer" name="Ada" />
+  </>
+);
+
+// Where the target declares one too, the TARGET's declaration is the one that
+// survives — Avatar only passes these along, so its own `href?: string` must not
+// narrow what the target accepts. `next/link` takes a URL object, and a
+// component forwarding the value has no reason to refuse one. Intersecting the
+// two declarations rejects this while still fixing the missing-`href` case
+// above, which is why the subtraction runs the other way for a forwarded prop.
+export const forwardedOwnPropYieldsToTheTarget = (
+  <Avatar as={NextLink} href={{ pathname: '/ada' }} name="Ada" />
+);
+
+// Yielding is not waving through: what the target rejects is still rejected.
+export const forwardedOwnPropKeepsTheTargetsType = (
+  <>
+    {/* @ts-expect-error a number is neither a string nor a URL object */}
+    <Avatar as={NextLink} href={42} name="Ada" />
+  </>
+);
+
+// `Menu.Item` is the same target and a different answer, because `href` is not
+// one of ITS own props — it left them in #641 and derives from `as` like
+// everything else, so nothing was ever hiding the required one.
+export const menuItemNeverShadowedHref = (
+  <>
+    {/* @ts-expect-error NextLink requires an href */}
+    <Menu.Item as={NextLink}>Reports</Menu.Item>
+    <Menu.Item as={NextLink} href="/reports">
+      Reports
+    </Menu.Item>
+  </>
+);
+
+/** A target whose required prop `Menu.Item` spends on its wrapping `<li>`. */
+const NeedsTitle = (props: { title: string; children?: React.ReactNode }) => (
+  <span title={props.title}>{props.children}</span>
+);
+
+// A prop the component CONSUMES is the half that stays as it was. `Menu.Item`
+// pins `title` and `style` to the wrapping `<li>`, so a target requiring either
+// never receives one — and the optional own declaration still satisfies the
+// check, which is why this compiles. Exempting them would be wrong, since the
+// value does not reach the target; erroring needs a distinction this mechanism
+// cannot draw, since `className` is consumed too and yet every component
+// composes one and passes it on. Pinned as a recorded decision: closing it
+// makes this line a type error that says where to look.
+export const consumedOwnPropStillShadows = (
+  <Menu.Item as={NeedsTitle}>Reports</Menu.Item>
+);
+
+// --------------------------------------------------------------------------
 // `Level.Item` (#672). It is NOT polymorphic: it enumerates the anchor's
 // attributes by subtracting `HTMLAttributes` from `AnchorHTMLAttributes`, and
 // withholds them at runtime for any tag that is not an `<a>`. Deriving them

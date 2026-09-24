@@ -137,6 +137,20 @@ Rules that keep components consistent:
   `PolymorphicComponentWithoutRef` and forwards none. That is the exception, not
   a licence to skip refs; everything a consumer might focus or measure should
   forward one.
+- **An own prop the component FORWARDS has to say so.** Subtracting `Own` from the
+  target's props is what keeps a Bulma `color` from being shadowed by the DOM
+  attribute, but it also lets an OPTIONAL own prop hide a REQUIRED prop of the
+  target: `Avatar`'s `href?: string` hid `next/link`'s required one, so
+  `<Avatar as={NextLink} name="Ada" />` compiled and the target was handed
+  nothing (#665). Name those props in the third type parameter —
+  `PolymorphicComponent<FooOwnProps, 'tag', 'href' | 'target'>`, with the
+  matching `Exclude`/`Extract` pair written out in the alias the way `Avatar.tsx`
+  does — and the target's declaration wins, while the own one still covers a
+  target that has no such prop. It defaults to naming none, which is the right
+  answer for a prop the component CONSUMES. Withholding an undefined value at
+  runtime belongs with it: a key that merely exists replaces a target's default
+  parameter.
+
 - **Element sizing uses an inline `'small' | 'medium' | 'large'` union**, mapped to `is-small` /
   `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`
   constant — that one is `'0'…'6' | 'auto'` and exists for **spacing** helpers, not element size.
