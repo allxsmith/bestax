@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # CSS Variables
 
-[Bulma v1 introduces comprehensive support for CSS custom properties (CSS variables)](https://bulma.io/documentation/features/css-variables/), enabling runtime customization without Sass compilation. bestax-bulma gives you a first-class React surface for all of them through the `Theme` component: named, camelCase props for the common variables, a `bulmaVars` escape hatch for the long tail, and automatic scoping so themes compose via React context — no manual style-sheet injection, no string concatenation, fully type-checked.
+[Bulma v1 introduces comprehensive support for CSS custom properties (CSS variables)](https://bulma.io/documentation/features/css-variables/), enabling runtime customization without Sass compilation. bestax-bulma gives you a React surface for them through the `Theme` component: named, camelCase props for the scheme and color variables, a typed `bulmaVars` object for the rest, and automatic scoping so nested themes compose through the CSS cascade — no manual style-sheet injection, no string concatenation, fully type-checked.
 
 :::info Bulma's canonical reference
 The authoritative documentation for every Bulma CSS variable lives on the Bulma site:
@@ -65,8 +65,10 @@ document.documentElement.style.setProperty('--bulma-scheme-h', '210deg');
 
 `Theme` is bestax's React wrapper for Bulma's CSS variables. Two things make it idiomatic to use from React rather than hand-writing `style.setProperty` calls:
 
-- **Named props for the common variables** — `primaryH`, `schemeH`, `radius`, `familyPrimary`, etc. TypeScript autocompletes them and catches typos at build time.
-- **`bulmaVars` for everything else** — a single object prop that accepts raw CSS variable names, so you never hit a ceiling.
+- **Named props for the scheme and color variables** — `schemeH`, `primaryH`, `linkS`, `dangerL`, and the rest of the HSL set. TypeScript autocompletes them and catches typos at build time.
+- **`bulmaVars` for everything else** — typography (`--bulma-family-primary`), radius (`--bulma-radius`), spacing, and the per-component variables, keyed by their full `--bulma-*` name. The keys are typed too, so they autocomplete and a misspelled one is a type error.
+
+Radius has no named prop because `radius` is already the `radiusless` helper prop, the same way `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
 
 Themes nest naturally: outer `<Theme>` sets app-wide defaults, inner ones scope overrides to a subtree. Use `isRoot` to inject variables at `:root` for true app-wide reach.
 
@@ -134,7 +136,7 @@ function AdvancedTheming() {
     '--bulma-title-color': 'hsl(0, 0%, 21%)',
     '--bulma-subtitle-color': 'hsl(0, 0%, 48%)',
     '--bulma-card-shadow': '0 8px 32px rgba(0, 0, 0, 0.1)',
-    '--bulma-button-border-radius': '12px',
+    '--bulma-radius': '12px',
   };
 
   return (
@@ -199,6 +201,8 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 ### Component-Specific Variables
 
 #### Button Variables
+
+`bulmaVars` does not accept the button variables, so set them in your own stylesheet on `.button`.
 
 | Variable                               | Description               |
 | -------------------------------------- | ------------------------- |

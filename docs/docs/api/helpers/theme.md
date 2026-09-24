@@ -139,32 +139,32 @@ function TypographyTheme() {
     '--bulma-family-code': '"Fira Code", monospace',
     '--bulma-size-normal': '16px',
     '--bulma-weight-bold': '700',
-    '--bestax-title-color': 'hsl(0, 0%, 21%)',
+    '--bulma-title-color': 'hsl(0, 0%, 21%)',
     '--bulma-subtitle-color': 'hsl(0, 0%, 48%)',
   };
 
   return (
     <Theme bulmaVars={typographyTheme}>
       <Title>Custom Typography</Title>
-      <Subtitle>With custom fonts and weights</Subtitle>
+      <SubTitle>With custom fonts and weights</SubTitle>
     </Theme>
   );
 }
 ```
 
 ```tsx
-function CustomButtonTheme() {
-  const customButton = {
-    '--bestax-button-border-radius': '12px',
-    '--bestax-button-padding-vertical': '0.75rem',
-    '--bestax-button-padding-horizontal': '1.5rem',
-    '--bestax-button-focus-box-shadow-size': '0 0 0 0.2rem',
-    '--bestax-button-focus-box-shadow-color': 'rgba(72, 95, 199, 0.25)',
+function RadiusTheme() {
+  // `radius` is the `radiusless` helper prop, so the radius scale goes through bulmaVars
+  const radii = {
+    '--bulma-radius-small': '6px',
+    '--bulma-radius': '12px',
+    '--bulma-radius-medium': '16px',
+    '--bulma-radius-large': '20px',
   };
 
   return (
-    <Theme bulmaVars={customButton}>
-      <Button color="primary">Custom Styled Button</Button>
+    <Theme isRoot bulmaVars={radii}>
+      <Button color="primary">Rounder Button</Button>
     </Theme>
   );
 }
@@ -176,8 +176,8 @@ function SpacingTheme() {
     '--bulma-block-spacing': '2rem',
     '--bulma-column-gap': '1rem',
     '--bulma-section-padding': '4rem 1.5rem',
-    '--bestax-box-padding': '2rem',
-    '--bestax-card-content-padding': '2rem',
+    '--bulma-box-padding': '2rem',
+    '--bulma-card-content-padding': '2rem',
   };
 
   return (
@@ -189,7 +189,7 @@ function SpacingTheme() {
           </Column>
           <Column>
             <Card>
-              <CardContent>Custom card padding</CardContent>
+              <Card.Content>Custom card padding</Card.Content>
             </Card>
           </Column>
         </Columns>
@@ -316,8 +316,8 @@ function PrefixedTheme() {
 ### CSS Variable Naming
 
 - All Bulma CSS variables follow the `--bulma-*` naming convention
-- Use the `bulmaVars` prop when you need to set variables not covered by individual props
-- Individual props (like `primaryH`) are converted to their corresponding CSS variable names
+- Named props exist for the scheme and color variables only (like `primaryH`); every other variable, typography and radius included, goes through `bulmaVars`
+- `bulmaVars` keys are the full variable names (`'--bulma-family-primary'`), not camelCase
 - `bulmaVars` also accepts the scheme surface variables — `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter`, `--bulma-scheme-invert`, `--bulma-scheme-invert-bis`, `--bulma-scheme-invert-ter` — so overriding `--bulma-scheme-main-bis`/`-ter` re-tints every scheme-background band (e.g., `<Section bgColor="scheme-main-bis">`) at once
 - `bulmaVars` also accepts `--bulma-shadow` (plus `--bulma-shadow-h`/`-s`/`-l`) — the upstream token that `.box`, `.card`, `.dropdown`, and `.panel` derive their own shadow variables from. Those selectors re-declare their derived variable (e.g. `--bulma-box-shadow`) on themselves, so setting it from an ancestor `Theme` is only inherited and never wins; overriding `--bulma-shadow` itself is the one override that cascades. There is no individual `shadow` prop for this — `shadow` already names the unrelated `shadowless` helper class — so reach it through `bulmaVars`
 
@@ -338,33 +338,60 @@ function PrefixedTheme() {
 
 ## API Reference
 
-### Prop to CSS Variable Conversion
+### Named Props and `bulmaVars`
 
-The Theme component automatically converts camelCase prop names to their corresponding CSS custom property names using the following pattern:
+`ThemeProps` has a named, camelCase prop for each scheme and color variable, listed under
+[CSS Variable Props](#css-variable-props). Each converts to its CSS variable by the same rule:
 
 ```
 propName → --bulma-prop-name
 ```
 
-**Examples:**
-
 - `primaryH` → `--bulma-primary-h`
 - `schemeS` → `--bulma-scheme-s`
 - `lightL` → `--bulma-light-l`
 - `hoverBackgroundLDelta` → `--bulma-hover-background-l-delta`
-- `cardContentPadding` → `--bestax-card-content-padding`
 
-### Prop vs bulmaVars
+Every other variable (typography, radius, spacing, and the per-component variables) has no named
+prop and goes through `bulmaVars`, keyed by its full `--bulma-*` name:
 
-You can use CSS variables in two ways:
+```tsx
+<Theme
+  isRoot
+  primaryH="350"
+  primaryS="73%"
+  primaryL="44%"
+  bulmaVars={{
+    '--bulma-radius': '2px',
+    '--bulma-radius-small': '1px',
+    '--bulma-family-primary': '"IBM Plex Sans", system-ui, sans-serif',
+    '--bulma-family-code': '"IBM Plex Mono", ui-monospace, monospace',
+  }}
+>
+  <App />
+</Theme>
+```
 
-1. **Individual Props** (recommended for commonly used variables):
+Two variables could never be named props, because the name is already a helper prop that
+`Theme` accepts for its wrapper:
+
+- `radius` is the `radiusless` helper, so `<Theme radius="2px" />` is a type error. Set
+  `--bulma-radius` through `bulmaVars`.
+- `shadow` is the `shadowless` helper. Set `--bulma-shadow` through `bulmaVars`.
+
+### Props vs bulmaVars
+
+You can set the scheme and color variables in two ways:
+
+1. **Named Props** (recommended where one exists):
 
    ```tsx
-   <Theme primaryH="270" primaryS="100%" primaryL="50%" />
+   <Theme primaryH="270" primaryS="100%" primaryL="50%">
+     <App />
+   </Theme>
    ```
 
-2. **bulmaVars Object** (for less common variables or when you have many variables):
+2. **bulmaVars Object** (for every other variable, or when you have many to set):
 
    ```tsx
    <Theme
@@ -372,9 +399,11 @@ You can use CSS variables in two ways:
        '--bulma-primary-h': '270',
        '--bulma-primary-s': '100%',
        '--bulma-primary-l': '50%',
-       '--bestax-card-content-padding': '2rem',
+       '--bulma-card-content-padding': '2rem',
      }}
-   />
+   >
+     <App />
+   </Theme>
    ```
 
 3. **Combined** (props take precedence over bulmaVars):
@@ -383,273 +412,27 @@ You can use CSS variables in two ways:
      primaryH="270" // This takes precedence
      bulmaVars={{
        '--bulma-primary-h': '180', // This is overridden
-       '--bestax-card-content-padding': '2rem',
+       '--bulma-card-content-padding': '2rem',
      }}
-   />
+   >
+     <App />
+   </Theme>
    ```
-
-### All Supported Props
-
-The Theme component supports props for all 500+ Bulma CSS variables. Here's the complete list organized by category:
-
-**Scheme & Base Color Props:**
-
-- `schemeH`, `schemeS`, `lightL`, `lightInvertL`, `darkL`, `darkInvertL`
-- `softL`, `boldL`, `softInvertL`, `boldInvertL`
-- `hoverBackgroundLDelta`, `activeBackgroundLDelta`, `hoverBorderLDelta`, `activeBorderLDelta`
-- `hoverColorLDelta`, `activeColorLDelta`, `hoverShadowADelta`, `activeShadowADelta`
-
-**Color Props:**
-
-- `primaryH`, `primaryS`, `primaryL`, `linkH`, `linkS`, `linkL`
-- `infoH`, `infoS`, `infoL`, `successH`, `successS`, `successL`
-- `warningH`, `warningS`, `warningL`, `dangerH`, `dangerS`, `dangerL`
-
-**Typography Props:**
-
-- `familyPrimary`, `familySecondary`, `familyCode`
-- `sizeSmall`, `sizeNormal`, `sizeMedium`, `sizeLarge`
-- `weightLight`, `weightNormal`, `weightMedium`, `weightSemibold`, `weightBold`, `weightExtrabold`
-- `bodyBackgroundColor`, `bodySize`, `bodyMinWidth`, `bodyRendering`, `bodyFamily`
-- `bodyOverflowX`, `bodyOverflowY`, `bodyColor`, `bodyFontSize`, `bodyWeight`, `bodyLineHeight`
-- `codeFamily`, `codePadding`, `codeWeight`, `codeSize`, `smallFontSize`
-- `hrBackgroundColor`, `hrHeight`, `hrMargin`, `strongColor`, `strongWeight`
-- `preFontSize`, `prePadding`, `preCodeFontSize`
-
-**Layout & Spacing Props:**
-
-- `blockSpacing`, `duration`, `easing`, `speed`, `arrowColor`, `loadingColor`
-- `radiusSmall`, `radius`, `radiusMedium`, `radiusLarge`, `radiusRounded`
-- `columnGap`, `gridGap`, `gridColumnCount`, `gridColumnMin`
-- `gridCellColumnSpan`, `gridCellColumnStart`
-
-**Box Props:**
-
-- `boxBackgroundColor`, `boxColor`, `boxRadius`, `boxShadow`, `boxPadding`
-- `boxLinkHoverShadow`, `boxLinkActiveShadow`
-
-**Breadcrumb Props:**
-
-- `breadcrumbItemColor`, `breadcrumbItemHoverColor`, `breadcrumbItemActiveColor`
-- `breadcrumbItemPaddingVertical`, `breadcrumbItemPaddingHorizontal`, `breadcrumbItemSeparatorColor`
-
-**Burger Props:**
-
-- `burgerH`, `burgerS`, `burgerL`, `burgerBorderRadius`, `burgerGap`
-- `burgerItemHeight`, `burgerItemWidth`
-
-**Card Props:**
-
-- `cardColor`, `cardBackgroundColor`, `cardShadow`, `cardRadius`
-- `cardHeaderBackgroundColor`, `cardHeaderColor`, `cardHeaderPadding`
-- `cardHeaderShadow`, `cardHeaderWeight`, `cardContentBackgroundColor`
-- `cardContentPadding`, `cardFooterBackgroundColor`, `cardFooterBorderTop`
-- `cardFooterPadding`, `cardMediaMargin`
-
-**Content Props:**
-
-- `contentHeadingColor`, `contentHeadingWeight`, `contentHeadingLineHeight`
-- `contentBlockMarginBottom`, `contentBlockquoteBackgroundColor`, `contentBlockquoteBorderLeft`
-- `contentBlockquotePadding`, `contentPrePadding`, `contentTableCellBorder`
-- `contentTableCellBorderWidth`, `contentTableCellPadding`, `contentTableCellHeadingColor`
-- `contentTableHeadCellBorderWidth`, `contentTableHeadCellColor`
-- `contentTableBodyLastRowCellBorderBottomWidth`, `contentTableFootCellBorderWidth`
-- `contentTableFootCellColor`
-
-**Control Props:**
-
-- `controlRadius`, `controlRadiusSmall`, `controlBorderWidth`, `controlHeight`
-- `controlLineHeight`, `controlPaddingVertical`, `controlPaddingHorizontal`
-- `controlSize`, `controlFocusShadowL`
-
-**Delete Props:**
-
-- `deleteDimensions`, `deleteBackgroundL`, `deleteBackgroundAlpha`, `deleteColor`
-
-**Dropdown Props:**
-
-- `dropdownMenuMinWidth`, `dropdownContentBackgroundColor`, `dropdownContentOffset`
-- `dropdownContentPaddingBottom`, `dropdownContentPaddingTop`, `dropdownContentRadius`
-- `dropdownContentShadow`, `dropdownContentZ`, `dropdownItemH`, `dropdownItemS`
-- `dropdownItemL`, `dropdownItemBackgroundL`, `dropdownItemBackgroundLDelta`
-- `dropdownItemHoverBackgroundLDelta`, `dropdownItemActiveBackgroundLDelta`
-- `dropdownItemColorL`, `dropdownItemSelectedH`, `dropdownItemSelectedS`
-- `dropdownItemSelectedL`, `dropdownItemSelectedBackgroundL`, `dropdownItemSelectedColorL`
-- `dropdownDividerBackgroundColor`
-
-**File Props:**
-
-- `fileRadius`, `fileNameBorderColor`, `fileNameBorderStyle`, `fileNameBorderWidth`
-- `fileNameMaxWidth`, `fileH`, `fileS`, `fileBackgroundL`, `fileBackgroundLDelta`
-- `fileHoverBackgroundLDelta`, `fileActiveBackgroundLDelta`, `fileBorderL`
-- `fileBorderLDelta`, `fileHoverBorderLDelta`, `fileActiveBorderLDelta`
-- `fileCtaColorL`, `fileNameColorL`, `fileColorLDelta`, `fileHoverColorLDelta`
-- `fileActiveColorLDelta`
-
-**Footer Props:**
-
-- `footerBackgroundColor`, `footerColor`, `footerPadding`
-
-**Hero Props:**
-
-- `heroBodyPadding`, `heroBodyPaddingTablet`, `heroBodyPaddingSmall`
-- `heroBodyPaddingMedium`, `heroBodyPaddingLarge`
-
-**Icon Props:**
-
-- `iconDimensions`, `iconDimensionsSmall`, `iconDimensionsMedium`
-- `iconDimensionsLarge`, `iconTextSpacing`
-
-**Input Props:**
-
-- `inputH`, `inputS`, `inputL`, `inputBorderStyle`, `inputBorderL`
-- `inputBorderLDelta`, `inputHoverBorderLDelta`, `inputActiveBorderLDelta`
-- `inputFocusH`, `inputFocusS`, `inputFocusL`, `inputFocusShadowSize`
-- `inputFocusShadowAlpha`, `inputColorL`, `inputBackgroundL`, `inputBackgroundLDelta`
-- `inputHeight`, `inputShadow`, `inputPlaceholderColor`, `inputDisabledColor`
-- `inputDisabledBackgroundColor`, `inputDisabledBorderColor`, `inputDisabledPlaceholderColor`
-- `inputArrow`, `inputIconColor`, `inputIconHoverColor`, `inputIconFocusColor`, `inputRadius`
-
-**Media Props:**
-
-- `mediaBorderColor`, `mediaBorderSize`, `mediaSpacing`, `mediaSpacingLarge`
-- `mediaContentSpacing`, `mediaLevel1Spacing`, `mediaLevel1ContentSpacing`, `mediaLevel2Spacing`
-
-**Menu Props:**
-
-- `menuItemH`, `menuItemS`, `menuItemL`, `menuItemBackgroundL`, `menuItemBackgroundLDelta`
-- `menuItemHoverBackgroundLDelta`, `menuItemActiveBackgroundLDelta`, `menuItemColorL`
-- `menuItemRadius`, `menuItemSelectedH`, `menuItemSelectedS`, `menuItemSelectedL`
-- `menuItemSelectedBackgroundL`, `menuItemSelectedColorL`, `menuListBorderLeft`
-- `menuListLineHeight`, `menuListLinkPadding`, `menuNestedListMargin`
-- `menuNestedListPaddingLeft`, `menuLabelColor`, `menuLabelFontSize`
-- `menuLabelLetterSpacing`, `menuLabelSpacing`
-
-**Message Props:**
-
-- `messageH`, `messageS`, `messageBackgroundL`, `messageBorderL`, `messageBorderLDelta`
-- `messageBorderStyle`, `messageBorderWidth`, `messageColorL`, `messageRadius`
-- `messageHeaderWeight`, `messageHeaderPadding`, `messageHeaderRadius`
-- `messageHeaderBodyBorderWidth`, `messageHeaderBackgroundL`, `messageHeaderColorL`
-- `messageBodyBorderWidth`, `messageBodyColor`, `messageBodyPadding`
-- `messageBodyRadius`, `messageBodyPreCodeBackgroundColor`
-
-**Modal Props:**
-
-- `modalZ`, `modalBackgroundBackgroundColor`, `modalContentWidth`, `modalContentMarginMobile`
-- `modalContentSpacingMobile`, `modalContentSpacingTablet`, `modalCloseDimensions`
-- `modalCloseRight`, `modalCloseTop`, `modalCardSpacing`, `modalCardHeadBackgroundColor`
-- `modalCardHeadPadding`, `modalCardHeadRadius`, `modalCardTitleColor`
-- `modalCardTitleLineHeight`, `modalCardTitleSize`, `modalCardFootBackgroundColor`
-- `modalCardFootRadius`, `modalCardBodyBackgroundColor`, `modalCardBodyPadding`
-
-**Navbar Props:**
-
-- `navbarH`, `navbarS`, `navbarL`, `navbarBackgroundColor`, `navbarBoxShadowSize`
-- `navbarBoxShadowColor`, `navbarPaddingVertical`, `navbarPaddingHorizontal`
-- `navbarZ`, `navbarFixedZ`, `navbarItemBackgroundA`, `navbarItemBackgroundL`
-- `navbarItemBackgroundLDelta`, `navbarItemHoverBackgroundLDelta`, `navbarItemActiveBackgroundLDelta`
-- `navbarItemColorL`, `navbarItemSelectedH`, `navbarItemSelectedS`, `navbarItemSelectedL`
-- `navbarItemSelectedBackgroundL`, `navbarItemSelectedColorL`, `navbarItemImgMaxHeight`
-- `navbarBurgerColor`, `navbarTabHoverBackgroundColor`, `navbarTabHoverBorderBottomColor`
-- `navbarTabActiveColor`, `navbarTabActiveBackgroundColor`, `navbarTabActiveBorderBottomColor`
-- `navbarTabActiveBorderBottomStyle`, `navbarTabActiveBorderBottomWidth`
-- `navbarDropdownBackgroundColor`, `navbarDropdownBorderL`, `navbarDropdownBorderColor`
-- `navbarDropdownBorderStyle`, `navbarDropdownBorderWidth`, `navbarDropdownOffset`
-- `navbarDropdownArrow`, `navbarDropdownRadius`, `navbarDropdownZ`
-- `navbarDropdownBoxedRadius`, `navbarDropdownBoxedShadow`, `navbarDropdownItemH`
-- `navbarDropdownItemS`, `navbarDropdownItemL`, `navbarDropdownItemBackgroundL`
-- `navbarDropdownItemColorL`, `navbarDividerBackgroundL`, `navbarDividerHeight`
-- `navbarBottomBoxShadowSize`
-
-**Notification Props:**
-
-- `notificationH`, `notificationS`, `notificationBackgroundL`, `notificationColorL`
-- `notificationCodeBackgroundColor`, `notificationRadius`, `notificationPadding`
-
-**Pagination Props:**
-
-- `paginationMargin`, `paginationMinWidth`, `paginationItemH`, `paginationItemS`
-- `paginationItemL`, `paginationItemBackgroundLDelta`, `paginationItemHoverBackgroundLDelta`
-- `paginationItemActiveBackgroundLDelta`, `paginationItemBorderStyle`, `paginationItemBorderWidth`
-- `paginationItemBorderL`, `paginationItemBorderLDelta`, `paginationItemHoverBorderLDelta`
-- `paginationItemActiveBorderLDelta`, `paginationItemFocusBorderLDelta`, `paginationItemColorL`
-- `paginationItemFontSize`, `paginationItemMargin`, `paginationItemPaddingLeft`
-- `paginationItemPaddingRight`, `paginationItemOuterShadowH`, `paginationItemOuterShadowS`
-- `paginationItemOuterShadowL`, `paginationItemOuterShadowA`, `paginationNavPaddingLeft`
-- `paginationNavPaddingRight`, `paginationDisabledColor`, `paginationDisabledBackgroundColor`
-- `paginationDisabledBorderColor`, `paginationCurrentColor`, `paginationCurrentBackgroundColor`
-- `paginationCurrentBorderColor`, `paginationEllipsisColor`, `paginationShadowInset`
-- `paginationSelectedItemH`, `paginationSelectedItemS`, `paginationSelectedItemL`
-- `paginationSelectedItemBackgroundL`, `paginationSelectedItemBorderL`, `paginationSelectedItemColorL`
-
-**Panel Props:**
-
-- `panelMargin`, `panelItemBorder`, `panelRadius`, `panelShadow`, `panelHeadingLineHeight`
-- `panelHeadingPadding`, `panelHeadingRadius`, `panelHeadingSize`, `panelHeadingWeight`
-- `panelTabsFontSize`, `panelTabBorderBottomColor`, `panelTabBorderBottomStyle`
-- `panelTabBorderBottomWidth`, `panelTabActiveColor`, `panelListItemColor`
-- `panelListItemHoverColor`, `panelBlockColor`, `panelBlockHoverBackgroundColor`
-- `panelBlockActiveBorderLeftColor`, `panelBlockActiveColor`, `panelBlockActiveIconColor`
-- `panelIconColor`
-
-**Progress Props:**
-
-- `progressBorderRadius`, `progressBarBackgroundColor`, `progressValueBackgroundColor`
-- `progressIndeterminateDuration`
-
-**Section Props:**
-
-- `sectionPadding`, `sectionPaddingDesktop`, `sectionPaddingMedium`, `sectionPaddingLarge`
-
-**Skeleton Props:**
-
-- `skeletonBackground`, `skeletonRadius`, `skeletonBlockMinHeight`, `skeletonLinesGap`
-- `skeletonLineHeight`
-
-**Table Props:**
-
-- `tableColor`, `tableBackgroundColor`, `tableCellBorderColor`, `tableCellBorderStyle`
-- `tableCellBorderWidth`, `tableCellPadding`, `tableCellHeadingColor`, `tableCellTextAlign`
-- `tableHeadCellBorderWidth`, `tableHeadCellColor`, `tableFootCellBorderWidth`
-- `tableFootCellColor`, `tableHeadBackgroundColor`, `tableBodyBackgroundColor`
-- `tableFootBackgroundColor`, `tableRowHoverBackgroundColor`, `tableRowActiveBackgroundColor`
-- `tableRowActiveColor`, `tableStripedRowEvenBackgroundColor`, `tableStripedRowEvenHoverBackgroundColor`
-
-**Tabs Props:**
-
-- `tabsBorderBottomColor`, `tabsBorderBottomStyle`, `tabsBorderBottomWidth`
-- `tabsLinkColor`, `tabsLinkHoverBorderBottomColor`, `tabsLinkHoverColor`
-- `tabsLinkActiveBorderBottomColor`, `tabsLinkActiveColor`, `tabsLinkPadding`
-- `tabsBoxedLinkRadius`, `tabsBoxedLinkHoverBackgroundColor`, `tabsBoxedLinkHoverBorderBottomColor`
-- `tabsBoxedLinkActiveBackgroundColor`, `tabsBoxedLinkActiveBorderColor`
-- `tabsBoxedLinkActiveBorderBottomColor`, `tabsToggleLinkBorderColor`, `tabsToggleLinkBorderStyle`
-- `tabsToggleLinkBorderWidth`, `tabsToggleLinkHoverBackgroundColor`, `tabsToggleLinkHoverBorderColor`
-- `tabsToggleLinkRadius`, `tabsToggleLinkActiveBackgroundColor`, `tabsToggleLinkActiveBorderColor`
-- `tabsToggleLinkActiveColor`
-
-**Tag Props:**
-
-- `tagH`, `tagS`, `tagBackgroundL`, `tagBackgroundLDelta`, `tagHoverBackgroundLDelta`
-- `tagActiveBackgroundLDelta`, `tagColorL`, `tagRadius`, `tagDeleteMargin`
-
-**Title & Subtitle Props:**
-
-- `titleColor`, `titleFamily`, `titleSize`, `titleWeight`, `titleLineHeight`
-- `titleStrongColor`, `titleStrongWeight`, `titleSubSize`, `titleSupSize`
-- `subtitleColor`, `subtitleFamily`, `subtitleSize`, `subtitleWeight`
-- `subtitleLineHeight`, `subtitleStrongColor`, `subtitleStrongWeight`
 
 ### TypeScript Support
 
-All props are fully typed in TypeScript. Use IDE autocomplete to discover available props:
+`bulmaVars` is typed as a partial record keyed by the union of every variable `Theme` can set, so
+your editor autocompletes the keys and a misspelled or unsupported key is a type error:
 
 ```tsx
-// TypeScript will provide autocomplete for all available props
 <Theme
   primaryH="270"
-  cardContent={/* TypeScript autocomplete will show all card-related props */}
-/>
+  bulmaVars={{
+    '--bulma-card-content-padding': '2rem', // start typing '--bulma-card' to list the rest
+  }}
+>
+  <App />
+</Theme>
 ```
 
 ---
@@ -664,13 +447,13 @@ All props are fully typed in TypeScript. Use IDE autocomplete to discover availa
 
 ## Props
 
-| Prop        | Type                            | Description                                                                                                                                                                                                                                               |
-| ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`                     | The child components to apply the theme to.                                                                                                                                                                                                               |
-| `className` | `string`                        | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
-| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
-| `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
-| `bulmaVars` | `Record<string, string>`        | Object containing CSS custom properties as key-value pairs (e.g., `{'--bulma-primary-h': '210'}`).                                                                                                                                                        |
+| Prop        | Type                                   | Description                                                                                                                                                                                                                                               |
+| ----------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`                            | The child components to apply the theme to.                                                                                                                                                                                                               |
+| `className` | `string`                               | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
+| `isRoot`    | `boolean`                              | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
+| `colorMode` | `'light' \| 'dark' \| 'system'`        | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
+| `bulmaVars` | `Partial<Record<BulmaVarKey, string>>` | Object mapping Bulma CSS variable names to values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is a type error and is not applied.                                                               |
 
 ### CSS Variable Props
 
@@ -737,7 +520,7 @@ override that cascades into `.box`/`.card`/`.dropdown`/`.panel` shadows.
 
 #### Complete CSS Variables List
 
-The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars` prop and individual props:
+These are the keys `bulmaVars` accepts, in addition to the scheme, color, and shadow variables above. None of them has a named prop:
 
 **Typography Variables:**
 
@@ -761,8 +544,8 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Box Variables:**
 
-- `--bestax-box-background-color`, `--bestax-box-color`, `--bestax-box-radius`, `--bestax-box-shadow`
-- `--bestax-box-padding`, `--bestax-box-link-hover-shadow`, `--bestax-box-link-active-shadow`
+- `--bulma-box-background-color`, `--bulma-box-color`, `--bulma-box-radius`, `--bulma-box-shadow`
+- `--bulma-box-padding`, `--bulma-box-link-hover-shadow`, `--bulma-box-link-active-shadow`
 
 **Breadcrumb Variables:**
 
@@ -772,12 +555,12 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Card Variables:**
 
-- `--bestax-card-color`, `--bestax-card-background-color`, `--bestax-card-shadow`, `--bestax-card-radius`
-- `--bestax-card-header-background-color`, `--bestax-card-header-color`, `--bestax-card-header-padding`
-- `--bestax-card-header-shadow`, `--bestax-card-header-weight`
-- `--bestax-card-content-background-color`, `--bestax-card-content-padding`
-- `--bestax-card-footer-background-color`, `--bestax-card-footer-border-top`, `--bestax-card-footer-padding`
-- `--bestax-card-media-margin`
+- `--bulma-card-color`, `--bulma-card-background-color`, `--bulma-card-shadow`, `--bulma-card-radius`
+- `--bulma-card-header-background-color`, `--bulma-card-header-color`, `--bulma-card-header-padding`
+- `--bulma-card-header-shadow`, `--bulma-card-header-weight`
+- `--bulma-card-content-background-color`, `--bulma-card-content-padding`
+- `--bulma-card-footer-background-color`, `--bulma-card-footer-border-top`, `--bulma-card-footer-padding`
+- `--bulma-card-media-margin`
 
 **Dropdown Variables:**
 
@@ -870,9 +653,9 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Notification Variables:**
 
-- `--bestax-notification-h`, `--bestax-notification-s`, `--bestax-notification-background-l`
-- `--bestax-notification-color-l`, `--bestax-notification-code-background-color`
-- `--bestax-notification-radius`, `--bestax-notification-padding`
+- `--bulma-notification-h`, `--bulma-notification-s`, `--bulma-notification-background-l`
+- `--bulma-notification-color-l`, `--bulma-notification-code-background-color`
+- `--bulma-notification-radius`, `--bulma-notification-padding`
 
 **Pagination Variables:**
 
@@ -953,9 +736,9 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Title & Subtitle Variables:**
 
-- `--bestax-title-color`, `--bestax-title-family`, `--bestax-title-size`, `--bestax-title-weight`
-- `--bestax-title-line-height`, `--bestax-title-strong-color`, `--bestax-title-strong-weight`
-- `--bestax-title-sub-size`, `--bestax-title-sup-size`
+- `--bulma-title-color`, `--bulma-title-family`, `--bulma-title-size`, `--bulma-title-weight`
+- `--bulma-title-line-height`, `--bulma-title-strong-color`, `--bulma-title-strong-weight`
+- `--bulma-title-sub-size`, `--bulma-title-sup-size`
 - `--bulma-subtitle-color`, `--bulma-subtitle-family`, `--bulma-subtitle-size`, `--bulma-subtitle-weight`
 - `--bulma-subtitle-line-height`, `--bulma-subtitle-strong-color`, `--bulma-subtitle-strong-weight`
 
