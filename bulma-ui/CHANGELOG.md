@@ -1,3 +1,11 @@
+## [5.16.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.7...@allxsmith/bestax-bulma@5.16.8) (2026-09-24)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep `Own` untouched when no prop is forwarded ([cc3e976](https://github.com/allxsmith/bestax/commit/cc3e9765b1ae6ee4a77aed382118245a0a965908))
+* **bulma-ui:** stop an optional own prop hiding a required prop of the `as` target ([f59b138](https://github.com/allxsmith/bestax/commit/f59b138492568424e66ce0179a838a5373117a70)), closes [#665](https://github.com/allxsmith/bestax/issues/665)
+
 ## [5.16.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.6...@allxsmith/bestax-bulma@5.16.7) (2026-09-22)
 
 
