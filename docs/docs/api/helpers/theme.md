@@ -132,6 +132,10 @@ function SunsetTheme() {
 
 ### Advanced CSS Variables Usage
 
+Bulma derives the body font and the control radius from these variables once, at `:root`, so
+set typography and radius on an `isRoot` theme. A scoped theme changes the variables on its
+wrapper, but nothing inside reads them from there.
+
 ```tsx
 function TypographyTheme() {
   const typographyTheme = {
@@ -139,12 +143,10 @@ function TypographyTheme() {
     '--bulma-family-code': '"Fira Code", monospace',
     '--bulma-size-normal': '16px',
     '--bulma-weight-bold': '700',
-    '--bulma-title-color': 'hsl(0, 0%, 21%)',
-    '--bulma-subtitle-color': 'hsl(0, 0%, 48%)',
   };
 
   return (
-    <Theme bulmaVars={typographyTheme}>
+    <Theme isRoot bulmaVars={typographyTheme}>
       <Title>Custom Typography</Title>
       <SubTitle>With custom fonts and weights</SubTitle>
     </Theme>
@@ -154,7 +156,7 @@ function TypographyTheme() {
 
 ```tsx
 function RadiusTheme() {
-  // `radius` is the `radiusless` helper prop, so the radius scale goes through bulmaVars
+  // `radius` is typed as the `radiusless` helper, so the radius scale goes through bulmaVars
   const radii = {
     '--bulma-radius-small': '6px',
     '--bulma-radius': '12px',
@@ -170,30 +172,27 @@ function RadiusTheme() {
 }
 ```
 
+Spacing that Bulma reads where it is used, such as the block and column gaps, works on a scoped
+theme:
+
 ```tsx
 function SpacingTheme() {
   const spacingTheme = {
     '--bulma-block-spacing': '2rem',
     '--bulma-column-gap': '1rem',
-    '--bulma-section-padding': '4rem 1.5rem',
-    '--bulma-box-padding': '2rem',
-    '--bulma-card-content-padding': '2rem',
   };
 
   return (
     <Theme bulmaVars={spacingTheme}>
-      <Section>
-        <Columns>
-          <Column>
-            <Box>Content with custom spacing</Box>
-          </Column>
-          <Column>
-            <Card>
-              <Card.Content>Custom card padding</Card.Content>
-            </Card>
-          </Column>
-        </Columns>
-      </Section>
+      <Columns>
+        <Column>
+          <Box>Wider column gap</Box>
+          <Box>Wider block spacing</Box>
+        </Column>
+        <Column>
+          <Box>Wider column gap</Box>
+        </Column>
+      </Columns>
     </Theme>
   );
 }
@@ -352,8 +351,10 @@ propName → --bulma-prop-name
 - `lightL` → `--bulma-light-l`
 - `hoverBackgroundLDelta` → `--bulma-hover-background-l-delta`
 
-Every other variable (typography, radius, spacing, and the per-component variables) has no named
-prop and goes through `bulmaVars`, keyed by its full `--bulma-*` name:
+Every other variable (typography, radius, spacing, and the rest) has no named prop in
+`ThemeProps` and goes through `bulmaVars`, keyed by its full `--bulma-*` name. JavaScript code
+that passes one as a camelCase prop (`familyPrimary`) may still render, but it is outside the
+typed API, so move it to `bulmaVars`:
 
 ```tsx
 <Theme
@@ -372,10 +373,9 @@ prop and goes through `bulmaVars`, keyed by its full `--bulma-*` name:
 </Theme>
 ```
 
-Two variables could never be named props, because the name is already a helper prop that
-`Theme` accepts for its wrapper:
+Two of those names are already helper props, so they cannot double as CSS-variable props:
 
-- `radius` is the `radiusless` helper, so `<Theme radius="2px" />` is a type error. Set
+- `radius` is typed as the `radiusless` helper, so `<Theme radius="2px" />` is a type error. Set
   `--bulma-radius` through `bulmaVars`.
 - `shadow` is the `shadowless` helper. Set `--bulma-shadow` through `bulmaVars`.
 
@@ -399,7 +399,7 @@ You can set the scheme and color variables in two ways:
        '--bulma-primary-h': '270',
        '--bulma-primary-s': '100%',
        '--bulma-primary-l': '50%',
-       '--bulma-card-content-padding': '2rem',
+       '--bulma-block-spacing': '2rem',
      }}
    >
      <App />
@@ -412,7 +412,7 @@ You can set the scheme and color variables in two ways:
      primaryH="270" // This takes precedence
      bulmaVars={{
        '--bulma-primary-h': '180', // This is overridden
-       '--bulma-card-content-padding': '2rem',
+       '--bulma-block-spacing': '2rem',
      }}
    >
      <App />
@@ -421,14 +421,17 @@ You can set the scheme and color variables in two ways:
 
 ### TypeScript Support
 
-`bulmaVars` is typed as a partial record keyed by the union of every variable `Theme` can set, so
-your editor autocompletes the keys and a misspelled or unsupported key is a type error:
+`bulmaVars` is typed as a partial record keyed by the union of every variable `Theme` can set.
+Write it as an object literal and your editor autocompletes the keys and flags a misspelled or
+unsupported one as a type error. A separately declared object only has to share one valid key
+to typecheck, so a typo in it is silently dropped; annotate it with
+`satisfies ThemeProps['bulmaVars']` to keep the check:
 
 ```tsx
 <Theme
   primaryH="270"
   bulmaVars={{
-    '--bulma-card-content-padding': '2rem', // start typing '--bulma-card' to list the rest
+    '--bulma-block-spacing': '2rem', // start typing '--bulma-' to list the rest
   }}
 >
   <App />
@@ -453,7 +456,7 @@ your editor autocompletes the keys and a misspelled or unsupported key is a type
 | `className` | `string`                               | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
 | `isRoot`    | `boolean`                              | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
 | `colorMode` | `'light' \| 'dark' \| 'system'`        | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
-| `bulmaVars` | `Partial<Record<BulmaVarKey, string>>` | Object mapping Bulma CSS variable names to values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is a type error and is not applied.                                                               |
+| `bulmaVars` | `Partial<Record<BulmaVarKey, string>>` | Object mapping Bulma CSS variable names to values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is not applied.                                                                                   |
 
 ### CSS Variable Props
 
@@ -520,7 +523,19 @@ override that cascades into `.box`/`.card`/`.dropdown`/`.panel` shadows.
 
 #### Complete CSS Variables List
 
-These are the keys `bulmaVars` accepts, in addition to the scheme, color, and shadow variables above. None of them has a named prop:
+These are the keys `bulmaVars` accepts, in addition to the scheme, color, and shadow variables
+above. None of them has a named prop.
+
+Bulma declares many per-component variables (`--bulma-card-*`, `--bulma-title-*`,
+`--bulma-box-*`, …) on the component's own selector. That declaration beats a value the
+component would inherit from a `Theme` wrapper, the same way the shadow note in
+[CSS Variable Naming](#css-variable-naming) describes, so check where Bulma declares a variable
+before relying on a `Theme` override of it.
+
+**Scheme Surface Variables:**
+
+- `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter`
+- `--bulma-scheme-invert`, `--bulma-scheme-invert-bis`, `--bulma-scheme-invert-ter`
 
 **Typography Variables:**
 

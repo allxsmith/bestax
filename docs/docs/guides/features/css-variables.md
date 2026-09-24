@@ -66,9 +66,9 @@ document.documentElement.style.setProperty('--bulma-scheme-h', '210deg');
 `Theme` is bestax's React wrapper for Bulma's CSS variables. Two things make it idiomatic to use from React rather than hand-writing `style.setProperty` calls:
 
 - **Named props for the scheme and color variables** — `schemeH`, `primaryH`, `linkS`, `dangerL`, and the rest of the HSL set. TypeScript autocompletes them and catches typos at build time.
-- **`bulmaVars` for everything else** — typography (`--bulma-family-primary`), radius (`--bulma-radius`), spacing, and the per-component variables, keyed by their full `--bulma-*` name. The keys are typed too, so they autocomplete and a misspelled one is a type error.
+- **`bulmaVars` for everything else** — typography (`--bulma-family-primary`), radius (`--bulma-radius`), spacing, and the rest, keyed by their full `--bulma-*` name. The keys are typed too: written as an object literal, they autocomplete and a misspelled one is a type error.
 
-Radius has no named prop because `radius` is already the `radiusless` helper prop, the same way `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
+Radius and shadow have no named props because both names are already helper props: `radius` is typed as the `radiusless` helper and `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
 
 Themes nest naturally: outer `<Theme>` sets app-wide defaults, inner ones scope overrides to a subtree. Use `isRoot` to inject variables at `:root` for true app-wide reach.
 
@@ -124,7 +124,9 @@ function ScopedTheming() {
 
 ### Using bulmaVars Object
 
-For less common variables or when you have many to set:
+For less common variables or when you have many to set. Bulma derives the body font and the
+control radius from these variables once, at `:root`, so typography and radius belong on an
+`isRoot` theme:
 
 ```tsx
 function AdvancedTheming() {
@@ -133,14 +135,12 @@ function AdvancedTheming() {
     '--bulma-family-code': '"Fira Code", monospace',
     '--bulma-size-normal': '16px',
     '--bulma-weight-bold': '700',
-    '--bulma-title-color': 'hsl(0, 0%, 21%)',
-    '--bulma-subtitle-color': 'hsl(0, 0%, 48%)',
-    '--bulma-card-shadow': '0 8px 32px rgba(0, 0, 0, 0.1)',
+    '--bulma-shadow': '0 8px 32px rgba(0, 0, 0, 0.1)',
     '--bulma-radius': '12px',
   };
 
   return (
-    <Theme bulmaVars={customTheme}>
+    <Theme isRoot bulmaVars={customTheme}>
       <Box p="4">
         <Title>Custom Typography & Styling</Title>
         <Button color="primary">Custom Styled Button</Button>
@@ -202,7 +202,7 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 
 #### Button Variables
 
-`bulmaVars` does not accept the button variables, so set them in your own stylesheet on `.button`.
+`bulmaVars` does not accept the button variables, and Bulma declares them on the button's own class anyway, so set them in your own stylesheet on that class (`.button`, or its prefixed form under a `classPrefix`).
 
 | Variable                               | Description               |
 | -------------------------------------- | ------------------------- |
