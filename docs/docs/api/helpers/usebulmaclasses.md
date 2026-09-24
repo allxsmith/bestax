@@ -266,7 +266,7 @@ Use the `color` prop to apply Bulma color classes. Here, each button demonstrate
 
 ### Background Color
 
-Use the `backgroundColor` prop to set the background color. Pair it with a text color that keeps the label readable on each background:
+Components expose this helper as `bgColor` (the hook's own parameter is `backgroundColor`). Pair it with a text color that keeps the label readable on each background:
 
 ```tsx live
 <Columns isMultiline>

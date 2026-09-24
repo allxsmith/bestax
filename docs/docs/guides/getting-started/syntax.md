@@ -401,7 +401,7 @@ Available breakpoints:
 
 **Note**: The following properties do **not** support responsive variants in Bulma:
 
-- **Text and Background Colors** (`color`, `backgroundColor`) - These classes do not exist in Bulma
+- **Text and Background Colors** (`color`, `bgColor`) - These classes do not exist in Bulma
 - Spacing (`m`, `p`, `mt`, `mb`, etc.)
 - Color shades (when `colorShade` is specified)
 - Flexbox properties

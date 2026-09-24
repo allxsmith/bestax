@@ -61,7 +61,7 @@ More examples and full property coverage are available in [usebulmaclasses.md](.
 :::
 
 ```tsx live
-<Box bgColor="info" colorShade="30">
+<Box bgColor="info" backgroundColorShade="30">
   Info 30
 </Box>
 ```

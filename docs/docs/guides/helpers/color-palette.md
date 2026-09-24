@@ -32,7 +32,7 @@ The color palette system is built on CSS variables, allowing for runtime customi
 
 :::info
 
-Bulma v1 introduces comprehensive color shades using CSS variables. You can combine the `color` prop with the `colorShade` prop for text colors, and the `backgroundColor` prop with the `backgroundColorShade` prop for background colors to access different variations of each color.
+Bulma v1 introduces comprehensive color shades using CSS variables. You can combine the `color` prop with the `colorShade` prop for text colors, and the `bgColor` prop with the `backgroundColorShade` prop for background colors to access different variations of each color.
 
 :::
 
@@ -182,10 +182,10 @@ The primary color palette includes all the main Bulma colors with their full ran
 
 ### Applying Numeric Shades to Primary Colors
 
-You can apply any numeric shade (00-95) to any primary color by combining the `color` or `backgroundColor` prop with the appropriate shade prop:
+You can apply any numeric shade (00-95) to any primary color by combining the `color` or `bgColor` prop with the appropriate shade prop:
 
 - For text colors: use `color` + `colorShade`
-- For background colors: use `backgroundColor` + `backgroundColorShade`
+- For background colors: use `bgColor` + `backgroundColorShade`
 
 ```tsx live
 import { Box, Button, Title } from '@allxsmith/bestax-bulma';
@@ -536,26 +536,26 @@ function PaletteTextExample() {
 
 ## Background Color
 
-Apply palette background colors using the `backgroundColor` and `backgroundColorShade` props together. This creates sophisticated color schemes with semantic meaning.
+Apply palette background colors using the `bgColor` and `backgroundColorShade` props together. This creates sophisticated color schemes with semantic meaning.
 
 ### Primary Background Variations
 
-| Property                                                 | Bulma Class                    | Description              |
-| -------------------------------------------------------- | ------------------------------ | ------------------------ |
-| `backgroundColor="primary"`                              | `has-background-primary`       | Base primary background  |
-| `backgroundColor="primary" backgroundColorShade="light"` | `has-background-primary-light` | Light primary background |
-| `backgroundColor="primary" backgroundColorShade="dark"`  | `has-background-primary-dark`  | Dark primary background  |
-| `backgroundColor="primary" backgroundColorShade="soft"`  | `has-background-primary-soft`  | Soft primary background  |
-| `backgroundColor="primary" backgroundColorShade="bold"`  | `has-background-primary-bold`  | Bold primary background  |
+| Property                                         | Bulma Class                    | Description              |
+| ------------------------------------------------ | ------------------------------ | ------------------------ |
+| `bgColor="primary"`                              | `has-background-primary`       | Base primary background  |
+| `bgColor="primary" backgroundColorShade="light"` | `has-background-primary-light` | Light primary background |
+| `bgColor="primary" backgroundColorShade="dark"`  | `has-background-primary-dark`  | Dark primary background  |
+| `bgColor="primary" backgroundColorShade="soft"`  | `has-background-primary-soft`  | Soft primary background  |
+| `bgColor="primary" backgroundColorShade="bold"`  | `has-background-primary-bold`  | Bold primary background  |
 
 ### Status Background Variations
 
-| Property                                                 | Bulma Class                    | Description              |
-| -------------------------------------------------------- | ------------------------------ | ------------------------ |
-| `backgroundColor="success" backgroundColorShade="light"` | `has-background-success-light` | Light success background |
-| `backgroundColor="info" backgroundColorShade="soft"`     | `has-background-info-soft`     | Soft info background     |
-| `backgroundColor="warning" backgroundColorShade="light"` | `has-background-warning-light` | Light warning background |
-| `backgroundColor="danger" backgroundColorShade="soft"`   | `has-background-danger-soft`   | Soft danger background   |
+| Property                                         | Bulma Class                    | Description              |
+| ------------------------------------------------ | ------------------------------ | ------------------------ |
+| `bgColor="success" backgroundColorShade="light"` | `has-background-success-light` | Light success background |
+| `bgColor="info" backgroundColorShade="soft"`     | `has-background-info-soft`     | Soft info background     |
+| `bgColor="warning" backgroundColorShade="light"` | `has-background-warning-light` | Light warning background |
+| `bgColor="danger" backgroundColorShade="soft"`   | `has-background-danger-soft`   | Soft danger background   |
 
 ### Example Usage
 
@@ -797,7 +797,7 @@ Palette colors work seamlessly with the [Theme component](/docs/api/helpers/them
 :::
 
 ```tsx live
-import { Theme, Box, Button, Title } from '@allxsmith/bestax-bulma';
+import { Theme, Box, Button, Content, Title } from '@allxsmith/bestax-bulma';
 
 function ThemedPaletteExample() {
   return (
@@ -807,13 +807,13 @@ function ThemedPaletteExample() {
           Custom Purple Theme
         </Title>
 
-        <Box bgColor="primary" colorShade="10" p="3" mb="3">
+        <Box bgColor="primary" backgroundColorShade="10" p="3" mb="3">
           <Content color="primary" colorShade="dark">
             This uses the custom purple primary color with palette variations.
           </Content>
         </Box>
 
-        <Button bgColor="primary" colorShade="60" color="white">
+        <Button bgColor="primary" backgroundColorShade="60" color="white">
           Custom Primary Button
         </Button>
       </Box>
