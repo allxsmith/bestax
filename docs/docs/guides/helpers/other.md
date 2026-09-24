@@ -214,7 +214,7 @@ function OverlayExamples() {
           <Card.Header.Title>Image Overlay</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box position="relative" style={{ height: '200px' }}>
+          <Box style={{ height: '200px', position: 'relative' }}>
             <Box
               style={{
                 backgroundImage:
