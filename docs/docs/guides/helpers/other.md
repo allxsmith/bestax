@@ -214,7 +214,7 @@ function OverlayExamples() {
           <Card.Header.Title>Image Overlay</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box style={{ height: '200px', position: 'relative' }}>
+          <Box relative style={{ height: '200px' }}>
             <Box
               style={{
                 backgroundImage:
@@ -245,11 +245,7 @@ function OverlayExamples() {
           <Card.Header.Title>Loading Overlay</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box
-            bgColor="light"
-            p="4"
-            style={{ height: '150px', position: 'relative' }}
-          >
+          <Box bgColor="light" p="4" relative style={{ height: '150px' }}>
             <Content>
               <p>
                 This is the main content that gets covered by the loading
@@ -798,7 +794,7 @@ function CombinedHelpersExample() {
 
 ```tsx
 // Modal backdrop
-<Box overlay={true} backgroundColor="dark" style={{ opacity: 0.5 }} />
+<Box overlay={true} bgColor="dark" style={{ opacity: 0.5 }} />
 
 // Clickable card
 <Card interaction="clickable" onClick={handleClick}>
