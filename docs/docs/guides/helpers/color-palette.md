@@ -148,26 +148,26 @@ function ColorShadeExamples() {
 
       {/* Button variations */}
       <div>
-        <Button color="danger" colorShade="light" mr="2">
+        <Button bgColor="danger" backgroundColorShade="light" mr="2">
           Light danger
         </Button>
-        <Button color="warning" colorShade="dark" mr="2">
+        <Button bgColor="warning" backgroundColorShade="dark" mr="2">
           Dark warning
         </Button>
-        <Button color="primary" colorShade="invert">
+        <Button bgColor="primary" backgroundColorShade="invert">
           Inverted primary
         </Button>
       </div>
 
       {/* Tag variations */}
       <div className="mt-4">
-        <Tag color="info" colorShade="25" mr="2">
+        <Tag backgroundColor="info" backgroundColorShade="25" mr="2">
           25% Info
         </Tag>
-        <Tag color="success" colorShade="50" mr="2">
+        <Tag backgroundColor="success" backgroundColorShade="50" mr="2">
           50% Success
         </Tag>
-        <Tag color="warning" colorShade="75">
+        <Tag backgroundColor="warning" backgroundColorShade="75">
           75% Warning
         </Tag>
       </div>
@@ -491,12 +491,12 @@ function AllColorShades() {
 
 ## Text Color
 
-Apply palette text colors using the `color` and `colorShade` props together. This provides semantic meaning while maintaining visual consistency.
+Apply palette text colors using the `textColor` and `colorShade` props together. This provides semantic meaning while maintaining visual consistency.
 
 ### Example Usage
 
 ```tsx live
-import { Title, SubTitle, Content, Box } from '@allxsmith/bestax-bulma';
+import { Box, Content, Span, SubTitle, Title } from '@allxsmith/bestax-bulma';
 
 function PaletteTextExample() {
   return (
@@ -511,21 +511,21 @@ function PaletteTextExample() {
 
       <Content>
         <p>
-          <span color="success" colorShade="dark">
+          <Span textColor="success" colorShade="dark">
             Success message
-          </span>{' '}
+          </Span>{' '}
           - Operation completed successfully.
         </p>
         <p>
-          <span color="warning" colorShade="bold">
+          <Span textColor="warning" colorShade="bold">
             Warning notice
-          </span>{' '}
+          </Span>{' '}
           - Please review before proceeding.
         </p>
         <p>
-          <span color="danger" colorShade="light">
+          <Span textColor="danger" colorShade="light">
             Error message
-          </span>{' '}
+          </Span>{' '}
           - Something went wrong.
         </p>
       </Content>
@@ -691,16 +691,16 @@ function NumericShadeExample() {
         <Title size="5" mb="3">
           Tag Variations
         </Title>
-        <Tag color="primary" colorShade="30" mr="2">
+        <Tag backgroundColor="primary" backgroundColorShade="30" mr="2">
           30%
         </Tag>
-        <Tag color="info" colorShade="45" mr="2">
+        <Tag backgroundColor="info" backgroundColorShade="45" mr="2">
           45%
         </Tag>
-        <Tag color="success" colorShade="65" mr="2">
+        <Tag backgroundColor="success" backgroundColorShade="65" mr="2">
           65%
         </Tag>
-        <Tag color="warning" colorShade="85">
+        <Tag backgroundColor="warning" backgroundColorShade="85">
           85%
         </Tag>
       </div>

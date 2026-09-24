@@ -109,16 +109,16 @@ Each of the 7 primary colors now has a complete palette with shades:
 
 ```tsx live
 <Buttons>
-  <Button color="primary" colorShade="10">
+  <Button bgColor="primary" backgroundColorShade="10">
     Primary Light
   </Button>
-  <Button color="primary" colorShade="30">
+  <Button bgColor="primary" backgroundColorShade="30">
     Primary Medium
   </Button>
-  <Button color="primary" colorShade="60">
+  <Button bgColor="primary" backgroundColorShade="60">
     Primary Dark
   </Button>
-  <Button color="primary" colorShade="90">
+  <Button bgColor="primary" backgroundColorShade="90">
     Primary Darker
   </Button>
 </Buttons>
