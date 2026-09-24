@@ -121,15 +121,15 @@ function ColorShadeExamples() {
   return (
     <Box p="4">
       {/* Text color shades */}
-      <Title color="primary" colorShade="30" mb="3">
+      <Title textColor="primary" colorShade="30" mb="3">
         Primary 30% shade title
       </Title>
 
       {/* Background color shades */}
       <Box
-        backgroundColor="info"
+        bgColor="info"
         backgroundColorShade="10"
-        color="dark"
+        textColor="dark"
         p="3"
         mb="3"
       >
@@ -137,9 +137,9 @@ function ColorShadeExamples() {
       </Box>
 
       <Box
-        backgroundColor="success"
+        bgColor="success"
         backgroundColorShade="70"
-        color="white"
+        textColor="white"
         p="3"
         mb="3"
       >
@@ -194,50 +194,50 @@ function PrimaryColorShades() {
   return (
     <Box p="4">
       {/* Primary text color with numeric shades */}
-      <Title color="primary" colorShade="20" size="4" mb="3">
+      <Title textColor="primary" colorShade="20" size="4" mb="3">
         Primary 20% - Very Light
       </Title>
-      <Title color="primary" colorShade="50" size="4" mb="3">
+      <Title textColor="primary" colorShade="50" size="4" mb="3">
         Primary 50% - Medium
       </Title>
-      <Title color="primary" colorShade="80" size="4" mb="3">
+      <Title textColor="primary" colorShade="80" size="4" mb="3">
         Primary 80% - Dark
       </Title>
 
       {/* Background variations */}
       <Box
-        backgroundColor="primary"
+        bgColor="primary"
         backgroundColorShade="10"
-        color="dark"
+        textColor="dark"
         p="3"
         mb="2"
       >
         Primary 10% Background
       </Box>
       <Box
-        backgroundColor="primary"
+        bgColor="primary"
         backgroundColorShade="30"
         p="3"
         mb="2"
-        color="white"
+        textColor="white"
       >
         Primary 30% Background
       </Box>
       <Box
-        backgroundColor="primary"
+        bgColor="primary"
         backgroundColorShade="60"
         p="3"
         mb="2"
-        color="white"
+        textColor="white"
       >
         Primary 60% Background
       </Box>
       <Box
-        backgroundColor="primary"
+        bgColor="primary"
         backgroundColorShade="90"
         p="3"
         mb="4"
-        color="white"
+        textColor="white"
       >
         Primary 90% Background
       </Box>
@@ -245,7 +245,7 @@ function PrimaryColorShades() {
       {/* Button progression */}
       <div>
         <Button
-          backgroundColor="primary"
+          bgColor="primary"
           backgroundColorShade="15"
           color="primary"
           mr="2"
@@ -253,7 +253,7 @@ function PrimaryColorShades() {
           15%
         </Button>
         <Button
-          backgroundColor="primary"
+          bgColor="primary"
           backgroundColorShade="35"
           color="white"
           mr="2"
@@ -261,7 +261,7 @@ function PrimaryColorShades() {
           35%
         </Button>
         <Button
-          backgroundColor="primary"
+          bgColor="primary"
           backgroundColorShade="55"
           color="white"
           mr="2"
@@ -269,18 +269,14 @@ function PrimaryColorShades() {
           55%
         </Button>
         <Button
-          backgroundColor="primary"
+          bgColor="primary"
           backgroundColorShade="75"
           color="white"
           mr="2"
         >
           75%
         </Button>
-        <Button
-          backgroundColor="primary"
-          backgroundColorShade="95"
-          color="white"
-        >
+        <Button bgColor="primary" backgroundColorShade="95" color="white">
           95%
         </Button>
       </div>
@@ -505,11 +501,11 @@ import { Title, SubTitle, Content, Box } from '@allxsmith/bestax-bulma';
 function PaletteTextExample() {
   return (
     <Box p="4">
-      <Title color="primary" colorShade="bold" size="2" mb="3">
+      <Title textColor="primary" colorShade="bold" size="2" mb="3">
         Bold Primary Heading
       </Title>
 
-      <SubTitle color="info" colorShade="soft" size="4" mb="4">
+      <SubTitle textColor="info" colorShade="soft" size="4" mb="4">
         Soft Info Subheading
       </SubTitle>
 
@@ -564,37 +560,33 @@ Apply palette background colors using the `backgroundColor` and `backgroundColor
 ### Example Usage
 
 ```tsx live
-import { Notification, Card, Box, Message } from '@allxsmith/bestax-bulma';
+import { Box, Card, Content, Message, Title } from '@allxsmith/bestax-bulma';
 
 function PaletteBackgroundExample() {
   return (
     <div>
-      <Notification
-        backgroundColor="success"
+      <Box
+        bgColor="success"
         backgroundColorShade="light"
-        color="success"
+        textColor="success"
         className="mb-4"
       >
         <strong>Success!</strong> Your changes have been saved.
-      </Notification>
+      </Box>
 
-      <Notification
-        backgroundColor="info"
+      <Box
+        bgColor="info"
         backgroundColorShade="soft"
-        color="info"
+        textColor="info"
         colorShade="dark"
         className="mb-4"
       >
         <strong>Info:</strong> System maintenance scheduled.
-      </Notification>
+      </Box>
 
-      <Card
-        backgroundColor="warning"
-        backgroundColorShade="light"
-        className="mb-4"
-      >
+      <Card bgColor="warning" backgroundColorShade="light" className="mb-4">
         <Card.Content>
-          <Title color="warning" colorShade="dark" size="5">
+          <Title textColor="warning" colorShade="dark" size="5">
             Warning Notice
           </Title>
           <Content color="warning" colorShade="bold">
@@ -603,11 +595,9 @@ function PaletteBackgroundExample() {
         </Card.Content>
       </Card>
 
-      <Message backgroundColor="danger" backgroundColorShade="soft">
-        <Message.Header backgroundColor="danger" color="white">
-          Example Error Message
-        </Message.Header>
-        <Message.Body color="danger" colorShade="dark">
+      <Message bgColor="danger" backgroundColorShade="soft">
+        <Message.Header>Example Error Message</Message.Header>
+        <Message.Body>
           This is an example of how error messages would appear using danger
           color shades.
         </Message.Body>
@@ -638,36 +628,31 @@ function NumericShadeExample() {
         <Title size="5" mb="3">
           Primary Color Progression
         </Title>
-        <Box backgroundColor="primary" backgroundColorShade="10" p="2" mb="2">
+        <Box bgColor="primary" backgroundColorShade="10" p="2" mb="2">
           Primary 10% - Very light
         </Box>
-        <Box backgroundColor="primary" backgroundColorShade="25" p="2" mb="2">
+        <Box bgColor="primary" backgroundColorShade="25" p="2" mb="2">
           Primary 25% - Light
         </Box>
         <Box
-          backgroundColor="primary"
+          bgColor="primary"
           backgroundColorShade="50"
           p="2"
           mb="2"
-          color="dark"
+          textColor="dark"
         >
           Primary 50% - Medium
         </Box>
         <Box
-          backgroundColor="primary"
+          bgColor="primary"
           backgroundColorShade="75"
           p="2"
           mb="2"
-          color="dark"
+          textColor="dark"
         >
           Primary 75% - Dark
         </Box>
-        <Box
-          backgroundColor="primary"
-          backgroundColorShade="90"
-          p="2"
-          color="dark"
-        >
+        <Box bgColor="primary" backgroundColorShade="90" p="2" textColor="dark">
           Primary 90% - Very dark
         </Box>
       </div>
@@ -677,16 +662,11 @@ function NumericShadeExample() {
         <Title size="5" mb="3">
           Button Variations
         </Title>
-        <Button
-          backgroundColor="info"
-          backgroundColorShade="20"
-          color="info"
-          mr="2"
-        >
+        <Button bgColor="info" backgroundColorShade="20" color="info" mr="2">
           20% Info
         </Button>
         <Button
-          backgroundColor="success"
+          bgColor="success"
           backgroundColorShade="40"
           color="white"
           mr="2"
@@ -694,18 +674,14 @@ function NumericShadeExample() {
           40% Success
         </Button>
         <Button
-          backgroundColor="warning"
+          bgColor="warning"
           backgroundColorShade="60"
           color="white"
           mr="2"
         >
           60% Warning
         </Button>
-        <Button
-          backgroundColor="danger"
-          backgroundColorShade="80"
-          color="white"
-        >
+        <Button bgColor="danger" backgroundColorShade="80" color="white">
           80% Danger
         </Button>
       </div>
@@ -746,16 +722,16 @@ function AdvancedPaletteExample() {
       {/* Status cards with coordinated colors */}
       <Box display="flex" flexDirection="column">
         {/* Success Card */}
-        <Card backgroundColor="success" backgroundColorShade="05">
+        <Card bgColor="success" backgroundColorShade="05">
           <Card.Content>
-            <Title color="success" colorShade="dark" size="5">
+            <Title textColor="success" colorShade="dark" size="5">
               Task Completed
             </Title>
             <Content color="success" colorShade="70">
               Your deployment was successful. All services are running normally.
             </Content>
             <Button
-              backgroundColor="success"
+              bgColor="success"
               backgroundColorShade="bold"
               color="white"
               size="small"
@@ -766,9 +742,9 @@ function AdvancedPaletteExample() {
         </Card>
 
         {/* Info Card */}
-        <Card backgroundColor="info" backgroundColorShade="10">
+        <Card bgColor="info" backgroundColorShade="10">
           <Card.Content>
-            <Title color="info" colorShade="dark" size="5">
+            <Title textColor="info" colorShade="dark" size="5">
               System Update
             </Title>
             <Content color="info" colorShade="75">
@@ -776,7 +752,7 @@ function AdvancedPaletteExample() {
               performance.
             </Content>
             <Button
-              backgroundColor="info"
+              bgColor="info"
               backgroundColorShade="80"
               color="white"
               size="small"
@@ -787,9 +763,9 @@ function AdvancedPaletteExample() {
         </Card>
 
         {/* Warning Card */}
-        <Card backgroundColor="warning" backgroundColorShade="15">
+        <Card bgColor="warning" backgroundColorShade="15">
           <Card.Content>
-            <Title color="warning" colorShade="dark" size="5">
+            <Title textColor="warning" colorShade="dark" size="5">
               Action Required
             </Title>
             <Content color="warning" colorShade="80">
@@ -797,7 +773,7 @@ function AdvancedPaletteExample() {
               service.
             </Content>
             <Button
-              backgroundColor="warning"
+              bgColor="warning"
               backgroundColorShade="bold"
               color="white"
               size="small"
@@ -827,17 +803,17 @@ function ThemedPaletteExample() {
   return (
     <Theme primaryH="270" primaryS="100%" primaryL="50%" isRoot>
       <Box p="4">
-        <Title color="primary" colorShade="bold" mb="3">
+        <Title textColor="primary" colorShade="bold" mb="3">
           Custom Purple Theme
         </Title>
 
-        <Box backgroundColor="primary" colorShade="10" p="3" mb="3">
+        <Box bgColor="primary" colorShade="10" p="3" mb="3">
           <Content color="primary" colorShade="dark">
             This uses the custom purple primary color with palette variations.
           </Content>
         </Box>
 
-        <Button backgroundColor="primary" colorShade="60" color="white">
+        <Button bgColor="primary" colorShade="60" color="white">
           Custom Primary Button
         </Button>
       </Box>

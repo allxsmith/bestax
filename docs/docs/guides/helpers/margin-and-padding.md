@@ -132,27 +132,19 @@ function MarginExamples() {
       <Title mb="4">Margin Examples</Title>
 
       {/* All sides margin */}
-      <Box backgroundColor="light" color="dark" p="2" m="4" mb="4">
+      <Box bgColor="light" textColor="dark" p="2" m="4" mb="4">
         Box with margin on all sides (m="4")
       </Box>
 
       {/* Specific side margins */}
-      <Box
-        backgroundColor="info"
-        color="dark"
-        p="2"
-        mt="3"
-        mr="6"
-        mb="2"
-        ml="1"
-      >
+      <Box bgColor="info" textColor="dark" p="2" mt="3" mr="6" mb="2" ml="1">
         Box with different margins on each side
       </Box>
 
       {/* Horizontal and vertical margins */}
       <Box
-        backgroundColor="success"
-        color="white"
+        bgColor="success"
+        textColor="white"
         p="2"
         mx="auto"
         my="3"
@@ -282,25 +274,17 @@ function PaddingExamples() {
       <Title mb="4">Padding Examples</Title>
 
       {/* All sides padding */}
-      <Box backgroundColor="primary" color="white" p="6" mb="4">
+      <Box bgColor="primary" textColor="white" p="6" mb="4">
         Box with large padding on all sides (p="6")
       </Box>
 
       {/* Specific side padding */}
-      <Box
-        backgroundColor="info"
-        color="dark"
-        pt="1"
-        pr="4"
-        pb="2"
-        pl="6"
-        mb="4"
-      >
+      <Box bgColor="info" textColor="dark" pt="1" pr="4" pb="2" pl="6" mb="4">
         Box with different padding on each side
       </Box>
 
       {/* Horizontal and vertical padding */}
-      <Box backgroundColor="success" color="white" px="5" py="2" mb="4">
+      <Box bgColor="success" textColor="white" px="5" py="2" mb="4">
         Box with horizontal and vertical padding
       </Box>
 
@@ -323,7 +307,7 @@ function PaddingExamples() {
       </Notification>
 
       {/* Button with custom padding */}
-      <Button px="6" py="3" backgroundColor="danger" color="white">
+      <Button px="6" py="3" bgColor="danger" color="white">
         Button with Custom Padding
       </Button>
     </Box>
@@ -358,7 +342,7 @@ function CombinedSpacingExample() {
         </Card.Content>
 
         <Card.Content pt="0" px="6" pb="6">
-          <Box backgroundColor="light" color="dark" p="4" mb="4">
+          <Box bgColor="light" textColor="dark" p="4" mb="4">
             <Content>
               <p>
                 This is a highlighted section with its own padding and margin
@@ -384,8 +368,8 @@ function CombinedSpacingExample() {
         <Box display="flex" flexWrap="wrap" mx="-2">
           {[1, 2, 3, 4, 5, 6].map(num => (
             <Box key={num} style={{ width: '33.333%' }} px="2" mb="4">
-              <Card p="4" backgroundColor="light" color="dark">
-                <Title size="6" mb="2" color="dark">
+              <Card p="4" bgColor="light" textColor="dark">
+                <Title size="6" mb="2" textColor="dark">
                   Item {num}
                 </Title>
                 <Content>

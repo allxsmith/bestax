@@ -63,7 +63,7 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Row Direction (Default)</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box display="flex" flexDirection="row" backgroundColor="light" p="3">
+          <Box display="flex" flexDirection="row" bgColor="light" p="3">
             <Button color="primary" mr="2">
               Item 1
             </Button>
@@ -80,12 +80,7 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Row Reverse</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box
-            display="flex"
-            flexDirection="row-reverse"
-            backgroundColor="light"
-            p="3"
-          >
+          <Box display="flex" flexDirection="row-reverse" bgColor="light" p="3">
             <Button color="primary" ml="2">
               Item 1
             </Button>
@@ -102,12 +97,7 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Column Direction</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box
-            display="flex"
-            flexDirection="column"
-            backgroundColor="light"
-            p="3"
-          >
+          <Box display="flex" flexDirection="column" bgColor="light" p="3">
             <Button color="primary" mb="2">
               Item 1
             </Button>
@@ -127,7 +117,7 @@ function FlexDirectionExamples() {
           <Box
             display="flex"
             flexDirection="column-reverse"
-            backgroundColor="light"
+            bgColor="light"
             p="3"
           >
             <Button color="primary" mt="2">
@@ -184,7 +174,7 @@ function FlexWrapExamples() {
           </Content>
           :::tip Try This Resize your browser window to see the tags overflow
           horizontally when the container becomes too narrow. :::
-          <Box display="flex" flexWrap="nowrap" backgroundColor="light" p="3">
+          <Box display="flex" flexWrap="nowrap" bgColor="light" p="3">
             {tags.map((tag, index) => (
               <Tag key={index} color="info" mr="2">
                 {tag}
@@ -200,7 +190,7 @@ function FlexWrapExamples() {
         </Card.Header>
         <Card.Content>
           <Content mb="3">Items wrap to new lines when they don't fit:</Content>
-          <Box display="flex" flexWrap="wrap" backgroundColor="light" p="3">
+          <Box display="flex" flexWrap="wrap" bgColor="light" p="3">
             {tags.map((tag, index) => (
               <Tag key={index} color="primary" mr="2" mb="2">
                 {tag}
@@ -216,12 +206,7 @@ function FlexWrapExamples() {
         </Card.Header>
         <Card.Content>
           <Content mb="3">Items wrap to new lines in reverse order:</Content>
-          <Box
-            display="flex"
-            flexWrap="wrap-reverse"
-            backgroundColor="light"
-            p="3"
-          >
+          <Box display="flex" flexWrap="wrap-reverse" bgColor="light" p="3">
             {tags.map((tag, index) => (
               <Tag key={index} color="success" mr="2" mt="2">
                 {tag}
@@ -278,7 +263,7 @@ function JustifyContentExamples() {
             <Box
               display="flex"
               justifyContent={value as any}
-              backgroundColor="light"
+              bgColor="light"
               p="3"
             >
               <Button color="primary" size="small">
@@ -347,7 +332,7 @@ function AlignContentExamples() {
               display="flex"
               flexWrap="wrap"
               alignContent={value as any}
-              backgroundColor="light"
+              bgColor="light"
               p="3"
               style={{ height: '150px' }}
             >
@@ -401,12 +386,7 @@ function AlignItemsExamples() {
             <Card.Header.Title>{label}</Card.Header.Title>
           </Card.Header>
           <Card.Content>
-            <Box
-              display="flex"
-              alignItems={value as any}
-              backgroundColor="light"
-              p="3"
-            >
+            <Box display="flex" alignItems={value as any} bgColor="light" p="3">
               <Button color="primary" size="small" mr="2">
                 Small
               </Button>
@@ -528,12 +508,7 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Items grow to fill available space based on their flex-grow value:
           </Content>
-          <Box
-            display="flex"
-            backgroundColor="light"
-            p="3"
-            style={{ height: '150px' }}
-          >
+          <Box display="flex" bgColor="light" p="3" style={{ height: '150px' }}>
             <Button color="primary" flexGrow="0" mr="2">
               Grow 0 (Fixed)
             </Button>
@@ -555,12 +530,7 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Items shrink when space is limited based on their flex-shrink value:
           </Content>
-          <Box
-            display="flex"
-            backgroundColor="light"
-            p="3"
-            style={{ height: '150px' }}
-          >
+          <Box display="flex" bgColor="light" p="3" style={{ height: '150px' }}>
             <Button color="primary" flexShrink="0" mr="2">
               No Shrink
             </Button>
@@ -582,15 +552,10 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Responsive layout that adapts to container size:
           </Content>
-          <Box
-            display="flex"
-            backgroundColor="light"
-            p="3"
-            style={{ height: '150px' }}
-          >
+          <Box display="flex" bgColor="light" p="3" style={{ height: '150px' }}>
             <Box
-              backgroundColor="primary"
-              color="white"
+              bgColor="primary"
+              textColor="white"
               p="2"
               mr="2"
               flexGrow="1"
@@ -600,8 +565,8 @@ function FlexGrowShrinkExamples() {
               Sidebar (1:1)
             </Box>
             <Box
-              backgroundColor="info"
-              color="white"
+              bgColor="info"
+              textColor="white"
               p="2"
               mr="2"
               flexGrow="3"
@@ -611,8 +576,8 @@ function FlexGrowShrinkExamples() {
               Main Content (3:1)
             </Box>
             <Box
-              backgroundColor="success"
-              color="white"
+              bgColor="success"
+              textColor="white"
               p="2"
               flexGrow="1"
               flexShrink="2"
@@ -657,12 +622,12 @@ function ComplexFlexboxLayout() {
               display="flex"
               justifyContent="space-between"
               alignItems="center"
-              backgroundColor="primary"
-              color="white"
+              bgColor="primary"
+              textColor="white"
               p="3"
               flexShrink="0"
             >
-              <Title size="5" color="white" mb="0">
+              <Title size="5" textColor="white" mb="0">
                 Dashboard
               </Title>
               <Box display="flex" alignItems="center">
@@ -702,8 +667,8 @@ function ComplexFlexboxLayout() {
                   flexGrow="1"
                 >
                   <Box
-                    backgroundColor="info"
-                    color="white"
+                    bgColor="info"
+                    textColor="white"
                     p="3"
                     mb="3"
                     display="flex"
@@ -713,8 +678,8 @@ function ComplexFlexboxLayout() {
                     Card 1
                   </Box>
                   <Box
-                    backgroundColor="success"
-                    color="white"
+                    bgColor="success"
+                    textColor="white"
                     p="3"
                     mb="3"
                     display="flex"
@@ -724,8 +689,8 @@ function ComplexFlexboxLayout() {
                     Card 2
                   </Box>
                   <Box
-                    backgroundColor="warning"
-                    color="white"
+                    bgColor="warning"
+                    textColor="white"
                     p="3"
                     display="flex"
                     alignItems="center"
@@ -734,8 +699,8 @@ function ComplexFlexboxLayout() {
                     Card 3
                   </Box>
                   <Box
-                    backgroundColor="danger"
-                    color="white"
+                    bgColor="danger"
+                    textColor="white"
                     p="3"
                     display="flex"
                     alignItems="center"
@@ -752,12 +717,12 @@ function ComplexFlexboxLayout() {
               display="flex"
               justifyContent="center"
               alignItems="center"
-              backgroundColor="dark"
-              color="white"
+              bgColor="dark"
+              textColor="white"
               p="2"
               flexShrink="0"
             >
-              <Content color="white" mb="0" textAlign="centered">
+              <Content textColor="white" mb="0" textAlign="centered">
                 © 2025 Your Company. All rights reserved.
               </Content>
             </Box>
@@ -810,7 +775,7 @@ function CommonFlexboxPatterns() {
           display="flex"
           justifyContent="space-between"
           alignItems="center"
-          backgroundColor="primary"
+          bgColor="primary"
           textColor="white"
           p="3"
         >
@@ -842,7 +807,7 @@ function CommonFlexboxPatterns() {
         >
           <Box
             mb="3"
-            backgroundColor="info"
+            bgColor="info"
             textColor="white"
             p="3"
             textAlign="centered"
@@ -851,7 +816,7 @@ function CommonFlexboxPatterns() {
           </Box>
           <Box
             mb="3"
-            backgroundColor="success"
+            bgColor="success"
             textColor="white"
             p="3"
             textAlign="centered"
@@ -860,7 +825,7 @@ function CommonFlexboxPatterns() {
           </Box>
           <Box
             mb="3"
-            backgroundColor="warning"
+            bgColor="warning"
             textColor="white"
             p="3"
             textAlign="centered"
@@ -869,7 +834,7 @@ function CommonFlexboxPatterns() {
           </Box>
           <Box
             mb="3"
-            backgroundColor="danger"
+            bgColor="danger"
             textColor="white"
             p="3"
             textAlign="centered"
@@ -884,24 +849,14 @@ function CommonFlexboxPatterns() {
         <Title size="5" mb="3">
           Sticky Footer Layout
         </Title>
-        <Box display="flex" flexDirection="column" backgroundColor="light">
-          <Box
-            backgroundColor="primary"
-            textColor="white"
-            p="3"
-            textAlign="centered"
-          >
+        <Box display="flex" flexDirection="column" bgColor="light">
+          <Box bgColor="primary" textColor="white" p="3" textAlign="centered">
             Header
           </Box>
           <Box flexGrow="1" p="4" textAlign="centered">
             Main content area that grows to fill available space
           </Box>
-          <Box
-            backgroundColor="dark"
-            textColor="white"
-            p="3"
-            textAlign="centered"
-          >
+          <Box bgColor="dark" textColor="white" p="3" textAlign="centered">
             Footer
           </Box>
         </Box>
