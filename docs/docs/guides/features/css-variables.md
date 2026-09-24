@@ -68,7 +68,7 @@ document.documentElement.style.setProperty('--bulma-scheme-h', '210deg');
 - **Named props for the scheme and color variables** — `schemeH`, `primaryH`, `linkS`, `dangerL`, and the rest of the HSL set. TypeScript autocompletes them and catches typos at build time.
 - **`bulmaVars` for everything else** — typography (`--bulma-family-primary`), radius (`--bulma-radius`), spacing, and the rest, keyed by their full `--bulma-*` name. The keys are typed too: written as an object literal, they autocomplete and a misspelled one is a type error.
 
-Radius and shadow have no named props because both names are already helper props: `radius` is typed as the `radiusless` helper and `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
+Radius and shadow have no CSS-variable props because both names are already helper props: `radius` is typed as the `radiusless` helper and `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
 
 Themes nest naturally: outer `<Theme>` sets app-wide defaults, inner ones scope overrides to a subtree. Use `isRoot` to inject variables at `:root` for true app-wide reach.
 
@@ -125,7 +125,7 @@ function ScopedTheming() {
 ### Using bulmaVars Object
 
 For less common variables or when you have many to set. Bulma derives the body font and the
-control radius from these variables once, at `:root`, so typography and radius belong on an
+control radius from these variables at `:root`, so typography and radius belong on an
 `isRoot` theme:
 
 ```tsx
@@ -202,13 +202,12 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 
 #### Button Variables
 
-`bulmaVars` does not accept the button variables, and Bulma declares them on the button's own class anyway, so set them in your own stylesheet on that class (`.button`, or its prefixed form under a `classPrefix`).
+`bulmaVars` does not accept the button variables, and Bulma declares them on the button's own class anyway, so set them in your own stylesheet on that class (`.button`, or its prefixed form under a `classPrefix`). Button corners come from the `--bulma-radius` scale, which `bulmaVars` does accept.
 
 | Variable                               | Description               |
 | -------------------------------------- | ------------------------- |
 | `--bulma-button-padding-vertical`      | Button vertical padding   |
 | `--bulma-button-padding-horizontal`    | Button horizontal padding |
-| `--bulma-button-border-radius`         | Button border radius      |
 | `--bulma-button-focus-box-shadow-size` | Focus shadow size         |
 
 #### Card Variables

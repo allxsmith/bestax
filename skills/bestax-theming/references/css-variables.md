@@ -92,14 +92,14 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 
 ## Radius, typography
 
-| Variable                                                                      | Default                           | `Theme` prop    |
-| ----------------------------------------------------------------------------- | --------------------------------- | --------------- |
-| `--bulma-radius-small` / `--bulma-radius` / `--bulma-radius-large`            | 0.25 / 0.375 / 0.75rem            | via `bulmaVars` |
-| `--bulma-radius-rounded`                                                      | 9999px                            | via `bulmaVars` |
-| `--bulma-family-primary` / `--bulma-family-secondary` / `--bulma-family-code` | sans / sans / mono                | via `bulmaVars` |
-| `--bulma-size-1` … `--bulma-size-7`                                           | 3rem … 0.75rem                    | via `bulmaVars` |
-| `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars` |
-| `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars` |
+| Variable                                                                      | Default                           | `Theme` prop                    |
+| ----------------------------------------------------------------------------- | --------------------------------- | ------------------------------- |
+| `--bulma-radius-small` / `--bulma-radius` / `--bulma-radius-large`            | 0.25 / 0.375 / 0.75rem            | via `bulmaVars`                 |
+| `--bulma-radius-rounded`                                                      | 9999px                            | via `bulmaVars`                 |
+| `--bulma-family-primary` / `--bulma-family-secondary` / `--bulma-family-code` | sans / sans / mono                | via `bulmaVars`                 |
+| `--bulma-size-1` … `--bulma-size-7`                                           | 3rem … 0.75rem                    | CSS only, not a `bulmaVars` key |
+| `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars`                 |
+| `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars`                 |
 
 ## Shadow — override the upstream token, not the derived one
 
