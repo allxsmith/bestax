@@ -132,9 +132,8 @@ function SunsetTheme() {
 
 ### Advanced CSS Variables Usage
 
-Bulma derives the body font and the control radius from these variables once, at `:root`, so
-set typography and radius on an `isRoot` theme. A scoped theme changes the variables on its
-wrapper, but nothing inside reads them from there.
+Bulma derives the body font and the control radius from these variables at `:root`, so set
+typography and radius on an `isRoot` theme.
 
 ```tsx
 function TypographyTheme() {
@@ -323,7 +322,7 @@ function PrefixedTheme() {
 ### Performance Considerations
 
 - Prefer setting themes at higher levels in your component tree rather than deeply nested
-- Use `isRoot={true}` sparingly to avoid CSS specificity issues
+- Put every root-level variable on one `isRoot` theme; separate root themes overwrite each other ([#736](https://github.com/allxsmith/bestax/issues/736))
 - CSS variables are inherited, so child themes only need to override specific variables
 
 ### Color System
@@ -450,13 +449,13 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 
 ## Props
 
-| Prop        | Type                                   | Description                                                                                                                                                                                                                                               |
-| ----------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`                            | The child components to apply the theme to.                                                                                                                                                                                                               |
-| `className` | `string`                               | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
-| `isRoot`    | `boolean`                              | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
-| `colorMode` | `'light' \| 'dark' \| 'system'`        | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
-| `bulmaVars` | `Partial<Record<BulmaVarKey, string>>` | Object mapping Bulma CSS variable names to values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is not applied.                                                                                   |
+| Prop        | Type                            | Description                                                                                                                                                                                                                                               |
+| ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`                     | The child components to apply the theme to.                                                                                                                                                                                                               |
+| `className` | `string`                        | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
+| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
+| `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
+| `bulmaVars` | `ThemeProps['bulmaVars']`       | Object mapping Bulma CSS variable names to string values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is not applied.                                                                            |
 
 ### CSS Variable Props
 
@@ -524,7 +523,7 @@ override that cascades into `.box`/`.card`/`.dropdown`/`.panel` shadows.
 #### Complete CSS Variables List
 
 These are the keys `bulmaVars` accepts, in addition to the scheme, color, and shadow variables
-above. None of them has a named prop.
+above.
 
 Bulma declares many per-component variables (`--bulma-card-*`, `--bulma-title-*`,
 `--bulma-box-*`, …) on the component's own selector. That declaration beats a value the
