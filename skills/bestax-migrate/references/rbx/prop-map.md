@@ -160,19 +160,24 @@ An existing `ref` is passed through untouched — which is safe only where the b
 forwards one. rbx forwards a ref on every component; bestax does so on the form controls, plus
 `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`,
 `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`,
-`Navbar.Link`, `Sidebar` and `Toast`. Carry a `ref` onto anything else — `Card`, `Box`,
-`Section`, `Message`, `Tabs` and most of the catalogue — and it resolves
-to `null` at runtime, with React logging "Function components cannot be given refs" and
-continuing.
+`Navbar.Link`, `Sidebar` and `Toast`. "The form controls" there means the inputs themselves:
+the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers around them
+forward nothing, and `Field` is a target this codemod emits.
+
+Carry a `ref` onto anything else — `Card`, `Box`, `Section`, `Message`, `Tabs` and most of the
+catalogue — and it is unsupported, but the two React majors fail differently. React 18 drops
+it and logs "Function components cannot be given refs". React 19 hands `ref` to the component
+as an ordinary prop, so it lands wherever that component spreads its rest props, silently and
+with no guarantee it is the element you meant. bestax supports both majors, so neither
+outcome is one to build on: put the ref on an element you control.
 
 **The codemod does not flag this**, because neither the universal prop table nor any
 per-component table has a `ref` entry, so check every `ref` you carried over against the list
 above rather than assuming the silent pass-through means it works. The renames above are for
-`innerRef`, and apply only on those eight entries. Anywhere else it leaves `innerRef` alone — move the ref onto a wrapping
-element you control.
+`innerRef`, and apply only on those eight entries.
 
-Note the gap that leaves: every other component in the list above forwards a ref — the form
-controls, `Avatar`, `CarouselItem`, `Dialog`, `Link`, `LinkButton`, `Menu.Item`, a plain
-`Navbar.Item`, `Sidebar`, `Toast` and `Carousel` — but their rbx `innerRef` is not mapped yet,
-so it passes through untouched rather than being renamed for you. Rename it by hand there; the
-target takes a `ref`.
+Note the gap that leaves. An rbx `innerRef` can only land on a component rbx itself has, so of
+the ref-forwarding targets above the reachable ones are the form controls, `Menu.Item` and a
+plain `Navbar.Item`. On those the codemod leaves `innerRef` untouched even though the target
+does take a `ref`, so the rename is yours to make. Anywhere else it is left alone because the
+target forwards none, and the ref belongs on a wrapping element you control instead.

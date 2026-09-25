@@ -164,4 +164,11 @@ value is flagged. The same conversion covers the modifiers bestax has no prop fo
 bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Avatar`,
 `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Menu.Item`,
 `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar`
-and `Toast` — pass `ref` directly on those.
+and `Toast` — pass `ref` directly on those. "The form controls" means the inputs
+themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers
+around them forward nothing.
+
+A `ref` on anything else is unsupported, and the two React majors fail differently: React 18
+drops it and logs "Function components cannot be given refs", while React 19 hands it to the
+component as an ordinary prop, where it settles wherever the rest props go. bestax supports
+both, so attach the ref to an element you control instead.

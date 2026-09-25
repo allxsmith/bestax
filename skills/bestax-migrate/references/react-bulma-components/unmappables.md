@@ -132,8 +132,15 @@ bestax components don't take `domRef`, but many forward a plain `ref` — the fo
 plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`,
 `LinkButton`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
 `Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast`. On those, rename `domRef` to
-`ref` and it works; do not restructure the markup. Everywhere else there is no ref to
-forward — attach the ref to a DOM element inside, or wrap the component in a `<div ref={…}>`.
+`ref` and it works; do not restructure the markup. "The form controls" means the inputs
+themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers
+around them forward nothing, and `Field` is a target this codemod emits.
+
+Everywhere else the rename is not enough, and the two React majors differ: React 18 drops the
+ref and logs "Function components cannot be given refs", while React 19 passes it through as
+an ordinary prop, so it settles wherever the component spreads its rest props with nothing
+logged. bestax supports both, so attach the ref to a DOM element inside, or wrap the component
+in a `<div ref={…}>`.
 
 The codemod does not do that rename for you: `domRef` is flagged on every component, so the
 TODO names both cases and you pick. `Navbar.Dropdown` is the trap, and it cuts both ways —
