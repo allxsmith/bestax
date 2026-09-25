@@ -37,13 +37,12 @@ const EXTRAS_CSS_SPECIFIERS = new Set([
 ]);
 
 export interface StylesheetImportOptions {
-  /** The source library's own stylesheet, retargeted wherever Bulma's is. */
-  isSourceCss?: (specifier: string) => boolean;
   /**
-   * How the keep-mode TODO names that stylesheet, e.g. "rbx's CSS import".
-   * Required when `isSourceCss` is given.
+   * The source library's own stylesheet, retargeted wherever Bulma's is:
+   * which specifiers are it, and how the keep-mode TODO names it (e.g.
+   * "rbx's CSS import"). One object, so a matcher never lacks its label.
    */
-  sourceCssLabel?: string;
+  sourceCss?: { is: (specifier: string) => boolean; label: string };
   /**
    * Runs first for every import; returning true means the source handled it
    * and the shared rules skip it.
@@ -58,7 +57,7 @@ export function rewriteStylesheetImports(
   options: StylesheetImportOptions = {}
 ): void {
   const { j } = ctx;
-  const isSourceCss = options.isSourceCss ?? (() => false);
+  const isSourceCss = options.sourceCss?.is ?? (() => false);
   const specifierOf = (p: any): string => String(p.node.source.value);
 
   let sawBestaxCss = root
@@ -121,14 +120,14 @@ export function rewriteStylesheetImports(
           ctx.dirty = true;
         }
       }
-    } else if (isOwnCss) {
+    } else if (isOwnCss && options.sourceCss) {
       // keep: minimal fix — the source's stylesheet goes with the source.
       path.node.source = j.stringLiteral(BULMA_CSS);
       addTodo(
         ctx,
         path,
         'css',
-        `replaced ${options.sourceCssLabel} with '${BULMA_CSS}'; install bulma@^1 (see https://bestax.io/docs/guides/getting-started/installation)`
+        `replaced ${options.sourceCss.label} with '${BULMA_CSS}'; install bulma@^1 (see https://bestax.io/docs/guides/getting-started/installation)`
       );
     }
   });

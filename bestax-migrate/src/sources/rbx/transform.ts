@@ -172,9 +172,11 @@ export default function transform(
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
   // `keep` retargets only the dead rbx CSS import, which carries Bulma 0.7.5.
   rewriteStylesheetImports(ctx, root, options.cssMode ?? 'bestax', {
-    isSourceCss: specifier =>
-      specifier.startsWith(`${RBX}/`) && specifier.endsWith('.css'),
-    sourceCssLabel: "rbx's CSS import",
+    sourceCss: {
+      is: specifier =>
+        specifier.startsWith(`${RBX}/`) && specifier.endsWith('.css'),
+      label: "rbx's CSS import",
+    },
     // The four extensions rbx pinned; bestax covers all of them.
     handleOwn: (path, source) => {
       if (!RBX_EXTENSION_CSS.test(source) || !source.endsWith('.css')) {

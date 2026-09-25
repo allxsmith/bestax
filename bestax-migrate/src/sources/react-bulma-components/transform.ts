@@ -142,9 +142,11 @@ export default function transform(
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
   // `keep` touches only the dead RBC v3 CSS import.
   rewriteStylesheetImports(ctx, root, options.cssMode ?? 'bestax', {
-    isSourceCss: specifier =>
-      specifier.startsWith(`${RBC}/`) && specifier.endsWith('.css'),
-    sourceCssLabel: 'the react-bulma-components CSS import',
+    sourceCss: {
+      is: specifier =>
+        specifier.startsWith(`${RBC}/`) && specifier.endsWith('.css'),
+      label: 'the react-bulma-components CSS import',
+    },
   });
 
   if (imports.size === 0 && !ctx.dirty) {
