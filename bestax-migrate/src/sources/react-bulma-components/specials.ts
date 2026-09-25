@@ -716,7 +716,6 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item', 'a');
     const children = element.children ?? [];
     const solidChildren = children.filter(
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
@@ -730,15 +729,37 @@ const SPECIALS: Record<string, SpecialHandler> = {
       solidChildren[0].openingElement.name.name === 'a'
         ? solidChildren[0]
         : null;
+    // The strip below renames `domRef` to `ref`, so a collision with a `ref`
+    // the anchor already sets is settled here, while the prop still carries
+    // the name the user wrote.
+    const domRefAttr = findAttr(element, 'domRef');
+    if (existingAnchor && domRefAttr && findAttr(existingAnchor, 'ref')) {
+      removeAttr(element, domRefAttr);
+      addTodo(
+        ctx,
+        path,
+        'prop:domRef',
+        'Breadcrumb.Item `domRef` was dropped: its <a> child already sets `ref` — reconcile by hand'
+      );
+    }
+    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item', 'a');
     if (existingAnchor && anchorAttrs.length > 0) {
-      // Appending onto an anchor the user already wrote can set a prop twice
-      // (`id` on both, or the renamed `domRef` beside the anchor's own `ref`),
-      // which does not compile. The anchor's value wins and the other is
-      // flagged.
-      const merged = [...(existingAnchor.openingElement.attributes ?? [])];
+      // Merging onto an anchor the user already wrote keeps the rule
+      // `collapseOntoChild` does: the item's spreads go FIRST, as one block in
+      // source order, so the anchor's explicit props still win over them; and
+      // a named prop both set keeps the anchor's value and is flagged, since
+      // writing it twice does not compile.
+      const spreads = anchorAttrs.filter(
+        (a: any) => a.type === 'JSXSpreadAttribute'
+      );
+      const merged = [
+        ...spreads,
+        ...(existingAnchor.openingElement.attributes ?? []),
+      ];
       for (const attr of anchorAttrs) {
-        const name = attr?.name?.name;
-        if (name && findAttr(existingAnchor, name)) {
+        if (attr.type === 'JSXSpreadAttribute') continue;
+        const name: string = attr.name.name;
+        if (findAttr(existingAnchor, name)) {
           addTodo(
             ctx,
             path,

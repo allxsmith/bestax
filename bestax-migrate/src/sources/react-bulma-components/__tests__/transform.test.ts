@@ -885,12 +885,43 @@ describe('react-bulma-components transform fixtures', () => {
           (output ?? '').match(new RegExp(`\\b${prop}=`, 'g'))
         ).toHaveLength(1);
         expect(output).toContain(prop === 'ref' ? 'ref={b}' : 'id="q"');
+        // Reported under the name the user wrote: `domRef`, not the `ref` the
+        // strip would have renamed it to.
         expect(
-          todos.find(t => t.rule === `prop:${prop === 'ref' ? 'ref' : 'id'}`)
+          todos.find(t => t.rule === `prop:${prop === 'ref' ? 'domRef' : 'id'}`)
             ?.message
         ).toMatch(/already sets/);
       }
     );
+
+    it('carries an item prop the anchor does not set onto the anchor', () => {
+      // The ordinary path through the merge: nothing collides, so the prop
+      // moves across and nothing is reported.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Breadcrumb } from "react-bulma-components";\n' +
+          'export const A = () => <Breadcrumb.Item title="t"><a href="/x">x</a></Breadcrumb.Item>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<a href="/x" title="t">');
+      expect(todos.find(t => t.rule === 'prop:title')).toBeUndefined();
+    });
+
+    it("puts the item's spreads before the anchor's own props", () => {
+      // Spreads have no name to compare, so a spread appended last would
+      // override the anchor's explicit props in silence. Placed first, as
+      // `collapseOntoChild` places them, the anchor's props still win.
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Breadcrumb } from "react-bulma-components";\n' +
+          'export const A = (p: any) => <Breadcrumb.Item {...p}><a id="q" href="/x">x</a></Breadcrumb.Item>;',
+        { add: () => {} }
+      );
+      expect(output).toContain('<a {...p} id="q" href="/x">');
+    });
 
     it('does not offer the Button rename once `remove` retargets it to Delete', () => {
       // `<Button remove>` becomes `<Delete>`, a plain function component, so
