@@ -81,7 +81,7 @@
     },
     {
       "name": "bestax-migrate",
-      "description": "Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4), rbx (v2) or bloomer (0.6) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components, rbx or bloomer and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.",
+      "description": "Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className=\"button is-primary\") or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.",
       "promptName": "migrate",
       "dir": "bestax-migrate",
       "references": [
@@ -101,9 +101,24 @@
           "bytes": 16154
         },
         {
+          "id": "bulma-classes-component-map",
+          "file": "references/bulma-classes/component-map.md",
+          "bytes": 6205
+        },
+        {
+          "id": "bulma-classes-prop-map",
+          "file": "references/bulma-classes/prop-map.md",
+          "bytes": 15681
+        },
+        {
+          "id": "bulma-classes-unmappables",
+          "file": "references/bulma-classes/unmappables.md",
+          "bytes": 9435
+        },
+        {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 8622
+          "bytes": 9122
         },
         {
           "id": "rbx-component-map",
