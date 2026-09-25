@@ -477,6 +477,39 @@ describe('Custom component targets (#668)', () => {
       expect(screen.getByTestId('a')).not.toHaveAttribute('aria-label');
     });
 
+    it('is outranked by an href, which ends the guess', () => {
+      // A custom target we were handed an href for is known to be a link, so the
+      // signal cannot hide it or strip its name.
+      render(
+        <Avatar
+          as={RouterLink}
+          to="/profile"
+          href="/profile"
+          alt=""
+          name="Ada"
+          role="img"
+          data-testid="a"
+        />
+      );
+      const el = screen.getByTestId('a');
+      expect(el).not.toHaveAttribute('aria-hidden');
+      expect(el).toHaveAttribute('aria-label', 'Ada');
+    });
+
+    it('does not read aria-hidden={false} as a claim to be a picture', () => {
+      // Denying hiding is the opposite claim, so the link keeps link semantics.
+      render(
+        <Avatar
+          as={RouterLink}
+          to="/profile"
+          name="Ada"
+          aria-hidden={false}
+          data-testid="a"
+        />
+      );
+      expect(screen.getByTestId('a')).not.toHaveAttribute('role', 'img');
+    });
+
     it('does not let the signal waive the name on a real link, where we are not guessing', () => {
       render(
         <Avatar href="/profile" alt="" name="Ada" role="img" data-testid="a" />

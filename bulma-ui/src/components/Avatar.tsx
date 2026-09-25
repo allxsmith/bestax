@@ -315,14 +315,23 @@ export const Avatar = forwardRef(function Avatar(
   // wrapper gets `role="img"` and its `alt=""` opt-out back. `role` alone would
   // be a half-override — interactivity also drives the decorative opt-out and the
   // name fallback, and overriding one of the three is worse than overriding none.
-  // This reaches the GUESS only. `as="a"`, `as="button"` and an `href` are known,
-  // and there the rule that an interactive element always carries an accessible
-  // name is not the caller's to waive.
-  // Value-based, not `in`: an explicit `role={undefined}` states nothing, and the
-  // key existing is not the signal — the same distinction `linkProps` draws below.
+  //
+  // An `href` ENDS the guess, so it outranks the signal. `as="a"`, `as="button"`
+  // and a target we were handed an href for are known to be interactive, and there
+  // the rule that an interactive element always carries an accessible name is not
+  // the caller's to waive: without this, `as={RouterLink} href="/x" role="img"`
+  // with `alt=""` rendered a real anchor as `aria-hidden` and nameless — the very
+  // failure #668 is about. `Navbar.Link` orders the same two the same way.
+  //
+  // Value-based, not `in`: `role={undefined}` states nothing. And only a TRUTHY
+  // `aria-hidden` claims to be a picture — `aria-hidden={false}` denies hiding,
+  // which is the opposite claim, and reading it as the signal put `role="img"`
+  // back onto a genuine link.
+  const ariaHidden = rest['aria-hidden'];
   const customTargetStatesSemantics =
     typeof Tag !== 'string' &&
-    (rest.role !== undefined || rest['aria-hidden'] !== undefined);
+    href == null &&
+    (rest.role !== undefined || ariaHidden === true || ariaHidden === 'true');
 
   const isInteractive =
     Tag === 'a' ||

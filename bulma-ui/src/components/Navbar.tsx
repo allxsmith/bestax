@@ -514,9 +514,9 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
        * (`'span'`, a bare `'a'`, a custom element) gets `role="button"`, `tabIndex` and a
        * click that opens the dropdown.
        *
-       * If your custom component renders something non-interactive, pass `role="button"`
-       * (with a `tabIndex`) and it takes that fallback too, click included. The keyboard path
-       * is attached either way.
+       * If your custom component renders something non-interactive, pass `role="button"` and
+       * it takes that fallback too — `tabIndex` and click included. The keyboard path is
+       * attached either way.
        */
       as?: T;
     };
@@ -576,11 +576,10 @@ export const NavbarLink = forwardRef(function NavbarLink(
   //
   // Where we are guessing, the caller settles it: a custom target that declares
   // `role="button"` is saying it is a button and not a link, so it takes the
-  // fallback — including the click, which is the half it cannot supply itself
-  // (its own `role` and `tabIndex` already reach the element, since `rest`
-  // spreads ahead of this block, and the keyboard path is attached either way).
-  // `Avatar` gives the same escape hatch to the same guess. An `href` still wins:
-  // a target with somewhere to navigate is a link whatever role it claims.
+  // whole fallback — including the click, which is the half it could not supply
+  // itself. `Avatar` gives the same escape hatch to the same guess. An `href`
+  // still wins: a target with somewhere to navigate is a link whatever role it
+  // claims.
   const customTargetIsButton =
     typeof Component !== 'string' && rest.role === 'button';
 
