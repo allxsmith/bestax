@@ -14,6 +14,7 @@ import {
   addTodo,
   attributesOf,
   findAttr,
+  jsxStringValue,
   literalValueOf,
   makeAttr,
   removeAttr,
@@ -92,7 +93,7 @@ export function mergeClass(
   if (literal.kind === 'string') {
     const classes = literal.value.split(/\s+/).filter(Boolean);
     if (!classes.includes(cls)) classes.push(cls);
-    existing.value = j.stringLiteral(classes.join(' '));
+    existing.value = jsxStringValue(j, classes.join(' '));
     return;
   }
   addTodo(
