@@ -214,7 +214,7 @@ Ionicons v8 simplified the naming convention:
 
 The old iOS/MD prefixes (`ios-heart`, `md-heart`) are no longer used in v8.
 
-You can also pass the variant separately — `<Icon library="ion" name="heart" variant="outline" />` is equivalent to `<Icon library="ion" name="heart-outline" aria-hidden="true" />`.
+You can also pass the variant separately — `<Icon library="ion" name="heart" variant="outline" />` is equivalent to `<Icon library="ion" name="heart-outline" />`.
 :::
 
 ---
