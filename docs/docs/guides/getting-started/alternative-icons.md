@@ -172,19 +172,19 @@ function IoniconVariants() {
   return (
     <Columns isVCentered>
       <Column isNarrow textAlign="centered">
-        <Icon library="ion" name="heart" />
+        <Icon library="ion" name="heart" aria-hidden="true" />
         <Block textSize="7" mt="1">
           Default
         </Block>
       </Column>
       <Column isNarrow textAlign="centered">
-        <Icon library="ion" name="heart-outline" />
+        <Icon library="ion" name="heart-outline" aria-hidden="true" />
         <Block textSize="7" mt="1">
           Outline
         </Block>
       </Column>
       <Column isNarrow textAlign="centered">
-        <Icon library="ion" name="heart-sharp" />
+        <Icon library="ion" name="heart-sharp" aria-hidden="true" />
         <Block textSize="7" mt="1">
           Sharp
         </Block>
@@ -214,7 +214,7 @@ Ionicons v8 simplified the naming convention:
 
 The old iOS/MD prefixes (`ios-heart`, `md-heart`) are no longer used in v8.
 
-You can also pass the variant separately — `<Icon library="ion" name="heart" variant="outline" />` is equivalent to `<Icon library="ion" name="heart-outline" />`.
+You can also pass the variant separately — `<Icon library="ion" name="heart" variant="outline" />` is equivalent to `<Icon library="ion" name="heart-outline" aria-hidden="true" />`.
 :::
 
 ---
