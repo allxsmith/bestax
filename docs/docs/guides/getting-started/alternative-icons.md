@@ -171,21 +171,21 @@ import { Icon, Columns, Column, Block } from '@allxsmith/bestax-bulma';
 function IoniconVariants() {
   return (
     <Columns isVCentered>
-      <Column isNarrow textAlign="center">
+      <Column isNarrow textAlign="centered">
         <Icon library="ion" name="heart" />
-        <Block fontSize="small" mt={1}>
+        <Block textSize="7" mt="1">
           Default
         </Block>
       </Column>
-      <Column isNarrow textAlign="center">
+      <Column isNarrow textAlign="centered">
         <Icon library="ion" name="heart-outline" />
-        <Block fontSize="small" mt={1}>
+        <Block textSize="7" mt="1">
           Outline
         </Block>
       </Column>
-      <Column isNarrow textAlign="center">
+      <Column isNarrow textAlign="centered">
         <Icon library="ion" name="heart-sharp" />
-        <Block fontSize="small" mt={1}>
+        <Block textSize="7" mt="1">
           Sharp
         </Block>
       </Column>
