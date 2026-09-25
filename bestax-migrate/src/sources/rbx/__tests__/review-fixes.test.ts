@@ -821,6 +821,35 @@ describe('the innerRef remediation is achievable', () => {
     );
     expect(output).toMatch(/innerRef=\{r\}/);
   });
+
+  // Leaving the prop is right; leaving it unmentioned was not. `innerRef` is
+  // universal in rbx, so the targets no per-component entry and no special
+  // claims used to migrate with the prop intact and nothing in the report,
+  // while the RBC sibling `domRef` was flagged on every component. These are
+  // the three shapes that reach the universal entry: a target that forwards
+  // nothing, a form control that does, and a sub-component of one.
+  it.each(['Card', 'Box', 'Section', 'Input', 'Control'])(
+    'flags an unmapped innerRef on %s instead of passing it in silence',
+    name => {
+      const { output, todos } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} innerRef={r}>x</${name}>;`
+      );
+      expect(output).toMatch(/innerRef=\{r\}/);
+      expect(todos.find(t => t.rule === 'prop:innerRef')).toBeDefined();
+    }
+  );
+
+  it('still renames rather than flags where a table entry claims innerRef', () => {
+    // The universal entry must not outrank the per-component renames, or the
+    // eight targets that take a ref would gain a TODO telling them to do what
+    // the codemod just did.
+    const { output, todos } = migrate(
+      'import { Button } from "rbx";\nexport const A = (r: any) => <Button innerRef={r}>x</Button>;'
+    );
+    expect(output).toContain('ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------
