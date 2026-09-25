@@ -859,6 +859,20 @@ describe('the innerRef remediation is achievable', () => {
     expect(todos.find(t => t.rule === 'plain-element')).toBeUndefined();
   });
 
+  it('does not emit a second ref when the element already has one', () => {
+    // Two `ref` attributes do not compile. The rename defers to the one the
+    // user already wrote and says so, as `applyPropAction` does for any
+    // rename that lands on a prop already set.
+    const { output, todos } = migrate(
+      'import { Heading } from "rbx";\nexport const A = (a: any, b: any) => <Heading ref={a} innerRef={b}>x</Heading>;'
+    );
+    expect(output.match(/\bref=/g)).toHaveLength(1);
+    expect(output).toContain('ref={a}');
+    expect(output).not.toMatch(/innerRef=/);
+    const flagged = todos.find(t => t.rule === 'prop:innerRef');
+    expect(flagged?.message).toMatch(/already set/);
+  });
+
   it('still renames rather than flags where a table entry claims innerRef', () => {
     // The universal entry must not outrank the per-component renames, or the
     // eight targets that take a ref would gain a TODO telling them to do what

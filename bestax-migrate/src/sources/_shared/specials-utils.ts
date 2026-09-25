@@ -109,7 +109,18 @@ export function makeStripModifierProps(
       // tag this rewrite produces takes a real `ref` — so it is renamed onto
       // the tag here. Dropping it would delete a working ref and tell the
       // user to "restyle with classes", which is advice for a modifier.
+      // The same collision `applyPropAction` guards: with a `ref` already on
+      // the element the rename would emit two, which does not compile.
       if (refProp && name === refProp) {
+        if (attrs.some(other => other?.name?.name === 'ref')) {
+          addTodo(
+            ctx,
+            path,
+            `prop:${refProp}`,
+            `\`${refProp}\` maps to \`ref\`, but \`ref\` is already set on this element; ${where} became a plain element, so \`${refProp}\` was dropped — reconcile by hand`
+          );
+          continue;
+        }
         attr.name = ctx.j.jsxIdentifier('ref');
         ctx.dirty = true;
         kept.push(attr);

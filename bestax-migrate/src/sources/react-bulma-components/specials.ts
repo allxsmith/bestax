@@ -757,6 +757,31 @@ const SPECIALS: Record<string, SpecialHandler> = {
           'Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand'
         );
       }
+      // The container element is gone after the fold, so nothing it carried
+      // has a home — `domRef`, `id`, handlers alike. Only `className` used to
+      // be reported; the rest vanished with an empty report.
+      for (const attr of attributesOf(element)) {
+        const name = attr?.name?.name;
+        if (!name || name === 'className') continue;
+        addTodo(
+          ctx,
+          path,
+          `prop:${name}`,
+          `Table.Container \`${name}\` was dropped: the container folded into \`isResponsive\` on its Table, so there is no element left to carry it — re-apply by hand`
+        );
+      }
+      if (
+        (element.openingElement.attributes ?? []).some(
+          (a: any) => a.type === 'JSXSpreadAttribute'
+        )
+      ) {
+        addTodo(
+          ctx,
+          path,
+          'prop:spread',
+          'Table.Container spread props were dropped: the container folded into `isResponsive` on its Table, so there is no element left to carry them — re-apply by hand'
+        );
+      }
       const child = children[0];
       addAttr(child, makeAttr(ctx.j, 'isResponsive'));
       path.replace(child);

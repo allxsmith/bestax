@@ -822,6 +822,42 @@ describe('react-bulma-components transform fixtures', () => {
       expect(todos.find(t => t.rule === 'plain-element')).toBeUndefined();
     });
 
+    it('does not emit a second ref when the plain element already has one', () => {
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Form } from "react-bulma-components";\n' +
+          'export const A = (a: any, b: any) => <Form.Help ref={a} domRef={b}>x</Form.Help>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect((output ?? '').match(/\bref=/g)).toHaveLength(1);
+      expect(output).toContain('ref={a}');
+      expect(output).not.toMatch(/domRef=/);
+      expect(todos.find(t => t.rule === 'prop:domRef')?.message).toMatch(
+        /already set/
+      );
+    });
+
+    it('reports every attribute the Table.Container fold leaves without a home', () => {
+      // Folding into `isResponsive` removes the container element, so its
+      // attributes have nowhere to go. Only `className` used to be reported;
+      // `domRef`, the rest and any spread went with an empty report.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Table } from "react-bulma-components";\n' +
+          'export const A = (r: any, p: any) => <Table.Container domRef={r} id="t" {...p}><Table /></Table.Container>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toMatch(/isResponsive/);
+      const rules = todos.map(t => t.rule);
+      expect(rules).toEqual(
+        expect.arrayContaining(['prop:domRef', 'prop:id', 'prop:spread'])
+      );
+    });
+
     it('does not offer the Button rename once `remove` retargets it to Delete', () => {
       // `<Button remove>` becomes `<Delete>`, a plain function component, so
       // the general advice — which names Button as forwarding a ref — would
