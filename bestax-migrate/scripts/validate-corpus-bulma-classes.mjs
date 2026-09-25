@@ -20,17 +20,19 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const packageRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   '..'
 );
 const { runTransform } = await import(
-  path.join(packageRoot, 'dist', 'runner.js')
+  pathToFileURL(path.join(packageRoot, 'dist', 'runner.js')).href
 );
 const { bulmaClasses } = await import(
-  path.join(packageRoot, 'dist', 'sources', 'bulma-classes', 'index.js')
+  pathToFileURL(
+    path.join(packageRoot, 'dist', 'sources', 'bulma-classes', 'index.js')
+  ).href
 );
 
 const dirFlag = process.argv.indexOf('--dir');

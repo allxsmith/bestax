@@ -24,7 +24,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_URL = 'https://github.com/dfee/rbx.git';
 // master as of 2019-06-14 — rbx's final commit. The library is abandoned, so
@@ -89,9 +89,9 @@ const docsFiles = [];
 
 if (docsFiles.length === 0) fail('no .docs.mdx files found in the corpus');
 
-const { RBX_EXPORTS } = await import(distMapping);
-const { default: transform } = await import(distTransform);
-const { runTransform } = await import(distRunner);
+const { RBX_EXPORTS } = await import(pathToFileURL(distMapping).href);
+const { default: transform } = await import(pathToFileURL(distTransform).href);
+const { runTransform } = await import(pathToFileURL(distRunner).href);
 
 /**
  * Pull the `<Playground>…</Playground>` bodies out of one MDX page. Nesting is

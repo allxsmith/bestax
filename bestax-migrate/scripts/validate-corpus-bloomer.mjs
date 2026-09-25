@@ -28,7 +28,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_URL = 'https://github.com/AlgusDark/bloomer.git';
 // master as of 2018-10-30 — bloomer's final commit; the repository is
@@ -87,8 +87,8 @@ const docsFiles = [];
 
 if (docsFiles.length === 0) fail('no .tsx files found in the docs corpus');
 
-const { default: transform } = await import(distTransform);
-const { runTransform } = await import(distRunner);
+const { default: transform } = await import(pathToFileURL(distTransform).href);
+const { runTransform } = await import(pathToFileURL(distRunner).href);
 
 /** The docs import the library from its source tree; a consumer imports the package. */
 const SRC_IMPORT = /(from\s+['"])(?:\.\/)?(?:\.\.\/)+src(['"])/g;
