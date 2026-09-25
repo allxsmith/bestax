@@ -85,6 +85,31 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'TimeInputBase',
 ] as const;
 
+/**
+ * The components these surfaces name as forwarding NO ref — the roster's other
+ * half, and the reason the surface checks below are not presence tests alone.
+ * Every one of these is already a backtick-quoted name inside a section those
+ * tests read, so a bare "is the name there?" check is pre-satisfied for it: the
+ * day one gains a ref, moving it up into a bucket above would turn every surface
+ * assertion green on the very sentences telling a user it has none and to
+ * restructure their markup. That is #666 repeating itself with the guard #666
+ * asked for reporting nothing, so this list is held to the library too.
+ */
+const NAMED_AS_FORWARDING_NONE = [
+  'Box',
+  'Card',
+  'Checkboxes',
+  'Delete',
+  'Field',
+  'Field.Body',
+  'Field.Label',
+  'Message',
+  'Navbar.DropdownMenu',
+  'Radios',
+  'Section',
+  'Tabs',
+] as const;
+
 /** What `React.forwardRef` stamps on the object it returns. */
 const FORWARD_REF = Symbol.for('react.forward_ref');
 
@@ -128,6 +153,102 @@ function forwardRefGroups(): string[][] {
   return [...groups.values()];
 }
 
+/** The library export a backtick-quoted name refers to, if it names one. */
+function libraryExport(name: string): unknown {
+  const [head, sub] = name.split('.');
+  const root = (bulma as Record<string, unknown>)[head];
+  if (!sub) return root;
+  if (
+    root === null ||
+    (typeof root !== 'object' && typeof root !== 'function')
+  ) {
+    return undefined;
+  }
+  return (root as Record<string, unknown>)[sub];
+}
+
+/**
+ * Every component name a surface quotes in backticks, filtered to the ones the
+ * library actually exports. The rest are source-library names — rbx's
+ * `Modal.Container`, the `domRef` prop itself — which say nothing about what
+ * bestax forwards.
+ */
+function bestaxNamesIn(text: string): string[] {
+  const quoted = text.matchAll(/`([A-Z][A-Za-z]*(?:\.[A-Z][A-Za-z]*)?)`/g);
+  const names = new Set<string>();
+  for (const [, name] of quoted) {
+    if (libraryExport(name) !== undefined) names.add(name);
+  }
+  return [...names].sort();
+}
+
+/**
+ * The roster a surface states POSITIVELY: the run of backtick-quoted names that
+ * follows its "form controls" summary, joined only by commas, "and" and "plus".
+ * Every surface writes it the same way — "the form controls, plus `Avatar`, ...
+ * `Sidebar` and `Toast`" — so the run ends at the first thing that is
+ * not another name, which is exactly where the sentence turns to the
+ * components that forward nothing.
+ *
+ * Reading the run, rather than asking whether a name appears ANYWHERE in the
+ * section, is what makes the surface checks below polarity checks. Both prose
+ * lists live in the same section, so a presence test stays green when a name is
+ * moved from one to the other — #666 recurring with the guard silent.
+ */
+function forwardingRunIn(text: string): string[] {
+  const summary = 'form controls';
+  const start = text.indexOf(summary);
+  if (start === -1) throw new Error('surface carries no form-control summary');
+  const separator = /(?:[\s,]|\band\b|\bplus\b)*/y;
+  const name = /`([A-Z][A-Za-z]*(?:\.[A-Z][A-Za-z]*)?)`/y;
+  const names: string[] = [];
+  let at = start + summary.length;
+  for (;;) {
+    separator.lastIndex = at;
+    separator.exec(text);
+    name.lastIndex = separator.lastIndex;
+    const hit = name.exec(text);
+    if (!hit) return names;
+    names.push(hit[1]);
+    at = name.lastIndex;
+  }
+}
+
+/**
+ * Every component `bulma-ui/src/form/` exports, which is the claim the
+ * summarised bucket's own comment makes. Read off the folder rather than off
+ * `index.ts`, because that file spells the re-export three different ways and
+ * the claim is about where the component LIVES: a form control moved out of
+ * this folder, or a new forwarder parked in that bucket without being one, is
+ * what this catches.
+ *
+ * Sub-folders count — `_pickerInternals/` is still `src/form/` — while stories
+ * and tests do not: their exports are fixtures, not components, and counting
+ * them would let the folder "contain" a name no component in it defines.
+ */
+function formFolderExports(): Set<string> {
+  const names = new Set<string>();
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== '__tests__') walk(full);
+        continue;
+      }
+      if (!/\.tsx?$/.test(entry.name)) continue;
+      if (/\.(?:stories|test)\.tsx?$/.test(entry.name)) continue;
+      const text = fs.readFileSync(full, 'utf8');
+      for (const [, name] of text.matchAll(
+        /^export const ([A-Z][A-Za-z]*)/gm
+      )) {
+        names.add(name);
+      }
+    }
+  };
+  walk(path.join(ROOT, 'bulma-ui/src/form'));
+  return names;
+}
+
 /** One `##` section of a reference, heading included. */
 function section(file: string, heading: string): string {
   const text = fs.readFileSync(path.join(REFERENCES, file), 'utf8');
@@ -148,20 +269,27 @@ function todo(entry: { todo?: string }, label: string): string {
   return entry.todo;
 }
 
-const SURFACES: Array<[string, string]> = [
-  ['rbx prop-map', section('rbx/prop-map.md', '## Refs')],
-  ['bloomer prop-map', section('bloomer/prop-map.md', '## Refs')],
+/**
+ * Read lazily, one thunk per surface. `section()` and `todo()` both throw, and
+ * at module scope a renamed heading took the whole suite down with
+ * `Tests: 0 total` — including the library-vs-roster checks, which are the part
+ * #666 actually asked for. Deferring the read into each test turns that back
+ * into one red surface against a suite that still reports on the rest.
+ */
+const SURFACES: Array<[string, () => string]> = [
+  ['rbx prop-map', () => section('rbx/prop-map.md', '## Refs')],
+  ['bloomer prop-map', () => section('bloomer/prop-map.md', '## Refs')],
   [
     'react-bulma-components unmappables',
-    section('react-bulma-components/unmappables.md', '## `domRef`'),
+    () => section('react-bulma-components/unmappables.md', '## `domRef`'),
   ],
   [
     'the rbx `forwardRefAs` TODO',
-    todo(RBX_MAPPING.forwardRefAs, 'rbx `forwardRefAs`'),
+    () => todo(RBX_MAPPING.forwardRefAs, 'rbx `forwardRefAs`'),
   ],
   [
     'the react-bulma-components `domRef` TODO',
-    todo(RBC_UNIVERSAL.domRef, 'RBC `domRef`'),
+    () => todo(RBC_UNIVERSAL.domRef, 'RBC `domRef`'),
   ],
 ];
 
@@ -186,22 +314,85 @@ describe('the ref-forwarding roster', () => {
   });
 
   it('names each bucket only once', () => {
-    const overlap = SUMMARISED_AS_FORM_CONTROLS.filter(name =>
-      (NAMED_INDIVIDUALLY as readonly string[]).includes(name)
+    const counts = new Map<string, number>();
+    for (const name of [
+      ...NAMED_INDIVIDUALLY,
+      ...SUMMARISED_AS_FORM_CONTROLS,
+      ...NAMED_AS_FORWARDING_NONE,
+    ]) {
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    const repeated = [...counts].filter(([, n]) => n > 1).map(([name]) => name);
+    expect(repeated).toEqual([]);
+  });
+
+  it('claims nothing forwards no ref that in fact forwards one', () => {
+    const real = new Set(groups.flat());
+    expect(NAMED_AS_FORWARDING_NONE.filter(name => real.has(name))).toEqual([]);
+  });
+
+  it('denies only components the library still exports', () => {
+    const gone = NAMED_AS_FORWARDING_NONE.filter(
+      name => libraryExport(name) === undefined
     );
-    expect(overlap).toEqual([]);
+    expect(gone).toEqual([]);
+  });
+
+  // The other direction, and the one that was missing: a form control that
+  // forwards a ref has to be IN the summarised bucket, or "the form controls"
+  // promises a reader something the library does not do. `Field`, its `Label`
+  // and `Body`, `Checkboxes` and `Radios` live in the folder and forward
+  // nothing, which is why the surfaces carve them out by name rather than
+  // leaving the summary to cover the whole folder.
+  it('summarises every form control that forwards a ref', () => {
+    const inFolder = formFolderExports();
+    const summarised = new Set<string>(SUMMARISED_AS_FORM_CONTROLS);
+    const unplaced = groups
+      .filter(names => names.some(name => inFolder.has(name)))
+      .filter(names => !names.some(name => summarised.has(name)))
+      .map(names => names.join(' = '))
+      .sort();
+    expect(unplaced).toEqual([]);
+  });
+
+  it('summarises as form controls only what lives in `src/form/`', () => {
+    const inFolder = formFolderExports();
+    expect(inFolder.size).toBeGreaterThan(0);
+    const strays = SUMMARISED_AS_FORM_CONTROLS.filter(
+      name => !inFolder.has(name)
+    );
+    expect(strays).toEqual([]);
   });
 });
 
 describe('every surface that names the roster', () => {
-  it.each(SURFACES)('%s names each component individually', (_label, text) => {
-    const missing = NAMED_INDIVIDUALLY.filter(
-      name => !text.includes(`\`${name}\``)
+  // Not "does the name appear" but "does it appear on the forwarding side".
+  // Compared unordered, so the prose stays free to list the roster however reads
+  // best; what is pinned is which names the sentence claims forward a ref.
+  it.each(SURFACES)('%s forwards exactly the named roster', (_label, read) => {
+    expect(forwardingRunIn(read()).sort()).toEqual(
+      [...NAMED_INDIVIDUALLY].sort()
     );
-    expect(missing).toEqual([]);
   });
 
-  it.each(SURFACES)('%s summarises the form controls', (_label, text) => {
-    expect(text).toContain('form controls');
+  it.each(SURFACES)('%s summarises the form controls', (_label, read) => {
+    expect(read()).toContain('form controls');
+  });
+
+  // The check above pins the forwarding side of each surface; this one covers
+  // the rest of the section, where the components that forward nothing are
+  // named. Every bestax name a surface quotes has to be accounted for in one of
+  // the three buckets, so a component cannot be written about on either side
+  // without the roster being told which side it belongs on.
+  it.each(SURFACES)('%s quotes no undeclared component', (_label, read) => {
+    const declared = new Set<string>([
+      ...NAMED_INDIVIDUALLY,
+      ...SUMMARISED_AS_FORM_CONTROLS,
+      ...NAMED_AS_FORWARDING_NONE,
+    ]);
+    const undeclared = bestaxNamesIn(read()).filter(
+      name => !declared.has(name)
+    );
+    expect(undeclared).toEqual([]);
   });
 });

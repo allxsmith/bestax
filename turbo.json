@@ -21,10 +21,12 @@
       "outputs": ["dist/**", "data/skills/**"]
     },
     "bestax-migrate#test": {
-      "dependsOn": ["@allxsmith/bestax-bulma#build"]
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"]
     },
     "bestax-migrate#test:coverage": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
       "outputs": ["coverage/**"]
     },
     "@allxsmith/eslint-plugin-bestax#typecheck": {

@@ -749,16 +749,27 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // handler knows which of the two targets was picked. The condition is
     // about that, not about ref support: a plain `Navbar.Item` forwards one
     // too since #661, so leaving `innerRef` alone there is a rename this
-    // handler declines rather than one the target cannot take. Widening it
-    // changes emitted output on code that migrates today, so it is #734 and
-    // not folded in here — the prop maps name the hand-rename instead.
-    const renamedInnerRef: string[] = [];
-    if (target === 'Navbar.Dropdown') {
-      const innerRefAttr = findAttr(element, 'innerRef');
-      if (innerRefAttr) {
+    // handler declines rather than one the target cannot take. Performing it
+    // changes emitted output on code that migrates today, so it stays #734 —
+    // but declining silently is not an option either. `innerRef` is in no
+    // rbx prop table, so nothing downstream flags it and it used to reach the
+    // DOM as an unknown attribute with the report saying nothing, which is
+    // the silent skip bestax-migrate/CLAUDE.md rules out. It is flagged here
+    // instead, and the rename stays the user's to make.
+    const handledInnerRef: string[] = [];
+    const innerRefAttr = findAttr(element, 'innerRef');
+    if (innerRefAttr) {
+      handledInnerRef.push('innerRef');
+      if (target === 'Navbar.Dropdown') {
         innerRefAttr.name = ctx.j.jsxIdentifier('ref');
-        renamedInnerRef.push('innerRef');
         ctx.dirty = true;
+      } else {
+        addTodo(
+          ctx,
+          path,
+          'prop:innerRef',
+          'bestax `Navbar.Item` forwards a ref; rename `innerRef` to `ref` by hand'
+        );
       }
     }
     restrictAsToTargets(ctx, path, element, target ?? 'Navbar.Item', [
@@ -774,7 +785,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'expanded',
         'hoverable',
         'managed',
-        ...renamedInnerRef,
+        ...handledInnerRef,
       ],
     };
   },

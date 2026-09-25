@@ -769,13 +769,20 @@ describe('the innerRef remediation is achievable', () => {
     expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
   });
 
-  it('leaves innerRef alone on a plain Navbar.Item', () => {
-    // Without `dropdown` the target stays Navbar.Item, a function component —
-    // so the rename above must be conditional, not unconditional.
-    const { output } = migrate(
+  it('flags innerRef on a plain Navbar.Item without renaming it', () => {
+    // Without `dropdown` the target stays Navbar.Item, which forwards a ref of
+    // its own since #661 — so the rename above is conditional on which target
+    // was picked, not on whether the target takes a ref. Performing it here
+    // changes emitted output on code that migrates today and stays #734; what
+    // must not happen is the prop going by in silence, since `innerRef` is in
+    // no rbx prop table and would otherwise reach the DOM unflagged.
+    const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item innerRef={r}>x</Navbar.Item>;'
     );
     expect(output).toContain('<Navbar.Item innerRef={r}');
+    const flagged = todos.find(t => t.rule === 'prop:innerRef');
+    expect(flagged).toBeDefined();
+    expect(flagged?.message).toMatch(/forwards a ref/);
   });
 
   // A plain `ref` is passed through untouched everywhere. That is correct on a
@@ -795,7 +802,8 @@ describe('the innerRef remediation is achievable', () => {
     'also passes ref through on %s, which forwards none',
     name => {
       // Documents today's behaviour, not a desired one: the ref survives the
-      // rewrite and then resolves to null at runtime. Deliberately does NOT
+      // rewrite and then goes nowhere useful — React 18 drops it with a
+      // warning, React 19 leaves it wherever the rest props land. Does NOT
       // assert the absence of a diagnostic — flagging this is the improvement,
       // and a test pinning "no TODO" would fail the change that adds it.
       const { output } = migrate(
