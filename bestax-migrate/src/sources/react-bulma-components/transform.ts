@@ -159,6 +159,22 @@ export default function transform(
     .find(j.ImportDeclaration)
     .paths()
     .some(p => BESTAX_CSS_SPECIFIERS.has(String(p.node.source.value)));
+
+  // Whether some import in this file will become bestax.css, regardless of
+  // where it sits relative to an existing extras import.
+  const willAdoptBestaxCss =
+    cssMode === 'bestax' &&
+    root
+      .find(j.ImportDeclaration)
+      .paths()
+      .some(p => {
+        const v = String(p.node.source.value);
+        return (
+          (v.startsWith(`${RBC}/`) && v.endsWith('.css')) ||
+          BULMA_CSS_SPECIFIERS.has(v)
+        );
+      });
+
   root.find(j.ImportDeclaration).forEach(path => {
     const source = String(path.node.source.value);
     const isRbcCss = source.startsWith(`${RBC}/`) && source.endsWith('.css');
@@ -175,8 +191,11 @@ export default function transform(
           sawBestaxCss = true;
         }
         ctx.dirty = true;
-      } else if (isExtrasCss && sawBestaxCss) {
-        // bestax.css already contains the extras.
+      } else if (isExtrasCss && (sawBestaxCss || willAdoptBestaxCss)) {
+        // bestax.css already contains the extras. `willAdoptBestaxCss` covers
+        // the case where the extras import comes FIRST in the file and the
+        // bulma/RBC import that becomes bestax.css has not been visited yet —
+        // previously the extras survived alongside it and double-loaded.
         path.prune();
         ctx.dirty = true;
       }
