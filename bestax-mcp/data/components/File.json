@@ -7,67 +7,67 @@
   "examples": [
     {
       "title": "Default",
-      "code": "<File buttonLabel=\"Choose a file…\" iconLeft={<Icon name=\"upload\" />} />"
+      "code": "<File\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "With Filename Display",
-      "code": "<File\n  hasName\n  fileName=\"resume.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  hasName\n  fileName=\"resume.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "CTA on Right",
-      "code": "<File\n  hasName\n  isRight\n  fileName=\"contract.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  hasName\n  isRight\n  fileName=\"contract.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Full Width",
-      "code": "<File\n  hasName\n  isFullwidth\n  fileName=\"picture.png\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  hasName\n  isFullwidth\n  fileName=\"picture.png\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Boxed",
-      "code": "<File isBoxed buttonLabel=\"Choose a file…\" iconLeft={<Icon name=\"upload\" />} />"
+      "code": "<File\n  isBoxed\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Boxed with Name",
-      "code": "<File\n  isBoxed\n  hasName\n  fileName=\"holiday.jpg\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  isBoxed\n  hasName\n  fileName=\"holiday.jpg\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Colors",
-      "code": "<>\n  <File\n    color=\"primary\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    color=\"info\"\n    hasName\n    fileName=\"resume.pdf\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    color=\"warning\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"cloud-upload-alt\" />}\n  />\n  <File\n    color=\"danger\"\n    isBoxed\n    hasName\n    fileName=\"resume.pdf\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"cloud-upload-alt\" />}\n  />\n</>"
+      "code": "<>\n  <File\n    color=\"primary\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    color=\"info\"\n    hasName\n    fileName=\"resume.pdf\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    color=\"warning\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"cloud-upload-alt\" aria-hidden=\"true\" />}\n  />\n  <File\n    color=\"danger\"\n    isBoxed\n    hasName\n    fileName=\"resume.pdf\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"cloud-upload-alt\" aria-hidden=\"true\" />}\n  />\n</>"
     },
     {
       "title": "Sizes",
-      "code": "<>\n  <File\n    size=\"small\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File buttonLabel=\"Choose a file…\" iconLeft={<Icon name=\"upload\" />} />\n  <File\n    size=\"medium\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+      "code": "<>\n  <File\n    size=\"small\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"medium\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"large\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n</>"
     },
     {
       "title": "Sizes with Name",
-      "code": "<>\n  <File\n    size=\"small\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"medium\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+      "code": "<>\n  <File\n    size=\"small\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"medium\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"large\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n</>"
     },
     {
       "title": "Sizes with Boxed",
-      "code": "<>\n  <File\n    size=\"small\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"medium\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+      "code": "<>\n  <File\n    size=\"small\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"medium\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"large\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n</>"
     },
     {
       "title": "Sizes with Boxed and Name",
-      "code": "<>\n  <File\n    size=\"small\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"medium\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+      "code": "<>\n  <File\n    size=\"small\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"medium\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n  <File\n    size=\"large\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n  />\n</>"
     },
     {
       "title": "Alignment: Centered",
-      "code": "<File\n  color=\"info\"\n  isCentered\n  isBoxed\n  hasName\n  fileName=\"centered.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  color=\"info\"\n  isCentered\n  isBoxed\n  hasName\n  fileName=\"centered.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Alignment: Right",
-      "code": "<File\n  color=\"primary\"\n  isRight\n  hasName\n  fileName=\"right.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  color=\"primary\"\n  isRight\n  hasName\n  fileName=\"right.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "<File\n  label=\"Document\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+      "code": "<File\n  label=\"Document\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <File\n            buttonLabel=\"Choose a file…\"\n            iconLeft={<Icon name=\"upload\" />}\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <File\n            buttonLabel=\"Choose a file…\"\n            iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"paperclip\">\n            <File\n              buttonLabel=\"Choose a file…\"\n              iconLeft={<Icon name=\"upload\" />}\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"paperclip\">\n            <File\n              buttonLabel=\"Choose a file…\"\n              iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
   "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
@@ -187,7 +187,7 @@
           "name": "iconLeft",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Left icon element.",
+          "description": "Left icon element. It renders inside the `<label>` that names the file input, beside `buttonLabel`, so pass an `Icon` with `aria-hidden` (`<Icon name=\"upload\" aria-hidden=\"true\" />`); otherwise its default `aria-label=\"icon\"` becomes part of the input's accessible name.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -196,7 +196,7 @@
           "name": "iconRight",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Right icon element.",
+          "description": "Right icon element. Sits inside the same `<label>` as `iconLeft`, so the same applies: give an `Icon` here `aria-hidden`, or \"icon\" joins the input's accessible name.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -89,25 +89,25 @@ This example demonstrates using icons in your tabs. Each tab can contain an icon
   <Tabs.List>
     <Tabs.Item active>
       <a>
-        <Icon name="fas fa-image" size="small" />
+        <Icon name="fas fa-image" size="small" aria-hidden="true" />
         <span>Pictures</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-music" size="small" />
+        <Icon name="fas fa-music" size="small" aria-hidden="true" />
         <span>Music</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-film" size="small" />
+        <Icon name="fas fa-film" size="small" aria-hidden="true" />
         <span>Videos</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-file-alt" size="small" />
+        <Icon name="fas fa-file-alt" size="small" aria-hidden="true" />
         <span>Documents</span>
       </a>
     </Tabs.Item>
@@ -269,19 +269,19 @@ This example combines several features: centered alignment, boxed style, and ico
   <Tabs.List>
     <Tabs.Item active>
       <a>
-        <Icon name="fas fa-home" size="small" />
+        <Icon name="fas fa-home" size="small" aria-hidden="true" />
         <span>Home</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-user" size="small" />
+        <Icon name="fas fa-user" size="small" aria-hidden="true" />
         <span>Profile</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-cog" size="small" />
+        <Icon name="fas fa-cog" size="small" aria-hidden="true" />
         <span>Settings</span>
       </a>
     </Tabs.Item>
@@ -300,19 +300,19 @@ Enhance your toggle tabs with icons for better visual communication. This exampl
   <Tabs.List>
     <Tabs.Item active>
       <a>
-        <Icon name="fas fa-list" size="small" />
+        <Icon name="fas fa-list" size="small" aria-hidden="true" />
         <span>List</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-check" size="small" />
+        <Icon name="fas fa-check" size="small" aria-hidden="true" />
         <span>Done</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-times" size="small" />
+        <Icon name="fas fa-times" size="small" aria-hidden="true" />
         <span>Removed</span>
       </a>
     </Tabs.Item>
@@ -331,19 +331,19 @@ This example features centered, boxed tabs in medium size, each with an icon. It
   <Tabs.List>
     <Tabs.Item active>
       <a>
-        <Icon name="fas fa-star" size="small" />
+        <Icon name="fas fa-star" size="small" aria-hidden="true" />
         <span>Favorites</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-clock" size="small" />
+        <Icon name="fas fa-clock" size="small" aria-hidden="true" />
         <span>Recent</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-archive" size="small" />
+        <Icon name="fas fa-archive" size="small" aria-hidden="true" />
         <span>Archive</span>
       </a>
     </Tabs.Item>
@@ -362,19 +362,19 @@ The final example showcases toggle tabs with fullwidth and large size, including
   <Tabs.List>
     <Tabs.Item active>
       <a>
-        <Icon name="fas fa-rocket" size="small" />
+        <Icon name="fas fa-rocket" size="small" aria-hidden="true" />
         <span>Launch</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-bell" size="small" />
+        <Icon name="fas fa-bell" size="small" aria-hidden="true" />
         <span>Alerts</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
       <a>
-        <Icon name="fas fa-cogs" size="small" />
+        <Icon name="fas fa-cogs" size="small" aria-hidden="true" />
         <span>Settings</span>
       </a>
     </Tabs.Item>

@@ -232,7 +232,7 @@ function example() {
       placeholder="Try searching 'xyz'..."
       empty={
         <Paragraph textColor="grey">
-          <Icon name="search" variant="solid" mr="2" />
+          <Icon name="search" variant="solid" mr="2" aria-hidden="true" />
           No results found
         </Paragraph>
       }

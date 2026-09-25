@@ -116,13 +116,13 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
                    size="large"
                    onClick={() => setShowNotification(!showNotification)}
                  >
-                   <Icon name="magic" />
+                   <Icon name="magic" aria-hidden="true" />
                    <span>Toggle Notification</span>
                  </Button>
 
                  {showNotification && (
                    <Notification color="success" mt="4">
-                     <Icon name="check-circle" />
+                     <Icon name="check-circle" aria-hidden="true" />
                      <strong>Success!</strong> Your Vite + React + bestax-bulma
                      setup is working perfectly!
                    </Notification>
@@ -250,13 +250,13 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
                    size="large"
                    onClick={() => setShowNotification(!showNotification)}
                  >
-                   <Icon name="magic" />
+                   <Icon name="magic" aria-hidden="true" />
                    <span>Toggle Notification</span>
                  </Button>
 
                  {showNotification && (
                    <Notification color="success" mt="4">
-                     <Icon name="check-circle" />
+                     <Icon name="check-circle" aria-hidden="true" />
                      <strong>Success!</strong> Your Vite + React + bestax-bulma
                      TypeScript setup is working perfectly!
                    </Notification>
@@ -395,13 +395,13 @@ Next.js is a popular React framework that provides server-side rendering, static
                    size="large"
                    onClick={() => setShowNotification(!showNotification)}
                  >
-                   <Icon name="magic" />
+                   <Icon name="magic" aria-hidden="true" />
                    <span>Toggle Notification</span>
                  </Button>
 
                  {showNotification && (
                    <Notification color="success" mt="4">
-                     <Icon name="check-circle" />
+                     <Icon name="check-circle" aria-hidden="true" />
                      <strong>Success!</strong> Your Next.js + React +
                      bestax-bulma setup is working perfectly!
                    </Notification>
@@ -537,13 +537,13 @@ Next.js is a popular React framework that provides server-side rendering, static
                    size="large"
                    onClick={() => setShowNotification(!showNotification)}
                  >
-                   <Icon name="magic" />
+                   <Icon name="magic" aria-hidden="true" />
                    <span>Toggle Notification</span>
                  </Button>
 
                  {showNotification && (
                    <Notification color="success" mt="4">
-                     <Icon name="check-circle" />
+                     <Icon name="check-circle" aria-hidden="true" />
                      <strong>Success!</strong> Your Next.js TypeScript +
                      bestax-bulma setup is working perfectly!
                    </Notification>
@@ -671,13 +671,13 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
                    size="large"
                    onClick={() => setShowNotification(!showNotification)}
                  >
-                   <Icon name="magic" />
+                   <Icon name="magic" aria-hidden="true" />
                    <span>Toggle Notification</span>
                  </Button>
 
                  {showNotification && (
                    <Notification color="success" mt="4">
-                     <Icon name="check-circle" />
+                     <Icon name="check-circle" aria-hidden="true" />
                      <strong>Success!</strong> Your Create React App +
                      bestax-bulma setup is working perfectly!
                    </Notification>
@@ -799,13 +799,13 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
                    size="large"
                    onClick={() => setShowNotification(!showNotification)}
                  >
-                   <Icon name="magic" />
+                   <Icon name="magic" aria-hidden="true" />
                    <span>Toggle Notification</span>
                  </Button>
 
                  {showNotification && (
                    <Notification color="success" mt="4">
-                     <Icon name="check-circle" />
+                     <Icon name="check-circle" aria-hidden="true" />
                      <strong>Success!</strong> Your Create React App TypeScript
                      + bestax-bulma setup is working perfectly!
                    </Notification>

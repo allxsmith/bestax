@@ -39,7 +39,10 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 A basic file input. The `buttonLabel` prop sets the text on the CTA button, and `iconLeft` adds an icon for visual context.
 
 ```tsx live
-<File buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+<File
+  buttonLabel="Choose a file…"
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
+/>
 ```
 
 ---
@@ -53,7 +56,7 @@ Set `hasName` to display the selected file name. The `fileName` prop shows a cus
   hasName
   fileName="resume.pdf"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -69,7 +72,7 @@ Combine `isRight` with `hasName` to put the CTA button on the right and the file
   isRight
   fileName="contract.pdf"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -85,7 +88,7 @@ Combine `isRight` with `hasName` to put the CTA button on the right and the file
   isFullwidth
   fileName="picture.png"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -96,7 +99,11 @@ Combine `isRight` with `hasName` to put the CTA button on the right and the file
 `isBoxed` stacks the icon over the text into a square box.
 
 ```tsx live
-<File isBoxed buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+<File
+  isBoxed
+  buttonLabel="Choose a file…"
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
+/>
 ```
 
 ---
@@ -111,7 +118,7 @@ Combine `isBoxed` and `hasName` for a boxed widget that also shows the filename.
   hasName
   fileName="holiday.jpg"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -126,20 +133,20 @@ The `color` prop applies Bulma color modifiers. The four examples below match th
   <File
     color="primary"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     color="info"
     hasName
     fileName="resume.pdf"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     color="warning"
     isBoxed
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="cloud-upload-alt" />}
+    iconLeft={<Icon name="cloud-upload-alt" aria-hidden="true" />}
   />
   <File
     color="danger"
@@ -147,7 +154,7 @@ The `color` prop applies Bulma color modifiers. The four examples below match th
     hasName
     fileName="resume.pdf"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="cloud-upload-alt" />}
+    iconLeft={<Icon name="cloud-upload-alt" aria-hidden="true" />}
   />
 </>
 ```
@@ -163,18 +170,21 @@ The `size` prop controls the file input's size.
   <File
     size="small"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
-  <File buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+  <File
+    buttonLabel="Choose a file…"
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
+  />
   <File
     size="medium"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="large"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
 </>
 ```
@@ -192,27 +202,27 @@ Combine `size` with `hasName` to scale the filename display alongside the button
     hasName
     fileName="sample.txt"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     hasName
     fileName="sample.txt"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="medium"
     hasName
     fileName="sample.txt"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="large"
     hasName
     fileName="sample.txt"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
 </>
 ```
@@ -229,24 +239,24 @@ Combine `size` with `isBoxed` for boxed file inputs at every size.
     size="small"
     isBoxed
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     isBoxed
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="medium"
     isBoxed
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="large"
     isBoxed
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
 </>
 ```
@@ -265,14 +275,14 @@ For a boxed file input that also shows the filename, combine `isBoxed`, `hasName
     hasName
     fileName="summary.docx"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     isBoxed
     hasName
     fileName="summary.docx"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="medium"
@@ -280,7 +290,7 @@ For a boxed file input that also shows the filename, combine `isBoxed`, `hasName
     hasName
     fileName="summary.docx"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
   <File
     size="large"
@@ -288,7 +298,7 @@ For a boxed file input that also shows the filename, combine `isBoxed`, `hasName
     hasName
     fileName="summary.docx"
     buttonLabel="Choose a file…"
-    iconLeft={<Icon name="upload" />}
+    iconLeft={<Icon name="upload" aria-hidden="true" />}
   />
 </>
 ```
@@ -307,7 +317,7 @@ For a boxed file input that also shows the filename, combine `isBoxed`, `hasName
   hasName
   fileName="centered.pdf"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -324,7 +334,7 @@ For a boxed file input that also shows the filename, combine `isBoxed`, `hasName
   hasName
   fileName="right.pdf"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -346,7 +356,7 @@ The simplest usage — `label` adds a Field label above the widget.
 <File
   label="Document"
   buttonLabel="Choose a file…"
-  iconLeft={<Icon name="upload" />}
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
 />
 ```
 
@@ -364,7 +374,7 @@ function example() {
         <Field>
           <File
             buttonLabel="Choose a file…"
-            iconLeft={<Icon name="upload" />}
+            iconLeft={<Icon name="upload" aria-hidden="true" />}
           />
         </Field>
       </Field.Body>
@@ -388,7 +398,7 @@ function example() {
           <Control iconLeftName="paperclip">
             <File
               buttonLabel="Choose a file…"
-              iconLeft={<Icon name="upload" />}
+              iconLeft={<Icon name="upload" aria-hidden="true" />}
             />
           </Control>
         </Field>
@@ -441,8 +451,8 @@ function example() {
 | `isCentered`     | `boolean`                                                                                                                          | `false` | Center the file input within its container.                                                                                                                                                                                                                                                           |
 | `hasName`        | `boolean`                                                                                                                          | `false` | Show a file name indicator.                                                                                                                                                                                                                                                                           |
 | `buttonLabel`    | `React.ReactNode`                                                                                                                  | —       | Text on the file CTA button (defaults to "Choose a file…").                                                                                                                                                                                                                                           |
-| `iconLeft`       | `React.ReactNode`                                                                                                                  | —       | Left icon element.                                                                                                                                                                                                                                                                                    |
-| `iconRight`      | `React.ReactNode`                                                                                                                  | —       | Right icon element.                                                                                                                                                                                                                                                                                   |
+| `iconLeft`       | `React.ReactNode`                                                                                                                  | —       | Left icon element. It renders inside the `<label>` that names the file input, beside `buttonLabel`, so pass an `Icon` with `aria-hidden` (`<Icon name="upload" aria-hidden="true" />`); otherwise its default `aria-label="icon"` becomes part of the input's accessible name.                        |
+| `iconRight`      | `React.ReactNode`                                                                                                                  | —       | Right icon element. Sits inside the same `<label>` as `iconLeft`, so the same applies: give an `Icon` here `aria-hidden`, or "icon" joins the input's accessible name.                                                                                                                                |
 | `className`      | `string`                                                                                                                           | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                      |
 | `inputClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the `<input>`.                                                                                                                                                                                                                                                             |
 | `fileName`       | `string`                                                                                                                           | —       | File name to display.                                                                                                                                                                                                                                                                                 |

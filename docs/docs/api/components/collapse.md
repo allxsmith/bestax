@@ -216,7 +216,7 @@ function example() {
       trigger={
         <Block className="collapse-trigger-header">
           <Span>Card Collapse</Span>
-          <Icon name="fas fa-chevron-down" />
+          <Icon name="fas fa-chevron-down" aria-hidden="true" />
         </Block>
       }
     >
