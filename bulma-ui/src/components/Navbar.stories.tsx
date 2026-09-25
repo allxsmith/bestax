@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import Navbar from './Navbar';
@@ -417,6 +418,55 @@ const ForwardedRefNavbar = () => {
 
 export const ForwardedRefs: Story = {
   render: () => <ForwardedRefNavbar />,
+};
+
+// Dropdown triggers rendered through `as`. Stands in for a router link without
+// pulling a router into Storybook: what matters is that the target takes its own
+// prop and builds the anchor itself, which is why its interactivity cannot be read
+// off the props `Navbar.Link` was handed (#668).
+const RouterLinkStub = ({
+  to,
+  children,
+  ...rest
+}: { to: string } & React.ComponentProps<'a'>) => (
+  <a href={to} {...rest}>
+    {children}
+  </a>
+);
+
+const SpanTrigger = (props: React.ComponentProps<'span'>) => (
+  <span {...props} />
+);
+
+export const DropdownTriggerAsCustomComponent: Story = {
+  render: () => (
+    <Navbar>
+      <Navbar.Menu active>
+        <Navbar.Start>
+          {/* A link target keeps link semantics: no role="button" over a real anchor. */}
+          <Navbar.Dropdown hoverable>
+            <Navbar.Link as={RouterLinkStub} to="/docs">
+              Router link
+            </Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#">Overview</Navbar.Item>
+              <Navbar.Item href="#">Components</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          {/* A non-interactive target opts into the fallback by saying what it is. */}
+          <Navbar.Dropdown>
+            <Navbar.Link as={SpanTrigger} role="button">
+              Span trigger
+            </Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#">Opens on click</Navbar.Item>
+              <Navbar.Item href="#">and on Enter</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        </Navbar.Start>
+      </Navbar.Menu>
+    </Navbar>
+  ),
 };
 
 // Compound (dot-notation) usage

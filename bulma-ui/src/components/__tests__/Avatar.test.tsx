@@ -477,6 +477,42 @@ describe('Custom component targets (#668)', () => {
       expect(screen.getByTestId('a')).not.toHaveAttribute('aria-label');
     });
 
+    it('ignores a role that claims the opposite, such as button', () => {
+      // role="button" asserts a control. Reading it as "I am a picture" handed an
+      // interactive-role element aria-hidden and no name.
+      render(
+        <Avatar
+          as={RouterLink}
+          to="/profile"
+          alt=""
+          name="Ada"
+          role="button"
+          data-testid="a"
+        />
+      );
+      const el = screen.getByTestId('a');
+      expect(el).not.toHaveAttribute('aria-hidden');
+      expect(el).toHaveAttribute('aria-label', 'Ada');
+      expect(el).toHaveAttribute('role', 'button');
+    });
+
+    it.each(['presentation', 'none'])(
+      'accepts role=%s as the same claim as role="img"',
+      role => {
+        render(
+          <Avatar
+            as={RouterLink}
+            to="/profile"
+            alt=""
+            name="Ada"
+            role={role}
+            data-testid="a"
+          />
+        );
+        expect(screen.getByTestId('a')).toHaveAttribute('aria-hidden', 'true');
+      }
+    );
+
     it('is outranked by an href, which ends the guess', () => {
       // A custom target we were handed an href for is known to be a link, so the
       // signal cannot hide it or strip its name.

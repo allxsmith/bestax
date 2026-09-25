@@ -137,7 +137,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": null,
-          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. This also decides whether the avatar is treated as interactive, which is what keeps `role=\"img\"` and the `alt=\"\"` decorative opt-out off a link or button. A custom component counts — a router link takes `to` rather than this component's `href`, so its own props cannot say — while `'a'`, `'button'`, and a custom element given an `href` count for the reason they read. If your custom component renders something that really is just a picture, say so with an explicit `role` (or `aria-hidden`) and it is treated as one, `alt=\"\"` included. A genuine `'a'`/`'button'`/`href` avatar keeps its accessible name either way.",
+          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. This also decides whether the avatar is treated as interactive, which is what keeps `role=\"img\"` and the `alt=\"\"` decorative opt-out off a link or button. A custom component counts — a router link takes `to` rather than this component's `href`, so its own props cannot say — while `'a'`, `'button'`, and a custom element given an `href` count for the reason they read. If your custom component renders something that really is just a picture, say so with `role=\"img\"` (or `\"presentation\"`/`\"none\"`, or a truthy `aria-hidden`) and it is treated as one, `alt=\"\"` included. A role claiming the opposite, such as `\"button\"`, does not — nor does an `href`, which settles it on its own. A genuine `'a'`/`'button'`/`href` avatar keeps its accessible name either way.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -164,7 +164,7 @@
           "name": "alt",
           "type": "string",
           "default": null,
-          "description": "Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=\"\"` marks a non-interactive avatar as decorative. A link or button avatar is never decorative — it keeps an accessible name — and a custom component passed to `as` counts as one unless it states otherwise (see `as`), so `alt=\"\"` on a custom wrapper needs an explicit `role` or `aria-hidden` alongside it.",
+          "description": "Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=\"\"` marks a non-interactive avatar as decorative. A link or button avatar is never decorative — it keeps an accessible name — and a custom component passed to `as` counts as one unless it states otherwise (see `as`), so `alt=\"\"` on a custom wrapper needs a `role=\"img\"` or a truthy `aria-hidden` alongside it.",
           "required": false,
           "inherited": false,
           "deprecated": false
