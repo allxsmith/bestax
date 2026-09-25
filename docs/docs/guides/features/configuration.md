@@ -95,7 +95,7 @@ function App() {
   return (
     <ConfigProvider iconLibrary="mdi">
       <Button color="primary">
-        <Icon name="rocket-launch" />
+        <Icon name="rocket-launch" aria-hidden="true" />
         <span>Launch</span>
       </Button>
     </ConfigProvider>

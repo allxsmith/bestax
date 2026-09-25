@@ -473,7 +473,7 @@ For more complex scenarios, you can combine the helper props with your own CSS c
   display="flex"
   alignItems="center"
 >
-  <Icon name="star" mr="2" />
+  <Icon name="star" mr="2" aria-hidden="true" />
   Custom Styled Button
 </Button>
 ```

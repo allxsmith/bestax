@@ -31,7 +31,7 @@
     },
     {
       "title": "With Empty State",
-      "code": "function example() {\n  const options = ['Apple', 'Banana', 'Cherry'];\n\n  return (\n    <Autocomplete\n      data={options}\n      placeholder=\"Try searching 'xyz'...\"\n      empty={\n        <Paragraph textColor=\"grey\">\n          <Icon name=\"search\" variant=\"solid\" mr=\"2\" />\n          No results found\n        </Paragraph>\n      }\n    />\n  );\n}"
+      "code": "function example() {\n  const options = ['Apple', 'Banana', 'Cherry'];\n\n  return (\n    <Autocomplete\n      data={options}\n      placeholder=\"Try searching 'xyz'...\"\n      empty={\n        <Paragraph textColor=\"grey\">\n          <Icon name=\"search\" variant=\"solid\" mr=\"2\" aria-hidden=\"true\" />\n          No results found\n        </Paragraph>\n      }\n    />\n  );\n}"
     },
     {
       "title": "Loading State",

@@ -44,7 +44,7 @@ import { Button, Icon } from '@allxsmith/bestax-bulma';
 function FontAwesomeExample() {
   return (
     <Button color="primary">
-      <Icon name="user" />
+      <Icon name="user" aria-hidden="true" />
       <span>Profile</span>
     </Button>
   );
@@ -94,7 +94,7 @@ import { Button, Icon } from '@allxsmith/bestax-bulma';
 function MaterialIconExample() {
   return (
     <Button color="primary">
-      <Icon library="mdi" name="home" />
+      <Icon library="mdi" name="home" aria-hidden="true" />
       <span>Home</span>
     </Button>
   );
@@ -154,7 +154,7 @@ import { Button, Icon } from '@allxsmith/bestax-bulma';
 function IoniconExample() {
   return (
     <Button color="info">
-      <Icon library="ion" name="settings" />
+      <Icon library="ion" name="settings" aria-hidden="true" />
       <span>Settings</span>
     </Button>
   );
@@ -270,7 +270,7 @@ import { Button, Icon } from '@allxsmith/bestax-bulma';
 function GoogleMaterialIconExample() {
   return (
     <Button color="success">
-      <Icon library="material-icons" name="home" />
+      <Icon library="material-icons" name="home" aria-hidden="true" />
       <span>Home</span>
     </Button>
   );
@@ -379,7 +379,7 @@ import { Button, Icon } from '@allxsmith/bestax-bulma';
 function MaterialSymbolExample() {
   return (
     <Button color="warning">
-      <Icon library="material-symbols" name="home" />
+      <Icon library="material-symbols" name="home" aria-hidden="true" />
       <span>Home</span>
     </Button>
   );

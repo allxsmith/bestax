@@ -27,7 +27,7 @@
     },
     {
       "title": "Card Style",
-      "code": "function example() {\n  return (\n    <Collapse\n      className=\"collapse is-card\"\n      defaultOpen\n      trigger={\n        <Block className=\"collapse-trigger-header\">\n          <Span>Card Collapse</Span>\n          <Icon name=\"fas fa-chevron-down\" />\n        </Block>\n      }\n    >\n      <Paragraph>\n        This collapse is styled like a card with shadow and padding.\n      </Paragraph>\n      <Paragraph>Perfect for FAQ sections or settings panels.</Paragraph>\n    </Collapse>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Collapse\n      className=\"collapse is-card\"\n      defaultOpen\n      trigger={\n        <Block className=\"collapse-trigger-header\">\n          <Span>Card Collapse</Span>\n          <Icon name=\"fas fa-chevron-down\" aria-hidden=\"true\" />\n        </Block>\n      }\n    >\n      <Paragraph>\n        This collapse is styled like a card with shadow and padding.\n      </Paragraph>\n      <Paragraph>Perfect for FAQ sections or settings panels.</Paragraph>\n    </Collapse>\n  );\n}"
     },
     {
       "title": "FAQ Example",

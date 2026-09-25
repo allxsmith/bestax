@@ -15,7 +15,7 @@
     },
     {
       "title": "With Icons",
-      "code": "<Tabs>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-image\" size=\"small\" />\n        <span>Pictures</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-music\" size=\"small\" />\n        <span>Music</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-film\" size=\"small\" />\n        <span>Videos</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-file-alt\" size=\"small\" />\n        <span>Documents</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-image\" size=\"small\" aria-hidden=\"true\" />\n        <span>Pictures</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-music\" size=\"small\" aria-hidden=\"true\" />\n        <span>Music</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-film\" size=\"small\" aria-hidden=\"true\" />\n        <span>Videos</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-file-alt\" size=\"small\" aria-hidden=\"true\" />\n        <span>Documents</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Small, Medium, and Large Tabs",
@@ -39,19 +39,19 @@
     },
     {
       "title": "Centered Boxed Tabs with Icons",
-      "code": "<Tabs align=\"centered\" boxed>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-home\" size=\"small\" />\n        <span>Home</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-user\" size=\"small\" />\n        <span>Profile</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cog\" size=\"small\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs align=\"centered\" boxed>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-home\" size=\"small\" aria-hidden=\"true\" />\n        <span>Home</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-user\" size=\"small\" aria-hidden=\"true\" />\n        <span>Profile</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cog\" size=\"small\" aria-hidden=\"true\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Toggle Fullwidth Tabs with Icons",
-      "code": "<Tabs toggle isFullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-list\" size=\"small\" />\n        <span>List</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-check\" size=\"small\" />\n        <span>Done</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-times\" size=\"small\" />\n        <span>Removed</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs toggle isFullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-list\" size=\"small\" aria-hidden=\"true\" />\n        <span>List</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-check\" size=\"small\" aria-hidden=\"true\" />\n        <span>Done</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-times\" size=\"small\" aria-hidden=\"true\" />\n        <span>Removed</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Centered Boxed Medium Tabs with Icons",
-      "code": "<Tabs align=\"centered\" boxed size=\"medium\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-star\" size=\"small\" />\n        <span>Favorites</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-clock\" size=\"small\" />\n        <span>Recent</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-archive\" size=\"small\" />\n        <span>Archive</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs align=\"centered\" boxed size=\"medium\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-star\" size=\"small\" aria-hidden=\"true\" />\n        <span>Favorites</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-clock\" size=\"small\" aria-hidden=\"true\" />\n        <span>Recent</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-archive\" size=\"small\" aria-hidden=\"true\" />\n        <span>Archive</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Toggle Fullwidth Large Tabs with Icons",
-      "code": "<Tabs toggle isFullwidth size=\"large\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-rocket\" size=\"small\" />\n        <span>Launch</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-bell\" size=\"small\" />\n        <span>Alerts</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cogs\" size=\"small\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs toggle isFullwidth size=\"large\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-rocket\" size=\"small\" aria-hidden=\"true\" />\n        <span>Launch</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-bell\" size=\"small\" aria-hidden=\"true\" />\n        <span>Alerts</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cogs\" size=\"small\" aria-hidden=\"true\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Compound (dot-notation) usage",
