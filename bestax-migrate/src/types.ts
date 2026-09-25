@@ -166,6 +166,13 @@ export interface MigrationSource {
   name: string;
   /** Human-readable label for the report header. */
   label: string;
+  /**
+   * The npm package this source migrates away from, when it is not `name`.
+   * `null` for a source with no package to move off: nothing is looked for
+   * in imports, and the manifest pass is never told the source is still
+   * imported.
+   */
+  packageName?: string | null;
   transform: Transform;
   transformStyles?: StylesTransform;
   updateDependencies?: DependenciesUpdate;

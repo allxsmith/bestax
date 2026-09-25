@@ -731,6 +731,18 @@ describe('react-bulma-components transform fixtures', () => {
       expect(output).not.toContain('bulma/css');
     });
 
+    it('bestax: collapses an extras import that comes BEFORE the one that becomes bestax.css', () => {
+      for (const becomes of [BULMA_CSS_IMPORT, RBC_CSS]) {
+        const source =
+          "import '@allxsmith/bestax-bulma/extras.css';\n" + becomes;
+        const { output } = runTransform(transform, 'styles.ts', source);
+        expect(output).toContain(
+          'import "@allxsmith/bestax-bulma/bestax.css";'
+        );
+        expect(output).not.toContain('extras.css');
+      }
+    });
+
     it('bestax: dedupes when both RBC and bulma css imports exist', () => {
       const { output } = runTransform(
         transform,

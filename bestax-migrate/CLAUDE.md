@@ -29,10 +29,12 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   (`alignTarget`, `mergeClassName`, `parseIconClasses`, `modifierClass`, `restrictAsToTargets`,
   the `stripModifierProps` factory and the `makeStructuralHelpers` factory behind
   `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's
-  prop suffixes), and `make-styles-transform.ts` (the whole Bulma 0.9→v1 stylesheet transform,
-  parameterised by the source package's own specifiers). What stays per-source is the data
-  — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a `transform.ts` that
-  orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
+  prop suffixes), `css-imports.ts` (the stylesheet-import pass), `bestax-import.ts` (seeding,
+  building and merging the bestax-bulma import), `deps-common.ts` (the manifest steps after
+  the source package is handled), and `make-styles-transform.ts` (the whole Bulma 0.9→v1
+  stylesheet transform, parameterised by the source package's own specifiers). What stays
+  per-source is the data — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a
+  `transform.ts` that orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
   destructuring pass, no alias registry and no wrapping pass; the rbx and RBC copies still
   carry all of them.
 - `'<source>'` must be added to `MIGRATE_SOURCE_VALUES` in `telemetry-worker/src/schema.ts`
@@ -70,7 +72,9 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   .scss/.sass → `transformStyles`, nearest package.json → `updateDependencies`) with an
   in-process runner (NOT jscodeshift's worker Runner: fragile from ESM, hides per-file
   stats). `src/runner.ts` is shared by CLI and tests. `--css bestax|bulma|keep` picks the
-  stylesheet target; `--no-deps` skips the manifest step.
+  stylesheet target; `--no-deps` skips the manifest step. The CLI reads a source's
+  `packageName` (defaulting to its `name`) as the import to look for; `null` means the source
+  has no package, so no file is ever "still importing" it.
 - `src/sources/react-bulma-components/` (and `rbx/`, same shape): `transform.ts`
   (orchestration: imports + css → per-element special/rename/responsive/props → import
   rewrite), `mapping.ts` (data), `specials.ts` (structural handlers), `responsive.ts`
@@ -101,6 +105,11 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   `src/leftovers.tsx` holds every intentionally-unsupported pattern — excluded from the
   typecheck, asserted via TODO rules instead. New unsupported patterns go there; new
   supported ones go in the other fixture files, which must stay TODO-free.
+- `e2e/rendered-output.test.ts` renders the migrated kitchen sinks to HTML, and
+  `e2e/support/render-module.ts` is the harness for any test that does. It loads React,
+  `react-dom/server` and bestax-bulma from **bulma-ui's** directory, never this package's: the
+  workspace can hold two React copies, and a component rendered by the other one fails on its
+  first hook.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
 - Real-world corpus, one script per source, both fetching a pinned SHA as text only into

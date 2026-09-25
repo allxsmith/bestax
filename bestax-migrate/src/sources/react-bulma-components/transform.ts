@@ -27,6 +27,14 @@ import {
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
+  bestaxValueLocals,
+  buildBestaxImport,
+  carryPrunedComments,
+  placeBestaxImport,
+  seedBestaxImport,
+} from '../_shared/bestax-import.js';
+import { rewriteStylesheetImports } from '../_shared/css-imports.js';
+import {
   collectBoundNames,
   makeAliasRegistry,
   makeReserve,
@@ -40,25 +48,6 @@ import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const RBC = 'react-bulma-components';
-const BESTAX = '@allxsmith/bestax-bulma';
-const BULMA_CSS = 'bulma/css/bulma.min.css';
-const BESTAX_CSS = '@allxsmith/bestax-bulma/bestax.css';
-const EXTRAS_CSS = '@allxsmith/bestax-bulma/extras.css';
-
-const BULMA_CSS_SPECIFIERS = new Set([
-  'bulma/css/bulma.css',
-  'bulma/css/bulma.min.css',
-]);
-const BESTAX_CSS_SPECIFIERS = new Set([
-  BESTAX_CSS,
-  '@allxsmith/bestax-bulma/bestax.min.css',
-  '@allxsmith/bestax-bulma/dist/bestax.css',
-  '@allxsmith/bestax-bulma/dist/bestax.min.css',
-]);
-const EXTRAS_CSS_SPECIFIERS = new Set([
-  EXTRAS_CSS,
-  '@allxsmith/bestax-bulma/dist/extras.css',
-]);
 
 export default function transform(
   fileInfo: FileInfo,
@@ -151,63 +140,13 @@ export default function transform(
     });
 
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
-  // `bestax` (default): everything converges on the recommended combined
-  // bundle. `bulma`: plain Bulma v1 CSS plus the separate extras file.
-  // `keep`: only the dead RBC v3 CSS import is touched.
-  const cssMode = options.cssMode ?? 'bestax';
-  let sawBestaxCss = root
-    .find(j.ImportDeclaration)
-    .paths()
-    .some(p => BESTAX_CSS_SPECIFIERS.has(String(p.node.source.value)));
-  root.find(j.ImportDeclaration).forEach(path => {
-    const source = String(path.node.source.value);
-    const isRbcCss = source.startsWith(`${RBC}/`) && source.endsWith('.css');
-    const isBulmaCss = BULMA_CSS_SPECIFIERS.has(source);
-    const isExtrasCss = EXTRAS_CSS_SPECIFIERS.has(source);
-    if (!isRbcCss && !isBulmaCss && !isExtrasCss) return;
-
-    if (cssMode === 'bestax') {
-      if (isRbcCss || isBulmaCss) {
-        if (sawBestaxCss) {
-          path.prune(); // bestax.css already imported elsewhere in this file
-        } else {
-          path.node.source = j.stringLiteral(BESTAX_CSS);
-          sawBestaxCss = true;
-        }
-        ctx.dirty = true;
-      } else if (isExtrasCss && sawBestaxCss) {
-        // bestax.css already contains the extras.
-        path.prune();
-        ctx.dirty = true;
-      }
-    } else if (cssMode === 'bulma') {
-      if (isRbcCss) {
-        path.node.source = j.stringLiteral(BULMA_CSS);
-        ctx.dirty = true;
-      }
-      if ((isRbcCss || isBulmaCss) && !sawBestaxCss) {
-        const hasExtras = root
-          .find(j.ImportDeclaration)
-          .paths()
-          .some(p => EXTRAS_CSS_SPECIFIERS.has(String(p.node.source.value)));
-        if (!hasExtras) {
-          // Themed Radio/Checkbox need the bestax extras next to plain Bulma.
-          path.insertAfter(
-            j.importDeclaration([], j.stringLiteral(EXTRAS_CSS))
-          );
-          ctx.dirty = true;
-        }
-      }
-    } else if (isRbcCss) {
-      // keep: minimal fix — the v3 bundled CSS no longer exists at all.
-      path.node.source = j.stringLiteral(BULMA_CSS);
-      addTodo(
-        ctx,
-        path,
-        'css',
-        `replaced the react-bulma-components CSS import with '${BULMA_CSS}'; install bulma@^1 (see https://bestax.io/docs/guides/getting-started/installation)`
-      );
-    }
+  // `keep` touches only the dead RBC v3 CSS import.
+  rewriteStylesheetImports(ctx, root, options.cssMode ?? 'bestax', {
+    sourceCss: {
+      is: specifier =>
+        specifier.startsWith(`${RBC}/`) && specifier.endsWith('.css'),
+      label: 'the react-bulma-components CSS import',
+    },
   });
 
   if (imports.size === 0 && !ctx.dirty) {
@@ -405,51 +344,7 @@ export default function transform(
   });
 
   ctx.reserve = makeReserve(ctx, bound);
-  // Names the passes actually asked for. `ctx.needed` is also seeded from an
-  // existing bestax import's specifiers below (so JSX reuses their locals),
-  // and that seeding alone must not turn a type-only specifier into a value
-  // import nobody needed.
-  const requested = new Set<string>();
-  const baseReserve = ctx.reserve;
-  ctx.reserve = root => {
-    requested.add(root);
-    return baseReserve(root);
-  };
-
-  // Merge with an existing bestax import: reuse its locals verbatim.
-  // Only a declaration made entirely of NAMED specifiers can be merged into.
-  // `import * as Bulma from '@allxsmith/bestax-bulma'` matches the source too,
-  // and appending named specifiers to it emitted
-  // `import * as Bulma, { Box } from …` — not valid JavaScript, so the whole
-  // file failed to parse after a migration that reported success.
-  const existingBestax = root
-    .find(j.ImportDeclaration, { source: { value: BESTAX } })
-    .paths()
-    .find(
-      path =>
-        // A type-only declaration cannot take a value specifier: merging a
-        // component into `import type { … }` erases it at runtime.
-        path.node.importKind !== 'type' &&
-        (path.node.specifiers ?? []).every(
-          (spec: any) => spec.type === 'ImportSpecifier'
-        )
-    );
-  const preExistingImports = new Set<string>();
-  if (existingBestax) {
-    for (const spec of existingBestax.node.specifiers ?? []) {
-      if (spec.type === 'ImportSpecifier' && spec.local) {
-        // The local name is reused either way, so the JSX never needs an
-        // alias. But an inline `type` specifier (`import { type Box }`) is
-        // not a value binding: it is not counted as already imported, so the
-        // component is written as a value below — onto this specifier, which
-        // keeps its name, rather than as a duplicate.
-        ctx.needed.set(nameOf(spec.imported), nameOf(spec.local));
-        if ((spec as { importKind?: string | null }).importKind !== 'type') {
-          preExistingImports.add(nameOf(spec.imported));
-        }
-      }
-    }
-  }
+  const bestaxImportState = seedBestaxImport(ctx, root);
 
   // ---- 2. Transform JSX elements ----------------------------------------
   root.find(j.JSXElement).forEach(path => {
@@ -881,92 +776,14 @@ export default function transform(
   if (imports.size > 0) {
     const retainedNames = [...ctx.retained].sort((a, b) => a.localeCompare(b));
 
-    const freshNames = [...ctx.needed.entries()]
-      .filter(
-        ([imported]) =>
-          requested.has(imported) && !preExistingImports.has(imported)
-      )
-      .sort((a, b) => a[0].localeCompare(b[0]));
-    const bestaxImport =
-      freshNames.length > 0
-        ? j.importDeclaration(
-            freshNames.map(([imported, local]) =>
-              j.importSpecifier(j.identifier(imported), j.identifier(local))
-            ),
-            j.stringLiteral(BESTAX)
-          )
-        : null;
-
-    /**
-
-     * A pruned declaration takes its comments with it — a licence header, an
-
-     * eslint directive. Hand them to what replaces it, or to the next statement.
-
-     */
-
-    const carryComments = (node: any, importPath: any): void => {
-      const comments = node.comments ?? [];
-
-      if (comments.length === 0) return;
-
-      const body: any[] = importPath.parent?.node?.body ?? [];
-
-      const index = body.indexOf(node);
-
-      // The fresh specifiers are merged INTO an existing bestax import when there
-
-      // is one, and the `bestaxImport` node is then discarded — so the comments
-
-      // have to follow the declaration that survives, not the one that does not.
-
-      const carrier =
-        (existingBestax ? existingBestax.node : bestaxImport) ??
-        (index >= 0 ? body[index + 1] : undefined);
-
-      if (carrier) {
-        carrier.comments = [...comments, ...(carrier.comments ?? [])];
-      } else if (index > 0) {
-        // The import was the last statement: the comments stay where they
-
-        // were, after what precedes it.
-
-        const previous = body[index - 1];
-
-        previous.comments = [
-          ...(previous.comments ?? []),
-
-          ...comments.map((c: any) => ({
-            ...c,
-            leading: false,
-            trailing: true,
-          })),
-        ];
-      } else {
-        // The import was the only statement: the comments become the file's.
-
-        const program = importPath.parent?.node;
-
-        if (program)
-          program.comments = [...comments, ...(program.comments ?? [])];
-      }
-
-      node.comments = [];
-    };
+    const bestaxImport = buildBestaxImport(ctx, bestaxImportState);
 
     let inserted = false;
     // A retained RBC specifier must never collide with a bestax import local
     // (possible when one component is both JSX-migrated and value-retained).
     // Only a VALUE local can collide at runtime: a type-only specifier the
     // seeding above recorded, and nothing promoted, binds no value.
-    const bestaxLocals = new Set(
-      [...ctx.needed.entries()]
-        .filter(
-          ([imported]) =>
-            requested.has(imported) || preExistingImports.has(imported)
-        )
-        .map(([, local]) => local)
-    );
+    const bestaxLocals = bestaxValueLocals(ctx, bestaxImportState);
     for (const path of rbcImportPaths) {
       const node = path.node;
       const keepSpecifiers = (node.specifiers ?? []).filter((spec: any) => {
@@ -983,29 +800,7 @@ export default function transform(
         );
       });
       if (!inserted) {
-        if (existingBestax && bestaxImport) {
-          const current = existingBestax.node.specifiers ?? [];
-          const appended: any[] = [];
-          for (const fresh of bestaxImport.specifiers!) {
-            // A type-only specifier for the same name becomes the value
-            // import (a value import carries the type too); appending a
-            // second `Box` beside `type Box` would be a duplicate identifier.
-            const typeOnly: any = current.find(
-              (spec: any) =>
-                spec.type === 'ImportSpecifier' &&
-                spec.importKind === 'type' &&
-                nameOf(spec.imported) === nameOf((fresh as any).imported)
-            );
-            if (typeOnly) {
-              typeOnly.importKind = null;
-            } else {
-              appended.push(fresh);
-            }
-          }
-          existingBestax.node.specifiers = [...current, ...appended];
-        } else if (bestaxImport) {
-          path.insertBefore(bestaxImport);
-        }
+        placeBestaxImport(bestaxImportState, bestaxImport, path);
         inserted = true;
       }
       if (keepSpecifiers.length > 0) {
@@ -1018,7 +813,11 @@ export default function transform(
           node.comments.push(j.commentLine(text, true, false));
         }
       } else {
-        carryComments(node, path);
+        carryPrunedComments(
+          node,
+          path,
+          bestaxImportState.existing?.node ?? bestaxImport
+        );
         path.prune();
       }
       ctx.dirty = true;
