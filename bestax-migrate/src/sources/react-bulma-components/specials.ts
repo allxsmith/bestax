@@ -731,10 +731,25 @@ const SPECIALS: Record<string, SpecialHandler> = {
         ? solidChildren[0]
         : null;
     if (existingAnchor && anchorAttrs.length > 0) {
-      existingAnchor.openingElement.attributes = [
-        ...(existingAnchor.openingElement.attributes ?? []),
-        ...anchorAttrs,
-      ];
+      // Appending onto an anchor the user already wrote can set a prop twice
+      // (`id` on both, or the renamed `domRef` beside the anchor's own `ref`),
+      // which does not compile. The anchor's value wins and the other is
+      // flagged.
+      const merged = [...(existingAnchor.openingElement.attributes ?? [])];
+      for (const attr of anchorAttrs) {
+        const name = attr?.name?.name;
+        if (name && findAttr(existingAnchor, name)) {
+          addTodo(
+            ctx,
+            path,
+            `prop:${name}`,
+            `Breadcrumb.Item \`${name}\` was dropped: its <a> child already sets \`${name}\` — reconcile by hand`
+          );
+          continue;
+        }
+        merged.push(attr);
+      }
+      existingAnchor.openingElement.attributes = merged;
     }
     const anchor =
       existingAnchor ?? plainElement(j, 'a', undefined, anchorAttrs, children);
@@ -757,9 +772,10 @@ const SPECIALS: Record<string, SpecialHandler> = {
           'Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand'
         );
       }
-      // The container element is gone after the fold, so nothing it carried
-      // has a home — `domRef`, `id`, handlers alike. Only `className` used to
-      // be reported; the rest vanished with an empty report.
+      // The container element is gone after the fold. What it carried
+      // (`domRef`, `id`, handlers) applied to the wrapping div, and moving it
+      // onto the Table would put it on the <table> instead, so it is reported
+      // rather than carried. Only `className` used to be reported.
       for (const attr of attributesOf(element)) {
         const name = attr?.name?.name;
         if (!name || name === 'className') continue;

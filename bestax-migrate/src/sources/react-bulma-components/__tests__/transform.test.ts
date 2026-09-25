@@ -858,6 +858,40 @@ describe('react-bulma-components transform fixtures', () => {
       );
     });
 
+    it.each([
+      [
+        'ref',
+        '<Breadcrumb.Item domRef={a}><a ref={b} href="/x">x</a></Breadcrumb.Item>',
+      ],
+      [
+        'id',
+        '<Breadcrumb.Item id="p"><a id="q" href="/x">x</a></Breadcrumb.Item>',
+      ],
+    ])(
+      'keeps one %s when Breadcrumb.Item merges onto an anchor that already sets it',
+      (prop, jsx) => {
+        // The item's props are appended onto the user's own <a>, so a prop
+        // both carry was written twice, which does not compile. The anchor's
+        // value wins and the item's is flagged.
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'ref.tsx',
+          'import { Breadcrumb } from "react-bulma-components";\n' +
+            `export const A = (a: any, b: any) => ${jsx};`,
+          { add: entry => todos.push(entry) }
+        );
+        expect(
+          (output ?? '').match(new RegExp(`\\b${prop}=`, 'g'))
+        ).toHaveLength(1);
+        expect(output).toContain(prop === 'ref' ? 'ref={b}' : 'id="q"');
+        expect(
+          todos.find(t => t.rule === `prop:${prop === 'ref' ? 'ref' : 'id'}`)
+            ?.message
+        ).toMatch(/already sets/);
+      }
+    );
+
     it('does not offer the Button rename once `remove` retargets it to Delete', () => {
       // `<Button remove>` becomes `<Delete>`, a plain function component, so
       // the general advice — which names Button as forwarding a ref — would

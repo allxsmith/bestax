@@ -86,23 +86,12 @@ const SUMMARISED_AS_FORM_CONTROLS = [
 ] as const;
 
 /**
- * The components these surfaces name as forwarding NO ref — the roster's other
- * half, and the reason the surface checks below are not presence tests alone.
- * Every one of these is already a backtick-quoted name inside a section those
- * tests read, so a bare "is the name there?" check is pre-satisfied for it: the
- * day one gains a ref, moving it up into a bucket above would turn every surface
- * assertion green on the very sentences telling a user it has none and to
- * restructure their markup. That is #666 repeating itself with the guard #666
- * asked for reporting nothing, so this list is held to the library too.
- */
-/**
  * The `src/form/` wrappers every surface carves out BY NAME from its "form
  * controls" summary. Held apart from the rest of the denial bucket because the
- * carve-out sentence is pinned to this list positionally below. Without that,
- * a wrapper that GAINS a ref could be moved into the summarised bucket to
- * settle the library checks while all five surfaces went on saying it forwards
- * nothing — the same defect the positional roster check closed one level up,
- * reappearing in the fix for it.
+ * carve-out sentence is rendered from this list and checked on every surface
+ * below. Without that, a wrapper that GAINS a ref could be moved into the
+ * summarised bucket to settle the library checks while all five surfaces went
+ * on saying it forwards nothing.
  */
 const CARVED_OUT_FORM_WRAPPERS = [
   'Field',

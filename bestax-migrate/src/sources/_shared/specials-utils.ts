@@ -117,7 +117,7 @@ export function makeStripModifierProps(
             ctx,
             path,
             `prop:${refProp}`,
-            `\`${refProp}\` maps to \`ref\`, but \`ref\` is already set on this element; ${where} became a plain element, so \`${refProp}\` was dropped — reconcile by hand`
+            `${where}: \`${refProp}\` maps to \`ref\`, but \`ref\` is already set on this element, so \`${refProp}\` was dropped — reconcile by hand`
           );
           continue;
         }
