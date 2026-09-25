@@ -178,6 +178,7 @@ above rather than assuming the silent pass-through means it works. The renames a
 
 Note the gap that leaves. An rbx `innerRef` can only land on a component rbx itself has, so of
 the ref-forwarding targets above the reachable ones are the form controls, `Menu.Item` and a
-plain `Navbar.Item`. On those the codemod leaves `innerRef` untouched even though the target
-does take a `ref`, so the rename is yours to make. Anywhere else it is left alone because the
-target forwards none, and the ref belongs on a wrapping element you control instead.
+plain `Navbar.Item`. There the codemod leaves `innerRef` in place and flags it rather than
+renaming it, so the rename is yours to make and the target will take it. Everywhere the eight
+renames above do not reach, `innerRef` is flagged the same way — but on a target that forwards
+nothing the answer is a wrapping element you control, not a rename.
