@@ -102,14 +102,20 @@ export function loadModules(
   return loaded;
 }
 
-/** Every exported function component, rendered with no props. */
+/**
+ * Every exported component, rendered with no props: plain functions, and the
+ * objects `memo` and `forwardRef` return, which React marks with `$$typeof`.
+ */
 export function renderExports(
   exports: Record<string, unknown>
 ): Record<string, string> {
   const rendered: Record<string, string> = {};
   for (const [name, value] of Object.entries(exports)) {
-    if (typeof value !== 'function') continue;
-    rendered[name] = renderToStaticMarkup(React.createElement(value));
+    const component =
+      typeof value === 'function' ||
+      (typeof value === 'object' && value !== null && '$$typeof' in value);
+    if (!component) continue;
+    rendered[name] = renderToStaticMarkup(React.createElement(value as any));
   }
   return rendered;
 }

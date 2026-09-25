@@ -44,6 +44,8 @@ describe.each(KITCHEN_SINKS)(
     }
 
     it('renders every exported component', () => {
+      // A renamed fixture directory would otherwise leave nothing to check.
+      expect(Object.keys(migrated).length).toBeGreaterThan(0);
       const modules = loadModules(migrated);
       const rendered = Object.fromEntries(
         Object.entries(modules).map(([name, exports]) => [
@@ -65,6 +67,25 @@ describe.each(KITCHEN_SINKS)(
     });
   }
 );
+
+describe('renderExports', () => {
+  it('renders memo and forwardRef components as well as functions', () => {
+    const modules = loadModules({
+      wrapped: [
+        "import { forwardRef, memo } from 'react';",
+        'export const Plain = () => <p>plain</p>;',
+        'export const Memo = memo(() => <p>memo</p>);',
+        'export const Ref = forwardRef<HTMLParagraphElement>((_, ref) => <p ref={ref}>ref</p>);',
+        "export const notAComponent = 'text';",
+      ].join('\n'),
+    });
+    expect(renderExports(modules.wrapped)).toEqual({
+      Plain: '<p>plain</p>',
+      Memo: '<p>memo</p>',
+      Ref: '<p>ref</p>',
+    });
+  });
+});
 
 describe('normalizeHtml', () => {
   it('ignores attribute order, class order and text separators', () => {
