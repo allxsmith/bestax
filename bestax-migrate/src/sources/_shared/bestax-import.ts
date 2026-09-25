@@ -123,17 +123,18 @@ export function bestaxValueLocals(
 }
 
 /**
- * Merge `fresh` into the existing bestax import, or insert it before
- * `before` when there is none.
+ * Merge `fresh` into the existing bestax import, or insert it through
+ * `anchor` when there is none. An AST path is an anchor: the fresh import
+ * goes before it.
  */
 export function placeBestaxImport(
   state: BestaxImportState,
   fresh: any | null,
-  before: any
+  anchor: { insertBefore(node: any): unknown }
 ): void {
   if (!fresh) return;
   if (!state.existing) {
-    before.insertBefore(fresh);
+    anchor.insertBefore(fresh);
     return;
   }
   const current = state.existing.node.specifiers ?? [];

@@ -11,15 +11,16 @@
 
 Codemods that migrate existing React apps to [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) — the actively maintained React component library for **Bulma v1**.
 
-Currently supported source libraries:
+Currently supported sources:
 
-| Source                                                                           | Status                                                                             |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [`react-bulma-components`](https://github.com/couds/react-bulma-components) (v4) | ✅ All 32 components mapped (a few patterns are flagged as TODOs)                  |
-| [`rbx`](https://github.com/dfee/rbx) (v2)                                        | ✅ Full export surface mapped (a few patterns are flagged as TODOs)                |
-| [`bloomer`](https://github.com/AlgusDark/bloomer) (0.6)                          | ✅ All 108 exports mapped (Font Awesome 4 icons and Bulma 0.4's `Nav` are flagged) |
+| Source                                                                           | Status                                                                               |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [`react-bulma-components`](https://github.com/couds/react-bulma-components) (v4) | ✅ All 32 components mapped (a few patterns are flagged as TODOs)                    |
+| [`rbx`](https://github.com/dfee/rbx) (v2)                                        | ✅ Full export surface mapped (a few patterns are flagged as TODOs)                  |
+| [`bloomer`](https://github.com/AlgusDark/bloomer) (0.6)                          | ✅ All 108 exports mapped (Font Awesome 4 icons and Bulma 0.4's `Nav` are flagged)   |
+| `bulma-classes`: Bulma's classes on plain JSX, no library                        | ✅ Converts an element only when bestax renders the same markup; the rest is flagged |
 
-Pass the source library as the first argument: `bestax-migrate <source> <paths…>`.
+Pass the source as the first argument: `bestax-migrate <source> <paths…>`.
 
 ## Requirements
 
@@ -37,6 +38,8 @@ pnpm dlx bestax-migrate react-bulma-components src/ --dry
 # …or, for an rbx or bloomer app
 pnpm dlx bestax-migrate rbx src/ --dry
 pnpm dlx bestax-migrate bloomer src/ --dry
+# …or, for an app that writes Bulma's classes on plain JSX
+pnpm dlx bestax-migrate bulma-classes src/ --dry
 
 # Apply the migration
 pnpm dlx bestax-migrate react-bulma-components src/
@@ -50,11 +53,12 @@ The codemod uses [jscodeshift](https://github.com/facebook/jscodeshift) to:
 - rename components and compound sub-components (`Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` → `Hero.Foot`, …) — and, for bloomer, its flat names onto bestax's compounds (`CardHeaderTitle` → `Card.Header.Title`)
 - convert props (`renderAs` → `as`, `loading` → `isLoading`, numeric spacing/text sizes → string unions, `textAlign="center"` → `textAlign="centered"`, …)
 - flatten responsive breakpoint objects (`mobile={{ size: 4 }}` → `sizeMobile={4}`) and bloomer's `isDisplay`/`isHidden` strings, arrays and objects (`isHidden="touch"` → `visibilityTouch="hidden"`)
+- for `bulma-classes`, turn raw Bulma markup into components and props (`<a className="button is-primary">` → `<Button as="a" color="primary">`, `<p className="has-text-centered mt-4">` → `<Paragraph textAlign="centered" mt="4">`), converting an element only when bestax renders exactly the same markup
 - restructure patterns bestax models differently (`Table.Container`, Navbar dropdowns, `Form.Help`, icon-font children → `<Icon name=…>`)
 - migrate stylesheets: CSS imports converge on `@allxsmith/bestax-bulma/bestax.css`, and SCSS files move from Bulma 0.9's `@import` + `$var !default` overrides to `@use 'bulma/sass' with (…)` plus `@use '@allxsmith/bestax-bulma/scss/extras'`
-- update `package.json`: remove the source library, add `@allxsmith/bestax-bulma`, raise a declared pre-1.0 `bulma` to `^1` (adding it only when your sources import `bulma/…` directly — otherwise it arrives transitively), and swap the dead `node-sass` for dart `sass` (no install is ever run). Migrating **rbx** is what frees an app from Bulma 0.7.5: rbx pinned it as a _direct_ dependency, so the app could not choose its own Bulma version at all. The four Bulma extensions rbx also pulled in (`bulma-badge`, `bulma-divider`, `bulma-pageloader`, `bulma-tooltip`) are **reported rather than removed** — bestax replaces all four, but a manifest entry is a deliberate declaration and your own Sass may import them. A **bloomer** app declared its own Bulma 0.6, which is what gets bumped
+- update `package.json`: remove the source library, add `@allxsmith/bestax-bulma`, raise a declared pre-1.0 `bulma` to `^1` (adding it only when your sources import `bulma/…` directly — otherwise it arrives transitively), and swap the dead `node-sass` for dart `sass` (no install is ever run). Migrating **rbx** is what frees an app from Bulma 0.7.5: rbx pinned it as a _direct_ dependency, so the app could not choose its own Bulma version at all. The four Bulma extensions rbx also pulled in (`bulma-badge`, `bulma-divider`, `bulma-pageloader`, `bulma-tooltip`) are **reported rather than removed** — bestax replaces all four, but a manifest entry is a deliberate declaration and your own Sass may import them. A **bloomer** app declared its own Bulma 0.6, which is what gets bumped. For **bulma-classes** there is no library to remove, and by default (`--css keep`) the app's Bulma version, Sass and stylesheet imports all stay: its own Bulma already styles every class a converted element renders. `--css bestax` or `--css bulma` moves it to Bulma v1 like the other sources
 
-Anything without a safe automatic conversion is left in place with a `// TODO(bestax-migrate): …` comment, and the run ends with a report of every TODO by file and line. TODOs are expected output, not errors — resolve them with the migration guide ([react-bulma-components](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components), [rbx](https://bestax.io/docs/guides/getting-started/migration/rbx), [bloomer](https://bestax.io/docs/guides/getting-started/migration/bloomer)), or let the [`bestax-migrate` Agent Skill](https://bestax.io/docs/skills/intro) walk them for you:
+Anything without a safe automatic conversion is left in place with a `// TODO(bestax-migrate): …` comment, and the run ends with a report of every TODO by file and line. TODOs are expected output, not errors — resolve them with the migration guide ([react-bulma-components](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components), [rbx](https://bestax.io/docs/guides/getting-started/migration/rbx), [bloomer](https://bestax.io/docs/guides/getting-started/migration/bloomer), [Bulma classes](https://bestax.io/docs/guides/getting-started/migration/bulma-classes)), or let the [`bestax-migrate` Agent Skill](https://bestax.io/docs/skills/intro) walk them for you:
 
 ```bash
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
@@ -62,13 +66,13 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 
 ## Options
 
-| Flag                 | Description                                                    |
-| -------------------- | -------------------------------------------------------------- |
-| `--dry`, `-d`        | Report what would change without writing files                 |
-| `--print`, `-p`      | Print transformed sources to stdout                            |
-| `--extensions`, `-e` | File extensions to include (default `js,jsx,ts,tsx,scss,sass`) |
-| `--css <mode>`       | Stylesheet target: `bestax` (default), `bulma`, or `keep`      |
-| `--no-deps`          | Skip updating package.json dependencies                        |
+| Flag                 | Description                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| `--dry`, `-d`        | Report what would change without writing files                                                 |
+| `--print`, `-p`      | Print transformed sources to stdout                                                            |
+| `--extensions`, `-e` | File extensions to include (default `js,jsx,ts,tsx,scss,sass`)                                 |
+| `--css <mode>`       | Stylesheet target: `bestax`, `bulma`, or `keep` (default `bestax`; `keep` for `bulma-classes`) |
+| `--no-deps`          | Skip updating package.json dependencies                                                        |
 
 ## After the codemod
 
@@ -76,7 +80,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 2. Search for `TODO(bestax-migrate)` and resolve each comment
 3. Typecheck/build and review the rendered app
 
-Full walkthrough: [react-bulma-components migration guide](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components) · [rbx migration guide](https://bestax.io/docs/guides/getting-started/migration/rbx) · [bloomer migration guide](https://bestax.io/docs/guides/getting-started/migration/bloomer).
+Full walkthrough: [react-bulma-components migration guide](https://bestax.io/docs/guides/getting-started/migration/react-bulma-components) · [rbx migration guide](https://bestax.io/docs/guides/getting-started/migration/rbx) · [bloomer migration guide](https://bestax.io/docs/guides/getting-started/migration/bloomer) · [Bulma classes migration guide](https://bestax.io/docs/guides/getting-started/migration/bulma-classes).
 
 ## Hardened by default
 

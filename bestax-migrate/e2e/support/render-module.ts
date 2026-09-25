@@ -39,13 +39,32 @@ const requireFromLibrary = createRequire(
 const React: any = requireFromLibrary('react');
 const { renderToStaticMarkup }: any = requireFromLibrary('react-dom/server');
 
+/** The built library, as a module that imports it would see it. */
+export const bestax: Record<string, any> = requireFromLibrary(
+  path.join(libraryRoot, 'dist', 'index.cjs')
+);
+
 const SHARED_MODULES: Record<string, unknown> = {
   react: React,
   'react/jsx-runtime': requireFromLibrary('react/jsx-runtime'),
-  '@allxsmith/bestax-bulma': requireFromLibrary(
-    path.join(libraryRoot, 'dist', 'index.cjs')
-  ),
+  '@allxsmith/bestax-bulma': bestax,
 };
+
+/**
+ * Render one element to static HTML. `type` is a tag or a component; dotted
+ * names (`Hero.Body`) are looked up on the library.
+ */
+export function renderElement(
+  type: string,
+  props: Record<string, unknown>,
+  children?: unknown
+): string {
+  const component = /^[A-Z]/.test(type)
+    ? type.split('.').reduce((owner, key) => owner?.[key], bestax as any)
+    : type;
+  if (!component) throw new Error(`bestax has no ${type}`);
+  return renderToStaticMarkup(React.createElement(component, props, children));
+}
 
 const STYLESHEET = /\.(?:css|scss|sass)$/;
 
@@ -122,8 +141,9 @@ export function renderExports(
 
 /**
  * Make two renders comparable: attributes in name order, class tokens in
- * order, and React's `<!-- -->` text separators gone. Nothing else changes,
- * so any remaining difference is a real difference in the markup.
+ * order and once each (a class list is a set to CSS, and bestax dedupes it),
+ * and React's `<!-- -->` text separators gone. Nothing else changes, so any
+ * remaining difference is a real difference in the markup.
  */
 export function normalizeHtml(html: string): string {
   return html
@@ -135,7 +155,9 @@ export function normalizeHtml(html: string): string {
           ...attrs.matchAll(/\s+([^\s=>/]+)(?:="([^"]*)")?/g),
         ].map(([, name, value]) => {
           if (name === 'class' && value !== undefined) {
-            value = value.split(/\s+/).filter(Boolean).sort().join(' ');
+            value = [...new Set(value.split(/\s+/).filter(Boolean))]
+              .sort()
+              .join(' ');
           }
           return value === undefined ? name : `${name}="${value}"`;
         });

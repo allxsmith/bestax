@@ -1,6 +1,6 @@
 ---
 name: bestax-migrate
-description: Migrate an existing app from an unmaintained React Bulma library — react-bulma-components (v4), rbx (v2) or bloomer (0.6) — to @allxsmith/bestax-bulma on Bulma v1. Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a repo imports react-bulma-components, rbx or bloomer and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.
+description: Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className="button is-primary") or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.
 license: MIT
 ---
 
@@ -15,11 +15,12 @@ this skill drives the codemod and finishes what it flags.
 The codemod's first argument names the library you are migrating _from_. Check the app's
 `package.json` and imports:
 
-| Source                                                                        | Argument                 | References                                                                                 |
-| ----------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
-| `react-bulma-components` v4 (unmaintained since 2022, Bulma 0.9.x)            | `react-bulma-components` | [`references/react-bulma-components/`](references/react-bulma-components/component-map.md) |
-| `rbx` v2 (abandoned 2019, pins Bulma **0.7.5** plus four extensions)          | `rbx`                    | [`references/rbx/`](references/rbx/component-map.md)                                       |
-| `bloomer` 0.6 (archived 2018, Bulma 0.6 era, React 16 + `create-react-class`) | `bloomer`                | [`references/bloomer/`](references/bloomer/component-map.md)                               |
+| Source                                                                           | Argument                 | References                                                                                 |
+| -------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
+| `react-bulma-components` v4 (unmaintained since 2022, Bulma 0.9.x)               | `react-bulma-components` | [`references/react-bulma-components/`](references/react-bulma-components/component-map.md) |
+| `rbx` v2 (abandoned 2019, pins Bulma **0.7.5** plus four extensions)             | `rbx`                    | [`references/rbx/`](references/rbx/component-map.md)                                       |
+| `bloomer` 0.6 (archived 2018, Bulma 0.6 era, React 16 + `create-react-class`)    | `bloomer`                | [`references/bloomer/`](references/bloomer/component-map.md)                               |
+| Raw Bulma classes on plain JSX (`<div className="box">`), no React Bulma library | `bulma-classes`          | [`references/bulma-classes/`](references/bulma-classes/component-map.md)                   |
 
 Everything below is written as `<source>`; substitute the argument from that table. The
 reference paths follow the same split — `references/<source>/component-map.md`,
@@ -43,7 +44,9 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    `@allxsmith/bestax-bulma/bestax.css`; SCSS `@import 'bulma/bulma'` + `$var` overrides
    → `@use 'bulma/sass' with (…)` plus the bestax extras) and **package.json**.
    Flags: `--css bulma|keep` for other stylesheet targets, `--no-deps` to leave
-   package.json alone.
+   package.json alone. `bulma-classes` is the exception: it defaults to `--css keep`,
+   because the app's own Bulma already styles every class it converts, so its stylesheets
+   and Bulma version stay unless you pass `--css bestax` or `--css bulma`.
 
 3. **Install** — the codemod edits package.json but never runs a package manager. Resolve the
    retained imports first: a component with no bestax equivalent keeps a trimmed,
@@ -105,6 +108,15 @@ code per the references, or deliberately keep the old markup with `className` st
   become real wrapping `<Badge>` / `<Tooltip>` components. Its `as` is universal, bestax's is
   not. Because rbx pinned Bulma 0.7.5, you cross **two** Bulma majors — expect more visual
   drift than the 0.9 → 1 guide alone describes.
+- **bulma-classes**: there is no library to remove. An element converts only when the bestax
+  component renders the same markup (tag, classes, attributes), so a converted page renders
+  the same HTML; everything else stays as written, with a TODO when there is something to
+  decide. Only static class strings convert (`clsx(...)` and ternaries get
+  `dynamic-class:<Target>`, naming the component the element would become), files a Next.js
+  App Router may render as server components are left alone (`rsc`), and the manifest gains
+  `@allxsmith/bestax-bulma` while the app's Bulma and stylesheets stay (the default
+  `--css keep`). Its rules are `kind:<name>` shaped; see
+  `references/bulma-classes/unmappables.md`.
 - **bloomer**: every export is a flat name and most become dotted bestax compounds
   (`CardHeaderTitle` → `Card.Header.Title`). Most of its `is*` booleans already are bestax's
   (`isActive` becomes `active` where bestax names it so; `isFullWidth` survives only on
@@ -116,8 +128,9 @@ code per the references, or deliberately keep the old markup with `className` st
 
 ## Rules
 
-- The codemod is idempotent on already-migrated files (it only touches files importing the
-  source library) — safe to re-run after partial manual work.
+- The codemod is safe to re-run after partial manual work: a library source only touches files
+  that still import the library, and `bulma-classes` skips elements that are already
+  components and never repeats a TODO it already wrote.
 - Don't downgrade converted props back to the old names; bestax uses `is*` booleans
   (`isLoading`), string size unions (`textSize="4"`), and `as` rather than `renderAs`.
 - If a component the app uses isn't in the component map, it wasn't part of that library's

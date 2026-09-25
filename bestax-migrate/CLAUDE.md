@@ -2,8 +2,9 @@
 
 jscodeshift-based CLI (`pnpm dlx bestax-migrate <source> <paths…>`) that migrates existing
 apps from other React Bulma libraries to `@allxsmith/bestax-bulma`. Multi-source by design:
-each source library registers in `src/sources/registry.ts`. The shipped ones are —
-`react-bulma-components` (v4 only), `rbx` (v2 only) and `bloomer` (0.6 only).
+each source registers in `src/sources/registry.ts`. The library sources are
+`react-bulma-components` (v4 only), `rbx` (v2 only) and `bloomer` (0.6 only); `bulma-classes`
+is the one with no library behind it, converting raw Bulma classes on plain JSX.
 
 ## Hard rules
 
@@ -16,12 +17,16 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   that name as a real manifest whatever the lockfile says, and opened a security-update PR
   against the rbx fixture's deliberately-old `node-sass` (#615). The e2e renames its copy
   back inside `.e2e-tmp`, so the pass under test still sees a genuine `package.json`.
+  `bulma-classes` has no library, so its input is plain JSX, and its tests DO run and
+  typecheck the input: rendering input and output side by side is how it proves a conversion
+  changed nothing. That is the one exception, and it installs nothing.
 - Mapping-table first: each source's `mapping.ts` is its single source of truth. Every
   export of that library must have an entry (`mapped`/`partial`/`todo`) — the
   `mapping-coverage` test walks the vendored `RBC_EXPORTS` / `RBX_EXPORTS` / `BLOOMER_EXPORTS` list against it,
   in both directions, so the table cannot grow an entry for something the library never
   exported either. New coverage is a table edit (plus a `special` handler in `specials.ts`
-  when structure changes).
+  when structure changes). `bulma-classes`' table is `class-map.ts`, and its export list is
+  Bulma's own stylesheet: `e2e/bulma-classes-vocabulary.test.ts` classifies every class in it.
 - **A new source is a directory plus one registry line.** `src/sources/_shared/` holds
   everything library-agnostic: `jsx-utils.ts` (AST helpers + `TransformContext`),
   `props.ts` (the `PropAction` interpreter — its universal table is a parameter, not an
@@ -72,7 +77,9 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   .scss/.sass → `transformStyles`, nearest package.json → `updateDependencies`) with an
   in-process runner (NOT jscodeshift's worker Runner: fragile from ESM, hides per-file
   stats). `src/runner.ts` is shared by CLI and tests. `--css bestax|bulma|keep` picks the
-  stylesheet target; `--no-deps` skips the manifest step. The CLI reads a source's
+  stylesheet target, `bestax` unless the source sets its own `defaultCssMode` (bulma-classes
+  keeps the app's stylesheet, which already styles every class it converts); `--no-deps`
+  skips the manifest step. The CLI reads a source's
   `packageName` (defaulting to its `name`) as the import to look for; `null` means the source
   has no package, so no file is ever "still importing" it.
 - `src/sources/react-bulma-components/` (and `rbx/`, same shape): `transform.ts`
@@ -83,6 +90,18 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   runs an install). The PropAction interpreter and AST helpers live in `_shared/`.
 - Components with no bestax equivalent (Element, Tile) keep a trimmed, TODO-annotated RBC
   import so the code still runs during gradual migration.
+- `src/sources/bulma-classes/` is shaped differently, because it reads markup rather than a
+  library's API: `class-map.ts` (data only, and written so another package's generator can
+  import it directly: no enums or runtime imports), `plan.ts` (pure: one element's tag,
+  classes and attributes in, a conversion or a TODO out), `rules.ts` (rule ids from a closed
+  vocabulary, since the input is the app's own class strings and telemetry must never carry
+  them), `project.ts` (what one file cannot show: which packages are Next.js App Router
+  projects, and which render JSX through a runtime other than React, read once per run from
+  every package.json the run touches) and `transform.ts` (finds the elements, applies the
+  plans, writes the import after the file's last one). An element converts only when the component renders the same markup; the render
+  tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
+  `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
+  what it renders.
 - `src/telemetry-core.ts` is a byte-for-byte copy of
   `create-bestax/src/telemetry-core.ts` — never edit it here; edit the
   create-bestax original and copy it over (`check:conformance
@@ -125,6 +144,9 @@ each source library registers in `src/sources/registry.ts`. The shipped ones are
   - `validate:corpus:bloomer` — bloomer's own MIT docs: 39 React "Scene" `.tsx` files that
     render the library through a relative `src` import, migrated as written after that
     specifier becomes `'bloomer'`. Output lands in `.e2e-tmp/corpus-out-bloomer/`.
+  - `validate:corpus:bulma-classes` — this repo's own stories, which mix components with raw
+    Bulma markup; `--dir <path>` points it at any app's source instead. Nothing is fetched.
+    Output lands in `.e2e-tmp/corpus-out-bulma-classes/`.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught

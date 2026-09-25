@@ -254,6 +254,168 @@ describe('the source-still-imported warning', () => {
   });
 });
 
+describe('the bulma-classes source', () => {
+  const box =
+    'export default function A() {\n  return <div className="box">x</div>;\n}\n';
+  const manifest = (pkg: object) => `${JSON.stringify(pkg, null, 2)}\n`;
+
+  function project(files: Record<string, string>): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-bc-'));
+    tempDirs.push(dir);
+    for (const [file, content] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      fs.writeFileSync(path.join(dir, file), content);
+    }
+    return dir;
+  }
+
+  function nextApp(): string {
+    return project({
+      'app/page.tsx': box,
+      'components/Card.tsx': box,
+      'components/Widget.tsx': `'use client';\n${box}`,
+      'pages/about.tsx': box,
+      'docs/intro.mdx': '# Intro\n\n<div className="box">x</div>\n',
+      'docs/computed.mdx': '<div className={cn("button", x)}>x</div>\n',
+      'docs/data.mdx': '<div data-class="button">x</div>\n',
+      'widgets/Card.vue':
+        '<template>\n  <div class="box">x</div>\n</template>\n',
+      'package.json': manifest({
+        name: 'a',
+        dependencies: { next: '^14.0.0', bulma: '^1.0.2', react: '^18.2.0' },
+      }),
+    });
+  }
+
+  it('finds a Next.js app below the directory it runs from', async () => {
+    const dir = project({
+      'package.json': manifest({ name: 'root', private: true }),
+      'apps/web/package.json': manifest({
+        name: 'web',
+        dependencies: { next: '^14.0.0', react: '^18.2.0' },
+      }),
+      'apps/web/app/page.tsx': box,
+    });
+    const { logs } = await runCli(['bulma-classes', dir]);
+    expect(
+      fs.readFileSync(path.join(dir, 'apps/web/app/page.tsx'), 'utf8')
+    ).not.toContain('<Box>');
+    expect(logs.join('\n')).toContain('rsc');
+  });
+
+  it('leaves a package whose JSX is not React alone', async () => {
+    const dir = project({
+      'package.json': manifest({
+        name: 'p',
+        dependencies: { preact: '^10.0.0', bulma: '^1.0.2' },
+      }),
+      'tsconfig.json':
+        '{\n  // Preact renders the JSX\n  "compilerOptions": { "jsxImportSource": "preact" }\n}\n',
+      'src/Card.tsx': box,
+    });
+    const { logs } = await runCli(['bulma-classes', dir]);
+    expect(
+      fs.readFileSync(path.join(dir, 'src/Card.tsx'), 'utf8')
+    ).not.toContain('<Box>');
+    expect(logs.join('\n')).toContain('jsx-runtime');
+  });
+
+  it('leaves possible Next.js server components alone and converts the rest', async () => {
+    const dir = nextApp();
+    const { logs } = await runCli(['bulma-classes', dir]);
+    const read = (file: string) =>
+      fs.readFileSync(path.join(dir, file), 'utf8');
+    // A component outside app/ is a server component when a server page
+    // renders it, so only 'use client' and the Pages Router are safe.
+    for (const file of ['app/page.tsx', 'components/Card.tsx']) {
+      expect(read(file)).toContain('TODO(bestax-migrate)');
+      expect(read(file)).not.toContain('<Box>');
+    }
+    expect(read('components/Widget.tsx')).toContain('<Box>');
+    expect(read('pages/about.tsx')).toContain('<Box>');
+    expect(logs.join('\n')).toContain('rsc');
+  });
+
+  it('reports an .mdx file with markup it would convert', async () => {
+    const { logs } = await runCli(['bulma-classes', nextApp(), '--dry']);
+    const text = logs.join('\n');
+    expect(text).toMatch(/unsupported-file[\s\S]*intro\.mdx:3/);
+    // The strings inside a computed className count; a data- attribute
+    // named like one does not.
+    expect(text).toContain('computed.mdx:1');
+    expect(text).not.toContain('data.mdx');
+    // Vue cannot render bestax's React components, so it is not flagged.
+    expect(text).not.toContain('Card.vue');
+  });
+
+  it('adds bestax-bulma and keeps Bulma', async () => {
+    const dir = nextApp();
+    await runCli(['bulma-classes', dir]);
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
+    );
+    expect(pkg.dependencies).toEqual({
+      next: '^14.0.0',
+      bulma: '^1.0.2',
+      react: '^18.2.0',
+      '@allxsmith/bestax-bulma': '^5',
+    });
+  });
+
+  describe('the stylesheet', () => {
+    const entry = `import 'bulma/css/bulma.min.css';\n${box}`;
+    const scss = "$primary: #8a4d76;\n@import 'bulma/bulma';\n";
+    const bulma09App = () =>
+      project({
+        'src/index.tsx': entry,
+        'src/styles.scss': scss,
+        'package.json': manifest({
+          name: 'a',
+          dependencies: { bulma: '^0.9.4', react: '^18.2.0' },
+          devDependencies: { 'node-sass': '^9.0.0' },
+        }),
+      });
+
+    it("keeps the app's Bulma and its stylesheets by default", async () => {
+      const dir = bulma09App();
+      const { logs } = await runCli(['bulma-classes', dir]);
+      const index = fs.readFileSync(path.join(dir, 'src/index.tsx'), 'utf8');
+      expect(index).toContain("import 'bulma/css/bulma.min.css';");
+      expect(index).toContain('<Box>');
+      expect(fs.readFileSync(path.join(dir, 'src/styles.scss'), 'utf8')).toBe(
+        scss
+      );
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
+      );
+      expect(pkg.dependencies).toEqual({
+        bulma: '^0.9.4',
+        react: '^18.2.0',
+        '@allxsmith/bestax-bulma': '^5',
+      });
+      expect(pkg.devDependencies).toEqual({ 'node-sass': '^9.0.0' });
+      expect(logs.join('\n')).toContain('left bulma ^0.9.4');
+    });
+
+    it('moves the app to Bulma v1 under --css bestax', async () => {
+      const dir = bulma09App();
+      await runCli(['bulma-classes', dir, '--css', 'bestax']);
+      expect(
+        fs.readFileSync(path.join(dir, 'src/index.tsx'), 'utf8')
+      ).toContain('@allxsmith/bestax-bulma/bestax.css');
+      expect(
+        fs.readFileSync(path.join(dir, 'src/styles.scss'), 'utf8')
+      ).toContain('@use');
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
+      );
+      expect(pkg.dependencies.bulma).toMatch(/^\^1\./);
+      expect(pkg.devDependencies).not.toHaveProperty('node-sass');
+      expect(pkg.devDependencies).toHaveProperty('sass');
+    });
+  });
+});
+
 describe('a source with no package', () => {
   const seen: DepsOptions[] = [];
   const markupSource: MigrationSource = {

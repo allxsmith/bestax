@@ -8,7 +8,14 @@ stylesheet layer; this reference explains what it did and how to finish what it 
 Coming from rbx or bloomer you are crossing **two** Bulma majors rather than one, so expect more
 visual drift than the 0.9 → 1 notes below describe on their own.
 
-## What the codemod already did (default `--css bestax`)
+An app that writes Bulma's classes directly (`bulma-classes`) keeps its stylesheet by
+default: that source runs as `--css keep`, because the app's own Bulma already styles every
+class a converted element renders, so its stylesheet imports, Sass and Bulma version stay as
+they were. Moving to Bulma v1 is a separate step, taken with `--css bestax` or `--css bulma`.
+From a 0.9.x it then follows these notes as written; on Bulma v1 already, only the bundle
+choice below applies.
+
+## What the codemod already did (`--css bestax`, the library sources' default)
 
 - **CSS imports**: `bulma/css/bulma(.min).css` and v3-era
   the source library's own CSS imports (`react-bulma-components/dist/*.css`,
