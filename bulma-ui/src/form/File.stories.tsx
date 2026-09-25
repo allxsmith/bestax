@@ -18,7 +18,10 @@ type Story = StoryObj<typeof File>;
  */
 export const Default: Story = {
   render: () => (
-    <File buttonLabel="Choose a file\u2026" iconLeft={<Icon name="upload" />} />
+    <File
+      buttonLabel="Choose a file\u2026"
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
+    />
   ),
 };
 
@@ -32,7 +35,7 @@ export const WithFilename: Story = {
       hasName
       fileName="resume.pdf"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -47,7 +50,7 @@ export const CtaOnRight: Story = {
       isRight
       fileName="contract.pdf"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -62,7 +65,7 @@ export const FullWidth: Story = {
       isFullwidth
       fileName="picture.png"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -75,7 +78,7 @@ export const Boxed: Story = {
     <File
       isBoxed
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -90,7 +93,7 @@ export const BoxedWithName: Story = {
       hasName
       fileName="holiday.jpg"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -104,20 +107,20 @@ export const Colors: Story = {
       <File
         color="primary"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         color="info"
         hasName
         fileName="resume.pdf"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         color="warning"
         isBoxed
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="cloud-upload-alt" />}
+        iconLeft={<Icon name="cloud-upload-alt" aria-hidden="true" />}
       />
       <File
         color="danger"
@@ -125,7 +128,7 @@ export const Colors: Story = {
         hasName
         fileName="resume.pdf"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="cloud-upload-alt" />}
+        iconLeft={<Icon name="cloud-upload-alt" aria-hidden="true" />}
       />
     </>
   ),
@@ -140,21 +143,21 @@ export const Sizes: Story = {
       <File
         size="small"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="medium"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="large"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
     </>
   ),
@@ -171,27 +174,27 @@ export const SizesWithName: Story = {
         hasName
         fileName="sample.txt"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         hasName
         fileName="sample.txt"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="medium"
         hasName
         fileName="sample.txt"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="large"
         hasName
         fileName="sample.txt"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
     </>
   ),
@@ -207,24 +210,24 @@ export const SizesWithBoxed: Story = {
         size="small"
         isBoxed
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         isBoxed
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="medium"
         isBoxed
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="large"
         isBoxed
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
     </>
   ),
@@ -243,14 +246,14 @@ export const SizesWithBoxedAndName: Story = {
         hasName
         fileName="summary.docx"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         isBoxed
         hasName
         fileName="summary.docx"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="medium"
@@ -258,7 +261,7 @@ export const SizesWithBoxedAndName: Story = {
         hasName
         fileName="summary.docx"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
       <File
         size="large"
@@ -266,7 +269,7 @@ export const SizesWithBoxedAndName: Story = {
         hasName
         fileName="summary.docx"
         buttonLabel="Choose a file\u2026"
-        iconLeft={<Icon name="upload" />}
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
       />
     </>
   ),
@@ -284,7 +287,7 @@ export const AlignmentCentered: Story = {
       hasName
       fileName="centered.pdf"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -300,7 +303,7 @@ export const AlignmentRight: Story = {
       hasName
       fileName="right.pdf"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -317,7 +320,7 @@ export const WithLabel: Story = {
     <File
       label="Document"
       buttonLabel="Choose a file\u2026"
-      iconLeft={<Icon name="upload" />}
+      iconLeft={<Icon name="upload" aria-hidden="true" />}
     />
   ),
 };
@@ -332,7 +335,7 @@ export const WithFieldWrapper: Story = {
         <Field>
           <File
             buttonLabel="Choose a file\u2026"
-            iconLeft={<Icon name="upload" />}
+            iconLeft={<Icon name="upload" aria-hidden="true" />}
           />
         </Field>
       </Field.Body>
@@ -352,7 +355,7 @@ export const WithFieldControlWrapper: Story = {
           <Control iconLeftName="paperclip">
             <File
               buttonLabel="Choose a file\u2026"
-              iconLeft={<Icon name="upload" />}
+              iconLeft={<Icon name="upload" aria-hidden="true" />}
             />
           </Control>
         </Field>

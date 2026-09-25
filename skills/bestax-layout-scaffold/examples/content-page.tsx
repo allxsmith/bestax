@@ -72,7 +72,11 @@ export default function ContentPage() {
                 <Card>
                   <Card.Content>
                     <IconText mb="3">
-                      <Icon name={f.icon} textColor="primary" />
+                      <Icon
+                        name={f.icon}
+                        textColor="primary"
+                        aria-hidden="true"
+                      />
                       <Title size="4" mb="2">
                         {f.name}
                       </Title>

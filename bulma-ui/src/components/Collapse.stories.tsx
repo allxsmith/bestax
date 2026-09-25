@@ -572,6 +572,7 @@ export const PanelCollapse: Story = {
                 <Icon
                   name={isOpen ? 'angle-up' : 'angle-down'}
                   variant="solid"
+                  aria-hidden="true"
                 />
               </span>
             </Panel.Heading>
