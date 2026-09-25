@@ -89,6 +89,15 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
 
   // Per-component maps override this with AS_OK where bestax has an `as`.
   as: AS_TODO,
+
+  // Same shape: the per-component maps override this with `rename: 'ref'` on
+  // the targets that forward one, and the `navbar-item` special handles the
+  // two it chooses between. Whatever is left reaches here, so no `innerRef`
+  // migrates in silence onto a target that cannot take it — the RBC sibling
+  // `domRef` has been flagged universally all along.
+  innerRef: {
+    todo: `\`innerRef\` has no counterpart; rename it to \`ref\` if this target forwards one, otherwise move it onto a wrapping element you control (${DOCS}/api)`,
+  },
 };
 
 /** rbx badge helper props → bestax `<Badge>` props. */
@@ -136,7 +145,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   forwardRefAs: {
     status: 'todo',
-    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls and from `Button`, `LinkButton`, `Modal`, `Dropdown`, `Navbar` (plus `Navbar.Burger` and `Navbar.Link`), `Dialog`, `Sidebar`, `Toast` and `Carousel` — pass `ref` directly on those. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, are plain function components that forward no ref; put the ref on a wrapping element you control',
+    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast` — pass `ref` directly on those, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a wrapping element you control',
   },
 
   // ---- elements -----------------------------------------------------------

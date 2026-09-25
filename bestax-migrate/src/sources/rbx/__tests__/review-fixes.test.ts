@@ -769,13 +769,20 @@ describe('the innerRef remediation is achievable', () => {
     expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
   });
 
-  it('leaves innerRef alone on a plain Navbar.Item', () => {
-    // Without `dropdown` the target stays Navbar.Item, a function component —
-    // so the rename above must be conditional, not unconditional.
-    const { output } = migrate(
+  it('flags innerRef on a plain Navbar.Item without renaming it', () => {
+    // Without `dropdown` the target stays Navbar.Item, which forwards a ref of
+    // its own since #661 — so the rename above is conditional on which target
+    // was picked, not on whether the target takes a ref. Performing it here
+    // changes emitted output on code that migrates today and stays #734; what
+    // must not happen is the prop going by in silence, since `innerRef` is in
+    // no rbx prop table and would otherwise reach the DOM unflagged.
+    const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item innerRef={r}>x</Navbar.Item>;'
     );
     expect(output).toContain('<Navbar.Item innerRef={r}');
+    const flagged = todos.find(t => t.rule === 'prop:innerRef');
+    expect(flagged).toBeDefined();
+    expect(flagged?.message).toMatch(/forwards a ref/);
   });
 
   // A plain `ref` is passed through untouched everywhere. That is correct on a
@@ -795,7 +802,8 @@ describe('the innerRef remediation is achievable', () => {
     'also passes ref through on %s, which forwards none',
     name => {
       // Documents today's behaviour, not a desired one: the ref survives the
-      // rewrite and then resolves to null at runtime. Deliberately does NOT
+      // rewrite and then goes nowhere useful — React 18 drops it with a
+      // warning, React 19 leaves it wherever the rest props land. Does NOT
       // assert the absence of a diagnostic — flagging this is the improvement,
       // and a test pinning "no TODO" would fail the change that adds it.
       const { output } = migrate(
@@ -812,6 +820,69 @@ describe('the innerRef remediation is achievable', () => {
       'import { Card } from "rbx";\nexport const A = (r: any) => <Card innerRef={r}>x</Card>;'
     );
     expect(output).toMatch(/innerRef=\{r\}/);
+  });
+
+  // Leaving the prop is right; leaving it unmentioned was not. `innerRef` is
+  // universal in rbx, so the targets no per-component entry and no special
+  // claims used to migrate with the prop intact and nothing in the report,
+  // while the RBC sibling `domRef` was flagged on every component. These are
+  // the three shapes that reach the universal entry: a target that forwards
+  // nothing, a form control that does, and a sub-component of one.
+  it.each(['Card', 'Box', 'Section', 'Input', 'Control'])(
+    'flags an unmapped innerRef on %s instead of passing it in silence',
+    name => {
+      const { output, todos } = migrate(
+        `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} innerRef={r}>x</${name}>;`
+      );
+      expect(output).toMatch(/innerRef=\{r\}/);
+      expect(todos.find(t => t.rule === 'prop:innerRef')).toBeDefined();
+    }
+  );
+
+  // The universal entry is also the vocabulary `stripModifierProps` treats as
+  // Bulma modifiers, so promoting `innerRef` into it briefly made these
+  // rewrites DELETE the user's ref and report it as a helper prop to
+  // "restyle with classes". The plain tag takes a real ref, so it is renamed
+  // onto the tag instead — a silent deletion being strictly worse than the
+  // silent pass-through the universal entry set out to fix.
+  it.each([
+    ['Heading', 'p'],
+    ['Help', 'p'],
+    ['Label', 'label'],
+  ])('carries innerRef onto the plain <%s> that %s becomes', (name, tag) => {
+    const { output, todos } = migrate(
+      `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} innerRef={r}>x</${name}>;`
+    );
+    expect(output).toContain(`<${tag} className=`);
+    expect(output).toMatch(/ref=\{r\}/);
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'plain-element')).toBeUndefined();
+  });
+
+  it('does not emit a second ref when the element already has one', () => {
+    // Two `ref` attributes do not compile. The rename defers to the one the
+    // user already wrote and says so, as `applyPropAction` does for any
+    // rename that lands on a prop already set.
+    const { output, todos } = migrate(
+      'import { Heading } from "rbx";\nexport const A = (a: any, b: any) => <Heading ref={a} innerRef={b}>x</Heading>;'
+    );
+    expect(output.match(/\bref=/g)).toHaveLength(1);
+    expect(output).toContain('ref={a}');
+    expect(output).not.toMatch(/innerRef=/);
+    const flagged = todos.find(t => t.rule === 'prop:innerRef');
+    expect(flagged?.message).toMatch(/already set/);
+  });
+
+  it('still renames rather than flags where a table entry claims innerRef', () => {
+    // The universal entry must not outrank the per-component renames, or the
+    // eight targets that take a ref would gain a TODO telling them to do what
+    // the codemod just did.
+    const { output, todos } = migrate(
+      'import { Button } from "rbx";\nexport const A = (r: any) => <Button innerRef={r}>x</Button>;'
+    );
+    expect(output).toContain('ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
   });
 });
 

@@ -802,6 +802,127 @@ describe('react-bulma-components transform fixtures', () => {
       return todo!.message;
     }
 
+    it('carries domRef onto a plain element rather than dropping it', () => {
+      // `domRef` has been a UNIVERSAL_PROPS key here all along, and that table
+      // is what `stripModifierProps` treats as Bulma modifiers — so this
+      // source deleted the ref on its hand-built plain rewrites the whole
+      // time. Fixed in `_shared` with rbx's `innerRef`, per the rule in
+      // bestax-migrate/CLAUDE.md that a defect in one source is in the others.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Form } from "react-bulma-components";\n' +
+          'export const A = (r: any) => <Form.Help domRef={r}>x</Form.Help>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<p className="help"');
+      expect(output).toMatch(/ref=\{r\}/);
+      expect(output).not.toMatch(/domRef/);
+      expect(todos.find(t => t.rule === 'plain-element')).toBeUndefined();
+    });
+
+    it('does not emit a second ref when the plain element already has one', () => {
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Form } from "react-bulma-components";\n' +
+          'export const A = (a: any, b: any) => <Form.Help ref={a} domRef={b}>x</Form.Help>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect((output ?? '').match(/\bref=/g)).toHaveLength(1);
+      expect(output).toContain('ref={a}');
+      expect(output).not.toMatch(/domRef=/);
+      expect(todos.find(t => t.rule === 'prop:domRef')?.message).toMatch(
+        /already set/
+      );
+    });
+
+    it('reports every attribute the Table.Container fold leaves without a home', () => {
+      // Folding into `isResponsive` removes the container element, so its
+      // attributes have nowhere to go. Only `className` used to be reported;
+      // `domRef`, the rest and any spread went with an empty report.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Table } from "react-bulma-components";\n' +
+          'export const A = (r: any, p: any) => <Table.Container domRef={r} id="t" {...p}><Table /></Table.Container>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toMatch(/isResponsive/);
+      const rules = todos.map(t => t.rule);
+      expect(rules).toEqual(
+        expect.arrayContaining(['prop:domRef', 'prop:id', 'prop:spread'])
+      );
+    });
+
+    it.each([
+      [
+        'ref',
+        '<Breadcrumb.Item domRef={a}><a ref={b} href="/x">x</a></Breadcrumb.Item>',
+      ],
+      [
+        'id',
+        '<Breadcrumb.Item id="p"><a id="q" href="/x">x</a></Breadcrumb.Item>',
+      ],
+    ])(
+      'keeps one %s when Breadcrumb.Item merges onto an anchor that already sets it',
+      (prop, jsx) => {
+        // The item's props are appended onto the user's own <a>, so a prop
+        // both carry was written twice, which does not compile. The anchor's
+        // value wins and the item's is flagged.
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'ref.tsx',
+          'import { Breadcrumb } from "react-bulma-components";\n' +
+            `export const A = (a: any, b: any) => ${jsx};`,
+          { add: entry => todos.push(entry) }
+        );
+        expect(
+          (output ?? '').match(new RegExp(`\\b${prop}=`, 'g'))
+        ).toHaveLength(1);
+        expect(output).toContain(prop === 'ref' ? 'ref={b}' : 'id="q"');
+        // Reported under the name the user wrote: `domRef`, not the `ref` the
+        // strip would have renamed it to.
+        expect(
+          todos.find(t => t.rule === `prop:${prop === 'ref' ? 'domRef' : 'id'}`)
+            ?.message
+        ).toMatch(/already sets/);
+      }
+    );
+
+    it('carries an item prop the anchor does not set onto the anchor', () => {
+      // The ordinary path through the merge: nothing collides, so the prop
+      // moves across and nothing is reported.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Breadcrumb } from "react-bulma-components";\n' +
+          'export const A = () => <Breadcrumb.Item title="t"><a href="/x">x</a></Breadcrumb.Item>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<a href="/x" title="t">');
+      expect(todos.find(t => t.rule === 'prop:title')).toBeUndefined();
+    });
+
+    it("puts the item's spreads before the anchor's own props", () => {
+      // Spreads have no name to compare, so a spread appended last would
+      // override the anchor's explicit props in silence. Placed first, as
+      // `collapseOntoChild` places them, the anchor's props still win.
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Breadcrumb } from "react-bulma-components";\n' +
+          'export const A = (p: any) => <Breadcrumb.Item {...p}><a id="q" href="/x">x</a></Breadcrumb.Item>;',
+        { add: () => {} }
+      );
+      expect(output).toContain('<a {...p} id="q" href="/x">');
+    });
+
     it('does not offer the Button rename once `remove` retargets it to Delete', () => {
       // `<Button remove>` becomes `<Delete>`, a plain function component, so
       // the general advice — which names Button as forwarding a ref — would

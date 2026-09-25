@@ -68,7 +68,8 @@ function keptAttrs(
 
 const stripModifierProps = makeStripModifierProps(
   UNIVERSAL_PROPS,
-  RESPONSIVE_BREAKPOINTS
+  RESPONSIVE_BREAKPOINTS,
+  'domRef'
 );
 
 const SPECIALS: Record<string, SpecialHandler> = {
@@ -715,7 +716,6 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item', 'a');
     const children = element.children ?? [];
     const solidChildren = children.filter(
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
@@ -729,11 +729,48 @@ const SPECIALS: Record<string, SpecialHandler> = {
       solidChildren[0].openingElement.name.name === 'a'
         ? solidChildren[0]
         : null;
+    // The strip below renames `domRef` to `ref`, so a collision with a `ref`
+    // the anchor already sets is settled here, while the prop still carries
+    // the name the user wrote.
+    const domRefAttr = findAttr(element, 'domRef');
+    if (existingAnchor && domRefAttr && findAttr(existingAnchor, 'ref')) {
+      removeAttr(element, domRefAttr);
+      addTodo(
+        ctx,
+        path,
+        'prop:domRef',
+        'Breadcrumb.Item `domRef` was dropped: its <a> child already sets `ref` — reconcile by hand'
+      );
+    }
+    const anchorAttrs = keptAttrs(ctx, path, element, 'Breadcrumb.Item', 'a');
     if (existingAnchor && anchorAttrs.length > 0) {
-      existingAnchor.openingElement.attributes = [
+      // Merging onto an anchor the user already wrote keeps the rule
+      // `collapseOntoChild` does: the item's spreads go FIRST, as one block in
+      // source order, so the anchor's explicit props still win over them; and
+      // a named prop both set keeps the anchor's value and is flagged, since
+      // writing it twice does not compile.
+      const spreads = anchorAttrs.filter(
+        (a: any) => a.type === 'JSXSpreadAttribute'
+      );
+      const merged = [
+        ...spreads,
         ...(existingAnchor.openingElement.attributes ?? []),
-        ...anchorAttrs,
       ];
+      for (const attr of anchorAttrs) {
+        if (attr.type === 'JSXSpreadAttribute') continue;
+        const name: string = attr.name.name;
+        if (findAttr(existingAnchor, name)) {
+          addTodo(
+            ctx,
+            path,
+            `prop:${name}`,
+            `Breadcrumb.Item \`${name}\` was dropped: its <a> child already sets \`${name}\` — reconcile by hand`
+          );
+          continue;
+        }
+        merged.push(attr);
+      }
+      existingAnchor.openingElement.attributes = merged;
     }
     const anchor =
       existingAnchor ?? plainElement(j, 'a', undefined, anchorAttrs, children);
@@ -754,6 +791,32 @@ const SPECIALS: Record<string, SpecialHandler> = {
           path,
           'prop:className',
           'Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand'
+        );
+      }
+      // The container element is gone after the fold. What it carried
+      // (`domRef`, `id`, handlers) applied to the wrapping div, and moving it
+      // onto the Table would put it on the <table> instead, so it is reported
+      // rather than carried. Only `className` used to be reported.
+      for (const attr of attributesOf(element)) {
+        const name = attr?.name?.name;
+        if (!name || name === 'className') continue;
+        addTodo(
+          ctx,
+          path,
+          `prop:${name}`,
+          `Table.Container \`${name}\` was dropped: the container folded into \`isResponsive\` on its Table, so there is no element left to carry it — re-apply by hand`
+        );
+      }
+      if (
+        (element.openingElement.attributes ?? []).some(
+          (a: any) => a.type === 'JSXSpreadAttribute'
+        )
+      ) {
+        addTodo(
+          ctx,
+          path,
+          'prop:spread',
+          'Table.Container spread props were dropped: the container folded into `isResponsive` on its Table, so there is no element left to carry them — re-apply by hand'
         );
       }
       const child = children[0];

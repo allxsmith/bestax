@@ -90,7 +90,8 @@ export function alignTarget(
  */
 export function makeStripModifierProps(
   universalProps: Record<string, PropAction>,
-  responsiveBreakpoints: Record<string, string | null>
+  responsiveBreakpoints: Record<string, string | null>,
+  refProp?: string
 ) {
   return function stripModifierProps(
     ctx: TransformContext,
@@ -102,6 +103,29 @@ export function makeStripModifierProps(
     const dropped: string[] = [];
     for (const attr of attrs) {
       const name = attr?.name?.name;
+      // Both sources keep their ref escape hatch (`innerRef`, `domRef`) in
+      // the universal table so an unmapped one is flagged rather than passed
+      // through in silence. Neither is a Bulma modifier, and the intrinsic
+      // tag this rewrite produces takes a real `ref` — so it is renamed onto
+      // the tag here. Dropping it would delete a working ref and tell the
+      // user to "restyle with classes", which is advice for a modifier.
+      // The same collision `applyPropAction` guards: with a `ref` already on
+      // the element the rename would emit two, which does not compile.
+      if (refProp && name === refProp) {
+        if (attrs.some(other => other?.name?.name === 'ref')) {
+          addTodo(
+            ctx,
+            path,
+            `prop:${refProp}`,
+            `${where}: \`${refProp}\` maps to \`ref\`, but \`ref\` is already set on this element, so \`${refProp}\` was dropped — reconcile by hand`
+          );
+          continue;
+        }
+        attr.name = ctx.j.jsxIdentifier('ref');
+        ctx.dirty = true;
+        kept.push(attr);
+        continue;
+      }
       if (name && (universalProps[name] || name in responsiveBreakpoints)) {
         dropped.push(name);
       } else {
