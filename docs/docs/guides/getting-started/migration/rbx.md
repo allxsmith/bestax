@@ -131,6 +131,10 @@ Already supported: [**react-bulma-components**](./react-bulma-components.md)
 (`bestax-migrate react-bulma-components src/`) and [**bloomer**](./bloomer.md)
 (`bestax-migrate bloomer src/`).
 
+Writing Bulma's classes on plain JSX, with no library? That's
+[**bulma-classes**](./bulma-classes.md) (`bestax-migrate bulma-classes src/`), and it also
+tidies up markup left over after a library migration.
+
 If you're using a specific React Bulma package that isn't supported by the migration tool yet,
 [open a feature request](https://github.com/allxsmith/bestax/issues/new?template=feature-request.md)
 naming the package and the components you use — the codemod platform is built to grow new

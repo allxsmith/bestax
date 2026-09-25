@@ -39,7 +39,7 @@ Sent once after a successful run:
 
 | Field              | Values                                                                                         |
 | ------------------ | ---------------------------------------------------------------------------------------------- |
-| `source`           | the source library migrated from, e.g. `react-bulma-components`                                |
+| `source`           | what the app migrated from: a library, e.g. `react-bulma-components`, or `bulma-classes`       |
 | `cssMode`          | `bestax`, `bulma`, or `keep`                                                                   |
 | `dry`              | `true` or `false` — whether it was a dry run                                                   |
 | `deps`             | `true` or `false` — whether `package.json` dependencies were updated                           |
@@ -51,7 +51,10 @@ Sent once after a successful run:
 
 Never file paths, never file contents, never code. The TODO report printed in
 your terminal lists files and lines; the telemetry event carries only rule
-names and counts.
+names and counts. The `bulma-classes` source reads your own class strings, so
+its rule names are built only from Bulma's class names, bestax's component and
+prop names, and a fixed set of attribute names (`family:card`, `tag:Section`,
+`attr:dangerouslySetInnerHTML`); a class your app defines never appears in one.
 
 ## What we never collect
 
