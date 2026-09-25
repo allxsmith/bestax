@@ -17,8 +17,11 @@ import path from 'node:path';
 import type { StylesTransform, TodoCollector } from '../../types.js';
 
 export interface StylesConfig {
-  /** npm package name of the source library, e.g. `rbx`. */
-  packageName: string;
+  /**
+   * npm package name of the source library, e.g. `rbx`. Omitted for a source
+   * with no package, whose stylesheets only ever import Bulma itself.
+   */
+  packageName?: string;
   /** URL of that source's migration guide, linked from every TODO. */
   guideUrl: string;
   /**
@@ -235,10 +238,14 @@ function report(
  * `packageName` drives two regexes — one matching any `@import` of that
  * package, one narrowing to its *root* stylesheet (which becomes a Bulma v1
  * root rather than being dropped). Everything else is Bulma-side and shared.
+ * Without a package neither can match, and only the Bulma rewriting runs.
  */
 export function makeStylesTransform(config: StylesConfig): StylesTransform {
   const { packageName, guideUrl: GUIDE } = config;
-  const pkg = packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // `packageName` is interpolated into messages only after one of these
+  // matched, so the no-package case never reaches them.
+  const NEVER = /(?!)/;
+  const pkg = packageName?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Already regex fragments — see StylesConfig.
   const roots = config.rootStylesheetSuffixes.join('|');
 
@@ -249,16 +256,22 @@ export function makeStylesTransform(config: StylesConfig): StylesTransform {
    * and SOURCE_ROOT_STYLESHEET below already accepts that bare form — so
    * requiring the slash here made the bare case unreachable.
    */
-  const SOURCE_STYLE_IMPORT = new RegExp(
-    `^(\\s*)@import\\s+(['"])((?:\\.\\.?/)+node_modules/|~)?${pkg}(?:/[^'"]*)?\\2\\s*;?\\s*(?://[^\\n]*)?\\s*$`
-  );
+  const SOURCE_STYLE_IMPORT =
+    pkg === undefined
+      ? NEVER
+      : new RegExp(
+          `^(\\s*)@import\\s+(['"])((?:\\.\\.?/)+node_modules/|~)?${pkg}(?:/[^'"]*)?\\2\\s*;?\\s*(?://[^\\n]*)?\\s*$`
+        );
   /** Cheap "is this file even about us?" pre-filter (see the guard below). */
-  const SOURCE_MENTION = new RegExp(pkg);
+  const SOURCE_MENTION = pkg === undefined ? NEVER : new RegExp(pkg);
 
   /** …narrowed to the ones that stand in for a whole Bulma root. */
-  const SOURCE_ROOT_STYLESHEET = new RegExp(
-    `^\\s*@import\\s+(['"])(?:(?:\\.\\.?/)+node_modules/|~)?${pkg}${roots ? `(?:${roots})?` : ''}\\1\\s*;?\\s*(?://[^\\n]*)?\\s*$`
-  );
+  const SOURCE_ROOT_STYLESHEET =
+    pkg === undefined
+      ? NEVER
+      : new RegExp(
+          `^\\s*@import\\s+(['"])(?:(?:\\.\\.?/)+node_modules/|~)?${pkg}${roots ? `(?:${roots})?` : ''}\\1\\s*;?\\s*(?://[^\\n]*)?\\s*$`
+        );
 
   const transformStyles: StylesTransform = (
     filePath,

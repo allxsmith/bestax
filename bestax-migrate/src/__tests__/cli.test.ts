@@ -10,7 +10,9 @@ import {
   handleTelemetry,
   promptTelemetryConsent,
 } from '../cli.js';
+import { SOURCES } from '../sources/registry.js';
 import type { MigrateRunStats } from '../telemetry.js';
+import type { DepsOptions, MigrationSource } from '../types.js';
 
 let tempDirs: string[] = [];
 
@@ -249,6 +251,54 @@ describe('the source-still-imported warning', () => {
     );
     const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
     expect(logs.join('\n')).not.toMatch(/still import it for components/);
+  });
+});
+
+describe('a source with no package', () => {
+  const seen: DepsOptions[] = [];
+  const markupSource: MigrationSource = {
+    name: 'fake-markup',
+    label: 'Fake markup source',
+    packageName: null,
+    transform: () => undefined,
+    updateDependencies: (_file, _pkg, _collector, options) => {
+      seen.push(options);
+      return null;
+    },
+  };
+
+  beforeEach(() => {
+    SOURCES[markupSource.name] = markupSource;
+    seen.length = 0;
+  });
+  afterEach(() => {
+    delete SOURCES[markupSource.name];
+  });
+
+  it('never reads its name as an import, in parsed or unparseable files', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-nopkg-'));
+    tempDirs.push(dir);
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'src', 'App.tsx'),
+      "import 'fake-markup';\nexport const A = 1;\n"
+    );
+    fs.writeFileSync(
+      path.join(dir, 'src', 'App.vue'),
+      "<script>import { Box } from 'fake-markup';</script>\n"
+    );
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      `${JSON.stringify({ name: 'a' }, null, 2)}\n`
+    );
+    const { logs } = await runCli([
+      'fake-markup',
+      path.join(dir, 'src'),
+      '--dry',
+    ]);
+    expect(seen).toHaveLength(1);
+    expect(seen[0].sourceStillImported).toBe(false);
+    expect(logs.join('\n')).not.toContain('unsupported-file');
   });
 });
 

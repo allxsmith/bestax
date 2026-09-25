@@ -223,6 +223,16 @@ export function makeSourceImportRe(name: string): RegExp {
   );
 }
 
+/** The package a source migrates away from, or null when it has none. */
+export function sourcePackage(source: MigrationSource): string | null {
+  return source.packageName === undefined ? source.name : source.packageName;
+}
+
+/** Whether `text` still imports the source's package (never, without one). */
+function importsSource(importRe: RegExp | null, text: string): boolean {
+  return importRe !== null && importRe.test(blankComments(text));
+}
+
 function migrateFiles(
   source: MigrationSource,
   files: string[],
@@ -232,7 +242,8 @@ function migrateFiles(
 ): { bulmaReferenced: boolean; sourceStillImported: boolean } {
   let bulmaReferenced = false;
   let sourceStillImported = false;
-  const sourceImportRe = makeSourceImportRe(source.name);
+  const pkg = sourcePackage(source);
+  const sourceImportRe = pkg === null ? null : makeSourceImportRe(pkg);
   for (const file of files) {
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
@@ -258,15 +269,14 @@ function migrateFiles(
       // otherwise let the manifest pass remove the package with no warning —
       // the file still imports it, we just couldn't rewrite it.
       if (/['"](?:~?bulma\/)/.test(sourceText)) bulmaReferenced = true;
-      if (sourceImportRe.test(blankComments(sourceText)))
-        sourceStillImported = true;
+      if (importsSource(sourceImportRe, sourceText)) sourceStillImported = true;
       reporter.finishFile(file, false, collector.entries);
       continue;
     }
     if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
       bulmaReferenced = true;
     }
-    if (sourceImportRe.test(blankComments(output ?? sourceText))) {
+    if (importsSource(sourceImportRe, output ?? sourceText)) {
       sourceStillImported = true;
     }
     if (output !== null) {
@@ -291,12 +301,13 @@ function reportUnsupportedFiles(
   const unsupported = UNSUPPORTED_EXTENSIONS.filter(
     ext => !extensions.includes(ext)
   );
-  if (unsupported.length === 0) return false;
+  const pkg = sourcePackage(source);
+  if (unsupported.length === 0 || pkg === null) return false;
   // Whether any unsupported file still references the source package. These
   // are reported but never rewritten, so the reference survives the run —
   // and the manifest pass must not remove the package out from under it.
   let stillImported = false;
-  const importRe = makeSourceImportRe(source.name);
+  const importRe = makeSourceImportRe(pkg);
   for (const file of collectFiles(targets, unsupported)) {
     const text = fs.readFileSync(file, 'utf8');
     // A substring match is not evidence of an import. `rbx` is three
@@ -313,7 +324,7 @@ function reportUnsupportedFiles(
       file,
       line,
       rule: 'unsupported-file',
-      message: `imports ${source.name}, but ${path.extname(
+      message: `imports ${pkg}, but ${path.extname(
         file
       )} files cannot be parsed by the codemod — migrate this file by hand`,
     });
