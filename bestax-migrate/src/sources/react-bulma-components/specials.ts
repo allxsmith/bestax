@@ -68,7 +68,8 @@ function keptAttrs(
 
 const stripModifierProps = makeStripModifierProps(
   UNIVERSAL_PROPS,
-  RESPONSIVE_BREAKPOINTS
+  RESPONSIVE_BREAKPOINTS,
+  'domRef'
 );
 
 const SPECIALS: Record<string, SpecialHandler> = {

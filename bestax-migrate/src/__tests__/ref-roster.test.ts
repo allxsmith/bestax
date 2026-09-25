@@ -105,10 +105,10 @@ const SUMMARISED_AS_FORM_CONTROLS = [
  * reappearing in the fix for it.
  */
 const CARVED_OUT_FORM_WRAPPERS = [
-  'Checkboxes',
   'Field',
-  'Field.Body',
   'Field.Label',
+  'Field.Body',
+  'Checkboxes',
   'Radios',
 ] as const;
 
@@ -123,9 +123,6 @@ const NAMED_AS_FORWARDING_NONE: readonly string[] = [
   'Section',
   'Tabs',
 ];
-
-/** How a component name is written in every one of these surfaces. */
-const NAME_PATTERN = /`([A-Z][A-Za-z]*(?:\.[A-Z][A-Za-z]*)?)`/g;
 
 /** What `React.forwardRef` stamps on the object it returns. */
 const FORWARD_REF = Symbol.for('react.forward_ref');
@@ -182,53 +179,6 @@ function libraryExport(name: string): unknown {
     return undefined;
   }
   return (root as Record<string, unknown>)[sub];
-}
-
-/**
- * Every component name a surface quotes in backticks, filtered to the ones the
- * library actually exports. The rest are source-library names — rbx's
- * `Modal.Container`, the `domRef` prop itself — which say nothing about what
- * bestax forwards.
- */
-function bestaxNamesIn(text: string): string[] {
-  const quoted = text.matchAll(NAME_PATTERN);
-  const names = new Set<string>();
-  for (const [, name] of quoted) {
-    if (libraryExport(name) !== undefined) names.add(name);
-  }
-  return [...names].sort();
-}
-
-/**
- * The roster a surface states POSITIVELY: the run of backtick-quoted names that
- * follows its "form controls" summary, joined only by commas, "and" and "plus".
- * Every surface writes it the same way — "the form controls, plus `Avatar`, ...
- * `Sidebar` and `Toast`" — so the run ends at the first thing that is
- * not another name, which is exactly where the sentence turns to the
- * components that forward nothing.
- *
- * Reading the run, rather than asking whether a name appears ANYWHERE in the
- * section, is what makes the surface checks below polarity checks. Both prose
- * lists live in the same section, so a presence test stays green when a name is
- * moved from one to the other — #666 recurring with the guard silent.
- */
-function forwardingRunIn(text: string): string[] {
-  const summary = 'form controls';
-  const start = text.indexOf(summary);
-  if (start === -1) throw new Error('surface carries no form-control summary');
-  const separator = /(?:[\s,]|\band\b|\bplus\b)*/y;
-  const name = /`([A-Z][A-Za-z]*(?:\.[A-Z][A-Za-z]*)?)`/y;
-  const names: string[] = [];
-  let at = start + summary.length;
-  for (;;) {
-    separator.lastIndex = at;
-    separator.exec(text);
-    name.lastIndex = separator.lastIndex;
-    const hit = name.exec(text);
-    if (!hit) return names;
-    names.push(hit[1]);
-    at = name.lastIndex;
-  }
 }
 
 /**
@@ -297,28 +247,6 @@ function section(file: string, heading: string): string {
 function todo(entry: { todo?: string }, label: string): string {
   if (!entry?.todo) throw new Error(`${label} carries no TODO string`);
   return entry.todo;
-}
-
-/**
- * The run of names ending just before `anchor`, read backwards by the same
- * rule `forwardingRunIn` reads forwards: names joined only by separators. The
- * carve-out is written "the `Field`, … and `Radios` wrappers" on every surface,
- * so anchoring on the noun that closes it picks up exactly the carved-out set
- * and stops at the prose that introduces it.
- */
-function runEndingBefore(text: string, anchor: string): string[] {
-  const at = text.indexOf(anchor);
-  if (at === -1) throw new Error('surface has no "' + anchor + '" anchor');
-  const hits = [...text.slice(0, at).matchAll(NAME_PATTERN)];
-  const run: string[] = [];
-  for (let i = hits.length - 1; i >= 0; i -= 1) {
-    const hit = hits[i];
-    const endOfHit = (hit.index ?? 0) + hit[0].length;
-    const nextStart = i === hits.length - 1 ? at : (hits[i + 1].index ?? 0);
-    if (!/^(?:[\s,]|\band\b)*$/.test(text.slice(endOfHit, nextStart))) break;
-    run.unshift(hit[1]);
-  }
-  return run;
 }
 
 /**
@@ -417,47 +345,46 @@ describe('the ref-forwarding roster', () => {
   });
 });
 
+/**
+ * The roster as a surface spells it: backticked, comma-separated, "and"
+ * before the last. Rendering the fragment FROM the bucket and asserting each
+ * surface carries it replaces four scanners that tried to infer polarity by
+ * parsing prose; every round of review on this branch landed on one of their
+ * boundaries rather than on the roster, which is the tell that the inference
+ * was the risk rather than the roster.
+ *
+ * The fragment alone is not enough, and this is the trap the scanners existed
+ * to cover: rewriting a surface to "neither does bestax: not the form
+ * controls, and not `Avatar`, …" leaves both the fragment and the phrase
+ * "form controls" intact while reversing what the sentence claims. So the
+ * LEAD-IN is pinned with the fragment, and the carve-out with the denial that
+ * follows it. What is compared is a claim, not a list of names.
+ */
+function oxford(names: readonly string[]): string {
+  const quoted = names.map(name => `\`${name}\``);
+  return `${quoted.slice(0, -1).join(', ')} and ${quoted[quoted.length - 1]}`;
+}
+
+/** Markdown wraps these fragments across lines; the prose is one sentence. */
+function unwrapped(text: string): string {
+  return text.replace(/\s+/g, ' ');
+}
+
 describe('every surface that names the roster', () => {
-  // Not "does the name appear" but "does it appear on the forwarding side".
-  // Compared unordered, so the prose stays free to list the roster however reads
-  // best; what is pinned is which names the sentence claims forward a ref.
-  it.each(SURFACES)('%s forwards exactly the named roster', (_label, read) => {
-    expect(forwardingRunIn(read()).sort()).toEqual(
-      [...NAMED_INDIVIDUALLY].sort()
-    );
+  const forwarding = `form controls, plus ${oxford(NAMED_INDIVIDUALLY)}`;
+  const carveOut = `the ${oxford(CARVED_OUT_FORM_WRAPPERS)} wrappers`;
+  // The three references say "wrappers around them forward nothing"; the two
+  // TODO strings say "wrappers, which forward none".
+  const denial = /^(?: around them forward nothing|, which forward none)/;
+
+  it.each(SURFACES)('%s claims the roster forwards a ref', (_label, read) => {
+    expect(unwrapped(read())).toContain(forwarding);
   });
 
-  it.each(SURFACES)('%s summarises the form controls', (_label, read) => {
-    expect(read()).toContain('form controls');
-  });
-
-  // The check above pins the forwarding side of each surface; this one covers
-  // the rest of the section, where the components that forward nothing are
-  // named. Every bestax name a surface quotes has to be accounted for in one of
-  // the three buckets, so a component cannot be written about on either side
-  // without the roster being told which side it belongs on.
-  // The carve-out half of the same sentence. `forwardingRunIn` stops at the
-  // period before it and `quotes no undeclared component` asks only for bucket
-  // membership, so without this the wrappers were named in prose that nothing
-  // compared to the library.
-  it.each(SURFACES)(
-    '%s carves out exactly the non-forwarding form wrappers',
-    (_label, read) => {
-      expect(runEndingBefore(read(), 'wrappers').sort()).toEqual(
-        [...CARVED_OUT_FORM_WRAPPERS].sort()
-      );
-    }
-  );
-
-  it.each(SURFACES)('%s quotes no undeclared component', (_label, read) => {
-    const declared = new Set<string>([
-      ...NAMED_INDIVIDUALLY,
-      ...SUMMARISED_AS_FORM_CONTROLS,
-      ...NAMED_AS_FORWARDING_NONE,
-    ]);
-    const undeclared = bestaxNamesIn(read()).filter(
-      name => !declared.has(name)
-    );
-    expect(undeclared).toEqual([]);
+  it.each(SURFACES)('%s denies the form wrappers a ref', (_label, read) => {
+    const text = unwrapped(read());
+    const at = text.indexOf(carveOut);
+    expect(at).toBeGreaterThan(-1);
+    expect(text.slice(at + carveOut.length)).toMatch(denial);
   });
 });

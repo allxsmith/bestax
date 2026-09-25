@@ -802,6 +802,26 @@ describe('react-bulma-components transform fixtures', () => {
       return todo!.message;
     }
 
+    it('carries domRef onto a plain element rather than dropping it', () => {
+      // `domRef` has been a UNIVERSAL_PROPS key here all along, and that table
+      // is what `stripModifierProps` treats as Bulma modifiers — so this
+      // source deleted the ref on its hand-built plain rewrites the whole
+      // time. Fixed in `_shared` with rbx's `innerRef`, per the rule in
+      // bestax-migrate/CLAUDE.md that a defect in one source is in the others.
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'ref.tsx',
+        'import { Form } from "react-bulma-components";\n' +
+          'export const A = (r: any) => <Form.Help domRef={r}>x</Form.Help>;',
+        { add: entry => todos.push(entry) }
+      );
+      expect(output).toContain('<p className="help"');
+      expect(output).toMatch(/ref=\{r\}/);
+      expect(output).not.toMatch(/domRef/);
+      expect(todos.find(t => t.rule === 'plain-element')).toBeUndefined();
+    });
+
     it('does not offer the Button rename once `remove` retargets it to Delete', () => {
       // `<Button remove>` becomes `<Delete>`, a plain function component, so
       // the general advice — which names Button as forwarding a ref — would

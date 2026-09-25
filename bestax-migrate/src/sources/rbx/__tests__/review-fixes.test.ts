@@ -839,6 +839,26 @@ describe('the innerRef remediation is achievable', () => {
     }
   );
 
+  // The universal entry is also the vocabulary `stripModifierProps` treats as
+  // Bulma modifiers, so promoting `innerRef` into it briefly made these
+  // rewrites DELETE the user's ref and report it as a helper prop to
+  // "restyle with classes". The plain tag takes a real ref, so it is renamed
+  // onto the tag instead — a silent deletion being strictly worse than the
+  // silent pass-through the universal entry set out to fix.
+  it.each([
+    ['Heading', 'p'],
+    ['Help', 'p'],
+    ['Label', 'label'],
+  ])('carries innerRef onto the plain <%s> that %s becomes', (name, tag) => {
+    const { output, todos } = migrate(
+      `import { ${name} } from "rbx";\nexport const A = (r: any) => <${name} innerRef={r}>x</${name}>;`
+    );
+    expect(output).toContain(`<${tag} className=`);
+    expect(output).toMatch(/ref=\{r\}/);
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'plain-element')).toBeUndefined();
+  });
+
   it('still renames rather than flags where a table entry claims innerRef', () => {
     // The universal entry must not outrank the per-component renames, or the
     // eight targets that take a ref would gain a TODO telling them to do what

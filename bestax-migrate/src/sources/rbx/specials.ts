@@ -54,7 +54,8 @@ export type { SpecialResult };
 
 const stripModifierProps = makeStripModifierProps(
   UNIVERSAL_PROPS,
-  RESPONSIVE_BREAKPOINTS
+  RESPONSIVE_BREAKPOINTS,
+  'innerRef'
 );
 
 /**
