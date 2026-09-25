@@ -41,6 +41,7 @@ import {
 } from '../_shared/jsx-utils.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
+import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   collectBoundNames,
   makeAliasRegistry,
@@ -56,24 +57,6 @@ import { runSpecial } from './specials.js';
 
 const RBX = 'rbx';
 const BESTAX = '@allxsmith/bestax-bulma';
-const BULMA_CSS = 'bulma/css/bulma.min.css';
-const BESTAX_CSS = '@allxsmith/bestax-bulma/bestax.css';
-const EXTRAS_CSS = '@allxsmith/bestax-bulma/extras.css';
-
-const BULMA_CSS_SPECIFIERS = new Set([
-  'bulma/css/bulma.css',
-  'bulma/css/bulma.min.css',
-]);
-const BESTAX_CSS_SPECIFIERS = new Set([
-  BESTAX_CSS,
-  '@allxsmith/bestax-bulma/bestax.min.css',
-  '@allxsmith/bestax-bulma/dist/bestax.css',
-  '@allxsmith/bestax-bulma/dist/bestax.min.css',
-]);
-const EXTRAS_CSS_SPECIFIERS = new Set([
-  EXTRAS_CSS,
-  '@allxsmith/bestax-bulma/dist/extras.css',
-]);
 
 /**
  * The four Bulma extensions rbx pinned. An app that imported their CSS
@@ -181,41 +164,16 @@ export default function transform(
     });
 
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
-  // `bestax` (default): everything converges on the recommended combined
-  // bundle. `bulma`: plain Bulma v1 CSS plus the separate extras file.
-  // `keep`: only the dead rbx CSS import is retargeted.
-  const cssMode = options.cssMode ?? 'bestax';
-  let sawBestaxCss = root
-    .find(j.ImportDeclaration)
-    .paths()
-    .some(p => BESTAX_CSS_SPECIFIERS.has(String(p.node.source.value)));
-
-  // Whether some import in this file will become bestax.css, regardless of
-  // where it sits relative to an existing extras import.
-  const willAdoptBestaxCss =
-    cssMode === 'bestax' &&
-    root
-      .find(j.ImportDeclaration)
-      .paths()
-      .some(p => {
-        const v = String(p.node.source.value);
-        return (
-          (v.startsWith(`${RBX}/`) && v.endsWith('.css')) ||
-          BULMA_CSS_SPECIFIERS.has(v)
-        );
-      });
-
-  root.find(j.ImportDeclaration).forEach(path => {
-    const source = String(path.node.source.value);
-    const isRbxCss = source.startsWith(`${RBX}/`) && source.endsWith('.css');
-    const isBulmaCss = BULMA_CSS_SPECIFIERS.has(source);
-    const isExtrasCss = EXTRAS_CSS_SPECIFIERS.has(source);
+  // `keep` retargets only the dead rbx CSS import, which carries Bulma 0.7.5.
+  rewriteStylesheetImports(ctx, root, options.cssMode ?? 'bestax', {
+    isSourceCss: specifier =>
+      specifier.startsWith(`${RBX}/`) && specifier.endsWith('.css'),
+    sourceCssLabel: "rbx's CSS import",
     // The four extensions rbx pinned; bestax covers all of them.
-    const isExtensionCss =
-      RBX_EXTENSION_CSS.test(source) && source.endsWith('.css');
-    if (!isRbxCss && !isBulmaCss && !isExtrasCss && !isExtensionCss) return;
-
-    if (isExtensionCss) {
+    handleOwn: (path, source) => {
+      if (!RBX_EXTENSION_CSS.test(source) || !source.endsWith('.css')) {
+        return false;
+      }
       // Kept, with a TODO, rather than dropped. The rbx JSX that needed this
       // stylesheet becomes bestax components that carry their own styles, so
       // for THAT markup it is dead -- but an app can also use the extension's
@@ -231,54 +189,8 @@ export default function transform(
         'css',
         `kept \`${source}\`: bestax ships Badge, Tooltip, Loading and Divider with their own styles, so this is only still needed by markup outside rbx that uses the extension's classes directly — drop the import once nothing does`
       );
-      return;
-    }
-
-    if (cssMode === 'bestax') {
-      if (isRbxCss || isBulmaCss) {
-        if (sawBestaxCss) {
-          path.prune(); // bestax.css already imported elsewhere in this file
-        } else {
-          path.node.source = j.stringLiteral(BESTAX_CSS);
-          sawBestaxCss = true;
-        }
-        ctx.dirty = true;
-      } else if (isExtrasCss && (sawBestaxCss || willAdoptBestaxCss)) {
-        // bestax.css already contains the extras. `willAdoptBestaxCss` covers
-        // the case where the extras import comes FIRST in the file and the
-        // bulma/rbx import that becomes bestax.css has not been visited yet —
-        // previously the extras survived alongside it and double-loaded.
-        path.prune();
-        ctx.dirty = true;
-      }
-    } else if (cssMode === 'bulma') {
-      if (isRbxCss) {
-        path.node.source = j.stringLiteral(BULMA_CSS);
-        ctx.dirty = true;
-      }
-      if ((isRbxCss || isBulmaCss) && !sawBestaxCss) {
-        const hasExtras = root
-          .find(j.ImportDeclaration)
-          .paths()
-          .some(p => EXTRAS_CSS_SPECIFIERS.has(String(p.node.source.value)));
-        if (!hasExtras) {
-          // Themed Radio/Checkbox need the bestax extras next to plain Bulma.
-          path.insertAfter(
-            j.importDeclaration([], j.stringLiteral(EXTRAS_CSS))
-          );
-          ctx.dirty = true;
-        }
-      }
-    } else if (isRbxCss) {
-      // keep: minimal fix — rbx's CSS carries Bulma 0.7.5.
-      path.node.source = j.stringLiteral(BULMA_CSS);
-      addTodo(
-        ctx,
-        path,
-        'css',
-        `replaced rbx's CSS import with '${BULMA_CSS}'; install bulma@^1 (see https://bestax.io/docs/guides/getting-started/installation)`
-      );
-    }
+      return true;
+    },
   });
 
   if (imports.size === 0 && !ctx.dirty) {

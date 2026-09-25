@@ -47,6 +47,7 @@ import {
   mergeClass,
 } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
+import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   collectBoundNames,
   makeReserve,
@@ -61,23 +62,6 @@ import { runSpecial } from './specials.js';
 
 const BLOOMER = 'bloomer';
 const BESTAX = '@allxsmith/bestax-bulma';
-const BESTAX_CSS = '@allxsmith/bestax-bulma/bestax.css';
-const EXTRAS_CSS = '@allxsmith/bestax-bulma/extras.css';
-
-const BULMA_CSS_SPECIFIERS = new Set([
-  'bulma/css/bulma.css',
-  'bulma/css/bulma.min.css',
-]);
-const BESTAX_CSS_SPECIFIERS = new Set([
-  BESTAX_CSS,
-  '@allxsmith/bestax-bulma/bestax.min.css',
-  '@allxsmith/bestax-bulma/dist/bestax.css',
-  '@allxsmith/bestax-bulma/dist/bestax.min.css',
-]);
-const EXTRAS_CSS_SPECIFIERS = new Set([
-  EXTRAS_CSS,
-  '@allxsmith/bestax-bulma/dist/extras.css',
-]);
 
 export default function transform(
   fileInfo: FileInfo,
@@ -175,63 +159,8 @@ export default function transform(
     });
 
   // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
-  // `bestax` (default): everything converges on the recommended combined
-  // bundle. `bulma`: plain Bulma v1 CSS plus the separate extras file.
-  // `keep`: nothing to do — bloomer has no stylesheet of its own.
-  const cssMode = options.cssMode ?? 'bestax';
-  let sawBestaxCss = root
-    .find(j.ImportDeclaration)
-    .paths()
-    .some(p => BESTAX_CSS_SPECIFIERS.has(String(p.node.source.value)));
-
-  // Whether some import in this file will become bestax.css, regardless of
-  // where it sits relative to an existing extras import.
-  const willAdoptBestaxCss =
-    cssMode === 'bestax' &&
-    root
-      .find(j.ImportDeclaration)
-      .paths()
-      .some(p => BULMA_CSS_SPECIFIERS.has(String(p.node.source.value)));
-
-  root.find(j.ImportDeclaration).forEach(path => {
-    const source = String(path.node.source.value);
-    const isBulmaCss = BULMA_CSS_SPECIFIERS.has(source);
-    const isExtrasCss = EXTRAS_CSS_SPECIFIERS.has(source);
-    if (!isBulmaCss && !isExtrasCss) return;
-
-    if (cssMode === 'bestax') {
-      if (isBulmaCss) {
-        if (sawBestaxCss) {
-          path.prune(); // bestax.css already imported elsewhere in this file
-        } else {
-          path.node.source = j.stringLiteral(BESTAX_CSS);
-          sawBestaxCss = true;
-        }
-        ctx.dirty = true;
-      } else if (isExtrasCss && (sawBestaxCss || willAdoptBestaxCss)) {
-        // bestax.css already contains the extras. `willAdoptBestaxCss` covers
-        // the case where the extras import comes FIRST in the file and the
-        // bulma import that becomes bestax.css has not been visited yet —
-        // previously the extras survived alongside it and double-loaded.
-        path.prune();
-        ctx.dirty = true;
-      }
-    } else if (cssMode === 'bulma') {
-      if (isBulmaCss && !sawBestaxCss) {
-        const hasExtras = root
-          .find(j.ImportDeclaration)
-          .paths()
-          .some(p => EXTRAS_CSS_SPECIFIERS.has(String(p.node.source.value)));
-        if (!hasExtras) {
-          // Themed Radio/Checkbox need the bestax extras next to plain Bulma.
-          path.insertAfter(
-            j.importDeclaration([], j.stringLiteral(EXTRAS_CSS))
-          );
-          ctx.dirty = true;
-        }
-      }
-    }
-  });
+  // bloomer has no stylesheet of its own, so `keep` has nothing to do.
+  rewriteStylesheetImports(ctx, root, options.cssMode ?? 'bestax');
 
   if (imports.size === 0 && !ctx.dirty) {
     return undefined;
