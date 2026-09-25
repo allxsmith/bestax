@@ -44,6 +44,23 @@ const avatarSizes = [
 /** Valid preset size values for the Avatar component. */
 export type AvatarSize = (typeof avatarSizes)[number];
 
+/**
+ * The roles a caller can use to say "this avatar is not a control", and so claim
+ * the non-interactive treatment for a custom `as` target we would otherwise have
+ * to guess about.
+ *
+ * Read by VALUE, not by presence. Any role at all used to count, which let
+ * `role="button"` — a claim of the opposite — route a real control into the
+ * decorative branch and come out `aria-hidden` and nameless. `img` is what the
+ * fallback itself applies; `presentation` and `none` are the standard ways to say
+ * an element carries no semantics, which is what pairs with `alt=""`.
+ */
+const NON_INTERACTIVE_ROLES: readonly string[] = [
+  'img',
+  'presentation',
+  'none',
+];
+
 /** Valid shape values for the Avatar component. */
 export type AvatarShape = 'circle' | 'rounded' | 'square';
 
@@ -105,7 +122,7 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    *
    * A link or button avatar is never decorative — it keeps an accessible name — and a custom
    * component passed to `as` counts as one unless it states otherwise (see `as`), so
-   * `alt=""` on a custom wrapper needs an explicit `role` or `aria-hidden` alongside it.
+   * `alt=""` on a custom wrapper needs a `role="img"` or a truthy `aria-hidden` alongside it.
    */
   alt?: string;
   /** Derives initials and a deterministic background color when no `src` is shown. */
@@ -187,8 +204,10 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      * `href` count for the reason they read.
      *
      * If your custom component renders something that really is just a picture, say so with
-     * an explicit `role` (or `aria-hidden`) and it is treated as one, `alt=""` included. A
-     * genuine `'a'`/`'button'`/`href` avatar keeps its accessible name either way.
+     * `role="img"` (or `"presentation"`/`"none"`, or a truthy `aria-hidden`) and it is treated
+     * as one, `alt=""` included. A role claiming the opposite, such as `"button"`, does not —
+     * nor does an `href`, which settles it on its own. A genuine `'a'`/`'button'`/`href` avatar
+     * keeps its accessible name either way.
      */
     as?: T;
   };
@@ -323,15 +342,20 @@ export const Avatar = forwardRef(function Avatar(
   // with `alt=""` rendered a real anchor as `aria-hidden` and nameless — the very
   // failure #668 is about. `Navbar.Link` orders the same two the same way.
   //
-  // Value-based, not `in`: `role={undefined}` states nothing. And only a TRUTHY
-  // `aria-hidden` claims to be a picture — `aria-hidden={false}` denies hiding,
-  // which is the opposite claim, and reading it as the signal put `role="img"`
-  // back onto a genuine link.
+  // The signal has to MEAN what it is used for, so both halves read a value rather
+  // than a presence — the way `Navbar.Link` reads `role === 'button'`. A role only
+  // claims to be a picture if it says so: `role="button"` or `role="link"` is the
+  // opposite claim, and taking any role as the signal handed an interactive-role
+  // element `aria-hidden` and no name. Likewise `aria-hidden={false}` denies
+  // hiding, so only a truthy one counts.
   const ariaHidden = rest['aria-hidden'];
+  const statesItIsNotAControl =
+    (rest.role !== undefined && NON_INTERACTIVE_ROLES.includes(rest.role)) ||
+    ariaHidden === true ||
+    ariaHidden === 'true';
+
   const customTargetStatesSemantics =
-    typeof Tag !== 'string' &&
-    href == null &&
-    (rest.role !== undefined || ariaHidden === true || ariaHidden === 'true');
+    typeof Tag !== 'string' && href == null && statesItIsNotAControl;
 
   const isInteractive =
     Tag === 'a' ||
