@@ -1,3 +1,13 @@
+## [5.16.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.8...@allxsmith/bestax-bulma@5.16.9) (2026-09-25)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let a custom `as` target state the semantics we can only guess ([fb7c8a3](https://github.com/allxsmith/bestax/commit/fb7c8a333752cce52e8bb8985c5e4f00b27745c7))
+* **bulma-ui:** let an `href` outrank the stated-semantics signal in `Avatar` ([83f9045](https://github.com/allxsmith/bestax/commit/83f9045df54d7d7998deb3c6788074bb0012edc8)), closes [#668](https://github.com/allxsmith/bestax/issues/668)
+* **bulma-ui:** read the role's value, not its presence, as `Avatar`'s signal ([3ae633d](https://github.com/allxsmith/bestax/commit/3ae633d0363709833fd74be5037b9dfd10d2b50f))
+* **bulma-ui:** stop reading a custom target's interactivity off our own href ([9ef5a63](https://github.com/allxsmith/bestax/commit/9ef5a63502799c3ef4222d9cba6973849dad8df7)), closes [#668](https://github.com/allxsmith/bestax/issues/668)
+
 ## [5.16.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.7...@allxsmith/bestax-bulma@5.16.8) (2026-09-24)
 
 
