@@ -121,8 +121,8 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * explicit `alt=""` marks a non-interactive avatar as decorative.
    *
    * A link or button avatar is never decorative — it keeps an accessible name — and a custom
-   * component passed to `as` counts as one unless it states otherwise (see `as`), so
-   * `alt=""` on a custom wrapper needs a `role="img"` or a truthy `aria-hidden` alongside it.
+   * component passed to `as` counts as one unless it states otherwise, so `alt=""` on a custom
+   * wrapper needs that signal alongside it. `as` documents which props carry it.
    */
   alt?: string;
   /** Derives initials and a deterministic background color when no `src` is shown. */
@@ -204,10 +204,12 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      * `href` count for the reason they read.
      *
      * If your custom component renders something that really is just a picture, say so with
-     * `role="img"` (or `"presentation"`/`"none"`, or a truthy `aria-hidden`) and it is treated
-     * as one, `alt=""` included. A role claiming the opposite, such as `"button"`, does not —
-     * nor does an `href`, which settles it on its own. A genuine `'a'`/`'button'`/`href` avatar
-     * keeps its accessible name either way.
+     * `role="img"` and it is treated as one, `alt=""` included. A truthy `aria-hidden` says it
+     * too, and so do `role="presentation"` and `role="none"` — though ARIA's own conflict
+     * resolution drops those two whenever the avatar still carries a name, so prefer
+     * `role="img"`. A role claiming the opposite, such as `"button"`, says nothing here, and
+     * neither does an `href`: that settles it on its own. A genuine `'a'`/`'button'`/`href`
+     * avatar keeps its accessible name either way.
      */
     as?: T;
   };

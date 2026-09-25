@@ -497,7 +497,7 @@ describe('Custom component targets (#668)', () => {
     });
 
     it.each(['presentation', 'none'])(
-      'accepts role=%s as the same claim as role="img"',
+      'accepts role=%s as the same signal as role="img"',
       role => {
         render(
           <Avatar
