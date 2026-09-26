@@ -12,6 +12,7 @@ cover_image: /img/state-of-react/2026-07.png
 ---
 
 import ComponentComparison from '@site/src/components/ComponentComparison';
+import july2026 from '@site/src/data/state-of-react/2026-07.json';
 
 <img
   className="sor-cover"
@@ -33,7 +34,7 @@ In the ring: **[bestax](/docs/intro)** (Bulma v1), **[react-bulma-components](ht
 
 Each row is a capability; read across to see who ships it. **✓** is a dedicated component, **◐** is available via a prop or by composition, and a muted dash means no first-party equivalent. The columns are abbreviated (hover a header for the full name); **hover any cell for the component name, or click it** to open that component’s docs.
 
-<ComponentComparison />
+<ComponentComparison snapshot={july2026} />
 
 ## What the matrix says
 

@@ -125,7 +125,10 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   heading, a step id, or a flag. `check:conformance --only=fragile-prose` enforces the count,
   run-id, and line-reference parts over `docs/docs/guides/**`; the migration guides are exempt
   because their counts describe a frozen upstream, and the API pages are generated. The rule
-  still holds everywhere in `docs/docs/**` — the check is a net, not the contract.
+  still holds everywhere in `docs/docs/**` — the check is a net, not the contract. The
+  library comparison page is the one guide that shows dated data, and only through its
+  component, which the index strips; its prose follows this rule (see "The State of React" in
+  `blog/CLAUDE.md`).
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
   execute in the browser, so declare the browser globals each callback actually uses

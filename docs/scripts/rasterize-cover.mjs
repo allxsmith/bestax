@@ -1,20 +1,25 @@
 #!/usr/bin/env node
 /**
- * Rasterize a 1200x630 blog cover SVG to the PNG that og:image and dev.to need.
+ * Rasterize a blog cover SVG to the PNG that og:image and dev.to need.
  *
  * Covers are hand-authored SVGs (crisp at any width in the post body), but
  * neither `og:image` nor a dev.to `cover_image` accepts SVG, so every cover
  * ships a PNG raster at the same stem. This script is that step: open the SVG
- * in headless Chromium at exactly 1200x630 and screenshot it. It used to be a
- * prose recipe in blog/CLAUDE.md that each post re-improvised; now it is one
- * command.
+ * in headless Chromium at exactly its declared size and screenshot it. It used
+ * to be a prose recipe in blog/CLAUDE.md that each post re-improvised; now it
+ * is one command.
+ *
+ * Two sizes are accepted. 1200x504 is dev.to's 100:42 cover ratio, so dev.to
+ * shows the whole image instead of cropping it; 1200x630 is the og:image ratio
+ * the older covers use.
  *
  * Usage:
  *   pnpm --filter @allxsmith/bestax-docs rasterize:cover static/img/<slug>.svg
  *   node docs/scripts/rasterize-cover.mjs <cover.svg> [out.png]
  *
  * The PNG path defaults to the SVG path with the extension swapped. The SVG
- * must declare width="1200" height="630" and paint a full-bleed background
+ * must declare one of the sizes above as its width and height, and paint a
+ * full-bleed background
  * rect; the script refuses inputs that don't, because a letterboxed capture
  * would otherwise report success. Browsers resolve through Playwright's
  * default cache; if Chromium is missing, install it once:
@@ -25,8 +30,10 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const WIDTH = 1200;
-const HEIGHT = 630;
+const SIZES = [
+  { width: 1200, height: 504 },
+  { width: 1200, height: 630 },
+];
 
 async function main() {
   const [svgArg, pngArg] = process.argv.slice(2);
@@ -70,10 +77,28 @@ async function main() {
 
   try {
     const page = await browser.newPage({
-      viewport: { width: WIDTH, height: HEIGHT },
+      viewport: SIZES[0],
       deviceScaleFactor: 1,
     });
     await page.goto(pathToFileURL(svgPath).href);
+
+    const declared = await page.evaluate(() => {
+      const root = document.documentElement;
+      if (root.tagName.toLowerCase() !== 'svg') return { notSvg: true };
+      return {
+        width: root.getAttribute('width'),
+        height: root.getAttribute('height'),
+      };
+    });
+    const size =
+      SIZES.find(
+        s =>
+          declared.width === String(s.width) &&
+          declared.height === String(s.height)
+      ) ?? null;
+    const WIDTH = size?.width ?? SIZES[0].width;
+    const HEIGHT = size?.height ?? SIZES[0].height;
+    await page.setViewportSize({ width: WIDTH, height: HEIGHT });
 
     // Enforce the cover contract from blog/CLAUDE.md using the browser's own
     // XML parsing and computed styles. Regexes over the source are fooled by
@@ -118,10 +143,13 @@ async function main() {
     if (cover.notSvg) {
       problems.push('the file did not parse as an SVG document');
     } else {
-      if (cover.width !== String(WIDTH) || cover.height !== String(HEIGHT)) {
+      if (!size) {
         problems.push(
-          `the root <svg> must declare width="${WIDTH}" height="${HEIGHT}" ` +
-            `(found width="${cover.width ?? 'none'}" ` +
+          'the root <svg> must declare one of ' +
+            SIZES.map(s => `width="${s.width}" height="${s.height}"`).join(
+              ' or '
+            ) +
+            ` (found width="${cover.width ?? 'none'}" ` +
             `height="${cover.height ?? 'none'}")`
         );
       }

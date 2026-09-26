@@ -191,20 +191,26 @@ the canonical source; the cover PNG doubles as the story's feature image.
 Any post can ship a cover, not just State of React editions; _The Floor Is React 18_
 (2026-08-03) is the reference example.
 
-- **Assets:** `docs/static/img/<slug>.svg` (hand-authored, 1200×630, with a full-bleed
-  background rect and explicit `width`/`height` attributes; the script refuses to rasterize
-  without them) plus a PNG raster at the same stem. Generate the PNG with
+- **Size: 1200×504 for a new cover.** dev.to serves every cover cropped to 100:42
+  (1000×420) and picks the crop region itself, so a 1200×630 cover loses its top and bottom
+  there. 1200×504 is exactly 100:42, so dev.to shows all of it and Medium shows it whole in
+  the story. Social cards trim the sides of a ratio this wide, so keep text and corner labels
+  inside the middle 960px. Older covers keep the size they shipped at, since the rasterizer
+  takes both. `pixel-cover-lib.mjs` still draws at 1200×630.
+- **Assets:** `docs/static/img/<slug>.svg` (hand-authored, with a full-bleed background rect
+  and explicit `width`/`height` attributes; the script refuses to rasterize without them)
+  plus a PNG raster at the same stem. Generate the PNG with
   `pnpm --filter @allxsmith/bestax-docs rasterize:cover static/img/<slug>.svg`
-  (`scripts/rasterize-cover.mjs` screenshots the SVG in headless Chromium at exactly
-  1200×630 and writes the sibling `.png`). Missing Chromium? Once:
+  (`scripts/rasterize-cover.mjs` screenshots the SVG in headless Chromium at exactly its
+  declared size and writes the sibling `.png`). Missing Chromium? Once:
   `pnpm --filter @allxsmith/bestax-docs exec playwright install chromium`.
 - **Frontmatter:** `image:` and `cover_image:` both point at the **PNG** (rooted `/img/...`
   path); `og:image` and dev.to need a raster.
 - **Body:** the visible banner at the very top renders the **SVG**, crisp at any width.
 - **Section images** (optional, for flagship posts): each in-body image follows the same
-  1200×630 contract and rasterizer, stems `docs/static/img/<slug>-<topic>.{svg,png}`. Only
-  the top banner embeds the SVG; every other in-body image embeds the **PNG** (dev.to and
-  Medium handle rasters reliably).
+  contract and rasterizer (1200×630 is fine here, since dev.to crops only the cover), stems
+  `docs/static/img/<slug>-<topic>.{svg,png}`. Only the top banner embeds the SVG; every other
+  in-body image embeds the **PNG** (dev.to and Medium handle rasters reliably).
 - **Alt text** is a long, literal description of the pixel-art scene (see the v5 banner),
   not a caption; mirror it into the SVG's `aria-label`.
 - Covers can be hand-authored or scripted against `docs/scripts/pixel-cover-lib.mjs` (the
@@ -221,19 +227,32 @@ mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, React-
 react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
 roughly **monthly** cadence rather than editing an old post.
 
+The full matrix lives on a docs page, where readers filter it by library and feature group.
+An edition shows only the rows that changed since the one before, from frozen copies of the
+data, so a published post never changes under its readers.
+
 These files back every edition:
 
-- `docs/src/data/componentComparison.js` — the matrix (capabilities × libraries), the per-cell
-  link resolvers, and `lastReviewed`. **This is the source of truth** — the only file that
-  changes between most editions.
-- `docs/src/components/ComponentComparison/` — the React table that renders it (theme-aware,
-  links every ✓/◐ to that library's docs). Rarely needs changes.
-- `docs/blog/{YYYY-MM-DD}-state-of-react/index.md` — the edition post; imports and renders
-  `<ComponentComparison />`.
+- `docs/src/data/componentComparison.js`: the live matrix (capabilities × libraries), the
+  per-cell link resolvers, and `lastReviewed`. **This is the source of truth** for the current
+  data.
+- `docs/src/data/state-of-react/{YYYY-MM}.json`: one frozen copy per edition, written by the
+  `snapshot:comparison` script. A published edition's snapshot never changes; the resolvers
+  keep old component names resolving instead (the Mantine map carries one such alias).
+- `docs/docs/guides/getting-started/compare.md`: the docs page. It renders
+  `<ComponentComparison interactive />` on the live data. Its prose stays free of dates and
+  counts because the LLM index serves it as current fact; the dated matrix renders from the
+  component, which the index strips.
+- `docs/src/components/ComponentComparison/`: `index.js` renders the full matrix (the filters
+  when `interactive`, a frozen full table when given `snapshot`, which the July 2026 edition
+  uses) and `Changes.js` renders one edition's changed rows from two snapshots.
+- `docs/blog/{YYYY-MM-DD}-state-of-react/index.md`: the edition post. It imports the previous
+  and current snapshots and renders `<ComparisonChanges from={…} to={…} />`.
 
 ## Conventions (keep these stable)
 
-- **Title:** `The State of React — {Month YYYY}` — the month + year are required.
+- **Title:** `The State of React: {Month YYYY}`, with the month and year required. The colon
+  follows the no-em-dash rule; the July 2026 edition predates it and keeps its dash.
 - **Folder / filename:** `docs/blog/{YYYY-MM-DD}-state-of-react/index.md` (folder form).
 - **Slug:** `state-of-react-{YYYY-MM}`; set `canonical_url` to `https://bestax.io/blog/{slug}`.
 - **Tag:** always include `state-of-react`. Its archive page,
@@ -258,10 +277,15 @@ These files back every edition:
      internal `/docs/api/...` links (validated by the build); competitor links are best-effort deep
      links with a per-library fallback — improve a fallback → deep link when you confirm a stable URL.
    - **Bump `lastReviewed`** to the review date (`YYYY-MM-DD`).
-2. **Create the edition post** by copying the previous month's `index.md`, updating the frontmatter
-   (title, slug, canonical_url, date in the folder name) and the prose/insights. Keep
-   `import ComponentComparison ...` and `<ComponentComparison />`.
-3. **Verify** (see below), then commit with a `docs` type and push. Open a PR to `main` only when
+2. **Snapshot it** with `pnpm --filter @allxsmith/bestax-docs snapshot:comparison {YYYY-MM}`.
+   It refuses to overwrite an existing snapshot; pass `--force` while the edition is still a
+   draft, never after it is published.
+3. **Create the edition post** by copying the previous edition's `index.md`, updating the
+   frontmatter (title, slug, canonical_url, date in the folder name) and the prose/insights.
+   Import the previous edition's snapshot and this one, and render
+   `<ComparisonChanges from={previous} to={current} />` from
+   `@site/src/components/ComponentComparison/Changes`. Link the docs page for the full matrix.
+4. **Verify** (see below), then commit with a `docs` type and push. Open a PR to `main` only when
    asked.
 
 ## Cover image
@@ -269,8 +293,9 @@ These files back every edition:
 Each edition ships a synthwave/EDM cover (an homage to the "A State of Trance" radio show):
 
 - **Source SVG:** `docs/static/img/state-of-react/{YYYY-MM}.svg` — for a new edition, copy the
-  previous month's and update the month text and the `EP.` number.
-- **Rasterize** it to `docs/static/img/state-of-react/{YYYY-MM}.png` at **1200×630** — SVG does
+  newest edition's and update the month text and the `EP.` number. Copy from 2026-09 or
+  later: July 2026's cover is 1200×630, which dev.to crops (see "Cover images" above).
+- **Rasterize** it to `docs/static/img/state-of-react/{YYYY-MM}.png` at **1200×504** — SVG does
   not work as an `og:image` / dev.to `cover_image`, so a raster is required. Run
   `pnpm --filter @allxsmith/bestax-docs rasterize:cover static/img/state-of-react/{YYYY-MM}.svg`.
 - **Frontmatter:** point both `image:` and `cover_image:` at the `.png` (rooted `/img/...` path).
@@ -285,6 +310,8 @@ Each edition ships a synthwave/EDM cover (an homage to the "A State of Trance" r
 - Spot-check a representative external link per library (these are not build-validated).
 - `pnpm docs` and open `/blog/state-of-react-{YYYY-MM}`: confirm the table renders and scrolls
   on narrow widths, is legible in light **and** dark, and the admonitions + archive link work.
+  Open `/docs/guides/getting-started/compare` too: the filters, and the URL they write, should
+  survive a reload.
 
 The blog is excluded from the LLM index (`includeBlog: false`) by design — this series is a dated
 snapshot, not canonical reference documentation.

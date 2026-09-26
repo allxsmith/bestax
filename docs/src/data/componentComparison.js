@@ -8,7 +8,7 @@
 // · 0 = none. Row order is fixed (see the header comment on `categories`); the display
 // order is controlled by `libs[].idx`.
 
-export const lastReviewed = '2026-07-27';
+export const lastReviewed = '2026-09-26';
 
 // ---------------------------------------------------------------------------
 // Link resolvers — bestax links are internal (validated by the production build's
@@ -71,6 +71,7 @@ const BESTAX = {
   Message: 'components/message',
   Modal: 'components/modal',
   Navbar: 'components/navbar',
+  'Navbar.Burger': 'components/navbar',
   Pagination: 'components/pagination',
   Panel: 'components/panel',
   Reveal: 'components/reveal',
@@ -131,13 +132,24 @@ const MANTINE = {
   Dropzone: 'x/dropzone',
   RichTextEditor: 'x/tiptap',
   NavigationProgress: 'x/nprogress',
+  Lightbox: 'x/lightbox',
+  CodeHighlight: 'x/code-highlight',
+  modals: 'x/modals',
+  MantineProvider: 'theming/mantine-provider',
+  clsx: 'https://github.com/lukeed/clsx',
   '@mantine/charts': 'charts/getting-started',
+  GaugeChart: 'charts/gauge-chart',
+  // Renamed Typography in Mantine 9; older edition snapshots still use it.
+  TypographyStylesProvider: 'core/typography',
   RangeSlider: 'core/slider',
 };
-const mantineHref = name =>
-  MANTINE[name]
-    ? `https://mantine.dev/${MANTINE[name]}/`
+const mantineHref = name => {
+  const v = MANTINE[name];
+  if (v?.startsWith('https://')) return v;
+  return v
+    ? `https://mantine.dev/${v}/`
     : `https://mantine.dev/core/${kebab(name)}/`;
+};
 
 // MUI: material-ui/react-<kebab> by default; many irregular slugs + MUI X/System.
 const MUI = {
@@ -166,7 +178,10 @@ const MUI = {
   ToggleButtonGroup: 'material-ui/react-toggle-button',
   Box: 'system/react-box',
   Stack: 'material-ui/react-stack',
-  Grid: 'material-ui/react-grid2',
+  Grid: 'material-ui/react-grid',
+  ThemeProvider: 'material-ui/customization/theming',
+  visuallyHidden: 'system/screen-readers',
+  clsx: 'https://github.com/lukeed/clsx',
   Container: 'material-ui/react-container',
   ImageList: 'material-ui/react-image-list',
   Masonry: 'material-ui/react-masonry',
@@ -195,16 +210,27 @@ const MUI = {
   '@mui/x-charts': 'x/react-charts',
   Gauge: 'x/react-charts',
 };
-const muiHref = name =>
-  MUI[name]
-    ? `https://mui.com/${MUI[name]}/`
+const muiHref = name => {
+  const v = MUI[name];
+  if (v?.startsWith('https://')) return v;
+  return v
+    ? `https://mui.com/${v}/`
     : `https://mui.com/material-ui/react-${kebab(name)}/`;
+};
 
 // Chakra v3: docs/components/<kebab> is reliable; a few page-name overrides.
 const CHAKRA = {
   Toaster: 'toast',
   FormatNumber: 'format-number',
-  Prose: 'typography',
+  Prose: 'prose',
+  SegmentGroup: 'segmented-control',
+  RadioGroup: 'radio',
+  RatingGroup: 'rating',
+  InputAddon: 'input',
+  GridItem: 'grid',
+  Spacer: 'flex',
+  cx: '/docs/styling/overview',
+  '@chakra-ui/charts': '/docs/charts/installation',
   ChakraProvider: '/docs/get-started/installation',
 };
 const chakraHref = name => {
@@ -217,8 +243,8 @@ const chakraHref = name => {
   return `https://chakra-ui.com/docs/components/${kebab(name)}`;
 };
 
-// shadcn/ui recently split into base/ and radix/ namespaces; link the reliable
-// components index rather than guess the namespace per component.
+// shadcn/ui splits its docs into base/, radix/, and aria/ namespaces; link the
+// reliable components index rather than guess the namespace per component.
 const shadcnHref = () => 'https://ui.shadcn.com/docs/components';
 
 // React-Bootstrap: slugs are irregular (plurals, forms/, utilities/); map explicitly.
@@ -234,7 +260,7 @@ const RB = {
   'Form.Check': 'forms/checks-radios',
   'Form.Select': 'forms/select',
   'Form.Range': 'forms/range',
-  'Form.Group': 'forms/form-group',
+  'Form.Group': 'forms/layout',
   FloatingLabel: 'forms/floating-labels',
   InputGroup: 'forms/input-group',
   Navbar: 'components/navbar',
@@ -248,8 +274,9 @@ const RB = {
   Row: 'layout/grid',
   Col: 'layout/grid',
   'Row / Col': 'layout/grid',
-  Stack: 'utilities/stack',
-  Ratio: 'utilities/ratios',
+  Stack: 'layout/stack',
+  Ratio: 'utilities/ratio',
+  Accordion: 'components/accordion',
   Card: 'components/cards',
   Image: 'components/images',
   ListGroup: 'components/list-group',
@@ -262,8 +289,8 @@ const RB = {
   Placeholder: 'components/placeholder',
   Modal: 'components/modal',
   Offcanvas: 'components/offcanvas',
-  Popover: 'components/popovers',
-  Tooltip: 'components/tooltips',
+  Popover: 'components/overlays',
+  Tooltip: 'components/overlays',
   OverlayTrigger: 'components/overlays',
   Collapse: 'utilities/transitions',
   Fade: 'utilities/transitions',
@@ -433,6 +460,7 @@ export const categories = [
       ],
       ['Floating action button', 0, 0, 0, 'Fab', 0, 0, 0],
       ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0],
+      ['Action bar (bulk actions)', 0, 'ActionBar', 0, 0, 0, 'ActionBar', 0],
       [
         'Link-styled button',
         'LinkButton',
@@ -478,7 +506,7 @@ export const categories = [
         'NumberInput',
         0,
       ],
-      ['Password input', 0, 'PasswordInput', 0, 0, 0, 0, 0],
+      ['Password input', 0, 'PasswordInput', 0, 0, 0, 'PasswordInput', 0],
       [
         'Checkbox',
         'Checkbox',
@@ -551,6 +579,7 @@ export const categories = [
         'Combobox',
       ],
       ['Combobox (headless)', 0, 'Combobox', 0, 0, 0, 'Combobox', 'Combobox'],
+      ['Cascader (nested select)', 0, 'Cascader', 0, 0, 0, 0, 0],
       [
         'Tag / token input',
         'Taginput',
@@ -558,7 +587,7 @@ export const categories = [
         0,
         '~Autocomplete',
         0,
-        '~Combobox',
+        'TagsInput',
         0,
       ],
       ['Pills input (multi-value)', 0, 'PillsInput', 0, 0, 0, 0, 0],
@@ -632,7 +661,7 @@ export const categories = [
         0,
         'DateField',
         0,
-        0,
+        'DateInput',
         'DatePicker',
       ],
       [
@@ -642,7 +671,7 @@ export const categories = [
         0,
         'DatePicker',
         0,
-        0,
+        'DatePicker',
         'DatePicker',
       ],
       [
@@ -652,7 +681,7 @@ export const categories = [
         0,
         'DateRangePicker',
         0,
-        0,
+        '~DatePicker',
         '~DatePicker',
       ],
       [
@@ -672,12 +701,21 @@ export const categories = [
         0,
         'TimePicker',
         0,
-        0,
+        '~DateInput',
         0,
       ],
-      ['Calendar (inline)', 0, 'Calendar', 0, 'DateCalendar', 0, 0, 'Calendar'],
-      ['Month picker', 0, 'MonthPicker', 0, '~DatePicker', 0, 0, 0],
-      ['Year picker', 0, 'YearPicker', 0, '~DatePicker', 0, 0, 0],
+      [
+        'Calendar (inline)',
+        0,
+        'Calendar',
+        0,
+        'DateCalendar',
+        0,
+        '~DatePicker',
+        'Calendar',
+      ],
+      ['Month picker', 0, 'MonthPicker', 0, '~DatePicker', 0, '~DatePicker', 0],
+      ['Year picker', 0, 'YearPicker', 0, '~DatePicker', 0, '~DatePicker', 0],
     ],
   },
   {
@@ -739,7 +777,7 @@ export const categories = [
       ['Bottom navigation', 0, 0, 0, 'BottomNavigation', 0, 0, 0],
       [
         'Burger / hamburger',
-        0,
+        '~Navbar.Burger',
         'Burger',
         '~Navbar.Toggle',
         0,
@@ -801,8 +839,17 @@ export const categories = [
         'AspectRatio',
         'AspectRatio',
       ],
-      ['Scroll area (custom bars)', 0, 'ScrollArea', 0, 0, 0, 0, 'ScrollArea'],
-      ['Splitter (resizable)', 0, 'Splitter', 0, 0, 0, 0, 'Resizable'],
+      [
+        'Scroll area (custom bars)',
+        0,
+        'ScrollArea',
+        0,
+        0,
+        0,
+        'ScrollArea',
+        'ScrollArea',
+      ],
+      ['Splitter (resizable)', 0, 'Splitter', 0, 0, 0, 'Splitter', 'Resizable'],
       ['Affix (sticky)', 0, 'Affix', 0, 0, 0, 0, 0],
       ['Section', 'Section', 0, 0, 0, 'Section', 0, 0],
       ['Hero / banner', 'Hero', 0, 0, 0, 'Hero', 0, 0],
@@ -899,19 +946,38 @@ export const categories = [
         'List',
         0,
       ],
-      ['Tree view', 0, 'Tree', 0, 'TreeView', 0, 0, 0],
+      ['Tree view', 0, 'Tree', 0, 'TreeView', 0, 'TreeView', 0],
       ['Tree select', 0, 'TreeSelect', 0, 0, 0, 0, 0],
       ['Timeline', 0, 'Timeline', 0, 'Timeline', 0, 'Timeline', 0],
       ['Kbd (keyboard key)', 0, 'Kbd', 0, 0, 0, 'Kbd', 'Kbd'],
       ['Number formatter', 0, 'NumberFormatter', 0, 0, 0, 'FormatNumber', 0],
       ['Image', 'Image', 'Image', 'Image', '~ImageList', 'Image', 'Image', 0],
       ['Image list / gallery', 0, '~SimpleGrid', 0, 'ImageList', 0, 0, 0],
+      ['Lightbox (media viewer)', 0, 'Lightbox', 0, 0, 0, 0, 0],
       ['Background image', 0, 'BackgroundImage', 0, 0, 0, 0, 0],
       ['Figure', 'Figure', 0, 'Figure', 0, 0, 0, 0],
       ['Icon', 'Icon', '~ThemeIcon', 0, 'Icon', 'Icon', 'Icon', 0],
       ['Theme icon (colored container)', 0, 'ThemeIcon', 0, 0, 0, 0, 0],
-      ['Carousel', 'Carousel', 'Carousel', 'Carousel', 0, 0, 0, 'Carousel'],
-      ['Charts', 0, '@mantine/charts', 0, '@mui/x-charts', 0, 0, 'Chart'],
+      [
+        'Carousel',
+        'Carousel',
+        'Carousel',
+        'Carousel',
+        0,
+        0,
+        'Carousel',
+        'Carousel',
+      ],
+      [
+        'Charts',
+        0,
+        '@mantine/charts',
+        0,
+        '@mui/x-charts',
+        0,
+        '@chakra-ui/charts',
+        'Chart',
+      ],
       ['Spoiler (clamp / expand)', 0, 'Spoiler', 0, 0, 0, 0, 0],
       ['Masonry layout', 0, 0, 0, 'Masonry', 0, 0, 0],
     ],
@@ -957,7 +1023,7 @@ export const categories = [
         0,
         0,
         0,
-        '~Code',
+        'CodeBlock',
         0,
       ],
       ['Blockquote', 0, 'Blockquote', 0, 0, 0, 'Blockquote', '~Typography'],
@@ -965,7 +1031,7 @@ export const categories = [
       [
         'Rich-HTML style wrapper',
         'Content',
-        'TypographyStylesProvider',
+        'Typography',
         0,
         0,
         'Content',
@@ -1049,7 +1115,7 @@ export const categories = [
         0,
       ],
       ['Semi-circle progress', 0, 'SemiCircleProgress', 0, 0, 0, 0, 0],
-      ['Gauge', 0, '~SemiCircleProgress', 0, 'Gauge', 0, 0, 0],
+      ['Gauge', 0, 'GaugeChart', 0, 'Gauge', 0, 0, 0],
       [
         'Skeleton',
         'Skeleton',
@@ -1142,7 +1208,7 @@ export const categories = [
     heading: 'Rich input & special',
     rows: [
       ['Dropzone (drag-drop upload)', 0, 'Dropzone', 0, 0, 0, '~FileUpload', 0],
-      ['Rich text editor', 0, 'RichTextEditor', 0, 0, 0, 0, 0],
+      ['Rich text editor', 0, 'RichTextEditor', 0, 0, 0, '~RichTextEditor', 0],
       ['Transfer list', 0, 0, 0, 'TransferList', 0, 0, 0],
     ],
   },
