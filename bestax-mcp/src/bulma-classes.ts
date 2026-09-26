@@ -57,6 +57,8 @@ export interface Wraps {
   unless: string[];
   /** It renders that element with no children too. */
   whenEmpty?: boolean;
+  /** Only when the element carries this class (`Field` with `is-horizontal`). */
+  when?: string;
 }
 
 export interface HelperRecord {
@@ -291,7 +293,12 @@ export function lookupClasses(
     };
   }
   const target = entry.target;
-  const wraps = entry.wrapsChildren ?? undefined;
+  const wrapsChildren = entry.wrapsChildren;
+  const wraps =
+    wrapsChildren &&
+    (!wrapsChildren.when || tokens.includes(wrapsChildren.when))
+      ? wrapsChildren
+      : undefined;
 
   // Each class as the root's modifier, else as a helper prop, in order; the
   // first class to set a prop keeps it.
