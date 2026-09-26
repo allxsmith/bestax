@@ -741,6 +741,205 @@ describe('a component that renders its children from a count', () => {
   });
 });
 
+describe('a className a joiner builds', () => {
+  const joined = (element: string, imports = "import clsx from 'clsx';\n") =>
+    migrate(
+      `${imports}export const A = ({ busy, open }: { busy: boolean; open: boolean }) => ${element};\n`
+    );
+
+  it.each([
+    ['`a && class`', "clsx('button', busy && 'is-loading')"],
+    ['an object key', "clsx('button', { 'is-loading': busy })"],
+    ['`a ? class : ""`', "clsx('button', busy ? 'is-loading' : '')"],
+    ['`a ? class : null`', "clsx('button', busy ? 'is-loading' : null)"],
+  ])('turns a flag added by %s into its prop', (_, call) => {
+    const { output, rules } = joined(
+      `<button className={${call}}>Save</button>`
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Button isLoading={busy}>Save</Button>');
+  });
+
+  it('negates the condition of `a ? "" : class`, keeping its precedence', () => {
+    const { output } = joined(
+      "<div className={clsx('notification', busy || open ? '' : 'is-light')}>x</div>"
+    );
+    expect(output).toContain('<Notification isLight={!(busy || open)}>');
+  });
+
+  it('keeps what no prop renders in the call, and drops what one does', () => {
+    const { output } = joined(
+      "<button className={clsx('button is-small my-btn', busy && 'is-loading', open && 'my-open')}>Go</button>"
+    );
+    expect(output).toMatch(
+      /<Button\s+size="small"\s+isLoading=\{busy\}\s+className=\{clsx\("my-btn", open && 'my-open'\)\}>/
+    );
+  });
+
+  it('writes a plain className when nothing conditional is left, and none when nothing is', () => {
+    expect(
+      joined(
+        "<button className={clsx('button my-btn', busy && 'is-loading')}>Go</button>"
+      ).output
+    ).toContain('<Button isLoading={busy} className="my-btn">');
+    expect(
+      joined(
+        "<button className={clsx('button', busy && 'is-loading')}>Go</button>"
+      ).output
+    ).not.toContain('className');
+  });
+
+  it('reads `classnames` and a renamed `clsx`', () => {
+    expect(
+      joined(
+        "<button className={cx('button', { 'is-loading': busy })}>Go</button>",
+        "import cx from 'classnames';\n"
+      ).output
+    ).toContain('<Button isLoading={busy}>');
+    expect(
+      joined(
+        "<button className={join('button', busy && 'is-loading')}>Go</button>",
+        "import { clsx as join } from 'clsx';\n"
+      ).output
+    ).toContain('<Button isLoading={busy}>');
+  });
+
+  it.each([
+    [
+      'a joiner that looks classes up',
+      "import cx from 'classnames/bind';\n",
+      "cx('button', busy && 'is-loading')",
+    ],
+    [
+      'a function the file defines',
+      'const clsx = (...a: unknown[]) => a.join(" ");\n',
+      "clsx('button', busy && 'is-loading')",
+    ],
+    [
+      'an argument it cannot read',
+      "import clsx from 'clsx';\n",
+      "clsx('button', busy ? 'is-loading' : 'is-static')",
+    ],
+    [
+      'a variable argument',
+      "import clsx from 'clsx';\ndeclare const extra: string;\n",
+      "clsx('button', extra)",
+    ],
+    [
+      'the component class under a condition',
+      "import clsx from 'clsx';\n",
+      'clsx({ button: busy })',
+    ],
+  ])('keeps %s as a dynamic-class TODO', (_, imports, call) => {
+    const { output, rules } = joined(
+      `<button className={${call}}>Go</button>`,
+      imports
+    );
+    expect(rules).toEqual(['dynamic-class:Button']);
+    expect(output).toContain('<button');
+  });
+
+  it('says what stopped it when it can read the call but not convert it', () => {
+    const root = joined('<div className={clsx({ box: open })}>x</div>');
+    expect(root.rules).toEqual(['dynamic-class:Box']);
+    expect(root.output).toContain('adds `.box` only under a condition');
+    const fold = joined(
+      '<div className={clsx(\'table-container\')}><table className="table" /></div>'
+    );
+    expect(fold.rules).toEqual(['dynamic-class:Table']);
+    expect(fold.output).toContain("can't write every class it adds");
+  });
+
+  it('moves a condition ahead of one left in the call only when neither has side effects', () => {
+    // Written as a prop, a condition is evaluated before the call.
+    const free = joined(
+      "<button className={clsx('button', { 'my-open': open, 'is-loading': busy })}>Go</button>"
+    );
+    expect(free.output).toMatch(/isLoading=\{busy\}/);
+    const called = joined(
+      "<button className={clsx('button', track() && 'my-open', busy && 'is-loading')}>Go</button>",
+      "import clsx from 'clsx';\ndeclare const track: () => boolean;\n"
+    );
+    expect(called.output).not.toContain('isLoading');
+    expect(called.output).toContain("busy && 'is-loading'");
+    const moved = joined(
+      "<button className={clsx('button', open && 'my-open', count() && 'is-loading')}>Go</button>",
+      "import clsx from 'clsx';\ndeclare const count: () => number;\n"
+    );
+    expect(moved.output).not.toContain('isLoading');
+    // Ahead of everything left in the call, a call moves as it is.
+    const first = joined(
+      "<button className={clsx('button', count() && 'is-loading', open && 'my-open')}>Go</button>",
+      "import clsx from 'clsx';\ndeclare const count: () => number;\n"
+    );
+    expect(first.output).toMatch(/isLoading=\{count\(\)\}/);
+  });
+
+  it('treats a class a condition adds like a fixed one for families, legacy and plain roots', () => {
+    const family = joined(
+      "<div className={clsx('box', open && 'dropdown')}>x</div>"
+    );
+    expect(family.rules).toEqual(['family:dropdown']);
+    expect(family.output).toContain("<div className={clsx('box'");
+    const legacy = joined(
+      "<div className={clsx('columns', open && 'tile')}>x</div>"
+    );
+    expect(legacy.rules).toEqual(['legacy:tile']);
+    expect(legacy.output).toContain(
+      "<Columns className={clsx(open && 'tile')}>"
+    );
+    const plain = joined("<p className={clsx('mt-2', open && 'help')}>x</p>");
+    expect(plain.rules).toEqual([]);
+    // Nothing to write: the file is left as it is.
+    expect(plain.output).toBeNull();
+  });
+
+  it('keeps a flag that renders only for `true` in the call', () => {
+    const { output } = joined(
+      "<div className={clsx('field', busy && 'is-grouped')}><div className=\"control\">x</div></div>"
+    );
+    expect(output).toContain("<Field className={clsx(busy && 'is-grouped')}>");
+  });
+
+  it('refuses a horizontal field a condition may make, around children it would wrap', () => {
+    const { rules } = joined(
+      "<div className={clsx('field', busy && 'is-horizontal')}><div className=\"control\">x</div></div>"
+    );
+    expect(rules).toContain('children:Field');
+  });
+
+  it('drops a joiner import only its own rewrites stopped using', () => {
+    const { output } = joined(
+      "<button className={clsx('button', busy && 'is-loading')}>Go</button>",
+      "// the header\nimport clsx from 'clsx';\nimport cx from 'classnames';\n"
+    );
+    expect(output).not.toContain("from 'clsx'");
+    // Unused before the run, so the file's own business.
+    expect(output).toContain("import cx from 'classnames';");
+    expect(output).toContain('// the header');
+  });
+
+  it('keeps a joiner import something else still calls', () => {
+    const { output } = joined(
+      "<>{clsx('x')}<button className={clsx('button', busy && 'is-loading')}>Go</button></>"
+    );
+    expect(output).toContain("import clsx from 'clsx';");
+  });
+
+  it('keeps each comment in the parts that go, once', () => {
+    const { output } = joined(
+      "<button className={clsx(/* base */ 'button', /* when */ busy && 'is-loading')}>Go</button>"
+    );
+    for (const comment of ['base', 'when']) {
+      expect({ comment, count: output.split(comment).length - 1 }).toEqual({
+        comment,
+        count: 1,
+      });
+    }
+    expect(output).toMatch(/<Button[^>]*isLoading=\{busy\}/);
+  });
+});
+
 describe('form context', () => {
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(

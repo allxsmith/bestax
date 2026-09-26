@@ -45,12 +45,19 @@ import {
   placeBestaxImport,
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
-import { plan, type ChildFacts, type ElementFacts, type Plan } from './plan.js';
+import {
+  plan,
+  type ChildFacts,
+  type Conversion,
+  type ElementFacts,
+  type Plan,
+} from './plan.js';
 import {
   REACT_RUNTIMES,
   type JsxRuntime,
   type ServerComponentRoot,
 } from './project.js';
+import { rootFor } from './class-map.js';
 import { ruleId } from './rules.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -84,51 +91,144 @@ const NEXT_LINE_DIRECTIVE =
   /^[\s*]*(?:eslint-disable-next-line|@ts-expect-error|@ts-ignore|prettier-ignore)\b/;
 
 /**
- * A comment moved to sit after a JSX tag name. It has to be a block comment
- * there: recast prints a line comment as `<// …`, which TypeScript reads as a
- * closing tag.
+ * A comment moved into a JSX tag, before or after a node there. It has to be
+ * a block comment: after a tag name recast prints a line comment as `<// …`,
+ * which TypeScript reads as a closing tag, and before an attribute it would
+ * run on into it.
  */
-function afterTagName(comment: any): any {
-  if (comment.type !== 'CommentLine') {
-    return { ...comment, leading: false, trailing: true };
-  }
+function asBlock(comment: any, trailing: boolean): any {
+  const placed = { leading: !trailing, trailing };
+  if (comment.type !== 'CommentLine') return { ...comment, ...placed };
   return {
     type: 'CommentBlock',
     value: ` ${comment.value.trim().replace(/\*\//g, '*\\/')} `,
-    leading: false,
-    trailing: true,
+    ...placed,
   };
 }
 
+/** A comment moved to sit after a JSX tag name. */
+function afterTagName(comment: any): any {
+  return asBlock(comment, true);
+}
+
 /**
- * Put `props`, then what stays in `className`, where an element's
- * `className` was. A comment on the className goes with whatever takes its
- * place: the first new attribute, else the next one along, else the tag name.
+ * Put `replacement` where an element's `className` was. A comment on the
+ * className, and any `carried` from inside it, goes with whatever takes its
+ * place: the first new attribute, else the next one along, else the tag
+ * name. A className kept in `replacement` keeps its own.
  */
+function spliceClassName(
+  element: any,
+  replacement: any[],
+  carried: readonly any[] = []
+): void {
+  const attrs = element.openingElement.attributes;
+  const classAttr = findAttr(element, 'className');
+  const kept = replacement.includes(classAttr);
+  const moving = [...(kept ? [] : (classAttr.comments ?? [])), ...carried];
+  if (moving.length > 0) {
+    const name = element.openingElement.name;
+    const carrier =
+      replacement[0] ?? attrs.find((attr: any) => attr !== classAttr) ?? name;
+    carrier.comments = [
+      ...(carrier.comments ?? []),
+      ...moving.map((comment: any) =>
+        carrier === name ? afterTagName(comment) : comment
+      ),
+    ];
+  }
+  attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);
+}
+
+/** Put `props`, then what stays in `className`, where `className` was. */
 function writeClassName(
   j: any,
   element: any,
   props: ReadonlyArray<readonly [string, string | true]>,
   className: string | null
 ): void {
-  const attrs = element.openingElement.attributes;
-  const classAttr = findAttr(element, 'className');
   const replacement = props.map(([name, value]) =>
     makeAttr(j, name, value === true ? undefined : value)
   );
   if (className) replacement.push(makeAttr(j, 'className', className));
-  if (classAttr.comments?.length) {
-    const name = element.openingElement.name;
-    const carrier =
-      replacement[0] ?? attrs.find((attr: any) => attr !== classAttr) ?? name;
-    carrier.comments = [
-      ...(carrier.comments ?? []),
-      ...classAttr.comments.map((comment: any) =>
-        carrier === name ? afterTagName(comment) : comment
-      ),
-    ];
+  spliceClassName(element, replacement);
+}
+
+/**
+ * The same, for a `className` a joiner builds: the classes a prop now
+ * renders leave the call, each condition that became a prop moves onto it,
+ * and what is left stays in the call (a plain string when nothing in it is
+ * conditional, no `className` when nothing is left). Returns whether the
+ * call is gone.
+ */
+function writeJoined(
+  j: any,
+  element: any,
+  conversion: Conversion,
+  joined: Joined
+): boolean {
+  const { call, statics, parts } = joined;
+  const kept = new Set(conversion.className?.split(' ') ?? []);
+  const carried: any[] = [];
+  const remove = (list: any[], node: any) => list.splice(list.indexOf(node), 1);
+  for (const node of statics) {
+    const classes = classesIn(staticText(node)!);
+    const remaining = classes.filter(token => kept.has(token));
+    if (remaining.length === classes.length) continue;
+    if (remaining.length === 0) {
+      carried.push(...commentsWithin(node));
+      remove(call.arguments, node);
+      continue;
+    }
+    const literal = j.stringLiteral(remaining.join(' '));
+    literal.comments = node.comments;
+    call.arguments[call.arguments.indexOf(node)] = literal;
   }
-  attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);
+  const conditions = (conversion.conditional ?? []).map(([prop, token]) => {
+    const part = parts.find(
+      found => found.tokens.length === 1 && found.tokens[0] === token
+    )!;
+    carried.push(...commentsWithin(part.node, part.condition));
+    if (part.object) {
+      remove(part.object.properties, part.node);
+      if (part.object.properties.length === 0) {
+        carried.push(...commentsWithin(part.object));
+        remove(call.arguments, part.object);
+      }
+    } else {
+      remove(call.arguments, part.node);
+    }
+    const value = part.negate
+      ? j.unaryExpression('!', part.condition)
+      : part.condition;
+    return j.jsxAttribute(
+      j.jsxIdentifier(prop),
+      j.jsxExpressionContainer(value)
+    );
+  });
+  const classAttr = findAttr(element, 'className');
+  let rest: any[] = [classAttr];
+  const gone = call.arguments.every((arg: any) => staticText(arg) !== null);
+  if (gone) {
+    carried.push(...commentsWithin(classAttr.value));
+    const classes = call.arguments.flatMap((arg: any) =>
+      classesIn(staticText(arg)!)
+    );
+    rest =
+      classes.length > 0 ? [makeAttr(j, 'className', classes.join(' '))] : [];
+  }
+  spliceClassName(
+    element,
+    [
+      ...conversion.props.map(([name, value]) =>
+        makeAttr(j, name, value === true ? undefined : value)
+      ),
+      ...conditions,
+      ...rest,
+    ],
+    carried.map(comment => asBlock(comment, false))
+  );
+  return gone;
 }
 
 /** A lowercase intrinsic tag: not a component, not a custom element. */
@@ -139,6 +239,210 @@ const FOREIGN_ROOTS = new Set(['svg', 'math']);
 
 /** Parents that render their only child as it is. */
 const PASS_THROUGH_PARENTS = new Set(['Fragment', 'React.Fragment']);
+
+/**
+ * Class joiners whose arguments the codemod can read exactly, by package and
+ * export: a string adds its classes, and an object key, `a && 'x'` or
+ * `a ? 'x' : ''` adds them when the condition is truthy. Not `clsx/lite`,
+ * which ignores objects, `classnames/dedupe`, where a later key can take a
+ * class back, or `classnames/bind`, which looks names up in a CSS module.
+ */
+const JOINERS: Readonly<Record<string, readonly string[]>> = {
+  clsx: ['default', 'clsx'],
+  classnames: ['default'],
+};
+
+/** A string literal's or an expression-free template's text, else null. */
+function staticText(node: any): string | null {
+  if (node?.type === 'StringLiteral') return node.value;
+  if (node?.type === 'TemplateLiteral' && node.expressions.length === 0) {
+    return node.quasis[0].value.cooked ?? null;
+  }
+  return null;
+}
+
+function classesIn(text: string): string[] {
+  return text.split(/\s+/).filter(Boolean);
+}
+
+/** A joiner argument that adds nothing: `''`, `null`, `undefined`, `false`. */
+function addsNothing(node: any): boolean {
+  if (staticText(node)?.trim() === '') return true;
+  if (node.type === 'NullLiteral') return true;
+  if (node.type === 'BooleanLiteral') return node.value === false;
+  return node.type === 'Identifier' && node.name === 'undefined';
+}
+
+/**
+ * Whether evaluating an expression can't change anything: names, literals,
+ * property reads, and operators over those. A call, an assignment, `new` or
+ * `delete` can. (So can a getter; a property read is taken as a read.)
+ */
+function sideEffectFree(node: any): boolean {
+  switch (node?.type) {
+    case 'Identifier':
+    case 'StringLiteral':
+    case 'NumericLiteral':
+    case 'BooleanLiteral':
+    case 'NullLiteral':
+    case 'BigIntLiteral':
+    case 'ThisExpression':
+      return true;
+    case 'TemplateLiteral':
+      return node.expressions.every(sideEffectFree);
+    case 'MemberExpression':
+    case 'OptionalMemberExpression':
+      return (
+        sideEffectFree(node.object) &&
+        (!node.computed || sideEffectFree(node.property))
+      );
+    case 'UnaryExpression':
+      return node.operator !== 'delete' && sideEffectFree(node.argument);
+    case 'BinaryExpression':
+    case 'LogicalExpression':
+      return sideEffectFree(node.left) && sideEffectFree(node.right);
+    case 'ConditionalExpression':
+      return [node.test, node.consequent, node.alternate].every(sideEffectFree);
+    case 'TSAsExpression':
+    case 'TSSatisfiesExpression':
+    case 'TSNonNullExpression':
+    case 'TSTypeAssertion':
+    case 'ParenthesizedExpression':
+      return sideEffectFree(node.expression);
+    default:
+      return false;
+  }
+}
+
+/** Classes a joiner adds when a condition holds, and where they are written. */
+interface JoinedPart {
+  tokens: string[];
+  condition: any;
+  /** The classes are added when the condition is falsy (`a ? '' : 'x'`). */
+  negate: boolean;
+  /** The argument, or the object property, that adds them. */
+  node: any;
+  /** The object `node` is a property of. */
+  object?: any;
+}
+
+/** A `className` a joiner builds, read argument by argument. */
+interface Joined {
+  call: any;
+  /** The classes it always adds. */
+  tokens: string[];
+  /** The arguments that add them. */
+  statics: any[];
+  parts: JoinedPart[];
+}
+
+/**
+ * A `className={joiner(…)}` whose every argument the codemod can read, or
+ * undefined: an argument it can't (a variable, a call, a spread, an array)
+ * could add any class.
+ */
+function readJoiner(
+  value: any,
+  isJoiner: (callee: any) => boolean
+): Joined | undefined {
+  const call =
+    value?.type === 'JSXExpressionContainer' ? value.expression : null;
+  if (call?.type !== 'CallExpression' || !isJoiner(call.callee)) {
+    return undefined;
+  }
+  const statics: any[] = [];
+  const parts: JoinedPart[] = [];
+  for (const arg of call.arguments) {
+    if (staticText(arg) !== null) {
+      statics.push(arg);
+    } else if (arg.type === 'ObjectExpression') {
+      for (const property of arg.properties) {
+        const plain =
+          (property.type === 'ObjectProperty' ||
+            property.type === 'Property') &&
+          !property.computed &&
+          !property.method &&
+          (property.kind === undefined || property.kind === 'init');
+        const key = !plain
+          ? undefined
+          : property.key.type === 'Identifier'
+            ? property.key.name
+            : staticText(property.key);
+        if (key == null) return undefined;
+        parts.push({
+          tokens: classesIn(key),
+          condition: property.value,
+          negate: false,
+          node: property,
+          object: arg,
+        });
+      }
+    } else if (
+      arg.type === 'LogicalExpression' &&
+      arg.operator === '&&' &&
+      staticText(arg.right) !== null
+    ) {
+      parts.push({
+        tokens: classesIn(staticText(arg.right)!),
+        condition: arg.left,
+        negate: false,
+        node: arg,
+      });
+    } else if (
+      arg.type === 'ConditionalExpression' &&
+      staticText(arg.consequent) !== null &&
+      addsNothing(arg.alternate)
+    ) {
+      parts.push({
+        tokens: classesIn(staticText(arg.consequent)!),
+        condition: arg.test,
+        negate: false,
+        node: arg,
+      });
+    } else if (
+      arg.type === 'ConditionalExpression' &&
+      staticText(arg.alternate) !== null &&
+      addsNothing(arg.consequent)
+    ) {
+      parts.push({
+        tokens: classesIn(staticText(arg.alternate)!),
+        condition: arg.test,
+        negate: true,
+        node: arg,
+      });
+    } else {
+      return undefined;
+    }
+  }
+  const tokens = [
+    ...new Set(statics.flatMap(node => classesIn(staticText(node)!))),
+  ];
+  return { call, tokens, statics, parts };
+}
+
+/**
+ * Every comment on a node and inside it, except inside `keep` (a condition
+ * that moves, taking its comments with it).
+ */
+function commentsWithin(node: any, keep?: any): any[] {
+  const found: any[] = [];
+  const visit = (current: any) => {
+    if (!current || typeof current !== 'object' || current === keep) return;
+    if (Array.isArray(current)) {
+      current.forEach(visit);
+      return;
+    }
+    if (typeof current.type !== 'string') return;
+    found.push(...(current.comments ?? []));
+    for (const [key, child] of Object.entries(current)) {
+      if (key !== 'comments' && key !== 'loc' && key !== 'original') {
+        visit(child);
+      }
+    }
+  };
+  visit(node);
+  return found;
+}
 
 /**
  * The static text of a `className`, or null when it is computed. A string
@@ -495,6 +799,33 @@ export default function transform(
   // a child that is one of its parts.
   const planned = new Map<object, Plan>();
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
+  // The joiners the file imports, by local name, and the elements whose
+  // joiner call converts.
+  const joinerLocals = new Set<string>();
+  root.find(j.ImportDeclaration).forEach((importPath: any) => {
+    const node = importPath.node;
+    const exported = Object.hasOwn(JOINERS, node.source.value)
+      ? JOINERS[node.source.value]
+      : undefined;
+    if (!exported || node.importKind === 'type') return;
+    for (const spec of node.specifiers ?? []) {
+      const name =
+        spec.type === 'ImportDefaultSpecifier'
+          ? 'default'
+          : spec.type === 'ImportSpecifier' && spec.importKind !== 'type'
+            ? (spec.imported.name ?? spec.imported.value)
+            : undefined;
+      if (name && exported.includes(name)) joinerLocals.add(spec.local.name);
+    }
+  });
+  /** Whether a callee is one of those joiners where it is called. */
+  const isJoiner = (callee: any, scopePath: ASTPath<any>): boolean =>
+    callee?.type === 'Identifier' &&
+    joinerLocals.has(callee.name) &&
+    resolvesToBinding(scopePath, callee.name, programScope);
+  const joins = new Map<object, Joined>();
+  /** Joiners a rewritten className no longer calls. */
+  const unjoined = new Set<string>();
   /**
    * The bestax component an element already is, when its name is the bestax
    * import and not a local that shadows it; `scopePath` is where the name is
@@ -606,21 +937,47 @@ export default function transform(
       componentsAround: surrounding.other,
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
     };
-    let result = plan(facts);
+    // A joiner call the codemod can read converts exactly: its fixed classes
+    // as for a static className, and each condition on a flag as its prop.
+    const joined =
+      className === null
+        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
+        : undefined;
+    let exact: Plan | undefined;
+    if (joined) {
+      exact = plan({
+        ...facts,
+        tokens: joined.tokens,
+        conditional: joined.parts.map(part => part.tokens),
+        impure: joined.parts.flatMap((part, index) =>
+          sideEffectFree(part.condition) ? [] : [index]
+        ),
+      });
+      if (exact.conversion) joins.set(element, joined);
+      else exact = undefined;
+    }
+    let result = exact ?? plan(facts);
     const converts = result.conversion !== null || result.fold !== undefined;
     const becomes = result.conversion?.target ?? result.fold?.target;
-    if (className === null && becomes) {
-      // The same element with a static className would convert; with a
-      // computed one, only a person can turn each condition into its prop.
+    if (className === null && !exact && becomes) {
+      // The same element with a static className would convert; with one
+      // computed any other way, only a person can turn each condition into
+      // its prop.
       const target = becomes;
+      // A call it could read says what stopped it instead.
+      const conditionalRoot = joined?.parts
+        .flatMap(part => part.tokens)
+        .find(token => rootFor(token)?.target === target);
+      const message = !joined
+        ? `this \`className\` is computed, and the codemod reads only a \`clsx\` or \`classnames\` call of class strings and conditional classes; convert this element to bestax \`${target}\` by hand, turning each condition into its prop`
+        : conditionalRoot
+          ? `this \`className\` adds \`.${conditionalRoot}\` only under a condition, so whether this element is a bestax \`${target}\` at all depends on it; convert it by hand if it always is, turning each condition into its prop`
+          : `this \`className\` is computed, and the codemod can't write every class it adds onto bestax \`${target}\` as it is; convert this element by hand, turning each condition into its prop`;
       result = {
         conversion: null,
         todos: [
           ...result.todos,
-          {
-            rule: ruleId('dynamic-class', target),
-            message: `this \`className\` is computed, and the codemod converts static class strings only; convert this element to bestax \`${target}\` by hand, turning each condition into its prop`,
-          },
+          { rule: ruleId('dynamic-class', target), message },
         ],
       };
     }
@@ -777,7 +1134,12 @@ export default function transform(
       const holder = findAttr(element, name) ? element : child;
       removeAttr(holder, findAttr(holder, name));
     }
-    writeClassName(j, element, conversion.props, conversion.className);
+    const joined = joins.get(element);
+    if (!joined) {
+      writeClassName(j, element, conversion.props, conversion.className);
+    } else if (writeJoined(j, element, conversion, joined)) {
+      unjoined.add(joined.call.callee.name);
+    }
     if (conversion.rendersChildren) {
       element.children = [];
       element.openingElement.selfClosing = true;
@@ -820,6 +1182,35 @@ export default function transform(
       );
     }
     ctx.dirty = true;
+  }
+
+  // A joiner import only these rewrites stopped using goes too, so the file
+  // gains no unused import; one the file already left unused stays.
+  for (const name of unjoined) {
+    const referenced = root
+      .find(j.Identifier, { name })
+      .filter(
+        (identifierPath: any) =>
+          identifierPath.parent.node.type !== 'ImportSpecifier' &&
+          identifierPath.parent.node.type !== 'ImportDefaultSpecifier'
+      );
+    if (referenced.size() > 0) continue;
+    root.find(j.ImportDeclaration).forEach((importPath: any) => {
+      const node = importPath.node;
+      const specifiers = node.specifiers ?? [];
+      const spec = specifiers.find((found: any) => found.local?.name === name);
+      if (!spec) return;
+      specifiers.splice(specifiers.indexOf(spec), 1);
+      if (specifiers.length > 0) return;
+      // The declaration goes with its last name; its comments (a file
+      // header, a directive) stay, on the statement beside it.
+      const index = program.body.indexOf(node);
+      const neighbour = program.body[index + 1] ?? program.body[index - 1];
+      if (node.comments?.length && neighbour) {
+        neighbour.comments = [...node.comments, ...(neighbour.comments ?? [])];
+      }
+      program.body.splice(index, 1);
+    });
   }
 
   // ---- 5. The bestax import ---------------------------------------------------

@@ -105,8 +105,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, and which render JSX through a runtime other than React, read once per run from
-  every package.json the run touches) and `transform.ts` (finds the elements, applies the
-  plans, writes the import after the file's last one). An element converts only when the component renders the same markup; the render
+  every package.json the run touches) and `transform.ts` (finds the elements, reads a
+  `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
+  plans, writes the import after the file's last one). The fixture render test runs the real
+  `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
   what it renders.

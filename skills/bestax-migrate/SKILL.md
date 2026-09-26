@@ -111,8 +111,10 @@ code per the references, or deliberately keep the old markup with `className` st
 - **bulma-classes**: there is no library to remove. An element converts only when the bestax
   component renders the same markup (tag, classes, attributes), so a converted page renders
   the same HTML; everything else stays as written, with a TODO when there is something to
-  decide. Only static class strings convert (`clsx(...)` and ternaries get
-  `dynamic-class:<Target>`, naming the component the element would become), files a Next.js
+  decide. Static class strings convert, and so does a `clsx` or `classnames` call of strings
+  and conditional classes, where a condition on a flag becomes its prop (`isLoading={busy}`);
+  any other computed className gets `dynamic-class:<Target>`, naming the component the element
+  would become. Files a Next.js
   App Router may render as server components are left alone (`rsc`), and the manifest gains
   `@allxsmith/bestax-bulma` while the app's Bulma and stylesheets stay (the default
   `--css keep`). Its rules are `kind:<name>` shaped; see

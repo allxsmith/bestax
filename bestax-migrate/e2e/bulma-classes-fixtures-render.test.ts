@@ -4,6 +4,8 @@
  * the other sources' fixtures it can run here, next to its output.
  */
 
+import classNames from 'classnames';
+import clsx from 'clsx';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,9 +30,15 @@ const cases = fs
   .map(file => file.replace(/\.input\.tsx$/, ''))
   .sort();
 
+/** The class joiners a fixture may import, as the real packages. */
+const JOINERS = {
+  clsx: { __esModule: true, default: clsx, clsx },
+  classnames: { __esModule: true, default: classNames },
+};
+
 function render(file: string): Record<string, string> {
   const source = fs.readFileSync(path.join(fixturesDir, file), 'utf8');
-  const html = renderExports(loadModules({ fixture: source }).fixture);
+  const html = renderExports(loadModules({ fixture: source }, JOINERS).fixture);
   return Object.fromEntries(
     Object.entries(html).map(([name, markup]) => [name, normalizeHtml(markup)])
   );
