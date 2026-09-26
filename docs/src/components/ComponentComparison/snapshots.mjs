@@ -13,7 +13,8 @@
 
 // Mirrors parseCell's status rule in src/data/componentComparison.js, which
 // this module does not import so it stays free of the site's module setup.
-function parseStatus(value) {
+// comparison-snapshots.test.mjs holds the two to the same answers.
+export function parseStatus(value) {
   if (value === 0 || value == null) return 'none';
   if (typeof value === 'string' && value[0] === '~') return 'partial';
   return 'full';

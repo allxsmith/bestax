@@ -129,26 +129,39 @@ function Chip({ pressed, onClick, color, children }) {
 // through useSyncExternalStore and write it with history.replaceState, then
 // tell subscribers it moved (replaceState fires no event of its own).
 const searchListeners = new Set();
+// Set when the browser refuses a replaceState (Safari throws past a rate
+// limit), so the filters keep working, just without landing in the URL.
+let unsharedSearch = null;
 function subscribeToSearch(callback) {
+  // Back and forward restore a real URL, which wins over an unshared one.
+  const onPopState = () => {
+    unsharedSearch = null;
+    callback();
+  };
   searchListeners.add(callback);
-  window.addEventListener('popstate', callback);
+  window.addEventListener('popstate', onPopState);
   return () => {
     searchListeners.delete(callback);
-    window.removeEventListener('popstate', callback);
+    window.removeEventListener('popstate', onPopState);
   };
 }
-const readSearch = () => window.location.search;
+const readSearch = () => unsharedSearch ?? window.location.search;
 // The server render (and hydration) shows the unfiltered matrix.
 const readServerSearch = () => '';
 function writeSearch(params) {
   // Commas are legal in a query; keep them readable in a shared link.
   const qs = params.toString().replace(/%2C/gi, ',');
   const { pathname, hash } = window.location;
-  window.history.replaceState(
-    window.history.state,
-    '',
-    `${pathname}${qs ? `?${qs}` : ''}${hash}`
-  );
+  try {
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${pathname}${qs ? `?${qs}` : ''}${hash}`
+    );
+    unsharedSearch = null;
+  } catch {
+    unsharedSearch = qs ? `?${qs}` : '';
+  }
   searchListeners.forEach(callback => callback());
 }
 
@@ -209,7 +222,14 @@ function Explorer({ data }) {
   const filters = readFilters(search, groupIds);
   const { pickedLibs, pickedGroups, query, diffOnly } = filters;
   const update = changes => writeFilters({ ...filters, ...changes }, groupIds);
-  const setPickedLibs = next => update({ pickedLibs: next });
+  // Below two libraries there is nothing to differ on, so drop the filter
+  // rather than let a later pick re-arm it unseen.
+  const setPickedLibs = next =>
+    update(
+      next.length < 2
+        ? { pickedLibs: next, diffOnly: false }
+        : { pickedLibs: next }
+    );
   const setPickedGroups = next => update({ pickedGroups: next });
   const setQuery = next => update({ query: next });
   const setDiffOnly = next => update({ diffOnly: next });

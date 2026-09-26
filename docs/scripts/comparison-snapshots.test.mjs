@@ -12,10 +12,15 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  parseStatus,
   snapshotColumns,
   diffSnapshots,
 } from '../src/components/ComponentComparison/snapshots.mjs';
-import { columnOrder, serializeSnapshot } from './snapshot-comparison.mjs';
+import {
+  columnOrder,
+  loadLiveData,
+  serializeSnapshot,
+} from './snapshot-comparison.mjs';
 
 const lib = (id, idx) => ({ id, idx, title: id, label: id, color: '#000' });
 
@@ -178,5 +183,24 @@ test('every committed snapshot records its columns and matches them', () => {
         seen.add(row[0]);
       }
     }
+  }
+});
+
+test('the diff reads cell status the same way the table renders it', async () => {
+  const { parseCell } = await loadLiveData();
+  for (const value of [0, null, undefined, 'Button', '~Button', '', '~']) {
+    assert.equal(parseStatus(value), parseCell(value).status, String(value));
+  }
+});
+
+test('every committed snapshot resolves against the live library list', async () => {
+  const { libs } = await loadLiveData();
+  const dir = join(
+    dirname(fileURLToPath(import.meta.url)),
+    '../src/data/state-of-react'
+  );
+  for (const file of readdirSync(dir).filter(f => f.endsWith('.json'))) {
+    const snap = JSON.parse(readFileSync(join(dir, file), 'utf8'));
+    assert.doesNotThrow(() => snapshotColumns(snap, libs), file);
   }
 });

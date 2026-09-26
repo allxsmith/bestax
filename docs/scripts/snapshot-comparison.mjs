@@ -24,6 +24,21 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const docsRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+/**
+ * Load the live matrix module. It is ESM in a package without "type":
+ * "module", so importing it by path makes Node warn on every run; it imports
+ * nothing, so load its source as a data: URL instead.
+ */
+export async function loadLiveData() {
+  const source = readFileSync(
+    resolve(docsRoot, 'src/data/componentComparison.js'),
+    'utf8'
+  );
+  return import(
+    `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`
+  );
+}
+
 /** Library ids in row position order: the column list a snapshot records. */
 export function columnOrder(libs) {
   return [...libs].sort((a, b) => a.idx - b.idx).map(lib => lib.id);
@@ -85,16 +100,7 @@ async function main() {
     );
     process.exit(1);
   }
-  // The data module is ESM in a package without "type": "module", so importing
-  // it by path makes Node warn on every run. It imports nothing, so load its
-  // source as a data: URL instead.
-  const source = readFileSync(
-    resolve(docsRoot, 'src/data/componentComparison.js'),
-    'utf8'
-  );
-  const data = await import(
-    `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`
-  );
+  const data = await loadLiveData();
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(
     out,
