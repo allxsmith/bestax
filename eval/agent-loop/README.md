@@ -31,12 +31,14 @@ One run = scaffold a fresh app with the **current** tooling → a cold-start
 library) builds a **frozen brief** in it → mechanized metrics + a rubric-graded scorecard.
 
 ```
-bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/agent-loop-work/i11 \
+eval/agent-loop/bin/run-iteration.sh i11 eval/agent-loop/briefs/skynet-saas.md /tmp/agent-loop-work/i11 \
   --runs-dir eval/agent-loop/runs-2026-08
 ```
 
 does phases A–C (rebuild tooling → scaffold+install+baseline-tag → watchdogged incognito
-build → snapshot + `metrics.json`). Grading and improving are agent phases (below).
+build → snapshot + `metrics.json`). Grading and improving are agent phases (below). Every
+path the runner takes resolves from the directory it is started in, so the examples here run
+from the repo root.
 
 ### Measuring a guidance channel other than the shipped skills
 
@@ -60,7 +62,7 @@ data is missing (a server that never connects is indistinguishable in the transc
 one the builder chose not to call). Run `pnpm --filter bestax-mcp build` first:
 
 ```
-bin/run-iteration.sh m01 briefs/skynet-saas-mcp.md /tmp/mcp-eval-m01 \
+eval/agent-loop/bin/run-iteration.sh m01 eval/agent-loop/briefs/skynet-saas-mcp.md /tmp/mcp-eval-m01 \
   --runs-dir eval/agent-loop/runs-mcp --scaffold-skills no \
   --post-scaffold "node eval/agent-loop/bin/install-mcp.mjs"
 ```
@@ -76,6 +78,42 @@ form. Categories 1–7 are unaffected and stay directly comparable.
 Note that a server which _serves_ the skills does not remove them from the run — the m01
 builder pulled four skills through `get_skill` with no `.claude/skills/` present. Such a
 comparison measures **delivery mechanism**, not presence of guidance; say so in the notes.
+
+### Measuring a migration
+
+The briefs above ask for a site built from an empty scaffold. `briefs/bulma-migrate.md` asks
+for the other job the guidance channels exist for: taking an app written in Bulma's classes
+and moving it onto bestax. It is graded against its own rubric,
+[`rubric-migrate.md`](rubric-migrate.md), and needs its own hook and runs directory:
+
+```
+eval/agent-loop/bin/run-iteration.sh mg01 eval/agent-loop/briefs/bulma-migrate.md /tmp/migrate-mg01 \
+  --runs-dir eval/agent-loop/runs-migrate --rubric eval/agent-loop/rubric-migrate.md \
+  --post-scaffold eval/agent-loop/bin/install-bulma-app.mjs
+```
+
+`bin/install-bulma-app.mjs` replaces the scaffold's `src/` with
+[`fixtures/bulma-app/`](fixtures/bulma-app/) (a small product site in raw Bulma markup) and
+adds `bulma`, which the fixture's stylesheet import needs. It runs before the baseline commit
+like any hook, so the fixture **is** the baseline and `builder.diff` is the migration. It
+takes no arguments of its own, so `run-batch.sh` can pass it as one token. It refuses to run
+without the ESLint plugin's build, because the collector counts what the migration is scored
+on with that plugin's `no-bulma-component-class` rule.
+
+The collector carries each source count twice for every run: as it ends, and under
+`baseline`, read from the baseline tag. `bulma_component_classes` (that rule's reports) and
+`bestax_migrate_todos` (the codemod's `TODO(bestax-migrate)` comments) sit beside the older
+`raw_bulma_classnames` and `handrolled_total`, which count the whole tree, and `baseline`
+carries the tree's size as well, since deleting markup lowers every count too. A file the
+rule cannot parse nulls `bulma_component_classes` rather than reading as converted, and
+`unparsed_files` names it. A migration is scored on how far the numbers move;
+`bin/test-migration-metrics.mjs` guards both halves.
+
+The builder channel is the same parameter as any run: the default scaffold measures the
+skills (the `bestax-migrate` skill carries the recipes), and `--scaffold-skills no` with
+`install-mcp.mjs` as the hook would measure the MCP server's `lookup_bulma_classes`, except
+that a run takes one hook. Measuring that combination means a hook that does both, written
+when that loop is.
 
 **Every loop needs its own `--runs-dir`.** Phase E consumes a runs directory as one loop's
 evidence, so a new run dropped beside an old loop's scorecards hands the improver another
@@ -131,10 +169,11 @@ not grade — it records `rubric` and `rubric_version` into `metrics.json`, so a
 always attributable to a yardstick. A rubric with no version line, or an unreadable path,
 fails the run before the builder starts rather than at grading time.
 
-| Rubric                         | Version | Scale                              | Used by                                                                    |
-| ------------------------------ | ------- | ---------------------------------- | -------------------------------------------------------------------------- |
-| [`rubric.md`](rubric.md)       | 1       | 100 = core 85 + category 7         | i01–i10, m01, m02, s01. **Closed** — refine into a new file, not this one. |
-| [`rubric-v2.md`](rubric-v2.md) | 2       | 100 = core 75 + categories 7 and 9 | `runs-v2/`                                                                 |
+| Rubric                                   | Version | Scale                              | Used by                                                                    |
+| ---------------------------------------- | ------- | ---------------------------------- | -------------------------------------------------------------------------- |
+| [`rubric.md`](rubric.md)                 | 1       | 100 = core 85 + category 7         | i01–i10, m01, m02, s01. **Closed** — refine into a new file, not this one. |
+| [`rubric-v2.md`](rubric-v2.md)           | 2       | 100 = core 75 + categories 7 and 9 | `runs-v2/`                                                                 |
+| [`rubric-migrate.md`](rubric-migrate.md) | 3       | 100, scored against the baseline   | the `bulma-migrate` brief                                                  |
 
 **v1 and v2 totals are different scales, not different scores.** v2 exists because four
 categories in v1 scored their maximum in all thirteen runs — 55 points that never
@@ -211,10 +250,9 @@ and adjacent-pair deltas are weak evidence.
 - **Kill orphaned dev servers between runs** — a builder's `npm run dev` child can outlive
   it and squat `:5173` (`--strictPort`), breaking the next run's preview. Runner does this.
 - **The collector measures the baseline diff BEFORE running its own tsc/vite.** It has to:
-  `tsc -b` writes `tsconfig.tsbuildinfo` into the app root and the scaffold `.gitignore`
-  does not cover it (scaffold flag, recorded in `runs/i09`), so measuring afterwards would
-  count the collector's own artifacts as builder work and mark every run modified —
-  silently disabling the rubric gate. `bin/test-app-modified.mjs` guards the ordering.
+  measuring afterwards could count the collector's own build output as builder work and
+  mark every run modified — silently disabling the rubric gate.
+  `bin/test-app-modified.mjs` guards the ordering.
 - **A clean-looking build can mean nothing happened.** The pristine scaffold typechecks and
   builds, so `build_pass=true, tsc_errors=0` is also what an untouched app reports — and
   `inline_style_count`, `raw_bulma_classnames` and `handrolled_total` all read 0 for it,
@@ -286,6 +324,15 @@ bin/collect-metrics.mjs mechanized metrics (JSON to stdout)
 bin/install-mcp.mjs     --post-scaffold hook: writes .mcp.json pointing at the
                         LOCAL bestax-mcp build (see "Measuring a guidance
                         channel other than the shipped skills" above)
+bin/install-bulma-app.mjs
+                        --post-scaffold hook for the migration eval: the
+                        fixture app becomes the baseline (see "Measuring a
+                        migration" above)
+fixtures/bulma-app/src/ the raw-Bulma app that hook installs
+rubric-migrate.md       the migration rubric (version 3)
+bin/test-migration-metrics.mjs
+                        guard for the migration metrics and their baseline
+                        block: real git fixtures and the real ESLint rule
 bin/lib/skill-paths.mjs shared skill-path harvest (imported by the collector
                         AND its guard, so the guard cannot drift from the code)
 bin/test-skill-paths.mjs regression guard — `node bin/test-skill-paths.mjs`;

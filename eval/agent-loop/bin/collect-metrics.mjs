@@ -5,8 +5,12 @@
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { basename, dirname, join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { harvestSkillPaths } from './lib/skill-paths.mjs';
+
+const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 const [appDir, transcriptPath, runMetaArg] = process.argv.slice(2);
 if (!appDir) {
@@ -71,10 +75,9 @@ const countAll = (re, files = tsxText) =>
   files.reduce((n, f) => n + (f.text.match(re) ?? []).length, 0);
 
 // ---- diffs vs pristine scaffold ---------------------------------------------
-// MUST run BEFORE the typecheck+build below. Those write into the app — `tsc -b` drops
-// `tsconfig.tsbuildinfo` in the app root, which the scaffold's .gitignore does not cover
-// (recorded as a scaffold flag in runs/i09) — so measuring afterwards would count OUR
-// artifacts as the builder's work and mark every run modified, defeating the rubric gate.
+// MUST run BEFORE the typecheck+build below. Those write into the app, so measuring
+// afterwards could count OUR artifacts as the builder's work and mark every run modified,
+// defeating the rubric gate.
 const diffCss = run('git', [
   'diff',
   'baseline',
@@ -107,6 +110,18 @@ const nonEmptyLines = s => (s ?? '').split('\n').filter(l => l.trim()).length;
 const files_changed_vs_baseline =
   nonEmptyLines(nameStatus.stdout) + nonEmptyLines(untracked.stdout);
 
+// The same source at the baseline tag, so a metric can be read before and after. Only the
+// migration eval hands the builder source worth measuring at baseline (its hook writes a
+// raw-Bulma app there), but every run gets the block: it is cheap, and a scaffold's own
+// numbers are a fact about the starting point too.
+const baselineTsx = (
+  run('git', ['ls-tree', '-r', '--name-only', 'baseline', '--', 'src'])
+    .stdout ?? ''
+)
+  .split('\n')
+  .filter(p => /\.tsx?$/.test(p))
+  .map(p => ({ p, text: run('git', ['show', `baseline:${p}`]).stdout ?? '' }));
+
 let deps_added = [];
 try {
   const basePkg = JSON.parse(
@@ -128,10 +143,73 @@ const vite = run('npx', ['vite', 'build'], { timeout: 420_000 });
 const build_pass = tsc.status === 0 && vite.status === 0;
 
 // ---- code metrics -----------------------------------------------------------
-const inline_style_count = countAll(/style=\{\{/g);
-const raw_bulma_classnames = countAll(
-  /className\s*=\s*(?:"[^"]*\b(?:is-|has-)[^"]*"|'[^']*\b(?:is-|has-)[^']*'|\{`[^`]*\b(?:is-|has-)[^`]*`\})/g
-);
+/**
+ * Counts `no-bulma-component-class` reports in a set of files: plain elements styled with
+ * a Bulma class bestax has a component for. The rule itself, from this repo's ESLint
+ * plugin build, rather than a second regex, so the number reads markup exactly the way the
+ * shipped rule does. Null when the plugin is not built, with a warning: every loop still
+ * collects, and only the migration eval (whose hook refuses to run without the build)
+ * depends on the number.
+ *
+ * Null too when a file does not parse, with the file named in `unparsed`. ESLint reports
+ * a parse failure as one fatal message and no rule reports, so summing the rule's reports
+ * would read a broken file as fully converted: a run killed mid-edit would score as done.
+ */
+async function loadClassCounter() {
+  const plugin = join(REPO, 'eslint-plugin', 'dist', 'index.js');
+  if (!existsSync(plugin)) {
+    console.error(
+      'warning: eslint-plugin is not built, so bulma_component_classes is null'
+    );
+    return null;
+  }
+  try {
+    const fromPlugin = createRequire(
+      join(REPO, 'eslint-plugin', 'package.json')
+    );
+    const { Linter } = fromPlugin('eslint');
+    const parser = fromPlugin('@typescript-eslint/parser');
+    const { default: bestax } = await import(pathToFileURL(plugin).href);
+    const linter = new Linter();
+    const config = [
+      {
+        files: ['**/*.{js,jsx,ts,tsx}'],
+        languageOptions: {
+          parser,
+          parserOptions: { ecmaFeatures: { jsx: true } },
+        },
+        plugins: { bestax },
+        rules: { 'bestax/no-bulma-component-class': 'error' },
+      },
+    ];
+    return files => {
+      let count = 0;
+      const unparsed = [];
+      for (const f of files) {
+        const messages = linter.verify(f.text, config, f.p);
+        if (messages.some(m => m.fatal)) unparsed.push(f.p);
+        else count += messages.filter(m => m.ruleId).length;
+      }
+      if (unparsed.length) {
+        console.error(
+          `warning: ${unparsed.join(', ')} did not parse, so bulma_component_classes is null`
+        );
+      }
+      return { count: unparsed.length ? null : count, unparsed };
+    };
+  } catch (e) {
+    console.error(
+      `warning: could not load the ESLint rule, so bulma_component_classes is null — ${e.message}`
+    );
+    return null;
+  }
+}
+const countComponentClasses = await loadClassCounter();
+
+// A className whose string, template, or string inside a flat expression
+// (`{open ? 'is-active' : ''}`, `{cx('tab', open && 'is-active')}`) carries a modifier.
+const RAW_BULMA =
+  /className\s*=\s*(?:"[^"]*\b(?:is-|has-)[^"]*"|'[^']*\b(?:is-|has-)[^']*'|\{`[^`]*\b(?:is-|has-)[^`]*`\}|\{[^{}`]*?['"][^'"]*\b(?:is-|has-)[^'"]*['"][^{}`]*\})/g;
 const HANDROLLED = [
   'button',
   'table',
@@ -143,13 +221,42 @@ const HANDROLLED = [
   'textarea',
   'label',
 ];
-const handrolled_tags = Object.fromEntries(
-  HANDROLLED.map(t => [t, countAll(new RegExp(`<${t}[\\s>/]`, 'g'))])
-);
-const handrolled_total = Object.values(handrolled_tags).reduce(
-  (a, b) => a + b,
-  0
-);
+
+/** The source metrics, for any set of files: the final tree, or the baseline's. */
+function codeMetrics(files) {
+  const count = re => countAll(re, files);
+  const handrolled_tags = Object.fromEntries(
+    HANDROLLED.map(t => [t, count(new RegExp(`<${t}[\\s>/]`, 'g'))])
+  );
+  const classes = countComponentClasses?.(files) ?? {
+    count: null,
+    unparsed: null,
+  };
+  return {
+    inline_style_count: count(/style=\{\{/g),
+    raw_bulma_classnames: count(RAW_BULMA),
+    bulma_component_classes: classes.count,
+    unparsed_files: classes.unparsed,
+    // What the bestax-migrate codemod leaves where it would not guess.
+    bestax_migrate_todos: count(/TODO\(bestax-migrate\)/g),
+    handrolled_tags,
+    handrolled_total: Object.values(handrolled_tags).reduce((a, b) => a + b, 0),
+    src_tsx_files: files.length,
+    src_total_lines: files.reduce((n, f) => n + f.text.split('\n').length, 0),
+  };
+}
+const {
+  inline_style_count,
+  raw_bulma_classnames,
+  bulma_component_classes,
+  unparsed_files,
+  bestax_migrate_todos,
+  handrolled_tags,
+  handrolled_total,
+  src_tsx_files,
+  src_total_lines,
+} = codeMetrics(tsxText);
+const atBaseline = codeMetrics(baselineTsx);
 
 const importSet = new Set();
 for (const f of tsxText) {
@@ -314,18 +421,31 @@ console.log(
       app_modified: files_changed_vs_baseline > 0,
       inline_style_count,
       raw_bulma_classnames,
+      bulma_component_classes,
+      // The files the rule could not parse, which is what nulls the count above.
+      unparsed_files,
+      bestax_migrate_todos,
       handrolled_tags,
       handrolled_total,
+      // The same counts at the baseline tag. A migration run reads its progress as the
+      // difference; for a build run these are the scaffold's own numbers. The size of the
+      // tree comes too, because every count above also falls when markup is deleted.
+      baseline: {
+        inline_style_count: atBaseline.inline_style_count,
+        raw_bulma_classnames: atBaseline.raw_bulma_classnames,
+        bulma_component_classes: atBaseline.bulma_component_classes,
+        bestax_migrate_todos: atBaseline.bestax_migrate_todos,
+        handrolled_total: atBaseline.handrolled_total,
+        src_tsx_files: atBaseline.src_tsx_files,
+        src_total_lines: atBaseline.src_total_lines,
+      },
       bestax_named_imports: importSet.size,
       bestax_import_list: [...importSet].sort(),
       custom_css_added_lines,
       css_files_added,
       deps_added,
-      src_tsx_files: tsxFiles.length,
-      src_total_lines: tsxText.reduce(
-        (n, f) => n + f.text.split('\n').length,
-        0
-      ),
+      src_tsx_files,
+      src_total_lines,
       ...transcript,
     },
     null,

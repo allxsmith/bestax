@@ -1,0 +1,8 @@
+html {
+  scroll-behavior: smooth;
+}
+
+/* Cards in a row share one height. */
+.card {
+  height: 100%;
+}

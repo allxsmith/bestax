@@ -92,6 +92,10 @@ const FIELDS = [
   ['custom_css_added_lines', 0],
   ['inline_style_count', 0],
   ['raw_bulma_classnames', 0],
+  // The migration eval's counts; absent from runs recorded before they existed, which
+  // `stat` skips rather than reading as zero.
+  ['bulma_component_classes', 0],
+  ['bestax_migrate_todos', 0],
   ['handrolled_total', 0],
   ['tsc_errors', 0],
   ['src_total_lines', 0],
