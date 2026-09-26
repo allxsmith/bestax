@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.5.0...bestax-migrate@2.6.0) (2026-09-26)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma navbars ([#754](https://github.com/allxsmith/bestax/issues/754)) ([02fdd72](https://github.com/allxsmith/bestax/commit/02fdd72ec836f3bb28fcb42b7529b7967f0f6a98))
+
 # [2.5.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.4.0...bestax-migrate@2.5.0) (2026-09-26)
 
 
