@@ -205,8 +205,6 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['pagination', { component: 'Pagination', converts: false }],
     ['panel', { component: 'Panel', converts: false }],
     ['tabs', { component: 'Tabs', converts: false }],
-    ['skeleton-block', { component: 'Skeleton', converts: false }],
-    ['skeleton-lines', { component: 'Skeleton', converts: false }],
     ['columns', { component: 'Columns', converts: true }],
     ['column', { component: 'Column', converts: true }],
     ['grid', { component: 'Grid', converts: true }],
@@ -263,6 +261,8 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['block', { component: 'Block', converts: true }],
     ['select', { component: 'SelectBase', converts: true }],
     ['breadcrumb', { component: 'Breadcrumb', converts: true }],
+    ['skeleton-block', { component: 'Skeleton', converts: true }],
+    ['skeleton-lines', { component: 'Skeleton', converts: true }],
     ['table-container', { component: 'Table', converts: true }],
     ['fixed-grid', { component: 'Grid', converts: true }],
   ]);
