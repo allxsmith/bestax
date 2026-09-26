@@ -1,3 +1,18 @@
+## [1.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.0...@allxsmith/eslint-plugin-bestax@1.1.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** report Bulma form markup as classes the codemod converts ([128e832](https://github.com/allxsmith/bestax/commit/128e8322c04515156a32e8f6e7a40ab8d029dfa3))
+
+
+### Features
+
+* **bestax-mcp:** say a Bulma field wraps its children only when horizontal ([929bc82](https://github.com/allxsmith/bestax/commit/929bc82d32814973a7083f9233dced7bb06b2bdb))
+* **bestax-migrate:** convert Bulma cards built from their parts ([#752](https://github.com/allxsmith/bestax/issues/752)) ([1b08e17](https://github.com/allxsmith/bestax/commit/1b08e176947a0b8ac24b5fcde1f8b39d325e6a76))
+* **bestax-migrate:** convert Bulma form fields, controls, inputs and textareas ([3da788d](https://github.com/allxsmith/bestax/commit/3da788d2f33594d5c8bd60a9e613b82e027a5af9)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+* **bestax-migrate:** convert Bulma navbars ([#754](https://github.com/allxsmith/bestax/issues/754)) ([02fdd72](https://github.com/allxsmith/bestax/commit/02fdd72ec836f3bb28fcb42b7529b7967f0f6a98))
+
 # [1.1.0](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.0.2...@allxsmith/eslint-plugin-bestax@1.1.0) (2026-09-26)
 
 
