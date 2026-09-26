@@ -1,0 +1,3762 @@
+{
+  "schemaVersion": 1,
+  "roots": {
+    "block": {
+      "status": "mapped",
+      "target": "Block",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "box": {
+      "status": "mapped",
+      "target": "Box",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "button": {
+      "status": "mapped",
+      "target": "Button",
+      "tag": "button",
+      "as": "any",
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-primary": { "writes": [{ "prop": "color", "value": "primary" }] },
+        "is-link": { "writes": [{ "prop": "color", "value": "link" }] },
+        "is-info": { "writes": [{ "prop": "color", "value": "info" }] },
+        "is-success": { "writes": [{ "prop": "color", "value": "success" }] },
+        "is-warning": { "writes": [{ "prop": "color", "value": "warning" }] },
+        "is-danger": { "writes": [{ "prop": "color", "value": "danger" }] },
+        "is-white": { "writes": [{ "prop": "color", "value": "white" }] },
+        "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
+        "is-black": { "writes": [{ "prop": "color", "value": "black" }] },
+        "is-text": { "writes": [{ "prop": "color", "value": "text" }] },
+        "is-ghost": { "writes": [{ "prop": "color", "value": "ghost" }] },
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-normal": { "writes": [{ "prop": "size", "value": "normal" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] },
+        "is-light": { "writes": [{ "prop": "isLight" }] },
+        "is-rounded": { "writes": [{ "prop": "isRounded" }] },
+        "is-loading": { "writes": [{ "prop": "isLoading" }] },
+        "is-static": { "writes": [{ "prop": "isStatic" }] },
+        "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] },
+        "is-outlined": { "writes": [{ "prop": "isOutlined" }] },
+        "is-inverted": { "writes": [{ "prop": "isInverted" }] },
+        "is-focused": { "writes": [{ "prop": "isFocused" }] },
+        "is-active": { "writes": [{ "prop": "isActive" }] },
+        "is-hovered": { "writes": [{ "prop": "isHovered" }] }
+      },
+      "omits": {
+        "is-disabled": "bestax `Button` renders it through `isDisabled`, which also disables the element (`disabled`, or `aria-disabled` on a link)"
+      }
+    },
+    "buttons": {
+      "status": "mapped",
+      "target": "Buttons",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-centered": { "writes": [{ "prop": "isCentered" }] },
+        "is-right": { "writes": [{ "prop": "isRight" }] },
+        "has-addons": { "writes": [{ "prop": "hasAddons" }] },
+        "are-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "are-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "are-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
+      "omits": {}
+    },
+    "columns": {
+      "status": "mapped",
+      "target": "Columns",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-centered": { "writes": [{ "prop": "isCentered" }] },
+        "is-gapless": { "writes": [{ "prop": "isGapless" }] },
+        "is-multiline": { "writes": [{ "prop": "isMultiline" }] },
+        "is-vcentered": { "writes": [{ "prop": "isVCentered" }] },
+        "is-mobile": { "writes": [{ "prop": "isMobile" }] },
+        "is-desktop": { "writes": [{ "prop": "isDesktop" }] },
+        "is-0": { "writes": [{ "prop": "gap", "value": "0" }] },
+        "is-1": { "writes": [{ "prop": "gap", "value": "1" }] },
+        "is-2": { "writes": [{ "prop": "gap", "value": "2" }] },
+        "is-3": { "writes": [{ "prop": "gap", "value": "3" }] },
+        "is-4": { "writes": [{ "prop": "gap", "value": "4" }] },
+        "is-5": { "writes": [{ "prop": "gap", "value": "5" }] },
+        "is-6": { "writes": [{ "prop": "gap", "value": "6" }] },
+        "is-7": { "writes": [{ "prop": "gap", "value": "7" }] },
+        "is-8": { "writes": [{ "prop": "gap", "value": "8" }] },
+        "is-0-mobile": { "writes": [{ "prop": "gapMobile", "value": "0" }] },
+        "is-1-mobile": { "writes": [{ "prop": "gapMobile", "value": "1" }] },
+        "is-2-mobile": { "writes": [{ "prop": "gapMobile", "value": "2" }] },
+        "is-3-mobile": { "writes": [{ "prop": "gapMobile", "value": "3" }] },
+        "is-4-mobile": { "writes": [{ "prop": "gapMobile", "value": "4" }] },
+        "is-5-mobile": { "writes": [{ "prop": "gapMobile", "value": "5" }] },
+        "is-6-mobile": { "writes": [{ "prop": "gapMobile", "value": "6" }] },
+        "is-7-mobile": { "writes": [{ "prop": "gapMobile", "value": "7" }] },
+        "is-8-mobile": { "writes": [{ "prop": "gapMobile", "value": "8" }] },
+        "is-0-tablet": { "writes": [{ "prop": "gapTablet", "value": "0" }] },
+        "is-1-tablet": { "writes": [{ "prop": "gapTablet", "value": "1" }] },
+        "is-2-tablet": { "writes": [{ "prop": "gapTablet", "value": "2" }] },
+        "is-3-tablet": { "writes": [{ "prop": "gapTablet", "value": "3" }] },
+        "is-4-tablet": { "writes": [{ "prop": "gapTablet", "value": "4" }] },
+        "is-5-tablet": { "writes": [{ "prop": "gapTablet", "value": "5" }] },
+        "is-6-tablet": { "writes": [{ "prop": "gapTablet", "value": "6" }] },
+        "is-7-tablet": { "writes": [{ "prop": "gapTablet", "value": "7" }] },
+        "is-8-tablet": { "writes": [{ "prop": "gapTablet", "value": "8" }] },
+        "is-0-desktop": { "writes": [{ "prop": "gapDesktop", "value": "0" }] },
+        "is-1-desktop": { "writes": [{ "prop": "gapDesktop", "value": "1" }] },
+        "is-2-desktop": { "writes": [{ "prop": "gapDesktop", "value": "2" }] },
+        "is-3-desktop": { "writes": [{ "prop": "gapDesktop", "value": "3" }] },
+        "is-4-desktop": { "writes": [{ "prop": "gapDesktop", "value": "4" }] },
+        "is-5-desktop": { "writes": [{ "prop": "gapDesktop", "value": "5" }] },
+        "is-6-desktop": { "writes": [{ "prop": "gapDesktop", "value": "6" }] },
+        "is-7-desktop": { "writes": [{ "prop": "gapDesktop", "value": "7" }] },
+        "is-8-desktop": { "writes": [{ "prop": "gapDesktop", "value": "8" }] },
+        "is-0-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "0" }]
+        },
+        "is-1-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "1" }]
+        },
+        "is-2-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "2" }]
+        },
+        "is-3-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "3" }]
+        },
+        "is-4-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "4" }]
+        },
+        "is-5-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "5" }]
+        },
+        "is-6-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "6" }]
+        },
+        "is-7-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "7" }]
+        },
+        "is-8-widescreen": {
+          "writes": [{ "prop": "gapWidescreen", "value": "8" }]
+        },
+        "is-0-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "0" }] },
+        "is-1-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "1" }] },
+        "is-2-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "2" }] },
+        "is-3-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "3" }] },
+        "is-4-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "4" }] },
+        "is-5-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "5" }] },
+        "is-6-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "6" }] },
+        "is-7-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "7" }] },
+        "is-8-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "8" }] }
+      },
+      "omits": {}
+    },
+    "column": {
+      "status": "mapped",
+      "target": "Column",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-1": { "writes": [{ "prop": "size", "value": "1" }] },
+        "is-2": { "writes": [{ "prop": "size", "value": "2" }] },
+        "is-3": { "writes": [{ "prop": "size", "value": "3" }] },
+        "is-4": { "writes": [{ "prop": "size", "value": "4" }] },
+        "is-5": { "writes": [{ "prop": "size", "value": "5" }] },
+        "is-6": { "writes": [{ "prop": "size", "value": "6" }] },
+        "is-7": { "writes": [{ "prop": "size", "value": "7" }] },
+        "is-8": { "writes": [{ "prop": "size", "value": "8" }] },
+        "is-9": { "writes": [{ "prop": "size", "value": "9" }] },
+        "is-10": { "writes": [{ "prop": "size", "value": "10" }] },
+        "is-11": { "writes": [{ "prop": "size", "value": "11" }] },
+        "is-12": { "writes": [{ "prop": "size", "value": "12" }] },
+        "is-full": { "writes": [{ "prop": "size", "value": "full" }] },
+        "is-half": { "writes": [{ "prop": "size", "value": "half" }] },
+        "is-one-third": {
+          "writes": [{ "prop": "size", "value": "one-third" }]
+        },
+        "is-two-thirds": {
+          "writes": [{ "prop": "size", "value": "two-thirds" }]
+        },
+        "is-one-quarter": {
+          "writes": [{ "prop": "size", "value": "one-quarter" }]
+        },
+        "is-three-quarters": {
+          "writes": [{ "prop": "size", "value": "three-quarters" }]
+        },
+        "is-one-fifth": {
+          "writes": [{ "prop": "size", "value": "one-fifth" }]
+        },
+        "is-two-fifths": {
+          "writes": [{ "prop": "size", "value": "two-fifths" }]
+        },
+        "is-three-fifths": {
+          "writes": [{ "prop": "size", "value": "three-fifths" }]
+        },
+        "is-four-fifths": {
+          "writes": [{ "prop": "size", "value": "four-fifths" }]
+        },
+        "is-1-mobile": { "writes": [{ "prop": "sizeMobile", "value": "1" }] },
+        "is-2-mobile": { "writes": [{ "prop": "sizeMobile", "value": "2" }] },
+        "is-3-mobile": { "writes": [{ "prop": "sizeMobile", "value": "3" }] },
+        "is-4-mobile": { "writes": [{ "prop": "sizeMobile", "value": "4" }] },
+        "is-5-mobile": { "writes": [{ "prop": "sizeMobile", "value": "5" }] },
+        "is-6-mobile": { "writes": [{ "prop": "sizeMobile", "value": "6" }] },
+        "is-7-mobile": { "writes": [{ "prop": "sizeMobile", "value": "7" }] },
+        "is-8-mobile": { "writes": [{ "prop": "sizeMobile", "value": "8" }] },
+        "is-9-mobile": { "writes": [{ "prop": "sizeMobile", "value": "9" }] },
+        "is-10-mobile": { "writes": [{ "prop": "sizeMobile", "value": "10" }] },
+        "is-11-mobile": { "writes": [{ "prop": "sizeMobile", "value": "11" }] },
+        "is-12-mobile": { "writes": [{ "prop": "sizeMobile", "value": "12" }] },
+        "is-full-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "full" }]
+        },
+        "is-half-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "half" }]
+        },
+        "is-one-third-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "one-third" }]
+        },
+        "is-two-thirds-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "two-thirds" }]
+        },
+        "is-one-quarter-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "one-quarter" }]
+        },
+        "is-three-quarters-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "three-quarters" }]
+        },
+        "is-one-fifth-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "one-fifth" }]
+        },
+        "is-two-fifths-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "two-fifths" }]
+        },
+        "is-three-fifths-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "three-fifths" }]
+        },
+        "is-four-fifths-mobile": {
+          "writes": [{ "prop": "sizeMobile", "value": "four-fifths" }]
+        },
+        "is-1-tablet": { "writes": [{ "prop": "sizeTablet", "value": "1" }] },
+        "is-2-tablet": { "writes": [{ "prop": "sizeTablet", "value": "2" }] },
+        "is-3-tablet": { "writes": [{ "prop": "sizeTablet", "value": "3" }] },
+        "is-4-tablet": { "writes": [{ "prop": "sizeTablet", "value": "4" }] },
+        "is-5-tablet": { "writes": [{ "prop": "sizeTablet", "value": "5" }] },
+        "is-6-tablet": { "writes": [{ "prop": "sizeTablet", "value": "6" }] },
+        "is-7-tablet": { "writes": [{ "prop": "sizeTablet", "value": "7" }] },
+        "is-8-tablet": { "writes": [{ "prop": "sizeTablet", "value": "8" }] },
+        "is-9-tablet": { "writes": [{ "prop": "sizeTablet", "value": "9" }] },
+        "is-10-tablet": { "writes": [{ "prop": "sizeTablet", "value": "10" }] },
+        "is-11-tablet": { "writes": [{ "prop": "sizeTablet", "value": "11" }] },
+        "is-12-tablet": { "writes": [{ "prop": "sizeTablet", "value": "12" }] },
+        "is-full-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "full" }]
+        },
+        "is-half-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "half" }]
+        },
+        "is-one-third-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "one-third" }]
+        },
+        "is-two-thirds-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "two-thirds" }]
+        },
+        "is-one-quarter-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "one-quarter" }]
+        },
+        "is-three-quarters-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "three-quarters" }]
+        },
+        "is-one-fifth-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "one-fifth" }]
+        },
+        "is-two-fifths-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "two-fifths" }]
+        },
+        "is-three-fifths-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "three-fifths" }]
+        },
+        "is-four-fifths-tablet": {
+          "writes": [{ "prop": "sizeTablet", "value": "four-fifths" }]
+        },
+        "is-1-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "1" }] },
+        "is-2-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "2" }] },
+        "is-3-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "3" }] },
+        "is-4-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "4" }] },
+        "is-5-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "5" }] },
+        "is-6-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "6" }] },
+        "is-7-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "7" }] },
+        "is-8-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "8" }] },
+        "is-9-desktop": { "writes": [{ "prop": "sizeDesktop", "value": "9" }] },
+        "is-10-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "10" }]
+        },
+        "is-11-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "11" }]
+        },
+        "is-12-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "12" }]
+        },
+        "is-full-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "full" }]
+        },
+        "is-half-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "half" }]
+        },
+        "is-one-third-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "one-third" }]
+        },
+        "is-two-thirds-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "two-thirds" }]
+        },
+        "is-one-quarter-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "one-quarter" }]
+        },
+        "is-three-quarters-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "three-quarters" }]
+        },
+        "is-one-fifth-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "one-fifth" }]
+        },
+        "is-two-fifths-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "two-fifths" }]
+        },
+        "is-three-fifths-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "three-fifths" }]
+        },
+        "is-four-fifths-desktop": {
+          "writes": [{ "prop": "sizeDesktop", "value": "four-fifths" }]
+        },
+        "is-1-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "1" }]
+        },
+        "is-2-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "2" }]
+        },
+        "is-3-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "3" }]
+        },
+        "is-4-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "4" }]
+        },
+        "is-5-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "5" }]
+        },
+        "is-6-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "6" }]
+        },
+        "is-7-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "7" }]
+        },
+        "is-8-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "8" }]
+        },
+        "is-9-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "9" }]
+        },
+        "is-10-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "10" }]
+        },
+        "is-11-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "11" }]
+        },
+        "is-12-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "12" }]
+        },
+        "is-full-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "full" }]
+        },
+        "is-half-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "half" }]
+        },
+        "is-one-third-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "one-third" }]
+        },
+        "is-two-thirds-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "two-thirds" }]
+        },
+        "is-one-quarter-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "one-quarter" }]
+        },
+        "is-three-quarters-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "three-quarters" }]
+        },
+        "is-one-fifth-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "one-fifth" }]
+        },
+        "is-two-fifths-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "two-fifths" }]
+        },
+        "is-three-fifths-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "three-fifths" }]
+        },
+        "is-four-fifths-widescreen": {
+          "writes": [{ "prop": "sizeWidescreen", "value": "four-fifths" }]
+        },
+        "is-1-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "1" }] },
+        "is-2-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "2" }] },
+        "is-3-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "3" }] },
+        "is-4-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "4" }] },
+        "is-5-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "5" }] },
+        "is-6-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "6" }] },
+        "is-7-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "7" }] },
+        "is-8-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "8" }] },
+        "is-9-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "9" }] },
+        "is-10-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "10" }] },
+        "is-11-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "11" }] },
+        "is-12-fullhd": { "writes": [{ "prop": "sizeFullhd", "value": "12" }] },
+        "is-full-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "full" }]
+        },
+        "is-half-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "half" }]
+        },
+        "is-one-third-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "one-third" }]
+        },
+        "is-two-thirds-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "two-thirds" }]
+        },
+        "is-one-quarter-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "one-quarter" }]
+        },
+        "is-three-quarters-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "three-quarters" }]
+        },
+        "is-one-fifth-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "one-fifth" }]
+        },
+        "is-two-fifths-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "two-fifths" }]
+        },
+        "is-three-fifths-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "three-fifths" }]
+        },
+        "is-four-fifths-fullhd": {
+          "writes": [{ "prop": "sizeFullhd", "value": "four-fifths" }]
+        },
+        "is-offset-1": { "writes": [{ "prop": "offset", "value": "1" }] },
+        "is-offset-2": { "writes": [{ "prop": "offset", "value": "2" }] },
+        "is-offset-3": { "writes": [{ "prop": "offset", "value": "3" }] },
+        "is-offset-4": { "writes": [{ "prop": "offset", "value": "4" }] },
+        "is-offset-5": { "writes": [{ "prop": "offset", "value": "5" }] },
+        "is-offset-6": { "writes": [{ "prop": "offset", "value": "6" }] },
+        "is-offset-7": { "writes": [{ "prop": "offset", "value": "7" }] },
+        "is-offset-8": { "writes": [{ "prop": "offset", "value": "8" }] },
+        "is-offset-9": { "writes": [{ "prop": "offset", "value": "9" }] },
+        "is-offset-10": { "writes": [{ "prop": "offset", "value": "10" }] },
+        "is-offset-11": { "writes": [{ "prop": "offset", "value": "11" }] },
+        "is-offset-12": { "writes": [{ "prop": "offset", "value": "12" }] },
+        "is-offset-half": { "writes": [{ "prop": "offset", "value": "half" }] },
+        "is-offset-one-third": {
+          "writes": [{ "prop": "offset", "value": "one-third" }]
+        },
+        "is-offset-two-thirds": {
+          "writes": [{ "prop": "offset", "value": "two-thirds" }]
+        },
+        "is-offset-one-quarter": {
+          "writes": [{ "prop": "offset", "value": "one-quarter" }]
+        },
+        "is-offset-three-quarters": {
+          "writes": [{ "prop": "offset", "value": "three-quarters" }]
+        },
+        "is-offset-one-fifth": {
+          "writes": [{ "prop": "offset", "value": "one-fifth" }]
+        },
+        "is-offset-two-fifths": {
+          "writes": [{ "prop": "offset", "value": "two-fifths" }]
+        },
+        "is-offset-three-fifths": {
+          "writes": [{ "prop": "offset", "value": "three-fifths" }]
+        },
+        "is-offset-four-fifths": {
+          "writes": [{ "prop": "offset", "value": "four-fifths" }]
+        },
+        "is-offset-1-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "1" }]
+        },
+        "is-offset-2-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "2" }]
+        },
+        "is-offset-3-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "3" }]
+        },
+        "is-offset-4-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "4" }]
+        },
+        "is-offset-5-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "5" }]
+        },
+        "is-offset-6-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "6" }]
+        },
+        "is-offset-7-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "7" }]
+        },
+        "is-offset-8-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "8" }]
+        },
+        "is-offset-9-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "9" }]
+        },
+        "is-offset-10-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "10" }]
+        },
+        "is-offset-11-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "11" }]
+        },
+        "is-offset-12-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "12" }]
+        },
+        "is-offset-half-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "half" }]
+        },
+        "is-offset-one-third-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "one-third" }]
+        },
+        "is-offset-two-thirds-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "two-thirds" }]
+        },
+        "is-offset-one-quarter-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "one-quarter" }]
+        },
+        "is-offset-three-quarters-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "three-quarters" }]
+        },
+        "is-offset-one-fifth-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "one-fifth" }]
+        },
+        "is-offset-two-fifths-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "two-fifths" }]
+        },
+        "is-offset-three-fifths-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "three-fifths" }]
+        },
+        "is-offset-four-fifths-mobile": {
+          "writes": [{ "prop": "offsetMobile", "value": "four-fifths" }]
+        },
+        "is-offset-1-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "1" }]
+        },
+        "is-offset-2-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "2" }]
+        },
+        "is-offset-3-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "3" }]
+        },
+        "is-offset-4-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "4" }]
+        },
+        "is-offset-5-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "5" }]
+        },
+        "is-offset-6-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "6" }]
+        },
+        "is-offset-7-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "7" }]
+        },
+        "is-offset-8-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "8" }]
+        },
+        "is-offset-9-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "9" }]
+        },
+        "is-offset-10-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "10" }]
+        },
+        "is-offset-11-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "11" }]
+        },
+        "is-offset-12-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "12" }]
+        },
+        "is-offset-half-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "half" }]
+        },
+        "is-offset-one-third-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "one-third" }]
+        },
+        "is-offset-two-thirds-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "two-thirds" }]
+        },
+        "is-offset-one-quarter-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "one-quarter" }]
+        },
+        "is-offset-three-quarters-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "three-quarters" }]
+        },
+        "is-offset-one-fifth-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "one-fifth" }]
+        },
+        "is-offset-two-fifths-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "two-fifths" }]
+        },
+        "is-offset-three-fifths-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "three-fifths" }]
+        },
+        "is-offset-four-fifths-tablet": {
+          "writes": [{ "prop": "offsetTablet", "value": "four-fifths" }]
+        },
+        "is-offset-1-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "1" }]
+        },
+        "is-offset-2-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "2" }]
+        },
+        "is-offset-3-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "3" }]
+        },
+        "is-offset-4-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "4" }]
+        },
+        "is-offset-5-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "5" }]
+        },
+        "is-offset-6-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "6" }]
+        },
+        "is-offset-7-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "7" }]
+        },
+        "is-offset-8-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "8" }]
+        },
+        "is-offset-9-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "9" }]
+        },
+        "is-offset-10-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "10" }]
+        },
+        "is-offset-11-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "11" }]
+        },
+        "is-offset-12-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "12" }]
+        },
+        "is-offset-half-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "half" }]
+        },
+        "is-offset-one-third-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "one-third" }]
+        },
+        "is-offset-two-thirds-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "two-thirds" }]
+        },
+        "is-offset-one-quarter-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "one-quarter" }]
+        },
+        "is-offset-three-quarters-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "three-quarters" }]
+        },
+        "is-offset-one-fifth-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "one-fifth" }]
+        },
+        "is-offset-two-fifths-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "two-fifths" }]
+        },
+        "is-offset-three-fifths-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "three-fifths" }]
+        },
+        "is-offset-four-fifths-desktop": {
+          "writes": [{ "prop": "offsetDesktop", "value": "four-fifths" }]
+        },
+        "is-offset-1-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "1" }]
+        },
+        "is-offset-2-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "2" }]
+        },
+        "is-offset-3-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "3" }]
+        },
+        "is-offset-4-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "4" }]
+        },
+        "is-offset-5-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "5" }]
+        },
+        "is-offset-6-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "6" }]
+        },
+        "is-offset-7-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "7" }]
+        },
+        "is-offset-8-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "8" }]
+        },
+        "is-offset-9-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "9" }]
+        },
+        "is-offset-10-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "10" }]
+        },
+        "is-offset-11-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "11" }]
+        },
+        "is-offset-12-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "12" }]
+        },
+        "is-offset-half-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "half" }]
+        },
+        "is-offset-one-third-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "one-third" }]
+        },
+        "is-offset-two-thirds-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "two-thirds" }]
+        },
+        "is-offset-one-quarter-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "one-quarter" }]
+        },
+        "is-offset-three-quarters-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "three-quarters" }]
+        },
+        "is-offset-one-fifth-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "one-fifth" }]
+        },
+        "is-offset-two-fifths-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "two-fifths" }]
+        },
+        "is-offset-three-fifths-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "three-fifths" }]
+        },
+        "is-offset-four-fifths-widescreen": {
+          "writes": [{ "prop": "offsetWidescreen", "value": "four-fifths" }]
+        },
+        "is-offset-1-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "1" }]
+        },
+        "is-offset-2-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "2" }]
+        },
+        "is-offset-3-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "3" }]
+        },
+        "is-offset-4-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "4" }]
+        },
+        "is-offset-5-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "5" }]
+        },
+        "is-offset-6-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "6" }]
+        },
+        "is-offset-7-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "7" }]
+        },
+        "is-offset-8-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "8" }]
+        },
+        "is-offset-9-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "9" }]
+        },
+        "is-offset-10-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "10" }]
+        },
+        "is-offset-11-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "11" }]
+        },
+        "is-offset-12-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "12" }]
+        },
+        "is-offset-half-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "half" }]
+        },
+        "is-offset-one-third-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "one-third" }]
+        },
+        "is-offset-two-thirds-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "two-thirds" }]
+        },
+        "is-offset-one-quarter-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "one-quarter" }]
+        },
+        "is-offset-three-quarters-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "three-quarters" }]
+        },
+        "is-offset-one-fifth-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "one-fifth" }]
+        },
+        "is-offset-two-fifths-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "two-fifths" }]
+        },
+        "is-offset-three-fifths-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "three-fifths" }]
+        },
+        "is-offset-four-fifths-fullhd": {
+          "writes": [{ "prop": "offsetFullhd", "value": "four-fifths" }]
+        },
+        "is-narrow": { "writes": [{ "prop": "isNarrow" }] },
+        "is-narrow-mobile": { "writes": [{ "prop": "isNarrowMobile" }] },
+        "is-narrow-tablet": { "writes": [{ "prop": "isNarrowTablet" }] },
+        "is-narrow-desktop": { "writes": [{ "prop": "isNarrowDesktop" }] },
+        "is-narrow-widescreen": {
+          "writes": [{ "prop": "isNarrowWidescreen" }]
+        },
+        "is-narrow-fullhd": { "writes": [{ "prop": "isNarrowFullhd" }] },
+        "is-narrow-touch": { "writes": [{ "prop": "isNarrowTouch" }] }
+      },
+      "omits": {}
+    },
+    "container": {
+      "status": "mapped",
+      "target": "Container",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-fluid": { "writes": [{ "prop": "fluid" }] },
+        "is-widescreen": { "writes": [{ "prop": "widescreen" }] },
+        "is-fullhd": { "writes": [{ "prop": "fullhd" }] },
+        "is-max-tablet": {
+          "writes": [
+            { "prop": "breakpoint", "value": "tablet" },
+            { "prop": "isMax" }
+          ]
+        },
+        "is-max-desktop": {
+          "writes": [
+            { "prop": "breakpoint", "value": "desktop" },
+            { "prop": "isMax" }
+          ]
+        },
+        "is-max-widescreen": {
+          "writes": [
+            { "prop": "breakpoint", "value": "widescreen" },
+            { "prop": "isMax" }
+          ]
+        }
+      },
+      "omits": {}
+    },
+    "content": {
+      "status": "mapped",
+      "target": "Content",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
+      "omits": {}
+    },
+    "delete": {
+      "status": "mapped",
+      "target": "Delete",
+      "tag": "button",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
+      "omits": {}
+    },
+    "footer": {
+      "status": "mapped",
+      "target": "Footer",
+      "tag": "footer",
+      "as": ["footer", "div"],
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "hero": {
+      "status": "mapped",
+      "target": "Hero",
+      "tag": "section",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-primary": { "writes": [{ "prop": "color", "value": "primary" }] },
+        "is-link": { "writes": [{ "prop": "color", "value": "link" }] },
+        "is-info": { "writes": [{ "prop": "color", "value": "info" }] },
+        "is-success": { "writes": [{ "prop": "color", "value": "success" }] },
+        "is-warning": { "writes": [{ "prop": "color", "value": "warning" }] },
+        "is-danger": { "writes": [{ "prop": "color", "value": "danger" }] },
+        "is-black": { "writes": [{ "prop": "color", "value": "black" }] },
+        "is-white": { "writes": [{ "prop": "color", "value": "white" }] },
+        "is-light": { "writes": [{ "prop": "color", "value": "light" }] },
+        "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] },
+        "is-fullheight": {
+          "writes": [{ "prop": "size", "value": "fullheight" }]
+        },
+        "is-fullheight-with-navbar": {
+          "writes": [{ "prop": "size", "value": "fullheight-with-navbar" }]
+        }
+      },
+      "omits": {}
+    },
+    "hero-head": {
+      "status": "mapped",
+      "target": "Hero.Head",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "hero-body": {
+      "status": "mapped",
+      "target": "Hero.Body",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "hero-foot": {
+      "status": "mapped",
+      "target": "Hero.Foot",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "level": {
+      "status": "mapped",
+      "target": "Level",
+      "tag": "nav",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": { "is-mobile": { "writes": [{ "prop": "isMobile" }] } },
+      "omits": {}
+    },
+    "level-left": {
+      "status": "mapped",
+      "target": "Level.Left",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "level-right": {
+      "status": "mapped",
+      "target": "Level.Right",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "level-item": {
+      "status": "mapped",
+      "target": "Level.Item",
+      "tag": "div",
+      "as": ["div", "p", "a"],
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "media": {
+      "status": "mapped",
+      "target": "Media",
+      "tag": "article",
+      "as": ["article", "div"],
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "media-left": {
+      "status": "mapped",
+      "target": "Media.Left",
+      "tag": "figure",
+      "as": ["figure", "div"],
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "media-content": {
+      "status": "mapped",
+      "target": "Media.Content",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "media-right": {
+      "status": "mapped",
+      "target": "Media.Right",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "notification": {
+      "status": "mapped",
+      "target": "Notification",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-primary": { "writes": [{ "prop": "color", "value": "primary" }] },
+        "is-link": { "writes": [{ "prop": "color", "value": "link" }] },
+        "is-info": { "writes": [{ "prop": "color", "value": "info" }] },
+        "is-success": { "writes": [{ "prop": "color", "value": "success" }] },
+        "is-warning": { "writes": [{ "prop": "color", "value": "warning" }] },
+        "is-danger": { "writes": [{ "prop": "color", "value": "danger" }] },
+        "is-black": { "writes": [{ "prop": "color", "value": "black" }] },
+        "is-white": { "writes": [{ "prop": "color", "value": "white" }] },
+        "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
+        "is-light": { "writes": [{ "prop": "isLight" }] }
+      },
+      "omits": {}
+    },
+    "progress": {
+      "status": "mapped",
+      "target": "Progress",
+      "tag": "progress",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-primary": { "writes": [{ "prop": "color", "value": "primary" }] },
+        "is-link": { "writes": [{ "prop": "color", "value": "link" }] },
+        "is-info": { "writes": [{ "prop": "color", "value": "info" }] },
+        "is-success": { "writes": [{ "prop": "color", "value": "success" }] },
+        "is-warning": { "writes": [{ "prop": "color", "value": "warning" }] },
+        "is-danger": { "writes": [{ "prop": "color", "value": "danger" }] },
+        "is-black": { "writes": [{ "prop": "color", "value": "black" }] },
+        "is-white": { "writes": [{ "prop": "color", "value": "white" }] },
+        "is-light": { "writes": [{ "prop": "color", "value": "light" }] },
+        "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
+      "omits": {}
+    },
+    "section": {
+      "status": "mapped",
+      "target": "Section",
+      "tag": "section",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
+      "omits": {}
+    },
+    "subtitle": {
+      "status": "mapped",
+      "target": "SubTitle",
+      "tag": "h1",
+      "as": ["h1", "h2", "h3", "h4", "h5", "h6", "p"],
+      "sizeDrivesTag": true,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-1": {
+          "writes": [{ "prop": "size", "value": "1" }],
+          "tagIn": ["h1", "p"]
+        },
+        "is-2": {
+          "writes": [{ "prop": "size", "value": "2" }],
+          "tagIn": ["h2", "p"]
+        },
+        "is-3": {
+          "writes": [{ "prop": "size", "value": "3" }],
+          "tagIn": ["h3", "p"]
+        },
+        "is-4": {
+          "writes": [{ "prop": "size", "value": "4" }],
+          "tagIn": ["h4", "p"]
+        },
+        "is-5": {
+          "writes": [{ "prop": "size", "value": "5" }],
+          "tagIn": ["h5", "p"]
+        },
+        "is-6": {
+          "writes": [{ "prop": "size", "value": "6" }],
+          "tagIn": ["h6", "p"]
+        },
+        "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
+      },
+      "omits": {}
+    },
+    "table": {
+      "status": "mapped",
+      "target": "Table",
+      "tag": "table",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "color",
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-bordered": { "writes": [{ "prop": "isBordered" }] },
+        "is-striped": { "writes": [{ "prop": "isStriped" }] },
+        "is-narrow": { "writes": [{ "prop": "isNarrow" }] },
+        "is-hoverable": { "writes": [{ "prop": "isHoverable" }] },
+        "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] }
+      },
+      "omits": {}
+    },
+    "tag": {
+      "status": "mapped",
+      "target": "Tag",
+      "tag": "span",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": "backgroundColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-primary": { "writes": [{ "prop": "color", "value": "primary" }] },
+        "is-link": { "writes": [{ "prop": "color", "value": "link" }] },
+        "is-info": { "writes": [{ "prop": "color", "value": "info" }] },
+        "is-success": { "writes": [{ "prop": "color", "value": "success" }] },
+        "is-warning": { "writes": [{ "prop": "color", "value": "warning" }] },
+        "is-danger": { "writes": [{ "prop": "color", "value": "danger" }] },
+        "is-black": { "writes": [{ "prop": "color", "value": "black" }] },
+        "is-white": { "writes": [{ "prop": "color", "value": "white" }] },
+        "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] },
+        "is-light": { "writes": [{ "prop": "isLight" }] },
+        "is-rounded": { "writes": [{ "prop": "isRounded" }] },
+        "is-hoverable": { "writes": [{ "prop": "isHoverable" }] }
+      },
+      "omits": {
+        "is-delete": "bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>"
+      }
+    },
+    "tags": {
+      "status": "mapped",
+      "target": "Tags",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "has-addons": { "writes": [{ "prop": "hasAddons" }] },
+        "are-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "are-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
+      "omits": {}
+    },
+    "title": {
+      "status": "mapped",
+      "target": "Title",
+      "tag": "h1",
+      "as": ["h1", "h2", "h3", "h4", "h5", "h6", "p"],
+      "sizeDrivesTag": true,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-1": {
+          "writes": [{ "prop": "size", "value": "1" }],
+          "tagIn": ["h1", "p"]
+        },
+        "is-2": {
+          "writes": [{ "prop": "size", "value": "2" }],
+          "tagIn": ["h2", "p"]
+        },
+        "is-3": {
+          "writes": [{ "prop": "size", "value": "3" }],
+          "tagIn": ["h3", "p"]
+        },
+        "is-4": {
+          "writes": [{ "prop": "size", "value": "4" }],
+          "tagIn": ["h4", "p"]
+        },
+        "is-5": {
+          "writes": [{ "prop": "size", "value": "5" }],
+          "tagIn": ["h5", "p"]
+        },
+        "is-6": {
+          "writes": [{ "prop": "size", "value": "6" }],
+          "tagIn": ["h6", "p"]
+        },
+        "is-spaced": { "writes": [{ "prop": "isSpaced" }] },
+        "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
+      },
+      "omits": {}
+    },
+    "breadcrumb": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "card": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Card` wraps any child that is not one of its parts in `.card-content`, so convert the card and its parts together, by hand",
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-header": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-header-title": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-header-icon": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-image": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-content": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-footer": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "card-footer-item": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "cell": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
+      "modifiers": {},
+      "omits": {}
+    },
+    "grid": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
+      "modifiers": {},
+      "omits": {}
+    },
+    "fixed-grid": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
+      "modifiers": {},
+      "omits": {}
+    },
+    "checkbox": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Checkbox` renders its own styled markup, not Bulma's",
+      "modifiers": {},
+      "omits": {}
+    },
+    "checkboxes": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Checkboxes` renders its own `.field` and `.control` wrappers",
+      "modifiers": {},
+      "omits": {}
+    },
+    "radio": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Radio` renders its own styled markup, not Bulma's",
+      "modifiers": {},
+      "omits": {}
+    },
+    "radios": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Radios` renders its own `.field` and `.control` wrappers",
+      "modifiers": {},
+      "omits": {}
+    },
+    "field": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax form controls render their own `.field` and `.control` wrappers; see the unmappables reference",
+      "modifiers": {},
+      "omits": {}
+    },
+    "field-label": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "field-body": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "control": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "input": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Input` renders its own `.field` and `.control` wrappers",
+      "modifiers": {},
+      "omits": {}
+    },
+    "textarea": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `TextArea` renders its own `.field` and `.control` wrappers",
+      "modifiers": {},
+      "omits": {}
+    },
+    "select": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Select` renders the `.select` wrapper and the `<select>` together",
+      "modifiers": {},
+      "omits": {}
+    },
+    "file": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `File` renders the whole `.file-label` tree itself",
+      "modifiers": {},
+      "omits": {}
+    },
+    "file-label": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "file-input": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "file-cta": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "file-icon": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "file-name": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "dropdown": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Dropdown` renders its own trigger and menu from props",
+      "modifiers": {},
+      "omits": {}
+    },
+    "dropdown-menu": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "dropdown-content": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "dropdown-item": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "dropdown-divider": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "icon": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Icon` renders its own `<i>` and adds an `aria-label`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "icon-text": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `IconText` pairs with `Icon`, which renders its own `<i>`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "image": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Image` renders its own `<img>`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "menu": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Menu.Item` renders the `<li>` and the `<a>` together",
+      "modifiers": {},
+      "omits": {}
+    },
+    "menu-label": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "menu-list": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "menu-item": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "message": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Message` always wraps its children in `.message-body`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "message-header": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "message-body": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Modal` renders its own background and content parts, and adds dialog attributes",
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-background": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-content": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-card": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-card-head": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-card-title": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-card-body": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-card-foot": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "modal-close": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Navbar` adds navigation roles, and its burger renders its own spans",
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-brand": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-burger": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-menu": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-start": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-end": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-item": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-link": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-dropdown": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-divider": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-content": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "navbar-tabs": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "pagination": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Pagination` renders its own list items and adds navigation roles",
+      "modifiers": {},
+      "omits": {}
+    },
+    "pagination-list": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "pagination-link": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "pagination-ellipsis": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "pagination-previous": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "pagination-next": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "panel": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Panel` parts render their own tags and attributes (`Panel.Block` is an `<a>`, `Panel.Icon` adds an `aria-label`)",
+      "modifiers": {},
+      "omits": {}
+    },
+    "panel-heading": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "panel-tabs": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "panel-block": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "panel-icon": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "panel-list": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": true,
+      "why": null,
+      "modifiers": {},
+      "omits": {}
+    },
+    "tabs": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles",
+      "modifiers": {},
+      "omits": {}
+    },
+    "table-container": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax renders `.table-container` from `Table isResponsive`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "skeleton-block": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Skeleton` renders its own markup",
+      "modifiers": {},
+      "omits": {}
+    },
+    "skeleton-lines": {
+      "status": "todo",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Skeleton` renders its own markup",
+      "modifiers": {},
+      "omits": {}
+    },
+    "help": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax renders `.help` only inside its form controls",
+      "modifiers": {},
+      "omits": {}
+    },
+    "label": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax renders `.label` only inside its form controls",
+      "modifiers": {},
+      "omits": {}
+    },
+    "loader": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "bestax `Loading` is an overlay, not Bulma's inline spinner",
+      "modifiers": {},
+      "omits": {}
+    },
+    "hero-buttons": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a layout class inside `.hero`; bestax has no part for it",
+      "modifiers": {},
+      "omits": {}
+    },
+    "hero-video": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a layout class inside `.hero`; bestax has no part for it",
+      "modifiers": {},
+      "omits": {}
+    },
+    "theme-dark": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a theme scope; bestax sets themes through `Theme`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "theme-light": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a theme scope; bestax sets themes through `Theme`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "fa": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "Font Awesome's own class, styled by Bulma inside `.icon`",
+      "modifiers": {},
+      "omits": {}
+    },
+    "marginless": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a Bulma helper with no bestax prop",
+      "modifiers": {},
+      "omits": {}
+    },
+    "paddingless": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a Bulma helper with no bestax prop",
+      "modifiers": {},
+      "omits": {}
+    }
+  },
+  "precedence": [
+    "columns",
+    "column",
+    "container",
+    "section",
+    "hero",
+    "hero-head",
+    "hero-body",
+    "hero-foot",
+    "footer",
+    "level",
+    "level-left",
+    "level-right",
+    "level-item",
+    "media",
+    "media-left",
+    "media-content",
+    "media-right",
+    "buttons",
+    "tags",
+    "button",
+    "tag",
+    "delete",
+    "progress",
+    "table",
+    "title",
+    "subtitle",
+    "notification",
+    "box",
+    "content",
+    "block"
+  ],
+  "wrappers": {
+    "p": "Paragraph",
+    "span": "Span",
+    "strong": "Strong",
+    "em": "Emphasis",
+    "code": "Code",
+    "pre": "Pre",
+    "a": "Link",
+    "li": "ListItem",
+    "ol": "OrderedList",
+    "ul": "UnorderedList",
+    "figure": "Figure"
+  },
+  "helpers": {
+    "has-text-primary": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" }
+    },
+    "has-text-link": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" }
+    },
+    "has-text-info": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" }
+    },
+    "has-text-success": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" }
+    },
+    "has-text-warning": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" }
+    },
+    "has-text-danger": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" }
+    },
+    "has-text-black": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" }
+    },
+    "has-text-black-bis": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black-bis" }
+    },
+    "has-text-black-ter": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black-ter" }
+    },
+    "has-text-grey-darker": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "grey-darker" }
+    },
+    "has-text-grey-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "grey-dark" }
+    },
+    "has-text-grey": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "grey" }
+    },
+    "has-text-grey-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "grey-light" }
+    },
+    "has-text-grey-lighter": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "grey-lighter" }
+    },
+    "has-text-white": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" }
+    },
+    "has-text-white-bis": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white-bis" }
+    },
+    "has-text-white-ter": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white-ter" }
+    },
+    "has-text-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" }
+    },
+    "has-text-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" }
+    },
+    "has-text-inherit": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "inherit" }
+    },
+    "has-text-current": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "current" }
+    },
+    "has-background-primary": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" }
+    },
+    "has-background-link": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" }
+    },
+    "has-background-info": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" }
+    },
+    "has-background-success": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" }
+    },
+    "has-background-warning": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" }
+    },
+    "has-background-danger": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" }
+    },
+    "has-background-black": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" }
+    },
+    "has-background-black-bis": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black-bis" }
+    },
+    "has-background-black-ter": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black-ter" }
+    },
+    "has-background-grey-darker": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "grey-darker" }
+    },
+    "has-background-grey-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "grey-dark" }
+    },
+    "has-background-grey": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "grey" }
+    },
+    "has-background-grey-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "grey-light" }
+    },
+    "has-background-grey-lighter": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "grey-lighter" }
+    },
+    "has-background-white": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" }
+    },
+    "has-background-white-bis": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white-bis" }
+    },
+    "has-background-white-ter": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white-ter" }
+    },
+    "has-background-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" }
+    },
+    "has-background-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" }
+    },
+    "has-background-inherit": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "inherit" }
+    },
+    "has-background-current": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "current" }
+    },
+    "m-0": { "group": "spacing", "write": { "prop": "m", "value": "0" } },
+    "m-1": { "group": "spacing", "write": { "prop": "m", "value": "1" } },
+    "m-2": { "group": "spacing", "write": { "prop": "m", "value": "2" } },
+    "m-3": { "group": "spacing", "write": { "prop": "m", "value": "3" } },
+    "m-4": { "group": "spacing", "write": { "prop": "m", "value": "4" } },
+    "m-5": { "group": "spacing", "write": { "prop": "m", "value": "5" } },
+    "m-6": { "group": "spacing", "write": { "prop": "m", "value": "6" } },
+    "m-auto": { "group": "spacing", "write": { "prop": "m", "value": "auto" } },
+    "mt-0": { "group": "spacing", "write": { "prop": "mt", "value": "0" } },
+    "mt-1": { "group": "spacing", "write": { "prop": "mt", "value": "1" } },
+    "mt-2": { "group": "spacing", "write": { "prop": "mt", "value": "2" } },
+    "mt-3": { "group": "spacing", "write": { "prop": "mt", "value": "3" } },
+    "mt-4": { "group": "spacing", "write": { "prop": "mt", "value": "4" } },
+    "mt-5": { "group": "spacing", "write": { "prop": "mt", "value": "5" } },
+    "mt-6": { "group": "spacing", "write": { "prop": "mt", "value": "6" } },
+    "mt-auto": {
+      "group": "spacing",
+      "write": { "prop": "mt", "value": "auto" }
+    },
+    "mr-0": { "group": "spacing", "write": { "prop": "mr", "value": "0" } },
+    "mr-1": { "group": "spacing", "write": { "prop": "mr", "value": "1" } },
+    "mr-2": { "group": "spacing", "write": { "prop": "mr", "value": "2" } },
+    "mr-3": { "group": "spacing", "write": { "prop": "mr", "value": "3" } },
+    "mr-4": { "group": "spacing", "write": { "prop": "mr", "value": "4" } },
+    "mr-5": { "group": "spacing", "write": { "prop": "mr", "value": "5" } },
+    "mr-6": { "group": "spacing", "write": { "prop": "mr", "value": "6" } },
+    "mr-auto": {
+      "group": "spacing",
+      "write": { "prop": "mr", "value": "auto" }
+    },
+    "mb-0": { "group": "spacing", "write": { "prop": "mb", "value": "0" } },
+    "mb-1": { "group": "spacing", "write": { "prop": "mb", "value": "1" } },
+    "mb-2": { "group": "spacing", "write": { "prop": "mb", "value": "2" } },
+    "mb-3": { "group": "spacing", "write": { "prop": "mb", "value": "3" } },
+    "mb-4": { "group": "spacing", "write": { "prop": "mb", "value": "4" } },
+    "mb-5": { "group": "spacing", "write": { "prop": "mb", "value": "5" } },
+    "mb-6": { "group": "spacing", "write": { "prop": "mb", "value": "6" } },
+    "mb-auto": {
+      "group": "spacing",
+      "write": { "prop": "mb", "value": "auto" }
+    },
+    "ml-0": { "group": "spacing", "write": { "prop": "ml", "value": "0" } },
+    "ml-1": { "group": "spacing", "write": { "prop": "ml", "value": "1" } },
+    "ml-2": { "group": "spacing", "write": { "prop": "ml", "value": "2" } },
+    "ml-3": { "group": "spacing", "write": { "prop": "ml", "value": "3" } },
+    "ml-4": { "group": "spacing", "write": { "prop": "ml", "value": "4" } },
+    "ml-5": { "group": "spacing", "write": { "prop": "ml", "value": "5" } },
+    "ml-6": { "group": "spacing", "write": { "prop": "ml", "value": "6" } },
+    "ml-auto": {
+      "group": "spacing",
+      "write": { "prop": "ml", "value": "auto" }
+    },
+    "mx-0": { "group": "spacing", "write": { "prop": "mx", "value": "0" } },
+    "mx-1": { "group": "spacing", "write": { "prop": "mx", "value": "1" } },
+    "mx-2": { "group": "spacing", "write": { "prop": "mx", "value": "2" } },
+    "mx-3": { "group": "spacing", "write": { "prop": "mx", "value": "3" } },
+    "mx-4": { "group": "spacing", "write": { "prop": "mx", "value": "4" } },
+    "mx-5": { "group": "spacing", "write": { "prop": "mx", "value": "5" } },
+    "mx-6": { "group": "spacing", "write": { "prop": "mx", "value": "6" } },
+    "mx-auto": {
+      "group": "spacing",
+      "write": { "prop": "mx", "value": "auto" }
+    },
+    "my-0": { "group": "spacing", "write": { "prop": "my", "value": "0" } },
+    "my-1": { "group": "spacing", "write": { "prop": "my", "value": "1" } },
+    "my-2": { "group": "spacing", "write": { "prop": "my", "value": "2" } },
+    "my-3": { "group": "spacing", "write": { "prop": "my", "value": "3" } },
+    "my-4": { "group": "spacing", "write": { "prop": "my", "value": "4" } },
+    "my-5": { "group": "spacing", "write": { "prop": "my", "value": "5" } },
+    "my-6": { "group": "spacing", "write": { "prop": "my", "value": "6" } },
+    "my-auto": {
+      "group": "spacing",
+      "write": { "prop": "my", "value": "auto" }
+    },
+    "p-0": { "group": "spacing", "write": { "prop": "p", "value": "0" } },
+    "p-1": { "group": "spacing", "write": { "prop": "p", "value": "1" } },
+    "p-2": { "group": "spacing", "write": { "prop": "p", "value": "2" } },
+    "p-3": { "group": "spacing", "write": { "prop": "p", "value": "3" } },
+    "p-4": { "group": "spacing", "write": { "prop": "p", "value": "4" } },
+    "p-5": { "group": "spacing", "write": { "prop": "p", "value": "5" } },
+    "p-6": { "group": "spacing", "write": { "prop": "p", "value": "6" } },
+    "p-auto": { "group": "spacing", "write": { "prop": "p", "value": "auto" } },
+    "pt-0": { "group": "spacing", "write": { "prop": "pt", "value": "0" } },
+    "pt-1": { "group": "spacing", "write": { "prop": "pt", "value": "1" } },
+    "pt-2": { "group": "spacing", "write": { "prop": "pt", "value": "2" } },
+    "pt-3": { "group": "spacing", "write": { "prop": "pt", "value": "3" } },
+    "pt-4": { "group": "spacing", "write": { "prop": "pt", "value": "4" } },
+    "pt-5": { "group": "spacing", "write": { "prop": "pt", "value": "5" } },
+    "pt-6": { "group": "spacing", "write": { "prop": "pt", "value": "6" } },
+    "pt-auto": {
+      "group": "spacing",
+      "write": { "prop": "pt", "value": "auto" }
+    },
+    "pr-0": { "group": "spacing", "write": { "prop": "pr", "value": "0" } },
+    "pr-1": { "group": "spacing", "write": { "prop": "pr", "value": "1" } },
+    "pr-2": { "group": "spacing", "write": { "prop": "pr", "value": "2" } },
+    "pr-3": { "group": "spacing", "write": { "prop": "pr", "value": "3" } },
+    "pr-4": { "group": "spacing", "write": { "prop": "pr", "value": "4" } },
+    "pr-5": { "group": "spacing", "write": { "prop": "pr", "value": "5" } },
+    "pr-6": { "group": "spacing", "write": { "prop": "pr", "value": "6" } },
+    "pr-auto": {
+      "group": "spacing",
+      "write": { "prop": "pr", "value": "auto" }
+    },
+    "pb-0": { "group": "spacing", "write": { "prop": "pb", "value": "0" } },
+    "pb-1": { "group": "spacing", "write": { "prop": "pb", "value": "1" } },
+    "pb-2": { "group": "spacing", "write": { "prop": "pb", "value": "2" } },
+    "pb-3": { "group": "spacing", "write": { "prop": "pb", "value": "3" } },
+    "pb-4": { "group": "spacing", "write": { "prop": "pb", "value": "4" } },
+    "pb-5": { "group": "spacing", "write": { "prop": "pb", "value": "5" } },
+    "pb-6": { "group": "spacing", "write": { "prop": "pb", "value": "6" } },
+    "pb-auto": {
+      "group": "spacing",
+      "write": { "prop": "pb", "value": "auto" }
+    },
+    "pl-0": { "group": "spacing", "write": { "prop": "pl", "value": "0" } },
+    "pl-1": { "group": "spacing", "write": { "prop": "pl", "value": "1" } },
+    "pl-2": { "group": "spacing", "write": { "prop": "pl", "value": "2" } },
+    "pl-3": { "group": "spacing", "write": { "prop": "pl", "value": "3" } },
+    "pl-4": { "group": "spacing", "write": { "prop": "pl", "value": "4" } },
+    "pl-5": { "group": "spacing", "write": { "prop": "pl", "value": "5" } },
+    "pl-6": { "group": "spacing", "write": { "prop": "pl", "value": "6" } },
+    "pl-auto": {
+      "group": "spacing",
+      "write": { "prop": "pl", "value": "auto" }
+    },
+    "px-0": { "group": "spacing", "write": { "prop": "px", "value": "0" } },
+    "px-1": { "group": "spacing", "write": { "prop": "px", "value": "1" } },
+    "px-2": { "group": "spacing", "write": { "prop": "px", "value": "2" } },
+    "px-3": { "group": "spacing", "write": { "prop": "px", "value": "3" } },
+    "px-4": { "group": "spacing", "write": { "prop": "px", "value": "4" } },
+    "px-5": { "group": "spacing", "write": { "prop": "px", "value": "5" } },
+    "px-6": { "group": "spacing", "write": { "prop": "px", "value": "6" } },
+    "px-auto": {
+      "group": "spacing",
+      "write": { "prop": "px", "value": "auto" }
+    },
+    "py-0": { "group": "spacing", "write": { "prop": "py", "value": "0" } },
+    "py-1": { "group": "spacing", "write": { "prop": "py", "value": "1" } },
+    "py-2": { "group": "spacing", "write": { "prop": "py", "value": "2" } },
+    "py-3": { "group": "spacing", "write": { "prop": "py", "value": "3" } },
+    "py-4": { "group": "spacing", "write": { "prop": "py", "value": "4" } },
+    "py-5": { "group": "spacing", "write": { "prop": "py", "value": "5" } },
+    "py-6": { "group": "spacing", "write": { "prop": "py", "value": "6" } },
+    "py-auto": {
+      "group": "spacing",
+      "write": { "prop": "py", "value": "auto" }
+    },
+    "is-size-1": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "1" }
+    },
+    "is-size-2": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "2" }
+    },
+    "is-size-3": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "3" }
+    },
+    "is-size-4": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "4" }
+    },
+    "is-size-5": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "5" }
+    },
+    "is-size-6": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "6" }
+    },
+    "is-size-7": {
+      "group": "typography",
+      "write": { "prop": "textSize", "value": "7" }
+    },
+    "is-size-1-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "1" }
+    },
+    "is-size-2-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "2" }
+    },
+    "is-size-3-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "3" }
+    },
+    "is-size-4-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "4" }
+    },
+    "is-size-5-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "5" }
+    },
+    "is-size-6-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "6" }
+    },
+    "is-size-7-mobile": {
+      "group": "typography",
+      "write": { "prop": "textSizeMobile", "value": "7" }
+    },
+    "is-size-1-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "1" }
+    },
+    "is-size-2-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "2" }
+    },
+    "is-size-3-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "3" }
+    },
+    "is-size-4-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "4" }
+    },
+    "is-size-5-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "5" }
+    },
+    "is-size-6-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "6" }
+    },
+    "is-size-7-tablet": {
+      "group": "typography",
+      "write": { "prop": "textSizeTablet", "value": "7" }
+    },
+    "is-size-1-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "1" }
+    },
+    "is-size-2-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "2" }
+    },
+    "is-size-3-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "3" }
+    },
+    "is-size-4-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "4" }
+    },
+    "is-size-5-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "5" }
+    },
+    "is-size-6-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "6" }
+    },
+    "is-size-7-desktop": {
+      "group": "typography",
+      "write": { "prop": "textSizeDesktop", "value": "7" }
+    },
+    "is-size-1-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "1" }
+    },
+    "is-size-2-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "2" }
+    },
+    "is-size-3-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "3" }
+    },
+    "is-size-4-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "4" }
+    },
+    "is-size-5-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "5" }
+    },
+    "is-size-6-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "6" }
+    },
+    "is-size-7-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textSizeWidescreen", "value": "7" }
+    },
+    "is-size-1-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "1" }
+    },
+    "is-size-2-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "2" }
+    },
+    "is-size-3-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "3" }
+    },
+    "is-size-4-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "4" }
+    },
+    "is-size-5-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "5" }
+    },
+    "is-size-6-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "6" }
+    },
+    "is-size-7-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textSizeFullhd", "value": "7" }
+    },
+    "has-text-centered": {
+      "group": "typography",
+      "write": { "prop": "textAlign", "value": "centered" }
+    },
+    "has-text-justified": {
+      "group": "typography",
+      "write": { "prop": "textAlign", "value": "justified" }
+    },
+    "has-text-left": {
+      "group": "typography",
+      "write": { "prop": "textAlign", "value": "left" }
+    },
+    "has-text-right": {
+      "group": "typography",
+      "write": { "prop": "textAlign", "value": "right" }
+    },
+    "has-text-centered-mobile": {
+      "group": "typography",
+      "write": { "prop": "textAlignMobile", "value": "centered" }
+    },
+    "has-text-justified-mobile": {
+      "group": "typography",
+      "write": { "prop": "textAlignMobile", "value": "justified" }
+    },
+    "has-text-left-mobile": {
+      "group": "typography",
+      "write": { "prop": "textAlignMobile", "value": "left" }
+    },
+    "has-text-right-mobile": {
+      "group": "typography",
+      "write": { "prop": "textAlignMobile", "value": "right" }
+    },
+    "has-text-centered-tablet": {
+      "group": "typography",
+      "write": { "prop": "textAlignTablet", "value": "centered" }
+    },
+    "has-text-justified-tablet": {
+      "group": "typography",
+      "write": { "prop": "textAlignTablet", "value": "justified" }
+    },
+    "has-text-left-tablet": {
+      "group": "typography",
+      "write": { "prop": "textAlignTablet", "value": "left" }
+    },
+    "has-text-right-tablet": {
+      "group": "typography",
+      "write": { "prop": "textAlignTablet", "value": "right" }
+    },
+    "has-text-centered-desktop": {
+      "group": "typography",
+      "write": { "prop": "textAlignDesktop", "value": "centered" }
+    },
+    "has-text-justified-desktop": {
+      "group": "typography",
+      "write": { "prop": "textAlignDesktop", "value": "justified" }
+    },
+    "has-text-left-desktop": {
+      "group": "typography",
+      "write": { "prop": "textAlignDesktop", "value": "left" }
+    },
+    "has-text-right-desktop": {
+      "group": "typography",
+      "write": { "prop": "textAlignDesktop", "value": "right" }
+    },
+    "has-text-centered-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textAlignWidescreen", "value": "centered" }
+    },
+    "has-text-justified-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textAlignWidescreen", "value": "justified" }
+    },
+    "has-text-left-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textAlignWidescreen", "value": "left" }
+    },
+    "has-text-right-widescreen": {
+      "group": "typography",
+      "write": { "prop": "textAlignWidescreen", "value": "right" }
+    },
+    "has-text-centered-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textAlignFullhd", "value": "centered" }
+    },
+    "has-text-justified-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textAlignFullhd", "value": "justified" }
+    },
+    "has-text-left-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textAlignFullhd", "value": "left" }
+    },
+    "has-text-right-fullhd": {
+      "group": "typography",
+      "write": { "prop": "textAlignFullhd", "value": "right" }
+    },
+    "is-capitalized": {
+      "group": "typography",
+      "write": { "prop": "textTransform", "value": "capitalized" }
+    },
+    "is-lowercase": {
+      "group": "typography",
+      "write": { "prop": "textTransform", "value": "lowercase" }
+    },
+    "is-uppercase": {
+      "group": "typography",
+      "write": { "prop": "textTransform", "value": "uppercase" }
+    },
+    "is-italic": {
+      "group": "typography",
+      "write": { "prop": "textTransform", "value": "italic" }
+    },
+    "has-text-weight-light": {
+      "group": "typography",
+      "write": { "prop": "textWeight", "value": "light" }
+    },
+    "has-text-weight-normal": {
+      "group": "typography",
+      "write": { "prop": "textWeight", "value": "normal" }
+    },
+    "has-text-weight-medium": {
+      "group": "typography",
+      "write": { "prop": "textWeight", "value": "medium" }
+    },
+    "has-text-weight-semibold": {
+      "group": "typography",
+      "write": { "prop": "textWeight", "value": "semibold" }
+    },
+    "has-text-weight-bold": {
+      "group": "typography",
+      "write": { "prop": "textWeight", "value": "bold" }
+    },
+    "is-family-sans-serif": {
+      "group": "typography",
+      "write": { "prop": "fontFamily", "value": "sans-serif" }
+    },
+    "is-family-monospace": {
+      "group": "typography",
+      "write": { "prop": "fontFamily", "value": "monospace" }
+    },
+    "is-family-primary": {
+      "group": "typography",
+      "write": { "prop": "fontFamily", "value": "primary" }
+    },
+    "is-family-secondary": {
+      "group": "typography",
+      "write": { "prop": "fontFamily", "value": "secondary" }
+    },
+    "is-family-code": {
+      "group": "typography",
+      "write": { "prop": "fontFamily", "value": "code" }
+    },
+    "is-block": {
+      "group": "display",
+      "write": { "prop": "display", "value": "block" }
+    },
+    "is-flex": {
+      "group": "display",
+      "write": { "prop": "display", "value": "flex" }
+    },
+    "is-inline": {
+      "group": "display",
+      "write": { "prop": "display", "value": "inline" }
+    },
+    "is-inline-block": {
+      "group": "display",
+      "write": { "prop": "display", "value": "inline-block" }
+    },
+    "is-inline-flex": {
+      "group": "display",
+      "write": { "prop": "display", "value": "inline-flex" }
+    },
+    "is-grid": {
+      "group": "display",
+      "write": { "prop": "display", "value": "grid" }
+    },
+    "is-block-mobile": {
+      "group": "display",
+      "write": { "prop": "displayMobile", "value": "block" }
+    },
+    "is-flex-mobile": {
+      "group": "display",
+      "write": { "prop": "displayMobile", "value": "flex" }
+    },
+    "is-inline-mobile": {
+      "group": "display",
+      "write": { "prop": "displayMobile", "value": "inline" }
+    },
+    "is-inline-block-mobile": {
+      "group": "display",
+      "write": { "prop": "displayMobile", "value": "inline-block" }
+    },
+    "is-inline-flex-mobile": {
+      "group": "display",
+      "write": { "prop": "displayMobile", "value": "inline-flex" }
+    },
+    "is-grid-mobile": {
+      "group": "display",
+      "write": { "prop": "displayMobile", "value": "grid" }
+    },
+    "is-block-tablet": {
+      "group": "display",
+      "write": { "prop": "displayTablet", "value": "block" }
+    },
+    "is-flex-tablet": {
+      "group": "display",
+      "write": { "prop": "displayTablet", "value": "flex" }
+    },
+    "is-inline-tablet": {
+      "group": "display",
+      "write": { "prop": "displayTablet", "value": "inline" }
+    },
+    "is-inline-block-tablet": {
+      "group": "display",
+      "write": { "prop": "displayTablet", "value": "inline-block" }
+    },
+    "is-inline-flex-tablet": {
+      "group": "display",
+      "write": { "prop": "displayTablet", "value": "inline-flex" }
+    },
+    "is-grid-tablet": {
+      "group": "display",
+      "write": { "prop": "displayTablet", "value": "grid" }
+    },
+    "is-block-tablet-only": {
+      "group": "display",
+      "write": { "prop": "displayTabletOnly", "value": "block" }
+    },
+    "is-flex-tablet-only": {
+      "group": "display",
+      "write": { "prop": "displayTabletOnly", "value": "flex" }
+    },
+    "is-inline-tablet-only": {
+      "group": "display",
+      "write": { "prop": "displayTabletOnly", "value": "inline" }
+    },
+    "is-inline-block-tablet-only": {
+      "group": "display",
+      "write": { "prop": "displayTabletOnly", "value": "inline-block" }
+    },
+    "is-inline-flex-tablet-only": {
+      "group": "display",
+      "write": { "prop": "displayTabletOnly", "value": "inline-flex" }
+    },
+    "is-grid-tablet-only": {
+      "group": "display",
+      "write": { "prop": "displayTabletOnly", "value": "grid" }
+    },
+    "is-block-touch": {
+      "group": "display",
+      "write": { "prop": "displayTouch", "value": "block" }
+    },
+    "is-flex-touch": {
+      "group": "display",
+      "write": { "prop": "displayTouch", "value": "flex" }
+    },
+    "is-inline-touch": {
+      "group": "display",
+      "write": { "prop": "displayTouch", "value": "inline" }
+    },
+    "is-inline-block-touch": {
+      "group": "display",
+      "write": { "prop": "displayTouch", "value": "inline-block" }
+    },
+    "is-inline-flex-touch": {
+      "group": "display",
+      "write": { "prop": "displayTouch", "value": "inline-flex" }
+    },
+    "is-grid-touch": {
+      "group": "display",
+      "write": { "prop": "displayTouch", "value": "grid" }
+    },
+    "is-block-desktop": {
+      "group": "display",
+      "write": { "prop": "displayDesktop", "value": "block" }
+    },
+    "is-flex-desktop": {
+      "group": "display",
+      "write": { "prop": "displayDesktop", "value": "flex" }
+    },
+    "is-inline-desktop": {
+      "group": "display",
+      "write": { "prop": "displayDesktop", "value": "inline" }
+    },
+    "is-inline-block-desktop": {
+      "group": "display",
+      "write": { "prop": "displayDesktop", "value": "inline-block" }
+    },
+    "is-inline-flex-desktop": {
+      "group": "display",
+      "write": { "prop": "displayDesktop", "value": "inline-flex" }
+    },
+    "is-grid-desktop": {
+      "group": "display",
+      "write": { "prop": "displayDesktop", "value": "grid" }
+    },
+    "is-block-desktop-only": {
+      "group": "display",
+      "write": { "prop": "displayDesktopOnly", "value": "block" }
+    },
+    "is-flex-desktop-only": {
+      "group": "display",
+      "write": { "prop": "displayDesktopOnly", "value": "flex" }
+    },
+    "is-inline-desktop-only": {
+      "group": "display",
+      "write": { "prop": "displayDesktopOnly", "value": "inline" }
+    },
+    "is-inline-block-desktop-only": {
+      "group": "display",
+      "write": { "prop": "displayDesktopOnly", "value": "inline-block" }
+    },
+    "is-inline-flex-desktop-only": {
+      "group": "display",
+      "write": { "prop": "displayDesktopOnly", "value": "inline-flex" }
+    },
+    "is-grid-desktop-only": {
+      "group": "display",
+      "write": { "prop": "displayDesktopOnly", "value": "grid" }
+    },
+    "is-block-widescreen": {
+      "group": "display",
+      "write": { "prop": "displayWidescreen", "value": "block" }
+    },
+    "is-flex-widescreen": {
+      "group": "display",
+      "write": { "prop": "displayWidescreen", "value": "flex" }
+    },
+    "is-inline-widescreen": {
+      "group": "display",
+      "write": { "prop": "displayWidescreen", "value": "inline" }
+    },
+    "is-inline-block-widescreen": {
+      "group": "display",
+      "write": { "prop": "displayWidescreen", "value": "inline-block" }
+    },
+    "is-inline-flex-widescreen": {
+      "group": "display",
+      "write": { "prop": "displayWidescreen", "value": "inline-flex" }
+    },
+    "is-grid-widescreen": {
+      "group": "display",
+      "write": { "prop": "displayWidescreen", "value": "grid" }
+    },
+    "is-block-widescreen-only": {
+      "group": "display",
+      "write": { "prop": "displayWidescreenOnly", "value": "block" }
+    },
+    "is-flex-widescreen-only": {
+      "group": "display",
+      "write": { "prop": "displayWidescreenOnly", "value": "flex" }
+    },
+    "is-inline-widescreen-only": {
+      "group": "display",
+      "write": { "prop": "displayWidescreenOnly", "value": "inline" }
+    },
+    "is-inline-block-widescreen-only": {
+      "group": "display",
+      "write": { "prop": "displayWidescreenOnly", "value": "inline-block" }
+    },
+    "is-inline-flex-widescreen-only": {
+      "group": "display",
+      "write": { "prop": "displayWidescreenOnly", "value": "inline-flex" }
+    },
+    "is-grid-widescreen-only": {
+      "group": "display",
+      "write": { "prop": "displayWidescreenOnly", "value": "grid" }
+    },
+    "is-block-fullhd": {
+      "group": "display",
+      "write": { "prop": "displayFullhd", "value": "block" }
+    },
+    "is-flex-fullhd": {
+      "group": "display",
+      "write": { "prop": "displayFullhd", "value": "flex" }
+    },
+    "is-inline-fullhd": {
+      "group": "display",
+      "write": { "prop": "displayFullhd", "value": "inline" }
+    },
+    "is-inline-block-fullhd": {
+      "group": "display",
+      "write": { "prop": "displayFullhd", "value": "inline-block" }
+    },
+    "is-inline-flex-fullhd": {
+      "group": "display",
+      "write": { "prop": "displayFullhd", "value": "inline-flex" }
+    },
+    "is-grid-fullhd": {
+      "group": "display",
+      "write": { "prop": "displayFullhd", "value": "grid" }
+    },
+    "is-hidden": {
+      "group": "visibility",
+      "write": { "prop": "visibility", "value": "hidden" }
+    },
+    "is-invisible": {
+      "group": "visibility",
+      "write": { "prop": "visibility", "value": "invisible" }
+    },
+    "is-sr-only": {
+      "group": "visibility",
+      "write": { "prop": "visibility", "value": "sr-only" }
+    },
+    "is-hidden-mobile": {
+      "group": "visibility",
+      "write": { "prop": "visibilityMobile", "value": "hidden" }
+    },
+    "is-invisible-mobile": {
+      "group": "visibility",
+      "write": { "prop": "visibilityMobile", "value": "invisible" }
+    },
+    "is-hidden-tablet": {
+      "group": "visibility",
+      "write": { "prop": "visibilityTablet", "value": "hidden" }
+    },
+    "is-invisible-tablet": {
+      "group": "visibility",
+      "write": { "prop": "visibilityTablet", "value": "invisible" }
+    },
+    "is-hidden-tablet-only": {
+      "group": "visibility",
+      "write": { "prop": "visibilityTabletOnly", "value": "hidden" }
+    },
+    "is-invisible-tablet-only": {
+      "group": "visibility",
+      "write": { "prop": "visibilityTabletOnly", "value": "invisible" }
+    },
+    "is-hidden-touch": {
+      "group": "visibility",
+      "write": { "prop": "visibilityTouch", "value": "hidden" }
+    },
+    "is-invisible-touch": {
+      "group": "visibility",
+      "write": { "prop": "visibilityTouch", "value": "invisible" }
+    },
+    "is-hidden-desktop": {
+      "group": "visibility",
+      "write": { "prop": "visibilityDesktop", "value": "hidden" }
+    },
+    "is-invisible-desktop": {
+      "group": "visibility",
+      "write": { "prop": "visibilityDesktop", "value": "invisible" }
+    },
+    "is-hidden-desktop-only": {
+      "group": "visibility",
+      "write": { "prop": "visibilityDesktopOnly", "value": "hidden" }
+    },
+    "is-invisible-desktop-only": {
+      "group": "visibility",
+      "write": { "prop": "visibilityDesktopOnly", "value": "invisible" }
+    },
+    "is-hidden-widescreen": {
+      "group": "visibility",
+      "write": { "prop": "visibilityWidescreen", "value": "hidden" }
+    },
+    "is-invisible-widescreen": {
+      "group": "visibility",
+      "write": { "prop": "visibilityWidescreen", "value": "invisible" }
+    },
+    "is-hidden-widescreen-only": {
+      "group": "visibility",
+      "write": { "prop": "visibilityWidescreenOnly", "value": "hidden" }
+    },
+    "is-invisible-widescreen-only": {
+      "group": "visibility",
+      "write": { "prop": "visibilityWidescreenOnly", "value": "invisible" }
+    },
+    "is-hidden-fullhd": {
+      "group": "visibility",
+      "write": { "prop": "visibilityFullhd", "value": "hidden" }
+    },
+    "is-invisible-fullhd": {
+      "group": "visibility",
+      "write": { "prop": "visibilityFullhd", "value": "invisible" }
+    },
+    "is-flex-direction-row": {
+      "group": "flex-container",
+      "write": { "prop": "flexDirection", "value": "row" }
+    },
+    "is-flex-direction-row-reverse": {
+      "group": "flex-container",
+      "write": { "prop": "flexDirection", "value": "row-reverse" }
+    },
+    "is-flex-direction-column": {
+      "group": "flex-container",
+      "write": { "prop": "flexDirection", "value": "column" }
+    },
+    "is-flex-direction-column-reverse": {
+      "group": "flex-container",
+      "write": { "prop": "flexDirection", "value": "column-reverse" }
+    },
+    "is-flex-wrap-nowrap": {
+      "group": "flex-container",
+      "write": { "prop": "flexWrap", "value": "nowrap" }
+    },
+    "is-flex-wrap-wrap": {
+      "group": "flex-container",
+      "write": { "prop": "flexWrap", "value": "wrap" }
+    },
+    "is-flex-wrap-wrap-reverse": {
+      "group": "flex-container",
+      "write": { "prop": "flexWrap", "value": "wrap-reverse" }
+    },
+    "is-justify-content-flex-start": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "flex-start" }
+    },
+    "is-justify-content-flex-end": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "flex-end" }
+    },
+    "is-justify-content-center": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "center" }
+    },
+    "is-justify-content-space-between": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "space-between" }
+    },
+    "is-justify-content-space-around": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "space-around" }
+    },
+    "is-justify-content-space-evenly": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "space-evenly" }
+    },
+    "is-justify-content-start": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "start" }
+    },
+    "is-justify-content-end": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "end" }
+    },
+    "is-justify-content-left": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "left" }
+    },
+    "is-justify-content-right": {
+      "group": "flex-container",
+      "write": { "prop": "justifyContent", "value": "right" }
+    },
+    "is-align-content-flex-start": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "flex-start" }
+    },
+    "is-align-content-flex-end": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "flex-end" }
+    },
+    "is-align-content-center": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "center" }
+    },
+    "is-align-content-space-between": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "space-between" }
+    },
+    "is-align-content-space-around": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "space-around" }
+    },
+    "is-align-content-space-evenly": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "space-evenly" }
+    },
+    "is-align-content-stretch": {
+      "group": "flex-container",
+      "write": { "prop": "alignContent", "value": "stretch" }
+    },
+    "is-align-items-stretch": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "stretch" }
+    },
+    "is-align-items-flex-start": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "flex-start" }
+    },
+    "is-align-items-flex-end": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "flex-end" }
+    },
+    "is-align-items-center": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "center" }
+    },
+    "is-align-items-baseline": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "baseline" }
+    },
+    "is-align-items-start": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "start" }
+    },
+    "is-align-items-end": {
+      "group": "flex-container",
+      "write": { "prop": "alignItems", "value": "end" }
+    },
+    "is-align-self-auto": {
+      "group": "flex-item",
+      "write": { "prop": "alignSelf", "value": "auto" }
+    },
+    "is-align-self-flex-start": {
+      "group": "flex-item",
+      "write": { "prop": "alignSelf", "value": "flex-start" }
+    },
+    "is-align-self-flex-end": {
+      "group": "flex-item",
+      "write": { "prop": "alignSelf", "value": "flex-end" }
+    },
+    "is-align-self-center": {
+      "group": "flex-item",
+      "write": { "prop": "alignSelf", "value": "center" }
+    },
+    "is-align-self-baseline": {
+      "group": "flex-item",
+      "write": { "prop": "alignSelf", "value": "baseline" }
+    },
+    "is-align-self-stretch": {
+      "group": "flex-item",
+      "write": { "prop": "alignSelf", "value": "stretch" }
+    },
+    "is-flex-grow-0": {
+      "group": "flex-item",
+      "write": { "prop": "flexGrow", "value": "0" }
+    },
+    "is-flex-grow-1": {
+      "group": "flex-item",
+      "write": { "prop": "flexGrow", "value": "1" }
+    },
+    "is-flex-grow-2": {
+      "group": "flex-item",
+      "write": { "prop": "flexGrow", "value": "2" }
+    },
+    "is-flex-grow-3": {
+      "group": "flex-item",
+      "write": { "prop": "flexGrow", "value": "3" }
+    },
+    "is-flex-grow-4": {
+      "group": "flex-item",
+      "write": { "prop": "flexGrow", "value": "4" }
+    },
+    "is-flex-grow-5": {
+      "group": "flex-item",
+      "write": { "prop": "flexGrow", "value": "5" }
+    },
+    "is-flex-shrink-0": {
+      "group": "flex-item",
+      "write": { "prop": "flexShrink", "value": "0" }
+    },
+    "is-flex-shrink-1": {
+      "group": "flex-item",
+      "write": { "prop": "flexShrink", "value": "1" }
+    },
+    "is-flex-shrink-2": {
+      "group": "flex-item",
+      "write": { "prop": "flexShrink", "value": "2" }
+    },
+    "is-flex-shrink-3": {
+      "group": "flex-item",
+      "write": { "prop": "flexShrink", "value": "3" }
+    },
+    "is-flex-shrink-4": {
+      "group": "flex-item",
+      "write": { "prop": "flexShrink", "value": "4" }
+    },
+    "is-flex-shrink-5": {
+      "group": "flex-item",
+      "write": { "prop": "flexShrink", "value": "5" }
+    },
+    "is-pulled-left": {
+      "group": "other",
+      "write": { "prop": "float", "value": "left" }
+    },
+    "is-pulled-right": {
+      "group": "other",
+      "write": { "prop": "float", "value": "right" }
+    },
+    "is-clipped": {
+      "group": "other",
+      "write": { "prop": "overflow", "value": "clipped" }
+    },
+    "is-overlay": { "group": "other", "write": { "prop": "overlay" } },
+    "is-unselectable": {
+      "group": "other",
+      "write": { "prop": "interaction", "value": "unselectable" }
+    },
+    "is-clickable": {
+      "group": "other",
+      "write": { "prop": "interaction", "value": "clickable" }
+    },
+    "is-radiusless": {
+      "group": "other",
+      "write": { "prop": "radius", "value": "radiusless" }
+    },
+    "is-shadowless": {
+      "group": "other",
+      "write": { "prop": "shadow", "value": "shadowless" }
+    },
+    "is-mobile": {
+      "group": "other",
+      "write": { "prop": "responsive", "value": "mobile" }
+    },
+    "is-narrow": {
+      "group": "other",
+      "write": { "prop": "responsive", "value": "narrow" }
+    },
+    "is-skeleton": { "group": "other", "write": { "prop": "skeleton" } },
+    "is-clearfix": { "group": "other", "write": { "prop": "clearfix" } },
+    "is-relative": { "group": "other", "write": { "prop": "relative" } }
+  },
+  "legacy": {
+    "tile": "Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)"
+  },
+  "passthrough": [
+    {
+      "why": "a color shade, a scheme color or a palette; shades stay as classes",
+      "match": "^(?:has-(?:text|background)-[a-z]+(?:-[a-z]+)?-(?:\\d{2,3}|invert|light|dark|soft|bold|on-scheme)(?:-invert)?|has-(?:text|background)-text|has-background|is-palette-[a-z]+|is-(?:bold|soft))$"
+    },
+    {
+      "why": "a breakpoint bestax's per-viewport props do not cover",
+      "match": "-(?:touch|tablet-only|desktop-only|widescreen-only)$"
+    },
+    {
+      "why": "Grid and Cell layout, which this source leaves as markup",
+      "match": "^(?:is-(?:col|row)-.+|has-\\d+-cols(?:-.+)?|is-(?:column|row)-gap-\\d+|is-gap-\\d+|is-auto-fill)$"
+    },
+    {
+      "why": "an `.image` modifier; `.image` stays as markup",
+      "match": "^(?:is-\\d+by\\d+|is-\\d+x\\d+|is-square|is-aspect-ratio-.+|has-ratio)$"
+    },
+    {
+      "why": "a Bulma helper with no bestax prop",
+      "match": "^(?:is-display-.+|is-visibility-.+|is-overflow-.+|is-position-.+|is-float-.+|is-clear-.+|has-radius-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$"
+    },
+    {
+      "why": "a modifier of markup this source leaves alone, or one bestax has no prop for",
+      "match": "^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|has-auto-count|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$"
+    }
+  ]
+}

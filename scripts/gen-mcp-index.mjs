@@ -18,6 +18,8 @@
  *   bestax-mcp/data/components/<Name>.json  one per documented component
  *   bestax-mcp/data/skills.json           skill manifest (bodies are synced at
  *                                         build time, see bestax-mcp/scripts)
+ *   bestax-mcp/data/bulma-classes.json    the bestax-migrate bulma-classes
+ *                                         table, for lookup_bulma_classes
  *
  * Split three ways on purpose: a stdio server pays the parse cost on every
  * client launch, so startup reads only the catalog and pulls a component file
@@ -59,6 +61,14 @@ const API_DIR = join(REPO, 'docs', 'docs', 'api');
 const SKILLS_DIR = join(REPO, 'skills');
 const INDEX_TS = join(REPO, 'bulma-ui', 'src', 'index.ts');
 const OUT_DIR = join(REPO, 'bestax-mcp', 'data');
+const CLASS_MAP = join(
+  REPO,
+  'bestax-migrate',
+  'src',
+  'sources',
+  'bulma-classes',
+  'class-map.ts'
+);
 
 const PACKAGE = '@allxsmith/bestax-bulma';
 const DOCS_BASE = 'https://bestax.io/docs';
@@ -465,6 +475,59 @@ async function json(value) {
   });
 }
 
+/**
+ * The codemod's own table, for `lookup_bulma_classes`: what bestax renders for
+ * a Bulma class, read from the same file the codemod plans with, so the two
+ * cannot disagree about a class. Imported rather than scraped (node strips its
+ * types), the way check-conformance.mjs reads create-bestax's constants; it
+ * imports nothing, so this pulls in no transform code.
+ *
+ * Only what a lookup reports goes into the index. What decides whether a
+ * whole element converts (attributes, refs, spreads) stays the codemod's.
+ */
+export async function bulmaClassTable() {
+  let map;
+  try {
+    map = await import(pathToFileURL(CLASS_MAP).href);
+  } catch (err) {
+    throw new Error(
+      `could not import ${relative(REPO, CLASS_MAP)}: ${err.message}. ` +
+        `It is loaded with node's type stripping, which needs Node 22.18 or later.`,
+      { cause: err }
+    );
+  }
+  const roots = Object.fromEntries(
+    Object.entries(map.ROOTS).map(([token, entry]) => [
+      token,
+      {
+        status: entry.status,
+        target: entry.target ?? null,
+        tag: entry.tag ?? null,
+        as: entry.as ?? null,
+        sizeDrivesTag: entry.sizeDrivesTag ?? false,
+        textColor: entry.textColor ?? null,
+        bgColor: entry.bgColor ?? null,
+        part: entry.part ?? false,
+        why: entry.why ?? null,
+        modifiers: entry.modifiers ?? {},
+        omits: entry.omits ?? {},
+      },
+    ])
+  );
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    roots,
+    precedence: map.PRECEDENCE,
+    wrappers: map.WRAPPERS,
+    helpers: Object.fromEntries(map.HELPER_TOKENS),
+    legacy: map.LEGACY_09,
+    passthrough: map.PASSTHROUGH.map(group => ({
+      why: group.why,
+      match: group.match.source,
+    })),
+  };
+}
+
 export async function build() {
   const present = new Set(await subdirs(API_DIR));
   const known = CATEGORY_ORDER.filter(([dir]) => present.has(dir));
@@ -632,11 +695,13 @@ export async function build() {
     components,
     pagesByCat,
     skills: { skills: await readSkills() },
+    bulmaClasses: await bulmaClassTable(),
   };
 }
 
 export async function main() {
-  const { catalog, components, pagesByCat, skills } = await build();
+  const { catalog, components, pagesByCat, skills, bulmaClasses } =
+    await build();
 
   // Rewrite the component directory rather than overwriting in place: a
   // component that was removed must lose its file, or the staleness gate
@@ -647,6 +712,10 @@ export async function main() {
 
   await writeFile(join(OUT_DIR, 'catalog.json'), await json(catalog));
   await writeFile(join(OUT_DIR, 'skills.json'), await json(skills));
+  await writeFile(
+    join(OUT_DIR, 'bulma-classes.json'),
+    await json(bulmaClasses)
+  );
   for (const [name, record] of [...components].sort((a, b) =>
     byCodePoint(a[0], b[0])
   )) {

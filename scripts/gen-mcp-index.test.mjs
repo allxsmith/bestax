@@ -29,9 +29,10 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 let catalog;
 let components;
 let skills;
+let bulmaClasses;
 
 before(async () => {
-  ({ catalog, components, skills } = await build());
+  ({ catalog, components, skills, bulmaClasses } = await build());
 });
 
 test('the catalog pins the library version it was generated from', async () => {
@@ -222,5 +223,26 @@ test('output is deterministic and code-point sorted', () => {
       cat.components,
       `${cat.id} members are not sorted`
     );
+  }
+});
+
+test("the bulma-classes table is bestax-migrate's own, whole", () => {
+  const { roots, helpers, passthrough, precedence, wrappers } = bulmaClasses;
+  assert.equal(roots.button.target, 'Button');
+  assert.deepEqual(roots.button.modifiers['is-primary'].writes, [
+    { prop: 'color', value: 'primary' },
+  ]);
+  // A family the codemod leaves as markup still says why, for the lookup.
+  assert.equal(roots.card.status, 'todo');
+  assert.match(roots.card.why, /Card/);
+  assert.deepEqual(helpers['mt-4'], {
+    group: 'spacing',
+    write: { prop: 'mt', value: '4' },
+  });
+  assert.equal(wrappers.p, 'Paragraph');
+  assert.ok(precedence.includes('columns'));
+  // The RegExps travel as sources, and each must come back as one.
+  for (const group of passthrough) {
+    assert.doesNotThrow(() => new RegExp(group.match), group.why);
   }
 });

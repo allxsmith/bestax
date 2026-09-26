@@ -40,7 +40,7 @@ beforeAll(async () => {
 });
 
 describe('advertised surface', () => {
-  it('exposes exactly the nine documented tools', async () => {
+  it('exposes exactly the ten documented tools', async () => {
     const names = (await client.listTools()).tools.map(t => t.name).sort();
     expect(names).toEqual([
       'get_component',
@@ -51,6 +51,7 @@ describe('advertised surface', () => {
       'get_skill',
       'list_components',
       'list_skills',
+      'lookup_bulma_classes',
       'search_bestax',
     ]);
   });
@@ -642,6 +643,115 @@ describe('get_helper_props', () => {
       );
       expect(out.length).toBeGreaterThan(40_000);
     });
+  });
+});
+
+describe('lookup_bulma_classes', () => {
+  const lookup = async (classes: string, tag?: string) =>
+    text(
+      await call('lookup_bulma_classes', tag ? { classes, tag } : { classes })
+    );
+
+  it('names the component, and a prop for each class, one row per class', async () => {
+    const out = await lookup('button is-primary is-large my-cta', 'a');
+    expect(out).toContain('**Component:** `Button` with `as="a"`.');
+    expect(out).toContain('| `is-primary` | `color="primary"` |');
+    expect(out).toContain('| `is-large` | `size="large"` |');
+    expect(out).toMatch(/\| `my-cta` \| stays in `className` \|/);
+    expect(out).toContain('get_props({ component: "Button" })');
+  });
+
+  it('says when a class is exact only on some tags', async () => {
+    expect(await lookup('title is-4')).toContain(
+      '| `is-4` | `size="4"` | exact only on <h4> or <p> |'
+    );
+    // On an <h2>, size="4" would render an <h4>, so it stays a class.
+    expect(await lookup('title is-4', 'h2')).toMatch(
+      /\| `is-4` \| stays in `className` \|/
+    );
+  });
+
+  it('says when the component cannot render the tag', async () => {
+    expect(await lookup('section', 'div')).toContain(
+      '`Section` renders only <section>, not a <div>'
+    );
+  });
+
+  it('sends a family bestax converts as a whole to its recipe', async () => {
+    const out = await lookup('card box');
+    expect(out).toContain('**Stays markup:** `.card`:');
+    expect(out).toContain('| `card` | by hand |');
+    expect(out).toContain('bulma-classes-unmappables');
+  });
+
+  it('answers helper classes with no component, and says what that depends on', async () => {
+    const out = await lookup('has-text-centered mt-4 has-text-danger');
+    expect(out).toContain('**No component in these classes.**');
+    expect(out).toContain('| `mt-4` | `mt="4"` |');
+    // The color prop is named per component, so the row says which differ.
+    expect(out).toMatch(
+      /\| `has-text-danger` \| `textColor="danger"` \| on most components;/
+    );
+    expect(await lookup('has-text-centered', 'p')).toContain(
+      '**Component:** `Paragraph`.'
+    );
+    expect(await lookup('has-text-centered', 'div')).toContain(
+      'bestax has no component for a plain <div>'
+    );
+  });
+
+  it('names the prop for a class the codemod leaves alone on purpose', async () => {
+    // The class stays, but bestax has the prop: it renders more than the class.
+    expect(await lookup('button is-disabled')).toMatch(
+      /\| `is-disabled` \| stays in `className` \| bestax `Button` renders it through `isDisabled`/
+    );
+    expect(await lookup('tag is-delete')).toContain('`isDelete`');
+  });
+
+  it('names a prop that needs another class beside it', async () => {
+    const out = await lookup('is-justify-content-center');
+    expect(out).toContain(
+      'each prop these classes name needs another class beside it'
+    );
+    expect(out).toContain(
+      '`justifyContent="center"` renders only beside a flex `display`'
+    );
+  });
+
+  it('keeps the tag advice and the rows below it in agreement', async () => {
+    const out = await lookup('notification is-primary', 'p');
+    expect(out).toContain('the rows below are what it takes then');
+    expect(out).toContain('| `is-primary` | `color="primary"` |');
+  });
+
+  it('keeps a Bulma 0.9 hint beside a class that keeps the markup', async () => {
+    expect(await lookup('label tile')).toContain('Bulma v1 removed tiles');
+  });
+
+  it('reads a selector as well as a class string', async () => {
+    expect(await lookup('.button.is-primary')).toContain(
+      '| `is-primary` | `color="primary"` |'
+    );
+  });
+
+  it('answers a class named like an Object member as the class it is', async () => {
+    expect(await lookup('toString constructor')).toContain(
+      '| `toString` | stays in `className` |'
+    );
+  });
+
+  it('asks for classes when given none', async () => {
+    const result = await call('lookup_bulma_classes', { classes: '  ' });
+    expect(failed(result)).toBe(true);
+    expect(text(result)).toContain('button is-primary');
+  });
+
+  it('rejects a tag that is not a lowercase tag name', async () => {
+    const result = await call('lookup_bulma_classes', {
+      classes: 'box',
+      tag: '<div>',
+    });
+    expect(failed(result)).toBe(true);
   });
 });
 

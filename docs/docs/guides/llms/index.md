@@ -107,17 +107,18 @@ rather your lockfile decide.
 Start with `list_components` — its output names the tool to call next. Reach for
 `search_bestax` when you need a component whose name you do not know.
 
-| Tool                | What it gives the agent                                                                            |
-| ------------------- | -------------------------------------------------------------------------------------------------- |
-| `list_components`   | Every component with a one-line purpose, by category                                               |
-| `search_bestax`     | Components, props, examples, CSS variables and skills in one ranked list                           |
-| `get_component`     | Import, summary and props; optionally examples, CSS variables, accessibility, related              |
-| `get_props`         | One prop table, including compound sub-paths (`Navbar.Brand`)                                      |
-| `get_examples`      | Working `tsx` examples from the component's documentation page                                     |
-| `get_css_variables` | The `--bulma-*` custom properties a component reads, with Sass names and defaults                  |
-| `get_helper_props`  | Spacing, colour, typography, flexbox and visibility props — the alternative to hand-written styles |
-| `list_skills`       | The [Agent Skills](/docs/skills/intro)                                                             |
-| `get_skill`         | A skill's instructions, or one of its reference documents                                          |
+| Tool                   | What it gives the agent                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `list_components`      | Every component with a one-line purpose, by category                                               |
+| `search_bestax`        | Components, props, examples, CSS variables and skills in one ranked list                           |
+| `get_component`        | Import, summary and props; optionally examples, CSS variables, accessibility, related              |
+| `get_props`            | One prop table, including compound sub-paths (`Navbar.Brand`)                                      |
+| `get_examples`         | Working `tsx` examples from the component's documentation page                                     |
+| `get_css_variables`    | The `--bulma-*` custom properties a component reads, with Sass names and defaults                  |
+| `get_helper_props`     | Spacing, colour, typography, flexbox and visibility props — the alternative to hand-written styles |
+| `lookup_bulma_classes` | The bestax component and props for a Bulma class string (`button is-primary`), one row per class   |
+| `list_skills`          | The [Agent Skills](/docs/skills/intro)                                                             |
+| `get_skill`            | A skill's instructions, or one of its reference documents                                          |
 
 It also exposes each skill as an MCP **prompt** (`theming`, `form`, `layout-scaffold`, …) and
 serves `bestax://catalog`, `bestax://components/{name}` and `bestax://skills/{name}` as

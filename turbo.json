@@ -22,10 +22,18 @@
       "outputs": ["dist/**", "data/skills/**"]
     },
     "bestax-mcp#test": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/bestax-migrate/src/sources/bulma-classes/**"
+      ]
     },
     "bestax-mcp#test:coverage": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/bestax-migrate/src/sources/bulma-classes/**"
+      ],
       "outputs": ["coverage/**"]
     },
     "create-bestax#build": {

@@ -1,7 +1,7 @@
 /**
  * The bestax MCP server.
  *
- * Nine tools, four resource templates, and one prompt per Agent Skill — all
+ * The tools, the resource templates, and one prompt per Agent Skill — all
  * built from the generated index in `data/`, so nothing here carries a list
  * that can drift from the library.
  *
@@ -25,7 +25,9 @@ import {
 } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
+import { classTokens, lookupClasses, renderLookup } from './bulma-classes.js';
 import {
+  loadBulmaClasses,
   loadCatalog,
   loadComponent,
   loadSkills,
@@ -76,6 +78,8 @@ const ALL_KINDS: HitKind[] = [
  */
 const MAX_NAME = 100;
 const MAX_QUERY = 200;
+/** A class string, which runs longer than a query; each class is a table read. */
+const MAX_CLASSES = 1000;
 
 /**
  * Every tool here answers from a read-only index that ships inside this package: nothing
@@ -148,7 +152,9 @@ export async function createServer(
         `component whose name you do not know. Before writing any styling by hand, call ` +
         `get_helper_props: this library expects spacing, colour and typography ` +
         `to go through helper props rather than inline styles, and theming to go ` +
-        `through --bulma-* variables rather than custom CSS.`,
+        `through --bulma-* variables rather than custom CSS. Before writing a Bulma ` +
+        `class, call lookup_bulma_classes: it names the component and props that ` +
+        `render it.`,
     }
   );
 
@@ -237,7 +243,8 @@ export async function createServer(
       const section = md.slice(start, end < 0 ? undefined : end).trimEnd();
       return (
         `**Do not write inline \`style={{ … }}\`, and do not hand-write Bulma ` +
-        `\`className\`s.** Spacing, colour, typography, flex and visibility are ` +
+        `\`className\`s** (\`lookup_bulma_classes\` translates one you had in ` +
+        `mind). Spacing, colour, typography, flex and visibility are ` +
         `props on every component. Translate the declaration you were about to ` +
         `inline using the table below; if nothing matches (\`maxWidth\`, a ` +
         `one-off gradient), add a named class to the project stylesheet and pass ` +
@@ -596,6 +603,45 @@ export async function createServer(
         );
       }
       return textResult(rule + renderHelperGroup(doc, resolved), note());
+    }
+  );
+
+  // The issue this answers (#744): agents think in Bulma classes, and MCP-only eval runs
+  // left far more raw classNames behind than skills runs, because nothing here said what a
+  // class is in bestax. Like get_helper_props, the description has to catch the model at the
+  // moment it is about to write one.
+  server.registerTool(
+    'lookup_bulma_classes',
+    {
+      title: 'Look up Bulma classes',
+      annotations: READ_ONLY,
+      description:
+        'The bestax component and props for a Bulma class string, one row per ' +
+        'class: "button is-primary", "columns is-mobile", "has-text-centered ' +
+        'mt-4". Call this BEFORE writing a Bulma class by hand, and when ' +
+        'converting existing Bulma markup. Pass the tag the classes sit on ' +
+        'when there is one.',
+      inputSchema: {
+        classes: z
+          .string()
+          .max(MAX_CLASSES)
+          .describe('The class string, e.g. "button is-primary is-large"'),
+        tag: z
+          .string()
+          .max(20)
+          .regex(/^[a-z][a-z0-9]*$/)
+          .optional()
+          .describe('The lowercase tag the classes are on, e.g. "a" or "h2"'),
+      },
+    },
+    async ({ classes, tag }) => {
+      if (!classTokens(classes).length) {
+        return errorResult(
+          'Pass the classes to look up, e.g. "button is-primary is-large".'
+        );
+      }
+      const lookup = lookupClasses(await loadBulmaClasses(), classes, tag);
+      return textResult(renderLookup(lookup), note());
     }
   );
 
