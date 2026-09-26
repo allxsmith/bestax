@@ -24,15 +24,15 @@ its numbers.
 
 ## Where each section should land — feeds rubric-migrate §2, §4 and §5
 
-| Section (file)                | bestax components a full migration uses                                                                                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Navigation (`SiteNavbar.tsx`) | `Navbar` with `Navbar.Brand`, `Navbar.Item`, `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`; `Buttons`, `Button`                                                  |
-| Hero (`Hero.tsx`)             | `Hero`, `Hero.Body`, `Container`, `Title`, `SubTitle`, `Buttons`, `Button` (an `as="a"` one for the link)                                                                       |
-| Features (`Features.tsx`)     | `Section`, `Container`, `Title`, `SubTitle`, `Columns`, `Column`, `Card` with `Card.Header`, `Card.Header.Title`, `Card.Content`; `Content`, `Tags`, `Tag`                      |
-| Pricing (`Pricing.tsx`)       | `Section`, `Container`, `Title`, `Tabs` with its items for the billing switch, `Table`, `Level`, `Level.Item`, `Tag`, `Progress`                                                |
-| Team (`Team.tsx`)             | `Section`, `Container`, `Title`, `Notification`, `Delete`, `Media`, `Media.Left`, `Media.Content`, `Image`, `Content`                                                           |
-| Contact (`Contact.tsx`)       | `Section`, `Columns`, `Column`, `Title`, `Field`, `Input`, `Select`, `TextArea`, `Checkbox`, `Buttons`/`Button`; `Modal` with its card parts, or `Dialog`, for the confirmation |
-| Footer (`SiteFooter.tsx`)     | `Footer`, `Content`, `Paragraph`                                                                                                                                                |
+| Section (file)                | bestax components a full migration uses                                                                                                                                                                                                       |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Navigation (`SiteNavbar.tsx`) | `Navbar` with `Navbar.Brand`, `Navbar.Item`, `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`; `Buttons`, `Button`                                                                                                                |
+| Hero (`Hero.tsx`)             | `Hero`, `Hero.Body`, `Container`, `Title`, `SubTitle`, `Buttons`, `Button` (an `as="a"` one for the link)                                                                                                                                     |
+| Features (`Features.tsx`)     | `Section`, `Container`, `Title`, `SubTitle`, `Columns`, `Column`, `Card` with `Card.Header`, `Card.Header.Title`, `Card.Content`; `Content`, `Tags`, `Tag`                                                                                    |
+| Pricing (`Pricing.tsx`)       | `Section`, `Container`, `Title`, `Tabs` with its items for the billing switch, `Table`, `Level`, `Level.Item`, `Tag`, `Progress`                                                                                                              |
+| Team (`Team.tsx`)             | `Section`, `Container`, `Title`, `Notification`, `Delete`, `Media`, `Media.Left`, `Media.Content`, `Image`, `Content`                                                                                                                         |
+| Contact (`Contact.tsx`)       | `Section`, `Columns`, `Column`, `Title`, `Field`, `Input`, `Select`, `TextArea` (or `Control` with `InputBase`, `SelectBase`, `TextAreaBase`), `Checkbox`, `Buttons`/`Button`; `Modal` with its card parts, or `Dialog`, for the confirmation |
+| Footer (`SiteFooter.tsx`)     | `Footer`, `Content`, `Paragraph`                                                                                                                                                                                                              |
 
 Accept an equivalent where one renders the same thing (`Dialog` for the modal, a `Field`
 laid out a different way that still labels each control). A class with no bestax prop may
@@ -42,10 +42,12 @@ leftover.
 **Families**, for rubric-migrate §5: the navbar, the feature card, the pricing tabs, the
 form controls, the confirmation modal, and the avatar image. The `bestax-migrate` codemod
 leaves all or part of each as markup with a `TODO(bestax-migrate)`, so each is finished by
-hand, from the component and its parts. Two are partial. On the feature card the codemod
+hand, from the component and its parts. Three are partial. On the feature card the codemod
 converts `Card` and `Card.Content`, but bestax renders `Card.Header.Title` on a `<div>`, so the
 `<p>` title and the header around it stay. On the navbar it converts the root, the brand, the
-items, start and end, and leaves the burger and the menu, whose `is-active` is computed.
+items, start and end, and leaves the burger and the menu, whose `is-active` is computed. On the
+contact form it converts each `.field`, `.control`, input and textarea, and leaves the select
+and the checkbox.
 
 ## What must survive — feeds rubric-migrate §3
 
