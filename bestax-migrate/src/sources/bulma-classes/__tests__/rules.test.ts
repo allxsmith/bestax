@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HELPER_PROPS, ROOTS, type RootEntry } from '../class-map.js';
-import { plan, type ElementFacts } from '../plan.js';
+import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 import { inVocabulary, KINDS, ruleId } from '../rules.js';
 
 describe('ruleId', () => {
@@ -90,6 +90,61 @@ describe('every refusal the planner can produce', () => {
             collect(facts(tag, [root], [[name, value]]));
           }
         }
+      }
+      // The element inside, for a target that renders it itself.
+      const spec = entry.absorbs;
+      if (!spec) continue;
+      const tag = entry.tag!;
+      const around = (
+        tokens: string[],
+        attributes: Array<[string, string | true | null]>,
+        child: Partial<ChildFacts> = {}
+      ) =>
+        facts(tag, tokens, attributes, {
+          soleChild: {
+            tag: spec.tag,
+            attributes: new Map(),
+            hasSpread: false,
+            ...child,
+          },
+        });
+      collect(around([root], [], { tag: 'span' }));
+      collect(around([root], [], { hasSpread: true }));
+      collect(around([root], [], { tokens: null }));
+      collect(around([root], [], { tokens: ['box'] }));
+      collect(around([root], [], { tokens: [] }));
+      collect(around([root], [], { attributes: new Map([['key', 'k']]) }));
+      for (const name of names) {
+        for (const value of values) {
+          collect(around([root], [[name, value]]));
+          collect(around([root], [], { attributes: new Map([[name, value]]) }));
+        }
+      }
+      for (const [name, token] of Object.entries(spec.pairs ?? {})) {
+        collect(around([root, token], []));
+        collect(around([root], [], { attributes: new Map([[name, true]]) }));
+      }
+      for (const [name, { to, beside }] of Object.entries(spec.renames ?? {})) {
+        const token = spec.pairs![beside];
+        for (const value of values) {
+          collect(
+            around([root, token], [], {
+              attributes: new Map([
+                [beside, true],
+                [name, value],
+              ]),
+            })
+          );
+        }
+        collect(
+          around([root, token], [], {
+            attributes: new Map([
+              [beside, true],
+              [name, '4'],
+              [to, '4'],
+            ]),
+          })
+        );
       }
     }
     for (const token of ['tile', 'toString', 'constructor', '__proto__']) {

@@ -39,6 +39,21 @@ export function Layout() {
           </div>
         </div>
       </nav>
+      <nav
+        className="breadcrumb has-bullet-separator is-small"
+        aria-label="breadcrumbs"
+      >
+        <ul>
+          <li>
+            <a href="/">Home</a>
+          </li>
+          <li className="is-active">
+            <a href="/docs" aria-current="page">
+              Docs
+            </a>
+          </li>
+        </ul>
+      </nav>
       <div className="container is-fluid">
         <div className="columns is-multiline is-centered is-3">
           <div className="column is-one-third is-offset-1">One third</div>

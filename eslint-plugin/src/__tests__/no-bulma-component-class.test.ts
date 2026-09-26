@@ -150,8 +150,8 @@ ruleTester.run('no-bulma-component-class', rule, {
     },
     // Two families: the first the element carries, as the codemod reads it.
     {
-      code: jsx('<div className="select field" />'),
-      errors: [family('select', 'Select')],
+      code: jsx('<div className="dropdown modal" />'),
+      errors: [family('dropdown', 'Dropdown')],
     },
     {
       code: jsx("<div className={['container', extra].join(' ')} />"),

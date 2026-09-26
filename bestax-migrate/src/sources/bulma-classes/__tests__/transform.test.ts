@@ -535,6 +535,153 @@ describe('a wrapper its component renders', () => {
   });
 });
 
+describe('an element a component renders inside itself', () => {
+  const select = (wrapper: string, inside: string) =>
+    migrate(
+      `export const A = () => (\n  ${wrapper}\n    ${inside}\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+    );
+
+  it("writes the component in the child's place, with the child's attributes", () => {
+    const { output, rules } = select(
+      '<div className="select is-small mt-2" key="k">',
+      '<select id="s" className="is-focused" onChange={f}>'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<SelectBase size="small" mt="2" key="k" id="s" isFocused onChange={f}>\n    <option>x</option>\n  </SelectBase>'
+    );
+    expect(output).not.toMatch(/<\/?select/);
+  });
+
+  it('pairs `multiple` with `.is-multiple`, and reads `size` beside it as a number', () => {
+    const { output } = select(
+      '<div className="select is-multiple">',
+      '<select multiple size="4">'
+    );
+    expect(output).toContain('<SelectBase multiple multipleSize={4}>');
+    expect(
+      select(
+        '<div className="select is-multiple">',
+        '<select multiple size={3}>'
+      ).output
+    ).toContain('<SelectBase multiple multipleSize={3}>');
+  });
+
+  it.each([
+    [
+      'an attribute on the wrapper',
+      '<div className="select" id="w">',
+      '<select>',
+      'attr',
+    ],
+    [
+      'another class on the select',
+      '<div className="select">',
+      '<select className="my-select">',
+      'attr:className',
+    ],
+    [
+      'an empty class on the select, which renders `class=""`',
+      '<div className="select">',
+      '<select className="">',
+      'attr:className',
+    ],
+    [
+      'a computed class on the select',
+      '<div className="select">',
+      "<select className={on ? 'is-focused' : ''}>",
+      'dynamic-class:SelectBase',
+    ],
+    [
+      'a spread on the select',
+      '<div className="select">',
+      '<select {...rest}>',
+      'spread:SelectBase',
+    ],
+    [
+      '`is-multiple` without `multiple`',
+      '<div className="select is-multiple">',
+      '<select>',
+      'attr:multiple',
+    ],
+    [
+      '`multiple` without `is-multiple`',
+      '<div className="select">',
+      '<select multiple>',
+      'attr:multiple',
+    ],
+    [
+      '`size` without `multiple`',
+      '<div className="select">',
+      '<select size="4">',
+      'attr:size',
+    ],
+    [
+      // SelectBase writes it back only when it holds a number.
+      'a `size` the codemod cannot read as a number',
+      '<div className="select is-multiple">',
+      '<select multiple size={rows}>',
+      'attr:size',
+    ],
+  ])('keeps both as markup with %s', (_, wrapper, inside, rule) => {
+    const { output, rules } = select(wrapper, inside);
+    expect(rules).toEqual([rule]);
+    expect(output).toContain('className="select');
+    expect(output).toContain('<select');
+  });
+
+  it('keeps both as markup around anything beside the child', () => {
+    const { rules } = migrate(
+      'export const A = () => (\n  <div className="select">\n    {/* note */}\n    <select>\n      <option>x</option>\n    </select>\n  </div>\n);\n'
+    );
+    expect(rules).toEqual(['children:SelectBase']);
+  });
+
+  it('keeps each comment in the tags, once', () => {
+    const { output, rules } = migrate(
+      'export const A = () => (\n  // above\n  <div /* outer */ className="select">\n    <select /* inner */ name="n" /* last */>\n      <option>x</option>\n    </select /* close */>\n  </div /* outer close */>\n);\n'
+    );
+    expect(rules).toEqual([]);
+    for (const comment of [
+      '// above',
+      '/* outer */',
+      '/* inner */',
+      '/* last */',
+      '/* close */',
+      '/* outer close */',
+    ]) {
+      expect({ comment, count: output.split(comment).length - 1 }).toEqual({
+        comment,
+        count: 1,
+      });
+    }
+    expect(output).toContain('<SelectBase');
+  });
+
+  it("writes a breadcrumb in its list's place, with the nav's attributes", () => {
+    const { output, rules } = migrate(
+      'export const A = () => (\n  <nav className="breadcrumb has-dot-separator" aria-label="Trail">\n    <ul>\n      <li>\n        <a href="#">Home</a>\n      </li>\n    </ul>\n  </nav>\n);\n'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<Breadcrumb separator="dot" aria-label="Trail">\n    <li>\n      <a href="#">Home</a>\n    </li>\n  </Breadcrumb>'
+    );
+  });
+
+  it('keeps a breadcrumb as markup with anything on its list, or with no label', () => {
+    const crumb = (nav: string, list: string) =>
+      migrate(
+        `export const A = () => (\n  ${nav}\n    ${list}\n      <li>x</li>\n    </ul>\n  </nav>\n);\n`
+      ).rules;
+    const nav = '<nav className="breadcrumb" aria-label="breadcrumbs">';
+    expect(crumb(nav, '<ul id="l">')).toEqual(['attr']);
+    expect(crumb(nav, '<ul className="mt-2">')).toEqual(['attr:className']);
+    expect(crumb('<nav className="breadcrumb">', '<ul>')).toEqual([
+      'defaults:Breadcrumb',
+    ]);
+  });
+});
+
 describe('form context', () => {
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(

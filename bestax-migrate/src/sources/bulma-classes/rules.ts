@@ -53,6 +53,8 @@ const VOCABULARY: ReadonlySet<string> = new Set([
   'dangerouslySetInnerHTML',
   // Refused where the target drops its own class for one it is given.
   'className',
+  // Refused on the child a target renders itself.
+  'key',
 ]);
 
 export function inVocabulary(token: string): boolean {

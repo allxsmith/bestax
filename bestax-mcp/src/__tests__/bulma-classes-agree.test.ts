@@ -15,7 +15,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from '@jest/globals';
 import { ROOTS } from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
-import { plan } from '../../../bestax-migrate/src/sources/bulma-classes/plan.js';
+import {
+  plan,
+  type ElementFacts,
+} from '../../../bestax-migrate/src/sources/bulma-classes/plan.js';
 import { lookupClasses, type BulmaClassTable } from '../bulma-classes.js';
 import { DATA_DIR } from '../data.js';
 
@@ -42,14 +45,30 @@ function planned(tag: string, tokens: string[]): Outcome {
   // (`Delete`'s `type` and `aria-label`), so only the classes are compared.
   // Children decide one too (`Card` converts only beside one of its parts),
   // which the lookup states as a condition: give each root those parts.
+  // One that renders the element inside it gets that element, bare but for
+  // what the element's classes need beside them (`multiple` for
+  // `is-multiple`), which the lookup states as a condition too.
   const attributes = new Map<string, string>();
   const childTargets: string[] = [];
+  let soleChild: ElementFacts['soleChild'];
   for (const token of tokens) {
     const entry = Object.hasOwn(ROOTS, token) ? ROOTS[token] : undefined;
     for (const [name, value] of Object.entries(entry?.defaults ?? {})) {
       attributes.set(name, value);
     }
     childTargets.push(...(entry?.wrapsChildren?.unless ?? []));
+    const absorbs = entry?.status === 'mapped' ? entry.absorbs : undefined;
+    if (absorbs && !soleChild) {
+      soleChild = {
+        tag: absorbs.tag,
+        attributes: new Map(
+          Object.entries(absorbs.pairs ?? {})
+            .filter(([, paired]) => tokens.includes(paired))
+            .map(([name]) => [name, true])
+        ),
+        hasSpread: false,
+      };
+    }
   }
   const result = plan({
     tag,
@@ -59,6 +78,7 @@ function planned(tag: string, tokens: string[]): Outcome {
     hasRef: false,
     hasChildren: true,
     childTargets,
+    soleChild,
   });
   if (result.conversion) {
     const { target, props, className } = result.conversion;

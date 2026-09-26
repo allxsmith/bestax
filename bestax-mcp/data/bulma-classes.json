@@ -15,6 +15,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -32,6 +33,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -77,6 +79,7 @@
       },
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -101,6 +104,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -128,6 +132,7 @@
         ]
       },
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -149,6 +154,7 @@
         "whenEmpty": true
       },
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -166,6 +172,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -183,6 +190,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -200,6 +208,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -217,6 +226,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -234,6 +244,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -251,6 +262,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -347,6 +359,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1004,6 +1017,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1163,6 +1177,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1397,6 +1412,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1436,6 +1452,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1457,6 +1474,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1478,6 +1496,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1505,6 +1524,7 @@
         "when": "is-horizontal"
       },
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1527,6 +1547,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1544,6 +1565,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1569,6 +1591,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1606,6 +1629,7 @@
       },
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1644,6 +1668,54 @@
       },
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "select": {
+      "status": "mapped",
+      "target": "SelectBase",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": "backgroundColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] },
+        "is-rounded": { "writes": [{ "prop": "isRounded" }] },
+        "is-loading": { "writes": [{ "prop": "isLoading" }] },
+        "is-active": { "writes": [{ "prop": "isActive" }] },
+        "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] },
+        "is-multiple": { "writes": [{ "prop": "multiple" }] }
+      },
+      "omits": {
+        "is-primary": "`color` renders `has-text-<color>` on the select as well",
+        "is-link": "`color` renders `has-text-<color>` on the select as well",
+        "is-info": "`color` renders `has-text-<color>` on the select as well",
+        "is-success": "`color` renders `has-text-<color>` on the select as well",
+        "is-warning": "`color` renders `has-text-<color>` on the select as well",
+        "is-danger": "`color` renders `has-text-<color>` on the select as well",
+        "is-black": "`color` renders `has-text-<color>` on the select as well",
+        "is-white": "`color` renders `has-text-<color>` on the select as well",
+        "is-light": "`color` renders `has-text-<color>` on the select as well",
+        "is-dark": "`color` renders `has-text-<color>` on the select as well"
+      },
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": {
+        "tag": "select",
+        "attributesOn": "child",
+        "modifiers": {
+          "is-hovered": { "writes": [{ "prop": "isHovered" }] },
+          "is-focused": { "writes": [{ "prop": "isFocused" }] }
+        },
+        "pairs": { "multiple": "is-multiple" },
+        "renames": { "size": { "to": "multipleSize", "beside": "multiple" } }
+      },
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1661,6 +1733,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1698,6 +1771,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1715,6 +1789,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1732,6 +1807,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1749,6 +1825,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1766,6 +1843,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1783,6 +1861,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1800,6 +1879,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1817,6 +1897,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1834,6 +1915,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1851,6 +1933,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1868,6 +1951,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1885,6 +1969,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1918,6 +2003,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1935,6 +2021,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1952,6 +2039,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1969,6 +2057,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1986,6 +2075,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2003,6 +2093,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2023,6 +2114,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -2040,6 +2132,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": true,
       "ownClassOnly": true
     },
@@ -2068,6 +2161,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2099,6 +2193,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2119,6 +2214,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2162,6 +2258,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2185,6 +2282,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2219,6 +2317,7 @@
       },
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2240,6 +2339,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2284,23 +2384,45 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
     "breadcrumb": {
-      "status": "todo",
+      "status": "mapped",
       "target": "Breadcrumb",
-      "tag": null,
+      "tag": "nav",
       "as": null,
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`",
-      "modifiers": {},
+      "why": null,
+      "modifiers": {
+        "is-centered": {
+          "writes": [{ "prop": "alignment", "value": "centered" }]
+        },
+        "is-right": { "writes": [{ "prop": "alignment", "value": "right" }] },
+        "has-arrow-separator": {
+          "writes": [{ "prop": "separator", "value": "arrow" }]
+        },
+        "has-bullet-separator": {
+          "writes": [{ "prop": "separator", "value": "bullet" }]
+        },
+        "has-dot-separator": {
+          "writes": [{ "prop": "separator", "value": "dot" }]
+        },
+        "has-succeeds-separator": {
+          "writes": [{ "prop": "separator", "value": "succeeds" }]
+        },
+        "is-small": { "writes": [{ "prop": "size", "value": "small" }] },
+        "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
+        "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
+      },
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": { "tag": "ul", "attributesOn": "element" },
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2318,6 +2440,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2335,6 +2458,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2352,6 +2476,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2369,23 +2494,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
-    "select": {
-      "status": "todo",
-      "target": "Select",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "bestax `Select` renders the `.select` wrapper and the `<select>` together",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2403,6 +2512,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2420,6 +2530,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2437,6 +2548,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2454,6 +2566,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2471,6 +2584,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2488,6 +2602,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2505,6 +2620,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2522,6 +2638,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2539,6 +2656,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2556,6 +2674,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2573,6 +2692,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2590,6 +2710,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2607,6 +2728,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2624,6 +2746,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2641,6 +2764,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2658,6 +2782,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2675,6 +2800,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2692,6 +2818,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2709,6 +2836,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2726,6 +2854,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2743,6 +2872,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2760,6 +2890,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2777,6 +2908,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2794,6 +2926,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2811,6 +2944,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2828,6 +2962,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2845,6 +2980,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2862,6 +2998,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2879,6 +3016,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2896,6 +3034,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2913,6 +3052,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2930,6 +3070,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2947,6 +3088,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2964,6 +3106,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2981,6 +3124,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2998,6 +3142,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3015,6 +3160,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3032,6 +3178,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3049,6 +3196,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3066,6 +3214,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3083,6 +3232,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3100,6 +3250,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3117,6 +3268,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3134,6 +3286,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3151,6 +3304,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3168,6 +3322,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3185,6 +3340,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3202,6 +3358,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": [{ "prop": "isResponsive" }],
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3559,6 +3716,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": [{ "prop": "isFixed" }],
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3576,6 +3734,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3593,6 +3752,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3610,6 +3770,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3627,6 +3788,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3644,6 +3806,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3661,6 +3824,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3678,6 +3842,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3695,6 +3860,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3712,6 +3878,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3729,6 +3896,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3746,6 +3914,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3763,6 +3932,7 @@
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
+      "absorbs": null,
       "noHelpers": false,
       "ownClassOnly": false
     }
@@ -5063,8 +5233,16 @@
       "match": "^(?:is-display-.+|is-visibility-.+|is-overflow-.+|is-position-.+|is-float-.+|is-clear-.+|has-radius-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$"
     },
     {
+      "why": "a `.breadcrumb` separator, which converts only on its own `.breadcrumb`",
+      "match": "^has-[a-z]+-separator$"
+    },
+    {
+      "why": "`.select`'s `is-multiple`, which converts only on its own `.select`, around a `<select multiple>`",
+      "match": "^is-multiple$"
+    },
+    {
       "why": "a modifier of markup this source leaves alone, or one bestax has no prop for",
-      "match": "^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$"
+      "match": "^(?:has-addons-.+|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$"
     }
   ]
 }

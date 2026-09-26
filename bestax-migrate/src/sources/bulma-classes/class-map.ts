@@ -45,6 +45,38 @@ export interface Modifier {
  */
 export type RootStatus = 'mapped' | 'todo' | 'plain' | 'fold';
 
+/**
+ * An element whose only child the target renders itself (the `<select>`
+ * inside `.select`), so the two convert together: the target is written
+ * where the child was, and the element goes.
+ */
+export interface Absorbs {
+  /** The child's tag. */
+  readonly tag: string;
+  /**
+   * Where the target puts the attributes it is given. On the child
+   * (`SelectBase`): the child's become the target's, and the element may
+   * carry none but a `key`. On the element (`Breadcrumb`): the element's
+   * stay, and the child may carry none.
+   */
+  readonly attributesOn: 'child' | 'element';
+  /** The child's classes, as the target's props; any other class refuses. */
+  readonly modifiers?: Readonly<Record<string, Modifier>>;
+  /**
+   * A bare child attribute that one of the element's modifiers writes as a
+   * prop (`multiple`, beside `is-multiple`). Each converts only beside the
+   * other, and the attribute goes, since the prop renders it.
+   */
+  readonly pairs?: Readonly<Record<string, string>>;
+  /**
+   * A child attribute the target reads under another name, only beside a
+   * paired attribute (`size` as `multipleSize`, beside `multiple`).
+   */
+  readonly renames?: Readonly<
+    Record<string, { readonly to: string; readonly beside: string }>
+  >;
+}
+
 export interface RootEntry {
   readonly status: RootStatus;
   /**
@@ -102,6 +134,8 @@ export interface RootEntry {
    * modifiers add their props beside these.
    */
   readonly folds?: readonly PropWrite[];
+  /** The target renders the element's only child itself. */
+  readonly absorbs?: Absorbs;
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
@@ -110,8 +144,10 @@ export interface RootEntry {
    */
   readonly ownClassOnly?: boolean;
   /**
-   * Attributes the target types as numbers. A numeric string (`value="40"`)
-   * becomes a number, which renders the same; any other string refuses.
+   * Attributes the target types as numbers, among the ones it is given (the
+   * child's, when it `absorbs` the child and puts them there). A numeric
+   * string (`value="40"`) becomes a number, which renders the same; any
+   * other string refuses.
    */
   readonly numberAttrs?: readonly string[];
   /** Attributes the target drops: on these tags, or on all tags except these. */
@@ -962,6 +998,57 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ],
     passThrough: ['disabled', 'readOnly', 'rows', 'ref'],
   },
+  // `SelectBase` renders `.select` and the `<select>` inside it together, and
+  // gives the `<select>` every attribute it is given.
+  select: {
+    ...BASE,
+    target: 'SelectBase',
+    tag: 'div',
+    textColor: null,
+    bgColor: 'backgroundColor',
+    modifiers: {
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+      ...flags({
+        'is-rounded': 'isRounded',
+        'is-loading': 'isLoading',
+        'is-active': 'isActive',
+        'is-fullwidth': 'isFullwidth',
+        'is-multiple': 'multiple',
+      }),
+    },
+    omits: Object.fromEntries(
+      COMPONENT_COLORS.map(color => [
+        `is-${color}`,
+        '`color` renders `has-text-<color>` on the select as well',
+      ])
+    ),
+    absorbs: {
+      tag: 'select',
+      attributesOn: 'child',
+      modifiers: flags({
+        'is-hovered': 'isHovered',
+        'is-focused': 'isFocused',
+      }),
+      pairs: { multiple: 'is-multiple' },
+      renames: { size: { to: 'multipleSize', beside: 'multiple' } },
+    },
+    numberAttrs: ['multipleSize'],
+    adoptsIdFrom: ['Field'],
+    ownProps: [
+      'color',
+      'size',
+      'isRounded',
+      'isLoading',
+      'isActive',
+      'isHovered',
+      'isFocused',
+      'isFullwidth',
+      'isFullWidth',
+      'multiple',
+      'multipleSize',
+    ],
+    passThrough: ['disabled', 'ref'],
+  },
   footer: {
     ...BASE,
     target: 'Footer',
@@ -1295,12 +1382,31 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     },
     ownProps: ['size', 'isSpaced', 'as', 'hasSkeleton', 'textColor', 'bgColor'],
   },
+  // `Breadcrumb` renders the bare `<ul>` inside it, and its `aria-label`
+  // comes before the attributes it is given, which replace it.
+  breadcrumb: {
+    ...BASE,
+    target: 'Breadcrumb',
+    tag: 'nav',
+    // Breadcrumb types no color prop at all.
+    textColor: null,
+    bgColor: null,
+    modifiers: {
+      ...tokens('is-', ['centered', 'right'], 'alignment'),
+      ...tokens(
+        'has-',
+        ['arrow', 'bullet', 'dot', 'succeeds'],
+        'separator',
+        '-separator'
+      ),
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+    },
+    defaults: { 'aria-label': 'breadcrumbs' },
+    absorbs: { tag: 'ul', attributesOn: 'element' },
+    ownProps: ['alignment', 'separator', 'size'],
+  },
 
   // ---- Families bestax has but that do not map element by element yet ------
-  breadcrumb: todo(
-    'Breadcrumb',
-    'bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`'
-  ),
   checkbox: todo(
     'Checkbox',
     "bestax `Checkbox` renders its own styled markup, not Bulma's"
@@ -1316,10 +1422,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   radios: todo(
     'Radios',
     'bestax `Radios` renders its own `.field` and `.control` wrappers'
-  ),
-  select: todo(
-    'Select',
-    'bestax `Select` renders the `.select` wrapper and the `<select>` together'
   ),
   file: todo(
     'File',
@@ -1550,6 +1652,7 @@ export const FORWARDS_REF: readonly string[] = [
   'Control',
   'InputBase',
   'TextAreaBase',
+  'SelectBase',
 ];
 
 /**
@@ -1829,9 +1932,17 @@ export const PASSTHROUGH: ReadonlyArray<{
       /^(?:is-display-.+|is-visibility-.+|is-overflow-.+|is-position-.+|is-float-.+|is-clear-.+|has-radius-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$/,
   },
   {
+    why: 'a `.breadcrumb` separator, which converts only on its own `.breadcrumb`',
+    match: /^has-[a-z]+-separator$/,
+  },
+  {
+    why: "`.select`'s `is-multiple`, which converts only on its own `.select`, around a `<select multiple>`",
+    match: /^is-multiple$/,
+  },
+  {
     why: 'a modifier of markup this source leaves alone, or one bestax has no prop for',
     match:
-      /^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$/,
+      /^(?:has-addons-.+|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$/,
   },
 ];
 
