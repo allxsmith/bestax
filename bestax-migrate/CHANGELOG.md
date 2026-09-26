@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.7.0...bestax-migrate@2.8.0) (2026-09-26)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma grids and cells ([#760](https://github.com/allxsmith/bestax/issues/760)) ([22adc7c](https://github.com/allxsmith/bestax/commit/22adc7cb85785cd2cb8e8862d4f7d44a3cefa6a2)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+
 # [2.7.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.6.0...bestax-migrate@2.7.0) (2026-09-26)
 
 
