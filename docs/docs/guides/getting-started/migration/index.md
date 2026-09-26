@@ -60,3 +60,9 @@ Coming from the (abandoned since 2019) `rbx` library? The **`bestax-migrate`** c
 Coming from `bloomer`, the oldest React Bulma wrapper (archived since 2018, Bulma 0.6, React 16)? The **`bestax-migrate`** codemod maps all 108 of its flat exports onto bestax's compound components, flattens its three-shape `isDisplay`/`isHidden` helpers, and bumps the Bulma your app declared to v1 — flagging the Font Awesome 4 icons, the Bulma 0.4 `Nav` family and everything else Bulma has since dropped.
 
 [Read the bloomer guide →](./bloomer.md)
+
+## [Migrating from plain Bulma classes](./bulma-classes.md)
+
+No wrapper library, just Bulma's classes on your JSX (`<div className="columns">`)? The **`bestax-migrate`** codemod's `bulma-classes` source turns that markup into bestax components and props, and it converts an element only when the component renders the same markup. Computed classNames, components that render parts of their own, and Next.js server components are flagged for you rather than guessed at.
+
+[Read the Bulma classes guide →](./bulma-classes.md)

@@ -20,6 +20,7 @@
     "validate:corpus": "pnpm run build && node scripts/validate-corpus.mjs",
     "validate:corpus:rbx": "pnpm run build && node scripts/validate-corpus-rbx.mjs",
     "validate:corpus:bloomer": "pnpm run build && node scripts/validate-corpus-bloomer.mjs",
+    "validate:corpus:bulma-classes": "pnpm run build && node scripts/validate-corpus-bulma-classes.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "clean": "rimraf dist",

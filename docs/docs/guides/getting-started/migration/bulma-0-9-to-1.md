@@ -13,6 +13,9 @@ bestax-bulma has always required Bulma v1, so upgrading bestax itself never requ
 
 Either way, the changes you'll see at the Bulma layer are the same — captured below.
 
+Moving plain Bulma markup onto bestax components is a separate step, and the
+[Bulma classes guide](./bulma-classes.md) covers the codemod that does it.
+
 ## Easy HTML compatibility
 
 :::tip HTML stays the same

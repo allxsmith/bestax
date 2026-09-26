@@ -52,19 +52,40 @@ export function openManifest(
   };
 }
 
-/** @allxsmith/bestax-bulma comes in as a runtime dependency. */
+/** Whether every alternative of a plain range names a major below `major`. */
+function majorBelow(range: string, major: number): boolean {
+  const majors = range
+    .split('||')
+    .map(set => set.trim().match(/^[~^=v\s]*(\d+)(?:[.\s]|$)/)?.[1]);
+  return (
+    majors.length > 0 &&
+    majors.every(found => found !== undefined && Number(found) < major)
+  );
+}
+
+/**
+ * @allxsmith/bestax-bulma comes in as a runtime dependency. An older major
+ * already declared is reported, not raised: the migrated code is written for
+ * the current one, and moving the app's existing bestax code across majors is
+ * the app's own step.
+ */
 export function addBestax(manifest: Manifest): void {
   const dependencies = (manifest.next.dependencies ??= {}) as Record<
     string,
     string
   >;
-  if (
-    !dependencies['@allxsmith/bestax-bulma'] &&
-    !manifest.section('devDependencies')?.['@allxsmith/bestax-bulma']
-  ) {
+  const declared =
+    dependencies['@allxsmith/bestax-bulma'] ??
+    manifest.section('devDependencies')?.['@allxsmith/bestax-bulma'];
+  if (declared === undefined) {
     dependencies['@allxsmith/bestax-bulma'] = BESTAX_RANGE;
     manifest.note(
       `added @allxsmith/bestax-bulma ${BESTAX_RANGE} to dependencies`
+    );
+  } else if (majorBelow(declared, 5)) {
+    manifest.report(
+      'peer-deps',
+      `@allxsmith/bestax-bulma ${declared} is older than the ${BESTAX_RANGE} the migrated code is written for; upgrade it before installing (the bestax-bulma upgrade guides cover each major)`
     );
   }
 }

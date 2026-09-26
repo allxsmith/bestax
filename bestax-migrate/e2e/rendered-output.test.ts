@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SOURCES } from '../src/sources/registry.js';
 import { runTransform } from '../src/runner.js';
+import type { TodoEntry } from '../src/types.js';
 import {
   loadModules,
   normalizeHtml,
@@ -62,6 +63,29 @@ describe.each(KITCHEN_SINKS)(
         expect({ name, html: Object.values(byExport).join('') }).toEqual({
           name,
           html: expect.stringMatching(/ class="[^"]*\b(?:is|has)-/),
+        });
+      }
+    });
+
+    // The library sources emit plain Bulma markup on purpose where bestax has
+    // no component (`div.loader`, `p.help`). Running bulma-classes over their
+    // output afterwards must leave all of it alone, without a TODO: each is
+    // a deliberate choice the earlier pass already reported on.
+    it('is left alone by bulma-classes afterwards', () => {
+      const plainMarkup = Object.values(migrated).join('\n');
+      expect(plainMarkup).toMatch(/<[a-z][a-z0-9]*\b[^>]*\bclassName="/);
+      for (const [name, source] of Object.entries(migrated)) {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          SOURCES['bulma-classes'].transform,
+          `${name}.tsx`,
+          source,
+          { add: entry => todos.push(entry) }
+        );
+        expect({ name, output, todos }).toEqual({
+          name,
+          output: null,
+          todos: [],
         });
       }
     });

@@ -200,12 +200,68 @@ export function resolveBooleanish(attr: any): Booleanish {
   return literal.value ? 'truthy' : 'falsy';
 }
 
+/**
+ * A JSX attribute value holding `value`. A JSX attribute string has no
+ * escapes, so the printer's `\"` would end the string early and its `\\` would
+ * double a backslash: a value holding either goes in an expression
+ * (`name={"…"}`), where the escaping means what it says.
+ */
+export function jsxStringValue(j: JSCodeshift, value: string): any {
+  const literal = j.stringLiteral(value);
+  return /["\\]/.test(value) ? j.jsxExpressionContainer(literal) : literal;
+}
+
 /** Create `name` (bare boolean) or `name="value"` attribute. */
 export function makeAttr(j: JSCodeshift, name: string, value?: string): any {
-  return j.jsxAttribute(
-    j.jsxIdentifier(name),
-    value === undefined ? null : j.stringLiteral(value)
-  );
+  if (value === undefined) return j.jsxAttribute(j.jsxIdentifier(name), null);
+  return j.jsxAttribute(j.jsxIdentifier(name), jsxStringValue(j, value));
+}
+
+/**
+ * Call on the root just before `toSource`. recast reuses the original text of
+ * whatever an edit left alone, but it cannot patch a JSX element the source
+ * wrapped in parentheses (the usual `return ( … )`), so an edit anywhere in
+ * one reprints the whole element. Its printer trims the whitespace at the
+ * edges of every text child and decodes entities, so `</b> ends` came back as
+ * `</b>ends` and `&lt;` as a raw `<`: visible text changed, and some files no
+ * longer parsed. Dropping the parenthesized marker from the node and from
+ * recast's copy of the original lets it patch; the parentheses themselves are
+ * still in the reused text.
+ */
+export function forgetJsxParens(j: JSCodeshift, root: any): void {
+  const clear = (node: any) => {
+    for (const copy of [node, node.original]) {
+      if (copy?.extra?.parenthesized) {
+        delete copy.extra.parenthesized;
+        delete copy.extra.parenStart;
+      }
+    }
+  };
+  root.find(j.JSXElement).forEach((path: any) => clear(path.node));
+  root.find(j.JSXFragment).forEach((path: any) => clear(path.node));
+}
+
+/**
+ * Call on the root just before `toSource`. When a statement is added at the
+ * top level (a new import), recast reprints the program: it reuses each
+ * directive's original text, semicolon included, and then adds a semicolon of
+ * its own, so `'use client';` came back as `'use client';;`. A new directive
+ * node has no original text to reuse, and carrying the raw string keeps its
+ * quotes as written.
+ */
+export function reprintDirectives(j: JSCodeshift, root: any): void {
+  const program = root.find(j.Program).paths()[0]?.node;
+  if (!program?.directives?.length) return;
+  program.directives = program.directives.map((directive: any) => {
+    const literal: any = j.directiveLiteral(directive.value.value);
+    const raw = directive.value.extra?.raw;
+    if (typeof raw === 'string') {
+      literal.extra = { raw, rawValue: directive.value.value };
+    }
+    const fresh: any = j.directive(literal);
+    fresh.comments = directive.comments;
+    return fresh;
+  });
 }
 
 /**

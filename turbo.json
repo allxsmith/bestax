@@ -35,11 +35,19 @@
     },
     "bestax-migrate#test": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/bestax-mcp/data/components/**"
+      ]
     },
     "bestax-migrate#test:coverage": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/bestax-mcp/data/components/**"
+      ],
       "outputs": ["coverage/**"]
     },
     "@allxsmith/eslint-plugin-bestax#typecheck": {

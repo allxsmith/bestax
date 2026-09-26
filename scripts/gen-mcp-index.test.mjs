@@ -180,6 +180,9 @@ test('references nested one level per subject still reach the index', () => {
     'bloomer-component-map',
     'bloomer-prop-map',
     'bloomer-unmappables',
+    'bulma-classes-component-map',
+    'bulma-classes-prop-map',
+    'bulma-classes-unmappables',
   ]) {
     const ref = migrate.references.find(r => r.id === id);
     assert.ok(ref, `${id} is not indexed`);

@@ -173,6 +173,24 @@ export interface MigrationSource {
    * imported.
    */
   packageName?: string | null;
+  /**
+   * Facts about the project, read once from the run's targets and passed to
+   * every transform call as options.
+   */
+  analyzeProject?: (targets: string[]) => object;
+  /** The `--css` mode when the run names none; `bestax` when omitted. */
+  defaultCssMode?: CssMode;
+  /**
+   * For a source with no package: the 1-based line of the first thing in an
+   * unparseable file (`.mdx`, `.vue`, …) that the source would have converted,
+   * or null. Such files are reported, never rewritten.
+   */
+  findUnsupportedReference?: (text: string) => number | null;
+  /**
+   * Which of the unparseable formats `findUnsupportedReference` scans; all
+   * of them when omitted.
+   */
+  unsupportedExtensions?: readonly string[];
   transform: Transform;
   transformStyles?: StylesTransform;
   updateDependencies?: DependenciesUpdate;

@@ -238,7 +238,8 @@ function migrateFiles(
   files: string[],
   reporter: Reporter,
   io: CliIo,
-  options: RunOptions
+  options: RunOptions,
+  project: object
 ): { bulmaReferenced: boolean; sourceStillImported: boolean } {
   let bulmaReferenced = false;
   let sourceStillImported = false;
@@ -259,6 +260,7 @@ function migrateFiles(
           : null;
       } else {
         output = runTransform(source.transform, file, sourceText, collector, {
+          ...project,
           cssMode: options.cssMode,
         }).output;
       }
@@ -299,10 +301,32 @@ function reportUnsupportedFiles(
   extensions: string[]
 ): boolean {
   const unsupported = UNSUPPORTED_EXTENSIONS.filter(
-    ext => !extensions.includes(ext)
+    ext =>
+      !extensions.includes(ext) &&
+      (source.unsupportedExtensions?.includes(ext) ?? true)
   );
   const pkg = sourcePackage(source);
-  if (unsupported.length === 0 || pkg === null) return false;
+  if (unsupported.length === 0) return false;
+  if (pkg === null) {
+    // No package to look for: the source says what it would have converted.
+    const find = source.findUnsupportedReference;
+    if (!find) return false;
+    for (const file of collectFiles(targets, unsupported)) {
+      const line = find(fs.readFileSync(file, 'utf8'));
+      if (line === null) continue;
+      const collector = reporter.startFile();
+      collector.add({
+        file,
+        line,
+        rule: 'unsupported-file',
+        message: `has markup the ${source.name} source would convert, but ${path.extname(
+          file
+        )} files cannot be parsed by the codemod — migrate this file by hand`,
+      });
+      reporter.finishFile(file, false, collector.entries);
+    }
+    return false;
+  }
   // Whether any unsupported file still references the source package. These
   // are reported but never rewritten, so the reference survives the run —
   // and the manifest pass must not remove the package out from under it.
@@ -502,8 +526,7 @@ export function createCLI(
     )
     .option(
       '--css <mode>',
-      `stylesheet target: ${CSS_MODES.join(', ')}`,
-      'bestax'
+      `stylesheet target: ${CSS_MODES.join(', ')} (default bestax; keep for bulma-classes)`
     )
     .option('--no-deps', 'skip updating package.json dependencies')
     .option(
@@ -520,7 +543,8 @@ export function createCLI(
         program.error('', { exitCode: 1 });
         return;
       }
-      if (!CSS_MODES.includes(options.css)) {
+      const cssMode: CssMode = options.css ?? source.defaultCssMode ?? 'bestax';
+      if (!CSS_MODES.includes(cssMode)) {
         io.error(
           `${chalk.red('Unknown --css mode')} "${options.css}". Valid modes: ${CSS_MODES.join(', ')}`
         );
@@ -546,11 +570,19 @@ export function createCLI(
         dry: Boolean(options.dry),
         print: Boolean(options.print),
         deps: options.deps !== false,
-        cssMode: options.css as CssMode,
+        cssMode,
       };
 
       const reporter = new Reporter();
-      const depSignals = migrateFiles(source, files, reporter, io, runOptions);
+      const project = source.analyzeProject?.(targets) ?? {};
+      const depSignals = migrateFiles(
+        source,
+        files,
+        reporter,
+        io,
+        runOptions,
+        project
+      );
       const unsupportedImports = reportUnsupportedFiles(
         source,
         targets,

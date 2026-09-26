@@ -7,8 +7,8 @@ sidebar_position: 7
 # Migrate skill
 
 The [`bestax-migrate`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/SKILL.md)
-skill teaches an agent to move an existing app off an unmaintained React Bulma library and onto
-`@allxsmith/bestax-bulma` on Bulma v1. Three sources are supported:
+skill teaches an agent to move an existing app onto `@allxsmith/bestax-bulma` on Bulma v1, from
+an unmaintained React Bulma library or from Bulma's classes written on plain JSX. The sources:
 
 - [`react-bulma-components`](https://github.com/couds/react-bulma-components) v4 — unmaintained
   since 2022, Bulma 0.9.x —
@@ -21,11 +21,16 @@ skill teaches an agent to move an existing app off an unmaintained React Bulma l
   on React 16 and `create-react-class`. Its flat exports become bestax's compound components,
   and its Font Awesome 4 icons are the thing to watch —
   [guide](../guides/getting-started/migration/bloomer.md)
+- `bulma-classes`: no library at all, just Bulma's classes on JSX (`<div className="box">`).
+  An element converts only when the bestax component renders the same markup, so the page
+  renders the same afterwards —
+  [guide](../guides/getting-started/migration/bulma-classes.md)
 
 It drives the `bestax-migrate` codemod and then resolves everything the codemod flags.
 
 Like the rest of the bundle, `create-bestax` offers to preinstall this skill; it stays idle
-until the agent meets code that still imports one of those libraries.
+until the agent meets code that still imports one of those libraries, or is asked to turn
+Bulma classNames into bestax components.
 
 ## Install
 
@@ -35,11 +40,15 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 
 ## What the agent does with it
 
-1. Picks the source library from the app's imports, runs
-   `pnpm dlx bestax-migrate <source> src/ --dry`, reviews the report, then applies the codemod
-   for real — that rewrites the components, the stylesheets (CSS/SCSS onto Bulma v1 + the
-   bestax extras), **and** `package.json` (the old library removed, `@allxsmith/bestax-bulma`
-   added, `bulma` → `^1`, `node-sass` → `sass`).
+1. Picks the source from the app's imports (or `bulma-classes` when the app imports no Bulma
+   library and writes the classes itself), runs `pnpm dlx bestax-migrate <source> src/ --dry`,
+   reviews the report, then applies the codemod for real. For a library source that rewrites
+   the components, the stylesheets (CSS/SCSS onto Bulma v1 + the bestax extras), **and**
+   `package.json` (the old library removed, `@allxsmith/bestax-bulma` added, `bulma` → `^1`,
+   `node-sass` → `sass`). `bulma-classes` rewrites the components and adds
+   `@allxsmith/bestax-bulma`, and by default leaves the app's stylesheets and Bulma version
+   alone, since they already style every class it converts; `--css bestax` asks for the move to
+   Bulma v1 as well.
 2. Installs the rewritten dependencies (`npm install` / `pnpm install`) — the codemod never runs
    a package manager itself, and its `peer-deps` report entries call out React (older than 18)
    or Font Awesome (older than 6) blockers first.
@@ -59,8 +68,8 @@ bestax-migrate skill, and make sure the build passes when you're done.
 
 ## References bundled with the skill
 
-The mapping tables are per source — `references/react-bulma-components/`, `references/rbx/` and
-`references/bloomer/` — each holding the same three files:
+The mapping tables are per source — `references/react-bulma-components/`, `references/rbx/`,
+`references/bloomer/` and `references/bulma-classes/` — each holding the same three files:
 
 - `component-map.md` — every component of that library (and every compound sub-component) with
   its bestax target.
@@ -75,4 +84,5 @@ The mapping tables are per source — `references/react-bulma-components/`, `ref
 See the full migration guides for the codemod itself:
 [react-bulma-components](../guides/getting-started/migration/react-bulma-components.md) ·
 [rbx](../guides/getting-started/migration/rbx.md) ·
-[bloomer](../guides/getting-started/migration/bloomer.md).
+[bloomer](../guides/getting-started/migration/bloomer.md) ·
+[Bulma classes](../guides/getting-started/migration/bulma-classes.md).

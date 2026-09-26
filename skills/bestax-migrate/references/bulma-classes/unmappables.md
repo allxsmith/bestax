@@ -1,0 +1,170 @@
+# Bulma classes → bestax-bulma: what the codemod leaves for you
+
+Every `TODO(bestax-migrate)` this source writes, by rule, with what to do about it. The markup
+under a TODO is exactly as it was, so the app still renders the same while you work through
+them. The rule after the colon names a Bulma class, a bestax component or prop, or an
+attribute, never one of your own classes.
+
+## An element it would not convert
+
+### `spread:<Target>`
+
+The element spreads props (`<div className="box" {...rest}>`). A spread can carry anything,
+and bestax reads some names as its own props: a spread `className` merges with the component's
+classes, where on the plain element it replaced them. Convert by hand once you know what the
+spread carries, or leave it.
+
+### `ref:<Target>`
+
+The element has a `ref`, and the bestax component doesn't forward one, so the ref would stop
+reaching the DOM node. Only `Button` and `Link` forward refs among the components this source
+converts. Keep the element as markup.
+
+### `tag:<Target>`
+
+bestax renders that component on a fixed tag, or a short list of them through `as` (see the
+**Tags** column in [component-map.md](component-map.md)), and this element is on another one:
+`<div className="section">`, `<p className="notification">`. Changing the tag changes the
+markup, so decide whether you want it; if you do, change it and re-run.
+
+### `attr:<prop>`
+
+An attribute on the element is also a prop of the bestax component, which would read it
+differently: `<div className="box" color="red">` would lose its `color` attribute to Box's text
+color. Rename or drop the attribute, then re-run.
+
+It also covers an attribute the component's props type rejects. `Delete` takes no `type`
+(`type="button"` is the one value that converts, because `Delete` renders it anyway), and
+`Progress` types `value` and `max` as numbers, so `value="half"` stays. A number converts only
+when it is spelled the way it renders (`value="40"`, not `value="040"`).
+
+`attr:dangerouslySetInnerHTML` is the same kind of refusal: the element sets its own content,
+and some bestax components render content of their own beside `children`, which React
+rejects. Keep the element as markup.
+
+### `defaults:<Target>`
+
+The component renders attributes of its own when the element doesn't set them. `Delete`
+renders `type="button"` and `aria-label="Close"`. On a bare `<button className="delete">`,
+converting would add both, changing a submit button inside a form into a plain button. Add the
+attributes you want (usually both, with a real label), then re-run.
+
+### `drops:<Target>`
+
+The component drops an attribute on this tag. Most of these do nothing there anyway: `Button`
+drops `href`, `target` and `rel` on a `<button>`, and `Level.Item` keeps link attributes only
+on an `<a>`. Remove the attribute, then re-run.
+
+`disabled` is the exception. `Button` drops it on a tag with no disabled state
+(`<a className="button" disabled>`), but Bulma greys out a disabled `.button` on any tag, so
+dropping it would change how the element looks. Keep that element as markup.
+
+### `children:<Target>`
+
+The component's props type requires children, and the element has none (`Buttons`). An empty
+`.buttons` does nothing; delete it or give it buttons.
+
+### `only-child:<Target>`
+
+The element is the only child of another component (`<Link href="/x"><a className="button">`),
+which may reach into it with `cloneElement`: next/link's legacy behavior, a tooltip, a Radix
+`asChild` trigger. A bestax component would not take those props or that ref the same way.
+Convert it by hand if the parent only renders its children.
+
+### `dynamic-class:<Target>`
+
+The `className` is computed (`clsx(...)`, a ternary, a template with expressions), and with
+its classes written out the element would become bestax `<Target>`. The codemod converts
+static strings only. Convert by hand with the [prop map](prop-map.md), turning each condition
+into the prop:
+
+```tsx
+// before
+<button className={clsx('button', busy && 'is-loading')}>Save</button>
+// after
+<Button isLoading={busy}>Save</Button>
+```
+
+The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
+`<span>` gets `tag:Box`, and a `clsx('card', …)` gets `family:card`.
+
+## A family it leaves as markup: `family:<class>`
+
+The bestax component renders parts of its own, or adds attributes, so a one-element-at-a-time
+conversion would change the markup. Convert the whole family by hand, and look at the result
+in the browser:
+
+- **`family:card`**: `Card` wraps any child that is not one of its parts in `.card-content`.
+  Use its parts, `Card.Header` (with `Card.Header.Title` and `Card.Header.Icon`),
+  `Card.Image`, `Card.Content`, `Card.Footer` and `Card.FooterItem`, together.
+- **`family:navbar`**: `Navbar` adds `role="navigation"` and an `aria-label`, and
+  `Navbar.Burger` renders its own three spans. Its parts are `Navbar.Brand`, `Navbar.Item`,
+  `Navbar.Link`, `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`,
+  `Navbar.Dropdown`, `Navbar.DropdownMenu` and `Navbar.Divider`.
+- **`family:field`**, **`family:input`**, **`family:textarea`**, **`family:select`**,
+  **`family:file`**: bestax's form controls render their own `.field` and `.control` wrappers
+  (and `File` its whole `.file-label` tree). Replace the whole `.field` block with the
+  control, not each element in it. See the `bestax-form` skill.
+- **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
+  bestax renders its own styled checkbox and radio markup, not Bulma's.
+- **`family:modal`**: `Modal` renders its own background and content parts, and adds dialog
+  attributes. Rebuild it with `Modal` and its parts, and drive it with its open prop.
+- **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
+- **`family:icon`**, **`family:icon-text`**: `Icon` renders its own `<i>` and adds an
+  `aria-label`. See the `bestax-icons` skill for its library and name props.
+- **`family:image`**: `Image` renders its own `<img>`.
+- **`family:menu`**: `Menu.Item` renders the `<li>` and the `<a>` together.
+- **`family:message`**: `Message` always wraps its children in `.message-body`.
+- **`family:pagination`**, **`family:panel`**, **`family:tabs`**, **`family:breadcrumb`**:
+  each renders list items, links or roles of its own. Rebuild them from the component's docs.
+- **`family:grid`**, **`family:cell`**, **`family:fixed-grid`**: this source leaves Grid markup
+  as written. `Grid` and `Cell` convert by hand; `Grid isFixed` renders the `.fixed-grid`
+  wrapper itself.
+- **`family:table-container`**: bestax renders `.table-container` from `Table isResponsive`.
+- **`family:skeleton-block`**, **`family:skeleton-lines`**: `Skeleton` renders its own markup.
+
+## A class Bulma v1 removed: `legacy:<class>`
+
+`legacy:tile`: Bulma v1 has no tiles. Rebuild the layout with `Grid` and `Cell`; the Bulma
+0.9 to 1 guide shows the translation. Until then the element has no styles at all under
+Bulma v1.
+
+## A whole file it left alone
+
+These come only when the file has an element the codemod would convert (a computed className
+counts), so a re-run after the fix has something to do. A non-React file gets `jsx-runtime`
+alone: every other TODO names a React component to use.
+
+- **`rsc`**: the file is in a Next.js App Router project (a package with `next` and an
+  `app/` directory) and has no `'use client'`, so it may render as a server component, and
+  bestax's components are client components. That covers files outside `app/` too: a
+  component under `components/` is a server component when a server page renders it. Files
+  under `pages/` are always client code and convert. Add `'use client'` if the file can be a
+  client module (no `async` component, no server-only calls), then re-run.
+- **`styled-jsx`**: the component scopes its styles with `<style jsx>`, which adds its scoping
+  class to plain elements and not to an imported component, so a converted element would lose
+  its styles. Move those
+  styles out of `<style jsx>`, or scope them with `:global()`, then re-run.
+- **`imports`**: the file is CommonJS (`require` or `module.exports`, no ES `import` or
+  `export`), and the codemod adds an ES `import`. Move the file to ES modules, then re-run.
+- **`jsx-runtime`**: the file's JSX isn't React's: a `@jsx` pragma or `@jsxImportSource` naming
+  another runtime (Preact, Solid), or a package that sets one in its tsconfig or depends on one
+  instead of React. bestax-bulma components are React components.
+
+## Things that get no TODO
+
+- Helper classes on a `<div>` (`<div className="is-flex mt-4">`): bestax has no plain `<div>`
+  wrapper, and the classes are valid Bulma, so the element stays.
+- `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
+- A class with no bestax prop on a converted element: it stays in `className`.
+
+## After the codemod
+
+Class order changes on converted elements (bestax writes its own classes first), so snapshot
+tests that compare class strings will churn while the rendered page stays the same. Update the
+snapshots after reviewing the diff.
+
+If the build runs PurgeCSS, the report says so: a converted element's classes now come from
+bestax's code, some of them built from props at runtime (`mt="4"` renders `mt-4`), so the
+PurgeCSS config has to scan bestax's dist and safelist those patterns. The docs' optimizing CSS
+guide has the config.

@@ -19,7 +19,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_URL = 'https://github.com/couds/react-bulma-components.git';
 // master as of 2026-07 (v4.1.0 era; the library is unmaintained, so this
@@ -84,8 +84,8 @@ const storyFiles = [];
 
 if (storyFiles.length === 0) fail('no story files found in the corpus');
 
-const { default: transform } = await import(distTransform);
-const { runTransform } = await import(distRunner);
+const { default: transform } = await import(pathToFileURL(distTransform).href);
+const { runTransform } = await import(pathToFileURL(distRunner).href);
 
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });

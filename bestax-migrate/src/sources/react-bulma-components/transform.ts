@@ -20,8 +20,10 @@ import { MAPPING, UNIVERSAL_PROPS, resolveMapping } from './mapping.js';
 import {
   addTodo,
   attributesOf,
+  forgetJsxParens,
   jsxNameParts,
   renameElement,
+  reprintDirectives,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
@@ -825,6 +827,8 @@ export default function transform(
   }
 
   if (!ctx.dirty) return undefined;
+  forgetJsxParens(j, root);
+  reprintDirectives(j, root);
   // Double quotes match the dominant JSX-attribute convention; users run
   // their own formatter afterwards anyway. Tab-indented sources keep tabs so
   // reprinted nodes don't drift from the untouched lines around them.

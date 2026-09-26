@@ -145,6 +145,10 @@ named-import style first.
 Already supported: [**rbx**](./rbx.md) (`bestax-migrate rbx src/`) and
 [**bloomer**](./bloomer.md) (`bestax-migrate bloomer src/`).
 
+Writing Bulma's classes on plain JSX, with no library? That's
+[**bulma-classes**](./bulma-classes.md) (`bestax-migrate bulma-classes src/`), and it also
+tidies up markup left over after a library migration.
+
 If you're using a specific React Bulma package that isn't supported by the migration tool yet,
 [open a feature request](https://github.com/allxsmith/bestax/issues/new?template=feature-request.md)
 naming the package and the components you use — the codemod platform is built to grow new

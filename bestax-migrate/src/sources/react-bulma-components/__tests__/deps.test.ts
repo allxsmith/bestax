@@ -116,6 +116,24 @@ describe('updateDependencies', () => {
     });
     expect(next).toBeNull();
   });
+
+  it('reports an older bestax-bulma the app already declares, without raising it', () => {
+    const { next, todos } = run({
+      dependencies: {
+        'react-bulma-components': '^4.1.0',
+        '@allxsmith/bestax-bulma': '^4.2.0',
+      },
+    });
+    expect(
+      (next!.dependencies as Record<string, string>)['@allxsmith/bestax-bulma']
+    ).toBe('^4.2.0');
+    expect(todos).toContainEqual(
+      expect.objectContaining({
+        rule: 'peer-deps',
+        message: expect.stringContaining('^4.2.0 is older than the ^5'),
+      })
+    );
+  });
 });
 
 describe('retained-import warning', () => {

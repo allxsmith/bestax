@@ -35,10 +35,12 @@ import {
 import {
   addTodo,
   attributesOf,
+  forgetJsxParens,
   jsxNameParts,
   literalValueOf,
   removeAttr,
   renameElement,
+  reprintDirectives,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import {
@@ -814,6 +816,8 @@ export default function transform(
   // Flush the deferred stylesheet notes onto the first node that survived the
   // import rewrite, so the drop is visible in the file and not only the report.
   if (!ctx.dirty) return undefined;
+  forgetJsxParens(j, root);
+  reprintDirectives(j, root);
   // Double quotes match the dominant JSX-attribute convention; users run
   // their own formatter afterwards anyway. Tab-indented sources keep tabs so
   // reprinted nodes don't drift from the untouched lines around them.
