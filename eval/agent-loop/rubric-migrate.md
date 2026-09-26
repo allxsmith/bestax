@@ -89,7 +89,7 @@ spot-check the diff: a modifier left in `className` where the component has a pr
 
 ## 5. Families built from their parts — 10 pts [brief-specific]
 
-The families `$COMPLETENESS` names are the conversions a codemod cannot make, because each
+The families `$COMPLETENESS` names are the conversions a codemod cannot finish, because each
 component renders parts of its own. A family counts as converted only when it is built from
 the component and its parts; a component wrapped around the old part markup
 (`<Card><header className="card-header">…`) is not converted, and neither is a family left
