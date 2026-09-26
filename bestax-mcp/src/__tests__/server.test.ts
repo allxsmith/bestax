@@ -703,6 +703,18 @@ describe('lookup_bulma_classes', () => {
     );
   });
 
+  it('folds a wrapper into the component that renders it', async () => {
+    expect(await lookup('table-container', 'div')).toContain(
+      '**Folds into the `Table` inside it**, as `isResponsive`:'
+    );
+    const grid = await lookup('fixed-grid has-3-cols', 'div');
+    expect(grid).toContain('as `isFixed` `fixedCols={3}`:');
+    expect(grid).toContain('| `has-3-cols` | `fixedCols={3}` |');
+    expect(await lookup('table-container mt-2', 'div')).toContain(
+      '**Stays markup:** bestax renders `.table-container` with nothing on it but its own class and modifiers.'
+    );
+  });
+
   it('says when a component needs one of its parts inside', async () => {
     expect(await lookup('card', 'div')).toContain(
       '**Component:** `Card`. It renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`,'

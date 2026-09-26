@@ -14,6 +14,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -30,6 +31,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -74,6 +76,7 @@
         "is-disabled": "bestax `Button` renders it through `isDisabled`, which also disables the element (`disabled`, or `aria-disabled` on a link)"
       },
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -97,6 +100,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -123,6 +127,7 @@
           "Card.FooterItem"
         ]
       },
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -143,6 +148,7 @@
         "unless": ["Card.Header.Title"],
         "whenEmpty": true
       },
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -159,6 +165,7 @@
       "modifiers": { "is-centered": { "writes": [{ "prop": "centered" }] } },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -175,6 +182,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -191,6 +199,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -207,6 +216,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -223,6 +233,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -239,6 +250,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -334,6 +346,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -990,6 +1003,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1148,6 +1162,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1381,6 +1396,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1419,6 +1435,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1439,6 +1456,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1459,6 +1477,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1485,6 +1504,7 @@
         "whenEmpty": true,
         "when": "is-horizontal"
       },
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1506,6 +1526,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1522,6 +1543,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1546,6 +1568,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1582,6 +1605,7 @@
         "is-dark": "`color` renders `has-text-<color>` on the input as well"
       },
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1619,6 +1643,7 @@
         "is-dark": "`color` renders `has-text-<color>` on the textarea as well"
       },
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1635,6 +1660,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1671,6 +1697,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1687,6 +1714,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1703,6 +1731,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1719,6 +1748,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1735,6 +1765,7 @@
       "modifiers": { "is-mobile": { "writes": [{ "prop": "isMobile" }] } },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1751,6 +1782,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1767,6 +1799,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1783,6 +1816,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1799,6 +1833,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1815,6 +1850,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1831,6 +1867,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1847,6 +1884,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1879,6 +1917,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1895,6 +1934,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1911,6 +1951,7 @@
       "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1927,6 +1968,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1943,6 +1985,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1959,6 +2002,7 @@
       "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1978,6 +2022,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1994,6 +2039,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": true,
       "ownClassOnly": true
     },
@@ -2021,6 +2067,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2051,6 +2098,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2070,6 +2118,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2112,6 +2161,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2134,6 +2184,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2167,6 +2218,7 @@
         "is-delete": "bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>"
       },
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2187,6 +2239,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2230,6 +2283,7 @@
       },
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2246,22 +2300,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
-    "fixed-grid": {
-      "status": "todo",
-      "target": "Grid",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "`Grid isFixed` renders the `.fixed-grid` wrapper itself, from `fixedCols`; replace the wrapper and its `.grid` with one `Grid`, by hand",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2278,6 +2317,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2294,6 +2334,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2310,6 +2351,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2326,6 +2368,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2342,6 +2385,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2358,6 +2402,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2374,6 +2419,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2390,6 +2436,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2406,6 +2453,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2422,6 +2470,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2438,6 +2487,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2454,6 +2504,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2470,6 +2521,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2486,6 +2538,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2502,6 +2555,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2518,6 +2572,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2534,6 +2589,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2550,6 +2606,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2566,6 +2623,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2582,6 +2640,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2598,6 +2657,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2614,6 +2674,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2630,6 +2691,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2646,6 +2708,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2662,6 +2725,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2678,6 +2742,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2694,6 +2759,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2710,6 +2776,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2726,6 +2793,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2742,6 +2810,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2758,6 +2827,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2774,6 +2844,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2790,6 +2861,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2806,6 +2878,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2822,6 +2895,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2838,6 +2912,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2854,6 +2929,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2870,6 +2946,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2886,6 +2963,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2902,6 +2980,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2918,6 +2997,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2934,6 +3014,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2950,6 +3031,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2966,6 +3048,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2982,6 +3065,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2998,6 +3082,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3014,6 +3099,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3030,6 +3116,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3046,6 +3133,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3062,22 +3150,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
-    "table-container": {
-      "status": "todo",
-      "target": "Table",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "bestax renders `.table-container` from `Table isResponsive`",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3094,6 +3167,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3110,6 +3184,381 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "table-container": {
+      "status": "fold",
+      "target": "Table",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": [{ "prop": "isResponsive" }],
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "fixed-grid": {
+      "status": "fold",
+      "target": "Grid",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "has-1-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "1", "numeric": true }]
+        },
+        "has-2-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "2", "numeric": true }]
+        },
+        "has-3-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "3", "numeric": true }]
+        },
+        "has-4-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "4", "numeric": true }]
+        },
+        "has-5-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "5", "numeric": true }]
+        },
+        "has-6-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "6", "numeric": true }]
+        },
+        "has-7-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "7", "numeric": true }]
+        },
+        "has-8-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "8", "numeric": true }]
+        },
+        "has-9-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "9", "numeric": true }]
+        },
+        "has-10-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "10", "numeric": true }]
+        },
+        "has-11-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "11", "numeric": true }]
+        },
+        "has-12-cols": {
+          "writes": [{ "prop": "fixedCols", "value": "12", "numeric": true }]
+        },
+        "has-1-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "1", "numeric": true }
+          ]
+        },
+        "has-2-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "2", "numeric": true }
+          ]
+        },
+        "has-3-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "3", "numeric": true }
+          ]
+        },
+        "has-4-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "4", "numeric": true }
+          ]
+        },
+        "has-5-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "5", "numeric": true }
+          ]
+        },
+        "has-6-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "6", "numeric": true }
+          ]
+        },
+        "has-7-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "7", "numeric": true }
+          ]
+        },
+        "has-8-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "8", "numeric": true }
+          ]
+        },
+        "has-9-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "9", "numeric": true }
+          ]
+        },
+        "has-10-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "10", "numeric": true }
+          ]
+        },
+        "has-11-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "11", "numeric": true }
+          ]
+        },
+        "has-12-cols-mobile": {
+          "writes": [
+            { "prop": "fixedColsMobile", "value": "12", "numeric": true }
+          ]
+        },
+        "has-1-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "1", "numeric": true }
+          ]
+        },
+        "has-2-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "2", "numeric": true }
+          ]
+        },
+        "has-3-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "3", "numeric": true }
+          ]
+        },
+        "has-4-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "4", "numeric": true }
+          ]
+        },
+        "has-5-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "5", "numeric": true }
+          ]
+        },
+        "has-6-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "6", "numeric": true }
+          ]
+        },
+        "has-7-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "7", "numeric": true }
+          ]
+        },
+        "has-8-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "8", "numeric": true }
+          ]
+        },
+        "has-9-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "9", "numeric": true }
+          ]
+        },
+        "has-10-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "10", "numeric": true }
+          ]
+        },
+        "has-11-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "11", "numeric": true }
+          ]
+        },
+        "has-12-cols-tablet": {
+          "writes": [
+            { "prop": "fixedColsTablet", "value": "12", "numeric": true }
+          ]
+        },
+        "has-1-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "1", "numeric": true }
+          ]
+        },
+        "has-2-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "2", "numeric": true }
+          ]
+        },
+        "has-3-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "3", "numeric": true }
+          ]
+        },
+        "has-4-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "4", "numeric": true }
+          ]
+        },
+        "has-5-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "5", "numeric": true }
+          ]
+        },
+        "has-6-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "6", "numeric": true }
+          ]
+        },
+        "has-7-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "7", "numeric": true }
+          ]
+        },
+        "has-8-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "8", "numeric": true }
+          ]
+        },
+        "has-9-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "9", "numeric": true }
+          ]
+        },
+        "has-10-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "10", "numeric": true }
+          ]
+        },
+        "has-11-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "11", "numeric": true }
+          ]
+        },
+        "has-12-cols-desktop": {
+          "writes": [
+            { "prop": "fixedColsDesktop", "value": "12", "numeric": true }
+          ]
+        },
+        "has-1-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "1", "numeric": true }
+          ]
+        },
+        "has-2-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "2", "numeric": true }
+          ]
+        },
+        "has-3-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "3", "numeric": true }
+          ]
+        },
+        "has-4-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "4", "numeric": true }
+          ]
+        },
+        "has-5-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "5", "numeric": true }
+          ]
+        },
+        "has-6-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "6", "numeric": true }
+          ]
+        },
+        "has-7-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "7", "numeric": true }
+          ]
+        },
+        "has-8-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "8", "numeric": true }
+          ]
+        },
+        "has-9-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "9", "numeric": true }
+          ]
+        },
+        "has-10-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "10", "numeric": true }
+          ]
+        },
+        "has-11-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "11", "numeric": true }
+          ]
+        },
+        "has-12-cols-widescreen": {
+          "writes": [
+            { "prop": "fixedColsWidescreen", "value": "12", "numeric": true }
+          ]
+        },
+        "has-1-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "1", "numeric": true }
+          ]
+        },
+        "has-2-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "2", "numeric": true }
+          ]
+        },
+        "has-3-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "3", "numeric": true }
+          ]
+        },
+        "has-4-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "4", "numeric": true }
+          ]
+        },
+        "has-5-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "5", "numeric": true }
+          ]
+        },
+        "has-6-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "6", "numeric": true }
+          ]
+        },
+        "has-7-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "7", "numeric": true }
+          ]
+        },
+        "has-8-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "8", "numeric": true }
+          ]
+        },
+        "has-9-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "9", "numeric": true }
+          ]
+        },
+        "has-10-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "10", "numeric": true }
+          ]
+        },
+        "has-11-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "11", "numeric": true }
+          ]
+        },
+        "has-12-cols-fullhd": {
+          "writes": [
+            { "prop": "fixedColsFullhd", "value": "12", "numeric": true }
+          ]
+        },
+        "has-auto-count": {
+          "writes": [{ "prop": "fixedCols", "value": "auto" }]
+        }
+      },
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": [{ "prop": "isFixed" }],
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3126,6 +3575,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3142,6 +3592,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3158,6 +3609,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3174,6 +3626,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3190,6 +3643,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3206,6 +3660,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3222,6 +3677,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3238,6 +3694,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3254,6 +3711,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3270,6 +3728,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3286,6 +3745,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3302,6 +3762,7 @@
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
+      "folds": null,
       "noHelpers": false,
       "ownClassOnly": false
     }
@@ -4590,8 +5051,8 @@
       "match": "^(?:is-(?:col|row)-.+|is-(?:column|row)-gap-\\d+|is-gap-\\d+|is-auto-fill)$"
     },
     {
-      "why": "a `.fixed-grid` column count, which stays with its `.fixed-grid` (a family this source leaves as markup)",
-      "match": "^has-\\d+-cols(?:-.+)?$"
+      "why": "a `.fixed-grid` column count, which converts only on its own `.fixed-grid`",
+      "match": "^(?:has-\\d+-cols(?:-.+)?|has-auto-count)$"
     },
     {
       "why": "an `.image` modifier; `.image` stays as markup",
@@ -4603,7 +5064,7 @@
     },
     {
       "why": "a modifier of markup this source leaves alone, or one bestax has no prop for",
-      "match": "^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|has-auto-count|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$"
+      "match": "^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$"
     }
   ]
 }
