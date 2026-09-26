@@ -82,6 +82,23 @@ const HEADER_PRAGMA =
 const NEXT_LINE_DIRECTIVE =
   /^[\s*]*(?:eslint-disable-next-line|@ts-expect-error|@ts-ignore|prettier-ignore)\b/;
 
+/**
+ * A comment moved to sit after a JSX tag name. It has to be a block comment
+ * there: recast prints a line comment as `<// …`, which TypeScript reads as a
+ * closing tag.
+ */
+function afterTagName(comment: any): any {
+  if (comment.type !== 'CommentLine') {
+    return { ...comment, leading: false, trailing: true };
+  }
+  return {
+    type: 'CommentBlock',
+    value: ` ${comment.value.trim().replace(/\*\//g, '*\\/')} `,
+    leading: false,
+    trailing: true,
+  };
+}
+
 /** A lowercase intrinsic tag: not a component, not a custom element. */
 const INTRINSIC = /^[a-z][a-z0-9]*$/;
 
@@ -388,10 +405,23 @@ export default function transform(
       if (child.type !== 'JSXElement') return [];
       const target =
         planned.get(child)?.conversion?.target ??
+        planned.get(child)?.fold?.target ??
         // A direct child is looked up in the element's own scope, the child's.
         bestaxTarget(child, elementPath);
       return target ? [target] : [];
     });
+  /**
+   * The one element an element holds, when it holds nothing else: no text
+   * React renders, and no comment, which folding the element would drop.
+   */
+  const soleChild = (element: any): any => {
+    const content = (element.children ?? []).filter(
+      (child: any) => child.type !== 'JSXText' || reachesReact(child)
+    );
+    return content.length === 1 && content[0].type === 'JSXElement'
+      ? content[0]
+      : undefined;
+  };
   // For each element, the bestax components already in the file inside it:
   // `Field` and `Control` change how bestax's form controls render.
   const bestaxInside = new Map<object, string[]>();
@@ -462,17 +492,19 @@ export default function transform(
       hasRef: attributes.has('ref'),
       hasChildren: (element.children ?? []).some(reachesReact),
       childTargets: childTargets(elementPath),
+      soleChildTarget: planned.get(soleChild(element))?.conversion?.target,
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
     };
     let result = plan(facts);
-    const converts = result.conversion !== null;
-    if (className === null && result.conversion) {
+    const converts = result.conversion !== null || result.fold !== undefined;
+    const becomes = result.conversion?.target ?? result.fold?.target;
+    if (className === null && becomes) {
       // The same element with a static className would convert; with a
       // computed one, only a person can turn each condition into its prop.
-      const target = result.conversion.target;
+      const target = becomes;
       result = {
         conversion: null,
         todos: [
@@ -484,8 +516,15 @@ export default function transform(
         ],
       };
     }
+    if (result.fold) {
+      // The wrapper's props join its child's conversion, which has not been
+      // applied yet: conversions are applied after every element is planned.
+      const inner = planned.get(soleChild(element)!)!.conversion!;
+      inner.props.push(...result.fold.props);
+      inner.numbers.push(...result.fold.numbers);
+    }
     planned.set(element, result);
-    if (result.conversion || result.todos.length > 0) {
+    if (result.conversion || result.fold || result.todos.length > 0) {
       elements.unshift({ path: elementPath, plan: result, converts });
     }
   }
@@ -498,7 +537,7 @@ export default function transform(
   const block = (rule: string, message: string): void => {
     if (converting) addTodo(ctx, elements[0].path, rule, message);
     for (const element of elements) {
-      element.plan = { ...element.plan, conversion: null };
+      element.plan = { ...element.plan, conversion: null, fold: undefined };
     }
   };
   const runtime =
@@ -558,6 +597,32 @@ export default function transform(
     }
   }
   for (const { path: elementPath, plan: result } of [...elements].reverse()) {
+    if (result.fold) {
+      // The child inside has converted already (innermost first), with the
+      // wrapper's props on it; the wrapper itself goes, its comments with the
+      // child: one on the wrapper moves to the child, and one inside the
+      // wrapper's tags moves inside the child's opening tag.
+      const wrapper = elementPath.node;
+      const inner = soleChild(wrapper);
+      const { openingElement, closingElement } = wrapper;
+      const inTags = [
+        openingElement,
+        openingElement.name,
+        ...(openingElement.attributes ?? []),
+        closingElement,
+        closingElement?.name,
+      ].flatMap((node: any) => node?.comments ?? []);
+      if (inTags.length) {
+        const name = inner.openingElement.name;
+        name.comments = [...(name.comments ?? []), ...inTags.map(afterTagName)];
+      }
+      if (wrapper.comments?.length) {
+        inner.comments = [...wrapper.comments, ...(inner.comments ?? [])];
+      }
+      elementPath.replace(inner);
+      ctx.dirty = true;
+      continue;
+    }
     const conversion = result.conversion;
     if (!conversion) continue;
     const element = elementPath.node;
@@ -584,18 +649,9 @@ export default function transform(
         replacement[0] ?? attrs.find((attr: any) => attr !== classAttr) ?? name;
       carrier.comments = [
         ...(carrier.comments ?? []),
-        ...classAttr.comments.map((comment: any) => {
-          if (carrier !== name) return comment;
-          if (comment.type !== 'CommentLine') {
-            return { ...comment, leading: false, trailing: true };
-          }
-          return {
-            type: 'CommentBlock',
-            value: ` ${comment.value.trim().replace(/\*\//g, '*\\/')} `,
-            leading: false,
-            trailing: true,
-          };
-        }),
+        ...classAttr.comments.map((comment: any) =>
+          carrier === name ? afterTagName(comment) : comment
+        ),
       ];
     }
     attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);

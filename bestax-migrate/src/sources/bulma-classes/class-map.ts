@@ -39,8 +39,11 @@ export interface Modifier {
  * - `todo`: bestax has a component, but the markup does not map element by
  *   element yet; the family's outermost class gets a TODO.
  * - `plain`: valid Bulma with nothing to convert to; left alone, no TODO.
+ * - `fold`: a wrapper the `target` renders itself from a prop, so the element
+ *   folds into the one `target` inside it (`.table-container` into
+ *   `Table isResponsive`).
  */
-export type RootStatus = 'mapped' | 'todo' | 'plain';
+export type RootStatus = 'mapped' | 'todo' | 'plain' | 'fold';
 
 export interface RootEntry {
   readonly status: RootStatus;
@@ -94,6 +97,11 @@ export interface RootEntry {
    * takes a generated `id` when the element has none of its own.
    */
   readonly adoptsIdFrom?: readonly string[];
+  /**
+   * For a `fold` root: the props that render it on the target inside. Its
+   * modifiers add their props beside these.
+   */
+  readonly folds?: readonly PropWrite[];
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
@@ -308,15 +316,19 @@ const set = (prop: string, value: string): Modifier => ({
   writes: [{ prop, value }],
 });
 
-/** `prefix + n` → `prop={n}` for `n` from 1 to `max`, for a prop typed as a number. */
+/**
+ * `prefix + n + suffix` → `prop={n}` for `n` from 1 to `max`, for a prop
+ * typed as a number.
+ */
 function numbers(
   prefix: string,
   max: number,
-  prop: string
+  prop: string,
+  suffix = ''
 ): Record<string, Modifier> {
   return Object.fromEntries(
     Array.from({ length: max }, (_, i) => String(i + 1)).map(value => [
-      `${prefix}${value}`,
+      `${prefix}${value}${suffix}`,
       { writes: [{ prop, value, numeric: true }] },
     ])
   );
@@ -1289,10 +1301,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Breadcrumb',
     'bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`'
   ),
-  'fixed-grid': todo(
-    'Grid',
-    '`Grid isFixed` renders the `.fixed-grid` wrapper itself, from `fixedCols`; replace the wrapper and its `.grid` with one `Grid`, by hand'
-  ),
   checkbox: todo(
     'Checkbox',
     "bestax `Checkbox` renders its own styled markup, not Bulma's"
@@ -1394,10 +1402,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Tabs',
     "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles"
   ),
-  'table-container': todo(
-    'Table',
-    'bestax renders `.table-container` from `Table isResponsive`'
-  ),
   'skeleton-block': todo(
     'Skeleton',
     'bestax `Skeleton` renders its own markup'
@@ -1406,6 +1410,37 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Skeleton',
     'bestax `Skeleton` renders its own markup'
   ),
+
+  // ---- Wrappers a component renders from a prop ---------------------------------
+  // Each renders the wrapper with its own class and nothing else, so the
+  // element folds only when it carries no attribute and no other class.
+  'table-container': {
+    status: 'fold',
+    target: 'Table',
+    tag: 'div',
+    folds: [{ prop: 'isResponsive' }],
+  },
+  'fixed-grid': {
+    status: 'fold',
+    target: 'Grid',
+    tag: 'div',
+    folds: [{ prop: 'isFixed' }],
+    modifiers: {
+      ...numbers('has-', 12, 'fixedCols', '-cols'),
+      ...Object.assign(
+        {},
+        ...SIZE_VIEWPORTS.map(viewport =>
+          numbers(
+            'has-',
+            12,
+            `fixedCols${viewportSuffix(viewport)}`,
+            `-cols-${viewport}`
+          )
+        )
+      ),
+      'has-auto-count': set('fixedCols', 'auto'),
+    },
+  },
 
   // ---- Valid Bulma, nothing to convert to --------------------------------------
   // The other sources emit these on purpose where bestax has no component.
@@ -1780,8 +1815,8 @@ export const PASSTHROUGH: ReadonlyArray<{
       /^(?:is-(?:col|row)-.+|is-(?:column|row)-gap-\d+|is-gap-\d+|is-auto-fill)$/,
   },
   {
-    why: 'a `.fixed-grid` column count, which stays with its `.fixed-grid` (a family this source leaves as markup)',
-    match: /^has-\d+-cols(?:-.+)?$/,
+    why: 'a `.fixed-grid` column count, which converts only on its own `.fixed-grid`',
+    match: /^(?:has-\d+-cols(?:-.+)?|has-auto-count)$/,
   },
   {
     why: 'an `.image` modifier; `.image` stays as markup',
@@ -1796,7 +1831,7 @@ export const PASSTHROUGH: ReadonlyArray<{
   {
     why: 'a modifier of markup this source leaves alone, or one bestax has no prop for',
     match:
-      /^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|has-auto-count|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$/,
+      /^(?:has-addons-.+|has-[a-z]+-separator|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-multiple|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$/,
   },
 ];
 

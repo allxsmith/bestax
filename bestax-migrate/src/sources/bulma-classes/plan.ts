@@ -44,6 +44,11 @@ export interface ElementFacts {
    * counts: one in an expression may not render.
    */
   childTargets?: readonly string[];
+  /**
+   * What the element's only child converts to, when the element holds one
+   * element and nothing else (not even whitespace React would render).
+   */
+  soleChildTarget?: string;
   /** The bestax components already in the file inside this element. */
   bestaxInside?: readonly string[];
   /** The bestax components already in the file around this element. */
@@ -84,6 +89,15 @@ export interface Conversion {
 
 export interface Plan {
   conversion: Conversion | null;
+  /**
+   * The element is a wrapper its only child's component renders from these
+   * props: they join that child's conversion, and the element goes.
+   */
+  fold?: {
+    target: string;
+    props: Array<[name: string, value: string | true]>;
+    numbers: string[];
+  };
   todos: Todo[];
 }
 
@@ -139,6 +153,9 @@ export function plan(facts: ElementFacts): Plan {
     });
     return { conversion: null, todos };
   }
+
+  const wrapper = tokens.find(token => rootFor(token)?.status === 'fold');
+  if (wrapper) return planFold(facts, wrapper, todos);
 
   const root = tokens
     .filter(token => rootFor(token)?.status === 'mapped')
@@ -403,4 +420,85 @@ export function plan(facts: ElementFacts): Plan {
     },
     todos,
   };
+}
+
+/**
+ * A wrapper the component inside it renders from a prop (`.table-container`
+ * from `Table isResponsive`). It folds into that component only when it is
+ * exactly what the component renders for it: its own tag and class, its own
+ * modifiers, no attribute, and one child that becomes the component.
+ */
+function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
+  const entry = rootFor(wrapper)!;
+  const target = entry.target;
+  if (!target) return { conversion: null, todos };
+  const folds = entry.folds ?? [];
+  const renders = `\`${target} ${folds.map(write => write.prop).join(' ')}\``;
+  const refuse = (kind: string, token: string, message: string): Plan => ({
+    conversion: null,
+    todos: [...todos, { rule: ruleId(kind, token), message }],
+  });
+
+  if (facts.tag !== entry.tag) {
+    return refuse(
+      'tag',
+      target,
+      `bestax ${renders} renders \`.${wrapper}\` on a <${entry.tag}>, not a <${facts.tag}>; keep the markup, or change the tag and re-run`
+    );
+  }
+  if (facts.hasSpread) {
+    return refuse(
+      'spread',
+      target,
+      `this element spreads props, and bestax ${renders} renders \`.${wrapper}\` with none of its own; keep it as markup`
+    );
+  }
+  if (facts.onlyChildOf) {
+    return refuse(
+      'only-child',
+      target,
+      `this element is the only child of \`<${facts.onlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\`, and folding it would move those onto the \`${target}\` inside; convert it by hand if \`<${facts.onlyChildOf}>\` only renders its children`
+    );
+  }
+  const attribute = [...facts.attributes.keys()][0];
+  if (attribute) {
+    return refuse(
+      'attr',
+      attribute,
+      `bestax ${renders} renders \`.${wrapper}\` with no attributes, so this element's \`${attribute}\` would be lost; keep it as markup`
+    );
+  }
+
+  const props: Array<[string, string | true]> = folds.map(write => [
+    write.prop,
+    write.value ?? true,
+  ]);
+  const numbers: string[] = [];
+  for (const token of facts.tokens) {
+    if (token === wrapper) continue;
+    const modifier = modifierFor(entry, token);
+    const taken = modifier?.writes.some(write =>
+      props.some(([prop]) => prop === write.prop)
+    );
+    if (!modifier || taken) {
+      return refuse(
+        'attr',
+        'className',
+        `bestax ${renders} renders \`.${wrapper}\` with no class but its own and one of each of its modifiers, so \`${token}\` would be lost; keep this element as markup`
+      );
+    }
+    for (const write of modifier.writes) {
+      props.push([write.prop, write.value ?? true]);
+      if (write.numeric) numbers.push(write.prop);
+    }
+  }
+
+  if (facts.soleChildTarget !== target) {
+    return refuse(
+      'children',
+      target,
+      `bestax ${renders} renders \`.${wrapper}\` itself, so this element converts only around a single element that becomes a \`${target}\`, with nothing else beside it`
+    );
+  }
+  return { conversion: null, fold: { target, props, numbers }, todos };
 }

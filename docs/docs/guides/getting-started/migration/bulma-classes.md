@@ -77,6 +77,10 @@ stock stylesheet.
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
   `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
+- **Wrappers a component renders itself** fold into it: a `.table-container` around a table
+  becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
+  `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
+  of its own.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's

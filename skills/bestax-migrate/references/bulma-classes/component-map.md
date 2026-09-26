@@ -129,14 +129,29 @@ prop: `<p className="has-text-centered mt-4">` → `<Paragraph textAlign="center
 bestax has no plain `<div>` wrapper, so `<div className="is-flex mt-4">` stays as it is, with
 no TODO: it is valid Bulma, and nothing unsafe was skipped.
 
+## Wrappers a component renders
+
+Some wrappers are rendered by the component inside them, from a prop. The codemod folds the
+wrapper into that component: the wrapper goes, and its class and modifiers become the
+component's props (`<div className="fixed-grid has-3-cols">` around a `.grid` becomes
+`<Grid isFixed fixedCols={3}>`).
+
+| Bulma class        | bestax-bulma         |
+| ------------------ | -------------------- |
+| `.table-container` | `Table isResponsive` |
+| `.fixed-grid`      | `Grid isFixed`       |
+
+The component renders the wrapper bare, so it folds only when it holds that one element and
+nothing else, and carries no attribute and no class but its own modifiers. Otherwise it stays
+with a `children:<Target>` or `attr` TODO.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Breadcrumb,
-Checkbox, Checkboxes, Dropdown, Select, File, `.fixed-grid`,
-Icon and IconText, Image, Menu, Message, Modal, the navbar's burger and dropdown link,
-Pagination, Panel, Radio, Radios, Skeleton, `.table-container` and Tabs.
+Checkbox, Checkboxes, Dropdown, Select, File, Icon and IconText, Image, Menu, Message, Modal,
+the navbar's burger and dropdown link, Pagination, Panel, Radio, Radios, Skeleton and Tabs.
 
 ## Classes left alone
 

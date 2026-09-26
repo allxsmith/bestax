@@ -52,6 +52,21 @@ export function Layout() {
           <div className="cell is-col-start-3">Third column</div>
           <div className="cell is-row-from-end-1 mt-2">Last row</div>
         </div>
+        <div className="fixed-grid has-2-cols has-1-cols-mobile">
+          <div className="grid">
+            <div className="cell">Fixed</div>
+            <div className="cell">Columns</div>
+          </div>
+        </div>
+        <div className="table-container">
+          <table className="table is-narrow">
+            <tbody>
+              <tr>
+                <td>Responsive</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div className="columns is-gapless is-vcentered is-desktop">
           <div className="column is-full">Full</div>
         </div>

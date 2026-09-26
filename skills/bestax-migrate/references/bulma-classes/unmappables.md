@@ -82,6 +82,13 @@ header convert on the next run. A card whose content sits straight inside it, wi
 is what you want, or keep the markup. A part inside an expression (`{open && <div className="card-content">}`)
 doesn't count, because it may not render.
 
+On a `.table-container` or `.fixed-grid` it's the wrapper case. `Table isResponsive` and
+`Grid isFixed` render that wrapper themselves, around nothing but the table or grid, so the
+wrapper folds into them only when it holds that one element and nothing else. A caption, a
+comment or a second element beside it keeps the wrapper as markup; move it outside the wrapper,
+then re-run. An attribute or an extra class on the wrapper keeps it too, because the component
+renders the wrapper bare.
+
 ### `context:<Target>`
 
 `Field` and `Control` tell bestax's form controls inside them to skip their own `.field` and
@@ -155,11 +162,6 @@ in the browser:
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination`**, **`family:panel`**, **`family:tabs`**, **`family:breadcrumb`**:
   each renders list items, links or roles of its own. Rebuild them from the component's docs.
-- **`family:fixed-grid`**: `Grid isFixed` renders the `.fixed-grid` wrapper itself, and its
-  `has-N-cols` classes from `fixedCols` (and `fixedColsMobile` and the other viewports). The
-  `.grid` inside has already become a `Grid`; move the wrapper's column counts onto it as those
-  props, add `isFixed`, and delete the wrapper.
-- **`family:table-container`**: bestax renders `.table-container` from `Table isResponsive`.
 - **`family:skeleton-block`**, **`family:skeleton-lines`**: `Skeleton` renders its own markup.
 
 ## A class Bulma v1 removed: `legacy:<class>`

@@ -234,6 +234,66 @@ describe.each(mapped)('`.%s`', (root, entry) => {
   }
 });
 
+const folds = Object.entries(ROOTS).filter(
+  ([, entry]) => entry.status === 'fold'
+) as Array<[string, RootEntry]>;
+
+describe.each(folds)(
+  '`.%s` folds into the component inside it',
+  (root, entry) => {
+    const [innerRoot, innerEntry] = mapped.find(
+      ([, found]) => found.target === entry.target
+    )!;
+    const around = (tokens: string[], attributes = {}) => ({
+      ...factsFor(entry.tag!, tokens, attributes),
+      soleChildTarget: entry.target,
+    });
+
+    it('renders the same as the component with its props, bare and with each modifier', () => {
+      const candidates = [
+        [root],
+        ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
+      ];
+      for (const tokens of candidates) {
+        const fold = plan(around(tokens)).fold;
+        expect({ tokens, folds: fold !== undefined }).toEqual({
+          tokens,
+          folds: true,
+        });
+        const raw = renderElement(
+          entry.tag!,
+          { className: tokens.join(' ') },
+          createElement(innerEntry.tag!, { className: innerRoot }, 'x')
+        );
+        const converted = renderElement(
+          fold!.target,
+          Object.fromEntries(
+            fold!.props.map(([name, value]) => [
+              name,
+              fold!.numbers.includes(name) ? Number(value) : value,
+            ])
+          ),
+          'x'
+        );
+        expect({ tokens, html: normalizeHtml(converted) }).toEqual({
+          tokens,
+          html: normalizeHtml(raw),
+        });
+      }
+    });
+
+    it('stays markup around anything else, or with anything of its own', () => {
+      expect(
+        plan({ ...factsFor(entry.tag!, [root]), soleChildTarget: undefined })
+          .fold
+      ).toBeUndefined();
+      expect(plan(around([root], { id: 'x' })).fold).toBeUndefined();
+      expect(plan(around([root, 'my-app'])).fold).toBeUndefined();
+      expect(plan(around([root, 'mt-2'])).fold).toBeUndefined();
+    });
+  }
+);
+
 describe('wrappers', () => {
   it.each(Object.entries(WRAPPERS))(
     '<%s> with helper classes renders the same as bestax `%s`',

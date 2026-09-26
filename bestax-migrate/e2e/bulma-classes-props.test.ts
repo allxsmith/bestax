@@ -142,6 +142,34 @@ describe('every bulma-classes conversion typechecks', () => {
       });
       files[root] = `${header}export const all = [\n${lines.join('\n')}\n];\n`;
     }
+    // A fold's props land on the component inside it.
+    for (const [root, entry] of Object.entries(ROOTS)) {
+      if (entry.status !== 'fold') continue;
+      const lines = [
+        [root],
+        ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
+      ].map(tokens => {
+        const fold = plan({
+          tag: entry.tag!,
+          tokens,
+          attributes: new Map(),
+          hasSpread: false,
+          hasRef: false,
+          hasChildren: true,
+          soleChildTarget: entry.target,
+        }).fold!;
+        const attrs = fold.props
+          .map(([name, value]) =>
+            fold.numbers.includes(name)
+              ? `${name}={${Number(value)}}`
+              : jsxAttr(name, value)
+          )
+          .join(' ');
+        return `  <B.${fold.target} ${attrs}>x</B.${fold.target}>,`;
+      });
+      files[`fold-${root}`] =
+        `${header}export const all = [\n${lines.join('\n')}\n];\n`;
+    }
     for (const tag of Object.keys(WRAPPERS)) {
       const lines = [...HELPER_TOKENS.keys()]
         .map(helper => converted(tag, [helper], []))

@@ -31,7 +31,7 @@ export interface Modifier {
 }
 
 export interface RootRecord {
-  status: 'mapped' | 'todo' | 'plain';
+  status: 'mapped' | 'todo' | 'plain' | 'fold';
   target: string | null;
   tag: string | null;
   as: string[] | 'any' | null;
@@ -52,6 +52,8 @@ export interface RootRecord {
   noHelpers: boolean;
   /** The component drops its own class for a `className` it is given. */
   ownClassOnly: boolean;
+  /** For a `fold` root: the props that render it on the target inside. */
+  folds: PropWrite[] | null;
 }
 
 export interface Wraps {
@@ -98,6 +100,8 @@ export type Element =
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
   | { kind: 'markup'; why: string }
+  /** A wrapper the component inside it renders from these props. */
+  | { kind: 'fold'; target: string; writes: PropWrite[] }
   /** No root and no tag: helpers land on whichever component you use. */
   | { kind: 'any' };
 
@@ -246,6 +250,44 @@ export function lookupClasses(
     return result({ kind: 'markup', why: `\`.${family}\`: ${why}` });
   }
 
+  // A wrapper the component inside it renders from a prop: its own class
+  // and its modifiers become that component's props, and nothing else may
+  // ride on it, since the component renders it bare.
+  const wrapper = tokens.find(token => rootOf(token)?.status === 'fold');
+  if (wrapper) {
+    const entry = rootOf(wrapper)!;
+    const writes = [...(entry.folds ?? [])];
+    verdicts.set(wrapper, { kind: 'prop', writes: entry.folds ?? [] });
+    let bare = true;
+    for (const token of tokens) {
+      if (token === wrapper) continue;
+      const modifier = own(entry.modifiers, token);
+      if (
+        modifier &&
+        !modifier.writes.some(write => writes.some(w => w.prop === write.prop))
+      ) {
+        writes.push(...modifier.writes);
+        verdicts.set(token, { kind: 'prop', writes: modifier.writes });
+        continue;
+      }
+      bare = false;
+      stays(token, `bestax renders \`.${wrapper}\` with no other class`);
+    }
+    if (tag && tag !== entry.tag) {
+      return result({
+        kind: 'markup',
+        why: `bestax renders \`.${wrapper}\` on a <${entry.tag}>, not a <${tag}>`,
+      });
+    }
+    if (!bare) {
+      return result({
+        kind: 'markup',
+        why: `bestax renders \`.${wrapper}\` with nothing on it but its own class and modifiers`,
+      });
+    }
+    return result({ kind: 'fold', target: entry.target!, writes });
+  }
+
   const precedence = (token: string) => {
     const index = table.precedence.indexOf(token);
     return index === -1 ? table.precedence.length : index;
@@ -292,6 +334,7 @@ export function lookupClasses(
       wrapsChildren: null,
       noHelpers: false,
       ownClassOnly: false,
+      folds: null,
     };
   }
   const target = entry.target;
@@ -522,6 +565,15 @@ export function renderLookup(lookup: Lookup): string {
     case 'markup':
       out.push(`**Stays markup:** ${element.why}.`);
       break;
+    case 'fold':
+      out.push(
+        `**Folds into the \`${element.target}\` inside it**, as ` +
+          `${element.writes.map(writeText).join(' ')}: \`${element.target}\` ` +
+          `renders this wrapper itself. Delete the wrapper and put those props ` +
+          `on the \`${element.target}\`; the codemod does that when the wrapper ` +
+          `holds that one element and carries no attribute.`
+      );
+      break;
     case 'any':
       out.push(
         '**No component in these classes.** The props below go on whichever ' +
@@ -547,7 +599,11 @@ export function renderLookup(lookup: Lookup): string {
     }
   });
   out.push(table(['Class', 'In bestax', 'Note'], rows));
-  if (element.kind === 'component' || element.kind === 'wrong-tag') {
+  if (
+    element.kind === 'component' ||
+    element.kind === 'wrong-tag' ||
+    element.kind === 'fold'
+  ) {
     out.push(
       `**Next:** \`get_props({ component: "${element.target}" })\` for its ` +
         `other props.`

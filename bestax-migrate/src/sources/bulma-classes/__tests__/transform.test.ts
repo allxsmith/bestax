@@ -453,6 +453,88 @@ describe('a component that wraps its children', () => {
   });
 });
 
+describe('a wrapper its component renders', () => {
+  const wrapped = (wrapper: string, inside: string) =>
+    migrate(
+      `export const A = ({ on }: { on: boolean }) => (\n  ${wrapper}\n    ${inside}\n  </div>\n);\n`
+    );
+  const table = '<table className="table">x</table>';
+
+  it('folds into the component inside it', () => {
+    const { output, rules } = wrapped(
+      '<div className="table-container">',
+      table
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Table isResponsive>x</Table>');
+    expect(output).not.toContain('table-container');
+  });
+
+  it.each([
+    ['an attribute', '<div className="table-container" id="t">', table, 'attr'],
+    [
+      'another class',
+      '<div className="table-container mt-2">',
+      table,
+      'attr:className',
+    ],
+    [
+      'a computed className',
+      "<div className={on ? 'table-container' : ''}>",
+      table,
+      'dynamic-class:Table',
+    ],
+    [
+      'something beside the table',
+      '<div className="table-container">',
+      `<p>Note</p>\n    ${table}`,
+      'children:Table',
+    ],
+    [
+      'a comment beside the table',
+      '<div className="table-container">',
+      `{/* note */}\n    ${table}`,
+      'children:Table',
+    ],
+    [
+      'a table that stays markup',
+      '<div className="table-container">',
+      '<table className="table" {...{}}>x</table>',
+      'children:Table',
+    ],
+  ])('stays markup with %s', (_, wrapper, inside, rule) => {
+    const { output, rules } = wrapped(wrapper, inside);
+    expect(rules).toContain(rule);
+    expect(output).toContain('table-container');
+  });
+
+  it('keeps the comments on the wrapper', () => {
+    const { output, rules } = migrate(
+      `export const A = () => (\n  // above\n  <div /* inside */ className="table-container">\n    ${table}\n  </div>\n);\n`
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('// above');
+    expect(output).toContain('/* inside */');
+    expect(output).toContain('isResponsive>x</Table>');
+  });
+
+  it('refuses the only child of a component, which may clone it', () => {
+    const { output, rules } = migrate(
+      `import Tip from "tip";\nexport const A = () => (\n  <Tip>\n    <div className="table-container">\n      ${table}\n    </div>\n  </Tip>\n);\n`
+    );
+    expect(rules).toEqual(['only-child:Table']);
+    expect(output).toContain('<div className="table-container">');
+  });
+
+  it('keeps whitespace React renders beside the table as a reason to stay', () => {
+    expect(
+      migrate(
+        `export const A = () => <div className="table-container"> ${table} </div>;\n`
+      ).rules
+    ).toEqual(['children:Table']);
+  });
+});
+
 describe('form context', () => {
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(

@@ -358,6 +358,7 @@ describe('the Bulma component class table', () => {
           card: { status: 'todo', target: 'Card', why: 'by hand' },
           'card-header': { status: 'todo', part: true },
           label: { status: 'plain', why: 'inside controls' },
+          'table-container': { status: 'fold', target: 'Table' },
         },
         ['column', 'box']
       )
@@ -368,6 +369,7 @@ describe('the Bulma component class table', () => {
         ['card', false],
         ['column', true],
         ['box', true],
+        ['table-container', true],
       ]
     );
   });
