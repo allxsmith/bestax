@@ -64,7 +64,7 @@ const CLASS_ANCHORS = {
   button: 'Button',
   'hero-body': 'Hero.Body',
   card: 'Card',
-  navbar: 'Navbar',
+  dropdown: 'Dropdown',
 };
 
 /**

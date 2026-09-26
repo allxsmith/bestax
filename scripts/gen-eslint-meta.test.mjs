@@ -337,13 +337,16 @@ describe('the Bulma component class table', () => {
       PRECEDENCE: precedence,
     });
   const exported = new Map(
-    ['Box', 'Button', 'Card', 'Column', 'Hero', 'Navbar'].map(n => [n, {}])
+    ['Box', 'Button', 'Card', 'Column', 'Dropdown', 'Hero', 'Navbar'].map(n => [
+      n,
+      {},
+    ])
   );
   const anchors = {
     button: { status: 'mapped', target: 'Button' },
     'hero-body': { status: 'mapped', target: 'Hero.Body' },
     card: { status: 'todo', target: 'Card', why: 'by hand' },
-    navbar: { status: 'todo', target: 'Navbar', why: 'by hand' },
+    dropdown: { status: 'todo', target: 'Dropdown', why: 'by hand' },
   };
 
   it('lists families first, then converted roots by precedence, and no parts or plain roots', async () => {
