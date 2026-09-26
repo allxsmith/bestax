@@ -1,3 +1,16 @@
+# [2.10.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.9.0...bestax-migrate@2.10.0) (2026-09-26)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** report .select and .breadcrumb as converted ([a9d8082](https://github.com/allxsmith/bestax/commit/a9d80822bfa2a657e7c8b1917faad582ceb3edeb))
+
+
+### Features
+
+* **bestax-mcp:** say when a component renders the element inside it ([4ced25c](https://github.com/allxsmith/bestax/commit/4ced25caf740bc2d56d6f2fddee86524120e4c0b))
+* **bestax-migrate:** convert .select and .breadcrumb with the element inside them ([d76c569](https://github.com/allxsmith/bestax/commit/d76c569f5066efb06ef3f8259731a9e1549cc5a5))
+
 # [2.9.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.8.0...bestax-migrate@2.9.0) (2026-09-26)
 
 
