@@ -22,6 +22,7 @@ import {
 export const KINDS: ReadonlySet<string> = new Set([
   'attr',
   'children',
+  'context',
   'defaults',
   'drops',
   'dynamic-class',

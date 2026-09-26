@@ -15,9 +15,10 @@
  * table entry converts somewhere, so no row is dead.
  */
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
@@ -40,8 +41,11 @@ const repoRoot = path.join(
   '..'
 );
 
-/** Elements that must stay empty in HTML. */
-const VOID = new Set(['input', 'hr', 'img', 'br']);
+/**
+ * Elements rendered with no children: the void ones, and `<textarea>`, whose
+ * text React refuses beside a `value`.
+ */
+const VOID = new Set(['input', 'hr', 'img', 'br', 'textarea']);
 
 const mapped = Object.entries(ROOTS).filter(
   ([, entry]) => entry.status === 'mapped'
@@ -190,12 +194,14 @@ describe.each(mapped)('`.%s`', (root, entry) => {
   });
 
   if (entry.wrapsChildren) {
-    const { unless, whenEmpty } = entry.wrapsChildren;
+    const { unless, whenEmpty, when } = entry.wrapsChildren;
+    // The classes that switch the wrapping on (`Field` wraps when horizontal).
+    const wrapping = [root, ...(when ? [when] : [])];
 
     it.each(unless)('renders the same around a %s', part => {
       const inside = partChild(part);
       const both = renderBoth(
-        factsFor(entry.tag!, [root], defaults, inside),
+        factsFor(entry.tag!, wrapping, defaults, inside),
         defaults,
         inside
       );
@@ -204,7 +210,7 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     });
 
     it(`${whenEmpty ? 'refuses' : 'converts'} with no children`, () => {
-      const facts = { ...factsFor(entry.tag!, [root]), hasChildren: false };
+      const facts = { ...factsFor(entry.tag!, wrapping), hasChildren: false };
       const result = plan(facts);
       expect(result.conversion === null).toBe(Boolean(whenEmpty));
       if (whenEmpty) return;
@@ -212,6 +218,14 @@ describe.each(mapped)('`.%s`', (root, entry) => {
         normalizeHtml(renderElement(entry.tag!, { className: root }))
       );
     });
+
+    if (when) {
+      it(`wraps only with \`${when}\``, () => {
+        const facts = factsFor(entry.tag!, [root]);
+        expect(plan(facts).conversion?.target).toBe(entry.target);
+        expect(plan(factsFor(entry.tag!, wrapping)).conversion).toBeNull();
+      });
+    }
   }
 });
 
@@ -277,6 +291,36 @@ describe("the table's claims about the library", () => {
         ([target, props]): [string, string[]] => [target, [...props]]
       ),
     ]);
+    // A public component with no API page of its own (`InputBase`) is not in
+    // the index, so read its props the way the index would.
+    const unindexed = [...classified.keys()].filter(
+      target => !declared.has(target)
+    );
+    if (unindexed.length > 0) {
+      const extractor = pathToFileURL(
+        path.join(repoRoot, 'scripts', 'lib', 'props-extract.mjs')
+      ).href;
+      const script = `
+        const { extractComponent } = await import(${JSON.stringify(extractor)});
+        const out = {};
+        for (const name of ${JSON.stringify(unindexed)}) {
+          for (const table of extractComponent(name, { markdown: false }).tables) {
+            out[table.path] = table.rows.map(row => row.name);
+          }
+        }
+        console.log(JSON.stringify(out));`;
+      const extracted: Record<string, string[]> = JSON.parse(
+        execFileSync(process.execPath, ['--input-type=module', '-e', script], {
+          encoding: 'utf8',
+        })
+      );
+      for (const [target, props] of Object.entries(extracted)) {
+        declared.set(
+          target,
+          props.filter(name => !['className', 'children'].includes(name))
+        );
+      }
+    }
     for (const [target, props] of classified) {
       expect({ target, props: [...props].sort() }).toEqual({
         target,

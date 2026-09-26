@@ -62,6 +62,39 @@ export function Elements() {
           <span className="card-footer-item">Saved</span>
         </footer>
       </div>
+      <form>
+        <div className="field">
+          <label className="label" htmlFor="email">
+            Email
+          </label>
+          <div className="control is-loading">
+            <input
+              id="email"
+              className="input is-rounded is-medium"
+              type="email"
+              required
+            />
+          </div>
+          <p className="help">We never share it.</p>
+        </div>
+        <div className="field">
+          <div className="control">
+            <textarea className="textarea has-fixed-size" rows={3} />
+          </div>
+        </div>
+        <div className="field is-horizontal">
+          <div className="field-label is-small">
+            <label className="label">Name</label>
+          </div>
+          <div className="field-body">
+            <div className="field has-addons">
+              <p className="control is-expanded">
+                <input className="input is-small" type="text" disabled />
+              </p>
+            </div>
+          </div>
+        </div>
+      </form>
       <div className="block">A block</div>
     </div>
   );

@@ -44,6 +44,15 @@ export interface ElementFacts {
    * counts: one in an expression may not render.
    */
   childTargets?: readonly string[];
+  /** The bestax components already in the file inside this element. */
+  bestaxInside?: readonly string[];
+  /** The bestax components already in the file around this element. */
+  bestaxAround?: readonly string[];
+  /**
+   * The other components around this element (not bestax, not a fragment),
+   * any of which could render a bestax component around it.
+   */
+  componentsAround?: readonly string[];
   /**
    * The component this element is the only child of, if any (`Link` for
    * `<Link href="/x"><a className="button">`), since that component can
@@ -228,9 +237,31 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` requires children, and this element has none; keep it as markup`
     );
   }
+  if (entry.providesContext && facts.bestaxInside?.length) {
+    return refuse(
+      'context',
+      target,
+      `bestax \`${target}\` tells the bestax form controls inside it to skip wrappers of their own, and this element already holds \`${facts.bestaxInside[0]}\`, which could render differently inside it; keep this element as markup, or convert it and check that component by hand`
+    );
+  }
+  if (entry.adoptsIdFrom && !facts.attributes.has('id')) {
+    // Context follows the render tree, not the file: a component of the app
+    // around the element can render a labelled `Field` around it just as well.
+    const around =
+      facts.bestaxAround?.find(name => entry.adoptsIdFrom!.includes(name)) ??
+      facts.componentsAround?.[0];
+    if (around) {
+      return refuse(
+        'context',
+        target,
+        `this element has no \`id\` and sits inside \`<${around}>\`, which is or could render a bestax \`${entry.adoptsIdFrom.join('` or `')}\` with a \`label\`; bestax \`${target}\` would then take that generated \`id\`; give the element an \`id\` of its own, then re-run`
+      );
+    }
+  }
   const wraps = entry.wrapsChildren;
   if (
     wraps &&
+    (!wraps.when || tokens.includes(wraps.when)) &&
     (facts.hasChildren || wraps.whenEmpty) &&
     !facts.childTargets?.some(child => wraps.unless.includes(child))
   ) {

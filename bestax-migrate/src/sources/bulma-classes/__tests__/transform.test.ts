@@ -453,6 +453,61 @@ describe('a component that wraps its children', () => {
   });
 });
 
+describe('form context', () => {
+  it('keeps a field or control around a bestax form control as markup', () => {
+    const { output, rules } = migrate(
+      'import { Input } from "@allxsmith/bestax-bulma";\nexport const A = () => (\n  <div className="field">\n    <div className="control">\n      <Input />\n    </div>\n  </div>\n);\n'
+    );
+    expect(rules).toEqual(['context:Field', 'context:Control']);
+    expect(output).toContain('<div className="field">');
+    expect(output).toContain('<div className="control">');
+  });
+
+  it('keeps an input with no id inside a bestax Field as markup', () => {
+    const inside = (input: string) =>
+      migrate(
+        `import { Field } from "@allxsmith/bestax-bulma";\nexport const A = () => (\n  <Field label="Email">\n    ${input}\n  </Field>\n);\n`
+      );
+    expect(inside('<input className="input" />').rules).toEqual([
+      'context:InputBase',
+    ]);
+    expect(inside('<input id="email" className="input" />').output).toContain(
+      '<InputBase id="email" />'
+    );
+  });
+
+  it('keeps an input with no id inside any other component as markup', () => {
+    // Context follows the render tree: `Labelled` renders a labelled Field.
+    const wrapped = (input: string, wrapper = 'Labelled') =>
+      migrate(
+        `import { Field } from "@allxsmith/bestax-bulma";\nconst Labelled = ({ children }: { children: React.ReactNode }) => <Field label="Email">{children}</Field>;\nexport const A = () => (\n  <${wrapper}>\n    ${input}\n    <p className="help">Required</p>\n  </${wrapper}>\n);\n`
+      );
+    expect(wrapped('<input className="input" type="email" />').rules).toEqual([
+      'context:InputBase',
+    ]);
+    expect(
+      wrapped('<input id="email" className="input" type="email" />').output
+    ).toContain('<InputBase id="email" type="email" />');
+    expect(
+      wrapped('<input className="input" type="email" />', 'React.Fragment')
+        .rules
+    ).toEqual([]);
+  });
+
+  it('converts a horizontal field once its label and body do', () => {
+    const { output, rules } = migrate(
+      'export const A = () => (\n  <div className="field is-horizontal">\n    <div className="field-label">\n      <label className="label">Name</label>\n    </div>\n    <div className="field-body">x</div>\n  </div>\n);\n'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Field horizontal>');
+    expect(
+      migrate(
+        'export const A = () => <div className="field is-horizontal">x</div>;\n'
+      ).rules
+    ).toEqual(['children:Field']);
+  });
+});
+
 describe('printing', () => {
   it('keeps JSX text exactly as written inside return ( … )', () => {
     const body =
