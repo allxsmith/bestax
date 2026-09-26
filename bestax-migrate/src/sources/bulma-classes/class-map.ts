@@ -42,7 +42,10 @@ export type RootStatus = 'mapped' | 'todo' | 'plain';
 
 export interface RootEntry {
   readonly status: RootStatus;
-  /** bestax JSX name, dotted for a part (`Hero.Body`). */
+  /**
+   * bestax JSX name, dotted for a part (`Hero.Body`). On a `todo` family, the
+   * component a person converts the family to by hand.
+   */
   readonly target?: string;
   /** The tag the target renders with no `as`. */
   readonly tag?: string;
@@ -854,9 +857,11 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
 
   // ---- Families bestax has but that do not map element by element yet ------
   breadcrumb: todo(
+    'Breadcrumb',
     'bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`'
   ),
   card: todo(
+    'Card',
     'bestax `Card` wraps any child that is not one of its parts in `.card-content`, so convert the card and its parts together, by hand'
   ),
   'card-header': part(),
@@ -867,67 +872,93 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'card-footer': part(),
   'card-footer-item': part(),
   cell: todo(
+    'Cell',
     'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
   ),
   grid: todo(
+    'Grid',
     'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
   ),
   'fixed-grid': todo(
+    'Grid',
     'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
   ),
   checkbox: todo(
+    'Checkbox',
     "bestax `Checkbox` renders its own styled markup, not Bulma's"
   ),
   checkboxes: todo(
+    'Checkboxes',
     'bestax `Checkboxes` renders its own `.field` and `.control` wrappers'
   ),
-  radio: todo("bestax `Radio` renders its own styled markup, not Bulma's"),
+  radio: todo(
+    'Radio',
+    "bestax `Radio` renders its own styled markup, not Bulma's"
+  ),
   radios: todo(
+    'Radios',
     'bestax `Radios` renders its own `.field` and `.control` wrappers'
   ),
   field: todo(
+    'Field',
     'bestax form controls render their own `.field` and `.control` wrappers; see the unmappables reference'
   ),
   'field-label': part(),
   'field-body': part(),
   control: part(),
   input: todo(
+    'Input',
     'bestax `Input` renders its own `.field` and `.control` wrappers'
   ),
   textarea: todo(
+    'TextArea',
     'bestax `TextArea` renders its own `.field` and `.control` wrappers'
   ),
   select: todo(
+    'Select',
     'bestax `Select` renders the `.select` wrapper and the `<select>` together'
   ),
-  file: todo('bestax `File` renders the whole `.file-label` tree itself'),
+  file: todo(
+    'File',
+    'bestax `File` renders the whole `.file-label` tree itself'
+  ),
   'file-label': part(),
   'file-input': part(),
   'file-cta': part(),
   'file-icon': part(),
   'file-name': part(),
   dropdown: todo(
+    'Dropdown',
     'bestax `Dropdown` renders its own trigger and menu from props'
   ),
   'dropdown-menu': part(),
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  icon: todo('bestax `Icon` renders its own `<i>` and adds an `aria-label`'),
+  icon: todo(
+    'Icon',
+    'bestax `Icon` renders its own `<i>` and adds an `aria-label`'
+  ),
   'icon-text': todo(
+    'IconText',
     'bestax `IconText` pairs with `Icon`, which renders its own `<i>`'
   ),
-  image: todo('bestax `Image` renders its own `<img>`'),
-  menu: todo('bestax `Menu.Item` renders the `<li>` and the `<a>` together'),
+  image: todo('Image', 'bestax `Image` renders its own `<img>`'),
+  menu: todo(
+    'Menu',
+    'bestax `Menu.Item` renders the `<li>` and the `<a>` together'
+  ),
   'menu-label': part(),
   'menu-list': part(),
   'menu-item': part(),
   message: todo(
+    'Message',
     'bestax `Message` always wraps its children in `.message-body`'
   ),
   'message-header': part(),
   'message-body': part(),
   modal: todo(
+    'Modal',
     'bestax `Modal` renders its own background and content parts, and adds dialog attributes'
   ),
   'modal-background': part(),
@@ -939,6 +970,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'modal-card-foot': part(),
   'modal-close': part(),
   navbar: todo(
+    'Navbar',
     'bestax `Navbar` adds navigation roles, and its burger renders its own spans'
   ),
   'navbar-brand': part(),
@@ -953,6 +985,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'navbar-content': part(),
   'navbar-tabs': part(),
   pagination: todo(
+    'Pagination',
     'bestax `Pagination` renders its own list items and adds navigation roles'
   ),
   'pagination-list': part(),
@@ -961,6 +994,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'pagination-previous': part(),
   'pagination-next': part(),
   panel: todo(
+    'Panel',
     'bestax `Panel` parts render their own tags and attributes (`Panel.Block` is an `<a>`, `Panel.Icon` adds an `aria-label`)'
   ),
   'panel-heading': part(),
@@ -969,13 +1003,21 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'panel-icon': part(),
   'panel-list': part(),
   tabs: todo(
+    'Tabs',
     "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles"
   ),
   'table-container': todo(
+    'Table',
     'bestax renders `.table-container` from `Table isResponsive`'
   ),
-  'skeleton-block': todo('bestax `Skeleton` renders its own markup'),
-  'skeleton-lines': todo('bestax `Skeleton` renders its own markup'),
+  'skeleton-block': todo(
+    'Skeleton',
+    'bestax `Skeleton` renders its own markup'
+  ),
+  'skeleton-lines': todo(
+    'Skeleton',
+    'bestax `Skeleton` renders its own markup'
+  ),
 
   // ---- Valid Bulma, nothing to convert to --------------------------------------
   // The other sources emit these on purpose where bestax has no component.
@@ -995,8 +1037,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   paddingless: plain('a Bulma helper with no bestax prop'),
 };
 
-function todo(why: string): RootEntry {
-  return { status: 'todo', why };
+function todo(target: string, why: string): RootEntry {
+  return { status: 'todo', target, why };
 }
 
 function part(): RootEntry {
