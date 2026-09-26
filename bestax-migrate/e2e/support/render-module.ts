@@ -51,19 +51,28 @@ const SHARED_MODULES: Record<string, unknown> = {
 };
 
 /**
- * Render one element to static HTML. `type` is a tag or a component; dotted
- * names (`Hero.Body`) are looked up on the library.
+ * One element, for rendering or for another element's children. `type` is a
+ * tag or a component; dotted names (`Hero.Body`) are looked up on the library.
  */
+export function createElement(
+  type: string,
+  props: Record<string, unknown>,
+  children?: unknown
+): unknown {
+  const component = /^[A-Z]/.test(type)
+    ? type.split('.').reduce((owner, key) => owner?.[key], bestax as any)
+    : type;
+  if (!component) throw new Error(`bestax has no ${type}`);
+  return React.createElement(component, props, children);
+}
+
+/** Render one element (see `createElement`) to static HTML. */
 export function renderElement(
   type: string,
   props: Record<string, unknown>,
   children?: unknown
 ): string {
-  const component = /^[A-Z]/.test(type)
-    ? type.split('.').reduce((owner, key) => owner?.[key], bestax as any)
-    : type;
-  if (!component) throw new Error(`bestax has no ${type}`);
-  return renderToStaticMarkup(React.createElement(component, props, children));
+  return renderToStaticMarkup(createElement(type, props, children) as any);
 }
 
 const STYLESHEET = /\.(?:css|scss|sass)$/;

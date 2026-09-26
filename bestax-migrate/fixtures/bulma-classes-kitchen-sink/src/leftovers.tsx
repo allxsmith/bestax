@@ -24,7 +24,7 @@ export function Leftovers() {
       <button className="delete" />
       <div className={open ? 'column is-6' : 'column'}>A computed class</div>
       <div className="card">
-        <div className="card-content">A family converted later</div>
+        <p>Content Card would wrap in a part of its own</p>
       </div>
       <nav className="navbar">
         <div className="navbar-brand">Brand</div>

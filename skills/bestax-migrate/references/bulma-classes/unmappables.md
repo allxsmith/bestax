@@ -64,6 +64,18 @@ dropping it would change how the element looks. Keep that element as markup.
 The component's props type requires children, and the element has none (`Buttons`). An empty
 `.buttons` does nothing; delete it or give it buttons.
 
+On `Card` and `Card.Header` it means the children decide. `Card` renders its children inside a
+`.card-content` of its own unless one of them is one of its parts (`Card.Header`,
+`Card.Header.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`, `Card.FooterItem`), and
+`Card.Header` renders a `.card-header-title` of its own unless one of its children is a
+`Card.Header.Title`. None of this element's direct children converted to one, so converting it
+would add that wrapper. Look at the TODOs on the children first: a `<p className="card-header-title">`
+gets `tag:Card.Header.Title`, and changing it to a `<div>` (Bulma styles it the same) lets the
+header convert on the next run. A card whose content sits straight inside it, with no
+`.card-content`, has no part to find; wrap that content in `Card.Content` if the extra padding
+is what you want, or keep the markup. A part inside an expression (`{open && <div className="card-content">}`)
+doesn't count, because it may not render.
+
 ### `only-child:<Target>`
 
 The element is the only child of another component (`<Link href="/x"><a className="button">`),
@@ -86,7 +98,7 @@ into the prop:
 ```
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
-`<span>` gets `tag:Box`, and a `clsx('card', …)` gets `family:card`.
+`<span>` gets `tag:Box`, and a `clsx('navbar', …)` gets `family:navbar`.
 
 ## A family it leaves as markup: `family:<class>`
 
@@ -94,9 +106,6 @@ The bestax component renders parts of its own, or adds attributes, so a one-elem
 conversion would change the markup. Convert the whole family by hand, and look at the result
 in the browser:
 
-- **`family:card`**: `Card` wraps any child that is not one of its parts in `.card-content`.
-  Use its parts, `Card.Header` (with `Card.Header.Title` and `Card.Header.Icon`),
-  `Card.Image`, `Card.Content`, `Card.Footer` and `Card.FooterItem`, together.
 - **`family:navbar`**: `Navbar` adds `role="navigation"` and an `aria-label`, and
   `Navbar.Burger` renders its own three spans. Its parts are `Navbar.Brand`, `Navbar.Item`,
   `Navbar.Link`, `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`,

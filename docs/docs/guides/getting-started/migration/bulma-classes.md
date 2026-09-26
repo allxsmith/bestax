@@ -69,9 +69,9 @@ stock stylesheet.
 
 - **Components**: `button`, `buttons`, `columns`, `column`, `container`, `section`, `hero` and
   its parts, `title`, `subtitle`, `box`, `content`, `block`, `notification`, `tag`, `tags`,
-  `level` and its parts, `media` and its parts, `delete`, `progress`, `footer` and `table`
-  become their bestax components, with their modifier classes as props (`is-primary` →
-  `color="primary"`, `is-half` → `size="half"`).
+  `level` and its parts, `media` and its parts, `card` and its parts, `delete`, `progress`,
+  `footer` and `table` become their bestax components, with their modifier classes as props
+  (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
   `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
@@ -89,6 +89,12 @@ A couple of results look odd until you see why:
   `<h4>`.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
+- A `.card` converts when an element written directly inside it is, or becomes, one of its
+  parts. `Card` puts
+  anything else inside a `.card-content` of its own, so a card whose text sits straight inside
+  it stays markup (`children:Card`). Bulma's own example card keeps its `<p>` title and its
+  `<a>` footer links as markup too, since bestax renders those parts on a `<div>` and a
+  `<span>`.
 
 ## What it leaves for you
 
@@ -97,10 +103,9 @@ Anything that would change the markup stays as written:
 - **Computed classNames.** `clsx(...)`, ternaries and templates with expressions are flagged
   with the component the element would become (`dynamic-class:<Target>`). Converting them
   means turning each condition into a prop, which is quick by hand and risky to guess at.
-- **Components that render parts of their own.** `Card` wraps stray children in
-  `.card-content`, `Navbar` adds navigation roles, bestax's form controls render their own
-  `.field` and `.control`, and so on. These families are flagged once each
-  (`family:<class>`) and converted by hand.
+- **Components that render parts of their own.** `Navbar` adds navigation roles, bestax's form
+  controls render their own `.field` and `.control`, and so on. These families are flagged
+  once each (`family:<class>`) and converted by hand.
 - **Elements bestax would render differently**: a `ref` on a component that doesn't forward one,
   a spread, a tag the component can't render (`<div className="section">`), an attribute the
   component reads as a prop, or an element that is the only child of another component, which

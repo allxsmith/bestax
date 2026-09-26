@@ -72,6 +72,9 @@ function converted(
   attributes: Array<[string, string | true]>
 ): string | null {
   const unique = [...new Map(attributes)];
+  // A root that wraps its children converts only beside one of its parts;
+  // the part is taken as given, since only the root's props are checked here.
+  const root = Object.hasOwn(ROOTS, tokens[0]) ? ROOTS[tokens[0]] : undefined;
   const result = plan({
     tag,
     tokens,
@@ -79,6 +82,7 @@ function converted(
     hasSpread: false,
     hasRef: false,
     hasChildren: !VOID.has(tag),
+    childTargets: root?.wrapsChildren?.unless ?? [],
   });
   const conversion = result.conversion;
   if (!conversion) return null;

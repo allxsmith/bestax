@@ -8,8 +8,9 @@
  *
  * Passes, in order:
  *   1. the shared stylesheet-import pass (a no-op under the default `keep`)
- *   2. plan every element in scope; a computed className is planned from the
- *      strings in it and becomes a TODO, never a conversion
+ *   2. plan every element in scope, children before parents; a computed
+ *      className is planned from the strings in it and becomes a TODO, never
+ *      a conversion
  *   3. file-level gates: a non-React JSX runtime, CommonJS, styled-jsx, and a
  *      Next.js server component (bestax's components are client components)
  *   4. TODOs in reading order; conversions innermost first
@@ -34,6 +35,7 @@ import {
   collectBoundNames,
   makeReserve,
   prefersTabs,
+  resolvesToBinding,
 } from '../_shared/imports.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
@@ -263,6 +265,17 @@ function isContent(child: any): boolean {
   return true;
 }
 
+/**
+ * Whether a JSX child reaches React at all. JSX drops a comment, and text
+ * made only of spaces and tabs split by a line break; it keeps the rest.
+ * `<div>  </div>` has a child, which `Card` would wrap, and so does an
+ * `&nbsp;` on its own line: `trim()` would drop it, and JSX does not.
+ */
+function reachesReact(child: any): boolean {
+  if (child.type !== 'JSXText') return isContent(child);
+  return /[^ \t\r\n]/.test(child.value) || !/[\r\n]/.test(child.value);
+}
+
 function insideForeignContent(elementPath: ASTPath<any>): boolean {
   let current: any = elementPath.parent;
   while (current) {
@@ -333,28 +346,57 @@ export default function transform(
   rewriteStylesheetImports(ctx, root, options.cssMode ?? 'keep');
 
   // ---- 2. Plan the elements in scope ----------------------------------------
-  const bestaxLocals = new Set<string>();
+  // Each local bestax name, with the component path it stands for: `Card`
+  // for `import { Card as C }`, nothing for a namespace (`B.Card`).
+  const bestaxNames = new Map<string, string[]>();
   root
     .find(j.ImportDeclaration, { source: { value: BESTAX } })
     .forEach((importPath: any) => {
       for (const spec of importPath.node.specifiers ?? []) {
-        if (spec.local) bestaxLocals.add(spec.local.name);
+        if (!spec.local) continue;
+        bestaxNames.set(
+          spec.local.name,
+          spec.type === 'ImportSpecifier' ? [spec.imported.name] : []
+        );
       }
+    });
+  const bestaxLocals = new Set(bestaxNames.keys());
+
+  // Children are planned before their parents (reverse document order), so
+  // a parent can see what its children become: `Card` converts only beside
+  // a child that is one of its parts.
+  const planned = new Map<object, Plan>();
+  const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
+  const childTargets = (elementPath: ASTPath<any>): string[] =>
+    (elementPath.node.children ?? []).flatMap((child: any) => {
+      if (child.type !== 'JSXElement') return [];
+      const target = planned.get(child)?.conversion?.target;
+      if (target) return [target];
+      // A part the file already uses counts when its name is the bestax
+      // import, not a local that shadows it. A direct child is looked up in
+      // the element's own scope, which is the child's.
+      const parts = jsxNameParts(child.openingElement.name);
+      const owner = parts && bestaxNames.get(parts[0]);
+      if (!owner || !resolvesToBinding(elementPath, parts[0], programScope)) {
+        return [];
+      }
+      return [[...owner, ...parts.slice(1)].join('.')];
     });
 
   // `converts` is whether the element would become a component with its
   // classes written out, so it holds for a computed className too.
   const elements: Array<{ path: ASTPath<any>; plan: Plan; converts: boolean }> =
     [];
-  root.find(j.JSXElement).forEach(elementPath => {
+  const candidates = root.find(j.JSXElement).paths();
+  for (const elementPath of [...candidates].reverse()) {
     const element = elementPath.node;
     const name = element.openingElement.name;
-    if (name.type !== 'JSXIdentifier' || !INTRINSIC.test(name.name)) return;
+    if (name.type !== 'JSXIdentifier' || !INTRINSIC.test(name.name)) continue;
     if (FOREIGN_ROOTS.has(name.name) || insideForeignContent(elementPath)) {
-      return;
+      continue;
     }
     const classAttr = findAttr(element, 'className');
-    if (!classAttr) return;
+    if (!classAttr) continue;
     const attributes = new Map<string, string | true | null>();
     for (const attr of element.openingElement.attributes ?? []) {
       if (attr.type !== 'JSXAttribute' || attr === classAttr) continue;
@@ -372,7 +414,8 @@ export default function transform(
         (attr: any) => attr.type === 'JSXSpreadAttribute'
       ),
       hasRef: attributes.has('ref'),
-      hasChildren: (element.children ?? []).some(isContent),
+      hasChildren: (element.children ?? []).some(reachesReact),
+      childTargets: childTargets(elementPath),
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
     };
     let result = plan(facts);
@@ -392,10 +435,11 @@ export default function transform(
         ],
       };
     }
+    planned.set(element, result);
     if (result.conversion || result.todos.length > 0) {
-      elements.push({ path: elementPath, plan: result, converts });
+      elements.unshift({ path: elementPath, plan: result, converts });
     }
-  });
+  }
   if (elements.length === 0) return print();
 
   // ---- 3. File-level gates ------------------------------------------------------

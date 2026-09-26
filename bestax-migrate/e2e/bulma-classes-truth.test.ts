@@ -29,6 +29,7 @@ import {
 import { plan, type ElementFacts } from '../src/sources/bulma-classes/plan.js';
 import {
   bestax,
+  createElement,
   normalizeHtml,
   renderElement,
 } from './support/render-module.js';
@@ -51,13 +52,47 @@ function tagsFor(entry: RootEntry): string[] {
   return [...new Set([entry.tag!, ...(entry.as ?? [])])];
 }
 
+/** A child element as written and as converted, with the part it becomes. */
+interface Child {
+  target: string;
+  raw: unknown;
+  converted: unknown;
+}
+
+/**
+ * The raw markup of a bestax part, and the part itself, holding a part of its
+ * own when it too wraps its children (`Card.Header` around its title).
+ */
+function partChild(target: string): Child {
+  const [root, entry] = mapped.find(([, found]) => found.target === target)!;
+  const attributes = { ...(entry.defaults ?? {}) };
+  const inner = childFor(entry);
+  return {
+    target,
+    raw: createElement(
+      entry.tag!,
+      { className: root, ...attributes },
+      inner ? inner.raw : 'x'
+    ),
+    converted: createElement(target, attributes, inner ? inner.converted : 'x'),
+  };
+}
+
+/** For a root that wraps its children unless one is a part: its first part. */
+function childFor(entry: RootEntry): Child | undefined {
+  return entry.wrapsChildren
+    ? partChild(entry.wrapsChildren.unless[0])
+    : undefined;
+}
+
 /**
  * Render the raw element and, when the planner converts it, the bestax one.
  * Returns null when the planner leaves the element alone.
  */
 function renderBoth(
   facts: ElementFacts,
-  extra: Record<string, string | true> = {}
+  extra: Record<string, string | true> = {},
+  child?: Child
 ): { raw: string; converted: string } | null {
   const result = plan(facts);
   if (!result.conversion) return null;
@@ -65,7 +100,7 @@ function renderBoth(
   const raw = renderElement(
     facts.tag,
     { className: facts.tokens.join(' '), ...extra },
-    children
+    child ? child.raw : children
   );
   const { target, props, className, drop, numbers } = result.conversion;
   const kept = Object.fromEntries(
@@ -83,7 +118,7 @@ function renderBoth(
       ...Object.fromEntries(props),
       ...(className ? { className } : {}),
     },
-    children
+    child ? child.converted : children
   );
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
 }
@@ -91,7 +126,8 @@ function renderBoth(
 function factsFor(
   tag: string,
   tokens: string[],
-  attributes: Record<string, string | true> = {}
+  attributes: Record<string, string | true> = {},
+  child?: Child
 ): ElementFacts {
   return {
     tag,
@@ -100,6 +136,7 @@ function factsFor(
     hasSpread: false,
     hasRef: false,
     hasChildren: !VOID.has(tag),
+    childTargets: child ? [child.target] : [],
   };
 }
 
@@ -118,6 +155,7 @@ afterAll(() => {
 
 describe.each(mapped)('`.%s`', (root, entry) => {
   const defaults = { ...(entry.defaults ?? {}) };
+  const child = childFor(entry);
   const converts = new Set<string>();
 
   it.each(tagsFor(entry))('renders the same on a <%s>', tag => {
@@ -127,7 +165,8 @@ describe.each(mapped)('`.%s`', (root, entry) => {
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),
     ];
     for (const tokens of candidates) {
-      const both = renderBoth(factsFor(tag, tokens, defaults), defaults);
+      const facts = factsFor(tag, tokens, defaults, child);
+      const both = renderBoth(facts, defaults, child);
       if (!both) continue;
       expect({ tokens, tag, html: both.converted }).toEqual({
         tokens,
@@ -135,11 +174,12 @@ describe.each(mapped)('`.%s`', (root, entry) => {
         html: both.raw,
       });
       // Only a token that left `className` counts as converted.
-      const result = plan(factsFor(tag, tokens, defaults));
-      const kept = result.conversion!.className?.split(' ') ?? [];
+      const kept = plan(facts).conversion!.className?.split(' ') ?? [];
       for (const token of tokens)
         if (!kept.includes(token)) converts.add(token);
     }
+    // No row is dead: the root itself converts on its own tag.
+    if (tag === entry.tag) expect(converts.has(root)).toBe(true);
   });
 
   it('has no dead modifiers', () => {
@@ -148,6 +188,31 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     );
     expect(dead).toEqual([]);
   });
+
+  if (entry.wrapsChildren) {
+    const { unless, whenEmpty } = entry.wrapsChildren;
+
+    it.each(unless)('renders the same around a %s', part => {
+      const inside = partChild(part);
+      const both = renderBoth(
+        factsFor(entry.tag!, [root], defaults, inside),
+        defaults,
+        inside
+      );
+      expect(both).not.toBeNull();
+      expect(both!.converted).toEqual(both!.raw);
+    });
+
+    it(`${whenEmpty ? 'refuses' : 'converts'} with no children`, () => {
+      const facts = { ...factsFor(entry.tag!, [root]), hasChildren: false };
+      const result = plan(facts);
+      expect(result.conversion === null).toBe(Boolean(whenEmpty));
+      if (whenEmpty) return;
+      expect(normalizeHtml(renderElement(entry.target!, {}))).toEqual(
+        normalizeHtml(renderElement(entry.tag!, { className: root }))
+      );
+    });
+  }
 });
 
 describe('wrappers', () => {
@@ -281,7 +346,12 @@ describe('a seeded fuzz through the planner', () => {
         attributes[name] = value;
       }
       const deduped = [...new Set(tokens)];
-      const both = renderBoth(factsFor(tag, deduped, attributes), attributes);
+      const child = childFor(entry);
+      const both = renderBoth(
+        factsFor(tag, deduped, attributes, child),
+        attributes,
+        child
+      );
       if (!both) continue;
       conversions += 1;
       expect({

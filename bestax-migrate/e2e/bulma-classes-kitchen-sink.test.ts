@@ -200,10 +200,10 @@ describe('bulma-classes kitchen-sink e2e', () => {
     expect(rules.sort()).toEqual(
       [
         'attr:color',
+        'children:Card',
         'defaults:Delete',
         'drops:Level.Item',
         'dynamic-class:Column',
-        'family:card',
         'family:navbar',
         'legacy:tile',
         'ref:Notification',

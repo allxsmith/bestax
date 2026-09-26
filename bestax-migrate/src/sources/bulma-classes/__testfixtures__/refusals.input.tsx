@@ -19,8 +19,11 @@ export function Refusals() {
       </div>
       <button className="delete"></button>
       <div className={active ? 'box is-active' : 'box'}>A computed class</div>
+      <nav className="navbar">
+        <div className="navbar-brand">A family converted later</div>
+      </nav>
       <div className="card">
-        <div className="card-content">A family converted later</div>
+        <p>Content Card would wrap in a part of its own</p>
       </div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
     </div>

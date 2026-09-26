@@ -287,11 +287,11 @@ describe('plan', () => {
     });
 
     it('flags the outermost class of a family it does not convert', () => {
-      expect(plan(facts('div', 'card'))).toEqual({
+      expect(plan(facts('nav', 'navbar'))).toEqual({
         conversion: null,
-        todos: [{ rule: 'family:card', message: expect.any(String) }],
+        todos: [{ rule: 'family:navbar', message: expect.any(String) }],
       });
-      expect(plan(facts('div', 'card-content'))).toEqual({
+      expect(plan(facts('div', 'navbar-brand'))).toEqual({
         conversion: null,
         todos: [],
       });
@@ -304,9 +304,9 @@ describe('plan', () => {
     });
 
     it('keeps a family beside a root it converts as markup, and flags it', () => {
-      expect(plan(facts('div', 'card box'))).toEqual({
+      expect(plan(facts('nav', 'navbar box'))).toEqual({
         conversion: null,
-        todos: [{ rule: 'family:card', message: expect.any(String) }],
+        todos: [{ rule: 'family:navbar', message: expect.any(String) }],
       });
     });
 
@@ -328,6 +328,78 @@ describe('plan', () => {
         conversion: null,
         todos: [],
       });
+    });
+  });
+
+  describe('a component that wraps its children', () => {
+    const card = (childTargets: string[], hasChildren = true) =>
+      plan(facts('div', 'card', {}, { childTargets, hasChildren }));
+
+    it('converts beside a child that is one of its parts', () => {
+      expect(card(['Card.Content']).conversion?.target).toBe('Card');
+      expect(card(['Box', 'Card.Footer']).conversion?.target).toBe('Card');
+    });
+
+    it('refuses when no child is one, and says which would do', () => {
+      for (const children of [[], ['Box'], ['Card.Header.Title']]) {
+        expect(card(children)).toEqual({
+          conversion: null,
+          todos: [
+            {
+              rule: 'children:Card',
+              message: expect.stringContaining(
+                '`.card-content` of its own unless one of them is a `Card.Header`,'
+              ),
+            },
+          ],
+        });
+      }
+    });
+
+    it('converts with no children, where Card renders none of its own', () => {
+      expect(card([], false).conversion?.target).toBe('Card');
+    });
+
+    it('holds Card.Header to a title even when it is empty', () => {
+      const header = (childTargets: string[], hasChildren = true) =>
+        plan(facts('header', 'card-header', {}, { childTargets, hasChildren }));
+      expect(header(['Card.Header.Title']).conversion?.target).toBe(
+        'Card.Header'
+      );
+      expect(header(['Card.Header.Icon']).todos).toEqual([
+        {
+          rule: 'children:Card.Header',
+          message: expect.stringContaining(
+            'unless one of them is a `Card.Header.Title`,'
+          ),
+        },
+      ]);
+      expect(header([], false).todos.map(todo => todo.rule)).toEqual([
+        'children:Card.Header',
+      ]);
+    });
+
+    it('converts the parts on their own', () => {
+      expect(
+        plan(facts('p', 'card-header-title is-centered')).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Card.Header.Title']);
+      expect(
+        plan(facts('div', 'card-header-title is-centered')).conversion
+      ).toEqual({
+        target: 'Card.Header.Title',
+        props: [['centered', true]],
+        className: null,
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('button', 'card-header-icon')).todos.map(todo => todo.rule)
+      ).toEqual(['defaults:Card.Header.Icon']);
+      expect(
+        plan(facts('a', 'card-footer-item')).todos.map(todo => todo.rule)
+      ).toEqual(['tag:Card.FooterItem']);
     });
   });
 

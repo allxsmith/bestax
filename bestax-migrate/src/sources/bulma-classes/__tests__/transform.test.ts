@@ -134,23 +134,23 @@ describe('file-level gates', () => {
   });
 
   describe('only when an element would convert', () => {
-    const card = 'export const A = () => <div className="card">x</div>;\n';
+    const family = 'export const A = () => <nav className="navbar">x</nav>;\n';
 
     it('adds no gate TODO a re-run could not act on', () => {
       expect(
         migrate(
-          'const A = () => <div className="card">x</div>;\nmodule.exports = { A };\n'
+          'const A = () => <nav className="navbar">x</nav>;\nmodule.exports = { A };\n'
         ).rules
-      ).toEqual(['family:card']);
+      ).toEqual(['family:navbar']);
       expect(
         migrate(
-          card,
+          family,
           {
             serverComponentRoots: [{ dir: path.resolve('/p'), except: [] }],
           },
           path.resolve('/p/app/page.tsx')
         ).rules
-      ).toEqual(['family:card']);
+      ).toEqual(['family:navbar']);
     });
 
     it('counts a computed className that would convert', () => {
@@ -165,10 +165,13 @@ describe('file-level gates', () => {
       const preact = '/** @jsxImportSource preact */\n';
       expect(
         migrate(
-          `${preact}export const A = () => <div className="box"><div className="card">x</div></div>;\n`
+          `${preact}export const A = () => <div className="box"><nav className="navbar">x</nav></div>;\n`
         ).rules
       ).toEqual(['jsx-runtime']);
-      expect(migrate(`${preact}${card}`)).toEqual({ output: null, rules: [] });
+      expect(migrate(`${preact}${family}`)).toEqual({
+        output: null,
+        rules: [],
+      });
     });
   });
 
@@ -297,9 +300,9 @@ describe('what counts', () => {
 
   it('flags the family in a computed className before the root beside it', () => {
     const { rules } = migrate(
-      "export const A = ({ on }: { on: boolean }) => <div className={on ? 'card box' : 'card'}>x</div>;\n"
+      "export const A = ({ on }: { on: boolean }) => <div className={on ? 'navbar box' : 'navbar'}>x</div>;\n"
     );
-    expect(rules).toEqual(['family:card']);
+    expect(rules).toEqual(['family:navbar']);
   });
 
   it('carries on past a class named like an Object member', () => {
@@ -316,6 +319,13 @@ describe('what counts', () => {
     );
     expect(rules).toEqual(['only-child:Button']);
     expect(output).toContain('<a className="button">Go</a>');
+    // Spaces beside it on one line reach React, but a wrapper may still map
+    // its children and clone each one, so the refusal stands.
+    expect(
+      migrate(
+        'import Tip from "tip";\nexport const A = () => <Tip> <a className="button">Go</a> </Tip>;\n'
+      ).rules
+    ).toEqual(['only-child:Button']);
   });
 
   it('converts the only child of a fragment', () => {
@@ -365,6 +375,80 @@ describe('computed classNames', () => {
 
   it('reads a computed member key as a lookup, not a class', () => {
     expect(run("<div className={cx(styles['box'])}>x</div>").output).toBeNull();
+  });
+});
+
+describe('a component that wraps its children', () => {
+  it('converts once a child converts to one of its parts', () => {
+    const { output, rules } = migrate(
+      'export const A = () => (\n  <div className="card">\n    <header className="card-header">\n      <div className="card-header-title">T</div>\n    </header>\n    <div className="card-content">x</div>\n  </div>\n);\n'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Card>');
+    expect(output).toContain('<Card.Header>');
+    expect(output).toContain('<Card.Header.Title>T</Card.Header.Title>');
+    expect(output).toContain('<Card.Content>x</Card.Content>');
+  });
+
+  it('does not count a part inside an expression, which may not render', () => {
+    const { output, rules } = migrate(
+      'export const A = ({ on }: { on: boolean }) => (\n  <div className="card">\n    {on && <div className="card-content">x</div>}\n  </div>\n);\n'
+    );
+    expect(rules).toEqual(['children:Card']);
+    expect(output).toContain('<div className="card">');
+    expect(output).toContain('<Card.Content>x</Card.Content>');
+  });
+
+  it('counts whitespace on one line as children, as JSX does', () => {
+    const { output, rules } = migrate(
+      'export const A = () => <div className="card">  </div>;\n'
+    );
+    expect(rules).toEqual(['children:Card']);
+    expect(output).toContain('<div className="card">  </div>');
+    // `&nbsp;` is not a space or a tab, so JSX keeps it on its own line too.
+    expect(
+      migrate(
+        'export const A = () => (\n  <div className="card">\n    &nbsp;\n  </div>\n);\n'
+      ).rules
+    ).toEqual(['children:Card']);
+    expect(
+      migrate(
+        'export const A = () => (\n  <div className="card">\n  </div>\n);\n'
+      ).rules
+    ).toEqual([]);
+  });
+
+  it('does not count a local that shadows the bestax import as a part', () => {
+    const { rules } = migrate(
+      'import { Card } from "@allxsmith/bestax-bulma";\nexport const A = ({ Card }: { Card: any }) => (\n  <div className="card">\n    <Card.Content>x</Card.Content>\n  </div>\n);\n'
+    );
+    expect(rules).toEqual(['children:Card']);
+  });
+
+  it('flags the card before a child that stays markup', () => {
+    const { rules } = migrate(
+      'export const A = (p: object) => (\n  <div className="card">\n    <div className="card-content" {...p}>x</div>\n  </div>\n);\n'
+    );
+    expect(rules).toEqual(['children:Card', 'spread:Card.Content']);
+  });
+
+  it.each([
+    [
+      'a named import',
+      'import { Card as C } from "@allxsmith/bestax-bulma";\n',
+      'C.Content',
+    ],
+    [
+      'a namespace',
+      'import * as B from "@allxsmith/bestax-bulma";\n',
+      'B.Card.Content',
+    ],
+  ])('counts a child that already is a part, through %s', (_, head, part) => {
+    const { output, rules } = migrate(
+      `${head}export const A = () => <div className="card"><${part}>x</${part}></div>;\n`
+    );
+    expect(rules).toEqual([]);
+    expect(output).not.toContain('className="card"');
   });
 });
 
@@ -418,12 +502,12 @@ describe('printing', () => {
 
   it('leaves a TODO on its statement, not on the import it adds', () => {
     const { output } = migrate(
-      'export const A = () => <div className="card">x</div>;\nexport const B = () => <div className="box">y</div>;\n'
+      'export const A = () => <nav className="navbar">x</nav>;\nexport const B = () => <div className="box">y</div>;\n'
     );
     const lines = output?.split('\n') ?? [];
     expect(lines[0]).toBe('import { Box } from "@allxsmith/bestax-bulma";');
-    expect(lines[1]).toMatch(/^\/\/ TODO\(bestax-migrate\): `\.card`/);
-    expect(lines[2]).toContain('className="card"');
+    expect(lines[1]).toMatch(/^\/\/ TODO\(bestax-migrate\): `\.navbar`/);
+    expect(lines[2]).toContain('className="navbar"');
   });
 
   it('keeps a next-line directive on the line it governs', () => {

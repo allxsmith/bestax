@@ -39,6 +39,12 @@ export interface ElementFacts {
   /** Whether the element has children (JSX text, elements or expressions). */
   hasChildren: boolean;
   /**
+   * The bestax components the element's child elements are, or convert to
+   * (`Card.Content`). Only a child written directly inside the element
+   * counts: one in an expression may not render.
+   */
+  childTargets?: readonly string[];
+  /**
    * The component this element is the only child of, if any (`Link` for
    * `<Link href="/x"><a className="button">`), since that component can
    * reach into it with `cloneElement`.
@@ -108,7 +114,7 @@ export function plan(facts: ElementFacts): Plan {
   }
 
   // A family this source leaves as markup keeps its element as markup, even
-  // beside a class it would convert (`card box`): the family's parts carry no
+  // beside a class it would convert (`navbar box`): the family's parts carry no
   // TODO of their own, so its outermost class is the one place it is flagged.
   const family = tokens.find(token => {
     const found = rootFor(token);
@@ -220,6 +226,23 @@ export function plan(facts: ElementFacts): Plan {
       'children',
       target,
       `bestax \`${target}\` requires children, and this element has none; keep it as markup`
+    );
+  }
+  const wraps = entry.wrapsChildren;
+  if (
+    wraps &&
+    (facts.hasChildren || wraps.whenEmpty) &&
+    !facts.childTargets?.some(child => wraps.unless.includes(child))
+  ) {
+    const parts = wraps.unless.map(part => `\`${part}\``);
+    const list =
+      parts.length > 1
+        ? `${parts.slice(0, -1).join(', ')} or ${parts[parts.length - 1]}`
+        : parts[0];
+    return refuse(
+      'children',
+      target,
+      `bestax \`${target}\` renders its children inside a \`.${wraps.in}\` of its own unless one of them is a ${list}, so this element stays markup`
     );
   }
   if (missing.length > 0) {
