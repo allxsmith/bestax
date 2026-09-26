@@ -1,7 +1,6 @@
-import { Button, Control, Field, InputBase, TextAreaBase } from "@allxsmith/bestax-bulma";
+import { Button, Control, Field, InputBase, SelectBase, TextAreaBase } from "@allxsmith/bestax-bulma";
 export function SignUp() {
   // TODO(bestax-migrate): `.icon` stays as markup: bestax `Icon` renders its own `<i>` and adds an `aria-label`
-  // TODO(bestax-migrate): `.select` stays as markup: bestax `Select` renders the `.select` wrapper and the `<select>` together
   // TODO(bestax-migrate): `.checkbox` stays as markup: bestax `Checkbox` renders its own styled markup, not Bulma's
   return (
     <form>
@@ -29,11 +28,9 @@ export function SignUp() {
       <Field>
         <label className="label">Subject</label>
         <Control>
-          <div className="select">
-            <select>
-              <option>Select dropdown</option>
-            </select>
-          </div>
+          <SelectBase>
+            <option>Select dropdown</option>
+          </SelectBase>
         </Control>
       </Field>
       <Field>

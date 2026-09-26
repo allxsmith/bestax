@@ -71,9 +71,9 @@ stock stylesheet.
   `section`, `hero` and
   its parts, `title`, `subtitle`, `box`, `content`, `block`, `notification`, `tag`, `tags`,
   `level` and its parts, `media` and its parts, `card` and its parts, `navbar` and most of its
-  parts, `field` and its parts, `control`, `input`, `textarea`, `delete`, `progress`, `footer`
-  and `table` become their bestax components, with their modifier classes as props
-  (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
+  parts, `field` and its parts, `control`, `input`, `textarea`, `select`, `breadcrumb`,
+  `delete`, `progress`, `footer` and `table` become their bestax components, with their
+  modifier classes as props (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
   `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
@@ -81,6 +81,9 @@ stock stylesheet.
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
   of its own.
+- **An element a component renders inside itself** converts with it: a `.select` and its
+  `<select>` become one `SelectBase` with the `<select>`'s attributes, and a `.breadcrumb`
+  and its `<ul>` become one `Breadcrumb` around the same `<li>`s.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's
@@ -106,10 +109,11 @@ A couple of results look odd until you see why:
   `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
   hand.
-- A form converts piece by piece into `Field`, `Control`, `InputBase` and `TextAreaBase`, not
-  into `Input` or `TextArea`: those render a `.field` and a `.control` of their own, and the
-  markup already has them. The `.label` and `.help` stay as written, and so does an input's
-  color class (`is-danger`), since bestax's `color` also sets the text color.
+- A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
+  `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
+  `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
+  written, and so does an input's or a select's color class (`is-danger`), since bestax's
+  `color` also sets the text color.
 
 ## What it leaves for you
 
@@ -118,9 +122,9 @@ Anything that would change the markup stays as written:
 - **Computed classNames.** `clsx(...)`, ternaries and templates with expressions are flagged
   with the component the element would become (`dynamic-class:<Target>`). Converting them
   means turning each condition into a prop, which is quick by hand and risky to guess at.
-- **Components that render parts of their own.** `Modal` adds dialog attributes, `Select` and
-  `File` render their own wrappers, and so on. These families are flagged once each
-  (`family:<class>`) and converted by hand.
+- **Components that render parts of their own.** `Modal` adds dialog attributes, `File` renders
+  its own wrappers, and so on. These families are flagged once each (`family:<class>`) and
+  converted by hand.
 - **Form markup around bestax already.** `Field` and `Control` tell bestax's form controls
   inside them to skip their own wrappers, so a `.field` or `.control` that already holds one
   (from an earlier migration by hand) stays as it is (`context:<Target>`).

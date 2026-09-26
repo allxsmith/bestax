@@ -54,7 +54,19 @@ const BY_TAG: Record<string, Array<[string, string | true]>> = {
     ['value', '40'],
     ['max', '100'],
   ],
+  select: [
+    ['name', 'n'],
+    ['value', 'v'],
+    ['disabled', true],
+    ['required', true],
+  ],
 };
+
+/** The only child of an element whose target renders that child itself. */
+interface Inner {
+  tokens: string[];
+  attributes: Array<[string, string | true]>;
+}
 
 function tagsFor(entry: RootEntry): string[] {
   if (entry.as === 'any') return [entry.tag!, 'a', 'span', 'input'];
@@ -69,12 +81,24 @@ function jsxAttr(name: string, value: string | true): string {
 function converted(
   tag: string,
   tokens: string[],
-  attributes: Array<[string, string | true]>
+  attributes: Array<[string, string | true]>,
+  child?: Inner
 ): string | null {
   const unique = [...new Map(attributes)];
   // A root that wraps its children converts only beside one of its parts;
   // the part is taken as given, since only the root's props are checked here.
   const root = Object.hasOwn(ROOTS, tokens[0]) ? ROOTS[tokens[0]] : undefined;
+  // One that renders its only child itself converts only around that child,
+  // bare unless given, but for what the element's classes need beside them.
+  const absorbs = root?.status === 'mapped' ? root.absorbs : undefined;
+  const inner: Inner | undefined = absorbs && {
+    tokens: child?.tokens ?? [],
+    attributes: child?.attributes ?? [
+      ...Object.entries(absorbs.pairs ?? {})
+        .filter(([, token]) => tokens.includes(token))
+        .map(([name]): [string, true] => [name, true]),
+    ],
+  };
   const result = plan({
     tag,
     tokens,
@@ -83,22 +107,42 @@ function converted(
     hasRef: false,
     hasChildren: !VOID.has(tag),
     childTargets: root?.wrapsChildren?.unless ?? [],
+    ...(absorbs &&
+      inner && {
+        soleChild: {
+          tag: absorbs.tag,
+          ...(inner.tokens.length > 0 && { tokens: inner.tokens }),
+          attributes: new Map(inner.attributes),
+          hasSpread: false,
+        },
+      }),
   });
   const conversion = result.conversion;
   if (!conversion) return null;
+  const absorbed = conversion.absorbs;
+  const given = [
+    ...unique,
+    ...(absorbed ? inner!.attributes : [])
+      .filter(([name]) => !absorbed!.drop.includes(name))
+      .map(([name, value]): [string, string | true] => [
+        absorbed!.renames.find(([from]) => from === name)?.[1] ?? name,
+        value,
+      ]),
+  ];
   const attrs = [
     ...conversion.props.map(([name, value]) =>
       conversion.numbers.includes(name)
         ? `${name}={${Number(value)}}`
         : jsxAttr(name, value)
     ),
-    ...unique
+    ...given
       .filter(([name]) => !conversion.drop.includes(name))
       .map(([name, value]) =>
         conversion.numbers.includes(name)
           ? `${name}={${Number(value)}}`
           : jsxAttr(name, value)
       ),
+    ...(absorbed?.props ?? []).map(([name, value]) => jsxAttr(name, value)),
     ...(conversion.className
       ? [jsxAttr('className', conversion.className)]
       : []),
@@ -135,6 +179,49 @@ describe('every bulma-classes conversion typechecks', () => {
       }
       for (const helper of HELPER_TOKENS.keys()) {
         add(converted(entry.tag!, [root, helper], defaults));
+      }
+      // The child it renders itself: its classes, and what it gives the
+      // component (each attribute, and each pair with its rename).
+      const spec = entry.absorbs;
+      for (const token of Object.keys(spec?.modifiers ?? {})) {
+        add(
+          converted(entry.tag!, [root], defaults, {
+            tokens: [token],
+            attributes: [],
+          })
+        );
+      }
+      if (spec?.attributesOn === 'child') {
+        for (const attribute of [...COMMON, ...(BY_TAG[spec.tag] ?? [])]) {
+          add(
+            converted(entry.tag!, [root], defaults, {
+              tokens: [],
+              attributes: [attribute],
+            })
+          );
+        }
+        for (const [name, token] of Object.entries(spec.pairs ?? {})) {
+          add(
+            converted(entry.tag!, [root, token], defaults, {
+              tokens: [],
+              attributes: [[name, true]],
+            })
+          );
+          for (const [renamed, { beside }] of Object.entries(
+            spec.renames ?? {}
+          )) {
+            if (beside !== name) continue;
+            add(
+              converted(entry.tag!, [root, token], defaults, {
+                tokens: [],
+                attributes: [
+                  [name, true],
+                  [renamed, '4'],
+                ],
+              })
+            );
+          }
+        }
       }
       expect({ root, conversions: lines.length > 0 }).toEqual({
         root,
