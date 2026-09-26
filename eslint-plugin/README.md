@@ -110,23 +110,27 @@ In `recommended` — each reports code that does not do what it says:
 | `no-deprecated-props` | partly  | Props the library deprecated: `isFullWidth`, `gapSize*`, `icon`. Fixes only the renames that cannot change what renders |
 | `no-inert-flex-props` | —       | `justifyContent` and friends without a flex `display`, which emit nothing                                               |
 
-Opt-in — this one reports code that works, and buys explicitness instead:
+Opt-in — these report code that works, and buy explicitness instead:
 
-| Rule                  | Fixable | What it asks for                                                              |
-| --------------------- | ------- | ----------------------------------------------------------------------------- |
-| `no-color-as-surface` | yes     | `textColor` instead of the `color` alias, where `color` cannot mean a surface |
+| Rule                       | Fixable | What it asks for                                                                                            |
+| -------------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `no-color-as-surface`      | yes     | `textColor` instead of the `color` alias, where `color` cannot mean a surface                               |
+| `no-bulma-component-class` | —       | The bestax component instead of a plain element styled with its Bulma class (`<button className="button">`) |
 
-Each rule resolves elements through the import and through scope, so neither
-your own `<Box>` nor a local shadowing the imported one is linted against
-Bulma's rules, and each skips a value it cannot read as a literal.
+The rules that judge bestax elements resolve them through the import and
+through scope, so neither your own `<Box>` nor a local shadowing the imported
+one is linted against Bulma's rules, and each skips a value it cannot read as a
+literal. `no-bulma-component-class` reads plain HTML elements instead, and
+leaves components, custom elements and anything inside `<svg>` alone.
 
 A spread is handled by what it can change: `no-color-as-surface` and
 `no-inert-flex-props` go silent, since a spread may carry the prop that makes
 the code correct; `no-deprecated-props` reports but offers no fix; and
 `valid-helper-value` judges only the values that actually render, so a spread
 BEFORE the attribute leaves it reporting and a spread after it does not: JSX is
-last-wins throughout, spreads included. No autofix changes what the code
-renders.
+last-wins throughout, spreads included. `no-bulma-component-class` reports
+either way, since the class is written right there. No autofix changes what the
+code renders.
 
 ### valid-helper-value
 
@@ -173,6 +177,28 @@ code.
 // ✓ silent: the background is explicit, so `color` is plainly the text half
 <Box bgColor="info" color="primary" />
 ```
+
+### no-bulma-component-class
+
+Off by default. It reports a plain element styled with a Bulma class that
+bestax has a component for, and names the component. Turn it on in an app that
+has moved onto bestax, with `bestax-migrate bulma-classes` or by hand, to keep
+raw Bulma markup from coming back.
+
+```jsx
+<button className="button is-primary" /> // ✗ bestax renders .button as Button
+<div className="card" />                 // ✗ bestax has Card, converted by hand
+<div className="has-text-centered mt-4" /> // ✓ helper classes are left alone
+<p className="help" />                   // ✓ bestax renders .help inside its form controls
+```
+
+It reads the classes a `className` spells out, including the strings in a
+ternary, a template, or a call to `clsx`, `classnames` or `tailwind-merge`
+(however the file imports or requires it), and reports one class per element:
+the one the codemod would decide by. A function your app defines, a `cn` in `lib/utils`
+included, is one it cannot see into, so it reads nothing there. It only reports. Whether an element converts
+depends on its tag, attributes and children, and `bestax-migrate bulma-classes`
+is the one place that judges that.
 
 ### no-inert-flex-props
 

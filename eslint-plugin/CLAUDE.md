@@ -11,8 +11,8 @@ retired, a prop that emits no class in the context it is used. That set has no
 warnings, only errors, because none of it is a preference.
 
 A rule about how working code should be _spelled_ can still ship, but it ships
-off by default and is declared in `OPT_IN_RULES`. `no-color-as-surface` is the
-one such rule today. Both lists live in `src/configs/recommended.ts` and the
+off by default and is declared in `OPT_IN_RULES`, as `no-color-as-surface` is.
+Both lists live in `src/configs/recommended.ts` and the
 surface test asserts they account for every rule, so a new rule cannot ship
 switched off by accident.
 

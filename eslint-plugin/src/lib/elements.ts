@@ -96,14 +96,22 @@ export function patternBinds(pattern: any, name: string): boolean {
   }
 }
 
-export function isLibraryRequire(declarator: any): boolean {
+/** Whether a declarator's value is `require(<specifier>)` for a matching one. */
+function requires(
+  declarator: any,
+  matches: (specifier: unknown) => boolean
+): boolean {
   const init = declarator?.init;
   return (
     init?.type === 'CallExpression' &&
     init.callee?.name === 'require' &&
     init.arguments?.length === 1 &&
-    init.arguments[0]?.value === PACKAGE
+    matches(init.arguments[0]?.value)
   );
+}
+
+export function isLibraryRequire(declarator: any): boolean {
+  return requires(declarator, specifier => specifier === PACKAGE);
 }
 
 export function collectRequire(node: any, into: ImportedNames): void {
@@ -317,6 +325,230 @@ export function literalValue(attr: any): string | null {
   return null;
 }
 
+/** A gap in a class string: text an expression supplies at runtime. */
+const HOLE = Symbol('hole');
+
+/** Adjacent text is one run: `'card' + '-' + x` glues `card` to the hole. */
+function coalesce(
+  parts: Array<string | typeof HOLE>
+): Array<string | typeof HOLE> {
+  const out: Array<string | typeof HOLE> = [];
+  for (const part of parts) {
+    const last = out[out.length - 1];
+    if (part !== HOLE && typeof last === 'string') {
+      out[out.length - 1] = last + part;
+    } else {
+      out.push(part);
+    }
+  }
+  return out;
+}
+
+/**
+ * The static text of a template literal or a `+` chain, with a HOLE where an
+ * expression goes, or null for any other node.
+ */
+function spelledParts(node: any): Array<string | typeof HOLE> | null {
+  if (node?.type === 'TemplateLiteral') {
+    const parts: Array<string | typeof HOLE> = [];
+    node.quasis.forEach((quasi: any, i: number) => {
+      if (i > 0) parts.push(HOLE);
+      parts.push(quasi.value.cooked ?? '');
+    });
+    return parts;
+  }
+  if (node?.type === 'BinaryExpression' && node.operator === '+') {
+    const side = (operand: any): Array<string | typeof HOLE> => {
+      if (operand?.type === 'Literal' && typeof operand.value === 'string') {
+        return [operand.value];
+      }
+      return spelledParts(operand) ?? [HOLE];
+    };
+    return coalesce([...side(node.left), ...side(node.right)]);
+  }
+  return null;
+}
+
+/**
+ * The class names in spelled text. A word touching a hole is glued to
+ * whatever the expression supplies (`button${size}` is not `button`), so it is
+ * not a class this can read.
+ */
+function wordsOf(parts: Array<string | typeof HOLE>, into: Set<string>): void {
+  parts.forEach((part, i) => {
+    if (part === HOLE) return;
+    const words = part.split(/\s+/);
+    if (i > 0 && parts[i - 1] === HOLE) words[0] = '';
+    if (i < parts.length - 1 && parts[i + 1] === HOLE) {
+      words[words.length - 1] = '';
+    }
+    for (const word of words) if (word) into.add(word);
+  });
+}
+
+/** Class-joining functions, by the names apps give them. */
+const JOINER_NAMES: ReadonlySet<string> = new Set([
+  'clsx',
+  'classnames',
+  'classNames',
+  'cx',
+  'cn',
+  'twMerge',
+  'twJoin',
+]);
+
+/** Packages whose export joins class names, whatever the import calls it. */
+const JOINER_PACKAGES: ReadonlySet<string> = new Set([
+  'clsx',
+  'clsx/lite',
+  'classnames',
+  'classnames/dedupe',
+  'tailwind-merge',
+]);
+
+/**
+ * Whether a callee is a class joiner by its name alone, for a caller with no
+ * scope to consult. A rule passes `classJoinerAt`, which follows the binding.
+ */
+export function isClassJoinerName(callee: any): boolean {
+  return callee?.type === 'Identifier' && JOINER_NAMES.has(callee.name);
+}
+
+/**
+ * Whether a callee, seen at `node`, joins class names: a binding imported or
+ * required from a package that does, under any name (`import cls from
+ * 'clsx'`, `const cx = require('clsx')`).
+ *
+ * Nothing else is: a function the file or the app defines is one the rule
+ * cannot see into. `const cx = classNames.bind(styles)` looks up CSS-module
+ * names, so `cx('card')` renders a hashed class, and a `cx` that maps a key
+ * to a class does the same. A joiner the app wrote (a `cn` in `lib/utils`) is
+ * missed for the same reason, as is a name nothing declares, and a scope that
+ * cannot be read: on an opt-in rule, silence is the safe direction.
+ */
+export function classJoinerAt(
+  context: Rule.RuleContext,
+  node: unknown
+): (callee: any) => boolean {
+  const lookup = variableAt(context, node);
+  return callee => {
+    if (callee?.type !== 'Identifier') return false;
+    const variable = lookup(callee.name);
+    if (!variable) return false;
+    return (variable.defs ?? []).some((d: any) =>
+      d.type === 'ImportBinding'
+        ? JOINER_PACKAGES.has(String(d.parent?.source?.value))
+        : d.type === 'Variable' &&
+          requires(d.node, specifier => JOINER_PACKAGES.has(String(specifier)))
+    );
+  };
+}
+
+function collectClassNames(
+  node: any,
+  into: Set<string>,
+  joins: (callee: any) => boolean
+): void {
+  if (!node) return;
+  const read = (child: any) => collectClassNames(child, into, joins);
+  const spelled = spelledParts(node);
+  if (spelled) {
+    wordsOf(spelled, into);
+    return;
+  }
+  switch (node.type) {
+    case 'Literal':
+      if (typeof node.value === 'string') wordsOf([node.value], into);
+      return;
+    case 'ConditionalExpression':
+      read(node.consequent);
+      read(node.alternate);
+      return;
+    case 'LogicalExpression':
+      read(node.left);
+      read(node.right);
+      return;
+    case 'CallExpression': {
+      // Only a class joiner's arguments are class text (`clsx('box', …)`);
+      // any other call may take a lookup key (`t('button')`).
+      if (joins(node.callee)) {
+        for (const arg of node.arguments ?? []) read(arg);
+        return;
+      }
+      // `['box', x].join(' ')`: an array joined into a string. Only a
+      // whitespace separator keeps each element a class of its own:
+      // `['card', x].join('-')` renders `card-<x>`, and no argument joins on
+      // a comma, so neither keeps its words.
+      const callee = node.callee;
+      const [separator] = node.arguments ?? [];
+      if (
+        callee?.type === 'MemberExpression' &&
+        !callee.computed &&
+        callee.property?.name === 'join' &&
+        callee.object?.type === 'ArrayExpression' &&
+        separator?.type === 'Literal' &&
+        typeof separator.value === 'string' &&
+        /^\s+$/.test(separator.value)
+      ) {
+        read(callee.object);
+      }
+      return;
+    }
+    case 'ArrayExpression':
+      for (const element of node.elements ?? []) {
+        read(element?.type === 'SpreadElement' ? element.argument : element);
+      }
+      return;
+    case 'ObjectExpression':
+      // `{ 'is-active': on }`: the keys are the classes, the values decide.
+      for (const property of node.properties ?? []) {
+        if (property?.type !== 'Property' || property.computed) continue;
+        if (property.key?.type === 'Identifier') into.add(property.key.name);
+        else read(property.key);
+      }
+      return;
+    case 'TSAsExpression':
+    case 'TSSatisfiesExpression':
+    case 'TSNonNullExpression':
+    case 'ChainExpression':
+      read(node.expression);
+      return;
+    default:
+      // An identifier, a member lookup, anything else: text this cannot see.
+      return;
+  }
+}
+
+/**
+ * The class names a `className` value spells out, as the rule that reads
+ * plain elements needs them: a string, the static text of a template or a
+ * `+` chain, the branches of a ternary or a `&&`, the arguments of a class
+ * joiner (`clsx(…)`, `cn(…)`), an array's elements, and an object's keys.
+ *
+ * It reads only what the source spells. A word glued to an expression
+ * (`button${size}`) is not read as `button`, a computed lookup
+ * (`styles['box']`) is not a class, a call that is not a joiner is not read
+ * into, and a value it cannot see into yields nothing. Silence, never a
+ * guess.
+ *
+ * `joins` decides which calls are joiners; a rule passes `classJoinerAt`,
+ * which also follows the callee's binding.
+ */
+export function classNameTokens(
+  attr: any,
+  joins: (callee: any) => boolean = isClassJoinerName
+): Set<string> {
+  const tokens = new Set<string>();
+  const v = attr?.value;
+  if (!v) return tokens;
+  collectClassNames(
+    v.type === 'JSXExpressionContainer' ? v.expression : v,
+    tokens,
+    joins
+  );
+  return tokens;
+}
+
 /**
  * The attribute that WINS for `name`, or undefined.
  *
@@ -371,6 +603,37 @@ export function hasSpread(opening: any): boolean {
 }
 
 /**
+ * The variable a name resolves to from `node`'s scope: the variable, null
+ * when nothing declares the name, or undefined when the scope cannot be read.
+ * The scope is read once, however many names are asked about.
+ */
+function variableAt(
+  context: Rule.RuleContext,
+  node: unknown
+): (name: string) => any | null | undefined {
+  type ScopeLike = { variables: any[]; upper: ScopeLike | null };
+  let scope: ScopeLike | null | undefined;
+  let unreadable = false;
+  return name => {
+    if (scope === undefined && !unreadable) {
+      try {
+        scope = context.sourceCode.getScope(
+          node as never
+        ) as unknown as ScopeLike;
+      } catch {
+        unreadable = true;
+      }
+    }
+    if (unreadable) return undefined;
+    for (let current = scope ?? null; current; current = current.upper) {
+      const variable = current.variables.find((v: any) => v.name === name);
+      if (variable) return variable;
+    }
+    return null;
+  };
+}
+
+/**
  * True when `name`, seen at `node`, resolves to an import binding rather than
  * to a local declaration that shadows it.
  *
@@ -381,31 +644,18 @@ export function bindsToImportAt(
   context: Rule.RuleContext,
   node: unknown
 ): (name: string) => boolean {
-  type ScopeLike = { variables: any[]; upper: ScopeLike | null };
+  const lookup = variableAt(context, node);
   return name => {
-    let scope: ScopeLike | null;
-    try {
-      scope = context.sourceCode.getScope(
-        node as never
-      ) as unknown as ScopeLike;
-    } catch {
-      return true;
-    }
-    while (scope) {
-      const variable = scope.variables.find((v: any) => v.name === name);
-      if (variable) {
-        // An import binding, or the `const { Box } = require(…)` form, which
-        // is the same binding by another spelling. Anything else is a local
-        // that shadows ours.
-        return (variable.defs ?? []).some(
-          (d: any) =>
-            d.type === 'ImportBinding' ||
-            (d.type === 'Variable' && isLibraryRequire(d.node))
-        );
-      }
-      scope = scope.upper;
-    }
-    return true;
+    const variable = lookup(name);
+    if (!variable) return true;
+    // An import binding, or the `const { Box } = require(…)` form, which is
+    // the same binding by another spelling. Anything else is a local that
+    // shadows ours.
+    return (variable.defs ?? []).some(
+      (d: any) =>
+        d.type === 'ImportBinding' ||
+        (d.type === 'Variable' && isLibraryRequire(d.node))
+    );
   };
 }
 

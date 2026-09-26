@@ -8,7 +8,10 @@
  * else's `<Box>` against Bulma's rules.
  */
 import { describe, expect, it } from '@jest/globals';
+import { parse } from '@typescript-eslint/parser';
 import {
+  classJoinerAt,
+  classNameTokens,
   collectImport,
   collectRequire,
   emptyImports,
@@ -419,5 +422,77 @@ describe('literalValue', () => {
         },
       })
     ).toBeNull();
+  });
+});
+
+describe('classNameTokens', () => {
+  /** The className attribute of the one element in `<div className=… />`. */
+  const tokens = (value: string): string[] => {
+    const program = parse(`<div className=${value} />;`, {
+      ecmaFeatures: { jsx: true },
+    }) as unknown as {
+      body: Array<{
+        expression: { openingElement: { attributes: unknown[] } };
+      }>;
+    };
+    const [attr] = program.body[0].expression.openingElement.attributes;
+    return [...classNameTokens(attr)].sort();
+  };
+
+  it('reads a string, however it is written', () => {
+    expect(tokens('"box  is-primary"')).toEqual(['box', 'is-primary']);
+    expect(tokens("{'box'}")).toEqual(['box']);
+    expect(tokens('{`box`}')).toEqual(['box']);
+  });
+
+  it('reads the words of a template and a + chain, but not one glued to an expression', () => {
+    expect(tokens('{`columns ${a} is-mobile`}')).toEqual([
+      'columns',
+      'is-mobile',
+    ]);
+    expect(tokens('{`button${a} is-${size}`}')).toEqual([]);
+    expect(tokens("{'title ' + a + ' is-4'}")).toEqual(['is-4', 'title']);
+    expect(tokens("{'is-' + size}")).toEqual([]);
+  });
+
+  it('reads the branches, arguments, elements and keys a class can come from', () => {
+    expect(tokens("{on ? 'box' : 'card'}")).toEqual(['box', 'card']);
+    expect(tokens("{on && 'box'}")).toEqual(['box']);
+    expect(
+      tokens("{cx('box', ['tag', ...more], { 'is-active': on, delete: x })}")
+    ).toEqual(['box', 'delete', 'is-active', 'tag']);
+    expect(tokens("{['box', a].join(' ')}")).toEqual(['box']);
+    expect(tokens("{['card', a].join('-')}")).toEqual([]);
+    expect(tokens("{['box', a].join()}")).toEqual([]);
+    expect(tokens('{(a as string)!}')).toEqual([]);
+    expect(tokens("{clsx?.('box')}")).toEqual(['box']);
+  });
+
+  it('reads nothing it cannot see into', () => {
+    expect(tokens('{classes}')).toEqual([]);
+    expect(tokens("{styles['box']}")).toEqual([]);
+    expect(tokens('{cx({ [box]: on, ...rest })}')).toEqual([]);
+    expect(tokens('{42}')).toEqual([]);
+    // A call that is not a class joiner, and adjacent text glued to a hole.
+    expect(tokens("{t('button')}")).toEqual([]);
+    expect(tokens("{a?.b('box')}")).toEqual([]);
+    expect(tokens("{'card' + '-' + a}")).toEqual([]);
+    expect(tokens("{'card' + ' ' + a}")).toEqual(['card']);
+    expect(classNameTokens({ type: 'JSXAttribute', value: null }).size).toBe(0);
+  });
+});
+
+describe('classJoinerAt', () => {
+  it('trusts no name when the scope cannot be read', () => {
+    const context = {
+      sourceCode: {
+        getScope() {
+          throw new Error('no scope');
+        },
+      },
+    } as never;
+    const joins = classJoinerAt(context, {});
+    expect(joins({ type: 'Identifier', name: 'clsx' })).toBe(false);
+    expect(joins({ type: 'MemberExpression' })).toBe(false);
   });
 });

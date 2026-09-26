@@ -9,6 +9,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  build,
+  bulmaComponentClasses,
+  classTableViolations,
+  unknownComponents,
   collect,
   guardViolations,
   render,
@@ -321,5 +325,129 @@ describe('collect', () => {
       'isFullwidth'
     );
     assert.ok(textAlias.has('Box'));
+  });
+});
+
+describe('the Bulma component class table', () => {
+  /** A class-map module of just these roots, in this order. */
+  const classMap =
+    (roots, precedence = []) =>
+    async () => ({
+      ROOTS: roots,
+      PRECEDENCE: precedence,
+    });
+  const exported = new Map(
+    ['Box', 'Button', 'Card', 'Column', 'Hero', 'Navbar'].map(n => [n, {}])
+  );
+  const anchors = {
+    button: { status: 'mapped', target: 'Button' },
+    'hero-body': { status: 'mapped', target: 'Hero.Body' },
+    card: { status: 'todo', target: 'Card', why: 'by hand' },
+    navbar: { status: 'todo', target: 'Navbar', why: 'by hand' },
+  };
+
+  it('lists families first, then converted roots by precedence, and no parts or plain roots', async () => {
+    const { entries } = await bulmaComponentClasses(
+      classMap(
+        {
+          box: { status: 'mapped', target: 'Box' },
+          column: { status: 'mapped', target: 'Column' },
+          card: { status: 'todo', target: 'Card', why: 'by hand' },
+          'card-header': { status: 'todo', part: true },
+          label: { status: 'plain', why: 'inside controls' },
+        },
+        ['column', 'box']
+      )
+    );
+    assert.deepEqual(
+      entries.map(([cls, { converts }]) => [cls, converts]),
+      [
+        ['card', false],
+        ['column', true],
+        ['box', true],
+      ]
+    );
+  });
+
+  it('says where it failed when the table will not import', async () => {
+    await assert.rejects(
+      bulmaComponentClasses(async () => {
+        throw new Error('boom');
+      }),
+      /class-map\.ts: boom\. It is loaded with node's type stripping/
+    );
+  });
+
+  it('passes a table that names real exports and keeps its anchors', async () => {
+    const classes = await bulmaComponentClasses(classMap(anchors));
+    assert.deepEqual(classTableViolations(classes, exported), []);
+  });
+
+  it('refuses an empty table', () => {
+    assert.match(
+      classTableViolations({ entries: [] }, exported).join('\n'),
+      /no Bulma component classes found/
+    );
+  });
+
+  it('refuses a family with no component, and one the library does not export', async () => {
+    const classes = await bulmaComponentClasses(
+      classMap({
+        ...anchors,
+        modal: { status: 'todo', why: 'by hand' },
+        box: { status: 'mapped', target: 'Boxx' },
+      })
+    );
+    const violations = classTableViolations(classes, exported).join('\n');
+    assert.match(violations, /`\.modal` names no bestax component/);
+    assert.match(
+      violations,
+      /`\.box` names `Boxx`, which the library does not export/
+    );
+  });
+
+  it('refuses a lost anchor', async () => {
+    const { card, ...rest } = anchors;
+    assert.ok(card);
+    const classes = await bulmaComponentClasses(classMap(rest));
+    assert.match(
+      classTableViolations(classes, exported).join('\n'),
+      /`\.card` no longer names `Card`/
+    );
+  });
+
+  it('holds each component to an element the library documents, down to the part', () => {
+    const classes = {
+      entries: [
+        ['hero-body', { component: 'Hero.Body', converts: true }],
+        ['hero-foot', { component: 'Hero.Fot', converts: true }],
+      ],
+    };
+    const violations = unknownComponents(
+      classes,
+      new Set(['Hero', 'Hero.Body'])
+    );
+    assert.equal(violations.length, 1);
+    assert.match(violations[0], /`\.hero-foot` names `Hero\.Fot`/);
+  });
+
+  it('refuses to build from a bad table, before reading the library', async () => {
+    await assert.rejects(
+      build({ loadClassMap: classMap({}) }),
+      /no Bulma component classes found/
+    );
+  });
+
+  it('renders the table in its own order, with every entry quoted', () => {
+    const out = render({
+      deprecated: new Map(),
+      textAlias: new Set(),
+      classes: [
+        ['card', { component: 'Card', converts: false }],
+        ['box', { component: 'Box', converts: true }],
+      ],
+    });
+    assert.ok(out.indexOf('["card"') < out.indexOf('["box"'));
+    assert.match(out, /\["box", \{ component: "Box", converts: true \}\]/);
   });
 });
