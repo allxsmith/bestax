@@ -139,16 +139,30 @@ Convert it by hand if the parent only renders its children.
 
 ### `dynamic-class:<Target>`
 
-The `className` is computed (`clsx(...)`, a ternary, a template with expressions), and with
-its classes written out the element would become bestax `<Target>`. The codemod converts
-static strings only. Convert by hand with the [prop map](prop-map.md), turning each condition
-into the prop:
+The `className` is computed in a way the codemod can't read exactly, and with its classes
+written out the element would become bestax `<Target>`.
+
+What it can read is a `clsx` or `classnames` call made of class strings and classes added
+under a condition: `busy && 'is-loading'`, `{ 'is-loading': busy }`, `busy ? 'is-loading' : ''`
+(or `: null`). Those convert without a TODO. A condition on one of the component's flags
+becomes that prop (`isLoading={busy}`, or `isLight={!quiet}` for `quiet ? '' : 'is-light'`),
+anything else stays in the call, and the call goes once nothing is left in it. `Field`'s
+`is-grouped` stays in the call too, since `grouped` renders it for `true` alone. A prop is
+evaluated before the call, so a condition moves ahead of one left in the call only when neither
+can have side effects (a call, an assignment); otherwise it stays. A condition that isn't a
+boolean (`items.length && 'is-active'`) renders the same, but won't typecheck against the
+boolean prop; wrap it in `Boolean(…)`.
+
+So this TODO is a className built any other way: a ternary between two classes, a template
+with expressions, a variable, another function (`classnames/bind`, an app's own `cn`), or the
+component's class itself under a condition. Convert by hand with the [prop map](prop-map.md),
+turning each condition into the prop:
 
 ```tsx
 // before
-<button className={clsx('button', busy && 'is-loading')}>Save</button>
+<button className={primary ? 'button is-primary' : 'button is-light'}>Save</button>
 // after
-<Button isLoading={busy}>Save</Button>
+<Button color={primary ? 'primary' : undefined} isLight={!primary}>Save</Button>
 ```
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a

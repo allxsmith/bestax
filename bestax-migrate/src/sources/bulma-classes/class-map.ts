@@ -32,6 +32,12 @@ export interface Modifier {
   readonly writes: readonly PropWrite[];
   /** The raw tags the writes are exact on (Title's size picks its heading). */
   readonly tagIn?: readonly string[];
+  /**
+   * The prop renders the class for `true` alone, not for any truthy value
+   * (`Field`'s `grouped`), so a condition a joiner adds it under can't be
+   * handed to the prop as it is.
+   */
+  readonly onlyTrue?: boolean;
 }
 
 /**
@@ -849,12 +855,16 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'div',
     // `has-addons-centered`, `is-grouped-right` and the like stay classes:
     // the prop values that render them render `has-addons` too.
-    modifiers: flags({
-      'is-horizontal': 'horizontal',
-      'is-grouped': 'grouped',
-      'has-addons': 'hasAddons',
-      'is-narrow': 'narrow',
-    }),
+    modifiers: {
+      ...flags({
+        'is-horizontal': 'horizontal',
+        'has-addons': 'hasAddons',
+        'is-narrow': 'narrow',
+      }),
+      // `grouped` renders `is-grouped` for `true` and its three layouts, and
+      // for nothing else truthy.
+      'is-grouped': { writes: [{ prop: 'grouped' }], onlyTrue: true },
+    },
     wrapsChildren: {
       in: 'field-body',
       unless: ['Field.Label', 'Field.Body'],

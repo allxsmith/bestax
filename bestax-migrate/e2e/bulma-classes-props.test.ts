@@ -82,7 +82,8 @@ function converted(
   tag: string,
   tokens: string[],
   attributes: Array<[string, string | true]>,
-  child?: Inner
+  child?: Inner,
+  conditional?: string[][]
 ): string | null {
   const unique = [...new Map(attributes)];
   // A root that wraps its children converts only beside one of its parts;
@@ -102,6 +103,7 @@ function converted(
   const result = plan({
     tag,
     tokens,
+    conditional,
     attributes: new Map(unique),
     hasSpread: false,
     hasRef: false,
@@ -154,6 +156,8 @@ function converted(
           : jsxAttr(name, value)
       ),
     ...(absorbed?.props ?? []).map(([name, value]) => jsxAttr(name, value)),
+    // A flag a condition adds takes that condition, a boolean here.
+    ...(conversion.conditional ?? []).map(([name]) => `${name}={flag}`),
     ...(conversion.className
       ? [jsxAttr('className', conversion.className)]
       : []),
@@ -169,7 +173,8 @@ function converted(
 describe('every bulma-classes conversion typechecks', () => {
   it('compiles against @allxsmith/bestax-bulma', () => {
     const files: Record<string, string> = {};
-    const header = "import * as B from '@allxsmith/bestax-bulma';\n";
+    const header =
+      "import * as B from '@allxsmith/bestax-bulma';\ndeclare const flag: boolean;\n";
     const roots = Object.entries(ROOTS).filter(
       ([, entry]) => entry.status === 'mapped'
     );
@@ -188,6 +193,7 @@ describe('every bulma-classes conversion typechecks', () => {
       for (const modifier of Object.keys(entry.modifiers ?? {})) {
         for (const tag of tagsFor(entry)) {
           add(converted(tag, [root, modifier], defaults));
+          add(converted(tag, [root], defaults, undefined, [[modifier]]));
         }
       }
       for (const helper of HELPER_TOKENS.keys()) {

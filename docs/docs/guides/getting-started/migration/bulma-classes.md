@@ -86,6 +86,9 @@ stock stylesheet.
   and its `<ul>` become one `Breadcrumb` around the same `<li>`s.
 - **Children a component renders itself** go: a `.skeleton-lines` holding bare, empty `<div>`s
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
+- **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,
+  set to the condition (`clsx('button', busy && 'is-loading')` → `<Button isLoading={busy}>`), and
+  whatever else the call adds stays in it.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's
@@ -121,9 +124,10 @@ A couple of results look odd until you see why:
 
 Anything that would change the markup stays as written:
 
-- **Computed classNames.** `clsx(...)`, ternaries and templates with expressions are flagged
-  with the component the element would become (`dynamic-class:<Target>`). Converting them
-  means turning each condition into a prop, which is quick by hand and risky to guess at.
+- **Other computed classNames.** A ternary between two classes, a template with expressions, a
+  variable or another function is flagged with the component the element would become
+  (`dynamic-class:<Target>`). Converting it means turning each condition into a prop, which is
+  quick by hand and risky to guess at.
 - **Components that render parts of their own.** `Modal` adds dialog attributes, `File` renders
   its own wrappers, and so on. These families are flagged once each (`family:<class>`) and
   converted by hand.
@@ -148,7 +152,7 @@ rule. The ones you'll see most:
 
 | What                     | What to do                                                                                             |
 | ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `dynamic-class:<Target>` | Convert by hand: each `cond && 'is-x'` becomes the prop (`isX={cond}`)                                 |
+| `dynamic-class:<Target>` | Convert by hand, turning each condition into its prop                                                  |
 | `family:<class>`         | Rebuild that block from the component's docs page, parts and all                                       |
 | `tag:<Target>`           | Change the tag if you want the component, or keep the markup                                           |
 | `defaults:Delete`        | Add `type="button"` and a real `aria-label` to the `.delete` button, then re-run                       |

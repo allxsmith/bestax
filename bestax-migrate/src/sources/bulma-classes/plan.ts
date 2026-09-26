@@ -30,6 +30,19 @@ export interface ElementFacts {
   /** The static className, split on whitespace, in order. */
   tokens: readonly string[];
   /**
+   * For a `className` a class joiner builds (`clsx('button', busy &&
+   * 'is-loading')`), the classes each condition adds, one list per condition;
+   * `tokens` then holds the ones it always adds. Set only when the codemod
+   * can read every argument.
+   */
+  conditional?: readonly (readonly string[])[];
+  /**
+   * Indexes into `conditional` of conditions that may have side effects (a
+   * call, an assignment). A condition that becomes a prop is evaluated before
+   * the ones left in the call, so it passes them only when neither is one.
+   */
+  impure?: readonly number[];
+  /**
    * The element's other attributes: a string value, `true` for a bare
    * attribute, or null for an expression.
    */
@@ -134,6 +147,11 @@ export interface Conversion {
    * they go, and the element closes itself.
    */
   rendersChildren?: true;
+  /**
+   * Conditional classes (`ElementFacts.conditional`) that become a boolean
+   * prop set to their condition, each once. The rest stay in the joiner call.
+   */
+  conditional?: Array<[prop: string, token: string]>;
 }
 
 export interface Plan {
@@ -182,8 +200,14 @@ function tagsItReaches(entry: RootEntry): string {
 export function plan(facts: ElementFacts): Plan {
   const todos: Todo[] = [];
   const { tag, tokens } = facts;
+  // Every class the element may carry: its fixed ones, and any a condition
+  // adds, which the element has to be right with as well as without.
+  const carried = [
+    ...new Set([...tokens, ...(facts.conditional ?? []).flat()]),
+  ];
+  const mayCarry = (token: string) => carried.includes(token);
 
-  for (const token of tokens) {
+  for (const token of carried) {
     const hint = legacyHint(token);
     if (hint) todos.push({ rule: ruleId('legacy', token), message: hint });
   }
@@ -191,7 +215,7 @@ export function plan(facts: ElementFacts): Plan {
   // A family this source leaves as markup keeps its element as markup, even
   // beside a class it would convert (`navbar box`): the family's parts carry no
   // TODO of their own, so its outermost class is the one place it is flagged.
-  const family = tokens.find(token => {
+  const family = carried.find(token => {
     const found = rootFor(token);
     return found?.status === 'todo' && !found.part;
   });
@@ -216,7 +240,7 @@ export function plan(facts: ElementFacts): Plan {
   } else {
     // A root the table does not convert keeps the element as markup, so a
     // later pass (or a person) still finds it as the class it is.
-    if (tokens.some(token => rootFor(token))) {
+    if (carried.some(token => rootFor(token))) {
       return { conversion: null, todos };
     }
     entry = wrapperEntry(tag);
@@ -351,7 +375,7 @@ export function plan(facts: ElementFacts): Plan {
   const wraps = entry.wrapsChildren;
   if (
     wraps &&
-    (!wraps.when || tokens.includes(wraps.when)) &&
+    (!wraps.when || mayCarry(wraps.when)) &&
     (facts.hasChildren || wraps.whenEmpty) &&
     !facts.childTargets?.some(child => wraps.unless.includes(child))
   ) {
@@ -490,8 +514,47 @@ export function plan(facts: ElementFacts): Plan {
     props.push([counts.prop, String(facts.childElements!.length)]);
     numbers.push(counts.prop);
   }
+  // A class a condition adds becomes the boolean prop that renders it, set to
+  // that condition, when it is one of the root's flags on its own: the
+  // component renders it exactly when the condition is truthy, as the joiner
+  // does. Anything else a condition adds stays in the joiner call.
+  const parts = facts.conditional ?? [];
+  const conditional: Array<[string, string]> = [];
+  let conditionalStays = false;
+  const places = (token: string) =>
+    parts.filter(part => part.includes(token)).length +
+    (tokens.includes(token) ? 1 : 0);
+  const paired = new Set(Object.values(entry.absorbs?.pairs ?? {}));
+  const impure = new Set(facts.impure ?? []);
+  let impureStays = false;
+  parts.forEach((part, index) => {
+    const [token] = part;
+    const modifier =
+      part.length === 1 && places(token) === 1 && !paired.has(token)
+        ? modifierFor(entry, token)
+        : undefined;
+    const [write, ...more] = modifier?.writes ?? [];
+    const flag =
+      write !== undefined &&
+      more.length === 0 &&
+      write.value === undefined &&
+      !modifier!.onlyTrue &&
+      (!modifier!.tagIn || modifier!.tagIn.includes(tag)) &&
+      !writes.has(write.prop) &&
+      !conditional.some(([prop]) => prop === write.prop);
+    // Written as a prop, the condition is evaluated before any left in the
+    // call ahead of it, which is safe only when neither can have side effects.
+    const reorders = conditionalStays && (impureStays || impure.has(index));
+    if (flag && !reorders) {
+      conditional.push([write.prop, token]);
+    } else {
+      conditionalStays = true;
+      if (impure.has(index)) impureStays = true;
+    }
+  });
+
   const rest = tokens.filter(token => !converted.has(token));
-  if (entry.ownClassOnly && rest.length > 0) {
+  if (entry.ownClassOnly && (rest.length > 0 || conditionalStays)) {
     return refuse(
       'attr',
       'className',
@@ -507,6 +570,7 @@ export function plan(facts: ElementFacts): Plan {
       numbers,
       ...(absorbed ? { absorbs: absorbed } : {}),
       ...(counts ? { rendersChildren: true as const } : {}),
+      ...(conditional.length > 0 ? { conditional } : {}),
     },
     todos,
   };
@@ -561,7 +625,7 @@ function absorb(
     return refuse(
       'dynamic-class',
       target,
-      `the <${spec.tag}> inside has a computed \`className\`, and the codemod converts static class strings only; convert the two to bestax \`${target}\` by hand, turning each condition into its prop`
+      `the <${spec.tag}> inside has a computed \`className\`, which the codemod does not read there; convert the two to bestax \`${target}\` by hand, turning each condition into its prop`
     );
   }
   if (child.tokens?.length === 0) {

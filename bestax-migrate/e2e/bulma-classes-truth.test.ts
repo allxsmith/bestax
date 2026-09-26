@@ -102,10 +102,19 @@ function childFor(entry: RootEntry): Child | undefined {
 function renderBoth(
   facts: ElementFacts,
   extra: Record<string, string | true> = {},
-  child?: Child
+  child?: Child,
+  when: Record<string, unknown> = {}
 ): { raw: string; converted: string } | null {
   const result = plan(facts);
   if (!result.conversion) return null;
+  // A joiner adds each conditional class when its condition (`when`) is
+  // truthy; a flag it became takes that condition as its value, and the rest
+  // stay in the call.
+  const flags = result.conversion.conditional ?? [];
+  const added = (facts.conditional ?? []).filter(part => when[part.join(' ')]);
+  const stays = added.filter(
+    part => !flags.some(([, token]) => part.length === 1 && part[0] === token)
+  );
   const children = VOID.has(facts.tag) ? undefined : 'x';
   const sole = facts.soleChild;
   const soleAttributes = Object.fromEntries(sole?.attributes ?? []) as Record<
@@ -119,7 +128,7 @@ function renderBoth(
     : undefined;
   const raw = renderElement(
     facts.tag,
-    { className: facts.tokens.join(' '), ...extra },
+    { className: [...facts.tokens, ...added.flat()].join(' '), ...extra },
     counted ??
       (sole
         ? createElement(
@@ -162,7 +171,10 @@ function renderBoth(
           numbers.includes(name) ? Number(value) : value,
         ])
       ),
-      ...(className ? { className } : {}),
+      ...Object.fromEntries(flags.map(([prop, token]) => [prop, when[token]])),
+      ...(className || stays.length > 0
+        ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
+        : {}),
     },
     counted ? undefined : sole ? 'x' : child ? child.converted : children
   );
@@ -523,6 +535,114 @@ describe.each(absorbing)(
     });
   }
 );
+
+/**
+ * What a condition can be at runtime. A joiner adds the class for any truthy
+ * one, so the prop has to render it for exactly those too: a component that
+ * rendered `{isX && …}` would print the `0`.
+ */
+const CONDITIONS: readonly unknown[] = [
+  true,
+  false,
+  undefined,
+  null,
+  0,
+  '',
+  1,
+  'yes',
+];
+
+describe.each(mapped)('`.%s` with a class a condition adds', (root, entry) => {
+  const defaults = { ...(entry.defaults ?? {}) };
+  const child = childFor(entry);
+
+  it('renders each of its flags exactly when the condition is truthy, on every tag', () => {
+    const differ: string[] = [];
+    for (const tag of tagsFor(entry)) {
+      for (const token of Object.keys(entry.modifiers ?? {})) {
+        const facts: ElementFacts = {
+          ...factsFor(tag, [root], defaults, child),
+          conditional: [[token]],
+        };
+        if (!plan(facts).conversion) continue;
+        for (const value of CONDITIONS) {
+          const both = renderBoth(facts, defaults, child, { [token]: value });
+          if (both!.converted !== both!.raw) {
+            differ.push(
+              `<${tag}> ${token} = ${JSON.stringify(value)}: ${both!.converted}`
+            );
+          }
+        }
+      }
+    }
+    expect(differ).toEqual([]);
+  });
+
+  it('renders a flag the same beside each other modifier, fixed or conditional', () => {
+    const differ: string[] = [];
+    const modifiers = Object.keys(entry.modifiers ?? {});
+    const flags = modifiers.filter(
+      token =>
+        plan({
+          ...factsFor(entry.tag!, [root], defaults, child),
+          conditional: [[token]],
+        }).conversion?.conditional?.length
+    );
+    for (const flag of flags) {
+      for (const other of modifiers) {
+        if (other === flag) continue;
+        const cases: Array<[ElementFacts, Array<Record<string, boolean>>]> = [
+          [
+            {
+              ...factsFor(entry.tag!, [root, other], defaults, child),
+              conditional: [[flag]],
+            },
+            [{ [flag]: true }, { [flag]: false }],
+          ],
+          [
+            {
+              ...factsFor(entry.tag!, [root], defaults, child),
+              conditional: [[flag], [other]],
+            },
+            [true, false].flatMap(a =>
+              [true, false].map(b => ({ [flag]: a, [other]: b }))
+            ),
+          ],
+        ];
+        for (const [facts, whens] of cases) {
+          for (const when of whens) {
+            const both = renderBoth(facts, defaults, child, when);
+            if (both && both.converted !== both.raw) {
+              differ.push(`${JSON.stringify(when)}: ${both.converted}`);
+            }
+          }
+        }
+      }
+    }
+    expect(differ).toEqual([]);
+  });
+
+  it('keeps a condition on anything else in the call, and renders the same', () => {
+    for (const token of [...HELPER_TOKENS.keys()].slice(0, 40)) {
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root], defaults, child),
+        conditional: [[token], ['my-app', token]],
+      };
+      for (const value of [true, false]) {
+        const both = renderBoth(facts, defaults, child, {
+          [token]: value,
+          [`my-app ${token}`]: value,
+        });
+        if (!both) continue;
+        expect({ token, value, html: both.converted }).toEqual({
+          token,
+          value,
+          html: both.raw,
+        });
+      }
+    }
+  });
+});
 
 const counting = mapped.filter(([, entry]) => entry.countsChildren);
 
