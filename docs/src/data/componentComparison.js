@@ -1702,7 +1702,7 @@ export const categories = [
         'Locale / direction provider',
         0,
         'DirectionProvider',
-        'ThemeProvider dir',
+        '~ThemeProvider dir',
         '~ThemeProvider direction',
         0,
         'LocaleProvider',

@@ -21,6 +21,13 @@ test('every note points at rows the live matrix has', async () => {
   }
 });
 
+test('capability names are unique across groups, since notes find rows by name', async () => {
+  const { categories } = await loadLiveData();
+  const names = categories.flatMap(group => group.rows.map(r => r[0]));
+  const repeated = names.filter((name, i) => names.indexOf(name) !== i);
+  assert.deepEqual(repeated, []);
+});
+
 test('note ids are unique, since they become page anchors', async () => {
   const { notes } = await loadLiveData();
   const ids = notes.map(note => note.id);

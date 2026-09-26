@@ -119,6 +119,7 @@ function NoteRefs({ entries }) {
         href={`#${noteId(note)}`}
         title={note.text.replaceAll('`', '')}
         aria-label={`Note ${n}`}
+        aria-describedby={noteId(note)}
       >
         {n}
       </a>
@@ -130,10 +131,12 @@ function Notes({ shown }) {
   if (shown.length === 0) return null;
   return (
     <div className={styles.notes}>
-      <p className={styles.notesTitle}>Notes on names</p>
-      <ol>
-        {shown.map(({ n, note }) => (
-          <li key={note.id} id={noteId(note)} value={n}>
+      <p id="sor-notes-title" className={styles.notesTitle}>
+        Notes on names
+      </p>
+      <ol aria-labelledby="sor-notes-title">
+        {shown.map(({ note }) => (
+          <li key={note.id} id={noteId(note)}>
             <NoteText text={note.text} />
           </li>
         ))}
