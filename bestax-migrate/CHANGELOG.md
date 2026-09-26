@@ -1,3 +1,12 @@
+# [2.5.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.4.0...bestax-migrate@2.5.0) (2026-09-26)
+
+
+### Features
+
+* **bestax-mcp:** look up the bestax component and props for a Bulma class string ([4a4b246](https://github.com/allxsmith/bestax/commit/4a4b24681ada1eedb8e754d6ec55252ff54c6d6a)), closes [#744](https://github.com/allxsmith/bestax/issues/744)
+* **bestax-migrate:** convert Bulma cards built from their parts ([#752](https://github.com/allxsmith/bestax/issues/752)) ([1b08e17](https://github.com/allxsmith/bestax/commit/1b08e176947a0b8ac24b5fcde1f8b39d325e6a76))
+* **eslint-plugin:** add an opt-in rule for plain elements styled with a Bulma component class ([#750](https://github.com/allxsmith/bestax/issues/750)) ([0bb4d80](https://github.com/allxsmith/bestax/commit/0bb4d802917a295ca4a1c8c08974439353543543))
+
 # [2.4.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.3.9...bestax-migrate@2.4.0) (2026-09-26)
 
 
