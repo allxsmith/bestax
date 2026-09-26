@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.8.0...bestax-migrate@2.9.0) (2026-09-26)
+
+
+### Features
+
+* **bestax-migrate:** fold .table-container and .fixed-grid into the component inside ([#761](https://github.com/allxsmith/bestax/issues/761)) ([72504f5](https://github.com/allxsmith/bestax/commit/72504f597980bed7f665e4267f1225b9c956e81e)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+
 # [2.8.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.7.0...bestax-migrate@2.8.0) (2026-09-26)
 
 
