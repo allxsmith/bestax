@@ -42,12 +42,18 @@ when it is spelled the way it renders (`value="40"`, not `value="040"`).
 and some bestax components render content of their own beside `children`, which React
 rejects. Keep the element as markup.
 
+`attr:className` is a `.navbar-divider` with another class on it (`<hr className="navbar-divider
+mt-2">`). `Navbar.Divider` drops its own class for a `className` it's given, so the conversion
+would lose `.navbar-divider`. Keep the element as markup, or move the extra class off it.
+
 ### `defaults:<Target>`
 
 The component renders attributes of its own when the element doesn't set them. `Delete`
 renders `type="button"` and `aria-label="Close"`. On a bare `<button className="delete">`,
 converting would add both, changing a submit button inside a form into a plain button. Add the
-attributes you want (usually both, with a real label), then re-run.
+attributes you want (usually both, with a real label), then re-run. `Navbar` renders
+`role="navigation"` and `aria-label="main navigation"`, which Bulma's own navbar markup carries;
+give the `<nav>` both, with your own label if you like.
 
 ### `drops:<Target>`
 
@@ -98,7 +104,7 @@ into the prop:
 ```
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
-`<span>` gets `tag:Box`, and a `clsx('navbar', …)` gets `family:navbar`.
+`<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`.
 
 ## A family it leaves as markup: `family:<class>`
 
@@ -106,10 +112,13 @@ The bestax component renders parts of its own, or adds attributes, so a one-elem
 conversion would change the markup. Convert the whole family by hand, and look at the result
 in the browser:
 
-- **`family:navbar`**: `Navbar` adds `role="navigation"` and an `aria-label`, and
-  `Navbar.Burger` renders its own three spans. Its parts are `Navbar.Brand`, `Navbar.Item`,
-  `Navbar.Link`, `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`,
-  `Navbar.Dropdown`, `Navbar.DropdownMenu` and `Navbar.Divider`.
+- **`family:navbar-burger`**: `Navbar.Burger` is a `<button>` that renders its own spans and
+  sets `aria-expanded` from `active`. Replace the whole toggle with it, drive `active` from the
+  state the old click handler flipped, and pass the same state to `Navbar.Menu`'s `active`.
+- **`family:navbar-link`**: inside a `Navbar.Dropdown`, `Navbar.Link` adds `aria-haspopup`,
+  `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
+  into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
+  with `Navbar.Dropdown` (`hoverable` for `is-hoverable`) and the link with `Navbar.Link`.
 - **`family:field`**, **`family:input`**, **`family:textarea`**, **`family:select`**,
   **`family:file`**: bestax's form controls render their own `.field` and `.control` wrappers
   (and `File` its whole `.file-label` tree). Replace the whole `.field` block with the

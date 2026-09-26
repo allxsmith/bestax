@@ -134,14 +134,15 @@ describe('file-level gates', () => {
   });
 
   describe('only when an element would convert', () => {
-    const family = 'export const A = () => <nav className="navbar">x</nav>;\n';
+    const family =
+      'export const A = () => <div className="dropdown">x</div>;\n';
 
     it('adds no gate TODO a re-run could not act on', () => {
       expect(
         migrate(
-          'const A = () => <nav className="navbar">x</nav>;\nmodule.exports = { A };\n'
+          'const A = () => <div className="dropdown">x</div>;\nmodule.exports = { A };\n'
         ).rules
-      ).toEqual(['family:navbar']);
+      ).toEqual(['family:dropdown']);
       expect(
         migrate(
           family,
@@ -150,7 +151,7 @@ describe('file-level gates', () => {
           },
           path.resolve('/p/app/page.tsx')
         ).rules
-      ).toEqual(['family:navbar']);
+      ).toEqual(['family:dropdown']);
     });
 
     it('counts a computed className that would convert', () => {
@@ -165,7 +166,7 @@ describe('file-level gates', () => {
       const preact = '/** @jsxImportSource preact */\n';
       expect(
         migrate(
-          `${preact}export const A = () => <div className="box"><nav className="navbar">x</nav></div>;\n`
+          `${preact}export const A = () => <div className="box"><div className="dropdown">x</div></div>;\n`
         ).rules
       ).toEqual(['jsx-runtime']);
       expect(migrate(`${preact}${family}`)).toEqual({
@@ -300,9 +301,9 @@ describe('what counts', () => {
 
   it('flags the family in a computed className before the root beside it', () => {
     const { rules } = migrate(
-      "export const A = ({ on }: { on: boolean }) => <div className={on ? 'navbar box' : 'navbar'}>x</div>;\n"
+      "export const A = ({ on }: { on: boolean }) => <div className={on ? 'dropdown box' : 'dropdown'}>x</div>;\n"
     );
-    expect(rules).toEqual(['family:navbar']);
+    expect(rules).toEqual(['family:dropdown']);
   });
 
   it('carries on past a class named like an Object member', () => {
@@ -502,12 +503,12 @@ describe('printing', () => {
 
   it('leaves a TODO on its statement, not on the import it adds', () => {
     const { output } = migrate(
-      'export const A = () => <nav className="navbar">x</nav>;\nexport const B = () => <div className="box">y</div>;\n'
+      'export const A = () => <div className="dropdown">x</div>;\nexport const B = () => <div className="box">y</div>;\n'
     );
     const lines = output?.split('\n') ?? [];
     expect(lines[0]).toBe('import { Box } from "@allxsmith/bestax-bulma";');
-    expect(lines[1]).toMatch(/^\/\/ TODO\(bestax-migrate\): `\.navbar`/);
-    expect(lines[2]).toContain('className="navbar"');
+    expect(lines[1]).toMatch(/^\/\/ TODO\(bestax-migrate\): `\.dropdown`/);
+    expect(lines[2]).toContain('className="dropdown"');
   });
 
   it('keeps a next-line directive on the line it governs', () => {

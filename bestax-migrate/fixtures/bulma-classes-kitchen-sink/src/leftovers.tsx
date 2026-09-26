@@ -27,8 +27,24 @@ export function Leftovers() {
         <p>Content Card would wrap in a part of its own</p>
       </div>
       <nav className="navbar">
-        <div className="navbar-brand">Brand</div>
+        <div className="navbar-brand">A navbar without Bulma's role and label</div>
       </nav>
+      <div className="navbar-item has-dropdown">
+        <a className="navbar-link">A dropdown trigger</a>
+      </div>
+      <a
+        role="button"
+        className="navbar-burger"
+        aria-label="menu"
+        aria-expanded="false"
+      >
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+      </a>
+      <hr className="navbar-divider mt-2" />
+      <div className="dropdown">A family converted later</div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
     </div>
   );

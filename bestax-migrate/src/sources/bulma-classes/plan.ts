@@ -288,7 +288,7 @@ export function plan(facts: ElementFacts): Plan {
       converted.add(token);
       continue;
     }
-    const helper = HELPER_TOKENS.get(token);
+    const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);
     if (!helper) continue;
     const prop =
       helper.group === 'text-color'
@@ -351,6 +351,13 @@ export function plan(facts: ElementFacts): Plan {
   if (as) props.push(['as', as]);
   props.push(...writes);
   const rest = tokens.filter(token => !converted.has(token));
+  if (entry.ownClassOnly && rest.length > 0) {
+    return refuse(
+      'attr',
+      'className',
+      `bestax \`${target}\` drops its own class when it is given a \`className\`, so this element's other classes would take the place of \`.${root}\`; keep it as markup`
+    );
+  }
   return {
     conversion: {
       target,

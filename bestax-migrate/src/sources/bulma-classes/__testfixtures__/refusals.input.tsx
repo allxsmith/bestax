@@ -19,9 +19,9 @@ export function Refusals() {
       </div>
       <button className="delete"></button>
       <div className={active ? 'box is-active' : 'box'}>A computed class</div>
-      <nav className="navbar">
-        <div className="navbar-brand">A family converted later</div>
-      </nav>
+      <div className="dropdown">
+        <div className="dropdown-menu">A family converted later</div>
+      </div>
       <div className="card">
         <p>Content Card would wrap in a part of its own</p>
       </div>

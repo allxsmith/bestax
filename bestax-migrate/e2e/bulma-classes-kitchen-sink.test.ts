@@ -199,12 +199,16 @@ describe('bulma-classes kitchen-sink e2e', () => {
     const rules = (app.todosByFile.get('leftovers.tsx') ?? []).map(t => t.rule);
     expect(rules.sort()).toEqual(
       [
+        'attr:className',
         'attr:color',
         'children:Card',
         'defaults:Delete',
+        'defaults:Navbar',
         'drops:Level.Item',
         'dynamic-class:Column',
-        'family:navbar',
+        'family:dropdown',
+        'family:navbar-burger',
+        'family:navbar-link',
         'legacy:tile',
         'ref:Notification',
         'spread:Box',
