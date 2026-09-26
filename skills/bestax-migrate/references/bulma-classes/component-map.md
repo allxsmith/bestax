@@ -35,6 +35,8 @@ The **Tags** column is what the component can render: an element on any other ta
 | `.card-footer-item`  | `Card.FooterItem`     | `<span>` only                                                  |
 | `.columns`           | `Columns`             | `<div>` only                                                   |
 | `.column`            | `Column`              | `<div>` only                                                   |
+| `.grid`              | `Grid`                | `<div>` only                                                   |
+| `.cell`              | `Cell`                | `<div>` only                                                   |
 | `.container`         | `Container`           | `<div>` only                                                   |
 | `.content`           | `Content`             | `<div>` only                                                   |
 | `.delete`            | `Delete`              | `<button>` only                                                |
@@ -132,7 +134,7 @@ no TODO: it is valid Bulma, and nothing unsafe was skipped.
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Breadcrumb,
-Checkbox, Checkboxes, Dropdown, Select, File, Grid and Cell,
+Checkbox, Checkboxes, Dropdown, Select, File, `.fixed-grid`,
 Icon and IconText, Image, Menu, Message, Modal, the navbar's burger and dropdown link,
 Pagination, Panel, Radio, Radios, Skeleton, `.table-container` and Tabs.
 

@@ -75,7 +75,10 @@ export interface Conversion {
   className: string | null;
   /** Attributes to remove: defaults the target renders by itself. */
   drop: string[];
-  /** Attributes whose numeric string value becomes a number. */
+  /**
+   * Attributes, and props written above, whose numeric string value becomes
+   * a number (`minCol={4}`), because the target types them as numbers.
+   */
   numbers: string[];
 }
 
@@ -315,6 +318,7 @@ export function plan(facts: ElementFacts): Plan {
       for (const write of modifier.writes) {
         writes.set(write.prop, write.value ?? true);
         sourceOf.set(write.prop, token);
+        if (write.numeric) numbers.push(write.prop);
       }
       converted.add(token);
       continue;

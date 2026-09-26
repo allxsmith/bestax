@@ -87,7 +87,11 @@ function converted(
   const conversion = result.conversion;
   if (!conversion) return null;
   const attrs = [
-    ...conversion.props.map(([name, value]) => jsxAttr(name, value)),
+    ...conversion.props.map(([name, value]) =>
+      conversion.numbers.includes(name)
+        ? `${name}={${Number(value)}}`
+        : jsxAttr(name, value)
+    ),
     ...unique
       .filter(([name]) => !conversion.drop.includes(name))
       .map(([name, value]) =>

@@ -567,12 +567,6 @@ export default function transform(
     for (const name of conversion.drop) {
       attrs.splice(attrs.indexOf(findAttr(element, name)), 1);
     }
-    for (const name of conversion.numbers) {
-      const attr = findAttr(element, name);
-      attr.value = j.jsxExpressionContainer(
-        j.numericLiteral(Number(attributeValue(attr)))
-      );
-    }
     const classAttr = findAttr(element, 'className');
     const replacement = conversion.props.map(([name, value]) =>
       makeAttr(j, name, value === true ? undefined : value)
@@ -605,6 +599,14 @@ export default function transform(
       ];
     }
     attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);
+    // After the splice, so a prop the conversion wrote is found as well as
+    // an attribute the element already had.
+    for (const name of conversion.numbers) {
+      const attr = findAttr(element, name);
+      attr.value = j.jsxExpressionContainer(
+        j.numericLiteral(Number(attributeValue(attr)))
+      );
+    }
     ctx.dirty = true;
   }
 

@@ -119,7 +119,12 @@ function renderBoth(
     target,
     {
       ...kept,
-      ...Object.fromEntries(props),
+      ...Object.fromEntries(
+        props.map(([name, value]) => [
+          name,
+          numbers.includes(name) ? Number(value) : value,
+        ])
+      ),
       ...(className ? { className } : {}),
     },
     child ? child.converted : children

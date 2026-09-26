@@ -527,6 +527,33 @@ describe('plan', () => {
     });
   });
 
+  describe('Grid and Cell', () => {
+    it('writes a prop typed as a number as a number', () => {
+      expect(plan(facts('div', 'cell is-col-span-2 mt-2')).conversion).toEqual({
+        target: 'Cell',
+        props: [
+          ['colSpan', '2'],
+          ['mt', '2'],
+        ],
+        className: null,
+        drop: [],
+        numbers: ['colSpan'],
+      });
+    });
+
+    it("keeps a gap a string, which Grid's gap takes, and a half step as a class", () => {
+      expect(plan(facts('div', 'grid is-gap-2 is-gap-0.5')).conversion).toEqual(
+        {
+          target: 'Grid',
+          props: [['gap', '2']],
+          className: 'is-gap-0.5',
+          drop: [],
+          numbers: [],
+        }
+      );
+    });
+  });
+
   describe('number attributes', () => {
     it('turns a number spelled the way it renders into a number', () => {
       expect(

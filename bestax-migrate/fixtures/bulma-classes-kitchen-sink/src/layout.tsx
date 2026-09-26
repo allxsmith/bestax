@@ -47,6 +47,11 @@ export function Layout() {
           </div>
           <div className="column is-narrow is-narrow-touch">Narrow</div>
         </div>
+        <div className="grid is-column-gap-3 is-row-gap-1 is-col-min-10">
+          <div className="cell is-col-span-2 is-row-span-2">Wide</div>
+          <div className="cell is-col-start-3">Third column</div>
+          <div className="cell is-row-from-end-1 mt-2">Last row</div>
+        </div>
         <div className="columns is-gapless is-vcentered is-desktop">
           <div className="column is-full">Full</div>
         </div>
