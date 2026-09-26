@@ -233,8 +233,11 @@ test("the bulma-classes table is bestax-migrate's own, whole", () => {
     { prop: 'color', value: 'primary' },
   ]);
   // A family the codemod leaves as markup still says why, for the lookup.
-  assert.equal(roots.card.status, 'todo');
-  assert.match(roots.card.why, /Card/);
+  assert.equal(roots.navbar.status, 'todo');
+  assert.match(roots.navbar.why, /Navbar/);
+  // And a component that converts only beside one of its parts says which.
+  assert.ok(roots.card.wrapsChildren.unless.includes('Card.Content'));
+  assert.equal(roots.button.wrapsChildren, null);
   assert.deepEqual(helpers['mt-4'], {
     group: 'spacing',
     write: { prop: 'mt', value: '4' },

@@ -41,8 +41,10 @@ leftover.
 
 **Families**, for rubric-migrate §5: the navbar, the feature card, the pricing tabs, the
 form controls, the confirmation modal, and the avatar image. The `bestax-migrate` codemod
-leaves each of these as markup with a `TODO(bestax-migrate)`, so each is converted by hand,
-from the component and its parts.
+leaves all or part of each as markup with a `TODO(bestax-migrate)`, so each is finished by
+hand, from the component and its parts. The feature card is the partial one: the codemod
+converts `Card` and `Card.Content`, but bestax renders `Card.Header.Title` on a `<div>`, so the
+`<p>` title and the header around it stay.
 
 ## What must survive — feeds rubric-migrate §3
 

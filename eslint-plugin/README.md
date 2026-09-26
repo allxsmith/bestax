@@ -187,7 +187,7 @@ raw Bulma markup from coming back.
 
 ```jsx
 <button className="button is-primary" /> // ✗ bestax renders .button as Button
-<div className="card" />                 // ✗ bestax has Card, converted by hand
+<nav className="navbar" />               // ✗ bestax has Navbar, converted by hand
 <div className="has-text-centered mt-4" /> // ✓ helper classes are left alone
 <p className="help" />                   // ✓ bestax renders .help inside its form controls
 ```

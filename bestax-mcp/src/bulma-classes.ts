@@ -8,8 +8,9 @@
  * other class as that root's modifier or a helper prop, with the same rules
  * for a prop two classes both set and for helpers that only render beside
  * another. So a prop it names is the prop the codemod writes. It stops where
- * the planner looks past the classes: attributes, refs and spreads also
- * decide whether an element converts, and only the codemod checks those.
+ * the planner looks past the classes: attributes, children, refs and spreads
+ * also decide whether an element converts, and only the codemod checks
+ * those. A component that needs one of its parts inside says so.
  * `__tests__/bulma-classes-agree.test.ts` runs the planner beside it.
  */
 
@@ -40,6 +41,18 @@ export interface RootRecord {
   modifiers: Record<string, Modifier>;
   /** Modifiers left out on purpose, with the prop that renders more. */
   omits: Record<string, string>;
+  /**
+   * The component renders its children inside an element of its own unless
+   * one of them is one of these parts (`Card` inside `.card-content`).
+   */
+  wrapsChildren: Wraps | null;
+}
+
+export interface Wraps {
+  in: string;
+  unless: string[];
+  /** It renders that element with no children too. */
+  whenEmpty?: boolean;
 }
 
 export interface HelperRecord {
@@ -66,7 +79,14 @@ export type Verdict =
   | { kind: 'class'; why: string };
 
 export type Element =
-  | { kind: 'component'; target: string; as?: string; renders?: string }
+  | {
+      kind: 'component';
+      target: string;
+      as?: string;
+      renders?: string;
+      /** Converts only beside one of its parts. */
+      wraps?: Wraps;
+    }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
   | { kind: 'markup'; why: string }
@@ -261,9 +281,11 @@ export function lookupClasses(
       why: null,
       modifiers: {},
       omits: {},
+      wrapsChildren: null,
     };
   }
   const target = entry.target;
+  const wraps = entry.wrapsChildren ?? undefined;
 
   // Each class as the root's modifier, else as a helper prop, in order; the
   // first class to set a prop keeps it.
@@ -403,16 +425,28 @@ export function lookupClasses(
       ? `h${size}`
       : entry.tag!;
   if (!tag) {
-    return result({ kind: 'component', target, renders: reaches(entry) });
+    return result({
+      kind: 'component',
+      target,
+      renders: reaches(entry),
+      wraps,
+    });
   }
-  if (renders === tag) return result({ kind: 'component', target });
+  if (renders === tag) return result({ kind: 'component', target, wraps });
   const reachable =
     entry.as === 'any' || (Array.isArray(entry.as) && entry.as.includes(tag));
   return result(
     reachable
-      ? { kind: 'component', target, as: tag }
+      ? { kind: 'component', target, as: tag, wraps }
       : { kind: 'wrong-tag', target, tag, reaches: reaches(entry) }
   );
+}
+
+function orList(names: readonly string[]): string {
+  const quoted = names.map(name => `\`${name}\``);
+  return quoted.length > 1
+    ? `${quoted.slice(0, -1).join(', ')} or ${quoted[quoted.length - 1]}`
+    : quoted[0];
 }
 
 function writeText(write: PropWrite): string {
@@ -437,7 +471,12 @@ export function renderLookup(lookup: Lookup): string {
         `**Component:** \`${element.target}\`` +
           (element.as ? ` with \`as="${element.as}"\`` : '') +
           (element.renders ? ` (renders ${element.renders})` : '') +
-          '.'
+          '.' +
+          (element.wraps
+            ? ` It renders its children inside a \`.${element.wraps.in}\` of its ` +
+              `own unless one of them is a ${orList(element.wraps.unless)}, so ` +
+              `build it from its parts.`
+            : '')
       );
       break;
     case 'wrong-tag':

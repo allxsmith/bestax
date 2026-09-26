@@ -511,6 +511,7 @@ export async function bulmaClassTable() {
         why: entry.why ?? null,
         modifiers: entry.modifiers ?? {},
         omits: entry.omits ?? {},
+        wrapsChildren: entry.wrapsChildren ?? null,
       },
     ])
   );

@@ -12,7 +12,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "box": {
       "status": "mapped",
@@ -25,7 +26,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "button": {
       "status": "mapped",
@@ -66,7 +68,8 @@
       },
       "omits": {
         "is-disabled": "bestax `Button` renders it through `isDisabled`, which also disables the element (`disabled`, or `aria-disabled` on a link)"
-      }
+      },
+      "wrapsChildren": null
     },
     "buttons": {
       "status": "mapped",
@@ -86,7 +89,134 @@
         "are-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "are-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
+    },
+    "card": {
+      "status": "mapped",
+      "target": "Card",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": {
+        "in": "card-content",
+        "unless": [
+          "Card.Header",
+          "Card.Header.Icon",
+          "Card.Image",
+          "Card.Content",
+          "Card.Footer",
+          "Card.FooterItem"
+        ]
+      }
+    },
+    "card-header": {
+      "status": "mapped",
+      "target": "Card.Header",
+      "tag": "header",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": {
+        "in": "card-header-title",
+        "unless": ["Card.Header.Title"],
+        "whenEmpty": true
+      }
+    },
+    "card-header-title": {
+      "status": "mapped",
+      "target": "Card.Header.Title",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": { "is-centered": { "writes": [{ "prop": "centered" }] } },
+      "omits": {},
+      "wrapsChildren": null
+    },
+    "card-header-icon": {
+      "status": "mapped",
+      "target": "Card.Header.Icon",
+      "tag": "button",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null
+    },
+    "card-image": {
+      "status": "mapped",
+      "target": "Card.Image",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null
+    },
+    "card-content": {
+      "status": "mapped",
+      "target": "Card.Content",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null
+    },
+    "card-footer": {
+      "status": "mapped",
+      "target": "Card.Footer",
+      "tag": "footer",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null
+    },
+    "card-footer-item": {
+      "status": "mapped",
+      "target": "Card.FooterItem",
+      "tag": "span",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null
     },
     "columns": {
       "status": "mapped",
@@ -178,7 +308,8 @@
         "is-7-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "7" }] },
         "is-8-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "8" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "column": {
       "status": "mapped",
@@ -831,7 +962,8 @@
         "is-narrow-fullhd": { "writes": [{ "prop": "isNarrowFullhd" }] },
         "is-narrow-touch": { "writes": [{ "prop": "isNarrowTouch" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "container": {
       "status": "mapped",
@@ -866,7 +998,8 @@
           ]
         }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "content": {
       "status": "mapped",
@@ -883,7 +1016,8 @@
         "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "delete": {
       "status": "mapped",
@@ -900,7 +1034,8 @@
         "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "footer": {
       "status": "mapped",
@@ -913,7 +1048,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "hero": {
       "status": "mapped",
@@ -946,7 +1082,8 @@
           "writes": [{ "prop": "size", "value": "fullheight-with-navbar" }]
         }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "hero-head": {
       "status": "mapped",
@@ -959,7 +1096,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "hero-body": {
       "status": "mapped",
@@ -972,7 +1110,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "hero-foot": {
       "status": "mapped",
@@ -985,7 +1124,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "level": {
       "status": "mapped",
@@ -998,7 +1138,8 @@
       "part": false,
       "why": null,
       "modifiers": { "is-mobile": { "writes": [{ "prop": "isMobile" }] } },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "level-left": {
       "status": "mapped",
@@ -1011,7 +1152,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "level-right": {
       "status": "mapped",
@@ -1024,7 +1166,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "level-item": {
       "status": "mapped",
@@ -1037,7 +1180,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "media": {
       "status": "mapped",
@@ -1050,7 +1194,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "media-left": {
       "status": "mapped",
@@ -1063,7 +1208,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "media-content": {
       "status": "mapped",
@@ -1076,7 +1222,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "media-right": {
       "status": "mapped",
@@ -1089,7 +1236,8 @@
       "part": false,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "notification": {
       "status": "mapped",
@@ -1113,7 +1261,8 @@
         "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
         "is-light": { "writes": [{ "prop": "isLight" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "progress": {
       "status": "mapped",
@@ -1140,7 +1289,8 @@
         "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "section": {
       "status": "mapped",
@@ -1156,7 +1306,8 @@
         "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "subtitle": {
       "status": "mapped",
@@ -1195,7 +1346,8 @@
         },
         "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "table": {
       "status": "mapped",
@@ -1214,7 +1366,8 @@
         "is-hoverable": { "writes": [{ "prop": "isHoverable" }] },
         "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "tag": {
       "status": "mapped",
@@ -1244,7 +1397,8 @@
       },
       "omits": {
         "is-delete": "bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>"
-      }
+      },
+      "wrapsChildren": null
     },
     "tags": {
       "status": "mapped",
@@ -1261,7 +1415,8 @@
         "are-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "are-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "title": {
       "status": "mapped",
@@ -1301,7 +1456,8 @@
         "is-spaced": { "writes": [{ "prop": "isSpaced" }] },
         "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
       },
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "breadcrumb": {
       "status": "todo",
@@ -1314,111 +1470,8 @@
       "part": false,
       "why": "bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`",
       "modifiers": {},
-      "omits": {}
-    },
-    "card": {
-      "status": "todo",
-      "target": "Card",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "bestax `Card` wraps any child that is not one of its parts in `.card-content`, so convert the card and its parts together, by hand",
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-header": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-header-title": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-header-icon": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-image": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-content": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-footer": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
-    },
-    "card-footer-item": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "cell": {
       "status": "todo",
@@ -1431,7 +1484,8 @@
       "part": false,
       "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "grid": {
       "status": "todo",
@@ -1444,7 +1498,8 @@
       "part": false,
       "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "fixed-grid": {
       "status": "todo",
@@ -1457,7 +1512,8 @@
       "part": false,
       "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "checkbox": {
       "status": "todo",
@@ -1470,7 +1526,8 @@
       "part": false,
       "why": "bestax `Checkbox` renders its own styled markup, not Bulma's",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "checkboxes": {
       "status": "todo",
@@ -1483,7 +1540,8 @@
       "part": false,
       "why": "bestax `Checkboxes` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "radio": {
       "status": "todo",
@@ -1496,7 +1554,8 @@
       "part": false,
       "why": "bestax `Radio` renders its own styled markup, not Bulma's",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "radios": {
       "status": "todo",
@@ -1509,7 +1568,8 @@
       "part": false,
       "why": "bestax `Radios` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "field": {
       "status": "todo",
@@ -1522,7 +1582,8 @@
       "part": false,
       "why": "bestax form controls render their own `.field` and `.control` wrappers; see the unmappables reference",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "field-label": {
       "status": "todo",
@@ -1535,7 +1596,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "field-body": {
       "status": "todo",
@@ -1548,7 +1610,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "control": {
       "status": "todo",
@@ -1561,7 +1624,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "input": {
       "status": "todo",
@@ -1574,7 +1638,8 @@
       "part": false,
       "why": "bestax `Input` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "textarea": {
       "status": "todo",
@@ -1587,7 +1652,8 @@
       "part": false,
       "why": "bestax `TextArea` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "select": {
       "status": "todo",
@@ -1600,7 +1666,8 @@
       "part": false,
       "why": "bestax `Select` renders the `.select` wrapper and the `<select>` together",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "file": {
       "status": "todo",
@@ -1613,7 +1680,8 @@
       "part": false,
       "why": "bestax `File` renders the whole `.file-label` tree itself",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "file-label": {
       "status": "todo",
@@ -1626,7 +1694,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "file-input": {
       "status": "todo",
@@ -1639,7 +1708,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "file-cta": {
       "status": "todo",
@@ -1652,7 +1722,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "file-icon": {
       "status": "todo",
@@ -1665,7 +1736,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "file-name": {
       "status": "todo",
@@ -1678,7 +1750,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "dropdown": {
       "status": "todo",
@@ -1691,7 +1764,8 @@
       "part": false,
       "why": "bestax `Dropdown` renders its own trigger and menu from props",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "dropdown-menu": {
       "status": "todo",
@@ -1704,7 +1778,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "dropdown-content": {
       "status": "todo",
@@ -1717,7 +1792,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "dropdown-item": {
       "status": "todo",
@@ -1730,7 +1806,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "dropdown-divider": {
       "status": "todo",
@@ -1743,7 +1820,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "icon": {
       "status": "todo",
@@ -1756,7 +1834,8 @@
       "part": false,
       "why": "bestax `Icon` renders its own `<i>` and adds an `aria-label`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "icon-text": {
       "status": "todo",
@@ -1769,7 +1848,8 @@
       "part": false,
       "why": "bestax `IconText` pairs with `Icon`, which renders its own `<i>`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "image": {
       "status": "todo",
@@ -1782,7 +1862,8 @@
       "part": false,
       "why": "bestax `Image` renders its own `<img>`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "menu": {
       "status": "todo",
@@ -1795,7 +1876,8 @@
       "part": false,
       "why": "bestax `Menu.Item` renders the `<li>` and the `<a>` together",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "menu-label": {
       "status": "todo",
@@ -1808,7 +1890,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "menu-list": {
       "status": "todo",
@@ -1821,7 +1904,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "menu-item": {
       "status": "todo",
@@ -1834,7 +1918,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "message": {
       "status": "todo",
@@ -1847,7 +1932,8 @@
       "part": false,
       "why": "bestax `Message` always wraps its children in `.message-body`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "message-header": {
       "status": "todo",
@@ -1860,7 +1946,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "message-body": {
       "status": "todo",
@@ -1873,7 +1960,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal": {
       "status": "todo",
@@ -1886,7 +1974,8 @@
       "part": false,
       "why": "bestax `Modal` renders its own background and content parts, and adds dialog attributes",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-background": {
       "status": "todo",
@@ -1899,7 +1988,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-content": {
       "status": "todo",
@@ -1912,7 +2002,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-card": {
       "status": "todo",
@@ -1925,7 +2016,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-card-head": {
       "status": "todo",
@@ -1938,7 +2030,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-card-title": {
       "status": "todo",
@@ -1951,7 +2044,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-card-body": {
       "status": "todo",
@@ -1964,7 +2058,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-card-foot": {
       "status": "todo",
@@ -1977,7 +2072,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "modal-close": {
       "status": "todo",
@@ -1990,7 +2086,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar": {
       "status": "todo",
@@ -2003,7 +2100,8 @@
       "part": false,
       "why": "bestax `Navbar` adds navigation roles, and its burger renders its own spans",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-brand": {
       "status": "todo",
@@ -2016,7 +2114,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-burger": {
       "status": "todo",
@@ -2029,7 +2128,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-menu": {
       "status": "todo",
@@ -2042,7 +2142,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-start": {
       "status": "todo",
@@ -2055,7 +2156,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-end": {
       "status": "todo",
@@ -2068,7 +2170,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-item": {
       "status": "todo",
@@ -2081,7 +2184,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-link": {
       "status": "todo",
@@ -2094,7 +2198,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-dropdown": {
       "status": "todo",
@@ -2107,7 +2212,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-divider": {
       "status": "todo",
@@ -2120,7 +2226,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-content": {
       "status": "todo",
@@ -2133,7 +2240,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "navbar-tabs": {
       "status": "todo",
@@ -2146,7 +2254,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "pagination": {
       "status": "todo",
@@ -2159,7 +2268,8 @@
       "part": false,
       "why": "bestax `Pagination` renders its own list items and adds navigation roles",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "pagination-list": {
       "status": "todo",
@@ -2172,7 +2282,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "pagination-link": {
       "status": "todo",
@@ -2185,7 +2296,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "pagination-ellipsis": {
       "status": "todo",
@@ -2198,7 +2310,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "pagination-previous": {
       "status": "todo",
@@ -2211,7 +2324,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "pagination-next": {
       "status": "todo",
@@ -2224,7 +2338,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "panel": {
       "status": "todo",
@@ -2237,7 +2352,8 @@
       "part": false,
       "why": "bestax `Panel` parts render their own tags and attributes (`Panel.Block` is an `<a>`, `Panel.Icon` adds an `aria-label`)",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "panel-heading": {
       "status": "todo",
@@ -2250,7 +2366,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "panel-tabs": {
       "status": "todo",
@@ -2263,7 +2380,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "panel-block": {
       "status": "todo",
@@ -2276,7 +2394,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "panel-icon": {
       "status": "todo",
@@ -2289,7 +2408,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "panel-list": {
       "status": "todo",
@@ -2302,7 +2422,8 @@
       "part": true,
       "why": null,
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "tabs": {
       "status": "todo",
@@ -2315,7 +2436,8 @@
       "part": false,
       "why": "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "table-container": {
       "status": "todo",
@@ -2328,7 +2450,8 @@
       "part": false,
       "why": "bestax renders `.table-container` from `Table isResponsive`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "skeleton-block": {
       "status": "todo",
@@ -2341,7 +2464,8 @@
       "part": false,
       "why": "bestax `Skeleton` renders its own markup",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "skeleton-lines": {
       "status": "todo",
@@ -2354,7 +2478,8 @@
       "part": false,
       "why": "bestax `Skeleton` renders its own markup",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "help": {
       "status": "plain",
@@ -2367,7 +2492,8 @@
       "part": false,
       "why": "bestax renders `.help` only inside its form controls",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "label": {
       "status": "plain",
@@ -2380,7 +2506,8 @@
       "part": false,
       "why": "bestax renders `.label` only inside its form controls",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "loader": {
       "status": "plain",
@@ -2393,7 +2520,8 @@
       "part": false,
       "why": "bestax `Loading` is an overlay, not Bulma's inline spinner",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "hero-buttons": {
       "status": "plain",
@@ -2406,7 +2534,8 @@
       "part": false,
       "why": "a layout class inside `.hero`; bestax has no part for it",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "hero-video": {
       "status": "plain",
@@ -2419,7 +2548,8 @@
       "part": false,
       "why": "a layout class inside `.hero`; bestax has no part for it",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "theme-dark": {
       "status": "plain",
@@ -2432,7 +2562,8 @@
       "part": false,
       "why": "a theme scope; bestax sets themes through `Theme`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "theme-light": {
       "status": "plain",
@@ -2445,7 +2576,8 @@
       "part": false,
       "why": "a theme scope; bestax sets themes through `Theme`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "fa": {
       "status": "plain",
@@ -2458,7 +2590,8 @@
       "part": false,
       "why": "Font Awesome's own class, styled by Bulma inside `.icon`",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "marginless": {
       "status": "plain",
@@ -2471,7 +2604,8 @@
       "part": false,
       "why": "a Bulma helper with no bestax prop",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     },
     "paddingless": {
       "status": "plain",
@@ -2484,7 +2618,8 @@
       "part": false,
       "why": "a Bulma helper with no bestax prop",
       "modifiers": {},
-      "omits": {}
+      "omits": {},
+      "wrapsChildren": null
     }
   },
   "precedence": [
@@ -2505,6 +2640,14 @@
     "media-left",
     "media-content",
     "media-right",
+    "card",
+    "card-header",
+    "card-header-title",
+    "card-header-icon",
+    "card-image",
+    "card-content",
+    "card-footer",
+    "card-footer-item",
     "buttons",
     "tags",
     "button",

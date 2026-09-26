@@ -69,6 +69,17 @@ export interface RootEntry {
   /** The target's props type requires children. */
   readonly requiresChildren?: boolean;
   /**
+   * The target renders its children inside an element of its own (`Card`
+   * inside `.card-content`) unless one of them is one of these parts, so the
+   * element converts only beside a direct child that converts to one.
+   * `whenEmpty`: it renders that element with no children too.
+   */
+  readonly wrapsChildren?: {
+    readonly in: string;
+    readonly unless: readonly string[];
+    readonly whenEmpty?: boolean;
+  };
+  /**
    * Attributes the target types as numbers. A numeric string (`value="40"`)
    * becomes a number, which renders the same; any other string refuses.
    */
@@ -444,6 +455,86 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'hasAddons',
       'size',
     ],
+  },
+  // `Card` checks its children for a part (`hasCompoundComponents` in
+  // bulma-ui's Card.tsx), and `Card.Header` for a `Card.Header.Title`
+  // (`hasHeaderTitle`), and wraps them when there is none.
+  card: {
+    ...BASE,
+    target: 'Card',
+    tag: 'div',
+    wrapsChildren: {
+      in: 'card-content',
+      unless: [
+        'Card.Header',
+        'Card.Header.Icon',
+        'Card.Image',
+        'Card.Content',
+        'Card.Footer',
+        'Card.FooterItem',
+      ],
+    },
+    ownProps: [
+      'textColor',
+      'color',
+      'bgColor',
+      'hasShadow',
+      'header',
+      'headerCentered',
+      'headerIcon',
+      'footer',
+      'image',
+      'imageAlt',
+    ],
+  },
+  'card-header': {
+    ...BASE,
+    target: 'Card.Header',
+    tag: 'header',
+    wrapsChildren: {
+      in: 'card-header-title',
+      unless: ['Card.Header.Title'],
+      whenEmpty: true,
+    },
+    ownProps: ['color', 'bgColor', 'textColor', 'centered'],
+  },
+  'card-header-title': {
+    ...BASE,
+    target: 'Card.Header.Title',
+    tag: 'div',
+    modifiers: flags({ 'is-centered': 'centered' }),
+    ownProps: ['color', 'bgColor', 'textColor', 'centered'],
+  },
+  'card-header-icon': {
+    ...BASE,
+    target: 'Card.Header.Icon',
+    tag: 'button',
+    defaults: { 'aria-label': 'more options' },
+    ownProps: ['color', 'bgColor', 'textColor'],
+  },
+  'card-image': {
+    ...BASE,
+    target: 'Card.Image',
+    tag: 'div',
+    ownProps: ['color', 'bgColor', 'textColor'],
+  },
+  'card-content': {
+    ...BASE,
+    target: 'Card.Content',
+    tag: 'div',
+    ownProps: ['color', 'bgColor', 'textColor'],
+  },
+  'card-footer': {
+    ...BASE,
+    target: 'Card.Footer',
+    tag: 'footer',
+    ownProps: ['color', 'bgColor', 'textColor'],
+  },
+  'card-footer-item': {
+    ...BASE,
+    target: 'Card.FooterItem',
+    tag: 'span',
+    ownProps: ['color', 'bgColor', 'textColor'],
   },
   columns: {
     ...BASE,
@@ -860,17 +951,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Breadcrumb',
     'bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`'
   ),
-  card: todo(
-    'Card',
-    'bestax `Card` wraps any child that is not one of its parts in `.card-content`, so convert the card and its parts together, by hand'
-  ),
-  'card-header': part(),
-  'card-header-title': part(),
-  'card-header-icon': part(),
-  'card-image': part(),
-  'card-content': part(),
-  'card-footer': part(),
-  'card-footer-item': part(),
   cell: todo(
     'Cell',
     'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
@@ -1072,6 +1152,15 @@ export const PRECEDENCE: readonly string[] = [
   'media-left',
   'media-content',
   'media-right',
+  // A part before a surface class, so the card around it still sees a part.
+  'card',
+  'card-header',
+  'card-header-title',
+  'card-header-icon',
+  'card-image',
+  'card-content',
+  'card-footer',
+  'card-footer-item',
   'buttons',
   'tags',
   'button',

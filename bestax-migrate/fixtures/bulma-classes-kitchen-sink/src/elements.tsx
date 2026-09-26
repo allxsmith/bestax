@@ -45,6 +45,23 @@ export function Elements() {
           </tr>
         </tbody>
       </table>
+      <div className="card has-background-white-ter">
+        <header className="card-header">
+          <div className="card-header-title is-centered">A card</div>
+          <button className="card-header-icon" type="button" aria-label="Expand">
+            +
+          </button>
+        </header>
+        <div className="card-image">
+          <img src="/cover.png" alt="Cover" />
+        </div>
+        <div className="card-content">
+          <div className="content">Built from its parts</div>
+        </div>
+        <footer className="card-footer">
+          <span className="card-footer-item">Saved</span>
+        </footer>
+      </div>
       <div className="block">A block</div>
     </div>
   );
