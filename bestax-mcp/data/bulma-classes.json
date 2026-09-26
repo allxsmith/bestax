@@ -13,7 +13,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "box": {
       "status": "mapped",
@@ -27,7 +29,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "button": {
       "status": "mapped",
@@ -69,7 +73,9 @@
       "omits": {
         "is-disabled": "bestax `Button` renders it through `isDisabled`, which also disables the element (`disabled`, or `aria-disabled` on a link)"
       },
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "buttons": {
       "status": "mapped",
@@ -90,7 +96,9 @@
         "are-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card": {
       "status": "mapped",
@@ -114,7 +122,9 @@
           "Card.Footer",
           "Card.FooterItem"
         ]
-      }
+      },
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-header": {
       "status": "mapped",
@@ -132,7 +142,9 @@
         "in": "card-header-title",
         "unless": ["Card.Header.Title"],
         "whenEmpty": true
-      }
+      },
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-header-title": {
       "status": "mapped",
@@ -146,7 +158,9 @@
       "why": null,
       "modifiers": { "is-centered": { "writes": [{ "prop": "centered" }] } },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-header-icon": {
       "status": "mapped",
@@ -160,7 +174,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-image": {
       "status": "mapped",
@@ -174,7 +190,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-content": {
       "status": "mapped",
@@ -188,7 +206,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-footer": {
       "status": "mapped",
@@ -202,7 +222,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "card-footer-item": {
       "status": "mapped",
@@ -216,7 +238,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "columns": {
       "status": "mapped",
@@ -309,7 +333,9 @@
         "is-8-fullhd": { "writes": [{ "prop": "gapFullhd", "value": "8" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "column": {
       "status": "mapped",
@@ -963,7 +989,9 @@
         "is-narrow-touch": { "writes": [{ "prop": "isNarrowTouch" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "container": {
       "status": "mapped",
@@ -999,7 +1027,9 @@
         }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "content": {
       "status": "mapped",
@@ -1017,7 +1047,9 @@
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "delete": {
       "status": "mapped",
@@ -1035,7 +1067,9 @@
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "footer": {
       "status": "mapped",
@@ -1049,7 +1083,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "hero": {
       "status": "mapped",
@@ -1083,7 +1119,9 @@
         }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "hero-head": {
       "status": "mapped",
@@ -1097,7 +1135,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "hero-body": {
       "status": "mapped",
@@ -1111,7 +1151,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "hero-foot": {
       "status": "mapped",
@@ -1125,7 +1167,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "level": {
       "status": "mapped",
@@ -1139,7 +1183,9 @@
       "why": null,
       "modifiers": { "is-mobile": { "writes": [{ "prop": "isMobile" }] } },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "level-left": {
       "status": "mapped",
@@ -1153,7 +1199,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "level-right": {
       "status": "mapped",
@@ -1167,7 +1215,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "level-item": {
       "status": "mapped",
@@ -1181,7 +1231,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "media": {
       "status": "mapped",
@@ -1195,7 +1247,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "media-left": {
       "status": "mapped",
@@ -1209,7 +1263,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "media-content": {
       "status": "mapped",
@@ -1223,7 +1279,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "media-right": {
       "status": "mapped",
@@ -1237,7 +1295,156 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar": {
+      "status": "mapped",
+      "target": "Navbar",
+      "tag": "nav",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-primary": { "writes": [{ "prop": "color", "value": "primary" }] },
+        "is-link": { "writes": [{ "prop": "color", "value": "link" }] },
+        "is-info": { "writes": [{ "prop": "color", "value": "info" }] },
+        "is-success": { "writes": [{ "prop": "color", "value": "success" }] },
+        "is-warning": { "writes": [{ "prop": "color", "value": "warning" }] },
+        "is-danger": { "writes": [{ "prop": "color", "value": "danger" }] },
+        "is-black": { "writes": [{ "prop": "color", "value": "black" }] },
+        "is-white": { "writes": [{ "prop": "color", "value": "white" }] },
+        "is-light": { "writes": [{ "prop": "color", "value": "light" }] },
+        "is-dark": { "writes": [{ "prop": "color", "value": "dark" }] },
+        "is-fixed-top": { "writes": [{ "prop": "fixed", "value": "top" }] },
+        "is-fixed-bottom": {
+          "writes": [{ "prop": "fixed", "value": "bottom" }]
+        },
+        "is-transparent": { "writes": [{ "prop": "transparent" }] }
+      },
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-brand": {
+      "status": "mapped",
+      "target": "Navbar.Brand",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-menu": {
+      "status": "mapped",
+      "target": "Navbar.Menu",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-start": {
+      "status": "mapped",
+      "target": "Navbar.Start",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-end": {
+      "status": "mapped",
+      "target": "Navbar.End",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-item": {
+      "status": "mapped",
+      "target": "Navbar.Item",
+      "tag": "a",
+      "as": "any",
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-dropdown": {
+      "status": "mapped",
+      "target": "Navbar.DropdownMenu",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-right": { "writes": [{ "prop": "right" }] },
+        "is-up": { "writes": [{ "prop": "up" }] }
+      },
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": true,
+      "ownClassOnly": false
+    },
+    "navbar-divider": {
+      "status": "mapped",
+      "target": "Navbar.Divider",
+      "tag": "hr",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": true,
+      "ownClassOnly": true
     },
     "notification": {
       "status": "mapped",
@@ -1262,7 +1469,9 @@
         "is-light": { "writes": [{ "prop": "isLight" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "progress": {
       "status": "mapped",
@@ -1290,7 +1499,9 @@
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "section": {
       "status": "mapped",
@@ -1307,7 +1518,9 @@
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "subtitle": {
       "status": "mapped",
@@ -1347,7 +1560,9 @@
         "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "table": {
       "status": "mapped",
@@ -1367,7 +1582,9 @@
         "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "tag": {
       "status": "mapped",
@@ -1398,7 +1615,9 @@
       "omits": {
         "is-delete": "bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>"
       },
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "tags": {
       "status": "mapped",
@@ -1416,7 +1635,9 @@
         "are-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "title": {
       "status": "mapped",
@@ -1457,7 +1678,9 @@
         "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
       },
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "breadcrumb": {
       "status": "todo",
@@ -1471,7 +1694,9 @@
       "why": "bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "cell": {
       "status": "todo",
@@ -1485,7 +1710,9 @@
       "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "grid": {
       "status": "todo",
@@ -1499,7 +1726,9 @@
       "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "fixed-grid": {
       "status": "todo",
@@ -1513,7 +1742,9 @@
       "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "checkbox": {
       "status": "todo",
@@ -1527,7 +1758,9 @@
       "why": "bestax `Checkbox` renders its own styled markup, not Bulma's",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "checkboxes": {
       "status": "todo",
@@ -1541,7 +1774,9 @@
       "why": "bestax `Checkboxes` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "radio": {
       "status": "todo",
@@ -1555,7 +1790,9 @@
       "why": "bestax `Radio` renders its own styled markup, not Bulma's",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "radios": {
       "status": "todo",
@@ -1569,7 +1806,9 @@
       "why": "bestax `Radios` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "field": {
       "status": "todo",
@@ -1583,7 +1822,9 @@
       "why": "bestax form controls render their own `.field` and `.control` wrappers; see the unmappables reference",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "field-label": {
       "status": "todo",
@@ -1597,7 +1838,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "field-body": {
       "status": "todo",
@@ -1611,7 +1854,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "control": {
       "status": "todo",
@@ -1625,7 +1870,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "input": {
       "status": "todo",
@@ -1639,7 +1886,9 @@
       "why": "bestax `Input` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "textarea": {
       "status": "todo",
@@ -1653,7 +1902,9 @@
       "why": "bestax `TextArea` renders its own `.field` and `.control` wrappers",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "select": {
       "status": "todo",
@@ -1667,7 +1918,9 @@
       "why": "bestax `Select` renders the `.select` wrapper and the `<select>` together",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "file": {
       "status": "todo",
@@ -1681,7 +1934,9 @@
       "why": "bestax `File` renders the whole `.file-label` tree itself",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "file-label": {
       "status": "todo",
@@ -1695,7 +1950,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "file-input": {
       "status": "todo",
@@ -1709,7 +1966,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "file-cta": {
       "status": "todo",
@@ -1723,7 +1982,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "file-icon": {
       "status": "todo",
@@ -1737,7 +1998,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "file-name": {
       "status": "todo",
@@ -1751,7 +2014,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "dropdown": {
       "status": "todo",
@@ -1765,7 +2030,9 @@
       "why": "bestax `Dropdown` renders its own trigger and menu from props",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "dropdown-menu": {
       "status": "todo",
@@ -1779,7 +2046,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "dropdown-content": {
       "status": "todo",
@@ -1793,7 +2062,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "dropdown-item": {
       "status": "todo",
@@ -1807,7 +2078,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "dropdown-divider": {
       "status": "todo",
@@ -1821,7 +2094,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "icon": {
       "status": "todo",
@@ -1835,7 +2110,9 @@
       "why": "bestax `Icon` renders its own `<i>` and adds an `aria-label`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "icon-text": {
       "status": "todo",
@@ -1849,7 +2126,9 @@
       "why": "bestax `IconText` pairs with `Icon`, which renders its own `<i>`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "image": {
       "status": "todo",
@@ -1863,7 +2142,9 @@
       "why": "bestax `Image` renders its own `<img>`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "menu": {
       "status": "todo",
@@ -1877,7 +2158,9 @@
       "why": "bestax `Menu.Item` renders the `<li>` and the `<a>` together",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "menu-label": {
       "status": "todo",
@@ -1891,7 +2174,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "menu-list": {
       "status": "todo",
@@ -1905,7 +2190,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "menu-item": {
       "status": "todo",
@@ -1919,7 +2206,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "message": {
       "status": "todo",
@@ -1933,7 +2222,9 @@
       "why": "bestax `Message` always wraps its children in `.message-body`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "message-header": {
       "status": "todo",
@@ -1947,7 +2238,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "message-body": {
       "status": "todo",
@@ -1961,7 +2254,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal": {
       "status": "todo",
@@ -1975,7 +2270,9 @@
       "why": "bestax `Modal` renders its own background and content parts, and adds dialog attributes",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-background": {
       "status": "todo",
@@ -1989,7 +2286,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-content": {
       "status": "todo",
@@ -2003,7 +2302,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-card": {
       "status": "todo",
@@ -2017,7 +2318,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-card-head": {
       "status": "todo",
@@ -2031,7 +2334,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-card-title": {
       "status": "todo",
@@ -2045,7 +2350,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-card-body": {
       "status": "todo",
@@ -2059,7 +2366,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-card-foot": {
       "status": "todo",
@@ -2073,7 +2382,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "modal-close": {
       "status": "todo",
@@ -2087,175 +2398,41 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
-    "navbar": {
+    "navbar-burger": {
       "status": "todo",
-      "target": "Navbar",
+      "target": "Navbar.Burger",
       "tag": null,
       "as": null,
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Navbar` adds navigation roles, and its burger renders its own spans",
+      "why": "bestax `Navbar.Burger` is a `<button>` that renders its own spans and `aria-expanded`, so rebuild the toggle with it, by hand",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-brand": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-burger": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-menu": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-start": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-end": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-item": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "navbar-link": {
       "status": "todo",
-      "target": null,
+      "target": "Navbar.Link",
       "tag": null,
       "as": null,
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": null,
-      "part": true,
-      "why": null,
+      "part": false,
+      "why": "inside a `Navbar.Dropdown`, bestax `Navbar.Link` adds `aria-haspopup`, `aria-expanded` and keyboard handling, so convert the `.has-dropdown` item and its link together, by hand",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-dropdown": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-divider": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-content": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
-    },
-    "navbar-tabs": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "pagination": {
       "status": "todo",
@@ -2269,7 +2446,9 @@
       "why": "bestax `Pagination` renders its own list items and adds navigation roles",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "pagination-list": {
       "status": "todo",
@@ -2283,7 +2462,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "pagination-link": {
       "status": "todo",
@@ -2297,7 +2478,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "pagination-ellipsis": {
       "status": "todo",
@@ -2311,7 +2494,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "pagination-previous": {
       "status": "todo",
@@ -2325,7 +2510,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "pagination-next": {
       "status": "todo",
@@ -2339,7 +2526,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "panel": {
       "status": "todo",
@@ -2353,7 +2542,9 @@
       "why": "bestax `Panel` parts render their own tags and attributes (`Panel.Block` is an `<a>`, `Panel.Icon` adds an `aria-label`)",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "panel-heading": {
       "status": "todo",
@@ -2367,7 +2558,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "panel-tabs": {
       "status": "todo",
@@ -2381,7 +2574,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "panel-block": {
       "status": "todo",
@@ -2395,7 +2590,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "panel-icon": {
       "status": "todo",
@@ -2409,7 +2606,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "panel-list": {
       "status": "todo",
@@ -2423,7 +2622,9 @@
       "why": null,
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "tabs": {
       "status": "todo",
@@ -2437,7 +2638,9 @@
       "why": "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "table-container": {
       "status": "todo",
@@ -2451,7 +2654,9 @@
       "why": "bestax renders `.table-container` from `Table isResponsive`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "skeleton-block": {
       "status": "todo",
@@ -2465,7 +2670,9 @@
       "why": "bestax `Skeleton` renders its own markup",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "skeleton-lines": {
       "status": "todo",
@@ -2479,7 +2686,9 @@
       "why": "bestax `Skeleton` renders its own markup",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "help": {
       "status": "plain",
@@ -2493,7 +2702,9 @@
       "why": "bestax renders `.help` only inside its form controls",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "label": {
       "status": "plain",
@@ -2507,7 +2718,9 @@
       "why": "bestax renders `.label` only inside its form controls",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "loader": {
       "status": "plain",
@@ -2521,7 +2734,9 @@
       "why": "bestax `Loading` is an overlay, not Bulma's inline spinner",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "hero-buttons": {
       "status": "plain",
@@ -2535,7 +2750,9 @@
       "why": "a layout class inside `.hero`; bestax has no part for it",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "hero-video": {
       "status": "plain",
@@ -2549,7 +2766,41 @@
       "why": "a layout class inside `.hero`; bestax has no part for it",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-content": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a layout class inside `.navbar`; bestax has no part for it",
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "navbar-tabs": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "a layout class inside `.navbar`; bestax has no part for it",
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "theme-dark": {
       "status": "plain",
@@ -2563,7 +2814,9 @@
       "why": "a theme scope; bestax sets themes through `Theme`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "theme-light": {
       "status": "plain",
@@ -2577,7 +2830,9 @@
       "why": "a theme scope; bestax sets themes through `Theme`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "fa": {
       "status": "plain",
@@ -2591,7 +2846,9 @@
       "why": "Font Awesome's own class, styled by Bulma inside `.icon`",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "marginless": {
       "status": "plain",
@@ -2605,7 +2862,9 @@
       "why": "a Bulma helper with no bestax prop",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     },
     "paddingless": {
       "status": "plain",
@@ -2619,7 +2878,9 @@
       "why": "a Bulma helper with no bestax prop",
       "modifiers": {},
       "omits": {},
-      "wrapsChildren": null
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
     }
   },
   "precedence": [
@@ -2648,6 +2909,14 @@
     "card-content",
     "card-footer",
     "card-footer-item",
+    "navbar",
+    "navbar-brand",
+    "navbar-menu",
+    "navbar-start",
+    "navbar-end",
+    "navbar-item",
+    "navbar-dropdown",
+    "navbar-divider",
     "buttons",
     "tags",
     "button",
