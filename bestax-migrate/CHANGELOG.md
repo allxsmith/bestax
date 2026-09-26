@@ -1,3 +1,16 @@
+# [2.11.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.10.0...bestax-migrate@2.11.0) (2026-09-26)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** report Bulma skeletons as converted ([04ca4ee](https://github.com/allxsmith/bestax/commit/04ca4ee6bc00283dcd438c9e309a7609af5ade35))
+
+
+### Features
+
+* **bestax-mcp:** say when a component renders the children from a count ([b60c295](https://github.com/allxsmith/bestax/commit/b60c295886fef4051c193672098528239cccf954))
+* **bestax-migrate:** convert Bulma skeletons ([2574ace](https://github.com/allxsmith/bestax/commit/2574ace11ddc7fa6e02a03e4046f8ba4615be94a))
+
 # [2.10.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.9.0...bestax-migrate@2.10.0) (2026-09-26)
 
 
