@@ -49,8 +49,9 @@ const VOCABULARY: ReadonlySet<string> = new Set([
   ...Object.values(WRAPPERS),
   ...Object.values(WRAPPER_OWN_PROPS).flat(),
   ...HELPER_PROPS,
-  // Refused on every target, so no entry lists it.
+  // Refused on every target, so no entry lists them.
   'dangerouslySetInnerHTML',
+  'children',
   // Refused where the target drops its own class for one it is given.
   'className',
   // Refused on the child a target renders itself.

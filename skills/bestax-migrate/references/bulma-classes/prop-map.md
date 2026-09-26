@@ -112,6 +112,7 @@ renders the same `<h2>`.
 | `.progress` → `Progress`                                                     | the ten `.hero` colors                                                                                                                           | `color`                                                                                           |
 | `.progress` → `Progress`                                                     | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.section` → `Section`                                                       | `is-medium`, `is-large`                                                                                                                          | `size`                                                                                            |
+| `.skeleton-lines` → `Skeleton variant="lines"`                               | its bare, empty `<div>`s                                                                                                                         | `lines` (their count, as a number: `lines={5}`)                                                   |
 | `.table` → `Table`                                                           | `is-bordered`, `is-striped`, `is-narrow`, `is-hoverable`, `is-fullwidth`                                                                         | `isBordered`, `isStriped`, `isNarrow`, `isHoverable`, `isFullwidth`                               |
 | `.tag` → `Tag`                                                               | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-dark`, `is-white`                                   | `color`                                                                                           |
 | `.tag` → `Tag`                                                               | `is-light`, `is-rounded`, `is-hoverable`                                                                                                         | `isLight`, `isRounded`, `isHoverable`                                                             |
@@ -166,11 +167,12 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
 on `Breadcrumb`, `Hero`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
 `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `InputBase`, `TextAreaBase`,
-`SelectBase`, `Progress`, `Tag` and `Tags`; `has-background-*` on `Breadcrumb`, `Navbar.Brand`, `Navbar.Menu`,
-`Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`,
-`Field.Body`, `Control`, `Notification`, `Progress`, `Table` and `Tags`. `Navbar.DropdownMenu`,
-`Navbar.Divider`, `Field.Label`, `Field.Body` and `Control` take no helper props the way the
-codemod needs, so every helper class on them stays.
+`SelectBase`, `Progress`, `Skeleton`, `Tag` and `Tags`; `has-background-*` on `Breadcrumb`,
+`Navbar.Brand`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
+`Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Notification`, `Progress`, `Skeleton`,
+`Table` and `Tags`. `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`,
+`Control` and `Skeleton` take no helper props the way the codemod needs, so every helper class on
+them stays.
 
 Some classes stay put because of how bestax renders them:
 

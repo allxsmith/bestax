@@ -40,6 +40,12 @@ describe('bulma-classes fixtures render the same before and after', () => {
   test.each(cases)('%s', name => {
     const before = render(`${name}.input.tsx`);
     expect(Object.keys(before).length).toBeGreaterThan(0);
+    // Rendered with no props, an export that renders nothing proves nothing.
+    expect(
+      Object.entries(before)
+        .filter(([, html]) => html === '')
+        .map(([exported]) => exported)
+    ).toEqual([]);
     expect(render(`${name}.output.tsx`)).toEqual(before);
   });
 });

@@ -68,12 +68,12 @@ stock stylesheet.
 ## What converts
 
 - **Components**: `button`, `buttons`, `columns`, `column`, `grid`, `cell`, `container`,
-  `section`, `hero` and
-  its parts, `title`, `subtitle`, `box`, `content`, `block`, `notification`, `tag`, `tags`,
-  `level` and its parts, `media` and its parts, `card` and its parts, `navbar` and most of its
-  parts, `field` and its parts, `control`, `input`, `textarea`, `select`, `breadcrumb`,
-  `delete`, `progress`, `footer` and `table` become their bestax components, with their
-  modifier classes as props (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
+  `section`, `hero` and its parts, `title`, `subtitle`, `box`, `content`, `block`,
+  `notification`, `tag`, `tags`, `level` and its parts, `media` and its parts, `card` and its
+  parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
+  `select`, `breadcrumb`, `delete`, `progress`, `skeleton-block`, `footer` and `table` become
+  their bestax components, with their modifier classes as props (`is-primary` →
+  `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
   `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
@@ -84,6 +84,8 @@ stock stylesheet.
 - **An element a component renders inside itself** converts with it: a `.select` and its
   `<select>` become one `SelectBase` with the `<select>`'s attributes, and a `.breadcrumb`
   and its `<ul>` become one `Breadcrumb` around the same `<li>`s.
+- **Children a component renders itself** go: a `.skeleton-lines` holding bare, empty `<div>`s
+  becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's
