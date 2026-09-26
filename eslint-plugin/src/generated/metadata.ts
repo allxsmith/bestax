@@ -189,7 +189,6 @@ export interface BulmaComponentClass {
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
     ['breadcrumb', { component: 'Breadcrumb', converts: false }],
-    ['fixed-grid', { component: 'Grid', converts: false }],
     ['checkbox', { component: 'Checkbox', converts: false }],
     ['checkboxes', { component: 'Checkboxes', converts: false }],
     ['radio', { component: 'Radio', converts: false }],
@@ -208,7 +207,6 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['pagination', { component: 'Pagination', converts: false }],
     ['panel', { component: 'Panel', converts: false }],
     ['tabs', { component: 'Tabs', converts: false }],
-    ['table-container', { component: 'Table', converts: false }],
     ['skeleton-block', { component: 'Skeleton', converts: false }],
     ['skeleton-lines', { component: 'Skeleton', converts: false }],
     ['columns', { component: 'Columns', converts: true }],
@@ -265,4 +263,6 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['box', { component: 'Box', converts: true }],
     ['content', { component: 'Content', converts: true }],
     ['block', { component: 'Block', converts: true }],
+    ['table-container', { component: 'Table', converts: true }],
+    ['fixed-grid', { component: 'Grid', converts: true }],
   ]);

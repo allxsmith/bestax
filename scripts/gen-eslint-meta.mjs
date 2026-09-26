@@ -222,8 +222,9 @@ export async function bulmaComponentClasses(
     const index = map.PRECEDENCE.indexOf(cls);
     return index === -1 ? map.PRECEDENCE.length : index;
   };
+  // A `fold` wrapper converts too: into the component inside it.
   const mapped = roots
-    .filter(([, entry]) => entry.status === 'mapped')
+    .filter(([, entry]) => entry.status === 'mapped' || entry.status === 'fold')
     .sort(([a], [b]) => rank(a) - rank(b));
   return {
     entries: [
