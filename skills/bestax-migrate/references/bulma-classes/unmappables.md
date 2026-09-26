@@ -82,6 +82,24 @@ header convert on the next run. A card whose content sits straight inside it, wi
 is what you want, or keep the markup. A part inside an expression (`{open && <div className="card-content">}`)
 doesn't count, because it may not render.
 
+### `context:<Target>`
+
+`Field` and `Control` tell bestax's form controls inside them to skip their own `.field` and
+`.control` wrappers. A `.field` or `.control` that already holds a bestax component (an `Input`
+from an earlier, partial migration) would change how that component renders once converted, so
+it stays markup. Convert it by hand and check that the component inside still renders what you
+want, or leave it.
+
+On an input or textarea it's the other direction: inside a bestax `Field` with a `label`,
+`InputBase` and `TextAreaBase` take the Field's generated `id` when they have none, which the
+element didn't have. Context follows what renders, not what the file says, so an input with no
+`id` inside any other component of the app stays markup too, since that component could render
+a labelled `Field` around it. Give the element its own `id`, then re-run.
+
+The codemod reads one file at a time, so it can't see a component in another file that renders
+a bestax `Field` or form control around this markup. If the app already uses them that way, give
+its inputs ids before running the codemod, and check its forms afterwards.
+
 ### `only-child:<Target>`
 
 The element is the only child of another component (`<Link href="/x"><a className="button">`),
@@ -119,10 +137,12 @@ in the browser:
   `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
   into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
   with `Navbar.Dropdown` (`hoverable` for `is-hoverable`) and the link with `Navbar.Link`.
-- **`family:field`**, **`family:input`**, **`family:textarea`**, **`family:select`**,
-  **`family:file`**: bestax's form controls render their own `.field` and `.control` wrappers
-  (and `File` its whole `.file-label` tree). Replace the whole `.field` block with the
-  control, not each element in it. See the `bestax-form` skill.
+- **`family:select`**: `SelectBase` renders the `.select` wrapper and the `<select>` together,
+  with the element's attributes on the `<select>`. Replace the pair with one `SelectBase`
+  inside the `Control`, keeping the `<option>`s as its children. See the `bestax-form` skill.
+- **`family:file`**: `File` renders the whole `.file-label` tree itself, and a `.field` around
+  it unless it's already inside one. Replace the `.file` block with one `File`; its API page
+  lists the props for the button text, the file name and the icons.
 - **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
   bestax renders its own styled checkbox and radio markup, not Bulma's.
 - **`family:modal`**: `Modal` renders its own background and content parts, and adds dialog

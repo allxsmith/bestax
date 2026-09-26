@@ -78,7 +78,20 @@ export interface RootEntry {
     readonly in: string;
     readonly unless: readonly string[];
     readonly whenEmpty?: boolean;
+    /** Only when the element carries this class (`Field` with `is-horizontal`). */
+    readonly when?: string;
   };
+  /**
+   * The target provides context bestax's form controls read to skip wrappers
+   * of their own, so an element around a bestax component already in the file
+   * stays markup: that component would render differently.
+   */
+  readonly providesContext?: boolean;
+  /**
+   * Inside one of these bestax components already in the file, the target
+   * takes a generated `id` when the element has none of its own.
+   */
+  readonly adoptsIdFrom?: readonly string[];
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
@@ -699,6 +712,172 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ],
     passThrough: ['onClick'],
   },
+  // Form markup. `Field` and `Control` tell the bestax form controls inside
+  // them to skip wrappers of their own, and `InputBase` / `TextAreaBase` are
+  // the controls without wrappers (a `Field` with no `label` hands them no id).
+  field: {
+    ...BASE,
+    target: 'Field',
+    tag: 'div',
+    // `has-addons-centered`, `is-grouped-right` and the like stay classes:
+    // the prop values that render them render `has-addons` too.
+    modifiers: flags({
+      'is-horizontal': 'horizontal',
+      'is-grouped': 'grouped',
+      'has-addons': 'hasAddons',
+      'is-narrow': 'narrow',
+    }),
+    wrapsChildren: {
+      in: 'field-body',
+      unless: ['Field.Label', 'Field.Body'],
+      whenEmpty: true,
+      when: 'is-horizontal',
+    },
+    providesContext: true,
+    ownProps: [
+      'horizontal',
+      'grouped',
+      'hasAddons',
+      'narrow',
+      'label',
+      'labelSize',
+      'labelProps',
+      'textColor',
+      'color',
+      'bgColor',
+    ],
+  },
+  // Field.Label, Field.Body and Control spread their raw props onto the
+  // element as well, so a helper prop would reach it as an attribute too.
+  'field-label': {
+    status: 'mapped',
+    target: 'Field.Label',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    modifiers: tokens('is-', ['small', 'normal', 'medium', 'large'], 'size'),
+    ownProps: ['size', 'textColor', 'color', 'bgColor'],
+  },
+  'field-body': {
+    status: 'mapped',
+    target: 'Field.Body',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: ['textColor', 'color', 'bgColor'],
+  },
+  control: {
+    status: 'mapped',
+    target: 'Control',
+    tag: 'div',
+    as: ['div', 'p'],
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    modifiers: {
+      ...flags({
+        'has-icons-left': 'hasIconsLeft',
+        'has-icons-right': 'hasIconsRight',
+        'is-loading': 'isLoading',
+        'is-expanded': 'isExpanded',
+      }),
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+    },
+    providesContext: true,
+    ownProps: [
+      'as',
+      'hasIconsLeft',
+      'hasIconsRight',
+      'isLoading',
+      'isExpanded',
+      'size',
+      'textColor',
+      'color',
+      'bgColor',
+      'iconLeft',
+      'iconRight',
+      'iconLeftName',
+      'iconLeftSize',
+      'iconRightName',
+      'iconRightSize',
+    ],
+    passThrough: ['ref'],
+  },
+  input: {
+    ...BASE,
+    target: 'InputBase',
+    tag: 'input',
+    // No text color prop, and `backgroundColor` is the one the base reads.
+    textColor: null,
+    bgColor: 'backgroundColor',
+    modifiers: {
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+      ...flags({
+        'is-rounded': 'isRounded',
+        'is-static': 'isStatic',
+        'is-hovered': 'isHovered',
+        'is-focused': 'isFocused',
+        'is-loading': 'isLoading',
+      }),
+    },
+    omits: Object.fromEntries(
+      COMPONENT_COLORS.map(color => [
+        `is-${color}`,
+        '`color` renders `has-text-<color>` on the input as well',
+      ])
+    ),
+    adoptsIdFrom: ['Field'],
+    ownProps: [
+      'color',
+      'size',
+      'isRounded',
+      'isStatic',
+      'isHovered',
+      'isFocused',
+      'isLoading',
+    ],
+    passThrough: ['disabled', 'readOnly', 'ref'],
+  },
+  textarea: {
+    ...BASE,
+    target: 'TextAreaBase',
+    tag: 'textarea',
+    textColor: null,
+    bgColor: 'backgroundColor',
+    // `isLoading` renders nothing here: Bulma puts `is-loading` on the control.
+    modifiers: {
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+      ...flags({
+        'is-rounded': 'isRounded',
+        'is-static': 'isStatic',
+        'is-hovered': 'isHovered',
+        'is-focused': 'isFocused',
+        'is-active': 'isActive',
+        'has-fixed-size': 'hasFixedSize',
+      }),
+    },
+    omits: Object.fromEntries(
+      COMPONENT_COLORS.map(color => [
+        `is-${color}`,
+        '`color` renders `has-text-<color>` on the textarea as well',
+      ])
+    ),
+    adoptsIdFrom: ['Field'],
+    ownProps: [
+      'color',
+      'size',
+      'isRounded',
+      'isStatic',
+      'isHovered',
+      'isFocused',
+      'isLoading',
+      'isActive',
+      'hasFixedSize',
+    ],
+    passThrough: ['disabled', 'readOnly', 'rows', 'ref'],
+  },
   footer: {
     ...BASE,
     target: 'Footer',
@@ -1066,21 +1245,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Radios',
     'bestax `Radios` renders its own `.field` and `.control` wrappers'
   ),
-  field: todo(
-    'Field',
-    'bestax form controls render their own `.field` and `.control` wrappers; see the unmappables reference'
-  ),
-  'field-label': part(),
-  'field-body': part(),
-  control: part(),
-  input: todo(
-    'Input',
-    'bestax `Input` renders its own `.field` and `.control` wrappers'
-  ),
-  textarea: todo(
-    'TextArea',
-    'bestax `TextArea` renders its own `.field` and `.control` wrappers'
-  ),
   select: todo(
     'Select',
     'bestax `Select` renders the `.select` wrapper and the `<select>` together'
@@ -1255,6 +1419,12 @@ export const PRECEDENCE: readonly string[] = [
   'navbar-item',
   'navbar-dropdown',
   'navbar-divider',
+  'field',
+  'field-label',
+  'field-body',
+  'control',
+  'input',
+  'textarea',
   'buttons',
   'tags',
   'button',
@@ -1276,6 +1446,9 @@ export const FORWARDS_REF: readonly string[] = [
   'Link',
   'Navbar',
   'Navbar.Item',
+  'Control',
+  'InputBase',
+  'TextAreaBase',
 ];
 
 /**

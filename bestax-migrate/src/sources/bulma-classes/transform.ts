@@ -367,21 +367,66 @@ export default function transform(
   // a child that is one of its parts.
   const planned = new Map<object, Plan>();
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
+  /**
+   * The bestax component an element already is, when its name is the bestax
+   * import and not a local that shadows it; `scopePath` is where the name is
+   * looked up.
+   */
+  const bestaxTarget = (
+    element: any,
+    scopePath: ASTPath<any>
+  ): string | undefined => {
+    const parts = jsxNameParts(element.openingElement.name);
+    const owner = parts && bestaxNames.get(parts[0]);
+    if (!owner || !resolvesToBinding(scopePath, parts[0], programScope)) {
+      return undefined;
+    }
+    return [...owner, ...parts.slice(1)].join('.');
+  };
   const childTargets = (elementPath: ASTPath<any>): string[] =>
     (elementPath.node.children ?? []).flatMap((child: any) => {
       if (child.type !== 'JSXElement') return [];
-      const target = planned.get(child)?.conversion?.target;
-      if (target) return [target];
-      // A part the file already uses counts when its name is the bestax
-      // import, not a local that shadows it. A direct child is looked up in
-      // the element's own scope, which is the child's.
-      const parts = jsxNameParts(child.openingElement.name);
-      const owner = parts && bestaxNames.get(parts[0]);
-      if (!owner || !resolvesToBinding(elementPath, parts[0], programScope)) {
-        return [];
-      }
-      return [[...owner, ...parts.slice(1)].join('.')];
+      const target =
+        planned.get(child)?.conversion?.target ??
+        // A direct child is looked up in the element's own scope, the child's.
+        bestaxTarget(child, elementPath);
+      return target ? [target] : [];
     });
+  // For each element, the bestax components already in the file inside it:
+  // `Field` and `Control` change how bestax's form controls render.
+  const bestaxInside = new Map<object, string[]>();
+  root.find(j.JSXElement).forEach(elementPath => {
+    const target = bestaxTarget(elementPath.node, elementPath);
+    if (!target) return;
+    for (let up = elementPath.parent; up; up = up.parent) {
+      if (up.node?.type !== 'JSXElement') continue;
+      bestaxInside.set(up.node, [...(bestaxInside.get(up.node) ?? []), target]);
+    }
+  });
+  /**
+   * The components around an element: the bestax ones already in the file,
+   * and the rest (not an HTML tag, not a fragment), which could render one.
+   */
+  const around = (
+    elementPath: ASTPath<any>
+  ): { bestax: string[]; other: string[] } => {
+    const bestax: string[] = [];
+    const other: string[] = [];
+    for (let up = elementPath.parent; up; up = up.parent) {
+      if (up.node?.type !== 'JSXElement') continue;
+      const target = bestaxTarget(up.node, up);
+      if (target) {
+        bestax.push(target);
+        continue;
+      }
+      const parts = jsxNameParts(up.node.openingElement.name);
+      const name = parts?.join('.');
+      if (name && !INTRINSIC.test(name) && !name.includes('-')) {
+        if (!PASS_THROUGH_PARENTS.has(name)) other.push(name);
+      }
+    }
+    return { bestax, other };
+  };
 
   // `converts` is whether the element would become a component with its
   // classes written out, so it holds for a computed className too.
@@ -403,6 +448,7 @@ export default function transform(
       attributes.set(attributeName(attr), attributeValue(attr));
     }
     const className = staticClassName(classAttr);
+    const surrounding = around(elementPath);
     const facts: ElementFacts = {
       tag: name.name,
       tokens:
@@ -416,6 +462,9 @@ export default function transform(
       hasRef: attributes.has('ref'),
       hasChildren: (element.children ?? []).some(reachesReact),
       childTargets: childTargets(elementPath),
+      bestaxInside: bestaxInside.get(element) ?? [],
+      bestaxAround: surrounding.bestax,
+      componentsAround: surrounding.other,
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
     };
     let result = plan(facts);

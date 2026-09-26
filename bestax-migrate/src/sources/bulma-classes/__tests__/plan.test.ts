@@ -463,6 +463,70 @@ describe('plan', () => {
     });
   });
 
+  describe('forms', () => {
+    it('keeps an input color as a class, since color sets the text too', () => {
+      expect(
+        plan(
+          facts('input', 'input is-danger is-small', {}, { hasChildren: false })
+        ).conversion
+      ).toEqual({
+        target: 'InputBase',
+        props: [['size', 'small']],
+        className: 'is-danger',
+        drop: [],
+        numbers: [],
+      });
+    });
+
+    it('keeps the addon and group variants as classes', () => {
+      expect(
+        plan(facts('div', 'field has-addons has-addons-centered')).conversion
+      ).toEqual({
+        target: 'Field',
+        props: [['hasAddons', true]],
+        className: 'has-addons-centered',
+        drop: [],
+        numbers: [],
+      });
+    });
+
+    it('keeps a field around a bestax form control as markup', () => {
+      expect(
+        plan(facts('div', 'field', {}, { bestaxInside: ['Input'] })).todos
+      ).toEqual([
+        { rule: 'context:Field', message: expect.stringContaining('`Input`') },
+      ]);
+    });
+
+    it('keeps an input without an id inside a bestax Field as markup', () => {
+      const input = (attributes: Record<string, string>) =>
+        plan(
+          facts('input', 'input', attributes, {
+            hasChildren: false,
+            bestaxAround: ['Field'],
+          })
+        );
+      expect(input({}).todos.map(todo => todo.rule)).toEqual([
+        'context:InputBase',
+      ]);
+      expect(input({ id: 'email' }).conversion?.target).toBe('InputBase');
+    });
+
+    it('keeps an input without an id inside any other component as markup', () => {
+      const input = (componentsAround: string[]) =>
+        plan(
+          facts('input', 'input', {}, { hasChildren: false, componentsAround })
+        );
+      expect(input(['Labelled']).todos).toEqual([
+        {
+          rule: 'context:InputBase',
+          message: expect.stringContaining('inside `<Labelled>`'),
+        },
+      ]);
+      expect(input([]).conversion?.target).toBe('InputBase');
+    });
+  });
+
   describe('number attributes', () => {
     it('turns a number spelled the way it renders into a number', () => {
       expect(

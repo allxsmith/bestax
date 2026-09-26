@@ -95,7 +95,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `scripts/gen-mcp-index.mjs` for the MCP server's `lookup_bulma_classes`, so no enums or
   runtime imports; a change to it wants `pnpm gen:mcp` in the same PR, and bestax-mcp's
   tests run this planner beside that tool), `plan.ts` (pure: one element's tag,
-  classes, attributes and what its children became in, a conversion or a TODO out; an entry
+  classes, attributes, what its children became and the bestax components already around and
+  inside it in, a conversion or a TODO out; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
   before their parents), `rules.ts` (rule ids from a closed
   vocabulary, since the input is the app's own class strings and telemetry must never carry

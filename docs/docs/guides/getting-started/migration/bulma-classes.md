@@ -70,8 +70,8 @@ stock stylesheet.
 - **Components**: `button`, `buttons`, `columns`, `column`, `container`, `section`, `hero` and
   its parts, `title`, `subtitle`, `box`, `content`, `block`, `notification`, `tag`, `tags`,
   `level` and its parts, `media` and its parts, `card` and its parts, `navbar` and most of its
-  parts, `delete`, `progress`,
-  `footer` and `table` become their bestax components, with their modifier classes as props
+  parts, `field` and its parts, `control`, `input`, `textarea`, `delete`, `progress`, `footer`
+  and `table` become their bestax components, with their modifier classes as props
   (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
@@ -101,6 +101,10 @@ A couple of results look odd until you see why:
   `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
   hand.
+- A form converts piece by piece into `Field`, `Control`, `InputBase` and `TextAreaBase`, not
+  into `Input` or `TextArea`: those render a `.field` and a `.control` of their own, and the
+  markup already has them. The `.label` and `.help` stay as written, and so does an input's
+  color class (`is-danger`), since bestax's `color` also sets the text color.
 
 ## What it leaves for you
 
@@ -109,9 +113,12 @@ Anything that would change the markup stays as written:
 - **Computed classNames.** `clsx(...)`, ternaries and templates with expressions are flagged
   with the component the element would become (`dynamic-class:<Target>`). Converting them
   means turning each condition into a prop, which is quick by hand and risky to guess at.
-- **Components that render parts of their own.** `Modal` adds dialog attributes, bestax's form
-  controls render their own `.field` and `.control`, and so on. These families are flagged
-  once each (`family:<class>`) and converted by hand.
+- **Components that render parts of their own.** `Modal` adds dialog attributes, `Select` and
+  `File` render their own wrappers, and so on. These families are flagged once each
+  (`family:<class>`) and converted by hand.
+- **Form markup around bestax already.** `Field` and `Control` tell bestax's form controls
+  inside them to skip their own wrappers, so a `.field` or `.control` that already holds one
+  (from an earlier migration by hand) stays as it is (`context:<Target>`).
 - **Elements bestax would render differently**: a `ref` on a component that doesn't forward one,
   a spread, a tag the component can't render (`<div className="section">`), an attribute the
   component reads as a prop, or an element that is the only child of another component, which

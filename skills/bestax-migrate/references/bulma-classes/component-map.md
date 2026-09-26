@@ -38,6 +38,12 @@ The **Tags** column is what the component can render: an element on any other ta
 | `.container`         | `Container`           | `<div>` only                                                   |
 | `.content`           | `Content`             | `<div>` only                                                   |
 | `.delete`            | `Delete`              | `<button>` only                                                |
+| `.field`             | `Field`               | `<div>` only                                                   |
+| `.field-label`       | `Field.Label`         | `<div>` only                                                   |
+| `.field-body`        | `Field.Body`          | `<div>` only                                                   |
+| `.control`           | `Control`             | `<div>`, `<p>` via `as`                                        |
+| `.input`             | `InputBase`           | `<input>` only                                                 |
+| `.textarea`          | `TextAreaBase`        | `<textarea>` only                                              |
 | `.footer`            | `Footer`              | `<footer>`, `<div>` via `as`                                   |
 | `.hero`              | `Hero`                | `<section>` only                                               |
 | `.hero-head`         | `Hero.Head`           | `<div>` only                                                   |
@@ -89,6 +95,16 @@ a `family:<class>` TODO; converting either means building the dropdown or the to
 by hand. A `.navbar-divider` converts only when it carries no other class, since
 `Navbar.Divider` drops its own class for a `className` it's given.
 
+Form markup converts piece by piece: `.field` to `Field`, `.control` to `Control`, and the
+input and textarea to `InputBase` and `TextAreaBase`, the controls without wrappers of their own.
+A `.label` and a `.help` stay as they are. An input's color (`is-danger`) stays a class, because
+`color` renders `has-text-<color>` on it too. A `.field.is-horizontal` converts once its
+`.field-label` and `.field-body` do, since `Field` wraps anything else in a `.field-body` of its
+own. `Field` and `Control` tell bestax's form controls inside them to skip their own wrappers, so a
+`.field` or `.control` that already holds a bestax component stays markup with a
+`context:<Target>` TODO, and so does an input with no `id` inside a bestax `Field` or any other
+component, which could hand it a labelled Field's generated one.
+
 ## Plain tags with helper classes
 
 A tag bestax wraps becomes that wrapper when at least one of its classes converts to a helper
@@ -116,7 +132,7 @@ no TODO: it is valid Bulma, and nothing unsafe was skipped.
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Breadcrumb,
-Checkbox, Checkboxes, Dropdown, Field (and Input, TextArea, Select, File), Grid and Cell,
+Checkbox, Checkboxes, Dropdown, Select, File, Grid and Cell,
 Icon and IconText, Image, Menu, Message, Modal, the navbar's burger and dropdown link,
 Pagination, Panel, Radio, Radios, Skeleton, `.table-container` and Tabs.
 

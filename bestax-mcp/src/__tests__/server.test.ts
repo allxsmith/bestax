@@ -701,6 +701,11 @@ describe('lookup_bulma_classes', () => {
       '**Component:** `Card`. It renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`,'
     );
     expect(await lookup('card-content')).not.toContain('renders its children');
+    // A field wraps its children only when it's horizontal.
+    expect(await lookup('field is-horizontal', 'div')).toContain(
+      'inside a `.field-body` of its own unless one of them is a `Field.Label` or `Field.Body`'
+    );
+    expect(await lookup('field', 'div')).not.toContain('renders its children');
   });
 
   it('answers helper classes with no component, and says what that depends on', async () => {
