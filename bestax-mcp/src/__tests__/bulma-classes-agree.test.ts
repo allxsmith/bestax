@@ -47,10 +47,14 @@ function planned(tag: string, tokens: string[]): Outcome {
   // which the lookup states as a condition: give each root those parts.
   // One that renders the element inside it gets that element, bare but for
   // what the element's classes need beside them (`multiple` for
-  // `is-multiple`), which the lookup states as a condition too.
+  // `is-multiple`), which the lookup states as a condition too. One that
+  // renders its children from a count gets a few of them; the count itself
+  // comes from children the lookup cannot see, so it is left out below.
   const attributes = new Map<string, string>();
   const childTargets: string[] = [];
   let soleChild: ElementFacts['soleChild'];
+  let childElements: ElementFacts['childElements'];
+  let counted: string | undefined;
   for (const token of tokens) {
     const entry = Object.hasOwn(ROOTS, token) ? ROOTS[token] : undefined;
     for (const [name, value] of Object.entries(entry?.defaults ?? {})) {
@@ -67,7 +71,19 @@ function planned(tag: string, tokens: string[]): Outcome {
             .map(([name]) => [name, true])
         ),
         hasSpread: false,
+        isEmpty: true,
       };
+    }
+    const counts =
+      entry?.status === 'mapped' ? entry.countsChildren : undefined;
+    if (counts && !childElements) {
+      childElements = [1, 2, 3].map(() => ({
+        tag: counts.tag,
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      }));
+      counted = counts.prop;
     }
   }
   const result = plan({
@@ -79,6 +95,7 @@ function planned(tag: string, tokens: string[]): Outcome {
     hasChildren: true,
     childTargets,
     soleChild,
+    childElements,
   });
   if (result.conversion) {
     const { target, props, className } = result.conversion;
@@ -88,7 +105,7 @@ function planned(tag: string, tokens: string[]): Outcome {
       target,
       as: typeof as === 'string' ? as : undefined,
       props: props
-        .filter(([name]) => name !== 'as')
+        .filter(([name]) => name !== 'as' && name !== counted)
         .map(([name, value]) => propText(name, value))
         .sort(),
       className: (className?.split(' ') ?? []).sort(),
@@ -106,13 +123,16 @@ function looked(tag: string, tokens: string[]): Outcome {
       kind: 'component',
       target: element.target,
       as: element.as,
-      props: rows
-        .flatMap(({ verdict }) =>
+      props: [
+        ...(element.writes ?? []).map(write =>
+          propText(write.prop, write.value)
+        ),
+        ...rows.flatMap(({ verdict }) =>
           verdict.kind === 'prop'
             ? verdict.writes.map(write => propText(write.prop, write.value))
             : []
-        )
-        .sort(),
+        ),
+      ].sort(),
       className: rows
         .filter(({ verdict }) => verdict.kind === 'class')
         .map(({ token }) => token)
@@ -222,13 +242,17 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
       const want = planned(tag, tokens);
       const got = looked(tag, tokens);
       const untagged = lookupClasses(table, tokens.join(' '));
-      const props = untagged.rows
-        .flatMap(({ verdict }) =>
+      const props = [
+        ...(untagged.element.kind === 'component'
+          ? (untagged.element.writes ?? [])
+          : []
+        ).map(write => propText(write.prop, write.value)),
+        ...untagged.rows.flatMap(({ verdict }) =>
           verdict.kind === 'prop'
             ? verdict.writes.map(write => propText(write.prop, write.value))
             : []
-        )
-        .sort();
+        ),
+      ].sort();
       const className = untagged.rows
         .filter(({ verdict }) => verdict.kind === 'class')
         .map(({ token }) => token)
