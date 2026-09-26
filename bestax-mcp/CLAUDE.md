@@ -16,6 +16,12 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
 
 - **Never hand-edit `data/`.** CI fails on staleness (`pnpm gen:mcp:check`).
 - `data/catalog.json` and `data/components/*.json` are **committed**.
+- `data/bulma-classes.json` is **committed** too, and comes from somewhere else:
+  bestax-migrate's `src/sources/bulma-classes/class-map.ts`, which the generator
+  imports directly (node strips its types). `lookup_bulma_classes` answers from
+  it by following that source's planner class by class, and
+  `src/__tests__/bulma-classes-agree.test.ts` imports the planner itself to hold
+  the two together, so a change to either side of that table shows up here.
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is

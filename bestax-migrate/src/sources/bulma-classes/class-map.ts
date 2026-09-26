@@ -8,9 +8,9 @@
  * it: each root, modifier and helper here is rendered through the built
  * library and compared with the raw markup it replaces.
  *
- * Data only, and written so a generator in another package can import it
- * directly: nothing Node cannot strip, so no enums, no namespaces, type
- * imports only.
+ * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
+ * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
+ * namespaces, type imports only), and a change to it wants `pnpm gen:mcp`.
  */
 
 export interface PropWrite {
@@ -83,6 +83,13 @@ export interface RootEntry {
   readonly part?: boolean;
   /** Why a `todo` or `plain` root is what it is; `todo` messages quote it. */
   readonly why?: string;
+  /**
+   * Modifiers left out of `modifiers` on purpose, because the prop that
+   * renders the class renders more than the class. They stay in `className`;
+   * the reason is for the MCP lookup, which would otherwise say bestax has
+   * no prop for them.
+   */
+  readonly omits?: Readonly<Record<string, string>>;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -358,7 +365,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'is-active': 'isActive',
         'is-hovered': 'isHovered',
       }),
-      // No `is-disabled`: `isDisabled` writes attributes as well as the class.
+    },
+    omits: {
+      'is-disabled':
+        'bestax `Button` renders it through `isDisabled`, which also disables the element (`disabled`, or `aria-disabled` on a link)',
     },
     dropsAttr: {
       // Kept only on the elements `disabled` means something on.
@@ -795,7 +805,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'is-rounded': 'isRounded',
         'is-hoverable': 'isHoverable',
       }),
-      // No `is-delete`: `isDelete` turns the tag into a <button>.
+    },
+    omits: {
+      'is-delete':
+        'bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>',
     },
     ownProps: [
       'color',

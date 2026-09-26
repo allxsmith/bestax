@@ -91,8 +91,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
 - Components with no bestax equivalent (Element, Tile) keep a trimmed, TODO-annotated RBC
   import so the code still runs during gradual migration.
 - `src/sources/bulma-classes/` is shaped differently, because it reads markup rather than a
-  library's API: `class-map.ts` (data only, and written so another package's generator can
-  import it directly: no enums or runtime imports), `plan.ts` (pure: one element's tag,
+  library's API: `class-map.ts` (data only, and imported directly by
+  `scripts/gen-mcp-index.mjs` for the MCP server's `lookup_bulma_classes`, so no enums or
+  runtime imports; a change to it wants `pnpm gen:mcp` in the same PR, and bestax-mcp's
+  tests run this planner beside that tool), `plan.ts` (pure: one element's tag,
   classes and attributes in, a conversion or a TODO out), `rules.ts` (rule ids from a closed
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router

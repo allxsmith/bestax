@@ -12,6 +12,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { BulmaClassTable } from './bulma-classes.js';
 
 /** Bumped by the generator when the shape changes incompatibly. */
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -187,6 +188,29 @@ export function loadComponent(name: string): Promise<ComponentRecord> {
   return cached;
 }
 
+let bulmaClassesPromise: Promise<BulmaClassTable> | null = null;
+
+/**
+ * bestax-migrate's bulma-classes table. Read the first time
+ * lookup_bulma_classes is called, like a component file: it is larger than
+ * the catalog, and most sessions never ask.
+ */
+export function loadBulmaClasses(): Promise<BulmaClassTable> {
+  bulmaClassesPromise ??= readJson<BulmaClassTable>(
+    join(DATA_DIR, 'bulma-classes.json')
+  ).then(table => {
+    if (table.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
+      throw new Error(
+        `bestax-mcp: data/bulma-classes.json is schema version ` +
+          `${table.schemaVersion}, but this server understands ` +
+          `${SUPPORTED_SCHEMA_VERSION}. Reinstall bestax-mcp.`
+      );
+    }
+    return table;
+  });
+  return bulmaClassesPromise;
+}
+
 let skillsPromise: Promise<Skill[]> | null = null;
 
 /**
@@ -240,6 +264,7 @@ export async function loadSkillFile(
 /** Test seam — the loaders memoise for the life of a stdio session. */
 export function resetCaches(): void {
   catalogPromise = null;
+  bulmaClassesPromise = null;
   skillsPromise = null;
   componentCache.clear();
   skillFileCache.clear();
