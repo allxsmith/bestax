@@ -1,3 +1,17 @@
+## [4.2.12](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.11...create-bestax@4.2.12) (2026-09-26)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep JSX text, directives and quoted classes as written when reprinting ([c9f860b](https://github.com/allxsmith/bestax/commit/c9f860b9ee1324518fc6f0c7599689c4ebef98e0))
+* **bestax-migrate:** report an older bestax-bulma the app already declares ([c2d67a6](https://github.com/allxsmith/bestax/commit/c2d67a68d8b2f0ea40419cb5cf5f3f6eb937b8fe))
+* **create-bestax:** tell scaffolded apps the migrate skill covers raw Bulma classes ([3769180](https://github.com/allxsmith/bestax/commit/3769180a82b42674bf8d11c4e353ddab0969dec7))
+
+
+### Features
+
+* **bestax-migrate:** add bulma-classes as a migration source ([c3603d1](https://github.com/allxsmith/bestax/commit/c3603d17282809357aedecd4ca127abd92bf7f22)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+
 ## [4.2.11](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.10...create-bestax@4.2.11) (2026-09-25)
 
 
