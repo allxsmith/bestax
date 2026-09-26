@@ -20,6 +20,8 @@ export interface PropWrite {
   prop: string;
   /** Omitted for a bare boolean prop. */
   value?: string;
+  /** The prop is typed as a number, so the value is written as one. */
+  numeric?: boolean;
 }
 
 export interface Modifier {
@@ -480,8 +482,9 @@ function orList(names: readonly string[]): string {
 }
 
 function writeText(write: PropWrite): string {
-  return write.value === undefined
-    ? `\`${write.prop}\``
+  if (write.value === undefined) return `\`${write.prop}\``;
+  return write.numeric
+    ? `\`${write.prop}={${write.value}}\``
     : `\`${write.prop}="${write.value}"\``;
 }
 

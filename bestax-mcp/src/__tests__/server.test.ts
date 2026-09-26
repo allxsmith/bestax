@@ -684,6 +684,13 @@ describe('lookup_bulma_classes', () => {
     expect(out).toContain('bulma-classes-unmappables');
   });
 
+  it('writes a prop typed as a number as a number', async () => {
+    const out = await lookup('cell is-col-span-2', 'div');
+    expect(out).toContain('**Component:** `Cell`.');
+    expect(out).toContain('| `is-col-span-2` | `colSpan={2}` |');
+    expect(await lookup('grid is-gap-2', 'div')).toContain('`gap="2"`');
+  });
+
   it('says which classes a part without helper props keeps', async () => {
     expect(await lookup('navbar-dropdown is-right mt-2', 'div')).toContain(
       '| `mt-2` | stays in `className` | bestax `Navbar.DropdownMenu` takes no helper props |'
