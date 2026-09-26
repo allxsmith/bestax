@@ -79,6 +79,13 @@ export interface RootEntry {
     readonly unless: readonly string[];
     readonly whenEmpty?: boolean;
   };
+  /** The target takes no helper props, so every helper class stays a class. */
+  readonly noHelpers?: boolean;
+  /**
+   * The target drops its own class when it is given a `className`, so the
+   * element converts only when it carries no other class.
+   */
+  readonly ownClassOnly?: boolean;
   /**
    * Attributes the target types as numbers. A numeric string (`value="40"`)
    * becomes a number, which renders the same; any other string refuses.
@@ -801,6 +808,86 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'div',
     ownProps: ['color', 'bgColor', 'textColor'],
   },
+  // `Navbar` writes Bulma's own `role` and `aria-label`, so an element that
+  // already carries them renders the same.
+  navbar: {
+    ...BASE,
+    target: 'Navbar',
+    tag: 'nav',
+    modifiers: {
+      ...tokens('is-', COMPONENT_COLORS, 'color'),
+      ...tokens('is-fixed-', ['top', 'bottom'], 'fixed'),
+      ...flags({ 'is-transparent': 'transparent' }),
+    },
+    defaults: { role: 'navigation', 'aria-label': 'main navigation' },
+    ownProps: ['textColor', 'color', 'bgColor', 'transparent', 'fixed'],
+  },
+  // No background prop on these parts. Menu, Start and End spread `textColor`
+  // onto the element rather than reading it, and type `color` to six colors,
+  // so their text color stays a class.
+  'navbar-brand': {
+    ...BASE,
+    target: 'Navbar.Brand',
+    tag: 'div',
+    bgColor: null,
+    ownProps: ['textColor', 'color'],
+  },
+  'navbar-menu': {
+    ...BASE,
+    target: 'Navbar.Menu',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    modifiers: flags({ 'is-active': 'active' }),
+    ownProps: ['textColor', 'color', 'active'],
+  },
+  'navbar-start': {
+    ...BASE,
+    target: 'Navbar.Start',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    ownProps: ['textColor', 'color'],
+  },
+  'navbar-end': {
+    ...BASE,
+    target: 'Navbar.End',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    ownProps: ['textColor', 'color'],
+  },
+  // A `.has-dropdown` item stays a `Navbar.Item` with the class: a
+  // `Navbar.Dropdown` would hand its `.navbar-link` dropdown semantics.
+  'navbar-item': {
+    ...BASE,
+    target: 'Navbar.Item',
+    tag: 'a',
+    as: 'any',
+    modifiers: flags({ 'is-active': 'active' }),
+    ownProps: ['as', 'active', 'textColor', 'bgColor'],
+  },
+  'navbar-dropdown': {
+    status: 'mapped',
+    target: 'Navbar.DropdownMenu',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    modifiers: flags({ 'is-right': 'right', 'is-up': 'up' }),
+    ownProps: ['right', 'up'],
+  },
+  'navbar-divider': {
+    status: 'mapped',
+    target: 'Navbar.Divider',
+    tag: 'hr',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    // bulma-ui's Navbar.Divider spreads `className` over its own class.
+    ownClassOnly: true,
+    ownProps: [],
+  },
   notification: {
     ...BASE,
     target: 'Notification',
@@ -1049,21 +1136,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'modal-card-body': part(),
   'modal-card-foot': part(),
   'modal-close': part(),
-  navbar: todo(
-    'Navbar',
-    'bestax `Navbar` adds navigation roles, and its burger renders its own spans'
+  'navbar-burger': todo(
+    'Navbar.Burger',
+    'bestax `Navbar.Burger` is a `<button>` that renders its own spans and `aria-expanded`, so rebuild the toggle with it, by hand'
   ),
-  'navbar-brand': part(),
-  'navbar-burger': part(),
-  'navbar-menu': part(),
-  'navbar-start': part(),
-  'navbar-end': part(),
-  'navbar-item': part(),
-  'navbar-link': part(),
-  'navbar-dropdown': part(),
-  'navbar-divider': part(),
-  'navbar-content': part(),
-  'navbar-tabs': part(),
+  'navbar-link': todo(
+    'Navbar.Link',
+    'inside a `Navbar.Dropdown`, bestax `Navbar.Link` adds `aria-haspopup`, `aria-expanded` and keyboard handling, so convert the `.has-dropdown` item and its link together, by hand'
+  ),
   pagination: todo(
     'Pagination',
     'bestax `Pagination` renders its own list items and adds navigation roles'
@@ -1109,6 +1189,12 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   ),
   'hero-video': plain(
     'a layout class inside `.hero`; bestax has no part for it'
+  ),
+  'navbar-content': plain(
+    'a layout class inside `.navbar`; bestax has no part for it'
+  ),
+  'navbar-tabs': plain(
+    'a layout class inside `.navbar`; bestax has no part for it'
   ),
   'theme-dark': plain('a theme scope; bestax sets themes through `Theme`'),
   'theme-light': plain('a theme scope; bestax sets themes through `Theme`'),
@@ -1161,6 +1247,14 @@ export const PRECEDENCE: readonly string[] = [
   'card-content',
   'card-footer',
   'card-footer-item',
+  'navbar',
+  'navbar-brand',
+  'navbar-menu',
+  'navbar-start',
+  'navbar-end',
+  'navbar-item',
+  'navbar-dropdown',
+  'navbar-divider',
   'buttons',
   'tags',
   'button',
@@ -1177,7 +1271,12 @@ export const PRECEDENCE: readonly string[] = [
 ];
 
 /** Refs reach the element only through these targets. */
-export const FORWARDS_REF: readonly string[] = ['Button', 'Link'];
+export const FORWARDS_REF: readonly string[] = [
+  'Button',
+  'Link',
+  'Navbar',
+  'Navbar.Item',
+];
 
 /**
  * Plain tags bestax wraps, for an element with helper classes and no root

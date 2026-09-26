@@ -37,7 +37,8 @@ function names(text: string): string[] {
 describe('the shipped bulma-classes prop map matches the table', () => {
   it('names where each color class stays a class', () => {
     const sentence = doc.match(
-      /the class stays: `has-text-\*`\s+on ([^;]+);\s+`has-background-\*` on ([^.]+)\./
+      // The list ends at a full stop, not at the dot in a part's name.
+      /the class stays: `has-text-\*`\s+on ([^;]+);\s+`has-background-\*` on ([\s\S]+?)\.(?:\s|$)/
     );
     expect(sentence).not.toBeNull();
     expect(names(sentence![1])).toEqual(

@@ -69,7 +69,8 @@ stock stylesheet.
 
 - **Components**: `button`, `buttons`, `columns`, `column`, `container`, `section`, `hero` and
   its parts, `title`, `subtitle`, `box`, `content`, `block`, `notification`, `tag`, `tags`,
-  `level` and its parts, `media` and its parts, `card` and its parts, `delete`, `progress`,
+  `level` and its parts, `media` and its parts, `card` and its parts, `navbar` and most of its
+  parts, `delete`, `progress`,
   `footer` and `table` become their bestax components, with their modifier classes as props
   (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
@@ -90,11 +91,16 @@ A couple of results look odd until you see why:
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
 - A `.card` converts when an element written directly inside it is, or becomes, one of its
-  parts. `Card` puts
-  anything else inside a `.card-content` of its own, so a card whose text sits straight inside
-  it stays markup (`children:Card`). Bulma's own example card keeps its `<p>` title and its
-  `<a>` footer links as markup too, since bestax renders those parts on a `<div>` and a
-  `<span>`.
+  parts. `Card` puts anything else inside a `.card-content` of its own, so a card whose text
+  sits straight inside it stays markup (`children:Card`). Bulma's own example card keeps its
+  `<p>` title and its `<a>` footer links as markup too, since bestax renders those parts on a
+  `<div>` and a `<span>`.
+- A `.navbar` converts when it carries Bulma's `role="navigation"` and an `aria-label`, which
+  `Navbar` writes too. Its burger and its dropdown's `.navbar-link` stay markup
+  (`family:navbar-burger`, `family:navbar-link`), and a `.has-dropdown` item becomes a
+  `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
+  is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
+  hand.
 
 ## What it leaves for you
 
@@ -103,7 +109,7 @@ Anything that would change the markup stays as written:
 - **Computed classNames.** `clsx(...)`, ternaries and templates with expressions are flagged
   with the component the element would become (`dynamic-class:<Target>`). Converting them
   means turning each condition into a prop, which is quick by hand and risky to guess at.
-- **Components that render parts of their own.** `Navbar` adds navigation roles, bestax's form
+- **Components that render parts of their own.** `Modal` adds dialog attributes, bestax's form
   controls render their own `.field` and `.control`, and so on. These families are flagged
   once each (`family:<class>`) and converted by hand.
 - **Elements bestax would render differently**: a `ref` on a component that doesn't forward one,

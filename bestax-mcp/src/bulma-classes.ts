@@ -46,6 +46,10 @@ export interface RootRecord {
    * one of them is one of these parts (`Card` inside `.card-content`).
    */
   wrapsChildren: Wraps | null;
+  /** The component takes no helper props, so helper classes stay classes. */
+  noHelpers: boolean;
+  /** The component drops its own class for a `className` it is given. */
+  ownClassOnly: boolean;
 }
 
 export interface Wraps {
@@ -282,6 +286,8 @@ export function lookupClasses(
       modifiers: {},
       omits: {},
       wrapsChildren: null,
+      noHelpers: false,
+      ownClassOnly: false,
     };
   }
   const target = entry.target;
@@ -335,6 +341,10 @@ export function lookupClasses(
     }
     const helper = own(table.helpers, token);
     if (!helper) continue;
+    if (entry.noHelpers) {
+      stays(token, `bestax \`${target}\` takes no helper props`);
+      continue;
+    }
     const prop =
       helper.group === 'text-color'
         ? entry.textColor
@@ -424,6 +434,25 @@ export function lookupClasses(
     entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
       ? `h${size}`
       : entry.tag!;
+  const reachable =
+    !tag ||
+    renders === tag ||
+    entry.as === 'any' ||
+    (Array.isArray(entry.as) && entry.as.includes(tag));
+  if (!reachable) {
+    return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
+  }
+  // Every class but the component's own has to become a prop here, since a
+  // `className` would take the place of that class.
+  if (
+    entry.ownClassOnly &&
+    tokens.some(token => token !== root && verdicts.get(token)?.kind !== 'prop')
+  ) {
+    return result({
+      kind: 'markup',
+      why: `bestax \`${target}\` drops its own class when it is given a \`className\`, so it converts only with no other class`,
+    });
+  }
   if (!tag) {
     return result({
       kind: 'component',
@@ -433,13 +462,7 @@ export function lookupClasses(
     });
   }
   if (renders === tag) return result({ kind: 'component', target, wraps });
-  const reachable =
-    entry.as === 'any' || (Array.isArray(entry.as) && entry.as.includes(tag));
-  return result(
-    reachable
-      ? { kind: 'component', target, as: tag, wraps }
-      : { kind: 'wrong-tag', target, tag, reaches: reaches(entry) }
-  );
+  return result({ kind: 'component', target, as: tag, wraps });
 }
 
 function orList(names: readonly string[]): string {

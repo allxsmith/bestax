@@ -76,23 +76,28 @@ renders the same `<h2>`.
 
 ### Other components
 
-| Component                                  | Classes                                                                                                                    | Prop                                                                |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `.card-header-title` → `Card.Header.Title` | `is-centered`                                                                                                              | `centered`                                                          |
-| `.content` → `Content`                     | `is-small`, `is-medium`, `is-large`                                                                                        | `size`                                                              |
-| `.delete` → `Delete`                       | `is-small`, `is-medium`, `is-large`                                                                                        | `size`                                                              |
-| `.hero` → `Hero`                           | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark` | `color`                                                             |
-| `.hero` → `Hero`                           | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                          | `size`                                                              |
-| `.level` → `Level`                         | `is-mobile`                                                                                                                | `isMobile`                                                          |
-| `.notification` → `Notification`           | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-dark`             | `color`                                                             |
-| `.notification` → `Notification`           | `is-light`                                                                                                                 | `isLight`                                                           |
-| `.progress` → `Progress`                   | the ten `.hero` colors                                                                                                     | `color`                                                             |
-| `.progress` → `Progress`                   | `is-small`, `is-medium`, `is-large`                                                                                        | `size`                                                              |
-| `.section` → `Section`                     | `is-medium`, `is-large`                                                                                                    | `size`                                                              |
-| `.table` → `Table`                         | `is-bordered`, `is-striped`, `is-narrow`, `is-hoverable`, `is-fullwidth`                                                   | `isBordered`, `isStriped`, `isNarrow`, `isHoverable`, `isFullwidth` |
-| `.tag` → `Tag`                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-dark`, `is-white`             | `color`                                                             |
-| `.tag` → `Tag`                             | `is-light`, `is-rounded`, `is-hoverable`                                                                                   | `isLight`, `isRounded`, `isHoverable`                               |
-| `.tag` → `Tag`                             | `is-medium`, `is-large`                                                                                                    | `size`                                                              |
+| Component                                                      | Classes                                                                                                                    | Prop                                                                |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `.card-header-title` → `Card.Header.Title`                     | `is-centered`                                                                                                              | `centered`                                                          |
+| `.content` → `Content`                                         | `is-small`, `is-medium`, `is-large`                                                                                        | `size`                                                              |
+| `.delete` → `Delete`                                           | `is-small`, `is-medium`, `is-large`                                                                                        | `size`                                                              |
+| `.hero` → `Hero`                                               | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark` | `color`                                                             |
+| `.hero` → `Hero`                                               | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                          | `size`                                                              |
+| `.level` → `Level`                                             | `is-mobile`                                                                                                                | `isMobile`                                                          |
+| `.navbar` → `Navbar`                                           | the ten `.hero` colors                                                                                                     | `color`                                                             |
+| `.navbar` → `Navbar`                                           | `is-fixed-top`, `is-fixed-bottom`                                                                                          | `fixed` (`top`, `bottom`)                                           |
+| `.navbar` → `Navbar`                                           | `is-transparent`                                                                                                           | `transparent`                                                       |
+| `.navbar-menu` → `Navbar.Menu`, `.navbar-item` → `Navbar.Item` | `is-active`                                                                                                                | `active`                                                            |
+| `.navbar-dropdown` → `Navbar.DropdownMenu`                     | `is-right`, `is-up`                                                                                                        | `right`, `up`                                                       |
+| `.notification` → `Notification`                               | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-dark`             | `color`                                                             |
+| `.notification` → `Notification`                               | `is-light`                                                                                                                 | `isLight`                                                           |
+| `.progress` → `Progress`                                       | the ten `.hero` colors                                                                                                     | `color`                                                             |
+| `.progress` → `Progress`                                       | `is-small`, `is-medium`, `is-large`                                                                                        | `size`                                                              |
+| `.section` → `Section`                                         | `is-medium`, `is-large`                                                                                                    | `size`                                                              |
+| `.table` → `Table`                                             | `is-bordered`, `is-striped`, `is-narrow`, `is-hoverable`, `is-fullwidth`                                                   | `isBordered`, `isStriped`, `isNarrow`, `isHoverable`, `isFullwidth` |
+| `.tag` → `Tag`                                                 | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-dark`, `is-white`             | `color`                                                             |
+| `.tag` → `Tag`                                                 | `is-light`, `is-rounded`, `is-hoverable`                                                                                   | `isLight`, `isRounded`, `isHoverable`                               |
+| `.tag` → `Tag`                                                 | `is-medium`, `is-large`                                                                                                    | `size`                                                              |
 
 `Progress` takes `value` and `max` as numbers: `value="40"` becomes `value={40}`. An
 expression (`value={percent}`) carries over as written, so if it holds a string the migrated
@@ -100,7 +105,9 @@ file fails to typecheck while still rendering the same; wrap it in `Number(…)`
 converts only with `type` and `aria-label` set (see `defaults:<Target>` in the unmappables),
 and a `type="button"` is dropped, since bestax renders it by itself. `Card.Header.Icon` likewise
 converts only with an `aria-label`, since it renders `aria-label="more options"` otherwise.
-`.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`.
+`.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. `.navbar`'s
+`is-spaced` and `has-shadow`, and a `.navbar-item`'s `has-dropdown` and `is-hoverable`, stay
+classes too: bestax has no prop for them on those components.
 
 ## Helper classes
 
@@ -135,8 +142,11 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 | `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                |
 
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
-on `Hero`, `Progress`, `Tag` and `Tags`; `has-background-*` on `Notification`, `Progress`,
-`Table` and `Tags`.
+on `Hero`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
+`Navbar.Divider`, `Progress`, `Tag` and `Tags`; `has-background-*` on `Navbar.Brand`,
+`Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`, `Navbar.Divider`,
+`Notification`, `Progress`, `Table` and `Tags`. `Navbar.DropdownMenu` and `Navbar.Divider` take
+no helper props at all, so every helper class on them stays.
 
 Some classes stay put because of how bestax renders them:
 

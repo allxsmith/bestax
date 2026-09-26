@@ -287,11 +287,11 @@ describe('plan', () => {
     });
 
     it('flags the outermost class of a family it does not convert', () => {
-      expect(plan(facts('nav', 'navbar'))).toEqual({
+      expect(plan(facts('div', 'dropdown'))).toEqual({
         conversion: null,
-        todos: [{ rule: 'family:navbar', message: expect.any(String) }],
+        todos: [{ rule: 'family:dropdown', message: expect.any(String) }],
       });
-      expect(plan(facts('div', 'navbar-brand'))).toEqual({
+      expect(plan(facts('div', 'dropdown-menu'))).toEqual({
         conversion: null,
         todos: [],
       });
@@ -304,9 +304,9 @@ describe('plan', () => {
     });
 
     it('keeps a family beside a root it converts as markup, and flags it', () => {
-      expect(plan(facts('nav', 'navbar box'))).toEqual({
+      expect(plan(facts('div', 'dropdown box'))).toEqual({
         conversion: null,
-        todos: [{ rule: 'family:navbar', message: expect.any(String) }],
+        todos: [{ rule: 'family:dropdown', message: expect.any(String) }],
       });
     });
 
@@ -400,6 +400,66 @@ describe('plan', () => {
       expect(
         plan(facts('a', 'card-footer-item')).todos.map(todo => todo.rule)
       ).toEqual(['tag:Card.FooterItem']);
+    });
+  });
+
+  describe('Navbar', () => {
+    const bulmaNav = { role: 'navigation', 'aria-label': 'main navigation' };
+
+    it("converts a navbar that carries Bulma's role and label", () => {
+      expect(
+        plan(
+          facts('nav', 'navbar is-primary is-fixed-top has-shadow', bulmaNav)
+        ).conversion
+      ).toEqual({
+        target: 'Navbar',
+        props: [
+          ['color', 'primary'],
+          ['fixed', 'top'],
+        ],
+        className: 'has-shadow',
+        drop: [],
+        numbers: [],
+      });
+      expect(plan(facts('nav', 'navbar')).todos.map(todo => todo.rule)).toEqual(
+        ['defaults:Navbar']
+      );
+    });
+
+    it('keeps helper classes on a part that takes no helper props', () => {
+      expect(
+        plan(facts('div', 'navbar-dropdown is-right mt-2')).conversion
+      ).toEqual({
+        target: 'Navbar.DropdownMenu',
+        props: [['right', true]],
+        className: 'mt-2',
+        drop: [],
+        numbers: [],
+      });
+    });
+
+    it('converts a divider only when it carries no other class', () => {
+      expect(plan(facts('hr', 'navbar-divider')).conversion?.target).toBe(
+        'Navbar.Divider'
+      );
+      expect(plan(facts('hr', 'navbar-divider mt-2'))).toEqual({
+        conversion: null,
+        todos: [
+          {
+            rule: 'attr:className',
+            message: expect.stringContaining('drops its own class'),
+          },
+        ],
+      });
+    });
+
+    it('leaves the burger and the dropdown trigger to a person', () => {
+      expect(plan(facts('a', 'navbar-burger')).todos.map(t => t.rule)).toEqual([
+        'family:navbar-burger',
+      ]);
+      expect(plan(facts('a', 'navbar-link')).todos.map(t => t.rule)).toEqual([
+        'family:navbar-link',
+      ]);
     });
   });
 

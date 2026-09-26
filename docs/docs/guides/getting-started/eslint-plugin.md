@@ -280,7 +280,7 @@ component for, and names the component:
 
 ```jsx
 <button className="button is-primary" /> // ✗ bestax renders .button as Button
-<nav className="navbar" />               // ✗ bestax has Navbar, converted by hand
+<div className="dropdown" />             // ✗ bestax has Dropdown, converted by hand
 ```
 
 Helper classes are left alone, since they are valid on any tag and a `<div>`
@@ -291,7 +291,7 @@ one reported:
 ```jsx
 <div className="has-text-centered mt-4" /> // ✓ helper classes
 <p className="help" />                   // ✓ bestax renders .help inside its form controls
-<div className="navbar-brand" />         // ✓ the .navbar around it is what gets reported
+<div className="dropdown-menu" />        // ✓ the .dropdown around it is what gets reported
 ```
 
 It reads the classes a `className` spells out, including the strings in a

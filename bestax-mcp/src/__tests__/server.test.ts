@@ -678,10 +678,22 @@ describe('lookup_bulma_classes', () => {
   });
 
   it('sends a family bestax converts as a whole to its recipe', async () => {
-    const out = await lookup('navbar box');
-    expect(out).toContain('**Stays markup:** `.navbar`:');
-    expect(out).toContain('| `navbar` | by hand |');
+    const out = await lookup('dropdown box');
+    expect(out).toContain('**Stays markup:** `.dropdown`:');
+    expect(out).toContain('| `dropdown` | by hand |');
     expect(out).toContain('bulma-classes-unmappables');
+  });
+
+  it('says which classes a part without helper props keeps', async () => {
+    expect(await lookup('navbar-dropdown is-right mt-2', 'div')).toContain(
+      '| `mt-2` | stays in `className` | bestax `Navbar.DropdownMenu` takes no helper props |'
+    );
+    expect(await lookup('navbar-divider mt-2', 'hr')).toContain(
+      '**Stays markup:** bestax `Navbar.Divider` drops its own class'
+    );
+    expect(await lookup('navbar-divider', 'hr')).toContain(
+      '**Component:** `Navbar.Divider`.'
+    );
   });
 
   it('says when a component needs one of its parts inside', async () => {

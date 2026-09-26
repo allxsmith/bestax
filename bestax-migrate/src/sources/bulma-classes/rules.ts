@@ -50,6 +50,8 @@ const VOCABULARY: ReadonlySet<string> = new Set([
   ...HELPER_PROPS,
   // Refused on every target, so no entry lists it.
   'dangerouslySetInnerHTML',
+  // Refused where the target drops its own class for one it is given.
+  'className',
 ]);
 
 export function inVocabulary(token: string): boolean {

@@ -1,6 +1,44 @@
 export function Layout() {
   return (
     <section className="section is-large">
+      <nav
+        className="navbar is-primary is-fixed-top has-shadow"
+        role="navigation"
+        aria-label="main navigation"
+      >
+        <div className="navbar-brand">
+          <a className="navbar-item" href="/">
+            Brand
+          </a>
+        </div>
+        <div className="navbar-menu is-active">
+          <div className="navbar-start">
+            <a className="navbar-item is-active" href="/docs">
+              Docs
+            </a>
+            <div className="navbar-item has-dropdown is-hoverable">
+              <div className="navbar-dropdown is-right">
+                <a className="navbar-item" href="/about">
+                  About
+                </a>
+                <hr className="navbar-divider" />
+                <a className="navbar-item" href="/jobs">
+                  Jobs
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="navbar-end">
+            <div className="navbar-item">
+              <div className="buttons">
+                <a className="button is-light" href="/login">
+                  Log in
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
       <div className="container is-fluid">
         <div className="columns is-multiline is-centered is-3">
           <div className="column is-one-third is-offset-1">One third</div>
