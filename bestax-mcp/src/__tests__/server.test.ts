@@ -715,6 +715,20 @@ describe('lookup_bulma_classes', () => {
     );
   });
 
+  it('says when a component renders the element inside it', async () => {
+    const select = await lookup('select is-multiple is-small', 'div');
+    expect(select).toContain(
+      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`)."
+    );
+    expect(select).toContain(
+      '| `is-multiple` | `multiple` | with a bare `multiple` on the <select> inside, which it renders |'
+    );
+    expect(await lookup('breadcrumb has-dot-separator', 'nav')).toContain(
+      "It renders the <ul> inside it itself, bare: put that <ul>'s children straight inside `Breadcrumb`"
+    );
+    expect(await lookup('card', 'div')).not.toContain('inside it itself');
+  });
+
   it('says when a component needs one of its parts inside', async () => {
     expect(await lookup('card', 'div')).toContain(
       '**Component:** `Card`. It renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`,'
