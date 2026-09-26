@@ -678,10 +678,17 @@ describe('lookup_bulma_classes', () => {
   });
 
   it('sends a family bestax converts as a whole to its recipe', async () => {
-    const out = await lookup('card box');
-    expect(out).toContain('**Stays markup:** `.card`:');
-    expect(out).toContain('| `card` | by hand |');
+    const out = await lookup('navbar box');
+    expect(out).toContain('**Stays markup:** `.navbar`:');
+    expect(out).toContain('| `navbar` | by hand |');
     expect(out).toContain('bulma-classes-unmappables');
+  });
+
+  it('says when a component needs one of its parts inside', async () => {
+    expect(await lookup('card', 'div')).toContain(
+      '**Component:** `Card`. It renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`,'
+    );
+    expect(await lookup('card-content')).not.toContain('renders its children');
   });
 
   it('answers helper classes with no component, and says what that depends on', async () => {

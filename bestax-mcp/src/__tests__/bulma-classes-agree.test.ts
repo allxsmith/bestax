@@ -40,12 +40,16 @@ function planned(tag: string, tokens: string[]): Outcome {
   // Attributes decide some refusals, and the lookup leaves those to the
   // codemod: give the element the ones its roots render by default
   // (`Delete`'s `type` and `aria-label`), so only the classes are compared.
+  // Children decide one too (`Card` converts only beside one of its parts),
+  // which the lookup states as a condition: give each root those parts.
   const attributes = new Map<string, string>();
+  const childTargets: string[] = [];
   for (const token of tokens) {
-    const defaults = Object.hasOwn(ROOTS, token) ? ROOTS[token].defaults : {};
-    for (const [name, value] of Object.entries(defaults ?? {})) {
+    const entry = Object.hasOwn(ROOTS, token) ? ROOTS[token] : undefined;
+    for (const [name, value] of Object.entries(entry?.defaults ?? {})) {
       attributes.set(name, value);
     }
+    childTargets.push(...(entry?.wrapsChildren?.unless ?? []));
   }
   const result = plan({
     tag,
@@ -54,6 +58,7 @@ function planned(tag: string, tokens: string[]): Outcome {
     hasSpread: false,
     hasRef: false,
     hasChildren: true,
+    childTargets,
   });
   if (result.conversion) {
     const { target, props, className } = result.conversion;
