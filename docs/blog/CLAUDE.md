@@ -251,7 +251,8 @@ These files back every edition:
 
 ## Conventions (keep these stable)
 
-- **Title:** `The State of React — {Month YYYY}` — the month + year are required.
+- **Title:** `The State of React: {Month YYYY}`, with the month and year required. The colon
+  follows the no-em-dash rule; the July 2026 edition predates it and keeps its dash.
 - **Folder / filename:** `docs/blog/{YYYY-MM-DD}-state-of-react/index.md` (folder form).
 - **Slug:** `state-of-react-{YYYY-MM}`; set `canonical_url` to `https://bestax.io/blog/{slug}`.
 - **Tag:** always include `state-of-react`. Its archive page,

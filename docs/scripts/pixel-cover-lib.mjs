@@ -6,9 +6,9 @@
  *
  * This module draws nothing by itself — a per-post script composes scenes with
  * it and writes the SVG masters into docs/static/img/. The output contract is
- * enforced by scripts/rasterize-cover.mjs (1200x630, explicit width/height, an
- * opaque full-bleed background rect painted first); Canvas#svg() satisfies it
- * by construction.
+ * enforced by scripts/rasterize-cover.mjs (a size it accepts, explicit
+ * width/height, an opaque full-bleed background rect painted first);
+ * Canvas#svg() satisfies it by construction at 1200x630.
  *
  * Usage sketch:
  *   import { Canvas, PALETTE as P, textW, starfield } from './pixel-cover-lib.mjs';

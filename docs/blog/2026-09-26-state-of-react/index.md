@@ -96,7 +96,7 @@ And one **correction** on my own column: the July table said bestax had no burge
 
 The full matrix got long enough that it was hard to read inside a post, so it has moved to its own **[comparison page](/docs/guides/getting-started/compare)**. There you can pick the libraries and feature groups you care about, search for a component, and hide the rows where your picks all agree. From here on, each edition shows just what changed since the last one.
 
-That's the table below. Highlighted cells changed (before → after), and the dimmed ones are there for context. Most of it is the Chakra correction, plus new rows for an **action bar**, a **cascader**, and a **lightbox**, the capabilities that showed up since July. I also fixed a batch of doc links that had moved, so every cell opens a live page again. Hover any cell for the component name, or click it to open that component's docs.
+That's the table below. Highlighted cells changed (before → after), and the rest of each row is there for context. Most of it is the Chakra correction, plus new rows for an **action bar**, a **cascader**, and a **lightbox**, the capabilities that showed up since July. I also fixed a batch of doc links that had moved, so every cell opens a live page again. Hover any cell for the component name, or click it to open that component's docs.
 
 <ComparisonChanges from={july2026} to={september2026} />
 

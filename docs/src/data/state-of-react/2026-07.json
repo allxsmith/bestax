@@ -1,5 +1,6 @@
 {
   "reviewed": "2026-07-27",
+  "libs": ["bestax","mantine","rbootstrap","mui","rbulma","chakra","shadcn"],
   "categories": [
     {
       "heading": "Buttons & actions",

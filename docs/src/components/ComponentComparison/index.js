@@ -16,6 +16,7 @@ import {
   HeadRow,
   CategoryRow,
 } from './shared';
+import { snapshotColumns } from './snapshots.mjs';
 import styles from './styles.module.css';
 
 const groupId = heading =>
@@ -151,16 +152,18 @@ function writeSearch(params) {
   searchListeners.forEach(callback => callback());
 }
 
-/** Parse the filters out of a query string; an absent key means "all". */
+/**
+ * Parse the filters out of a query string; an absent key means "all". Picks
+ * come back in canonical order with unknown and repeated ids dropped, so a
+ * hand-edited link can't make a partial pick look like "all".
+ */
 function readFilters(search, groupIds) {
   const params = new URLSearchParams(search);
-  const pick = (key, known) =>
-    params.has(key)
-      ? params
-          .get(key)
-          .split(',')
-          .filter(v => known.includes(v))
-      : known;
+  const pick = (key, known) => {
+    if (!params.has(key)) return known;
+    const wanted = new Set(params.get(key).split(','));
+    return known.filter(id => wanted.has(id));
+  };
   return {
     pickedLibs: pick('libs', LIB_IDS),
     pickedGroups: pick('groups', groupIds),
@@ -330,7 +333,7 @@ function Explorer({ data }) {
           >
             <input
               type="checkbox"
-              checked={diffOnly}
+              checked={diffOnly && canDiff}
               disabled={!canDiff}
               onChange={event => setDiffOnly(event.target.checked)}
             />
@@ -408,6 +411,9 @@ function Method() {
 export default function ComponentComparison({ snapshot, interactive = false }) {
   const reviewed = snapshot?.reviewed ?? lastReviewed;
   const data = snapshot?.categories ?? categories;
+  // A snapshot's rows are positional in its own recorded column order, not
+  // the live one.
+  const columns = snapshot ? snapshotColumns(snapshot, libs) : libs;
 
   return (
     <div className={clsx(styles.root, 'sor-comparison')}>
@@ -439,7 +445,7 @@ export default function ComponentComparison({ snapshot, interactive = false }) {
       {interactive && !snapshot ? (
         <Explorer data={data} />
       ) : (
-        <MatrixTable columns={libs} groups={data} />
+        <MatrixTable columns={columns} groups={data} />
       )}
 
       <Method />

@@ -2,6 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import { libs, parseCell } from '@site/src/data/componentComparison';
+import { diffSnapshots } from './snapshots.mjs';
 import {
   COMPARE_PAGE,
   formatReviewed,
@@ -14,42 +15,6 @@ import {
   CategoryRow,
 } from './shared';
 import styles from './styles.module.css';
-
-/**
- * Work out what moved between two edition snapshots: rows whose status
- * changed for any library, rows that are new, and rows that were dropped. A
- * renamed component with the same status is not a change a reader can see in
- * the glyphs, so it is left out.
- */
-export function diffSnapshots(from, to) {
-  const before = new Map();
-  for (const group of from.categories) {
-    for (const row of group.rows) before.set(row[0], row);
-  }
-  const seen = new Set();
-  const groups = to.categories
-    .map(group => ({
-      heading: group.heading,
-      rows: group.rows.flatMap(row => {
-        seen.add(row[0]);
-        const prev = before.get(row[0]);
-        if (!prev) return [{ row, prev: null, changed: new Set() }];
-        const changed = new Set(
-          libs
-            .filter(
-              lib =>
-                parseCell(prev[lib.idx]).status !==
-                parseCell(row[lib.idx]).status
-            )
-            .map(lib => lib.id)
-        );
-        return changed.size > 0 ? [{ row, prev, changed }] : [];
-      }),
-    }))
-    .filter(group => group.rows.length > 0);
-  const removed = [...before.keys()].filter(cap => !seen.has(cap));
-  return { groups, removed };
-}
 
 function ChangedCell({ lib, before, after }) {
   const was = parseCell(before);
@@ -88,12 +53,12 @@ function ChangedCell({ lib, before, after }) {
 
 /**
  * The State of React edition table: only the rows that changed since the
- * previous edition, with the changed cells marked and the rest shown dimmed
- * for context. `from` and `to` are edition snapshots from
+ * previous edition, with the changed cells marked and the rest of each row
+ * shown for context. `from` and `to` are edition snapshots from
  * src/data/state-of-react/*.json.
  */
 export default function ComparisonChanges({ from, to }) {
-  const { groups, removed } = diffSnapshots(from, to);
+  const { columns, fromIdx, groups, removed } = diffSnapshots(from, to, libs);
 
   return (
     <div className={clsx(styles.root, 'sor-comparison')}>
@@ -108,29 +73,35 @@ export default function ComparisonChanges({ from, to }) {
         </span>
       </div>
 
-      <Legend note="Highlighted cells changed (before → after); the rest are shown for context." />
+      <Legend note="Highlighted cells changed (before → after); the rest of each row is shown for context." />
 
       <div className={styles.tableWrap}>
-        <table className={styles.table} style={{ '--sor-cols': libs.length }}>
+        <table
+          className={styles.table}
+          style={{ '--sor-cols': columns.length }}
+        >
           <thead>
-            <HeadRow columns={libs} />
+            <HeadRow columns={columns} />
           </thead>
           <tbody>
             {groups.map(group => (
               <React.Fragment key={group.heading}>
-                <CategoryRow heading={group.heading} span={libs.length + 1} />
+                <CategoryRow
+                  heading={group.heading}
+                  span={columns.length + 1}
+                />
                 {group.rows.map(({ row, prev, changed }) => (
                   <tr key={row[0]} className={styles.dataRow}>
                     <th scope="row" className={styles.capCell}>
                       {row[0]}
                       {!prev && <span className={styles.newBadge}>new</span>}
                     </th>
-                    {libs.map(lib =>
+                    {columns.map(lib =>
                       changed.has(lib.id) ? (
                         <ChangedCell
                           key={lib.id}
                           lib={lib}
-                          before={prev[lib.idx]}
+                          before={prev[fromIdx.get(lib.id)]}
                           after={row[lib.idx]}
                         />
                       ) : (

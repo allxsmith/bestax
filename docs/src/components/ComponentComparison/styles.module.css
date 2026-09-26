@@ -361,8 +361,10 @@
   font-size: 0.75rem;
   color: var(--ifm-color-content-secondary);
 }
-.contextCell {
-  opacity: 0.4;
+.contextCell .glyph {
+  /* Recede behind the changed cells by dropping the chip, not by fading:
+     these glyphs are links, and opacity took them below readable contrast. */
+  background: none;
 }
 .newBadge {
   margin-left: 0.45rem;
