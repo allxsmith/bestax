@@ -82,6 +82,24 @@ export function Elements() {
             <textarea className="textarea has-fixed-size" rows={3} />
           </div>
         </div>
+        <div className="field">
+          <div className="control">
+            <div className="select is-fullwidth">
+              <select id="plan" defaultValue="pro">
+                <option value="free">Free</option>
+                <option value="pro">Pro</option>
+              </select>
+            </div>
+          </div>
+          <div className="control">
+            <div className="select is-multiple is-small">
+              <select id="tags" multiple size={3} className="is-hovered">
+                <option>One</option>
+                <option>Two</option>
+              </select>
+            </div>
+          </div>
+        </div>
         <div className="field is-horizontal">
           <div className="field-label is-small">
             <label className="label">Name</label>

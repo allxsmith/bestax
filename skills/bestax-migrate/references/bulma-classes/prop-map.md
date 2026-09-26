@@ -78,6 +78,9 @@ renders the same `<h2>`.
 
 | Component                                                                    | Classes                                                                                                                                          | Prop                                                                                              |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `.breadcrumb` → `Breadcrumb`                                                 | `is-centered`, `is-right`                                                                                                                        | `alignment`                                                                                       |
+| `.breadcrumb` → `Breadcrumb`                                                 | `has-arrow-separator`, `has-bullet-separator`, `has-dot-separator`, `has-succeeds-separator`                                                     | `separator`                                                                                       |
+| `.breadcrumb` → `Breadcrumb`                                                 | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.card-header-title` → `Card.Header.Title`                                   | `is-centered`                                                                                                                                    | `centered`                                                                                        |
 | `.content` → `Content`                                                       | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.delete` → `Delete`                                                         | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
@@ -92,6 +95,10 @@ renders the same `<h2>`.
 | `.input` → `InputBase`, `.textarea` → `TextAreaBase`                         | `is-rounded`, `is-static`, `is-hovered`, `is-focused`                                                                                            | `isRounded`, `isStatic`, `isHovered`, `isFocused`                                                 |
 | `.input` → `InputBase`                                                       | `is-loading`                                                                                                                                     | `isLoading`                                                                                       |
 | `.textarea` → `TextAreaBase`                                                 | `is-active`, `has-fixed-size`                                                                                                                    | `isActive`, `hasFixedSize`                                                                        |
+| `.select` → `SelectBase`                                                     | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
+| `.select` → `SelectBase`                                                     | `is-rounded`, `is-loading`, `is-active`, `is-fullwidth`                                                                                          | `isRounded`, `isLoading`, `isActive`, `isFullwidth`                                               |
+| `.select` → `SelectBase`                                                     | `is-multiple`, around a `<select multiple>`                                                                                                      | `multiple` (the `<select>`'s `size` becomes the number `multipleSize`)                            |
+| the `<select>` inside `.select`                                              | `is-hovered`, `is-focused`                                                                                                                       | `isHovered`, `isFocused`                                                                          |
 | `.hero` → `Hero`                                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark`                       | `color`                                                                                           |
 | `.hero` → `Hero`                                                             | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                                                | `size`                                                                                            |
 | `.level` → `Level`                                                           | `is-mobile`                                                                                                                                      | `isMobile`                                                                                        |
@@ -120,8 +127,8 @@ converts only with an `aria-label`, since it renders `aria-label="more options"`
 `is-spaced` and `has-shadow`, and a `.navbar-item`'s `has-dropdown` and `is-hoverable`, stay
 classes too: bestax has no prop for them on those components. So do a `.field`'s
 `has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
-`grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's or
-textarea's color, because `color` renders `has-text-<color>` on it too. A half-step grid gap
+`grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
+textarea's or select's color, because `color` renders `has-text-<color>` on it too. A half-step grid gap
 (`is-gap-0.5`) stays a class as well: `Grid`'s gaps take whole steps.
 
 ## Helper classes
@@ -132,34 +139,34 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`, `white`,
 `white-bis`, `white-ter`, `light`, `dark`, `inherit` and `current`.
 
-| Classes                                                                                                   | Prop                                                                        |
-| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `m-{n}`, `mt-{n}`, `mr-{n}`, `mb-{n}`, `ml-{n}`, `mx-{n}`, `my-{n}` (`0` to `6`, `auto`)                  | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`                                     |
-| `p-{n}`, `pt-{n}`, `pr-{n}`, `pb-{n}`, `pl-{n}`, `px-{n}`, `py-{n}`                                       | `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                     |
-| `has-text-{color}`                                                                                        | `textColor` (on `Table`, `color`)                                           |
-| `has-background-{color}`                                                                                  | `bgColor` (on `Tag`, `InputBase` and `TextAreaBase`, `backgroundColor`)     |
-| `is-size-1` … `is-size-7`, and `-{viewport}`                                                              | `textSize`, `textSize{Viewport}`                                            |
-| `has-text-centered`, `-justified`, `-left`, `-right`, and `-{viewport}`                                   | `textAlign`, `textAlign{Viewport}`                                          |
-| `is-capitalized`, `is-lowercase`, `is-uppercase`, `is-italic`                                             | `textTransform`                                                             |
-| `has-text-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`                                       | `textWeight`                                                                |
-| `is-family-sans-serif`, `-monospace`, `-primary`, `-secondary`, `-code`                                   | `fontFamily`                                                                |
-| `is-block`, `is-flex`, `is-inline`, `is-inline-block`, `is-inline-flex`, `is-grid`                        | `display`                                                                   |
-| the same with any of the nine viewports, `touch` and the `-only` ones included                            | `display{Viewport}`                                                         |
-| `is-hidden`, `is-invisible`, `is-sr-only`                                                                 | `visibility`                                                                |
-| `is-hidden-{viewport}`, `is-invisible-{viewport}`, all nine viewports                                     | `visibility{Viewport}`                                                      |
-| `is-flex-direction-*`, `is-flex-wrap-*`, `is-justify-content-*`, `is-align-content-*`, `is-align-items-*` | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems` |
-| `is-align-self-*`, `is-flex-grow-*`, `is-flex-shrink-*`                                                   | `alignSelf`, `flexGrow`, `flexShrink`                                       |
-| `is-pulled-left`, `is-pulled-right`                                                                       | `float`                                                                     |
-| `is-clipped`                                                                                              | `overflow="clipped"`                                                        |
-| `is-overlay`, `is-skeleton`, `is-clearfix`, `is-relative`                                                 | `overlay`, `skeleton`, `clearfix`, `relative`                               |
-| `is-unselectable`, `is-clickable`                                                                         | `interaction`                                                               |
-| `is-radiusless`, `is-shadowless`                                                                          | `radius`, `shadow`                                                          |
-| `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                |
+| Classes                                                                                                   | Prop                                                                                  |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `m-{n}`, `mt-{n}`, `mr-{n}`, `mb-{n}`, `ml-{n}`, `mx-{n}`, `my-{n}` (`0` to `6`, `auto`)                  | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`                                               |
+| `p-{n}`, `pt-{n}`, `pr-{n}`, `pb-{n}`, `pl-{n}`, `px-{n}`, `py-{n}`                                       | `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                               |
+| `has-text-{color}`                                                                                        | `textColor` (on `Table`, `color`)                                                     |
+| `has-background-{color}`                                                                                  | `bgColor` (on `Tag`, `InputBase`, `TextAreaBase` and `SelectBase`, `backgroundColor`) |
+| `is-size-1` … `is-size-7`, and `-{viewport}`                                                              | `textSize`, `textSize{Viewport}`                                                      |
+| `has-text-centered`, `-justified`, `-left`, `-right`, and `-{viewport}`                                   | `textAlign`, `textAlign{Viewport}`                                                    |
+| `is-capitalized`, `is-lowercase`, `is-uppercase`, `is-italic`                                             | `textTransform`                                                                       |
+| `has-text-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`                                       | `textWeight`                                                                          |
+| `is-family-sans-serif`, `-monospace`, `-primary`, `-secondary`, `-code`                                   | `fontFamily`                                                                          |
+| `is-block`, `is-flex`, `is-inline`, `is-inline-block`, `is-inline-flex`, `is-grid`                        | `display`                                                                             |
+| the same with any of the nine viewports, `touch` and the `-only` ones included                            | `display{Viewport}`                                                                   |
+| `is-hidden`, `is-invisible`, `is-sr-only`                                                                 | `visibility`                                                                          |
+| `is-hidden-{viewport}`, `is-invisible-{viewport}`, all nine viewports                                     | `visibility{Viewport}`                                                                |
+| `is-flex-direction-*`, `is-flex-wrap-*`, `is-justify-content-*`, `is-align-content-*`, `is-align-items-*` | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`           |
+| `is-align-self-*`, `is-flex-grow-*`, `is-flex-shrink-*`                                                   | `alignSelf`, `flexGrow`, `flexShrink`                                                 |
+| `is-pulled-left`, `is-pulled-right`                                                                       | `float`                                                                               |
+| `is-clipped`                                                                                              | `overflow="clipped"`                                                                  |
+| `is-overlay`, `is-skeleton`, `is-clearfix`, `is-relative`                                                 | `overlay`, `skeleton`, `clearfix`, `relative`                                         |
+| `is-unselectable`, `is-clickable`                                                                         | `interaction`                                                                         |
+| `is-radiusless`, `is-shadowless`                                                                          | `radius`, `shadow`                                                                    |
+| `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                          |
 
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
-on `Hero`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
+on `Breadcrumb`, `Hero`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
 `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `InputBase`, `TextAreaBase`,
-`Progress`, `Tag` and `Tags`; `has-background-*` on `Navbar.Brand`, `Navbar.Menu`,
+`SelectBase`, `Progress`, `Tag` and `Tags`; `has-background-*` on `Breadcrumb`, `Navbar.Brand`, `Navbar.Menu`,
 `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`,
 `Field.Body`, `Control`, `Notification`, `Progress`, `Table` and `Tags`. `Navbar.DropdownMenu`,
 `Navbar.Divider`, `Field.Label`, `Field.Body` and `Control` take no helper props the way the

@@ -10,7 +10,8 @@
  * another. So a prop it names is the prop the codemod writes. It stops where
  * the planner looks past the classes: attributes, children, refs and spreads
  * also decide whether an element converts, and only the codemod checks
- * those. A component that needs one of its parts inside says so.
+ * those. A component that needs one of its parts inside says so, and so does
+ * one that renders the element inside it.
  * `__tests__/bulma-classes-agree.test.ts` runs the planner beside it.
  */
 
@@ -54,6 +55,25 @@ export interface RootRecord {
   ownClassOnly: boolean;
   /** For a `fold` root: the props that render it on the target inside. */
   folds: PropWrite[] | null;
+  /** The component renders the element's only child itself. */
+  absorbs: Absorbs | null;
+}
+
+export interface Absorbs {
+  /** The child's tag. */
+  tag: string;
+  /**
+   * Where the component puts the attributes it is given: on the child, so
+   * the child's become the component's, or on the element, so the child
+   * carries none.
+   */
+  attributesOn: 'child' | 'element';
+  /** The child's classes, as the component's props. */
+  modifiers?: Record<string, Modifier>;
+  /** A bare child attribute one of the element's modifiers writes. */
+  pairs?: Record<string, string>;
+  /** A child attribute the component reads under another name. */
+  renames?: Record<string, { to: string; beside: string }>;
 }
 
 export interface Wraps {
@@ -96,6 +116,8 @@ export type Element =
       renders?: string;
       /** Converts only beside one of its parts. */
       wraps?: Wraps;
+      /** Converts together with the one element inside it. */
+      absorbs?: Absorbs;
     }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
@@ -335,6 +357,7 @@ export function lookupClasses(
       noHelpers: false,
       ownClassOnly: false,
       folds: null,
+      absorbs: null,
     };
   }
   const target = entry.target;
@@ -376,13 +399,20 @@ export function lookupClasses(
       for (const write of modifier.writes) {
         writes.set(write.prop, { value: write.value ?? true, token });
       }
+      // A class the component renders from an attribute of the element
+      // inside (`is-multiple` beside a `<select multiple>`).
+      const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
+        ([, pairedToken]) => pairedToken === token
+      )?.[0];
       verdicts.set(token, {
         kind: 'prop',
         writes: modifier.writes,
         condition:
           modifier.tagIn && !tag
             ? `exact only on ${listTags(modifier.tagIn)}`
-            : undefined,
+            : paired
+              ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
+              : undefined,
       });
       continue;
     }
@@ -505,16 +535,52 @@ export function lookupClasses(
       why: `bestax \`${target}\` drops its own class when it is given a \`className\`, so it converts only with no other class`,
     });
   }
+  const absorbs = entry.absorbs ?? undefined;
   if (!tag) {
     return result({
       kind: 'component',
       target,
       renders: reaches(entry),
       wraps,
+      absorbs,
     });
   }
-  if (renders === tag) return result({ kind: 'component', target, wraps });
-  return result({ kind: 'component', target, as: tag, wraps });
+  if (renders === tag) {
+    return result({ kind: 'component', target, wraps, absorbs });
+  }
+  return result({ kind: 'component', target, as: tag, wraps, absorbs });
+}
+
+/** What converting a component that renders the element inside it means. */
+function absorbsText(target: string, absorbs: Absorbs): string {
+  const child = `<${absorbs.tag}>`;
+  if (absorbs.attributesOn === 'element') {
+    return (
+      ` It renders the ${child} inside it itself, bare: put that ${child}'s ` +
+      `children straight inside \`${target}\`, which converts only around a ` +
+      `${child} with no class or attribute.`
+    );
+  }
+  const changes = [
+    ...Object.entries(absorbs.modifiers ?? {}).map(
+      ([token, modifier]) =>
+        `\`${token}\` becomes ${modifier.writes.map(writeText).join(' ')}`
+    ),
+    ...Object.entries(absorbs.renames ?? {}).map(
+      ([name, { to, beside }]) =>
+        `\`${name}\` becomes \`${to}\` (beside \`${beside}\`)`
+    ),
+  ];
+  const list =
+    changes.length > 1
+      ? `${changes.slice(0, -1).join(', ')} and ${changes[changes.length - 1]}`
+      : changes[0];
+  return (
+    ` It renders the ${child} inside it itself, and puts the attributes it ` +
+    `is given on that ${child}: write the ${child}'s attributes and children ` +
+    `on \`${target}\` in its place, and nothing on this element but a \`key\`.` +
+    (list ? ` On the ${child}, ${list}.` : '')
+  );
 }
 
 function orList(names: readonly string[]): string {
@@ -552,7 +618,8 @@ export function renderLookup(lookup: Lookup): string {
             ? ` It renders its children inside a \`.${element.wraps.in}\` of its ` +
               `own unless one of them is a ${orList(element.wraps.unless)}, so ` +
               `build it from its parts.`
-            : '')
+            : '') +
+          (element.absorbs ? absorbsText(element.target, element.absorbs) : '')
       );
       break;
     case 'wrong-tag':

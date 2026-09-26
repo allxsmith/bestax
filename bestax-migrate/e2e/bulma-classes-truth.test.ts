@@ -91,7 +91,9 @@ function childFor(entry: RootEntry): Child | undefined {
 
 /**
  * Render the raw element and, when the planner converts it, the bestax one.
- * Returns null when the planner leaves the element alone.
+ * Returns null when the planner leaves the element alone. An element whose
+ * only child the target renders itself is rendered around that child, and
+ * the target is given the child's attributes as the codemod writes them.
  */
 function renderBoth(
   facts: ElementFacts,
@@ -101,14 +103,39 @@ function renderBoth(
   const result = plan(facts);
   if (!result.conversion) return null;
   const children = VOID.has(facts.tag) ? undefined : 'x';
+  const sole = facts.soleChild;
+  const soleAttributes = Object.fromEntries(sole?.attributes ?? []) as Record<
+    string,
+    string | true
+  >;
   const raw = renderElement(
     facts.tag,
     { className: facts.tokens.join(' '), ...extra },
-    child ? child.raw : children
+    sole
+      ? createElement(
+          sole.tag,
+          {
+            ...(sole.tokens?.length
+              ? { className: sole.tokens.join(' ') }
+              : {}),
+            ...soleAttributes,
+          },
+          'x'
+        )
+      : child
+        ? child.raw
+        : children
   );
-  const { target, props, className, drop, numbers } = result.conversion;
+  const { target, props, className, drop, numbers, absorbs } =
+    result.conversion;
+  const given = { ...extra };
+  for (const [name, value] of Object.entries(absorbs ? soleAttributes : {})) {
+    if (absorbs!.drop.includes(name)) continue;
+    const renamed = absorbs!.renames.find(([from]) => from === name);
+    given[renamed ? renamed[1] : name] = value;
+  }
   const kept = Object.fromEntries(
-    Object.entries(extra)
+    Object.entries(given)
       .filter(([name]) => !drop.includes(name))
       .map(([name, value]) => [
         name,
@@ -120,24 +147,32 @@ function renderBoth(
     {
       ...kept,
       ...Object.fromEntries(
-        props.map(([name, value]) => [
+        [...props, ...(absorbs?.props ?? [])].map(([name, value]) => [
           name,
           numbers.includes(name) ? Number(value) : value,
         ])
       ),
       ...(className ? { className } : {}),
     },
-    child ? child.converted : children
+    sole ? 'x' : child ? child.converted : children
   );
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
 }
 
+/**
+ * An element's facts. One whose root's target renders its only child itself
+ * holds that child, bare but for the attributes the element's classes need
+ * beside them (`multiple` inside `.select.is-multiple`).
+ */
 function factsFor(
   tag: string,
   tokens: string[],
   attributes: Record<string, string | true> = {},
   child?: Child
 ): ElementFacts {
+  const absorbs = tokens
+    .map(token => (Object.hasOwn(ROOTS, token) ? ROOTS[token] : undefined))
+    .find(entry => entry?.status === 'mapped' && entry.absorbs)?.absorbs;
   return {
     tag,
     tokens,
@@ -146,6 +181,17 @@ function factsFor(
     hasRef: false,
     hasChildren: !VOID.has(tag),
     childTargets: child ? [child.target] : [],
+    ...(absorbs && {
+      soleChild: {
+        tag: absorbs.tag,
+        attributes: new Map(
+          Object.entries(absorbs.pairs ?? {})
+            .filter(([, token]) => tokens.includes(token))
+            .map(([name]) => [name, true])
+        ),
+        hasSpread: false,
+      },
+    }),
   };
 }
 
@@ -290,6 +336,171 @@ describe.each(folds)(
       expect(plan(around([root], { id: 'x' })).fold).toBeUndefined();
       expect(plan(around([root, 'my-app'])).fold).toBeUndefined();
       expect(plan(around([root, 'mt-2'])).fold).toBeUndefined();
+    });
+  }
+);
+
+const absorbing = mapped.filter(([, entry]) => entry.absorbs);
+
+describe.each(absorbing)(
+  '`.%s` converts with the element inside it',
+  (root, entry) => {
+    const spec = entry.absorbs!;
+    const defaults = { ...(entry.defaults ?? {}) };
+    /** The element around a child with these classes and attributes. */
+    const around = (
+      tokens: string[],
+      childTokens: string[] | null | undefined,
+      childAttributes: Record<string, string | number | true | null>,
+      attributes: Record<string, string | true> = defaults
+    ): ElementFacts => ({
+      ...factsFor(entry.tag!, [root, ...tokens], attributes),
+      soleChild: {
+        tag: spec.tag,
+        tokens: childTokens,
+        attributes: new Map(Object.entries(childAttributes)),
+        hasSpread: false,
+      },
+    });
+    const same = (facts: ElementFacts, label: string) => {
+      const both = renderBoth(facts, Object.fromEntries(facts.attributes));
+      expect({ label, converts: both !== null }).toEqual({
+        label,
+        converts: true,
+      });
+      expect({ label, html: both!.converted }).toEqual({
+        label,
+        html: both!.raw,
+      });
+    };
+
+    it('renders the same with each class the child may carry', () => {
+      for (const token of Object.keys(spec.modifiers ?? {})) {
+        same(around([], [token], {}), token);
+      }
+      const all = Object.keys(spec.modifiers ?? {});
+      same(around([], all.length > 0 ? all : undefined, {}), 'all of them');
+    });
+
+    if (spec.attributesOn === 'child') {
+      it("renders the same with the child's attributes on the component", () => {
+        const pool: Record<string, string | true> = {
+          id: 'x',
+          name: 'pick',
+          disabled: true,
+          required: true,
+          title: 'hint',
+          'aria-label': 'Pick one',
+          'data-test': 'y',
+          form: 'f',
+        };
+        for (const [name, value] of Object.entries(pool)) {
+          same(around([], undefined, { [name]: value }), name);
+        }
+        same(around([], undefined, pool), 'all of them');
+      });
+
+      it('renders the same with each pair, and each rename beside it', () => {
+        for (const [name, token] of Object.entries(spec.pairs ?? {})) {
+          same(around([token], undefined, { [name]: true }), name);
+        }
+        for (const [name, { beside }] of Object.entries(spec.renames ?? {})) {
+          const token = spec.pairs![beside];
+          same(
+            around([token], undefined, { [beside]: true, [name]: '4' }),
+            name
+          );
+          same(
+            around([token], undefined, { [beside]: true, [name]: 4 }),
+            `${name} as a number literal`
+          );
+        }
+      });
+    }
+
+    it('stays markup around anything else, or with anything it would lose', () => {
+      const refusals: Array<[string, ElementFacts]> = [
+        ['no child', { ...around([], undefined, {}), soleChild: undefined }],
+        [
+          'another tag',
+          {
+            ...around([], undefined, {}),
+            soleChild: { ...around([], undefined, {}).soleChild!, tag: 'span' },
+          },
+        ],
+        ['another class on the child', around([], ['my-app'], {})],
+        ['an empty class on the child', around([], [], {})],
+        ['a computed class on the child', around([], null, {})],
+        [
+          'a spread on the child',
+          {
+            ...around([], undefined, {}),
+            soleChild: {
+              ...around([], undefined, {}).soleChild!,
+              hasSpread: true,
+            },
+          },
+        ],
+      ];
+      if (spec.attributesOn === 'element') {
+        refusals.push([
+          'an attribute on the child',
+          around([], undefined, { id: 'x' }),
+        ]);
+      } else {
+        refusals.push(
+          [
+            'an attribute on the element',
+            around([], undefined, {}, { id: 'x' }),
+          ],
+          ['a key on the child', around([], undefined, { key: 'k' })]
+        );
+        for (const [name, token] of Object.entries(spec.pairs ?? {})) {
+          refusals.push(
+            [
+              `\`${token}\` without \`${name}\``,
+              around([token], undefined, {}),
+            ],
+            [
+              `\`${name}\` without \`${token}\``,
+              around([], undefined, { [name]: true }),
+            ],
+            [
+              `a \`${name}\` that is not bare`,
+              around([token], undefined, { [name]: 'x' }),
+            ]
+          );
+        }
+        for (const [name, { beside }] of Object.entries(spec.renames ?? {})) {
+          const token = spec.pairs![beside];
+          refusals.push(
+            [
+              `\`${name}\` without \`${beside}\``,
+              around([], undefined, { [name]: '4' }),
+            ],
+            [
+              `a bare \`${name}\``,
+              around([token], undefined, { [beside]: true, [name]: true }),
+            ],
+            [
+              `a \`${name}\` the codemod cannot read as a number`,
+              around([token], undefined, { [beside]: true, [name]: null }),
+            ]
+          );
+        }
+      }
+      for (const [label, facts] of refusals) {
+        expect({ label, conversion: plan(facts).conversion }).toEqual({
+          label,
+          conversion: null,
+        });
+      }
+    });
+
+    it('takes no class on the child that would convert it by itself', () => {
+      for (const token of Object.keys(spec.modifiers ?? {})) {
+        expect(plan(factsFor(spec.tag, [token])).conversion).toBeNull();
+      }
     });
   }
 );

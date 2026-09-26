@@ -46,6 +46,7 @@ The **Tags** column is what the component can render: an element on any other ta
 | `.control`           | `Control`             | `<div>`, `<p>` via `as`                                        |
 | `.input`             | `InputBase`           | `<input>` only                                                 |
 | `.textarea`          | `TextAreaBase`        | `<textarea>` only                                              |
+| `.select`            | `SelectBase`          | `<div>` only                                                   |
 | `.footer`            | `Footer`              | `<footer>`, `<div>` via `as`                                   |
 | `.hero`              | `Hero`                | `<section>` only                                               |
 | `.hero-head`         | `Hero.Head`           | `<div>` only                                                   |
@@ -75,6 +76,7 @@ The **Tags** column is what the component can render: an element on any other ta
 | `.tag`               | `Tag`                 | `<span>` only                                                  |
 | `.tags`              | `Tags`                | `<div>` only                                                   |
 | `.title`             | `Title`               | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as` |
+| `.breadcrumb`        | `Breadcrumb`          | `<nav>` only                                                   |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -97,10 +99,11 @@ a `family:<class>` TODO; converting either means building the dropdown or the to
 by hand. A `.navbar-divider` converts only when it carries no other class, since
 `Navbar.Divider` drops its own class for a `className` it's given.
 
-Form markup converts piece by piece: `.field` to `Field`, `.control` to `Control`, and the
-input and textarea to `InputBase` and `TextAreaBase`, the controls without wrappers of their own.
-A `.label` and a `.help` stay as they are. An input's color (`is-danger`) stays a class, because
-`color` renders `has-text-<color>` on it too. A `.field.is-horizontal` converts once its
+Form markup converts piece by piece: `.field` to `Field`, `.control` to `Control`, the input
+and textarea to `InputBase` and `TextAreaBase`, the controls without wrappers of their own, and a
+`.select` with its `<select>` to `SelectBase` (below). A `.label` and a `.help` stay as they
+are. An input's or a select's color (`is-danger`) stays a class, because `color` renders
+`has-text-<color>` on it too. A `.field.is-horizontal` converts once its
 `.field-label` and `.field-body` do, since `Field` wraps anything else in a `.field-body` of its
 own. `Field` and `Control` tell bestax's form controls inside them to skip their own wrappers, so a
 `.field` or `.control` that already holds a bestax component stays markup with a
@@ -145,13 +148,31 @@ The component renders the wrapper bare, so it folds only when it holds that one 
 nothing else, and carries no attribute and no class but its own modifiers. Otherwise it stays
 with a `children:<Target>` or `attr` TODO.
 
+## An element a component renders inside itself
+
+`SelectBase` renders the `<select>` inside `.select` itself, and `Breadcrumb` the `<ul>` inside
+`.breadcrumb`. So each converts together with that one element, and the component takes its
+place: `<div className="select is-small"><select name="plan">` becomes
+`<SelectBase size="small" name="plan">` around the same `<option>`s, and a breadcrumb's `<li>`s
+go straight inside `Breadcrumb`.
+
+- `SelectBase` puts the attributes it's given on the `<select>`, so the `<select>`'s own move up
+  and the `.select` can carry none but a `key`. `is-hovered` and `is-focused` on the `<select>`
+  become `isHovered` and `isFocused`, a `multiple` `<select>` converts inside `.select.is-multiple`
+  as `multiple`, and its `size` becomes `multipleSize`.
+- `Breadcrumb` renders its `<ul>` bare, and writes `aria-label="breadcrumbs"` unless it's given
+  one, so the `<ul>` carries nothing and the `.breadcrumb` needs an `aria-label` of its own.
+
+Anything else keeps both as markup, with a `children:<Target>`, `attr` or `defaults:<Target>`
+TODO.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
-stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Breadcrumb,
-Checkbox, Checkboxes, Dropdown, Select, File, Icon and IconText, Image, Menu, Message, Modal,
-the navbar's burger and dropdown link, Pagination, Panel, Radio, Radios, Skeleton and Tabs.
+stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
+Checkboxes, Dropdown, File, Icon and IconText, Image, Menu, Message, Modal, the navbar's burger
+and dropdown link, Pagination, Panel, Radio, Radios, Skeleton and Tabs.
 
 ## Classes left alone
 

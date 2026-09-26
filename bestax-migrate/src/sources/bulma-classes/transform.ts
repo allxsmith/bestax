@@ -27,6 +27,7 @@ import {
   jsxNameParts,
   literalValueOf,
   makeAttr,
+  removeAttr,
   renameElement,
   reprintDirectives,
   type TransformContext,
@@ -44,7 +45,7 @@ import {
   placeBestaxImport,
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
-import { plan, type ElementFacts, type Plan } from './plan.js';
+import { plan, type ChildFacts, type ElementFacts, type Plan } from './plan.js';
 import {
   REACT_RUNTIMES,
   type JsxRuntime,
@@ -97,6 +98,37 @@ function afterTagName(comment: any): any {
     leading: false,
     trailing: true,
   };
+}
+
+/**
+ * Put `props`, then what stays in `className`, where an element's
+ * `className` was. A comment on the className goes with whatever takes its
+ * place: the first new attribute, else the next one along, else the tag name.
+ */
+function writeClassName(
+  j: any,
+  element: any,
+  props: ReadonlyArray<readonly [string, string | true]>,
+  className: string | null
+): void {
+  const attrs = element.openingElement.attributes;
+  const classAttr = findAttr(element, 'className');
+  const replacement = props.map(([name, value]) =>
+    makeAttr(j, name, value === true ? undefined : value)
+  );
+  if (className) replacement.push(makeAttr(j, 'className', className));
+  if (classAttr.comments?.length) {
+    const name = element.openingElement.name;
+    const carrier =
+      replacement[0] ?? attrs.find((attr: any) => attr !== classAttr) ?? name;
+    carrier.comments = [
+      ...(carrier.comments ?? []),
+      ...classAttr.comments.map((comment: any) =>
+        carrier === name ? afterTagName(comment) : comment
+      ),
+    ];
+  }
+  attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);
 }
 
 /** A lowercase intrinsic tag: not a component, not a custom element. */
@@ -176,6 +208,43 @@ function attributeName(attr: any): string {
   return attr.name.type === 'JSXNamespacedName'
     ? `${attr.name.namespace.name}:${attr.name.name.name}`
     : attr.name.name;
+}
+
+/** An element's attributes but `className`, as the planner reads them. */
+function attributesBesides<T>(
+  element: any,
+  classAttr: any,
+  read: (attr: any) => T
+): Map<string, T> {
+  const attributes = new Map<string, T>();
+  for (const attr of element.openingElement.attributes ?? []) {
+    if (attr.type !== 'JSXAttribute' || attr === classAttr) continue;
+    attributes.set(attributeName(attr), read(attr));
+  }
+  return attributes;
+}
+
+/** A child's attribute as `ChildFacts` reads it: a number literal is that number. */
+function childAttributeValue(attr: any): string | number | true | null {
+  const literal = literalValueOf(attr);
+  return literal.kind === 'number' ? literal.value : attributeValue(attr);
+}
+
+function hasSpread(element: any): boolean {
+  return (element.openingElement.attributes ?? []).some(
+    (attr: any) => attr.type === 'JSXSpreadAttribute'
+  );
+}
+
+/** The comments inside an element's tags, on the tags and their names. */
+function tagComments(element: any): any[] {
+  const { openingElement, closingElement } = element;
+  return [
+    openingElement,
+    openingElement.name,
+    closingElement,
+    closingElement?.name,
+  ].flatMap((node: any) => node?.comments ?? []);
 }
 
 /** Every comment in the file (recast hangs them on the nodes). */
@@ -291,6 +360,27 @@ function isContent(child: any): boolean {
 function reachesReact(child: any): boolean {
   if (child.type !== 'JSXText') return isContent(child);
   return /[^ \t\r\n]/.test(child.value) || !/[\r\n]/.test(child.value);
+}
+
+/** A plain HTML child as the planner reads it; nothing for a component. */
+function childFacts(child: any): ChildFacts | undefined {
+  const name = child.openingElement.name;
+  if (name.type !== 'JSXIdentifier' || !INTRINSIC.test(name.name)) {
+    return undefined;
+  }
+  const classAttr = findAttr(child, 'className');
+  const className = classAttr && staticClassName(classAttr);
+  return {
+    tag: name.name,
+    ...(classAttr && {
+      tokens:
+        className === null
+          ? null
+          : [...new Set(className.split(/\s+/).filter(Boolean))],
+    }),
+    attributes: attributesBesides(child, classAttr, childAttributeValue),
+    hasSpread: hasSpread(child),
+  };
 }
 
 function insideForeignContent(elementPath: ASTPath<any>): boolean {
@@ -472,13 +562,10 @@ export default function transform(
     }
     const classAttr = findAttr(element, 'className');
     if (!classAttr) continue;
-    const attributes = new Map<string, string | true | null>();
-    for (const attr of element.openingElement.attributes ?? []) {
-      if (attr.type !== 'JSXAttribute' || attr === classAttr) continue;
-      attributes.set(attributeName(attr), attributeValue(attr));
-    }
+    const attributes = attributesBesides(element, classAttr, attributeValue);
     const className = staticClassName(classAttr);
     const surrounding = around(elementPath);
+    const sole = soleChild(element);
     const facts: ElementFacts = {
       tag: name.name,
       tokens:
@@ -486,13 +573,12 @@ export default function transform(
           ? classTokensOf(classAttr.value)
           : [...new Set(className.split(/\s+/).filter(Boolean))],
       attributes,
-      hasSpread: (element.openingElement.attributes ?? []).some(
-        (attr: any) => attr.type === 'JSXSpreadAttribute'
-      ),
+      hasSpread: hasSpread(element),
       hasRef: attributes.has('ref'),
       hasChildren: (element.children ?? []).some(reachesReact),
       childTargets: childTargets(elementPath),
-      soleChildTarget: planned.get(soleChild(element))?.conversion?.target,
+      soleChildTarget: planned.get(sole)?.conversion?.target,
+      soleChild: sole && childFacts(sole),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
@@ -604,14 +690,12 @@ export default function transform(
       // wrapper's tags moves inside the child's opening tag.
       const wrapper = elementPath.node;
       const inner = soleChild(wrapper);
-      const { openingElement, closingElement } = wrapper;
       const inTags = [
-        openingElement,
-        openingElement.name,
-        ...(openingElement.attributes ?? []),
-        closingElement,
-        closingElement?.name,
-      ].flatMap((node: any) => node?.comments ?? []);
+        ...tagComments(wrapper),
+        ...(wrapper.openingElement.attributes ?? []).flatMap(
+          (attr: any) => attr.comments ?? []
+        ),
+      ];
       if (inTags.length) {
         const name = inner.openingElement.name;
         name.comments = [...(name.comments ?? []), ...inTags.map(afterTagName)];
@@ -626,39 +710,64 @@ export default function transform(
     const conversion = result.conversion;
     if (!conversion) continue;
     const element = elementPath.node;
+    // A target that renders the element's only child itself is written in
+    // that child's place, so the child's children stay where they are.
+    const child = conversion.absorbs ? soleChild(element) : undefined;
+    // The element's tags go, and so do the child's tag names: their comments
+    // move to the name that stays. The child's tags themselves stay, and
+    // keep their own.
+    const inTags = child
+      ? [
+          ...tagComments(element),
+          ...[child.openingElement.name, child.closingElement?.name].flatMap(
+            (node: any) => node?.comments ?? []
+          ),
+        ]
+      : [];
+    if (child) {
+      // Renamed before the drops below, which name each attribute as the
+      // component is given it.
+      const { renames, drop } = conversion.absorbs!;
+      for (const name of drop) removeAttr(child, findAttr(child, name));
+      for (const [from, to] of renames) {
+        findAttr(child, from).name = j.jsxIdentifier(to);
+      }
+    }
     const [head, ...rest] = conversion.target.split('.');
     renameElement(j, element, [ctx.reserve(head), ...rest].join('.'));
-    const attrs = element.openingElement.attributes;
     for (const name of conversion.drop) {
-      attrs.splice(attrs.indexOf(findAttr(element, name)), 1);
+      const holder = findAttr(element, name) ? element : child;
+      removeAttr(holder, findAttr(holder, name));
     }
-    const classAttr = findAttr(element, 'className');
-    const replacement = conversion.props.map(([name, value]) =>
-      makeAttr(j, name, value === true ? undefined : value)
-    );
-    if (conversion.className) {
-      replacement.push(makeAttr(j, 'className', conversion.className));
-    }
-    // A comment on the className goes with whatever takes its place: the
-    // first new attribute, else the next one along, else the tag name. After
-    // the name it has to be a block comment: recast prints a line comment
-    // there as `<// …`, which TypeScript reads as a closing tag.
-    if (classAttr.comments?.length) {
-      const name = element.openingElement.name;
-      const carrier =
-        replacement[0] ?? attrs.find((attr: any) => attr !== classAttr) ?? name;
-      carrier.comments = [
-        ...(carrier.comments ?? []),
-        ...classAttr.comments.map((comment: any) =>
-          carrier === name ? afterTagName(comment) : comment
-        ),
+    writeClassName(j, element, conversion.props, conversion.className);
+    let written = element;
+    if (child) {
+      child.openingElement.name = element.openingElement.name;
+      if (child.closingElement) {
+        child.closingElement.name = element.closingElement.name;
+      }
+      if (findAttr(child, 'className')) {
+        writeClassName(j, child, conversion.absorbs!.props, null);
+      }
+      child.openingElement.attributes = [
+        ...(element.openingElement.attributes ?? []),
+        ...(child.openingElement.attributes ?? []),
       ];
+      // A comment on the element moves to the component in its place.
+      if (inTags.length) {
+        const name = child.openingElement.name;
+        name.comments = [...(name.comments ?? []), ...inTags.map(afterTagName)];
+      }
+      if (element.comments?.length) {
+        child.comments = [...element.comments, ...(child.comments ?? [])];
+      }
+      elementPath.replace(child);
+      written = child;
     }
-    attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);
     // After the splice, so a prop the conversion wrote is found as well as
     // an attribute the element already had.
     for (const name of conversion.numbers) {
-      const attr = findAttr(element, name);
+      const attr = findAttr(written, name);
       attr.value = j.jsxExpressionContainer(
         j.numericLiteral(Number(attributeValue(attr)))
       );

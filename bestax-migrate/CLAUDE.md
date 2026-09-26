@@ -97,7 +97,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   tests run this planner beside that tool), `plan.ts` (pure: one element's tag,
   classes, attributes, what its children became and the bestax components already around and
   inside it in, a conversion, a fold into its only child (a `fold` wrapper such as
-  `.table-container`) or a TODO out; an entry
+  `.table-container`) or a TODO out; an entry that `absorbs` its only child (`.select`'s
+  `<select>`) converts together with it, written in the child's place; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
   before their parents), `rules.ts` (rule ids from a closed
   vocabulary, since the input is the app's own class strings and telemetry must never carry

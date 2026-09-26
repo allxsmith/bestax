@@ -12,13 +12,13 @@ attribute, never one of your own classes.
 The element spreads props (`<div className="box" {...rest}>`). A spread can carry anything,
 and bestax reads some names as its own props: a spread `className` merges with the component's
 classes, where on the plain element it replaced them. Convert by hand once you know what the
-spread carries, or leave it.
+spread carries, or leave it. A spread on the `<select>` inside a `.select` counts too, since its
+attributes become `SelectBase`'s.
 
 ### `ref:<Target>`
 
 The element has a `ref`, and the bestax component doesn't forward one, so the ref would stop
-reaching the DOM node. Only `Button` and `Link` forward refs among the components this source
-converts. Keep the element as markup.
+reaching the DOM node. Keep the element as markup.
 
 ### `tag:<Target>`
 
@@ -46,6 +46,17 @@ rejects. Keep the element as markup.
 mt-2">`). `Navbar.Divider` drops its own class for a `className` it's given, so the conversion
 would lose `.navbar-divider`. Keep the element as markup, or move the extra class off it.
 
+On a `.select` or a `.breadcrumb` it's about the element inside, which the component renders
+itself. `SelectBase` gives its `<select>` every attribute it's given and no class but
+`is-hovered` or `is-focused`, so an attribute on the `.select` (an `attr` TODO) would move onto
+the `<select>`, and another class on the `<select>` (`attr:className`) would be lost, as would
+the `class=""` an empty `className` renders. Move the
+attribute onto the `<select>` if that's where you want it, then re-run. A `multiple` `<select>`
+converts only inside a `.select.is-multiple`, with `multiple` written bare, and its `size` only
+beside it, as a number written out (`size={4}`): `SelectBase` writes it back only when it holds a
+number, which the codemod can't tell of an expression. `Breadcrumb` renders its `<ul>` bare, so an attribute or class on the `<ul>` keeps
+both as markup.
+
 ### `defaults:<Target>`
 
 The component renders attributes of its own when the element doesn't set them. `Delete`
@@ -53,7 +64,8 @@ renders `type="button"` and `aria-label="Close"`. On a bare `<button className="
 converting would add both, changing a submit button inside a form into a plain button. Add the
 attributes you want (usually both, with a real label), then re-run. `Navbar` renders
 `role="navigation"` and `aria-label="main navigation"`, which Bulma's own navbar markup carries;
-give the `<nav>` both, with your own label if you like.
+give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
+`aria-label="breadcrumbs"`, so give its `<nav>` an `aria-label`, whatever it says.
 
 ### `drops:<Target>`
 
@@ -88,6 +100,10 @@ wrapper folds into them only when it holds that one element and nothing else. A 
 comment or a second element beside it keeps the wrapper as markup; move it outside the wrapper,
 then re-run. An attribute or an extra class on the wrapper keeps it too, because the component
 renders the wrapper bare.
+
+On a `.select` or a `.breadcrumb` it's the same shape from the other side. `SelectBase` renders
+the `<select>` inside `.select` itself, and `Breadcrumb` the `<ul>` inside `.breadcrumb`, so each
+converts only around that one element, with nothing else beside it.
 
 ### `context:<Target>`
 
@@ -129,7 +145,9 @@ into the prop:
 ```
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
-`<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`.
+`<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`. A computed
+`className` on the `<select>` inside a `.select`, or the `<ul>` inside a `.breadcrumb`, gets
+this TODO too.
 
 ## A family it leaves as markup: `family:<class>`
 
@@ -144,9 +162,6 @@ in the browser:
   `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
   into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
   with `Navbar.Dropdown` (`hoverable` for `is-hoverable`) and the link with `Navbar.Link`.
-- **`family:select`**: `SelectBase` renders the `.select` wrapper and the `<select>` together,
-  with the element's attributes on the `<select>`. Replace the pair with one `SelectBase`
-  inside the `Control`, keeping the `<option>`s as its children. See the `bestax-form` skill.
 - **`family:file`**: `File` renders the whole `.file-label` tree itself, and a `.field` around
   it unless it's already inside one. Replace the `.file` block with one `File`; its API page
   lists the props for the button text, the file name and the icons.
@@ -160,8 +175,8 @@ in the browser:
 - **`family:image`**: `Image` renders its own `<img>`.
 - **`family:menu`**: `Menu.Item` renders the `<li>` and the `<a>` together.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
-- **`family:pagination`**, **`family:panel`**, **`family:tabs`**, **`family:breadcrumb`**:
-  each renders list items, links or roles of its own. Rebuild them from the component's docs.
+- **`family:pagination`**, **`family:panel`**, **`family:tabs`**: each renders list items,
+  links or roles of its own. Rebuild them from the component's docs.
 - **`family:skeleton-block`**, **`family:skeleton-lines`**: `Skeleton` renders its own markup.
 
 ## A class Bulma v1 removed: `legacy:<class>`

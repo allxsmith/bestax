@@ -49,6 +49,11 @@ export interface ElementFacts {
    * element and nothing else (not even whitespace React would render).
    */
   soleChildTarget?: string;
+  /**
+   * That only child as written, when it is a plain HTML element: what an
+   * entry that `absorbs` it reads.
+   */
+  soleChild?: ChildFacts;
   /** The bestax components already in the file inside this element. */
   bestaxInside?: readonly string[];
   /** The bestax components already in the file around this element. */
@@ -64,6 +69,21 @@ export interface ElementFacts {
    * reach into it with `cloneElement`.
    */
   onlyChildOf?: string;
+}
+
+export interface ChildFacts {
+  tag: string;
+  /**
+   * Its static classes, or null when its `className` is computed. Left out
+   * when it has no `className` at all: an empty one still renders `class=""`.
+   */
+  tokens?: readonly string[] | null;
+  /**
+   * Its attributes but `className`, read as `ElementFacts.attributes` is,
+   * except that a number literal (`size={3}`) is that number.
+   */
+  attributes: ReadonlyMap<string, string | number | true | null>;
+  hasSpread: boolean;
 }
 
 export interface Todo {
@@ -85,6 +105,19 @@ export interface Conversion {
    * a number (`minCol={4}`), because the target types them as numbers.
    */
   numbers: string[];
+  /**
+   * The element's only child, which the target renders itself: the target is
+   * written in the child's place, with the element's props and attributes
+   * first, then the child's, and the element goes.
+   */
+  absorbs?: {
+    /** What the child's classes become, in place of its `className`. */
+    props: Array<[name: string, value: string | true]>;
+    /** Child attributes the target reads under another name. */
+    renames: Array<[from: string, to: string]>;
+    /** Child attributes a prop above renders instead. */
+    drop: string[];
+  };
 }
 
 export interface Plan {
@@ -202,14 +235,26 @@ export function plan(facts: ElementFacts): Plan {
       `this element is the only child of \`<${facts.onlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\` (next/link's legacy behavior, a tooltip, a Radix \`asChild\` trigger) that bestax \`${target}\` would not take the same way; convert it by hand if \`<${facts.onlyChildOf}>\` only renders its children`
     );
   }
-  if (facts.attributes.has('dangerouslySetInnerHTML')) {
+  // The attributes the target is given: the element's, or its only child's
+  // when the target renders that child itself and puts them there.
+  let attributes = facts.attributes;
+  let absorbed: Conversion['absorbs'];
+  if (entry.absorbs) {
+    const outcome = absorb(facts, root!, entry, target, refuse);
+    if ('todos' in outcome) return outcome;
+    ({ attributes, absorbed } = outcome);
+  }
+  const renamed = new Set(absorbed?.renames.map(([, to]) => to));
+
+  if (attributes.has('dangerouslySetInnerHTML')) {
     return refuse(
       'attr',
       'dangerouslySetInnerHTML',
       `\`dangerouslySetInnerHTML\` sets the element's content directly, and some bestax components render content of their own beside \`children\`, which React rejects; keep this element as markup`
     );
   }
-  for (const name of facts.attributes.keys()) {
+  for (const name of attributes.keys()) {
+    if (renamed.has(name)) continue;
     const readAsProp = entry.ownProps?.includes(name) || HELPER_PROPS.has(name);
     if (readAsProp && !entry.passThrough?.includes(name)) {
       return refuse(
@@ -220,12 +265,12 @@ export function plan(facts: ElementFacts): Plan {
     }
   }
   const missing = Object.entries(entry.defaults ?? {}).filter(
-    ([name]) => !facts.attributes.has(name)
+    ([name]) => !attributes.has(name)
   );
   const drop: string[] = [];
   for (const name of entry.untypedAttrs ?? []) {
-    if (!facts.attributes.has(name)) continue;
-    if (entry.defaults?.[name] === facts.attributes.get(name)) {
+    if (!attributes.has(name)) continue;
+    if (entry.defaults?.[name] === attributes.get(name)) {
       drop.push(name);
       continue;
     }
@@ -237,7 +282,7 @@ export function plan(facts: ElementFacts): Plan {
   }
   const numbers: string[] = [];
   for (const name of entry.numberAttrs ?? []) {
-    const value = facts.attributes.get(name);
+    const value = attributes.get(name);
     if (typeof value !== 'string') continue;
     // Only a string that is already the number's own spelling: `040`, `1.50`
     // and ` 40 ` would render as `40`, `1.5` and `40`.
@@ -264,7 +309,7 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` tells the bestax form controls inside it to skip wrappers of their own, and this element already holds \`${facts.bestaxInside[0]}\`, which could render differently inside it; keep this element as markup, or convert it and check that component by hand`
     );
   }
-  if (entry.adoptsIdFrom && !facts.attributes.has('id')) {
+  if (entry.adoptsIdFrom && !attributes.has('id')) {
     // Context follows the render tree, not the file: a component of the app
     // around the element can render a labelled `Field` around it just as well.
     const around =
@@ -285,15 +330,10 @@ export function plan(facts: ElementFacts): Plan {
     (facts.hasChildren || wraps.whenEmpty) &&
     !facts.childTargets?.some(child => wraps.unless.includes(child))
   ) {
-    const parts = wraps.unless.map(part => `\`${part}\``);
-    const list =
-      parts.length > 1
-        ? `${parts.slice(0, -1).join(', ')} or ${parts[parts.length - 1]}`
-        : parts[0];
     return refuse(
       'children',
       target,
-      `bestax \`${target}\` renders its children inside a \`.${wraps.in}\` of its own unless one of them is a ${list}, so this element stays markup`
+      `bestax \`${target}\` renders its children inside a \`.${wraps.in}\` of its own unless one of them is a ${orList(wraps.unless)}, so this element stays markup`
     );
   }
   if (missing.length > 0) {
@@ -305,7 +345,7 @@ export function plan(facts: ElementFacts): Plan {
     );
   }
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
-    if (facts.attributes.has(name) && inTagSet(tags, tag)) {
+    if (attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
       const visible = name === 'disabled';
@@ -417,9 +457,174 @@ export function plan(facts: ElementFacts): Plan {
       className: rest.length > 0 ? rest.join(' ') : null,
       drop,
       numbers,
+      ...(absorbed ? { absorbs: absorbed } : {}),
     },
     todos,
   };
+}
+
+type Refuse = (kind: string, token: string, message: string) => Plan;
+
+/** `a`, `a or b`, `a, b or c`, each in backticks. */
+function orList(names: readonly string[]): string {
+  const quoted = names.map(name => `\`${name}\``);
+  return quoted.length > 1
+    ? `${quoted.slice(0, -1).join(', ')} or ${quoted[quoted.length - 1]}`
+    : quoted[0];
+}
+
+/**
+ * The only child an entry's target renders itself (`.select`'s `<select>`):
+ * what its classes become, and the attributes the target is given. It
+ * converts with the element only when the target would render it exactly
+ * as written.
+ */
+function absorb(
+  facts: ElementFacts,
+  root: string,
+  entry: RootEntry,
+  target: string,
+  refuse: Refuse
+):
+  | Plan
+  | {
+      attributes: ReadonlyMap<string, string | true | null>;
+      absorbed: NonNullable<Conversion['absorbs']>;
+    } {
+  const spec = entry.absorbs!;
+  const child = facts.soleChild;
+  const itself = `bestax \`${target}\` renders the <${spec.tag}> inside \`.${root}\` itself`;
+  if (child?.tag !== spec.tag) {
+    return refuse(
+      'children',
+      target,
+      `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it`
+    );
+  }
+  if (child.hasSpread) {
+    return refuse(
+      'spread',
+      target,
+      `the <${spec.tag}> inside spreads props, which bestax \`${target}\` may read differently than the <${spec.tag}> did; convert the two to \`${target}\` by hand`
+    );
+  }
+  if (child.tokens === null) {
+    return refuse(
+      'dynamic-class',
+      target,
+      `the <${spec.tag}> inside has a computed \`className\`, and the codemod converts static class strings only; convert the two to bestax \`${target}\` by hand, turning each condition into its prop`
+    );
+  }
+  if (child.tokens?.length === 0) {
+    return refuse(
+      'attr',
+      'className',
+      `the <${spec.tag}> inside has an empty \`className\`, which renders \`class=""\`, and bestax \`${target}\` renders it with no class attribute; drop the empty \`className\`, then re-run`
+    );
+  }
+  const modifiers = spec.modifiers ?? {};
+  const props: Array<[string, string | true]> = [];
+  for (const token of child.tokens ?? []) {
+    const modifier = Object.hasOwn(modifiers, token)
+      ? modifiers[token]
+      : undefined;
+    if (!modifier) {
+      const allowed = Object.keys(modifiers);
+      return refuse(
+        'attr',
+        'className',
+        `${itself}, with no class on it${allowed.length > 0 ? ` but ${orList(allowed)}` : ''}, so its \`${token}\` would be lost; keep this element as markup`
+      );
+    }
+    for (const write of modifier.writes) {
+      props.push([write.prop, write.value ?? true]);
+    }
+  }
+
+  if (spec.attributesOn === 'element') {
+    const name = [...child.attributes.keys()][0];
+    if (name !== undefined) {
+      return refuse(
+        'attr',
+        name,
+        `${itself}, with no attributes, so its \`${name}\` would be lost; keep this element as markup`
+      );
+    }
+    return {
+      attributes: facts.attributes,
+      absorbed: { props, renames: [], drop: [] },
+    };
+  }
+
+  // The target puts what it is given on the child, so the element can carry
+  // nothing but its `key`, which stays with the component in its place.
+  const own = [...facts.attributes.keys()].find(name => name !== 'key');
+  if (own !== undefined) {
+    return refuse(
+      'attr',
+      own,
+      `bestax \`${target}\` puts the attributes it is given on the <${spec.tag}> inside \`.${root}\`, so this element's \`${own}\` would move there; move it onto the <${spec.tag}> if that is what you want, then re-run`
+    );
+  }
+  if (child.attributes.has('key')) {
+    return refuse(
+      'attr',
+      'key',
+      `the <${spec.tag}> inside has a \`key\`, which would move up to bestax \`${target}\` in place of this element's; keep this element as markup`
+    );
+  }
+  const drop: string[] = [];
+  for (const [name, token] of Object.entries(spec.pairs ?? {})) {
+    const withClass = facts.tokens.includes(token);
+    if (withClass && child.attributes.get(name) === true) {
+      drop.push(name);
+    } else if (withClass || child.attributes.has(name)) {
+      return refuse(
+        'attr',
+        name,
+        `bestax \`${target}\` renders \`${name}\` on the <${spec.tag}> and \`.${token}\` on this element together, from one prop, so the two convert only as a pair, with \`${name}\` written bare; keep this element as markup`
+      );
+    }
+  }
+  // A number literal is carried over as written, like any other expression.
+  const given = (value: string | number | true | null) =>
+    typeof value === 'number' ? null : value;
+  const attributes = new Map<string, string | true | null>();
+  const renames: Array<[string, string]> = [];
+  for (const [name, value] of child.attributes) {
+    if (drop.includes(name)) continue;
+    const rename =
+      spec.renames && Object.hasOwn(spec.renames, name)
+        ? spec.renames[name]
+        : undefined;
+    if (!rename) {
+      attributes.set(name, given(value));
+      continue;
+    }
+    // `SelectBase` writes `multipleSize` back as `size` only when it holds a
+    // number, and an expression may not: only a literal converts. A string
+    // one is held to a number's spelling below, with the target's numbers.
+    if (
+      !drop.includes(rename.beside) ||
+      (typeof value !== 'number' && typeof value !== 'string')
+    ) {
+      return refuse(
+        'attr',
+        name,
+        `bestax \`${target}\` writes the <${spec.tag}>'s \`${name}\` only beside \`${rename.beside}\`, and only from a number in \`${rename.to}\`, so it converts only as a number written out (\`${name}={4}\`); keep this element as markup, or convert it by hand if \`${name}\` is always a number`
+      );
+    }
+    if (child.attributes.has(rename.to)) {
+      return refuse(
+        'attr',
+        rename.to,
+        `\`${rename.to}\` is also a bestax \`${target}\` prop, which would read it differently; rename or drop the attribute, then re-run`
+      );
+    }
+    renames.push([name, rename.to]);
+    attributes.set(rename.to, given(value));
+  }
+  return { attributes, absorbed: { props, renames, drop } };
 }
 
 /**
