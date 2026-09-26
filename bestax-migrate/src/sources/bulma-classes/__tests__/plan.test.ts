@@ -527,6 +527,36 @@ describe('plan', () => {
     });
   });
 
+  describe('wrappers a component renders', () => {
+    const fixed = (tag: string, className: string) =>
+      plan(facts(tag, className, {}, { soleChildTarget: 'Grid' }));
+
+    it('folds the wrapper and its modifiers into props on the component', () => {
+      expect(fixed('div', 'fixed-grid has-3-cols has-1-cols-mobile')).toEqual({
+        conversion: null,
+        fold: {
+          target: 'Grid',
+          props: [
+            ['isFixed', true],
+            ['fixedCols', '3'],
+            ['fixedColsMobile', '1'],
+          ],
+          numbers: ['fixedCols', 'fixedColsMobile'],
+        },
+        todos: [],
+      });
+    });
+
+    it('stays on another tag, or with two counts for one prop', () => {
+      expect(fixed('section', 'fixed-grid').todos.map(t => t.rule)).toEqual([
+        'tag:Grid',
+      ]);
+      expect(
+        fixed('div', 'fixed-grid has-3-cols has-4-cols').todos.map(t => t.rule)
+      ).toEqual(['attr:className']);
+    });
+  });
+
   describe('Grid and Cell', () => {
     it('writes a prop typed as a number as a number', () => {
       expect(plan(facts('div', 'cell is-col-span-2 mt-2')).conversion).toEqual({

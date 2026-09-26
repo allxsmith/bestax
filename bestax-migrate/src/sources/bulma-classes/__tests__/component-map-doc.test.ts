@@ -55,6 +55,17 @@ describe('the shipped bulma-classes component map matches the table', () => {
     expect(rowsUnder('Components')).toEqual(expected);
   });
 
+  it('lists every wrapper it folds, with the props that render it', () => {
+    expect(rowsUnder('Wrappers a component renders')).toEqual(
+      Object.entries(ROOTS)
+        .filter(([, entry]) => entry.status === 'fold')
+        .map(([root, entry]) => [
+          `\`.${root}\``,
+          `\`${[entry.target, ...(entry.folds ?? []).map(write => write.prop)].join(' ')}\``,
+        ])
+    );
+  });
+
   it('lists every plain-tag wrapper', () => {
     expect(rowsUnder('Plain tags with helper classes')).toEqual(
       Object.entries(WRAPPERS).map(([tag, target]) => [
