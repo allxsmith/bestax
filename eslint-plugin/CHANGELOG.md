@@ -1,3 +1,18 @@
+## [1.1.2](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.1...@allxsmith/eslint-plugin-bestax@1.1.2) (2026-09-26)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** report .select and .breadcrumb as converted ([a9d8082](https://github.com/allxsmith/bestax/commit/a9d80822bfa2a657e7c8b1917faad582ceb3edeb))
+
+
+### Features
+
+* **bestax-mcp:** say when a component renders the element inside it ([4ced25c](https://github.com/allxsmith/bestax/commit/4ced25caf740bc2d56d6f2fddee86524120e4c0b))
+* **bestax-migrate:** convert .select and .breadcrumb with the element inside them ([d76c569](https://github.com/allxsmith/bestax/commit/d76c569f5066efb06ef3f8259731a9e1549cc5a5))
+* **bestax-migrate:** convert Bulma grids and cells ([#760](https://github.com/allxsmith/bestax/issues/760)) ([22adc7c](https://github.com/allxsmith/bestax/commit/22adc7cb85785cd2cb8e8862d4f7d44a3cefa6a2)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+* **bestax-migrate:** fold .table-container and .fixed-grid into the component inside ([#761](https://github.com/allxsmith/bestax/issues/761)) ([72504f5](https://github.com/allxsmith/bestax/commit/72504f597980bed7f665e4267f1225b9c956e81e)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+
 ## [1.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.0...@allxsmith/eslint-plugin-bestax@1.1.1) (2026-09-26)
 
 
