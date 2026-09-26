@@ -9,6 +9,7 @@
     "build": "docusaurus build && node scripts/strip-generated-markers.mjs",
     "test": "node --test \"scripts/*.test.mjs\"",
     "rasterize:cover": "node scripts/rasterize-cover.mjs",
+    "snapshot:comparison": "node scripts/snapshot-comparison.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
