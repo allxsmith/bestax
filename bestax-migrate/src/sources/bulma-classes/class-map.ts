@@ -17,6 +17,8 @@ export interface PropWrite {
   readonly prop: string;
   /** Omitted for a bare boolean prop. */
   readonly value?: string;
+  /** The prop is typed as a number, so the value is written as one. */
+  readonly numeric?: boolean;
 }
 
 export type TagSet =
@@ -261,6 +263,9 @@ const COMPONENT_COLORS = [
   'dark',
 ] as const;
 
+/** Bulma's whole-step spacing scale, as `Grid`'s gap props take it. */
+const GAPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8'] as const;
+
 const COLUMN_SIZES = [
   '1',
   '2',
@@ -302,6 +307,20 @@ const flag = (prop: string): Modifier => ({ writes: [{ prop }] });
 const set = (prop: string, value: string): Modifier => ({
   writes: [{ prop, value }],
 });
+
+/** `prefix + n` → `prop={n}` for `n` from 1 to `max`, for a prop typed as a number. */
+function numbers(
+  prefix: string,
+  max: number,
+  prop: string
+): Record<string, Modifier> {
+  return Object.fromEntries(
+    Array.from({ length: max }, (_, i) => String(i + 1)).map(value => [
+      `${prefix}${value}`,
+      { writes: [{ prop, value, numeric: true }] },
+    ])
+  );
+}
 
 /** `prefix + value + suffix` → `prop = value`, for each value. */
 function tokens(
@@ -642,6 +661,59 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'isNarrowDesktop',
       'isNarrowWidescreen',
       'isNarrowFullhd',
+    ],
+  },
+  // Grid's gaps take a numeric string, but its column minimum and every Cell
+  // placement are typed as numbers. The half steps (`is-gap-0.5`) have no prop.
+  grid: {
+    ...BASE,
+    target: 'Grid',
+    tag: 'div',
+    modifiers: {
+      ...tokens('is-gap-', GAPS, 'gap'),
+      ...tokens('is-column-gap-', GAPS, 'columnGap'),
+      ...tokens('is-row-gap-', GAPS, 'rowGap'),
+      ...numbers('is-col-min-', 32, 'minCol'),
+    },
+    ownProps: [
+      'isFixed',
+      'gap',
+      'columnGap',
+      'rowGap',
+      'minCol',
+      'fixedCols',
+      'fixedColsMobile',
+      'fixedColsTablet',
+      'fixedColsDesktop',
+      'fixedColsWidescreen',
+      'fixedColsFullhd',
+      'textColor',
+      'color',
+      'bgColor',
+    ],
+  },
+  cell: {
+    ...BASE,
+    target: 'Cell',
+    tag: 'div',
+    modifiers: {
+      ...numbers('is-col-start-', 12, 'colStart'),
+      ...numbers('is-col-from-end-', 12, 'colFromEnd'),
+      ...numbers('is-col-span-', 12, 'colSpan'),
+      ...numbers('is-row-start-', 12, 'rowStart'),
+      ...numbers('is-row-from-end-', 12, 'rowFromEnd'),
+      ...numbers('is-row-span-', 12, 'rowSpan'),
+    },
+    ownProps: [
+      'colStart',
+      'colFromEnd',
+      'colSpan',
+      'rowStart',
+      'rowFromEnd',
+      'rowSpan',
+      'textColor',
+      'color',
+      'bgColor',
     ],
   },
   container: {
@@ -1217,17 +1289,9 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Breadcrumb',
     'bestax `Breadcrumb` renders the `<ul>` itself and adds an `aria-label`'
   ),
-  cell: todo(
-    'Cell',
-    'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
-  ),
-  grid: todo(
-    'Grid',
-    'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
-  ),
   'fixed-grid': todo(
     'Grid',
-    'this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)'
+    '`Grid isFixed` renders the `.fixed-grid` wrapper itself, from `fixedCols`; replace the wrapper and its `.grid` with one `Grid`, by hand'
   ),
   checkbox: todo(
     'Checkbox',
@@ -1387,6 +1451,8 @@ function plain(why: string): RootEntry {
 export const PRECEDENCE: readonly string[] = [
   'columns',
   'column',
+  'grid',
+  'cell',
   'container',
   'section',
   'hero',
@@ -1709,9 +1775,13 @@ export const PASSTHROUGH: ReadonlyArray<{
     match: /-(?:touch|tablet-only|desktop-only|widescreen-only)$/,
   },
   {
-    why: 'Grid and Cell layout, which this source leaves as markup',
+    why: 'a Grid or Cell class, which converts only on its own `.grid` or `.cell`, and only where bestax has a prop for it',
     match:
-      /^(?:is-(?:col|row)-.+|has-\d+-cols(?:-.+)?|is-(?:column|row)-gap-\d+|is-gap-\d+|is-auto-fill)$/,
+      /^(?:is-(?:col|row)-.+|is-(?:column|row)-gap-\d+|is-gap-\d+|is-auto-fill)$/,
+  },
+  {
+    why: 'a `.fixed-grid` column count, which stays with its `.fixed-grid` (a family this source leaves as markup)',
+    match: /^has-\d+-cols(?:-.+)?$/,
   },
   {
     why: 'an `.image` modifier; `.image` stays as markup',

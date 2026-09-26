@@ -155,9 +155,10 @@ in the browser:
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination`**, **`family:panel`**, **`family:tabs`**, **`family:breadcrumb`**:
   each renders list items, links or roles of its own. Rebuild them from the component's docs.
-- **`family:grid`**, **`family:cell`**, **`family:fixed-grid`**: this source leaves Grid markup
-  as written. `Grid` and `Cell` convert by hand; `Grid isFixed` renders the `.fixed-grid`
-  wrapper itself.
+- **`family:fixed-grid`**: `Grid isFixed` renders the `.fixed-grid` wrapper itself, and its
+  `has-N-cols` classes from `fixedCols` (and `fixedColsMobile` and the other viewports). The
+  `.grid` inside has already become a `Grid`; move the wrapper's column counts onto it as those
+  props, add `isFixed`, and delete the wrapper.
 - **`family:table-container`**: bestax renders `.table-container` from `Table isResponsive`.
 - **`family:skeleton-block`**, **`family:skeleton-lines`**: `Skeleton` renders its own markup.
 

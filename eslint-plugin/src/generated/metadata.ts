@@ -189,8 +189,6 @@ export interface BulmaComponentClass {
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
     ['breadcrumb', { component: 'Breadcrumb', converts: false }],
-    ['cell', { component: 'Cell', converts: false }],
-    ['grid', { component: 'Grid', converts: false }],
     ['fixed-grid', { component: 'Grid', converts: false }],
     ['checkbox', { component: 'Checkbox', converts: false }],
     ['checkboxes', { component: 'Checkboxes', converts: false }],
@@ -215,6 +213,8 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['skeleton-lines', { component: 'Skeleton', converts: false }],
     ['columns', { component: 'Columns', converts: true }],
     ['column', { component: 'Column', converts: true }],
+    ['grid', { component: 'Grid', converts: true }],
+    ['cell', { component: 'Cell', converts: true }],
     ['container', { component: 'Container', converts: true }],
     ['section', { component: 'Section', converts: true }],
     ['hero', { component: 'Hero', converts: true }],

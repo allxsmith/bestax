@@ -993,6 +993,397 @@
       "noHelpers": false,
       "ownClassOnly": false
     },
+    "grid": {
+      "status": "mapped",
+      "target": "Grid",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-gap-0": { "writes": [{ "prop": "gap", "value": "0" }] },
+        "is-gap-1": { "writes": [{ "prop": "gap", "value": "1" }] },
+        "is-gap-2": { "writes": [{ "prop": "gap", "value": "2" }] },
+        "is-gap-3": { "writes": [{ "prop": "gap", "value": "3" }] },
+        "is-gap-4": { "writes": [{ "prop": "gap", "value": "4" }] },
+        "is-gap-5": { "writes": [{ "prop": "gap", "value": "5" }] },
+        "is-gap-6": { "writes": [{ "prop": "gap", "value": "6" }] },
+        "is-gap-7": { "writes": [{ "prop": "gap", "value": "7" }] },
+        "is-gap-8": { "writes": [{ "prop": "gap", "value": "8" }] },
+        "is-column-gap-0": {
+          "writes": [{ "prop": "columnGap", "value": "0" }]
+        },
+        "is-column-gap-1": {
+          "writes": [{ "prop": "columnGap", "value": "1" }]
+        },
+        "is-column-gap-2": {
+          "writes": [{ "prop": "columnGap", "value": "2" }]
+        },
+        "is-column-gap-3": {
+          "writes": [{ "prop": "columnGap", "value": "3" }]
+        },
+        "is-column-gap-4": {
+          "writes": [{ "prop": "columnGap", "value": "4" }]
+        },
+        "is-column-gap-5": {
+          "writes": [{ "prop": "columnGap", "value": "5" }]
+        },
+        "is-column-gap-6": {
+          "writes": [{ "prop": "columnGap", "value": "6" }]
+        },
+        "is-column-gap-7": {
+          "writes": [{ "prop": "columnGap", "value": "7" }]
+        },
+        "is-column-gap-8": {
+          "writes": [{ "prop": "columnGap", "value": "8" }]
+        },
+        "is-row-gap-0": { "writes": [{ "prop": "rowGap", "value": "0" }] },
+        "is-row-gap-1": { "writes": [{ "prop": "rowGap", "value": "1" }] },
+        "is-row-gap-2": { "writes": [{ "prop": "rowGap", "value": "2" }] },
+        "is-row-gap-3": { "writes": [{ "prop": "rowGap", "value": "3" }] },
+        "is-row-gap-4": { "writes": [{ "prop": "rowGap", "value": "4" }] },
+        "is-row-gap-5": { "writes": [{ "prop": "rowGap", "value": "5" }] },
+        "is-row-gap-6": { "writes": [{ "prop": "rowGap", "value": "6" }] },
+        "is-row-gap-7": { "writes": [{ "prop": "rowGap", "value": "7" }] },
+        "is-row-gap-8": { "writes": [{ "prop": "rowGap", "value": "8" }] },
+        "is-col-min-1": {
+          "writes": [{ "prop": "minCol", "value": "1", "numeric": true }]
+        },
+        "is-col-min-2": {
+          "writes": [{ "prop": "minCol", "value": "2", "numeric": true }]
+        },
+        "is-col-min-3": {
+          "writes": [{ "prop": "minCol", "value": "3", "numeric": true }]
+        },
+        "is-col-min-4": {
+          "writes": [{ "prop": "minCol", "value": "4", "numeric": true }]
+        },
+        "is-col-min-5": {
+          "writes": [{ "prop": "minCol", "value": "5", "numeric": true }]
+        },
+        "is-col-min-6": {
+          "writes": [{ "prop": "minCol", "value": "6", "numeric": true }]
+        },
+        "is-col-min-7": {
+          "writes": [{ "prop": "minCol", "value": "7", "numeric": true }]
+        },
+        "is-col-min-8": {
+          "writes": [{ "prop": "minCol", "value": "8", "numeric": true }]
+        },
+        "is-col-min-9": {
+          "writes": [{ "prop": "minCol", "value": "9", "numeric": true }]
+        },
+        "is-col-min-10": {
+          "writes": [{ "prop": "minCol", "value": "10", "numeric": true }]
+        },
+        "is-col-min-11": {
+          "writes": [{ "prop": "minCol", "value": "11", "numeric": true }]
+        },
+        "is-col-min-12": {
+          "writes": [{ "prop": "minCol", "value": "12", "numeric": true }]
+        },
+        "is-col-min-13": {
+          "writes": [{ "prop": "minCol", "value": "13", "numeric": true }]
+        },
+        "is-col-min-14": {
+          "writes": [{ "prop": "minCol", "value": "14", "numeric": true }]
+        },
+        "is-col-min-15": {
+          "writes": [{ "prop": "minCol", "value": "15", "numeric": true }]
+        },
+        "is-col-min-16": {
+          "writes": [{ "prop": "minCol", "value": "16", "numeric": true }]
+        },
+        "is-col-min-17": {
+          "writes": [{ "prop": "minCol", "value": "17", "numeric": true }]
+        },
+        "is-col-min-18": {
+          "writes": [{ "prop": "minCol", "value": "18", "numeric": true }]
+        },
+        "is-col-min-19": {
+          "writes": [{ "prop": "minCol", "value": "19", "numeric": true }]
+        },
+        "is-col-min-20": {
+          "writes": [{ "prop": "minCol", "value": "20", "numeric": true }]
+        },
+        "is-col-min-21": {
+          "writes": [{ "prop": "minCol", "value": "21", "numeric": true }]
+        },
+        "is-col-min-22": {
+          "writes": [{ "prop": "minCol", "value": "22", "numeric": true }]
+        },
+        "is-col-min-23": {
+          "writes": [{ "prop": "minCol", "value": "23", "numeric": true }]
+        },
+        "is-col-min-24": {
+          "writes": [{ "prop": "minCol", "value": "24", "numeric": true }]
+        },
+        "is-col-min-25": {
+          "writes": [{ "prop": "minCol", "value": "25", "numeric": true }]
+        },
+        "is-col-min-26": {
+          "writes": [{ "prop": "minCol", "value": "26", "numeric": true }]
+        },
+        "is-col-min-27": {
+          "writes": [{ "prop": "minCol", "value": "27", "numeric": true }]
+        },
+        "is-col-min-28": {
+          "writes": [{ "prop": "minCol", "value": "28", "numeric": true }]
+        },
+        "is-col-min-29": {
+          "writes": [{ "prop": "minCol", "value": "29", "numeric": true }]
+        },
+        "is-col-min-30": {
+          "writes": [{ "prop": "minCol", "value": "30", "numeric": true }]
+        },
+        "is-col-min-31": {
+          "writes": [{ "prop": "minCol", "value": "31", "numeric": true }]
+        },
+        "is-col-min-32": {
+          "writes": [{ "prop": "minCol", "value": "32", "numeric": true }]
+        }
+      },
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "cell": {
+      "status": "mapped",
+      "target": "Cell",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
+      "part": false,
+      "why": null,
+      "modifiers": {
+        "is-col-start-1": {
+          "writes": [{ "prop": "colStart", "value": "1", "numeric": true }]
+        },
+        "is-col-start-2": {
+          "writes": [{ "prop": "colStart", "value": "2", "numeric": true }]
+        },
+        "is-col-start-3": {
+          "writes": [{ "prop": "colStart", "value": "3", "numeric": true }]
+        },
+        "is-col-start-4": {
+          "writes": [{ "prop": "colStart", "value": "4", "numeric": true }]
+        },
+        "is-col-start-5": {
+          "writes": [{ "prop": "colStart", "value": "5", "numeric": true }]
+        },
+        "is-col-start-6": {
+          "writes": [{ "prop": "colStart", "value": "6", "numeric": true }]
+        },
+        "is-col-start-7": {
+          "writes": [{ "prop": "colStart", "value": "7", "numeric": true }]
+        },
+        "is-col-start-8": {
+          "writes": [{ "prop": "colStart", "value": "8", "numeric": true }]
+        },
+        "is-col-start-9": {
+          "writes": [{ "prop": "colStart", "value": "9", "numeric": true }]
+        },
+        "is-col-start-10": {
+          "writes": [{ "prop": "colStart", "value": "10", "numeric": true }]
+        },
+        "is-col-start-11": {
+          "writes": [{ "prop": "colStart", "value": "11", "numeric": true }]
+        },
+        "is-col-start-12": {
+          "writes": [{ "prop": "colStart", "value": "12", "numeric": true }]
+        },
+        "is-col-from-end-1": {
+          "writes": [{ "prop": "colFromEnd", "value": "1", "numeric": true }]
+        },
+        "is-col-from-end-2": {
+          "writes": [{ "prop": "colFromEnd", "value": "2", "numeric": true }]
+        },
+        "is-col-from-end-3": {
+          "writes": [{ "prop": "colFromEnd", "value": "3", "numeric": true }]
+        },
+        "is-col-from-end-4": {
+          "writes": [{ "prop": "colFromEnd", "value": "4", "numeric": true }]
+        },
+        "is-col-from-end-5": {
+          "writes": [{ "prop": "colFromEnd", "value": "5", "numeric": true }]
+        },
+        "is-col-from-end-6": {
+          "writes": [{ "prop": "colFromEnd", "value": "6", "numeric": true }]
+        },
+        "is-col-from-end-7": {
+          "writes": [{ "prop": "colFromEnd", "value": "7", "numeric": true }]
+        },
+        "is-col-from-end-8": {
+          "writes": [{ "prop": "colFromEnd", "value": "8", "numeric": true }]
+        },
+        "is-col-from-end-9": {
+          "writes": [{ "prop": "colFromEnd", "value": "9", "numeric": true }]
+        },
+        "is-col-from-end-10": {
+          "writes": [{ "prop": "colFromEnd", "value": "10", "numeric": true }]
+        },
+        "is-col-from-end-11": {
+          "writes": [{ "prop": "colFromEnd", "value": "11", "numeric": true }]
+        },
+        "is-col-from-end-12": {
+          "writes": [{ "prop": "colFromEnd", "value": "12", "numeric": true }]
+        },
+        "is-col-span-1": {
+          "writes": [{ "prop": "colSpan", "value": "1", "numeric": true }]
+        },
+        "is-col-span-2": {
+          "writes": [{ "prop": "colSpan", "value": "2", "numeric": true }]
+        },
+        "is-col-span-3": {
+          "writes": [{ "prop": "colSpan", "value": "3", "numeric": true }]
+        },
+        "is-col-span-4": {
+          "writes": [{ "prop": "colSpan", "value": "4", "numeric": true }]
+        },
+        "is-col-span-5": {
+          "writes": [{ "prop": "colSpan", "value": "5", "numeric": true }]
+        },
+        "is-col-span-6": {
+          "writes": [{ "prop": "colSpan", "value": "6", "numeric": true }]
+        },
+        "is-col-span-7": {
+          "writes": [{ "prop": "colSpan", "value": "7", "numeric": true }]
+        },
+        "is-col-span-8": {
+          "writes": [{ "prop": "colSpan", "value": "8", "numeric": true }]
+        },
+        "is-col-span-9": {
+          "writes": [{ "prop": "colSpan", "value": "9", "numeric": true }]
+        },
+        "is-col-span-10": {
+          "writes": [{ "prop": "colSpan", "value": "10", "numeric": true }]
+        },
+        "is-col-span-11": {
+          "writes": [{ "prop": "colSpan", "value": "11", "numeric": true }]
+        },
+        "is-col-span-12": {
+          "writes": [{ "prop": "colSpan", "value": "12", "numeric": true }]
+        },
+        "is-row-start-1": {
+          "writes": [{ "prop": "rowStart", "value": "1", "numeric": true }]
+        },
+        "is-row-start-2": {
+          "writes": [{ "prop": "rowStart", "value": "2", "numeric": true }]
+        },
+        "is-row-start-3": {
+          "writes": [{ "prop": "rowStart", "value": "3", "numeric": true }]
+        },
+        "is-row-start-4": {
+          "writes": [{ "prop": "rowStart", "value": "4", "numeric": true }]
+        },
+        "is-row-start-5": {
+          "writes": [{ "prop": "rowStart", "value": "5", "numeric": true }]
+        },
+        "is-row-start-6": {
+          "writes": [{ "prop": "rowStart", "value": "6", "numeric": true }]
+        },
+        "is-row-start-7": {
+          "writes": [{ "prop": "rowStart", "value": "7", "numeric": true }]
+        },
+        "is-row-start-8": {
+          "writes": [{ "prop": "rowStart", "value": "8", "numeric": true }]
+        },
+        "is-row-start-9": {
+          "writes": [{ "prop": "rowStart", "value": "9", "numeric": true }]
+        },
+        "is-row-start-10": {
+          "writes": [{ "prop": "rowStart", "value": "10", "numeric": true }]
+        },
+        "is-row-start-11": {
+          "writes": [{ "prop": "rowStart", "value": "11", "numeric": true }]
+        },
+        "is-row-start-12": {
+          "writes": [{ "prop": "rowStart", "value": "12", "numeric": true }]
+        },
+        "is-row-from-end-1": {
+          "writes": [{ "prop": "rowFromEnd", "value": "1", "numeric": true }]
+        },
+        "is-row-from-end-2": {
+          "writes": [{ "prop": "rowFromEnd", "value": "2", "numeric": true }]
+        },
+        "is-row-from-end-3": {
+          "writes": [{ "prop": "rowFromEnd", "value": "3", "numeric": true }]
+        },
+        "is-row-from-end-4": {
+          "writes": [{ "prop": "rowFromEnd", "value": "4", "numeric": true }]
+        },
+        "is-row-from-end-5": {
+          "writes": [{ "prop": "rowFromEnd", "value": "5", "numeric": true }]
+        },
+        "is-row-from-end-6": {
+          "writes": [{ "prop": "rowFromEnd", "value": "6", "numeric": true }]
+        },
+        "is-row-from-end-7": {
+          "writes": [{ "prop": "rowFromEnd", "value": "7", "numeric": true }]
+        },
+        "is-row-from-end-8": {
+          "writes": [{ "prop": "rowFromEnd", "value": "8", "numeric": true }]
+        },
+        "is-row-from-end-9": {
+          "writes": [{ "prop": "rowFromEnd", "value": "9", "numeric": true }]
+        },
+        "is-row-from-end-10": {
+          "writes": [{ "prop": "rowFromEnd", "value": "10", "numeric": true }]
+        },
+        "is-row-from-end-11": {
+          "writes": [{ "prop": "rowFromEnd", "value": "11", "numeric": true }]
+        },
+        "is-row-from-end-12": {
+          "writes": [{ "prop": "rowFromEnd", "value": "12", "numeric": true }]
+        },
+        "is-row-span-1": {
+          "writes": [{ "prop": "rowSpan", "value": "1", "numeric": true }]
+        },
+        "is-row-span-2": {
+          "writes": [{ "prop": "rowSpan", "value": "2", "numeric": true }]
+        },
+        "is-row-span-3": {
+          "writes": [{ "prop": "rowSpan", "value": "3", "numeric": true }]
+        },
+        "is-row-span-4": {
+          "writes": [{ "prop": "rowSpan", "value": "4", "numeric": true }]
+        },
+        "is-row-span-5": {
+          "writes": [{ "prop": "rowSpan", "value": "5", "numeric": true }]
+        },
+        "is-row-span-6": {
+          "writes": [{ "prop": "rowSpan", "value": "6", "numeric": true }]
+        },
+        "is-row-span-7": {
+          "writes": [{ "prop": "rowSpan", "value": "7", "numeric": true }]
+        },
+        "is-row-span-8": {
+          "writes": [{ "prop": "rowSpan", "value": "8", "numeric": true }]
+        },
+        "is-row-span-9": {
+          "writes": [{ "prop": "rowSpan", "value": "9", "numeric": true }]
+        },
+        "is-row-span-10": {
+          "writes": [{ "prop": "rowSpan", "value": "10", "numeric": true }]
+        },
+        "is-row-span-11": {
+          "writes": [{ "prop": "rowSpan", "value": "11", "numeric": true }]
+        },
+        "is-row-span-12": {
+          "writes": [{ "prop": "rowSpan", "value": "12", "numeric": true }]
+        }
+      },
+      "omits": {},
+      "wrapsChildren": null,
+      "noHelpers": false,
+      "ownClassOnly": false
+    },
     "container": {
       "status": "mapped",
       "target": "Container",
@@ -1858,38 +2249,6 @@
       "noHelpers": false,
       "ownClassOnly": false
     },
-    "cell": {
-      "status": "todo",
-      "target": "Cell",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
-    "grid": {
-      "status": "todo",
-      "target": "Grid",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
     "fixed-grid": {
       "status": "todo",
       "target": "Grid",
@@ -1899,7 +2258,7 @@
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "this source leaves Grid markup as written; convert it to bestax `Grid` and `Cell` by hand (`Grid isFixed` renders the `.fixed-grid` wrapper itself)",
+      "why": "`Grid isFixed` renders the `.fixed-grid` wrapper itself, from `fixedCols`; replace the wrapper and its `.grid` with one `Grid`, by hand",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
@@ -2950,6 +3309,8 @@
   "precedence": [
     "columns",
     "column",
+    "grid",
+    "cell",
     "container",
     "section",
     "hero",
@@ -4225,8 +4586,12 @@
       "match": "-(?:touch|tablet-only|desktop-only|widescreen-only)$"
     },
     {
-      "why": "Grid and Cell layout, which this source leaves as markup",
-      "match": "^(?:is-(?:col|row)-.+|has-\\d+-cols(?:-.+)?|is-(?:column|row)-gap-\\d+|is-gap-\\d+|is-auto-fill)$"
+      "why": "a Grid or Cell class, which converts only on its own `.grid` or `.cell`, and only where bestax has a prop for it",
+      "match": "^(?:is-(?:col|row)-.+|is-(?:column|row)-gap-\\d+|is-gap-\\d+|is-auto-fill)$"
+    },
+    {
+      "why": "a `.fixed-grid` column count, which stays with its `.fixed-grid` (a family this source leaves as markup)",
+      "match": "^has-\\d+-cols(?:-.+)?$"
     },
     {
       "why": "an `.image` modifier; `.image` stays as markup",

@@ -67,7 +67,8 @@ stock stylesheet.
 
 ## What converts
 
-- **Components**: `button`, `buttons`, `columns`, `column`, `container`, `section`, `hero` and
+- **Components**: `button`, `buttons`, `columns`, `column`, `grid`, `cell`, `container`,
+  `section`, `hero` and
   its parts, `title`, `subtitle`, `box`, `content`, `block`, `notification`, `tag`, `tags`,
   `level` and its parts, `media` and its parts, `card` and its parts, `navbar` and most of its
   parts, `field` and its parts, `control`, `input`, `textarea`, `delete`, `progress`, `footer`
