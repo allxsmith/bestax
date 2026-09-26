@@ -458,6 +458,82 @@ export function parseCell(value) {
 }
 
 // ---------------------------------------------------------------------------
+// Footnotes for rows where a Bulma name means something else in other
+// libraries, so a reader who sees bestax's `Box` land on the Paper row, or a
+// dash on the row about a different kind of Box, knows why. `rows` names the
+// capabilities that carry the marker; `text` renders `code` spans. The live
+// explorer shows them; published edition snapshots don't, so those posts
+// never change.
+// ---------------------------------------------------------------------------
+export const notes = [
+  {
+    id: 'box',
+    rows: ['Styling primitive (unstyled, any tag)', 'Paper / elevated surface'],
+    text: "Bulma's `Box` is a padded, shadowed surface, so bestax's `Box` sits on the Paper row. MUI, Chakra, and Mantine use Box for an unstyled element you style with props, which bestax doesn't have.",
+  },
+  {
+    id: 'menu',
+    rows: ['Menu (vertical nav)', 'Dropdown menu (actions)'],
+    text: "Bulma's `Menu` is a vertical navigation list, like a docs sidebar. The pop-up action menu that Mantine, MUI, and Chakra call Menu is bestax's `Dropdown`.",
+  },
+  {
+    id: 'notification',
+    rows: ['Alert / message box', 'Toast / snackbar'],
+    text: "Bulma's `Notification` is an inline alert box, and `Message` is the same idea with a header, so both sit on the Alert row. Mantine uses Notifications for its toasts; bestax's toast is `Toast`.",
+  },
+  {
+    id: 'tag',
+    rows: ['Tag / label', 'Badge (corner indicator)'],
+    text: "Bulma's `Tag` is the small label that Mantine, shadcn/ui, and React-Bootstrap call Badge. bestax's `Badge` is a count or dot pinned to the corner of another element, what MUI calls Badge and Mantine calls Indicator.",
+  },
+  {
+    id: 'delete',
+    rows: ['Close / delete button'],
+    text: "Bulma calls its small round × button `Delete`. It closes or dismisses things; it doesn't delete anything.",
+  },
+  {
+    id: 'level',
+    rows: ['Level (space-between bar)', 'Toolbar'],
+    text: "Bulma's `Level` is a horizontal bar that pushes its items to the left and right ends. It has nothing to do with heading levels.",
+  },
+  {
+    id: 'block',
+    rows: ['Stack (vertical)', 'Spacer'],
+    text: "Bulma's `Block` is a spacing wrapper that puts a bottom margin between siblings. It isn't a `display: block` primitive.",
+  },
+  {
+    id: 'content',
+    rows: ['Rich-HTML style wrapper', 'Blockquote'],
+    text: "Bulma's `Content` styles the plain HTML placed inside it, such as headings, lists, and blockquotes, the way a prose class does. It isn't a generic content slot.",
+  },
+  {
+    id: 'media',
+    rows: ['Media object'],
+    text: "Bulma's `Media` is the media object layout: an image or avatar beside a block of text, like a comment. It isn't for audio or video.",
+  },
+  {
+    id: 'panel',
+    rows: ['Panel (heading + body)'],
+    text: "Bulma's `Panel` is a bordered list under a heading, often used for filters or file lists. It isn't a tab panel or a collapsible section.",
+  },
+  {
+    id: 'grid',
+    rows: ['Grid — flex 12-col', 'Grid — CSS grid'],
+    text: "Bulma's `Columns` is its flexbox column grid, the one Mantine and MUI call Grid. Bulma's `Grid` is a CSS grid, closer to Mantine's `SimpleGrid`.",
+  },
+  {
+    id: 'sidebar',
+    rows: ['Drawer / off-canvas', 'Menu (vertical nav)'],
+    text: "bestax's `Sidebar` is an off-canvas drawer that slides over the page. shadcn/ui's `Sidebar` is a persistent navigation panel, which is why it counts as a vertical nav instead.",
+  },
+  {
+    id: 'dialog',
+    rows: ['Confirm / alert dialog', 'Modal'],
+    text: "bestax's `Dialog` is a ready-made confirm and alert dialog. Its general-purpose dialog is `Modal`, which Chakra and shadcn/ui call Dialog.",
+  },
+];
+
+// ---------------------------------------------------------------------------
 // The matrix. row = [capability, bestax, Mantine, ReactBootstrap, MUI,
 //                    react-bulma-components, Chakra, shadcn]
 // ---------------------------------------------------------------------------

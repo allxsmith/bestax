@@ -29,6 +29,7 @@ How does bestax-bulma stack up against the other React component libraries? This
 - **◐** means the capability is there another way: a prop or mode of another component, a documented helper or style prop, a documented hook, or a docs example that composes other components.
 - A muted dash means there's no first-party equivalent. Third-party packages a library builds on, like `clsx`, don't count, and neither do exports the library marks internal.
 - Rows are matched by purpose, not by name. bestax's `Badge`, Mantine's `Indicator`, and MUI's `Badge` all land in the same row.
+- A small number beside a row points to a note under the table, mostly where a Bulma component's name means something different in other libraries.
 - Official companion packages count as first-party, like Mantine's `@mantine/*` and MUI's `@mui/x-*`. Some MUI X features are paid Pro or Premium, and a few MUI components live in `@mui/lab`, which stays in beta. The linked page says which.
 - A stylesheet counts as ◐ for the elements it deliberately styles, like bestax's `Content` or shadcn's Typeset, and a CSS reset counts when the library's own stylesheet ships one.
 - shadcn/ui is a copy-paste registry rather than an npm dependency, so its column describes code you'd own in your project. It follows the default Base UI version, and a few components differ on the Radix and React Aria versions. Chakra's CLI snippets count the same way.

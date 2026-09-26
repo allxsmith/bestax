@@ -384,6 +384,35 @@
 }
 
 /* ---- method / a11y ---------------------------------------------------- */
+/* ---- footnotes on names ----------------------------------------------- */
+.noteRef {
+  margin-left: 0.15rem;
+  font-weight: 600;
+}
+.noteRef a {
+  text-decoration: none;
+}
+.notes {
+  margin-top: 0.9rem;
+  font-size: 0.83rem;
+  color: var(--ifm-color-content-secondary);
+}
+.notesTitle {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  color: var(--ifm-color-content);
+}
+.notes ol {
+  margin: 0;
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.notes li {
+  scroll-margin-top: calc(var(--ifm-navbar-height) + 0.75rem);
+}
+
 .method {
   margin-top: 0.9rem;
   font-size: 0.83rem;
