@@ -1550,9 +1550,9 @@
       "why": null,
       "modifiers": {
         "is-horizontal": { "writes": [{ "prop": "horizontal" }] },
-        "is-grouped": { "writes": [{ "prop": "grouped" }] },
         "has-addons": { "writes": [{ "prop": "hasAddons" }] },
-        "is-narrow": { "writes": [{ "prop": "narrow" }] }
+        "is-narrow": { "writes": [{ "prop": "narrow" }] },
+        "is-grouped": { "writes": [{ "prop": "grouped" }], "onlyTrue": true }
       },
       "omits": {},
       "wrapsChildren": {
