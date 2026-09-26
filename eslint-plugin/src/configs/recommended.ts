@@ -9,6 +9,10 @@
  * works, so the rule buys explicitness rather than correctness. Linting the
  * library's own documentation with it on reported dozens of correct examples,
  * which is the evidence it does not belong in a default-on set.
+ *
+ * `no-bulma-component-class` is opt-in for the same reason: Bulma's classes
+ * on plain markup work, and preferring the component is a choice an app makes
+ * (typically after `bestax-migrate bulma-classes`), not a bug in its code.
  */
 import type { Linter } from 'eslint';
 
@@ -23,4 +27,7 @@ export const RECOMMENDED_RULES: Linter.RulesRecord = {
  * inferred, so a new rule that nobody wires into a config fails the surface
  * test instead of shipping switched off by accident.
  */
-export const OPT_IN_RULES: readonly string[] = ['no-color-as-surface'];
+export const OPT_IN_RULES: readonly string[] = [
+  'no-color-as-surface',
+  'no-bulma-component-class',
+];

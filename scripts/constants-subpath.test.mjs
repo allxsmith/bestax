@@ -281,6 +281,7 @@ describe('bulma-ui export map', () => {
     const p = plugin.default;
     assert.equal(typeof p.meta?.version, 'string');
     assert.deepEqual(Object.keys(p.rules).sort(), [
+      'no-bulma-component-class',
       'no-color-as-surface',
       'no-deprecated-props',
       'no-inert-flex-props',

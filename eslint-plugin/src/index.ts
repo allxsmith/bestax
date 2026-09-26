@@ -10,6 +10,7 @@
  */
 import { createRequire } from 'node:module';
 import type { ESLint, Linter } from 'eslint';
+import noBulmaComponentClass from './rules/no-bulma-component-class.js';
 import noColorAsSurface from './rules/no-color-as-surface.js';
 import noDeprecatedProps from './rules/no-deprecated-props.js';
 import noInertFlexProps from './rules/no-inert-flex-props.js';
@@ -21,6 +22,7 @@ export const rules = {
   'no-deprecated-props': noDeprecatedProps,
   'no-color-as-surface': noColorAsSurface,
   'no-inert-flex-props': noInertFlexProps,
+  'no-bulma-component-class': noBulmaComponentClass,
 } satisfies ESLint.Plugin['rules'];
 
 /**

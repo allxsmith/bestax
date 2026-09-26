@@ -15,6 +15,12 @@
  *                         button. Getting that backwards is the whole point of
  *                         the rule, so the set is read from the TSDoc sentence
  *                         the library states it in, never hand-listed.
+ *   no-bulma-component-class
+ *                         which Bulma classes name a bestax component. That is
+ *                         not the library's knowledge but bestax-migrate's:
+ *                         its bulma-classes table (`class-map.ts`), imported
+ *                         directly (node strips its types), the same way
+ *                         gen-mcp-index.mjs reads it for lookup_bulma_classes.
  *
  * Source is `scripts/lib/props-extract.mjs` — the same extractor behind
  * gen-mcp-index.mjs and gen-api-docs.mjs, so this adds no new extraction and
@@ -39,6 +45,26 @@ import { exportedModules, extractComponent } from './lib/props-extract.mjs';
 const require = createRequire(import.meta.url);
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT = join(REPO, 'eslint-plugin', 'src', 'generated', 'metadata.ts');
+const CLASS_MAP = join(
+  REPO,
+  'bestax-migrate',
+  'src',
+  'sources',
+  'bulma-classes',
+  'class-map.ts'
+);
+
+/**
+ * Classes no-bulma-component-class must keep reporting, with the component it
+ * names: a converted root, a part, and two families. A table that loses one
+ * has lost what the rule is for, whatever else it still holds.
+ */
+const CLASS_ANCHORS = {
+  button: 'Button',
+  'hero-body': 'Hero.Body',
+  card: 'Card',
+  navbar: 'Navbar',
+};
 
 /**
  * The sentence the library uses to mark a text-alias `color`. Authored
@@ -162,6 +188,119 @@ export function guardViolations({ deprecated, textAlias, knownProps }) {
 }
 
 /**
+ * The Bulma classes that name a bestax component, from bestax-migrate's
+ * table, in the order its planner decides an element's component when the
+ * element carries several: a family first (its markup is converted by hand,
+ * whatever else is on it), then the converted roots by precedence. The rule
+ * reports the first one an element carries, so the order is the decision.
+ *
+ * Parts of a family are left out: the family's outermost class is the one
+ * place the codemod flags it, and the rule follows suit. Classes with nothing
+ * to convert to (`plain`) are left out because there is no component to name.
+ *
+ * @param {() => Promise<any>} [load] the table module, for a test to replace.
+ */
+export async function bulmaComponentClasses(
+  load = () => import(pathToFileURL(CLASS_MAP).href)
+) {
+  let map;
+  try {
+    map = await load();
+  } catch (err) {
+    throw new Error(
+      `could not import ${CLASS_MAP}: ${err.message}. It is loaded with ` +
+        `node's type stripping, which needs Node 22.18 or later.`,
+      { cause: err }
+    );
+  }
+  const roots = Object.entries(map.ROOTS);
+  const families = roots.filter(
+    ([, entry]) => entry.status === 'todo' && !entry.part
+  );
+  const rank = cls => {
+    const index = map.PRECEDENCE.indexOf(cls);
+    return index === -1 ? map.PRECEDENCE.length : index;
+  };
+  const mapped = roots
+    .filter(([, entry]) => entry.status === 'mapped')
+    .sort(([a], [b]) => rank(a) - rank(b));
+  return {
+    entries: [
+      ...families.map(([cls, entry]) => [
+        cls,
+        { component: entry.target ?? null, converts: false },
+      ]),
+      ...mapped.map(([cls, entry]) => [
+        cls,
+        { component: entry.target ?? null, converts: true },
+      ]),
+    ],
+  };
+}
+
+/**
+ * Components the class table names that the library does not document as an
+ * element, down to the part (`Hero.Bdy` fails where a root check would pass).
+ *
+ * @param {{entries: Array<[string, {component: string | null}]>}} classes
+ * @param {Set<string>} elements every element path `collect()` read.
+ */
+export function unknownComponents(classes, elements) {
+  return classes.entries
+    .filter(([, { component }]) => component && !elements.has(component))
+    .map(
+      ([cls, { component }]) =>
+        `\`.${cls}\` names \`${component}\`, which is not an element the ` +
+        'library documents. The rule would point people at a component that is ' +
+        'not there.'
+    );
+}
+
+/**
+ * What would make the class table wrong to write: empty, a class with no
+ * component, a component the library does not export, or a lost anchor.
+ * Every one of those would have the rule name something that is not there.
+ *
+ * @param {{entries: Array<[string, {component: string | null}]>}} classes
+ * @param {Map<string, unknown>} exported the library's exports by name.
+ */
+export function classTableViolations(classes, exported) {
+  const violations = [];
+  if (!classes.entries.length) {
+    violations.push(
+      "no Bulma component classes found in bestax-migrate's class-map.ts. " +
+        'Refusing to write a table that would silently disable ' +
+        'no-bulma-component-class.'
+    );
+  }
+  for (const [cls, { component }] of classes.entries) {
+    if (!component) {
+      violations.push(
+        `\`.${cls}\` names no bestax component in class-map.ts; give it a ` +
+          "`target` (a family's `todo(target, why)`), or the rule has " +
+          'nothing to name.'
+      );
+    } else if (!exported.has(component.split('.')[0])) {
+      violations.push(
+        `\`.${cls}\` names \`${component}\`, which the library does not ` +
+          'export. The rule would point people at a component that is not there.'
+      );
+    }
+  }
+  const found = new Map(classes.entries);
+  for (const [cls, component] of Object.entries(CLASS_ANCHORS)) {
+    if (found.get(cls)?.component !== component) {
+      violations.push(
+        `\`.${cls}\` no longer names \`${component}\`, so ` +
+          'no-bulma-component-class would stop reporting it as that. If the ' +
+          'table changed on purpose, update CLASS_ANCHORS here in the same change.'
+      );
+    }
+  }
+  return violations;
+}
+
+/**
  * Read the library and build the tables, refusing to return a bad one.
  *
  * The extractor is a parameter with the real one as its default, which is the
@@ -220,10 +359,12 @@ export function collect(deps = {}) {
 
   const violations = guardViolations({ deprecated, textAlias, knownProps });
   if (violations.length) throw new Error(violations.join('\n'));
-  return { deprecated, textAlias };
+  // Every element path the library documents, compound parts included, so
+  // the class table can be held to real JSX names (`Hero.Body`, not just `Hero`).
+  return { deprecated, textAlias, elements: new Set(knownProps.keys()) };
 }
 
-export function render({ deprecated, textAlias }) {
+export function render({ deprecated, textAlias, classes = [] }) {
   const entries = [...deprecated.entries()].sort(([a], [b]) =>
     a < b ? -1 : a > b ? 1 : 0
   );
@@ -240,7 +381,8 @@ export function render({ deprecated, textAlias }) {
     return `  ${JSON.stringify(element)}: {\n${inner}\n  },`;
   });
 
-  return `// Generated by scripts/gen-eslint-meta.mjs from the library's TSDoc.
+  return `// Generated by scripts/gen-eslint-meta.mjs from the library's TSDoc and
+// bestax-migrate's bulma-classes table.
 // Do not edit by hand — run \`pnpm gen:eslint-meta\`. CI fails on a stale one.
 
 /** What a deprecated prop should become, and why it was deprecated. */
@@ -279,11 +421,48 @@ ${[...textAlias]
   .map(n => `  ${JSON.stringify(n)},`)
   .join('\n')}
 ];
+
+/** A Bulma class that names a bestax component. */
+export interface BulmaComponentClass {
+  /** The bestax component, dotted for a part (\`Hero.Body\`). */
+  readonly component: string;
+  /**
+   * Whether \`bestax-migrate bulma-classes\` converts the element. False for a
+   * family whose component renders its own parts, converted by hand.
+   */
+  readonly converts: boolean;
+}
+
+/**
+ * Bulma classes that name a bestax component, from bestax-migrate's
+ * bulma-classes table. In the order the codemod decides an element's
+ * component when it carries several: a family first, then by precedence.
+ */
+export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
+  new Map<string, BulmaComponentClass>([
+${classes
+  .map(
+    ([cls, { component, converts }]) =>
+      `    [${JSON.stringify(cls)}, { component: ${JSON.stringify(component)}, converts: ${converts} }],`
+  )
+  .join('\n')}
+  ]);
 `;
 }
 
-export async function build() {
-  const out = render(collect());
+/**
+ * The class table is checked first, and refuses before the library is read.
+ *
+ * @param {{loadClassMap?: () => Promise<any>}} [deps] for a test to replace.
+ */
+export async function build(deps = {}) {
+  const classes = await bulmaComponentClasses(deps.loadClassMap);
+  const violations = classTableViolations(classes, exportedModules());
+  if (violations.length) throw new Error(violations.join('\n'));
+  const tables = collect();
+  const unknown = unknownComponents(classes, tables.elements);
+  if (unknown.length) throw new Error(unknown.join('\n'));
+  const out = render({ ...tables, classes: classes.entries });
   const prettier = require('prettier');
   const config = await prettier.resolveConfig(OUT);
   return prettier.format(out, { ...config, filepath: OUT });

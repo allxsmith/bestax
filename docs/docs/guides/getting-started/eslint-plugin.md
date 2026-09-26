@@ -59,8 +59,8 @@ pnpm add -D @allxsmith/eslint-plugin-bestax
 
 The recommended config registers the plugin as `@allxsmith/bestax`, matches
 `.js`, `.mjs`, `.cjs`, `.jsx` and `.tsx`, enables JSX parsing, and turns on
-every rule that reports broken code as an error. `no-color-as-surface` is left
-off; see below.
+every rule that reports broken code as an error. The opt-in rules,
+`no-color-as-surface` and `no-bulma-component-class`, are left off; see below.
 
 It deliberately sets **no `parser`**, so that whatever you configure for
 TypeScript survives. Which means a TypeScript project has to supply one:
@@ -123,10 +123,12 @@ export default [
 
 ## What it will not do
 
-Every rule resolves elements through the import, and through scope, so neither
-your own `<Box>` nor a local that shadows the imported one is linted against
-Bulma's rules. Every rule skips a value it cannot read as a literal: a
-variable, or a template with an interpolation.
+The rules that judge bestax elements resolve them through the import, and
+through scope, so neither your own `<Box>` nor a local that shadows the
+imported one is linted against Bulma's rules. `no-bulma-component-class` reads
+plain HTML elements instead, and leaves components, custom elements and
+anything inside `<svg>` alone. The rules that judge a prop's value skip one they
+cannot read as a literal: a variable, or a template with an interpolation.
 
 A spread is treated by what it can change. `no-color-as-surface` and
 `no-inert-flex-props` go silent, because a spread may carry the very prop that
@@ -134,15 +136,16 @@ would make the code correct. `no-deprecated-props` still reports, since the
 deprecated prop is written right there, but offers no fix. `valid-helper-value`
 judges only the values that actually render, so a spread _before_ the
 attribute leaves it reporting while a spread _after_ it does not — JSX is
-last-wins throughout, spreads included.
+last-wins throughout, spreads included. `no-bulma-component-class` reports
+either way, because the class is written right there.
 
 No autofix here changes what the code renders. A false report on correct code
 is worse than a missed one, because it teaches people to switch the rule off.
 
 The `recommended` set has no style rules. Nothing in it has an opinion about
 whether you _should_ use a helper prop, only about whether the one you wrote
-does anything. The one rule that is about spelling rather than correctness,
-`no-color-as-surface`, ships switched off for exactly that reason.
+does anything. The rules about spelling rather than correctness ship switched
+off for exactly that reason.
 
 ## Rules
 
@@ -259,6 +262,49 @@ follows the compound tree:
 <Buttons.Button color="primary" />// ✓ a real variant
 <Buttons color="primary" />       // ✗ the wrapper takes the text alias
 ```
+
+### no-bulma-component-class
+
+:::note Opt-in
+
+This rule is not in `recommended`. Bulma's classes on plain markup work, so
+preferring the component is a choice an app makes, not a bug in its code. Turn
+it on once an app has moved onto bestax, with the
+[`bulma-classes` codemod](./migration/bulma-classes.md) or by hand, to keep raw
+Bulma markup from coming back.
+
+:::
+
+It reports a plain element styled with a Bulma class that bestax has a
+component for, and names the component:
+
+```jsx
+<button className="button is-primary" /> // ✗ bestax renders .button as Button
+<div className="card" />                 // ✗ bestax has Card, converted by hand
+```
+
+Helper classes are left alone, since they are valid on any tag and a `<div>`
+has no bestax wrapper to move them to. So are the classes bestax renders only
+inside a component, and the parts of a family, whose outermost class is the
+one reported:
+
+```jsx
+<div className="has-text-centered mt-4" /> // ✓ helper classes
+<p className="help" />                   // ✓ bestax renders .help inside its form controls
+<header className="card-header" />       // ✓ the .card around it is what gets reported
+```
+
+It reads the classes a `className` spells out, including the strings in a
+ternary, a template, or a call to `clsx`, `classnames` or `tailwind-merge`
+(however the file imports or requires it). It does not read a word glued to an expression
+(`` `button${size}` ``), a CSS-module lookup (`styles['box']`, or `cx('box')`
+where `cx` is `classNames.bind(styles)`), or the arguments of any other call,
+which may be a lookup key. That includes a joiner your app defines, like a `cn`
+in `lib/utils`: the rule cannot see what it does, so it stays quiet there. An element
+carrying several is reported once, for the class the codemod would decide by.
+
+It only reports. Whether an element converts depends on its tag, attributes
+and children, and the codemod is the one place that judges that.
 
 ### no-inert-flex-props
 

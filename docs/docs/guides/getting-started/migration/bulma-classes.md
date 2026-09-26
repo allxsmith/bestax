@@ -158,6 +158,9 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
    own first), so snapshots that compare class strings will change while the page doesn't.
    Review the diff and update them.
 5. **Verify**: typecheck, build, and look at the app.
+6. **Keep it that way**: the [ESLint plugin](../eslint-plugin.md)'s opt-in
+   `no-bulma-component-class` rule reports a plain element styled with a Bulma class bestax
+   has a component for, which keeps raw Bulma markup from creeping back in.
 
 ## Coming from a library instead?
 
