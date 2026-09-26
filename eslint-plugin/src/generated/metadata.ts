@@ -189,7 +189,6 @@ export interface BulmaComponentClass {
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
     ['breadcrumb', { component: 'Breadcrumb', converts: false }],
-    ['card', { component: 'Card', converts: false }],
     ['cell', { component: 'Cell', converts: false }],
     ['grid', { component: 'Grid', converts: false }],
     ['fixed-grid', { component: 'Grid', converts: false }],
@@ -233,6 +232,14 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['media-left', { component: 'Media.Left', converts: true }],
     ['media-content', { component: 'Media.Content', converts: true }],
     ['media-right', { component: 'Media.Right', converts: true }],
+    ['card', { component: 'Card', converts: true }],
+    ['card-header', { component: 'Card.Header', converts: true }],
+    ['card-header-title', { component: 'Card.Header.Title', converts: true }],
+    ['card-header-icon', { component: 'Card.Header.Icon', converts: true }],
+    ['card-image', { component: 'Card.Image', converts: true }],
+    ['card-content', { component: 'Card.Content', converts: true }],
+    ['card-footer', { component: 'Card.Footer', converts: true }],
+    ['card-footer-item', { component: 'Card.FooterItem', converts: true }],
     ['buttons', { component: 'Buttons', converts: true }],
     ['tags', { component: 'Tags', converts: true }],
     ['button', { component: 'Button', converts: true }],

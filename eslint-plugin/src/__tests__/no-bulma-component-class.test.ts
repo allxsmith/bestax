@@ -22,7 +22,7 @@ ruleTester.run('no-bulma-component-class', rule, {
     jsx('<p className="help is-danger" />'),
     jsx('<label className="label" />'),
     // A part of a family: the family's own class is reported where it sits.
-    jsx('<header className="card-header" />'),
+    jsx('<div className="navbar-brand" />'),
     // A Bulma 0.9 class with no component, and a class named like an Object member.
     jsx('<div className="tile is-ancestor" />'),
     jsx('<div className="toString constructor" />'),
@@ -79,7 +79,11 @@ ruleTester.run('no-bulma-component-class', rule, {
     },
     {
       code: jsx('<div className="card" />'),
-      errors: [family('card', 'Card')],
+      errors: [converts('card', 'Card')],
+    },
+    {
+      code: jsx('<header className="card-header" />'),
+      errors: [converts('card-header', 'Card.Header', 'header')],
     },
     {
       code: jsx('<nav className="navbar is-primary" />'),
@@ -88,8 +92,12 @@ ruleTester.run('no-bulma-component-class', rule, {
     // One report per element, for the class the codemod decides by: a family
     // before anything, then by precedence.
     {
-      code: jsx('<div className="box card" />'),
-      errors: [family('card', 'Card')],
+      code: jsx('<div className="box navbar" />'),
+      errors: [family('navbar', 'Navbar')],
+    },
+    {
+      code: jsx('<div className="card-content content" />'),
+      errors: [converts('card-content', 'Card.Content')],
     },
     {
       code: jsx('<div className="box column is-6" />'),

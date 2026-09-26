@@ -56,8 +56,9 @@ const CLASS_MAP = join(
 
 /**
  * Classes no-bulma-component-class must keep reporting, with the component it
- * names: a converted root, a part, and two families. A table that loses one
- * has lost what the rule is for, whatever else it still holds.
+ * names: a converted root, a part, a root that converts only around its
+ * parts, and a family. A table that loses one has lost what the rule is for,
+ * whatever else it still holds.
  */
 const CLASS_ANCHORS = {
   button: 'Button',
