@@ -136,6 +136,14 @@ export interface RootEntry {
   readonly folds?: readonly PropWrite[];
   /** The target renders the element's only child itself. */
   readonly absorbs?: Absorbs;
+  /** Props the target needs to render this class at all (`variant="lines"`). */
+  readonly writes?: readonly PropWrite[];
+  /**
+   * The target renders the element's children itself, `prop` of them, each
+   * a bare, empty `<tag>`. The element converts only when its children are
+   * just that, and they go (`.skeleton-lines`' `<div>`s, as `lines`).
+   */
+  readonly countsChildren?: { readonly tag: string; readonly prop: string };
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
@@ -1405,6 +1413,28 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     absorbs: { tag: 'ul', attributesOn: 'element' },
     ownProps: ['alignment', 'separator', 'size'],
   },
+  // `Skeleton` takes no helper props: what it isn't given as its own reaches
+  // the DOM as an attribute, so every helper class stays a class.
+  'skeleton-block': {
+    status: 'mapped',
+    target: 'Skeleton',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: ['variant', 'lines'],
+  },
+  'skeleton-lines': {
+    status: 'mapped',
+    target: 'Skeleton',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    writes: [{ prop: 'variant', value: 'lines' }],
+    countsChildren: { tag: 'div', prop: 'lines' },
+    ownProps: ['variant', 'lines'],
+  },
 
   // ---- Families bestax has but that do not map element by element yet ------
   checkbox: todo(
@@ -1503,14 +1533,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   tabs: todo(
     'Tabs',
     "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles"
-  ),
-  'skeleton-block': todo(
-    'Skeleton',
-    'bestax `Skeleton` renders its own markup'
-  ),
-  'skeleton-lines': todo(
-    'Skeleton',
-    'bestax `Skeleton` renders its own markup'
   ),
 
   // ---- Wrappers a component renders from a prop ---------------------------------

@@ -362,6 +362,11 @@ function reachesReact(child: any): boolean {
   return /[^ \t\r\n]/.test(child.value) || !/[\r\n]/.test(child.value);
 }
 
+/** Whitespace React drops, which nothing is lost with. A comment is kept. */
+function dropped(child: any): boolean {
+  return child.type === 'JSXText' && !reachesReact(child);
+}
+
 /** A plain HTML child as the planner reads it; nothing for a component. */
 function childFacts(child: any): ChildFacts | undefined {
   const name = child.openingElement.name;
@@ -380,7 +385,23 @@ function childFacts(child: any): ChildFacts | undefined {
     }),
     attributes: attributesBesides(child, classAttr, childAttributeValue),
     hasSpread: hasSpread(child),
+    isEmpty: (child.children ?? []).every(dropped),
   };
+}
+
+/**
+ * An element's children as plain HTML elements, when that is every one
+ * React renders; undefined when one is anything else.
+ */
+function childElementsOf(element: any): ChildFacts[] | undefined {
+  const children: ChildFacts[] = [];
+  for (const child of element.children ?? []) {
+    if (dropped(child)) continue;
+    const found = child.type === 'JSXElement' ? childFacts(child) : undefined;
+    if (!found) return undefined;
+    children.push(found);
+  }
+  return children;
 }
 
 function insideForeignContent(elementPath: ASTPath<any>): boolean {
@@ -506,7 +527,7 @@ export default function transform(
    */
   const soleChild = (element: any): any => {
     const content = (element.children ?? []).filter(
-      (child: any) => child.type !== 'JSXText' || reachesReact(child)
+      (child: any) => !dropped(child)
     );
     return content.length === 1 && content[0].type === 'JSXElement'
       ? content[0]
@@ -579,6 +600,7 @@ export default function transform(
       childTargets: childTargets(elementPath),
       soleChildTarget: planned.get(sole)?.conversion?.target,
       soleChild: sole && childFacts(sole),
+      childElements: childElementsOf(element),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
@@ -733,6 +755,22 @@ export default function transform(
         findAttr(child, from).name = j.jsxIdentifier(to);
       }
     }
+    // A target that renders the element's children itself takes their place:
+    // they go, and so does the closing tag, their comments and its own moving
+    // to the name that stays.
+    const gone = conversion.rendersChildren
+      ? [
+          ...(element.children ?? [])
+            .filter((node: any) => node.type === 'JSXElement')
+            .flatMap((node: any) => [
+              ...(node.comments ?? []),
+              ...tagComments(node),
+            ]),
+          ...[element.closingElement, element.closingElement?.name].flatMap(
+            (node: any) => node?.comments ?? []
+          ),
+        ]
+      : [];
     const [head, ...rest] = conversion.target.split('.');
     renameElement(j, element, [ctx.reserve(head), ...rest].join('.'));
     for (const name of conversion.drop) {
@@ -740,6 +778,15 @@ export default function transform(
       removeAttr(holder, findAttr(holder, name));
     }
     writeClassName(j, element, conversion.props, conversion.className);
+    if (conversion.rendersChildren) {
+      element.children = [];
+      element.openingElement.selfClosing = true;
+      element.closingElement = null;
+      if (gone.length) {
+        const name = element.openingElement.name;
+        name.comments = [...(name.comments ?? []), ...gone.map(afterTagName)];
+      }
+    }
     let written = element;
     if (child) {
       child.openingElement.name = element.openingElement.name;

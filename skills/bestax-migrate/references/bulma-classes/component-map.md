@@ -77,6 +77,8 @@ The **Tags** column is what the component can render: an element on any other ta
 | `.tags`              | `Tags`                | `<div>` only                                                   |
 | `.title`             | `Title`               | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as` |
 | `.breadcrumb`        | `Breadcrumb`          | `<nav>` only                                                   |
+| `.skeleton-block`    | `Skeleton`            | `<div>` only                                                   |
+| `.skeleton-lines`    | `Skeleton`            | `<div>` only                                                   |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -166,13 +168,22 @@ go straight inside `Breadcrumb`.
 Anything else keeps both as markup, with a `children:<Target>`, `attr` or `defaults:<Target>`
 TODO.
 
+## Children a component renders from a count
+
+`Skeleton variant="lines"` renders `.skeleton-lines`' empty `<div>`s itself, `lines` of them. So
+a `.skeleton-lines` whose children are just bare, empty `<div>`s becomes
+`<Skeleton variant="lines" lines={N} />`, and the `<div>`s go. A class, an attribute or anything
+inside one of them, or anything else beside them, keeps the element as markup with a
+`children:Skeleton` TODO. A `.skeleton-block` converts like any other element, content and all.
+`Skeleton` takes no helper props, so a helper class on either stays in `className`.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
 Checkboxes, Dropdown, File, Icon and IconText, Image, Menu, Message, Modal, the navbar's burger
-and dropdown link, Pagination, Panel, Radio, Radios, Skeleton and Tabs.
+and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
 
 ## Classes left alone
 

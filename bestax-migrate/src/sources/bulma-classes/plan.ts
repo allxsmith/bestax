@@ -54,6 +54,12 @@ export interface ElementFacts {
    * entry that `absorbs` it reads.
    */
   soleChild?: ChildFacts;
+  /**
+   * The element's children, when every one React renders is a plain HTML
+   * element; left out when one is anything else (text, an expression, a
+   * component). What an entry that `countsChildren` reads.
+   */
+  childElements?: readonly ChildFacts[];
   /** The bestax components already in the file inside this element. */
   bestaxInside?: readonly string[];
   /** The bestax components already in the file around this element. */
@@ -84,6 +90,11 @@ export interface ChildFacts {
    */
   attributes: ReadonlyMap<string, string | number | true | null>;
   hasSpread: boolean;
+  /**
+   * Nothing inside it but whitespace React drops. A comment is something:
+   * an element that goes would take it with it.
+   */
+  isEmpty: boolean;
 }
 
 export interface Todo {
@@ -118,6 +129,11 @@ export interface Conversion {
     /** Child attributes a prop above renders instead. */
     drop: string[];
   };
+  /**
+   * The target renders the element's children itself, from a prop above:
+   * they go, and the element closes itself.
+   */
+  rendersChildren?: true;
 }
 
 export interface Plan {
@@ -253,6 +269,15 @@ export function plan(facts: ElementFacts): Plan {
       `\`dangerouslySetInnerHTML\` sets the element's content directly, and some bestax components render content of their own beside \`children\`, which React rejects; keep this element as markup`
     );
   }
+  // Every fact about the element's children comes from the JSX inside it, so
+  // children passed as an attribute are content none of them sees.
+  if (attributes.has('children')) {
+    return refuse(
+      'attr',
+      'children',
+      `this element sets \`children\` as an attribute, and the codemod reads an element's children from the JSX inside it, so it can't tell what bestax \`${target}\` would render from these; move them inside the element, then re-run`
+    );
+  }
   for (const name of attributes.keys()) {
     if (renamed.has(name)) continue;
     const readAsProp = entry.ownProps?.includes(name) || HELPER_PROPS.has(name);
@@ -336,6 +361,22 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders its children inside a \`.${wraps.in}\` of its own unless one of them is a ${orList(wraps.unless)}, so this element stays markup`
     );
   }
+  const counts = entry.countsChildren;
+  const counted = facts.childElements?.every(
+    child =>
+      child.tag === counts?.tag &&
+      child.tokens === undefined &&
+      child.attributes.size === 0 &&
+      !child.hasSpread &&
+      child.isEmpty
+  );
+  if (counts && !counted) {
+    return refuse(
+      'children',
+      target,
+      `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
+    );
+  }
   if (missing.length > 0) {
     const list = missing.map(([name, value]) => `\`${name}="${value}"\``);
     return refuse(
@@ -360,7 +401,10 @@ export function plan(facts: ElementFacts): Plan {
   }
 
   // ---- Tokens → props ---------------------------------------------------------
-  const writes = new Map<string, string | true>();
+  // What the root itself needs comes first, so no class can take its prop.
+  const writes = new Map<string, string | true>(
+    (entry.writes ?? []).map(write => [write.prop, write.value ?? true])
+  );
   /** The tokens each written prop came from, so a group rule can undo it. */
   const sourceOf = new Map<string, string>();
   const groupOf = new Map<string, string>();
@@ -442,6 +486,10 @@ export function plan(facts: ElementFacts): Plan {
   const props: Array<[string, string | true]> = [];
   if (as) props.push(['as', as]);
   props.push(...writes);
+  if (counts) {
+    props.push([counts.prop, String(facts.childElements!.length)]);
+    numbers.push(counts.prop);
+  }
   const rest = tokens.filter(token => !converted.has(token));
   if (entry.ownClassOnly && rest.length > 0) {
     return refuse(
@@ -458,6 +506,7 @@ export function plan(facts: ElementFacts): Plan {
       drop,
       numbers,
       ...(absorbed ? { absorbs: absorbed } : {}),
+      ...(counts ? { rendersChildren: true as const } : {}),
     },
     todos,
   };

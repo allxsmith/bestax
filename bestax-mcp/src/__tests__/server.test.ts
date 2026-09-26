@@ -729,6 +729,16 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 
+  it('says when a component renders the children from a count', async () => {
+    const lines = await lookup('skeleton-lines', 'div');
+    expect(lines).toContain(
+      '**Component:** `Skeleton` with `variant="lines"`. It renders this element\'s children itself, `lines` bare, empty <div>s: write their count as `lines={N}` and drop them.'
+    );
+    expect(await lookup('skeleton-block', 'div')).toContain(
+      '**Component:** `Skeleton`.'
+    );
+  });
+
   it('says when a component needs one of its parts inside', async () => {
     expect(await lookup('card', 'div')).toContain(
       '**Component:** `Card`. It renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`,'

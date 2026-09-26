@@ -682,6 +682,65 @@ describe('an element a component renders inside itself', () => {
   });
 });
 
+describe('a component that renders its children from a count', () => {
+  const lines = (children: string) =>
+    migrate(
+      `export const A = () => (\n  <div className="skeleton-lines">\n${children}\n  </div>\n);\n`
+    );
+
+  it('writes the count, and the children go', () => {
+    const { output, rules } = lines(
+      '    <div></div>\n    <div />\n    <div></div>'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Skeleton variant="lines" lines={3} />');
+  });
+
+  it.each([
+    ['text', '    <div>x</div>'],
+    ['a class on one', '    <div className="is-wide"></div>'],
+    ['an attribute on one', '    <div id="d"></div>'],
+    ['a comment inside one', '    <div>{/* note */}</div>'],
+    ['a comment beside them', '    {/* note */}\n    <div></div>'],
+    ['a component', '    <Line />'],
+  ])('keeps the element as markup around %s', (_, children) => {
+    const { output, rules } = lines(children);
+    expect(rules).toEqual(['children:Skeleton']);
+    expect(output).toContain('className="skeleton-lines"');
+  });
+
+  it('keeps an element with `children` as an attribute as markup', () => {
+    // Its children are content the JSX inside it doesn't show, so it can't be
+    // counted: `lines={0}` would drop them.
+    const { output, rules } = migrate(
+      'export const A = ({ rows }: { rows: JSX.Element[] }) => <div className="skeleton-lines" children={rows} />;\n'
+    );
+    expect(rules).toEqual(['attr:children']);
+    expect(output).toContain('className="skeleton-lines"');
+  });
+
+  it('keeps each comment in the tags that go, once', () => {
+    const { output } = migrate(
+      'export const A = () => (\n  <div className="skeleton-lines">\n    <div /* first */></div>\n    <div></div /* second */>\n  </div /* end */>\n);\n'
+    );
+    for (const comment of ['/* first */', '/* second */', '/* end */']) {
+      expect({ comment, count: output.split(comment).length - 1 }).toEqual({
+        comment,
+        count: 1,
+      });
+    }
+    expect(output).toMatch(/<Skeleton[^>]*lines=\{2\} \/>/);
+  });
+
+  it('converts a skeleton block with its content, and keeps helper classes', () => {
+    const { output, rules } = migrate(
+      'export const A = () => <div className="skeleton-block mt-2">Loading</div>;\n'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Skeleton className="mt-2">Loading</Skeleton>');
+  });
+});
+
 describe('form context', () => {
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(

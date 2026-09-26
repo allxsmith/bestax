@@ -114,7 +114,18 @@ function converted(
           ...(inner.tokens.length > 0 && { tokens: inner.tokens }),
           attributes: new Map(inner.attributes),
           hasSpread: false,
+          isEmpty: true,
         },
+      }),
+    // One that renders its children from a count holds a few of them.
+    ...(root?.status === 'mapped' &&
+      root.countsChildren && {
+        childElements: [1, 2, 3].map(() => ({
+          tag: root.countsChildren!.tag,
+          attributes: new Map(),
+          hasSpread: false,
+          isEmpty: true,
+        })),
       }),
   });
   const conversion = result.conversion;
@@ -148,7 +159,9 @@ function converted(
       : []),
   ].join(' ');
   const name = `B.${conversion.target}`;
-  return VOID.has(tag)
+  // A target that renders the children itself closes itself, as the
+  // transform writes it.
+  return VOID.has(tag) || conversion.rendersChildren
     ? `<${name} ${attrs} />`
     : `<${name} ${attrs}>x</${name}>`;
 }

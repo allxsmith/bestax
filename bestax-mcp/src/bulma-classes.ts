@@ -57,6 +57,18 @@ export interface RootRecord {
   folds: PropWrite[] | null;
   /** The component renders the element's only child itself. */
   absorbs: Absorbs | null;
+  /** Props the component needs to render this class at all. */
+  writes: PropWrite[] | null;
+  /**
+   * The component renders the element's children itself, `prop` of them,
+   * each a bare, empty `<tag>`.
+   */
+  countsChildren: Counts | null;
+}
+
+export interface Counts {
+  tag: string;
+  prop: string;
 }
 
 export interface Absorbs {
@@ -118,6 +130,10 @@ export type Element =
       wraps?: Wraps;
       /** Converts together with the one element inside it. */
       absorbs?: Absorbs;
+      /** Props it needs for this class at all. */
+      writes?: PropWrite[];
+      /** Renders the element's children itself, from a count. */
+      counts?: Counts;
     }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
@@ -358,6 +374,8 @@ export function lookupClasses(
       ownClassOnly: false,
       folds: null,
       absorbs: null,
+      writes: null,
+      countsChildren: null,
     };
   }
   const target = entry.target;
@@ -370,10 +388,17 @@ export function lookupClasses(
 
   // Each class as the root's modifier, else as a helper prop, in order; the
   // first class to set a prop keeps it.
+  // What the component needs for its own class comes first, so no class can
+  // take its prop (`variant="lines"` for `.skeleton-lines`).
   const writes = new Map<
     string,
     { value: string | true; token: string; group?: string }
-  >();
+  >(
+    (entry.writes ?? []).map(write => [
+      write.prop,
+      { value: write.value ?? true, token: root ?? '' },
+    ])
+  );
   for (const token of tokens) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
@@ -535,20 +560,22 @@ export function lookupClasses(
       why: `bestax \`${target}\` drops its own class when it is given a \`className\`, so it converts only with no other class`,
     });
   }
-  const absorbs = entry.absorbs ?? undefined;
+  const about = {
+    wraps,
+    absorbs: entry.absorbs ?? undefined,
+    writes: entry.writes ?? undefined,
+    counts: entry.countsChildren ?? undefined,
+  };
   if (!tag) {
     return result({
       kind: 'component',
       target,
       renders: reaches(entry),
-      wraps,
-      absorbs,
+      ...about,
     });
   }
-  if (renders === tag) {
-    return result({ kind: 'component', target, wraps, absorbs });
-  }
-  return result({ kind: 'component', target, as: tag, wraps, absorbs });
+  if (renders === tag) return result({ kind: 'component', target, ...about });
+  return result({ kind: 'component', target, as: tag, ...about });
 }
 
 /** What converting a component that renders the element inside it means. */
@@ -608,10 +635,15 @@ export function renderLookup(lookup: Lookup): string {
   const { element } = lookup;
   const out: string[] = [];
   switch (element.kind) {
-    case 'component':
+    case 'component': {
+      const given = [
+        ...(element.as ? [`\`as="${element.as}"\``] : []),
+        ...(element.writes ?? []).map(writeText),
+      ];
+      const counts = element.counts;
       out.push(
         `**Component:** \`${element.target}\`` +
-          (element.as ? ` with \`as="${element.as}"\`` : '') +
+          (given.length > 0 ? ` with ${given.join(' ')}` : '') +
           (element.renders ? ` (renders ${element.renders})` : '') +
           '.' +
           (element.wraps
@@ -619,9 +651,18 @@ export function renderLookup(lookup: Lookup): string {
               `own unless one of them is a ${orList(element.wraps.unless)}, so ` +
               `build it from its parts.`
             : '') +
-          (element.absorbs ? absorbsText(element.target, element.absorbs) : '')
+          (element.absorbs
+            ? absorbsText(element.target, element.absorbs)
+            : '') +
+          (counts
+            ? ` It renders this element's children itself, \`${counts.prop}\` ` +
+              `bare, empty <${counts.tag}>s: write their count as ` +
+              `\`${counts.prop}={N}\` and drop them. The codemod does that ` +
+              `when they're all the element holds.`
+            : '')
       );
       break;
+    }
     case 'wrong-tag':
       out.push(
         `**Component:** \`${element.target}\` renders ${element.reaches}, not ` +

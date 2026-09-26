@@ -40,7 +40,9 @@ when it is spelled the way it renders (`value="40"`, not `value="040"`).
 
 `attr:dangerouslySetInnerHTML` is the same kind of refusal: the element sets its own content,
 and some bestax components render content of their own beside `children`, which React
-rejects. Keep the element as markup.
+rejects. Keep the element as markup. `attr:children` is too: the codemod reads an element's
+children from the JSX inside it, so children passed as an attribute are content it can't see.
+Move them inside the element, then re-run.
 
 `attr:className` is a `.navbar-divider` with another class on it (`<hr className="navbar-divider
 mt-2">`). `Navbar.Divider` drops its own class for a `className` it's given, so the conversion
@@ -104,6 +106,11 @@ renders the wrapper bare.
 On a `.select` or a `.breadcrumb` it's the same shape from the other side. `SelectBase` renders
 the `<select>` inside `.select` itself, and `Breadcrumb` the `<ul>` inside `.breadcrumb`, so each
 converts only around that one element, with nothing else beside it.
+
+On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
+the element converts only when its children are just that, and a class, an attribute, text or a
+comment in one of them, or anything else beside them, keeps it as markup. Keep it if the
+children matter; otherwise make them bare `<div>`s, then re-run.
 
 ### `context:<Target>`
 
@@ -177,7 +184,6 @@ in the browser:
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination`**, **`family:panel`**, **`family:tabs`**: each renders list items,
   links or roles of its own. Rebuild them from the component's docs.
-- **`family:skeleton-block`**, **`family:skeleton-lines`**: `Skeleton` renders its own markup.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 

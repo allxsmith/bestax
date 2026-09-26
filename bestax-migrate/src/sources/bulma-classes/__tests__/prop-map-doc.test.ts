@@ -23,10 +23,10 @@ const mapped = Object.values(ROOTS).filter(entry => entry.status === 'mapped');
 function targetsWhere(
   predicate: (entry: (typeof mapped)[number]) => boolean
 ): string[] {
-  return mapped
-    .filter(predicate)
-    .map(entry => entry.target!)
-    .sort();
+  // Two roots can share a target (`.skeleton-block` and `.skeleton-lines`).
+  return [
+    ...new Set(mapped.filter(predicate).map(entry => entry.target!)),
+  ].sort();
 }
 
 /** The backticked names in a piece of prose. */

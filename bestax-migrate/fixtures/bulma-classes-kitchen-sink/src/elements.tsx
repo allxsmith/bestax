@@ -114,6 +114,12 @@ export function Elements() {
         </div>
       </form>
       <div className="block">A block</div>
+      <div className="skeleton-block">Loading</div>
+      <div className="skeleton-lines mt-2">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
     </div>
   );
 }

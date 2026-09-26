@@ -27,7 +27,11 @@ import {
   WRAPPER_OWN_PROPS,
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
-import { plan, type ElementFacts } from '../src/sources/bulma-classes/plan.js';
+import {
+  plan,
+  type ChildFacts,
+  type ElementFacts,
+} from '../src/sources/bulma-classes/plan.js';
 import {
   bestax,
   createElement,
@@ -108,23 +112,29 @@ function renderBoth(
     string,
     string | true
   >;
+  // A target that renders the element's children itself: they are the
+  // bare elements it counted, and the component is given none.
+  const counted = result.conversion.rendersChildren
+    ? facts.childElements!.map(element => createElement(element.tag, null))
+    : undefined;
   const raw = renderElement(
     facts.tag,
     { className: facts.tokens.join(' '), ...extra },
-    sole
-      ? createElement(
-          sole.tag,
-          {
-            ...(sole.tokens?.length
-              ? { className: sole.tokens.join(' ') }
-              : {}),
-            ...soleAttributes,
-          },
-          'x'
-        )
-      : child
-        ? child.raw
-        : children
+    counted ??
+      (sole
+        ? createElement(
+            sole.tag,
+            {
+              ...(sole.tokens?.length
+                ? { className: sole.tokens.join(' ') }
+                : {}),
+              ...soleAttributes,
+            },
+            'x'
+          )
+        : child
+          ? child.raw
+          : children)
   );
   const { target, props, className, drop, numbers, absorbs } =
     result.conversion;
@@ -154,15 +164,21 @@ function renderBoth(
       ),
       ...(className ? { className } : {}),
     },
-    sole ? 'x' : child ? child.converted : children
+    counted ? undefined : sole ? 'x' : child ? child.converted : children
   );
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
+}
+
+/** A bare, empty child element, as the planner reads one. */
+function bare(tag: string): ChildFacts {
+  return { tag, attributes: new Map(), hasSpread: false, isEmpty: true };
 }
 
 /**
  * An element's facts. One whose root's target renders its only child itself
  * holds that child, bare but for the attributes the element's classes need
- * beside them (`multiple` inside `.select.is-multiple`).
+ * beside them (`multiple` inside `.select.is-multiple`). One whose target
+ * renders its children from a count holds a few of the children it counts.
  */
 function factsFor(
   tag: string,
@@ -170,9 +186,11 @@ function factsFor(
   attributes: Record<string, string | true> = {},
   child?: Child
 ): ElementFacts {
-  const absorbs = tokens
+  const entries = tokens
     .map(token => (Object.hasOwn(ROOTS, token) ? ROOTS[token] : undefined))
-    .find(entry => entry?.status === 'mapped' && entry.absorbs)?.absorbs;
+    .filter(entry => entry?.status === 'mapped');
+  const absorbs = entries.find(entry => entry?.absorbs)?.absorbs;
+  const counts = entries.find(entry => entry?.countsChildren)?.countsChildren;
   return {
     tag,
     tokens,
@@ -183,14 +201,16 @@ function factsFor(
     childTargets: child ? [child.target] : [],
     ...(absorbs && {
       soleChild: {
-        tag: absorbs.tag,
+        ...bare(absorbs.tag),
         attributes: new Map(
           Object.entries(absorbs.pairs ?? {})
             .filter(([, token]) => tokens.includes(token))
             .map(([name]) => [name, true])
         ),
-        hasSpread: false,
       },
+    }),
+    ...(counts && {
+      childElements: [bare(counts.tag), bare(counts.tag), bare(counts.tag)],
     }),
   };
 }
@@ -356,10 +376,9 @@ describe.each(absorbing)(
     ): ElementFacts => ({
       ...factsFor(entry.tag!, [root, ...tokens], attributes),
       soleChild: {
-        tag: spec.tag,
+        ...bare(spec.tag),
         tokens: childTokens,
         attributes: new Map(Object.entries(childAttributes)),
-        hasSpread: false,
       },
     });
     const same = (facts: ElementFacts, label: string) => {
@@ -500,6 +519,57 @@ describe.each(absorbing)(
     it('takes no class on the child that would convert it by itself', () => {
       for (const token of Object.keys(spec.modifiers ?? {})) {
         expect(plan(factsFor(spec.tag, [token])).conversion).toBeNull();
+      }
+    });
+  }
+);
+
+const counting = mapped.filter(([, entry]) => entry.countsChildren);
+
+describe.each(counting)(
+  '`.%s` renders its children from a count',
+  (root, entry) => {
+    const { tag } = entry.countsChildren!;
+    const holding = (children: ChildFacts[] | undefined): ElementFacts => ({
+      ...factsFor(entry.tag!, [root]),
+      childElements: children,
+    });
+
+    it('renders the same for each count, from none up', () => {
+      for (let count = 0; count <= 5; count += 1) {
+        const both = renderBoth(
+          holding(Array.from({ length: count }, () => bare(tag)))
+        );
+        expect({ count, converts: both !== null }).toEqual({
+          count,
+          converts: true,
+        });
+        expect({ count, html: both!.converted }).toEqual({
+          count,
+          html: both!.raw,
+        });
+      }
+    });
+
+    it('stays markup around anything but those bare, empty elements', () => {
+      const refusals: Array<[string, ChildFacts[] | undefined]> = [
+        ['text or an expression beside them', undefined],
+        ['another tag', [bare(tag), bare('span')]],
+        ['a class on one', [{ ...bare(tag), tokens: ['is-wide'] }]],
+        ['an empty class on one', [{ ...bare(tag), tokens: [] }]],
+        ['a computed class on one', [{ ...bare(tag), tokens: null }]],
+        [
+          'an attribute on one',
+          [{ ...bare(tag), attributes: new Map([['id', 'x']]) }],
+        ],
+        ['a spread on one', [{ ...bare(tag), hasSpread: true }]],
+        ['something inside one', [{ ...bare(tag), isEmpty: false }]],
+      ];
+      for (const [label, children] of refusals) {
+        expect({
+          label,
+          conversion: plan(holding(children)).conversion,
+        }).toEqual({ label, conversion: null });
       }
     });
   }

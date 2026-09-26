@@ -514,6 +514,8 @@ export async function bulmaClassTable() {
         wrapsChildren: entry.wrapsChildren ?? null,
         folds: entry.folds ?? null,
         absorbs: entry.absorbs ?? null,
+        writes: entry.writes ?? null,
+        countsChildren: entry.countsChildren ?? null,
         noHelpers: entry.noHelpers ?? false,
         ownClassOnly: entry.ownClassOnly ?? false,
       },

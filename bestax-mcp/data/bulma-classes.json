@@ -16,6 +16,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -34,6 +36,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -80,6 +84,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -105,6 +111,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -133,6 +141,8 @@
       },
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -155,6 +165,8 @@
       },
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -173,6 +185,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -191,6 +205,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -209,6 +225,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -227,6 +245,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -245,6 +265,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -263,6 +285,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -360,6 +384,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1018,6 +1044,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1178,6 +1206,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1413,6 +1443,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1453,6 +1485,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1475,6 +1509,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1497,6 +1533,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1525,6 +1563,8 @@
       },
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1548,6 +1588,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1566,6 +1608,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1592,6 +1636,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -1630,6 +1676,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1669,6 +1717,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1716,6 +1766,8 @@
         "pairs": { "multiple": "is-multiple" },
         "renames": { "size": { "to": "multipleSize", "beside": "multiple" } }
       },
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1734,6 +1786,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1772,6 +1826,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1790,6 +1846,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1808,6 +1866,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1826,6 +1886,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1844,6 +1906,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1862,6 +1926,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1880,6 +1946,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1898,6 +1966,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1916,6 +1986,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1934,6 +2006,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1952,6 +2026,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -1970,6 +2046,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2004,6 +2082,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2022,6 +2102,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2040,6 +2122,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2058,6 +2142,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2076,6 +2162,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2094,6 +2182,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2115,6 +2205,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": true,
       "ownClassOnly": false
     },
@@ -2133,6 +2225,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": true,
       "ownClassOnly": true
     },
@@ -2162,6 +2256,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2194,6 +2290,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2215,6 +2313,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2259,6 +2359,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2283,6 +2385,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2318,6 +2422,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2340,6 +2446,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2385,6 +2493,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2423,7 +2533,49 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": { "tag": "ul", "attributesOn": "element" },
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
+      "ownClassOnly": false
+    },
+    "skeleton-block": {
+      "status": "mapped",
+      "target": "Skeleton",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
+      "noHelpers": true,
+      "ownClassOnly": false
+    },
+    "skeleton-lines": {
+      "status": "mapped",
+      "target": "Skeleton",
+      "tag": "div",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": [{ "prop": "variant", "value": "lines" }],
+      "countsChildren": { "tag": "div", "prop": "lines" },
+      "noHelpers": true,
       "ownClassOnly": false
     },
     "checkbox": {
@@ -2441,6 +2593,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2459,6 +2613,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2477,6 +2633,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2495,6 +2653,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2513,6 +2673,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2531,6 +2693,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2549,6 +2713,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2567,6 +2733,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2585,6 +2753,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2603,6 +2773,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2621,6 +2793,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2639,6 +2813,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2657,6 +2833,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2675,6 +2853,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2693,6 +2873,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2711,6 +2893,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2729,6 +2913,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2747,6 +2933,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2765,6 +2953,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2783,6 +2973,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2801,6 +2993,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2819,6 +3013,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2837,6 +3033,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2855,6 +3053,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2873,6 +3073,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2891,6 +3093,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2909,6 +3113,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2927,6 +3133,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2945,6 +3153,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2963,6 +3173,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2981,6 +3193,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -2999,6 +3213,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3017,6 +3233,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3035,6 +3253,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3053,6 +3273,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3071,6 +3293,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3089,6 +3313,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3107,6 +3333,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3125,6 +3353,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3143,6 +3373,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3161,6 +3393,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3179,6 +3413,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3197,6 +3433,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3215,6 +3453,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3233,6 +3473,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3251,6 +3493,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3269,6 +3513,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3287,6 +3533,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3305,42 +3553,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
-    "skeleton-block": {
-      "status": "todo",
-      "target": "Skeleton",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "bestax `Skeleton` renders its own markup",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
-      "noHelpers": false,
-      "ownClassOnly": false
-    },
-    "skeleton-lines": {
-      "status": "todo",
-      "target": "Skeleton",
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": false,
-      "why": "bestax `Skeleton` renders its own markup",
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3359,6 +3573,8 @@
       "wrapsChildren": null,
       "folds": [{ "prop": "isResponsive" }],
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3717,6 +3933,8 @@
       "wrapsChildren": null,
       "folds": [{ "prop": "isFixed" }],
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3735,6 +3953,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3753,6 +3973,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3771,6 +3993,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3789,6 +4013,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3807,6 +4033,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3825,6 +4053,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3843,6 +4073,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3861,6 +4093,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3879,6 +4113,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3897,6 +4133,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3915,6 +4153,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     },
@@ -3933,6 +4173,8 @@
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
       "noHelpers": false,
       "ownClassOnly": false
     }

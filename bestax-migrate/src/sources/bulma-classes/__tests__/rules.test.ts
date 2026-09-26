@@ -85,9 +85,36 @@ describe('every refusal the planner can produce', () => {
         collect(facts(tag, [root], [], { hasChildren: false }));
         collect(facts(tag, [root], [], { onlyChildOf: 'Link' }));
         collect(facts(tag, [root], [['dangerouslySetInnerHTML', null]]));
+        collect(facts(tag, [root], [['children', null]]));
         for (const name of names) {
           for (const value of values) {
             collect(facts(tag, [root], [[name, value]]));
+          }
+        }
+      }
+      // The children, for a target that renders them itself from a count.
+      const bare = (tag: string): ChildFacts => ({
+        tag,
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      });
+      const counts = entry.countsChildren;
+      if (counts) {
+        const holding = (children?: ChildFacts[]) =>
+          facts(entry.tag!, [root], [], { childElements: children });
+        collect(holding(undefined));
+        collect(holding([bare('span')]));
+        collect(holding([{ ...bare(counts.tag), tokens: ['box'] }]));
+        collect(holding([{ ...bare(counts.tag), hasSpread: true }]));
+        collect(holding([{ ...bare(counts.tag), isEmpty: false }]));
+        for (const name of names) {
+          for (const value of values) {
+            collect(
+              holding([
+                { ...bare(counts.tag), attributes: new Map([[name, value]]) },
+              ])
+            );
           }
         }
       }
@@ -101,12 +128,7 @@ describe('every refusal the planner can produce', () => {
         child: Partial<ChildFacts> = {}
       ) =>
         facts(tag, tokens, attributes, {
-          soleChild: {
-            tag: spec.tag,
-            attributes: new Map(),
-            hasSpread: false,
-            ...child,
-          },
+          soleChild: { ...bare(spec.tag), ...child },
         });
       collect(around([root], [], { tag: 'span' }));
       collect(around([root], [], { hasSpread: true }));
