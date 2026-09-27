@@ -1,3 +1,17 @@
+# [2.12.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.11.0...bestax-migrate@2.12.0) (2026-09-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep menuitemcheckbox and menuitemradio items in Dropdown's arrow-key order ([#786](https://github.com/allxsmith/bestax/issues/786)) ([064155a](https://github.com/allxsmith/bestax/commit/064155aaf40d89dde0e728685737a785d6208d34))
+* **bulma-ui:** render the four burger spans Bulma v1 positions ([#785](https://github.com/allxsmith/bestax/issues/785)) ([8e4e1e6](https://github.com/allxsmith/bestax/commit/8e4e1e61d9bc53baee40eec8ee425c9b4801095d))
+* **bulma-ui:** stop shipping test-only exports, and document notification() ([#781](https://github.com/allxsmith/bestax/issues/781)) ([5f95398](https://github.com/allxsmith/bestax/commit/5f953988fa4e66699831da9268dd085b26c8a494))
+
+
+### Features
+
+* **bestax-migrate:** convert conditional classes in clsx and classnames calls ([8948cce](https://github.com/allxsmith/bestax/commit/8948ccee31a3f542748eec704f227425cc44ea9f))
+
 # [2.11.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.10.0...bestax-migrate@2.11.0) (2026-09-26)
 
 
