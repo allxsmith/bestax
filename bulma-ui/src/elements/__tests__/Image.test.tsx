@@ -35,6 +35,12 @@ describe('Image Component', () => {
     expect(img).toHaveClass('is-rounded');
   });
 
+  test('does not render an empty class attribute on the img when isRounded is unset', () => {
+    render(<Image {...defaultProps} />);
+    const img = screen.getByAltText('Test image');
+    expect(img).not.toHaveAttribute('class');
+  });
+
   test('adds srcSet for retina images when isRetina is true', () => {
     render(<Image {...defaultProps} isRetina />);
     const img = screen.getByAltText('Test image');

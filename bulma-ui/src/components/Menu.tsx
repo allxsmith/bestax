@@ -128,7 +128,7 @@ export const MenuList: React.FC<MenuListProps> = ({
   // Increment level for nested MenuLists
   return (
     <MenuListLevelContext.Provider value={level + 1}>
-      <ul className={ulClass} {...rest}>
+      <ul className={ulClass || undefined} {...rest}>
         {children}
       </ul>
     </MenuListLevelContext.Provider>
@@ -265,7 +265,7 @@ export const MenuItem = forwardRef(function MenuItem(
       role={role}
       tabIndex={tabIndex}
     >
-      <Component ref={ref} className={itemClass} {...linkProps}>
+      <Component ref={ref} className={itemClass || undefined} {...linkProps}>
         {labelChildren}
       </Component>
       {nestedMenuLists}

@@ -53,7 +53,7 @@ export const Tr: React.FC<TrProps> = ({
   const trClasses = classNames(bulmaClasses, className, bulmaHelperClasses);
 
   return (
-    <tr className={trClasses} {...rest}>
+    <tr className={trClasses || undefined} {...rest}>
       {children}
     </tr>
   );

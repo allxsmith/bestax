@@ -63,7 +63,7 @@ export const Th: React.FC<ThProps> = ({
 
   return (
     <th
-      className={thClasses}
+      className={thClasses || undefined}
       style={
         width
           ? { width: typeof width === 'number' ? `${width}px` : width }

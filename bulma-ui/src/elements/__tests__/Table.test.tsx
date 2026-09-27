@@ -214,6 +214,86 @@ describe('Compound components', () => {
   });
 });
 
+describe('Table subcomponents without an empty class attribute', () => {
+  test('Thead renders no class attribute without props', () => {
+    render(
+      <table>
+        <Thead data-testid="thead">
+          <tr>
+            <th>H</th>
+          </tr>
+        </Thead>
+      </table>
+    );
+    expect(screen.getByTestId('thead')).not.toHaveAttribute('class');
+  });
+
+  test('Tbody renders no class attribute without props', () => {
+    render(
+      <table>
+        <Tbody data-testid="tbody">
+          <tr>
+            <td>B</td>
+          </tr>
+        </Tbody>
+      </table>
+    );
+    expect(screen.getByTestId('tbody')).not.toHaveAttribute('class');
+  });
+
+  test('Tfoot renders no class attribute without props', () => {
+    render(
+      <table>
+        <Tfoot data-testid="tfoot">
+          <tr>
+            <td>F</td>
+          </tr>
+        </Tfoot>
+      </table>
+    );
+    expect(screen.getByTestId('tfoot')).not.toHaveAttribute('class');
+  });
+
+  test('Tr renders no class attribute without props', () => {
+    render(
+      <table>
+        <tbody>
+          <Tr data-testid="tr">
+            <td>R</td>
+          </Tr>
+        </tbody>
+      </table>
+    );
+    expect(screen.getByTestId('tr')).not.toHaveAttribute('class');
+  });
+
+  test('Th renders no class attribute without props', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th data-testid="th">H</Th>
+          </tr>
+        </thead>
+      </table>
+    );
+    expect(screen.getByTestId('th')).not.toHaveAttribute('class');
+  });
+
+  test('Td renders no class attribute without props', () => {
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <Td data-testid="td">D</Td>
+          </tr>
+        </tbody>
+      </table>
+    );
+    expect(screen.getByTestId('td')).not.toHaveAttribute('class');
+  });
+});
+
 describe('Table fullwidth aliases', () => {
   const body = (
     <tbody>

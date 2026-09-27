@@ -41,7 +41,7 @@ export const Tfoot: React.FC<TfootProps> = ({
   const tfootClasses = classNames(className, bulmaHelperClasses);
 
   return (
-    <tfoot className={tfootClasses} {...rest}>
+    <tfoot className={tfootClasses || undefined} {...rest}>
       {children}
     </tfoot>
   );

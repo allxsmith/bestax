@@ -67,7 +67,7 @@ export const Td: React.FC<TdProps> = ({
   const tdClasses = classNames(colorClass, className, bulmaHelperClasses);
 
   return (
-    <td className={tdClasses} {...rest}>
+    <td className={tdClasses || undefined} {...rest}>
       {children}
     </td>
   );

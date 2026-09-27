@@ -131,6 +131,22 @@ describe('Menu', () => {
     expect(screen.getByTestId('nested-list')).not.toHaveClass('menu-list');
   });
 
+  it('does not render an empty class attribute on a nested MenuList', () => {
+    render(
+      <Menu>
+        <MenuList data-testid="top-list">
+          <MenuItem>
+            Parent
+            <MenuList data-testid="nested-list">
+              <MenuItem>Child</MenuItem>
+            </MenuList>
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    expect(screen.getByTestId('nested-list')).not.toHaveAttribute('class');
+  });
+
   it('renders MenuItem as <a> by default', () => {
     render(
       <Menu>
@@ -176,6 +192,21 @@ describe('Menu', () => {
     const li = screen.getByTestId('item-li');
     const a = li.querySelector('a');
     expect(a).toHaveAttribute('href', '/foo');
+  });
+
+  it('does not render an empty class attribute on the link when inactive', () => {
+    render(
+      <Menu>
+        <MenuList>
+          <MenuItem href="#" data-testid="item-li">
+            Dashboard
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    const li = screen.getByTestId('item-li');
+    const a = li.querySelector('a');
+    expect(a).not.toHaveAttribute('class');
   });
 
   it('applies is-active class to MenuItem when active prop is true', () => {
