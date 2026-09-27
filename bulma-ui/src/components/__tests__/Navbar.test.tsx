@@ -174,6 +174,36 @@ describe('Navbar.Brand', () => {
     );
     expect(screen.getByTestId('brand')).toHaveClass('custom-brand');
   });
+
+  it('applies textColor as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.Brand textColor="primary" data-testid="brand">
+        Brand
+      </Navbar.Brand>
+    );
+    const brand = screen.getByTestId('brand');
+    expect(brand).toHaveClass('has-text-primary');
+    expect(brand).not.toHaveAttribute('textColor');
+  });
+
+  it('renders color as a text color, with textColor taking precedence', () => {
+    const { rerender } = render(
+      <Navbar.Brand color="info" data-testid="brand">
+        Brand
+      </Navbar.Brand>
+    );
+    expect(screen.getByTestId('brand')).toHaveClass('has-text-info');
+
+    rerender(
+      <Navbar.Brand color="info" textColor="grey" data-testid="brand">
+        Brand
+      </Navbar.Brand>
+    );
+    const brand = screen.getByTestId('brand');
+    expect(brand).toHaveClass('has-text-grey');
+    expect(brand).not.toHaveClass('has-text-info');
+    expect(brand).not.toHaveAttribute('color');
+  });
 });
 
 describe('Navbar.Item', () => {
@@ -326,6 +356,28 @@ describe('Navbar.Burger', () => {
     render(<Navbar.Burger ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
+
+  it('applies textColor as a helper class and not as a DOM attribute', () => {
+    render(<Navbar.Burger textColor="primary" data-testid="burger" />);
+    const burger = screen.getByTestId('burger');
+    expect(burger).toHaveClass('has-text-primary');
+    expect(burger).not.toHaveAttribute('textColor');
+  });
+
+  it('renders color as a text color, with textColor taking precedence', () => {
+    const { rerender } = render(
+      <Navbar.Burger color="info" data-testid="burger" />
+    );
+    expect(screen.getByTestId('burger')).toHaveClass('has-text-info');
+
+    rerender(
+      <Navbar.Burger color="info" textColor="grey" data-testid="burger" />
+    );
+    const burger = screen.getByTestId('burger');
+    expect(burger).toHaveClass('has-text-grey');
+    expect(burger).not.toHaveClass('has-text-info');
+    expect(burger).not.toHaveAttribute('color');
+  });
 });
 
 describe('Navbar.Menu', () => {
@@ -356,6 +408,36 @@ describe('Navbar.Menu', () => {
     );
     expect(screen.getByTestId('menu')).toHaveClass('custom-menu');
   });
+
+  it('applies textColor as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.Menu textColor="primary" data-testid="menu">
+        Menu
+      </Navbar.Menu>
+    );
+    const menu = screen.getByTestId('menu');
+    expect(menu).toHaveClass('has-text-primary');
+    expect(menu).not.toHaveAttribute('textColor');
+  });
+
+  it('renders color as a text color, with textColor taking precedence', () => {
+    const { rerender } = render(
+      <Navbar.Menu color="info" data-testid="menu">
+        Menu
+      </Navbar.Menu>
+    );
+    expect(screen.getByTestId('menu')).toHaveClass('has-text-info');
+
+    rerender(
+      <Navbar.Menu color="info" textColor="grey" data-testid="menu">
+        Menu
+      </Navbar.Menu>
+    );
+    const menu = screen.getByTestId('menu');
+    expect(menu).toHaveClass('has-text-grey');
+    expect(menu).not.toHaveClass('has-text-info');
+    expect(menu).not.toHaveAttribute('color');
+  });
 });
 
 describe('Navbar.Start & Navbar.End', () => {
@@ -377,6 +459,66 @@ describe('Navbar.Start & Navbar.End', () => {
   it('applies navbar-end class', () => {
     render(<Navbar.End data-testid="end">End</Navbar.End>);
     expect(screen.getByTestId('end')).toHaveClass('navbar-end');
+  });
+
+  it('applies textColor on Navbar.Start as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.Start textColor="primary" data-testid="start">
+        Start
+      </Navbar.Start>
+    );
+    const start = screen.getByTestId('start');
+    expect(start).toHaveClass('has-text-primary');
+    expect(start).not.toHaveAttribute('textColor');
+  });
+
+  it('applies textColor on Navbar.End as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.End textColor="primary" data-testid="end">
+        End
+      </Navbar.End>
+    );
+    const end = screen.getByTestId('end');
+    expect(end).toHaveClass('has-text-primary');
+    expect(end).not.toHaveAttribute('textColor');
+  });
+
+  it('renders color as a text color on Navbar.Start, with textColor taking precedence', () => {
+    const { rerender } = render(
+      <Navbar.Start color="info" data-testid="start">
+        Start
+      </Navbar.Start>
+    );
+    expect(screen.getByTestId('start')).toHaveClass('has-text-info');
+
+    rerender(
+      <Navbar.Start color="info" textColor="grey" data-testid="start">
+        Start
+      </Navbar.Start>
+    );
+    const start = screen.getByTestId('start');
+    expect(start).toHaveClass('has-text-grey');
+    expect(start).not.toHaveClass('has-text-info');
+    expect(start).not.toHaveAttribute('color');
+  });
+
+  it('renders color as a text color on Navbar.End, with textColor taking precedence', () => {
+    const { rerender } = render(
+      <Navbar.End color="info" data-testid="end">
+        End
+      </Navbar.End>
+    );
+    expect(screen.getByTestId('end')).toHaveClass('has-text-info');
+
+    rerender(
+      <Navbar.End color="info" textColor="grey" data-testid="end">
+        End
+      </Navbar.End>
+    );
+    const end = screen.getByTestId('end');
+    expect(end).toHaveClass('has-text-grey');
+    expect(end).not.toHaveClass('has-text-info');
+    expect(end).not.toHaveAttribute('color');
   });
 });
 
