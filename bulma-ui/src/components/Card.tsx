@@ -6,6 +6,11 @@ import {
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
+  type AnchorOnlyAttributes,
+  ANCHOR_ONLY_ATTRS,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
+import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
@@ -287,12 +292,38 @@ export interface CardFooterProps
 }
 
 /**
+ * The set withheld from a non-anchor `Card.FooterItem` (`span`/`button`): the
+ * derived anchor-only attributes, minus `type` (also valid on a `<button>` as
+ * `submit`/`button`/`reset`, so stripping it there would remove a working
+ * attribute — the same trade `DropdownItem`'s own `STRIP_FROM_NON_ANCHOR`
+ * accepts, in `./Dropdown.tsx`), plus `rel` (React declares it on
+ * `HTMLAttributes` for every element, so the derived set alone would not
+ * withhold it — the same addition `Level.Item` makes).
+ */
+const STRIP_FROM_NON_ANCHOR: Readonly<
+  Record<Exclude<keyof AnchorOnlyAttributes, 'type'> | 'rel', true>
+> = (() => {
+  const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
+  return { ...rest, rel: true };
+})();
+
+/**
  * Props for the Card.FooterItem compound component.
+ *
+ * The anchor attributes arrive through `AnchorOnlyAttributes` at every `as`,
+ * and are forwarded only when the tag is an `<a>` — `STRIP_FROM_NON_ANCHOR`
+ * above withholds them from `span` and `button` at runtime, since narrowing
+ * the type per `as` is source-breaking (see `Level.Item`'s own note on #672).
  */
 export interface CardFooterItemProps
   extends
-    React.HTMLAttributes<HTMLSpanElement>,
+    AnchorOnlyAttributes,
+    React.HTMLAttributes<
+      HTMLSpanElement | HTMLAnchorElement | HTMLButtonElement
+    >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type to render (default: `span`). Bulma's own card markup uses `a`. */
+  as?: 'span' | 'a' | 'button';
   /** Bulma color modifier (text color helper). */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -310,8 +341,12 @@ export interface CardFooterItemProps
  */
 export interface CardHeaderTitleProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    React.HTMLAttributes<
+      HTMLDivElement | HTMLParagraphElement | HTMLHeadingElement
+    >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type to render (default: `div`). Bulma's own card markup uses `p`; a heading suits a title that should read as one. */
+  as?: 'div' | 'p' | 'h2' | 'h3' | 'h4';
   /** Bulma color modifier (text color helper). */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -409,6 +444,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
  * @returns {JSX.Element} The rendered card header title.
  */
 const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
+  as = 'div',
   className,
   children,
   centered,
@@ -422,8 +458,9 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const Tag = as;
   return (
-    <div
+    <Tag
       className={classNames(
         usePrefixedClassNames('card-header-title', {
           'is-centered': centered,
@@ -434,7 +471,7 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
       {...rest}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 
@@ -583,6 +620,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
  * @returns {JSX.Element} The rendered card footer item.
  */
 const CardFooterItem: React.FC<CardFooterItemProps> = ({
+  as = 'span',
   className,
   children,
   color,
@@ -595,15 +633,47 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const itemClasses = classNames(
+    usePrefixedClassNames('card-footer-item'),
+    bulmaHelperClasses,
+    className
+  );
+
+  // The anchor's own attributes reach an `<a>` and nothing else — `STRIP_FROM_NON_ANCHOR`
+  // above names the withheld set and why `type` stays while `rel` is added.
+  if (as === 'a') {
+    return (
+      <a className={itemClasses} {...rest}>
+        {children}
+      </a>
+    );
+  }
+
+  const forwarded = omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
+
+  if (as === 'button') {
+    return (
+      <button
+        className={itemClasses}
+        {...forwarded}
+        // A footer item button must not submit an enclosing form by default —
+        // `<button>` defaults to `type="submit"`, and a Save/Cancel action row
+        // sitting in a form is the common case this `as` exists for.
+        type={
+          (
+            forwarded as {
+              type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
+            }
+          ).type ?? 'button'
+        }
+      >
+        {children}
+      </button>
+    );
+  }
+
   return (
-    <span
-      className={classNames(
-        usePrefixedClassNames('card-footer-item'),
-        bulmaHelperClasses,
-        className
-      )}
-      {...rest}
-    >
+    <span className={itemClasses} {...forwarded}>
       {children}
     </span>
   );
