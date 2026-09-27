@@ -836,6 +836,21 @@ describe('Dropdown', () => {
 });
 
 describe('Dropdown keyboard navigation', () => {
+  test('a role of undefined falls back to menuitem and stays reachable', () => {
+    const role = undefined as string | undefined;
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem role={role}>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('First')).toHaveAttribute('role', 'menuitem');
+    fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
+      key: 'ArrowDown',
+    });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
   test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
     render(
       <Dropdown label="Menu">
@@ -848,6 +863,11 @@ describe('Dropdown keyboard navigation', () => {
         <DropdownItem>All</DropdownItem>
       </Dropdown>
     );
+    expect(screen.getByText('Unread')).toHaveAttribute(
+      'role',
+      'menuitemcheckbox'
+    );
+    expect(screen.getByText('Newest')).toHaveAttribute('role', 'menuitemradio');
     fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
       key: 'ArrowDown',
     });
