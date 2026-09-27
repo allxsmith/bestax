@@ -111,6 +111,21 @@ export function Layout() {
           </div>
           <div className="media-right">Right</div>
         </div>
+        <aside className="menu">
+          <p className="menu-label">Docs</p>
+          <ul className="menu-list">
+            <li>
+              <a className="is-active" href="/start">
+                Start
+              </a>
+              <ul>
+                <li>
+                  <a href="/install">Install</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </aside>
       </div>
       <section className="hero is-info is-fullheight-with-navbar">
         <div className="hero-head">Head</div>

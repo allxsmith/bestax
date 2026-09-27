@@ -140,29 +140,29 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`, `white`,
 `white-bis`, `white-ter`, `light`, `dark`, `inherit` and `current`.
 
-| Classes                                                                                                   | Prop                                                                                  |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `m-{n}`, `mt-{n}`, `mr-{n}`, `mb-{n}`, `ml-{n}`, `mx-{n}`, `my-{n}` (`0` to `6`, `auto`)                  | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`                                               |
-| `p-{n}`, `pt-{n}`, `pr-{n}`, `pb-{n}`, `pl-{n}`, `px-{n}`, `py-{n}`                                       | `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                               |
-| `has-text-{color}`                                                                                        | `textColor` (on `Table`, `color`)                                                     |
-| `has-background-{color}`                                                                                  | `bgColor` (on `Tag`, `InputBase`, `TextAreaBase` and `SelectBase`, `backgroundColor`) |
-| `is-size-1` … `is-size-7`, and `-{viewport}`                                                              | `textSize`, `textSize{Viewport}`                                                      |
-| `has-text-centered`, `-justified`, `-left`, `-right`, and `-{viewport}`                                   | `textAlign`, `textAlign{Viewport}`                                                    |
-| `is-capitalized`, `is-lowercase`, `is-uppercase`, `is-italic`                                             | `textTransform`                                                                       |
-| `has-text-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`                                       | `textWeight`                                                                          |
-| `is-family-sans-serif`, `-monospace`, `-primary`, `-secondary`, `-code`                                   | `fontFamily`                                                                          |
-| `is-block`, `is-flex`, `is-inline`, `is-inline-block`, `is-inline-flex`, `is-grid`                        | `display`                                                                             |
-| the same with any of the nine viewports, `touch` and the `-only` ones included                            | `display{Viewport}`                                                                   |
-| `is-hidden`, `is-invisible`, `is-sr-only`                                                                 | `visibility`                                                                          |
-| `is-hidden-{viewport}`, `is-invisible-{viewport}`, all nine viewports                                     | `visibility{Viewport}`                                                                |
-| `is-flex-direction-*`, `is-flex-wrap-*`, `is-justify-content-*`, `is-align-content-*`, `is-align-items-*` | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`           |
-| `is-align-self-*`, `is-flex-grow-*`, `is-flex-shrink-*`                                                   | `alignSelf`, `flexGrow`, `flexShrink`                                                 |
-| `is-pulled-left`, `is-pulled-right`                                                                       | `float`                                                                               |
-| `is-clipped`                                                                                              | `overflow="clipped"`                                                                  |
-| `is-overlay`, `is-skeleton`, `is-clearfix`, `is-relative`                                                 | `overlay`, `skeleton`, `clearfix`, `relative`                                         |
-| `is-unselectable`, `is-clickable`                                                                         | `interaction`                                                                         |
-| `is-radiusless`, `is-shadowless`                                                                          | `radius`, `shadow`                                                                    |
-| `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                          |
+| Classes                                                                                                   | Prop                                                                                                                     |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `m-{n}`, `mt-{n}`, `mr-{n}`, `mb-{n}`, `ml-{n}`, `mx-{n}`, `my-{n}` (`0` to `6`, `auto`)                  | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`                                                                                  |
+| `p-{n}`, `pt-{n}`, `pr-{n}`, `pb-{n}`, `pl-{n}`, `px-{n}`, `py-{n}`                                       | `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                  |
+| `has-text-{color}`                                                                                        | `textColor` (on `Menu`, `Menu.Label`, `Menu.List` and `Table`, `color`)                                                  |
+| `has-background-{color}`                                                                                  | `bgColor` (on `Menu`, `Menu.Label`, `Menu.List`, `Tag`, `InputBase`, `TextAreaBase` and `SelectBase`, `backgroundColor`) |
+| `is-size-1` … `is-size-7`, and `-{viewport}`                                                              | `textSize`, `textSize{Viewport}`                                                                                         |
+| `has-text-centered`, `-justified`, `-left`, `-right`, and `-{viewport}`                                   | `textAlign`, `textAlign{Viewport}`                                                                                       |
+| `is-capitalized`, `is-lowercase`, `is-uppercase`, `is-italic`                                             | `textTransform`                                                                                                          |
+| `has-text-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`                                       | `textWeight`                                                                                                             |
+| `is-family-sans-serif`, `-monospace`, `-primary`, `-secondary`, `-code`                                   | `fontFamily`                                                                                                             |
+| `is-block`, `is-flex`, `is-inline`, `is-inline-block`, `is-inline-flex`, `is-grid`                        | `display`                                                                                                                |
+| the same with any of the nine viewports, `touch` and the `-only` ones included                            | `display{Viewport}`                                                                                                      |
+| `is-hidden`, `is-invisible`, `is-sr-only`                                                                 | `visibility`                                                                                                             |
+| `is-hidden-{viewport}`, `is-invisible-{viewport}`, all nine viewports                                     | `visibility{Viewport}`                                                                                                   |
+| `is-flex-direction-*`, `is-flex-wrap-*`, `is-justify-content-*`, `is-align-content-*`, `is-align-items-*` | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`                                              |
+| `is-align-self-*`, `is-flex-grow-*`, `is-flex-shrink-*`                                                   | `alignSelf`, `flexGrow`, `flexShrink`                                                                                    |
+| `is-pulled-left`, `is-pulled-right`                                                                       | `float`                                                                                                                  |
+| `is-clipped`                                                                                              | `overflow="clipped"`                                                                                                     |
+| `is-overlay`, `is-skeleton`, `is-clearfix`, `is-relative`                                                 | `overlay`, `skeleton`, `clearfix`, `relative`                                                                            |
+| `is-unselectable`, `is-clickable`                                                                         | `interaction`                                                                                                            |
+| `is-radiusless`, `is-shadowless`                                                                          | `radius`, `shadow`                                                                                                       |
+| `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                                                             |
 
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
 on `Breadcrumb`, `Hero`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,

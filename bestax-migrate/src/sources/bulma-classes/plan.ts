@@ -83,6 +83,11 @@ export interface ElementFacts {
    */
   componentsAround?: readonly string[];
   /**
+   * The classes on the HTML elements around this element, computed ones
+   * included.
+   */
+  classesAround?: readonly string[];
+  /**
    * The component this element is the only child of, if any (`Link` for
    * `<Link href="/x"><a className="button">`), since that component can
    * reach into it with `cloneElement`.
@@ -371,6 +376,17 @@ export function plan(facts: ElementFacts): Plan {
         `this element has no \`id\` and sits inside \`<${around}>\`, which is or could render a bestax \`${entry.adoptsIdFrom.join('` or `')}\` with a \`label\`; bestax \`${target}\` would then take that generated \`id\`; give the element an \`id\` of its own, then re-run`
       );
     }
+  }
+  if (
+    entry.topLevelOnly &&
+    (facts.classesAround?.includes(root!) ||
+      facts.bestaxAround?.includes(target))
+  ) {
+    return refuse(
+      'context',
+      target,
+      `bestax \`${target}\` renders \`.${root}\` only when no other \`${target}\` is around it, and this element sits inside another \`.${root}\`, so it would lose the class; keep it as markup`
+    );
   }
   const wraps = entry.wrapsChildren;
   if (

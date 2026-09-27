@@ -79,6 +79,9 @@ The **Tags** column is what the component can render: an element on any other ta
 | `.breadcrumb`        | `Breadcrumb`          | `<nav>` only                                                   |
 | `.skeleton-block`    | `Skeleton`            | `<div>` only                                                   |
 | `.skeleton-lines`    | `Skeleton`            | `<div>` only                                                   |
+| `.menu`              | `Menu`                | `<aside>` only                                                 |
+| `.menu-label`        | `Menu.Label`          | `<p>` only                                                     |
+| `.menu-list`         | `Menu.List`           | `<ul>` only                                                    |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -110,6 +113,11 @@ own. `Field` and `Control` tell bestax's form controls inside them to skip their
 `.field` or `.control` that already holds a bestax component stays markup with a
 `context:<Target>` TODO, and so does an input with no `id` inside a bestax `Field` or any other
 component, which could hand it a labelled Field's generated one.
+
+A `.menu` converts with its `.menu-label`s and `.menu-list`s, and the `<li>`s and `<a>`s inside a
+list stay as written, since `Menu.Item` renders the `<li>` and its `<a>` together (a
+`.menu-item` gets a `family:menu-item` TODO). `Menu.List` drops `.menu-list` on a list inside
+another, so a `.menu-list` inside another stays markup with a `context:Menu.List` TODO.
 
 ## Plain tags with helper classes
 
@@ -181,7 +189,7 @@ inside one of them, or anything else beside them, keeps the element as markup wi
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, Icon and IconText, Image, Menu, Message, Modal, the navbar's burger
+Checkboxes, Dropdown, File, Icon and IconText, Image, the menu's items, Message, Modal, the navbar's burger
 and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
 
 ## Classes left alone

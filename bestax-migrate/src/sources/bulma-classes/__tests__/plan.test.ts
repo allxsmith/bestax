@@ -463,6 +463,45 @@ describe('plan', () => {
     });
   });
 
+  describe('Menu', () => {
+    it('converts the root, its labels and a top-level list', () => {
+      expect(plan(facts('aside', 'menu mt-4')).conversion).toMatchObject({
+        target: 'Menu',
+        props: [['mt', '4']],
+      });
+      expect(plan(facts('p', 'menu-label')).conversion?.target).toBe(
+        'Menu.Label'
+      );
+      expect(plan(facts('ul', 'menu-list')).conversion?.target).toBe(
+        'Menu.List'
+      );
+    });
+
+    it('keeps a list inside another as markup, since Menu.List drops the class there', () => {
+      for (const around of [
+        { classesAround: ['menu-list'] },
+        { bestaxAround: ['Menu.List'] },
+      ]) {
+        const { conversion, todos } = plan(
+          facts('ul', 'menu-list', {}, around)
+        );
+        expect(conversion).toBeNull();
+        expect(todos.map(todo => todo.rule)).toEqual(['context:Menu.List']);
+      }
+      // Another class around it, or another component, is no reason.
+      expect(
+        plan(facts('ul', 'menu-list', {}, { classesAround: ['menu', 'box'] }))
+          .conversion?.target
+      ).toBe('Menu.List');
+    });
+
+    it('leaves a menu item to a person', () => {
+      expect(plan(facts('a', 'menu-item')).todos.map(t => t.rule)).toEqual([
+        'family:menu-item',
+      ]);
+    });
+  });
+
   describe('forms', () => {
     it('keeps an input color as a class, since color sets the text too', () => {
       expect(

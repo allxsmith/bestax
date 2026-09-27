@@ -878,12 +878,14 @@ export default function transform(
   /**
    * The components around an element: the bestax ones already in the file,
    * and the rest (not an HTML tag, not a fragment), which could render one.
+   * And the classes on the HTML elements around it, computed ones included.
    */
   const around = (
     elementPath: ASTPath<any>
-  ): { bestax: string[]; other: string[] } => {
+  ): { bestax: string[]; other: string[]; classes: string[] } => {
     const bestax: string[] = [];
     const other: string[] = [];
+    const classes: string[] = [];
     for (let up = elementPath.parent; up; up = up.parent) {
       if (up.node?.type !== 'JSXElement') continue;
       const target = bestaxTarget(up.node, up);
@@ -893,11 +895,20 @@ export default function transform(
       }
       const parts = jsxNameParts(up.node.openingElement.name);
       const name = parts?.join('.');
-      if (name && !INTRINSIC.test(name) && !name.includes('-')) {
+      if (name && INTRINSIC.test(name)) {
+        const classAttr = findAttr(up.node, 'className');
+        if (!classAttr) continue;
+        const className = staticClassName(classAttr);
+        classes.push(
+          ...(className === null
+            ? classTokensOf(classAttr.value)
+            : className.split(/\s+/).filter(Boolean))
+        );
+      } else if (name && !name.includes('-')) {
         if (!PASS_THROUGH_PARENTS.has(name)) other.push(name);
       }
     }
-    return { bestax, other };
+    return { bestax, other, classes };
   };
 
   // `converts` is whether the element would become a component with its
@@ -935,6 +946,7 @@ export default function transform(
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
+      classesAround: surrounding.classes,
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
     };
     // A joiner call the codemod can read converts exactly: its fixed classes

@@ -131,6 +131,13 @@ export interface RootEntry {
    */
   readonly providesContext?: boolean;
   /**
+   * The target renders its root class only when no other of itself is around
+   * it (`Menu.List` drops `.menu-list` when nested), so the element converts
+   * only with no element around it in the file carrying that class, and no
+   * such component.
+   */
+  readonly topLevelOnly?: boolean;
+  /**
    * Inside one of these bestax components already in the file, the target
    * takes a generated `id` when the element has none of its own.
    */
@@ -1489,13 +1496,40 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'bestax `IconText` pairs with `Icon`, which renders its own `<i>`'
   ),
   image: todo('Image', 'bestax `Image` renders its own `<img>`'),
-  menu: todo(
-    'Menu',
+  // `Menu`, `Menu.Label` and `Menu.List` take every helper prop, `color` and
+  // `backgroundColor` included. The items inside a list stay markup.
+  menu: {
+    ...BASE,
+    target: 'Menu',
+    tag: 'aside',
+    textColor: 'color',
+    bgColor: 'backgroundColor',
+    requiresChildren: true,
+    ownProps: [],
+  },
+  'menu-label': {
+    ...BASE,
+    target: 'Menu.Label',
+    tag: 'p',
+    textColor: 'color',
+    bgColor: 'backgroundColor',
+    requiresChildren: true,
+    ownProps: [],
+  },
+  'menu-list': {
+    ...BASE,
+    target: 'Menu.List',
+    tag: 'ul',
+    textColor: 'color',
+    bgColor: 'backgroundColor',
+    requiresChildren: true,
+    topLevelOnly: true,
+    ownProps: [],
+  },
+  'menu-item': todo(
+    'Menu.Item',
     'bestax `Menu.Item` renders the `<li>` and the `<a>` together'
   ),
-  'menu-label': part(),
-  'menu-list': part(),
-  'menu-item': part(),
   message: todo(
     'Message',
     'bestax `Message` always wraps its children in `.message-body`'
