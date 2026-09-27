@@ -110,6 +110,22 @@ export interface RootEntry {
   /** Attributes the target renders when the element does not set them. */
   readonly defaults?: Readonly<Record<string, string>>;
   /**
+   * An attribute the target always writes on the tags in `on`: `fallback`
+   * when the element sets none, or sets it to anything but one of `keeps`
+   * (`Card.FooterItem`'s `type` on its <button>). The element converts there
+   * only with one of `keeps` written out.
+   */
+  readonly writesAttr?: Readonly<
+    Record<
+      string,
+      {
+        readonly on: readonly string[];
+        readonly fallback: string;
+        readonly keeps: readonly string[];
+      }
+    >
+  >;
+  /**
    * Attributes the element may carry that the target's props type rejects.
    * One that is also a default converts at exactly its default value (the
    * target renders it anyway, so it is dropped); otherwise it refuses.
@@ -611,6 +627,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Card.Header.Title',
     tag: 'div',
+    as: ['div', 'p', 'h2', 'h3', 'h4'],
     modifiers: flags({ 'is-centered': 'centered' }),
     ownProps: ['as', 'color', 'bgColor', 'textColor', 'centered'],
   },
@@ -643,6 +660,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Card.FooterItem',
     tag: 'span',
+    as: ['span', 'a', 'button'],
+    writesAttr: {
+      type: {
+        on: ['button'],
+        fallback: 'button',
+        keeps: ['button', 'submit', 'reset'],
+      },
+    },
     // The anchor attributes but `type`, and `rel`, reach only an <a>, and the
     // button attributes only a <button> (`STRIP_FROM_NON_ANCHOR` and
     // `STRIP_FROM_NON_BUTTON` in bulma-ui's Card.tsx).

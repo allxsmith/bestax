@@ -23,11 +23,17 @@ export function Cards() {
           <header className="card-header">
             <p className="card-header-title">Bulma's own example</p>
           </header>
-          <div className="card-content">The title and the links stay.</div>
+          <div className="card-content">The title and the links convert through as.</div>
           <footer className="card-footer">
             <a href="#save" className="card-footer-item">
               Save
             </a>
+            <button type="button" className="card-footer-item">
+              Cancel
+            </button>
+            <button className="card-footer-item">
+              A button with no type would gain one
+            </button>
           </footer>
         </div>
       </div>

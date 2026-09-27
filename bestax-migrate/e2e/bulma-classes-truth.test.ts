@@ -188,6 +188,21 @@ function renderBoth(
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
 }
 
+/**
+ * The attributes an element needs to convert on this tag: its root's
+ * defaults, and the value the target writes there when none is given.
+ */
+function defaultsFor(entry: RootEntry, tag: string): Record<string, string> {
+  return {
+    ...(entry.defaults ?? {}),
+    ...Object.fromEntries(
+      Object.entries(entry.writesAttr ?? {})
+        .filter(([, rule]) => rule.on.includes(tag))
+        .map(([name, rule]) => [name, rule.fallback])
+    ),
+  };
+}
+
 /** A bare, empty child element, as the planner reads one. */
 function bare(tag: string): ChildFacts {
   return { tag, attributes: new Map(), hasSpread: false, isEmpty: true };
@@ -258,9 +273,10 @@ describe.each(mapped)('`.%s`', (root, entry) => {
       ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),
     ];
+    const onTag = defaultsFor(entry, tag);
     for (const tokens of candidates) {
-      const facts = factsFor(tag, tokens, defaults, child);
-      const both = renderBoth(facts, defaults, child);
+      const facts = factsFor(tag, tokens, onTag, child);
+      const both = renderBoth(facts, onTag, child);
       if (!both) continue;
       expect({ tokens, tag, html: both.converted }).toEqual({
         tokens,
@@ -375,6 +391,69 @@ describe.each(folds)(
       expect(plan(around([root], { id: 'x' })).fold).toBeUndefined();
       expect(plan(around([root, 'my-app'])).fold).toBeUndefined();
       expect(plan(around([root, 'mt-2'])).fold).toBeUndefined();
+    });
+  }
+);
+
+const writing = mapped.filter(([, entry]) => entry.writesAttr);
+
+describe.each(writing)(
+  '`.%s` with an attribute its target writes',
+  (root, entry) => {
+    it('renders the same with each value the target keeps, and stays markup otherwise', () => {
+      for (const [name, rule] of Object.entries(entry.writesAttr!)) {
+        for (const tag of rule.on) {
+          const onTag = defaultsFor(entry, tag);
+          for (const value of rule.keeps) {
+            const given = { ...onTag, [name]: value };
+            const both = renderBoth(factsFor(tag, [root], given), given);
+            expect({ tag, value, converts: both !== null }).toEqual({
+              tag,
+              value,
+              converts: true,
+            });
+            expect({ tag, value, html: both!.converted }).toEqual({
+              tag,
+              value,
+              html: both!.raw,
+            });
+          }
+          const without = Object.fromEntries(
+            Object.entries(onTag).filter(([key]) => key !== name)
+          );
+          const rules = (attributes: Record<string, string | true | null>) =>
+            plan({
+              ...factsFor(tag, [root]),
+              attributes: new Map(Object.entries(attributes)),
+            }).todos.map(todo => todo.rule);
+          expect(rules(without)).toContain(`defaults:${entry.target}`);
+          expect(rules({ ...without, [name]: 'text/html' })).toContain(
+            `attr:${name}`
+          );
+          expect(rules({ ...without, [name]: null })).toContain(`attr:${name}`);
+        }
+      }
+    });
+
+    it('names only tags its target reaches, and writes nothing on the rest', () => {
+      for (const [name, rule] of Object.entries(entry.writesAttr!)) {
+        // A tag outside `as` would get a `defaults` TODO for a tag it can't
+        // render, instead of the `tag` one.
+        for (const tag of rule.on) expect(tagsFor(entry)).toContain(tag);
+        // Elsewhere the attribute reaches the DOM as written, whatever it says.
+        for (const tag of tagsFor(entry).filter(t => !rule.on.includes(t))) {
+          const given = { ...defaultsFor(entry, tag), [name]: 'text/html' };
+          const both = renderBoth(factsFor(tag, [root], given), given);
+          expect({ tag, converts: both !== null }).toEqual({
+            tag,
+            converts: true,
+          });
+          expect({ tag, html: both!.converted }).toEqual({
+            tag,
+            html: both!.raw,
+          });
+        }
+      }
     });
   }
 );
@@ -587,13 +666,14 @@ describe.each(mapped)('`.%s` with a class a condition adds', (root, entry) => {
     const differ: string[] = [];
     for (const tag of tagsFor(entry)) {
       for (const token of Object.keys(entry.modifiers ?? {})) {
+        const onTag = defaultsFor(entry, tag);
         const facts: ElementFacts = {
-          ...factsFor(tag, [root], defaults, child),
+          ...factsFor(tag, [root], onTag, child),
           conditional: [[token]],
         };
         if (!plan(facts).conversion) continue;
         for (const value of CONDITIONS) {
-          const both = renderBoth(facts, defaults, child, { [token]: value });
+          const both = renderBoth(facts, onTag, child, { [token]: value });
           if (both!.converted !== both!.raw) {
             differ.push(
               `<${tag}> ${token} = ${JSON.stringify(value)}: ${both!.converted}`
@@ -876,7 +956,7 @@ describe('a seeded fuzz through the planner', () => {
         );
       }
       const attributes: Record<string, string | true> = {
-        ...(entry.defaults ?? {}),
+        ...defaultsFor(entry, tag),
       };
       while (random() < 0.35) {
         const [name, value] = pick(attributePool);

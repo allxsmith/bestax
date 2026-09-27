@@ -1,8 +1,6 @@
 import { Card, Column, Columns } from "@allxsmith/bestax-bulma";
 export function Cards() {
-  // TODO(bestax-migrate): bestax `Card.Header` renders its children inside a `.card-header-title` of its own unless one of them is a `Card.Header.Title`, so this element stays markup
-  // TODO(bestax-migrate): bestax `Card.Header.Title` renders only <div>, not a <p>; keep the markup, or change the tag and re-run
-  // TODO(bestax-migrate): bestax `Card.FooterItem` renders only <span>, not a <a>; keep the markup, or change the tag and re-run
+  // TODO(bestax-migrate): bestax `Card.FooterItem` renders `type="button"` when the element does not set it; add it here if that is what you want, then re-run
   return (
     <Columns>
       <Column>
@@ -24,14 +22,20 @@ export function Cards() {
       </Column>
       <Column>
         <Card>
-          <header className="card-header">
-            <p className="card-header-title">Bulma's own example</p>
-          </header>
-          <Card.Content>The title and the links stay.</Card.Content>
+          <Card.Header>
+            <Card.Header.Title as="p">Bulma's own example</Card.Header.Title>
+          </Card.Header>
+          <Card.Content>The title and the links convert through as.</Card.Content>
           <Card.Footer>
-            <a href="#save" className="card-footer-item">
+            <Card.FooterItem href="#save" as="a">
               Save
-            </a>
+            </Card.FooterItem>
+            <Card.FooterItem type="button" as="button">
+              Cancel
+            </Card.FooterItem>
+            <button className="card-footer-item">
+              A button with no type would gain one
+            </button>
           </Card.Footer>
         </Card>
       </Column>

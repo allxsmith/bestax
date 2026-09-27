@@ -60,7 +60,18 @@ export function Elements() {
         </div>
         <footer className="card-footer">
           <span className="card-footer-item">Saved</span>
+          <a className="card-footer-item" href="/edit">
+            Edit
+          </a>
+          <button className="card-footer-item" type="submit">
+            Send
+          </button>
         </footer>
+      </div>
+      <div className="card">
+        <header className="card-header">
+          <p className="card-header-title">Bulma's own title</p>
+        </header>
       </div>
       <form>
         <div className="field">

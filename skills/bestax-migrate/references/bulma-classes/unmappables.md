@@ -66,6 +66,9 @@ attributes you want (usually both, with a real label), then re-run. `Navbar` ren
 `role="navigation"` and `aria-label="main navigation"`, which Bulma's own navbar markup carries;
 give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 `aria-label="breadcrumbs"`, so give its `<nav>` an `aria-label`, whatever it says.
+`Card.FooterItem` renders `type="button"` on a `<button>` that sets none. One whose `type` isn't
+`button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
+place. Write the type you mean, then re-run.
 
 ### `drops:<Target>`
 
@@ -77,6 +80,9 @@ on an `<a>`. Remove the attribute, then re-run.
 (`<a className="button" disabled>`), but Bulma greys out a disabled `.button` on any tag, so
 dropping it would change how the element looks. Keep that element as markup.
 
+So is `name` on an `<a>`, which `Card.FooterItem` drops: browsers still scroll a `#fragment` link
+to it. Keep that element as markup, or move the target to an `id` (which it keeps), then re-run.
+
 ### `children:<Target>`
 
 The component's props type requires children, and the element has none (`Buttons`). An empty
@@ -87,9 +93,8 @@ On `Card` and `Card.Header` it means the children decide. `Card` renders its chi
 `Card.Header.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`, `Card.FooterItem`), and
 `Card.Header` renders a `.card-header-title` of its own unless one of its children is a
 `Card.Header.Title`. None of this element's direct children converted to one, so converting it
-would add that wrapper. Look at the TODOs on the children first: a `<p className="card-header-title">`
-gets `tag:Card.Header.Title`, and changing it to a `<div>` (Bulma styles it the same) lets the
-header convert on the next run. A card whose content sits straight inside it, with no
+would add that wrapper. Look at the TODOs on the children first: a title that stays markup keeps
+its header as markup too. A card whose content sits straight inside it, with no
 `.card-content`, has no part to find; wrap that content in `Card.Content` if the extra padding
 is what you want, or keep the markup. A part inside an expression (`{open && <div className="card-content">}`)
 doesn't count, because it may not render.

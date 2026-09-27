@@ -76,6 +76,7 @@ describe('every refusal the planner can produce', () => {
         ...(entry.numberAttrs ?? []),
         ...Object.keys(entry.defaults ?? {}),
         ...Object.keys(entry.dropsAttr ?? {}),
+        ...Object.keys(entry.writesAttr ?? {}),
         ...HELPER_PROPS,
       ]);
       for (const tag of tagsFor(entry)) {

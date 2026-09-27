@@ -318,7 +318,11 @@ export function plan(facts: ElementFacts): Plan {
       );
     }
   }
-  const missing = Object.entries(entry.defaults ?? {}).filter(
+  // An attribute the target writes on this tag counts as one of its defaults.
+  const written = Object.entries(entry.writesAttr ?? {})
+    .filter(([, rule]) => rule.on.includes(tag))
+    .map(([name, rule]): [string, string] => [name, rule.fallback]);
+  const missing = [...Object.entries(entry.defaults ?? {}), ...written].filter(
     ([name]) => !attributes.has(name)
   );
   const drop: string[] = [];
@@ -434,17 +438,32 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`
     );
   }
+  for (const [name, rule] of Object.entries(entry.writesAttr ?? {})) {
+    const value = attributes.get(name);
+    if (!rule.on.includes(tag) || value === undefined) continue;
+    if (typeof value !== 'string' || !rule.keeps.includes(value)) {
+      return refuse(
+        'attr',
+        name,
+        `bestax \`${target}\` keeps a <${tag}>'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only as one of those, written out; keep this element as markup`
+      );
+    }
+  }
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
     if (attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
       const visible = name === 'disabled' && target === 'Button';
+      // A `name` on an <a> still names the target of a `#fragment` link.
+      const anchored = name === 'name' && tag === 'a';
       return refuse(
         'drops',
         target,
         visible
           ? `bestax \`${target}\` drops \`disabled\` on a <${tag}>, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
-          : `bestax \`${target}\` drops \`${name}\` on a <${tag}>, where it does nothing anyway; remove it, then re-run`
+          : anchored
+            ? `bestax \`${target}\` drops \`name\` on an <a>, where it still names the target of a \`#fragment\` link; keep this element as markup, or move the target to an \`id\`, then re-run`
+            : `bestax \`${target}\` drops \`${name}\` on a <${tag}>, where it does nothing anyway; remove it, then re-run`
       );
     }
   }

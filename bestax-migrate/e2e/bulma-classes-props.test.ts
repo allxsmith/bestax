@@ -182,20 +182,27 @@ describe('every bulma-classes conversion typechecks', () => {
     );
     for (const [root, entry] of roots) {
       const defaults = Object.entries(entry.defaults ?? {});
+      // On a tag the target writes an attribute on, the value it writes.
+      const onTag = (tag: string): Array<[string, string]> => [
+        ...defaults,
+        ...Object.entries(entry.writesAttr ?? {})
+          .filter(([, rule]) => rule.on.includes(tag))
+          .map(([name, rule]): [string, string] => [name, rule.fallback]),
+      ];
       const lines: string[] = [];
       const add = (jsx: string | null) => {
         if (jsx) lines.push(`  ${jsx},`);
       };
       for (const tag of tagsFor(entry)) {
-        add(converted(tag, [root], defaults));
+        add(converted(tag, [root], onTag(tag)));
         for (const attribute of [...COMMON, ...(BY_TAG[tag] ?? [])]) {
-          add(converted(tag, [root], [...defaults, attribute]));
+          add(converted(tag, [root], [...onTag(tag), attribute]));
         }
       }
       for (const modifier of Object.keys(entry.modifiers ?? {})) {
         for (const tag of tagsFor(entry)) {
-          add(converted(tag, [root, modifier], defaults));
-          add(converted(tag, [root], defaults, undefined, [[modifier]]));
+          add(converted(tag, [root, modifier], onTag(tag)));
+          add(converted(tag, [root], onTag(tag), undefined, [[modifier]]));
         }
       }
       for (const helper of HELPER_TOKENS.keys()) {

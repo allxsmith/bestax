@@ -42,7 +42,8 @@ const propText = (prop: string, value: string | true | undefined) =>
 function planned(tag: string, tokens: string[]): Outcome {
   // Attributes decide some refusals, and the lookup leaves those to the
   // codemod: give the element the ones its roots render by default
-  // (`Delete`'s `type` and `aria-label`), so only the classes are compared.
+  // (`Delete`'s `type` and `aria-label`, and on a tag a root writes one on,
+  // what it writes there), so only the classes are compared.
   // Children decide one too (`Card` converts only beside one of its parts),
   // which the lookup states as a condition: give each root those parts.
   // One that renders the element inside it gets that element, bare but for
@@ -59,6 +60,9 @@ function planned(tag: string, tokens: string[]): Outcome {
     const entry = Object.hasOwn(ROOTS, token) ? ROOTS[token] : undefined;
     for (const [name, value] of Object.entries(entry?.defaults ?? {})) {
       attributes.set(name, value);
+    }
+    for (const [name, rule] of Object.entries(entry?.writesAttr ?? {})) {
+      if (rule.on.includes(tag)) attributes.set(name, rule.fallback);
     }
     childTargets.push(...(entry?.wrapsChildren?.unless ?? []));
     const absorbs = entry?.status === 'mapped' ? entry.absorbs : undefined;

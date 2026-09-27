@@ -162,6 +162,13 @@ describe('plan', () => {
       ).todos;
       expect(footer.rule).toBe('drops:Card.FooterItem');
       expect(footer.message).toContain('remove it, then re-run');
+      // A `name` on an <a> still names a fragment target, so it is not inert.
+      const [named] = plan(
+        facts('a', 'card-footer-item', { name: 'save' })
+      ).todos;
+      expect(named.rule).toBe('drops:Card.FooterItem');
+      expect(named.message).toContain('keep this element as markup');
+      expect(named.message).not.toContain('remove it');
     });
 
     it('refuses the only child of a component', () => {
@@ -387,9 +394,13 @@ describe('plan', () => {
 
     it('converts the parts on their own', () => {
       expect(
-        plan(facts('p', 'card-header-title is-centered')).todos.map(
-          todo => todo.rule
-        )
+        plan(facts('p', 'card-header-title is-centered')).conversion?.props
+      ).toEqual([
+        ['as', 'p'],
+        ['centered', true],
+      ]);
+      expect(
+        plan(facts('span', 'card-header-title')).todos.map(todo => todo.rule)
       ).toEqual(['tag:Card.Header.Title']);
       expect(
         plan(facts('div', 'card-header-title is-centered')).conversion
@@ -404,8 +415,29 @@ describe('plan', () => {
         plan(facts('button', 'card-header-icon')).todos.map(todo => todo.rule)
       ).toEqual(['defaults:Card.Header.Icon']);
       expect(
-        plan(facts('a', 'card-footer-item')).todos.map(todo => todo.rule)
+        plan(facts('a', 'card-footer-item', { href: '#' })).conversion?.props
+      ).toEqual([['as', 'a']]);
+      expect(
+        plan(facts('div', 'card-footer-item')).todos.map(todo => todo.rule)
       ).toEqual(['tag:Card.FooterItem']);
+    });
+
+    it('converts a footer item button only with a type it keeps', () => {
+      const button = (attributes: Record<string, string | true | null>) =>
+        plan(facts('button', 'card-footer-item', attributes));
+      for (const type of ['button', 'submit', 'reset']) {
+        expect(button({ type }).conversion?.props).toEqual([['as', 'button']]);
+      }
+      expect(button({}).todos.map(todo => todo.rule)).toEqual([
+        'defaults:Card.FooterItem',
+      ]);
+      for (const type of ['text/html', null]) {
+        expect(button({ type }).todos.map(todo => todo.rule)).toEqual([
+          'attr:type',
+        ]);
+      }
+      // Only a <button> gets one: a <span> or an <a> converts with none.
+      expect(plan(facts('span', 'card-footer-item')).todos).toEqual([]);
     });
   });
 
