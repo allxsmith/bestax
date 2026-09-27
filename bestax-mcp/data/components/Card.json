@@ -56,6 +56,10 @@
     {
       "title": "Compound (dot-notation) usage",
       "code": "<Card header=\"Prop-based header\" textColor=\"primary\" m=\"3\">\n  <Card.Content bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>Mixed approach example</Card.FooterItem>\n  </Card.Footer>\n</Card>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title as=\"p\">Component</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>Card content goes here.</Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#edit\">\n      Edit\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     }
   ],
   "accessibility": "- The card image uses an `alt` attribute for screen readers.\n- Use semantic content for the header, body, and footer as needed.",
@@ -269,6 +273,15 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "'div' | 'p' | 'h2' | 'h3' | 'h4'",
+          "default": "'div'",
+          "description": "Element type to render (default: `div`). Bulma's own card markup uses `p`; a heading suits a title that should read as one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "color",
           "type": "Bulma color | 'inherit' | 'current'",
           "default": null,
@@ -327,7 +340,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "catchAll": "All standard <div> / <h1>–<h6> / <p> attributes and Bulma helper props",
       "types": []
     },
     {
@@ -568,6 +581,15 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "'span' | 'a' | 'button'",
+          "default": "'span'",
+          "description": "Element type to render (default: `span`). Bulma's own card markup uses `a`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "color",
           "type": "Bulma color | 'inherit' | 'current'",
           "default": null,
@@ -617,7 +639,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "catchAll": "All standard <a> / <button> / <span> attributes and Bulma helper props",
       "types": []
     }
   ],

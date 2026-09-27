@@ -16,8 +16,8 @@ test holds it to that table. Render tests hold the table to the library itself.
 
 ## Components
 
-The **Tags** column is what the component can render: an element on any other tag gets a
-`tag:<Target>` TODO instead of a conversion.
+The **Tags** column is what the codemod converts the class on: an element on any other tag gets
+a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more.
 
 | Bulma class          | bestax-bulma          | Tags                                                           |
 | -------------------- | --------------------- | -------------------------------------------------------------- |
@@ -88,9 +88,9 @@ its parts, and `Card.Header` its children inside a `.card-header-title` unless o
 `Card.Header.Title`. So a `.card` with children converts only when one of the elements written directly
 inside it converts to a part (or already is one), and a `.card-header` only when its title
 does. Otherwise it gets a `children:<Target>` TODO. Bulma's own example card uses a
-`<p className="card-header-title">` and `<a className="card-footer-item">` links, which bestax
-renders on a `<div>` and a `<span>`, so those stay markup with a `tag:<Target>` TODO, and so
-does the header around that title.
+`<p className="card-header-title">` and `<a className="card-footer-item">` links, which the
+codemod converts only on their default `<div>` and `<span>`, so those stay markup with a
+`tag:<Target>` TODO, and so does the header around that title.
 
 `Navbar` writes `role="navigation"` and `aria-label="main navigation"`, the attributes Bulma's
 own navbar carries, so a `.navbar` that sets both converts (whatever the label says), and one

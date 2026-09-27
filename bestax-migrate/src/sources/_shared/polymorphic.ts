@@ -97,6 +97,7 @@ const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);
  */
 const HREF_OK: Record<string, string> = {
   Button: 'button',
+  'Card.FooterItem': 'span',
   'Dropdown.Item': 'a',
   'Level.Item': 'div',
   'Menu.Item': 'a',

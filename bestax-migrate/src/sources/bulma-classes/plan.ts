@@ -413,7 +413,7 @@ export function plan(facts: ElementFacts): Plan {
     if (attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
-      const visible = name === 'disabled';
+      const visible = name === 'disabled' && target === 'Button';
       return refuse(
         'drops',
         target,
