@@ -79,6 +79,7 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.breadcrumb`        | `Breadcrumb`          | `<nav>` only                                                   |
 | `.skeleton-block`    | `Skeleton`            | `<div>` only                                                   |
 | `.skeleton-lines`    | `Skeleton`            | `<div>` only                                                   |
+| `.image`             | `Image`               | `<div>`, `<figure>`, `<p>` via `as`                            |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -152,11 +153,12 @@ with a `children:<Target>` or `attr` TODO.
 
 ## An element a component renders inside itself
 
-`SelectBase` renders the `<select>` inside `.select` itself, and `Breadcrumb` the `<ul>` inside
-`.breadcrumb`. So each converts together with that one element, and the component takes its
-place: `<div className="select is-small"><select name="plan">` becomes
-`<SelectBase size="small" name="plan">` around the same `<option>`s, and a breadcrumb's `<li>`s
-go straight inside `Breadcrumb`.
+`SelectBase` renders the `<select>` inside `.select` itself, `Breadcrumb` the `<ul>` inside
+`.breadcrumb`, and `Image` the `<img>` inside `.image`. So each converts together with that one
+element, and the component takes its place: `<div className="select is-small"><select name="plan">`
+becomes `<SelectBase size="small" name="plan">` around the same `<option>`s, a breadcrumb's `<li>`s
+go straight inside `Breadcrumb`, and `<figure className="image is-64x64"><img src="a.png">` becomes
+`<Image as="figure" size="64x64" src="a.png" />`.
 
 - `SelectBase` puts the attributes it's given on the `<select>`, so the `<select>`'s own move up
   and the `.select` can carry none but a `key`. `is-hovered` and `is-focused` on the `<select>`
@@ -164,6 +166,9 @@ go straight inside `Breadcrumb`.
   as `multiple`, and its `size` becomes `multipleSize`.
 - `Breadcrumb` renders its `<ul>` bare, and writes `aria-label="breadcrumbs"` unless it's given
   one, so the `<ul>` carries nothing and the `.breadcrumb` needs an `aria-label` of its own.
+- `Image` renders its `<img>` from `src` and `alt`, so the `<img>` carries nothing else, and
+  `is-rounded` on it becomes `isRounded`. The `.image` keeps its own attributes. A ratio
+  (`is-4by3`) stays a class, since `size` would add `has-ratio` as well.
 
 Anything else keeps both as markup, with a `children:<Target>`, `attr` or `defaults:<Target>`
 TODO.
@@ -182,7 +187,7 @@ inside one of them, or anything else beside them, keeps the element as markup wi
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, Icon and IconText, Image, Menu, Message, Modal, the navbar's burger
+Checkboxes, Dropdown, File, Icon and IconText, Menu, Message, Modal, the navbar's burger
 and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
 
 ## Classes left alone

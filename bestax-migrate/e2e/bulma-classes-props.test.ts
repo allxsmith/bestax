@@ -164,8 +164,10 @@ function converted(
   ].join(' ');
   const name = `B.${conversion.target}`;
   // A target that renders the children itself closes itself, as the
-  // transform writes it.
-  return VOID.has(tag) || conversion.rendersChildren
+  // transform writes it, and so does one in place of a void child.
+  return VOID.has(tag) ||
+    conversion.rendersChildren ||
+    (absorbs && VOID.has(absorbs.tag))
     ? `<${name} ${attrs} />`
     : `<${name} ${attrs}>x</${name}>`;
 }
@@ -214,6 +216,17 @@ describe('every bulma-classes conversion typechecks', () => {
           converted(entry.tag!, [root], defaults, {
             tokens: [token],
             attributes: [],
+          })
+        );
+      }
+      if (spec?.childProps) {
+        add(
+          converted(entry.tag!, [root], defaults, {
+            tokens: [],
+            attributes: spec.childProps.map((name): [string, string] => [
+              name,
+              'x',
+            ]),
           })
         );
       }

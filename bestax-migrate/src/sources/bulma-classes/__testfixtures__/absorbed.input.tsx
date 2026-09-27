@@ -1,4 +1,10 @@
-export function Absorbed({ onPick }: { onPick: () => void }) {
+export function Absorbed({
+  onPick,
+  thumb,
+}: {
+  onPick: () => void;
+  thumb: string;
+}) {
   return (
     <section>
       <div className="select is-small is-fullwidth mb-3">
@@ -33,6 +39,18 @@ export function Absorbed({ onPick }: { onPick: () => void }) {
           </li>
         </ul>
       </nav>
+      <figure className="image is-128x128 mb-2">
+        <img src="/avatar.png" alt="Avatar" className="is-rounded" />
+      </figure>
+      <p className="image is-64x64">
+        <img src={thumb} alt="" />
+      </p>
+      <figure className="image is-4by3">
+        <img src="/photo.jpg" alt="A ratio stays a class" />
+      </figure>
+      <figure className="image is-48x48">
+        <img src="/lazy.png" alt="Another attribute keeps both" loading="lazy" />
+      </figure>
     </section>
   );
 }

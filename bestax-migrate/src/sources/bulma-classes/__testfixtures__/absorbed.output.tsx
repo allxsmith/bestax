@@ -1,6 +1,13 @@
-import { Breadcrumb, SelectBase } from "@allxsmith/bestax-bulma";
-export function Absorbed({ onPick }: { onPick: () => void }) {
+import { Breadcrumb, Image, SelectBase } from "@allxsmith/bestax-bulma";
+export function Absorbed({
+  onPick,
+  thumb,
+}: {
+  onPick: () => void;
+  thumb: string;
+}) {
   // TODO(bestax-migrate): bestax `SelectBase` puts the attributes it is given on the <select> inside `.select`, so this element's `id` would move there; move it onto the <select> if that is what you want, then re-run
+  // TODO(bestax-migrate): bestax `Image` renders the <img> inside `.image` itself, with no attributes but `src` or `alt`, so its `loading` would be lost; keep this element as markup
   return (
     <section>
       <SelectBase size="small" isFullwidth mb="3" id="plan" name="plan" onChange={onPick}>
@@ -26,6 +33,22 @@ export function Absorbed({ onPick }: { onPick: () => void }) {
           </a>
         </li>
       </Breadcrumb>
+      <Image
+        as="figure"
+        size="128x128"
+        mb="2"
+        src="/avatar.png"
+        alt="Avatar"
+        isRounded />
+      <Image as="p" size="64x64" src={thumb} alt="" />
+      <Image
+        as="figure"
+        className="is-4by3"
+        src="/photo.jpg"
+        alt="A ratio stays a class" />
+      <figure className="image is-48x48">
+        <img src="/lazy.png" alt="Another attribute keeps both" loading="lazy" />
+      </figure>
     </section>
   );
 }

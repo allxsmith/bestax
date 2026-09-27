@@ -12,8 +12,8 @@ attribute, never one of your own classes.
 The element spreads props (`<div className="box" {...rest}>`). A spread can carry anything,
 and bestax reads some names as its own props: a spread `className` merges with the component's
 classes, where on the plain element it replaced them. Convert by hand once you know what the
-spread carries, or leave it. A spread on the `<select>` inside a `.select` counts too, since its
-attributes become `SelectBase`'s.
+spread carries, or leave it. A spread on the `<select>` inside a `.select`, or the `<img>` inside
+an `.image`, counts too, since what it carries becomes the component's.
 
 ### `ref:<Target>`
 
@@ -45,8 +45,8 @@ rejects. Keep the element as markup. `attr:children` is too: the codemod reads a
 children from the JSX inside it, so children passed as an attribute are content it can't see.
 Move them inside the element, then re-run.
 
-On a `.select` or a `.breadcrumb` it's about the element inside, which the component renders
-itself. `SelectBase` gives its `<select>` every attribute it's given and no class but
+On a `.select`, a `.breadcrumb` or an `.image` it's about the element inside, which the component
+renders itself. `SelectBase` gives its `<select>` every attribute it's given and no class but
 `is-hovered` or `is-focused`, so an attribute on the `.select` (an `attr` TODO) would move onto
 the `<select>`, and another class on the `<select>` (`attr:className`) would be lost, as would
 the `class=""` an empty `className` renders. Move the
@@ -54,7 +54,8 @@ attribute onto the `<select>` if that's where you want it, then re-run. A `multi
 converts only inside a `.select.is-multiple`, with `multiple` written bare, and its `size` only
 beside it, as a number written out (`size={4}`): `SelectBase` writes it back only when it holds a
 number, which the codemod can't tell of an expression. `Breadcrumb` renders its `<ul>` bare, so an attribute or class on the `<ul>` keeps
-both as markup.
+both as markup. `Image` renders its `<img>` from `src` and `alt`, with no class but `is-rounded`, so
+any other attribute or class on the `<img>` (`loading`, `width`, a `key`) keeps both as markup.
 
 ### `defaults:<Target>`
 
@@ -105,9 +106,10 @@ comment or a second element beside it keeps the wrapper as markup; move it outsi
 then re-run. An attribute or an extra class on the wrapper keeps it too, because the component
 renders the wrapper bare.
 
-On a `.select` or a `.breadcrumb` it's the same shape from the other side. `SelectBase` renders
-the `<select>` inside `.select` itself, and `Breadcrumb` the `<ul>` inside `.breadcrumb`, so each
-converts only around that one element, with nothing else beside it.
+On a `.select`, a `.breadcrumb` or an `.image` it's the same shape from the other side. `SelectBase`
+renders the `<select>` inside `.select` itself, `Breadcrumb` the `<ul>` inside `.breadcrumb` and
+`Image` the `<img>` inside `.image`, so each converts only around that one element, with nothing
+else beside it.
 
 On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
 the element converts only when its children are just that, and a class, an attribute, text or a
@@ -169,8 +171,8 @@ turning each condition into the prop:
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
 `<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`. A computed
-`className` on the `<select>` inside a `.select`, or the `<ul>` inside a `.breadcrumb`, gets
-this TODO too.
+`className` on the `<select>` inside a `.select`, the `<ul>` inside a `.breadcrumb` or the `<img>`
+inside an `.image` gets this TODO too.
 
 ## A family it leaves as markup: `family:<class>`
 
@@ -200,7 +202,6 @@ in the browser:
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
 - **`family:icon`**, **`family:icon-text`**: `Icon` renders its own `<i>` and adds an
   `aria-label`. See the `bestax-icons` skill for its library and name props.
-- **`family:image`**: `Image` renders its own `<img>`.
 - **`family:menu`**: `Menu.Item` renders the `<li>` and the `<a>` together.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination`**, **`family:panel`**, **`family:tabs`**: each renders list items,
