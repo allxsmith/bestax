@@ -120,7 +120,10 @@ export interface NotificationOptions {
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;
-  /** Position on the screen. Default 'top-right'. */
+  /**
+   * Position on the screen. Currently ignored: `NotificationContainer`'s own
+   * `position` places every notification it shows, so set it there.
+   */
   position?: NotificationPosition;
   /** When true, notifications enter a FIFO queue and display one at a time. Default false. */
   queue?: boolean;

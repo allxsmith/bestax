@@ -63,28 +63,6 @@ export interface CardProps
 }
 
 /**
- * Wrap each footer item in a `.card-footer-item` span.
- * @param {CardProps['footer']} footer - Footer content (single node or array).
- * @param {string | undefined} classPrefix - Bulma class prefix.
- * @returns {React.ReactNode[] | null} Wrapped footer items, or null if no footer.
- */
-const renderFooter = (
-  footer: CardProps['footer'],
-  classPrefix: string | undefined
-) => {
-  if (!footer) return null;
-  const items = Array.isArray(footer) ? footer : [footer];
-  return items.map((item, idx) => (
-    <span
-      className={prefixedClassNames(classPrefix, 'card-footer-item')}
-      key={idx}
-    >
-      {item}
-    </span>
-  ));
-};
-
-/**
  * Check if children contain any Card compound sub-components.
  * @param {React.ReactNode} children - The children to inspect.
  * @returns {boolean} True if any child is a Card compound component.
@@ -652,6 +630,3 @@ export const Card = withSubComponents(
   },
   'Card'
 );
-
-/** Internal test-only exports. Not part of the public API. */
-export const __test_exports__ = { renderFooter };

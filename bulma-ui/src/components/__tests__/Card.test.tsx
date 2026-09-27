@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Card, __test_exports__ } from '../Card';
+import { Card } from '../Card';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Card Component', () => {
@@ -254,69 +254,53 @@ describe('Card Component', () => {
     expect(img).toHaveAttribute('alt', 'Custom Alt');
   });
 
-  test('renderFooter returns null if footer is falsy', () => {
-    expect(__test_exports__.renderFooter(undefined, undefined)).toBeNull();
-    expect(__test_exports__.renderFooter(null, undefined)).toBeNull();
-    expect(__test_exports__.renderFooter(false, undefined)).toBeNull();
-    expect(__test_exports__.renderFooter('', undefined)).toBeNull();
-    expect(__test_exports__.renderFooter(0, undefined)).toBeNull();
+  test.each([undefined, null, false, ''])(
+    'renders no footer when footer is %p',
+    footer => {
+      const { container } = render(<Card footer={footer}>Test</Card>);
+      expect(container.querySelector('.card-footer')).toBeNull();
+    }
+  );
+
+  test('wraps a single footer node in one card-footer-item', () => {
+    const { container } = render(
+      <Card footer={<a href="#one">One</a>}>Test</Card>
+    );
+    expect(container.querySelectorAll('.card-footer-item')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'One' })).toBeInTheDocument();
   });
 
-  test('renderFooter wraps a single ReactNode in one card-footer-item', () => {
+  test('wraps each footer array item in its own card-footer-item', () => {
     const { container } = render(
-      <div>
-        {__test_exports__.renderFooter(<a href="#one">One</a>, undefined)}
-      </div>
+      <Card
+        footer={[
+          <a key="a" href="#one">
+            One
+          </a>,
+          <button key="b" type="button">
+            Two
+          </button>,
+          'Three',
+        ]}
+      >
+        Test
+      </Card>
     );
-    const items = container.querySelectorAll('.card-footer-item');
-    expect(items).toHaveLength(1);
-    expect(screen.getByText('One')).toBeInTheDocument();
-  });
-
-  test('renderFooter wraps each item in card-footer-item when given an array', () => {
-    const { container } = render(
-      <div>
-        {__test_exports__.renderFooter(
-          ['Item 1', 'Item 2', 'Item 3'],
-          undefined
-        )}
-      </div>
-    );
-    const items = container.querySelectorAll('.card-footer-item');
-    expect(items).toHaveLength(3);
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
-    expect(screen.getByText('Item 2')).toBeInTheDocument();
-    expect(screen.getByText('Item 3')).toBeInTheDocument();
-  });
-
-  test('renderFooter renders mixed ReactNode array elements', () => {
-    const { container } = render(
-      <div>
-        {__test_exports__.renderFooter(
-          [
-            <a key="a" href="#one">
-              One
-            </a>,
-            <button key="b" type="button">
-              Two
-            </button>,
-          ],
-          undefined
-        )}
-      </div>
-    );
-    const items = container.querySelectorAll('.card-footer-item');
-    expect(items).toHaveLength(2);
+    expect(container.querySelectorAll('.card-footer-item')).toHaveLength(3);
     expect(screen.getByRole('link', { name: 'One' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Two' })).toBeInTheDocument();
+    expect(screen.getByText('Three')).toBeInTheDocument();
   });
 
-  test('renderFooter applies classPrefix to card-footer-item', () => {
+  test('prefixes footer item classes under ConfigProvider', () => {
     const { container } = render(
-      <div>{__test_exports__.renderFooter(['A', 'B'], 'bulma-')}</div>
+      <ConfigProvider classPrefix="bulma-">
+        <Card footer={['A', 'B']}>Test</Card>
+      </ConfigProvider>
     );
-    const items = container.querySelectorAll('.bulma-card-footer-item');
-    expect(items).toHaveLength(2);
+    expect(container.querySelectorAll('.bulma-card-footer-item')).toHaveLength(
+      2
+    );
   });
 
   test('applies classPrefix when provided via ConfigProvider', () => {
