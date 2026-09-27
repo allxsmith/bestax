@@ -635,10 +635,11 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Card.FooterItem',
     tag: 'span',
-    // The anchor attributes but `type`, and `rel`, reach only an <a>
-    // (`STRIP_FROM_NON_ANCHOR` in bulma-ui's Card.tsx).
-    dropsAttr: Object.fromEntries(
-      [
+    // The anchor attributes but `type`, and `rel`, reach only an <a>, and the
+    // button attributes only a <button> (`STRIP_FROM_NON_ANCHOR` and
+    // `STRIP_FROM_NON_BUTTON` in bulma-ui's Card.tsx).
+    dropsAttr: Object.fromEntries([
+      ...[
         'href',
         'target',
         'download',
@@ -647,8 +648,19 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'referrerPolicy',
         'media',
         'rel',
-      ].map(name => [name, { except: ['a'] }])
-    ),
+      ].map(name => [name, { except: ['a'] }]),
+      ...[
+        'disabled',
+        'form',
+        'formAction',
+        'formEncType',
+        'formMethod',
+        'formNoValidate',
+        'formTarget',
+        'name',
+        'value',
+      ].map(name => [name, { except: ['button'] }]),
+    ]),
     ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   columns: {

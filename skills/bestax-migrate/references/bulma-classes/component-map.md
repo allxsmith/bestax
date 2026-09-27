@@ -16,8 +16,8 @@ test holds it to that table. Render tests hold the table to the library itself.
 
 ## Components
 
-The **Tags** column is what the component can render: an element on any other tag gets a
-`tag:<Target>` TODO instead of a conversion.
+The **Tags** column is what the codemod converts the class on: an element on any other tag gets
+a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more.
 
 | Bulma class          | bestax-bulma          | Tags                                                           |
 | -------------------- | --------------------- | -------------------------------------------------------------- |
