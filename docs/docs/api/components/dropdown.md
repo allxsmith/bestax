@@ -186,7 +186,7 @@ Callback refs behave the same on React 18 and 19: a cleanup function you return 
 
 - The dropdown root is a `<div class="dropdown">` with ARIA roles/attributes for menu and trigger.
 - The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.
-- Menu items are focusable and use `role="menuitem"`. For a filter or sort menu, give an item `role="menuitemcheckbox"` or `role="menuitemradio"` with `aria-checked`, and the arrow keys still reach it.
+- Menu items are focusable and use `role="menuitem"`. An item given `role="menuitemcheckbox"` or `role="menuitemradio"` stays in the arrow-key order.
 - Clicking outside closes the dropdown in most cases.
 
 `Dropdown` implements the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)
