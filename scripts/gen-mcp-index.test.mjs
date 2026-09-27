@@ -238,6 +238,9 @@ test("the bulma-classes table is bestax-migrate's own, whole", () => {
   // And the parts that take no helpers say so.
   assert.equal(roots['navbar-dropdown'].noHelpers, true);
   assert.equal(roots.button.noHelpers, false);
+  // And a part that renders its class only at the top level says so.
+  assert.equal(roots['menu-list'].topLevelOnly, true);
+  assert.equal(roots.menu.topLevelOnly, false);
   // And a component that converts only beside one of its parts says which.
   assert.ok(roots.card.wrapsChildren.unless.includes('Card.Content'));
   assert.equal(roots.button.wrapsChildren, null);

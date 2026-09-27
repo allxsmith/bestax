@@ -940,6 +940,54 @@ describe('a className a joiner builds', () => {
   });
 });
 
+describe('menu list nesting', () => {
+  const nested = (outer: string, head = '') =>
+    migrate(
+      `${head}export const A = ({ items, on }: { items: string[]; on: boolean }) => (\n  ${outer.replace('INNER', '<ul className="menu-list"><li><a>In</a></li></ul>')}\n);\n`
+    );
+
+  it('keeps a list inside another as markup, however it sits there', () => {
+    // Directly, through a callback, and under a computed className.
+    for (const outer of [
+      '<ul className="menu-list"><li>INNER</li></ul>',
+      '<ul className="menu-list">{items.map(item => <li key={item}>INNER</li>)}</ul>',
+      "<ul className={on ? 'menu-list' : 'box'}><li>INNER</li></ul>",
+    ]) {
+      const { output, rules } = nested(outer);
+      expect(rules).toContain('context:Menu.List');
+      expect(output).toContain('<ul className="menu-list"><li><a>In</a>');
+    }
+    const inside = nested(
+      '<Menu.List><li>INNER</li></Menu.List>',
+      'import { Menu } from "@allxsmith/bestax-bulma";\n'
+    );
+    expect(inside.rules).toEqual(['context:Menu.List']);
+    // Around an existing Menu.List, which would lose its class instead.
+    const around = migrate(
+      'import { Menu } from "@allxsmith/bestax-bulma";\nexport const A = () => (\n  <ul className="menu-list"><li><a>Out</a><Menu.List><li><a>In</a></li></Menu.List></li></ul>\n);\n'
+    );
+    expect(around.rules).toEqual(['context:Menu.List']);
+    expect(around.output).toContain('<ul className="menu-list">');
+  });
+
+  it('knows a Menu.List imported under its flat export, either way round', () => {
+    const head =
+      'import { MenuList as List } from "@allxsmith/bestax-bulma";\n';
+    expect(nested('<List><li>INNER</li></List>', head).rules).toEqual([
+      'context:Menu.List',
+    ]);
+    const around = migrate(
+      `${head}export const A = () => (\n  <ul className="menu-list"><li><a>Out</a><List><li><a>In</a></li></List></li></ul>\n);\n`
+    );
+    expect(around.rules).toEqual(['context:Menu.List']);
+  });
+
+  it('converts the outer list, which renders its class at the top level', () => {
+    const { output } = nested('<ul className="menu-list"><li>INNER</li></ul>');
+    expect(output).toContain('<Menu.List>');
+  });
+});
+
 describe('form context', () => {
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(
