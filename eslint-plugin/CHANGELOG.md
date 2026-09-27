@@ -1,3 +1,27 @@
+## [1.1.4](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.3...@allxsmith/eslint-plugin-bestax@1.1.4) (2026-09-27)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give .image's ratios their reason in the lookup ([3ea4d0c](https://github.com/allxsmith/bestax/commit/3ea4d0ca6cef7368e74dadcbcc1d0f617e001c27))
+* **bestax-migrate:** say why .image's ratios stay classes ([2fbfbd5](https://github.com/allxsmith/bestax/commit/2fbfbd55a8b3492c76c67b25a0558f1d80ea8aca))
+* **bulma-ui:** apply textColor helper class on Navbar Menu, Start, End, and Burger ([#792](https://github.com/allxsmith/bestax/issues/792)) ([feb83c8](https://github.com/allxsmith/bestax/commit/feb83c8d6f180f8dd687a0731fc0c4058ef0409e))
+* **bulma-ui:** avoid empty class attribute on several components ([#793](https://github.com/allxsmith/bestax/issues/793)) ([7c5c316](https://github.com/allxsmith/bestax/commit/7c5c316469f5be2105e861a81ea12037fb56d5eb))
+* **bulma-ui:** keep menuitemcheckbox and menuitemradio items in Dropdown's arrow-key order ([#786](https://github.com/allxsmith/bestax/issues/786)) ([064155a](https://github.com/allxsmith/bestax/commit/064155aaf40d89dde0e728685737a785d6208d34))
+* **bulma-ui:** merge className into Navbar.Divider instead of overwriting it ([#791](https://github.com/allxsmith/bestax/issues/791)) ([fcc0d51](https://github.com/allxsmith/bestax/commit/fcc0d51359c62161e83516877669989608d4e25b))
+* **bulma-ui:** render the four burger spans Bulma v1 positions ([#785](https://github.com/allxsmith/bestax/issues/785)) ([8e4e1e6](https://github.com/allxsmith/bestax/commit/8e4e1e61d9bc53baee40eec8ee425c9b4801095d))
+* **bulma-ui:** stop shipping test-only exports, and document notification() ([#781](https://github.com/allxsmith/bestax/issues/781)) ([5f95398](https://github.com/allxsmith/bestax/commit/5f953988fa4e66699831da9268dd085b26c8a494))
+* **eslint-plugin:** report .image with the message for a class the codemod converts ([d27c19b](https://github.com/allxsmith/bestax/commit/d27c19bc984ae60bb8e65bac4c8a6378a07b3c87))
+
+
+### Features
+
+* **bestax-mcp:** look up .image as Image, with the props it takes from its <img> ([3e63230](https://github.com/allxsmith/bestax/commit/3e63230c541d2521bcc2a3456022491b929b9dc5))
+* **bestax-migrate:** convert an .image and its <img> to Image ([d4f3673](https://github.com/allxsmith/bestax/commit/d4f3673fcff77d4f3a7e2f032433de22b09556f7)), closes [#793](https://github.com/allxsmith/bestax/issues/793)
+* **bestax-migrate:** convert conditional classes in clsx and classnames calls ([8948cce](https://github.com/allxsmith/bestax/commit/8948ccee31a3f542748eec704f227425cc44ea9f))
+* **bestax-migrate:** convert navbar dividers with classes, and navbar text colors ([#796](https://github.com/allxsmith/bestax/issues/796)) ([c97c7e9](https://github.com/allxsmith/bestax/commit/c97c7e9467426021588e81db58b0a4a9fe94dc20))
+* **bulma-ui:** let Card.Header.Title and Card.FooterItem render Bulma's own tags ([#794](https://github.com/allxsmith/bestax/issues/794)) ([47ecdb6](https://github.com/allxsmith/bestax/commit/47ecdb652532eb50ee26259b49bf05af18133e27))
+
 ## [1.1.3](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.2...@allxsmith/eslint-plugin-bestax@1.1.3) (2026-09-26)
 
 
