@@ -343,13 +343,13 @@ export default function transform(
     // Targets that extend only React's HTML attributes take none of bloomer's
     // universal helpers; each becomes a TODO naming the Bulma class rather
     // than an excess-property type error the report never mentions.
-    // `Navbar.Divider` and `Pagination.Ellipsis` spread their props after
-    // their own className, and `Dropdown.Divider` declares none at all, so a
-    // class cannot be written on any of them: every helper is named instead,
-    // and anything else left on the divider would not compile.
+    // `Pagination.Ellipsis` spreads its props after its own className, and
+    // `Dropdown.Divider` declares none at all, so a class cannot be written
+    // on either of them: every helper is named instead, and anything else
+    // left on the divider would not compile.
     if (NO_CLASSNAME_TARGETS.has(target)) {
       // A spread may carry a `className` that would replace the structural
-      // class on these two, or props `Dropdown.Divider` silently ignores —
+      // class on `Pagination.Ellipsis`, or props `Dropdown.Divider` silently ignores —
       // and the codemod cannot read inside it. Keep bloomer's element.
       const spread = (element.openingElement.attributes ?? []).some(
         (a: any) => a.type === 'JSXSpreadAttribute'

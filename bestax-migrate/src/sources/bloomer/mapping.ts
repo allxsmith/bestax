@@ -146,15 +146,14 @@ export const RESPONSIVE_PROPS: Record<string, string | null> = {
  * emitting an excess-property type error.
  */
 /**
- * Targets whose `className` cannot be used: `Navbar.Divider` and
- * `Pagination.Ellipsis` spread `{...props}` AFTER their own className (so one
- * written here replaces the class that makes them work), and
+ * Targets whose `className` cannot be used: `Pagination.Ellipsis` spreads
+ * `{...props}` AFTER its own className (so one written here replaces the
+ * class that makes it work), and
  * `Dropdown.Divider` is a bare `React.FC` that declares no props at all and
  * renders its own `<hr>` regardless. A helper on one of these is named, never
  * converted.
  */
 export const NO_CLASSNAME_TARGETS = new Set([
-  'Navbar.Divider',
   'Pagination.Ellipsis',
   'Dropdown.Divider',
 ]);
@@ -164,6 +163,7 @@ export const HELPERLESS_TARGETS = new Set([
   'Pagination.Next',
   'Navbar.Dropdown',
   'Navbar.DropdownMenu',
+  'Navbar.Divider',
   'Dropdown.Divider',
   'Panel.Heading',
   'Panel.Tabs',
