@@ -2,9 +2,9 @@ import * as IndexExports from '../index';
 
 // The package's public runtime API, in full. `index.ts` re-exports whole
 // modules with `export *`, so anything a module exports, even for its own
-// tests, ships unless this list stops it (#763). Adding or removing a name
-// here is a public-API change: make it on purpose, and pick the release type
-// to match. `isBrowser` is deprecated and leaves at the next major.
+// tests, ships (#763). Adding or removing a name here is a public-API change:
+// make it on purpose, and pick the release type to match. `isBrowser` is
+// deprecated and leaves at the next major.
 const PUBLIC_EXPORTS = [
   'Autocomplete',
   'Avatar',
