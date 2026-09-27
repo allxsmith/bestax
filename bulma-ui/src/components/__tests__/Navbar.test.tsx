@@ -326,6 +326,13 @@ describe('Navbar.Burger', () => {
     render(<Navbar.Burger ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
+
+  it('applies textColor as a helper class and not as a DOM attribute', () => {
+    render(<Navbar.Burger textColor="primary" data-testid="burger" />);
+    const burger = screen.getByTestId('burger');
+    expect(burger).toHaveClass('has-text-primary');
+    expect(burger).not.toHaveAttribute('textColor');
+  });
 });
 
 describe('Navbar.Menu', () => {
@@ -356,6 +363,17 @@ describe('Navbar.Menu', () => {
     );
     expect(screen.getByTestId('menu')).toHaveClass('custom-menu');
   });
+
+  it('applies textColor as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.Menu textColor="primary" data-testid="menu">
+        Menu
+      </Navbar.Menu>
+    );
+    const menu = screen.getByTestId('menu');
+    expect(menu).toHaveClass('has-text-primary');
+    expect(menu).not.toHaveAttribute('textColor');
+  });
 });
 
 describe('Navbar.Start & Navbar.End', () => {
@@ -377,6 +395,28 @@ describe('Navbar.Start & Navbar.End', () => {
   it('applies navbar-end class', () => {
     render(<Navbar.End data-testid="end">End</Navbar.End>);
     expect(screen.getByTestId('end')).toHaveClass('navbar-end');
+  });
+
+  it('applies textColor on Navbar.Start as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.Start textColor="primary" data-testid="start">
+        Start
+      </Navbar.Start>
+    );
+    const start = screen.getByTestId('start');
+    expect(start).toHaveClass('has-text-primary');
+    expect(start).not.toHaveAttribute('textColor');
+  });
+
+  it('applies textColor on Navbar.End as a helper class and not as a DOM attribute', () => {
+    render(
+      <Navbar.End textColor="primary" data-testid="end">
+        End
+      </Navbar.End>
+    );
+    const end = screen.getByTestId('end');
+    expect(end).toHaveClass('has-text-primary');
+    expect(end).not.toHaveAttribute('textColor');
   });
 });
 

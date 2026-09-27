@@ -303,8 +303,12 @@ export interface NavbarBurgerProps
  * @returns {JSX.Element} The rendered burger.
  */
 export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
-  function NavbarBurger({ className, active, children, ...props }, ref) {
+  function NavbarBurger(
+    { className, active, textColor, children, ...props },
+    ref
+  ) {
     const { bulmaHelperClasses, rest } = useBulmaClasses({
+      color: textColor,
       ...props,
     });
 
@@ -367,10 +371,12 @@ export interface NavbarMenuProps
 export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   className,
   active,
+  textColor,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
     ...props,
   });
 
@@ -416,10 +422,12 @@ export interface NavbarStartEndProps
  */
 export const NavbarStart: React.FC<NavbarStartEndProps> = ({
   className,
+  textColor,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
     ...props,
   });
   return (
@@ -445,10 +453,12 @@ export const NavbarStart: React.FC<NavbarStartEndProps> = ({
  */
 export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
   className,
+  textColor,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
     ...props,
   });
   return (
