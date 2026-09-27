@@ -1,3 +1,22 @@
+# [2.15.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.14.0...bestax-migrate@2.15.0) (2026-09-27)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a .menu-list around a bestax Menu.List as markup ([2119c3f](https://github.com/allxsmith/bestax/commit/2119c3fa95b5af80ec7397cec3d70ec14a45ad12))
+* **bestax-migrate:** keep a named anchor as markup instead of saying its name does nothing ([74dc360](https://github.com/allxsmith/bestax/commit/74dc360a48000ee5522ec0143e4d56256566c676)), closes [#fragment](https://github.com/allxsmith/bestax/issues/fragment)
+* **bestax-migrate:** know a bestax part imported under its flat export ([7a325ee](https://github.com/allxsmith/bestax/commit/7a325eedd802bd1a8574f18c19fb376dc30ab53e))
+* **eslint-plugin:** report .menu, .menu-label and .menu-list with the converts message ([8ffaccc](https://github.com/allxsmith/bestax/commit/8ffacccd2bdfdce642ecbe05bf20388c99560ba3))
+
+
+### Features
+
+* **bestax-mcp:** look up .menu and its label and list as Menu's parts ([f9fe7cd](https://github.com/allxsmith/bestax/commit/f9fe7cd75b4d2cfdfa93a0575db22bbcdf860376))
+* **bestax-mcp:** look up Card's title and footer items on the tags their as takes ([ba8193e](https://github.com/allxsmith/bestax/commit/ba8193ee2809131876919a28d5d681dccc8b7880))
+* **bestax-mcp:** say Menu.List renders .menu-list only at the top level ([dcce74f](https://github.com/allxsmith/bestax/commit/dcce74f0671249bf149fe4e323026fac2b13452e))
+* **bestax-migrate:** convert .menu, its labels and its top-level lists ([02f4db6](https://github.com/allxsmith/bestax/commit/02f4db6b56a90adf4678693e153c8764ef3c60b0))
+* **bestax-migrate:** convert Card's title and footer items on the tags their as takes ([20bc0c6](https://github.com/allxsmith/bestax/commit/20bc0c6fe740a90a3f32097b9d66cb9667f89cc8)), closes [#794](https://github.com/allxsmith/bestax/issues/794)
+
 # [2.14.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.13.0...bestax-migrate@2.14.0) (2026-09-27)
 
 
