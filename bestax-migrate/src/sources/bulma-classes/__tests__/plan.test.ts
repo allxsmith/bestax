@@ -156,6 +156,12 @@ describe('plan', () => {
       expect(todo.message).not.toContain('remove it');
       const [inert] = plan(facts('button', 'button', { href: '/x' })).todos;
       expect(inert.message).toContain('remove it, then re-run');
+      // Bulma styles no disabled `.card-footer-item`, so there it is inert.
+      const [footer] = plan(
+        facts('span', 'card-footer-item', { disabled: true })
+      ).todos;
+      expect(footer.rule).toBe('drops:Card.FooterItem');
+      expect(footer.message).toContain('remove it, then re-run');
     });
 
     it('refuses the only child of a component', () => {

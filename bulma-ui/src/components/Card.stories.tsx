@@ -340,6 +340,42 @@ export const HeaderWithIcon: Story = {
   },
 };
 
+export const BulmaOwnMarkup: Story = {
+  render: () => (
+    <Card>
+      <Card.Header>
+        <Card.Header.Title as="p">Component</Card.Header.Title>
+      </Card.Header>
+      <Card.Content>
+        <p>
+          This card matches the markup on Bulma&apos;s own documentation page: a{' '}
+          <code>{'<p>'}</code> header title (<code>as=&quot;p&quot;</code>) and{' '}
+          <code>{'<a>'}</code> footer items (<code>as=&quot;a&quot;</code>)
+          whose whole cell is clickable, rather than a link nested inside a{' '}
+          <code>{'<span>'}</code>.
+        </p>
+      </Card.Content>
+      <Card.Footer>
+        <Card.FooterItem as="a" href="#save">
+          Save
+        </Card.FooterItem>
+        <Card.FooterItem as="a" href="#edit">
+          Edit
+        </Card.FooterItem>
+        <Card.FooterItem as="button">Delete</Card.FooterItem>
+      </Card.Footer>
+    </Card>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Card.Header.Title and Card.FooterItem take an `as` prop so a card can render the same `p`/`a` markup Bulma's own docs use, instead of always a `div`/`span`.",
+      },
+    },
+  },
+};
+
 export const PinnedFooter: Story = {
   render: () => (
     <Card display="flex" flexDirection="column">
