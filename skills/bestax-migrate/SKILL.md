@@ -73,9 +73,12 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
 
 4. **Resolve every TODO**: `grep -rn "TODO(bestax-migrate)" src/`. Each comment names the
    prop/component and a hint. Recipes for every recurring case are in
-   `references/<source>/unmappables.md`; the full tables are in
-   `references/<source>/component-map.md` and `references/<source>/prop-map.md`. Delete each
-   comment as you resolve it.
+   `references/<source>/unmappables.md`. Before writing a component by hand, look it up in
+   `references/<source>/component-map.md` and its classes in `references/<source>/prop-map.md`:
+   they name the component and the prop for each class, which the library's type declarations
+   only tell you slowly. For form markup (`.field`, `.control`, inputs, selects), load the
+   `bestax-form` skill too: it covers the label, `id` and help-text wiring. Delete each comment
+   as you resolve it.
 
 5. **Finish the stylesheet layer** — flagged Sass cases (computed variables,
    indented-syntax `.sass` files), CSS flavor choice, and Bulma 0.9→1 styling changes:
