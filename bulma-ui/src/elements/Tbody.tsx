@@ -41,7 +41,7 @@ export const Tbody: React.FC<TbodyProps> = ({
   const tbodyClasses = classNames(className, bulmaHelperClasses);
 
   return (
-    <tbody className={tbodyClasses} {...rest}>
+    <tbody className={tbodyClasses || undefined} {...rest}>
       {children}
     </tbody>
   );

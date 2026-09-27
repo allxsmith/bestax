@@ -120,7 +120,7 @@ export const Image: React.FC<ImageProps> = ({
     children
   ) : (
     <img
-      className={classNames({ [roundedClass]: isRounded })}
+      className={classNames({ [roundedClass]: isRounded }) || undefined}
       src={src}
       alt={alt}
       {...(isRetina && src ? { srcSet: `${src} 2x` } : {})}

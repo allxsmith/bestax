@@ -265,7 +265,7 @@ export const MenuItem = forwardRef(function MenuItem(
       role={role}
       tabIndex={tabIndex}
     >
-      <Component ref={ref} className={itemClass} {...linkProps}>
+      <Component ref={ref} className={itemClass || undefined} {...linkProps}>
         {labelChildren}
       </Component>
       {nestedMenuLists}

@@ -309,6 +309,17 @@ describe('Tabs', () => {
       );
       expect(screen.getByTestId('tab-list')).toHaveClass('custom-list');
     });
+
+    it('does not render an empty class attribute without a className', () => {
+      render(
+        <Tabs>
+          <Tabs.List data-testid="tab-list">
+            <Tabs.Tab index={0}>Tab</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      expect(screen.getByTestId('tab-list')).not.toHaveAttribute('class');
+    });
   });
 
   describe('Tabs.Tab', () => {
@@ -443,6 +454,20 @@ describe('Tabs', () => {
       );
       expect(screen.getByTestId('tab')).toHaveClass('custom-tab');
     });
+
+    it('does not render an empty class attribute when inactive and without a className', () => {
+      render(
+        <Tabs defaultValue={1}>
+          <Tabs.List>
+            <Tabs.Tab index={0} data-testid="tab">
+              Tab
+            </Tabs.Tab>
+            <Tabs.Tab index={1}>Other</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      expect(screen.getByTestId('tab')).not.toHaveAttribute('class');
+    });
   });
 
   describe('Tabs.Item (backward compat)', () => {
@@ -500,6 +525,19 @@ describe('Tabs', () => {
       );
       fireEvent.click(screen.getByTestId('tab-item'));
       expect(handleClick).toHaveBeenCalled();
+    });
+
+    it('does not render an empty class attribute when inactive and without a className', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Item data-testid="tab-item">
+              <a>Tab</a>
+            </Tabs.Item>
+          </Tabs.List>
+        </Tabs>
+      );
+      expect(screen.getByTestId('tab-item')).not.toHaveAttribute('class');
     });
   });
 

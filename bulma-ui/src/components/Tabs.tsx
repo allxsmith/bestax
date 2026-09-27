@@ -273,7 +273,7 @@ export const TabList: React.FC<TabListProps> = ({
   children,
   ...props
 }) => (
-  <ul role="tablist" className={classNames(className)} {...props}>
+  <ul role="tablist" className={classNames(className) || undefined} {...props}>
     {children}
   </ul>
 );
@@ -348,7 +348,7 @@ export const Tab: React.FC<TabProps> = ({
 
   return (
     <li
-      className={classNames(activeClass, className)}
+      className={classNames(activeClass, className) || undefined}
       role="tab"
       aria-selected={isActive}
       tabIndex={disabled ? -1 : 0}
@@ -404,10 +404,10 @@ export const TabItem: React.FC<TabItemProps> = ({
   ...props
 }) => (
   <li
-    className={classNames(
-      { [usePrefixedClassNames('is-active')]: active },
-      className
-    )}
+    className={
+      classNames({ [usePrefixedClassNames('is-active')]: active }, className) ||
+      undefined
+    }
     onClick={onClick}
     {...props}
   >

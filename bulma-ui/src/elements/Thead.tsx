@@ -41,7 +41,7 @@ export const Thead: React.FC<TheadProps> = ({
   const theadClasses = classNames(className, bulmaHelperClasses);
 
   return (
-    <thead className={theadClasses} {...rest}>
+    <thead className={theadClasses || undefined} {...rest}>
       {children}
     </thead>
   );
