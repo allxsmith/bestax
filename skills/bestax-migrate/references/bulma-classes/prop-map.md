@@ -165,14 +165,13 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 | `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                                                             |
 
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
-on `Breadcrumb`, `Hero`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
-`Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `InputBase`, `TextAreaBase`,
-`SelectBase`, `Progress`, `Skeleton`, `Tag` and `Tags`; `has-background-*` on `Breadcrumb`,
-`Navbar.Brand`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
-`Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Notification`, `Progress`, `Skeleton`,
-`Table` and `Tags`. `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`,
-`Control` and `Skeleton` take no helper props the way the codemod needs, so every helper class on
-them stays.
+on `Breadcrumb`, `Hero`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`,
+`Control`, `InputBase`, `TextAreaBase`, `SelectBase`, `Progress`, `Skeleton`, `Tag` and `Tags`;
+`has-background-*` on `Breadcrumb`, `Navbar.Brand`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`,
+`Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Notification`,
+`Progress`, `Skeleton`, `Table` and `Tags`. `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`,
+`Field.Body`, `Control` and `Skeleton` take no helper props the way the codemod needs, so every
+helper class on them stays.
 
 Some classes stay put because of how bestax renders them:
 

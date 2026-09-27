@@ -696,7 +696,7 @@ describe('lookup_bulma_classes', () => {
       '| `mt-2` | stays in `className` | bestax `Navbar.DropdownMenu` takes no helper props |'
     );
     expect(await lookup('navbar-divider mt-2', 'hr')).toContain(
-      '**Stays markup:** bestax `Navbar.Divider` drops its own class'
+      '| `mt-2` | stays in `className` | bestax `Navbar.Divider` takes no helper props |'
     );
     expect(await lookup('navbar-divider', 'hr')).toContain(
       '**Component:** `Navbar.Divider`.'

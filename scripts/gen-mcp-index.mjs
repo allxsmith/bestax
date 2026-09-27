@@ -518,7 +518,6 @@ export async function bulmaClassTable() {
         countsChildren: entry.countsChildren ?? null,
         noHelpers: entry.noHelpers ?? false,
         topLevelOnly: entry.topLevelOnly ?? false,
-        ownClassOnly: entry.ownClassOnly ?? false,
       },
     ])
   );

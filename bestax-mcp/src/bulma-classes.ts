@@ -56,8 +56,6 @@ export interface RootRecord {
    * it (`Menu.List` drops `.menu-list` when nested).
    */
   topLevelOnly: boolean;
-  /** The component drops its own class for a `className` it is given. */
-  ownClassOnly: boolean;
   /** For a `fold` root: the props that render it on the target inside. */
   folds: PropWrite[] | null;
   /** The component renders the element's only child itself. */
@@ -379,7 +377,6 @@ export function lookupClasses(
       wrapsChildren: null,
       noHelpers: false,
       topLevelOnly: false,
-      ownClassOnly: false,
       folds: null,
       absorbs: null,
       writes: null,
@@ -556,17 +553,6 @@ export function lookupClasses(
     (Array.isArray(entry.as) && entry.as.includes(tag));
   if (!reachable) {
     return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
-  }
-  // Every class but the component's own has to become a prop here, since a
-  // `className` would take the place of that class.
-  if (
-    entry.ownClassOnly &&
-    tokens.some(token => token !== root && verdicts.get(token)?.kind !== 'prop')
-  ) {
-    return result({
-      kind: 'markup',
-      why: `bestax \`${target}\` drops its own class when it is given a \`className\`, so it converts only with no other class`,
-    });
   }
   const about = {
     wraps,

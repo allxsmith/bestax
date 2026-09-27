@@ -444,19 +444,27 @@ describe('plan', () => {
       });
     });
 
-    it('converts a divider only when it carries no other class', () => {
+    it('converts a divider, keeping its other classes in className', () => {
       expect(plan(facts('hr', 'navbar-divider')).conversion?.target).toBe(
         'Navbar.Divider'
       );
-      expect(plan(facts('hr', 'navbar-divider mt-2'))).toEqual({
-        conversion: null,
-        todos: [
-          {
-            rule: 'attr:className',
-            message: expect.stringContaining('drops its own class'),
-          },
-        ],
-      });
+      const { conversion, todos } = plan(facts('hr', 'navbar-divider mt-2'));
+      expect(todos).toEqual([]);
+      expect(conversion?.props).toEqual([]);
+      expect(conversion?.className).toBe('mt-2');
+    });
+
+    it('writes a text color on the navbar areas as textColor', () => {
+      for (const [root, target] of [
+        ['navbar-menu', 'Navbar.Menu'],
+        ['navbar-start', 'Navbar.Start'],
+        ['navbar-end', 'Navbar.End'],
+      ]) {
+        const { conversion } = plan(facts('div', `${root} has-text-white`));
+        expect(conversion?.target).toBe(target);
+        expect(conversion?.props).toContainEqual(['textColor', 'white']);
+        expect(conversion?.className).toBeNull();
+      }
     });
 
     it('leaves the burger and the dropdown trigger to a person', () => {
