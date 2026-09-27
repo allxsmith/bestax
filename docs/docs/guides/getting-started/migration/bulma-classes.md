@@ -114,9 +114,9 @@ A couple of results look odd until you see why:
   `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
   hand.
-- A `.menu` converts with its labels and lists, and the `<li>`s and `<a>`s inside a list stay as
-  written: `Menu.Item` renders the `<li>` and its `<a>` together, so converting the items is a
-  change you make by hand.
+- A `.menu` converts with its labels and lists, and the `<li>`s and `<a>`s inside a list don't
+  become `Menu.Item`s: `Menu.Item` renders the `<li>` and its `<a>` together, so that's a change
+  you make by hand.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as

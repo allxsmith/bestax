@@ -115,7 +115,7 @@ own. `Field` and `Control` tell bestax's form controls inside them to skip their
 component, which could hand it a labelled Field's generated one.
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and the `<li>`s and `<a>`s inside a
-list stay as written, since `Menu.Item` renders the `<li>` and its `<a>` together (a
+list don't become `Menu.Item`s, since `Menu.Item` renders the `<li>` and its `<a>` together (a
 `.menu-item` gets a `family:menu-item` TODO). `Menu.List` drops `.menu-list` on a list inside
 another, so a `.menu-list` inside another, or around a bestax `Menu.List`, stays markup with a
 `context:Menu.List` TODO.

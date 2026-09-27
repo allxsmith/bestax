@@ -57,8 +57,20 @@ import {
   type JsxRuntime,
   type ServerComponentRoot,
 } from './project.js';
-import { rootFor } from './class-map.js';
+import { ROOTS, rootFor } from './class-map.js';
 import { ruleId } from './rules.js';
+
+/**
+ * A part imported under its flat export (`MenuList`, `FieldLabel`) is the
+ * component the table names with a dot (`Menu.List`, `Field.Label`), which
+ * is the spelling every plan compares against.
+ */
+const FLAT_PARTS: ReadonlyMap<string, string> = new Map(
+  Object.values(ROOTS)
+    .map(entry => entry.target)
+    .filter((target): target is string => target?.includes('.') ?? false)
+    .map((target): [string, string] => [target.replace(/\./g, ''), target])
+);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -840,7 +852,8 @@ export default function transform(
     if (!owner || !resolvesToBinding(scopePath, parts[0], programScope)) {
       return undefined;
     }
-    return [...owner, ...parts.slice(1)].join('.');
+    const name = [...owner, ...parts.slice(1)].join('.');
+    return FLAT_PARTS.get(name) ?? name;
   };
   const childTargets = (elementPath: ASTPath<any>): string[] =>
     (elementPath.node.children ?? []).flatMap((child: any) => {

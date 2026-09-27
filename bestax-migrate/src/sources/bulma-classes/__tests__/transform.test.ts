@@ -970,6 +970,18 @@ describe('menu list nesting', () => {
     expect(around.output).toContain('<ul className="menu-list">');
   });
 
+  it('knows a Menu.List imported under its flat export, either way round', () => {
+    const head =
+      'import { MenuList as List } from "@allxsmith/bestax-bulma";\n';
+    expect(nested('<List><li>INNER</li></List>', head).rules).toEqual([
+      'context:Menu.List',
+    ]);
+    const around = migrate(
+      `${head}export const A = () => (\n  <ul className="menu-list"><li><a>Out</a><List><li><a>In</a></li></List></li></ul>\n);\n`
+    );
+    expect(around.rules).toEqual(['context:Menu.List']);
+  });
+
   it('converts the outer list, which renders its class at the top level', () => {
     const { output } = nested('<ul className="menu-list"><li>INNER</li></ul>');
     expect(output).toContain('<Menu.List>');

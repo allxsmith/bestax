@@ -207,9 +207,9 @@ in the browser:
   `aria-label`. See the `bestax-icons` skill for its library and name props.
 - **`family:image`**: `Image` renders its own `<img>`.
 - **`family:menu-item`**: `Menu.Item` renders the `<li>` and the `<a>` together, so the codemod
-  converts `.menu`, `.menu-label` and `.menu-list` and leaves the items inside as written. To
-  convert one by hand, write `<Menu.Item>` in place of the `<li>` and its `<a>`, with the `<a>`'s
-  content inside and a nested list as a `Menu.List` after it. `is-active` on the `<a>` becomes
+  converts `.menu`, `.menu-label` and `.menu-list` and doesn't turn the items inside into
+  `Menu.Item`s. To convert one by hand, write `<Menu.Item>` in place of the `<li>` and its `<a>`,
+  with the `<a>`'s content inside and a nested list as a `Menu.List` after it. `is-active` on the `<a>` becomes
   `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style` and
   `data-testid` on the `<li>`, and everything else, helper props included, on the `<a>`.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
