@@ -171,6 +171,21 @@ export function guardViolations({ deprecated, textAlias, knownProps }) {
           'to. Writing it would produce a prop the element does not accept.'
       );
     }
+    // The other half of the message names `bgColor` as the way to get a
+    // coloured surface, unconditionally, so that has to be true of every
+    // member too. It was true of all ten by luck rather than by check, and
+    // #757 nearly added five Navbar parts that `Omit` the background props
+    // entirely: an author taking the surface branch there would have written
+    // a prop that type-errors, renders nothing, and — via BACKGROUND_PROPS —
+    // silences the report that suggested it.
+    if (!knownProps.get(element)?.has('bgColor')) {
+      violations.push(
+        `${element} is in the text-alias set but does not declare ` +
+          '`bgColor`, which no-color-as-surface names as the way to get a ' +
+          'coloured surface. Reporting it would advise a prop the element ' +
+          'does not accept.'
+      );
+    }
   }
 
   const missing = TEXT_ALIAS_ANCHORS.filter(n => !textAlias.has(n));

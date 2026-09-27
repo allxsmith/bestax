@@ -126,9 +126,9 @@ export interface NavbarBrandProps
   /** Text color for the brand. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
-   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
-   * Bulma has no `.navbar-brand.is-<color>` rule, so this is not a filled
-   * variant. `textColor` takes precedence when both are set, and is the one that
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `.navbar-brand.is-<color>` rule, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -283,9 +283,9 @@ export interface NavbarBurgerProps
   /** Text color for the burger. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
-   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
-   * Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled
-   * variant. `textColor` takes precedence when both are set, and is the one that
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `.navbar-burger.is-<color>` rule, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -365,9 +365,9 @@ export interface NavbarMenuProps
   /** Text color for the menu. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
-   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
-   * Bulma has no `.navbar-menu.is-<color>` rule, so this is not a filled
-   * variant. `textColor` takes precedence when both are set, and is the one that
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `.navbar-menu.is-<color>` rule, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -425,9 +425,9 @@ export interface NavbarStartEndProps
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
-   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
-   * Bulma has no `is-<color>` rule for this area, so this is not a filled
-   * variant. `textColor` takes precedence when both are set, and is the one that
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `is-<color>` rule for this area, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

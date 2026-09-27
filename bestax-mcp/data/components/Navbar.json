@@ -195,7 +195,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-brand.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
+          "description": "Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-brand.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -394,7 +394,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
+          "description": "Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -487,7 +487,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-menu.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
+          "description": "Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-menu.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -543,7 +543,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Bulma has no `is-<color>` rule for this area, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
+          "description": "Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `is-<color>` rule for this area, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -590,7 +590,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Bulma has no `is-<color>` rule for this area, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
+          "description": "Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `is-<color>` rule for this area, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
           "required": false,
           "inherited": false,
           "deprecated": false
