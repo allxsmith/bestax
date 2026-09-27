@@ -1,3 +1,46 @@
+## [5.16.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.9...@allxsmith/bestax-bulma@5.16.10) (2026-09-27)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** carry the ref escape hatch onto plain tags, and cut the roster guard back ([3aee721](https://github.com/allxsmith/bestax/commit/3aee7212ea21134749f452bc58f39bb93e305881))
+* **bestax-migrate:** flag every unmapped innerRef, and hold the carve-out to the library ([69f7773](https://github.com/allxsmith/bestax/commit/69f7773b8f21bc8b6322edd4718d40150eeba3c5))
+* **bestax-migrate:** flag innerRef on a plain Navbar.Item, and test the roster's polarity ([bd5c403](https://github.com/allxsmith/bestax/commit/bd5c40362c5cb14d1e4fa532ec9719e68eba90b1)), closes [#734](https://github.com/allxsmith/bestax/issues/734)
+* **bestax-migrate:** keep JSX text, directives and quoted classes as written when reprinting ([c9f860b](https://github.com/allxsmith/bestax/commit/c9f860b9ee1324518fc6f0c7599689c4ebef98e0))
+* **bestax-migrate:** keep one of each prop when Breadcrumb.Item merges onto its anchor ([7da699e](https://github.com/allxsmith/bestax/commit/7da699e37061120d0993856299310b776e90c1d1))
+* **bestax-migrate:** keep one ref on a plain tag, and report what the Table.Container fold drops ([04044e3](https://github.com/allxsmith/bestax/commit/04044e391f535ffd392e029ca50c48fce744b4a2))
+* **bestax-migrate:** merge Breadcrumb.Item onto its anchor the way collapseOntoChild does ([e41e0fb](https://github.com/allxsmith/bestax/commit/e41e0fb349ae6fe8e5259ee92eb9a7a27427b54e))
+* **bestax-migrate:** name every ref-forwarding component in the codemod's TODOs ([4a32258](https://github.com/allxsmith/bestax/commit/4a3225877e7235aa3b5c2f510f02f87ae86fee70)), closes [pre-#661](https://github.com/pre-/issues/661) [#734](https://github.com/allxsmith/bestax/issues/734)
+* **bestax-migrate:** report an older bestax-bulma the app already declares ([c2d67a6](https://github.com/allxsmith/bestax/commit/c2d67a68d8b2f0ea40419cb5cf5f3f6eb937b8fe))
+* **bulma-ui:** keep menuitemcheckbox and menuitemradio items in Dropdown's arrow-key order ([#786](https://github.com/allxsmith/bestax/issues/786)) ([064155a](https://github.com/allxsmith/bestax/commit/064155aaf40d89dde0e728685737a785d6208d34))
+* **bulma-ui:** render the four burger spans Bulma v1 positions ([#785](https://github.com/allxsmith/bestax/issues/785)) ([8e4e1e6](https://github.com/allxsmith/bestax/commit/8e4e1e61d9bc53baee40eec8ee425c9b4801095d))
+* **bulma-ui:** stop shipping test-only exports, and document notification() ([#781](https://github.com/allxsmith/bestax/issues/781)) ([5f95398](https://github.com/allxsmith/bestax/commit/5f953988fa4e66699831da9268dd085b26c8a494))
+* **create-bestax:** say that the codemod flags an unmapped innerRef ([8778a04](https://github.com/allxsmith/bestax/commit/8778a04ae96c8b5d7c822559c67de0e5c7d28b06))
+* **create-bestax:** ship the corrected ref roster to scaffolded apps ([1e0ac82](https://github.com/allxsmith/bestax/commit/1e0ac826d54e68e8251600f21bb5ed3cf04d0408)), closes [#661](https://github.com/allxsmith/bestax/issues/661) [#597](https://github.com/allxsmith/bestax/issues/597)
+* **create-bestax:** stop the ref guidance over-claiming the form controls ([f920004](https://github.com/allxsmith/bestax/commit/f920004a16a6ce55ef0c7f0c15a7555cfee132cc)), closes [#666](https://github.com/allxsmith/bestax/issues/666)
+* **create-bestax:** tell scaffolded apps the migrate skill covers raw Bulma classes ([3769180](https://github.com/allxsmith/bestax/commit/3769180a82b42674bf8d11c4e353ddab0969dec7))
+* **eslint-plugin:** report .select and .breadcrumb as converted ([a9d8082](https://github.com/allxsmith/bestax/commit/a9d80822bfa2a657e7c8b1917faad582ceb3edeb))
+* **eslint-plugin:** report Bulma form markup as classes the codemod converts ([128e832](https://github.com/allxsmith/bestax/commit/128e8322c04515156a32e8f6e7a40ab8d029dfa3))
+* **eslint-plugin:** report Bulma skeletons as converted ([04ca4ee](https://github.com/allxsmith/bestax/commit/04ca4ee6bc00283dcd438c9e309a7609af5ade35))
+
+
+### Features
+
+* **bestax-mcp:** look up the bestax component and props for a Bulma class string ([4a4b246](https://github.com/allxsmith/bestax/commit/4a4b24681ada1eedb8e754d6ec55252ff54c6d6a)), closes [#744](https://github.com/allxsmith/bestax/issues/744)
+* **bestax-mcp:** say a Bulma field wraps its children only when horizontal ([929bc82](https://github.com/allxsmith/bestax/commit/929bc82d32814973a7083f9233dced7bb06b2bdb))
+* **bestax-mcp:** say when a component renders the children from a count ([b60c295](https://github.com/allxsmith/bestax/commit/b60c295886fef4051c193672098528239cccf954))
+* **bestax-mcp:** say when a component renders the element inside it ([4ced25c](https://github.com/allxsmith/bestax/commit/4ced25caf740bc2d56d6f2fddee86524120e4c0b))
+* **bestax-migrate:** add bulma-classes as a migration source ([c3603d1](https://github.com/allxsmith/bestax/commit/c3603d17282809357aedecd4ca127abd92bf7f22)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+* **bestax-migrate:** convert .select and .breadcrumb with the element inside them ([d76c569](https://github.com/allxsmith/bestax/commit/d76c569f5066efb06ef3f8259731a9e1549cc5a5))
+* **bestax-migrate:** convert Bulma cards built from their parts ([#752](https://github.com/allxsmith/bestax/issues/752)) ([1b08e17](https://github.com/allxsmith/bestax/commit/1b08e176947a0b8ac24b5fcde1f8b39d325e6a76))
+* **bestax-migrate:** convert Bulma form fields, controls, inputs and textareas ([3da788d](https://github.com/allxsmith/bestax/commit/3da788d2f33594d5c8bd60a9e613b82e027a5af9)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+* **bestax-migrate:** convert Bulma grids and cells ([#760](https://github.com/allxsmith/bestax/issues/760)) ([22adc7c](https://github.com/allxsmith/bestax/commit/22adc7cb85785cd2cb8e8862d4f7d44a3cefa6a2)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+* **bestax-migrate:** convert Bulma navbars ([#754](https://github.com/allxsmith/bestax/issues/754)) ([02fdd72](https://github.com/allxsmith/bestax/commit/02fdd72ec836f3bb28fcb42b7529b7967f0f6a98))
+* **bestax-migrate:** convert Bulma skeletons ([2574ace](https://github.com/allxsmith/bestax/commit/2574ace11ddc7fa6e02a03e4046f8ba4615be94a))
+* **bestax-migrate:** convert conditional classes in clsx and classnames calls ([8948cce](https://github.com/allxsmith/bestax/commit/8948ccee31a3f542748eec704f227425cc44ea9f))
+* **bestax-migrate:** fold .table-container and .fixed-grid into the component inside ([#761](https://github.com/allxsmith/bestax/issues/761)) ([72504f5](https://github.com/allxsmith/bestax/commit/72504f597980bed7f665e4267f1225b9c956e81e)), closes [#743](https://github.com/allxsmith/bestax/issues/743)
+* **eslint-plugin:** add an opt-in rule for plain elements styled with a Bulma component class ([#750](https://github.com/allxsmith/bestax/issues/750)) ([0bb4d80](https://github.com/allxsmith/bestax/commit/0bb4d802917a295ca4a1c8c08974439353543543))
+
 ## [5.16.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.8...@allxsmith/bestax-bulma@5.16.9) (2026-09-25)
 
 
