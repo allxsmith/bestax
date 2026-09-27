@@ -836,6 +836,31 @@ describe('Dropdown', () => {
 });
 
 describe('Dropdown keyboard navigation', () => {
+  test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem role="menuitemcheckbox" aria-checked="true">
+          Unread
+        </DropdownItem>
+        <DropdownItem role="menuitemradio" aria-checked="false">
+          Newest
+        </DropdownItem>
+        <DropdownItem>All</DropdownItem>
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
+      key: 'ArrowDown',
+    });
+    expect(screen.getByText('Unread')).toHaveFocus();
+    const menu = screen.getByRole('menu');
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('Newest')).toHaveFocus();
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('All')).toHaveFocus();
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('Unread')).toHaveFocus();
+  });
+
   test('ArrowDown on trigger opens the menu and focuses the first item', () => {
     render(
       <Dropdown label="Menu">

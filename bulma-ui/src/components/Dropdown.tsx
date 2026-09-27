@@ -183,7 +183,11 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       /* istanbul ignore next: dropdownRef.current is never null once mounted */
       if (!dropdownRef.current) return [];
       return Array.from(
-        dropdownRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
+        // Every menu-item role, so an item a caller gives `menuitemcheckbox`
+        // or `menuitemradio` (a filter or sort menu) stays reachable.
+        dropdownRef.current.querySelectorAll<HTMLElement>(
+          '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]'
+        )
       ).filter(
         el =>
           !el.hasAttribute('disabled') &&
