@@ -27,7 +27,11 @@ Notifications are perfect for status updates, alerts, and dismissible feedback i
 <!-- bestax:generated import -->
 
 ```tsx
-import { Notification } from '@allxsmith/bestax-bulma';
+import {
+  Notification,
+  NotificationContainer,
+  notification,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -117,11 +121,70 @@ The `Notification` component supports any custom content as its children. You ca
 
 ---
 
+## Programmatic API
+
+To show a notification from anywhere in your app, not just where you render one, use the `notification` API. It stacks the same Bulma notification over the page and dismisses it on its own. For the toast look instead, use [`toast`](../components/toast.md#programmatic-api).
+
+### Setup
+
+Render `NotificationContainer` once, near your app root, and call `notification` after it has mounted, for example from an event handler. A call made before any container mounts doesn't appear when one does.
+
+```tsx title="src/App.tsx"
+import { NotificationContainer } from '@allxsmith/bestax-bulma';
+
+function App() {
+  return (
+    <>
+      <YourRoutes />
+      <NotificationContainer position="top-right" />
+    </>
+  );
+}
+```
+
+The container's `position` (`top-left`, `top`, `top-right`, `bottom-left`, `bottom`, or `bottom-right`) places every notification it shows.
+
+### API Methods
+
+```tsx
+import { notification } from '@allxsmith/bestax-bulma';
+
+// Show a colored notification
+notification.success('Changes saved');
+notification.danger('Something went wrong');
+notification.warning('Please review your changes');
+notification.info('A new version is available');
+
+// Show with options
+notification.show({
+  message: 'Custom notification',
+  color: 'primary',
+  isLight: true,
+  duration: 5000,
+});
+
+// Queued notifications display one at a time (FIFO)
+notification.show({ message: 'Step 1', queue: true });
+notification.show({ message: 'Step 2', queue: true });
+
+// Keep one open until you close it
+const id = notification.show({ message: 'Uploading…', indefinite: true });
+notification.close(id);
+
+// Close all notifications
+notification.closeAll();
+```
+
+Each helper takes the message first and any other options second.
+
+---
+
 ## Accessibility
 
 - **Delete button:** Includes `aria-label="Close notification"` for screen readers.
 - **Keyboard:** The delete button is focusable and can be activated by keyboard.
 - **Content:** Use semantic HTML within the notification for best accessibility.
+- **Announcements:** A notification shown through `notification` announces its message: as an alert for `danger` and `warning`, and as a status otherwise.
 
 :::tip
 Always provide clear, actionable text inside notifications.

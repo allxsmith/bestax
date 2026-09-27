@@ -665,7 +665,7 @@
       "category": "elements",
       "purpose": "The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.",
       "slug": "elements/notification",
-      "import": "import { Notification } from '@allxsmith/bestax-bulma';",
+      "import": "import { Notification, NotificationContainer, notification } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 7,
       "exampleCount": 7

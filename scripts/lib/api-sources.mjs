@@ -244,6 +244,7 @@ export const IMPORT_COMPANIONS = {
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
+  Notification: ['Notification', 'NotificationContainer', 'notification'],
   OrderedList: ['OrderedList', 'ListItem'],
   Pre: ['Pre', 'Code'],
   Table: ['Table', 'Thead', 'Tbody', 'Tfoot', 'Tr', 'Th', 'Td'],

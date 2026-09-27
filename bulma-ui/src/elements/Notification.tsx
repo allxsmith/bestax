@@ -120,7 +120,10 @@ export interface NotificationOptions {
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;
-  /** Position on the screen. Default 'top-right'. */
+  /**
+   * Position on the screen. Currently ignored: `NotificationContainer`'s own
+   * `position` places every notification it shows, so set it there.
+   */
   position?: NotificationPosition;
   /** When true, notifications enter a FIFO queue and display one at a time. Default false. */
   queue?: boolean;
@@ -303,6 +306,7 @@ const NotificationItem: React.FC<{
   } = instance.options;
 
   const [isPaused, setIsPaused] = useState(false);
+  const urgent = color === 'danger' || color === 'warning';
 
   const handleClose = useCallback(() => {
     onClose(instance.id);
@@ -334,14 +338,28 @@ const NotificationItem: React.FC<{
       onMouseLeave={handleMouseLeave}
       style={{ pointerEvents: 'auto' }}
     >
-      {message}
+      {/* It appears after the page has rendered, so its message announces
+          itself: as an alert for danger and warning, as a status otherwise.
+          The live region wraps only the message, not the close button that
+          Notification renders ahead of its children. */}
+      {urgent ? (
+        <span role="alert" aria-live="assertive">
+          {message}
+        </span>
+      ) : (
+        <span role="status" aria-live="polite">
+          {message}
+        </span>
+      )}
     </Notification>
   );
 };
 
 /**
  * Container component for rendering programmatic notifications.
- * Place once at your app root to enable the notification API.
+ * Place once at your app root to enable the notification API. Mount it
+ * before calling `notification`: a notification shown while no container is
+ * mounted doesn't appear when one mounts, only alongside the next call.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import {
   Notification,
   NotificationProps,
@@ -169,6 +169,44 @@ describe('Notification Programmatic API', () => {
         notification.show({ message: 'Hello', duration: 0 });
       });
       expect(screen.getByText('Hello')).toBeInTheDocument();
+    });
+  });
+
+  describe('announcements', () => {
+    it.each([
+      ['success', 'status', 'polite'],
+      ['info', 'status', 'polite'],
+      ['warning', 'alert', 'assertive'],
+      ['danger', 'alert', 'assertive'],
+    ] as const)('a %s notification announces as %s', (color, role, live) => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: `Msg ${color}`, color, duration: 0 });
+      });
+      const region = screen.getByRole(role);
+      expect(region).toHaveTextContent(`Msg ${color}`);
+      expect(region).toHaveAttribute('aria-live', live);
+    });
+
+    it('a notification with no color announces as a status', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: 'Plain', duration: 0 });
+      });
+      expect(screen.getByRole('status')).toHaveTextContent('Plain');
+    });
+
+    it('announces only the message, not the close button', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.danger('Something went wrong', { duration: 0 });
+      });
+      const region = screen.getByRole('alert');
+      expect(region).toHaveTextContent(/^Something went wrong$/);
+      expect(within(region).queryByRole('button')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Close notification' })
+      ).toBeInTheDocument();
     });
   });
 
