@@ -726,6 +726,12 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('breadcrumb has-dot-separator', 'nav')).toContain(
       "It renders the <ul> inside it itself, bare: put that <ul>'s children straight inside `Breadcrumb`"
     );
+    const image = await lookup('image is-64x64 is-4by3', 'figure');
+    expect(image).toContain(
+      "It renders the <img> inside it itself, from its own `src` and `alt` props: write the <img>'s `src` and `alt` on `Image` in its place, which converts only around an <img> with no other attribute. On the <img>, `is-rounded` becomes `isRounded`."
+    );
+    expect(image).toContain('| `is-64x64` | `size="64x64"` |');
+    expect(image).toContain('| `is-4by3` | stays in `className` |');
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 
