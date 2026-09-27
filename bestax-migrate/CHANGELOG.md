@@ -1,3 +1,18 @@
+# [2.14.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.13.0...bestax-migrate@2.14.0) (2026-09-27)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give .image's ratios their reason in the lookup ([3ea4d0c](https://github.com/allxsmith/bestax/commit/3ea4d0ca6cef7368e74dadcbcc1d0f617e001c27))
+* **bestax-migrate:** say why .image's ratios stay classes ([2fbfbd5](https://github.com/allxsmith/bestax/commit/2fbfbd55a8b3492c76c67b25a0558f1d80ea8aca))
+* **eslint-plugin:** report .image with the message for a class the codemod converts ([d27c19b](https://github.com/allxsmith/bestax/commit/d27c19bc984ae60bb8e65bac4c8a6378a07b3c87))
+
+
+### Features
+
+* **bestax-mcp:** look up .image as Image, with the props it takes from its <img> ([3e63230](https://github.com/allxsmith/bestax/commit/3e63230c541d2521bcc2a3456022491b929b9dc5))
+* **bestax-migrate:** convert an .image and its <img> to Image ([d4f3673](https://github.com/allxsmith/bestax/commit/d4f3673fcff77d4f3a7e2f032433de22b09556f7)), closes [#793](https://github.com/allxsmith/bestax/issues/793)
+
 # [2.13.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.12.0...bestax-migrate@2.13.0) (2026-09-27)
 
 

@@ -134,6 +134,13 @@ The codemod reads one file at a time, so it can't see a component in another fil
 a bestax `Field` or form control around this markup. If the app already uses them that way, give
 its inputs ids before running the codemod, and check its forms afterwards.
 
+On a `.menu-list` it's about nesting: `Menu.List` renders `.menu-list` only on the outermost list,
+and drops it on one inside another. So a `.menu-list` inside another `.menu-list` (or a bestax
+`Menu.List`) stays markup, keeping its class, and so does one around a bestax `Menu.List`, which would
+lose the class once the outer one converts. Only the elements in the same file count:
+a `.menu-list` another component renders inside a `Menu.List` would lose the class, so check a
+menu split across components after the run.
+
 ### `only-child:<Target>`
 
 The element is the only child of another component (`<Link href="/x"><a className="button">`),
@@ -202,7 +209,12 @@ in the browser:
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
 - **`family:icon`**, **`family:icon-text`**: `Icon` renders its own `<i>` and adds an
   `aria-label`. See the `bestax-icons` skill for its library and name props.
-- **`family:menu`**: `Menu.Item` renders the `<li>` and the `<a>` together.
+- **`family:menu-item`**: `Menu.Item` renders the `<li>` and the `<a>` together, so the codemod
+  converts `.menu`, `.menu-label` and `.menu-list` and doesn't turn the items inside into
+  `Menu.Item`s. To convert one by hand, write `<Menu.Item>` in place of the `<li>` and its `<a>`,
+  with the `<a>`'s content inside and a nested list as a `Menu.List` after it. `is-active` on the
+  `<a>` becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style`
+  and `data-testid` on the `<li>`, and everything else, helper props included, on the `<a>`.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination`**, **`family:panel`**, **`family:tabs`**: each renders list items,
   links or roles of its own. Rebuild them from the component's docs. `Tabs.Tab` puts its label

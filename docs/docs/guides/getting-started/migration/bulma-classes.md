@@ -71,9 +71,9 @@ stock stylesheet.
   `section`, `hero` and its parts, `title`, `subtitle`, `box`, `content`, `block`,
   `notification`, `tag`, `tags`, `level` and its parts, `media` and its parts, `card` and its
   parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
-  `select`, `breadcrumb`, `image`, `delete`, `progress`, `skeleton-block`, `footer` and `table`
-  become their bestax components, with their modifier classes as props (`is-primary` →
-  `color="primary"`, `is-half` → `size="half"`).
+  `select`, `breadcrumb`, `image`, `menu` and its label and list, `delete`, `progress`,
+  `skeleton-block`, `footer` and `table` become their bestax components, with their modifier
+  classes as props (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
   `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
@@ -114,6 +114,9 @@ A couple of results look odd until you see why:
   `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
   hand.
+- A `.menu` converts with its labels and lists, and the `<li>`s and `<a>`s inside a list don't
+  become `Menu.Item`s: `Menu.Item` renders the `<li>` and its `<a>` together, so that's a change
+  you make by hand.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as

@@ -737,6 +737,13 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 
+  it('says when a component renders its class only at the top level', async () => {
+    expect(await lookup('menu-list', 'ul')).toContain(
+      'It renders `.menu-list` only when no other `Menu.List` is around it, so one inside another `.menu-list`, or around a `Menu.List`, stays markup.'
+    );
+    expect(await lookup('menu', 'aside')).not.toContain('only when no other');
+  });
+
   it('says when a component renders the children from a count', async () => {
     const lines = await lookup('skeleton-lines', 'div');
     expect(lines).toContain(
