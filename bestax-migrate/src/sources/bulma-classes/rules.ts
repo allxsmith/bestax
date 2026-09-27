@@ -52,7 +52,7 @@ const VOCABULARY: ReadonlySet<string> = new Set([
   // Refused on every target, so no entry lists them.
   'dangerouslySetInnerHTML',
   'children',
-  // Refused where the target drops its own class for one it is given.
+  // Refused on a wrapper a target renders and on a child it renders itself.
   'className',
   // Refused on the child a target renders itself.
   'key',

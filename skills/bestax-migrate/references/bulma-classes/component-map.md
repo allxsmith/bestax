@@ -98,7 +98,7 @@ that doesn't gets a `defaults:Navbar` TODO. A `.has-dropdown` item becomes a `Na
 keeps `has-dropdown` as a class, because a `Navbar.Dropdown` would give the `.navbar-link` inside
 it dropdown semantics the markup didn't have. That link and the `.navbar-burger` stay markup with
 a `family:<class>` TODO; converting either means building the dropdown or the toggle with bestax,
-by hand. A `.navbar-divider` converts only when it carries no other class.
+by hand.
 
 Form markup converts piece by piece: `.field` to `Field`, `.control` to `Control`, the input
 and textarea to `InputBase` and `TextAreaBase`, the controls without wrappers of their own, and a
