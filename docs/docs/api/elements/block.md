@@ -103,7 +103,7 @@ Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign`
 This example shows how stacking multiple `Block` components creates consistent vertical spacing between each section.
 
 ```tsx live
-<Block display="flex" flexDirection="column">
+<Block>
   <Block>
     <Notification color="primary">First Block</Notification>
   </Block>
