@@ -18,8 +18,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "box": {
       "status": "mapped",
@@ -38,8 +37,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "button": {
       "status": "mapped",
@@ -86,8 +84,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "buttons": {
       "status": "mapped",
@@ -113,8 +110,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card": {
       "status": "mapped",
@@ -143,8 +139,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-header": {
       "status": "mapped",
@@ -167,8 +162,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-header-title": {
       "status": "mapped",
@@ -187,8 +181,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-header-icon": {
       "status": "mapped",
@@ -207,8 +200,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-image": {
       "status": "mapped",
@@ -227,8 +219,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-content": {
       "status": "mapped",
@@ -247,8 +238,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-footer": {
       "status": "mapped",
@@ -267,8 +257,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "card-footer-item": {
       "status": "mapped",
@@ -287,8 +276,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "columns": {
       "status": "mapped",
@@ -386,8 +374,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "column": {
       "status": "mapped",
@@ -1046,8 +1033,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "grid": {
       "status": "mapped",
@@ -1208,8 +1194,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "cell": {
       "status": "mapped",
@@ -1445,8 +1430,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "container": {
       "status": "mapped",
@@ -1487,8 +1471,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "content": {
       "status": "mapped",
@@ -1511,8 +1494,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "delete": {
       "status": "mapped",
@@ -1535,8 +1517,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "field": {
       "status": "mapped",
@@ -1565,8 +1546,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "field-label": {
       "status": "mapped",
@@ -1590,8 +1570,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": true,
-      "ownClassOnly": false
+      "noHelpers": true
     },
     "field-body": {
       "status": "mapped",
@@ -1610,8 +1589,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": true,
-      "ownClassOnly": false
+      "noHelpers": true
     },
     "control": {
       "status": "mapped",
@@ -1638,8 +1616,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": true,
-      "ownClassOnly": false
+      "noHelpers": true
     },
     "input": {
       "status": "mapped",
@@ -1678,8 +1655,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "textarea": {
       "status": "mapped",
@@ -1719,8 +1695,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "select": {
       "status": "mapped",
@@ -1768,8 +1743,7 @@
       },
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "footer": {
       "status": "mapped",
@@ -1788,8 +1762,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "hero": {
       "status": "mapped",
@@ -1828,8 +1801,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "hero-head": {
       "status": "mapped",
@@ -1848,8 +1820,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "hero-body": {
       "status": "mapped",
@@ -1868,8 +1839,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "hero-foot": {
       "status": "mapped",
@@ -1888,8 +1858,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "level": {
       "status": "mapped",
@@ -1908,8 +1877,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "level-left": {
       "status": "mapped",
@@ -1928,8 +1896,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "level-right": {
       "status": "mapped",
@@ -1948,8 +1915,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "level-item": {
       "status": "mapped",
@@ -1968,8 +1934,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "media": {
       "status": "mapped",
@@ -1988,8 +1953,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "media-left": {
       "status": "mapped",
@@ -2008,8 +1972,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "media-content": {
       "status": "mapped",
@@ -2028,8 +1991,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "media-right": {
       "status": "mapped",
@@ -2048,8 +2010,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar": {
       "status": "mapped",
@@ -2084,8 +2045,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-brand": {
       "status": "mapped",
@@ -2104,8 +2064,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-menu": {
       "status": "mapped",
@@ -2113,7 +2072,7 @@
       "tag": "div",
       "as": null,
       "sizeDrivesTag": false,
-      "textColor": null,
+      "textColor": "textColor",
       "bgColor": null,
       "part": false,
       "why": null,
@@ -2124,8 +2083,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-start": {
       "status": "mapped",
@@ -2133,7 +2091,7 @@
       "tag": "div",
       "as": null,
       "sizeDrivesTag": false,
-      "textColor": null,
+      "textColor": "textColor",
       "bgColor": null,
       "part": false,
       "why": null,
@@ -2144,8 +2102,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-end": {
       "status": "mapped",
@@ -2153,7 +2110,7 @@
       "tag": "div",
       "as": null,
       "sizeDrivesTag": false,
-      "textColor": null,
+      "textColor": "textColor",
       "bgColor": null,
       "part": false,
       "why": null,
@@ -2164,8 +2121,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-item": {
       "status": "mapped",
@@ -2184,8 +2140,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-dropdown": {
       "status": "mapped",
@@ -2207,8 +2162,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": true,
-      "ownClassOnly": false
+      "noHelpers": true
     },
     "navbar-divider": {
       "status": "mapped",
@@ -2227,8 +2181,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": true,
-      "ownClassOnly": true
+      "noHelpers": true
     },
     "notification": {
       "status": "mapped",
@@ -2258,8 +2211,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "progress": {
       "status": "mapped",
@@ -2292,8 +2244,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "section": {
       "status": "mapped",
@@ -2315,8 +2266,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "subtitle": {
       "status": "mapped",
@@ -2361,8 +2311,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "table": {
       "status": "mapped",
@@ -2387,8 +2336,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "tag": {
       "status": "mapped",
@@ -2424,8 +2372,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "tags": {
       "status": "mapped",
@@ -2448,8 +2395,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "title": {
       "status": "mapped",
@@ -2495,8 +2441,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "breadcrumb": {
       "status": "mapped",
@@ -2535,8 +2480,7 @@
       "absorbs": { "tag": "ul", "attributesOn": "element" },
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "skeleton-block": {
       "status": "mapped",
@@ -2555,8 +2499,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": true,
-      "ownClassOnly": false
+      "noHelpers": true
     },
     "skeleton-lines": {
       "status": "mapped",
@@ -2575,8 +2518,7 @@
       "absorbs": null,
       "writes": [{ "prop": "variant", "value": "lines" }],
       "countsChildren": { "tag": "div", "prop": "lines" },
-      "noHelpers": true,
-      "ownClassOnly": false
+      "noHelpers": true
     },
     "checkbox": {
       "status": "todo",
@@ -2595,8 +2537,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "checkboxes": {
       "status": "todo",
@@ -2615,8 +2556,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "radio": {
       "status": "todo",
@@ -2635,8 +2575,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "radios": {
       "status": "todo",
@@ -2655,8 +2594,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "file": {
       "status": "todo",
@@ -2675,8 +2613,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "file-label": {
       "status": "todo",
@@ -2695,8 +2632,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "file-input": {
       "status": "todo",
@@ -2715,8 +2651,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "file-cta": {
       "status": "todo",
@@ -2735,8 +2670,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "file-icon": {
       "status": "todo",
@@ -2755,8 +2689,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "file-name": {
       "status": "todo",
@@ -2775,8 +2708,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "dropdown": {
       "status": "todo",
@@ -2795,8 +2727,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "dropdown-menu": {
       "status": "todo",
@@ -2815,8 +2746,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "dropdown-content": {
       "status": "todo",
@@ -2835,8 +2765,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "dropdown-item": {
       "status": "todo",
@@ -2855,8 +2784,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "dropdown-divider": {
       "status": "todo",
@@ -2875,8 +2803,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "icon": {
       "status": "todo",
@@ -2895,8 +2822,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "icon-text": {
       "status": "todo",
@@ -2915,8 +2841,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "image": {
       "status": "mapped",
@@ -2965,8 +2890,7 @@
       },
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "menu": {
       "status": "todo",
@@ -2985,8 +2909,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "menu-label": {
       "status": "todo",
@@ -3005,8 +2928,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "menu-list": {
       "status": "todo",
@@ -3025,8 +2947,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "menu-item": {
       "status": "todo",
@@ -3045,8 +2966,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "message": {
       "status": "todo",
@@ -3065,8 +2985,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "message-header": {
       "status": "todo",
@@ -3085,8 +3004,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "message-body": {
       "status": "todo",
@@ -3105,8 +3023,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal": {
       "status": "todo",
@@ -3125,8 +3042,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-background": {
       "status": "todo",
@@ -3145,8 +3061,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-content": {
       "status": "todo",
@@ -3165,8 +3080,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-card": {
       "status": "todo",
@@ -3185,8 +3099,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-card-head": {
       "status": "todo",
@@ -3205,8 +3118,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-card-title": {
       "status": "todo",
@@ -3225,8 +3137,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-card-body": {
       "status": "todo",
@@ -3245,8 +3156,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-card-foot": {
       "status": "todo",
@@ -3265,8 +3175,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "modal-close": {
       "status": "todo",
@@ -3285,8 +3194,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-burger": {
       "status": "todo",
@@ -3305,8 +3213,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-link": {
       "status": "todo",
@@ -3325,8 +3232,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "pagination": {
       "status": "todo",
@@ -3345,8 +3251,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "pagination-list": {
       "status": "todo",
@@ -3365,8 +3270,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "pagination-link": {
       "status": "todo",
@@ -3385,8 +3289,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "pagination-ellipsis": {
       "status": "todo",
@@ -3405,8 +3308,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "pagination-previous": {
       "status": "todo",
@@ -3425,8 +3327,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "pagination-next": {
       "status": "todo",
@@ -3445,8 +3346,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "panel": {
       "status": "todo",
@@ -3465,8 +3365,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "panel-heading": {
       "status": "todo",
@@ -3485,8 +3384,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "panel-tabs": {
       "status": "todo",
@@ -3505,8 +3403,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "panel-block": {
       "status": "todo",
@@ -3525,8 +3422,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "panel-icon": {
       "status": "todo",
@@ -3545,8 +3441,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "panel-list": {
       "status": "todo",
@@ -3565,8 +3460,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "tabs": {
       "status": "todo",
@@ -3585,8 +3479,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "table-container": {
       "status": "fold",
@@ -3605,8 +3498,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "fixed-grid": {
       "status": "fold",
@@ -3965,8 +3857,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "help": {
       "status": "plain",
@@ -3985,8 +3876,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "label": {
       "status": "plain",
@@ -4005,8 +3895,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "loader": {
       "status": "plain",
@@ -4025,8 +3914,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "hero-buttons": {
       "status": "plain",
@@ -4045,8 +3933,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "hero-video": {
       "status": "plain",
@@ -4065,8 +3952,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-content": {
       "status": "plain",
@@ -4085,8 +3971,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "navbar-tabs": {
       "status": "plain",
@@ -4105,8 +3990,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "theme-dark": {
       "status": "plain",
@@ -4125,8 +4009,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "theme-light": {
       "status": "plain",
@@ -4145,8 +4028,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "fa": {
       "status": "plain",
@@ -4165,8 +4047,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "marginless": {
       "status": "plain",
@@ -4185,8 +4066,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     },
     "paddingless": {
       "status": "plain",
@@ -4205,8 +4085,7 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
-      "ownClassOnly": false
+      "noHelpers": false
     }
   },
   "precedence": [

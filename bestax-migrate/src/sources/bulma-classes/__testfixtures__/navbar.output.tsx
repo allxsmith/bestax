@@ -50,3 +50,24 @@ export function SiteNavbar() {
     </Navbar>
   );
 }
+
+export function DarkNavbar() {
+  return (
+    <Navbar color="dark" role="navigation" aria-label="main navigation">
+      <Navbar.Menu textColor="light">
+        <Navbar.Start textWeight="bold">
+          <Navbar.Item as="div" className="has-dropdown is-hoverable">
+            <Navbar.DropdownMenu>
+              <Navbar.Item>About</Navbar.Item>
+              <Navbar.Divider className="my-0 site-divider" />
+              <Navbar.Item>Jobs</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Item>
+        </Navbar.Start>
+        <Navbar.End textColor="white">
+          <Navbar.Item>Log in</Navbar.Item>
+        </Navbar.End>
+      </Navbar.Menu>
+    </Navbar>
+  );
+}

@@ -43,7 +43,6 @@ export function Leftovers() {
         <span aria-hidden="true" />
         <span aria-hidden="true" />
       </a>
-      <hr className="navbar-divider mt-2" />
       <div className="dropdown">A family converted later</div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
     </div>
