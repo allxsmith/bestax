@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 14762
+          "bytes": 15323
         }
       ],
       "examples": [
@@ -103,7 +103,7 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 14392
+          "bytes": 14413
         },
         {
           "id": "bulma-classes-prop-map",
