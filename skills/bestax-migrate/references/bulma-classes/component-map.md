@@ -27,12 +27,12 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.buttons`           | `Buttons`             | `<div>` only                                                   |
 | `.card`              | `Card`                | `<div>` only                                                   |
 | `.card-header`       | `Card.Header`         | `<header>` only                                                |
-| `.card-header-title` | `Card.Header.Title`   | `<div>` only                                                   |
+| `.card-header-title` | `Card.Header.Title`   | `<div>`, `<p>`, `<h2>`, `<h3>`, `<h4>` via `as`                |
 | `.card-header-icon`  | `Card.Header.Icon`    | `<button>` only                                                |
 | `.card-image`        | `Card.Image`          | `<div>` only                                                   |
 | `.card-content`      | `Card.Content`        | `<div>` only                                                   |
 | `.card-footer`       | `Card.Footer`         | `<footer>` only                                                |
-| `.card-footer-item`  | `Card.FooterItem`     | `<span>` only                                                  |
+| `.card-footer-item`  | `Card.FooterItem`     | `<span>`, `<a>`, `<button>` via `as`                           |
 | `.columns`           | `Columns`             | `<div>` only                                                   |
 | `.column`            | `Column`              | `<div>` only                                                   |
 | `.grid`              | `Grid`                | `<div>` only                                                   |
@@ -87,10 +87,11 @@ An element with two of these (`<div className="column box">`) becomes the layout
 its parts, and `Card.Header` its children inside a `.card-header-title` unless one of them is a
 `Card.Header.Title`. So a `.card` with children converts only when one of the elements written directly
 inside it converts to a part (or already is one), and a `.card-header` only when its title
-does. Otherwise it gets a `children:<Target>` TODO. Bulma's own example card uses a
-`<p className="card-header-title">` and `<a className="card-footer-item">` links, which the
-codemod converts only on their default `<div>` and `<span>`, so those stay markup with a
-`tag:<Target>` TODO, and so does the header around that title.
+does. Otherwise it gets a `children:<Target>` TODO. Bulma's own example card, with its
+`<p className="card-header-title">` and `<a className="card-footer-item">` links, converts through
+`as`. A `.card-footer-item` `<button>` converts only with its `type` written out as `button`,
+`submit` or `reset`, since `Card.FooterItem` writes `type="button"` on a button in place of
+anything else.
 
 `Navbar` writes `role="navigation"` and `aria-label="main navigation"`, the attributes Bulma's
 own navbar carries, so a `.navbar` that sets both converts (whatever the label says), and one
