@@ -280,6 +280,22 @@ describe('Navbar.Burger', () => {
     spans.forEach(span => expect(span).toHaveAttribute('aria-hidden', 'true'));
   });
 
+  it('renders children after the four bar spans the mixin counts', () => {
+    render(
+      <Navbar.Burger data-testid="burger">
+        <em>extra</em>
+      </Navbar.Burger>
+    );
+    const kids = Array.from(screen.getByTestId('burger').children);
+    expect(kids.slice(0, 4).map(el => el.tagName)).toEqual([
+      'SPAN',
+      'SPAN',
+      'SPAN',
+      'SPAN',
+    ]);
+    expect(kids[4]).toHaveTextContent('extra');
+  });
+
   it('applies is-active when active', () => {
     render(<Navbar.Burger active data-testid="burger" />);
     expect(screen.getByTestId('burger')).toHaveClass('is-active');

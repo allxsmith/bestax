@@ -280,7 +280,11 @@ export interface NavbarBurgerProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Whether the burger is active. */
   active?: boolean;
-  /** Custom content inside the burger. */
+  /**
+   * Custom content inside the burger, rendered after its four bar spans.
+   * Bulma styles every `<span>` in the burger as a bar, so an extra span here
+   * draws an extra bar.
+   */
   children?: React.ReactNode;
   /** Aria label for accessibility. */
   'aria-label'?: string;

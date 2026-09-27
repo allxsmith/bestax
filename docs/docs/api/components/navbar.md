@@ -555,18 +555,18 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Burger
 
-| Prop            | Type                                                                            | Default | Description                                       |
-| --------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className`     | `string`                                                                        | —       | Additional CSS classes.                           |
-| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the burger.                        |
-| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the burger.              |
-| `active`        | `boolean`                                                                       | `false` | Whether the burger is active.                     |
-| `children`      | `React.ReactNode`                                                               | —       | Custom content inside the burger.                 |
-| `aria-label`    | `string`                                                                        | —       | Aria label for accessibility.                     |
-| `aria-expanded` | `boolean`                                                                       | `false` | Aria expanded state.                              |
-| `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —       | Click handler.                                    |
-| `ref`           | `React.Ref<HTMLButtonElement>`                                                  | —       | Ref forwarded to the burger button element.       |
-| `...`           | All standard `<button>` attributes and Bulma helper props                       | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop            | Type                                                                            | Default | Description                                                                                                                                                        |
+| --------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`     | `string`                                                                        | —       | Additional CSS classes.                                                                                                                                            |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the burger.                                                                                                                                         |
+| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the burger.                                                                                                                               |
+| `active`        | `boolean`                                                                       | `false` | Whether the burger is active.                                                                                                                                      |
+| `children`      | `React.ReactNode`                                                               | —       | Custom content inside the burger, rendered after its four bar spans. Bulma styles every `<span>` in the burger as a bar, so an extra span here draws an extra bar. |
+| `aria-label`    | `string`                                                                        | —       | Aria label for accessibility.                                                                                                                                      |
+| `aria-expanded` | `boolean`                                                                       | `false` | Aria expanded state.                                                                                                                                               |
+| `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —       | Click handler.                                                                                                                                                     |
+| `ref`           | `React.Ref<HTMLButtonElement>`                                                  | —       | Ref forwarded to the burger button element.                                                                                                                        |
+| `...`           | All standard `<button>` attributes and Bulma helper props                       | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                  |
 
 ### Navbar.Menu
 

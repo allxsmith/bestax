@@ -412,7 +412,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Custom content inside the burger.",
+          "description": "Custom content inside the burger, rendered after its four bar spans. Bulma styles every `<span>` in the burger as a bar, so an extra span here draws an extra bar.",
           "required": false,
           "inherited": false,
           "deprecated": false
