@@ -176,9 +176,12 @@ The bestax component renders parts of its own, or adds attributes, so a one-elem
 conversion would change the markup. Convert the whole family by hand, and look at the result
 in the browser:
 
-- **`family:navbar-burger`**: `Navbar.Burger` is a `<button>` that renders its own spans and
-  sets `aria-expanded` from `active`. Replace the whole toggle with it, drive `active` from the
-  state the old click handler flipped, and pass the same state to `Navbar.Menu`'s `active`.
+- **`family:navbar-burger`**: `Navbar.Burger` is a `<button>` that renders the burger's spans
+  itself and sets `aria-expanded` from `active`. Replace the whole toggle with it, drive
+  `active` from the state the old click handler flipped, and pass the same state to
+  `Navbar.Menu`'s `active`. Don't give it spans of your own: Bulma positions every span in the
+  burger. Releases before 5.16.10 render three spans where Bulma v1 positions four, so upgrade
+  rather than adding one.
 - **`family:navbar-link`**: inside a `Navbar.Dropdown`, `Navbar.Link` adds `aria-haspopup`,
   `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
   into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
@@ -189,7 +192,9 @@ in the browser:
 - **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
   bestax renders its own styled checkbox and radio markup, not Bulma's.
 - **`family:modal`**: `Modal` renders its own background and content parts, and adds dialog
-  attributes. Rebuild it with `Modal` and its parts, and drive it with its open prop.
+  attributes. Rebuild it with `Modal` and its parts, and drive it with its open prop. When the
+  page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
+  bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
 - **`family:icon`**, **`family:icon-text`**: `Icon` renders its own `<i>` and adds an
   `aria-label`. See the `bestax-icons` skill for its library and name props.
@@ -197,7 +202,10 @@ in the browser:
 - **`family:menu`**: `Menu.Item` renders the `<li>` and the `<a>` together.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination`**, **`family:panel`**, **`family:tabs`**: each renders list items,
-  links or roles of its own. Rebuild them from the component's docs.
+  links or roles of its own. Rebuild them from the component's docs. `Tabs.Tab` puts its label
+  in a `<span>` inside the `<a>`, so something that sat beside the text in the `<a>` (a `Tag`,
+  say) is no longer aligned by the `<a>`'s flex layout; wrap the label and it in a
+  `Span display="flex" alignItems="center"`.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 
