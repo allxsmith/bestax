@@ -830,10 +830,14 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
  * @param {React.HTMLAttributes<HTMLHRElement>} props - Standard hr props.
  * @returns {JSX.Element} The rendered divider.
  */
-export const NavbarDivider: React.FC<
-  React.HTMLAttributes<HTMLHRElement>
-> = props => (
-  <hr className={usePrefixedClassNames('navbar-divider')} {...props} />
+export const NavbarDivider: React.FC<React.HTMLAttributes<HTMLHRElement>> = ({
+  className,
+  ...props
+}) => (
+  <hr
+    className={classNames(usePrefixedClassNames('navbar-divider'), className)}
+    {...props}
+  />
 );
 
 // Attach subcomponents

@@ -569,6 +569,13 @@ describe('Navbar.Dropdown', () => {
     expect(divider).toHaveClass('navbar-divider');
   });
 
+  it('merges a custom className with navbar-divider instead of replacing it', () => {
+    render(<Navbar.Divider className="my-2" data-testid="divider" />);
+    const divider = screen.getByTestId('divider');
+    expect(divider).toHaveClass('navbar-divider');
+    expect(divider).toHaveClass('my-2');
+  });
+
   it('starts closed by default and can be controlled externally via active', () => {
     const { rerender } = render(
       <Navbar.Dropdown data-testid="dropdown">
