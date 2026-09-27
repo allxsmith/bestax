@@ -129,7 +129,7 @@ export interface NavbarBrandProps
    * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
    * Bulma has no `.navbar-brand.is-<color>` rule, so this is not a filled
    * variant. `textColor` takes precedence when both are set, and is the one that
-   * reaches the full color list; use `bgColor` for a colored surface.
+   * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Brand content. */
@@ -286,7 +286,7 @@ export interface NavbarBurgerProps
    * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
    * Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled
    * variant. `textColor` takes precedence when both are set, and is the one that
-   * reaches the full color list; use `bgColor` for a colored surface.
+   * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Whether the burger is active. */
@@ -368,7 +368,7 @@ export interface NavbarMenuProps
    * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
    * Bulma has no `.navbar-menu.is-<color>` rule, so this is not a filled
    * variant. `textColor` takes precedence when both are set, and is the one that
-   * reaches the full color list; use `bgColor` for a colored surface.
+   * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Whether the menu is active. */
@@ -428,7 +428,7 @@ export interface NavbarStartEndProps
    * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
    * Bulma has no `is-<color>` rule for this area, so this is not a filled
    * variant. `textColor` takes precedence when both are set, and is the one that
-   * reaches the full color list; use `bgColor` for a colored surface.
+   * reaches the full color list.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Content. */

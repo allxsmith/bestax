@@ -168,6 +168,11 @@ export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
   'Delete',
   'IconText',
   'Image',
+  'Navbar.Brand',
+  'Navbar.Burger',
+  'Navbar.End',
+  'Navbar.Menu',
+  'Navbar.Start',
 ];
 
 /** A Bulma class that names a bestax component. */
