@@ -5,6 +5,7 @@ import {
   libs,
   categories,
   lastReviewed,
+  notes,
   parseCell,
 } from '@site/src/data/componentComparison';
 import {
@@ -79,7 +80,72 @@ function Tally({ columns, groups }) {
   );
 }
 
-function MatrixTable({ columns, groups, tally = false }) {
+/**
+ * Number the footnotes the shown rows carry, in the order a reader meets
+ * them, so filtering never leaves a gap or a note with nothing pointing at it.
+ */
+function numberNotes(groups) {
+  const byRow = new Map();
+  const shown = [];
+  for (const group of groups) {
+    for (const row of group.rows) {
+      for (const note of notes) {
+        if (!note.rows.includes(row[0])) continue;
+        let entry = shown.find(e => e.note === note);
+        if (!entry) {
+          entry = { n: shown.length + 1, note };
+          shown.push(entry);
+        }
+        byRow.set(row[0], [...(byRow.get(row[0]) ?? []), entry]);
+      }
+    }
+  }
+  return { byRow, shown };
+}
+
+/** Note text with `backtick` spans rendered as code. */
+function NoteText({ text }) {
+  return text
+    .split('`')
+    .map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part));
+}
+
+const noteId = note => `sor-note-${note.id}`;
+
+function NoteRefs({ entries }) {
+  return entries.map(({ n, note }) => (
+    <sup key={note.id} className={styles.noteRef}>
+      <a
+        href={`#${noteId(note)}`}
+        title={note.text.replaceAll('`', '')}
+        aria-label={`Note ${n}`}
+        aria-describedby={noteId(note)}
+      >
+        {n}
+      </a>
+    </sup>
+  ));
+}
+
+function Notes({ shown }) {
+  if (shown.length === 0) return null;
+  return (
+    <div className={styles.notes}>
+      <p id="sor-notes-title" className={styles.notesTitle}>
+        Notes on names
+      </p>
+      <ol aria-labelledby="sor-notes-title">
+        {shown.map(({ note }) => (
+          <li key={note.id} id={noteId(note)}>
+            <NoteText text={note.text} />
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function MatrixTable({ columns, groups, tally = false, noteRefs }) {
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table} style={{ '--sor-cols': columns.length }}>
@@ -94,6 +160,9 @@ function MatrixTable({ columns, groups, tally = false }) {
                 <tr key={row[0]} className={styles.dataRow}>
                   <th scope="row" className={styles.capCell}>
                     {row[0]}
+                    {noteRefs?.has(row[0]) && (
+                      <NoteRefs entries={noteRefs.get(row[0])} />
+                    )}
                   </th>
                   {columns.map(lib => (
                     <Cell key={lib.id} lib={lib} value={row[lib.idx]} />
@@ -266,6 +335,7 @@ function Explorer({ data }) {
     .filter(group => group.rows.length > 0);
   const total = data.reduce((n, group) => n + group.rows.length, 0);
   const shown = groups.reduce((n, group) => n + group.rows.length, 0);
+  const footnotes = numberNotes(groups);
 
   return (
     <>
@@ -380,7 +450,15 @@ function Explorer({ data }) {
           </button>
         </p>
       ) : (
-        <MatrixTable columns={columns} groups={groups} tally />
+        <>
+          <MatrixTable
+            columns={columns}
+            groups={groups}
+            tally
+            noteRefs={footnotes.byRow}
+          />
+          <Notes shown={footnotes.shown} />
+        </>
       )}
     </>
   );

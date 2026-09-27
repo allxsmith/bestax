@@ -25,12 +25,15 @@ How does bestax-bulma stack up against the other React component libraries? This
 
 ## How to Read It
 
-- **✓** is a dedicated component.
-- **◐** means the capability is there through a prop or by composing other components.
-- A muted dash means there's no first-party equivalent.
+- **✓** is a dedicated component. A documented sub-component counts, like Mantine's `Grid.Col` or bestax's `Navbar.Burger`.
+- **◐** means the capability is there another way: a prop or mode of another component, a documented helper or style prop, a documented hook, or a docs example that composes other components.
+- A muted dash means there's no first-party equivalent. Third-party packages a library builds on, like `clsx`, don't count, and neither do exports the library marks internal.
 - Rows are matched by purpose, not by name. bestax's `Badge`, Mantine's `Indicator`, and MUI's `Badge` all land in the same row.
-- Official companion packages count as first-party, like Mantine's `@mantine/*` and MUI's `@mui/x-*`.
-- shadcn/ui is a copy-paste registry rather than an npm dependency, so its column describes code you'd own in your project.
+- A small number beside a row points to a note under the table, mostly where a Bulma component's name means something different in other libraries.
+- Official companion packages count as first-party, like Mantine's `@mantine/*` and MUI's `@mui/x-*`. Some MUI X features are paid Pro or Premium, and a few MUI components live in `@mui/lab`, which stays in beta. The linked page says which.
+- A stylesheet counts as ◐ for the elements it deliberately styles, and a CSS reset counts when the library's own stylesheet ships one.
+- shadcn/ui is a copy-paste registry rather than an npm dependency, so its column describes code you'd own in your project. It follows the default Base UI version, and a few components differ on the Radix and React Aria versions. Chakra's CLI snippets count the same way.
+- react-bulma-components is built for Bulma 0.9, so its column reflects that version, including the tile layout Bulma v1 removed.
 
 ## How It Stays Current
 
