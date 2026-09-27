@@ -2919,20 +2919,50 @@
       "topLevelOnly": false
     },
     "image": {
-      "status": "todo",
+      "status": "mapped",
       "target": "Image",
-      "tag": null,
-      "as": null,
+      "tag": "div",
+      "as": ["div", "figure", "p"],
       "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
       "part": false,
-      "why": "bestax `Image` renders its own `<img>`",
-      "modifiers": {},
-      "omits": {},
+      "why": null,
+      "modifiers": {
+        "is-16x16": { "writes": [{ "prop": "size", "value": "16x16" }] },
+        "is-24x24": { "writes": [{ "prop": "size", "value": "24x24" }] },
+        "is-32x32": { "writes": [{ "prop": "size", "value": "32x32" }] },
+        "is-48x48": { "writes": [{ "prop": "size", "value": "48x48" }] },
+        "is-64x64": { "writes": [{ "prop": "size", "value": "64x64" }] },
+        "is-96x96": { "writes": [{ "prop": "size", "value": "96x96" }] },
+        "is-128x128": { "writes": [{ "prop": "size", "value": "128x128" }] },
+        "is-square": { "writes": [{ "prop": "size", "value": "square" }] }
+      },
+      "omits": {
+        "is-1by1": "`size` renders `has-ratio` beside it as well",
+        "is-5by4": "`size` renders `has-ratio` beside it as well",
+        "is-4by3": "`size` renders `has-ratio` beside it as well",
+        "is-3by2": "`size` renders `has-ratio` beside it as well",
+        "is-5by3": "`size` renders `has-ratio` beside it as well",
+        "is-16by9": "`size` renders `has-ratio` beside it as well",
+        "is-2by1": "`size` renders `has-ratio` beside it as well",
+        "is-3by1": "`size` renders `has-ratio` beside it as well",
+        "is-4by5": "`size` renders `has-ratio` beside it as well",
+        "is-3by4": "`size` renders `has-ratio` beside it as well",
+        "is-2by3": "`size` renders `has-ratio` beside it as well",
+        "is-3by5": "`size` renders `has-ratio` beside it as well",
+        "is-9by16": "`size` renders `has-ratio` beside it as well",
+        "is-1by2": "`size` renders `has-ratio` beside it as well",
+        "is-1by3": "`size` renders `has-ratio` beside it as well"
+      },
       "wrapsChildren": null,
       "folds": null,
-      "absorbs": null,
+      "absorbs": {
+        "tag": "img",
+        "attributesOn": "element",
+        "childProps": ["src", "alt"],
+        "modifiers": { "is-rounded": { "writes": [{ "prop": "isRounded" }] } }
+      },
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
@@ -5467,7 +5497,7 @@
       "match": "^(?:has-\\d+-cols(?:-.+)?|has-auto-count)$"
     },
     {
-      "why": "an `.image` modifier; `.image` stays as markup",
+      "why": "an `.image` modifier, which converts only on its own `.image`, and only where bestax has a prop for it",
       "match": "^(?:is-\\d+by\\d+|is-\\d+x\\d+|is-square|is-aspect-ratio-.+|has-ratio)$"
     },
     {

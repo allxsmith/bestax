@@ -83,6 +83,11 @@ export interface Absorbs {
    * carries none.
    */
   attributesOn: 'child' | 'element';
+  /**
+   * With the attributes on the element: the child's the component takes as
+   * props and writes back on the child.
+   */
+  childProps?: string[];
   /** The child's classes, as the component's props. */
   modifiers?: Record<string, Modifier>;
   /** A bare child attribute one of the element's modifiers writes. */
@@ -576,13 +581,7 @@ export function lookupClasses(
 /** What converting a component that renders the element inside it means. */
 function absorbsText(target: string, absorbs: Absorbs): string {
   const child = `<${absorbs.tag}>`;
-  if (absorbs.attributesOn === 'element') {
-    return (
-      ` It renders the ${child} inside it itself, bare: put that ${child}'s ` +
-      `children straight inside \`${target}\`, which converts only around a ` +
-      `${child} with no class or attribute.`
-    );
-  }
+  const aChild = `${/^[aeiou]/.test(absorbs.tag) ? 'an' : 'a'} ${child}`;
   const changes = [
     ...Object.entries(absorbs.modifiers ?? {}).map(
       ([token, modifier]) =>
@@ -597,11 +596,31 @@ function absorbsText(target: string, absorbs: Absorbs): string {
     changes.length > 1
       ? `${changes.slice(0, -1).join(', ')} and ${changes[changes.length - 1]}`
       : changes[0];
+  const on = list ? ` On the ${child}, ${list}.` : '';
+  if (absorbs.attributesOn === 'element') {
+    const taken = (absorbs.childProps ?? []).map(name => `\`${name}\``);
+    if (taken.length === 0) {
+      return (
+        ` It renders the ${child} inside it itself, bare: put that ${child}'s ` +
+        `children straight inside \`${target}\`, which converts only around ` +
+        `${aChild} with no class or attribute.`
+      );
+    }
+    const names =
+      taken.length > 1
+        ? `${taken.slice(0, -1).join(', ')} and ${taken[taken.length - 1]}`
+        : taken[0];
+    return (
+      ` It renders the ${child} inside it itself, from its own ${names} ` +
+      `props: write the ${child}'s ${names} on \`${target}\` in its place, ` +
+      `which converts only around ${aChild} with no other attribute.${on}`
+    );
+  }
   return (
     ` It renders the ${child} inside it itself, and puts the attributes it ` +
     `is given on that ${child}: write the ${child}'s attributes and children ` +
     `on \`${target}\` in its place, and nothing on this element but a \`key\`.` +
-    (list ? ` On the ${child}, ${list}.` : '')
+    on
   );
 }
 

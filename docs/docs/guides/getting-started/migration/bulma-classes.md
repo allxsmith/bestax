@@ -71,9 +71,9 @@ stock stylesheet.
   `section`, `hero` and its parts, `title`, `subtitle`, `box`, `content`, `block`,
   `notification`, `tag`, `tags`, `level` and its parts, `media` and its parts, `card` and its
   parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
-  `select`, `breadcrumb`, `menu` and its label and list, `delete`, `progress`, `skeleton-block`,
-  `footer` and `table` become their bestax components, with their modifier classes as props
-  (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
+  `select`, `breadcrumb`, `image`, `menu` and its label and list, `delete`, `progress`,
+  `skeleton-block`, `footer` and `table` become their bestax components, with their modifier
+  classes as props (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
   `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
@@ -82,8 +82,9 @@ stock stylesheet.
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
   of its own.
 - **An element a component renders inside itself** converts with it: a `.select` and its
-  `<select>` become one `SelectBase` with the `<select>`'s attributes, and a `.breadcrumb`
-  and its `<ul>` become one `Breadcrumb` around the same `<li>`s.
+  `<select>` become one `SelectBase` with the `<select>`'s attributes, a `.breadcrumb` and its
+  `<ul>` become one `Breadcrumb` around the same `<li>`s, and an `.image` and its `<img>` become
+  one `<Image size="64x64" src="…" alt="…" />`.
 - **Children a component renders itself** go: a `.skeleton-lines` holding bare, empty `<div>`s
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,

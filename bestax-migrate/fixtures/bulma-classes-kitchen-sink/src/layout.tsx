@@ -103,7 +103,11 @@ export function Layout() {
           </div>
         </nav>
         <div className="media">
-          <figure className="media-left">Avatar</figure>
+          <figure className="media-left">
+            <p className="image is-64x64">
+              <img src="/avatar.png" alt="Avatar" className="is-rounded" />
+            </p>
+          </figure>
           <div className="media-content">
             <div className="content is-medium">
               <p>Body copy</p>

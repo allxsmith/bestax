@@ -673,12 +673,17 @@ function absorb(
   }
 
   if (spec.attributesOn === 'element') {
-    const name = [...child.attributes.keys()][0];
+    // The ones the target takes as its own props move up with the child's
+    // other props, and it writes them back on the child.
+    const taken = spec.childProps ?? [];
+    const name = [...child.attributes.keys()].find(
+      found => !taken.includes(found)
+    );
     if (name !== undefined) {
       return refuse(
         'attr',
         name,
-        `${itself}, with no attributes, so its \`${name}\` would be lost; keep this element as markup`
+        `${itself}, with no attributes${taken.length > 0 ? ` but ${orList(taken)}` : ''}, so its \`${name}\` would be lost; keep this element as markup`
       );
     }
     return {
