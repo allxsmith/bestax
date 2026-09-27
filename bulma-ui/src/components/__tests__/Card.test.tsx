@@ -601,6 +601,30 @@ describe('Card Component', () => {
         expect(screen.getByTestId('item')).toHaveAttribute('type', 'submit');
       });
 
+      it.each(['reset', 'button'] as const)(
+        'preserves an explicit type="%s" on a button',
+        type => {
+          render(
+            <Card.FooterItem as="button" type={type} data-testid="item">
+              Reset
+            </Card.FooterItem>
+          );
+          expect(screen.getByTestId('item')).toHaveAttribute('type', type);
+        }
+      );
+
+      // `type` is typed as the anchor's MIME string, so a non-button value
+      // compiles here; HTML's invalid-value default for a button's `type` is
+      // submit, so forwarding it would submit an enclosing form after all.
+      it('falls back to type="button" for a non-button type value', () => {
+        render(
+          <Card.FooterItem as="button" type="text/html" data-testid="item">
+            Save
+          </Card.FooterItem>
+        );
+        expect(screen.getByTestId('item')).toHaveAttribute('type', 'button');
+      });
+
       it('withholds anchor-only attributes (other than type) from a button', () => {
         render(
           <Card.FooterItem

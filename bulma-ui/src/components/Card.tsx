@@ -686,6 +686,7 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   const forwarded = omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
 
   if (as === 'button') {
+    const forwardedType = (forwarded as { type?: string }).type;
     return (
       <button
         className={itemClasses}
@@ -693,12 +694,19 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
         // A footer item button must not submit an enclosing form by default —
         // `<button>` defaults to `type="submit"`, and a Save/Cancel action row
         // sitting in a form is the common case this `as` exists for.
+        //
+        // A MISSING `type` is not the only way that default arrives: `type` is
+        // typed here as the `<a>` MIME string (`STRIP_FROM_NON_ANCHOR` above
+        // says why it is not withheld), so `as="button" type="text/html"`
+        // compiles, and HTML's INVALID-value default for a button's `type` is
+        // submit too. So anything that is not one of the three native button
+        // types falls back to `button` rather than being forwarded.
         type={
-          (
-            forwarded as {
-              type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
-            }
-          ).type ?? 'button'
+          forwardedType === 'submit' ||
+          forwardedType === 'reset' ||
+          forwardedType === 'button'
+            ? forwardedType
+            : 'button'
         }
       >
         {children}
