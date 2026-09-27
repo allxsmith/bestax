@@ -164,7 +164,6 @@ export const HELPERLESS_TARGETS = new Set([
   'Navbar.Dropdown',
   'Navbar.DropdownMenu',
   'Navbar.Divider',
-  'Dropdown.Divider',
   'Panel.Heading',
   'Panel.Tabs',
   'Panel.Block',

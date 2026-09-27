@@ -1211,9 +1211,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     defaults: { role: 'navigation', 'aria-label': 'main navigation' },
     ownProps: ['textColor', 'color', 'bgColor', 'transparent', 'fixed'],
   },
-  // No background prop on these parts. Menu, Start and End spread `textColor`
-  // onto the element rather than reading it, and type `color` to six colors,
-  // so their text color stays a class.
+  // No background prop on these parts.
   'navbar-brand': {
     ...BASE,
     target: 'Navbar.Brand',
