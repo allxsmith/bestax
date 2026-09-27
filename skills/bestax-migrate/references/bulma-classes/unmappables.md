@@ -22,10 +22,11 @@ reaching the DOM node. Keep the element as markup.
 
 ### `tag:<Target>`
 
-bestax renders that component on a fixed tag, or a short list of them through `as` (see the
+The codemod converts that class on a fixed tag, or a short list of them through `as` (see the
 **Tags** column in [component-map.md](component-map.md)), and this element is on another one:
 `<div className="section">`, `<p className="notification">`. Changing the tag changes the
-markup, so decide whether you want it; if you do, change it and re-run.
+markup, so decide whether you want it; if you do, change it and re-run. If the component's
+own `as` takes the tag, writing it by hand keeps the markup instead.
 
 ### `attr:<prop>`
 

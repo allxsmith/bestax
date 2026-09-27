@@ -106,8 +106,8 @@ A couple of results look odd until you see why:
 - A `.card` converts when an element written directly inside it is, or becomes, one of its
   parts. `Card` puts anything else inside a `.card-content` of its own, so a card whose text
   sits straight inside it stays markup (`children:Card`). Bulma's own example card keeps its
-  `<p>` title and its `<a>` footer links as markup too, since bestax renders those parts on a
-  `<div>` and a `<span>`.
+  `<p>` title and its `<a>` footer links as markup too, since the codemod converts those parts
+  only on their default `<div>` and `<span>`.
 - A `.navbar` converts when it carries Bulma's `role="navigation"` and an `aria-label`, which
   `Navbar` writes too. Its burger and its dropdown's `.navbar-link` stay markup
   (`family:navbar-burger`, `family:navbar-link`), and a `.has-dropdown` item becomes a

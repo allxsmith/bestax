@@ -6,6 +6,11 @@ import {
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
+  type AnchorOnlyAttributes,
+  ANCHOR_ONLY_ATTRS,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
+import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
@@ -287,12 +292,71 @@ export interface CardFooterProps
 }
 
 /**
+ * The set withheld from a non-anchor `Card.FooterItem` (`span`/`button`): the
+ * derived anchor-only attributes, minus `type` (also valid on a `<button>` as
+ * `submit`/`button`/`reset`, so stripping it there would remove a working
+ * attribute — the same trade `DropdownItem`'s own `STRIP_FROM_NON_ANCHOR`
+ * accepts, in `./Dropdown.tsx`), plus `rel` (React declares it on
+ * `HTMLAttributes` for every element, so the derived set alone would not
+ * withhold it — the same addition `Level.Item` makes).
+ */
+const STRIP_FROM_NON_ANCHOR: Readonly<
+  Record<Exclude<keyof AnchorOnlyAttributes, 'type'> | 'rel', true>
+> = (() => {
+  const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
+  return { ...rest, rel: true };
+})();
+
+/**
+ * What `<button>` adds over the attributes every element has (`disabled`,
+ * `form`, `name`, `value` and the `form*` submit overrides), subtracted from
+ * React's types the way `AnchorOnlyAttributes` is, so it grows when React's
+ * does. Minus `type`, which `AnchorOnlyAttributes` already declares as the
+ * `<a>` MIME string: two heritage clauses declaring it differently do not
+ * compile, and the `<button>` branch reads it back off the forwarded props.
+ */
+type ButtonOnlyAttributes = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  keyof React.HTMLAttributes<HTMLButtonElement> | 'type'
+>;
+
+/**
+ * The set withheld from a non-button `Card.FooterItem` (`span`/`a`), keyed so
+ * it stops compiling until a button attribute React adds is named here.
+ */
+const STRIP_FROM_NON_BUTTON: Readonly<
+  Record<keyof ButtonOnlyAttributes, true>
+> = {
+  disabled: true,
+  form: true,
+  formAction: true,
+  formEncType: true,
+  formMethod: true,
+  formNoValidate: true,
+  formTarget: true,
+  name: true,
+  value: true,
+};
+
+/**
  * Props for the Card.FooterItem compound component.
+ *
+ * The anchor and button attributes arrive through `AnchorOnlyAttributes` and
+ * `ButtonOnlyAttributes` at every `as`, and each set is forwarded only to its
+ * own tag: `STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_BUTTON` above withhold
+ * them from the others at runtime, since narrowing the type per `as` is
+ * source-breaking (see `Level.Item`'s own note on #672).
  */
 export interface CardFooterItemProps
   extends
-    React.HTMLAttributes<HTMLSpanElement>,
+    AnchorOnlyAttributes,
+    ButtonOnlyAttributes,
+    React.HTMLAttributes<
+      HTMLSpanElement | HTMLAnchorElement | HTMLButtonElement
+    >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type to render (default: `span`). Bulma's own card markup uses `a`. */
+  as?: 'span' | 'a' | 'button';
   /** Bulma color modifier (text color helper). */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -310,8 +374,12 @@ export interface CardFooterItemProps
  */
 export interface CardHeaderTitleProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    React.HTMLAttributes<
+      HTMLDivElement | HTMLParagraphElement | HTMLHeadingElement
+    >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type to render (default: `div`). Bulma's own card markup uses `p`; a heading suits a title that should read as one. */
+  as?: 'div' | 'p' | 'h2' | 'h3' | 'h4';
   /** Bulma color modifier (text color helper). */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -409,6 +477,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
  * @returns {JSX.Element} The rendered card header title.
  */
 const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
+  as = 'div',
   className,
   children,
   centered,
@@ -422,8 +491,9 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const Tag = as;
   return (
-    <div
+    <Tag
       className={classNames(
         usePrefixedClassNames('card-header-title', {
           'is-centered': centered,
@@ -434,7 +504,7 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
       {...rest}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 
@@ -583,6 +653,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
  * @returns {JSX.Element} The rendered card footer item.
  */
 const CardFooterItem: React.FC<CardFooterItemProps> = ({
+  as = 'span',
   className,
   children,
   color,
@@ -595,14 +666,58 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const itemClasses = classNames(
+    usePrefixedClassNames('card-footer-item'),
+    bulmaHelperClasses,
+    className
+  );
+
+  // The anchor's own attributes reach an `<a>` and nothing else, and the button's a
+  // `<button>` — `STRIP_FROM_NON_ANCHOR` above names the anchor set and why `type`
+  // stays while `rel` is added, and `STRIP_FROM_NON_BUTTON` the button set.
+  if (as === 'a') {
+    return (
+      <a className={itemClasses} {...omitAttrs(rest, STRIP_FROM_NON_BUTTON)}>
+        {children}
+      </a>
+    );
+  }
+
+  const forwarded = omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
+
+  if (as === 'button') {
+    const forwardedType = (forwarded as { type?: string }).type;
+    return (
+      <button
+        className={itemClasses}
+        {...forwarded}
+        // A footer item button must not submit an enclosing form by default —
+        // `<button>` defaults to `type="submit"`, and a Save/Cancel action row
+        // sitting in a form is the common case this `as` exists for.
+        //
+        // A MISSING `type` is not the only way that default arrives: `type` is
+        // typed here as the `<a>` MIME string (`STRIP_FROM_NON_ANCHOR` above
+        // says why it is not withheld), so `as="button" type="text/html"`
+        // compiles, and HTML's INVALID-value default for a button's `type` is
+        // submit too. So anything that is not one of the three native button
+        // types falls back to `button` rather than being forwarded.
+        type={
+          forwardedType === 'submit' ||
+          forwardedType === 'reset' ||
+          forwardedType === 'button'
+            ? forwardedType
+            : 'button'
+        }
+      >
+        {children}
+      </button>
+    );
+  }
+
   return (
     <span
-      className={classNames(
-        usePrefixedClassNames('card-footer-item'),
-        bulmaHelperClasses,
-        className
-      )}
-      {...rest}
+      className={itemClasses}
+      {...omitAttrs(forwarded, STRIP_FROM_NON_BUTTON)}
     >
       {children}
     </span>

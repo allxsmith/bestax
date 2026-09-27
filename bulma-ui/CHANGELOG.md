@@ -1,3 +1,12 @@
+## [5.16.11](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.10...@allxsmith/bestax-bulma@5.16.11) (2026-09-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** apply textColor helper class on Navbar Menu, Start, End, and Burger ([#792](https://github.com/allxsmith/bestax/issues/792)) ([feb83c8](https://github.com/allxsmith/bestax/commit/feb83c8d6f180f8dd687a0731fc0c4058ef0409e))
+* **bulma-ui:** avoid empty class attribute on several components ([#793](https://github.com/allxsmith/bestax/issues/793)) ([7c5c316](https://github.com/allxsmith/bestax/commit/7c5c316469f5be2105e861a81ea12037fb56d5eb))
+* **bulma-ui:** merge className into Navbar.Divider instead of overwriting it ([#791](https://github.com/allxsmith/bestax/issues/791)) ([fcc0d51](https://github.com/allxsmith/bestax/commit/fcc0d51359c62161e83516877669989608d4e25b))
+
 ## [5.16.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.9...@allxsmith/bestax-bulma@5.16.10) (2026-09-27)
 
 
