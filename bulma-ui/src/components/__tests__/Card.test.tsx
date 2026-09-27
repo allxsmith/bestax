@@ -254,11 +254,12 @@ describe('Card Component', () => {
     expect(img).toHaveAttribute('alt', 'Custom Alt');
   });
 
-  test.each([undefined, null, false, ''])(
+  test.each([undefined, null, false, '', 0, []])(
     'renders no footer when footer is %p',
     footer => {
       const { container } = render(<Card footer={footer}>Test</Card>);
       expect(container.querySelector('.card-footer')).toBeNull();
+      expect(container.querySelector('.card')).toHaveTextContent(/^Test$/);
     }
   );
 

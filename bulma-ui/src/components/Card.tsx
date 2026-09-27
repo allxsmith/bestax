@@ -146,6 +146,9 @@ const CardComponent: React.FC<CardProps> = ({
     );
   };
 
+  // Any falsy footer (including `0`) and an empty array render no footer bar,
+  // rather than a stray `0` or an empty `.card-footer`.
+  const hasFooter = Array.isArray(footer) ? footer.length > 0 : Boolean(footer);
   return (
     <div
       className={cardClasses}
@@ -179,30 +182,24 @@ const CardComponent: React.FC<CardProps> = ({
         children !== '' &&
         hasCompoundComponents(children) &&
         children}
-      {footer && (
+      {hasFooter && (
         <footer className={prefixedClassNames(classPrefix, 'card-footer')}>
-          {Array.isArray(footer)
-            ? footer.map((item, idx) => (
-                <span
-                  className={prefixedClassNames(
-                    classPrefix,
-                    'card-footer-item'
-                  )}
-                  key={idx}
-                >
-                  {item}
-                </span>
-              ))
-            : footer && (
-                <span
-                  className={prefixedClassNames(
-                    classPrefix,
-                    'card-footer-item'
-                  )}
-                >
-                  {footer}
-                </span>
-              )}
+          {Array.isArray(footer) ? (
+            footer.map((item, idx) => (
+              <span
+                className={prefixedClassNames(classPrefix, 'card-footer-item')}
+                key={idx}
+              >
+                {item}
+              </span>
+            ))
+          ) : (
+            <span
+              className={prefixedClassNames(classPrefix, 'card-footer-item')}
+            >
+              {footer}
+            </span>
+          )}
         </footer>
       )}
     </div>

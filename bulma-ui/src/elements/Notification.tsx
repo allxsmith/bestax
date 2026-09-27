@@ -335,6 +335,12 @@ const NotificationItem: React.FC<{
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      // It appears after the page has rendered, so it announces itself the
+      // way a Toast does: urgently for danger and warning, politely otherwise.
+      role="alert"
+      aria-live={
+        color === 'danger' || color === 'warning' ? 'assertive' : 'polite'
+      }
       style={{ pointerEvents: 'auto' }}
     >
       {message}

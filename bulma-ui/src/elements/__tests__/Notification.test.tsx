@@ -172,6 +172,31 @@ describe('Notification Programmatic API', () => {
     });
   });
 
+  describe('announcements', () => {
+    it.each([
+      ['success', 'polite'],
+      ['info', 'polite'],
+      ['warning', 'assertive'],
+      ['danger', 'assertive'],
+    ] as const)('a %s notification is an alert, %s', (color, live) => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: `Msg ${color}`, color, duration: 0 });
+      });
+      const notif = screen.getByRole('alert');
+      expect(notif).toHaveTextContent(`Msg ${color}`);
+      expect(notif).toHaveAttribute('aria-live', live);
+    });
+
+    it('a notification with no color is polite', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: 'Plain', duration: 0 });
+      });
+      expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'polite');
+    });
+  });
+
   describe('notification.success', () => {
     it('creates a success notification', () => {
       render(<NotificationContainer />);
