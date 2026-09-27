@@ -100,7 +100,7 @@ Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign`
 
 ### Stacked Blocks (Demonstrating Vertical Spacing)
 
-This example shows how stacking multiple `Block` components creates consistent vertical spacing between each section. The inner `Notification` components have `mb={0}` to highlight the spacing provided by `Block`.
+This example shows how stacking multiple `Block` components creates consistent vertical spacing between each section. The inner `Notification` components have `mb="0"` to highlight the spacing provided by `Block`.
 
 :::note
 The notification blocks have zero margin bottom assigned to illustrate the spacing the blocks provide.
@@ -109,22 +109,22 @@ The notification blocks have zero margin bottom assigned to illustrate the spaci
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Notification color="primary" mb={0}>
+    <Notification color="primary" mb="0">
       First Block
     </Notification>
   </Block>
   <Block>
-    <Notification color="info" mb={0}>
+    <Notification color="info" mb="0">
       Second Block
     </Notification>
   </Block>
   <Block>
-    <Notification color="success" mb={0}>
+    <Notification color="success" mb="0">
       Third Block
     </Notification>
   </Block>
   <Block>
-    <Notification color="warning" mb={0}>
+    <Notification color="warning" mb="0">
       Fourth Block
     </Notification>
   </Block>
