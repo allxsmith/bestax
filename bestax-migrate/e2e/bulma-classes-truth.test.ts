@@ -427,6 +427,27 @@ describe.each(writing)(
         }
       }
     });
+
+    it('names only tags its target reaches, and writes nothing on the rest', () => {
+      for (const [name, rule] of Object.entries(entry.writesAttr!)) {
+        // A tag outside `as` would get a `defaults` TODO for a tag it can't
+        // render, instead of the `tag` one.
+        for (const tag of rule.on) expect(tagsFor(entry)).toContain(tag);
+        // Elsewhere the attribute reaches the DOM as written, whatever it says.
+        for (const tag of tagsFor(entry).filter(t => !rule.on.includes(t))) {
+          const given = { ...defaultsFor(entry, tag), [name]: 'text/html' };
+          const both = renderBoth(factsFor(tag, [root], given), given);
+          expect({ tag, converts: both !== null }).toEqual({
+            tag,
+            converts: true,
+          });
+          expect({ tag, html: both!.converted }).toEqual({
+            tag,
+            html: both!.raw,
+          });
+        }
+      }
+    });
   }
 );
 

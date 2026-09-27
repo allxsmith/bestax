@@ -162,6 +162,13 @@ describe('plan', () => {
       ).todos;
       expect(footer.rule).toBe('drops:Card.FooterItem');
       expect(footer.message).toContain('remove it, then re-run');
+      // A `name` on an <a> still names a fragment target, so it is not inert.
+      const [named] = plan(
+        facts('a', 'card-footer-item', { name: 'save' })
+      ).todos;
+      expect(named.rule).toBe('drops:Card.FooterItem');
+      expect(named.message).toContain('keep this element as markup');
+      expect(named.message).not.toContain('remove it');
     });
 
     it('refuses the only child of a component', () => {

@@ -82,6 +82,9 @@ on an `<a>`. Remove the attribute, then re-run.
 (`<a className="button" disabled>`), but Bulma greys out a disabled `.button` on any tag, so
 dropping it would change how the element looks. Keep that element as markup.
 
+So is `name` on an `<a>`, which `Card.FooterItem` drops: browsers still scroll a `#fragment` link
+to it. Keep that element as markup, or move the target to an `id` (which it keeps), then re-run.
+
 ### `children:<Target>`
 
 The component's props type requires children, and the element has none (`Buttons`). An empty
