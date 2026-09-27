@@ -836,6 +836,51 @@ describe('Dropdown', () => {
 });
 
 describe('Dropdown keyboard navigation', () => {
+  test('a role of undefined falls back to menuitem and stays reachable', () => {
+    const role = undefined as string | undefined;
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem role={role}>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('First')).toHaveAttribute('role', 'menuitem');
+    fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
+      key: 'ArrowDown',
+    });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem role="menuitemcheckbox" aria-checked="true">
+          Unread
+        </DropdownItem>
+        <DropdownItem role="menuitemradio" aria-checked="false">
+          Newest
+        </DropdownItem>
+        <DropdownItem>All</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('Unread')).toHaveAttribute(
+      'role',
+      'menuitemcheckbox'
+    );
+    expect(screen.getByText('Newest')).toHaveAttribute('role', 'menuitemradio');
+    fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
+      key: 'ArrowDown',
+    });
+    expect(screen.getByText('Unread')).toHaveFocus();
+    const menu = screen.getByRole('menu');
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('Newest')).toHaveFocus();
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('All')).toHaveFocus();
+    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    expect(screen.getByText('Unread')).toHaveFocus();
+  });
+
   test('ArrowDown on trigger opens the menu and focuses the first item', () => {
     render(
       <Dropdown label="Menu">

@@ -186,7 +186,11 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       /* istanbul ignore next: dropdownRef.current is never null once mounted */
       if (!dropdownRef.current) return [];
       return Array.from(
-        dropdownRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
+        // Every menu-item role, so an item a caller gives `menuitemcheckbox`
+        // or `menuitemradio` (a filter or sort menu) stays reachable.
+        dropdownRef.current.querySelectorAll<HTMLElement>(
+          '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]'
+        )
       ).filter(
         el =>
           !el.hasAttribute('disabled') &&
@@ -494,9 +498,12 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
         className
       )}
       tabIndex={0}
-      role="menuitem"
       data-testid="dropdown-item"
       {...forwarded}
+      // After `forwarded` for the same reason as `type` below: a spread
+      // carrying `role: undefined` would otherwise erase the default, and an
+      // item with no role drops out of the menu and its arrow-key order.
+      role={(forwarded as { role?: React.AriaRole }).role ?? 'menuitem'}
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
       // Dropdown's own trigger sets it. `Avatar` and `Menu.Item` do NOT get this
