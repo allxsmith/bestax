@@ -184,7 +184,7 @@ Each helper takes the message first and any other options second.
 - **Delete button:** Includes `aria-label="Close notification"` for screen readers.
 - **Keyboard:** The delete button is focusable and can be activated by keyboard.
 - **Content:** Use semantic HTML within the notification for best accessibility.
-- **Announcements:** A notification shown through `notification` renders with `role="alert"`, announced assertively for `danger` and `warning` and politely otherwise, the way a toast is.
+- **Announcements:** A notification shown through `notification` announces its message: as an alert for `danger` and `warning`, and as a status otherwise.
 
 :::tip
 Always provide clear, actionable text inside notifications.

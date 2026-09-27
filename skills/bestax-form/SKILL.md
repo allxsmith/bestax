@@ -220,7 +220,7 @@ miss because Bulma has something that looks close:
 - **Confirmation** — `Toast`, not `Notification`/`Message`. Mount
   `<ToastContainer position="top-right" />` once at the app root, then call
   `toast.success('Demo booked')` from the submit handler (`.danger` for a failed submit). It
-  self-dismisses; a `Notification` is a static element you place and tear down yourself.
+  self-dismisses.
 - **"Are you sure?"** — `Dialog`, not `Modal`. Mount `<DialogContainer />` at the root, then
   `if (await dialog.confirm({ title: 'Delete this key?', message: '…', type: 'danger' })) …`.
   It resolves to a boolean, so a destructive action stays one `if` rather than a state machine.
