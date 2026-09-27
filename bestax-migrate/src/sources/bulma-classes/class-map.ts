@@ -604,7 +604,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     target: 'Card.Header.Title',
     tag: 'div',
     modifiers: flags({ 'is-centered': 'centered' }),
-    ownProps: ['color', 'bgColor', 'textColor', 'centered'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor', 'centered'],
   },
   'card-header-icon': {
     ...BASE,
@@ -635,7 +635,21 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Card.FooterItem',
     tag: 'span',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    // The anchor attributes but `type`, and `rel`, reach only an <a>
+    // (`STRIP_FROM_NON_ANCHOR` in bulma-ui's Card.tsx).
+    dropsAttr: Object.fromEntries(
+      [
+        'href',
+        'target',
+        'download',
+        'hrefLang',
+        'ping',
+        'referrerPolicy',
+        'media',
+        'rel',
+      ].map(name => [name, { except: ['a'] }])
+    ),
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   columns: {
     ...BASE,

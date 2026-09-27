@@ -219,6 +219,7 @@ describe('the href and `as` tables match what the library accepts', () => {
     // the comment on the table, which cites the line in bulma-ui.
     expect(HREF_TABLE).toEqual({
       Button: 'button',
+      'Card.FooterItem': 'span',
       'Dropdown.Item': 'a',
       'Level.Item': 'div',
       'Menu.Item': 'a',
