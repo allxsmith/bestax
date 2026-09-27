@@ -51,6 +51,11 @@ export interface RootRecord {
   wrapsChildren: Wraps | null;
   /** The component takes no helper props, so helper classes stay classes. */
   noHelpers: boolean;
+  /**
+   * The component renders its class only when no other of itself is around
+   * it (`Menu.List` drops `.menu-list` when nested).
+   */
+  topLevelOnly: boolean;
   /** The component drops its own class for a `className` it is given. */
   ownClassOnly: boolean;
   /** For a `fold` root: the props that render it on the target inside. */
@@ -134,6 +139,8 @@ export type Element =
       writes?: PropWrite[];
       /** Renders the element's children itself, from a count. */
       counts?: Counts;
+      /** Renders this class only when no other of itself is around it. */
+      topLevel?: string;
     }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
@@ -371,6 +378,7 @@ export function lookupClasses(
       omits: {},
       wrapsChildren: null,
       noHelpers: false,
+      topLevelOnly: false,
       ownClassOnly: false,
       folds: null,
       absorbs: null,
@@ -565,6 +573,7 @@ export function lookupClasses(
     absorbs: entry.absorbs ?? undefined,
     writes: entry.writes ?? undefined,
     counts: entry.countsChildren ?? undefined,
+    topLevel: entry.topLevelOnly && root ? root : undefined,
   };
   if (!tag) {
     return result({
@@ -659,6 +668,12 @@ export function renderLookup(lookup: Lookup): string {
               `bare, empty <${counts.tag}>s: write their count as ` +
               `\`${counts.prop}={N}\` and drop them. The codemod does that ` +
               `when they're all the element holds.`
+            : '') +
+          (element.topLevel
+            ? ` It renders \`.${element.topLevel}\` only when no other ` +
+              `\`${element.target}\` is around it, so one inside another ` +
+              `\`.${element.topLevel}\`, or around a \`${element.target}\`, ` +
+              `stays markup.`
             : '')
       );
       break;
