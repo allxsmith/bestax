@@ -117,6 +117,7 @@ function renderBoth(
   );
   const children = VOID.has(facts.tag) ? undefined : 'x';
   const sole = facts.soleChild;
+  const soleChildren = sole && !VOID.has(sole.tag) ? 'x' : undefined;
   const soleAttributes = Object.fromEntries(sole?.attributes ?? []) as Record<
     string,
     string | true
@@ -139,7 +140,7 @@ function renderBoth(
                 : {}),
               ...soleAttributes,
             },
-            'x'
+            soleChildren
           )
         : child
           ? child.raw
@@ -176,7 +177,13 @@ function renderBoth(
         ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
         : {}),
     },
-    counted ? undefined : sole ? 'x' : child ? child.converted : children
+    counted
+      ? undefined
+      : sole
+        ? soleChildren
+        : child
+          ? child.converted
+          : children
   );
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
 }
@@ -412,6 +419,18 @@ describe.each(absorbing)(
       const all = Object.keys(spec.modifiers ?? {});
       same(around([], all.length > 0 ? all : undefined, {}), 'all of them');
     });
+
+    if (spec.childProps) {
+      it("renders the same with the child's props on the component", () => {
+        const given = Object.fromEntries(
+          spec.childProps!.map(name => [name, `${name}-value`])
+        );
+        for (const [name, value] of Object.entries(given)) {
+          same(around([], undefined, { [name]: value }), name);
+        }
+        same(around([], undefined, given), 'all of them');
+      });
+    }
 
     if (spec.attributesOn === 'child') {
       it("renders the same with the child's attributes on the component", () => {

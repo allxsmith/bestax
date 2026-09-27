@@ -101,6 +101,8 @@ renders the same `<h2>`.
 | the `<select>` inside `.select`                                              | `is-hovered`, `is-focused`                                                                                                                       | `isHovered`, `isFocused`                                                                          |
 | `.hero` → `Hero`                                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark`                       | `color`                                                                                           |
 | `.hero` → `Hero`                                                             | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                                                | `size`                                                                                            |
+| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size` (a ratio such as `is-4by3` stays a class, since `size` would add `has-ratio`)              |
+| the `<img>` inside `.image`                                                  | `is-rounded`                                                                                                                                     | `isRounded`                                                                                       |
 | `.level` → `Level`                                                           | `is-mobile`                                                                                                                                      | `isMobile`                                                                                        |
 | `.navbar` → `Navbar`                                                         | the ten `.hero` colors                                                                                                                           | `color`                                                                                           |
 | `.navbar` → `Navbar`                                                         | `is-fixed-top`, `is-fixed-bottom`                                                                                                                | `fixed` (`top`, `bottom`)                                                                         |
@@ -186,6 +188,6 @@ Some classes stay put because of how bestax renders them:
 ## Classes that stay classes
 
 Color shades (`has-text-primary-65`), the `-touch` and `-only` breakpoints of text size and
-alignment, Grid and `.image` modifiers, and the Bulma helpers with no bestax prop
-(`is-display-*`, `is-overflow-*`, `is-position-*`, `is-float-*`, `has-radius-*`, …) stay in
-`className`. They render exactly as before.
+alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
+Bulma helpers with no bestax prop (`is-display-*`, `is-overflow-*`, `is-position-*`, `is-float-*`,
+`has-radius-*`, …) stay in `className`. They render exactly as before.
