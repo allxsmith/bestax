@@ -511,6 +511,199 @@ describe('Card Component', () => {
       expect(screen.getByText('Footer item')).toBeInTheDocument();
     });
 
+    describe('Card.FooterItem `as` prop', () => {
+      it('renders a span by default', () => {
+        render(<Card.FooterItem data-testid="item">Item</Card.FooterItem>);
+        expect(screen.getByTestId('item').tagName).toBe('SPAN');
+      });
+
+      it('renders as <a> and forwards anchor-only attributes', () => {
+        render(
+          <Card.FooterItem
+            as="a"
+            href="/save"
+            target="_blank"
+            rel="noopener"
+            download="file.pdf"
+            hrefLang="en"
+            ping="/p"
+            referrerPolicy="no-referrer"
+            media="print"
+            data-testid="item"
+          >
+            Save
+          </Card.FooterItem>
+        );
+        const anchor = screen.getByTestId('item');
+        expect(anchor.tagName).toBe('A');
+        expect(anchor).toHaveClass('card-footer-item');
+        expect(anchor).toHaveAttribute('href', '/save');
+        expect(anchor).toHaveAttribute('target', '_blank');
+        expect(anchor).toHaveAttribute('rel', 'noopener');
+        expect(anchor).toHaveAttribute('download', 'file.pdf');
+        expect(anchor).toHaveAttribute('hreflang', 'en');
+        expect(anchor).toHaveAttribute('ping', '/p');
+        expect(anchor).toHaveAttribute('referrerpolicy', 'no-referrer');
+        expect(anchor).toHaveAttribute('media', 'print');
+      });
+
+      it('withholds anchor-only attributes from a non-anchor tag', () => {
+        render(
+          <Card.FooterItem
+            as="span"
+            href="/x"
+            target="_blank"
+            rel="noopener"
+            download="file.pdf"
+            hrefLang="en"
+            ping="/p"
+            referrerPolicy="no-referrer"
+            media="print"
+            data-testid="item"
+          >
+            Text
+          </Card.FooterItem>
+        );
+        const item = screen.getByTestId('item');
+        expect(item.tagName).toBe('SPAN');
+        for (const attr of [
+          'href',
+          'target',
+          'rel',
+          'download',
+          'hreflang',
+          'ping',
+          'referrerpolicy',
+          'media',
+        ]) {
+          expect(item).not.toHaveAttribute(attr);
+        }
+      });
+
+      it('renders as <button> and defaults type to "button"', () => {
+        render(
+          <Card.FooterItem as="button" data-testid="item">
+            Save
+          </Card.FooterItem>
+        );
+        const button = screen.getByTestId('item');
+        expect(button.tagName).toBe('BUTTON');
+        expect(button).toHaveClass('card-footer-item');
+        expect(button).toHaveAttribute('type', 'button');
+      });
+
+      it('preserves an explicit type on a button', () => {
+        render(
+          <Card.FooterItem as="button" type="submit" data-testid="item">
+            Submit
+          </Card.FooterItem>
+        );
+        expect(screen.getByTestId('item')).toHaveAttribute('type', 'submit');
+      });
+
+      it.each(['reset', 'button'] as const)(
+        'preserves an explicit type="%s" on a button',
+        type => {
+          render(
+            <Card.FooterItem as="button" type={type} data-testid="item">
+              Reset
+            </Card.FooterItem>
+          );
+          expect(screen.getByTestId('item')).toHaveAttribute('type', type);
+        }
+      );
+
+      // `type` is typed as the anchor's MIME string, so a non-button value
+      // compiles here; HTML's invalid-value default for a button's `type` is
+      // submit, so forwarding it would submit an enclosing form after all.
+      it('falls back to type="button" for a non-button type value', () => {
+        render(
+          <Card.FooterItem as="button" type="text/html" data-testid="item">
+            Save
+          </Card.FooterItem>
+        );
+        expect(screen.getByTestId('item')).toHaveAttribute('type', 'button');
+      });
+
+      it('withholds anchor-only attributes (other than type) from a button', () => {
+        render(
+          <Card.FooterItem
+            as="button"
+            href="/x"
+            target="_blank"
+            rel="noopener"
+            data-testid="item"
+          >
+            Save
+          </Card.FooterItem>
+        );
+        const button = screen.getByTestId('item');
+        expect(button.tagName).toBe('BUTTON');
+        expect(button).not.toHaveAttribute('href');
+        expect(button).not.toHaveAttribute('target');
+        expect(button).not.toHaveAttribute('rel');
+      });
+
+      // `type="submit"` because React warns about a `formAction` on a button of
+      // any other type, and this one defaults to `type="button"`.
+      const buttonOnly = {
+        disabled: true,
+        form: 'f',
+        formAction: '/act',
+        formEncType: 'text/plain',
+        formMethod: 'post',
+        formNoValidate: true,
+        formTarget: '_self',
+        name: 'n',
+        value: 'v',
+      } as const;
+      const buttonOnlyDom = [
+        'disabled',
+        'form',
+        'formaction',
+        'formenctype',
+        'formmethod',
+        'formnovalidate',
+        'formtarget',
+        'name',
+        'value',
+      ];
+
+      it('forwards button-only attributes to a button', () => {
+        render(
+          <Card.FooterItem
+            as="button"
+            type="submit"
+            {...buttonOnly}
+            data-testid="item"
+          >
+            Save
+          </Card.FooterItem>
+        );
+        const button = screen.getByTestId('item');
+        expect(button).toBeDisabled();
+        for (const attr of buttonOnlyDom) {
+          expect(button).toHaveAttribute(attr);
+        }
+      });
+
+      it.each(['a', 'span'] as const)(
+        'withholds button-only attributes from a %s',
+        as => {
+          render(
+            <Card.FooterItem as={as} {...buttonOnly} data-testid="item">
+              Save
+            </Card.FooterItem>
+          );
+          const item = screen.getByTestId('item');
+          expect(item.tagName).toBe(as.toUpperCase());
+          for (const attr of buttonOnlyDom) {
+            expect(item).not.toHaveAttribute(attr);
+          }
+        }
+      );
+    });
+
     test('Card.Header.Title renders with correct classes', () => {
       render(
         <Card.Header.Title
@@ -536,6 +729,29 @@ describe('Card Component', () => {
       );
       const headerTitle = screen.getByTestId('header-title');
       expect(headerTitle).toHaveClass('card-header-title', 'is-centered');
+    });
+
+    describe('Card.Header.Title `as` prop', () => {
+      it('renders a div by default', () => {
+        render(
+          <Card.Header.Title data-testid="title">Title</Card.Header.Title>
+        );
+        expect(screen.getByTestId('title').tagName).toBe('DIV');
+      });
+
+      it.each(['p', 'h2', 'h3', 'h4'] as const)(
+        'renders as <%s> when requested',
+        tag => {
+          render(
+            <Card.Header.Title as={tag} data-testid="title">
+              Title
+            </Card.Header.Title>
+          );
+          const title = screen.getByTestId('title');
+          expect(title.tagName).toBe(tag.toUpperCase());
+          expect(title).toHaveClass('card-header-title');
+        }
+      );
     });
 
     test('Card.Header.Icon renders with correct classes', () => {

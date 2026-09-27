@@ -282,3 +282,10 @@ subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `
 | `footer`                        | `ReactNode \| ReactNode[]`    |
 | `hasShadow`                     | `boolean` (default `true`)    |
 | `headerCentered` / `headerIcon` | `boolean` / `ReactNode`       |
+
+`Card.Header.Title` and `Card.FooterItem` both take an `as` prop for Bulma's own card markup —
+`Card.Header.Title` renders `div` by default (`as="p"` or a heading `h2`-`h4` also work), and
+`Card.FooterItem` renders `span` by default (`as="a"` or `as="button"` also work). For a footer
+action, prefer `<Card.FooterItem as="a" href="...">Save</Card.FooterItem>` over nesting a link
+inside the default `span` — Bulma puts the padding and flex centering on `.card-footer-item`
+itself, so nesting a link only makes the text clickable instead of the whole cell.
