@@ -472,7 +472,18 @@ jobs:
                line that this pass settled threads and reviewed no
                commits. Then stop.
 
-            1. Read the diff (`gh pr diff`) and the changed files in full.
+            TIME BUDGET: this job's runner has been shut down 15 to 20
+            minutes into a session (#800), and a killed run posts nothing,
+            inline comments included. You can't read the clock, so budget
+            in steps: read changed files one at a time as you need them,
+            run the test files that cover the change rather than whole
+            packages, and submit the step 8 summary by about your 30th
+            tool call. Whatever you didn't reach goes under Residual risk
+            as not checked. A shorter review that posts beats a thorough
+            one that doesn't.
+
+            1. Read the diff (`gh pr diff`), then the changed files it
+               points you to.
             2. EVIDENCE PHASE — chase the PR's claims to their sources
                before judging the code. Read the PR body and every linked
                issue (`Fixes #N` / `Refs #N`, via
@@ -481,9 +492,9 @@ jobs:
                quotes, workflow run/job logs
                (`gh api repos/${{ github.repository }}/actions/jobs/<id>/logs`)
                — and confirm the failure shape is real. Then verify the fix
-               against that evidence EMPIRICALLY: run the relevant tests
-               (`pnpm --filter <pkg> run test`), exercise the changed logic
-               against the real failing inputs. Reading the diff is not
+               against that evidence EMPIRICALLY: run the relevant test
+               files (`pnpm --filter <pkg> run test -- <file>`), exercise
+               the changed logic against the real failing inputs. Reading the diff is not
                verification.
             3. RESIDUAL-RISK HUNT — for the failure class this PR
                addresses, enumerate the ways it could still occur in the
