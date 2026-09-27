@@ -273,10 +273,27 @@ describe('Navbar.Item', () => {
 });
 
 describe('Navbar.Burger', () => {
-  it('renders burger with three spans', () => {
+  it('renders the four hidden spans Bulma v1 positions', () => {
     render(<Navbar.Burger data-testid="burger" />);
-    const burger = screen.getByTestId('burger');
-    expect(burger.querySelectorAll('span')).toHaveLength(3);
+    const spans = screen.getByTestId('burger').querySelectorAll('span');
+    expect(spans).toHaveLength(4);
+    spans.forEach(span => expect(span).toHaveAttribute('aria-hidden', 'true'));
+  });
+
+  it('renders children after the four bar spans the mixin counts', () => {
+    render(
+      <Navbar.Burger data-testid="burger">
+        <em>extra</em>
+      </Navbar.Burger>
+    );
+    const kids = Array.from(screen.getByTestId('burger').children);
+    expect(kids.slice(0, 4).map(el => el.tagName)).toEqual([
+      'SPAN',
+      'SPAN',
+      'SPAN',
+      'SPAN',
+    ]);
+    expect(kids[4]).toHaveTextContent('extra');
   });
 
   it('applies is-active when active', () => {
