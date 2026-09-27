@@ -66,6 +66,12 @@ export interface Absorbs {
    * stay, and the child may carry none.
    */
   readonly attributesOn: 'child' | 'element';
+  /**
+   * With the attributes on the element: the child's that the target takes as
+   * props of its own and writes back on the child (`Image`'s `src` and `alt`).
+   * Any other child attribute refuses.
+   */
+  readonly childProps?: readonly string[];
   /** The child's classes, as the target's props; any other class refuses. */
   readonly modifiers?: Readonly<Record<string, Modifier>>;
   /**
@@ -1502,7 +1508,67 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'IconText',
     'bestax `IconText` pairs with `Icon`, which renders its own `<i>`'
   ),
-  image: todo('Image', 'bestax `Image` renders its own `<img>`'),
+  // `Image` renders `.image` and the `<img>` inside it together, from `src`
+  // and `alt`. A ratio stays a class: as `size`, it adds `has-ratio` too.
+  image: {
+    ...BASE,
+    target: 'Image',
+    tag: 'div',
+    as: ['div', 'figure', 'p'],
+    modifiers: tokens(
+      'is-',
+      [
+        '16x16',
+        '24x24',
+        '32x32',
+        '48x48',
+        '64x64',
+        '96x96',
+        '128x128',
+        'square',
+      ],
+      'size'
+    ),
+    omits: Object.fromEntries(
+      [
+        '1by1',
+        '5by4',
+        '4by3',
+        '3by2',
+        '5by3',
+        '16by9',
+        '2by1',
+        '3by1',
+        '4by5',
+        '3by4',
+        '2by3',
+        '3by5',
+        '9by16',
+        '1by2',
+        '1by3',
+      ].map(ratio => [
+        `is-${ratio}`,
+        '`size` renders `has-ratio` beside it as well',
+      ])
+    ),
+    absorbs: {
+      tag: 'img',
+      attributesOn: 'element',
+      childProps: ['src', 'alt'],
+      modifiers: flags({ 'is-rounded': 'isRounded' }),
+    },
+    ownProps: [
+      'as',
+      'textColor',
+      'color',
+      'bgColor',
+      'size',
+      'isRounded',
+      'isRetina',
+      'src',
+      'alt',
+    ],
+  },
   menu: todo(
     'Menu',
     'bestax `Menu.Item` renders the `<li>` and the `<a>` together'
@@ -1968,7 +2034,7 @@ export const PASSTHROUGH: ReadonlyArray<{
     match: /^(?:has-\d+-cols(?:-.+)?|has-auto-count)$/,
   },
   {
-    why: 'an `.image` modifier; `.image` stays as markup',
+    why: 'an `.image` modifier, which converts only on its own `.image`, and only where bestax has a prop for it',
     match:
       /^(?:is-\d+by\d+|is-\d+x\d+|is-square|is-aspect-ratio-.+|has-ratio)$/,
   },
