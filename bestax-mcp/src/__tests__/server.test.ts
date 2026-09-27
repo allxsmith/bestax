@@ -731,7 +731,9 @@ describe('lookup_bulma_classes', () => {
       "It renders the <img> inside it itself, from its own `src` and `alt` props: write the <img>'s `src` and `alt` on `Image` in its place, which converts only around an <img> with no other attribute. On the <img>, `is-rounded` becomes `isRounded`."
     );
     expect(image).toContain('| `is-64x64` | `size="64x64"` |');
-    expect(image).toContain('| `is-4by3` | stays in `className` |');
+    expect(image).toContain(
+      '| `is-4by3` | stays in `className` | `size` renders `has-ratio` beside it as well |'
+    );
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 

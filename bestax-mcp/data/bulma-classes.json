@@ -2938,7 +2938,23 @@
         "is-128x128": { "writes": [{ "prop": "size", "value": "128x128" }] },
         "is-square": { "writes": [{ "prop": "size", "value": "square" }] }
       },
-      "omits": {},
+      "omits": {
+        "is-1by1": "`size` renders `has-ratio` beside it as well",
+        "is-5by4": "`size` renders `has-ratio` beside it as well",
+        "is-4by3": "`size` renders `has-ratio` beside it as well",
+        "is-3by2": "`size` renders `has-ratio` beside it as well",
+        "is-5by3": "`size` renders `has-ratio` beside it as well",
+        "is-16by9": "`size` renders `has-ratio` beside it as well",
+        "is-2by1": "`size` renders `has-ratio` beside it as well",
+        "is-3by1": "`size` renders `has-ratio` beside it as well",
+        "is-4by5": "`size` renders `has-ratio` beside it as well",
+        "is-3by4": "`size` renders `has-ratio` beside it as well",
+        "is-2by3": "`size` renders `has-ratio` beside it as well",
+        "is-3by5": "`size` renders `has-ratio` beside it as well",
+        "is-9by16": "`size` renders `has-ratio` beside it as well",
+        "is-1by2": "`size` renders `has-ratio` beside it as well",
+        "is-1by3": "`size` renders `has-ratio` beside it as well"
+      },
       "wrapsChildren": null,
       "folds": null,
       "absorbs": {
