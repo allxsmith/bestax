@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import {
   Notification,
   NotificationProps,
@@ -174,26 +174,39 @@ describe('Notification Programmatic API', () => {
 
   describe('announcements', () => {
     it.each([
-      ['success', 'polite'],
-      ['info', 'polite'],
-      ['warning', 'assertive'],
-      ['danger', 'assertive'],
-    ] as const)('a %s notification is an alert, %s', (color, live) => {
+      ['success', 'status', 'polite'],
+      ['info', 'status', 'polite'],
+      ['warning', 'alert', 'assertive'],
+      ['danger', 'alert', 'assertive'],
+    ] as const)('a %s notification announces as %s', (color, role, live) => {
       render(<NotificationContainer />);
       act(() => {
         notification.show({ message: `Msg ${color}`, color, duration: 0 });
       });
-      const notif = screen.getByRole('alert');
-      expect(notif).toHaveTextContent(`Msg ${color}`);
-      expect(notif).toHaveAttribute('aria-live', live);
+      const region = screen.getByRole(role);
+      expect(region).toHaveTextContent(`Msg ${color}`);
+      expect(region).toHaveAttribute('aria-live', live);
     });
 
-    it('a notification with no color is polite', () => {
+    it('a notification with no color announces as a status', () => {
       render(<NotificationContainer />);
       act(() => {
         notification.show({ message: 'Plain', duration: 0 });
       });
-      expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'polite');
+      expect(screen.getByRole('status')).toHaveTextContent('Plain');
+    });
+
+    it('announces only the message, not the close button', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.danger('Something went wrong', { duration: 0 });
+      });
+      const region = screen.getByRole('alert');
+      expect(region).toHaveTextContent(/^Something went wrong$/);
+      expect(within(region).queryByRole('button')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Close notification' })
+      ).toBeInTheDocument();
     });
   });
 

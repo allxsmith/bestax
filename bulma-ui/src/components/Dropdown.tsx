@@ -18,7 +18,8 @@ import {
 /**
  * Checks if code is running in a browser environment.
  * @deprecated Dropdown's internal SSR guard, exported by accident; it will
- * be removed in the next major. Check `typeof window !== 'undefined'` instead.
+ * be removed in the next major. Check `typeof window !== 'undefined' &&
+ * typeof document !== 'undefined'` instead.
  * @param win - Window object.
  * @param doc - Document object.
  * @returns {boolean} True if in browser, false otherwise.

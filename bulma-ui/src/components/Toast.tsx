@@ -38,7 +38,11 @@ export interface ToastProps
   type?: ToastType;
   /** Color variant — colors the **action button** text. */
   actionType?: ToastType;
-  /** Position on the screen. Default: 'top-right'. */
+  /**
+   * Position on the screen. Default: 'top-right'. On a standalone `<Toast>`
+   * this places it; through `toast.show()` it is currently ignored, because
+   * `ToastContainer`'s own `position` places every toast it shows.
+   */
   position?: ToastPosition;
   /** Duration in ms before auto-close. `0` disables auto-close. */
   duration?: number;

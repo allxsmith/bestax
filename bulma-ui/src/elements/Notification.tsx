@@ -306,6 +306,7 @@ const NotificationItem: React.FC<{
   } = instance.options;
 
   const [isPaused, setIsPaused] = useState(false);
+  const urgent = color === 'danger' || color === 'warning';
 
   const handleClose = useCallback(() => {
     onClose(instance.id);
@@ -335,15 +336,21 @@ const NotificationItem: React.FC<{
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      // It appears after the page has rendered, so it announces itself the
-      // way a Toast does: urgently for danger and warning, politely otherwise.
-      role="alert"
-      aria-live={
-        color === 'danger' || color === 'warning' ? 'assertive' : 'polite'
-      }
       style={{ pointerEvents: 'auto' }}
     >
-      {message}
+      {/* It appears after the page has rendered, so its message announces
+          itself: as an alert for danger and warning, as a status otherwise.
+          The live region wraps only the message, not the close button that
+          Notification renders ahead of its children. */}
+      {urgent ? (
+        <span role="alert" aria-live="assertive">
+          {message}
+        </span>
+      ) : (
+        <span role="status" aria-live="polite">
+          {message}
+        </span>
+      )}
     </Notification>
   );
 };
