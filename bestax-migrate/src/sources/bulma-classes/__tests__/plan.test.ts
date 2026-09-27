@@ -487,6 +487,8 @@ describe('plan', () => {
       for (const around of [
         { classesAround: ['menu-list'] },
         { bestaxAround: ['Menu.List'] },
+        // Around one: that one would lose the class instead.
+        { bestaxInside: ['Menu.List'] },
       ]) {
         const { conversion, todos } = plan(
           facts('ul', 'menu-list', {}, around)

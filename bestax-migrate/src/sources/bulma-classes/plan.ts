@@ -388,6 +388,15 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders \`.${root}\` only when no other \`${target}\` is around it, and this element sits inside another \`.${root}\`, so it would lose the class; keep it as markup`
     );
   }
+  // The other way round: one already inside renders the class now, and would
+  // stop once this element became the `${target}` around it.
+  if (entry.topLevelOnly && facts.bestaxInside?.includes(target)) {
+    return refuse(
+      'context',
+      target,
+      `bestax \`${target}\` renders \`.${root}\` only when no other \`${target}\` is around it, and this element holds one, which would lose the class once this one converts; keep this element as markup`
+    );
+  }
   const wraps = entry.wrapsChildren;
   if (
     wraps &&

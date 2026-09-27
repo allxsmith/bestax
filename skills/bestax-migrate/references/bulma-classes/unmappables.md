@@ -132,7 +132,8 @@ its inputs ids before running the codemod, and check its forms afterwards.
 
 On a `.menu-list` it's about nesting: `Menu.List` renders `.menu-list` only on the outermost list,
 and drops it on one inside another. So a `.menu-list` inside another `.menu-list` (or a bestax
-`Menu.List`) stays markup, keeping its class. Only the elements around it in the same file count:
+`Menu.List`) stays markup, keeping its class, and so does one around a bestax `Menu.List`, which would
+lose the class once the outer one converts. Only the elements in the same file count:
 a `.menu-list` another component renders inside a `Menu.List` would lose the class, so check a
 menu split across components after the run.
 

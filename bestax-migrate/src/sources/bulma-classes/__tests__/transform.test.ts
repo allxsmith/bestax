@@ -962,6 +962,12 @@ describe('menu list nesting', () => {
       'import { Menu } from "@allxsmith/bestax-bulma";\n'
     );
     expect(inside.rules).toEqual(['context:Menu.List']);
+    // Around an existing Menu.List, which would lose its class instead.
+    const around = migrate(
+      'import { Menu } from "@allxsmith/bestax-bulma";\nexport const A = () => (\n  <ul className="menu-list"><li><a>Out</a><Menu.List><li><a>In</a></li></Menu.List></li></ul>\n);\n'
+    );
+    expect(around.rules).toEqual(['context:Menu.List']);
+    expect(around.output).toContain('<ul className="menu-list">');
   });
 
   it('converts the outer list, which renders its class at the top level', () => {
