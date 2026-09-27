@@ -619,6 +619,65 @@ describe('Card Component', () => {
         expect(button).not.toHaveAttribute('target');
         expect(button).not.toHaveAttribute('rel');
       });
+
+      // `type="submit"` because React warns about a `formAction` on a button of
+      // any other type, and this one defaults to `type="button"`.
+      const buttonOnly = {
+        disabled: true,
+        form: 'f',
+        formAction: '/act',
+        formEncType: 'text/plain',
+        formMethod: 'post',
+        formNoValidate: true,
+        formTarget: '_self',
+        name: 'n',
+        value: 'v',
+      } as const;
+      const buttonOnlyDom = [
+        'disabled',
+        'form',
+        'formaction',
+        'formenctype',
+        'formmethod',
+        'formnovalidate',
+        'formtarget',
+        'name',
+        'value',
+      ];
+
+      it('forwards button-only attributes to a button', () => {
+        render(
+          <Card.FooterItem
+            as="button"
+            type="submit"
+            {...buttonOnly}
+            data-testid="item"
+          >
+            Save
+          </Card.FooterItem>
+        );
+        const button = screen.getByTestId('item');
+        expect(button).toBeDisabled();
+        for (const attr of buttonOnlyDom) {
+          expect(button).toHaveAttribute(attr);
+        }
+      });
+
+      it.each(['a', 'span'] as const)(
+        'withholds button-only attributes from a %s',
+        as => {
+          render(
+            <Card.FooterItem as={as} {...buttonOnly} data-testid="item">
+              Save
+            </Card.FooterItem>
+          );
+          const item = screen.getByTestId('item');
+          expect(item.tagName).toBe(as.toUpperCase());
+          for (const attr of buttonOnlyDom) {
+            expect(item).not.toHaveAttribute(attr);
+          }
+        }
+      );
     });
 
     test('Card.Header.Title renders with correct classes', () => {

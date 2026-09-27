@@ -308,16 +308,48 @@ const STRIP_FROM_NON_ANCHOR: Readonly<
 })();
 
 /**
+ * What `<button>` adds over the attributes every element has (`disabled`,
+ * `form`, `name`, `value` and the `form*` submit overrides), subtracted from
+ * React's types the way `AnchorOnlyAttributes` is, so it grows when React's
+ * does. Minus `type`, which `AnchorOnlyAttributes` already declares as the
+ * `<a>` MIME string: two heritage clauses declaring it differently do not
+ * compile, and the `<button>` branch reads it back off the forwarded props.
+ */
+type ButtonOnlyAttributes = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  keyof React.HTMLAttributes<HTMLButtonElement> | 'type'
+>;
+
+/**
+ * The set withheld from a non-button `Card.FooterItem` (`span`/`a`), keyed so
+ * it stops compiling until a button attribute React adds is named here.
+ */
+const STRIP_FROM_NON_BUTTON: Readonly<Record<keyof ButtonOnlyAttributes, true>> =
+  {
+    disabled: true,
+    form: true,
+    formAction: true,
+    formEncType: true,
+    formMethod: true,
+    formNoValidate: true,
+    formTarget: true,
+    name: true,
+    value: true,
+  };
+
+/**
  * Props for the Card.FooterItem compound component.
  *
- * The anchor attributes arrive through `AnchorOnlyAttributes` at every `as`,
- * and are forwarded only when the tag is an `<a>` — `STRIP_FROM_NON_ANCHOR`
- * above withholds them from `span` and `button` at runtime, since narrowing
- * the type per `as` is source-breaking (see `Level.Item`'s own note on #672).
+ * The anchor and button attributes arrive through `AnchorOnlyAttributes` and
+ * `ButtonOnlyAttributes` at every `as`, and each set is forwarded only to its
+ * own tag: `STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_BUTTON` above withhold
+ * them from the others at runtime, since narrowing the type per `as` is
+ * source-breaking (see `Level.Item`'s own note on #672).
  */
 export interface CardFooterItemProps
   extends
     AnchorOnlyAttributes,
+    ButtonOnlyAttributes,
     React.HTMLAttributes<
       HTMLSpanElement | HTMLAnchorElement | HTMLButtonElement
     >,
@@ -639,11 +671,12 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
     className
   );
 
-  // The anchor's own attributes reach an `<a>` and nothing else — `STRIP_FROM_NON_ANCHOR`
-  // above names the withheld set and why `type` stays while `rel` is added.
+  // The anchor's own attributes reach an `<a>` and nothing else, and the button's a
+  // `<button>` — `STRIP_FROM_NON_ANCHOR` above names the anchor set and why `type`
+  // stays while `rel` is added, and `STRIP_FROM_NON_BUTTON` the button set.
   if (as === 'a') {
     return (
-      <a className={itemClasses} {...rest}>
+      <a className={itemClasses} {...omitAttrs(rest, STRIP_FROM_NON_BUTTON)}>
         {children}
       </a>
     );
@@ -673,7 +706,10 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   }
 
   return (
-    <span className={itemClasses} {...forwarded}>
+    <span
+      className={itemClasses}
+      {...omitAttrs(forwarded, STRIP_FROM_NON_BUTTON)}
+    >
       {children}
     </span>
   );
