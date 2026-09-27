@@ -421,6 +421,14 @@ describe.each(absorbing)(
     });
 
     if (spec.childProps) {
+      it('takes as props only what its own props declare', () => {
+        // They move onto the component without passing the attribute checks
+        // an element's own attributes do, so each has to be one of its props.
+        expect(entry.ownProps).toEqual(
+          expect.arrayContaining(spec.childProps!)
+        );
+      });
+
       it("renders the same with the child's props on the component", () => {
         const given = Object.fromEntries(
           spec.childProps!.map(name => [name, `${name}-value`])

@@ -1541,6 +1541,28 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ],
       'size'
     ),
+    omits: Object.fromEntries(
+      [
+        '1by1',
+        '5by4',
+        '4by3',
+        '3by2',
+        '5by3',
+        '16by9',
+        '2by1',
+        '3by1',
+        '4by5',
+        '3by4',
+        '2by3',
+        '3by5',
+        '9by16',
+        '1by2',
+        '1by3',
+      ].map(ratio => [
+        `is-${ratio}`,
+        '`size` renders `has-ratio` beside it as well',
+      ])
+    ),
     absorbs: {
       tag: 'img',
       attributesOn: 'element',
