@@ -197,7 +197,7 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['icon', { component: 'Icon', converts: false }],
     ['icon-text', { component: 'IconText', converts: false }],
     ['image', { component: 'Image', converts: false }],
-    ['menu', { component: 'Menu', converts: false }],
+    ['menu-item', { component: 'Menu.Item', converts: false }],
     ['message', { component: 'Message', converts: false }],
     ['modal', { component: 'Modal', converts: false }],
     ['navbar-burger', { component: 'Navbar.Burger', converts: false }],
@@ -263,6 +263,9 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['breadcrumb', { component: 'Breadcrumb', converts: true }],
     ['skeleton-block', { component: 'Skeleton', converts: true }],
     ['skeleton-lines', { component: 'Skeleton', converts: true }],
+    ['menu', { component: 'Menu', converts: true }],
+    ['menu-label', { component: 'Menu.Label', converts: true }],
+    ['menu-list', { component: 'Menu.List', converts: true }],
     ['table-container', { component: 'Table', converts: true }],
     ['fixed-grid', { component: 'Grid', converts: true }],
   ]);
