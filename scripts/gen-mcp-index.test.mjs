@@ -235,10 +235,9 @@ test("the bulma-classes table is bestax-migrate's own, whole", () => {
   // A family the codemod leaves as markup still says why, for the lookup.
   assert.equal(roots.dropdown.status, 'todo');
   assert.match(roots.dropdown.why, /Dropdown/);
-  // And the parts that take no helpers, or no class beside their own, say so.
+  // And the parts that take no helpers say so.
   assert.equal(roots['navbar-dropdown'].noHelpers, true);
-  assert.equal(roots['navbar-divider'].ownClassOnly, true);
-  assert.equal(roots.button.ownClassOnly, false);
+  assert.equal(roots.button.noHelpers, false);
   // And a component that converts only beside one of its parts says which.
   assert.ok(roots.card.wrapsChildren.unless.includes('Card.Content'));
   assert.equal(roots.button.wrapsChildren, null);

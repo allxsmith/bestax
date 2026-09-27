@@ -151,8 +151,8 @@ A few bestax parts extend only React's HTML attributes and take no Bulma helper 
 `Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
 `Panel.Heading`/`Tabs`/`Block`, `Tabs.List`/`Item`, `Message.Header`/`Body` and the `Modal`
 parts. A bloomer helper on one of those becomes the Bulma class in `className` — except on
-`Navbar.Divider`, `Pagination.Ellipsis` and `Dropdown.Divider`, which write their own className
-last or take no props at all: there the helper is named in a TODO instead, and an element
+`Pagination.Ellipsis` and `Dropdown.Divider`, which write their own className last or take no
+props at all: there the helper is named in a TODO instead, and an element
 carrying a spread is left as bloomer's. Otherwise it is the Bulma class in `className` (`is-pulled-right`,
 `m-0`, `is-hidden-mobile`, …), since Bulma v1 still ships every one of them; only a dynamic
 value is flagged. The same conversion covers the modifiers bestax has no prop for anywhere —

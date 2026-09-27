@@ -21,14 +21,14 @@ export function Layout() {
                 <a className="navbar-item" href="/about">
                   About
                 </a>
-                <hr className="navbar-divider" />
+                <hr className="navbar-divider my-1" />
                 <a className="navbar-item" href="/jobs">
                   Jobs
                 </a>
               </div>
             </div>
           </div>
-          <div className="navbar-end">
+          <div className="navbar-end has-text-weight-semibold has-text-link">
             <div className="navbar-item">
               <div className="buttons">
                 <a className="button is-light" href="/login">
