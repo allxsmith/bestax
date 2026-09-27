@@ -319,6 +319,10 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
         aria-expanded={props['aria-expanded'] ?? !!active}
         {...rest}
       >
+        {/* Bulma v1's burger mixin positions four spans: the first two meet
+            in the middle (they rotate into the X), the third and fourth draw
+            the top and bottom bars. */}
+        <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>

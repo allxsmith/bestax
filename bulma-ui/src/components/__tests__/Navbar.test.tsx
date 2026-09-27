@@ -273,10 +273,11 @@ describe('Navbar.Item', () => {
 });
 
 describe('Navbar.Burger', () => {
-  it('renders burger with three spans', () => {
+  it('renders the four hidden spans Bulma v1 positions', () => {
     render(<Navbar.Burger data-testid="burger" />);
-    const burger = screen.getByTestId('burger');
-    expect(burger.querySelectorAll('span')).toHaveLength(3);
+    const spans = screen.getByTestId('burger').querySelectorAll('span');
+    expect(spans).toHaveLength(4);
+    spans.forEach(span => expect(span).toHaveAttribute('aria-hidden', 'true'));
   });
 
   it('applies is-active when active', () => {
