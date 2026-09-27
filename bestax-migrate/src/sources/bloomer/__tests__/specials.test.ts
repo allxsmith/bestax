@@ -785,15 +785,27 @@ describe('bloomer navigation handlers', () => {
 
   it('leaves a class-hostile target alone when it carries a spread', () => {
     const { output, rules } = migrate(
-      "import { NavbarDivider, PageEllipsis, DropdownDivider } from 'bloomer';\nexport const A = (p: Record<string, any>) => (<><NavbarDivider {...p.rest} /><PageEllipsis {...p.rest} /><DropdownDivider {...p.rest} /></>);\n"
+      "import { PageEllipsis, DropdownDivider } from 'bloomer';\nexport const A = (p: Record<string, any>) => (<><PageEllipsis {...p.rest} /><DropdownDivider {...p.rest} /></>);\n"
     );
     expect(rules).toEqual([
-      'component:NavbarDivider',
       'component:PageEllipsis',
       'component:DropdownDivider',
     ]);
-    expect(output).toContain('<NavbarDivider {...p.rest} />');
+    expect(output).toContain('<PageEllipsis {...p.rest} />');
     expect(output).toContain("from 'bloomer'");
+  });
+
+  it('converts a NavbarDivider with helpers or a spread', () => {
+    // bestax `Navbar.Divider` merges a `className` with its own class.
+    const { output, rules } = migrate(
+      dyn(
+        'NavbarDivider',
+        '<><NavbarDivider isHidden="mobile" /><NavbarDivider {...p.rest} /></>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Navbar.Divider className="is-hidden-mobile" />');
+    expect(output).toContain('<Navbar.Divider {...p.rest} />');
   });
 
   it('keeps a NavbarDropdown without isBoxed as the menu', () => {

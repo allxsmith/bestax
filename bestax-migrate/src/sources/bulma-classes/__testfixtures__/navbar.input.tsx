@@ -47,3 +47,24 @@ export function SiteNavbar() {
     </nav>
   );
 }
+
+export function DarkNavbar() {
+  return (
+    <nav className="navbar is-dark" role="navigation" aria-label="main navigation">
+      <div className="navbar-menu has-text-light">
+        <div className="navbar-start has-text-weight-bold">
+          <div className="navbar-item has-dropdown is-hoverable">
+            <div className="navbar-dropdown">
+              <a className="navbar-item">About</a>
+              <hr className="navbar-divider my-0 site-divider" />
+              <a className="navbar-item">Jobs</a>
+            </div>
+          </div>
+        </div>
+        <div className="navbar-end has-text-white">
+          <a className="navbar-item">Log in</a>
+        </div>
+      </div>
+    </nav>
+  );
+}

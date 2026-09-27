@@ -169,11 +169,6 @@ export interface RootEntry {
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
-   * The target drops its own class when it is given a `className`, so the
-   * element converts only when it carries no other class.
-   */
-  readonly ownClassOnly?: boolean;
-  /**
    * Attributes the target types as numbers, among the ones it is given (the
    * child's, when it `absorbs` the child and puts them there). A numeric
    * string (`value="40"`) becomes a number, which renders the same; any
@@ -1241,9 +1236,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     defaults: { role: 'navigation', 'aria-label': 'main navigation' },
     ownProps: ['textColor', 'color', 'bgColor', 'transparent', 'fixed'],
   },
-  // No background prop on these parts. Menu, Start and End spread `textColor`
-  // onto the element rather than reading it, and type `color` to six colors,
-  // so their text color stays a class.
+  // No background prop on these parts.
   'navbar-brand': {
     ...BASE,
     target: 'Navbar.Brand',
@@ -1255,7 +1248,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Navbar.Menu',
     tag: 'div',
-    textColor: null,
     bgColor: null,
     modifiers: flags({ 'is-active': 'active' }),
     ownProps: ['textColor', 'color', 'active'],
@@ -1264,7 +1256,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Navbar.Start',
     tag: 'div',
-    textColor: null,
     bgColor: null,
     ownProps: ['textColor', 'color'],
   },
@@ -1272,7 +1263,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Navbar.End',
     tag: 'div',
-    textColor: null,
     bgColor: null,
     ownProps: ['textColor', 'color'],
   },
@@ -1303,8 +1293,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    // bulma-ui's Navbar.Divider spreads `className` over its own class.
-    ownClassOnly: true,
     ownProps: [],
   },
   notification: {

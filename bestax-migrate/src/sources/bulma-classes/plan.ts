@@ -573,13 +573,6 @@ export function plan(facts: ElementFacts): Plan {
   });
 
   const rest = tokens.filter(token => !converted.has(token));
-  if (entry.ownClassOnly && (rest.length > 0 || conditionalStays)) {
-    return refuse(
-      'attr',
-      'className',
-      `bestax \`${target}\` drops its own class when it is given a \`className\`, so this element's other classes would take the place of \`.${root}\`; keep it as markup`
-    );
-  }
   return {
     conversion: {
       target,

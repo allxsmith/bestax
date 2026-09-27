@@ -1,3 +1,10 @@
+# [5.17.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.11...@allxsmith/bestax-bulma@5.17.0) (2026-09-27)
+
+
+### Features
+
+* **bulma-ui:** let Card.Header.Title and Card.FooterItem render Bulma's own tags ([#794](https://github.com/allxsmith/bestax/issues/794)) ([47ecdb6](https://github.com/allxsmith/bestax/commit/47ecdb652532eb50ee26259b49bf05af18133e27))
+
 ## [5.16.11](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.10...@allxsmith/bestax-bulma@5.16.11) (2026-09-27)
 
 
