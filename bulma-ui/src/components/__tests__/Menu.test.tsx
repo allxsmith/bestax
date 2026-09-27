@@ -131,6 +131,22 @@ describe('Menu', () => {
     expect(screen.getByTestId('nested-list')).not.toHaveClass('menu-list');
   });
 
+  it('does not render an empty class attribute on a nested MenuList', () => {
+    render(
+      <Menu>
+        <MenuList data-testid="top-list">
+          <MenuItem>
+            Parent
+            <MenuList data-testid="nested-list">
+              <MenuItem>Child</MenuItem>
+            </MenuList>
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    );
+    expect(screen.getByTestId('nested-list')).not.toHaveAttribute('class');
+  });
+
   it('renders MenuItem as <a> by default', () => {
     render(
       <Menu>
