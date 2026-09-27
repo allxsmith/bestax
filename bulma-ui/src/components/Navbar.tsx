@@ -125,7 +125,12 @@ export interface NavbarBrandProps
   className?: string;
   /** Text color for the brand. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the brand. */
+  /**
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `.navbar-brand.is-<color>` rule, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
+   * reaches the full color list.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Brand content. */
   children?: React.ReactNode;
@@ -142,10 +147,11 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
   className,
   children,
   textColor,
+  color,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     ...props,
   });
 
@@ -276,7 +282,12 @@ export interface NavbarBurgerProps
   className?: string;
   /** Text color for the burger. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the burger. */
+  /**
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `.navbar-burger.is-<color>` rule, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
+   * reaches the full color list.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Whether the burger is active. */
   active?: boolean;
@@ -303,8 +314,12 @@ export interface NavbarBurgerProps
  * @returns {JSX.Element} The rendered burger.
  */
 export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
-  function NavbarBurger({ className, active, children, ...props }, ref) {
+  function NavbarBurger(
+    { className, active, textColor, color, children, ...props },
+    ref
+  ) {
     const { bulmaHelperClasses, rest } = useBulmaClasses({
+      color: textColor ?? color,
       ...props,
     });
 
@@ -349,7 +364,12 @@ export interface NavbarMenuProps
   className?: string;
   /** Text color for the menu. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the menu. */
+  /**
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `.navbar-menu.is-<color>` rule, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
+   * reaches the full color list.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Whether the menu is active. */
   active?: boolean;
@@ -367,10 +387,13 @@ export interface NavbarMenuProps
 export const NavbarMenu: React.FC<NavbarMenuProps> = ({
   className,
   active,
+  textColor,
+  color,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
     ...props,
   });
 
@@ -401,7 +424,12 @@ export interface NavbarStartEndProps
   className?: string;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier. */
+  /**
+   * Renders `has-text-<color>`, exactly like `textColor`. Bulma has no
+   * `is-<color>` rule for this area, so this is not a filled variant.
+   * `textColor` takes precedence when both are set, and is the one that
+   * reaches the full color list.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Content. */
   children?: React.ReactNode;
@@ -416,10 +444,13 @@ export interface NavbarStartEndProps
  */
 export const NavbarStart: React.FC<NavbarStartEndProps> = ({
   className,
+  textColor,
+  color,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
     ...props,
   });
   return (
@@ -445,10 +476,13 @@ export const NavbarStart: React.FC<NavbarStartEndProps> = ({
  */
 export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
   className,
+  textColor,
+  color,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
     ...props,
   });
   return (
@@ -796,10 +830,14 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
  * @param {React.HTMLAttributes<HTMLHRElement>} props - Standard hr props.
  * @returns {JSX.Element} The rendered divider.
  */
-export const NavbarDivider: React.FC<
-  React.HTMLAttributes<HTMLHRElement>
-> = props => (
-  <hr className={usePrefixedClassNames('navbar-divider')} {...props} />
+export const NavbarDivider: React.FC<React.HTMLAttributes<HTMLHRElement>> = ({
+  className,
+  ...props
+}) => (
+  <hr
+    className={classNames(usePrefixedClassNames('navbar-divider'), className)}
+    {...props}
+  />
 );
 
 // Attach subcomponents

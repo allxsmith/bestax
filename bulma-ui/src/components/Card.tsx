@@ -324,18 +324,19 @@ type ButtonOnlyAttributes = Omit<
  * The set withheld from a non-button `Card.FooterItem` (`span`/`a`), keyed so
  * it stops compiling until a button attribute React adds is named here.
  */
-const STRIP_FROM_NON_BUTTON: Readonly<Record<keyof ButtonOnlyAttributes, true>> =
-  {
-    disabled: true,
-    form: true,
-    formAction: true,
-    formEncType: true,
-    formMethod: true,
-    formNoValidate: true,
-    formTarget: true,
-    name: true,
-    value: true,
-  };
+const STRIP_FROM_NON_BUTTON: Readonly<
+  Record<keyof ButtonOnlyAttributes, true>
+> = {
+  disabled: true,
+  form: true,
+  formAction: true,
+  formEncType: true,
+  formMethod: true,
+  formNoValidate: true,
+  formTarget: true,
+  name: true,
+  value: true,
+};
 
 /**
  * Props for the Card.FooterItem compound component.

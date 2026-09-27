@@ -100,9 +100,9 @@ describe('guardViolations', () => {
     textAlias: new Set(['Box', 'Card', 'Content']),
     knownProps: new Map([
       ['Button', new Set(['isFullWidth', 'isFullwidth'])],
-      ['Box', new Set(['color', 'textColor'])],
-      ['Card', new Set(['color', 'textColor'])],
-      ['Content', new Set(['color', 'textColor'])],
+      ['Box', new Set(['color', 'textColor', 'bgColor'])],
+      ['Card', new Set(['color', 'textColor', 'bgColor'])],
+      ['Content', new Set(['color', 'textColor', 'bgColor'])],
     ]),
   });
 
@@ -149,10 +149,23 @@ describe('guardViolations', () => {
 
   it('refuses a text-alias element that does not declare textColor', () => {
     const c = ok();
-    c.knownProps.set('Card', new Set(['color']));
+    c.knownProps.set('Card', new Set(['color', 'bgColor']));
     const v = guardViolations(c);
     assert.equal(v.length, 1);
     assert.match(v[0], /Card is in the text-alias set/);
+    assert.match(v[0], /does not declare `textColor`/);
+  });
+
+  it('refuses a text-alias element that does not declare bgColor', () => {
+    // The `ambiguous` message names `bgColor` as the surface branch with no
+    // condition attached, so an element that omits it — as the Navbar parts
+    // in #757 do — would be told to write a prop it does not accept.
+    const c = ok();
+    c.knownProps.set('Card', new Set(['color', 'textColor']));
+    const v = guardViolations(c);
+    assert.equal(v.length, 1);
+    assert.match(v[0], /Card is in the text-alias set/);
+    assert.match(v[0], /does not declare `bgColor`/);
   });
 
   it('refuses a dropped anchor, and says matches for one', () => {
@@ -166,7 +179,7 @@ describe('guardViolations', () => {
   it('reports every violation at once rather than the first', () => {
     const c = ok();
     c.knownProps.set('Button', new Set(['isFullWidth']));
-    c.knownProps.set('Box', new Set(['color']));
+    c.knownProps.set('Box', new Set(['color', 'bgColor']));
     assert.equal(guardViolations(c).length, 2);
   });
 });
@@ -249,10 +262,14 @@ describe('collect', () => {
     extractComponent: name => ({ tables: tablesFor(name) }),
   });
 
-  /** A text-alias `color` row pair, which every anchor has to carry. */
+  /**
+   * The text-alias rows every anchor has to carry: the marked `color` itself
+   * plus both props `no-color-as-surface`'s message names back at the author.
+   */
   const aliasRows = path => [
     { name: 'color', description: `Text color alias for ${path}.` },
     { name: 'textColor', description: 'Text colour.' },
+    { name: 'bgColor', description: 'Background colour.' },
   ];
 
   // The guards exist to stop a bad table being written. On the real library

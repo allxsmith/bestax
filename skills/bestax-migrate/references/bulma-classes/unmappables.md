@@ -46,8 +46,7 @@ children from the JSX inside it, so children passed as an attribute are content 
 Move them inside the element, then re-run.
 
 `attr:className` is a `.navbar-divider` with another class on it (`<hr className="navbar-divider
-mt-2">`). `Navbar.Divider` drops its own class for a `className` it's given, so the conversion
-would lose `.navbar-divider`. Keep the element as markup, or move the extra class off it.
+mt-2">`). Keep the element as markup, or move the extra class off it.
 
 On a `.select` or a `.breadcrumb` it's about the element inside, which the component renders
 itself. `SelectBase` gives its `<select>` every attribute it's given and no class but
