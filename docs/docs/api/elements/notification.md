@@ -27,7 +27,11 @@ Notifications are perfect for status updates, alerts, and dismissible feedback i
 <!-- bestax:generated import -->
 
 ```tsx
-import { Notification } from '@allxsmith/bestax-bulma';
+import {
+  Notification,
+  NotificationContainer,
+  notification,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -123,7 +127,7 @@ To show a notification from anywhere in your app, not just where you render one,
 
 ### Setup
 
-Render `NotificationContainer` once, near your app root. Nothing appears until one is mounted.
+Render `NotificationContainer` once, near your app root, and call `notification` after it has mounted, for example from an event handler. A call made before any container mounts doesn't appear when one does.
 
 ```tsx title="src/App.tsx"
 import { NotificationContainer } from '@allxsmith/bestax-bulma';

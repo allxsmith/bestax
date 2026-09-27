@@ -344,7 +344,9 @@ const NotificationItem: React.FC<{
 
 /**
  * Container component for rendering programmatic notifications.
- * Place once at your app root to enable the notification API.
+ * Place once at your app root to enable the notification API. Mount it
+ * before calling `notification`: a notification shown while no container is
+ * mounted doesn't appear when one mounts, only alongside the next call.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.

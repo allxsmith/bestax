@@ -295,26 +295,38 @@ const [tags, setTags] = useState(['react']);
 
 `<Notification>` itself is unchanged in render output (one new optional prop, `textColor`, for setting text color separately from the background color). Existing JSX usage stays the same.
 
-What's new is a programmatic singleton API. Render `NotificationContainer` once near your app root, since nothing appears without it, then call `notification` from anywhere. The [Notification page](/docs/api/elements/notification#programmatic-api) covers every option.
+What's new is a programmatic singleton API. Render `NotificationContainer` once near your app root, then call `notification` once it has mounted, for example from an event handler. More on the [Notification page](/docs/api/elements/notification#programmatic-api).
 
 ```jsx
-import { notification, NotificationContainer } from '@allxsmith/bestax-bulma';
+import {
+  Button,
+  NotificationContainer,
+  notification,
+} from '@allxsmith/bestax-bulma';
 
 function App() {
   return (
     <>
-      <YourRoutes />
+      <SaveButton />
       <NotificationContainer />
     </>
   );
 }
 
-notification.show({ message: 'Saved!', color: 'success', duration: 3000 });
-notification.success('Saved!');
-notification.danger('Something went wrong');
-
-const id = notification.show({ message: 'Loading...', indefinite: true });
-notification.close(id);
+function SaveButton() {
+  const save = async () => {
+    const id = notification.show({ message: 'Saving...', indefinite: true });
+    try {
+      await saveChanges();
+      notification.success('Saved!');
+    } catch {
+      notification.danger('Something went wrong');
+    } finally {
+      notification.close(id);
+    }
+  };
+  return <Button onClick={save}>Save</Button>;
+}
 ```
 
 :::tip Purely additive

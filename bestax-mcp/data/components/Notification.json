@@ -38,7 +38,7 @@
   "related": ["Delete", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-notification--default",
   "summary": "The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.",
-  "import": "import { Notification } from '@allxsmith/bestax-bulma';",
+  "import": "import { Notification, NotificationContainer, notification } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Notification.tsx",
   "rootClass": "notification",
   "parts": [
