@@ -286,8 +286,19 @@ export function plan(facts: ElementFacts): Plan {
   let absorbed: Conversion['absorbs'];
   if (entry.absorbs) {
     const outcome = absorb(facts, root!, entry, target, refuse);
-    if ('todos' in outcome) return outcome;
-    ({ attributes, absorbed } = outcome);
+    if (!('todos' in outcome)) {
+      ({ attributes, absorbed } = outcome);
+    } else if (!entry.absorbs.elseWraps) {
+      return outcome;
+    } else if (!facts.hasChildren) {
+      return refuse(
+        'children',
+        target,
+        `bestax \`${target}\` renders its own <${entry.absorbs.tag}> when it's given no children, so this empty element would gain one; keep it as markup`
+      );
+    }
+    // Otherwise the target renders the children as given, and the element
+    // converts around them like any other.
   }
   const renamed = new Set(absorbed?.renames.map(([, to]) => to));
 

@@ -84,7 +84,8 @@ stock stylesheet.
 - **An element a component renders inside itself** converts with it: a `.select` and its
   `<select>` become one `SelectBase` with the `<select>`'s attributes, a `.breadcrumb` and its
   `<ul>` become one `Breadcrumb` around the same `<li>`s, and an `.image` and its `<img>` become
-  one `<Image size="64x64" src="…" alt="…" />`.
+  one `<Image size="64x64" src="…" alt="…" />`. An `.image` around anything else converts too, with
+  its children kept as they are.
 - **Children a component renders itself** go: a `.skeleton-lines` holding bare, empty `<div>`s
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,

@@ -49,8 +49,16 @@ export function Absorbed({
         <img src="/photo.jpg" alt="A ratio stays a class" />
       </figure>
       <figure className="image is-48x48">
-        <img src="/lazy.png" alt="Another attribute keeps both" loading="lazy" />
+        <img src="/lazy.png" alt="Another attribute keeps the img" loading="lazy" />
       </figure>
+      <figure className="image is-16by9">
+        <iframe
+          className="has-ratio"
+          src="https://www.youtube.com/embed/x"
+          allowFullScreen
+        />
+      </figure>
+      <figure className="image is-64x64" />
     </section>
   );
 }
