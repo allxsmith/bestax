@@ -127,24 +127,27 @@ function renderBoth(
   const counted = result.conversion.rendersChildren
     ? facts.childElements!.map(element => createElement(element.tag, null))
     : undefined;
+  const soleElement =
+    sole &&
+    createElement(
+      sole.tag,
+      {
+        // An empty className renders `class=""`, and a computed one some class.
+        ...(sole.tokens?.length
+          ? { className: sole.tokens.join(' ') }
+          : sole.tokens === null
+            ? { className: 'computed' }
+            : sole.tokens
+              ? { className: '' }
+              : {}),
+        ...soleAttributes,
+      },
+      soleChildren
+    );
   const raw = renderElement(
     facts.tag,
     { className: [...facts.tokens, ...added.flat()].join(' '), ...extra },
-    counted ??
-      (sole
-        ? createElement(
-            sole.tag,
-            {
-              ...(sole.tokens?.length
-                ? { className: sole.tokens.join(' ') }
-                : {}),
-              ...soleAttributes,
-            },
-            soleChildren
-          )
-        : child
-          ? child.raw
-          : children)
+    counted ?? soleElement ?? (child ? child.raw : children)
   );
   const { target, props, className, drop, numbers, absorbs } =
     result.conversion;
@@ -177,10 +180,13 @@ function renderBoth(
         ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
         : {}),
     },
+    // A target that couldn't absorb the child renders it as given.
     counted
       ? undefined
       : sole
-        ? soleChildren
+        ? absorbs
+          ? soleChildren
+          : soleElement
         : child
           ? child.converted
           : children
@@ -627,10 +633,43 @@ describe.each(absorbing)(
         }
       }
       for (const [label, facts] of refusals) {
+        // Around a written-out HTML element, that is. Anything else (no
+        // element, text, an expression) could leave it with no children.
+        if (spec.elseWraps && facts.soleChild) {
+          // The target renders the child as given instead of absorbing it,
+          // so the element converts around it.
+          const both = renderBoth(facts, Object.fromEntries(facts.attributes));
+          expect({
+            label,
+            converts: both !== null,
+            absorbs: plan(facts).conversion?.absorbs ?? null,
+          }).toEqual({ label, converts: true, absorbs: null });
+          expect({ label, html: both!.converted }).toEqual({
+            label,
+            html: both!.raw,
+          });
+          continue;
+        }
         expect({ label, conversion: plan(facts).conversion }).toEqual({
           label,
           conversion: null,
         });
+      }
+      if (spec.elseWraps) {
+        // With nothing inside, the target would render the child itself.
+        const empty = {
+          ...around([], undefined, {}),
+          soleChild: undefined,
+          hasChildren: false,
+        };
+        expect(plan(empty).conversion).toBeNull();
+        // Nor around children that aren't elements written out: an
+        // expression can be falsy, and then the target renders its own child.
+        const expression = {
+          ...around([], undefined, {}),
+          soleChild: undefined,
+        };
+        expect(plan(expression).conversion).toBeNull();
       }
     });
 

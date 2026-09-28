@@ -90,6 +90,11 @@ export interface Absorbs {
    * props and writes back on the child.
    */
   childProps?: string[];
+  /**
+   * When the child can't be absorbed, the component renders the element's
+   * children as given, so the element converts around them instead.
+   */
+  elseWraps?: boolean;
   /** The child's classes, as the component's props. */
   modifiers?: Record<string, Modifier>;
   /** A bare child attribute one of the element's modifiers writes. */
@@ -619,7 +624,14 @@ function absorbsText(target: string, absorbs: Absorbs): string {
     return (
       ` It renders the ${child} inside it itself, from its own ${names} ` +
       `props: write the ${child}'s ${names} on \`${target}\` in its place, ` +
-      `which converts only around ${aChild} with no other attribute.${on}`
+      `which converts that way only around ${aChild} with no other ` +
+      `attribute.${on}` +
+      (absorbs.elseWraps
+        ? ` Around other HTML elements written out it renders them as given, ` +
+          `in place of its own ${child}, so put them inside \`${target}\` as ` +
+          `they are; around an expression, which can come out empty, it ` +
+          `would render its own.`
+        : '')
     );
   }
   return (
