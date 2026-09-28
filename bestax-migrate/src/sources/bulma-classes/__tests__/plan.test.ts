@@ -509,6 +509,57 @@ describe('plan', () => {
     });
   });
 
+  describe('Image', () => {
+    const img = (attributes: Record<string, string | true | null> = {}) => ({
+      tag: 'img',
+      attributes: new Map(Object.entries(attributes)),
+      hasSpread: false,
+      isEmpty: true,
+    });
+
+    it('absorbs a bare <img>, and converts around anything else', () => {
+      const bare = plan(
+        facts('figure', 'image is-64x64', {}, { soleChild: img({ src: 'a' }) })
+      ).conversion;
+      expect(bare?.absorbs).toBeDefined();
+      const lazy = plan(
+        facts(
+          'figure',
+          'image is-64x64',
+          {},
+          { soleChild: img({ src: 'a', loading: 'lazy' }) }
+        )
+      ).conversion;
+      expect(lazy?.target).toBe('Image');
+      expect(lazy?.absorbs).toBeUndefined();
+      expect(lazy?.props).toEqual([
+        ['as', 'figure'],
+        ['size', '64x64'],
+      ]);
+      // An <iframe> is the same: it stays as written.
+      const iframe = { ...img({ src: 'v' }), tag: 'iframe' };
+      expect(
+        plan(facts('figure', 'image is-16by9', {}, { soleChild: iframe }))
+          .conversion?.className
+      ).toBe('is-16by9');
+    });
+
+    it("keeps it as markup around children it can't tell are never empty", () => {
+      // `{src && <img />}`: when it's falsy, Image renders its own <img>.
+      const { conversion, todos } = plan(facts('figure', 'image is-64x64'));
+      expect(conversion).toBeNull();
+      expect(todos.map(todo => todo.rule)).toEqual(['children:Image']);
+    });
+
+    it('keeps an empty .image as markup, since Image would render an <img>', () => {
+      const { conversion, todos } = plan(
+        facts('figure', 'image', {}, { hasChildren: false })
+      );
+      expect(conversion).toBeNull();
+      expect(todos.map(todo => todo.rule)).toEqual(['children:Image']);
+    });
+  });
+
   describe('Menu', () => {
     it('converts the root, its labels and a top-level list', () => {
       expect(plan(facts('aside', 'menu mt-4')).conversion).toMatchObject({

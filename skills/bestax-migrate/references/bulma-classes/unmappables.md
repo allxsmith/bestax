@@ -12,8 +12,8 @@ attribute, never one of your own classes.
 The element spreads props (`<div className="box" {...rest}>`). A spread can carry anything,
 and bestax reads some names as its own props: a spread `className` merges with the component's
 classes, where on the plain element it replaced them. Convert by hand once you know what the
-spread carries, or leave it. A spread on the `<select>` inside a `.select`, or the `<img>` inside
-an `.image`, counts too, since what it carries becomes the component's.
+spread carries, or leave it. A spread on the `<select>` inside a `.select` counts too, since what it
+carries becomes `SelectBase`'s.
 
 ### `ref:<Target>`
 
@@ -45,8 +45,8 @@ rejects. Keep the element as markup. `attr:children` is too: the codemod reads a
 children from the JSX inside it, so children passed as an attribute are content it can't see.
 Move them inside the element, then re-run.
 
-On a `.select`, a `.breadcrumb` or an `.image` it's about the element inside, which the component
-renders itself. `SelectBase` gives its `<select>` every attribute it's given and no class but
+On a `.select` or a `.breadcrumb` it's about the element inside, which the component renders
+itself. `SelectBase` gives its `<select>` every attribute it's given and no class but
 `is-hovered` or `is-focused`, so an attribute on the `.select` (an `attr` TODO) would move onto
 the `<select>`, and another class on the `<select>` (`attr:className`) would be lost, as would
 the `class=""` an empty `className` renders. Move the
@@ -54,8 +54,7 @@ attribute onto the `<select>` if that's where you want it, then re-run. A `multi
 converts only inside a `.select.is-multiple`, with `multiple` written bare, and its `size` only
 beside it, as a number written out (`size={4}`): `SelectBase` writes it back only when it holds a
 number, which the codemod can't tell of an expression. `Breadcrumb` renders its `<ul>` bare, so an attribute or class on the `<ul>` keeps
-both as markup. `Image` renders its `<img>` from `src` and `alt`, with no class but `is-rounded`, so
-any other attribute or class on the `<img>` (`loading`, `width`, a `key`) keeps both as markup.
+both as markup.
 
 On a menu item it's where each attribute lands. `Menu.Item` puts `className`, `id`, `title`,
 `role`, `tabIndex`, `style` and `data-testid` on the `<li>`, and everything else on the `<a>`, so
@@ -118,8 +117,12 @@ renders the wrapper bare.
 
 On a `.select`, a `.breadcrumb` or an `.image` it's the same shape from the other side. `SelectBase`
 renders the `<select>` inside `.select` itself, `Breadcrumb` the `<ul>` inside `.breadcrumb` and
-`Image` the `<img>` inside `.image`, so each converts only around that one element, with nothing
-else beside it.
+`Image` the `<img>` inside `.image`. So `SelectBase` and `Breadcrumb` convert only around that one
+element, with nothing else beside it. `Image` renders anything else it's given as it is, so an
+`.image` converts around HTML elements written out either way. It gets this TODO when it's empty,
+or when what's inside is an expression or text, since `Image` renders an `<img>` of its own when
+its children come out empty. Keep it as markup, or write the `Image` by hand if the expression
+never is.
 
 A menu item is the same from the `<li>`'s side: `Menu.Item` renders the `<a>` inside it, and a
 `Menu.List` after that, so an item converts only when its `<li>` holds one `<a>` and at most one
@@ -203,10 +206,9 @@ turning each condition into the prop:
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
 `<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`. A computed
-`className` on the `<select>` inside a `.select`, the `<ul>` inside a `.breadcrumb`, the `<img>`
-inside an `.image` or the `<a>` in a menu item gets this TODO too. For the `<a>`, a condition on
-`is-active` is `Menu.Item`'s `active`: `<a className={on ? 'is-active' : undefined}>` becomes
-`<Menu.Item active={on}>`.
+`className` on the `<select>` inside a `.select`, the `<ul>` inside a `.breadcrumb` or the `<a>`
+in a menu item gets this TODO too. For the `<a>`, a condition on `is-active` is `Menu.Item`'s
+`active`: `<a className={on ? 'is-active' : undefined}>` becomes `<Menu.Item active={on}>`.
 
 ## A family it leaves as markup: `family:<class>`
 
