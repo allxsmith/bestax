@@ -66,6 +66,9 @@ attributes you want (usually both, with a real label), then re-run. `Navbar` ren
 give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 `aria-label="breadcrumbs"`, so give its `<nav>` an `aria-label`, whatever it says.
 `Icon` renders `aria-label="icon"`, so give a `.icon` an `aria-label` that says what the icon means.
+`Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
+`Pagination.Previous` and `Pagination.Next` render `tabIndex={0}`, so give each element the
+attribute it's missing.
 `Card.FooterItem` renders `type="button"` on a `<button>` that sets none. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
@@ -236,13 +239,15 @@ in the browser:
   `<a>` becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style`
   and `data-testid` on the `<li>`, and everything else, helper props included, on the `<a>`.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
+- **`family:pagination-link`**, **`family:pagination-ellipsis`**: `Pagination.Link` and
+  `Pagination.Ellipsis` render their own `<li>` around the element (and the ellipsis its own
+  `&hellip;`), so write each in place of the `<li>` and what's inside it: `<Pagination.Link href="#">1</Pagination.Link>`,
+  with `is-current` as `active`. The rest of a pagination converts.
 - **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
   `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
   but for a `<label>` or `<div>` `.panel-block`, which stays markup with no TODO: bestax renders
   those as `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own
   contents from props.
-- **`family:pagination`**: `Pagination` renders list items, links and roles of its own.
-  Rebuild it from the component's docs.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 
