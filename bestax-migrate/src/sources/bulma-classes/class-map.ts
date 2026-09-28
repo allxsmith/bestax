@@ -1643,15 +1643,75 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'message-body': part(),
   modal: todo(
     'Modal',
-    'bestax `Modal` renders its own background and content parts, and adds dialog attributes'
+    "bestax `Modal` writes a `data-testid` of its own over the one it's given, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own"
   ),
-  'modal-background': part(),
-  'modal-content': part(),
-  'modal-card': part(),
-  'modal-card-head': part(),
-  'modal-card-title': part(),
-  'modal-card-body': part(),
-  'modal-card-foot': part(),
+  // Modal's parts are plain elements with their class, and take no helper
+  // props. `.modal-close` stays a part of the root's family: `Modal.Close`
+  // renders `.delete` unless it's the floating variant, which always writes
+  // a size class.
+  'modal-background': {
+    status: 'mapped',
+    target: 'Modal.Background',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'modal-content': {
+    status: 'mapped',
+    target: 'Modal.Content',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'modal-card': {
+    status: 'mapped',
+    target: 'Modal.Card',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'modal-card-head': {
+    status: 'mapped',
+    target: 'Modal.Card.Head',
+    tag: 'header',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'modal-card-title': {
+    status: 'mapped',
+    target: 'Modal.Card.Title',
+    tag: 'p',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'modal-card-body': {
+    status: 'mapped',
+    target: 'Modal.Card.Body',
+    tag: 'section',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'modal-card-foot': {
+    status: 'mapped',
+    target: 'Modal.Card.Foot',
+    tag: 'footer',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
   'modal-close': part(),
   'navbar-burger': todo(
     'Navbar.Burger',

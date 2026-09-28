@@ -202,8 +202,11 @@ in the browser:
   lists the props for the button text, the file name and the icons.
 - **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
   bestax renders its own styled checkbox and radio markup, not Bulma's.
-- **`family:modal`**: `Modal` renders its own background and content parts, and adds dialog
-  attributes. Rebuild it with `Modal` and its parts, and drive it with its open prop. When the
+- **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and
+  focus handling, so the `.modal` root stays markup while its background, content and card parts
+  convert on their own. Rebuild the root with `Modal` around them, and drive it with its open prop.
+  A `.modal-close` stays too, since `Modal.Close` renders `.delete` unless it's floating: write
+  `<Modal.Close variant="floating" />` in its place. When the
   page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
   bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
