@@ -509,6 +509,36 @@ describe('plan', () => {
     });
   });
 
+  describe('Panel', () => {
+    it('converts the root, heading, tabs and an <a> block', () => {
+      expect(plan(facts('nav', 'panel is-primary')).conversion).toMatchObject({
+        target: 'Panel',
+        props: [],
+        className: 'is-primary',
+      });
+      expect(plan(facts('p', 'panel-heading')).conversion?.target).toBe(
+        'Panel.Heading'
+      );
+      expect(
+        plan(facts('a', 'panel-block is-active')).conversion
+      ).toMatchObject({ target: 'Panel.Block', props: [['active', true]] });
+    });
+
+    it('leaves a block on another tag as markup with no TODO', () => {
+      // bestax renders those as Panel.CheckboxBlock, InputBlock or ButtonBlock.
+      for (const tag of ['label', 'div']) {
+        expect(plan(facts(tag, 'panel-block'))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+      // Any other tag still gets the usual TODO.
+      expect(
+        plan(facts('span', 'panel-block')).todos.map(todo => todo.rule)
+      ).toEqual(['tag:Panel.Block']);
+    });
+  });
+
   describe('Modal', () => {
     it('converts the parts, but not inside a bestax Modal, which picks its render from them', () => {
       expect(plan(facts('div', 'modal-content')).conversion?.target).toBe(

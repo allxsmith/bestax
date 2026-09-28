@@ -211,6 +211,15 @@ export interface RootEntry {
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
+   * Tags the target doesn't render, on which the element is valid Bulma that
+   * bestax renders some other way, so it stays markup with no `tag` TODO
+   * there. Any other tag still gets one. The reason is for the MCP lookup.
+   */
+  readonly otherTagsStay?: {
+    readonly tags: readonly string[];
+    readonly why: string;
+  };
+  /**
    * Attributes the target types as numbers, among the ones it is given (the
    * child's, when it `absorbs` the child and puts them there). A numeric
    * string (`value="40"`) becomes a number, which renders the same; any
@@ -1764,15 +1773,59 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'pagination-ellipsis': part(),
   'pagination-previous': part(),
   'pagination-next': part(),
-  panel: todo(
-    'Panel',
-    'bestax `Panel` parts render their own tags and attributes (`Panel.Block` is an `<a>`, `Panel.Icon` adds an `aria-label`)'
+  // `Panel`'s `color` renders `has-text-<color>` as well as `is-<color>`, and it
+  // has no text or background color prop. Its heading, tabs and block are
+  // plain elements with their class, and take no helper props.
+  panel: {
+    ...BASE,
+    target: 'Panel',
+    tag: 'nav',
+    textColor: null,
+    bgColor: null,
+    omits: Object.fromEntries(
+      COMPONENT_COLORS.map(color => [
+        `is-${color}`,
+        '`color` renders `has-text-<color>` on the panel as well',
+      ])
+    ),
+    ownProps: ['color'],
+  },
+  'panel-heading': {
+    status: 'mapped',
+    target: 'Panel.Heading',
+    tag: 'p',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'panel-tabs': {
+    status: 'mapped',
+    target: 'Panel.Tabs',
+    tag: 'p',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    ownProps: [],
+  },
+  'panel-block': {
+    status: 'mapped',
+    target: 'Panel.Block',
+    tag: 'a',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    modifiers: flags({ 'is-active': 'active' }),
+    otherTagsStay: {
+      tags: ['label', 'div'],
+      why: 'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
+    },
+    ownProps: ['active'],
+  },
+  'panel-icon': todo(
+    'Panel.Icon',
+    'bestax `Panel.Icon` renders through `Icon`, which always writes an `aria-label`'
   ),
-  'panel-heading': part(),
-  'panel-tabs': part(),
-  'panel-block': part(),
-  'panel-icon': part(),
-  'panel-list': part(),
   tabs: todo(
     'Tabs',
     "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles"
@@ -1812,6 +1865,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   // ---- Valid Bulma, nothing to convert to --------------------------------------
   // The other sources emit these on purpose where bestax has no component.
   help: plain('bestax renders `.help` only inside its form controls'),
+  'panel-list': plain('nothing in bestax renders `.panel-list`'),
   label: plain('bestax renders `.label` only inside its form controls'),
   loader: plain("bestax `Loading` is an overlay, not Bulma's inline spinner"),
   'hero-buttons': plain(
