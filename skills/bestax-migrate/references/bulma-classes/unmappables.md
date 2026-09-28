@@ -109,8 +109,10 @@ On a `.select`, a `.breadcrumb` or an `.image` it's the same shape from the othe
 renders the `<select>` inside `.select` itself, `Breadcrumb` the `<ul>` inside `.breadcrumb` and
 `Image` the `<img>` inside `.image`. So `SelectBase` and `Breadcrumb` convert only around that one
 element, with nothing else beside it. `Image` renders anything else it's given as it is, so an
-`.image` converts around its children either way and gets this TODO only when it's empty, since
-`Image` would then render an `<img>` of its own.
+`.image` converts around HTML elements written out either way. It gets this TODO when it's empty,
+or when what's inside is an expression or text, since `Image` renders an `<img>` of its own when
+its children come out empty. Keep it as markup, or write the `Image` by hand if the expression
+never is.
 
 On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
 the element converts only when its children are just that, and a class, an attribute, text or a

@@ -536,10 +536,19 @@ describe('plan', () => {
         ['as', 'figure'],
         ['size', '64x64'],
       ]);
-      // An <iframe>, or several children, is the same: they stay as written.
+      // An <iframe> is the same: it stays as written.
+      const iframe = { ...img({ src: 'v' }), tag: 'iframe' };
       expect(
-        plan(facts('figure', 'image is-16by9')).conversion?.className
+        plan(facts('figure', 'image is-16by9', {}, { soleChild: iframe }))
+          .conversion?.className
       ).toBe('is-16by9');
+    });
+
+    it("keeps it as markup around children it can't tell are never empty", () => {
+      // `{src && <img />}`: when it's falsy, Image renders its own <img>.
+      const { conversion, todos } = plan(facts('figure', 'image is-64x64'));
+      expect(conversion).toBeNull();
+      expect(todos.map(todo => todo.rule)).toEqual(['children:Image']);
     });
 
     it('keeps an empty .image as markup, since Image would render an <img>', () => {

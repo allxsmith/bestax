@@ -132,7 +132,14 @@ function renderBoth(
     createElement(
       sole.tag,
       {
-        ...(sole.tokens?.length ? { className: sole.tokens.join(' ') } : {}),
+        // An empty className renders `class=""`, and a computed one some class.
+        ...(sole.tokens?.length
+          ? { className: sole.tokens.join(' ') }
+          : sole.tokens === null
+            ? { className: 'computed' }
+            : sole.tokens
+              ? { className: '' }
+              : {}),
         ...soleAttributes,
       },
       soleChildren
@@ -626,7 +633,9 @@ describe.each(absorbing)(
         }
       }
       for (const [label, facts] of refusals) {
-        if (spec.elseWraps) {
+        // Around a written-out HTML element, that is. Anything else (no
+        // element, text, an expression) could leave it with no children.
+        if (spec.elseWraps && facts.soleChild) {
           // The target renders the child as given instead of absorbing it,
           // so the element converts around it.
           const both = renderBoth(facts, Object.fromEntries(facts.attributes));
@@ -654,6 +663,13 @@ describe.each(absorbing)(
           hasChildren: false,
         };
         expect(plan(empty).conversion).toBeNull();
+        // Nor around children that aren't elements written out: an
+        // expression can be falsy, and then the target renders its own child.
+        const expression = {
+          ...around([], undefined, {}),
+          soleChild: undefined,
+        };
+        expect(plan(expression).conversion).toBeNull();
       }
     });
 

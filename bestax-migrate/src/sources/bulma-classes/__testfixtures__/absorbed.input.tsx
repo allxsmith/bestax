@@ -59,6 +59,9 @@ export function Absorbed({
         />
       </figure>
       <figure className="image is-64x64" />
+      <figure className="image is-32x32">
+        {thumb && <img src={thumb} alt="" />}
+      </figure>
     </section>
   );
 }

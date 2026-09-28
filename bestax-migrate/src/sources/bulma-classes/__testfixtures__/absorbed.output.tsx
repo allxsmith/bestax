@@ -8,6 +8,7 @@ export function Absorbed({
 }) {
   // TODO(bestax-migrate): bestax `SelectBase` puts the attributes it is given on the <select> inside `.select`, so this element's `id` would move there; move it onto the <select> if that is what you want, then re-run
   // TODO(bestax-migrate): bestax `Image` renders its own <img> when it's given no children, so this empty element would gain one; keep it as markup
+  // TODO(bestax-migrate): bestax `Image` renders its own <img> when its children are empty, and it can't be told from here that these never are, so this converts only around HTML elements written out; keep it as markup
   return (
     <section>
       <SelectBase size="small" isFullwidth mb="3" id="plan" name="plan" onChange={onPick}>
@@ -57,6 +58,9 @@ export function Absorbed({
         />
       </Image>
       <figure className="image is-64x64" />
+      <figure className="image is-32x32">
+        {thumb && <img src={thumb} alt="" />}
+      </figure>
     </section>
   );
 }
