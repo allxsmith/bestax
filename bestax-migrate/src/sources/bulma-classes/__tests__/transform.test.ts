@@ -471,7 +471,12 @@ describe('a wrapper its component renders', () => {
   });
 
   it.each([
-    ['an attribute', '<div className="table-container" id="t">', table, 'attr'],
+    [
+      'an attribute',
+      '<div className="table-container" id="t">',
+      table,
+      'attr:id',
+    ],
     [
       'another class',
       '<div className="table-container mt-2">',
@@ -572,7 +577,7 @@ describe('an element a component renders inside itself', () => {
       'an attribute on the wrapper',
       '<div className="select" id="w">',
       '<select>',
-      'attr',
+      'attr:id',
     ],
     [
       'another class on the select',
@@ -674,7 +679,7 @@ describe('an element a component renders inside itself', () => {
         `export const A = () => (\n  ${nav}\n    ${list}\n      <li>x</li>\n    </ul>\n  </nav>\n);\n`
       ).rules;
     const nav = '<nav className="breadcrumb" aria-label="breadcrumbs">';
-    expect(crumb(nav, '<ul id="l">')).toEqual(['attr']);
+    expect(crumb(nav, '<ul id="l">')).toEqual(['attr:id']);
     expect(crumb(nav, '<ul className="mt-2">')).toEqual(['attr:className']);
     expect(crumb('<nav className="breadcrumb">', '<ul>')).toEqual([
       'defaults:Breadcrumb',
@@ -955,18 +960,23 @@ describe('menu list nesting', () => {
     ]) {
       const { output, rules } = nested(outer);
       expect(rules).toContain('context:Menu.List');
-      expect(output).toContain('<ul className="menu-list"><li><a>In</a>');
+      // Its items convert all the same: an item renders the same anywhere.
+      expect(output).toContain(
+        '<ul className="menu-list"><Menu.Item>In</Menu.Item></ul>'
+      );
     }
     const inside = nested(
       '<Menu.List><li>INNER</li></Menu.List>',
       'import { Menu } from "@allxsmith/bestax-bulma";\n'
     );
-    expect(inside.rules).toEqual(['context:Menu.List']);
+    // The item around it holds no link, so it stays markup too.
+    expect(inside.rules).toEqual(['children:Menu.Item', 'context:Menu.List']);
     // Around an existing Menu.List, which would lose its class instead.
     const around = migrate(
       'import { Menu } from "@allxsmith/bestax-bulma";\nexport const A = () => (\n  <ul className="menu-list"><li><a>Out</a><Menu.List><li><a>In</a></li></Menu.List></li></ul>\n);\n'
     );
-    expect(around.rules).toEqual(['context:Menu.List']);
+    // Its item holds a link beside a component, so it stays markup as well.
+    expect(around.rules).toEqual(['context:Menu.List', 'children:Menu.Item']);
     expect(around.output).toContain('<ul className="menu-list">');
   });
 
@@ -974,12 +984,13 @@ describe('menu list nesting', () => {
     const head =
       'import { MenuList as List } from "@allxsmith/bestax-bulma";\n';
     expect(nested('<List><li>INNER</li></List>', head).rules).toEqual([
+      'children:Menu.Item',
       'context:Menu.List',
     ]);
     const around = migrate(
       `${head}export const A = () => (\n  <ul className="menu-list"><li><a>Out</a><List><li><a>In</a></li></List></li></ul>\n);\n`
     );
-    expect(around.rules).toEqual(['context:Menu.List']);
+    expect(around.rules).toEqual(['context:Menu.List', 'children:Menu.Item']);
   });
 
   it('converts the outer list, which renders its class at the top level', () => {

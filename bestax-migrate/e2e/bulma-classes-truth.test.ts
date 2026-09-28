@@ -22,6 +22,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
+  PLACED,
   ROOTS,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
@@ -822,9 +823,238 @@ describe('wrappers', () => {
   });
 });
 
+/**
+ * An item of a list `PLACED` names, as written inside that list and as the
+ * codemod converts it: its `<li>`, the `<a>` its target renders, and a bare
+ * nested list the target renders after that.
+ */
+describe.each(Object.entries(PLACED))('an item of `.%s`', (list, entry) => {
+  const spec = entry.absorbs!;
+  const after = spec.after!;
+  const listEntry = ROOTS[list];
+  type Attributes = Record<string, string | number | true | null>;
+  interface Item {
+    tokens?: string[];
+    attributes?: Record<string, string | true>;
+    childTokens?: string[] | null;
+    childAttributes?: Attributes;
+    nested?: boolean;
+  }
+  const factsOf = (item: Item): ElementFacts => {
+    const child: ChildFacts = {
+      ...bare(spec.tag),
+      tokens: item.childTokens,
+      attributes: new Map(Object.entries(item.childAttributes ?? {})),
+      isEmpty: false,
+    };
+    const nested: ChildFacts = { ...bare(after.tag), isEmpty: false };
+    return {
+      ...factsFor(entry.tag!, item.tokens ?? [], item.attributes ?? {}),
+      itemOf: list,
+      childElements: item.nested ? [child, nested] : [child],
+      ...(!item.nested && { soleChild: child }),
+    };
+  };
+  /** The item inside its list, raw and converted, or null when it stays. */
+  const both = (item: Item): { raw: string; converted: string } | null => {
+    const result = plan(factsOf(item));
+    const conversion = result.conversion;
+    if (!conversion) return null;
+    const childAttributes = item.childAttributes ?? {};
+    const inner = (tag: string) =>
+      createElement(listEntry.tag!, null, createElement(tag, null, 'y'));
+    const raw = renderElement(
+      listEntry.tag!,
+      { className: list },
+      createElement(
+        entry.tag!,
+        {
+          ...(item.tokens ? { className: item.tokens.join(' ') } : {}),
+          ...item.attributes,
+        },
+        createElement(
+          spec.tag,
+          {
+            ...(item.childTokens
+              ? { className: item.childTokens.join(' ') }
+              : {}),
+            ...childAttributes,
+          },
+          'x'
+        ),
+        ...(item.nested ? [inner(entry.tag!)] : [])
+      )
+    );
+    const given = { ...(item.attributes ?? {}), ...childAttributes };
+    const props = Object.fromEntries(
+      [...conversion.props, ...(conversion.absorbs?.props ?? [])].map(
+        ([name, value]) => [name, value]
+      )
+    );
+    const converted = renderElement(
+      listEntry.target!,
+      null,
+      createElement(
+        conversion.target,
+        {
+          ...Object.fromEntries(
+            Object.entries(given).map(([name, value]) => [
+              name,
+              conversion.numbers.includes(name) ? Number(value) : value,
+            ])
+          ),
+          ...props,
+          ...(conversion.className ? { className: conversion.className } : {}),
+        },
+        'x',
+        ...(item.nested
+          ? [
+              createElement(
+                after.target,
+                null,
+                createElement(entry.tag!, null, 'y')
+              ),
+            ]
+          : [])
+      )
+    );
+    return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
+  };
+  const same = (item: Item, label: string) => {
+    const found = both(item);
+    expect({ label, converts: found !== null }).toEqual({
+      label,
+      converts: true,
+    });
+    expect({ label, html: found!.converted }).toEqual({
+      label,
+      html: found!.raw,
+    });
+  };
+
+  it('renders the same bare, with each class its link may carry, and nested', () => {
+    same({}, 'bare');
+    for (const token of Object.keys(spec.modifiers ?? {})) {
+      same({ childTokens: [token] }, token);
+    }
+    same({ nested: true }, 'with a nested list');
+  });
+
+  it('renders the same with each attribute where the target puts it', () => {
+    const onElement: Record<string, string | true> = {
+      id: 'x',
+      title: 'hint',
+      role: 'menuitem',
+      tabIndex: '0',
+      'data-testid': 'item',
+    };
+    expect(Object.keys(onElement).sort()).toEqual(
+      spec.elementProps!.filter(name => name !== 'style').sort()
+    );
+    for (const [name, value] of Object.entries(onElement)) {
+      same({ attributes: { [name]: value } }, name);
+    }
+    same({ tokens: ['my-item', 'has-text-danger'] }, 'classes of its own');
+    const onChild: Record<string, string | true> = {
+      href: '/x',
+      target: '_blank',
+      rel: 'noopener',
+      'aria-current': 'page',
+      'data-test': 'y',
+    };
+    for (const [name, value] of Object.entries(onChild)) {
+      same({ childAttributes: { [name]: value } }, name);
+    }
+    same(
+      {
+        attributes: onElement,
+        childTokens: ['is-active'],
+        childAttributes: onChild,
+        nested: true,
+      },
+      'all of them'
+    );
+  });
+
+  it('stays markup with anything the target would render elsewhere', () => {
+    const refusals: Array<[string, ElementFacts]> = [
+      ['an attribute of its own', factsOf({ attributes: { onClick: 'f' } })],
+      [
+        'a ref on the item',
+        { ...factsOf({ attributes: { ref: 'r' } }), hasRef: true },
+      ],
+      ...spec.elementProps!.map((name): [string, ElementFacts] => [
+        `\`${name}\` on the link`,
+        factsOf({ childAttributes: { [name]: 'x' } }),
+      ]),
+      ['a key on the link', factsOf({ childAttributes: { key: 'k' } })],
+      ['another class on the link', factsOf({ childTokens: ['my-link'] })],
+      [
+        'a helper class on the link',
+        factsOf({ childTokens: ['has-text-danger'] }),
+      ],
+      ['an empty class on the link', factsOf({ childTokens: [] })],
+      ['a computed class on the link', factsOf({ childTokens: null })],
+      [
+        'an empty link',
+        {
+          ...factsOf({}),
+          childElements: [bare(spec.tag)],
+          soleChild: bare(spec.tag),
+        },
+      ],
+      [
+        'no link',
+        { ...factsOf({}), childElements: undefined, soleChild: undefined },
+      ],
+      [
+        'another tag',
+        {
+          ...factsOf({}),
+          childElements: [{ ...bare('button'), isEmpty: false }],
+        },
+      ],
+      [
+        'a nested list with a class',
+        {
+          ...factsOf({ nested: true }),
+          childElements: [
+            factsOf({}).childElements![0],
+            { ...bare(after.tag), tokens: ['mt-2'], isEmpty: false },
+          ],
+        },
+      ],
+      [
+        'an empty nested list',
+        {
+          ...factsOf({ nested: true }),
+          childElements: [factsOf({}).childElements![0], bare(after.tag)],
+        },
+      ],
+      [
+        'two nested lists',
+        {
+          ...factsOf({ nested: true }),
+          childElements: [
+            ...factsOf({ nested: true }).childElements!,
+            { ...bare(after.tag), isEmpty: false },
+          ],
+        },
+      ],
+    ];
+    for (const [label, facts] of refusals) {
+      expect({ label, conversion: plan(facts).conversion }).toEqual({
+        label,
+        conversion: null,
+      });
+    }
+  });
+});
+
 describe("the table's claims about the library", () => {
   const targets = [
     ...mapped.map(([, entry]) => entry.target!),
+    ...Object.values(PLACED).map(entry => entry.target!),
     ...Object.values(WRAPPERS),
   ];
 
@@ -856,10 +1086,12 @@ describe("the table's claims about the library", () => {
       }
     }
     const classified = new Map<string, string[]>([
-      ...mapped.map(([, entry]): [string, string[]] => [
-        entry.target!,
-        [...(entry.ownProps ?? []), ...(entry.passThrough ?? [])],
-      ]),
+      ...[...mapped.map(([, entry]) => entry), ...Object.values(PLACED)].map(
+        (entry): [string, string[]] => [
+          entry.target!,
+          [...(entry.ownProps ?? []), ...(entry.passThrough ?? [])],
+        ]
+      ),
       ...Object.entries(WRAPPER_OWN_PROPS).map(
         ([target, props]): [string, string[]] => [target, [...props]]
       ),

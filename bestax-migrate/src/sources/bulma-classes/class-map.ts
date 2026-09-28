@@ -63,9 +63,25 @@ export interface Absorbs {
    * Where the target puts the attributes it is given. On the child
    * (`SelectBase`): the child's become the target's, and the element may
    * carry none but a `key`. On the element (`Breadcrumb`): the element's
-   * stay, and the child may carry none.
+   * stay, and the child may carry none. Split (`Menu.Item`): the ones in
+   * `elementProps` go on the element and the rest on the child, so each may
+   * carry only its own share.
    */
-  readonly attributesOn: 'child' | 'element';
+  readonly attributesOn: 'child' | 'element' | 'split';
+  /**
+   * With the attributes split: the ones the target puts on the element. The
+   * element's `key` stays with the component in its place.
+   */
+  readonly elementProps?: readonly string[];
+  /**
+   * An element the target renders after the child, from among its children
+   * (`Menu.Item`'s nested list, a `Menu.List`). The element converts beside
+   * one of these after the child, bare, and nothing else: it becomes
+   * `target` and moves in after the child's children. That target renders no
+   * class of its own only inside another one, so the element converts with
+   * it only inside one too.
+   */
+  readonly after?: { readonly tag: string; readonly target: string };
   /**
    * With the attributes on the element: the child's that the target takes as
    * props of its own and writes back on the child (`Image`'s `src` and `alt`).
@@ -1602,7 +1618,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ],
   },
   // `Menu`, `Menu.Label` and `Menu.List` take every helper prop, `color` and
-  // `backgroundColor` included. The items inside a list stay markup.
+  // `backgroundColor` included. The items inside a list carry no class, so
+  // `PLACED` finds them by where they sit.
   menu: {
     ...BASE,
     target: 'Menu',
@@ -1633,7 +1650,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
   'menu-item': todo(
     'Menu.Item',
-    'bestax `Menu.Item` renders the `<li>` and the `<a>` together'
+    'bestax `Menu.Item` renders the element inside its `<li>` with no class but `is-active`'
   ),
   message: todo(
     'Message',
@@ -1752,6 +1769,35 @@ function plain(why: string): RootEntry {
 }
 
 /**
+ * Elements found by where they sit rather than by a class, keyed by the root
+ * of the list around them: a `<li>` whose nearest element is a `.menu-list`,
+ * a `Menu.List`, or the bare `<ul>` nested in one of its items.
+ */
+export const PLACED: Readonly<Record<string, RootEntry>> = {
+  // `Menu.Item` renders the `<li>` and the `<a>` inside it together. Its
+  // helper props go on the `<a>`, so the `<li>`'s classes all stay classes.
+  'menu-list': {
+    ...BASE,
+    target: 'Menu.Item',
+    tag: 'li',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    requiresChildren: true,
+    absorbs: {
+      tag: 'a',
+      attributesOn: 'split',
+      elementProps: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
+      modifiers: flags({ 'is-active': 'active' }),
+      after: { tag: 'ul', target: 'Menu.List' },
+    },
+    numberAttrs: ['tabIndex'],
+    ownProps: ['as', 'active'],
+    passThrough: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
+  },
+};
+
+/**
  * Which root wins when an element carries two (`column box`): layout before
  * surface, so the element keeps the role that decides where it sits. The
  * other root stays in `className`, which renders the same either way.
@@ -1818,6 +1864,7 @@ export const PRECEDENCE: readonly string[] = [
 export const FORWARDS_REF: readonly string[] = [
   'Button',
   'Link',
+  'Menu.Item',
   'Navbar',
   'Navbar.Item',
   'Control',
@@ -2145,6 +2192,11 @@ function own<T>(
 /** The table's entry for a class. */
 export function rootFor(token: string): RootEntry | undefined {
   return own(ROOTS, token);
+}
+
+/** The entry for an element found by the root of the list around it. */
+export function placedFor(list: string): RootEntry | undefined {
+  return own(PLACED, list);
 }
 
 /**

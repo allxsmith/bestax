@@ -116,11 +116,39 @@ own. `Field` and `Control` tell bestax's form controls inside them to skip their
 `context:<Target>` TODO, and so does an input with no `id` inside a bestax `Field` or any other
 component, which could hand it a labelled Field's generated one.
 
-A `.menu` converts with its `.menu-label`s and `.menu-list`s, and the `<li>`s and `<a>`s inside a
-list don't become `Menu.Item`s, since `Menu.Item` renders the `<li>` and its `<a>` together (a
-`.menu-item` gets a `family:menu-item` TODO). `Menu.List` drops `.menu-list` on a list inside
-another, so a `.menu-list` inside another, or around a bestax `Menu.List`, stays markup with a
-`context:Menu.List` TODO.
+A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
+item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest
+element is a `.menu-list`, a bestax `Menu.List`, or the bare `<ul>` nested in one of those items,
+so the `<li>`s a `.map()` renders count too. `Menu.Item` renders the `<li>` and its `<a>`
+together, so an item converts when its `<li>` holds one `<a>` and at most one bare `<ul>` after
+it, which becomes a `Menu.List`. `is-active` on the `<a>` becomes `active`, and the `<li>`'s own
+classes stay in `className`, which `Menu.Item` puts on the `<li>`. It puts `id`, `title`, `role`,
+`tabIndex`, `style` and `data-testid` there too, and everything else on the `<a>`, so an item
+converts only when its attributes already sit that way. A `.menu-item` gets a
+`family:menu-item` TODO. `Menu.List` drops `.menu-list` on a list inside another, so a
+`.menu-list` inside another, or around a bestax `Menu.List`, stays markup with a
+`context:Menu.List` TODO, and an item's nested list converts only inside a list that is a
+`Menu.List` or becomes one.
+
+```tsx
+<ul className="menu-list">
+  <li>
+    <a className="is-active" href="/team">Team</a>
+    <ul>
+      <li><a href="/team/members">Members</a></li>
+    </ul>
+  </li>
+</ul>
+// becomes
+<Menu.List>
+  <Menu.Item active href="/team">
+    Team
+    <Menu.List>
+      <Menu.Item href="/team/members">Members</Menu.Item>
+    </Menu.List>
+  </Menu.Item>
+</Menu.List>
+```
 
 ## Plain tags with helper classes
 
@@ -196,7 +224,7 @@ inside one of them, or anything else beside them, keeps the element as markup wi
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, Icon and IconText, the menu's items, Message, Modal, the navbar's burger
+Checkboxes, Dropdown, File, Icon and IconText, the menu's `.menu-item`, Message, Modal, the navbar's burger
 and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
 
 ## Classes left alone

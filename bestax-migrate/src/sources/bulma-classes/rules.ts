@@ -14,6 +14,7 @@
 import {
   HELPER_PROPS,
   LEGACY_09,
+  PLACED,
   ROOTS,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
@@ -37,7 +38,7 @@ export const KINDS: ReadonlySet<string> = new Set([
 const VOCABULARY: ReadonlySet<string> = new Set([
   ...Object.keys(ROOTS),
   ...Object.keys(LEGACY_09),
-  ...Object.values(ROOTS).flatMap(entry => [
+  ...[...Object.values(ROOTS), ...Object.values(PLACED)].flatMap(entry => [
     ...(entry.target ? [entry.target] : []),
     ...(entry.ownProps ?? []),
     ...(entry.passThrough ?? []),

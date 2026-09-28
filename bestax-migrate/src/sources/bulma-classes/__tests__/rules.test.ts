@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { HELPER_PROPS, ROOTS, type RootEntry } from '../class-map.js';
+import { HELPER_PROPS, PLACED, ROOTS, type RootEntry } from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 import { inVocabulary, KINDS, ruleId } from '../rules.js';
 
@@ -168,6 +168,55 @@ describe('every refusal the planner can produce', () => {
             ]),
           })
         );
+      }
+    }
+    // An item of a list, with the element it holds and one after that.
+    for (const [list, entry] of Object.entries(PLACED)) {
+      const spec = entry.absorbs!;
+      const after = spec.after!;
+      const child = (extra: Partial<ChildFacts> = {}): ChildFacts => ({
+        tag: spec.tag,
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: false,
+        ...extra,
+      });
+      const nested: ChildFacts = { ...child(), tag: after.tag };
+      const item = (
+        attributes: Array<[string, string | true | null]>,
+        children: ChildFacts[] | undefined,
+        extra: Partial<ElementFacts> = {}
+      ) =>
+        facts(entry.tag!, [], attributes, {
+          itemOf: list,
+          childElements: children,
+          ...extra,
+        });
+      const names = new Set([
+        ...(entry.ownProps ?? []),
+        ...(entry.passThrough ?? []),
+        ...(entry.numberAttrs ?? []),
+        ...HELPER_PROPS,
+        'ref',
+        'key',
+      ]);
+      collect(item([], undefined));
+      collect(item([], [child({ tag: 'button' })]));
+      collect(item([], [child(), nested, nested]));
+      collect(item([], [child(), { ...nested, tokens: ['box'] }]));
+      collect(item([], [child(), { ...nested, isEmpty: true }]));
+      collect(item([], [child({ isEmpty: true })]));
+      collect(item([], [child({ hasSpread: true })]));
+      collect(item([], [child({ tokens: null })]));
+      collect(item([], [child({ tokens: [] })]));
+      collect(item([], [child({ tokens: ['box'] })]));
+      collect(item([], [child()], { hasSpread: true }));
+      collect(item([['ref', null]], [child()], { hasRef: true }));
+      for (const name of names) {
+        for (const value of values) {
+          collect(item([[name, value]], [child()]));
+          collect(item([], [child({ attributes: new Map([[name, value]]) })]));
+        }
       }
     }
     for (const token of ['tile', 'toString', 'constructor', '__proto__']) {
