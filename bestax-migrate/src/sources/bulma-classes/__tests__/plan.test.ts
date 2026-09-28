@@ -664,6 +664,19 @@ describe('plan', () => {
     });
   });
 
+  it('writes a tabIndex string as the number every target types it as', () => {
+    expect(
+      plan(facts('div', 'box', { tabIndex: '0' })).conversion?.numbers
+    ).toEqual(['tabIndex']);
+    expect(
+      plan(facts('div', 'box', { tabIndex: '00' })).todos.map(t => t.rule)
+    ).toEqual(['attr:tabIndex']);
+    // An expression is carried over as written.
+    expect(
+      plan(facts('div', 'box', { tabIndex: null })).conversion?.numbers
+    ).toEqual([]);
+  });
+
   describe('Menu', () => {
     it('converts the root, its labels and a top-level list', () => {
       expect(plan(facts('aside', 'menu mt-4')).conversion).toMatchObject({

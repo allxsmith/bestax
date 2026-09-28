@@ -17,6 +17,7 @@ import {
   inTagSet,
   legacyHint,
   modifierFor,
+  numberAttrsOf,
   placedFor,
   PRECEDENCE,
   rootFor,
@@ -394,7 +395,7 @@ export function plan(facts: ElementFacts): Plan {
     );
   }
   const numbers: string[] = [];
-  for (const name of entry.numberAttrs ?? []) {
+  for (const name of numberAttrsOf(entry)) {
     const value = attributes.get(name);
     if (typeof value !== 'string') continue;
     // Only a string that is already the number's own spelling: `040`, `1.50`

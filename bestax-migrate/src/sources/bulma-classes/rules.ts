@@ -14,6 +14,7 @@
 import {
   HELPER_PROPS,
   LEGACY_09,
+  NUMBER_ATTRS,
   PLACED,
   ROOTS,
   WRAPPERS,
@@ -51,6 +52,7 @@ const VOCABULARY: ReadonlySet<string> = new Set([
   ...Object.values(WRAPPERS),
   ...Object.values(WRAPPER_OWN_PROPS).flat(),
   ...HELPER_PROPS,
+  ...NUMBER_ATTRS,
   // Refused on every target, so no entry lists them.
   'dangerouslySetInnerHTML',
   'children',
