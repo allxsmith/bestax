@@ -592,6 +592,16 @@ describe('Pagination from total', () => {
     ]);
   });
 
+  it('reads a current page that is no number as the first', () => {
+    const onPageChange = jest.fn();
+    const { container } = render(
+      <Pagination total={3} current={Number.NaN} onPageChange={onPageChange} />
+    );
+    expect(row(container)).toBe('1* 2 3');
+    fireEvent.click(container.querySelector('.pagination-next')!);
+    expect(onPageChange).toHaveBeenCalledWith(2);
+  });
+
   it('reads a count that is no number as its default', () => {
     const { container } = render(
       <Pagination

@@ -280,8 +280,9 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   let content: React.ReactNode = children;
   if (fromTotal) {
     const pages = Number.isFinite(total) ? Math.max(Math.floor(total), 0) : 0;
+    // A current page that's no number reads as the first.
     const page = Math.min(
-      Math.max(Math.floor(current ?? kept), 1),
+      Math.max(whole(current ?? kept, 1), 1),
       Math.max(pages, 1)
     );
     const choose = (next: number) => {
