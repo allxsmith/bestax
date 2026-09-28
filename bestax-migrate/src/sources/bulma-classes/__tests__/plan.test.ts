@@ -532,6 +532,10 @@ describe('plan', () => {
           todos: [],
         });
       }
+      // Any other tag still gets the usual TODO.
+      expect(
+        plan(facts('span', 'panel-block')).todos.map(todo => todo.rule)
+      ).toEqual(['tag:Panel.Block']);
     });
   });
 

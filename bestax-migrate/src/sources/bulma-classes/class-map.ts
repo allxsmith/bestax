@@ -182,11 +182,14 @@ export interface RootEntry {
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
-   * On a tag the target doesn't render, the element is valid Bulma that
-   * bestax renders some other way, so it stays markup with no `tag` TODO. The
-   * reason is for the MCP lookup.
+   * Tags the target doesn't render, on which the element is valid Bulma that
+   * bestax renders some other way, so it stays markup with no `tag` TODO
+   * there. Any other tag still gets one. The reason is for the MCP lookup.
    */
-  readonly otherTagsStay?: string;
+  readonly otherTagsStay?: {
+    readonly tags: readonly string[];
+    readonly why: string;
+  };
   /**
    * Attributes the target types as numbers, among the ones it is given (the
    * child's, when it `absorbs` the child and puts them there). A numeric
@@ -1719,8 +1722,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     bgColor: null,
     noHelpers: true,
     modifiers: flags({ 'is-active': 'active' }),
-    otherTagsStay:
-      'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
+    otherTagsStay: {
+      tags: ['label', 'div'],
+      why: 'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
+    },
     ownProps: ['active'],
   },
   'panel-icon': todo(

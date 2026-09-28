@@ -17,7 +17,9 @@ test holds it to that table. Render tests hold the table to the library itself.
 ## Components
 
 The **Tags** column is what the codemod converts the class on: an element on any other tag gets
-a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more.
+a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more. One exception:
+a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax renders those as
+`Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own contents.
 
 | Bulma class          | bestax-bulma          | Tags                                                           |
 | -------------------- | --------------------- | -------------------------------------------------------------- |
