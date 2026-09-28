@@ -1,3 +1,21 @@
+## [1.1.6](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.5...@allxsmith/eslint-plugin-bestax@1.1.6) (2026-09-28)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say an .image converts around elements written out, not an expression ([49bb27b](https://github.com/allxsmith/bestax/commit/49bb27bb34c345bc9780e9dedef01c2bfb6fc22b))
+* **bestax-migrate:** convert an .image around its children only when they're elements ([ff99907](https://github.com/allxsmith/bestax/commit/ff99907ce1ee7dd0a9f4f0c6da51bcf6ac566f9a))
+* **bestax-migrate:** keep a Modal part as markup inside an existing bestax Modal ([cfd5f15](https://github.com/allxsmith/bestax/commit/cfd5f1566dbf9b794375ce24ebcb9239d383a39b))
+* **eslint-plugin:** report Modal's parts with the message for a class the codemod converts ([87f3c08](https://github.com/allxsmith/bestax/commit/87f3c08aeca1f6c99921aa0b11ee9fd69584ccea))
+
+
+### Features
+
+* **bestax-mcp:** look up Modal's parts as components ([b71583a](https://github.com/allxsmith/bestax/commit/b71583a058f9fc5fe830fe0290bbfb1fa058d1ab))
+* **bestax-mcp:** say an .image converts around anything but a bare <img> ([60e9219](https://github.com/allxsmith/bestax/commit/60e92190a0b067635592cbc9b8e190e499f25925))
+* **bestax-migrate:** convert an .image around anything but a bare <img> ([0a31c5b](https://github.com/allxsmith/bestax/commit/0a31c5b46834a4f1cbe4cb5155da65053852e382)), closes [#801](https://github.com/allxsmith/bestax/issues/801)
+* **bestax-migrate:** convert Modal's parts element by element ([4d41ad2](https://github.com/allxsmith/bestax/commit/4d41ad22de93a6515da99bb057adcfe8b4e8d146)), closes [#805](https://github.com/allxsmith/bestax/issues/805)
+
 ## [1.1.5](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.4...@allxsmith/eslint-plugin-bestax@1.1.5) (2026-09-27)
 
 
