@@ -22,6 +22,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
+  numberAttrsOf,
   PLACED,
   ROOTS,
   WRAPPERS,
@@ -283,6 +284,8 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     const candidates = [
       [root],
       ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
+      // A class left out on purpose stays in `className`, beside the rest.
+      ...Object.keys(entry.omits ?? {}).map(token => [root, token]),
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),
     ];
     const onTag = defaultsFor(entry, tag);
@@ -321,7 +324,7 @@ describe.each(mapped)('`.%s`', (root, entry) => {
       );
       for (const name of typed) {
         // One the target types as a number gets another number.
-        const other = entry.numberAttrs?.includes(name) ? '-1' : 'other';
+        const other = numberAttrsOf(entry).includes(name) ? '-1' : 'other';
         const given = { ...defaultsFor(entry, entry.tag!), [name]: other };
         const both = renderBoth(
           factsFor(entry.tag!, [root], given, child),
@@ -1280,8 +1283,11 @@ describe('a seeded fuzz through the planner', () => {
     ['rel', 'noopener'],
     ['download', true],
     ['value', '40'],
+    ['tabIndex', '0'],
+    ['tabIndex', '-1'],
     // Numeric, but not spelled the way a number renders: these must refuse.
     ['value', '040'],
+    ['tabIndex', '00'],
     ['max', '1.50'],
     ['formAction', '/submit'],
   ];
