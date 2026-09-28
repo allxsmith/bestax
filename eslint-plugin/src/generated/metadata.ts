@@ -270,6 +270,13 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['menu', { component: 'Menu', converts: true }],
     ['menu-label', { component: 'Menu.Label', converts: true }],
     ['menu-list', { component: 'Menu.List', converts: true }],
+    ['modal-background', { component: 'Modal.Background', converts: true }],
+    ['modal-content', { component: 'Modal.Content', converts: true }],
+    ['modal-card', { component: 'Modal.Card', converts: true }],
+    ['modal-card-head', { component: 'Modal.Card.Head', converts: true }],
+    ['modal-card-title', { component: 'Modal.Card.Title', converts: true }],
+    ['modal-card-body', { component: 'Modal.Card.Body', converts: true }],
+    ['modal-card-foot', { component: 'Modal.Card.Foot', converts: true }],
     ['pagination', { component: 'Pagination', converts: true }],
     ['pagination-list', { component: 'Pagination.List', converts: true }],
     [

@@ -171,12 +171,16 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
 on `Breadcrumb`, `Hero`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`,
 `Control`, `InputBase`, `TextAreaBase`, `SelectBase`, `Progress`, `Skeleton`, `Tag`, `Tags`,
-`Pagination.Previous` and `Pagination.Next`; `has-background-*` on `Breadcrumb`, `Navbar.Brand`,
-`Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`,
-`Field.Body`, `Control`, `Notification`, `Progress`, `Skeleton`, `Table`, `Tags`, `Pagination.Previous`
-and `Pagination.Next`. `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`,
-`Skeleton`, `Pagination.Previous` and `Pagination.Next` take no helper props the way the codemod
-needs, so every helper class on them stays.
+`Modal.Background`, `Modal.Content`, `Modal.Card`, `Modal.Card.Head`, `Modal.Card.Title`,
+`Modal.Card.Body`, `Modal.Card.Foot`, `Pagination.Previous` and `Pagination.Next`;
+`has-background-*` on `Breadcrumb`, `Navbar.Brand`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`,
+`Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Notification`,
+`Progress`, `Skeleton`, `Table`, `Tags`, `Modal.Background`, `Modal.Content`, `Modal.Card`,
+`Modal.Card.Head`, `Modal.Card.Title`, `Modal.Card.Body`, `Modal.Card.Foot`,
+`Pagination.Previous` and `Pagination.Next`. `Navbar.DropdownMenu`, `Navbar.Divider`,
+`Field.Label`, `Field.Body`, `Control`, `Skeleton`, Modal's parts, `Pagination.Previous` and
+`Pagination.Next` take no helper props the way the codemod needs, so every helper class on them
+stays.
 
 Some classes stay put because of how bestax renders them:
 
