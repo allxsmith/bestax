@@ -4,7 +4,7 @@
  * which elements convert, which refuse, and what they say.
  */
 
-import { plan, type ElementFacts } from '../plan.js';
+import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 
 function facts(
   tag: string,
@@ -698,10 +698,110 @@ describe('plan', () => {
       ).toBe('Menu.List');
     });
 
-    it('leaves a menu item to a person', () => {
+    it('leaves a `.menu-item` to a person', () => {
       expect(plan(facts('a', 'menu-item')).todos.map(t => t.rule)).toEqual([
         'family:menu-item',
       ]);
+    });
+
+    describe('an item of a list', () => {
+      const link = (extra: Partial<ChildFacts> = {}): ChildFacts => ({
+        tag: 'a',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: false,
+        ...extra,
+      });
+      const nested: ChildFacts = { ...link(), tag: 'ul' };
+      const item = (
+        className: string,
+        attributes: Record<string, string | true | null>,
+        children: ChildFacts[] | undefined
+      ) =>
+        plan(
+          facts('li', className, attributes, {
+            itemOf: 'menu-list',
+            childElements: children,
+          })
+        );
+      const rules = (result: ReturnType<typeof plan>) =>
+        result.todos.map(todo => todo.rule);
+
+      it('converts the <li> and its <a> together, with a nested list after', () => {
+        expect(
+          item('my-item mt-2', { key: null, tabIndex: '0' }, [
+            link({
+              tokens: ['is-active'],
+              attributes: new Map([['href', '/team']]),
+            }),
+            nested,
+          ]).conversion
+        ).toEqual({
+          target: 'Menu.Item',
+          props: [],
+          // The <li>'s classes stay, even a helper: Menu.Item puts its
+          // helper props on the <a>.
+          className: 'my-item mt-2',
+          drop: [],
+          numbers: ['tabIndex'],
+          absorbs: {
+            props: [['active', true]],
+            renames: [],
+            drop: [],
+            after: 'Menu.List',
+          },
+        });
+      });
+
+      it('keeps it as markup with an empty class, which it would lose', () => {
+        expect(
+          rules(
+            plan(
+              facts(
+                'li',
+                '',
+                {},
+                {
+                  itemOf: 'menu-list',
+                  childElements: [link()],
+                  emptyClass: true,
+                }
+              )
+            )
+          )
+        ).toEqual(['attr:className']);
+      });
+
+      it('keeps it as markup when an attribute would move', () => {
+        expect(rules(item('', { onClick: null }, [link()]))).toEqual([
+          'attr:onClick',
+        ]);
+        expect(
+          rules(item('', {}, [link({ attributes: new Map([['title', 'x']]) })]))
+        ).toEqual(['attr:title']);
+        expect(
+          rules(item('', {}, [link({ attributes: new Map([['key', 'k']]) })]))
+        ).toEqual(['attr:key']);
+      });
+
+      it('keeps it as markup around anything but one <a> and a bare list', () => {
+        expect(rules(item('', {}, undefined))).toEqual(['children:Menu.Item']);
+        expect(rules(item('', {}, [link({ tag: 'button' })]))).toEqual([
+          'children:Menu.Item',
+        ]);
+        expect(rules(item('', {}, [link(), nested, nested]))).toEqual([
+          'children:Menu.Item',
+        ]);
+        expect(
+          rules(item('', {}, [link(), { ...nested, tokens: ['menu-list'] }]))
+        ).toEqual(['children:Menu.List']);
+        expect(rules(item('', {}, [link({ isEmpty: true })]))).toEqual([
+          'children:Menu.Item',
+        ]);
+        expect(
+          rules(item('', {}, [link({ tokens: ['is-selected'] })]))
+        ).toEqual(['attr:className']);
+      });
     });
   });
 

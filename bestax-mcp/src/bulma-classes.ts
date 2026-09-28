@@ -69,6 +69,23 @@ export interface RootRecord {
    * each a bare, empty `<tag>`.
    */
   countsChildren: Counts | null;
+  /** What each item in a list with this class becomes, found by where it sits. */
+  items: Items | null;
+}
+
+export interface Items {
+  /** The component each item becomes. */
+  target: string;
+  /** The item's tag. */
+  tag: string;
+  /** The element inside the item that the component renders itself. */
+  child: string;
+  /** The attributes the component puts on the item; the rest go on `child`. */
+  itemProps: string[];
+  /** The child's classes, as the component's props. */
+  modifiers: Record<string, Modifier>;
+  /** A list after the child that the component renders, as `target`. */
+  after: { tag: string; target: string } | null;
 }
 
 export interface Counts {
@@ -151,6 +168,8 @@ export type Element =
       counts?: Counts;
       /** Renders this class only when no other of itself is around it. */
       topLevel?: string;
+      /** What each item inside it becomes. */
+      items?: Items;
     }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
@@ -394,6 +413,7 @@ export function lookupClasses(
       absorbs: null,
       writes: null,
       countsChildren: null,
+      items: null,
     };
   }
   const target = entry.target;
@@ -576,6 +596,7 @@ export function lookupClasses(
     writes: entry.writes ?? undefined,
     counts: entry.countsChildren ?? undefined,
     topLevel: entry.topLevelOnly && root ? root : undefined,
+    items: entry.items ?? undefined,
   };
   if (!tag) {
     return result({
@@ -587,6 +608,34 @@ export function lookupClasses(
   }
   if (renders === tag) return result({ kind: 'component', target, ...about });
   return result({ kind: 'component', target, as: tag, ...about });
+}
+
+/** What the items inside a list become, when they convert by where they sit. */
+function itemsText(items: Items): string {
+  const child = `<${items.child}>`;
+  const item = `<${items.tag}>`;
+  const modifiers = Object.entries(items.modifiers).map(
+    ([token, modifier]) =>
+      `\`${token}\` on the ${child} becomes ${modifier.writes.map(writeText).join(' ')}`
+  );
+  const onItem = ['className', ...items.itemProps].map(name => `\`${name}\``);
+  const after = items.after
+    ? `, at most one bare <${items.after.tag}> after it, which becomes a ` +
+      `\`${items.after.target}\` after the ${child}'s children,`
+    : '';
+  return (
+    ` Each ${item} in it holding ${/^[aeiou]/.test(items.child) ? 'an' : 'a'} ${child}` +
+    `${after} and nothing else becomes a \`${items.target}\`, written in the ` +
+    `${item}'s place around the ${child}'s children.` +
+    (modifiers.length > 0 ? ` ${capitalised(modifiers.join(', '))}.` : '') +
+    ` \`${items.target}\` puts ${onItem.slice(0, -1).join(', ')} and ${onItem[onItem.length - 1]} ` +
+    `on the ${item} and everything else on the ${child}, so an item converts ` +
+    `only when its attributes already sit that way.`
+  );
+}
+
+function capitalised(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /** What converting a component that renders the element inside it means. */
@@ -697,7 +746,8 @@ export function renderLookup(lookup: Lookup): string {
               `\`${element.target}\` is around it, so one inside another ` +
               `\`.${element.topLevel}\`, or around a \`${element.target}\`, ` +
               `stays markup.`
-            : '')
+            : '') +
+          (element.items ? itemsText(element.items) : '')
       );
       break;
     }

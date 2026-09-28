@@ -101,7 +101,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `<select>`) converts together with it, written in the child's place, and one that
   `countsChildren` (`.skeleton-lines`) writes their count and drops them; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
-  before their parents), `rules.ts` (rule ids from a closed
+  before their parents; and an element with no class to go by, a menu list's `<li>`, is found
+  by the list around it and planned as the `PLACED` entry for that list), `rules.ts` (rule ids from a closed
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, and which render JSX through a runtime other than React, read once per run from

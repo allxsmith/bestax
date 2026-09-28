@@ -485,6 +485,24 @@ async function json(value) {
  * Only what a lookup reports goes into the index. What decides whether a
  * whole element converts (attributes, refs, spreads) stays the codemod's.
  */
+/**
+ * What the items of a list with this root become, when the table finds them
+ * by where they sit (`PLACED`): the element each item holds, and where its
+ * attributes go.
+ */
+function itemsOf(placed, token) {
+  if (!placed || !Object.hasOwn(placed, token)) return null;
+  const entry = placed[token];
+  return {
+    target: entry.target,
+    tag: entry.tag,
+    child: entry.absorbs.tag,
+    itemProps: entry.absorbs.elementProps ?? [],
+    modifiers: entry.absorbs.modifiers ?? {},
+    after: entry.absorbs.after ?? null,
+  };
+}
+
 export async function bulmaClassTable() {
   let map;
   try {
@@ -519,6 +537,7 @@ export async function bulmaClassTable() {
         noHelpers: entry.noHelpers ?? false,
         otherTagsStay: entry.otherTagsStay ?? null,
         topLevelOnly: entry.topLevelOnly ?? false,
+        items: itemsOf(map.PLACED, token),
       },
     ])
   );

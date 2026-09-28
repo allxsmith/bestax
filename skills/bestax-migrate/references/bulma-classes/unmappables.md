@@ -56,6 +56,16 @@ beside it, as a number written out (`size={4}`): `SelectBase` writes it back onl
 number, which the codemod can't tell of an expression. `Breadcrumb` renders its `<ul>` bare, so an attribute or class on the `<ul>` keeps
 both as markup.
 
+On a menu item it's where each attribute lands. `Menu.Item` puts `className`, `id`, `title`,
+`role`, `tabIndex`, `style` and `data-testid` on the `<li>`, and everything else on the `<a>`, so
+an item converts only when its attributes already sit that way: an `onClick` on the `<li>`, or a
+`title` or a `key` on the `<a>`, keeps it as markup. A `ref` on the `<a>` converts, since
+`Menu.Item` forwards it there, and one on the `<li>` doesn't. The `<a>` takes no class but
+`is-active`, since the item's `className` goes on the `<li>`, so any other class on it, or an
+empty one, keeps the item as markup too, and so does an empty `className` on the `<li>`, since
+nothing is left to render its `class=""`. Move the attribute to where `Menu.Item` puts it if
+that's what you want, then re-run.
+
 ### `defaults:<Target>`
 
 The component renders attributes of its own when the element doesn't set them. `Delete`
@@ -118,6 +128,14 @@ or when what's inside is an expression or text, since `Image` renders an `<img>`
 its children come out empty. Keep it as markup, or write the `Image` by hand if the expression
 never is.
 
+A menu item is the same from the `<li>`'s side: `Menu.Item` renders the `<a>` inside it, and a
+`Menu.List` after that, so an item converts only when its `<li>` holds one `<a>` and at most one
+`<ul>` after it, with nothing else beside them. Text or a comment beside the `<a>` keeps it as
+markup, and so does a router link or a `<button>` in its place: write a router link by hand as
+`<Menu.Item as={Link}>`. The nested `<ul>` converts only bare (no class, no attributes) and
+holding its items, as Bulma nests one, and the `<a>` has to hold something, since `Menu.Item`
+requires children.
+
 On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
 the element converts only when its children are just that, and a class, an attribute, text or a
 comment in one of them, or anything else beside them, keeps it as markup. Keep it if the
@@ -160,6 +178,13 @@ lose the class once the outer one converts. Only the elements in the same file c
 a `.menu-list` another component renders inside a `Menu.List` would lose the class, so check a
 menu split across components after the run.
 
+A menu item with a nested list is the same rule from inside: its nested `<ul>` becomes a
+`Menu.List`, which renders `.menu-list` unless another `Menu.List` is around it. So the item
+converts only inside a list that is a `Menu.List` already or becomes one in the same run, and an
+item inside a `.menu-list` that stays markup (one that spreads props, say) keeps its nested list,
+and itself, as markup with a `context:Menu.Item` TODO. An item with no nested list renders the
+same anywhere, so it converts either way.
+
 ### `only-child:<Target>`
 
 The element is the only child of another component (`<Link href="/x"><a className="button">`),
@@ -197,8 +222,9 @@ turning each condition into the prop:
 
 The classes in a computed `className` still count for every other rule: a `clsx('box')` on a
 `<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`. A computed
-`className` on the `<select>` inside a `.select`, or the `<ul>` inside a `.breadcrumb`, gets this
-TODO too.
+`className` on the `<select>` inside a `.select`, the `<ul>` inside a `.breadcrumb` or the `<a>`
+in a menu item gets this TODO too. For the `<a>`, a condition on `is-active` is `Menu.Item`'s
+`active`: `<a className={on ? 'is-active' : undefined}>` becomes `<Menu.Item active={on}>`.
 
 ## A family it leaves as markup: `family:<class>`
 
@@ -232,12 +258,11 @@ in the browser:
 - **`family:icon-text`**: `IconText` builds its icon from `iconProps` and wraps its text in a
   `<span>`, so rebuild it from its docs. The `.icon`s inside convert on their own. See the
   `bestax-icons` skill for `Icon`'s library and name props.
-- **`family:menu-item`**: `Menu.Item` renders the `<li>` and the `<a>` together, so the codemod
-  converts `.menu`, `.menu-label` and `.menu-list` and doesn't turn the items inside into
-  `Menu.Item`s. To convert one by hand, write `<Menu.Item>` in place of the `<li>` and its `<a>`,
-  with the `<a>`'s content inside and a nested list as a `Menu.List` after it. `is-active` on the
-  `<a>` becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style`
-  and `data-testid` on the `<li>`, and everything else, helper props included, on the `<a>`.
+- **`family:menu-item`**: Bulma styles an item as `.menu-list a`, `.menu-list button` or
+  `.menu-list .menu-item`, the last for an item on any other tag. `Menu.Item` renders the element
+  inside its `<li>` with no class but `is-active`, and puts its `className` on the `<li>`, so the
+  class has nowhere to go. On an `<a>` inside a `.menu-list` it adds nothing, so drop it and
+  re-run, and the item can convert. On any other tag, keep the markup.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:pagination-link`**, **`family:pagination-ellipsis`**: `Pagination.Link` and
   `Pagination.Ellipsis` render their own `<li>` around the element (and the ellipsis its own

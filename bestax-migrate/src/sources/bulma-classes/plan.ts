@@ -17,6 +17,7 @@ import {
   inTagSet,
   legacyHint,
   modifierFor,
+  placedFor,
   PRECEDENCE,
   rootFor,
   WRAPPER_OWN_PROPS,
@@ -93,6 +94,17 @@ export interface ElementFacts {
    * reach into it with `cloneElement`.
    */
   onlyChildOf?: string;
+  /**
+   * The root of the list the element is an item of (`menu-list`), when that
+   * list is one `PLACED` names: the element converts as that entry, whatever
+   * classes it carries.
+   */
+  itemOf?: string;
+  /**
+   * The element's `className` holds no class, so it renders `class=""`
+   * (`tokens` is empty either way).
+   */
+  emptyClass?: boolean;
 }
 
 export interface ChildFacts {
@@ -146,6 +158,11 @@ export interface Conversion {
     renames: Array<[from: string, to: string]>;
     /** Child attributes a prop above renders instead. */
     drop: string[];
+    /**
+     * What the element after the child becomes (`Menu.List`), when it has
+     * one: it moves in after the child's children.
+     */
+    after?: string;
   };
   /**
    * The target renders the element's children itself, from a prop above:
@@ -232,15 +249,24 @@ export function plan(facts: ElementFacts): Plan {
     return { conversion: null, todos };
   }
 
-  const wrapper = tokens.find(token => rootFor(token)?.status === 'fold');
+  // An item of a list is what it is by where it sits, so its own classes all
+  // stay: none of them decides what it becomes.
+  const placed = facts.itemOf ? placedFor(facts.itemOf) : undefined;
+  const wrapper = placed
+    ? undefined
+    : tokens.find(token => rootFor(token)?.status === 'fold');
   if (wrapper) return planFold(facts, wrapper, todos);
 
-  const root = tokens
-    .filter(token => rootFor(token)?.status === 'mapped')
-    .sort((a, b) => precedence(a) - precedence(b))[0];
+  const root = placed
+    ? undefined
+    : tokens
+        .filter(token => rootFor(token)?.status === 'mapped')
+        .sort((a, b) => precedence(a) - precedence(b))[0];
 
   let entry: RootEntry | null;
-  if (root) {
+  if (placed) {
+    entry = placed;
+  } else if (root) {
     entry = rootFor(root)!;
   } else {
     // A root the table does not convert keeps the element as markup, so a
@@ -280,12 +306,22 @@ export function plan(facts: ElementFacts): Plan {
       `this element is the only child of \`<${facts.onlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\` (next/link's legacy behavior, a tooltip, a Radix \`asChild\` trigger) that bestax \`${target}\` would not take the same way; convert it by hand if \`<${facts.onlyChildOf}>\` only renders its children`
     );
   }
+  // An element converts with no class left only when found by where it sits,
+  // and then an empty `className` would go with nothing to render it.
+  if (placed && facts.emptyClass) {
+    return refuse(
+      'attr',
+      'className',
+      `this element has an empty \`className\`, which renders \`class=""\`, and bestax \`${target}\` renders it with no class attribute; drop the empty \`className\`, then re-run`
+    );
+  }
   // The attributes the target is given: the element's, or its only child's
   // when the target renders that child itself and puts them there.
   let attributes = facts.attributes;
   let absorbed: Conversion['absorbs'];
   if (entry.absorbs) {
-    const outcome = absorb(facts, root!, entry, target, refuse);
+    const where = root ? `\`.${root}\`` : `the <${tag}>`;
+    const outcome = absorb(facts, where, entry, target, refuse);
     if (!('todos' in outcome)) {
       ({ attributes, absorbed } = outcome);
     } else if (!entry.absorbs.elseWraps) {
@@ -580,7 +616,7 @@ export function plan(facts: ElementFacts): Plan {
   }
 
   // A wrapper exists only to carry helper props; with none, leave the tag.
-  if (!root && writes.size === 0) return { conversion: null, todos };
+  if (!root && !placed && writes.size === 0) return { conversion: null, todos };
 
   // ---- The tag ------------------------------------------------------------
   let renders = entry.tag!;
@@ -668,22 +704,27 @@ export function plan(facts: ElementFacts): Plan {
 type Refuse = (kind: string, token: string, message: string) => Plan;
 
 /** `a`, `a or b`, `a, b or c`, each in backticks. */
-function orList(names: readonly string[]): string {
+function orList(names: readonly string[], word = 'or'): string {
   const quoted = names.map(name => `\`${name}\``);
   return quoted.length > 1
-    ? `${quoted.slice(0, -1).join(', ')} or ${quoted[quoted.length - 1]}`
+    ? `${quoted.slice(0, -1).join(', ')} ${word} ${quoted[quoted.length - 1]}`
     : quoted[0];
+}
+
+/** `a`, `a and b`, `a, b and c`, each in backticks. */
+function andList(names: readonly string[]): string {
+  return orList(names, 'and');
 }
 
 /**
  * The only child an entry's target renders itself (`.select`'s `<select>`):
  * what its classes become, and the attributes the target is given. It
  * converts with the element only when the target would render it exactly
- * as written.
+ * as written. `where` names the element for a message.
  */
 function absorb(
   facts: ElementFacts,
-  root: string,
+  where: string,
   entry: RootEntry,
   target: string,
   refuse: Refuse
@@ -694,13 +735,43 @@ function absorb(
       absorbed: NonNullable<Conversion['absorbs']>;
     } {
   const spec = entry.absorbs!;
-  const child = facts.soleChild;
-  const itself = `bestax \`${target}\` renders the <${spec.tag}> inside \`.${root}\` itself`;
-  if (child?.tag !== spec.tag) {
+  const after = spec.after;
+  // With an element after the child, the two are the element's children.
+  const [child, next, ...more] = after
+    ? (facts.childElements ?? [])
+    : [facts.soleChild];
+  const itself = `bestax \`${target}\` renders the <${spec.tag}> inside ${where} itself`;
+  if (
+    child?.tag !== spec.tag ||
+    more.length > 0 ||
+    (next && next.tag !== after?.tag)
+  ) {
     return refuse(
       'children',
       target,
-      `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it`
+      after
+        ? `${itself}, and a \`${after.target}\` after it from among its children, so this element converts only around a single <${spec.tag}>, and at most one <${after.tag}> after it, with nothing else beside them`
+        : `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it`
+    );
+  }
+  if (
+    next &&
+    (next.tokens !== undefined ||
+      next.attributes.size > 0 ||
+      next.hasSpread ||
+      next.isEmpty)
+  ) {
+    return refuse(
+      'children',
+      after!.target,
+      `${itself}, and the <${after!.tag}> after it as a \`${after!.target}\`, which this converts only bare and holding its items, as Bulma nests one; keep this element as markup, or convert it by hand`
+    );
+  }
+  if (entry.requiresChildren && child.isEmpty && !next) {
+    return refuse(
+      'children',
+      target,
+      `bestax \`${target}\` requires children, and renders the <${spec.tag}>'s as its own, so this element converts only when the <${spec.tag}> inside holds something; keep it as markup`
     );
   }
   if (child.hasSpread) {
@@ -743,6 +814,55 @@ function absorb(
     }
   }
 
+  // A number literal is carried over as written, like any other expression.
+  const given = (value: string | number | true | null) =>
+    typeof value === 'number' ? null : value;
+
+  if (spec.attributesOn === 'split') {
+    // Each keeps its own share: the target puts `elementProps` on the
+    // element, and everything else on the child.
+    const onElement = spec.elementProps ?? [];
+    const stray = [...facts.attributes.keys()].find(
+      name => name !== 'key' && !onElement.includes(name)
+    );
+    if (stray !== undefined) {
+      return refuse(
+        'attr',
+        stray,
+        `bestax \`${target}\` puts ${andList(['className', ...onElement])} on the <${facts.tag}>, and everything else on the <${spec.tag}> inside, so this element's \`${stray}\` would move there; keep this element as markup`
+      );
+    }
+    const moved = [...child.attributes.keys()].find(
+      name => name === 'key' || onElement.includes(name)
+    );
+    if (moved !== undefined) {
+      return refuse(
+        'attr',
+        moved,
+        moved === 'key'
+          ? `the <${spec.tag}> inside has a \`key\`, which would move up to bestax \`${target}\` in place of this element's; keep this element as markup`
+          : `bestax \`${target}\` puts \`${moved}\` on the <${facts.tag}>, so the <${spec.tag}>'s would move there; keep this element as markup`
+      );
+    }
+    return {
+      attributes: new Map([
+        ...facts.attributes,
+        ...[...child.attributes].map(
+          ([name, value]): [string, string | true | null] => [
+            name,
+            given(value),
+          ]
+        ),
+      ]),
+      absorbed: {
+        props,
+        renames: [],
+        drop: [],
+        ...(next && { after: after!.target }),
+      },
+    };
+  }
+
   if (spec.attributesOn === 'element') {
     // The ones the target takes as its own props move up with the child's
     // other props, and it writes them back on the child.
@@ -770,7 +890,7 @@ function absorb(
     return refuse(
       'attr',
       own,
-      `bestax \`${target}\` puts the attributes it is given on the <${spec.tag}> inside \`.${root}\`, so this element's \`${own}\` would move there; move it onto the <${spec.tag}> if that is what you want, then re-run`
+      `bestax \`${target}\` puts the attributes it is given on the <${spec.tag}> inside ${where}, so this element's \`${own}\` would move there; move it onto the <${spec.tag}> if that is what you want, then re-run`
     );
   }
   if (child.attributes.has('key')) {
@@ -793,9 +913,6 @@ function absorb(
       );
     }
   }
-  // A number literal is carried over as written, like any other expression.
-  const given = (value: string | number | true | null) =>
-    typeof value === 'number' ? null : value;
   const attributes = new Map<string, string | true | null>();
   const renames: Array<[string, string]> = [];
   for (const [name, value] of child.attributes) {

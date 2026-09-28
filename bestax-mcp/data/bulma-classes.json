@@ -20,7 +20,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "box": {
       "status": "mapped",
@@ -41,7 +42,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "button": {
       "status": "mapped",
@@ -90,7 +92,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "buttons": {
       "status": "mapped",
@@ -118,7 +121,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card": {
       "status": "mapped",
@@ -149,7 +153,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-header": {
       "status": "mapped",
@@ -174,7 +179,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-header-title": {
       "status": "mapped",
@@ -195,7 +201,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-header-icon": {
       "status": "mapped",
@@ -216,7 +223,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-image": {
       "status": "mapped",
@@ -237,7 +245,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-content": {
       "status": "mapped",
@@ -258,7 +267,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-footer": {
       "status": "mapped",
@@ -279,7 +289,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "card-footer-item": {
       "status": "mapped",
@@ -300,7 +311,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "columns": {
       "status": "mapped",
@@ -400,7 +412,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "column": {
       "status": "mapped",
@@ -1061,7 +1074,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "grid": {
       "status": "mapped",
@@ -1224,7 +1238,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "cell": {
       "status": "mapped",
@@ -1462,7 +1477,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "container": {
       "status": "mapped",
@@ -1505,7 +1521,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "content": {
       "status": "mapped",
@@ -1530,7 +1547,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "delete": {
       "status": "mapped",
@@ -1555,7 +1573,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "field": {
       "status": "mapped",
@@ -1586,7 +1605,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "field-label": {
       "status": "mapped",
@@ -1612,7 +1632,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "field-body": {
       "status": "mapped",
@@ -1633,7 +1654,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "control": {
       "status": "mapped",
@@ -1662,7 +1684,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "input": {
       "status": "mapped",
@@ -1703,7 +1726,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "textarea": {
       "status": "mapped",
@@ -1745,7 +1769,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "select": {
       "status": "mapped",
@@ -1795,7 +1820,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "footer": {
       "status": "mapped",
@@ -1816,7 +1842,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "hero": {
       "status": "mapped",
@@ -1857,7 +1884,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "hero-head": {
       "status": "mapped",
@@ -1878,7 +1906,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "hero-body": {
       "status": "mapped",
@@ -1899,7 +1928,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "hero-foot": {
       "status": "mapped",
@@ -1920,7 +1950,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "level": {
       "status": "mapped",
@@ -1941,7 +1972,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "level-left": {
       "status": "mapped",
@@ -1962,7 +1994,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "level-right": {
       "status": "mapped",
@@ -1983,7 +2016,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "level-item": {
       "status": "mapped",
@@ -2004,7 +2038,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "media": {
       "status": "mapped",
@@ -2025,7 +2060,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "media-left": {
       "status": "mapped",
@@ -2046,7 +2082,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "media-content": {
       "status": "mapped",
@@ -2067,7 +2104,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "media-right": {
       "status": "mapped",
@@ -2088,7 +2126,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar": {
       "status": "mapped",
@@ -2125,7 +2164,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-brand": {
       "status": "mapped",
@@ -2146,7 +2186,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-menu": {
       "status": "mapped",
@@ -2167,7 +2208,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-start": {
       "status": "mapped",
@@ -2188,7 +2230,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-end": {
       "status": "mapped",
@@ -2209,7 +2252,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-item": {
       "status": "mapped",
@@ -2230,7 +2274,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-dropdown": {
       "status": "mapped",
@@ -2254,7 +2299,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-divider": {
       "status": "mapped",
@@ -2275,7 +2321,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "notification": {
       "status": "mapped",
@@ -2307,7 +2354,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "progress": {
       "status": "mapped",
@@ -2342,7 +2390,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "section": {
       "status": "mapped",
@@ -2366,7 +2415,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "subtitle": {
       "status": "mapped",
@@ -2413,7 +2463,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "table": {
       "status": "mapped",
@@ -2440,7 +2491,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "tag": {
       "status": "mapped",
@@ -2478,7 +2530,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "tags": {
       "status": "mapped",
@@ -2503,7 +2556,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "title": {
       "status": "mapped",
@@ -2551,7 +2605,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "breadcrumb": {
       "status": "mapped",
@@ -2592,7 +2647,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "skeleton-block": {
       "status": "mapped",
@@ -2613,7 +2669,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "skeleton-lines": {
       "status": "mapped",
@@ -2634,7 +2691,8 @@
       "countsChildren": { "tag": "div", "prop": "lines" },
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "checkbox": {
       "status": "todo",
@@ -2655,7 +2713,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "checkboxes": {
       "status": "todo",
@@ -2676,7 +2735,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "radio": {
       "status": "todo",
@@ -2697,7 +2757,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "radios": {
       "status": "todo",
@@ -2718,7 +2779,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "file": {
       "status": "todo",
@@ -2739,7 +2801,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "file-label": {
       "status": "todo",
@@ -2760,7 +2823,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "file-input": {
       "status": "todo",
@@ -2781,7 +2845,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "file-cta": {
       "status": "todo",
@@ -2802,7 +2867,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "file-icon": {
       "status": "todo",
@@ -2823,7 +2889,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "file-name": {
       "status": "todo",
@@ -2844,7 +2911,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "dropdown": {
       "status": "todo",
@@ -2865,7 +2933,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "dropdown-menu": {
       "status": "todo",
@@ -2886,7 +2955,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "dropdown-content": {
       "status": "todo",
@@ -2907,7 +2977,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "dropdown-item": {
       "status": "todo",
@@ -2928,7 +2999,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "dropdown-divider": {
       "status": "todo",
@@ -2949,7 +3021,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "icon": {
       "status": "mapped",
@@ -2974,7 +3047,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "icon-text": {
       "status": "todo",
@@ -2995,7 +3069,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "image": {
       "status": "mapped",
@@ -3047,7 +3122,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "menu": {
       "status": "mapped",
@@ -3068,7 +3144,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "menu-label": {
       "status": "mapped",
@@ -3089,7 +3166,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "menu-list": {
       "status": "mapped",
@@ -3110,7 +3188,22 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": true
+      "topLevelOnly": true,
+      "items": {
+        "target": "Menu.Item",
+        "tag": "li",
+        "child": "a",
+        "itemProps": [
+          "id",
+          "title",
+          "role",
+          "tabIndex",
+          "style",
+          "data-testid"
+        ],
+        "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+        "after": { "tag": "ul", "target": "Menu.List" }
+      }
     },
     "menu-item": {
       "status": "todo",
@@ -3121,7 +3214,7 @@
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Menu.Item` renders the `<li>` and the `<a>` together",
+      "why": "bestax `Menu.Item` renders the element inside its `<li>` with no class but `is-active`",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
@@ -3131,7 +3224,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "message": {
       "status": "todo",
@@ -3152,7 +3246,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "message-header": {
       "status": "todo",
@@ -3173,7 +3268,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "message-body": {
       "status": "todo",
@@ -3194,7 +3290,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal": {
       "status": "todo",
@@ -3215,7 +3312,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-background": {
       "status": "mapped",
@@ -3236,7 +3334,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-content": {
       "status": "mapped",
@@ -3257,7 +3356,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-card": {
       "status": "mapped",
@@ -3278,7 +3378,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-card-head": {
       "status": "mapped",
@@ -3299,7 +3400,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-card-title": {
       "status": "mapped",
@@ -3320,7 +3422,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-card-body": {
       "status": "mapped",
@@ -3341,7 +3444,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-card-foot": {
       "status": "mapped",
@@ -3362,7 +3466,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "modal-close": {
       "status": "todo",
@@ -3383,7 +3488,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-burger": {
       "status": "todo",
@@ -3404,7 +3510,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-link": {
       "status": "todo",
@@ -3425,7 +3532,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "pagination": {
       "status": "mapped",
@@ -3464,7 +3572,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "pagination-list": {
       "status": "mapped",
@@ -3485,7 +3594,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "pagination-previous": {
       "status": "mapped",
@@ -3508,7 +3618,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "pagination-next": {
       "status": "mapped",
@@ -3531,7 +3642,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "pagination-link": {
       "status": "todo",
@@ -3552,7 +3664,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "pagination-ellipsis": {
       "status": "todo",
@@ -3573,7 +3686,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "panel": {
       "status": "mapped",
@@ -3605,7 +3719,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "panel-heading": {
       "status": "mapped",
@@ -3626,7 +3741,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "panel-tabs": {
       "status": "mapped",
@@ -3647,7 +3763,8 @@
       "countsChildren": null,
       "noHelpers": true,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "panel-block": {
       "status": "mapped",
@@ -3671,7 +3788,8 @@
         "tags": ["label", "div"],
         "why": "a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents"
       },
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "panel-icon": {
       "status": "todo",
@@ -3692,7 +3810,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "tabs": {
       "status": "mapped",
@@ -3735,7 +3854,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "table-container": {
       "status": "fold",
@@ -3756,7 +3876,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "fixed-grid": {
       "status": "fold",
@@ -4117,7 +4238,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "help": {
       "status": "plain",
@@ -4138,7 +4260,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "panel-list": {
       "status": "plain",
@@ -4159,7 +4282,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "label": {
       "status": "plain",
@@ -4180,7 +4304,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "loader": {
       "status": "plain",
@@ -4201,7 +4326,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "hero-buttons": {
       "status": "plain",
@@ -4222,7 +4348,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "hero-video": {
       "status": "plain",
@@ -4243,7 +4370,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-content": {
       "status": "plain",
@@ -4264,7 +4392,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "navbar-tabs": {
       "status": "plain",
@@ -4285,7 +4414,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "theme-dark": {
       "status": "plain",
@@ -4306,7 +4436,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "theme-light": {
       "status": "plain",
@@ -4327,7 +4458,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "fa": {
       "status": "plain",
@@ -4348,7 +4480,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "marginless": {
       "status": "plain",
@@ -4369,7 +4502,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     },
     "paddingless": {
       "status": "plain",
@@ -4390,7 +4524,8 @@
       "countsChildren": null,
       "noHelpers": false,
       "otherTagsStay": null,
-      "topLevelOnly": false
+      "topLevelOnly": false,
+      "items": null
     }
   },
   "precedence": [

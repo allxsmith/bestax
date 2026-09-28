@@ -756,6 +756,13 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('menu', 'aside')).not.toContain('only when no other');
   });
 
+  it('says what the items of a list become, by where they sit', async () => {
+    expect(await lookup('menu-list', 'ul')).toContain(
+      "Each <li> in it holding an <a>, at most one bare <ul> after it, which becomes a `Menu.List` after the <a>'s children, and nothing else becomes a `Menu.Item`, written in the <li>'s place around the <a>'s children. `is-active` on the <a> becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style` and `data-testid` on the <li> and everything else on the <a>, so an item converts only when its attributes already sit that way."
+    );
+    expect(await lookup('menu', 'aside')).not.toContain('Each <li>');
+  });
+
   it('says when a component renders the children from a count', async () => {
     const lines = await lookup('skeleton-lines', 'div');
     expect(lines).toContain(

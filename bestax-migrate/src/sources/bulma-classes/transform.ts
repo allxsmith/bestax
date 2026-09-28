@@ -57,7 +57,7 @@ import {
   type JsxRuntime,
   type ServerComponentRoot,
 } from './project.js';
-import { ROOTS, rootFor } from './class-map.js';
+import { PLACED, placedFor, ROOTS, rootFor } from './class-map.js';
 import { ruleId } from './rules.js';
 
 /**
@@ -136,6 +136,11 @@ function spliceClassName(
 ): void {
   const attrs = element.openingElement.attributes;
   const classAttr = findAttr(element, 'className');
+  // An element found by where it sits may have no className to replace.
+  if (!classAttr) {
+    attrs.push(...replacement);
+    return;
+  }
   const kept = replacement.includes(classAttr);
   const moving = [...(kept ? [] : (classAttr.comments ?? [])), ...carried];
   if (moving.length > 0) {
@@ -678,6 +683,65 @@ function reachesReact(child: any): boolean {
   return /[^ \t\r\n]/.test(child.value) || !/[\r\n]/.test(child.value);
 }
 
+/**
+ * The string a JSX text renders: each line trimmed where it meets a line
+ * break, blank lines dropped, and the rest joined by a space.
+ */
+function jsxTextRenders(value: string): string {
+  const lines = value.replace(/\t/g, ' ').split(/\r\n|\n|\r/);
+  let lastFilled = 0;
+  lines.forEach((line, index) => {
+    if (/[^ ]/.test(line)) lastFilled = index;
+  });
+  let out = '';
+  lines.forEach((line, index) => {
+    let trimmed = line;
+    if (index > 0) trimmed = trimmed.replace(/^ +/, '');
+    if (index < lines.length - 1) trimmed = trimmed.replace(/ +$/, '');
+    if (trimmed) out += index === lastFilled ? trimmed : `${trimmed} `;
+  });
+  return out;
+}
+
+/**
+ * `children` with `next` after them, each on a line of its own. The list
+ * is new, so recast prints it afresh, and it prints a text with its leading
+ * whitespace gone and its entities decoded (`&lt;` as `<`); a text that
+ * would render differently that way goes in as the string it renders.
+ */
+function withAfter(j: any, children: any[], next: any): any[] {
+  const line = () => j.jsxText('\n');
+  const kept = children.flatMap((child: any) => {
+    if (child.type !== 'JSXText') return [child];
+    const renders = jsxTextRenders(child.value);
+    if (renders === '') return /[\r\n]/.test(child.value) ? [line()] : [];
+    // No raw text to compare means no telling it holds no entity.
+    const plain =
+      child.extra?.raw === child.value &&
+      jsxTextRenders(child.value.trim()) === renders;
+    return [
+      plain
+        ? j.jsxText(child.value.trim())
+        : j.jsxExpressionContainer(j.stringLiteral(renders)),
+    ];
+  });
+  const blank = (node: any) => node?.type === 'JSXText' && node.value === '\n';
+  while (blank(kept[0])) kept.shift();
+  while (blank(kept[kept.length - 1])) kept.pop();
+  return [...(kept.length > 0 ? [line(), ...kept] : []), line(), next, line()];
+}
+
+/** A call to an array's `map` or `flatMap`, whose results render in place. */
+function isMapCall(call: any): boolean {
+  const callee = call.callee;
+  return (
+    (callee?.type === 'MemberExpression' ||
+      callee?.type === 'OptionalMemberExpression') &&
+    !callee.computed &&
+    (callee.property?.name === 'map' || callee.property?.name === 'flatMap')
+  );
+}
+
 /** Whitespace React drops, which nothing is lost with. A comment is kept. */
 function dropped(child: any): boolean {
   return child.type === 'JSXText' && !reachesReact(child);
@@ -924,6 +988,49 @@ export default function transform(
     return { bestax, other, classes };
   };
 
+  /**
+   * The root of the list an element is an item of, when `PLACED` names it:
+   * a `<li>` whose nearest element is a `.menu-list`, a `Menu.List` already
+   * in the file, or the bare `<ul>` nested directly in one of those items.
+   */
+  const itemOf = (elementPath: ASTPath<any>): string | undefined => {
+    const name = elementPath.node.openingElement.name;
+    if (name.type !== 'JSXIdentifier') return undefined;
+    let up = elementPath.parent;
+    while (up && up.node?.type !== 'JSXElement') {
+      // Handed to a function, the element renders wherever that puts it;
+      // an array's own `map` renders it in place.
+      if (up.node?.type === 'CallExpression' && !isMapCall(up.node)) {
+        return undefined;
+      }
+      up = up.parent;
+    }
+    const root = up ? listRoot(up) : undefined;
+    return root && placedFor(root)!.tag === name.name ? root : undefined;
+  };
+  const listRoot = (listPath: ASTPath<any>): string | undefined => {
+    const list = listPath.node;
+    const target = bestaxTarget(list, listPath);
+    if (target) {
+      return Object.keys(PLACED).find(root => rootFor(root)?.target === target);
+    }
+    const name = list.openingElement.name;
+    if (name.type !== 'JSXIdentifier') return undefined;
+    const classAttr = findAttr(list, 'className');
+    if (classAttr) {
+      const root = (staticClassName(classAttr) ?? '')
+        .split(/\s+/)
+        .find(token => placedFor(token));
+      return root && rootFor(root)?.tag === name.name ? root : undefined;
+    }
+    const holder = listPath.parent;
+    if (holder?.node?.type !== 'JSXElement') return undefined;
+    const root = itemOf(holder);
+    return root && placedFor(root)!.absorbs?.after?.tag === name.name
+      ? root
+      : undefined;
+  };
+
   // `converts` is whether the element would become a component with its
   // classes written out, so it holds for a computed className too.
   const elements: Array<{ path: ASTPath<any>; plan: Plan; converts: boolean }> =
@@ -937,9 +1044,10 @@ export default function transform(
       continue;
     }
     const classAttr = findAttr(element, 'className');
-    if (!classAttr) continue;
+    const item = itemOf(elementPath);
+    if (!classAttr && !item) continue;
     const attributes = attributesBesides(element, classAttr, attributeValue);
-    const className = staticClassName(classAttr);
+    const className = classAttr ? staticClassName(classAttr) : '';
     const surrounding = around(elementPath);
     const sole = soleChild(element);
     const facts: ElementFacts = {
@@ -961,6 +1069,8 @@ export default function transform(
       componentsAround: surrounding.other,
       classesAround: surrounding.classes,
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
+      ...(item && { itemOf: item }),
+      ...(classAttr && className?.trim() === '' && { emptyClass: true }),
     };
     // A joiner call the codemod can read converts exactly: its fixed classes
     // as for a static className, and each condition on a flag as its prop.
@@ -1017,6 +1127,44 @@ export default function transform(
     if (result.conversion || result.fold || result.todos.length > 0) {
       elements.unshift({ path: elementPath, plan: result, converts });
     }
+  }
+  // An item's nested list becomes a list component that renders its root
+  // class unless another is around it (`Menu.List`), so an item with one
+  // converts only inside a list that is one, or becomes one here. Outermost
+  // first: an item that stays markup leaves its nested list a plain one.
+  const becomesAfter = new Set<object>();
+  for (const found of elements) {
+    const conversion = found.plan.conversion;
+    const after = conversion?.absorbs?.after;
+    if (!after) continue;
+    let inside = false;
+    for (let up = found.path.parent; up && !inside; up = up.parent) {
+      if (up.node?.type !== 'JSXElement') continue;
+      inside =
+        becomesAfter.has(up.node) ||
+        (bestaxTarget(up.node, up) ??
+          planned.get(up.node)?.conversion?.target) === after;
+    }
+    if (inside) {
+      const [, next] = (found.path.node.children ?? []).filter(
+        (node: any) => node.type === 'JSXElement'
+      );
+      becomesAfter.add(next);
+      continue;
+    }
+    const root = Object.keys(ROOTS).find(key => ROOTS[key].target === after);
+    found.plan = {
+      conversion: null,
+      todos: [
+        ...found.plan.todos,
+        {
+          rule: ruleId('context', conversion!.target),
+          message: `bestax \`${conversion!.target}\` renders the list nested in it as a \`${after}\`, which renders \`.${root}\` unless another \`${after}\` is around it, and no list around this element is one or becomes one here; keep it as markup, or convert the list around it first, then re-run`,
+        },
+      ],
+    };
+    found.converts = false;
+    planned.set(found.path.node, found.plan);
   }
   if (elements.length === 0) return print();
 
@@ -1115,8 +1263,13 @@ export default function transform(
     if (!conversion) continue;
     const element = elementPath.node;
     // A target that renders the element's only child itself is written in
-    // that child's place, so the child's children stay where they are.
-    const child = conversion.absorbs ? soleChild(element) : undefined;
+    // that child's place, so the child's children stay where they are. One
+    // that renders an element after it takes that one in after them.
+    const [child, next] = conversion.absorbs
+      ? (element.children ?? []).filter(
+          (node: any) => node.type === 'JSXElement'
+        )
+      : [];
     // The element's tags go, and so do the child's tag names: their comments
     // move to the name that stays. The child's tags themselves stay, and
     // keep their own.
@@ -1197,6 +1350,18 @@ export default function transform(
       }
       elementPath.replace(child);
       written = child;
+      const after = conversion.absorbs!.after;
+      if (after) {
+        const [listHead, ...listRest] = after.split('.');
+        renameElement(j, next, [ctx.reserve(listHead), ...listRest].join('.'));
+        if (!child.closingElement) {
+          child.openingElement.selfClosing = false;
+          child.closingElement = j.jsxClosingElement(
+            element.closingElement.name
+          );
+        }
+        child.children = withAfter(j, child.children ?? [], next);
+      }
     }
     // After the splice, so a prop the conversion wrote is found as well as
     // an attribute the element already had.
