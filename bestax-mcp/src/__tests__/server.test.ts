@@ -728,7 +728,7 @@ describe('lookup_bulma_classes', () => {
     );
     const image = await lookup('image is-64x64 is-4by3', 'figure');
     expect(image).toContain(
-      "It renders the <img> inside it itself, from its own `src` and `alt` props: write the <img>'s `src` and `alt` on `Image` in its place, which converts that way only around an <img> with no other attribute. On the <img>, `is-rounded` becomes `isRounded`. Around anything else it renders the children as given, in place of its own <img>, so put them inside `Image` as they are."
+      "It renders the <img> inside it itself, from its own `src` and `alt` props: write the <img>'s `src` and `alt` on `Image` in its place, which converts that way only around an <img> with no other attribute. On the <img>, `is-rounded` becomes `isRounded`. Around other HTML elements written out it renders them as given, in place of its own <img>, so put them inside `Image` as they are; around an expression, which can come out empty, it would render its own."
     );
     expect(image).toContain('| `is-64x64` | `size="64x64"` |');
     expect(image).toContain(
