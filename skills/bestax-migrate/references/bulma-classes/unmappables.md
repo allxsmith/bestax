@@ -235,7 +235,13 @@ in the browser:
   `Pagination.Ellipsis` render their own `<li>` around the element (and the ellipsis its own
   `&hellip;`), so write each in place of the `<li>` and what's inside it: `<Pagination.Link href="#">1</Pagination.Link>`,
   with `is-current` as `active`. The rest of a pagination converts.
-- **`family:panel`**, **`family:tabs`**: each renders list items, links or roles of its own. Rebuild them from the component's docs. `Tabs.Tab` puts its label
+- **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
+  `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
+  but for a `<label>` or `<div>` `.panel-block`, which stays markup with no TODO: bestax renders
+  those as `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own
+  contents from props.
+- **`family:tabs`**: `Tabs` renders list items, links and roles of its own. Rebuild it from
+  the component's docs. `Tabs.Tab` puts its label
   in a `<span>` inside the `<a>`, so something that sat beside the text in the `<a>` (a `Tag`,
   say) is no longer aligned by the `<a>`'s flex layout; wrap the label and it in a
   `Span display="flex" alignItems="center"`.

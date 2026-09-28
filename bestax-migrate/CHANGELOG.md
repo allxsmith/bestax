@@ -1,3 +1,17 @@
+# [2.17.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.16.0...bestax-migrate@2.17.0) (2026-09-28)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a Modal part as markup inside an existing bestax Modal ([cfd5f15](https://github.com/allxsmith/bestax/commit/cfd5f1566dbf9b794375ce24ebcb9239d383a39b))
+* **eslint-plugin:** report Modal's parts with the message for a class the codemod converts ([87f3c08](https://github.com/allxsmith/bestax/commit/87f3c08aeca1f6c99921aa0b11ee9fd69584ccea))
+
+
+### Features
+
+* **bestax-mcp:** look up Modal's parts as components ([b71583a](https://github.com/allxsmith/bestax/commit/b71583a058f9fc5fe830fe0290bbfb1fa058d1ab))
+* **bestax-migrate:** convert Modal's parts element by element ([4d41ad2](https://github.com/allxsmith/bestax/commit/4d41ad22de93a6515da99bb057adcfe8b4e8d146)), closes [#805](https://github.com/allxsmith/bestax/issues/805)
+
 # [2.16.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.15.0...bestax-migrate@2.16.0) (2026-09-28)
 
 

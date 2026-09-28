@@ -737,6 +737,18 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 
+  it('says why a part on another tag stays markup', async () => {
+    expect(await lookup('panel-block', 'div')).toContain(
+      '**Stays markup:** a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents'
+    );
+    expect(await lookup('panel-block', 'span')).toContain(
+      '**Component:** `Panel.Block` renders only <a>, not a <span>'
+    );
+    expect(await lookup('panel-block', 'a')).toContain(
+      '**Component:** `Panel.Block`'
+    );
+  });
+
   it('says when a component renders its class only at the top level', async () => {
     expect(await lookup('menu-list', 'ul')).toContain(
       'It renders `.menu-list` only when no other `Menu.List` is around it, so one inside another `.menu-list`, or around a `Menu.List`, stays markup.'
