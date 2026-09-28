@@ -1,3 +1,10 @@
+# [2.20.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.19.0...bestax-migrate@2.20.0) (2026-09-28)
+
+
+### Features
+
+* **bestax-migrate:** convert .tabs and .icon around their children ([#815](https://github.com/allxsmith/bestax/issues/815)) ([3967a80](https://github.com/allxsmith/bestax/commit/3967a804f0b90e1e897811c729e6b627d98c4103))
+
 # [2.19.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.18.0...bestax-migrate@2.19.0) (2026-09-28)
 
 
