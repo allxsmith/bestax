@@ -108,6 +108,9 @@ export function ItemRefusals() {
       <li onClick={() => {}}>
         <a>Its onClick would move to the link</a>
       </li>
+      <li className="">
+        <a>An empty class on the item</a>
+      </li>
       <li>
         <a title="Would move to the item">A title on the link</a>
       </li>

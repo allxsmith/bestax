@@ -715,8 +715,9 @@ function withAfter(j: any, children: any[], next: any): any[] {
     if (child.type !== 'JSXText') return [child];
     const renders = jsxTextRenders(child.value);
     if (renders === '') return /[\r\n]/.test(child.value) ? [line()] : [];
+    // No raw text to compare means no telling it holds no entity.
     const plain =
-      (child.extra?.raw ?? child.value) === child.value &&
+      child.extra?.raw === child.value &&
       jsxTextRenders(child.value.trim()) === renders;
     return [
       plain
@@ -728,6 +729,17 @@ function withAfter(j: any, children: any[], next: any): any[] {
   while (blank(kept[0])) kept.shift();
   while (blank(kept[kept.length - 1])) kept.pop();
   return [...(kept.length > 0 ? [line(), ...kept] : []), line(), next, line()];
+}
+
+/** A call to an array's `map` or `flatMap`, whose results render in place. */
+function isMapCall(call: any): boolean {
+  const callee = call.callee;
+  return (
+    (callee?.type === 'MemberExpression' ||
+      callee?.type === 'OptionalMemberExpression') &&
+    !callee.computed &&
+    (callee.property?.name === 'map' || callee.property?.name === 'flatMap')
+  );
 }
 
 /** Whitespace React drops, which nothing is lost with. A comment is kept. */
@@ -985,7 +997,14 @@ export default function transform(
     const name = elementPath.node.openingElement.name;
     if (name.type !== 'JSXIdentifier') return undefined;
     let up = elementPath.parent;
-    while (up && up.node?.type !== 'JSXElement') up = up.parent;
+    while (up && up.node?.type !== 'JSXElement') {
+      // Handed to a function, the element renders wherever that puts it;
+      // an array's own `map` renders it in place.
+      if (up.node?.type === 'CallExpression' && !isMapCall(up.node)) {
+        return undefined;
+      }
+      up = up.parent;
+    }
     const root = up ? listRoot(up) : undefined;
     return root && placedFor(root)!.tag === name.name ? root : undefined;
   };
@@ -1051,6 +1070,7 @@ export default function transform(
       classesAround: surrounding.classes,
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
       ...(item && { itemOf: item }),
+      ...(classAttr && className?.trim() === '' && { emptyClass: true }),
     };
     // A joiner call the codemod can read converts exactly: its fixed classes
     // as for a static className, and each condition on a flag as its prop.

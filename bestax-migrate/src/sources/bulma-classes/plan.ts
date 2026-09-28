@@ -100,6 +100,11 @@ export interface ElementFacts {
    * classes it carries.
    */
   itemOf?: string;
+  /**
+   * The element's `className` holds no class, so it renders `class=""`
+   * (`tokens` is empty either way).
+   */
+  emptyClass?: boolean;
 }
 
 export interface ChildFacts {
@@ -299,6 +304,15 @@ export function plan(facts: ElementFacts): Plan {
       'only-child',
       target,
       `this element is the only child of \`<${facts.onlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\` (next/link's legacy behavior, a tooltip, a Radix \`asChild\` trigger) that bestax \`${target}\` would not take the same way; convert it by hand if \`<${facts.onlyChildOf}>\` only renders its children`
+    );
+  }
+  // An element converts with no class left only when found by where it sits,
+  // and then an empty `className` would go with nothing to render it.
+  if (placed && facts.emptyClass) {
+    return refuse(
+      'attr',
+      'className',
+      `this element has an empty \`className\`, which renders \`class=""\`, and bestax \`${target}\` renders it with no class attribute; drop the empty \`className\`, then re-run`
     );
   }
   // The attributes the target is given: the element's, or its only child's

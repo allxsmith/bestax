@@ -598,6 +598,25 @@ describe('plan', () => {
         });
       });
 
+      it('keeps it as markup with an empty class, which it would lose', () => {
+        expect(
+          rules(
+            plan(
+              facts(
+                'li',
+                '',
+                {},
+                {
+                  itemOf: 'menu-list',
+                  childElements: [link()],
+                  emptyClass: true,
+                }
+              )
+            )
+          )
+        ).toEqual(['attr:className']);
+      });
+
       it('keeps it as markup when an attribute would move', () => {
         expect(rules(item('', { onClick: null }, [link()]))).toEqual([
           'attr:onClick',

@@ -211,6 +211,7 @@ describe('every refusal the planner can produce', () => {
       collect(item([], [child({ tokens: [] })]));
       collect(item([], [child({ tokens: ['box'] })]));
       collect(item([], [child()], { hasSpread: true }));
+      collect(item([], [child()], { emptyClass: true }));
       collect(item([['ref', null]], [child()], { hasRef: true }));
       for (const name of names) {
         for (const value of values) {

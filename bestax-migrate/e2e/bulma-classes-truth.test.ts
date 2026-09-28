@@ -979,6 +979,7 @@ describe.each(Object.entries(PLACED))('an item of `.%s`', (list, entry) => {
   it('stays markup with anything the target would render elsewhere', () => {
     const refusals: Array<[string, ElementFacts]> = [
       ['an attribute of its own', factsOf({ attributes: { onClick: 'f' } })],
+      ['an empty class', { ...factsOf({}), emptyClass: true }],
       [
         'a ref on the item',
         { ...factsOf({ attributes: { ref: 'r' } }), hasRef: true },

@@ -993,6 +993,14 @@ describe('menu list nesting', () => {
     expect(around.rules).toEqual(['context:Menu.List', 'children:Menu.Item']);
   });
 
+  it('finds an item only where it renders, not handed to a function', () => {
+    const { output } = migrate(
+      'export const A = ({ wrap, items }: { wrap: (node: unknown) => unknown; items: string[] }) => (\n  <ul className="menu-list">{wrap(<li><a>In</a></li>)}{items.map(item => <li key={item}><a>{item}</a></li>)}</ul>\n);\n'
+    );
+    expect(output).toContain('{wrap(<li><a>In</a></li>)}');
+    expect(output).toContain('<Menu.Item key={item}>{item}</Menu.Item>');
+  });
+
   it('converts the outer list, which renders its class at the top level', () => {
     const { output } = nested('<ul className="menu-list"><li>INNER</li></ul>');
     expect(output).toContain('<Menu.List>');

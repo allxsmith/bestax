@@ -84,6 +84,7 @@ export function ItemAttributes() {
 export function ItemRefusals() {
   const active = true;
   // TODO(bestax-migrate): bestax `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style` and `data-testid` on the <li>, and everything else on the <a> inside, so this element's `onClick` would move there; keep this element as markup
+  // TODO(bestax-migrate): this element has an empty `className`, which renders `class=""`, and bestax `Menu.Item` renders it with no class attribute; drop the empty `className`, then re-run
   // TODO(bestax-migrate): bestax `Menu.Item` puts `title` on the <li>, so the <a>'s would move there; keep this element as markup
   // TODO(bestax-migrate): bestax `Menu.Item` renders the <a> inside the <li> itself, with no class on it but `is-active`, so its `my-link` would be lost; keep this element as markup
   // TODO(bestax-migrate): the <a> inside has an empty `className`, which renders `class=""`, and bestax `Menu.Item` renders it with no class attribute; drop the empty `className`, then re-run
@@ -95,6 +96,9 @@ export function ItemRefusals() {
     <Menu.List>
       <li onClick={() => {}}>
         <a>Its onClick would move to the link</a>
+      </li>
+      <li className="">
+        <a>An empty class on the item</a>
       </li>
       <li>
         <a title="Would move to the item">A title on the link</a>
