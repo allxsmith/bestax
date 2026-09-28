@@ -30,6 +30,10 @@
       "code": "function example() {\n  const [page, setPage] = useState(1);\n  return (\n    <>\n      <Pagination>\n        <Pagination.Previous\n          disabled={page === 1}\n          onClick={() => setPage(page - 1)}\n        >\n          Previous\n        </Pagination.Previous>\n        <Pagination.Next\n          disabled={page === 5}\n          onClick={() => setPage(page + 1)}\n        >\n          Next\n        </Pagination.Next>\n        <Pagination.List>\n          {[1, 2, 3, 4, 5].map(i => (\n            <Pagination.Link\n              key={i}\n              active={i === page}\n              onClick={() => setPage(i)}\n            >\n              {i}\n            </Pagination.Link>\n          ))}\n        </Pagination.List>\n      </Pagination>\n      <Paragraph mt=\"2\">Current page: {page}</Paragraph>\n    </>\n  );\n}"
     },
     {
+      "title": "From a Page Count",
+      "code": "function example() {\n  const [page, setPage] = useState(10);\n  return (\n    <>\n      <Pagination total={20} current={page} onPageChange={setPage} />\n      <Paragraph mt=\"2\">Current page: {page}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
       "title": "Previous/Next with Pagination List",
       "code": "<Pagination align=\"centered\">\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link aria-label=\"Goto page 1\">1</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 45\">45</Pagination.Link>\n    <Pagination.Link active aria-label=\"Page 46\">\n      46\n    </Pagination.Link>\n    <Pagination.Link aria-label=\"Goto page 47\">47</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 86\">86</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     },
@@ -38,7 +42,7 @@
       "code": "<Pagination>\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     }
   ],
-  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
+  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n- Rendered from `total`, the current page's link carries `aria-current=\"page\"`. Without `getPageHref` the links have no `href`, so they carry `role=\"button\"` and choose a page with Enter or Space.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
   "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-pagination--basic",
   "summary": "The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.",
@@ -112,7 +116,7 @@
           "name": "total",
           "type": "number",
           "default": null,
-          "description": "Total number of pages (for custom implementations).",
+          "description": "The number of pages. Given `total` and no children, `Pagination` renders the whole control itself: Previous, Next and a link for each page it shows, with an ellipsis where it skips some. Given children, it renders those as they are, and `total` and the other page props do nothing.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -121,7 +125,7 @@
           "name": "current",
           "type": "number",
           "default": null,
-          "description": "Current page (for controlled implementations).",
+          "description": "The page shown as current, counting from 1, when rendering from `total`. Leave it out and `Pagination` keeps the page itself, starting at 1.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -130,7 +134,61 @@
           "name": "onPageChange",
           "type": "(page: number) => void",
           "default": null,
-          "description": "Callback when a page is selected.",
+          "description": "Called with the page chosen, when rendering from `total`. Choosing the page already current doesn't call it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "siblingCount",
+          "type": "number",
+          "default": "1",
+          "description": "How many pages to show on each side of the current one, when rendering from `total`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "boundaryCount",
+          "type": "number",
+          "default": "1",
+          "description": "How many pages to always show at the start and at the end, when rendering from `total`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "previousLabel",
+          "type": "React.ReactNode",
+          "default": "'Previous'",
+          "description": "The Previous link's content, when rendering from `total`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "nextLabel",
+          "type": "React.ReactNode",
+          "default": "'Next'",
+          "description": "The Next link's content, when rendering from `total`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables every link, when rendering from `total`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "getPageHref",
+          "type": "(page: number) => string",
+          "default": null,
+          "description": "The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). Without it the links have no `href`, act as buttons, and Enter or Space chooses a page.",
           "required": false,
           "inherited": false,
           "deprecated": false

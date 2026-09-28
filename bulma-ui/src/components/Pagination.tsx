@@ -45,16 +45,84 @@ export interface PaginationProps
   align?: 'centered' | 'right';
   /** Renders pagination with rounded corners. */
   rounded?: boolean;
-  /** Total number of pages (for custom implementations). */
+  /**
+   * The number of pages. Given `total` and no children, `Pagination` renders
+   * the whole control itself: Previous, Next and a link for each page it
+   * shows, with an ellipsis where it skips some. Given children, it renders
+   * those as they are, and `total` and the other page props do nothing.
+   */
   total?: number;
-  /** Current page (for controlled implementations). */
+  /**
+   * The page shown as current, counting from 1, when rendering from `total`.
+   * Leave it out and `Pagination` keeps the page itself, starting at 1.
+   */
   current?: number;
-  /** Callback when a page is selected. */
+  /**
+   * Called with the page chosen, when rendering from `total`. Choosing the
+   * page already current doesn't call it.
+   */
   onPageChange?: (page: number) => void;
+  /** How many pages to show on each side of the current one, when rendering from `total`. */
+  siblingCount?: number;
+  /** How many pages to always show at the start and at the end, when rendering from `total`. */
+  boundaryCount?: number;
+  /** The Previous link's content, when rendering from `total`. */
+  previousLabel?: React.ReactNode;
+  /** The Next link's content, when rendering from `total`. */
+  nextLabel?: React.ReactNode;
+  /** Disables every link, when rendering from `total`. */
+  disabled?: boolean;
+  /**
+   * The `href` for a page's link, when rendering from `total`, making each
+   * one a real link (`page => '?page=' + page`). Without it the links
+   * have no `href`, act as buttons, and Enter or Space chooses a page.
+   */
+  getPageHref?: (page: number) => string;
   /** Additional CSS classes. */
   className?: string;
   /** Custom pagination content (usually subcomponents). */
   children?: React.ReactNode;
+}
+
+/** A page's number, or a run of pages left out. */
+type PageItem = number | 'start-gap' | 'end-gap';
+
+function range(from: number, to: number): number[] {
+  return Array.from({ length: Math.max(to - from + 1, 0) }, (_, i) => from + i);
+}
+
+/**
+ * The pages to show for `current` of `total`: the first and last
+ * `boundaries`, `siblings` on each side of the current one, and a gap for
+ * each run left out. A gap of a single page shows that page instead, and the
+ * window around the current page slides inward near either end, so the row
+ * keeps its length as the page moves.
+ */
+function pageItems(
+  total: number,
+  current: number,
+  siblings: number,
+  boundaries: number
+): PageItem[] {
+  const windowSize = siblings * 2 + 1;
+  // Every page fits in the room the boundary pages, the window and two gaps take.
+  if (total <= boundaries * 2 + windowSize + 2) return range(1, total);
+  const lowest = boundaries + 2;
+  const highest = total - boundaries - 1;
+  const start = Math.min(
+    Math.max(current - siblings, lowest),
+    highest - windowSize + 1
+  );
+  const end = start + windowSize - 1;
+  const gap = (from: number, to: number, name: PageItem): PageItem[] =>
+    to === from ? [from] : [name];
+  return [
+    ...range(1, boundaries),
+    ...gap(boundaries + 1, start - 1, 'start-gap'),
+    ...range(start, end),
+    ...gap(end + 1, total - boundaries, 'end-gap'),
+    ...range(total - boundaries + 1, total),
+  ];
 }
 
 /**
@@ -154,10 +222,20 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   size,
   align,
   rounded,
+  total,
+  current,
+  onPageChange,
+  siblingCount = 1,
+  boundaryCount = 1,
+  previousLabel = 'Previous',
+  nextLabel = 'Next',
+  disabled,
+  getPageHref,
   className,
   children,
   ...props
 }) => {
+  const [kept, setKept] = React.useState(1);
   warnDeprecatedColorProp(
     'Pagination',
     color,
@@ -184,6 +262,71 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     className
   );
 
+  const fromTotal = total !== undefined && children == null;
+  let content: React.ReactNode = children;
+  if (fromTotal) {
+    const pages = Number.isFinite(total) ? Math.max(Math.floor(total), 0) : 0;
+    const page = Math.min(
+      Math.max(Math.floor(current ?? kept), 1),
+      Math.max(pages, 1)
+    );
+    const choose = (next: number) => {
+      if (next === page) return;
+      if (current === undefined) setKept(next);
+      onPageChange?.(next);
+    };
+    /**
+     * What a link to `target` is given, beside what it renders. With no
+     * `getPageHref` it's a button; a link that's `off` goes nowhere.
+     */
+    const linkTo = (target: number, off: boolean) => ({
+      href: off || !getPageHref ? undefined : getPageHref(target),
+      role: getPageHref ? undefined : 'button',
+      // A link that's off is disabled too, and the parts drop its clicks.
+      onClick: () => choose(target),
+      onKeyDown: getPageHref
+        ? undefined
+        : (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+            if (off || (e.key !== 'Enter' && e.key !== ' ')) return;
+            e.preventDefault();
+            choose(target);
+          },
+    });
+    const atStart = disabled || page <= 1;
+    const atEnd = disabled || page >= pages;
+    content = (
+      <>
+        <PaginationPrevious disabled={atStart} {...linkTo(page - 1, atStart)}>
+          {previousLabel}
+        </PaginationPrevious>
+        <PaginationNext disabled={atEnd} {...linkTo(page + 1, atEnd)}>
+          {nextLabel}
+        </PaginationNext>
+        <PaginationList>
+          {pageItems(
+            pages,
+            page,
+            Math.max(Math.floor(siblingCount), 0),
+            Math.max(Math.floor(boundaryCount), 0)
+          ).map(item =>
+            typeof item === 'number' ? (
+              <PaginationLink
+                key={item}
+                active={item === page}
+                disabled={disabled}
+                {...linkTo(item, Boolean(disabled))}
+              >
+                {item}
+              </PaginationLink>
+            ) : (
+              <PaginationEllipsis key={item} />
+            )
+          )}
+        </PaginationList>
+      </>
+    );
+  }
+
   return (
     <nav
       className={paginationClasses}
@@ -191,7 +334,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
       aria-label="pagination"
       {...rest}
     >
-      {children}
+      {content}
     </nav>
   );
 };
