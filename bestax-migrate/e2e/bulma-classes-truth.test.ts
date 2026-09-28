@@ -319,7 +319,9 @@ describe.each(mapped)('`.%s`', (root, entry) => {
         name => !entry.untypedAttrs?.includes(name)
       );
       for (const name of typed) {
-        const given = { ...defaultsFor(entry, entry.tag!), [name]: 'other' };
+        // One the target types as a number gets another number.
+        const other = entry.numberAttrs?.includes(name) ? '-1' : 'other';
+        const given = { ...defaultsFor(entry, entry.tag!), [name]: other };
         const both = renderBoth(
           factsFor(entry.tag!, [root], given, child),
           given,
