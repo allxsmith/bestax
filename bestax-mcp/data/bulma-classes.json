@@ -2965,7 +2965,8 @@
         "tag": "img",
         "attributesOn": "element",
         "childProps": ["src", "alt"],
-        "modifiers": { "is-rounded": { "writes": [{ "prop": "isRounded" }] } }
+        "modifiers": { "is-rounded": { "writes": [{ "prop": "isRounded" }] } },
+        "elseWraps": true
       },
       "writes": null,
       "countsChildren": null,
