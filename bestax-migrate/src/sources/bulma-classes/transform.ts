@@ -1091,6 +1091,7 @@ export default function transform(
       ...(classAttr && className?.trim() === '' && { emptyClass: true }),
       ...(holderOf(elementPath) && {
         soleChildOf: childFacts(holderOf(elementPath)),
+        holderOnlyChildOf: onlyChildOf(elementPath.parent, bestaxLocals),
       }),
       ...(textOf(element) !== undefined && { text: textOf(element) }),
     };

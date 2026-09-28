@@ -111,6 +111,11 @@ export interface ElementFacts {
    */
   soleChildOf?: ChildFacts;
   /**
+   * The component that element is the only child of, if any: `onlyChildOf`
+   * for the element such an entry takes the place of.
+   */
+  holderOnlyChildOf?: string;
+  /**
    * The string the element's content renders, when it is one static text.
    */
   text?: string;
@@ -333,6 +338,13 @@ export function plan(facts: ElementFacts): Plan {
         'context',
         target,
         `bestax \`${target}\` renders its own bare <${parent.tag}> around the <${tag}>, so this converts only as the only thing inside a bare <${parent.tag}>, which it takes the place of; keep it as markup`
+      );
+    }
+    if (facts.holderOnlyChildOf) {
+      return refuse(
+        'only-child',
+        target,
+        `the <${parent.tag}> around this element is the only child of \`<${facts.holderOnlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\`, and bestax \`${target}\` in its place would put them on the <${tag}>; convert it by hand if \`<${facts.holderOnlyChildOf}>\` only renders its children`
       );
     }
     if (holder.attributes.has('key') && facts.attributes.has('key')) {

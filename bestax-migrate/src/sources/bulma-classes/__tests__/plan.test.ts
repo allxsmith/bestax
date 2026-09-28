@@ -731,6 +731,13 @@ describe('plan', () => {
       ).toEqual(['attr:key']);
     });
 
+    it("keeps it as markup when the <li> is a component's only child", () => {
+      // That component could hand the <li> props with cloneElement.
+      expect(
+        rules(link('pagination-link', {}, { holderOnlyChildOf: 'Tooltip' }))
+      ).toEqual(['only-child:Pagination.Link']);
+    });
+
     it('makes is-current active only beside an aria-current of its own', () => {
       expect(
         link('pagination-link is-current', { 'aria-current': 'page' })

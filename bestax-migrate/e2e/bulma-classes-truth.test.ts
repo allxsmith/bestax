@@ -774,14 +774,21 @@ describe.each(mapped)('`.%s` with a class a condition adds', (root, entry) => {
 
   it('renders each of its flags exactly when the condition is truthy, on every tag', () => {
     const differ: string[] = [];
+    const flagged = new Set<string>();
     for (const tag of tagsFor(entry)) {
       for (const token of Object.keys(entry.modifiers ?? {})) {
-        const onTag = defaultsFor(entry, tag);
+        // Beside the attribute its prop also renders, when it needs one.
+        const onTag = {
+          ...defaultsFor(entry, tag),
+          ...neededFor(entry, [token]),
+        };
         const facts: ElementFacts = {
           ...factsFor(tag, [root], onTag, child),
           conditional: [[token]],
         };
-        if (!plan(facts).conversion) continue;
+        const conversion = plan(facts).conversion;
+        if (!conversion) continue;
+        if (conversion.conditional?.length) flagged.add(token);
         for (const value of CONDITIONS) {
           const both = renderBoth(facts, onTag, child, { [token]: value });
           if (both!.converted !== both!.raw) {
@@ -793,6 +800,11 @@ describe.each(mapped)('`.%s` with a class a condition adds', (root, entry) => {
       }
     }
     expect(differ).toEqual([]);
+    // A flag that needs an attribute beside it is one of those rendered.
+    const needing = Object.entries(entry.modifiers ?? {})
+      .filter(([, modifier]) => modifier.needsAttr)
+      .map(([token]) => token);
+    expect(needing.filter(token => !flagged.has(token))).toEqual([]);
   });
 
   it('renders a flag the same beside each other modifier, fixed or conditional', () => {
