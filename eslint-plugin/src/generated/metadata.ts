@@ -201,7 +201,11 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['modal', { component: 'Modal', converts: false }],
     ['navbar-burger', { component: 'Navbar.Burger', converts: false }],
     ['navbar-link', { component: 'Navbar.Link', converts: false }],
-    ['pagination', { component: 'Pagination', converts: false }],
+    ['pagination-link', { component: 'Pagination.Link', converts: false }],
+    [
+      'pagination-ellipsis',
+      { component: 'Pagination.Ellipsis', converts: false },
+    ],
     ['panel', { component: 'Panel', converts: false }],
     ['tabs', { component: 'Tabs', converts: false }],
     ['columns', { component: 'Columns', converts: true }],
@@ -266,6 +270,13 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['menu', { component: 'Menu', converts: true }],
     ['menu-label', { component: 'Menu.Label', converts: true }],
     ['menu-list', { component: 'Menu.List', converts: true }],
+    ['pagination', { component: 'Pagination', converts: true }],
+    ['pagination-list', { component: 'Pagination.List', converts: true }],
+    [
+      'pagination-previous',
+      { component: 'Pagination.Previous', converts: true },
+    ],
+    ['pagination-next', { component: 'Pagination.Next', converts: true }],
     ['table-container', { component: 'Table', converts: true }],
     ['fixed-grid', { component: 'Grid', converts: true }],
   ]);
