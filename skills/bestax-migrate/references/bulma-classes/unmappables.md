@@ -236,8 +236,13 @@ in the browser:
   `<a>` becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style`
   and `data-testid` on the `<li>`, and everything else, helper props included, on the `<a>`.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
-- **`family:pagination`**, **`family:panel`**: each renders list items, links or roles of its
-  own. Rebuild them from the component's docs.
+- **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
+  `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
+  but for a `<label>` or `<div>` `.panel-block`, which stays markup with no TODO: bestax renders
+  those as `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own
+  contents from props.
+- **`family:pagination`**: `Pagination` renders list items, links and roles of its own.
+  Rebuild it from the component's docs.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 

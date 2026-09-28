@@ -19,6 +19,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "box": {
@@ -39,6 +40,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "button": {
@@ -87,6 +89,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "buttons": {
@@ -114,6 +117,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card": {
@@ -144,6 +148,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-header": {
@@ -168,6 +173,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-header-title": {
@@ -188,6 +194,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-header-icon": {
@@ -208,6 +215,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-image": {
@@ -228,6 +236,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-content": {
@@ -248,6 +257,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-footer": {
@@ -268,6 +278,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "card-footer-item": {
@@ -288,6 +299,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "columns": {
@@ -387,6 +399,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "column": {
@@ -1047,6 +1060,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "grid": {
@@ -1209,6 +1223,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "cell": {
@@ -1446,6 +1461,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "container": {
@@ -1488,6 +1504,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "content": {
@@ -1512,6 +1529,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "delete": {
@@ -1536,6 +1554,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "field": {
@@ -1566,6 +1585,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "field-label": {
@@ -1591,6 +1611,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "field-body": {
@@ -1611,6 +1632,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "control": {
@@ -1639,6 +1661,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "input": {
@@ -1679,6 +1702,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "textarea": {
@@ -1720,6 +1744,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "select": {
@@ -1769,6 +1794,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "footer": {
@@ -1789,6 +1815,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "hero": {
@@ -1829,6 +1856,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "hero-head": {
@@ -1849,6 +1877,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "hero-body": {
@@ -1869,6 +1898,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "hero-foot": {
@@ -1889,6 +1919,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "level": {
@@ -1909,6 +1940,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "level-left": {
@@ -1929,6 +1961,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "level-right": {
@@ -1949,6 +1982,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "level-item": {
@@ -1969,6 +2003,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "media": {
@@ -1989,6 +2024,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "media-left": {
@@ -2009,6 +2045,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "media-content": {
@@ -2029,6 +2066,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "media-right": {
@@ -2049,6 +2087,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar": {
@@ -2085,6 +2124,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-brand": {
@@ -2105,6 +2145,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-menu": {
@@ -2125,6 +2166,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-start": {
@@ -2145,6 +2187,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-end": {
@@ -2165,6 +2208,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-item": {
@@ -2185,6 +2229,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-dropdown": {
@@ -2208,6 +2253,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-divider": {
@@ -2228,6 +2274,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "notification": {
@@ -2259,6 +2306,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "progress": {
@@ -2293,6 +2341,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "section": {
@@ -2316,6 +2365,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "subtitle": {
@@ -2362,6 +2412,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "table": {
@@ -2388,6 +2439,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "tag": {
@@ -2425,6 +2477,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "tags": {
@@ -2449,6 +2502,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "title": {
@@ -2496,6 +2550,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "breadcrumb": {
@@ -2536,6 +2591,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "skeleton-block": {
@@ -2556,6 +2612,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "skeleton-lines": {
@@ -2576,6 +2633,7 @@
       "writes": [{ "prop": "variant", "value": "lines" }],
       "countsChildren": { "tag": "div", "prop": "lines" },
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "checkbox": {
@@ -2596,6 +2654,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "checkboxes": {
@@ -2616,6 +2675,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "radio": {
@@ -2636,6 +2696,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "radios": {
@@ -2656,6 +2717,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "file": {
@@ -2676,6 +2738,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "file-label": {
@@ -2696,6 +2759,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "file-input": {
@@ -2716,6 +2780,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "file-cta": {
@@ -2736,6 +2801,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "file-icon": {
@@ -2756,6 +2822,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "file-name": {
@@ -2776,6 +2843,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "dropdown": {
@@ -2796,6 +2864,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "dropdown-menu": {
@@ -2816,6 +2885,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "dropdown-content": {
@@ -2836,6 +2906,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "dropdown-item": {
@@ -2856,6 +2927,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "dropdown-divider": {
@@ -2876,6 +2948,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "icon": {
@@ -2900,6 +2973,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "icon-text": {
@@ -2920,6 +2994,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "image": {
@@ -2971,6 +3046,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "menu": {
@@ -2991,6 +3067,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "menu-label": {
@@ -3011,6 +3088,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "menu-list": {
@@ -3031,6 +3109,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": true
     },
     "menu-item": {
@@ -3051,6 +3130,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "message": {
@@ -3071,6 +3151,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "message-header": {
@@ -3091,6 +3172,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "message-body": {
@@ -3111,6 +3193,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal": {
@@ -3131,6 +3214,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-background": {
@@ -3151,6 +3235,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-content": {
@@ -3171,6 +3256,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-card": {
@@ -3191,6 +3277,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-card-head": {
@@ -3211,6 +3298,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-card-title": {
@@ -3231,6 +3319,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-card-body": {
@@ -3251,6 +3340,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-card-foot": {
@@ -3271,6 +3361,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "modal-close": {
@@ -3291,6 +3382,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-burger": {
@@ -3311,6 +3403,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-link": {
@@ -3331,6 +3424,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "pagination": {
@@ -3351,6 +3445,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "pagination-list": {
@@ -3371,6 +3466,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "pagination-link": {
@@ -3391,6 +3487,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "pagination-ellipsis": {
@@ -3411,6 +3508,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "pagination-previous": {
@@ -3431,6 +3529,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "pagination-next": {
@@ -3451,18 +3550,117 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "panel": {
-      "status": "todo",
+      "status": "mapped",
       "target": "Panel",
+      "tag": "nav",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {
+        "is-primary": "`color` renders `has-text-<color>` on the panel as well",
+        "is-link": "`color` renders `has-text-<color>` on the panel as well",
+        "is-info": "`color` renders `has-text-<color>` on the panel as well",
+        "is-success": "`color` renders `has-text-<color>` on the panel as well",
+        "is-warning": "`color` renders `has-text-<color>` on the panel as well",
+        "is-danger": "`color` renders `has-text-<color>` on the panel as well",
+        "is-black": "`color` renders `has-text-<color>` on the panel as well",
+        "is-white": "`color` renders `has-text-<color>` on the panel as well",
+        "is-light": "`color` renders `has-text-<color>` on the panel as well",
+        "is-dark": "`color` renders `has-text-<color>` on the panel as well"
+      },
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
+      "noHelpers": false,
+      "otherTagsStay": null,
+      "topLevelOnly": false
+    },
+    "panel-heading": {
+      "status": "mapped",
+      "target": "Panel.Heading",
+      "tag": "p",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
+      "noHelpers": true,
+      "otherTagsStay": null,
+      "topLevelOnly": false
+    },
+    "panel-tabs": {
+      "status": "mapped",
+      "target": "Panel.Tabs",
+      "tag": "p",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
+      "noHelpers": true,
+      "otherTagsStay": null,
+      "topLevelOnly": false
+    },
+    "panel-block": {
+      "status": "mapped",
+      "target": "Panel.Block",
+      "tag": "a",
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": null,
+      "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
+      "noHelpers": true,
+      "otherTagsStay": {
+        "tags": ["label", "div"],
+        "why": "a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents"
+      },
+      "topLevelOnly": false
+    },
+    "panel-icon": {
+      "status": "todo",
+      "target": "Panel.Icon",
       "tag": null,
       "as": null,
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Panel` parts render their own tags and attributes (`Panel.Block` is an `<a>`, `Panel.Icon` adds an `aria-label`)",
+      "why": "bestax `Panel.Icon` renders through `Icon`, which always writes an `aria-label`",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
@@ -3471,106 +3669,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
-      "topLevelOnly": false
-    },
-    "panel-heading": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
-      "writes": null,
-      "countsChildren": null,
-      "noHelpers": false,
-      "topLevelOnly": false
-    },
-    "panel-tabs": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
-      "writes": null,
-      "countsChildren": null,
-      "noHelpers": false,
-      "topLevelOnly": false
-    },
-    "panel-block": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
-      "writes": null,
-      "countsChildren": null,
-      "noHelpers": false,
-      "topLevelOnly": false
-    },
-    "panel-icon": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
-      "writes": null,
-      "countsChildren": null,
-      "noHelpers": false,
-      "topLevelOnly": false
-    },
-    "panel-list": {
-      "status": "todo",
-      "target": null,
-      "tag": null,
-      "as": null,
-      "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
-      "part": true,
-      "why": null,
-      "modifiers": {},
-      "omits": {},
-      "wrapsChildren": null,
-      "folds": null,
-      "absorbs": null,
-      "writes": null,
-      "countsChildren": null,
-      "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "tabs": {
@@ -3613,6 +3712,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "table-container": {
@@ -3633,6 +3733,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "fixed-grid": {
@@ -3993,6 +4094,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "help": {
@@ -4013,6 +4115,28 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
+      "topLevelOnly": false
+    },
+    "panel-list": {
+      "status": "plain",
+      "target": null,
+      "tag": null,
+      "as": null,
+      "sizeDrivesTag": false,
+      "textColor": null,
+      "bgColor": null,
+      "part": false,
+      "why": "nothing in bestax renders `.panel-list`",
+      "modifiers": {},
+      "omits": {},
+      "wrapsChildren": null,
+      "folds": null,
+      "absorbs": null,
+      "writes": null,
+      "countsChildren": null,
+      "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "label": {
@@ -4033,6 +4157,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "loader": {
@@ -4053,6 +4178,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "hero-buttons": {
@@ -4073,6 +4199,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "hero-video": {
@@ -4093,6 +4220,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-content": {
@@ -4113,6 +4241,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "navbar-tabs": {
@@ -4133,6 +4262,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "theme-dark": {
@@ -4153,6 +4283,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "theme-light": {
@@ -4173,6 +4304,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "fa": {
@@ -4193,6 +4325,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "marginless": {
@@ -4213,6 +4346,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     },
     "paddingless": {
@@ -4233,6 +4367,7 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": false,
+      "otherTagsStay": null,
       "topLevelOnly": false
     }
   },
