@@ -756,6 +756,26 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('menu', 'aside')).not.toContain('only when no other');
   });
 
+  it('says when a component renders the element around it, or its text', async () => {
+    const link = await lookup('pagination-link is-current', 'a');
+    expect(link).toContain(
+      "It renders its own bare <li> around the element too: write it in the <li>'s place, which converts only when that <li> holds nothing else and carries nothing but a `key`."
+    );
+    expect(link).toContain(
+      'beside an `aria-current` of the element\'s own, since the prop renders `aria-current="page"` otherwise; without one it stays a class'
+    );
+    const ellipsis = await lookup('pagination-ellipsis', 'span');
+    expect(ellipsis).toContain(
+      'It renders its own `\u2026` as its content, so write it closing itself.'
+    );
+    expect(ellipsis).toContain(
+      "A `className` it's given replaces its own class, so it converts only with no other class."
+    );
+    expect(await lookup('pagination-ellipsis mt-2', 'span')).toContain(
+      '**Stays markup:**'
+    );
+  });
+
   it('says what the items of a list become, by where they sit', async () => {
     expect(await lookup('menu-list', 'ul')).toContain(
       "Each <li> in it holding an <a>, at most one bare <ul> after it, which becomes a `Menu.List` after the <a>'s children, and nothing else becomes a `Menu.Item`, written in the <li>'s place around the <a>'s children. `is-active` on the <a> becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style` and `data-testid` on the <li> and everything else on the <a>, so an item converts only when its attributes already sit that way."

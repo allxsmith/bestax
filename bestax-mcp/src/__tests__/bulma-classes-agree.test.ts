@@ -54,6 +54,8 @@ function planned(tag: string, tokens: string[]): Outcome {
   const attributes = new Map<string, string>();
   const childTargets: string[] = [];
   let soleChild: ElementFacts['soleChild'];
+  let soleChildOf: ElementFacts['soleChildOf'];
+  let text: string | undefined;
   let childElements: ElementFacts['childElements'];
   let counted: string | undefined;
   for (const token of tokens) {
@@ -65,6 +67,27 @@ function planned(tag: string, tokens: string[]): Outcome {
       if (rule.on.includes(tag)) attributes.set(name, rule.fallback);
     }
     childTargets.push(...(entry?.wrapsChildren?.unless ?? []));
+    // Each modifier's attribute it needs beside it, which the lookup states
+    // as a condition (`aria-current` beside `is-current`).
+    for (const other of tokens) {
+      const needs = Object.hasOwn(entry?.modifiers ?? {}, other)
+        ? entry!.modifiers![other].needsAttr
+        : undefined;
+      if (needs) attributes.set(needs.name, needs.value);
+    }
+    // One whose component renders the element around it sits in a bare one,
+    // and one that renders its own text holds it; the lookup says both.
+    if (entry?.status === 'mapped' && entry.parent && !soleChildOf) {
+      soleChildOf = {
+        tag: entry.parent.tag,
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: false,
+      };
+    }
+    if (entry?.status === 'mapped' && entry.rendersText !== undefined) {
+      text = entry.rendersText;
+    }
     const absorbs = entry?.status === 'mapped' ? entry.absorbs : undefined;
     if (absorbs && !soleChild) {
       soleChild = {
@@ -113,6 +136,8 @@ function planned(tag: string, tokens: string[]): Outcome {
     childTargets,
     soleChild,
     childElements,
+    soleChildOf,
+    text,
   });
   if (result.conversion) {
     const { target, props, className } = result.conversion;
