@@ -137,7 +137,9 @@ its inputs ids before running the codemod, and check its forms afterwards.
 
 On a `.tabs` it's the same shape as a `.field`: `Tabs` passes its active tab to the `Tabs.Tab`s
 and `Tabs.Content.Item`s inside it, and renders differently around a `Tabs.Content`, so a `.tabs`
-that already holds one of those stays markup.
+that already holds one of those stays markup. Only the ones written in the file count: a
+component of the app inside the `.tabs` that renders one itself would start following the
+active tab once the `.tabs` converts, so check tabs built from your own components after the run.
 
 On a `.menu-list` it's about nesting: `Menu.List` renders `.menu-list` only on the outermost list,
 and drops it on one inside another. So a `.menu-list` inside another `.menu-list` (or a bestax
