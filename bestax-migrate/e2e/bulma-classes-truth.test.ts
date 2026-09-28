@@ -252,6 +252,11 @@ function factsFor(
     ...(counts && {
       childElements: [bare(counts.tag), bare(counts.tag), bare(counts.tag)],
     }),
+    // One that needs element children holds one (`Icon` around an <i>).
+    ...(!absorbs &&
+      entries.some(entry => entry?.needsElementChildren) && {
+        soleChild: bare('i'),
+      }),
   };
 }
 
@@ -304,6 +309,35 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     );
     expect(dead).toEqual([]);
   });
+
+  if (entry.defaults) {
+    it('renders the same with each default given another value', () => {
+      // A default is written only when none is given, so a given one renders
+      // as given; the sweep above gives each only its default value. One the
+      // props type rejects converts only at its default, so it stays out.
+      const typed = Object.keys(entry.defaults!).filter(
+        name => !entry.untypedAttrs?.includes(name)
+      );
+      for (const name of typed) {
+        // One the target types as a number gets another number.
+        const other = entry.numberAttrs?.includes(name) ? '-1' : 'other';
+        const given = { ...defaultsFor(entry, entry.tag!), [name]: other };
+        const both = renderBoth(
+          factsFor(entry.tag!, [root], given, child),
+          given,
+          child
+        );
+        expect({ name, converts: both !== null }).toEqual({
+          name,
+          converts: true,
+        });
+        expect({ name, html: both!.converted }).toEqual({
+          name,
+          html: both!.raw,
+        });
+      }
+    });
+  }
 
   if (entry.wrapsChildren) {
     const { unless, whenEmpty, when } = entry.wrapsChildren;
@@ -866,6 +900,49 @@ describe("the table's claims about the library", () => {
     ...mapped.map(([, entry]) => entry.target!),
     ...Object.values(WRAPPERS),
   ];
+
+  it('names every spelling of each component whose context a root provides', () => {
+    // A component reaches a file under its export and under each part name
+    // it is attached as (`TabContentItem`, `TabsContent.Item`,
+    // `Tabs.Content.Item`); the planner compares names, so each must be here.
+    const spellings = new Map<unknown, string[]>();
+    const walk = (value: unknown, name: string, depth: number): void => {
+      if (!value || (typeof value !== 'object' && typeof value !== 'function'))
+        return;
+      spellings.set(value, [...(spellings.get(value) ?? []), name]);
+      if (depth === 2) return;
+      for (const key of Object.keys(value)) {
+        if (/^[A-Z]/.test(key)) {
+          walk(
+            (value as Record<string, unknown>)[key],
+            `${name}.${key}`,
+            depth + 1
+          );
+        }
+      }
+    };
+    for (const [key, value] of Object.entries(bestax)) {
+      if (/^[A-Z]/.test(key)) walk(value, key, 0);
+    }
+    const resolve = (name: string): unknown =>
+      name
+        .split('.')
+        .reduce<unknown>(
+          (owner, key) => (owner as Record<string, unknown> | undefined)?.[key],
+          bestax
+        );
+    for (const [root, entry] of mapped) {
+      const readBy = entry.providesContext?.readBy;
+      if (!readBy) continue;
+      const every = new Set(
+        readBy.flatMap(name => spellings.get(resolve(name)) ?? [])
+      );
+      expect({ root, readBy: [...readBy].sort() }).toEqual({
+        root,
+        readBy: [...every].sort(),
+      });
+    }
+  });
 
   it('names exactly the targets that forward refs', () => {
     const forwarding = targets.filter(target => {

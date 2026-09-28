@@ -379,11 +379,29 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` requires children, and this element has none; keep it as markup`
     );
   }
-  if (entry.providesContext && facts.bestaxInside?.length) {
+  const provides = entry.providesContext;
+  const reader =
+    provides &&
+    facts.bestaxInside?.find(
+      name => !provides.readBy || provides.readBy.includes(name)
+    );
+  if (provides && reader) {
     return refuse(
       'context',
       target,
-      `bestax \`${target}\` tells the bestax form controls inside it to skip wrappers of their own, and this element already holds \`${facts.bestaxInside[0]}\`, which could render differently inside it; keep this element as markup, or convert it and check that component by hand`
+      `bestax \`${target}\` ${provides.what}, and this element already holds \`${reader}\`, which could render differently inside it; keep this element as markup, or convert it and check that component by hand`
+    );
+  }
+  if (
+    entry.needsElementChildren &&
+    facts.hasChildren &&
+    !facts.soleChild &&
+    !facts.childElements?.length
+  ) {
+    return refuse(
+      'children',
+      target,
+      `bestax \`${target}\` picks what it renders by whether it has children, and it can't be told from here that these never come out empty, so this converts only around HTML elements written out; keep it as markup`
     );
   }
   if (entry.adoptsIdFrom && !attributes.has('id')) {

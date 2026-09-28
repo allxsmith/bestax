@@ -81,6 +81,7 @@ a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax re
 | `.breadcrumb`          | `Breadcrumb`          | `<nav>` only                                                   |
 | `.skeleton-block`      | `Skeleton`            | `<div>` only                                                   |
 | `.skeleton-lines`      | `Skeleton`            | `<div>` only                                                   |
+| `.icon`                | `Icon`                | `<span>` only                                                  |
 | `.image`               | `Image`               | `<div>`, `<figure>`, `<p>` via `as`                            |
 | `.menu`                | `Menu`                | `<aside>` only                                                 |
 | `.menu-label`          | `Menu.Label`          | `<p>` only                                                     |
@@ -100,6 +101,7 @@ a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax re
 | `.panel-heading`       | `Panel.Heading`       | `<p>` only                                                     |
 | `.panel-tabs`          | `Panel.Tabs`          | `<p>` only                                                     |
 | `.panel-block`         | `Panel.Block`         | `<a>` only                                                     |
+| `.tabs`                | `Tabs`                | `<div>` only                                                   |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -132,6 +134,12 @@ own. `Field` and `Control` tell bestax's form controls inside them to skip their
 `.field` or `.control` that already holds a bestax component stays markup with a
 `context:<Target>` TODO, and so does an input with no `id` inside a bestax `Field` or any other
 component, which could hand it a labelled Field's generated one.
+
+A `.tabs` converts around its `<ul>`, and the `<li>`s and `<a>`s inside stay as written: `Tabs.Tab`
+renders its own `<a>` with tab roles and puts its label in a `<span>`, so converting the tabs
+themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
+`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts around the
+`<i>` inside it when it carries an `aria-label`, which `Icon` writes otherwise.
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and the `<li>`s and `<a>`s inside a
 list don't become `Menu.Item`s, since `Menu.Item` renders the `<li>` and its `<a>` together (a
@@ -217,9 +225,9 @@ inside one of them, or anything else beside them, keeps the element as markup wi
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, Icon and IconText, the menu's items, Message, Modal's root and close
-button, the navbar's burger and dropdown link, the pagination's page links and ellipsis, the
-panel's icon, Radio, Radios and Tabs.
+Checkboxes, Dropdown, File, IconText, the menu's items, Message, Modal's root and close button,
+the navbar's burger and dropdown link, the pagination's page links and ellipsis, the panel's icon,
+Radio and Radios.
 
 ## Classes left alone
 
