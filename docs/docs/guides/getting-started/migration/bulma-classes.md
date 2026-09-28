@@ -118,9 +118,9 @@ A couple of results look odd until you see why:
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
   hand.
 - A `.menu` converts with its labels and lists, and with the items in a list: a `<li>` holding
-  an `<a>`, and at most a bare nested `<ul>`, becomes a `Menu.Item`, found by where it sits since
-  it has no class of its own. `Menu.Item` renders the `<li>` and the `<a>` together and splits its
-  props between them, so an item whose attributes sit anywhere else stays as written.
+  an `<a>`, and at most a bare nested `<ul>`, becomes a `Menu.Item`, found by where it sits.
+  `Menu.Item` renders the `<li>` and the `<a>` together and splits its props between them, so an
+  item whose attributes sit anywhere else stays as written.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
