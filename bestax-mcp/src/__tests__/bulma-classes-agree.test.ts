@@ -78,6 +78,19 @@ function planned(tag: string, tokens: string[]): Outcome {
         isEmpty: true,
       };
     }
+    // One that needs element children gets one, which the lookup can't see.
+    if (
+      entry?.status === 'mapped' &&
+      entry.needsElementChildren &&
+      !soleChild
+    ) {
+      soleChild = {
+        tag: 'i',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+    }
     const counts =
       entry?.status === 'mapped' ? entry.countsChildren : undefined;
     if (counts && !childElements) {
