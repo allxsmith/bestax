@@ -160,14 +160,10 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
   # schema-utils, the eslint toolchain and the MCP SDK) for its high
-  # advisories: GHSA-7p8r-x3mc-p8w7 (host confusion via a backslash authority
-  # introducer), GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf
-  # and GHSA-jqff-g426-hqxp (host confusion via skipped IDN and percent-encoded
-  # scheme normalization, and SSRF), all patched by 3.1.6, and
-  # GHSA-qw65-cvwx-89v3 and GHSA-58mr-gqgx-xq4g (authority injection via an
-  # unvalidated port, host confusion via an unclosed bracket), patched by
-  # 3.1.7. Scoped to the affected 3.x major. Prune once the ajv chain resolves
-  # to >=3.1.7 on its own.
+  # advisories. The floor is the newest fix on the 3.x line: 3.1.7 patches
+  # GHSA-qw65-cvwx-89v3 and GHSA-58mr-gqgx-xq4g. Scoped to the affected 3.x
+  # major, since each major gets its own backport. Prune once the ajv chain
+  # resolves to >=3.1.7 on its own.
   'fast-uri@3': '>=3.1.7 <4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched undici 7.x (transitive via semantic-release/github and
