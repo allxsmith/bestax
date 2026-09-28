@@ -38,6 +38,12 @@ export interface Modifier {
    * handed to the prop as it is.
    */
   readonly onlyTrue?: boolean;
+  /**
+   * The prop renders this attribute too, unless the element sets its own
+   * (`Pagination.Link`'s `active` and `aria-current`), so the class converts
+   * only beside one written out, and stays a class otherwise.
+   */
+  readonly needsAttr?: { readonly name: string; readonly value: string };
 }
 
 /**
@@ -210,6 +216,23 @@ export interface RootEntry {
   readonly folds?: readonly PropWrite[];
   /** The target renders the element's only child itself. */
   readonly absorbs?: Absorbs;
+  /**
+   * The target renders a bare `<tag>` around the element too
+   * (`Pagination.Link`'s `<li>`), so the element converts only as the only
+   * child of a bare one, which it takes the place of.
+   */
+  readonly parent?: { readonly tag: string };
+  /**
+   * The target renders this text as its content, whatever it's given
+   * (`Pagination.Ellipsis`' `…`), so the element converts only holding
+   * exactly it, and closes itself.
+   */
+  readonly rendersText?: string;
+  /**
+   * The target writes a given `className` in place of its own class, so the
+   * element converts only with no other class.
+   */
+  readonly classNameReplaces?: boolean;
   /** Props the target needs to render this class at all (`variant="lines"`). */
   readonly writes?: readonly PropWrite[];
   /**
@@ -1869,14 +1892,41 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     },
     ownProps: ['disabled'],
   },
-  'pagination-link': todo(
-    'Pagination.Link',
-    'bestax `Pagination.Link` renders its own `<li>` around the `<a>`'
-  ),
-  'pagination-ellipsis': todo(
-    'Pagination.Ellipsis',
-    'bestax `Pagination.Ellipsis` renders its own `<li>` and its own `&hellip;`'
-  ),
+  // A page link and the ellipsis each render the bare `<li>` around them, so
+  // each converts in its `<li>`'s place. A link writes `tabIndex` before the
+  // props it's given, and `active` writes `aria-current="page"` the same way.
+  'pagination-link': {
+    ...BASE,
+    target: 'Pagination.Link',
+    tag: 'a',
+    parent: { tag: 'li' },
+    modifiers: {
+      'is-current': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
+    defaults: { tabIndex: '0' },
+    numberAttrs: ['tabIndex'],
+    omits: {
+      'is-disabled':
+        '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
+    },
+    ownProps: ['color', 'textColor', 'bgColor', 'active', 'disabled'],
+  },
+  // It renders its own `…`, and a `className` it's given replaces its class.
+  'pagination-ellipsis': {
+    status: 'mapped',
+    target: 'Pagination.Ellipsis',
+    tag: 'span',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    parent: { tag: 'li' },
+    rendersText: '\u2026',
+    classNameReplaces: true,
+    ownProps: [],
+  },
   // `Panel`'s `color` renders `has-text-<color>` as well as `is-<color>`, and it
   // has no text or background color prop. Its heading, tabs and block are
   // plain elements with their class, and take no helper props.

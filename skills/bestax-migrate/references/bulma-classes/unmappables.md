@@ -77,8 +77,8 @@ give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 `aria-label="breadcrumbs"`, so give its `<nav>` an `aria-label`, whatever it says.
 `Icon` renders `aria-label="icon"`, so give a `.icon` an `aria-label` that says what the icon means.
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
-`Pagination.Previous` and `Pagination.Next` render `tabIndex={0}`, so give each element the
-attribute it's missing.
+`Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, so give each
+element the attribute it's missing.
 `Card.FooterItem` renders `type="button"` on a `<button>` that sets none. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
@@ -136,6 +136,9 @@ markup, and so does a router link or a `<button>` in its place: write a router l
 holding its items, as Bulma nests one, and the `<a>` has to hold something, since `Menu.Item`
 requires children.
 
+On a `.pagination-ellipsis`, `Pagination.Ellipsis` renders its own `…` whatever it's given, so the
+element converts only holding exactly that (`&hellip;` or the character), and closes itself.
+
 On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
 the element converts only when its children are just that, and a class, an attribute, text or a
 comment in one of them, or anything else beside them, keeps it as markup. Keep it if the
@@ -177,6 +180,15 @@ and drops it on one inside another. So a `.menu-list` inside another `.menu-list
 lose the class once the outer one converts. Only the elements in the same file count:
 a `.menu-list` another component renders inside a `Menu.List` would lose the class, so check a
 menu split across components after the run.
+
+On a `.pagination-link` or a `.pagination-ellipsis` it's the `<li>` around it: `Pagination.Link`
+and `Pagination.Ellipsis` render a bare `<li>` of their own, so each converts only as the only
+thing inside a bare `<li>`, which it takes the place of, `key` and all. A class or an attribute
+on the `<li>`, or anything beside the element in it, keeps it as markup. A `.pagination-link`'s
+`is-current` becomes `active` only beside an `aria-current` of its own, since `active` renders
+`aria-current="page"` otherwise; without one it stays a class. And `Pagination.Ellipsis` writes
+a `className` it's given in place of `.pagination-ellipsis`, so another class on it keeps it as
+markup with `attr:className`.
 
 A menu item with a nested list is the same rule from inside: its nested `<ul>` becomes a
 `Menu.List`, which renders `.menu-list` unless another `Menu.List` is around it. So the item
@@ -264,10 +276,6 @@ in the browser:
   class has nowhere to go. On an `<a>` inside a `.menu-list` it adds nothing, so drop it and
   re-run, and the item can convert. On any other tag, keep the markup.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
-- **`family:pagination-link`**, **`family:pagination-ellipsis`**: `Pagination.Link` and
-  `Pagination.Ellipsis` render their own `<li>` around the element (and the ellipsis its own
-  `&hellip;`), so write each in place of the `<li>` and what's inside it: `<Pagination.Link href="#">1</Pagination.Link>`,
-  with `is-current` as `active`. The rest of a pagination converts.
 - **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
   `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
   but for a `<label>` or `<div>` `.panel-block`, which stays markup with no TODO: bestax renders

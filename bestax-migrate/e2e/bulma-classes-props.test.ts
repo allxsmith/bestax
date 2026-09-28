@@ -130,6 +130,19 @@ function converted(
           isEmpty: true,
         },
       }),
+    // One whose target renders the element around it sits in a bare one,
+    // and one whose target renders its text holds that text.
+    ...(root?.status === 'mapped' &&
+      root.parent && {
+        soleChildOf: {
+          tag: root.parent.tag,
+          attributes: new Map(),
+          hasSpread: false,
+          isEmpty: false,
+        },
+      }),
+    ...(root?.status === 'mapped' &&
+      root.rendersText !== undefined && { text: root.rendersText }),
     // One that renders its children from a count holds a few of them.
     ...(root?.status === 'mapped' &&
       root.countsChildren && {
@@ -210,10 +223,18 @@ describe('every bulma-classes conversion typechecks', () => {
           add(converted(tag, [root], [...onTag(tag), attribute]));
         }
       }
-      for (const modifier of Object.keys(entry.modifiers ?? {})) {
+      for (const [modifier, spec] of Object.entries(entry.modifiers ?? {})) {
+        // Beside the attribute its prop also renders, when it needs one.
+        const needs: Array<[string, string]> = spec.needsAttr
+          ? [[spec.needsAttr.name, spec.needsAttr.value]]
+          : [];
         for (const tag of tagsFor(entry)) {
-          add(converted(tag, [root, modifier], onTag(tag)));
-          add(converted(tag, [root], onTag(tag), undefined, [[modifier]]));
+          add(converted(tag, [root, modifier], [...onTag(tag), ...needs]));
+          add(
+            converted(tag, [root], [...onTag(tag), ...needs], undefined, [
+              [modifier],
+            ])
+          );
         }
       }
       for (const helper of HELPER_TOKENS.keys()) {

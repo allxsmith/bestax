@@ -99,7 +99,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   inside it in, a conversion, a fold into its only child (a `fold` wrapper such as
   `.table-container`) or a TODO out; an entry that `absorbs` its only child (`.select`'s
   `<select>`) converts together with it, written in the child's place, and one that
-  `countsChildren` (`.skeleton-lines`) writes their count and drops them; an entry
+  `countsChildren` (`.skeleton-lines`) writes their count and drops them, and one with a
+  `parent` (`.pagination-link`) takes the place of the bare `<li>` its target renders too; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
   before their parents; and an element with no class to go by, a menu list's `<li>`, is found
   by the list around it and planned as the `PLACED` entry for that list), `rules.ts` (rule ids from a closed
