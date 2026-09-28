@@ -438,6 +438,18 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders \`.${root}\` only when no other \`${target}\` is around it, and this element holds one, which would lose the class once this one converts; keep this element as markup`
     );
   }
+  // A component already in the file that picks its own render from its
+  // children would change if this became one of them.
+  const host = facts.bestaxAround?.find(name =>
+    entry.changesParent?.includes(name)
+  );
+  if (host) {
+    return refuse(
+      'context',
+      target,
+      `this element sits inside a bestax \`${host}\`, which renders differently once one of its children is a \`${target}\`; keep it as markup, or convert the \`${host}\` and its children by hand`
+    );
+  }
   const wraps = entry.wrapsChildren;
   if (
     wraps &&

@@ -144,6 +144,12 @@ that already holds one of those stays markup. Only the ones written in the file 
 component of the app inside the `.tabs` that renders one itself would start following the
 active tab once the `.tabs` converts, so check tabs built from your own components after the run.
 
+On a `.modal-background`, `.modal-content` or `.modal-card` it's about the `Modal` around it. A
+bestax `Modal` already in the file picks what it renders from its children: with one of those
+parts among them it renders them as given, and without one it adds its own background, wrapper
+and close button. So converting the part would change the `Modal`, and the part stays markup.
+Convert the `Modal` and its children together by hand.
+
 On a `.menu-list` it's about nesting: `Menu.List` renders `.menu-list` only on the outermost list,
 and drops it on one inside another. So a `.menu-list` inside another `.menu-list` (or a bestax
 `Menu.List`) stays markup, keeping its class, and so does one around a bestax `Menu.List`, which would
@@ -212,8 +218,11 @@ in the browser:
   lists the props for the button text, the file name and the icons.
 - **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
   bestax renders its own styled checkbox and radio markup, not Bulma's.
-- **`family:modal`**: `Modal` renders its own background and content parts, and adds dialog
-  attributes. Rebuild it with `Modal` and its parts, and drive it with its open prop. When the
+- **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and
+  focus handling, so the `.modal` root stays markup while its background, content and card parts
+  convert on their own. Rebuild the root with `Modal` around them, and drive it with its open prop.
+  A `.modal-close` stays too, since `Modal.Close` renders `.delete` unless it's floating: write
+  `<Modal.Close variant="floating" />` in its place. When the
   page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
   bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.

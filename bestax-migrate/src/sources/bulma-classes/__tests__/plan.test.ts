@@ -562,6 +562,27 @@ describe('plan', () => {
     });
   });
 
+  describe('Modal', () => {
+    it('converts the parts, but not inside a bestax Modal, which picks its render from them', () => {
+      expect(plan(facts('div', 'modal-content')).conversion?.target).toBe(
+        'Modal.Content'
+      );
+      for (const root of ['modal-background', 'modal-content', 'modal-card']) {
+        expect(
+          plan(facts('div', root, {}, { bestaxAround: ['Modal'] })).todos.map(
+            todo => todo.rule
+          )
+        ).toEqual([expect.stringMatching(/^context:Modal\./)]);
+      }
+      // A card part is not one of the children the root looks at.
+      expect(
+        plan(
+          facts('header', 'modal-card-head', {}, { bestaxAround: ['Modal'] })
+        ).conversion?.target
+      ).toBe('Modal.Card.Head');
+    });
+  });
+
   describe('Image', () => {
     const img = (attributes: Record<string, string | true | null> = {}) => ({
       tag: 'img',
