@@ -59,12 +59,15 @@ const [choice, setChoice] = useState('a');
 </Dropdown>;
 ```
 
-## `Pagination` extras (`delta`, `next`/`previous`, `showFirstLast`, `showPrevNext`, `autoHide`)
+## `Pagination` extras (`showFirstLast`, `showPrevNext`, `autoHide`)
 
-bestax `Pagination` renders from `total`/`current`/`onPageChange` with its own windowing.
-Drop `delta` (built-in), render conditionally instead of `autoHide`
-(`{total > 1 && <Pagination …/>}`), and compose `Pagination.Previous`/`Pagination.Next`
-manually if custom labels are essential.
+bestax `Pagination` renders from `total`/`current`/`onPageChange` when it has no children:
+Previous, Next and the page links, with an ellipsis for each run it skips. The codemod writes
+`delta` as `siblingCount` (the pages on each side of the current one) and `next`/`previous` as
+`nextLabel`/`previousLabel`. It always shows Previous and Next, and the first and last pages
+(`boundaryCount` of each, 1 by default), so drop `showPrevNext` and `showFirstLast`, or compose
+the parts (`Pagination.Previous`, `Pagination.List`, `Pagination.Link`) by hand for a
+different layout. Render conditionally instead of `autoHide` (`{total > 1 && <Pagination …/>}`).
 
 ## `Modal` (`closeOnBlur`, `showClose`)
 

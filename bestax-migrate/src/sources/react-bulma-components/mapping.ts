@@ -685,11 +685,15 @@ export const MAPPING: Record<string, ComponentMapping> = {
       rounded: {},
       onChange: { rename: 'onPageChange' },
       align: { valueMap: { center: 'centered', right: 'right' } },
-      delta: { todo: 'no delta prop in bestax Pagination' },
-      next: { todo: 'no custom next label in bestax Pagination' },
-      previous: { todo: 'no custom previous label in bestax Pagination' },
-      showPrevNext: { todo: 'no showPrevNext prop in bestax Pagination' },
-      showFirstLast: { todo: 'no showFirstLast prop in bestax Pagination' },
+      delta: { rename: 'siblingCount' },
+      next: { rename: 'nextLabel' },
+      previous: { rename: 'previousLabel' },
+      showPrevNext: {
+        todo: 'bestax Pagination always renders Previous and Next from `total`',
+      },
+      showFirstLast: {
+        todo: 'bestax Pagination always shows the first and last pages from `total`, `boundaryCount` of each (1 by default)',
+      },
       autoHide: {
         todo: 'no autoHide prop in bestax Pagination; render conditionally',
       },

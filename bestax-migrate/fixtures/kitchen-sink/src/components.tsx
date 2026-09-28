@@ -102,7 +102,7 @@ export function Widgets() {
         <Dropdown.Divider />
         <Dropdown.Item>Second</Dropdown.Item>
       </Dropdown>
-      <Pagination current={page} total={10} onChange={setPage} align="center" rounded size="small" />
+      <Pagination current={page} total={10} onChange={setPage} align="center" rounded size="small" delta={2} previous="Newer" next="Older" />
     </div>
   );
 }
