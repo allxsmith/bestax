@@ -685,7 +685,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
       rounded: {},
       onChange: { rename: 'onPageChange' },
       align: { valueMap: { center: 'centered', right: 'right' } },
-      delta: { rename: 'siblingCount' },
+      delta: {
+        rename: 'siblingCount',
+        valueTodo: {
+          '0': 'RBC renders no page links for it, and bestax Pagination still shows the current, first and last pages from `siblingCount={0}`; compose the parts by hand for a Pagination with no page links',
+        },
+      },
       next: { rename: 'nextLabel' },
       previous: { rename: 'previousLabel' },
       showPrevNext: {
