@@ -3640,7 +3640,10 @@
       "writes": null,
       "countsChildren": null,
       "noHelpers": true,
-      "otherTagsStay": "a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents",
+      "otherTagsStay": {
+        "tags": ["label", "div"],
+        "why": "a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents"
+      },
       "topLevelOnly": false
     },
     "panel-icon": {

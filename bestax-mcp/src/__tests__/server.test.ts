@@ -741,6 +741,9 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('panel-block', 'div')).toContain(
       '**Stays markup:** a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents'
     );
+    expect(await lookup('panel-block', 'span')).toContain(
+      '**Component:** `Panel.Block` renders only <a>, not a <span>'
+    );
     expect(await lookup('panel-block', 'a')).toContain(
       '**Component:** `Panel.Block`'
     );

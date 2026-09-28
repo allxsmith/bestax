@@ -52,7 +52,7 @@ export interface RootRecord {
   /** The component takes no helper props, so helper classes stay classes. */
   noHelpers: boolean;
   /** On a tag the component doesn't render, why the element stays markup. */
-  otherTagsStay: string | null;
+  otherTagsStay: { tags: string[]; why: string } | null;
   /**
    * The component renders its class only when no other of itself is around
    * it (`Menu.List` drops `.menu-list` when nested).
@@ -560,8 +560,8 @@ export function lookupClasses(
     entry.as === 'any' ||
     (Array.isArray(entry.as) && entry.as.includes(tag));
   if (!reachable) {
-    if (entry.otherTagsStay) {
-      return result({ kind: 'markup', why: entry.otherTagsStay });
+    if (tag && entry.otherTagsStay?.tags.includes(tag)) {
+      return result({ kind: 'markup', why: entry.otherTagsStay.why });
     }
     return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
   }
