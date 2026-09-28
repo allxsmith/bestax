@@ -10,7 +10,7 @@ export function Dialogs() {
             <Modal.Card.Title>Modal title</Modal.Card.Title>
             <Delete aria-label="close"></Delete>
           </Modal.Card.Head>
-          <Modal.Card.Body>Content</Modal.Card.Body>
+          <Modal.Card.Body className="has-text-centered">Content</Modal.Card.Body>
           <Modal.Card.Foot>
             <Buttons>
               <Button color="success">Save changes</Button>

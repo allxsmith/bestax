@@ -8,7 +8,7 @@ export function Dialogs() {
             <p className="modal-card-title">Modal title</p>
             <button className="delete" type="button" aria-label="close"></button>
           </header>
-          <section className="modal-card-body">Content</section>
+          <section className="modal-card-body has-text-centered">Content</section>
           <footer className="modal-card-foot">
             <div className="buttons">
               <button className="button is-success">Save changes</button>

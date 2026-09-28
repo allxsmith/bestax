@@ -134,6 +134,12 @@ The codemod reads one file at a time, so it can't see a component in another fil
 a bestax `Field` or form control around this markup. If the app already uses them that way, give
 its inputs ids before running the codemod, and check its forms afterwards.
 
+On a `.modal-background`, `.modal-content` or `.modal-card` it's about the `Modal` around it. A
+bestax `Modal` already in the file picks what it renders from its children: with one of those
+parts among them it renders them as given, and without one it adds its own background, wrapper
+and close button. So converting the part would change the `Modal`, and the part stays markup.
+Convert the `Modal` and its children together by hand.
+
 On a `.menu-list` it's about nesting: `Menu.List` renders `.menu-list` only on the outermost list,
 and drops it on one inside another. So a `.menu-list` inside another `.menu-list` (or a bestax
 `Menu.List`) stays markup, keeping its class, and so does one around a bestax `Menu.List`, which would

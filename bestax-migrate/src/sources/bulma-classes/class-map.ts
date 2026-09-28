@@ -160,6 +160,12 @@ export interface RootEntry {
    */
   readonly topLevelOnly?: boolean;
   /**
+   * bestax components already in the file whose own render changes once the
+   * target is among their children (`Modal` switches branch when one of its
+   * parts is), so the element stays markup inside one.
+   */
+  readonly changesParent?: readonly string[];
+  /**
    * Inside one of these bestax components already in the file, the target
    * takes a generated `id` when the element has none of its own.
    */
@@ -1656,6 +1662,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
+    changesParent: ['Modal'],
     ownProps: [],
   },
   'modal-content': {
@@ -1665,6 +1672,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
+    changesParent: ['Modal'],
     ownProps: [],
   },
   'modal-card': {
@@ -1674,6 +1682,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
+    changesParent: ['Modal'],
     ownProps: [],
   },
   'modal-card-head': {
