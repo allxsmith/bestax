@@ -83,6 +83,13 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.menu`              | `Menu`                | `<aside>` only                                                 |
 | `.menu-label`        | `Menu.Label`          | `<p>` only                                                     |
 | `.menu-list`         | `Menu.List`           | `<ul>` only                                                    |
+| `.modal-background`  | `Modal.Background`    | `<div>` only                                                   |
+| `.modal-content`     | `Modal.Content`       | `<div>` only                                                   |
+| `.modal-card`        | `Modal.Card`          | `<div>` only                                                   |
+| `.modal-card-head`   | `Modal.Card.Head`     | `<header>` only                                                |
+| `.modal-card-title`  | `Modal.Card.Title`    | `<p>` only                                                     |
+| `.modal-card-body`   | `Modal.Card.Body`     | `<section>` only                                               |
+| `.modal-card-foot`   | `Modal.Card.Foot`     | `<footer>` only                                                |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -229,7 +236,8 @@ inside one of them, or anything else beside them, keeps the element as markup wi
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, Icon and IconText, the menu's `.menu-item`, Message, Modal, the navbar's burger
+Checkboxes, Dropdown, File, Icon and IconText, the menu's `.menu-item`, Message, Modal's root and
+close button, the navbar's burger
 and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
 
 ## Classes left alone

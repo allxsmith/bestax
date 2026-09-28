@@ -945,6 +945,16 @@ describe('a className a joiner builds', () => {
   });
 });
 
+describe('modal parts inside a bestax Modal', () => {
+  it('keeps a part inside an existing Modal as markup', () => {
+    const { output, rules } = migrate(
+      'import { Modal } from "@allxsmith/bestax-bulma";\nexport const A = ({ open }: { open: boolean }) => (\n  <Modal active={open}>\n    <div className="modal-content">x</div>\n  </Modal>\n);\n'
+    );
+    expect(rules).toEqual(['context:Modal.Content']);
+    expect(output).toContain('<div className="modal-content">x</div>');
+  });
+});
+
 describe('menu list nesting', () => {
   const nested = (outer: string, head = '') =>
     migrate(
