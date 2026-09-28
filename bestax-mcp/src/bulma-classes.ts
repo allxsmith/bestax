@@ -621,8 +621,10 @@ function absorbsText(target: string, absorbs: Absorbs): string {
       `which converts that way only around ${aChild} with no other ` +
       `attribute.${on}` +
       (absorbs.elseWraps
-        ? ` Around anything else it renders the children as given, in place ` +
-          `of its own ${child}, so put them inside \`${target}\` as they are.`
+        ? ` Around other HTML elements written out it renders them as given, ` +
+          `in place of its own ${child}, so put them inside \`${target}\` as ` +
+          `they are; around an expression, which can come out empty, it ` +
+          `would render its own.`
         : '')
     );
   }
