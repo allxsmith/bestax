@@ -103,6 +103,10 @@ renders the same `<h2>`.
 | `.hero` → `Hero`                                                             | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                                                | `size`                                                                                            |
 | `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size` (a ratio such as `is-4by3` stays a class, since `size` would add `has-ratio`)              |
 | the `<img>` inside `.image`                                                  | `is-rounded`                                                                                                                                     | `isRounded`                                                                                       |
+| `.icon` → `Icon`                                                             | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
+| `.tabs` → `Tabs`                                                             | `is-centered`, `is-right`, `is-left`                                                                                                             | `align`                                                                                           |
+| `.tabs` → `Tabs`                                                             | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
+| `.tabs` → `Tabs`                                                             | `is-fullwidth`, `is-boxed`, `is-toggle`, `is-toggle-rounded`                                                                                     | `isFullwidth`, `boxed`, `toggle`, `rounded` (`is-<color>` stays a class: `color` is deprecated)   |
 | the `<a>` in a menu item → `Menu.Item`                                       | `is-active`                                                                                                                                      | `active`                                                                                          |
 | `.pagination` → `Pagination`                                                 | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.pagination` → `Pagination`                                                 | `is-centered`, `is-right`, `is-rounded`                                                                                                          | `align`, `rounded` (`is-<color>` stays a class: `color` is deprecated)                            |
@@ -174,12 +178,12 @@ on `Breadcrumb`, `Hero`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`,
 `Control`, `InputBase`, `TextAreaBase`, `SelectBase`, `Progress`, `Skeleton`, `Tag`, `Tags`,
 `Modal.Background`, `Modal.Content`, `Modal.Card`, `Modal.Card.Head`, `Modal.Card.Title`,
 `Modal.Card.Body`, `Modal.Card.Foot`, `Pagination.Previous`, `Pagination.Next`, `Panel`,
-`Panel.Heading`, `Panel.Tabs` and `Panel.Block`; `has-background-*` on `Breadcrumb`,
+`Panel.Heading`, `Panel.Tabs`, `Panel.Block` and `Tabs`; `has-background-*` on `Breadcrumb`,
 `Navbar.Brand`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`,
 `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Notification`, `Progress`, `Skeleton`,
 `Table`, `Tags`, `Modal.Background`, `Modal.Content`, `Modal.Card`, `Modal.Card.Head`,
 `Modal.Card.Title`, `Modal.Card.Body`, `Modal.Card.Foot`, `Pagination.Previous`,
-`Pagination.Next`, `Panel`, `Panel.Heading`, `Panel.Tabs` and `Panel.Block`.
+`Pagination.Next`, `Panel`, `Panel.Heading`, `Panel.Tabs`, `Panel.Block` and `Tabs`.
 `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Skeleton`,
 Modal's parts, `Pagination.Previous`, `Pagination.Next`, `Panel.Heading`, `Panel.Tabs` and
 `Panel.Block` take no helper props the way the codemod needs, so every helper class on them

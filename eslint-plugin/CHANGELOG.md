@@ -1,3 +1,17 @@
+## [1.1.7](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.6...@allxsmith/eslint-plugin-bestax@1.1.7) (2026-09-28)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** report Pagination's converting parts with the converts message ([6b94f14](https://github.com/allxsmith/bestax/commit/6b94f14f77448e2da27e3ac81de31965d9b0ea2f))
+
+
+### Features
+
+* **bestax-mcp:** look up Pagination, its list and its previous and next links as components ([f1298df](https://github.com/allxsmith/bestax/commit/f1298df03e009ddd1119c29251573bc7d51f18d1))
+* **bestax-migrate:** convert Pagination, its list and its previous and next links ([d75bc70](https://github.com/allxsmith/bestax/commit/d75bc70ff9643f165508bfd443151559d1d12c38)), closes [#807](https://github.com/allxsmith/bestax/issues/807)
+* **bestax-migrate:** convert Panel and its heading, tabs and blocks ([#811](https://github.com/allxsmith/bestax/issues/811)) ([0694e54](https://github.com/allxsmith/bestax/commit/0694e54f7229e161a1641c7879cfdd97760ef18f))
+
 ## [1.1.6](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.5...@allxsmith/eslint-plugin-bestax@1.1.6) (2026-09-28)
 
 

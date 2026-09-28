@@ -157,6 +157,12 @@ export interface RootEntry {
   /** The target's props type requires children. */
   readonly requiresChildren?: boolean;
   /**
+   * The target picks its render by whether it has children, so the element
+   * converts only around HTML elements written out: an expression could come
+   * out empty (`Icon` renders from `name` when `children` is `undefined`).
+   */
+  readonly needsElementChildren?: boolean;
+  /**
    * The target renders its children inside an element of its own (`Card`
    * inside `.card-content`) unless one of them is one of these parts, so the
    * element converts only beside a direct child that converts to one.
@@ -170,11 +176,15 @@ export interface RootEntry {
     readonly when?: string;
   };
   /**
-   * The target provides context bestax's form controls read to skip wrappers
-   * of their own, so an element around a bestax component already in the file
-   * stays markup: that component would render differently.
+   * The target provides context the bestax components inside it read (`what`
+   * it does, for the TODO), so an element around one already in the file
+   * stays markup: that component would render differently. `readBy` names
+   * them when not every bestax component does.
    */
-  readonly providesContext?: boolean;
+  readonly providesContext?: {
+    readonly what: string;
+    readonly readBy?: readonly string[];
+  };
   /**
    * The target renders its root class only when no other of itself is around
    * it (`Menu.List` drops `.menu-list` when nested), so the element converts
@@ -968,7 +978,9 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       whenEmpty: true,
       when: 'is-horizontal',
     },
-    providesContext: true,
+    providesContext: {
+      what: 'tells the bestax form controls inside it to skip wrappers of their own',
+    },
     ownProps: [
       'horizontal',
       'grouped',
@@ -1020,7 +1032,9 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       }),
       ...tokens('is-', ['small', 'medium', 'large'], 'size'),
     },
-    providesContext: true,
+    providesContext: {
+      what: 'tells the bestax form controls inside it to skip wrappers of their own',
+    },
     ownProps: [
       'as',
       'hasIconsLeft',
@@ -1570,10 +1584,32 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  icon: todo(
-    'Icon',
-    'bestax `Icon` renders its own `<i>` and adds an `aria-label`'
-  ),
+  // With children, `Icon` renders `.icon` around them as given, and writes an
+  // `aria-label` (`"icon"` unless it's given one).
+  icon: {
+    ...BASE,
+    target: 'Icon',
+    tag: 'span',
+    modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
+    defaults: { 'aria-label': 'icon' },
+    requiresChildren: true,
+    needsElementChildren: true,
+    ownProps: [
+      'textColor',
+      'bgColor',
+      'color',
+      'name',
+      'library',
+      'variant',
+      'features',
+      'libraryFeatures',
+      'size',
+      'ariaLabel',
+      'icon',
+      'containerClassName',
+    ],
+    passThrough: ['style'],
+  },
   'icon-text': todo(
     'IconText',
     'bestax `IconText` pairs with `Icon`, which renders its own `<i>`'
@@ -1894,10 +1930,61 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Panel.Icon',
     'bestax `Panel.Icon` renders through `Icon`, which always writes an `aria-label`'
   ),
-  tabs: todo(
-    'Tabs',
-    "bestax `Tabs` renders each tab's `<li>` and `<a>` together, with tab roles"
-  ),
+  // With no `Tabs.Content` among its children, `Tabs` renders `.tabs` around
+  // them as given. It has no text or background color prop, and its `color`
+  // is deprecated, since Bulma styles no colored tabs.
+  tabs: {
+    ...BASE,
+    target: 'Tabs',
+    tag: 'div',
+    textColor: null,
+    bgColor: null,
+    modifiers: {
+      ...tokens('is-', ['centered', 'right', 'left'], 'align'),
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+      ...flags({
+        'is-fullwidth': 'isFullwidth',
+        'is-boxed': 'boxed',
+        'is-toggle': 'toggle',
+        'is-toggle-rounded': 'rounded',
+      }),
+    },
+    omits: Object.fromEntries(
+      COMPONENT_COLORS.map(color => [
+        `is-${color}`,
+        '`color` is deprecated, since Bulma styles no colored tabs',
+      ])
+    ),
+    providesContext: {
+      what: 'passes its active tab to the tabs and panels inside it, and renders differently around a `Tabs.Content`',
+      readBy: [
+        'Tabs.Tab',
+        'Tab',
+        'Tabs.Content',
+        'TabsContent',
+        'Tabs.Content.Item',
+        'TabsContent.Item',
+        'TabContentItem',
+      ],
+    },
+    ownProps: [
+      'align',
+      'size',
+      'isFullwidth',
+      'isFullWidth',
+      'fullwidth',
+      'boxed',
+      'toggle',
+      'rounded',
+      'color',
+      'value',
+      'onChange',
+      'defaultValue',
+      'vertical',
+      'side',
+      'expanded',
+    ],
+  },
 
   // ---- Wrappers a component renders from a prop ---------------------------------
   // Each renders the wrapper with its own class and nothing else, so the
