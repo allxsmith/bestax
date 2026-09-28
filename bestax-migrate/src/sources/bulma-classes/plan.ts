@@ -277,6 +277,11 @@ export function plan(facts: ElementFacts): Plan {
     }
     entry = wrapperEntry(tag);
     if (!entry) return { conversion: null, todos };
+    // A wrapper exists only to carry helper props, so a tag with no helper
+    // class stays as it is, and nothing else about it is worth a TODO.
+    if (!carried.some(token => HELPER_TOKENS.has(token))) {
+      return { conversion: null, todos };
+    }
   }
   const target = entry.target!;
 

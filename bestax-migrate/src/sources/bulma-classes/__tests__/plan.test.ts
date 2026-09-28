@@ -278,6 +278,18 @@ describe('plan', () => {
     it('leaves a tag with no wrapper, or no helper class, alone', () => {
       expect(plan(facts('div', 'mt-4')).conversion).toBeNull();
       expect(plan(facts('p', 'intro')).conversion).toBeNull();
+      // With no TODO either, whatever else it carries: it was never going
+      // to become the wrapper.
+      for (const attributes of [{ tabIndex: '00' }, { children: null }]) {
+        expect(plan(facts('p', 'intro', attributes))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+      expect(plan(facts('p', 'intro', {}, { hasSpread: true }))).toEqual({
+        conversion: null,
+        todos: [],
+      });
     });
 
     it('leaves markup with a root it does not convert alone', () => {

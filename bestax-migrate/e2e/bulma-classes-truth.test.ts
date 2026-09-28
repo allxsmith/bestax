@@ -289,10 +289,12 @@ describe.each(mapped)('`.%s`', (root, entry) => {
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),
     ];
     const onTag = defaultsFor(entry, tag);
+    const omitted = new Set<string>();
     for (const tokens of candidates) {
       const facts = factsFor(tag, tokens, onTag, child);
       const both = renderBoth(facts, onTag, child);
       if (!both) continue;
+      if (Object.hasOwn(entry.omits ?? {}, tokens[1])) omitted.add(tokens[1]);
       expect({ tokens, tag, html: both.converted }).toEqual({
         tokens,
         tag,
@@ -303,8 +305,14 @@ describe.each(mapped)('`.%s`', (root, entry) => {
       for (const token of tokens)
         if (!kept.includes(token)) converts.add(token);
     }
-    // No row is dead: the root itself converts on its own tag.
-    if (tag === entry.tag) expect(converts.has(root)).toBe(true);
+    // No row is dead: the root itself converts on its own tag, and so does
+    // it beside each class it omits, which stays in `className`.
+    if (tag === entry.tag) {
+      expect(converts.has(root)).toBe(true);
+      expect([...omitted].sort()).toEqual(
+        Object.keys(entry.omits ?? {}).sort()
+      );
+    }
   });
 
   it('has no dead modifiers', () => {
@@ -574,6 +582,7 @@ describe.each(absorbing)(
           'aria-label': 'Pick one',
           'data-test': 'y',
           form: 'f',
+          tabIndex: '0',
         };
         for (const [name, value] of Object.entries(pool)) {
           same(around([], undefined, { [name]: value }), name);
