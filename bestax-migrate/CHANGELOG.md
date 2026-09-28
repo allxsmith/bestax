@@ -1,3 +1,10 @@
+# [2.18.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.17.0...bestax-migrate@2.18.0) (2026-09-28)
+
+
+### Features
+
+* **bestax-migrate:** convert Panel and its heading, tabs and blocks ([#811](https://github.com/allxsmith/bestax/issues/811)) ([0694e54](https://github.com/allxsmith/bestax/commit/0694e54f7229e161a1641c7879cfdd97760ef18f))
+
 # [2.17.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.16.0...bestax-migrate@2.17.0) (2026-09-28)
 
 
