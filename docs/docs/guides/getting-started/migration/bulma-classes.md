@@ -71,8 +71,9 @@ stock stylesheet.
   `section`, `hero` and its parts, `title`, `subtitle`, `box`, `content`, `block`,
   `notification`, `tag`, `tags`, `level` and its parts, `media` and its parts, `card` and its
   parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
-  `select`, `breadcrumb`, `image`, `menu` and its label and list, `panel` and its heading, tabs and
-  blocks, `delete`, `progress`, `skeleton-block`, `footer` and `table` become their bestax
+  `select`, `breadcrumb`, `image`, `menu` and its label and list, the parts inside a `modal` but its
+  close button, `panel` and its heading, tabs and blocks, `delete`, `progress`, `skeleton-block`,
+  `footer` and `table` become their bestax
   components, with their modifier classes as props (`is-primary` → `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:

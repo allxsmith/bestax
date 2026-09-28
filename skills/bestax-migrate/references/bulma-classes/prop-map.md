@@ -168,14 +168,18 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
 on `Breadcrumb`, `Hero`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`,
-`Control`, `InputBase`, `TextAreaBase`, `SelectBase`, `Progress`, `Skeleton`, `Tag`, `Tags`, `Panel`,
-`Panel.Heading`, `Panel.Tabs` and `Panel.Block`; `has-background-*` on `Breadcrumb`, `Navbar.Brand`,
-`Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`,
-`Field.Body`, `Control`, `Notification`, `Progress`, `Skeleton`, `Table`, `Tags`, `Panel`,
+`Control`, `InputBase`, `TextAreaBase`, `SelectBase`, `Progress`, `Skeleton`, `Tag`, `Tags`,
+`Modal.Background`, `Modal.Content`, `Modal.Card`, `Modal.Card.Head`, `Modal.Card.Title`,
+`Modal.Card.Body`, `Modal.Card.Foot`, `Panel`, `Panel.Heading`, `Panel.Tabs` and `Panel.Block`;
+`has-background-*` on `Breadcrumb`, `Navbar.Brand`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`,
+`Navbar.DropdownMenu`, `Navbar.Divider`, `Field.Label`, `Field.Body`, `Control`, `Notification`,
+`Progress`, `Skeleton`, `Table`, `Tags`, `Modal.Background`, `Modal.Content`, `Modal.Card`,
+`Modal.Card.Head`, `Modal.Card.Title`, `Modal.Card.Body`, `Modal.Card.Foot`, `Panel`,
 `Panel.Heading`, `Panel.Tabs` and `Panel.Block`. `Navbar.DropdownMenu`, `Navbar.Divider`,
-`Field.Label`, `Field.Body`, `Control`, `Skeleton`, `Panel.Heading`, `Panel.Tabs` and `Panel.Block`
-take no helper props the way the codemod needs, so every helper class on them stays. A `.panel`'s
-`is-<color>` stays a class too, since `Panel`'s `color` renders `has-text-<color>` beside it.
+`Field.Label`, `Field.Body`, `Control`, `Skeleton`, Modal's parts, `Panel.Heading`, `Panel.Tabs`
+and `Panel.Block` take no helper props the way the codemod needs, so every helper class on them
+stays. A `.panel`'s `is-<color>` stays a class too, since `Panel`'s `color` renders
+`has-text-<color>` beside it.
 
 Some classes stay put because of how bestax renders them:
 
