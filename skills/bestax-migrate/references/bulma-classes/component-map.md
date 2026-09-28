@@ -179,8 +179,9 @@ go straight inside `Breadcrumb`, and `<figure className="image is-64x64"><img sr
   `is-rounded` on it becomes `isRounded`. The `.image` keeps its own attributes. A ratio
   (`is-4by3`) stays a class, since `size` would add `has-ratio` as well. Around anything else (an
   `<img>` with more attributes, an `<iframe>`), `Image` renders its children as given, so the
-  `.image` converts around them and they stay as written. An empty `.image` stays markup, since
-  `Image` would render an `<img>` of its own.
+  `.image` converts around them and they stay as written, as long as they're HTML elements written
+  out. An empty `.image` stays markup, since `Image` would render an `<img>` of its own, and so does
+  one around an expression (`{src && <img />}`), which can come out empty.
 
 For `SelectBase` and `Breadcrumb`, anything else keeps both as markup, with a `children:<Target>`, `attr` or `defaults:<Target>`
 TODO.

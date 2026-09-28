@@ -296,6 +296,14 @@ export function plan(facts: ElementFacts): Plan {
         target,
         `bestax \`${target}\` renders its own <${entry.absorbs.tag}> when it's given no children, so this empty element would gain one; keep it as markup`
       );
+    } else if (!facts.soleChild && !facts.childElements?.length) {
+      // The target tests its children for truth, so an expression that can
+      // be falsy (`{src && <img />}`) would have it render its own child.
+      return refuse(
+        'children',
+        target,
+        `bestax \`${target}\` renders its own <${entry.absorbs.tag}> when its children are empty, and it can't be told from here that these never are, so this converts only around HTML elements written out; keep it as markup`
+      );
     }
     // Otherwise the target renders the children as given, and the element
     // converts around them like any other.
