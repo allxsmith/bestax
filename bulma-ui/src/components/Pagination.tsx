@@ -152,11 +152,10 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
 }) => (
   <a
     className={classNames(
-      usePrefixedClassNames('pagination-previous'),
-      className,
-      {
+      usePrefixedClassNames('pagination-previous', {
         'is-disabled': disabled,
-      }
+      }),
+      className
     )}
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
@@ -188,9 +187,10 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
   ...props
 }) => (
   <a
-    className={classNames(usePrefixedClassNames('pagination-next'), className, {
-      'is-disabled': disabled,
-    })}
+    className={classNames(
+      usePrefixedClassNames('pagination-next', { 'is-disabled': disabled }),
+      className
+    )}
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
     {...props}
@@ -452,13 +452,12 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
     <li>
       <a
         className={classNames(
-          usePrefixedClassNames('pagination-link'),
-          bulmaHelperClasses,
-          className,
-          {
+          usePrefixedClassNames('pagination-link', {
             'is-current': active,
             'is-disabled': disabled,
-          }
+          }),
+          bulmaHelperClasses,
+          className
         )}
         aria-current={active ? 'page' : undefined}
         aria-disabled={disabled}
