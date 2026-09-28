@@ -290,6 +290,11 @@ describe('plan', () => {
         conversion: null,
         todos: [],
       });
+      // Nor one whose helper class the wrapper would drop: a flex-container
+      // helper with no flex `display` stays a class.
+      expect(
+        plan(facts('p', 'is-justify-content-center', { tabIndex: '00' }))
+      ).toEqual({ conversion: null, todos: [] });
     });
 
     it('leaves markup with a root it does not convert alone', () => {
