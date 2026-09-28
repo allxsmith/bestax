@@ -17,7 +17,9 @@ test holds it to that table. Render tests hold the table to the library itself.
 ## Components
 
 The **Tags** column is what the codemod converts the class on: an element on any other tag gets
-a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more.
+a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more. One exception:
+a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax renders those as
+`Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own contents.
 
 | Bulma class          | bestax-bulma          | Tags                                                           |
 | -------------------- | --------------------- | -------------------------------------------------------------- |
@@ -90,6 +92,10 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.modal-card-title`  | `Modal.Card.Title`    | `<p>` only                                                     |
 | `.modal-card-body`   | `Modal.Card.Body`     | `<section>` only                                               |
 | `.modal-card-foot`   | `Modal.Card.Foot`     | `<footer>` only                                                |
+| `.panel`             | `Panel`               | `<nav>` only                                                   |
+| `.panel-heading`     | `Panel.Heading`       | `<p>` only                                                     |
+| `.panel-tabs`        | `Panel.Tabs`          | `<p>` only                                                     |
+| `.panel-block`       | `Panel.Block`         | `<a>` only                                                     |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -208,12 +214,12 @@ Their markup doesn't map element by element (the bestax component renders parts 
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
 Checkboxes, Dropdown, File, Icon and IconText, the menu's items, Message, Modal's root and close
-button, the navbar's burger
-and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
+button, the navbar's burger and dropdown link, Pagination, the panel's icon, Radio, Radios and
+Tabs.
 
 ## Classes left alone
 
 `.help`, `.label`, `.loader`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`,
-`.fa`, `.marginless`, `.paddingless`, `.navbar-content` and `.navbar-tabs` are valid Bulma with
-nothing in bestax to convert to.
+`.fa`, `.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
+Bulma with nothing in bestax to convert to.
 An element carrying one stays as written, and gets no TODO.
