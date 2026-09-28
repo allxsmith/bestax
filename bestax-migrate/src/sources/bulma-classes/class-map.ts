@@ -1747,15 +1747,83 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Navbar.Link',
     'inside a `Navbar.Dropdown`, bestax `Navbar.Link` adds `aria-haspopup`, `aria-expanded` and keyboard handling, so convert the `.has-dropdown` item and its link together, by hand'
   ),
-  pagination: todo(
-    'Pagination',
-    'bestax `Pagination` renders its own list items and adds navigation roles'
+  // `Pagination` writes Bulma's own `role` and `aria-label`. Its `color` is
+  // deprecated, since Bulma styles no colored pagination, so `is-<color>`
+  // stays a class.
+  pagination: {
+    ...BASE,
+    target: 'Pagination',
+    tag: 'nav',
+    modifiers: {
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+      ...tokens('is-', ['centered', 'right'], 'align'),
+      ...flags({ 'is-rounded': 'rounded' }),
+    },
+    omits: Object.fromEntries(
+      COMPONENT_COLORS.map(color => [
+        `is-${color}`,
+        '`color` is deprecated, since Bulma styles no colored pagination',
+      ])
+    ),
+    defaults: { role: 'navigation', 'aria-label': 'pagination' },
+    ownProps: [
+      'color',
+      'textColor',
+      'bgColor',
+      'size',
+      'align',
+      'rounded',
+      'total',
+      'current',
+      'onPageChange',
+    ],
+  },
+  'pagination-list': {
+    ...BASE,
+    target: 'Pagination.List',
+    tag: 'ul',
+    ownProps: ['textColor', 'color', 'bgColor'],
+  },
+  // The previous and next links write `tabIndex` before the props they're
+  // given, and take no helper props.
+  'pagination-previous': {
+    status: 'mapped',
+    target: 'Pagination.Previous',
+    tag: 'a',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    defaults: { tabIndex: '0' },
+    numberAttrs: ['tabIndex'],
+    omits: {
+      'is-disabled':
+        '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
+    },
+    ownProps: ['disabled'],
+  },
+  'pagination-next': {
+    status: 'mapped',
+    target: 'Pagination.Next',
+    tag: 'a',
+    textColor: null,
+    bgColor: null,
+    noHelpers: true,
+    defaults: { tabIndex: '0' },
+    numberAttrs: ['tabIndex'],
+    omits: {
+      'is-disabled':
+        '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
+    },
+    ownProps: ['disabled'],
+  },
+  'pagination-link': todo(
+    'Pagination.Link',
+    'bestax `Pagination.Link` renders its own `<li>` around the `<a>`'
   ),
-  'pagination-list': part(),
-  'pagination-link': part(),
-  'pagination-ellipsis': part(),
-  'pagination-previous': part(),
-  'pagination-next': part(),
+  'pagination-ellipsis': todo(
+    'Pagination.Ellipsis',
+    'bestax `Pagination.Ellipsis` renders its own `<li>` and its own `&hellip;`'
+  ),
   // `Panel`'s `color` renders `has-text-<color>` as well as `is-<color>`, and it
   // has no text or background color prop. Its heading, tabs and block are
   // plain elements with their class, and take no helper props.
