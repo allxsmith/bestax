@@ -832,6 +832,49 @@ describe("the table's claims about the library", () => {
     ...Object.values(WRAPPERS),
   ];
 
+  it('names every spelling of each component whose context a root provides', () => {
+    // A component reaches a file under its export and under each part name
+    // it is attached as (`TabContentItem`, `TabsContent.Item`,
+    // `Tabs.Content.Item`); the planner compares names, so each must be here.
+    const spellings = new Map<unknown, string[]>();
+    const walk = (value: unknown, name: string, depth: number): void => {
+      if (!value || (typeof value !== 'object' && typeof value !== 'function'))
+        return;
+      spellings.set(value, [...(spellings.get(value) ?? []), name]);
+      if (depth === 2) return;
+      for (const key of Object.keys(value)) {
+        if (/^[A-Z]/.test(key)) {
+          walk(
+            (value as Record<string, unknown>)[key],
+            `${name}.${key}`,
+            depth + 1
+          );
+        }
+      }
+    };
+    for (const [key, value] of Object.entries(bestax)) {
+      if (/^[A-Z]/.test(key)) walk(value, key, 0);
+    }
+    const resolve = (name: string): unknown =>
+      name
+        .split('.')
+        .reduce<unknown>(
+          (owner, key) => (owner as Record<string, unknown> | undefined)?.[key],
+          bestax
+        );
+    for (const [root, entry] of mapped) {
+      const readBy = entry.providesContext?.readBy;
+      if (!readBy) continue;
+      const every = new Set(
+        readBy.flatMap(name => spellings.get(resolve(name)) ?? [])
+      );
+      expect({ root, readBy: [...readBy].sort() }).toEqual({
+        root,
+        readBy: [...every].sort(),
+      });
+    }
+  });
+
   it('names exactly the targets that forward refs', () => {
     const forwarding = targets.filter(target => {
       const component = target

@@ -1748,6 +1748,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'Tabs.Content',
         'TabsContent',
         'Tabs.Content.Item',
+        'TabsContent.Item',
         'TabContentItem',
       ],
     },

@@ -515,7 +515,17 @@ describe('plan', () => {
         target: 'Tabs',
         props: [['boxed', true]],
       });
-      for (const inside of ['Tabs.Tab', 'Tab', 'Tabs.Content']) {
+      // Each spelling of each reader: the panel is `Tabs.Content.Item`,
+      // `TabsContent.Item` and `TabContentItem`.
+      for (const inside of [
+        'Tabs.Tab',
+        'Tab',
+        'Tabs.Content',
+        'TabsContent',
+        'Tabs.Content.Item',
+        'TabsContent.Item',
+        'TabContentItem',
+      ]) {
         expect(
           plan(facts('div', 'tabs', {}, { bestaxInside: [inside] })).todos.map(
             todo => todo.rule
