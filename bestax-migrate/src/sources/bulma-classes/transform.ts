@@ -1367,6 +1367,8 @@ export default function transform(
     // an attribute the element already had.
     for (const name of conversion.numbers) {
       const attr = findAttr(written, name);
+      // One the conversion dropped has nothing left to write.
+      if (!attr) continue;
       attr.value = j.jsxExpressionContainer(
         j.numericLiteral(Number(attributeValue(attr)))
       );
