@@ -1,3 +1,16 @@
+# [2.19.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.18.0...bestax-migrate@2.19.0) (2026-09-28)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** report Pagination's converting parts with the converts message ([6b94f14](https://github.com/allxsmith/bestax/commit/6b94f14f77448e2da27e3ac81de31965d9b0ea2f))
+
+
+### Features
+
+* **bestax-mcp:** look up Pagination, its list and its previous and next links as components ([f1298df](https://github.com/allxsmith/bestax/commit/f1298df03e009ddd1119c29251573bc7d51f18d1))
+* **bestax-migrate:** convert Pagination, its list and its previous and next links ([d75bc70](https://github.com/allxsmith/bestax/commit/d75bc70ff9643f165508bfd443151559d1d12c38)), closes [#807](https://github.com/allxsmith/bestax/issues/807)
+
 # [2.18.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.17.0...bestax-migrate@2.18.0) (2026-09-28)
 
 
