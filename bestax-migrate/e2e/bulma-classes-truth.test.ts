@@ -127,24 +127,20 @@ function renderBoth(
   const counted = result.conversion.rendersChildren
     ? facts.childElements!.map(element => createElement(element.tag, null))
     : undefined;
+  const soleElement =
+    sole &&
+    createElement(
+      sole.tag,
+      {
+        ...(sole.tokens?.length ? { className: sole.tokens.join(' ') } : {}),
+        ...soleAttributes,
+      },
+      soleChildren
+    );
   const raw = renderElement(
     facts.tag,
     { className: [...facts.tokens, ...added.flat()].join(' '), ...extra },
-    counted ??
-      (sole
-        ? createElement(
-            sole.tag,
-            {
-              ...(sole.tokens?.length
-                ? { className: sole.tokens.join(' ') }
-                : {}),
-              ...soleAttributes,
-            },
-            soleChildren
-          )
-        : child
-          ? child.raw
-          : children)
+    counted ?? soleElement ?? (child ? child.raw : children)
   );
   const { target, props, className, drop, numbers, absorbs } =
     result.conversion;
@@ -177,10 +173,13 @@ function renderBoth(
         ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
         : {}),
     },
+    // A target that doesn't absorb the child renders it as given.
     counted
       ? undefined
       : sole
-        ? soleChildren
+        ? absorbs
+          ? soleChildren
+          : soleElement
         : child
           ? child.converted
           : children
@@ -246,6 +245,11 @@ function factsFor(
     ...(counts && {
       childElements: [bare(counts.tag), bare(counts.tag), bare(counts.tag)],
     }),
+    // One that needs element children holds one (`Icon` around an <i>).
+    ...(!absorbs &&
+      entries.some(entry => entry?.needsElementChildren) && {
+        soleChild: bare('i'),
+      }),
   };
 }
 

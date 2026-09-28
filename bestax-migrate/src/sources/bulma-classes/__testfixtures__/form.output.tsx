@@ -1,6 +1,6 @@
 import { Button, Control, Field, InputBase, SelectBase, TextAreaBase } from "@allxsmith/bestax-bulma";
 export function SignUp() {
-  // TODO(bestax-migrate): `.icon` stays as markup: bestax `Icon` renders its own `<i>` and adds an `aria-label`
+  // TODO(bestax-migrate): bestax `Icon` renders `aria-label="icon"` when the element does not set it; add it here if that is what you want, then re-run
   // TODO(bestax-migrate): `.checkbox` stays as markup: bestax `Checkbox` renders its own styled markup, not Bulma's
   return (
     <form>

@@ -119,6 +119,17 @@ function converted(
           isEmpty: true,
         },
       }),
+    // One that needs element children holds one.
+    ...(root?.status === 'mapped' &&
+      root.needsElementChildren &&
+      !absorbs && {
+        soleChild: {
+          tag: 'i',
+          attributes: new Map(),
+          hasSpread: false,
+          isEmpty: true,
+        },
+      }),
     // One that renders its children from a count holds a few of them.
     ...(root?.status === 'mapped' &&
       root.countsChildren && {

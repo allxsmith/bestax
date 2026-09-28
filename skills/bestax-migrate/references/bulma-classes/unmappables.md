@@ -66,6 +66,7 @@ attributes you want (usually both, with a real label), then re-run. `Navbar` ren
 `role="navigation"` and `aria-label="main navigation"`, which Bulma's own navbar markup carries;
 give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 `aria-label="breadcrumbs"`, so give its `<nav>` an `aria-label`, whatever it says.
+`Icon` renders `aria-label="icon"`, so give a `.icon` an `aria-label` that says what the icon means.
 `Card.FooterItem` renders `type="button"` on a `<button>` that sets none. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
@@ -133,6 +134,10 @@ a labelled `Field` around it. Give the element its own `id`, then re-run.
 The codemod reads one file at a time, so it can't see a component in another file that renders
 a bestax `Field` or form control around this markup. If the app already uses them that way, give
 its inputs ids before running the codemod, and check its forms afterwards.
+
+On a `.tabs` it's the same shape as a `.field`: `Tabs` passes its active tab to the `Tabs.Tab`s
+and `Tabs.Content.Item`s inside it, and renders differently around a `Tabs.Content`, so a `.tabs`
+that already holds one of those stays markup.
 
 On a `.menu-list` it's about nesting: `Menu.List` renders `.menu-list` only on the outermost list,
 and drops it on one inside another. So a `.menu-list` inside another `.menu-list` (or a bestax
@@ -207,8 +212,9 @@ in the browser:
   page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
   bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
-- **`family:icon`**, **`family:icon-text`**: `Icon` renders its own `<i>` and adds an
-  `aria-label`. See the `bestax-icons` skill for its library and name props.
+- **`family:icon-text`**: `IconText` builds its icon from `iconProps` and wraps its text in a
+  `<span>`, so rebuild it from its docs. The `.icon`s inside convert on their own. See the
+  `bestax-icons` skill for `Icon`'s library and name props.
 - **`family:menu-item`**: `Menu.Item` renders the `<li>` and the `<a>` together, so the codemod
   converts `.menu`, `.menu-label` and `.menu-list` and doesn't turn the items inside into
   `Menu.Item`s. To convert one by hand, write `<Menu.Item>` in place of the `<li>` and its `<a>`,
@@ -216,11 +222,8 @@ in the browser:
   `<a>` becomes `active`. `Menu.Item` puts `className`, `id`, `title`, `role`, `tabIndex`, `style`
   and `data-testid` on the `<li>`, and everything else, helper props included, on the `<a>`.
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
-- **`family:pagination`**, **`family:panel`**, **`family:tabs`**: each renders list items,
-  links or roles of its own. Rebuild them from the component's docs. `Tabs.Tab` puts its label
-  in a `<span>` inside the `<a>`, so something that sat beside the text in the `<a>` (a `Tag`,
-  say) is no longer aligned by the `<a>`'s flex layout; wrap the label and it in a
-  `Span display="flex" alignItems="center"`.
+- **`family:pagination`**, **`family:panel`**: each renders list items, links or roles of its
+  own. Rebuild them from the component's docs.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 

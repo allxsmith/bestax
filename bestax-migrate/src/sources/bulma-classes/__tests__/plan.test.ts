@@ -509,6 +509,49 @@ describe('plan', () => {
     });
   });
 
+  describe('Tabs and Icon', () => {
+    it('converts .tabs, unless it already holds something that reads its context', () => {
+      expect(plan(facts('div', 'tabs is-boxed')).conversion).toMatchObject({
+        target: 'Tabs',
+        props: [['boxed', true]],
+      });
+      for (const inside of ['Tabs.Tab', 'Tab', 'Tabs.Content']) {
+        expect(
+          plan(facts('div', 'tabs', {}, { bestaxInside: [inside] })).todos.map(
+            todo => todo.rule
+          )
+        ).toEqual(['context:Tabs']);
+      }
+      // Other bestax components inside don't read it.
+      expect(
+        plan(facts('div', 'tabs', {}, { bestaxInside: ['Icon', 'Tag'] }))
+          .conversion?.target
+      ).toBe('Tabs');
+    });
+
+    it('converts .icon only around element children, with its own aria-label', () => {
+      const i = {
+        tag: 'i',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      expect(
+        plan(facts('span', 'icon', { 'aria-label': 'Home' }, { soleChild: i }))
+          .conversion?.target
+      ).toBe('Icon');
+      expect(
+        plan(facts('span', 'icon', {}, { soleChild: i })).todos.map(t => t.rule)
+      ).toEqual(['defaults:Icon']);
+      // `{show && <i />}`: Icon would switch to its `name` path when empty.
+      expect(
+        plan(facts('span', 'icon', { 'aria-label': 'Home' })).todos.map(
+          t => t.rule
+        )
+      ).toEqual(['children:Icon']);
+    });
+  });
+
   describe('Menu', () => {
     it('converts the root, its labels and a top-level list', () => {
       expect(plan(facts('aside', 'menu mt-4')).conversion).toMatchObject({
