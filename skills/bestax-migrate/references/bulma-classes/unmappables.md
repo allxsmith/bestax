@@ -63,7 +63,8 @@ an item converts only when its attributes already sit that way: an `onClick` on 
 `title` or a `key` on the `<a>`, keeps it as markup. A `ref` on the `<a>` converts, since
 `Menu.Item` forwards it there, and one on the `<li>` doesn't. The `<a>` takes no class but
 `is-active`, since the item's `className` goes on the `<li>`, so any other class on it, or an
-empty one, keeps the item as markup too. Move the attribute to where `Menu.Item` puts it if
+empty one, keeps the item as markup too, and so does an empty `className` on the `<li>`, since
+nothing is left to render its `class=""`. Move the attribute to where `Menu.Item` puts it if
 that's what you want, then re-run.
 
 ### `defaults:<Target>`

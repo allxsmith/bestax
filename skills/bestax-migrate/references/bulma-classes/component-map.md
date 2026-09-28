@@ -119,7 +119,8 @@ component, which could hand it a labelled Field's generated one.
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest
 element is a `.menu-list`, a bestax `Menu.List`, or the bare `<ul>` nested in one of those items,
-so the `<li>`s a `.map()` renders count too. `Menu.Item` renders the `<li>` and its `<a>`
+so the `<li>`s a `.map()` renders count too. One handed to any other function doesn't, since that
+function could render it anywhere. `Menu.Item` renders the `<li>` and its `<a>`
 together, so an item converts when its `<li>` holds one `<a>` and at most one bare `<ul>` after
 it, which becomes a `Menu.List`. `is-active` on the `<a>` becomes `active`, and the `<li>`'s own
 classes stay in `className`, which `Menu.Item` puts on the `<li>`. It puts `id`, `title`, `role`,
