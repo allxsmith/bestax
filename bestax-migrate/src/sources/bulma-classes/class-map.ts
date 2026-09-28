@@ -72,6 +72,13 @@ export interface Absorbs {
    * Any other child attribute refuses.
    */
   readonly childProps?: readonly string[];
+  /**
+   * When the child can't be absorbed, the target renders the element's
+   * children as given, in place of the one it renders itself (`Image`'s
+   * `<img>`), so the element converts around them instead. One with no
+   * children still refuses.
+   */
+  readonly elseWraps?: boolean;
   /** The child's classes, as the target's props; any other class refuses. */
   readonly modifiers?: Readonly<Record<string, Modifier>>;
   /**
@@ -1594,6 +1601,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       attributesOn: 'element',
       childProps: ['src', 'alt'],
       modifiers: flags({ 'is-rounded': 'isRounded' }),
+      elseWraps: true,
     },
     ownProps: [
       'as',
