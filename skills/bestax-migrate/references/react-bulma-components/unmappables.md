@@ -69,6 +69,13 @@ Previous, Next and the page links, with an ellipsis for each run it skips. The c
 the parts (`Pagination.Previous`, `Pagination.List`, `Pagination.Link`) by hand for a
 different layout. Render conditionally instead of `autoHide` (`{total > 1 && <Pagination …/>}`).
 
+Two of RBC's defaults differ, and a Pagination that doesn't write them gets no TODO: RBC hides
+itself at a `total` of 1 (`autoHide` is on by default), and shows no first and last pages unless
+`showFirstLast` is set. bestax renders a one-page Pagination with both ends disabled, and shows
+the first and last pages, so check pagination that relied on either. And RBC's `delta={0}`
+renders no page links at all, while `siblingCount={0}` still shows the current, first and last
+pages.
+
 ## `Modal` (`closeOnBlur`, `showClose`)
 
 `closeOnEsc` is not in this list: bestax has `closeOnEscape` (default `true`) and the codemod

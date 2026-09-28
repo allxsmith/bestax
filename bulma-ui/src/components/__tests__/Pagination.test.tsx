@@ -407,6 +407,7 @@ describe('Pagination from total', () => {
         nextLabel="On"
         disabled={false}
         getPageHref={page => `?page=${page}`}
+        getPageLabel={page => `Seite ${page}`}
         data-testid="pages"
       />
     );
@@ -576,6 +577,41 @@ describe('Pagination from total', () => {
     expect(onPageChange).not.toHaveBeenCalled();
     fireEvent.click(three);
     expect(onPageChange).toHaveBeenCalledWith(3);
+  });
+
+  it('names each page link, in its own words when given them', () => {
+    const named = (props: { getPageLabel?: (page: number) => string }) =>
+      links(render(<Pagination total={3} {...props} />).container).map(item =>
+        item.getAttribute('aria-label')
+      );
+    expect(named({})).toEqual(['Page 1', 'Page 2', 'Page 3']);
+    expect(named({ getPageLabel: page => `Seite ${page}` })).toEqual([
+      'Seite 1',
+      'Seite 2',
+      'Seite 3',
+    ]);
+  });
+
+  it('reads a count that is no number as its default', () => {
+    const { container } = render(
+      <Pagination
+        total={20}
+        current={10}
+        siblingCount={Number.NaN}
+        boundaryCount={Infinity}
+      />
+    );
+    expect(row(container)).toBe('1 … 9 10* 11 … 20');
+  });
+
+  it('renders from total beside a child that renders nothing', () => {
+    const show = false;
+    const { container } = render(
+      <Pagination total={3} current={1}>
+        {show && <Pagination.List />}
+      </Pagination>
+    );
+    expect(row(container)).toBe('1* 2 3');
   });
 
   it('takes its own labels for Previous and Next', () => {

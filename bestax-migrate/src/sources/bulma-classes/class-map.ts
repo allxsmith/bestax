@@ -1835,6 +1835,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'nextLabel',
       'disabled',
       'getPageHref',
+      'getPageLabel',
     ],
   },
   'pagination-list': {

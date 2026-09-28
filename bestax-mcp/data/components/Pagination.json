@@ -42,7 +42,7 @@
       "code": "<Pagination>\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     }
   ],
-  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n- Rendered from `total`, the current page's link carries `aria-current=\"page\"`. Without `getPageHref` the links have no `href`, so they carry `role=\"button\"` and choose a page with Enter or Space.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
+  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n- Rendered from `total`, each page's link is named for its page (\"Page 3\"; pass `getPageLabel` for your own words), and the current page's link carries `aria-current=\"page\"`. Without `getPageHref` the links have no `href`, so they carry `role=\"button\"` and choose a page with Enter or Space.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
   "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-pagination--basic",
   "summary": "The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.",
@@ -188,7 +188,16 @@
           "name": "getPageHref",
           "type": "(page: number) => string",
           "default": null,
-          "description": "The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). Without it the links have no `href`, act as buttons, and Enter or Space chooses a page.",
+          "description": "The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). A click then calls `onPageChange` and the browser follows the link too. Without it the links have no `href`, act as buttons, and Enter or Space chooses a page.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "getPageLabel",
+          "type": "(page: number) => string",
+          "default": null,
+          "description": "The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default).",
           "required": false,
           "inherited": false,
           "deprecated": false

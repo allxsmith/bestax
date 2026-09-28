@@ -700,7 +700,7 @@
       "slug": "components/pagination",
       "import": "import { Pagination } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 35,
+      "propCount": 36,
       "exampleCount": 9
     },
     {

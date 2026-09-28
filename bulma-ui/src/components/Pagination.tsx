@@ -74,10 +74,16 @@ export interface PaginationProps
   disabled?: boolean;
   /**
    * The `href` for a page's link, when rendering from `total`, making each
-   * one a real link (`page => '?page=' + page`). Without it the links
-   * have no `href`, act as buttons, and Enter or Space chooses a page.
+   * one a real link (`page => '?page=' + page`). A click then calls
+   * `onPageChange` and the browser follows the link too. Without it the
+   * links have no `href`, act as buttons, and Enter or Space chooses a page.
    */
   getPageHref?: (page: number) => string;
+  /**
+   * The accessible name of a page's link, when rendering from `total`, since
+   * its content is only the number (`page => 'Page ' + page` by default).
+   */
+  getPageLabel?: (page: number) => string;
   /** Additional CSS classes. */
   className?: string;
   /** Custom pagination content (usually subcomponents). */
@@ -86,6 +92,11 @@ export interface PaginationProps
 
 /** A page's number, or a run of pages left out. */
 type PageItem = number | 'start-gap' | 'end-gap';
+
+/** A count read as a whole number from zero, or `fallback` when it's no number. */
+function whole(count: number, fallback: number): number {
+  return Number.isFinite(count) ? Math.max(Math.floor(count), 0) : fallback;
+}
 
 function range(from: number, to: number): number[] {
   return Array.from({ length: Math.max(to - from + 1, 0) }, (_, i) => from + i);
@@ -231,6 +242,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   nextLabel = 'Next',
   disabled,
   getPageHref,
+  getPageLabel,
   className,
   children,
   ...props
@@ -262,7 +274,9 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     className
   );
 
-  const fromTotal = total !== undefined && children == null;
+  // A child that renders nothing (`{show && …}` when false) is no children.
+  const fromTotal =
+    total !== undefined && React.Children.toArray(children).length === 0;
   let content: React.ReactNode = children;
   if (fromTotal) {
     const pages = Number.isFinite(total) ? Math.max(Math.floor(total), 0) : 0;
@@ -306,12 +320,13 @@ const PaginationComponent: React.FC<PaginationProps> = ({
           {pageItems(
             pages,
             page,
-            Math.max(Math.floor(siblingCount), 0),
-            Math.max(Math.floor(boundaryCount), 0)
+            whole(siblingCount, 1),
+            whole(boundaryCount, 1)
           ).map(item =>
             typeof item === 'number' ? (
               <PaginationLink
                 key={item}
+                aria-label={getPageLabel ? getPageLabel(item) : `Page ${item}`}
                 active={item === page}
                 disabled={disabled}
                 {...linkTo(item, Boolean(disabled))}
