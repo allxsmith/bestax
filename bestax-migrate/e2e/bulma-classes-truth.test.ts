@@ -303,6 +303,33 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     expect(dead).toEqual([]);
   });
 
+  if (entry.defaults) {
+    it('renders the same with each default given another value', () => {
+      // A default is written only when none is given, so a given one renders
+      // as given; the sweep above gives each only its default value. One the
+      // props type rejects converts only at its default, so it stays out.
+      const typed = Object.keys(entry.defaults!).filter(
+        name => !entry.untypedAttrs?.includes(name)
+      );
+      for (const name of typed) {
+        const given = { ...defaultsFor(entry, entry.tag!), [name]: 'other' };
+        const both = renderBoth(
+          factsFor(entry.tag!, [root], given, child),
+          given,
+          child
+        );
+        expect({ name, converts: both !== null }).toEqual({
+          name,
+          converts: true,
+        });
+        expect({ name, html: both!.converted }).toEqual({
+          name,
+          html: both!.raw,
+        });
+      }
+    });
+  }
+
   if (entry.wrapsChildren) {
     const { unless, whenEmpty, when } = entry.wrapsChildren;
     // The classes that switch the wrapping on (`Field` wraps when horizontal).
