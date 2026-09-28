@@ -83,6 +83,10 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.menu`              | `Menu`                | `<aside>` only                                                 |
 | `.menu-label`        | `Menu.Label`          | `<p>` only                                                     |
 | `.menu-list`         | `Menu.List`           | `<ul>` only                                                    |
+| `.panel`             | `Panel`               | `<nav>` only                                                   |
+| `.panel-heading`     | `Panel.Heading`       | `<p>` only                                                     |
+| `.panel-tabs`        | `Panel.Tabs`          | `<p>` only                                                     |
+| `.panel-block`       | `Panel.Block`         | `<a>` only                                                     |
 
 An element with two of these (`<div className="column box">`) becomes the layout one
 (`Column`), and the other class stays in `className`.
@@ -197,11 +201,11 @@ Their markup doesn't map element by element (the bestax component renders parts 
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
 Checkboxes, Dropdown, File, Icon and IconText, the menu's items, Message, Modal, the navbar's burger
-and dropdown link, Pagination, Panel, Radio, Radios and Tabs.
+and dropdown link, Pagination, the panel's icon, Radio, Radios and Tabs.
 
 ## Classes left alone
 
 `.help`, `.label`, `.loader`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`,
-`.fa`, `.marginless`, `.paddingless`, `.navbar-content` and `.navbar-tabs` are valid Bulma with
-nothing in bestax to convert to.
+`.fa`, `.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
+Bulma with nothing in bestax to convert to.
 An element carrying one stays as written, and gets no TODO.

@@ -542,6 +542,7 @@ export function plan(facts: ElementFacts): Plan {
   if (renders !== tag) {
     const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
     if (!reachable) {
+      if (entry.otherTagsStay) return { conversion: null, todos };
       return refuse(
         'tag',
         target,
