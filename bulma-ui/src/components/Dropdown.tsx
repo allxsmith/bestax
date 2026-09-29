@@ -418,7 +418,12 @@ export type DropdownItemProps<
   T extends DropdownItemElement = DropdownItemElement,
 > = DropdownItemOwnProps &
   Omit<React.ComponentPropsWithoutRef<T>, keyof DropdownItemOwnProps | 'as'> & {
-    /** The element type to render. */
+    /**
+     * The element type to render.
+     *
+     * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
+     * an item inside a form does not submit it.
+     */
     as?: T;
   };
 
