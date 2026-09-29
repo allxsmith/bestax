@@ -245,7 +245,7 @@
           "name": "rel",
           "type": "string",
           "default": null,
-          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`.",
+          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is.",
           "required": false,
           "inherited": false,
           "deprecated": false
