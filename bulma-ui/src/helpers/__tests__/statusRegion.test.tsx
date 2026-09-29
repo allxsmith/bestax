@@ -1,0 +1,190 @@
+import { StrictMode } from 'react';
+import { render, screen, act } from '@testing-library/react';
+import {
+  StatusRegion,
+  announceDelay,
+  announcementLifetime,
+} from '../statusRegion';
+import { ConfigProvider } from '../Config';
+
+interface Item {
+  id: string;
+  text: string;
+}
+
+const describeItem = (item: Item) => item.text;
+
+const alpha: Item = { id: 'a', text: 'Alpha' };
+const bravo: Item = { id: 'b', text: 'Bravo' };
+const charlie: Item = { id: 'c', text: 'Charlie' };
+
+const region = (items: Item[]) => (
+  <StatusRegion items={items} describe={describeItem} />
+);
+
+// What the region says, one entry per announcement node.
+const said = () =>
+  Array.from(screen.getByRole('status').children).map(el => el.textContent);
+
+const advance = (ms: number) =>
+  act(() => {
+    jest.advanceTimersByTime(ms);
+  });
+
+describe('StatusRegion', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders an empty, visually hidden, polite status region', () => {
+    render(region([]));
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveClass('is-sr-only');
+    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(status).toBeEmptyDOMElement();
+  });
+
+  it('prefixes the class that hides it', () => {
+    render(<ConfigProvider classPrefix="bestax-">{region([])}</ConfigProvider>);
+
+    expect(screen.getByRole('status')).toHaveClass('bestax-is-sr-only');
+  });
+
+  it('writes an announcement a moment after its item appears', () => {
+    const { rerender } = render(region([]));
+
+    rerender(region([alpha]));
+    expect(said()).toEqual([]);
+
+    advance(announceDelay - 1);
+    expect(said()).toEqual([]);
+
+    advance(1);
+    expect(said()).toEqual(['Alpha']);
+  });
+
+  it('writes nothing in the commit that mounts it, then writes into the region it mounted', () => {
+    render(region([alpha]));
+    const status = screen.getByRole('status');
+    expect(status).toBeEmptyDOMElement();
+
+    advance(announceDelay);
+
+    expect(screen.getByRole('status')).toBe(status);
+    expect(said()).toEqual(['Alpha']);
+  });
+
+  it('clears an announcement once its lifetime is up', () => {
+    render(region([alpha]));
+    advance(announceDelay);
+
+    advance(announcementLifetime - 1);
+    expect(said()).toEqual(['Alpha']);
+
+    advance(1);
+    expect(said()).toEqual([]);
+  });
+
+  it('clears the whole lifetime in one step of the clock', () => {
+    // The clear is timed from when the item appears, not from a render after
+    // the write, so one long step runs it too.
+    render(region([alpha]));
+
+    advance(announceDelay + announcementLifetime);
+
+    expect(said()).toEqual([]);
+  });
+
+  it('drops an announcement as soon as its item goes', () => {
+    const { rerender } = render(region([alpha, bravo]));
+    advance(announceDelay);
+    expect(said()).toEqual(['Alpha', 'Bravo']);
+
+    rerender(region([bravo]));
+
+    expect(said()).toEqual(['Bravo']);
+  });
+
+  it('never writes an item that goes before its announcement is due', () => {
+    const { rerender } = render(region([alpha]));
+    rerender(region([]));
+
+    advance(announceDelay);
+
+    expect(said()).toEqual([]);
+  });
+
+  it('announces each item once, however often it re-renders', () => {
+    const { rerender } = render(region([alpha]));
+    advance(announceDelay);
+    const node = screen.getByRole('status').firstElementChild;
+
+    // A new list with the same item in it, as the store hands over on every
+    // change, leaves the announcement node as it is.
+    rerender(region([alpha]));
+    expect(screen.getByRole('status').firstElementChild).toBe(node);
+
+    advance(announcementLifetime);
+    rerender(region([alpha]));
+    advance(announceDelay);
+
+    expect(said()).toEqual([]);
+  });
+
+  it('replaces what the region said with the items that appear next', () => {
+    const { rerender } = render(region([alpha, bravo]));
+    advance(announceDelay);
+
+    rerender(region([alpha, bravo, charlie]));
+    expect(said()).toEqual([]);
+
+    advance(announceDelay);
+    expect(said()).toEqual(['Charlie']);
+  });
+
+  it('writes items that appear while others wait all together', () => {
+    const { rerender } = render(region([alpha]));
+    advance(announceDelay - 1);
+
+    // Joining restarts the wait, so neither is written on the first one's
+    // schedule.
+    rerender(region([alpha, bravo]));
+    advance(announceDelay - 1);
+    expect(said()).toEqual([]);
+
+    advance(1);
+    expect(said()).toEqual(['Alpha', 'Bravo']);
+  });
+
+  it('skips an item with nothing to say', () => {
+    const { rerender } = render(region([{ id: 'e', text: '' }]));
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+
+    rerender(region([{ id: 'e', text: '' }, alpha]));
+    advance(announceDelay);
+    expect(said()).toEqual(['Alpha']);
+  });
+
+  it('renders one region and announces once under StrictMode', () => {
+    render(<StrictMode>{region([alpha])}</StrictMode>);
+    advance(announceDelay);
+
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(said()).toEqual(['Alpha']);
+  });
+
+  it('stops its timers when it unmounts', () => {
+    const { unmount } = render(region([alpha]));
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+    unmount();
+
+    expect(jest.getTimerCount()).toBe(0);
+  });
+});
