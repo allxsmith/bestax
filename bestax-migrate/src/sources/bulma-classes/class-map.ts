@@ -241,6 +241,14 @@ export interface RootEntry {
    * just that, and they go (`.skeleton-lines`' `<div>`s, as `lines`).
    */
   readonly countsChildren?: { readonly tag: string; readonly prop: string };
+  /**
+   * The target builds its children from props (`IconText`): each `.icon`
+   * inside becomes one icon's props, its glyph's classes read as `library`
+   * and `name`, and a bare `<span>` of text right after it becomes that
+   * icon's text. The element converts only when its children are just that,
+   * and each `.icon` converts on its own; they go.
+   */
+  readonly buildsIcons?: boolean;
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
@@ -1634,10 +1642,16 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ],
     passThrough: ['style'],
   },
-  'icon-text': todo(
-    'IconText',
-    'bestax `IconText` pairs with `Icon`, which renders its own `<i>`'
-  ),
+  // `IconText` builds its icons from `iconProps` (`items`, for more than
+  // one) and wraps each text in a `<span>` of its own, so the `.icon`s and
+  // the texts beside them become its props.
+  'icon-text': {
+    ...BASE,
+    target: 'IconText',
+    tag: 'span',
+    buildsIcons: true,
+    ownProps: ['textColor', 'bgColor', 'color', 'iconProps', 'items'],
+  },
   // `Image` renders `.image` and the `<img>` inside it together, from `src`
   // and `alt`. A ratio stays a class: as `size`, it adds `has-ratio` too.
   image: {

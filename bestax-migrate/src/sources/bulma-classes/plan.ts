@@ -25,6 +25,7 @@ import {
   wrapperFor,
   type RootEntry,
 } from './class-map.js';
+import { readGlyph } from './glyph.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -140,6 +141,14 @@ export interface ChildFacts {
    * an element that goes would take it with it.
    */
   isEmpty: boolean;
+  /**
+   * For one of an element's `childElements`: what it converts to on its
+   * own, when it does, its only child, and the string its content renders,
+   * when that is one static text. What an entry that `buildsIcons` reads.
+   */
+  becomes?: Conversion;
+  soleChild?: ChildFacts;
+  text?: string;
 }
 
 export interface Todo {
@@ -194,6 +203,32 @@ export interface Conversion {
    * prop set to their condition, each once. The rest stay in the joiner call.
    */
   conditional?: Array<[prop: string, token: string]>;
+  /**
+   * The target builds its children from props (`IconText`): one icon per
+   * `.icon` among them, as `iconProps`, or as `items` when there are more.
+   * The children go, and so does the element's closing tag unless one icon
+   * has a text, which becomes its children.
+   */
+  icons?: BuiltIcon[];
+}
+
+/** One icon a target that `buildsIcons` builds from props. */
+export interface BuiltIcon {
+  /** Which of the element's `childElements` its `.icon` is. */
+  index: number;
+  /**
+   * Its props: the ones its glyph is built from, then what its `.icon`'s
+   * classes become. Its attributes join them, as they would on `Icon`.
+   */
+  props: Array<[name: string, value: string | true | readonly string[]]>;
+  /** What stays of its `.icon`'s `className`, or null when nothing does. */
+  className: string | null;
+  /** Its `.icon`'s attributes `Icon` renders by itself. */
+  drop: string[];
+  /** Its attributes, and props above, written as numbers. */
+  numbers: string[];
+  /** The text after it, if any. */
+  text?: string;
 }
 
 export interface Plan {
@@ -644,6 +679,14 @@ export function plan(facts: ElementFacts): Plan {
     }
     as = tag;
   }
+  // Last, since what the children are can change once a refusal leaves
+  // them to convert on their own, and a re-run has to find the same reason.
+  let icons: BuiltIcon[] | undefined;
+  if (entry.buildsIcons) {
+    const built = buildIcons(facts.childElements, target);
+    if ('why' in built) return refuse('children', target, built.why);
+    icons = built.icons;
+  }
 
   const props: Array<[string, string | true]> = [];
   if (as) props.push(['as', as]);
@@ -713,9 +756,82 @@ export function plan(facts: ElementFacts): Plan {
         : {}),
       ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
+      ...(icons ? { icons } : {}),
     },
     todos,
   };
+}
+
+/**
+ * The icons a target that `buildsIcons` builds from an element's children:
+ * each `.icon` that converts to `Icon` on its own and holds a glyph `Icon`
+ * can build, with the bare `<span>` of text after it, if any.
+ *
+ * A child that converts on its own does so once the element stays markup,
+ * and a re-run then finds a component there, so the reason is the general
+ * one whenever one does: a TODO has to read the same on the next run.
+ */
+function buildIcons(
+  children: readonly ChildFacts[] | undefined,
+  target: string
+): { icons: BuiltIcon[] } | { why: string } {
+  const shape = `bestax \`${target}\` builds its icons from props and wraps each text in a <span> of its own, so this converts only when its children are \`.icon\`s with no \`key\`, \`ref\` or dashed attribute but an \`aria-\` one, each holding one bare, empty <i> that names a Font Awesome or Material Design Icons glyph, and each followed by at most one bare <span> of static text; keep it as markup, or convert it by hand`;
+  const alone = children?.some(child => child.becomes) ?? false;
+  const icons: BuiltIcon[] = [];
+  for (const [index, child] of (children ?? []).entries()) {
+    if (child.tokens?.includes('icon')) {
+      const icon = child.becomes;
+      if (icon?.target !== 'Icon' || icon.conditional) {
+        return {
+          why: alone
+            ? shape
+            : `bestax \`${target}\` builds each icon from \`iconProps\`, so this converts only once every \`.icon\` in it converts to \`Icon\` on its own; see the TODO on each, then re-run`,
+        };
+      }
+      // In a props object, a dashed name is type-checked where JSX lets any
+      // through, and only `aria-` ones are declared (`data-test` is not).
+      const loose = [...child.attributes.keys()].some(
+        name =>
+          name === 'key' ||
+          name === 'ref' ||
+          (name.includes('-') && !name.startsWith('aria-'))
+      );
+      const glyph = readGlyph(child.soleChild);
+      if (!glyph || loose) return { why: shape };
+      const props: BuiltIcon['props'] = [
+        ['library', glyph.library],
+        ['name', glyph.name],
+      ];
+      if (glyph.variant) props.push(['variant', glyph.variant]);
+      const { features } = glyph;
+      if (features) {
+        props.push([
+          'features',
+          features.length === 1 ? features[0] : features,
+        ]);
+      }
+      icons.push({
+        index,
+        props: [...props, ...icon.props],
+        className: icon.className,
+        drop: icon.drop,
+        numbers: icon.numbers,
+      });
+      continue;
+    }
+    const last = icons[icons.length - 1];
+    const text =
+      child.tag === 'span' &&
+      child.tokens === undefined &&
+      child.attributes.size === 0 &&
+      !child.hasSpread
+        ? child.text
+        : undefined;
+    // It renders a text only when the text is truthy.
+    if (!last || last.text !== undefined || !text) return { why: shape };
+    last.text = text;
+  }
+  return icons.length > 0 ? { icons } : { why: shape };
 }
 
 /**

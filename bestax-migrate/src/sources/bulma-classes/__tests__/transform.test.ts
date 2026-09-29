@@ -1187,3 +1187,62 @@ describe('printing', () => {
     });
   });
 });
+
+describe('an element whose component builds its icons from props', () => {
+  const iconText = (icon: string, text = '<span>Home</span>') =>
+    `export const A = (label: string) => (\n  <span className="icon-text">\n    ${icon}\n    ${text}\n  </span>\n);\n`;
+  const home =
+    '<span className="icon" aria-label="Home"><i className="fas fa-home"></i></span>';
+
+  it('imports the component alone, since its icons go into it', () => {
+    const { output, rules } = migrate(iconText(home));
+    expect(output).toContain(
+      'import { IconText } from "@allxsmith/bestax-bulma";'
+    );
+    expect(output).not.toContain('<Icon ');
+    expect(rules).toEqual([]);
+  });
+
+  it("writes each of an icon's attributes as `Icon` is given it", () => {
+    const { output } = migrate(
+      iconText(
+        '<span className="icon" aria-label={label} title="Go &amp; see" tabIndex="0" style={{ color: "red" }} hidden><i className="fas fa-home"></i></span>'
+      )
+    );
+    expect(output).toMatch(/ariaLabel: label,/);
+    expect(output).toMatch(/title: "Go & see",/);
+    expect(output).toMatch(/tabIndex: 0,/);
+    expect(output).toMatch(/style: \{\s*color: "red"\s*\},/);
+    expect(output).toMatch(/hidden: true\s*\}/);
+  });
+
+  it('writes a text JSX would read differently as the string it renders', () => {
+    expect(migrate(iconText(home, '<span> Home</span>')).output).toContain(
+      '>{" Home"}</IconText>'
+    );
+    expect(migrate(iconText(home, '<span>a &lt; b</span>')).output).toContain(
+      '>{"a < b"}</IconText>'
+    );
+  });
+
+  it('moves the comments in its children to the name that stays', () => {
+    const { output } = migrate(
+      iconText(
+        '<span className="icon" aria-label="Home" /* the house */><i className="fas fa-home"></i></span>'
+      )
+    );
+    expect(output).toMatch(/<IconText \/\* the house \*\/ iconProps=/);
+  });
+
+  it('keeps its icons as markup when a computed className leaves it to a person', () => {
+    const source = iconText(home).replace(
+      'className="icon-text"',
+      'className={`icon-text ${label}`}'
+    );
+    const { output, rules } = migrate(source);
+    expect(rules).toEqual(['dynamic-class:IconText']);
+    expect(output).toContain(home);
+    // A re-run finds the markup it found, and says the same.
+    expect(migrate(output!).output).toBeNull();
+  });
+});

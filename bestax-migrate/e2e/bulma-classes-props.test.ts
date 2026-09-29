@@ -17,7 +17,13 @@ import {
   WRAPPERS,
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
-import { plan } from '../src/sources/bulma-classes/plan.js';
+import { plan, type ChildFacts } from '../src/sources/bulma-classes/plan.js';
+import {
+  GLYPHS,
+  iconChild,
+  iconProps,
+  textChild,
+} from './support/icon-text.js';
 import { typecheckTsxFiles } from './support/typecheck-tsx.js';
 
 const VOID = new Set(['input', 'hr', 'img', 'br']);
@@ -85,7 +91,8 @@ function converted(
   tokens: string[],
   attributes: Array<[string, string | true]>,
   child?: Inner,
-  conditional?: string[][]
+  conditional?: string[][],
+  children?: ChildFacts[]
 ): string | null {
   const unique = [...new Map(attributes)];
   // A root that wraps its children converts only beside one of its parts;
@@ -145,6 +152,11 @@ function converted(
       }),
     ...(root?.status === 'mapped' &&
       root.rendersText !== undefined && { text: root.rendersText }),
+    // One that builds its icons from props holds an icon and its text.
+    ...(root?.status === 'mapped' &&
+      root.buildsIcons && {
+        childElements: children ?? [iconChild(['fas', 'fa-home']), textChild()],
+      }),
     // One that renders its children from a count holds a few of them.
     ...(root?.status === 'mapped' &&
       root.countsChildren && {
@@ -187,15 +199,36 @@ function converted(
     ...(conversion.className
       ? [jsxAttr('className', conversion.className)]
       : []),
-  ].join(' ');
+  ];
   const name = `B.${conversion.target}`;
+  // One that builds its icons from props is given them as one icon, with
+  // its text as the children, or as `items`.
+  const icons = conversion.icons;
+  if (icons) {
+    const inside = children ?? [iconChild(['fas', 'fa-home']), textChild()];
+    const built = icons.map(icon => iconProps(icon, inside[icon.index]));
+    const text = icons.length === 1 ? icons[0].text : undefined;
+    attrs.push(
+      icons.length === 1
+        ? `iconProps={${JSON.stringify(built[0])}}`
+        : `items={${JSON.stringify(
+            icons.map((icon, index) => ({
+              iconProps: built[index],
+              ...(icon.text !== undefined && { text: icon.text }),
+            }))
+          )}}`
+    );
+    return text === undefined
+      ? `<${name} ${attrs.join(' ')} />`
+      : `<${name} ${attrs.join(' ')}>${text}</${name}>`;
+  }
   // A target that renders the children itself closes itself, as the
   // transform writes it, and so does one in place of a void child.
   return VOID.has(tag) ||
     conversion.rendersChildren ||
     (absorbs && VOID.has(absorbs.tag))
-    ? `<${name} ${attrs} />`
-    : `<${name} ${attrs}>x</${name}>`;
+    ? `<${name} ${attrs.join(' ')} />`
+    : `<${name} ${attrs.join(' ')}>x</${name}>`;
 }
 
 describe('every bulma-classes conversion typechecks', () => {
@@ -295,6 +328,40 @@ describe('every bulma-classes conversion typechecks', () => {
             );
           }
         }
+      }
+      // The icons it builds from props: each glyph's props, what a `.icon`'s
+      // own classes and attributes become, and more than one, as `items`.
+      if (entry.buildsIcons) {
+        const icons: ChildFacts[] = [
+          ...GLYPHS.map(glyph => iconChild(glyph)),
+          ...['is-small', 'is-medium', 'is-large', 'has-text-info', 'mt-2'].map(
+            token => iconChild(['fas', 'fa-home'], [token])
+          ),
+          ...COMMON.map(attribute =>
+            iconChild(['fas', 'fa-home'], [], {
+              'aria-label': 'x',
+              ...Object.fromEntries([attribute]),
+            })
+          ),
+        ];
+        for (const icon of icons) {
+          add(converted(entry.tag!, [root], [], undefined, undefined, [icon]));
+          add(
+            converted(entry.tag!, [root], [], undefined, undefined, [
+              icon,
+              textChild(),
+            ])
+          );
+        }
+        add(
+          converted(entry.tag!, [root], [], undefined, undefined, [
+            icons[0],
+            textChild('a'),
+            icons[1],
+            icons[2],
+            textChild('b'),
+          ])
+        );
       }
       expect({ root, conversions: lines.length > 0 }).toEqual({
         root,

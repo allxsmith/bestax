@@ -73,7 +73,7 @@ stock stylesheet.
   parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
   `select`, `breadcrumb`, `image`, `menu` and its label, list and items, the parts inside a `modal`
   but its close button, `pagination` and its list, links and ellipses, `panel` and its
-  heading, tabs and blocks, `tabs`, `icon`, `delete`, `progress`, `skeleton-block`, `footer` and
+  heading, tabs and blocks, `tabs`, `icon`, `icon-text`, `delete`, `progress`, `skeleton-block`, `footer` and
   `table` become their bestax components, with their modifier classes as props (`is-primary` →
   `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,

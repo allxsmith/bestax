@@ -140,6 +140,16 @@ requires children.
 On a `.pagination-ellipsis`, `Pagination.Ellipsis` renders its own `…` whatever it's given, so the
 element converts only holding exactly that (`&hellip;` or the character), and closes itself.
 
+On an `.icon-text`, `IconText` builds its icons from props and wraps each text in a `<span>` of
+its own, so it converts only when its children are `.icon`s, each followed by at most one bare
+`<span>` of static text. Each `.icon` has to convert to `Icon` on its own, so one with no
+`aria-label` gets a `defaults:Icon` TODO of its own first: give it one that says what the icon
+means, then re-run. Its `<i>` has to be bare and empty and name one Font Awesome or Material Design
+Icons glyph, so an `aria-hidden` on the `<i>`, another icon font, or anything between the children
+keeps it as markup, and the `.icon`s inside convert on their own. The markup renders the same as
+it is; to use `IconText` anyway, write it by hand with `iconProps={{ name: ... }}` (the
+`bestax-icons` skill covers `Icon`'s library and name props).
+
 On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
 the element converts only when its children are just that, and a class, an attribute, text or a
 comment in one of them, or anything else beside them, keeps it as markup. Keep it if the
@@ -268,9 +278,6 @@ in the browser:
   page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
   bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
-- **`family:icon-text`**: `IconText` builds its icon from `iconProps` and wraps its text in a
-  `<span>`, so rebuild it from its docs. The `.icon`s inside convert on their own. See the
-  `bestax-icons` skill for `Icon`'s library and name props.
 - **`family:menu-item`**: Bulma styles an item as `.menu-list a`, `.menu-list button` or
   `.menu-list .menu-item`, the last for an item on any other tag. `Menu.Item` renders the element
   inside its `<li>` with no class but `is-active`, and puts its `className` on the `<li>`, so the
