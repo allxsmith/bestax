@@ -104,6 +104,28 @@ function example() {
 
 ---
 
+### Valid Colors and Sizes
+
+The values `color`, `passiveType` and `size` accept are exported as readonly tuples: `switchColors` for the two color props, and `switchSizes` for `size`. The prop types are built from them, so they hold the same values as the Props table below. Map over them to build a color or size picker, or check a value that arrives at runtime (from a CMS or a query string, say) before you pass it in: a value outside the tuple adds no modifier class. Import them from the package root. The [valid value constants](../helpers/valid-values.md#form-control-constants) page covers the typing and validation idioms.
+
+```tsx live
+import { Switch, switchColors } from '@allxsmith/bestax-bulma';
+
+function example() {
+  return (
+    <Block display="flex" flexDirection="column">
+      {switchColors.map(color => (
+        <Switch key={color} color={color} defaultChecked>
+          {color}
+        </Switch>
+      ))}
+    </Block>
+  );
+}
+```
+
+---
+
 ### Rounded Style
 
 Switch with rounded (pill) style.

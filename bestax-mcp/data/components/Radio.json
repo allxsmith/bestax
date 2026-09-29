@@ -20,6 +20,10 @@
     {
       "title": "List of Radios (Grouped with the `Radios` Wrapper)",
       "code": "<Radios>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Attend{' '}\n  </Radio>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Decline{' '}\n  </Radio>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Tentative{' '}\n  </Radio>\n</Radios>"
+    },
+    {
+      "title": "Valid Colors and Sizes",
+      "code": "import { Radio, Radios, radioColors } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <Radios label=\"Accent color\" name=\"accent\" defaultValue=\"primary\">\n      {radioColors.map(color => (\n        <Radio key={color} value={color} color={color}>\n          {color}\n        </Radio>\n      ))}\n    </Radios>\n  );\n}"
     }
   ],
   "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.",
