@@ -425,19 +425,16 @@ export type DropdownItemProps<
  * The anchor's attributes, minus the one a `<button>` legitimately takes.
  *
  * `type` stays: `as="button"` is a supported form and `type="submit"` is valid
- * there, so stripping it would remove a working attribute. The exclusion is per
- * COMPONENT where the reason is per TAG, so it also lets a `type` reach a
- * `<div>`; selecting the set from the rendered element would close that, and
- * moves output.
+ * there, so stripping it would remove a working attribute. A `<div>` takes no
+ * `type`, so it gets the whole `ANCHOR_ONLY_ATTRS` set instead. The set is
+ * chosen by the rendered tag because that is where the reason lives (#692).
  *
- * This set differs from `Level.Item`'s in both directions, not just one. The
- * `type` above, which Level strips and this component keeps, and `rel`, which
- * Level adds and this component does not: React declares `rel` on
+ * Neither set withholds `rel`, which `Level.Item` does: React declares `rel` on
  * `HTMLAttributes` for every element, so withholding it would diverge from
- * React's own typing — the call #641 recorded for `Navbar.Link`. Level
+ * React's own typing, the call #641 recorded for `Navbar.Link`. Level
  * withholds it anyway, because it always has.
  */
-const STRIP_FROM_NON_ANCHOR: Readonly<
+const STRIP_FROM_BUTTON: Readonly<
   Record<Exclude<keyof AnchorOnlyAttributes, 'type'>, true>
 > = (() => {
   const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
@@ -485,9 +482,14 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
   //
   // Menu's condition also admits a custom component and a custom element, which
   // own their prop contracts. `as` is closed to three intrinsic tags here, so
-  // neither can arrive and the anchor test is the whole rule.
+  // neither can arrive and each tag gets its own set: a `<button>` keeps `type`,
+  // a `<div>` keeps none of them.
   const forwarded =
-    Component === 'a' ? rest : omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
+    Component === 'a'
+      ? rest
+      : Component === 'button'
+        ? omitAttrs(rest, STRIP_FROM_BUTTON)
+        : omitAttrs(rest, ANCHOR_ONLY_ATTRS);
   return (
     <Component
       className={classNames(

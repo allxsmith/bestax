@@ -1345,7 +1345,7 @@ describe('href routing', () => {
     expect(screen.getByTestId('dropdown-item')).toHaveAttribute('href', '/x');
   });
 
-  it('withholds every anchor-only attribute from a non-anchor tag', () => {
+  it('withholds every anchor-only attribute, type included, from a div', () => {
     render(
       <Dropdown label="Menu" active>
         {/* @ts-expect-error a div takes no anchor attributes */}
@@ -1365,8 +1365,55 @@ describe('href routing', () => {
       </Dropdown>
     );
     const item = screen.getByTestId('dropdown-item');
-    // Every attribute the strip set names, and each one supplied above — an
+    // Every attribute the strip set names, and each one supplied above. An
     // assertion for a prop that was never passed proves nothing.
+    for (const attr of [
+      'href',
+      'target',
+      'download',
+      'hreflang',
+      'ping',
+      'referrerpolicy',
+      'media',
+      'type',
+    ]) {
+      expect(item).not.toHaveAttribute(attr);
+    }
+  });
+
+  it('withholds a type arriving through a loose spread from a div', () => {
+    // The shape #692 reported: a spread the type system cannot see into.
+    const props = { type: 'text' } as Record<string, unknown>;
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="div" {...props}>
+          Static
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).not.toHaveAttribute('type');
+  });
+
+  it('withholds the anchor attributes from a button but keeps its type', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {/* @ts-expect-error a button takes no anchor attributes */}
+        <Dropdown.Item
+          as="button"
+          href="/x"
+          target="_blank"
+          download="f"
+          hrefLang="en"
+          ping="/p"
+          referrerPolicy="no-referrer"
+          media="print"
+          type="submit"
+        >
+          Save
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    const item = screen.getByTestId('dropdown-item');
     for (const attr of [
       'href',
       'target',
@@ -1378,9 +1425,8 @@ describe('href routing', () => {
     ]) {
       expect(item).not.toHaveAttribute(attr);
     }
-    // `type` is deliberately NOT stripped: `as="button"` takes one. That it
-    // reaches a <div> too is the per-tag gap the set does not express.
-    expect(item).toHaveAttribute('type');
+    // `type="submit"` is valid on a <button>, so the button's set keeps it.
+    expect(item).toHaveAttribute('type', 'submit');
   });
 
   it('keeps them on the anchor', () => {
