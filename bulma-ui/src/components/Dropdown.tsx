@@ -509,9 +509,8 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
   // are not interchangeable and neither derives from the other.
   //
   // Menu's condition also admits a custom component and a custom element, which
-  // own their prop contracts. `as` is closed to three intrinsic tags here, so
-  // neither can arrive and each tag gets its own set: a `<button>` keeps `type`,
-  // a `<div>` keeps none of them.
+  // own their prop contracts. Here the set follows the tag: an `<a>` keeps all
+  // of them, a `<button>` keeps `type`, and any other `as` keeps none of them.
   const forwarded =
     Component === 'a'
       ? rest
