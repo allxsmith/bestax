@@ -208,7 +208,8 @@ export const REMOVES_ONLY: ReadonlyMap<string, string> = new Map([
  * development warning pointing at `bulmaVars`. So `<Theme radius="6px" />` is
  * worth reporting, and the ordinary message, which says nothing renders, would
  * be false about it. The rule reports these with a message that says what
- * really happens and names the supported spelling.
+ * really happens and names the supported spelling, except for a near miss of
+ * a valid value, which gets the usual suggestion with the same correction.
  *
  * Only a string takes that route. A number or `true` goes to the helper on
  * `Theme` as well, so the ordinary messages about those stay true.
