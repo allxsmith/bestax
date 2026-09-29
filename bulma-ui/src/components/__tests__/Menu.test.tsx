@@ -495,6 +495,25 @@ describe('button form', () => {
     );
   });
 
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    // The types reject this, but a loose spread or an untyped caller can still
+    // deliver it, and HTML treats an invalid button type as submit.
+    const loose: object = { type: 'text/html' };
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" data-testid="item" {...loose}>
+            Filter
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(screen.getByTestId('item').querySelector('button')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
   it('sets no type on an item that is not a button', () => {
     render(
       <Menu>

@@ -1,6 +1,7 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { buttonType } from '../helpers/buttonType';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -211,8 +212,8 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      * neither does an `href`: that settles it on its own. A genuine `'a'`/`'button'`/`href`
      * avatar keeps its accessible name either way.
      *
-     * `'button'` renders `type="button"` unless you pass a `type`, so an avatar inside a form
-     * does not submit it.
+     * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
+     * an avatar inside a form does not submit it.
      */
     as?: T;
   };
@@ -438,15 +439,17 @@ export const Avatar = forwardRef(function Avatar(
       {...rest}
       {...a11yProps}
       // A clickable avatar inside a form must not submit it, and `<button>`
-      // defaults to type="submit". An explicit `type` from the caller still wins.
+      // defaults to type="submit". A caller's `submit` or `reset` still wins.
+      // Anything else becomes `button`, since HTML reads a value it does not
+      // define for a button as submit too; `buttonType` says more.
       //
       // After `rest`, reading through it rather than before it: React treats
       // `type={undefined}` as "remove the attribute", and a spread carrying the
       // key with no value is how that arrives. Spreading the default first let
       // such a spread erase it (#690), so the guard only held for callers who
-      // passed nothing. `Dropdown.Item` and `Menu.Item` default their button
-      // type the same way.
-      {...(Tag === 'button' ? { type: rest.type ?? 'button' } : {})}
+      // passed nothing. `Dropdown.Item` and `Menu.Item` apply their button
+      // type after the spread too.
+      {...(Tag === 'button' ? { type: buttonType(rest.type) } : {})}
     >
       {showImage && (
         <img

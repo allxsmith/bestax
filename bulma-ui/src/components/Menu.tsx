@@ -3,6 +3,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { omitAttrs } from '../helpers/anchorAttrs';
+import { buttonType } from '../helpers/buttonType';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -177,8 +178,8 @@ export type MenuItemProps<T extends React.ElementType = 'a'> =
       /**
        * Custom link component (e.g. `Link` from router).
        *
-       * `'button'` renders `type="button"` unless you pass a `type`, so an item inside a form
-       * does not submit it.
+       * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
+       * an item inside a form does not submit it.
        */
       as?: T;
     };
@@ -278,16 +279,18 @@ export const MenuItem = forwardRef(function MenuItem(
         className={itemClass || undefined}
         {...linkProps}
         // A menu item inside a form must not submit it, and `<button>` defaults
-        // to type="submit". A sidebar menu sitting in a form is ordinary. An
-        // explicit `type` from the caller still wins.
+        // to type="submit". A sidebar menu sitting in a form is ordinary. A
+        // caller's `submit` or `reset` still wins. Anything else becomes
+        // `button`, since HTML reads a value it does not define for a button as
+        // submit too; `buttonType` says more.
         //
         // After `linkProps`, reading through it rather than before it: React
         // treats `type={undefined}` as "remove the attribute", and a spread
         // carrying the key with no value is how that arrives, so a default
         // spread first would be erased by it. `Dropdown.Item` and `Avatar`
-        // default their button type the same way.
+        // apply their button type after the spread too.
         {...(Component === 'button'
-          ? { type: linkProps.type ?? 'button' }
+          ? { type: buttonType(linkProps.type) }
           : {})}
       >
         {labelChildren}
