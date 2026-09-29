@@ -139,6 +139,23 @@ export const Controlled: Story = {
   render: () => <ControlledPagination />,
 };
 
+// Rendered from a page count: Previous, Next and the page links, windowed.
+const FromTotalPagination: React.FC = () => {
+  const [page, setPage] = useState(10);
+  return (
+    <Pagination
+      total={20}
+      current={page}
+      onPageChange={setPage}
+      align="centered"
+    />
+  );
+};
+
+export const FromTotal: Story = {
+  render: () => <FromTotalPagination />,
+};
+
 // Bulma-style markup story with Previous/Next and pagination list
 export const PreviousNext: Story = {
   render: () => (

@@ -1853,6 +1853,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'total',
       'current',
       'onPageChange',
+      'siblingCount',
+      'boundaryCount',
+      'previousLabel',
+      'nextLabel',
+      'disabled',
+      'getPageHref',
+      'getPageLabel',
     ],
   },
   'pagination-list': {

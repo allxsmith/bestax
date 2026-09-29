@@ -172,16 +172,25 @@ export function applyPropAction(
 
   const literal = literalValueOf(attr);
 
+  // A number literal is keyed by its string form (`delta={0}` by `'0'`).
+  const todoKey =
+    literal.kind === 'string' || literal.kind === 'number'
+      ? String(literal.value)
+      : undefined;
   if (
     action.valueTodo &&
-    literal.kind === 'string' &&
-    action.valueTodo[literal.value]
+    todoKey !== undefined &&
+    Object.hasOwn(action.valueTodo, todoKey)
   ) {
+    const written =
+      literal.kind === 'number'
+        ? `${originalName}={${todoKey}}`
+        : `${originalName}="${todoKey}"`;
     addTodo(
       ctx,
       path,
       `prop:${originalName}`,
-      `\`${originalName}="${literal.value}"\` — ${action.valueTodo[literal.value]}`
+      `\`${written}\` — ${action.valueTodo[todoKey]}`
     );
     return;
   }
