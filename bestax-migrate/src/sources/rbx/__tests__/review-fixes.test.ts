@@ -759,8 +759,7 @@ describe('the innerRef remediation is achievable', () => {
     // The other half of the same collision: bestax's Navbar.Dropdown is the
     // container, which `<Navbar.Item dropdown>` becomes, and it forwards a ref.
     // The prop table is keyed on the rbx name, so only the special can know
-    // which target was picked — this was the one forwarding target the renames
-    // in mapping.ts could not reach.
+    // which target was picked.
     const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item dropdown innerRef={r}>x</Navbar.Item>;'
     );
@@ -769,21 +768,40 @@ describe('the innerRef remediation is achievable', () => {
     expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
   });
 
-  it('flags innerRef on a plain Navbar.Item without renaming it', () => {
-    // Without `dropdown` the target stays Navbar.Item, which forwards a ref of
-    // its own since #661 — so the rename above is conditional on which target
-    // was picked, not on whether the target takes a ref. Performing it here
-    // changes emitted output on code that migrates today and stays #734; what
-    // must not happen is the prop going by in silence, since `innerRef` is in
-    // no rbx prop table and would otherwise reach the DOM unflagged.
+  it('renames innerRef to ref on a plain Navbar.Item too', () => {
+    // Without `dropdown` the target stays Navbar.Item, which forwards a ref to
+    // the element rbx's innerRef reached (#734).
     const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item innerRef={r}>x</Navbar.Item>;'
     );
-    expect(output).toContain('<Navbar.Item innerRef={r}');
-    const flagged = todos.find(t => t.rule === 'prop:innerRef');
-    expect(flagged).toBeDefined();
-    expect(flagged?.message).toMatch(/forwards a ref/);
+    expect(output).toContain('<Navbar.Item ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.find(t => t.rule === 'prop:innerRef')).toBeUndefined();
   });
+
+  it('renames innerRef beside a dynamic dropdown, since either target takes it', () => {
+    const { output, todos } = migrate(
+      'import { Navbar } from "rbx";\nexport const A = (r: any, d: boolean) => <Navbar.Item dropdown={d} innerRef={r}>x</Navbar.Item>;'
+    );
+    expect(output).toContain('<Navbar.Item ref={r}');
+    expect(output).not.toMatch(/innerRef/);
+    expect(todos.map(t => t.rule)).toEqual(['prop:dropdown']);
+  });
+
+  it.each(['', ' dropdown'])(
+    'does not emit a second ref on a Navbar.Item%s that already has one',
+    dropdown => {
+      // Two `ref` attributes do not compile, so the rename defers to the one
+      // already written, as `applyPropAction` does.
+      const { output, todos } = migrate(
+        `import { Navbar } from "rbx";\nexport const A = (a: any, b: any) => <Navbar.Item${dropdown} ref={a} innerRef={b}>x</Navbar.Item>;`
+      );
+      expect(output.match(/\bref=/g)).toHaveLength(1);
+      expect(output).toContain('ref={a}');
+      const flagged = todos.find(t => t.rule === 'prop:innerRef');
+      expect(flagged?.message).toMatch(/already set/);
+    }
+  );
 
   // A plain `ref` is passed through untouched everywhere. That is correct on a
   // root that forwards one and silently wrong on a root that does not, and the

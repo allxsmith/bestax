@@ -744,33 +744,27 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       ctx.dirty = true;
     }
-    // bestax's `Navbar.Dropdown` forwards a ref, but it is the one such target
-    // the `innerRef: { rename: 'ref' }` entries in mapping.ts cannot reach:
-    // that table is keyed on the rbx name (`Navbar.Item`), and only this
-    // handler knows which of the two targets was picked. The condition is
-    // about that, not about ref support: a plain `Navbar.Item` forwards one
-    // too since #661, so leaving `innerRef` alone there is a rename this
-    // handler declines rather than one the target cannot take. Performing it
-    // changes emitted output on code that migrates today, so it stays #734 —
-    // but declining silently is not an option either. `innerRef` is in no
-    // rbx prop table, so nothing downstream flags it and it used to reach the
-    // DOM as an unknown attribute with the report saying nothing, which is
-    // the silent skip bestax-migrate/CLAUDE.md rules out. It is flagged here
-    // instead, and the rename stays the user's to make.
+    // rbx's `innerRef` reaches the element `Navbar.Item` renders, and both
+    // targets forward a ref to the same one: the item itself, or the
+    // `has-dropdown` container `Navbar.Dropdown` renders. The rename lives
+    // here rather than in mapping.ts, whose `innerRef: { rename: 'ref' }`
+    // entries are keyed on the rbx name, so they can't see which target was
+    // picked. `innerRef` is in no rbx prop table, so a prop this handler
+    // leaves must be flagged here or it goes by in silence.
     const handledInnerRef: string[] = [];
     const innerRefAttr = findAttr(element, 'innerRef');
     if (innerRefAttr) {
       handledInnerRef.push('innerRef');
-      if (target === 'Navbar.Dropdown') {
-        innerRefAttr.name = ctx.j.jsxIdentifier('ref');
-        ctx.dirty = true;
-      } else {
+      if (findAttr(element, 'ref')) {
         addTodo(
           ctx,
           path,
           'prop:innerRef',
-          'bestax `Navbar.Item` forwards a ref; rename `innerRef` to `ref` by hand'
+          '`innerRef` maps to `ref`, but `ref` is already set on this element; reconcile by hand'
         );
+      } else {
+        innerRefAttr.name = ctx.j.jsxIdentifier('ref');
+        ctx.dirty = true;
       }
     }
     restrictAsToTargets(ctx, path, element, target ?? 'Navbar.Item', [

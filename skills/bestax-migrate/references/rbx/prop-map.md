@@ -140,21 +140,18 @@ that is what keeps the `href`. Dropping the `as` does not, on this component.
 rbx reaches a component's rendered element with `innerRef`. bestax uses a plain forwarded
 `ref` on the roots that support one, so the codemod renames the prop:
 
-| rbx                                                   | bestax-bulma | note                                        |
-| ----------------------------------------------------- | ------------ | ------------------------------------------- |
-| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element         |
-| `innerRef` on `Navbar.Burger`, `Navbar.Link`          | `ref`        | these two sub-components forward one too    |
-| `innerRef` on `Navbar.Item` **with `dropdown`**       | `ref`        | that one becomes bestax's `Navbar.Dropdown` |
-| `innerRef` on `Modal.Container`                       | `ref`        | that one becomes bestax's `Modal` root      |
+| rbx                                                   | bestax-bulma | note                                         |
+| ----------------------------------------------------- | ------------ | -------------------------------------------- |
+| `innerRef` on `Button`, `Dropdown`, `Modal`, `Navbar` | `ref`        | same node — each root's own element          |
+| `innerRef` on `Navbar.Burger`, `Navbar.Link`          | `ref`        | these two sub-components forward one too     |
+| `innerRef` on `Navbar.Item`                           | `ref`        | with `dropdown` it becomes `Navbar.Dropdown` |
+| `innerRef` on `Modal.Container`                       | `ref`        | that one becomes bestax's `Modal` root       |
 
 The third row is the `Navbar.Dropdown` collision, and it runs both ways. Your rbx
 `Navbar.Dropdown` is the menu itself (`div.navbar-dropdown`), so it maps to bestax's
 `Navbar.DropdownMenu`, which forwards no ref — `innerRef` there is left alone. bestax reserves
 the name `Navbar.Dropdown` for the outer container, which is what `<Navbar.Item dropdown>`
-becomes. The rename stays conditional on the `dropdown` prop because only that branch knows
-which of the two targets was picked, not because the other branch lacks a ref: a plain
-`<Navbar.Item>` forwards one too since #661, so its `innerRef` is a rename the codemod leaves
-for you (see the gap below).
+becomes.
 
 An existing `ref` is passed through untouched — which is safe only where the bestax target
 forwards one. rbx forwards a ref on every component; bestax does so on the form controls, plus
@@ -174,11 +171,9 @@ outcome is one to build on: put the ref on an element you control.
 **The codemod does not flag this**, because neither the universal prop table nor any
 per-component table has a `ref` entry, so check every `ref` you carried over against the list
 above rather than assuming the silent pass-through means it works. The renames above are for
-`innerRef`, and apply only on those eight entries.
+`innerRef`, and apply only where the table says.
 
-Note the gap that leaves. An rbx `innerRef` can only land on a component rbx itself has, so of
-the ref-forwarding targets above the reachable ones are the form controls, `Menu.Item` and a
-plain `Navbar.Item`. There the codemod leaves `innerRef` in place and flags it rather than
-renaming it, so the rename is yours to make and the target will take it. Everywhere the eight
-renames above do not reach, `innerRef` is flagged the same way — but on a target that forwards
-nothing the answer is a wrapping element you control, not a rename.
+Note the gap that leaves. Where no row above reaches, `innerRef` stays in place and is flagged.
+On a target that forwards a ref (the form controls, `Menu.Item`) the rename is yours to make and
+the target will take it. On one that forwards nothing, the answer is a wrapping element you
+control, not a rename.
