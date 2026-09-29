@@ -5,6 +5,7 @@ import {
   isCustomElement,
   type PolymorphicComponent,
 } from '../helpers/polymorphic';
+import { warnOnce } from '../helpers/devWarnings';
 
 const avatarColors = [
   'primary',
@@ -137,7 +138,17 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   shape?: AvatarShape;
   /** Background color for initials/icon avatars (else auto-derived from `name`). */
   color?: AvatarColor;
-  /** When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An `as` target declaring its own `href` supersedes this one, and its type and its requiredness are what apply. */
+  /**
+   * When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An
+   * `as` target declaring its own `href` supersedes this one, and its type and its requiredness
+   * are what apply.
+   *
+   * It is passed on only to a target that can be a link: an `a`, a custom element, or a
+   * component. Any other `as`, such as `'figure'` or `'div'`, still accepts it but renders
+   * without it, because an `href` is not valid HTML on those elements, and a development build
+   * logs a console warning when that happens. To make such an avatar a link, render it
+   * `as="a"` or pass a link component to `as`.
+   */
   href?: string;
   /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
   target?: string;
@@ -369,6 +380,21 @@ export const Avatar = forwardRef(function Avatar(
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
   const isLinkLike =
     Tag === 'a' || typeof Tag !== 'string' || isCustomElement(Tag);
+  // A target that is not link-like still accepts `href` in the type, since the
+  // element declares none of its own, so the drop below would otherwise pass in
+  // silence (#733). Putting it on the element would render invalid HTML, so the
+  // drop stays and development reports it instead. The key is per element, so a
+  // re-render or a list of avatars warns once rather than once per render.
+  if (!isLinkLike && href != null) {
+    warnOnce(
+      `Avatar:href-on-${Tag}`,
+      `[bestax-bulma] <Avatar as="${Tag}" href>: Avatar passes "href", ` +
+        `"target" and "rel" on only to a target that can be a link (an "a", ` +
+        `a custom element, or a component), so this <${Tag}> renders without ` +
+        `them and is not a link. To make it a link, render it as="a" or pass ` +
+        `a link component to "as".`
+    );
+  }
   // Present-only, not `{ href, target, rel }`. An unconditional spread hands the
   // target these keys whatever the caller passed, and a key existing is not free:
   // a target that tests for one sees a link where there is none, and one that
