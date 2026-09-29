@@ -46,6 +46,7 @@ import {
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
 import {
+  fileContextTodo,
   plan,
   type BuiltIcon,
   type ChildFacts,
@@ -869,6 +870,62 @@ function textChild(j: any, text: string): any {
     : j.jsxExpressionContainer(j.stringLiteral(text));
 }
 
+/**
+ * A text as an attribute value: quoted when JSX reads it as written there,
+ * and as a string otherwise (a quote, or an `&` it would read as an entity).
+ */
+function textValue(j: any, text: string): any {
+  return /^[^"&\r\n]*$/.test(text)
+    ? j.stringLiteral(text)
+    : j.jsxExpressionContainer(j.stringLiteral(text));
+}
+
+/** Whether an element's content is text and elements only, and renders. */
+function staticContent(element: any): boolean {
+  const content = (element.children ?? []).filter(reachesReact);
+  return (
+    content.length > 0 &&
+    content.every(
+      (child: any) =>
+        child.type === 'JSXText' ||
+        child.type === 'JSXElement' ||
+        child.type === 'JSXFragment' ||
+        (child.type === 'JSXExpressionContainer' &&
+          child.expression.type === 'StringLiteral' &&
+          child.expression.value !== '')
+    )
+  );
+}
+
+/**
+ * An element's content as one prop value: its one element, or its text, or
+ * a fragment of them all, each text written as the string it renders.
+ */
+function contentValue(j: any, element: any): any {
+  const content = (element.children ?? []).filter(
+    (child: any) => !dropped(child)
+  );
+  if (content.length === 1) {
+    const [only] = content;
+    if (only.type === 'JSXText') {
+      return textValue(j, jsxTextRenders(only.value));
+    }
+    if (only.type === 'JSXExpressionContainer') return only;
+    return j.jsxExpressionContainer(only);
+  }
+  return j.jsxExpressionContainer(
+    j.jsxFragment(
+      j.jsxOpeningFragment(),
+      j.jsxClosingFragment(),
+      content.map((child: any) =>
+        child.type === 'JSXText'
+          ? textChild(j, jsxTextRenders(child.value))
+          : child
+      )
+    )
+  );
+}
+
 function insideForeignContent(elementPath: ASTPath<any>): boolean {
   let current: any = elementPath.parent;
   while (current) {
@@ -1116,6 +1173,27 @@ export default function transform(
       : undefined;
   };
 
+  /**
+   * What the planner reads of a child element, down its tree: what it
+   * converts to on its own (children are planned first), its only child,
+   * its text and whether its content is static, and its own children the
+   * same way.
+   */
+  const readChild = (child: any): Partial<ChildFacts> => {
+    const becomes = planned.get(child)?.conversion;
+    const only = soleChild(child);
+    const inner = only && childFacts(only);
+    const text = textOf(child);
+    const children = childElementsOf(child, readChild);
+    return {
+      ...(becomes && { becomes }),
+      ...(inner && { soleChild: inner }),
+      ...(text !== undefined && { text }),
+      ...(children && { children }),
+      ...(staticContent(child) && { staticContent: true }),
+    };
+  };
+
   /** The element directly around this one, when this is its only child. */
   const holderOf = (elementPath: ASTPath<any>): any => {
     const up = elementPath.parent?.node;
@@ -1156,17 +1234,7 @@ export default function transform(
       childTargets: childTargets(elementPath),
       soleChildTarget: planned.get(sole)?.conversion?.target,
       soleChild: sole && childFacts(sole),
-      childElements: childElementsOf(element, child => {
-        const becomes = planned.get(child)?.conversion;
-        const only = soleChild(child);
-        const inner = only && childFacts(only);
-        const text = textOf(child);
-        return {
-          ...(becomes && { becomes }),
-          ...(inner && { soleChild: inner }),
-          ...(text !== undefined && { text }),
-        };
-      }),
+      childElements: childElementsOf(element, readChild),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
@@ -1292,6 +1360,27 @@ export default function transform(
           message: `bestax \`${conversion!.target}\` renders the list nested in it as a \`${after}\`, which renders \`.${root}\` unless another \`${after}\` is around it, and no list around this element is one or becomes one here; keep it as markup, or convert the list around it first, then re-run`,
         },
       ],
+    };
+    found.converts = false;
+    planned.set(found.path.node, found.plan);
+  }
+  // A target that renders a `.field` of its own outside a `Field` converts
+  // only inside one: a bestax `Field` already around it, or a `.field`
+  // around it that converts here.
+  for (const found of elements) {
+    const conversion = found.plan.conversion;
+    if (!conversion?.file) continue;
+    let inField = false;
+    for (let up = found.path.parent; up && !inField; up = up.parent) {
+      if (up.node?.type !== 'JSXElement') continue;
+      inField =
+        (bestaxTarget(up.node, up) ??
+          planned.get(up.node)?.conversion?.target) === 'Field';
+    }
+    if (inField) continue;
+    found.plan = {
+      conversion: null,
+      todos: [...found.plan.todos, fileContextTodo(conversion.target)],
     };
     found.converts = false;
     planned.set(found.path.node, found.plan);
@@ -1455,6 +1544,71 @@ export default function transform(
       if (gone.length) {
         const name = element.openingElement.name;
         name.comments = [...(name.comments ?? []), ...gone.map(afterTagName)];
+      }
+    }
+    if (conversion.file) {
+      // The target renders the whole tree from props: the <input>'s
+      // attributes join the element's, the parts below become props, and
+      // the tree goes, its comments moving to the name that stays.
+      const built = conversion.file;
+      const inside = (node: any): any[] =>
+        (node.children ?? []).filter((child: any) => !dropped(child));
+      const [label] = inside(element);
+      const [input, cta, name] = inside(label);
+      const parts = inside(cta);
+      const given = (input.openingElement.attributes ?? []).filter(
+        (attr: any) => !['className', 'type'].includes(attributeName(attr))
+      );
+      const props: any[] = [...given];
+      const prop = (key: string, value: any) =>
+        props.push(j.jsxAttribute(j.jsxIdentifier(key), value));
+      if (built.inputClassName !== null) {
+        prop('inputClassName', textValue(j, built.inputClassName));
+      }
+      for (const key of ['buttonLabel', 'iconLeft', 'iconRight'] as const) {
+        const index = built[key];
+        if (index !== undefined) prop(key, contentValue(j, parts[index]));
+      }
+      if (built.fileName !== undefined) {
+        prop('fileName', textValue(j, built.fileName));
+      }
+      element.openingElement.attributes = [
+        ...(element.openingElement.attributes ?? []),
+        ...props,
+      ];
+      const commentChildren = (node: any): any[] =>
+        (node.children ?? [])
+          .filter(
+            (child: any) =>
+              child.type === 'JSXExpressionContainer' &&
+              child.expression.type === 'JSXEmptyExpression'
+          )
+          .flatMap((child: any) => commentsWithin(child));
+      const moved = [
+        ...[label, input, cta, name, ...parts]
+          .filter(Boolean)
+          .flatMap((node: any) => [
+            ...(node.comments ?? []),
+            ...tagComments(node),
+          ]),
+        ...[label, cta, name, ...parts]
+          .filter(Boolean)
+          .flatMap((node: any) => node.openingElement.attributes ?? [])
+          .flatMap((attr: any) => commentsWithin(attr)),
+        ...(input.openingElement.attributes ?? [])
+          .filter((attr: any) => !given.includes(attr))
+          .flatMap((attr: any) => commentsWithin(attr)),
+        ...[element, label, cta].flatMap(commentChildren),
+        ...[element.closingElement, element.closingElement?.name].flatMap(
+          (node: any) => node?.comments ?? []
+        ),
+      ];
+      element.children = [];
+      element.openingElement.selfClosing = true;
+      element.closingElement = null;
+      if (moved.length) {
+        const tag = element.openingElement.name;
+        tag.comments = [...(tag.comments ?? []), ...moved.map(afterTagName)];
       }
     }
     if (conversion.icons) {

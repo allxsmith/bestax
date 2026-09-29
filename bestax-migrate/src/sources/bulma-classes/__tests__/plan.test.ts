@@ -883,6 +883,228 @@ describe('plan', () => {
     });
   });
 
+  describe('File', () => {
+    const node = (
+      tag: string,
+      tokens: string[] | undefined,
+      extra: Partial<ChildFacts> = {}
+    ): ChildFacts => ({
+      tag,
+      ...(tokens && { tokens }),
+      attributes: new Map(),
+      hasSpread: false,
+      isEmpty: false,
+      ...extra,
+    });
+    const span = (token: string, extra: Partial<ChildFacts> = {}) =>
+      node('span', [token], { staticContent: true, ...extra });
+    const icon = () =>
+      span('file-icon', {
+        children: [node('i', ['fas', 'fa-upload'], { isEmpty: true })],
+      });
+    interface Tree {
+      input?: Partial<ChildFacts>;
+      cta?: ChildFacts[];
+      label?: Partial<ChildFacts>;
+      name?: ChildFacts;
+      beside?: ChildFacts[];
+    }
+    /** The `.file`'s children, with one part of the tree swapped out. */
+    const tree = (swap: Tree = {}): ChildFacts[] => [
+      node('label', ['file-label'], {
+        children: [
+          node('input', ['file-input'], {
+            attributes: new Map([
+              ['type', 'file'],
+              ['name', 'cv'],
+            ]),
+            isEmpty: true,
+            ...swap.input,
+          }),
+          node('span', ['file-cta'], {
+            children: swap.cta ?? [span('file-label', { text: 'Upload' })],
+          }),
+          ...(swap.name ? [swap.name] : []),
+        ],
+        ...swap.label,
+      }),
+      ...(swap.beside ?? []),
+    ];
+    const file = (
+      children: ChildFacts[] | undefined = tree(),
+      className = 'file',
+      attributes: Record<string, string | true | null> = {},
+      extra: Partial<ElementFacts> = {}
+    ) =>
+      plan(
+        facts('div', className, attributes, {
+          childElements: children,
+          classesAround: ['field'],
+          ...extra,
+        })
+      );
+    const rules = (result: ReturnType<typeof plan>) =>
+      result.todos.map(todo => todo.rule);
+
+    it('builds the tree it renders, and takes the input attributes as its own', () => {
+      expect(file().conversion).toEqual({
+        target: 'File',
+        props: [],
+        className: null,
+        drop: [],
+        numbers: [],
+        file: { inputClassName: null, buttonLabel: 0 },
+      });
+      const built = file(
+        tree({
+          input: {
+            tokens: ['file-input', 'my-input'],
+            attributes: new Map<string, string | true>([
+              ['type', 'file'],
+              ['tabIndex', '0'],
+            ]),
+          },
+          cta: [icon(), span('file-label', { text: 'Choose a file…' }), icon()],
+          name: span('file-name', { text: 'cv.pdf' }),
+        }),
+        'file has-name is-boxed is-primary'
+      ).conversion!;
+      expect(built.props).toEqual([
+        ['hasName', true],
+        ['isBoxed', true],
+      ]);
+      expect(built.className).toBe('is-primary');
+      expect(built.numbers).toEqual(['tabIndex']);
+      expect(built.file).toEqual({
+        inputClassName: 'my-input',
+        iconLeft: 0,
+        iconRight: 2,
+        fileName: 'cv.pdf',
+      });
+    });
+
+    it('converts only inside a Field, already there or becoming one', () => {
+      expect(rules(file(tree(), 'file', {}, { classesAround: [] }))).toEqual([
+        'context:File',
+      ]);
+      expect(
+        file(tree(), 'file', {}, { classesAround: [], bestaxAround: ['Field'] })
+          .conversion?.target
+      ).toBe('File');
+    });
+
+    it('refuses an attribute of its own, which would move to the input', () => {
+      expect(rules(file(tree(), 'file', { id: 'x' }))).toEqual(['attr:id']);
+      expect(
+        rules(file(tree(), 'file', { ref: null }, { hasRef: true }))
+      ).toEqual(['attr:ref']);
+      expect(file(tree(), 'file', { key: 'k' }).conversion).not.toBeNull();
+    });
+
+    it('refuses an input attribute it reads as a prop, or a number misspelled', () => {
+      for (const name of ['size', 'color', 'label', 'm']) {
+        const result = file(
+          tree({
+            input: {
+              attributes: new Map([
+                ['type', 'file'],
+                [name, 'x'],
+              ]),
+            },
+          })
+        );
+        expect({ name, rules: rules(result) }).toEqual({
+          name,
+          rules: [`attr:${name}`],
+        });
+      }
+      expect(
+        rules(
+          file(
+            tree({
+              input: {
+                attributes: new Map([
+                  ['type', 'file'],
+                  ['tabIndex', '00'],
+                ]),
+              },
+            })
+          )
+        )
+      ).toEqual(['attr:tabIndex']);
+    });
+
+    it('keeps it as markup when its tree is any other', () => {
+      const shaped: Array<[string, ChildFacts[] | undefined]> = [
+        ['no children to read', []],
+        [
+          'something beside the label',
+          tree({ beside: [node('p', undefined)] }),
+        ],
+        [
+          'a label with an attribute',
+          tree({ label: { attributes: new Map([['htmlFor', 'x']]) } }),
+        ],
+        [
+          'an input of another type',
+          tree({
+            input: { attributes: new Map([['type', 'text']]) },
+          }),
+        ],
+        [
+          'an input with a key',
+          tree({
+            input: {
+              attributes: new Map([
+                ['type', 'file'],
+                ['key', 'k'],
+              ]),
+            },
+          }),
+        ],
+        ['an input with a spread', tree({ input: { hasSpread: true } })],
+        ['no button text', tree({ cta: [icon()] })],
+        [
+          'button text that is not static',
+          tree({ cta: [span('file-label', { staticContent: false })] }),
+        ],
+        [
+          'two icons before the text',
+          tree({ cta: [icon(), icon(), span('file-label', { text: 'x' })] }),
+        ],
+        [
+          'something else in the call to action',
+          tree({
+            cta: [span('file-label', { text: 'x' }), node('small', undefined)],
+          }),
+        ],
+        [
+          'an icon with a class of its own',
+          tree({
+            cta: [
+              span('file-label', { text: 'x' }),
+              { ...icon(), tokens: ['file-icon', 'is-large'] },
+            ],
+          }),
+        ],
+        [
+          'a name that is not static text',
+          tree({ name: span('file-name', { text: undefined }) }),
+        ],
+      ];
+      for (const [label, children] of shaped) {
+        expect({ label, rules: rules(file(children)) }).toEqual({
+          label,
+          rules: ['children:File'],
+        });
+      }
+      // A name needs `has-name`, which `File` renders it beside.
+      expect(
+        rules(file(tree({ name: span('file-name', { text: 'cv.pdf' }) })))
+      ).toEqual(['children:File']);
+    });
+  });
+
   describe('Pagination links and ellipsis', () => {
     const li = (extra: Partial<ChildFacts> = {}): ChildFacts => ({
       tag: 'li',
