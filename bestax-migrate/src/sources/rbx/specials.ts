@@ -744,29 +744,6 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       ctx.dirty = true;
     }
-    // rbx's `innerRef` reaches the element `Navbar.Item` renders, and both
-    // targets forward a ref to the same one: the item itself, or the
-    // `has-dropdown` container `Navbar.Dropdown` renders. The rename lives
-    // here rather than in mapping.ts, whose `innerRef: { rename: 'ref' }`
-    // entries are keyed on the rbx name, so they can't see which target was
-    // picked. `innerRef` is in no rbx prop table, so a prop this handler
-    // leaves must be flagged here or it goes by in silence.
-    const handledInnerRef: string[] = [];
-    const innerRefAttr = findAttr(element, 'innerRef');
-    if (innerRefAttr) {
-      handledInnerRef.push('innerRef');
-      if (findAttr(element, 'ref')) {
-        addTodo(
-          ctx,
-          path,
-          'prop:innerRef',
-          '`innerRef` maps to `ref`, but `ref` is already set on this element; reconcile by hand'
-        );
-      } else {
-        innerRefAttr.name = ctx.j.jsxIdentifier('ref');
-        ctx.dirty = true;
-      }
-    }
     restrictAsToTargets(ctx, path, element, target ?? 'Navbar.Item', [
       'Navbar.Item',
     ]);
@@ -780,7 +757,6 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'expanded',
         'hoverable',
         'managed',
-        ...handledInnerRef,
       ],
     };
   },

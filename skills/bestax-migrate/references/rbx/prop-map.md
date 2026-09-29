@@ -153,6 +153,9 @@ The third row is the `Navbar.Dropdown` collision, and it runs both ways. Your rb
 the name `Navbar.Dropdown` for the outer container, which is what `<Navbar.Item dropdown>`
 becomes.
 
+Beside a `ref` the element already has, a rename leaves `innerRef` in place with a `prop:innerRef`
+TODO rather than write a second `ref`; keep whichever one you meant.
+
 An existing `ref` is passed through untouched — which is safe only where the bestax target
 forwards one. rbx forwards a ref on every component; bestax does so on the form controls, plus
 `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`,

@@ -719,7 +719,15 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Navbar.Item',
         status: 'mapped',
         special: 'navbar-item',
-        props: { active: {}, onClick: {}, as: AS_OK },
+        // Both targets the special picks forward a ref to the element rbx's
+        // `innerRef` reached: the item itself, or the `has-dropdown`
+        // container `Navbar.Dropdown` renders.
+        props: {
+          active: {},
+          onClick: {},
+          as: AS_OK,
+          innerRef: { rename: 'ref' },
+        },
         subs: { Container: { status: 'mapped', special: 'navbar-container' } },
       },
       Dropdown: { status: 'mapped', special: 'navbar-dropdown' },
