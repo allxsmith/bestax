@@ -1,3 +1,17 @@
+# [2.22.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.21.1...bestax-migrate@2.22.0) (2026-09-29)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a page link as markup when its li is a component's only child ([0e72683](https://github.com/allxsmith/bestax/commit/0e72683e6eb50326a889ee579b3f3e415b7e2df9))
+* **eslint-plugin:** report the pagination links and ellipsis as classes the codemod converts ([54ba0b3](https://github.com/allxsmith/bestax/commit/54ba0b3190233c308c3b92dd27e2ea8b91424163))
+
+
+### Features
+
+* **bestax-mcp:** say when a component renders the li around its element, or its own text ([8fd3faf](https://github.com/allxsmith/bestax/commit/8fd3faf939e33f323a981f6da101930e5140dac2))
+* **bestax-migrate:** convert Pagination's page links and ellipsis in their li's place ([ae720fa](https://github.com/allxsmith/bestax/commit/ae720faaca0a8bcef860e3daa576aa686a7bb8a5)), closes [#809](https://github.com/allxsmith/bestax/issues/809)
+
 ## [2.21.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.21.0...bestax-migrate@2.21.1) (2026-09-29)
 
 
