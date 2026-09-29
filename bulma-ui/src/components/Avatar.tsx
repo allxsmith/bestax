@@ -226,6 +226,7 @@ type AvatarImplProps = AvatarOwnProps & {
   as?: React.ElementType;
   role?: React.AriaRole;
   'aria-hidden'?: React.AriaAttributes['aria-hidden'];
+  'aria-label'?: string;
   type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
 };
 
@@ -397,18 +398,36 @@ export const Avatar = forwardRef(function Avatar(
   // button must always expose an accessible name.
   const isDecorative = alt === '' && !isInteractive;
 
-  const a11yProps = showImage
+  const a11yDefaults: {
+    'aria-label'?: string;
+    role?: 'img';
+    'aria-hidden'?: true;
+  } = showImage
     ? isInteractive && !accessibleName
       ? // The img alt normally names the control; with no alt/name (an API
         // returning only a photo URL) the link/button would be nameless.
         { 'aria-label': name || 'Avatar' }
       : {}
     : isDecorative
-      ? { 'aria-hidden': true as const }
+      ? { 'aria-hidden': true }
       : {
           ...(isInteractive ? {} : { role: 'img' as const }),
           'aria-label': accessibleName || name || 'Avatar',
         };
+
+  // Each default yields to a value the caller passed, and is applied after
+  // `rest` reading through it rather than spread before it. React treats an
+  // `undefined` attribute as "remove it", and a spread carrying the key with no
+  // value is how that arrives, so a default spread first was erased by it: an
+  // `aria-label: undefined` left a button avatar nameless, and `role` and
+  // `aria-hidden` went the same way. The button `type` below has the same
+  // shape (#690).
+  const a11yProps = Object.fromEntries(
+    Object.entries(a11yDefaults).map(([key, fallback]) => [
+      key,
+      rest[key as keyof typeof a11yDefaults] ?? fallback,
+    ])
+  );
 
   return (
     <Tag
@@ -416,8 +435,8 @@ export const Avatar = forwardRef(function Avatar(
       className={combinedClasses}
       style={{ ...sizeStyle, ...style }}
       {...linkProps}
-      {...a11yProps}
       {...rest}
+      {...a11yProps}
       // A clickable avatar inside a form must not submit it, and `<button>`
       // defaults to type="submit". An explicit `type` from the caller still wins.
       //

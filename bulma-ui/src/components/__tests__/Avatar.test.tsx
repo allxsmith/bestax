@@ -398,6 +398,61 @@ describe('Avatar', () => {
   });
 });
 
+describe('Accessibility defaults and a spread carrying undefined', () => {
+  // React reads an `undefined` attribute as "remove it", and a props spread
+  // with the key present but undefined is how that arrives. Spreading the
+  // defaults before the caller's props let such a spread erase them.
+  it('keeps the fallback name on a nameless image button', () => {
+    const spread: { 'aria-label'?: string } = { 'aria-label': undefined };
+    render(<Avatar as="button" src="/a.jpg" {...spread} />);
+    expect(screen.getByRole('button', { name: 'Avatar' })).toBeInTheDocument();
+  });
+
+  it('keeps the name on an initials avatar', () => {
+    const spread: { 'aria-label'?: string } = { 'aria-label': undefined };
+    render(<Avatar name="Ada Lovelace" {...spread} />);
+    expect(
+      screen.getByRole('img', { name: 'Ada Lovelace' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps role="img" on an initials avatar', () => {
+    const spread: { role?: React.AriaRole } = { role: undefined };
+    render(<Avatar name="Ada Lovelace" data-testid="a" {...spread} />);
+    expect(screen.getByTestId('a')).toHaveAttribute('role', 'img');
+  });
+
+  it('keeps a decorative avatar hidden', () => {
+    const spread: { 'aria-hidden'?: boolean } = { 'aria-hidden': undefined };
+    render(<Avatar alt="" name="Ada Lovelace" data-testid="a" {...spread} />);
+    expect(screen.getByTestId('a')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('lets an explicit aria-label win over the name', () => {
+    render(<Avatar name="Ada Lovelace" aria-label="Profile" />);
+    expect(screen.getByRole('img', { name: 'Profile' })).toBeInTheDocument();
+  });
+
+  it('lets an explicit aria-label win over the fallback name', () => {
+    render(<Avatar as="button" src="/a.jpg" aria-label="Open profile" />);
+    expect(
+      screen.getByRole('button', { name: 'Open profile' })
+    ).toBeInTheDocument();
+  });
+
+  it('lets an explicit role win over role="img"', () => {
+    render(<Avatar name="Ada Lovelace" role="presentation" data-testid="a" />);
+    expect(screen.getByTestId('a')).toHaveAttribute('role', 'presentation');
+  });
+
+  it('lets an explicit aria-hidden={false} win on a decorative avatar', () => {
+    render(
+      <Avatar alt="" name="Ada Lovelace" aria-hidden={false} data-testid="a" />
+    );
+    expect(screen.getByTestId('a')).toHaveAttribute('aria-hidden', 'false');
+  });
+});
+
 describe('Custom element targets', () => {
   it('keeps role="img" on a custom element with no href', () => {
     // A custom element is not inherently interactive — it is a string tag with
