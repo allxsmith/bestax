@@ -36,7 +36,8 @@ color. Rename or drop the attribute, then re-run.
 
 It also covers an attribute the component's props type rejects. `Delete` takes no `type`
 (`type="button"` is the one value that converts, because `Delete` renders it anyway), and
-`Progress` types `value` and `max` as numbers, so `value="half"` stays. A number converts only
+`Progress` types `value` and `max` as numbers, so `value="half"` stays. Every component types
+`tabIndex` as a number too, so `tabIndex="0"` converts as `tabIndex={0}`. A number converts only
 when it is spelled the way it renders (`value="40"`, not `value="040"`).
 
 `attr:dangerouslySetInnerHTML` is the same kind of refusal: the element sets its own content,

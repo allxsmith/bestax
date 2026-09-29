@@ -9,7 +9,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { HELPER_PROPS, PLACED, ROOTS, type RootEntry } from '../class-map.js';
+import {
+  HELPER_PROPS,
+  numberAttrsOf,
+  PLACED,
+  ROOTS,
+  type RootEntry,
+} from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 import { inVocabulary, KINDS, ruleId } from '../rules.js';
 
@@ -73,7 +79,7 @@ describe('every refusal the planner can produce', () => {
         ...(entry.ownProps ?? []),
         ...(entry.passThrough ?? []),
         ...(entry.untypedAttrs ?? []),
-        ...(entry.numberAttrs ?? []),
+        ...numberAttrsOf(entry),
         ...Object.keys(entry.defaults ?? {}),
         ...Object.keys(entry.dropsAttr ?? {}),
         ...Object.keys(entry.writesAttr ?? {}),
@@ -195,7 +201,7 @@ describe('every refusal the planner can produce', () => {
       const names = new Set([
         ...(entry.ownProps ?? []),
         ...(entry.passThrough ?? []),
-        ...(entry.numberAttrs ?? []),
+        ...numberAttrsOf(entry),
         ...HELPER_PROPS,
         'ref',
         'key',

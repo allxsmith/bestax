@@ -254,9 +254,10 @@ export interface RootEntry {
   };
   /**
    * Attributes the target types as numbers, among the ones it is given (the
-   * child's, when it `absorbs` the child and puts them there). A numeric
-   * string (`value="40"`) becomes a number, which renders the same; any
-   * other string refuses.
+   * child's, when it `absorbs` the child and puts them there), beside
+   * `NUMBER_ATTRS`, which every target types that way. A numeric string
+   * (`value="40"`) becomes a number, which renders the same; any other
+   * string refuses.
    */
   readonly numberAttrs?: readonly string[];
   /** Attributes the target drops: on these tags, or on all tags except these. */
@@ -1870,7 +1871,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     bgColor: null,
     noHelpers: true,
     defaults: { tabIndex: '0' },
-    numberAttrs: ['tabIndex'],
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -1885,7 +1885,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     bgColor: null,
     noHelpers: true,
     defaults: { tabIndex: '0' },
-    numberAttrs: ['tabIndex'],
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -1907,7 +1906,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       },
     },
     defaults: { tabIndex: '0' },
-    numberAttrs: ['tabIndex'],
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2127,7 +2125,6 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
       modifiers: flags({ 'is-active': 'active' }),
       after: { tag: 'ul', target: 'Menu.List' },
     },
-    numberAttrs: ['tabIndex'],
     ownProps: ['as', 'active'],
     passThrough: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
   },
@@ -2195,6 +2192,17 @@ export const PRECEDENCE: readonly string[] = [
   'content',
   'block',
 ];
+
+/**
+ * Attributes every target types as a number, as React types them on any
+ * element: a `tabIndex="0"` converts as `tabIndex={0}`.
+ */
+export const NUMBER_ATTRS: readonly string[] = ['tabIndex'];
+
+/** The attributes an entry's target types as numbers. */
+export function numberAttrsOf(entry: RootEntry): readonly string[] {
+  return [...new Set([...NUMBER_ATTRS, ...(entry.numberAttrs ?? [])])];
+}
 
 /** Refs reach the element only through these targets. */
 export const FORWARDS_REF: readonly string[] = [
