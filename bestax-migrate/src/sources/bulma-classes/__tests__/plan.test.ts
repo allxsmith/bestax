@@ -681,6 +681,208 @@ describe('plan', () => {
     });
   });
 
+  describe('IconText', () => {
+    const glyphOf = (tokens: string[]): ChildFacts => ({
+      tag: 'i',
+      tokens,
+      attributes: new Map(),
+      hasSpread: false,
+      isEmpty: true,
+    });
+    /** A `.icon` as the transform hands it over: planned on its own first. */
+    const icon = (
+      glyph = ['fas', 'fa-home'],
+      attributes: Record<string, string | true | null> = { 'aria-label': 'x' },
+      tokens: string[] = []
+    ): ChildFacts => {
+      const own = facts('span', ['icon', ...tokens].join(' '), attributes, {
+        soleChild: glyphOf(glyph),
+      });
+      const becomes = plan(own).conversion;
+      return {
+        tag: 'span',
+        tokens: own.tokens,
+        attributes: own.attributes,
+        hasSpread: false,
+        isEmpty: false,
+        ...(becomes && { becomes }),
+        soleChild: glyphOf(glyph),
+      };
+    };
+    const text = (value = 'Home', extra: Partial<ChildFacts> = {}) => ({
+      tag: 'span',
+      attributes: new Map(),
+      hasSpread: false,
+      isEmpty: false,
+      text: value,
+      ...extra,
+    });
+    const iconText = (
+      children: ChildFacts[] | undefined,
+      className = 'icon-text',
+      tag = 'span'
+    ) => plan(facts(tag, className, {}, { childElements: children }));
+    const rules = (result: ReturnType<typeof plan>) =>
+      result.todos.map(todo => todo.rule);
+
+    it('builds one icon, with the text after it', () => {
+      expect(iconText([icon(), text()]).conversion).toEqual({
+        target: 'IconText',
+        props: [],
+        className: null,
+        drop: [],
+        numbers: [],
+        icons: [
+          {
+            index: 0,
+            props: [
+              ['library', 'fa'],
+              ['name', 'home'],
+            ],
+            className: null,
+            drop: [],
+            numbers: [],
+            text: 'Home',
+          },
+        ],
+      });
+    });
+
+    it("carries each icon's glyph, classes and numbers, and each text after one", () => {
+      const conversion = iconText(
+        [
+          icon(['far', 'fa-bell', 'fa-lg', 'fa-fw'], {
+            'aria-label': 'x',
+            tabIndex: '0',
+          }),
+          text('a'),
+          icon(['mdi', 'mdi-home'], { 'aria-label': 'x' }, [
+            'is-small',
+            'my-icon',
+          ]),
+          icon(),
+          text('b'),
+        ],
+        'icon-text has-text-success'
+      ).conversion!;
+      expect(conversion.props).toEqual([['textColor', 'success']]);
+      expect(conversion.icons).toEqual([
+        {
+          index: 0,
+          props: [
+            ['library', 'fa'],
+            ['name', 'bell'],
+            ['variant', 'regular'],
+            ['features', ['fa-lg', 'fa-fw']],
+          ],
+          className: null,
+          drop: [],
+          numbers: ['tabIndex'],
+          text: 'a',
+        },
+        {
+          index: 2,
+          props: [
+            ['library', 'mdi'],
+            ['name', 'home'],
+            ['size', 'small'],
+          ],
+          className: 'my-icon',
+          drop: [],
+          numbers: [],
+        },
+        {
+          index: 3,
+          props: [
+            ['library', 'fa'],
+            ['name', 'home'],
+          ],
+          className: null,
+          drop: [],
+          numbers: [],
+          text: 'b',
+        },
+      ]);
+    });
+
+    it('keeps it as markup unless its children are icons, each with at most one text after it', () => {
+      const shaped: Array<[string, ChildFacts[] | undefined]> = [
+        ['no children', []],
+        ['anything but HTML elements', undefined],
+        ['only a text', [text()]],
+        ['a text first', [text(), icon()]],
+        ['two texts', [icon(), text(), text()]],
+        ['a text with a class', [icon(), text('x', { tokens: ['bold'] })]],
+        [
+          'a text with an attribute',
+          [icon(), text('x', { attributes: new Map([['id', 'x']]) })],
+        ],
+        ['a text with a spread', [icon(), text('x', { hasSpread: true })]],
+        [
+          'a text that is not one static text',
+          [icon(), { ...text(), text: undefined }],
+        ],
+        ['an empty text', [icon(), text('')]],
+        ['another element', [icon(), { ...text(), tag: 'strong' }]],
+        ['a glyph Icon reads no name from', [icon(['bi', 'bi-house'])]],
+        [
+          'an icon with a key',
+          [icon(['fas', 'fa-home'], { 'aria-label': 'x', key: 'k' })],
+        ],
+        [
+          'an icon with a ref',
+          [icon(['fas', 'fa-home'], { 'aria-label': 'x', ref: null })],
+        ],
+        [
+          'an icon with a data attribute',
+          [icon(['fas', 'fa-home'], { 'aria-label': 'x', 'data-test': 'x' })],
+        ],
+      ];
+      for (const [label, children] of shaped) {
+        const result = iconText(children);
+        expect({ label, rules: rules(result) }).toEqual({
+          label,
+          rules: ['children:IconText'],
+        });
+        expect(result.todos[0].message).toMatch(/builds its icons from props/);
+      }
+      // An `aria-` attribute is one its props declare.
+      expect(
+        iconText([
+          icon(['fas', 'fa-home'], {
+            'aria-label': 'x',
+            'aria-describedby': 'y',
+          }),
+        ]).conversion
+      ).not.toBeNull();
+    });
+
+    it('waits for each icon to convert on its own, unless another child does', () => {
+      // No aria-label, which Icon writes: the icon stays, and says so.
+      const bare = icon(['fas', 'fa-home'], {});
+      expect(bare.becomes).toBeUndefined();
+      const waits = iconText([bare, text()]);
+      expect(rules(waits)).toEqual(['children:IconText']);
+      expect(waits.todos[0].message).toMatch(/see the TODO on each/);
+      // Beside one that converts, the next run finds a component there
+      // instead, so the reason is the one it gives then.
+      expect(iconText([icon(), bare]).todos[0].message).toMatch(
+        /builds its icons from props/
+      );
+      const joined = icon();
+      joined.becomes = { ...joined.becomes!, conditional: [['size', 'x']] };
+      expect(iconText([joined]).todos[0].message).toMatch(
+        /builds its icons from props/
+      );
+    });
+
+    it('refuses another tag before looking at the children', () => {
+      expect(rules(iconText(undefined, 'icon-text', 'div'))).toEqual([
+        'tag:IconText',
+      ]);
+    });
+  });
+
   describe('Pagination links and ellipsis', () => {
     const li = (extra: Partial<ChildFacts> = {}): ChildFacts => ({
       tag: 'li',

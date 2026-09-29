@@ -125,6 +125,38 @@ function planned(tag: string, tokens: string[]): Outcome {
       }));
       counted = counts.prop;
     }
+    // One that builds its icons from props holds an icon, planned the way
+    // the codemod plans it first, which the lookup states as a condition.
+    if (entry?.status === 'mapped' && entry.buildsIcons && !childElements) {
+      const glyph = {
+        tag: 'i',
+        tokens: ['fas', 'fa-home'],
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const iconAttributes = new Map([['aria-label', 'x']]);
+      const becomes = plan({
+        tag: 'span',
+        tokens: ['icon'],
+        attributes: iconAttributes,
+        hasSpread: false,
+        hasRef: false,
+        hasChildren: true,
+        soleChild: glyph,
+      }).conversion;
+      childElements = [
+        {
+          tag: 'span',
+          tokens: ['icon'],
+          attributes: iconAttributes,
+          hasSpread: false,
+          isEmpty: false,
+          ...(becomes && { becomes }),
+          soleChild: glyph,
+        },
+      ];
+    }
   }
   const result = plan({
     tag,

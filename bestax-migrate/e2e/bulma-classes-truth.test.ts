@@ -31,9 +31,17 @@ import {
 } from '../src/sources/bulma-classes/class-map.js';
 import {
   plan,
+  type BuiltIcon,
   type ChildFacts,
   type ElementFacts,
 } from '../src/sources/bulma-classes/plan.js';
+import {
+  GLYPHS,
+  iconChild,
+  iconProps,
+  textChild,
+  type Attributes,
+} from './support/icon-text.js';
 import {
   bestax,
   createElement,
@@ -96,6 +104,42 @@ function childFor(entry: RootEntry): Child | undefined {
 }
 
 /**
+ * A child of an element whose target builds its icons from props, as
+ * written: a `.icon` around its `<i>`, or a bare `<span>` of text.
+ */
+function rawChild(child: ChildFacts): unknown {
+  return createElement(
+    child.tag,
+    {
+      ...(child.tokens ? { className: child.tokens.join(' ') } : {}),
+      ...Object.fromEntries(child.attributes),
+    },
+    child.soleChild
+      ? createElement('i', { className: child.soleChild.tokens!.join(' ') })
+      : child.text
+  );
+}
+
+/**
+ * The props that give a target the icons it builds: one icon's, or several
+ * as `items`, each with its text.
+ */
+function builtProps(
+  icons: BuiltIcon[],
+  children: readonly ChildFacts[]
+): Record<string, unknown> {
+  const built = icons.map(icon => iconProps(icon, children[icon.index]));
+  return icons.length === 1
+    ? { iconProps: built[0] }
+    : {
+        items: icons.map((icon, index) => ({
+          iconProps: built[index],
+          ...(icon.text !== undefined && { text: icon.text }),
+        })),
+      };
+}
+
+/**
  * Render the raw element and, when the planner converts it, the bestax one.
  * Returns null when the planner leaves the element alone. An element whose
  * only child the target renders itself is rendered around that child, and
@@ -152,7 +196,12 @@ function renderBoth(
     className: [...facts.tokens, ...added.flat()].join(' '),
     ...extra,
   };
-  const rawChildren = counted ?? soleElement ?? (child ? child.raw : children);
+  // A target that builds its icons from props: the children as written, and
+  // the component given them as props, with one icon's text as its own.
+  const icons = result.conversion.icons;
+  const rawChildren = icons
+    ? facts.childElements!.map(rawChild)
+    : (counted ?? soleElement ?? (child ? child.raw : children));
   // A target that renders the element around this one too is compared with
   // the raw element inside that one.
   const raw = result.conversion.replacesParent
@@ -192,17 +241,22 @@ function renderBoth(
       ...(className || stays.length > 0
         ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
         : {}),
+      ...(icons && builtProps(icons, facts.childElements!)),
     },
     // A target that couldn't absorb the child renders it as given.
-    counted
-      ? undefined
-      : sole
-        ? absorbs
-          ? soleChildren
-          : soleElement
-        : child
-          ? child.converted
-          : children
+    icons
+      ? icons.length === 1
+        ? icons[0].text
+        : undefined
+      : counted
+        ? undefined
+        : sole
+          ? absorbs
+            ? soleChildren
+            : soleElement
+          : child
+            ? child.converted
+            : children
   );
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
 }
@@ -264,6 +318,10 @@ function factsFor(
     }),
     ...(counts && {
       childElements: [bare(counts.tag), bare(counts.tag), bare(counts.tag)],
+    }),
+    // One that builds its icons from props holds an icon and its text.
+    ...(entries.some(entry => entry?.buildsIcons) && {
+      childElements: [iconChild(['fas', 'fa-home']), textChild()],
     }),
     // One that needs element children holds one (`Icon` around an <i>).
     ...(!absorbs &&
@@ -932,6 +990,89 @@ describe.each(counting)(
           conversion: plan(holding(children)).conversion,
         }).toEqual({ label, conversion: null });
       }
+    });
+  }
+);
+
+/**
+ * An element whose target builds its icons from props, around each glyph
+ * it reads, each class and attribute an icon may carry, and each shape of
+ * children it converts: the markup and the component given what it builds
+ * render the same.
+ */
+describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
+  'the icons `.%s` builds',
+  (root, entry) => {
+    const same = (
+      label: string,
+      children: ChildFacts[],
+      tokens: string[] = [],
+      attributes: Attributes = {}
+    ) => {
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root, ...tokens], attributes),
+        childElements: children,
+      };
+      const found = renderBoth(facts, attributes);
+      expect({ label, converts: found !== null }).toEqual({
+        label,
+        converts: true,
+      });
+      expect({ label, html: found!.converted }).toEqual({
+        label,
+        html: found!.raw,
+      });
+    };
+
+    it('renders each glyph the same, with a text and without', () => {
+      for (const glyph of GLYPHS) {
+        same(glyph.join(' '), [iconChild(glyph)]);
+        same(`${glyph.join(' ')} and a text`, [iconChild(glyph), textChild()]);
+      }
+    });
+
+    it("renders an icon's own classes and attributes the same", () => {
+      for (const token of [
+        'is-small',
+        'is-medium',
+        'is-large',
+        'has-text-info',
+        'mt-2',
+        'my-icon',
+      ]) {
+        same(token, [iconChild(['fas', 'fa-home'], [token]), textChild()]);
+      }
+      for (const [name, value] of Object.entries({
+        id: 'x',
+        title: 'hint',
+        role: 'img',
+        tabIndex: '0',
+        'aria-describedby': 'y',
+      })) {
+        same(name, [
+          iconChild(['fas', 'fa-home'], [], {
+            'aria-label': 'x',
+            [name]: value,
+          }),
+        ]);
+      }
+    });
+
+    it('renders several icons, each with at most one text, the same', () => {
+      const home = iconChild(['fas', 'fa-home']);
+      const bell = iconChild(['far', 'fa-bell']);
+      same('two with texts', [home, textChild('a'), bell, textChild('b')]);
+      same('two, the first bare', [home, bell, textChild('b')]);
+      same('two, the last bare', [home, textChild('a'), bell]);
+      same(
+        'with its own classes and attributes',
+        [home, bell],
+        ['has-text-success', 'mb-2'],
+        {
+          id: 'x',
+          title: 'hint',
+        }
+      );
     });
   }
 );
