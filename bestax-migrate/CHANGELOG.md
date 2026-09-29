@@ -1,3 +1,10 @@
+# [2.23.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.22.1...bestax-migrate@2.23.0) (2026-09-29)
+
+
+### Features
+
+* **bestax-migrate:** convert .icon-text, building its icons from props ([#823](https://github.com/allxsmith/bestax/issues/823)) ([933868f](https://github.com/allxsmith/bestax/commit/933868f002f80f4d1441d109b3f4eb3a2206245a))
+
 ## [2.22.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.22.0...bestax-migrate@2.22.1) (2026-09-29)
 
 
