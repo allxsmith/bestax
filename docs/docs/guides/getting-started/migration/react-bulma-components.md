@@ -48,8 +48,7 @@ in place:
   value is left in place with a `TODO(bestax-migrate)`),
   `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
 - **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
-  (`loading` → `isLoading`, `fullwidth` → `isFullWidth`, now a deprecated alias of
-  `isFullwidth`), numeric spacing and text sizes become
+  (`loading` → `isLoading`, `fullwidth` → `isFullwidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
   (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
 - **Responsive objects** — `mobile={{ size: 4 }}` flattens to `sizeMobile={4}`,

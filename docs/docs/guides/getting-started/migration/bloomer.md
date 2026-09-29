@@ -56,7 +56,7 @@ in place:
   container and `NavbarDropdown` its `Navbar.DropdownMenu`.
 - **Props** — most of bloomer's `is*` booleans are already bestax's (`isLoading`,
   `isOutlined`, `isBordered`, …) and pass through; `isActive` becomes `active` where bestax
-  names it that way, and `isFullWidth` survives only where bestax declares it. The value props
+  names it that way, and `isFullWidth` becomes `isFullwidth` where bestax declares it. The value props
   are renamed per component:
   `isColor` → `color`, `isSize` → `size` (numbers stay numbers on `Title`/`Subtitle`), `isAlign`
   → `alignment` / `align` / `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →

@@ -14,7 +14,7 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
         <a href="/here">Here</a>
       </li>
     </Breadcrumb>
-    <Tabs align="centered" boxed size="small" isFullWidth>
+    <Tabs align="centered" boxed size="small" isFullwidth>
       <Tabs.List>
         <Tabs.Item active>
           <a href="#one">One</a>
