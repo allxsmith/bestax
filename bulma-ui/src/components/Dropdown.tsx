@@ -14,6 +14,7 @@ import {
   ANCHOR_ONLY_ATTRS,
   omitAttrs,
 } from '../helpers/anchorAttrs';
+import { buttonType } from '../helpers/buttonType';
 
 /**
  * Checks if code is running in a browser environment.
@@ -507,7 +508,9 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
       // Dropdown's own trigger sets it, and `Avatar` and `Menu.Item` default it
-      // the same way.
+      // the same way. A caller's `submit` or `reset` still wins, and anything
+      // else becomes `button`, since HTML reads a value it does not define for
+      // a button as submit too; `buttonType` says more.
       //
       // After `forwarded`, reading through it rather than before it: React
       // treats `type={undefined}` as "remove the attribute", and a spread
@@ -515,14 +518,7 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       // let such a spread erase it and restore the submit behaviour, so the
       // guard only held for callers who passed nothing.
       {...(Component === 'button'
-        ? {
-            type:
-              (
-                forwarded as {
-                  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
-                }
-              ).type ?? 'button',
-          }
+        ? { type: buttonType((forwarded as { type?: unknown }).type) }
         : {})}
     >
       {children}
