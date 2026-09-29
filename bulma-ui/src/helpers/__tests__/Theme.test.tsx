@@ -1,6 +1,8 @@
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Theme } from '../Theme';
+import { Theme, ThemeProps } from '../Theme';
+import { ConfigProvider } from '../Config';
+import { resetDevWarnings } from '../devWarnings';
 
 describe('Theme', () => {
   it('applies CSS variables from bulmaVars object to local div', () => {
@@ -274,6 +276,171 @@ describe('Theme', () => {
     const themeDiv = container.firstChild as HTMLElement;
     expect(themeDiv.className).toContain('is-shadowless');
     expect(themeDiv.style.getPropertyValue('--bulma-shadow')).toBe('');
+  });
+
+  describe('radius (#694)', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('renders a helper value as the class and sets no variable', () => {
+      const { container } = render(
+        <Theme radius="radiusless">
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv).toHaveClass('is-radiusless');
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('prefixes the helper class like every other helper prop', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Theme radius="radiusless">
+            <div>Test</div>
+          </Theme>
+        </ConfigProvider>
+      );
+
+      expect(container.firstChild).toHaveClass('bestax-is-radiusless');
+    });
+
+    it('still sets --bulma-radius for any other value, and warns', () => {
+      const { container } = render(
+        // The type is the helper union, as it was before #694, so a length
+        // is a type error. JavaScript callers can still pass one.
+        // @ts-expect-error radius is typed as the helper, not a length
+        <Theme radius="6px">
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('6px');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<Theme radius="6px">')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("bulmaVars={{ '--bulma-radius': '6px' }}")
+      );
+    });
+
+    it('warns once however many Themes pass a length', () => {
+      const legacy = { radius: '6px' } as unknown as ThemeProps;
+      const { rerender } = render(
+        <Theme {...legacy}>
+          <div>Test</div>
+        </Theme>
+      );
+      rerender(
+        <Theme {...legacy}>
+          <div>Test</div>
+        </Theme>
+      );
+      render(
+        <Theme {...({ radius: '1rem' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets the legacy value win over bulmaVars, as the prop always did', () => {
+      const { container } = render(
+        <Theme
+          {...({ radius: '6px' } as unknown as ThemeProps)}
+          bulmaVars={{ '--bulma-radius': '2px' }}
+        >
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('6px');
+    });
+
+    it('sets the legacy value at :root on an isRoot Theme', () => {
+      const { unmount } = render(
+        <Theme isRoot {...({ radius: '12px' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(
+        document.getElementById('bestax-bulma-theme-vars')?.textContent
+      ).toBe(':root { --bulma-radius: 12px; }');
+      unmount();
+    });
+
+    it('leaves --bulma-radius to bulmaVars when radius is unset', () => {
+      const { container } = render(
+        <Theme bulmaVars={{ '--bulma-radius': '2px' }}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('2px');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('ignores an empty radius, which never set anything', () => {
+      const { container } = render(
+        <Theme {...({ radius: '' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('sends a non-string to the helper, which ignores it', () => {
+      const { container } = render(
+        <Theme {...({ radius: 6 } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('still sets the variable in production, without warning', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { container } = render(
+          <Theme {...({ radius: '6px' } as unknown as ThemeProps)}>
+            <div>Test</div>
+          </Theme>
+        );
+
+        const themeDiv = container.firstChild as HTMLElement;
+        expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('6px');
+        expect(warnSpy).not.toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+    });
   });
 
   it('skips invalid CSS variable keys when building the local style object', () => {

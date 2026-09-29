@@ -155,7 +155,7 @@ function TypographyTheme() {
 
 ```tsx
 function RadiusTheme() {
-  // `radius` is typed as the `radiusless` helper, so the radius scale goes through bulmaVars
+  // `radius` is the `radiusless` helper, as on every component, so the radius scale goes through bulmaVars
   const radii = {
     '--bulma-radius-small': '6px',
     '--bulma-radius': '12px',
@@ -374,8 +374,10 @@ typed API, so move it to `bulmaVars`:
 
 Two of those names are already helper props, so they cannot double as CSS-variable props:
 
-- `radius` is typed as the `radiusless` helper, so `<Theme radius="2px" />` is a type error. Set
-  `--bulma-radius` through `bulmaVars`.
+- `radius` is the `radiusless` helper, as on every other component, so `<Theme radius="radiusless">`
+  adds `is-radiusless` to the wrapper. Set `--bulma-radius` through `bulmaVars`.
+  `<Theme radius="2px" />` is a type error; in JavaScript it still sets `--bulma-radius`, which
+  is how the prop used to behave, but that route is deprecated and logs a warning in development.
 - `shadow` is the `shadowless` helper. Set `--bulma-shadow` through `bulmaVars`.
 
 ### Props vs bulmaVars
@@ -456,6 +458,7 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 | `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
 | `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
 | `bulmaVars` | `ThemeProps['bulmaVars']`       | Object mapping Bulma CSS variable names to string values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is not applied.                                                                            |
+| `radius`    | `'radiusless'`                  | The border radius helper: adds `is-radiusless` to the wrapper div, with no effect under `isRoot`. Any other string still sets `--bulma-radius`, a deprecated route that warns in development; use `bulmaVars` for the variable.                           |
 
 ### CSS Variable Props
 
