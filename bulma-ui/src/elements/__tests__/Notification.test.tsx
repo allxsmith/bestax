@@ -1,4 +1,7 @@
+import { StrictMode } from 'react';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import {
   Notification,
   NotificationProps,
@@ -521,6 +524,143 @@ describe('Notification Programmatic API', () => {
       });
       expect(screen.queryByText('NoPause')).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('NotificationContainer mounted after notifications are raised', () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+    // The container is still mounted here, so closing re-renders it.
+    act(() => {
+      notification.closeAll();
+    });
+  });
+
+  const shownMessages = () =>
+    Array.from(document.body.querySelectorAll('.notification')).map(
+      el => el.textContent
+    );
+
+  it('shows them when it mounts, in the order they were raised', () => {
+    notification.show({ message: 'First', duration: 0 });
+    notification.success('Second', { duration: 0 });
+
+    render(<NotificationContainer />);
+
+    expect(shownMessages()).toEqual(['First', 'Second']);
+  });
+
+  it('adds later notifications after them without showing any twice', () => {
+    notification.show({ message: 'Early', duration: 0 });
+    render(<NotificationContainer />);
+    expect(shownMessages()).toEqual(['Early']);
+
+    act(() => {
+      notification.show({ message: 'Later', duration: 0 });
+    });
+
+    expect(shownMessages()).toEqual(['Early', 'Later']);
+  });
+
+  it('shows each once under StrictMode', () => {
+    notification.show({ message: 'Strict', duration: 0 });
+    render(
+      <StrictMode>
+        <NotificationContainer />
+      </StrictMode>
+    );
+    expect(shownMessages()).toEqual(['Strict']);
+
+    act(() => {
+      notification.show({ message: 'Strict later', duration: 0 });
+    });
+
+    expect(shownMessages()).toEqual(['Strict', 'Strict later']);
+  });
+
+  it('times each from when it appears, and drops it from the store after', () => {
+    notification.show({ message: 'Timed', duration: 3000 });
+    // Time spent waiting for a container does not count against it.
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    render(<NotificationContainer />);
+    act(() => {
+      jest.advanceTimersByTime(2999);
+    });
+    expect(screen.getByText('Timed')).toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(screen.queryByText('Timed')).not.toBeInTheDocument();
+
+    // It left the store as well, so the next notification does not bring it
+    // back.
+    act(() => {
+      notification.show({ message: 'Next', duration: 0 });
+    });
+    expect(shownMessages()).toEqual(['Next']);
+  });
+
+  it('closes one from its delete button', () => {
+    notification.show({ message: 'Close me', duration: 0 });
+    notification.show({ message: 'Keep me', duration: 0 });
+    render(<NotificationContainer />);
+    expect(shownMessages()).toEqual(['Close me', 'Keep me']);
+
+    const closeMe = screen
+      .getByText('Close me')
+      .closest<HTMLElement>('.notification')!;
+    fireEvent.click(within(closeMe).getByRole('button'));
+
+    expect(shownMessages()).toEqual(['Keep me']);
+  });
+
+  it('shows the queued notification on screen, then the next once it closes', () => {
+    const id = notification.show({ message: 'Q1', duration: 0, queue: true });
+    notification.show({ message: 'Q2', duration: 0, queue: true });
+    render(<NotificationContainer />);
+    expect(shownMessages()).toEqual(['Q1']);
+
+    act(() => {
+      notification.close(id);
+    });
+    expect(shownMessages()).toEqual(['Q2']);
+  });
+
+  it('renders nothing on the server, then shows them once hydrated', async () => {
+    notification.show({ message: 'Before hydration', duration: 0 });
+    const app = (
+      <main>
+        <NotificationContainer />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server's markup has no notifications in it, whatever has been
+    // raised, so the hydrating render has to produce none either.
+    expect(container.innerHTML).toBe('<main></main>');
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(shownMessages()).toEqual(['Before hydration']);
+    } finally {
+      // A root left mounted would add its notifications to every later test's.
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    }
   });
 });
 

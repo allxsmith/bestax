@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
 
 jest.useFakeTimers();
@@ -894,6 +896,141 @@ describe('ToastContainer', () => {
     });
 
     expect(screen.queryByText('Auto-removed')).not.toBeInTheDocument();
+  });
+});
+
+describe('ToastContainer mounted after toasts are raised', () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+    // The container is still mounted here, so closing re-renders it.
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  const shownMessages = () =>
+    Array.from(document.body.querySelectorAll('.toast-message')).map(
+      el => el.textContent
+    );
+
+  it('shows them when it mounts, in the order they were raised', () => {
+    toast.show({ message: 'First', duration: 0 });
+    toast.show({ message: 'Second', duration: 0 });
+
+    render(<ToastContainer />);
+
+    expect(shownMessages()).toEqual(['First', 'Second']);
+  });
+
+  it('adds later toasts after them without showing any twice', () => {
+    toast.show({ message: 'Early', duration: 0 });
+    render(<ToastContainer />);
+    expect(shownMessages()).toEqual(['Early']);
+
+    act(() => {
+      toast.show({ message: 'Later', duration: 0 });
+    });
+
+    expect(shownMessages()).toEqual(['Early', 'Later']);
+  });
+
+  it('shows each once under StrictMode', () => {
+    toast.show({ message: 'Strict', duration: 0 });
+    render(
+      <React.StrictMode>
+        <ToastContainer />
+      </React.StrictMode>
+    );
+    expect(shownMessages()).toEqual(['Strict']);
+
+    act(() => {
+      toast.show({ message: 'Strict later', duration: 0 });
+    });
+
+    expect(shownMessages()).toEqual(['Strict', 'Strict later']);
+  });
+
+  it('times each from when it appears, and drops it from the store after', () => {
+    toast.show({ message: 'Timed', duration: 2000 });
+    // Time spent waiting for a container does not count against the toast.
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    render(<ToastContainer />);
+    act(() => {
+      jest.advanceTimersByTime(1999);
+    });
+    expect(screen.getByText('Timed')).toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(screen.queryByText('Timed')).not.toBeInTheDocument();
+
+    // It left the store as well, so the next toast does not bring it back.
+    act(() => {
+      toast.show({ message: 'Next', duration: 0 });
+    });
+    expect(shownMessages()).toEqual(['Next']);
+  });
+
+  it('closes one by the id show returned', () => {
+    const id = toast.show({ message: 'Close me', duration: 0 });
+    toast.show({ message: 'Keep me', duration: 0 });
+    render(<ToastContainer />);
+    expect(shownMessages()).toEqual(['Close me', 'Keep me']);
+
+    act(() => {
+      toast.close(id);
+    });
+
+    expect(shownMessages()).toEqual(['Keep me']);
+  });
+
+  it('shows the queued toast on screen, then the next once it closes', () => {
+    const id = toast.show({ message: 'Queued 1', duration: 0, queue: true });
+    toast.show({ message: 'Queued 2', duration: 0, queue: true });
+    render(<ToastContainer />);
+    expect(shownMessages()).toEqual(['Queued 1']);
+
+    act(() => {
+      toast.close(id);
+    });
+    expect(shownMessages()).toEqual(['Queued 2']);
+  });
+
+  it('renders nothing on the server, then shows them once hydrated', async () => {
+    toast.show({ message: 'Before hydration', duration: 0 });
+    const app = (
+      <main>
+        <ToastContainer />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server's markup has no toasts in it, whatever has been raised, so
+    // the hydrating render has to produce none either.
+    expect(container.innerHTML).toBe('<main></main>');
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(shownMessages()).toEqual(['Before hydration']);
+    } finally {
+      // A root left mounted would add its toasts to every later test's.
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    }
   });
 });
 
