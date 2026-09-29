@@ -1,3 +1,10 @@
+## [2.23.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.23.0...bestax-migrate@2.23.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** rename rbx innerRef to ref on a plain Navbar.Item too ([bb6ace0](https://github.com/allxsmith/bestax/commit/bb6ace00ee77099f2e5f9ddb1f6aa19832ad25d2)), closes [#734](https://github.com/allxsmith/bestax/issues/734)
+
 # [2.23.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.22.1...bestax-migrate@2.23.0) (2026-09-29)
 
 
