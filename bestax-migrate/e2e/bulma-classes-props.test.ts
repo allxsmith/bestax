@@ -30,6 +30,8 @@ const COMMON: Array<[string, string | true]> = [
   ['aria-label', 'x'],
   ['data-test', 'x'],
   ['lang', 'en'],
+  // Every target types it as a number, so the string is written as one.
+  ['tabIndex', '0'],
 ];
 const BY_TAG: Record<string, Array<[string, string | true]>> = {
   a: [

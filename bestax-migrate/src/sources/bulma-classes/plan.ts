@@ -17,6 +17,7 @@ import {
   inTagSet,
   legacyHint,
   modifierFor,
+  numberAttrsOf,
   placedFor,
   PRECEDENCE,
   rootFor,
@@ -276,6 +277,12 @@ export function plan(facts: ElementFacts): Plan {
     }
     entry = wrapperEntry(tag);
     if (!entry) return { conversion: null, todos };
+    // A wrapper exists only to carry helper props, so a tag none of whose
+    // classes becomes one stays as it is, and nothing else about it is worth
+    // a TODO.
+    if (propsFrom(entry, tokens, tag, undefined).writes.size === 0) {
+      return { conversion: null, todos };
+    }
   }
   const target = entry.target!;
 
@@ -394,7 +401,7 @@ export function plan(facts: ElementFacts): Plan {
     );
   }
   const numbers: string[] = [];
-  for (const name of entry.numberAttrs ?? []) {
+  for (const name of numberAttrsOf(entry)) {
     const value = attributes.get(name);
     if (typeof value !== 'string') continue;
     // Only a string that is already the number's own spelling: `040`, `1.50`
@@ -554,69 +561,9 @@ export function plan(facts: ElementFacts): Plan {
   }
 
   // ---- Tokens → props ---------------------------------------------------------
-  // What the root itself needs comes first, so no class can take its prop.
-  const writes = new Map<string, string | true>(
-    (entry.writes ?? []).map(write => [write.prop, write.value ?? true])
-  );
-  /** The tokens each written prop came from, so a group rule can undo it. */
-  const sourceOf = new Map<string, string>();
-  const groupOf = new Map<string, string>();
-  const converted = new Set<string>(root ? [root] : []);
-
-  for (const token of tokens) {
-    if (converted.has(token)) continue;
-    const modifier = modifierFor(entry, token);
-    if (modifier) {
-      if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
-      if (modifier.writes.some(write => writes.has(write.prop))) continue;
-      for (const write of modifier.writes) {
-        writes.set(write.prop, write.value ?? true);
-        sourceOf.set(write.prop, token);
-        if (write.numeric) numbers.push(write.prop);
-      }
-      converted.add(token);
-      continue;
-    }
-    const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);
-    if (!helper) continue;
-    const prop =
-      helper.group === 'text-color'
-        ? entry.textColor
-        : helper.group === 'background'
-          ? entry.bgColor
-          : helper.write.prop;
-    if (!prop || writes.has(prop)) continue;
-    writes.set(prop, helper.write.value ?? true);
-    sourceOf.set(prop, token);
-    groupOf.set(prop, helper.group);
-    converted.add(token);
-  }
-
-  const undo = (prop: string): void => {
-    converted.delete(sourceOf.get(prop)!);
-    writes.delete(prop);
-  };
-  const displayProps = [...writes.keys()].filter(
-    prop => groupOf.get(prop) === 'display'
-  );
-  // bestax drops a base `display` whenever a per-viewport one is set.
-  if (displayProps.includes('display') && displayProps.length > 1) {
-    undo('display');
-  }
-  // Flex-container helpers only render beside a flex `display`.
-  const flexDisplay = [...writes].some(
-    ([prop, value]) =>
-      groupOf.get(prop) === 'display' &&
-      (value === 'flex' || value === 'inline-flex')
-  );
-  if (!flexDisplay) {
-    for (const prop of [...writes.keys()]) {
-      if (groupOf.get(prop) === 'flex-container') undo(prop);
-    }
-  }
-
-  // A wrapper exists only to carry helper props; with none, leave the tag.
-  if (!root && !placed && writes.size === 0) return { conversion: null, todos };
+  const fromTokens = propsFrom(entry, tokens, tag, root);
+  const { writes, converted } = fromTokens;
+  numbers.push(...fromTokens.numbers);
 
   // ---- The tag ------------------------------------------------------------
   let renders = entry.tag!;
@@ -699,6 +646,87 @@ export function plan(facts: ElementFacts): Plan {
     },
     todos,
   };
+}
+
+/**
+ * What an element's classes become on `entry`'s target: the props they
+ * write, the classes that leave `className`, and the props written as
+ * numbers. The group rules apply, so a helper the target would drop (a
+ * base `display` beside a per-viewport one, a flex-container helper with no
+ * flex `display`) stays a class.
+ */
+function propsFrom(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string,
+  root: string | undefined
+): {
+  writes: Map<string, string | true>;
+  converted: Set<string>;
+  numbers: string[];
+} {
+  const numbers: string[] = [];
+  // What the root itself needs comes first, so no class can take its prop.
+  const writes = new Map<string, string | true>(
+    (entry.writes ?? []).map(write => [write.prop, write.value ?? true])
+  );
+  /** The tokens each written prop came from, so a group rule can undo it. */
+  const sourceOf = new Map<string, string>();
+  const groupOf = new Map<string, string>();
+  const converted = new Set<string>(root ? [root] : []);
+
+  for (const token of tokens) {
+    if (converted.has(token)) continue;
+    const modifier = modifierFor(entry, token);
+    if (modifier) {
+      if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
+      if (modifier.writes.some(write => writes.has(write.prop))) continue;
+      for (const write of modifier.writes) {
+        writes.set(write.prop, write.value ?? true);
+        sourceOf.set(write.prop, token);
+        if (write.numeric) numbers.push(write.prop);
+      }
+      converted.add(token);
+      continue;
+    }
+    const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);
+    if (!helper) continue;
+    const prop =
+      helper.group === 'text-color'
+        ? entry.textColor
+        : helper.group === 'background'
+          ? entry.bgColor
+          : helper.write.prop;
+    if (!prop || writes.has(prop)) continue;
+    writes.set(prop, helper.write.value ?? true);
+    sourceOf.set(prop, token);
+    groupOf.set(prop, helper.group);
+    converted.add(token);
+  }
+
+  const undo = (prop: string): void => {
+    converted.delete(sourceOf.get(prop)!);
+    writes.delete(prop);
+  };
+  const displayProps = [...writes.keys()].filter(
+    prop => groupOf.get(prop) === 'display'
+  );
+  // bestax drops a base `display` whenever a per-viewport one is set.
+  if (displayProps.includes('display') && displayProps.length > 1) {
+    undo('display');
+  }
+  // Flex-container helpers only render beside a flex `display`.
+  const flexDisplay = [...writes].some(
+    ([prop, value]) =>
+      groupOf.get(prop) === 'display' &&
+      (value === 'flex' || value === 'inline-flex')
+  );
+  if (!flexDisplay) {
+    for (const prop of [...writes.keys()]) {
+      if (groupOf.get(prop) === 'flex-container') undo(prop);
+    }
+  }
+  return { writes, converted, numbers };
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;

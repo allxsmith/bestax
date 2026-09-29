@@ -278,6 +278,23 @@ describe('plan', () => {
     it('leaves a tag with no wrapper, or no helper class, alone', () => {
       expect(plan(facts('div', 'mt-4')).conversion).toBeNull();
       expect(plan(facts('p', 'intro')).conversion).toBeNull();
+      // With no TODO either, whatever else it carries: it was never going
+      // to become the wrapper.
+      for (const attributes of [{ tabIndex: '00' }, { children: null }]) {
+        expect(plan(facts('p', 'intro', attributes))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+      expect(plan(facts('p', 'intro', {}, { hasSpread: true }))).toEqual({
+        conversion: null,
+        todos: [],
+      });
+      // Nor one whose helper class the wrapper would drop: a flex-container
+      // helper with no flex `display` stays a class.
+      expect(
+        plan(facts('p', 'is-justify-content-center', { tabIndex: '00' }))
+      ).toEqual({ conversion: null, todos: [] });
     });
 
     it('leaves markup with a root it does not convert alone', () => {
@@ -662,6 +679,19 @@ describe('plan', () => {
       expect(conversion).toBeNull();
       expect(todos.map(todo => todo.rule)).toEqual(['children:Image']);
     });
+  });
+
+  it('writes a tabIndex string as the number every target types it as', () => {
+    expect(
+      plan(facts('div', 'box', { tabIndex: '0' })).conversion?.numbers
+    ).toEqual(['tabIndex']);
+    expect(
+      plan(facts('div', 'box', { tabIndex: '00' })).todos.map(t => t.rule)
+    ).toEqual(['attr:tabIndex']);
+    // An expression is carried over as written.
+    expect(
+      plan(facts('div', 'box', { tabIndex: null })).conversion?.numbers
+    ).toEqual([]);
   });
 
   describe('Menu', () => {
