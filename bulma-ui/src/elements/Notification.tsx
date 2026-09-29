@@ -12,6 +12,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { warnUnstyledColor } from '../helpers/colorDeprecations';
+import { groupIntoPositionStacks } from '../helpers/positionStacks';
 
 /**
  * Props for the Notification component.
@@ -126,11 +127,14 @@ export interface NotificationOptions {
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;
   /**
-   * Position on the screen. Currently ignored: `NotificationContainer`'s own
-   * `position` places every notification it shows, so set it there.
+   * Position on the screen. A notification shown without one goes to
+   * `NotificationContainer`'s `position`.
    */
   position?: NotificationPosition;
-  /** When true, notifications enter a FIFO queue and display one at a time. Default false. */
+  /**
+   * When true, notifications enter a FIFO queue and display one at a time,
+   * one queue across every `position`. Default false.
+   */
   queue?: boolean;
   /** Show a delete (close) button. Default true. */
   hasDelete?: boolean;
@@ -379,9 +383,55 @@ const NotificationItem: React.FC<{
   );
 };
 
+// The order NotificationContainer renders its stacks in: across the top of the
+// screen, then across the bottom.
+const notificationStackOrder: readonly NotificationPosition[] = [
+  'top-left',
+  'top',
+  'top-right',
+  'bottom-left',
+  'bottom',
+  'bottom-right',
+];
+
+/**
+ * Inline style that fixes a stack of notifications to its place on the screen.
+ *
+ * @function
+ * @param {NotificationPosition} position - Where the stack sits.
+ * @returns {React.CSSProperties} The stack's style.
+ */
+const notificationStackStyle = (
+  position: NotificationPosition
+): React.CSSProperties => {
+  const isBottom = position.startsWith('bottom');
+  const isCenter = position === 'top' || position === 'bottom';
+  const isRight = position.endsWith('right');
+
+  return {
+    position: 'fixed',
+    zIndex: 100,
+    display: 'flex',
+    flexDirection: isBottom ? 'column-reverse' : 'column',
+    gap: '0.75rem',
+    padding: '1rem',
+    pointerEvents: 'none',
+    maxWidth: '100%',
+    ...(isBottom ? { bottom: 0 } : { top: 0 }),
+    ...(isCenter
+      ? { left: '50%', transform: 'translateX(-50%)', alignItems: 'center' }
+      : isRight
+        ? { right: 0, alignItems: 'flex-end' }
+        : { left: 0, alignItems: 'flex-start' }),
+  };
+};
+
 /**
  * Container component for rendering programmatic notifications.
- * Place once at your app root to enable the notification API.
+ * Place once at your app root to enable the notification API. A notification
+ * shown with a `position` appears there, and one shown without goes to the
+ * container's `position`, so the container renders a stack for each position
+ * in use.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
@@ -402,37 +452,25 @@ export const NotificationContainer: React.FC<{
     return null;
   }
 
-  const isBottom = position.startsWith('bottom');
-  const isCenter = position === 'top' || position === 'bottom';
-  const isRight = position.endsWith('right');
-
-  const containerStyle: React.CSSProperties = {
-    position: 'fixed',
-    zIndex: 100,
-    display: 'flex',
-    flexDirection: isBottom ? 'column-reverse' : 'column',
-    gap: '0.75rem',
-    padding: '1rem',
-    pointerEvents: 'none',
-    maxWidth: '100%',
-    ...(isBottom ? { bottom: 0 } : { top: 0 }),
-    ...(isCenter
-      ? { left: '50%', transform: 'translateX(-50%)', alignItems: 'center' }
-      : isRight
-        ? { right: 0, alignItems: 'flex-end' }
-        : { left: 0, alignItems: 'flex-start' }),
-  };
+  const stacks = groupIntoPositionStacks(
+    items,
+    item => item.options.position,
+    position,
+    notificationStackOrder
+  );
 
   return createPortal(
-    <div style={containerStyle}>
-      {items.map(item => (
-        <NotificationItem
-          key={item.id}
-          instance={item}
-          onClose={notification.close}
-        />
-      ))}
-    </div>,
+    stacks.map(stack => (
+      <div key={stack.key} style={notificationStackStyle(stack.position)}>
+        {stack.items.map(item => (
+          <NotificationItem
+            key={item.id}
+            instance={item}
+            onClose={notification.close}
+          />
+        ))}
+      </div>
+    )),
     document.body
   );
 };

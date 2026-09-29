@@ -231,6 +231,17 @@ export const ProgrammaticAPI: Story = {
           >
             Custom
           </Button>
+          <Button
+            onClick={() =>
+              notification.show({
+                message: 'Shown at bottom-left',
+                position: 'bottom-left',
+                duration: 3000,
+              })
+            }
+          >
+            Bottom Left
+          </Button>
           <Button color="danger" onClick={() => notification.closeAll()}>
             Close All
           </Button>

@@ -26,4 +26,17 @@ describe('NotificationContainer SSR (node environment)', () => {
       notification.closeAll();
     }
   });
+
+  it('renders nothing with notifications at several positions', () => {
+    notification.show({ message: 'Default', duration: 0 });
+    notification.show({ message: 'Placed', position: 'bottom', duration: 0 });
+    try {
+      const html = renderToStaticMarkup(
+        React.createElement(NotificationContainer)
+      );
+      expect(html).toBe('');
+    } finally {
+      notification.closeAll();
+    }
+  });
 });

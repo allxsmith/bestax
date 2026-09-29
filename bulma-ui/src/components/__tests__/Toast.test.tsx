@@ -1067,6 +1067,290 @@ describe('ToastContainer mounted after toasts are raised', () => {
   });
 });
 
+describe('ToastContainer with toasts shown at their own position', () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  // Where each toast is on screen: every toast portals itself into a wrapper
+  // of its own, and that wrapper's position class is what places it. Sorted by
+  // message, since toasts that mount together land in the body in stack order
+  // rather than the order they were shown in.
+  const placements = () =>
+    Array.from(document.body.querySelectorAll('.toast'))
+      .map(el => [
+        String(el.querySelector('.toast-message')?.textContent),
+        String(el.closest('.toast-container')?.className),
+      ])
+      .sort(([a], [b]) => a.localeCompare(b));
+
+  // The stacks ToastContainer renders into the body. The toasts in them
+  // portal out to their own wrappers, so these are the wrappers left without
+  // a toast inside.
+  const stacks = () =>
+    Array.from(document.body.children)
+      .filter(
+        el =>
+          el.classList.contains('toast-container') &&
+          !el.querySelector('.toast')
+      )
+      .map(el => el.className);
+
+  it('puts a toast shown with a position at that position', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Placed', position: 'bottom-center', duration: 0 });
+    });
+
+    expect(placements()).toEqual([
+      ['Placed', 'toast-container is-bottom-center'],
+    ]);
+    expect(stacks()).toEqual(['toast-container is-bottom-center']);
+  });
+
+  it("puts a toast shown without one at the container's position", () => {
+    render(<ToastContainer position="bottom-left" />);
+    act(() => {
+      toast.show({ message: 'Placed', position: 'top-center', duration: 0 });
+      toast.info('Unplaced', { duration: 0 });
+    });
+
+    expect(placements()).toEqual([
+      ['Placed', 'toast-container is-top-center'],
+      ['Unplaced', 'toast-container is-bottom-left'],
+    ]);
+  });
+
+  it('renders a stack for each position in use, in screen order', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'BR', position: 'bottom-right', duration: 0 });
+      toast.show({ message: 'Default', duration: 0 });
+      toast.show({ message: 'TL', position: 'top-left', duration: 0 });
+      toast.show({ message: 'BR 2', position: 'bottom-right', duration: 0 });
+    });
+
+    // Across the top, then across the bottom, whatever order they were used
+    // in, and no stack for a position nothing is shown at.
+    expect(stacks()).toEqual([
+      'toast-container is-top-left',
+      'toast-container is-top-right',
+      'toast-container is-bottom-right',
+    ]);
+    expect(placements()).toEqual([
+      ['BR', 'toast-container is-bottom-right'],
+      ['BR 2', 'toast-container is-bottom-right'],
+      ['Default', 'toast-container is-top-right'],
+      ['TL', 'toast-container is-top-left'],
+    ]);
+  });
+
+  it('keeps the toasts of a stack together, in the order they were shown', () => {
+    // An inline toast skips its own wrapper and renders inside its stack.
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'A', inline: true, duration: 0 });
+      toast.show({
+        message: 'B',
+        position: 'top-left',
+        inline: true,
+        duration: 0,
+      });
+      toast.show({ message: 'C', inline: true, duration: 0 });
+      toast.show({
+        message: 'D',
+        position: 'top-left',
+        inline: true,
+        duration: 0,
+      });
+    });
+
+    const stackContents = Array.from(
+      document.body.querySelectorAll(':scope > .toast-container')
+    ).map(stack => [
+      stack.className,
+      Array.from(stack.querySelectorAll('.toast-message')).map(
+        el => el.textContent
+      ),
+    ]);
+    expect(stackContents).toEqual([
+      ['toast-container is-top-left', ['B', 'D']],
+      ['toast-container is-top-right', ['A', 'C']],
+    ]);
+  });
+
+  it("gives a toast at the container's own position the container's stack", () => {
+    // What a container rendered before toasts could be placed on their own:
+    // a stack at its position, and each toast in a wrapper at the same one.
+    const { container } = render(<ToastContainer position="bottom-left" />);
+    act(() => {
+      toast.show({ message: 'One', duration: 0 });
+      toast.show({ message: 'Two', position: 'bottom-left', duration: 0 });
+    });
+
+    expect(
+      Array.from(document.body.children)
+        .filter(el => el !== container)
+        .map(el => el.outerHTML)
+    ).toEqual([
+      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div></div>',
+      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
+      '<div class="toast-container is-bottom-left"></div>',
+    ]);
+  });
+
+  it('removes a stack once its last toast is dismissed, leaving the others', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Stay', duration: 0 });
+      toast.show({ message: 'Go', position: 'bottom-left', duration: 0 });
+    });
+    expect(stacks()).toHaveLength(2);
+
+    act(() => {
+      fireEvent.click(screen.getByText('Go'));
+    });
+
+    expect(placements()).toEqual([['Stay', 'toast-container is-top-right']]);
+    expect(stacks()).toEqual(['toast-container is-top-right']);
+  });
+
+  it('times a toast out at its own position', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Stay', duration: 0 });
+      toast.show({ message: 'Timed', position: 'bottom-left', duration: 1000 });
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(999);
+    });
+    expect(placements()).toEqual([
+      ['Stay', 'toast-container is-top-right'],
+      ['Timed', 'toast-container is-bottom-left'],
+    ]);
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(placements()).toEqual([['Stay', 'toast-container is-top-right']]);
+    expect(stacks()).toEqual(['toast-container is-top-right']);
+  });
+
+  it('keeps one queue across positions, each toast shown at its own', () => {
+    render(<ToastContainer position="top-right" />);
+    let first = '';
+    act(() => {
+      first = toast.show({
+        message: 'Q1',
+        position: 'bottom-right',
+        queue: true,
+        duration: 0,
+      });
+      toast.show({ message: 'Q2', queue: true, duration: 0 });
+    });
+
+    // The second waits for the first, although it would go somewhere else.
+    expect(placements()).toEqual([['Q1', 'toast-container is-bottom-right']]);
+
+    act(() => {
+      toast.close(first);
+    });
+    expect(placements()).toEqual([['Q2', 'toast-container is-top-right']]);
+    expect(stacks()).toEqual(['toast-container is-top-right']);
+  });
+
+  it("moves the toasts at the container's position when it changes, without remounting them", () => {
+    const { rerender } = render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Follows', duration: 0 });
+      toast.show({ message: 'Stays', position: 'bottom-left', duration: 0 });
+    });
+    const follows = screen.getByText('Follows').closest('.toast');
+
+    rerender(<ToastContainer position="top-left" />);
+
+    expect(placements()).toEqual([
+      ['Follows', 'toast-container is-top-left'],
+      ['Stays', 'toast-container is-bottom-left'],
+    ]);
+    expect(screen.getByText('Follows').closest('.toast')).toBe(follows);
+  });
+
+  it('places toasts shown before it mounts', () => {
+    toast.show({ message: 'Early', position: 'bottom-center', duration: 0 });
+    toast.show({ message: 'Early default', duration: 0 });
+
+    render(<ToastContainer position="top-left" />);
+
+    expect(placements()).toEqual([
+      ['Early', 'toast-container is-bottom-center'],
+      ['Early default', 'toast-container is-top-left'],
+    ]);
+    expect(stacks()).toEqual([
+      'toast-container is-top-left',
+      'toast-container is-bottom-center',
+    ]);
+  });
+
+  it('shows each once under StrictMode', () => {
+    toast.show({ message: 'Early', position: 'bottom-left', duration: 0 });
+    render(
+      <React.StrictMode>
+        <ToastContainer />
+      </React.StrictMode>
+    );
+    act(() => {
+      toast.show({ message: 'Later', duration: 0 });
+    });
+
+    expect(placements()).toEqual([
+      ['Early', 'toast-container is-bottom-left'],
+      ['Later', 'toast-container is-top-right'],
+    ]);
+    expect(stacks()).toEqual([
+      'toast-container is-top-right',
+      'toast-container is-bottom-left',
+    ]);
+  });
+
+  it('renders nothing on the server, then places them once hydrated', async () => {
+    toast.show({ message: 'Placed', position: 'bottom-right', duration: 0 });
+    toast.show({ message: 'Default', duration: 0 });
+    const app = (
+      <main>
+        <ToastContainer />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+    expect(container.innerHTML).toBe('<main></main>');
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(placements()).toEqual([
+        ['Default', 'toast-container is-top-right'],
+        ['Placed', 'toast-container is-bottom-right'],
+      ]);
+    } finally {
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    }
+  });
+});
+
 describe('Toast Queue', () => {
   afterEach(() => {
     jest.clearAllTimers();
