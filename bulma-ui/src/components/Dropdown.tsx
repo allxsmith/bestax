@@ -55,7 +55,7 @@ export interface DropdownProps
   disabled?: boolean;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
-  /** Close dropdown when a menu item is clicked. */
+  /** Close dropdown when a menu item is clicked, or activated with Enter or Space. */
   closeOnClick?: boolean;
   /** Root element ID (for aria-controls, etc). */
   id?: string;
@@ -309,6 +309,30 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
           e.preventDefault();
           items[items.length - 1].focus();
           break;
+        case 'Enter':
+        case ' ': {
+          // Activate the focused item by clicking it, so its `onClick` runs and
+          // closing follows `closeOnClick` as it does for the mouse. A caller's
+          // own key handler that prevented the default has claimed the key, and
+          // is left to it rather than followed by a second activation.
+          if (currentIndex < 0 || e.defaultPrevented) break;
+          const item = items[currentIndex];
+          // Leave the browser's own activation alone, or the item runs twice: a
+          // `<button>` answers both keys, and a link with an `href` answers
+          // Enter. A link does not answer Space, so Space on a link is handled
+          // here too, which also keeps the page from scrolling.
+          if (item.tagName === 'BUTTON') break;
+          if (
+            e.key === 'Enter' &&
+            item.tagName === 'A' &&
+            item.hasAttribute('href')
+          ) {
+            break;
+          }
+          e.preventDefault();
+          item.click();
+          break;
+        }
         default:
           break;
       }
@@ -499,9 +523,14 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
         bulmaHelperClasses,
         className
       )}
-      tabIndex={0}
       data-testid="dropdown-item"
       {...forwarded}
+      // After `forwarded` for the same reason as `role` and `type` below: a
+      // spread carrying `tabIndex: undefined` would otherwise erase the
+      // default. The item keeps its menu role and its place in the arrow-key
+      // order, but a `<div>` or an anchor without an `href` cannot take focus
+      // without a tabindex, so the arrow keys stall on it.
+      tabIndex={(forwarded as { tabIndex?: number }).tabIndex ?? 0}
       // After `forwarded` for the same reason as `type` below: a spread
       // carrying `role: undefined` would otherwise erase the default, and an
       // item with no role drops out of the menu and its arrow-key order.
