@@ -97,6 +97,8 @@ a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax re
 | `.pagination-list`     | `Pagination.List`     | `<ul>` only                                                    |
 | `.pagination-previous` | `Pagination.Previous` | `<a>` only                                                     |
 | `.pagination-next`     | `Pagination.Next`     | `<a>` only                                                     |
+| `.pagination-link`     | `Pagination.Link`     | `<a>` only                                                     |
+| `.pagination-ellipsis` | `Pagination.Ellipsis` | `<span>` only                                                  |
 | `.panel`               | `Panel`               | `<nav>` only                                                   |
 | `.panel-heading`       | `Panel.Heading`       | `<p>` only                                                     |
 | `.panel-tabs`          | `Panel.Tabs`          | `<p>` only                                                     |
@@ -255,8 +257,7 @@ Their markup doesn't map element by element (the bestax component renders parts 
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
 Checkboxes, Dropdown, File, IconText, the menu's `.menu-item`, Message, Modal's root and close
-button, the navbar's burger and dropdown link, the pagination's page links and ellipsis, the
-panel's icon, Radio and Radios.
+button, the navbar's burger and dropdown link, the panel's icon, Radio and Radios.
 
 ## Classes left alone
 

@@ -538,6 +538,9 @@ export async function bulmaClassTable() {
         otherTagsStay: entry.otherTagsStay ?? null,
         topLevelOnly: entry.topLevelOnly ?? false,
         items: itemsOf(map.PLACED, token),
+        parent: entry.parent ?? null,
+        rendersText: entry.rendersText ?? null,
+        classNameReplaces: entry.classNameReplaces ?? false,
       },
     ])
   );

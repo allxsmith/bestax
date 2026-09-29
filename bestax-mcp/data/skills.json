@@ -103,17 +103,17 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 20108
+          "bytes": 20298
         },
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 31364
+          "bytes": 31763
         },
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 21243
+          "bytes": 21787
         },
         {
           "id": "css-migration",

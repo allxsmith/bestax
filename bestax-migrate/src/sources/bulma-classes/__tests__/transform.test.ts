@@ -1017,6 +1017,18 @@ describe('menu list nesting', () => {
   });
 });
 
+describe('an element that takes the place of the one around it', () => {
+  it("stays markup when that one is a component's only child", () => {
+    const { output, rules } = migrate(
+      'const Tooltip = (props: { children: unknown }) => props.children;\nexport const A = () => (\n  <ul className="pagination-list"><Tooltip><li><a className="pagination-link" tabIndex={0}>1</a></li></Tooltip></ul>\n);\n'
+    );
+    expect(rules).toContain('only-child:Pagination.Link');
+    expect(output).toContain(
+      '<li><a className="pagination-link" tabIndex={0}>1</a></li>'
+    );
+  });
+});
+
 describe('form context', () => {
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(

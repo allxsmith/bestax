@@ -125,9 +125,11 @@ function renderBoth(
     string | true
   >;
   // A target that renders the element's children itself: they are the
-  // bare elements it counted, and the component is given none.
+  // bare elements it counted, or the text it renders, and the component is
+  // given none.
   const counted = result.conversion.rendersChildren
-    ? facts.childElements!.map(element => createElement(element.tag, null))
+    ? (facts.childElements?.map(element => createElement(element.tag, null)) ??
+      facts.text)
     : undefined;
   const soleElement =
     sole &&
@@ -146,11 +148,20 @@ function renderBoth(
       },
       soleChildren
     );
-  const raw = renderElement(
-    facts.tag,
-    { className: [...facts.tokens, ...added.flat()].join(' '), ...extra },
-    counted ?? soleElement ?? (child ? child.raw : children)
-  );
+  const rawProps = {
+    className: [...facts.tokens, ...added.flat()].join(' '),
+    ...extra,
+  };
+  const rawChildren = counted ?? soleElement ?? (child ? child.raw : children);
+  // A target that renders the element around this one too is compared with
+  // the raw element inside that one.
+  const raw = result.conversion.replacesParent
+    ? renderElement(
+        facts.soleChildOf!.tag,
+        null,
+        createElement(facts.tag, rawProps, rawChildren)
+      )
+    : renderElement(facts.tag, rawProps, rawChildren);
   const { target, props, className, drop, numbers, absorbs } =
     result.conversion;
   const given = { ...extra };
@@ -259,7 +270,31 @@ function factsFor(
       entries.some(entry => entry?.needsElementChildren) && {
         soleChild: bare('i'),
       }),
+    // One whose target renders the element around it sits in a bare one, and
+    // one whose target renders its text holds that text.
+    ...(entries.find(entry => entry?.parent) && {
+      soleChildOf: {
+        ...bare(entries.find(entry => entry?.parent)!.parent!.tag),
+        isEmpty: false,
+      },
+    }),
+    ...(entries.find(entry => entry?.rendersText !== undefined) && {
+      text: entries.find(entry => entry?.rendersText !== undefined)!
+        .rendersText,
+    }),
   };
+}
+
+/** The attributes each modifier among `tokens` needs beside it to convert. */
+function neededFor(entry: RootEntry, tokens: string[]): Record<string, string> {
+  return Object.fromEntries(
+    tokens.flatMap(token => {
+      const needs = Object.hasOwn(entry.modifiers ?? {}, token)
+        ? entry.modifiers![token].needsAttr
+        : undefined;
+      return needs ? [[needs.name, needs.value]] : [];
+    })
+  );
 }
 
 // Silence the library's development warnings (unstyled colors and the like):
@@ -291,8 +326,9 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     const onTag = defaultsFor(entry, tag);
     const omitted = new Set<string>();
     for (const tokens of candidates) {
-      const facts = factsFor(tag, tokens, onTag, child);
-      const both = renderBoth(facts, onTag, child);
+      const given = { ...onTag, ...neededFor(entry, tokens) };
+      const facts = factsFor(tag, tokens, given, child);
+      const both = renderBoth(facts, given, child);
       if (!both) continue;
       if (Object.hasOwn(entry.omits ?? {}, tokens[1])) omitted.add(tokens[1]);
       expect({ tokens, tag, html: both.converted }).toEqual({
@@ -750,14 +786,21 @@ describe.each(mapped)('`.%s` with a class a condition adds', (root, entry) => {
 
   it('renders each of its flags exactly when the condition is truthy, on every tag', () => {
     const differ: string[] = [];
+    const flagged = new Set<string>();
     for (const tag of tagsFor(entry)) {
       for (const token of Object.keys(entry.modifiers ?? {})) {
-        const onTag = defaultsFor(entry, tag);
+        // Beside the attribute its prop also renders, when it needs one.
+        const onTag = {
+          ...defaultsFor(entry, tag),
+          ...neededFor(entry, [token]),
+        };
         const facts: ElementFacts = {
           ...factsFor(tag, [root], onTag, child),
           conditional: [[token]],
         };
-        if (!plan(facts).conversion) continue;
+        const conversion = plan(facts).conversion;
+        if (!conversion) continue;
+        if (conversion.conditional?.length) flagged.add(token);
         for (const value of CONDITIONS) {
           const both = renderBoth(facts, onTag, child, { [token]: value });
           if (both!.converted !== both!.raw) {
@@ -769,6 +812,11 @@ describe.each(mapped)('`.%s` with a class a condition adds', (root, entry) => {
       }
     }
     expect(differ).toEqual([]);
+    // A flag that needs an attribute beside it is one of those rendered.
+    const needing = Object.entries(entry.modifiers ?? {})
+      .filter(([, modifier]) => modifier.needsAttr)
+      .map(([token]) => token);
+    expect(needing.filter(token => !flagged.has(token))).toEqual([]);
   });
 
   it('renders a flag the same beside each other modifier, fixed or conditional', () => {

@@ -742,6 +742,16 @@ function isMapCall(call: any): boolean {
   );
 }
 
+/** The string an element's content renders, when it is one static text. */
+function textOf(element: any): string | undefined {
+  const content = (element.children ?? []).filter(
+    (child: any) => !dropped(child)
+  );
+  return content.length === 1 && content[0].type === 'JSXText'
+    ? jsxTextRenders(content[0].value)
+    : undefined;
+}
+
 /** Whitespace React drops, which nothing is lost with. A comment is kept. */
 function dropped(child: any): boolean {
   return child.type === 'JSXText' && !reachesReact(child);
@@ -1031,6 +1041,14 @@ export default function transform(
       : undefined;
   };
 
+  /** The element directly around this one, when this is its only child. */
+  const holderOf = (elementPath: ASTPath<any>): any => {
+    const up = elementPath.parent?.node;
+    return up?.type === 'JSXElement' && soleChild(up) === elementPath.node
+      ? up
+      : undefined;
+  };
+
   // `converts` is whether the element would become a component with its
   // classes written out, so it holds for a computed className too.
   const elements: Array<{ path: ASTPath<any>; plan: Plan; converts: boolean }> =
@@ -1071,6 +1089,11 @@ export default function transform(
       onlyChildOf: onlyChildOf(elementPath, bestaxLocals),
       ...(item && { itemOf: item }),
       ...(classAttr && className?.trim() === '' && { emptyClass: true }),
+      ...(holderOf(elementPath) && {
+        soleChildOf: childFacts(holderOf(elementPath)),
+        holderOnlyChildOf: onlyChildOf(elementPath.parent, bestaxLocals),
+      }),
+      ...(textOf(element) !== undefined && { text: textOf(element) }),
     };
     // A joiner call the codemod can read converts exactly: its fixed classes
     // as for a static className, and each condition on a flag as its prop.
@@ -1372,6 +1395,28 @@ export default function transform(
       attr.value = j.jsxExpressionContainer(
         j.numericLiteral(Number(attributeValue(attr)))
       );
+    }
+    if (conversion.replacesParent) {
+      // The component renders the element around this one too, so it takes
+      // that one's place, with its `key` and its comments.
+      const holderPath = elementPath.parent;
+      const holder = holderPath.node;
+      const key = findAttr(holder, 'key');
+      if (key) {
+        written.openingElement.attributes = [
+          key,
+          ...(written.openingElement.attributes ?? []),
+        ];
+      }
+      const inTags = tagComments(holder);
+      if (inTags.length) {
+        const name = written.openingElement.name;
+        name.comments = [...(name.comments ?? []), ...inTags.map(afterTagName)];
+      }
+      if (holder.comments?.length) {
+        written.comments = [...holder.comments, ...(written.comments ?? [])];
+      }
+      holderPath.replace(written);
     }
     ctx.dirty = true;
   }

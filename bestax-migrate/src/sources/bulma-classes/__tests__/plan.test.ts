@@ -681,6 +681,124 @@ describe('plan', () => {
     });
   });
 
+  describe('Pagination links and ellipsis', () => {
+    const li = (extra: Partial<ChildFacts> = {}): ChildFacts => ({
+      tag: 'li',
+      attributes: new Map(),
+      hasSpread: false,
+      isEmpty: false,
+      ...extra,
+    });
+    const rules = (result: ReturnType<typeof plan>) =>
+      result.todos.map(todo => todo.rule);
+    const link = (
+      className: string,
+      attributes: Record<string, string | true | null> = {},
+      extra: Partial<ElementFacts> = {}
+    ) =>
+      plan(
+        facts(
+          'a',
+          className,
+          { tabIndex: '0', ...attributes },
+          { soleChildOf: li(), ...extra }
+        )
+      );
+
+    it('converts a link in the place of the bare <li> around it', () => {
+      expect(link('pagination-link', { href: '#1' }).conversion).toMatchObject({
+        target: 'Pagination.Link',
+        replacesParent: true,
+      });
+      // The <li>'s key comes with it.
+      expect(
+        link(
+          'pagination-link',
+          {},
+          {
+            soleChildOf: li({ attributes: new Map([['key', null]]) }),
+          }
+        ).conversion?.target
+      ).toBe('Pagination.Link');
+    });
+
+    it('keeps it as markup anywhere but alone in a bare <li>', () => {
+      for (const holder of [
+        undefined,
+        li({ tag: 'div' }),
+        li({ tokens: ['my-item'] }),
+        li({ tokens: [] }),
+        li({ attributes: new Map([['id', 'x']]) }),
+        li({ hasSpread: true }),
+      ]) {
+        expect(
+          rules(link('pagination-link', {}, { soleChildOf: holder }))
+        ).toEqual(['context:Pagination.Link']);
+      }
+      expect(
+        rules(
+          link(
+            'pagination-link',
+            { key: 'a' },
+            {
+              soleChildOf: li({ attributes: new Map([['key', null]]) }),
+            }
+          )
+        )
+      ).toEqual(['attr:key']);
+    });
+
+    it("keeps it as markup when the <li> is a component's only child", () => {
+      // That component could hand the <li> props with cloneElement.
+      expect(
+        rules(link('pagination-link', {}, { holderOnlyChildOf: 'Tooltip' }))
+      ).toEqual(['only-child:Pagination.Link']);
+    });
+
+    it('makes is-current active only beside an aria-current of its own', () => {
+      expect(
+        link('pagination-link is-current', { 'aria-current': 'page' })
+          .conversion
+      ).toMatchObject({ props: [['active', true]], className: null });
+      expect(link('pagination-link is-current').conversion).toMatchObject({
+        props: [],
+        className: 'is-current',
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts(
+            'a',
+            'pagination-link',
+            { tabIndex: '0', ...attributes },
+            { soleChildOf: li(), conditional: [['is-current']] }
+          )
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-current'],
+      ]);
+      expect(conditional({})).toBeUndefined();
+    });
+
+    it('converts an ellipsis holding exactly its own text, and nothing else on it', () => {
+      const ellipsis = (className: string, text?: string) =>
+        plan(facts('span', className, {}, { soleChildOf: li(), text }));
+      expect(ellipsis('pagination-ellipsis', '…').conversion).toMatchObject({
+        target: 'Pagination.Ellipsis',
+        rendersChildren: true,
+      });
+      expect(rules(ellipsis('pagination-ellipsis', '...'))).toEqual([
+        'children:Pagination.Ellipsis',
+      ]);
+      expect(rules(ellipsis('pagination-ellipsis'))).toEqual([
+        'children:Pagination.Ellipsis',
+      ]);
+      expect(rules(ellipsis('pagination-ellipsis mt-2', '…'))).toEqual([
+        'attr:className',
+      ]);
+    });
+  });
+
   it('writes a tabIndex string as the number every target types it as', () => {
     expect(
       plan(facts('div', 'box', { tabIndex: '0' })).conversion?.numbers

@@ -200,11 +200,6 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['modal', { component: 'Modal', converts: false }],
     ['navbar-burger', { component: 'Navbar.Burger', converts: false }],
     ['navbar-link', { component: 'Navbar.Link', converts: false }],
-    ['pagination-link', { component: 'Pagination.Link', converts: false }],
-    [
-      'pagination-ellipsis',
-      { component: 'Pagination.Ellipsis', converts: false },
-    ],
     ['panel-icon', { component: 'Panel.Icon', converts: false }],
     ['columns', { component: 'Columns', converts: true }],
     ['column', { component: 'Column', converts: true }],
@@ -283,6 +278,11 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
       { component: 'Pagination.Previous', converts: true },
     ],
     ['pagination-next', { component: 'Pagination.Next', converts: true }],
+    ['pagination-link', { component: 'Pagination.Link', converts: true }],
+    [
+      'pagination-ellipsis',
+      { component: 'Pagination.Ellipsis', converts: true },
+    ],
     ['panel', { component: 'Panel', converts: true }],
     ['panel-heading', { component: 'Panel.Heading', converts: true }],
     ['panel-tabs', { component: 'Panel.Tabs', converts: true }],

@@ -106,6 +106,20 @@ export interface ElementFacts {
    * (`tokens` is empty either way).
    */
   emptyClass?: boolean;
+  /**
+   * The plain HTML element around this one, when this is its only child:
+   * what an entry whose target renders that element too reads.
+   */
+  soleChildOf?: ChildFacts;
+  /**
+   * The component that element is the only child of, if any: `onlyChildOf`
+   * for the element such an entry takes the place of.
+   */
+  holderOnlyChildOf?: string;
+  /**
+   * The string the element's content renders, when it is one static text.
+   */
+  text?: string;
 }
 
 export interface ChildFacts {
@@ -170,6 +184,11 @@ export interface Conversion {
    * they go, and the element closes itself.
    */
   rendersChildren?: true;
+  /**
+   * The target renders the bare element around this one too: the component
+   * takes that element's place, with its `key`.
+   */
+  replacesParent?: true;
   /**
    * Conditional classes (`ElementFacts.conditional`) that become a boolean
    * prop set to their condition, each once. The rest stay in the joiner call.
@@ -280,7 +299,10 @@ export function plan(facts: ElementFacts): Plan {
     // A wrapper exists only to carry helper props, so a tag none of whose
     // classes becomes one stays as it is, and nothing else about it is worth
     // a TODO.
-    if (propsFrom(entry, tokens, tag, undefined).writes.size === 0) {
+    if (
+      propsFrom(entry, tokens, tag, undefined, facts.attributes).writes.size ===
+      0
+    ) {
       return { conversion: null, todos };
     }
   }
@@ -311,6 +333,43 @@ export function plan(facts: ElementFacts): Plan {
       'only-child',
       target,
       `this element is the only child of \`<${facts.onlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\` (next/link's legacy behavior, a tooltip, a Radix \`asChild\` trigger) that bestax \`${target}\` would not take the same way; convert it by hand if \`<${facts.onlyChildOf}>\` only renders its children`
+    );
+  }
+  const parent = entry.parent;
+  if (parent) {
+    const holder = facts.soleChildOf;
+    const bare =
+      holder?.tag === parent.tag &&
+      holder.tokens === undefined &&
+      !holder.hasSpread &&
+      [...holder.attributes.keys()].every(name => name === 'key');
+    if (!bare) {
+      return refuse(
+        'context',
+        target,
+        `bestax \`${target}\` renders its own bare <${parent.tag}> around the <${tag}>, so this converts only as the only thing inside a bare <${parent.tag}>, which it takes the place of; keep it as markup`
+      );
+    }
+    if (facts.holderOnlyChildOf) {
+      return refuse(
+        'only-child',
+        target,
+        `the <${parent.tag}> around this element is the only child of \`<${facts.holderOnlyChildOf}>\`, which may hand it props or a ref with \`cloneElement\`, and bestax \`${target}\` in its place would put them on the <${tag}>; convert it by hand if \`<${facts.holderOnlyChildOf}>\` only renders its children`
+      );
+    }
+    if (holder.attributes.has('key') && facts.attributes.has('key')) {
+      return refuse(
+        'attr',
+        'key',
+        `bestax \`${target}\` takes the place of the <${parent.tag}> around this element, and both have a \`key\`; keep one, then re-run`
+      );
+    }
+  }
+  if (entry.rendersText !== undefined && facts.text !== entry.rendersText) {
+    return refuse(
+      'children',
+      target,
+      `bestax \`${target}\` renders its own \`${entry.rendersText}\` as its content, so this converts only holding exactly that; keep it as markup`
     );
   }
   // An element converts with no class left only when found by where it sits,
@@ -561,7 +620,7 @@ export function plan(facts: ElementFacts): Plan {
   }
 
   // ---- Tokens → props ---------------------------------------------------------
-  const fromTokens = propsFrom(entry, tokens, tag, root);
+  const fromTokens = propsFrom(entry, tokens, tag, root, attributes);
   const { writes, converted } = fromTokens;
   numbers.push(...fromTokens.numbers);
 
@@ -619,6 +678,7 @@ export function plan(facts: ElementFacts): Plan {
       write.value === undefined &&
       !modifier!.onlyTrue &&
       (!modifier!.tagIn || modifier!.tagIn.includes(tag)) &&
+      (!modifier!.needsAttr || attributes.has(modifier!.needsAttr.name)) &&
       !writes.has(write.prop) &&
       !conditional.some(([prop]) => prop === write.prop);
     // Written as a prop, the condition is evaluated before any left in the
@@ -633,6 +693,13 @@ export function plan(facts: ElementFacts): Plan {
   });
 
   const rest = tokens.filter(token => !converted.has(token));
+  if (entry.classNameReplaces && (rest.length > 0 || conditionalStays)) {
+    return refuse(
+      'attr',
+      'className',
+      `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
+    );
+  }
   return {
     conversion: {
       target,
@@ -641,7 +708,10 @@ export function plan(facts: ElementFacts): Plan {
       drop,
       numbers,
       ...(absorbed ? { absorbs: absorbed } : {}),
-      ...(counts ? { rendersChildren: true as const } : {}),
+      ...(counts || entry.rendersText !== undefined
+        ? { rendersChildren: true as const }
+        : {}),
+      ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
     },
     todos,
@@ -653,13 +723,15 @@ export function plan(facts: ElementFacts): Plan {
  * write, the classes that leave `className`, and the props written as
  * numbers. The group rules apply, so a helper the target would drop (a
  * base `display` beside a per-viewport one, a flex-container helper with no
- * flex `display`) stays a class.
+ * flex `display`) stays a class, and so does a modifier missing the
+ * attribute it needs.
  */
 function propsFrom(
   entry: RootEntry,
   tokens: readonly string[],
   tag: string,
-  root: string | undefined
+  root: string | undefined,
+  attributes: ReadonlyMap<string, unknown>
 ): {
   writes: Map<string, string | true>;
   converted: Set<string>;
@@ -680,6 +752,9 @@ function propsFrom(
     const modifier = modifierFor(entry, token);
     if (modifier) {
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
+      if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
+        continue;
+      }
       if (modifier.writes.some(write => writes.has(write.prop))) continue;
       for (const write of modifier.writes) {
         writes.set(write.prop, write.value ?? true);

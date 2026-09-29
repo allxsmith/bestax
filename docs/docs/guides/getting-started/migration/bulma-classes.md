@@ -72,7 +72,7 @@ stock stylesheet.
   `notification`, `tag`, `tags`, `level` and its parts, `media` and its parts, `card` and its
   parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
   `select`, `breadcrumb`, `image`, `menu` and its label, list and items, the parts inside a `modal`
-  but its close button, `pagination` and its list and previous and next links, `panel` and its
+  but its close button, `pagination` and its list, links and ellipses, `panel` and its
   heading, tabs and blocks, `tabs`, `icon`, `delete`, `progress`, `skeleton-block`, `footer` and
   `table` become their bestax components, with their modifier classes as props (`is-primary` →
   `color="primary"`, `is-half` → `size="half"`).

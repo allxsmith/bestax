@@ -21,7 +21,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "box": {
       "status": "mapped",
@@ -43,7 +46,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "button": {
       "status": "mapped",
@@ -93,7 +99,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "buttons": {
       "status": "mapped",
@@ -122,7 +131,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card": {
       "status": "mapped",
@@ -154,7 +166,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-header": {
       "status": "mapped",
@@ -180,7 +195,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-header-title": {
       "status": "mapped",
@@ -202,7 +220,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-header-icon": {
       "status": "mapped",
@@ -224,7 +245,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-image": {
       "status": "mapped",
@@ -246,7 +270,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-content": {
       "status": "mapped",
@@ -268,7 +295,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-footer": {
       "status": "mapped",
@@ -290,7 +320,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "card-footer-item": {
       "status": "mapped",
@@ -312,7 +345,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "columns": {
       "status": "mapped",
@@ -413,7 +449,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "column": {
       "status": "mapped",
@@ -1075,7 +1114,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "grid": {
       "status": "mapped",
@@ -1239,7 +1281,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "cell": {
       "status": "mapped",
@@ -1478,7 +1523,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "container": {
       "status": "mapped",
@@ -1522,7 +1570,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "content": {
       "status": "mapped",
@@ -1548,7 +1599,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "delete": {
       "status": "mapped",
@@ -1574,7 +1628,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "field": {
       "status": "mapped",
@@ -1606,7 +1663,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "field-label": {
       "status": "mapped",
@@ -1633,7 +1693,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "field-body": {
       "status": "mapped",
@@ -1655,7 +1718,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "control": {
       "status": "mapped",
@@ -1685,7 +1751,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "input": {
       "status": "mapped",
@@ -1727,7 +1796,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "textarea": {
       "status": "mapped",
@@ -1770,7 +1842,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "select": {
       "status": "mapped",
@@ -1821,7 +1896,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "footer": {
       "status": "mapped",
@@ -1843,7 +1921,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "hero": {
       "status": "mapped",
@@ -1885,7 +1966,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "hero-head": {
       "status": "mapped",
@@ -1907,7 +1991,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "hero-body": {
       "status": "mapped",
@@ -1929,7 +2016,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "hero-foot": {
       "status": "mapped",
@@ -1951,7 +2041,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "level": {
       "status": "mapped",
@@ -1973,7 +2066,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "level-left": {
       "status": "mapped",
@@ -1995,7 +2091,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "level-right": {
       "status": "mapped",
@@ -2017,7 +2116,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "level-item": {
       "status": "mapped",
@@ -2039,7 +2141,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "media": {
       "status": "mapped",
@@ -2061,7 +2166,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "media-left": {
       "status": "mapped",
@@ -2083,7 +2191,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "media-content": {
       "status": "mapped",
@@ -2105,7 +2216,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "media-right": {
       "status": "mapped",
@@ -2127,7 +2241,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar": {
       "status": "mapped",
@@ -2165,7 +2282,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-brand": {
       "status": "mapped",
@@ -2187,7 +2307,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-menu": {
       "status": "mapped",
@@ -2209,7 +2332,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-start": {
       "status": "mapped",
@@ -2231,7 +2357,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-end": {
       "status": "mapped",
@@ -2253,7 +2382,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-item": {
       "status": "mapped",
@@ -2275,7 +2407,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-dropdown": {
       "status": "mapped",
@@ -2300,7 +2435,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-divider": {
       "status": "mapped",
@@ -2322,7 +2460,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "notification": {
       "status": "mapped",
@@ -2355,7 +2496,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "progress": {
       "status": "mapped",
@@ -2391,7 +2535,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "section": {
       "status": "mapped",
@@ -2416,7 +2563,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "subtitle": {
       "status": "mapped",
@@ -2464,7 +2614,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "table": {
       "status": "mapped",
@@ -2492,7 +2645,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "tag": {
       "status": "mapped",
@@ -2531,7 +2687,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "tags": {
       "status": "mapped",
@@ -2557,7 +2716,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "title": {
       "status": "mapped",
@@ -2606,7 +2768,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "breadcrumb": {
       "status": "mapped",
@@ -2648,7 +2813,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "skeleton-block": {
       "status": "mapped",
@@ -2670,7 +2838,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "skeleton-lines": {
       "status": "mapped",
@@ -2692,7 +2863,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "checkbox": {
       "status": "todo",
@@ -2714,7 +2888,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "checkboxes": {
       "status": "todo",
@@ -2736,7 +2913,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "radio": {
       "status": "todo",
@@ -2758,7 +2938,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "radios": {
       "status": "todo",
@@ -2780,7 +2963,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "file": {
       "status": "todo",
@@ -2802,7 +2988,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "file-label": {
       "status": "todo",
@@ -2824,7 +3013,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "file-input": {
       "status": "todo",
@@ -2846,7 +3038,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "file-cta": {
       "status": "todo",
@@ -2868,7 +3063,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "file-icon": {
       "status": "todo",
@@ -2890,7 +3088,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "file-name": {
       "status": "todo",
@@ -2912,7 +3113,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "dropdown": {
       "status": "todo",
@@ -2934,7 +3138,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "dropdown-menu": {
       "status": "todo",
@@ -2956,7 +3163,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "dropdown-content": {
       "status": "todo",
@@ -2978,7 +3188,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "dropdown-item": {
       "status": "todo",
@@ -3000,7 +3213,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "dropdown-divider": {
       "status": "todo",
@@ -3022,7 +3238,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "icon": {
       "status": "mapped",
@@ -3048,7 +3267,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "icon-text": {
       "status": "todo",
@@ -3070,7 +3292,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "image": {
       "status": "mapped",
@@ -3123,7 +3348,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "menu": {
       "status": "mapped",
@@ -3145,7 +3373,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "menu-label": {
       "status": "mapped",
@@ -3167,7 +3398,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "menu-list": {
       "status": "mapped",
@@ -3203,7 +3437,10 @@
         ],
         "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
         "after": { "tag": "ul", "target": "Menu.List" }
-      }
+      },
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "menu-item": {
       "status": "todo",
@@ -3225,7 +3462,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "message": {
       "status": "todo",
@@ -3247,7 +3487,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "message-header": {
       "status": "todo",
@@ -3269,7 +3512,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "message-body": {
       "status": "todo",
@@ -3291,7 +3537,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal": {
       "status": "todo",
@@ -3313,7 +3562,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-background": {
       "status": "mapped",
@@ -3335,7 +3587,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-content": {
       "status": "mapped",
@@ -3357,7 +3612,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-card": {
       "status": "mapped",
@@ -3379,7 +3637,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-card-head": {
       "status": "mapped",
@@ -3401,7 +3662,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-card-title": {
       "status": "mapped",
@@ -3423,7 +3687,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-card-body": {
       "status": "mapped",
@@ -3445,7 +3712,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-card-foot": {
       "status": "mapped",
@@ -3467,7 +3737,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "modal-close": {
       "status": "todo",
@@ -3489,7 +3762,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-burger": {
       "status": "todo",
@@ -3511,7 +3787,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-link": {
       "status": "todo",
@@ -3533,7 +3812,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "pagination": {
       "status": "mapped",
@@ -3573,7 +3855,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "pagination-list": {
       "status": "mapped",
@@ -3595,7 +3880,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "pagination-previous": {
       "status": "mapped",
@@ -3619,7 +3907,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "pagination-next": {
       "status": "mapped",
@@ -3643,20 +3934,30 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "pagination-link": {
-      "status": "todo",
+      "status": "mapped",
       "target": "Pagination.Link",
-      "tag": null,
+      "tag": "a",
       "as": null,
       "sizeDrivesTag": false,
-      "textColor": null,
-      "bgColor": null,
+      "textColor": "textColor",
+      "bgColor": "bgColor",
       "part": false,
-      "why": "bestax `Pagination.Link` renders its own `<li>` around the `<a>`",
-      "modifiers": {},
-      "omits": {},
+      "why": null,
+      "modifiers": {
+        "is-current": {
+          "writes": [{ "prop": "active" }],
+          "needsAttr": { "name": "aria-current", "value": "page" }
+        }
+      },
+      "omits": {
+        "is-disabled": "`disabled` also writes `aria-disabled` and `tabIndex=\"-1\"`"
+      },
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
@@ -3665,18 +3966,21 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": { "tag": "li" },
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "pagination-ellipsis": {
-      "status": "todo",
+      "status": "mapped",
       "target": "Pagination.Ellipsis",
-      "tag": null,
+      "tag": "span",
       "as": null,
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Pagination.Ellipsis` renders its own `<li>` and its own `&hellip;`",
+      "why": null,
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
@@ -3684,10 +3988,13 @@
       "absorbs": null,
       "writes": null,
       "countsChildren": null,
-      "noHelpers": false,
+      "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": { "tag": "li" },
+      "rendersText": "…",
+      "classNameReplaces": true
     },
     "panel": {
       "status": "mapped",
@@ -3720,7 +4027,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "panel-heading": {
       "status": "mapped",
@@ -3742,7 +4052,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "panel-tabs": {
       "status": "mapped",
@@ -3764,7 +4077,10 @@
       "noHelpers": true,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "panel-block": {
       "status": "mapped",
@@ -3789,7 +4105,10 @@
         "why": "a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents"
       },
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "panel-icon": {
       "status": "todo",
@@ -3811,7 +4130,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "tabs": {
       "status": "mapped",
@@ -3855,7 +4177,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "table-container": {
       "status": "fold",
@@ -3877,7 +4202,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "fixed-grid": {
       "status": "fold",
@@ -4239,7 +4567,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "help": {
       "status": "plain",
@@ -4261,7 +4592,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "panel-list": {
       "status": "plain",
@@ -4283,7 +4617,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "label": {
       "status": "plain",
@@ -4305,7 +4642,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "loader": {
       "status": "plain",
@@ -4327,7 +4667,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "hero-buttons": {
       "status": "plain",
@@ -4349,7 +4692,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "hero-video": {
       "status": "plain",
@@ -4371,7 +4717,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-content": {
       "status": "plain",
@@ -4393,7 +4742,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "navbar-tabs": {
       "status": "plain",
@@ -4415,7 +4767,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "theme-dark": {
       "status": "plain",
@@ -4437,7 +4792,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "theme-light": {
       "status": "plain",
@@ -4459,7 +4817,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "fa": {
       "status": "plain",
@@ -4481,7 +4842,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "marginless": {
       "status": "plain",
@@ -4503,7 +4867,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     },
     "paddingless": {
       "status": "plain",
@@ -4525,7 +4892,10 @@
       "noHelpers": false,
       "otherTagsStay": null,
       "topLevelOnly": false,
-      "items": null
+      "items": null,
+      "parent": null,
+      "rendersText": null,
+      "classNameReplaces": false
     }
   },
   "precedence": [

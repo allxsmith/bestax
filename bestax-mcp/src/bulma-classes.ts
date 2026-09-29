@@ -29,6 +29,11 @@ export interface Modifier {
   writes: PropWrite[];
   /** The tags the writes are exact on (Title's size picks its heading). */
   tagIn?: string[];
+  /**
+   * The prop renders this attribute too, unless the element sets its own,
+   * so the class converts only beside one written out.
+   */
+  needsAttr?: { name: string; value: string };
 }
 
 export interface RootRecord {
@@ -71,6 +76,12 @@ export interface RootRecord {
   countsChildren: Counts | null;
   /** What each item in a list with this class becomes, found by where it sits. */
   items: Items | null;
+  /** The component renders a bare `<tag>` around the element too. */
+  parent: { tag: string } | null;
+  /** The component renders this text as its content, whatever it's given. */
+  rendersText: string | null;
+  /** A `className` the component is given replaces its own class. */
+  classNameReplaces: boolean;
 }
 
 export interface Items {
@@ -170,6 +181,12 @@ export type Element =
       topLevel?: string;
       /** What each item inside it becomes. */
       items?: Items;
+      /** Renders a bare element of this tag around the element too. */
+      parent?: string;
+      /** Renders this text as its content. */
+      rendersText?: string;
+      /** A `className` it's given replaces its class. */
+      classNameReplaces?: boolean;
     }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
@@ -414,6 +431,9 @@ export function lookupClasses(
       writes: null,
       countsChildren: null,
       items: null,
+      parent: null,
+      rendersText: null,
+      classNameReplaces: false,
     };
   }
   const target = entry.target;
@@ -475,7 +495,9 @@ export function lookupClasses(
             ? `exact only on ${listTags(modifier.tagIn)}`
             : paired
               ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
-              : undefined,
+              : modifier.needsAttr
+                ? `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`
+                : undefined,
       });
       continue;
     }
@@ -590,6 +612,17 @@ export function lookupClasses(
     }
     return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
   }
+  // A `className` it's given replaces its own class, so a class left over
+  // keeps the element as markup.
+  if (
+    entry.classNameReplaces &&
+    tokens.some(token => token !== root && verdicts.get(token)?.kind !== 'prop')
+  ) {
+    return result({
+      kind: 'markup',
+      why: `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class`,
+    });
+  }
   const about = {
     wraps,
     absorbs: entry.absorbs ?? undefined,
@@ -597,6 +630,9 @@ export function lookupClasses(
     counts: entry.countsChildren ?? undefined,
     topLevel: entry.topLevelOnly && root ? root : undefined,
     items: entry.items ?? undefined,
+    parent: entry.parent?.tag,
+    rendersText: entry.rendersText ?? undefined,
+    classNameReplaces: entry.classNameReplaces || undefined,
   };
   if (!tag) {
     return result({
@@ -747,7 +783,21 @@ export function renderLookup(lookup: Lookup): string {
               `\`.${element.topLevel}\`, or around a \`${element.target}\`, ` +
               `stays markup.`
             : '') +
-          (element.items ? itemsText(element.items) : '')
+          (element.items ? itemsText(element.items) : '') +
+          (element.parent
+            ? ` It renders its own bare <${element.parent}> around the element ` +
+              `too: write it in the <${element.parent}>'s place, which ` +
+              `converts only when that <${element.parent}> holds nothing else ` +
+              `and carries nothing but a \`key\`.`
+            : '') +
+          (element.rendersText
+            ? ` It renders its own \`${element.rendersText}\` as its content, ` +
+              `so write it closing itself.`
+            : '') +
+          (element.classNameReplaces
+            ? ` A \`className\` it's given replaces its own class, so it ` +
+              `converts only with no other class.`
+            : '')
       );
       break;
     }
