@@ -642,7 +642,7 @@ describe('Link attributes on an as that cannot be a link (#733)', () => {
     expect(message).not.toContain('"rel"');
   });
 
-  it('warns once for the element, not once per avatar or combination', () => {
+  it('warns once per element and combination, not once per avatar', () => {
     render(
       <>
         <Avatar name="Ada" as="div" href="/ada" />
@@ -651,7 +651,13 @@ describe('Link attributes on an as that cannot be a link (#733)', () => {
         <Avatar name="Katherine" as="figure" href="/katherine" />
       </>
     );
-    expect(warnSpy).toHaveBeenCalledTimes(2);
+    // The repeated div + href warns once. The div + target that follows it is
+    // a different combination, so it is reported rather than silenced.
+    expect(warnSpy).toHaveBeenCalledTimes(3);
+    const messages = warnSpy.mock.calls.map(([message]) => message);
+    expect(messages[0]).toContain('<Avatar as="div" href>');
+    expect(messages[1]).toContain('<Avatar as="div" target>');
+    expect(messages[2]).toContain('<Avatar as="figure" href>');
   });
 
   it('stays quiet for link attributes when the caller passed no as', () => {
