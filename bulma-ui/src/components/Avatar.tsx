@@ -7,6 +7,11 @@ import {
 } from '../helpers/polymorphic';
 import { warnOnce } from '../helpers/devWarnings';
 
+// Local declaration because the library tsconfig has no Node types. The
+// reference must stay a bare `process.env.NODE_ENV` so bundlers can replace
+// it statically, as in `devWarnings`.
+declare const process: { env: { NODE_ENV?: string } };
+
 const avatarColors = [
   'primary',
   'link',
@@ -399,7 +404,20 @@ export const Avatar = forwardRef(function Avatar(
   // warning. The key is the element plus the attributes passed, so a re-render
   // or a list of avatars warns once, while a different combination on the same
   // element still gets its own warning rather than hiding behind the first.
-  if (as != null && !isLinkLike) {
+  //
+  // The production check comes first and sits here as well as in `warnOnce`.
+  // A consumer's bundler replaces the bare `process.env.NODE_ENV` with a
+  // constant, so a minified production build drops this whole block, the work
+  // of collecting the attributes and building the message included, which a
+  // check inside `warnOnce` alone would leave running on every render. The
+  // `typeof` test keeps a page with no bundler and no Node from throwing here;
+  // it skips the block, the same fail-closed answer `devWarnings` gives.
+  if (
+    typeof process !== 'undefined' &&
+    process.env.NODE_ENV !== 'production' &&
+    as != null &&
+    !isLinkLike
+  ) {
     const dropped = Object.entries({ href, target })
       .filter(([, value]) => value)
       .map(([key]) => key);
