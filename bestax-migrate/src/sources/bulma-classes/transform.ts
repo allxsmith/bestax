@@ -872,10 +872,12 @@ function textChild(j: any, text: string): any {
 
 /**
  * A text as an attribute value: quoted when JSX reads it as written there,
- * and as a string otherwise (a quote, or an `&` it would read as an entity).
+ * and as a string otherwise. A JSX attribute string has no escapes, so a
+ * quote would end it, a backslash would print doubled, and an `&` could be
+ * read as an entity.
  */
 function textValue(j: any, text: string): any {
-  return /^[^"&\r\n]*$/.test(text)
+  return /^[^"&\\\r\n]*$/.test(text)
     ? j.stringLiteral(text)
     : j.jsxExpressionContainer(j.stringLiteral(text));
 }
@@ -1177,21 +1179,27 @@ export default function transform(
    * What the planner reads of a child element, down its tree: what it
    * converts to on its own (children are planned first), its only child,
    * its text and whether its content is static, and its own children the
-   * same way.
+   * same way. Each element is read once, since every element around it
+   * reads it again: a plan that changes afterwards forgets its reading.
    */
+  const readings = new Map<object, Partial<ChildFacts>>();
   const readChild = (child: any): Partial<ChildFacts> => {
+    const known = readings.get(child);
+    if (known) return known;
     const becomes = planned.get(child)?.conversion;
     const only = soleChild(child);
     const inner = only && childFacts(only);
     const text = textOf(child);
     const children = childElementsOf(child, readChild);
-    return {
+    const reading = {
       ...(becomes && { becomes }),
       ...(inner && { soleChild: inner }),
       ...(text !== undefined && { text }),
       ...(children && { children }),
       ...(staticContent(child) && { staticContent: true }),
     };
+    readings.set(child, reading);
+    return reading;
   };
 
   /** The element directly around this one, when this is its only child. */
@@ -1312,6 +1320,7 @@ export default function transform(
         const node = inside[icon.index];
         const own: Plan = { conversion: null, todos: planned.get(node)!.todos };
         planned.set(node, own);
+        readings.delete(node);
         const at = elements.findIndex(found => found.path.node === node);
         if (at === -1) continue;
         if (own.todos.length > 0) {

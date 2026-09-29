@@ -1098,9 +1098,20 @@ describe('plan', () => {
           rules: ['children:File'],
         });
       }
-      // A name needs `has-name`, which `File` renders it beside.
+      // A name needs `has-name`, which `File` renders it beside, and one a
+      // condition adds stays in the call, so it isn't there to rely on.
       expect(
         rules(file(tree({ name: span('file-name', { text: 'cv.pdf' }) })))
+      ).toEqual(['children:File']);
+      expect(
+        rules(
+          file(
+            tree({ name: span('file-name', { text: 'cv.pdf' }) }),
+            'file',
+            {},
+            { conditional: [['has-name']] }
+          )
+        )
       ).toEqual(['children:File']);
     });
   });

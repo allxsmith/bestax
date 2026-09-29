@@ -1309,6 +1309,18 @@ describe('an element whose component renders its whole tree from props', () => {
     );
   });
 
+  it('writes a text with a backslash as a string, since an attribute has no escapes', () => {
+    const { output } = migrate(
+      inField(
+        tree(
+          '<span className="file-label">C:\\Uploads</span>',
+          '<input className="file-input" type="file" />'
+        )
+      )
+    );
+    expect(output).toContain('buttonLabel={"C:\\\\Uploads"}');
+  });
+
   it('writes button text JSX would read differently as the string it renders', () => {
     const { output } = migrate(
       inField(
