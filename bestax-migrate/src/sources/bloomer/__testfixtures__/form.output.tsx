@@ -29,7 +29,7 @@ export const Form = ({ err }: { err?: string }) => (
     </Field>
     <Field grouped>
       <Control>
-        <SelectBase color="primary" isLoading isFullWidth>
+        <SelectBase color="primary" isLoading isFullwidth>
           <option>A</option>
         </SelectBase>
       </Control>

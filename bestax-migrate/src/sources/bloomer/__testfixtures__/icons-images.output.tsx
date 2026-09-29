@@ -25,7 +25,7 @@ export const Media = ({ cls }: { cls: string }) => (
       <p>Prose</p>
     </Content>
     <Delete size="medium" />
-    <Table isBordered isStriped isNarrow isFullWidth>
+    <Table isBordered isStriped isNarrow isFullwidth>
       <tbody>
         <tr>
           <td>1</td>

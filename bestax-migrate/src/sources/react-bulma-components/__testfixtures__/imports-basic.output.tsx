@@ -3,7 +3,7 @@ import { Button, Notification } from "@allxsmith/bestax-bulma";
 export function Actions() {
   return (
     <div>
-      <Button color="primary" size="large" as="a" isLoading isFullWidth>
+      <Button color="primary" size="large" as="a" isLoading isFullwidth>
         Save
       </Button>
       <Notification color="danger" isLight>

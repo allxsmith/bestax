@@ -191,8 +191,8 @@ bloomer rendered, but Bulma v1 no longer ships styles for that class, so restyle
 ## `prop:isFullWidth` — not a universal helper in bestax
 
 bloomer accepted `isFullWidth` on everything; Bulma's `is-fullwidth` only means something on a
-few elements, and bestax declares `isFullWidth` on exactly those — `Button`, `Select`, `Table`,
-`Tabs` — where it passes through. Elsewhere, drop it, or add `className="is-fullwidth"` if your
+few elements. Where bestax has a prop for it (`Button`, `Select`, `Table`, `Tabs`), it becomes
+`isFullwidth`. Elsewhere, drop it, or add `className="is-fullwidth"` if your
 own CSS styled the class.
 
 ## Modifiers bestax has no prop for — converted to classes

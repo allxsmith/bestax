@@ -145,6 +145,19 @@ describe('kitchen-sink e2e', () => {
     }
   });
 
+  it('writes isFullwidth where bestax has the prop, not a deprecated alias', () => {
+    for (const file of ['elements.tsx', 'components.tsx', 'form.tsx']) {
+      const migrated = fs.readFileSync(path.join(tmpDir, 'src', file), 'utf8');
+      // The code alone: a TODO or a class may name either spelling.
+      const code = migrated.replace(
+        /\/\/.*$|\/\*[\s\S]*?\*\/|"[^"\n]*"|'[^'\n]*'/gm,
+        ' '
+      );
+      expect(code).toMatch(/\bisFullwidth\b/);
+      expect(code).not.toMatch(/\b(?:isFullWidth|fullwidth)\b/);
+    }
+  });
+
   it('adopts the bestax combined CSS bundle in App.tsx', () => {
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'App.tsx'),

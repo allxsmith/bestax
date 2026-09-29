@@ -13,7 +13,7 @@ export const Basic = () => (
     <Button color="primary" size="medium" isOutlined>
       Go
     </Button>
-    <Button isLoading isFullWidth color="link">
+    <Button isLoading isFullwidth color="link">
       Wait
     </Button>
     <Button href="/next" isInverted as="a">
