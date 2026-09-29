@@ -91,8 +91,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   as: AS_TODO,
 
   // Same shape: the per-component maps override this with `rename: 'ref'` on
-  // the targets that forward one, and the `navbar-item` special handles the
-  // two it chooses between. Whatever is left reaches here, so no `innerRef`
+  // the targets that forward one. Whatever is left reaches here, so no `innerRef`
   // migrates in silence onto a target that cannot take it — the RBC sibling
   // `domRef` has been flagged universally all along.
   innerRef: {
@@ -719,7 +718,15 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Navbar.Item',
         status: 'mapped',
         special: 'navbar-item',
-        props: { active: {}, onClick: {}, as: AS_OK },
+        // Both targets the special picks forward a ref to the element rbx's
+        // `innerRef` reached: the item itself, or the `has-dropdown`
+        // container `Navbar.Dropdown` renders.
+        props: {
+          active: {},
+          onClick: {},
+          as: AS_OK,
+          innerRef: { rename: 'ref' },
+        },
         subs: { Container: { status: 'mapped', special: 'navbar-container' } },
       },
       Dropdown: { status: 'mapped', special: 'navbar-dropdown' },

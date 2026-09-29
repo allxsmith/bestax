@@ -13,6 +13,9 @@ import {
   Tab,
 } from "rbx";
 
+const endRef = React.createRef<HTMLAnchorElement>();
+const moreRef = React.createRef<HTMLDivElement>();
+
 export const Components = () => (
   <>
     <Card>
@@ -80,7 +83,13 @@ export const Components = () => (
           <Navbar.Divider />
         </Navbar.Segment>
         <Navbar.Segment align="end">
-          <Navbar.Item>End</Navbar.Item>
+          <Navbar.Item innerRef={endRef}>End</Navbar.Item>
+          <Navbar.Item dropdown innerRef={moreRef}>
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.Dropdown>
+              <Navbar.Item>About</Navbar.Item>
+            </Navbar.Dropdown>
+          </Navbar.Item>
         </Navbar.Segment>
       </Navbar.Menu>
     </Navbar>

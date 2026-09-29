@@ -149,6 +149,16 @@ describe('rbx kitchen-sink e2e', () => {
     expect(components.every(t => t.rule === 'component:Modal')).toBe(true);
   });
 
+  it('renames innerRef to ref on both targets a Navbar.Item becomes', () => {
+    const migrated = fs.readFileSync(
+      path.join(tmpDir, 'src', 'components.tsx'),
+      'utf8'
+    );
+    expect(migrated).toContain('<Navbar.Item ref={endRef}>');
+    expect(migrated).toContain('<Navbar.Dropdown ref={moreRef}>');
+    expect(migrated).not.toContain('innerRef');
+  });
+
   it('adopts the bestax combined CSS bundle in App.tsx', () => {
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'App.tsx'),
