@@ -89,14 +89,29 @@ export const Up = () => (
   </>
 );
 
-export const KeyboardAccessible = () => (
-  <Dropdown label="Focus me, then press ArrowDown or Enter">
-    <Dropdown.Item>First Item</Dropdown.Item>
-    <Dropdown.Item>Second Item</Dropdown.Item>
-    <Dropdown.Divider />
-    <Dropdown.Item>Third Item</Dropdown.Item>
-  </Dropdown>
-);
+// Each item's `onClick` records its label below, so activating one with Enter
+// or Space shows the same result as clicking it.
+export const KeyboardAccessible = () => {
+  const [chosen, setChosen] = useState<string | null>(null);
+
+  return (
+    <>
+      <Dropdown label="Focus me, then press ArrowDown or Enter" mb="3">
+        <Dropdown.Item onClick={() => setChosen('First Item')}>
+          First Item
+        </Dropdown.Item>
+        <Dropdown.Item onClick={() => setChosen('Second Item')}>
+          Second Item
+        </Dropdown.Item>
+        <Dropdown.Divider />
+        <Dropdown.Item onClick={() => setChosen('Third Item')}>
+          Third Item
+        </Dropdown.Item>
+      </Dropdown>
+      <p>Last activated item: {chosen ?? 'none yet'}</p>
+    </>
+  );
+};
 KeyboardAccessible.parameters = {
   docs: {
     description: {
