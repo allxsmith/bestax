@@ -1,3 +1,10 @@
+# [2.21.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.20.0...bestax-migrate@2.21.0) (2026-09-28)
+
+
+### Features
+
+* **bestax-migrate:** convert a menu list's items to Menu.Item ([#816](https://github.com/allxsmith/bestax/issues/816)) ([b385687](https://github.com/allxsmith/bestax/commit/b385687939f87ca146c2cae800466132279a49e6))
+
 # [2.20.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.19.0...bestax-migrate@2.20.0) (2026-09-28)
 
 
