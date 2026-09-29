@@ -425,7 +425,8 @@ export const Avatar = forwardRef(function Avatar(
       // `type={undefined}` as "remove the attribute", and a spread carrying the
       // key with no value is how that arrives. Spreading the default first let
       // such a spread erase it (#690), so the guard only held for callers who
-      // passed nothing. `Dropdown.Item` defaults its button type the same way.
+      // passed nothing. `Dropdown.Item` and `Menu.Item` default their button
+      // type the same way.
       {...(Tag === 'button' ? { type: rest.type ?? 'button' } : {})}
     >
       {showImage && (

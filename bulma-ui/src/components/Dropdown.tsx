@@ -506,8 +506,8 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       role={(forwarded as { role?: React.AriaRole }).role ?? 'menuitem'}
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
-      // Dropdown's own trigger sets it, and `Avatar` defaults it the same way.
-      // `Menu.Item` defaults none at all.
+      // Dropdown's own trigger sets it, and `Avatar` and `Menu.Item` default it
+      // the same way.
       //
       // After `forwarded`, reading through it rather than before it: React
       // treats `type={undefined}` as "remove the attribute", and a spread

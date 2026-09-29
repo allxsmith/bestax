@@ -131,7 +131,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'a'",
-          "description": "Custom link component (e.g. `Link` from router).",
+          "description": "Custom link component (e.g. `Link` from router). `'button'` renders `type=\"button\"` unless you pass a `type`, so an item inside a form does not submit it.",
           "required": false,
           "inherited": false,
           "deprecated": false
