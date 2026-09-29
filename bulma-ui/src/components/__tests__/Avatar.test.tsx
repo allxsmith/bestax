@@ -645,6 +645,25 @@ describe('An href on an as that cannot be a link (#733)', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
+  it('stays quiet for an empty href with no as, which picks the figure itself', () => {
+    // An empty href chooses `figure` by the same truthiness test that picks
+    // `a`, so there is no `as` in the caller's source for a warning to name.
+    const { container } = render(<Avatar name="Ada" href="" />);
+    const el = container.firstChild as HTMLElement;
+    expect(el.nodeName).toBe('FIGURE');
+    expect(el).not.toHaveAttribute('href');
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet for an empty href on an explicit plain element', () => {
+    // An empty href asks for no link, so nothing the caller meant was lost.
+    const { container } = render(<Avatar name="Ada" as="div" href="" />);
+    const el = container.firstChild as HTMLElement;
+    expect(el.nodeName).toBe('DIV');
+    expect(el).not.toHaveAttribute('href');
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
   it('does not warn in production', () => {
     const previous = process.env.NODE_ENV;
     process.env.NODE_ENV = 'production';
