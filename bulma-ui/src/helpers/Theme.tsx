@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, ReactNode, CSSProperties } from 'react';
 import classNames from './classNames';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
+import { validRadii } from './bulmaClassHelpers';
+import { warnOnce } from './devWarnings';
 
 // --- FULL Bulma v1 CSS variable keys (auto-generated from CSSVAR_KEYS) ---
 const bulmaCssVars = [
@@ -584,19 +586,62 @@ function cssVarToProp(varName: string): string {
 }
 
 /**
- * Mapping of camelCase prop names to their Bulma CSS variable counterparts.
+ * Prop names `cssVarToProp` would mint that are already `BulmaOtherProps`
+ * helper props: `--bulma-shadow` becomes `shadow` and `--bulma-radius` becomes
+ * `radius`. They stay out of `bulmaVarPropMap`, so on Theme each keeps the
+ * class-based meaning it has on every other component, and both variables are
+ * still reachable through `bulmaVars`.
  *
- * `--bulma-shadow` is excluded: `cssVarToProp` would mint it as `shadow`,
- * which already exists as a `BulmaOtherProps` prop applied via
- * `useBulmaClasses` — keeping it out of this map means that
- * prop keeps its existing class-based meaning, while `--bulma-shadow` is
- * still reachable through the `bulmaVars` object.
+ * `radius` was missed here once and set `--bulma-radius` while typed as the
+ * helper (#694), so it keeps a deprecated route to the variable for values
+ * that are not helper values; see `legacyRadiusVar`.
+ */
+const helperPropNames: readonly string[] = ['shadow', 'radius'];
+
+/**
+ * Mapping of camelCase prop names to their Bulma CSS variable counterparts,
+ * minus the `helperPropNames` above.
  */
 const bulmaVarPropMap = Object.fromEntries(
   bulmaCssVars
     .map(cssVar => [cssVarToProp(cssVar), cssVar])
-    .filter(([prop]) => prop !== 'shadow')
+    .filter(([prop]) => !helperPropNames.includes(prop))
 ) as Record<string, string>;
+
+/**
+ * The string a legacy `radius` writes to `--bulma-radius`, or `undefined` when
+ * the prop belongs to `useBulmaClasses`: a helper value, unset, or not a
+ * string.
+ *
+ * Before #694 every `radius` on Theme set the variable, whatever its type
+ * said, and a JavaScript caller passing a length got the radius it asked for.
+ * That keeps working so nothing breaks, but it is the one prop on Theme that
+ * means something different from every other component, so it warns in
+ * development and points at `bulmaVars`.
+ *
+ * Only a non-empty string takes this route, because only a string ever set
+ * the variable to something usable: an empty value or zero was dropped, and a
+ * boolean or any other bare number is not a length. Anything else goes to the
+ * helper, which ignores it the way every other component does.
+ */
+const legacyRadiusVar = (radius: unknown): string | undefined => {
+  if (
+    typeof radius !== 'string' ||
+    radius === '' ||
+    (validRadii as readonly string[]).includes(radius)
+  ) {
+    return undefined;
+  }
+  warnOnce(
+    'Theme:radius-variable',
+    `[bestax-bulma] <Theme radius="${radius}">: setting --bulma-radius ` +
+      'through the radius prop is deprecated and will stop working in a ' +
+      'future major version. On Theme, as on every other component, radius ' +
+      `is the "${validRadii.join('", "')}" helper. Set the variable with ` +
+      `bulmaVars={{ '--bulma-radius': '${radius}' }} instead.`
+  );
+  return radius;
+};
 
 /**
  * Props for the Theme component.
@@ -655,6 +700,19 @@ export interface ThemeProps extends Omit<
   isRoot?: boolean;
   colorMode?: 'light' | 'dark' | 'system';
   bulmaVars?: BulmaVars;
+  /**
+   * Border radius helper, as on every other component: `radiusless` adds
+   * `is-radiusless` to the wrapper div. With `isRoot` there is no wrapper, so
+   * like the other helper props it has no effect there.
+   *
+   * It is not the `--bulma-radius` variable; set that through `bulmaVars`
+   * (`bulmaVars={{ '--bulma-radius': '6px' }}`). This prop used to set the
+   * variable for every value, so any other non-empty string still does, but
+   * that route is deprecated and logs a warning in development. A number or
+   * a boolean never produced a usable radius that way, and is now ignored as
+   * it is on every other component.
+   */
+  radius?: (typeof validRadii)[number];
   // Bulma scheme variables
   schemeH?: string;
   schemeS?: string;
@@ -718,8 +776,11 @@ export const Theme: React.FC<ThemeProps> = ({
   className,
   isRoot = false,
   colorMode,
+  radius,
   ...restProps
 }) => {
+  const radiusVar = legacyRadiusVar(radius);
+
   // Extract Bulma variable props from restProps
   const { bulmaVarProps, otherProps } = useMemo(() => {
     const varProps: Record<string, string | undefined> = {};
@@ -736,8 +797,12 @@ export const Theme: React.FC<ThemeProps> = ({
     return { bulmaVarProps: varProps, otherProps: otherPropsObj };
   }, [restProps]);
 
-  // Use Bulma classes for styling (only when not isRoot)
-  const { bulmaHelperClasses, rest } = useBulmaClasses(otherProps);
+  // Use Bulma classes for styling (only when not isRoot). A `radius` that went
+  // to the variable stays out, so it cannot also reach the helper.
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    ...otherProps,
+    radius: radiusVar === undefined ? radius : undefined,
+  });
 
   // Merge bulmaVars and individual props, with props taking precedence
   const mergedVars: BulmaVars = useMemo(() => {
@@ -747,8 +812,11 @@ export const Theme: React.FC<ThemeProps> = ({
         vars[cssVar as BulmaVarKey] = bulmaVarProps[propName] as string;
       }
     }
+    if (radiusVar !== undefined) {
+      vars['--bulma-radius'] = radiusVar;
+    }
     return vars;
-  }, [bulmaVars, bulmaVarProps]);
+  }, [bulmaVars, bulmaVarProps, radiusVar]);
 
   // Inject CSS variables globally at :root level
   useEffect(() => {
