@@ -74,6 +74,11 @@ export interface RootRecord {
    * each a bare, empty `<tag>`.
    */
   countsChildren: Counts | null;
+  /**
+   * The component builds its children from props: each `.icon` inside as an
+   * icon's props, and a bare `<span>` of text after one as its text.
+   */
+  buildsIcons: boolean;
   /** What each item in a list with this class becomes, found by where it sits. */
   items: Items | null;
   /** The component renders a bare `<tag>` around the element too. */
@@ -177,6 +182,8 @@ export type Element =
       writes?: PropWrite[];
       /** Renders the element's children itself, from a count. */
       counts?: Counts;
+      /** Builds its icons from props, out of the element's children. */
+      buildsIcons?: true;
       /** Renders this class only when no other of itself is around it. */
       topLevel?: string;
       /** What each item inside it becomes. */
@@ -430,6 +437,7 @@ export function lookupClasses(
       absorbs: null,
       writes: null,
       countsChildren: null,
+      buildsIcons: false,
       items: null,
       parent: null,
       rendersText: null,
@@ -628,6 +636,7 @@ export function lookupClasses(
     absorbs: entry.absorbs ?? undefined,
     writes: entry.writes ?? undefined,
     counts: entry.countsChildren ?? undefined,
+    buildsIcons: entry.buildsIcons || undefined,
     topLevel: entry.topLevelOnly && root ? root : undefined,
     items: entry.items ?? undefined,
     parent: entry.parent?.tag,
@@ -776,6 +785,16 @@ export function renderLookup(lookup: Lookup): string {
               `bare, empty <${counts.tag}>s: write their count as ` +
               `\`${counts.prop}={N}\` and drop them. The codemod does that ` +
               `when they're all the element holds.`
+            : '') +
+          (element.buildsIcons
+            ? ` It builds its icons from props: write each \`.icon\` inside as ` +
+              `one icon's props, its <i>'s classes read as \`library\` and ` +
+              `\`name\` (\`fas fa-home\` as \`library: 'fa', name: 'home'\`) ` +
+              `and its \`aria-label\` as \`ariaLabel\`, with the bare <span> of ` +
+              `text after it as its text. One icon goes in \`iconProps\`, with ` +
+              `its text as the children, and more than one in \`items\`. The ` +
+              `codemod does that when each \`.icon\` holds a bare, empty <i> ` +
+              `naming a Font Awesome or Material Design Icons glyph.`
             : '') +
           (element.topLevel
             ? ` It renders \`.${element.topLevel}\` only when no other ` +
