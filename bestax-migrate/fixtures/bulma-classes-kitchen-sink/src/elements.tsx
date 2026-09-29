@@ -22,6 +22,15 @@ export function Elements() {
         </a>
         <span className="button is-static">Static</span>
       </div>
+      <span className="icon-text has-text-success">
+        <span className="icon" aria-label="Saved">
+          <i className="fas fa-check"></i>
+        </span>
+        <span>Saved</span>
+        <span className="icon is-small" aria-label="Synced">
+          <i className="mdi mdi-sync"></i>
+        </span>
+      </span>
       <div className="tags are-large has-addons">
         <span className="tag is-primary is-light">Light</span>
         <span className="tag is-medium is-hoverable">Medium</span>

@@ -82,6 +82,7 @@ a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax re
 | `.skeleton-block`      | `Skeleton`            | `<div>` only                                                   |
 | `.skeleton-lines`      | `Skeleton`            | `<div>` only                                                   |
 | `.icon`                | `Icon`                | `<span>` only                                                  |
+| `.icon-text`           | `IconText`            | `<span>` only                                                  |
 | `.image`               | `Image`               | `<div>`, `<figure>`, `<p>` via `as`                            |
 | `.menu`                | `Menu`                | `<aside>` only                                                 |
 | `.menu-label`          | `Menu.Label`          | `<p>` only                                                     |
@@ -251,12 +252,41 @@ inside one of them, or anything else beside them, keeps the element as markup wi
 `children:Skeleton` TODO. A `.skeleton-block` converts like any other element, content and all.
 `Skeleton` takes no helper props, so a helper class on either stays in `className`.
 
+## Icons a component builds from props
+
+`IconText` builds its icons from props, so an `.icon-text` converts together with what's inside
+it: each `.icon` becomes one icon's props, and a bare `<span>` of text right after one becomes that
+icon's text. One icon is written as `iconProps`, with its text as the children, and more than one
+as `items`.
+
+```jsx
+<span className="icon-text">
+  <span className="icon" aria-label="Home">
+    <i className="fas fa-home"></i>
+  </span>
+  <span>Home</span>
+</span>
+// becomes
+<IconText iconProps={{ library: "fa", name: "home", ariaLabel: "Home" }}>Home</IconText>
+```
+
+The glyph is read from the `<i>`: its Font Awesome style class (`fas`, `far`, `fa-solid`, ...) or
+`mdi`, the one class that names the glyph (`fa-home` as `name: "home"`), and the rest as
+`features`. `library` is always written, so a `ConfigProvider` with another `iconLibrary` doesn't
+change what renders. The `.icon`'s own classes and attributes join the glyph's props as they
+would on `Icon`, with `aria-label` as `ariaLabel`.
+
+It converts only when every `.icon` inside converts to `Icon` on its own and holds a bare, empty
+`<i>` naming a Font Awesome or Material Design Icons glyph, and the only other children are those
+texts, bare and static. Anything else keeps it as markup with a `children:IconText` TODO, and the
+`.icon`s inside convert on their own.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, IconText, the menu's `.menu-item`, Message, Modal's root and close
+Checkboxes, Dropdown, File, the menu's `.menu-item`, Message, Modal's root and close
 button, the navbar's burger and dropdown link, the panel's icon, Radio and Radios.
 
 ## Classes left alone

@@ -1,3 +1,18 @@
+# [2.23.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.22.1...bestax-migrate@2.23.0) (2026-09-29)
+
+
+### Features
+
+* **bestax-migrate:** convert .icon-text, building its icons from props ([#823](https://github.com/allxsmith/bestax/issues/823)) ([933868f](https://github.com/allxsmith/bestax/commit/933868f002f80f4d1441d109b3f4eb3a2206245a))
+
+## [2.22.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.22.0...bestax-migrate@2.22.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** write isFullwidth from react-bulma-components too ([01da047](https://github.com/allxsmith/bestax/commit/01da047a6b5a34505ddb02209f6b867bee497a39))
+* **bestax-migrate:** write isFullwidth rather than its deprecated alias from bloomer ([c2a1d22](https://github.com/allxsmith/bestax/commit/c2a1d2274402e5de9afa1569dcd0d51b2a46a3f5)), closes [#680](https://github.com/allxsmith/bestax/issues/680)
+
 # [2.22.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.21.1...bestax-migrate@2.22.0) (2026-09-29)
 
 

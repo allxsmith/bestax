@@ -47,6 +47,7 @@ import {
 } from '../_shared/bestax-import.js';
 import {
   plan,
+  type BuiltIcon,
   type ChildFacts,
   type Conversion,
   type ElementFacts,
@@ -781,17 +782,91 @@ function childFacts(child: any): ChildFacts | undefined {
 
 /**
  * An element's children as plain HTML elements, when that is every one
- * React renders; undefined when one is anything else.
+ * React renders; undefined when one is anything else. `more` adds what else
+ * is known of each.
  */
-function childElementsOf(element: any): ChildFacts[] | undefined {
+function childElementsOf(
+  element: any,
+  more: (child: any) => Partial<ChildFacts> = () => ({})
+): ChildFacts[] | undefined {
   const children: ChildFacts[] = [];
   for (const child of element.children ?? []) {
     if (dropped(child)) continue;
     const found = child.type === 'JSXElement' ? childFacts(child) : undefined;
     if (!found) return undefined;
-    children.push(found);
+    children.push({ ...found, ...more(child) });
   }
   return children;
+}
+
+/** A JSX key for a prop: its name, quoted when it isn't an identifier. */
+function propKey(j: any, name: string): any {
+  return /^[A-Za-z_$][\w$]*$/.test(name)
+    ? j.identifier(name)
+    : j.stringLiteral(name);
+}
+
+/** A prop's value as an expression, a number when it's written as one. */
+function propValue(
+  j: any,
+  value: string | true | readonly string[],
+  number: boolean
+): any {
+  if (value === true) return j.booleanLiteral(true);
+  if (typeof value !== 'string') {
+    return j.arrayExpression(value.map(item => j.stringLiteral(item)));
+  }
+  return number ? j.numericLiteral(Number(value)) : j.stringLiteral(value);
+}
+
+/**
+ * The props one built icon is given, as an object: its glyph's and its
+ * classes' first, then its `.icon`'s attributes, as `Icon` would have been
+ * given them, with `aria-label` under the name `Icon` declares for it.
+ */
+function iconObject(j: any, icon: any, built: BuiltIcon): any {
+  const properties = built.props.map(([name, value]) =>
+    j.objectProperty(
+      propKey(j, name),
+      propValue(j, value, built.numbers.includes(name))
+    )
+  );
+  if (built.className !== null) {
+    properties.push(
+      j.objectProperty(
+        j.identifier('className'),
+        j.stringLiteral(built.className)
+      )
+    );
+  }
+  for (const attr of icon.openingElement.attributes ?? []) {
+    const name = attributeName(attr);
+    if (name === 'className' || built.drop.includes(name)) continue;
+    const given = attr.value;
+    const value =
+      given === null
+        ? j.booleanLiteral(true)
+        : given.type === 'JSXExpressionContainer'
+          ? given.expression
+          : propValue(j, given.value, built.numbers.includes(name));
+    properties.push(
+      j.objectProperty(
+        propKey(j, name === 'aria-label' ? 'ariaLabel' : name),
+        value
+      )
+    );
+  }
+  return j.objectExpression(properties);
+}
+
+/**
+ * A text as a JSX child: as written when it renders as itself there, and as
+ * a string otherwise (leading or trailing space, a character JSX reads).
+ */
+function textChild(j: any, text: string): any {
+  return /^[^\s{}<>&](?:[^{}<>&\r\n]*[^\s{}<>&])?$/.test(text)
+    ? j.jsxText(text)
+    : j.jsxExpressionContainer(j.stringLiteral(text));
 }
 
 function insideForeignContent(elementPath: ASTPath<any>): boolean {
@@ -1081,7 +1156,17 @@ export default function transform(
       childTargets: childTargets(elementPath),
       soleChildTarget: planned.get(sole)?.conversion?.target,
       soleChild: sole && childFacts(sole),
-      childElements: childElementsOf(element),
+      childElements: childElementsOf(element, child => {
+        const becomes = planned.get(child)?.conversion;
+        const only = soleChild(child);
+        const inner = only && childFacts(only);
+        const text = textOf(child);
+        return {
+          ...(becomes && { becomes }),
+          ...(inner && { soleChild: inner }),
+          ...(text !== undefined && { text }),
+        };
+      }),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
@@ -1115,6 +1200,7 @@ export default function transform(
       else exact = undefined;
     }
     let result = exact ?? plan(facts);
+    const builds = result.conversion?.icons;
     const converts = result.conversion !== null || result.fold !== undefined;
     const becomes = result.conversion?.target ?? result.fold?.target;
     if (className === null && !exact && becomes) {
@@ -1145,6 +1231,27 @@ export default function transform(
       const inner = planned.get(soleChild(element)!)!.conversion!;
       inner.props.push(...result.fold.props);
       inner.numbers.push(...result.fold.numbers);
+    }
+    if (builds) {
+      // A `.icon` the target builds from props goes with the element, so it
+      // doesn't convert on its own, and nor does it when a computed
+      // `className` leaves the element to a person: a re-run has to find
+      // the markup it found.
+      const inside = (element.children ?? []).filter(
+        (child: any) => !dropped(child)
+      );
+      for (const icon of builds) {
+        const node = inside[icon.index];
+        const own: Plan = { conversion: null, todos: planned.get(node)!.todos };
+        planned.set(node, own);
+        const at = elements.findIndex(found => found.path.node === node);
+        if (at === -1) continue;
+        if (own.todos.length > 0) {
+          elements[at] = { ...elements[at], plan: own, converts: false };
+        } else {
+          elements.splice(at, 1);
+        }
+      }
     }
     planned.set(element, result);
     if (result.conversion || result.fold || result.todos.length > 0) {
@@ -1348,6 +1455,72 @@ export default function transform(
       if (gone.length) {
         const name = element.openingElement.name;
         name.comments = [...(name.comments ?? []), ...gone.map(afterTagName)];
+      }
+    }
+    if (conversion.icons) {
+      // The target builds its children from props: one icon as `iconProps`,
+      // with its text as the children, or several as `items`. The children
+      // go, and their comments move to the name that stays.
+      const icons = conversion.icons;
+      const inside = (element.children ?? []).filter(
+        (child: any) => !dropped(child)
+      );
+      const objects = icons.map(icon =>
+        iconObject(j, inside[icon.index], icon)
+      );
+      const [only] = icons;
+      const prop =
+        icons.length === 1
+          ? j.jsxAttribute(
+              j.jsxIdentifier('iconProps'),
+              j.jsxExpressionContainer(objects[0])
+            )
+          : j.jsxAttribute(
+              j.jsxIdentifier('items'),
+              j.jsxExpressionContainer(
+                j.arrayExpression(
+                  icons.map((icon, index) =>
+                    j.objectExpression([
+                      j.objectProperty(
+                        j.identifier('iconProps'),
+                        objects[index]
+                      ),
+                      ...(icon.text === undefined
+                        ? []
+                        : [
+                            j.objectProperty(
+                              j.identifier('text'),
+                              j.stringLiteral(icon.text)
+                            ),
+                          ]),
+                    ])
+                  )
+                )
+              )
+            );
+      element.openingElement.attributes = [
+        ...(element.openingElement.attributes ?? []),
+        prop,
+      ];
+      const text = icons.length === 1 ? only.text : undefined;
+      const moved = [
+        ...inside.flatMap((child: any) => commentsWithin(child)),
+        ...(text === undefined
+          ? [element.closingElement, element.closingElement?.name].flatMap(
+              (node: any) => node?.comments ?? []
+            )
+          : []),
+      ];
+      if (text === undefined) {
+        element.children = [];
+        element.openingElement.selfClosing = true;
+        element.closingElement = null;
+      } else {
+        element.children = [textChild(j, text)];
+      }
+      if (moved.length) {
+        const name = element.openingElement.name;
+        name.comments = [...(name.comments ?? []), ...moved.map(afterTagName)];
       }
     }
     let written = element;
