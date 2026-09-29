@@ -146,14 +146,14 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * It is passed on only to a target that can be a link: an `a`, a custom element, or a
    * component. Any other `as` you pass, such as `'figure'` or `'div'`, still accepts it but
    * renders without it, because an `href` is not valid HTML on those elements, and a
-   * development build logs a console warning when that happens. To make such an avatar a link,
-   * render it `as="a"` or pass a link component to `as`. An empty `href` asks for no link: with
-   * no `as` it renders a `<figure>`, and it draws no warning.
+   * development build logs a console warning naming what was dropped. To make such an avatar a
+   * link, render it `as="a"` or pass a link component to `as`. An empty `href` asks for no link:
+   * with no `as` it renders a `<figure>`, and it draws no warning.
    */
   href?: string;
-  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
+  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`. */
   target?: string;
-  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
+  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`. */
   rel?: string;
   /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
@@ -381,26 +381,37 @@ export const Avatar = forwardRef(function Avatar(
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
   const isLinkLike =
     Tag === 'a' || typeof Tag !== 'string' || isCustomElement(Tag);
-  // A target that is not link-like still accepts `href` in the type, since the
-  // element declares none of its own, so the drop below would otherwise pass in
-  // silence (#733). Putting it on the element would render invalid HTML, so the
-  // drop stays and development reports it instead.
+  // A plain element like a `div` still accepts all three in the type (`href`
+  // and `target` as Avatar's own, `rel` as the element's), while the drop below
+  // withholds them, so without this it would pass in silence (#733). Forwarding
+  // them would put an `href` or `target` where HTML has none, so the drop stays
+  // and development reports it instead, naming only the ones actually passed.
   //
   // Only for an `as` the caller wrote. Without one the element is Avatar's own
   // choice, and a message naming an `as` they never passed sends them looking
-  // for it. The href counts when it is truthy, the same test that picks `'a'`
-  // over `'figure'`, so an empty one from data asks for no link and draws no
-  // warning. The key is per element, so a re-render or a list of avatars warns
-  // once rather than once per render.
-  if (as != null && !isLinkLike && href) {
-    warnOnce(
-      `Avatar:href-on-${as}`,
-      `[bestax-bulma] <Avatar as="${as}" href>: Avatar passes "href", ` +
-        `"target" and "rel" on only to a target that can be a link (an "a", ` +
-        `a custom element, or a component), so this <${as}> renders without ` +
-        `them and is not a link. To make it a link, render it as="a" or pass ` +
-        `a link component to "as".`
-    );
+  // for it. A value counts when it is truthy, the same test that picks `'a'`
+  // over `'figure'`, so an empty `href` from data asks for no link and draws no
+  // warning. The key is per element, not per combination, so a re-render or a
+  // list of avatars warns once; the message names what the first one passed.
+  if (as != null && !isLinkLike) {
+    const dropped = Object.entries({ href, target, rel })
+      .filter(([, value]) => value)
+      .map(([key]) => key);
+    if (dropped.length > 0) {
+      const quoted = dropped.map(key => `"${key}"`);
+      const listed =
+        quoted.length > 1
+          ? `${quoted.slice(0, -1).join(', ')} and ${quoted[quoted.length - 1]}`
+          : quoted[0];
+      warnOnce(
+        `Avatar:link-props-on-${as}`,
+        `[bestax-bulma] <Avatar as="${as}" ${dropped.join(' ')}>: Avatar ` +
+          `passes link attributes on only to a target that can be a link (an ` +
+          `"a", a custom element, or a component), so this <${as}> renders ` +
+          `without ${listed}. To make it a link, render it as="a" or pass a ` +
+          `link component to "as".`
+      );
+    }
   }
   // Present-only, not `{ href, target, rel }`. An unconditional spread hands the
   // target these keys whatever the caller passed, and a key existing is not free:

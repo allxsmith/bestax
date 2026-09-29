@@ -227,7 +227,7 @@
           "name": "href",
           "type": "string",
           "default": null,
-          "description": "When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An `as` target declaring its own `href` supersedes this one, and its type and its requiredness are what apply. It is passed on only to a target that can be a link: an `a`, a custom element, or a component. Any other `as` you pass, such as `'figure'` or `'div'`, still accepts it but renders without it, because an `href` is not valid HTML on those elements, and a development build logs a console warning when that happens. To make such an avatar a link, render it `as=\"a\"` or pass a link component to `as`. An empty `href` asks for no link: with no `as` it renders a `<figure>`, and it draws no warning.",
+          "description": "When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An `as` target declaring its own `href` supersedes this one, and its type and its requiredness are what apply. It is passed on only to a target that can be a link: an `a`, a custom element, or a component. Any other `as` you pass, such as `'figure'` or `'div'`, still accepts it but renders without it, because an `href` is not valid HTML on those elements, and a development build logs a console warning naming what was dropped. To make such an avatar a link, render it `as=\"a\"` or pass a link component to `as`. An empty `href` asks for no link: with no `as` it renders a `<figure>`, and it draws no warning.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -236,7 +236,7 @@
           "name": "target",
           "type": "string",
           "default": null,
-          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is.",
+          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -245,7 +245,7 @@
           "name": "rel",
           "type": "string",
           "default": null,
-          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is.",
+          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`.",
           "required": false,
           "inherited": false,
           "deprecated": false

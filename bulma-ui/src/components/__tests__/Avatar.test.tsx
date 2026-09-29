@@ -566,10 +566,11 @@ describe('Ref forwarding', () => {
   });
 });
 
-describe('An href on an as that cannot be a link (#733)', () => {
-  // The type offers `href` on any target that declares none, so a plain
-  // element accepts it; the runtime keeps it off that element, since
-  // `<div href>` is invalid HTML. The drop stays, and development says so.
+describe('Link attributes on an as that cannot be a link (#733)', () => {
+  // The type offers `href` and `target` on any target that declares none, and
+  // `rel` as the element's own, so a plain element accepts all three; the
+  // runtime keeps them off it, since `<div href>` is invalid HTML. The drop
+  // stays, and development says so.
   let warnSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -585,31 +586,90 @@ describe('An href on an as that cannot be a link (#733)', () => {
     'drops the href on as="%s" and warns once in development',
     tag => {
       const { container, rerender } = render(
-        <Avatar name="Ada" as={tag} href="/profile" target="_blank" />
+        <Avatar name="Ada" as={tag} href="/profile" />
       );
-      rerender(<Avatar name="Ada" as={tag} href="/profile" target="_blank" />);
+      rerender(<Avatar name="Ada" as={tag} href="/profile" />);
       const el = container.firstChild as HTMLElement;
       expect(el.nodeName).toBe(tag.toUpperCase());
       expect(el).not.toHaveAttribute('href');
-      expect(el).not.toHaveAttribute('target');
       expect(warnSpy).toHaveBeenCalledTimes(1);
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`<Avatar as="${tag}" href>`)
-      );
+      const message: string = warnSpy.mock.calls[0][0];
+      expect(message).toContain(`<Avatar as="${tag}" href>`);
+      expect(message).toContain(`<${tag}> renders without "href".`);
       // The message names the fix, not just the problem.
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('as="a"'));
+      expect(message).toContain('as="a"');
     }
   );
 
-  it('warns once for the element, not once per avatar', () => {
+  it('warns for a target alone, naming only the target', () => {
+    const { container } = render(
+      <Avatar name="Ada" as="div" target="_blank" />
+    );
+    expect(container.firstChild).not.toHaveAttribute('target');
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const message: string = warnSpy.mock.calls[0][0];
+    expect(message).toContain('<Avatar as="div" target>');
+    expect(message).toContain('renders without "target".');
+    expect(message).not.toContain('"href"');
+    expect(message).not.toContain('"rel"');
+  });
+
+  it('warns for a rel alone, naming only the rel', () => {
+    const { container } = render(<Avatar name="Ada" as="div" rel="noopener" />);
+    expect(container.firstChild).not.toHaveAttribute('rel');
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const message: string = warnSpy.mock.calls[0][0];
+    expect(message).toContain('<Avatar as="div" rel>');
+    expect(message).toContain('renders without "rel".');
+    expect(message).not.toContain('"href"');
+    expect(message).not.toContain('"target"');
+  });
+
+  it('names every link attribute passed together, in one warning', () => {
+    const { container } = render(
+      <Avatar
+        name="Ada"
+        as="div"
+        href="/profile"
+        target="_blank"
+        rel="noopener"
+      />
+    );
+    const el = container.firstChild as HTMLElement;
+    expect(el).not.toHaveAttribute('href');
+    expect(el).not.toHaveAttribute('target');
+    expect(el).not.toHaveAttribute('rel');
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const message: string = warnSpy.mock.calls[0][0];
+    expect(message).toContain('<Avatar as="div" href target rel>');
+    expect(message).toContain('renders without "href", "target" and "rel".');
+  });
+
+  it('names a pair with "and", leaving out the one not passed', () => {
+    render(<Avatar name="Ada" as="div" target="_blank" rel="noopener" />);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toContain(
+      'renders without "target" and "rel".'
+    );
+  });
+
+  it('warns once for the element, not once per avatar or combination', () => {
     render(
       <>
         <Avatar name="Ada" as="div" href="/ada" />
         <Avatar name="Grace" as="div" href="/grace" />
+        <Avatar name="Hedy" as="div" target="_blank" />
         <Avatar name="Katherine" as="figure" href="/katherine" />
       </>
     );
     expect(warnSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('stays quiet for link attributes when the caller passed no as', () => {
+    // With no `as` and no href the element is Avatar's own figure, so there is
+    // no `as` in the caller's source for a warning to name.
+    render(<Avatar name="Ada" target="_blank" rel="noopener" />);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('stays quiet when the target can be a link', () => {
