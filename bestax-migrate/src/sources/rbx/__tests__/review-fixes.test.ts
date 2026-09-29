@@ -758,8 +758,6 @@ describe('the innerRef remediation is achievable', () => {
   it('renames innerRef to ref on the Navbar.Item that becomes a Dropdown', () => {
     // The other half of the same collision: bestax's Navbar.Dropdown is the
     // container, which `<Navbar.Item dropdown>` becomes, and it forwards a ref.
-    // The prop table is keyed on the rbx name, so only the special can know
-    // which target was picked.
     const { output, todos } = migrate(
       'import { Navbar } from "rbx";\nexport const A = (r: any) => <Navbar.Item dropdown innerRef={r}>x</Navbar.Item>;'
     );
@@ -840,9 +838,9 @@ describe('the innerRef remediation is achievable', () => {
     expect(output).toMatch(/innerRef=\{r\}/);
   });
 
-  // Leaving the prop is right; leaving it unmentioned was not. `innerRef` is
-  // universal in rbx, so the targets no per-component entry and no special
-  // claims used to migrate with the prop intact and nothing in the report,
+  // Leaving the prop is right; leaving it unmentioned was not. The targets no
+  // per-component entry and no special claims used to migrate with the prop
+  // intact and nothing in the report,
   // while the RBC sibling `domRef` was flagged on every component. These are
   // the three shapes that reach the universal entry: a target that forwards
   // nothing, a form control that does, and a sub-component of one.
