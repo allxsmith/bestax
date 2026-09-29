@@ -594,13 +594,13 @@ function cssVarToProp(varName: string): string {
 /**
  * Prop names `cssVarToProp` would mint that are already `BulmaOtherProps`
  * helper props: `--bulma-shadow` becomes `shadow` and `--bulma-radius` becomes
- * `radius`. They stay out of `bulmaVarPropMap`, so on Theme each keeps the
- * class-based meaning it has on every other component, and both variables are
- * still reachable through `bulmaVars`.
+ * `radius`. They stay out of `bulmaVarPropMap`, so on Theme each is the helper
+ * prop it is on every other component, and both variables are still reachable
+ * through `bulmaVars`.
  *
  * `radius` was missed here once and set `--bulma-radius` while typed as the
- * helper (#694), so it keeps a deprecated route to the variable for values
- * that are not helper values; see `legacyRadiusVar`.
+ * helper (#694). It still writes that variable, so what it did then keeps
+ * working; see `themeRadiusVar`.
  */
 const helperPropNames: readonly string[] = ['shadow', 'radius'];
 
@@ -615,28 +615,43 @@ const bulmaVarPropMap = Object.fromEntries(
 ) as Record<string, string>;
 
 /**
- * The string a legacy `radius` writes to `--bulma-radius`, or `undefined` when
- * the prop belongs to `useBulmaClasses`: a helper value, unset, or not a
- * string.
+ * What each helper value of `radius` writes to `--bulma-radius` on a Theme,
+ * alongside its class.
  *
- * Before #694 every `radius` on Theme set the variable, whatever its type
- * said, and a JavaScript caller passing a length got the radius it asked for.
- * That keeps working so nothing breaks, but it is the one prop on Theme that
- * means something different from every other component, so it warns in
- * development and points at `bulmaVars`.
- *
- * Only a non-empty string takes this route, because only a string ever set
- * the variable to something usable: an empty value or zero was dropped, and a
- * boolean or any other bare number is not a length. Anything else goes to the
- * helper, which ignores it the way every other component does.
+ * Before #694, `radius="radiusless"` wrote `--bulma-radius: radiusless`. That
+ * is not a length, and a declaration reading an invalid variable falls back
+ * to its property's initial value, which for a border radius is 0. So
+ * everything inside the Theme that takes its radius from that variable lost
+ * it, and under `isRoot` so did everything on the page that does. Writing a
+ * real 0 keeps what
+ * people see and makes it valid CSS. Keyed by the helper values, so adding
+ * one means saying what it writes.
  */
-const legacyRadiusVar = (radius: unknown): string | undefined => {
-  if (
-    typeof radius !== 'string' ||
-    radius === '' ||
-    (validRadii as readonly string[]).includes(radius)
-  ) {
+const radiusHelperVars: Record<(typeof validRadii)[number], string> = {
+  radiusless: '0',
+};
+
+/**
+ * What `radius` writes to `--bulma-radius` on a Theme, or `undefined` when it
+ * writes nothing.
+ *
+ * A helper value writes its `radiusHelperVars` entry. Any other non-empty
+ * string is written as given: before #694 every `radius` on Theme set the
+ * variable whatever its type said, and a JavaScript caller passing a length
+ * got the radius it asked for. That keeps working so nothing breaks, but the
+ * type rejects it, so it warns in development and points at `bulmaVars`.
+ *
+ * Only a string writes anything, because only a string ever set the variable
+ * to something usable: an empty value or zero was dropped, and a boolean or
+ * any other bare number is not a length. The helper ignores those too, the
+ * way it does on every other component.
+ */
+const themeRadiusVar = (radius: unknown): string | undefined => {
+  if (typeof radius !== 'string' || radius === '') {
     return undefined;
+  }
+  if ((validRadii as readonly string[]).includes(radius)) {
+    return radiusHelperVars[radius as keyof typeof radiusHelperVars];
   }
   warnOnce(
     'Theme:radius-variable',
@@ -781,11 +796,14 @@ export interface ThemeProps extends Omit<
   bulmaVars?: BulmaVars;
   /**
    * Border radius helper, as on every other component: `radiusless` adds
-   * `is-radiusless` to the wrapper div. With `isRoot` there is no wrapper, so
-   * like the other helper props it has no effect there.
+   * `is-radiusless` to the wrapper div. On a Theme it also sets
+   * `--bulma-radius` to 0, so what is inside the Theme loses its radius too.
+   * Under `isRoot` there is no wrapper for the class, and the variable is
+   * written at `:root`, which squares everything on the page that takes its
+   * radius from it.
    *
-   * It is not the `--bulma-radius` variable; set that through `bulmaVars`
-   * (`bulmaVars={{ '--bulma-radius': '6px' }}`). This prop used to set the
+   * For any other radius, set the variable through `bulmaVars`
+   * (`bulmaVars={{ '--bulma-radius': '6px' }}`). This prop used to write the
    * variable for every value, so any other non-empty string still does, but
    * that route is deprecated and logs a warning in development. A number or
    * a boolean never produced a usable radius that way, and is now ignored as
@@ -858,7 +876,10 @@ export const Theme: React.FC<ThemeProps> = ({
   radius,
   ...restProps
 }) => {
-  const radiusVar = legacyRadiusVar(radius);
+  const radiusVar = themeRadiusVar(radius);
+  const radiusHelper = (validRadii as readonly unknown[]).includes(radius)
+    ? radius
+    : undefined;
 
   // Extract Bulma variable props from restProps
   const { bulmaVarProps, otherProps } = useMemo(() => {
@@ -876,11 +897,11 @@ export const Theme: React.FC<ThemeProps> = ({
     return { bulmaVarProps: varProps, otherProps: otherPropsObj };
   }, [restProps]);
 
-  // Use Bulma classes for styling (only when not isRoot). A `radius` that went
-  // to the variable stays out, so it cannot also reach the helper.
+  // Use Bulma classes for styling (only when not isRoot). Only a helper value
+  // of `radius` reaches the helper; a legacy string went to the variable.
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...otherProps,
-    radius: radiusVar === undefined ? radius : undefined,
+    radius: radiusHelper,
   });
 
   // Merge bulmaVars and individual props, with props taking precedence

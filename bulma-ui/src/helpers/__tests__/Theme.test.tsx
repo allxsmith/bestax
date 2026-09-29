@@ -291,17 +291,47 @@ describe('Theme', () => {
       warnSpy.mockRestore();
     });
 
-    it('renders a helper value as the class and sets no variable', () => {
-      const { container } = render(
+    it('renders radiusless as the class and zeroes the radius inside', () => {
+      const { container, getByTestId } = render(
         <Theme radius="radiusless">
+          <div data-testid="inside">Test</div>
+        </Theme>
+      );
+
+      // Before #694 this wrote `--bulma-radius: radiusless`, which is invalid
+      // and so squared everything inside that reads the variable. A real 0
+      // keeps that, as valid CSS, and the typed value never warns.
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv).toHaveClass('is-radiusless');
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('0');
+      // jsdom does not cascade custom properties, so pin what the browser
+      // inherits from instead: the content sits in the element setting it.
+      expect(getByTestId('inside').parentElement).toBe(themeDiv);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('writes radiusless at :root on an isRoot Theme, without warning', () => {
+      render(
+        <Theme isRoot radius="radiusless">
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(
+        document.getElementById('bestax-bulma-theme-vars')?.textContent
+      ).toBe(':root { --bulma-radius: 0; }');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('lets radiusless win over bulmaVars, as the prop always did', () => {
+      const { container } = render(
+        <Theme radius="radiusless" bulmaVars={{ '--bulma-radius': '6px' }}>
           <div>Test</div>
         </Theme>
       );
 
       const themeDiv = container.firstChild as HTMLElement;
-      expect(themeDiv).toHaveClass('is-radiusless');
-      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('');
-      expect(warnSpy).not.toHaveBeenCalled();
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('0');
     });
 
     it('prefixes the helper class like every other helper prop', () => {
