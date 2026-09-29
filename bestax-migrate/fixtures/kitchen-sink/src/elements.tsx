@@ -37,7 +37,7 @@ export function Elements() {
             <Button color="primary" size="medium" rounded outlined>
               Confirm
             </Button>
-            <Button color="ghost" loading>
+            <Button color="ghost" loading fullwidth>
               Ghost
             </Button>
             <Button text state="active" submit>

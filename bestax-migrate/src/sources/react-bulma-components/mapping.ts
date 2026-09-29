@@ -177,7 +177,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       outlined: { booleanToProp: { name: 'isOutlined' } },
       inverted: { booleanToProp: { name: 'isInverted' } },
       loading: { booleanToProp: { name: 'isLoading' } },
-      fullwidth: { booleanToProp: { name: 'isFullWidth' } },
+      fullwidth: { booleanToProp: { name: 'isFullwidth' } },
       rounded: { booleanToProp: { name: 'isRounded' } },
       text: { booleanToProp: { name: 'color', value: 'text' } },
       isSelected: {
@@ -755,7 +755,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: {
       align: { valueMap: { center: 'centered', right: 'right' } },
       size: {},
-      fullwidth: {},
+      fullwidth: { rename: 'isFullwidth' },
       type: {
         valueMap: {
           toggle: 'toggle',

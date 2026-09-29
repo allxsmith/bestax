@@ -41,7 +41,7 @@ export function Chrome({ page, setPage }: { page: number; setPage: (p: number) =
           <Menu.Item>Customers</Menu.Item>
         </Menu.List>
       </Menu>
-      <Tabs align="centered" fullwidth toggle rounded>
+      <Tabs align="centered" isFullwidth toggle rounded>
         <Tabs.List>
           <Tabs.Item active><a>Pictures</a></Tabs.Item>
           <Tabs.Item><a>Music</a></Tabs.Item>
