@@ -734,8 +734,9 @@ describe('Link attributes on an as that cannot be a link (#733)', () => {
   });
 
   it('stays silent and renders when the process global is missing (fail closed)', () => {
-    // A page with no bundler and no Node has no `process`. The guard reads it
-    // before `warnOnce` does, so it has to skip the block rather than throw.
+    // A page with no bundler and no Node has no `process`. Nothing on the
+    // warning path may throw there, and `warnOnce` stays off rather than
+    // guessing it is in development.
     const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'process')!;
     Object.defineProperty(globalThis, 'process', {
       value: undefined,
