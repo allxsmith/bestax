@@ -634,6 +634,22 @@ describe('Link attributes on an as that cannot be a link (#733)', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
+  it('does not warn for a target on a form, which declares its own', () => {
+    // `form` has a `target` of its own, so the advice to render it as a link
+    // would be wrong there, the same way it is for `rel`.
+    render(<Avatar name="Ada" as="form" target="_blank" />);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('leaves a form target out of a warning its href raises', () => {
+    render(<Avatar name="Ada" as="form" href="/profile" target="_blank" />);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const message: string = warnSpy.mock.calls[0][0];
+    expect(message).toContain('<Avatar as="form" href>');
+    expect(message).toContain('renders without "href",');
+    expect(message).not.toContain('"target"');
+  });
+
   it('leaves rel out of a warning the other attributes raise', () => {
     render(<Avatar name="Ada" as="div" target="_blank" rel="noopener" />);
     expect(warnSpy).toHaveBeenCalledTimes(1);

@@ -62,6 +62,19 @@ const NON_INTERACTIVE_ROLES: readonly string[] = [
   'none',
 ];
 
+/**
+ * Elements other than `a` that declare `target` themselves, so on them it is
+ * the element's own attribute and not a link attribute Avatar withholds for
+ * want of one. The link attribute warning leaves `target` out on these, the way
+ * it leaves `rel` out everywhere. `area` and `base` are void elements, which
+ * Avatar's content rules out, so `form` is the one a caller can reach.
+ */
+const ELEMENTS_WITH_OWN_TARGET: readonly React.ElementType[] = [
+  'form',
+  'area',
+  'base',
+];
+
 /** Valid shape values for the Avatar component. */
 export type AvatarShape = 'circle' | 'rounded' | 'square';
 
@@ -151,7 +164,7 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * with no `as` it renders a `<figure>`, and it draws no warning.
    */
   href?: string;
-  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`. */
+  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning. */
   target?: string;
   /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
   rel?: string;
@@ -389,8 +402,10 @@ export const Avatar = forwardRef(function Avatar(
   //
   // `rel` is withheld too but left out here. React declares it on every
   // element, so on a plain `as` it is that element's own attribute, and
-  // "render it as a link" would be the wrong advice for it. Whether to forward
-  // it there is a separate question from this warning.
+  // "render it as a link" would be the wrong advice for it. `target` is the
+  // same on an element that declares it, such as `form`, so it is left out
+  // there. Whether to forward either one to such an element is a separate
+  // question from this warning.
   //
   // Only for an `as` the caller wrote. Without one the element is Avatar's own
   // choice, and a message naming an `as` they never passed sends them looking
@@ -408,7 +423,10 @@ export const Avatar = forwardRef(function Avatar(
   // collects the attributes and builds the message for an avatar that needs
   // it, which is small and limited to the case the warning is about.
   if (as != null && !isLinkLike) {
-    const dropped = Object.entries({ href, target })
+    const dropped = Object.entries({
+      href,
+      target: ELEMENTS_WITH_OWN_TARGET.includes(as) ? undefined : target,
+    })
       .filter(([, value]) => value)
       .map(([key]) => key);
     if (dropped.length > 0) {
