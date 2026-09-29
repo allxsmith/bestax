@@ -109,9 +109,9 @@ const family = (
  * not a tweak here. The hand-written `color` exclusion above is the same
  * limitation showing through.
  *
- * Where a prop name means something else ENTIRELY on some element, the safe
- * direction is not available and the table has to be told: see
- * `NOT_A_HELPER_PROP` below.
+ * Where a value outside a prop's tuple still does something on some element,
+ * the ordinary message would say something false about it and the rule has
+ * to be told: see `DEPRECATED_VARIABLE_ROUTE` below.
  *
  * KEYED BY PROP also means each prop is judged ALONE, and the shade props are
  * where that shows. `<Box textColor="white-bis" colorShade="15" />` passes
@@ -196,37 +196,37 @@ export const REMOVES_ONLY: ReadonlyMap<string, string> = new Map([
 ]);
 
 /**
- * Elements on which one of the names above is NOT a helper prop, so the table
- * must not be applied to it.
+ * Helper props that, on one element, still set a CSS variable when given a
+ * string outside their tuple: a deprecated route the library keeps so code
+ * written against its old behaviour keeps rendering. Keyed by element, then by
+ * prop, to the variable the value lands in.
  *
  * `Theme` mints a prop for every Bulma CSS variable, and `--bulma-radius`
- * collides with the `radius` helper. On `Theme` the variable wins at runtime
- * while the declared type stays the helper union, so the two disagree and the
- * rule cannot say anything true about the pair (#694). Both readings:
- * `<Theme radius="6px" />` does not typecheck and does set the variable, so
- * reporting it is a false positive in the JS and JSX projects this rule is
- * for; `<Theme radius="radiusless" />` typechecks and renders
- * `style="--bulma-radius: radiusless"`, so the value the rule would call
- * correct is the one that does nothing. Silence is the only honest answer
- * until #694 picks a meaning.
+ * collided with the `radius` helper: until #694 that prop set the variable
+ * whatever its type said. It is the helper now, as everywhere else, but a
+ * string that is not a helper value still reaches `--bulma-radius`, with a
+ * development warning pointing at `bulmaVars`. So `<Theme radius="6px" />` is
+ * worth reporting, and the ordinary message, which says nothing renders, would
+ * be false about it. The rule reports these with a message that says what
+ * really happens and names the supported spelling.
  *
- * `--bulma-shadow` would collide the same way and is filtered out of that map
- * for exactly this reason, which is why `shadow` is a helper prop on `Theme`
- * and needs no entry here. That filter is the precedent #694 would follow.
+ * Only a string takes that route. A number or `true` goes to the helper on
+ * `Theme` as well, so the ordinary messages about those stay true.
  *
- * This is the one-way invariant above being held rather than abandoned:
- * silence on a wrong value is the direction to be wrong in, and a report on a
- * right one is not. Declared rather than derived, and held to the library by
- * `scripts/helper-prop-collisions.test.mjs`, which recomputes the collision
- * from the library's own variable list and fails if this map and the real one
- * disagree. Same shape as `SIBLING_RUNTIME_DEPS` in check-conformance.mjs,
- * and for the same reason: a declaration no test can falsify becomes a
- * fiction.
+ * `--bulma-shadow` would have collided the same way and was kept out of
+ * Theme's variable map from the start, so `shadow` needs no entry.
+ *
+ * Declared rather than derived, and held to the library by
+ * `scripts/helper-prop-collisions.test.mjs`, which reads Theme's source and
+ * fails if a helper name is still taken as a variable prop or if this map and
+ * the routes Theme really has disagree. Same shape as `SIBLING_RUNTIME_DEPS`
+ * in check-conformance.mjs, and for the same reason: a declaration no test can
+ * falsify becomes a fiction.
  */
-export const NOT_A_HELPER_PROP: ReadonlyMap<
+export const DEPRECATED_VARIABLE_ROUTE: ReadonlyMap<
   string,
-  ReadonlySet<string>
-> = new Map([['Theme', new Set(['radius'])]]);
+  ReadonlyMap<string, string>
+> = new Map([['Theme', new Map([['radius', '--bulma-radius']])]]);
 
 /** Props that emit a class only when a flex `display` is also set. */
 export const FLEX_CONTAINER_PROPS: readonly string[] = [
