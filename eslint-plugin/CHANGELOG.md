@@ -1,3 +1,28 @@
+## [1.1.8](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.7...@allxsmith/eslint-plugin-bestax@1.1.8) (2026-09-29)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** flag react-bulma-components Pagination's delta={0} rather than renaming it ([e339ff1](https://github.com/allxsmith/bestax/commit/e339ff1dc13b252cf3cc6693a12d3387e5910943))
+* **bestax-migrate:** keep a page link as markup when its li is a component's only child ([0e72683](https://github.com/allxsmith/bestax/commit/0e72683e6eb50326a889ee579b3f3e415b7e2df9))
+* **bestax-migrate:** leave a wrapper tag alone when none of its classes would become a prop ([2397b9d](https://github.com/allxsmith/bestax/commit/2397b9d6875f2aaf1e142a8bf84a629b45def953))
+* **bestax-migrate:** leave a wrapper tag with no helper class alone, TODOs and all ([1167a29](https://github.com/allxsmith/bestax/commit/1167a293a6e0a0e6bb52a1b5e02e76609897e073))
+* **bestax-migrate:** map react-bulma-components Pagination onto the props it now renders from ([6cd4b51](https://github.com/allxsmith/bestax/commit/6cd4b512349b691541e6d7728249e23b323030fb))
+* **bestax-migrate:** write a tabIndex string as a number on every root ([546bf8a](https://github.com/allxsmith/bestax/commit/546bf8aedb8ef97756789ed413f5826db48237f8)), closes [#814](https://github.com/allxsmith/bestax/issues/814)
+* **bulma-ui:** name Pagination's page links, and read a count that's no number as its default ([0a1cf06](https://github.com/allxsmith/bestax/commit/0a1cf0689a42918a562eb1b43d7fee104de9bd73))
+* **bulma-ui:** prefix the is-current and is-disabled classes on Pagination's parts ([c9a5fae](https://github.com/allxsmith/bestax/commit/c9a5faee73c0027d5cbd9c54e8565b122a7bca7b))
+* **bulma-ui:** read a Pagination current page that's no number as the first ([68e963b](https://github.com/allxsmith/bestax/commit/68e963b8a6de517d0fd109691dd988a364dc7034))
+* **eslint-plugin:** report the pagination links and ellipsis as classes the codemod converts ([54ba0b3](https://github.com/allxsmith/bestax/commit/54ba0b3190233c308c3b92dd27e2ea8b91424163))
+
+
+### Features
+
+* **bestax-mcp:** say when a component renders the li around its element, or its own text ([8fd3faf](https://github.com/allxsmith/bestax/commit/8fd3faf939e33f323a981f6da101930e5140dac2))
+* **bestax-migrate:** convert .tabs and .icon around their children ([#815](https://github.com/allxsmith/bestax/issues/815)) ([3967a80](https://github.com/allxsmith/bestax/commit/3967a804f0b90e1e897811c729e6b627d98c4103))
+* **bestax-migrate:** convert a menu list's items to Menu.Item ([#816](https://github.com/allxsmith/bestax/issues/816)) ([b385687](https://github.com/allxsmith/bestax/commit/b385687939f87ca146c2cae800466132279a49e6))
+* **bestax-migrate:** convert Pagination's page links and ellipsis in their li's place ([ae720fa](https://github.com/allxsmith/bestax/commit/ae720faaca0a8bcef860e3daa576aa686a7bb8a5)), closes [#809](https://github.com/allxsmith/bestax/issues/809)
+* **bulma-ui:** render Pagination from total, current and onPageChange ([f7ddf04](https://github.com/allxsmith/bestax/commit/f7ddf045b11027ec139824d6c2712f1f017c82c2)), closes [#813](https://github.com/allxsmith/bestax/issues/813)
+
 ## [1.1.7](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.1.6...@allxsmith/eslint-plugin-bestax@1.1.7) (2026-09-28)
 
 
