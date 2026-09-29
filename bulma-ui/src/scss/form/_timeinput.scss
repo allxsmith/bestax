@@ -258,19 +258,26 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 // viewports by TimeInputBase; the rules below adjust everything that's CSS-only
 // (font size, wheel width, gap, separator, mask intensity).
 @media (max-width: 768px) {
+  // Registered through `cv.register-vars` like the defaults above, so the
+  // overrides land on the names the rules read.
   .#{iv.$class-prefix}timeinput {
-    --bestax-timeinput-wheel-width: 4rem;
-    --bestax-timeinput-wheel-gap: 0.5rem;
-    // Mobile mask: with the per-item depth fade already pulling brightness
-    // down toward the edges, the mask only needs to handle the final crop.
-    // Slightly tighter than desktop because mobile items are bigger and the
-    // edge taper benefits from a touch more softening.
-    --bestax-timeinput-wheel-mask: linear-gradient(
-      180deg,
-      transparent 0,
-      black 28%,
-      black 72%,
-      transparent 100%
+    @include cv.register-vars(
+      (
+        'timeinput-wheel-width': 4rem,
+        'timeinput-wheel-gap': 0.5rem,
+        // Mobile mask: with the per-item depth fade already pulling
+        // brightness down toward the edges, the mask only needs to handle the
+        // final crop. Slightly tighter than desktop because mobile items are
+        // bigger and the edge taper benefits from a touch more softening.
+        'timeinput-wheel-mask':
+          linear-gradient(
+            180deg,
+            transparent 0,
+            black 28%,
+            black 72%,
+            transparent 100%
+          ),
+      )
     );
   }
 
@@ -320,7 +327,10 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     // already references `cv.getVar('picker-popover-radius')`) updates
     // automatically. We use Bulma's `radius-large` scaled by 4 for an
     // iOS-sheet-sized corner without hard-coding a px value.
-    --bestax-picker-popover-radius: calc(#{cv.getVar('radius-large')} * 4);
+    @include cv.register-var(
+      'picker-popover-radius',
+      calc(#{cv.getVar('radius-large')} * 4)
+    );
     position: fixed;
     left: 1rem;
     right: 1rem;

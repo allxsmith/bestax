@@ -1,25 +1,24 @@
-// `color` reaching the wheels as a class says nothing about whether the class
-// does anything, which is how it sat dead on them until #701. These compile
-// the real partial and read the wheel's computed style, so a colour whose rule
-// goes missing, or stops re-pointing the band, fails here.
+// A class or a custom property reaching the stylesheet says nothing about
+// whether anything reads it, which is how `color` sat dead on the wheels until
+// #701 and the mobile overrides wrote names no rule used. These compile the
+// real SCSS and check what it actually does.
 import * as sass from 'sass';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
 
+const compile = (file: string) =>
+  sass.compile(path.resolve(__dirname, '../../scss', file), {
+    loadPaths: [path.resolve(__dirname, '../../../../node_modules')],
+    quietDeps: true,
+    logger: sass.Logger.silent,
+  }).css;
+
 let styleEl: HTMLStyleElement;
 
 beforeAll(() => {
-  const result = sass.compile(
-    path.resolve(__dirname, '../../scss/form/_timeinput.scss'),
-    {
-      loadPaths: [path.resolve(__dirname, '../../../../node_modules')],
-      quietDeps: true,
-      logger: sass.Logger.silent,
-    }
-  );
   styleEl = document.createElement('style');
-  styleEl.textContent = result.css;
+  styleEl.textContent = compile('form/_timeinput.scss');
   document.head.appendChild(styleEl);
 });
 
@@ -66,5 +65,38 @@ describe('TimeInput wheel colour styles', () => {
           .trim()
       ).toBe('');
     }
+  });
+});
+
+/** Every custom property a `(max-width: …)` media block in the sheet sets. */
+function mobileCustomProperties(sheet: CSSStyleSheet): string[] {
+  const names = new Set<string>();
+  for (const rule of Array.from(sheet.cssRules)) {
+    if (!(rule instanceof CSSMediaRule)) continue;
+    if (!/max-width/.test(rule.media.mediaText)) continue;
+    for (const inner of Array.from(rule.cssRules)) {
+      if (!(inner instanceof CSSStyleRule)) continue;
+      for (let i = 0; i < inner.style.length; i++) {
+        const name = inner.style[i];
+        if (name.startsWith('--')) names.add(name);
+      }
+    }
+  }
+  return [...names];
+}
+
+describe('TimeInput mobile overrides', () => {
+  // The small-viewport block adjusts the wheels and the popover by setting
+  // custom properties. Setting one that no rule reads changes nothing, so
+  // each has to appear in a `var()` somewhere in the full stylesheet.
+  it('sets only custom properties that some rule reads', () => {
+    const set = mobileCustomProperties(styleEl.sheet as CSSStyleSheet);
+    expect(set.length).toBeGreaterThan(0);
+
+    const shipped = compile('bestax.scss');
+    const unread = set.filter(
+      name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(shipped)
+    );
+    expect(unread).toEqual([]);
   });
 });
