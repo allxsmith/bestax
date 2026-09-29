@@ -152,6 +152,38 @@ describe('Avatar', () => {
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
 
+  it('keeps the button type default through a spread carrying an absent type', () => {
+    // React reads `type={undefined}` as "remove the attribute", and a props
+    // spread whose `type` is undefined is how that arrives. Defaulting before
+    // the spread let it erase the guard and restore submit (#690).
+    const spread: { type?: 'button' | 'submit' | 'reset' } = {
+      type: undefined,
+    };
+    render(<Avatar name="Ada Lovelace" as="button" {...spread} />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('lets an explicit type win on an as="button" avatar', () => {
+    render(<Avatar name="Ada Lovelace" as="button" type="submit" />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'submit');
+  });
+
+  it('sets no type on an avatar that is not a button', () => {
+    render(
+      <>
+        <Avatar name="Ada Lovelace" data-testid="figure" />
+        <Avatar name="Ada Lovelace" href="/ada" data-testid="link" />
+        <Avatar name="Ada Lovelace" as="div" data-testid="div" />
+      </>
+    );
+    expect(screen.getByTestId('figure').tagName).toBe('FIGURE');
+    expect(screen.getByTestId('link').tagName).toBe('A');
+    expect(screen.getByTestId('div').tagName).toBe('DIV');
+    for (const id of ['figure', 'link', 'div']) {
+      expect(screen.getByTestId(id)).not.toHaveAttribute('type');
+    }
+  });
+
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();

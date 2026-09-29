@@ -210,6 +210,9 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      * `role="img"`. A role claiming the opposite, such as `"button"`, says nothing here, and
      * neither does an `href`: that settles it on its own. A genuine `'a'`/`'button'`/`href`
      * avatar keeps its accessible name either way.
+     *
+     * `'button'` renders `type="button"` unless you pass a `type`, so an avatar inside a form
+     * does not submit it.
      */
     as?: T;
   };
@@ -223,6 +226,7 @@ type AvatarImplProps = AvatarOwnProps & {
   as?: React.ElementType;
   role?: React.AriaRole;
   'aria-hidden'?: React.AriaAttributes['aria-hidden'];
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
 };
 
 /**
@@ -406,19 +410,23 @@ export const Avatar = forwardRef(function Avatar(
           'aria-label': accessibleName || name || 'Avatar',
         };
 
-  // A clickable avatar inside a form must not submit it; default the native
-  // button type (an explicit type passed through rest still wins).
-  const buttonTypeProps = Tag === 'button' ? { type: 'button' as const } : {};
-
   return (
     <Tag
       ref={ref}
       className={combinedClasses}
       style={{ ...sizeStyle, ...style }}
-      {...buttonTypeProps}
       {...linkProps}
       {...a11yProps}
       {...rest}
+      // A clickable avatar inside a form must not submit it, and `<button>`
+      // defaults to type="submit". An explicit `type` from the caller still wins.
+      //
+      // After `rest`, reading through it rather than before it: React treats
+      // `type={undefined}` as "remove the attribute", and a spread carrying the
+      // key with no value is how that arrives. Spreading the default first let
+      // such a spread erase it (#690), so the guard only held for callers who
+      // passed nothing. `Dropdown.Item` defaults its button type the same way.
+      {...(Tag === 'button' ? { type: rest.type ?? 'button' } : {})}
     >
       {showImage && (
         <img
