@@ -1,4 +1,5 @@
-import { render } from '@testing-library/react';
+import { StrictMode, useState } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Theme, ThemeProps } from '../Theme';
 import { ConfigProvider } from '../Config';
@@ -462,6 +463,218 @@ describe('Theme', () => {
     expect(themeDiv.style.getPropertyValue('--bulma-scheme-h')).toBe('50');
     // Invalid var skipped.
     expect(themeDiv.style.getPropertyValue('--not-a-bulma-var')).toBe('');
+  });
+
+  describe('several isRoot Themes (#736)', () => {
+    const rootCss = () =>
+      document.getElementById('bestax-bulma-theme-vars')?.textContent;
+
+    it('applies every root Theme, each as its own :root block', () => {
+      render(
+        <>
+          <Theme isRoot primaryH="350">
+            <span />
+          </Theme>
+          <Theme isRoot bulmaVars={{ '--bulma-radius': '12px' }}>
+            <span />
+          </Theme>
+        </>
+      );
+
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 350; }\n' +
+          ':root { --bulma-radius: 12px; }'
+      );
+      expect(
+        document.querySelectorAll('#bestax-bulma-theme-vars')
+      ).toHaveLength(1);
+    });
+
+    it('keeps the other Theme when one unmounts (the issue reproduction)', () => {
+      function App() {
+        const [rounded, setRounded] = useState(true);
+        return (
+          <Theme isRoot primaryH="350" primaryS="73%" primaryL="44%">
+            {rounded && (
+              <Theme isRoot bulmaVars={{ '--bulma-radius': '12px' }}>
+                <span />
+              </Theme>
+            )}
+            <button onClick={() => setRounded(false)}>drop</button>
+          </Theme>
+        );
+      }
+
+      render(<App />);
+      expect(rootCss()).toContain('--bulma-radius: 12px;');
+      expect(rootCss()).toContain('--bulma-primary-h: 350;');
+
+      fireEvent.click(screen.getByText('drop'));
+
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 350; --bulma-primary-s: 73%; ' +
+          '--bulma-primary-l: 44%; }'
+      );
+    });
+
+    it('removes the element only when the last root Theme unmounts', () => {
+      const first = render(
+        <Theme isRoot primaryH="10">
+          <span />
+        </Theme>
+      );
+      const second = render(
+        <Theme isRoot primaryH="20">
+          <span />
+        </Theme>
+      );
+
+      first.unmount();
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 20; }');
+
+      second.unmount();
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+    });
+
+    it('lets an inner root Theme win over the one around it', () => {
+      render(
+        <Theme isRoot primaryH="1">
+          <Theme isRoot primaryH="2">
+            <span />
+          </Theme>
+        </Theme>
+      );
+
+      // Later in the stylesheet wins a variable both set, so the inner
+      // Theme's block must come second even though React runs its effects
+      // first.
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 1; }\n:root { --bulma-primary-h: 2; }'
+      );
+    });
+
+    it('lets a later-mounted root Theme win, and keeps that on update', () => {
+      function App({ hue }: { hue: string }) {
+        const [late, setLate] = useState(false);
+        return (
+          <>
+            <Theme isRoot primaryH={hue}>
+              <span />
+            </Theme>
+            {late && (
+              <Theme isRoot primaryH="200">
+                <span />
+              </Theme>
+            )}
+            <button onClick={() => setLate(true)}>mount</button>
+          </>
+        );
+      }
+
+      const { rerender } = render(<App hue="100" />);
+      fireEvent.click(screen.getByText('mount'));
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 100; }\n:root { --bulma-primary-h: 200; }'
+      );
+
+      // Updating the earlier Theme rewrites its own block in place. It does
+      // not move to the end, which would flip which Theme wins.
+      rerender(<App hue="150" />);
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 150; }\n:root { --bulma-primary-h: 200; }'
+      );
+    });
+
+    it('rewrites the same element on update rather than replacing it', () => {
+      const { rerender } = render(
+        <Theme isRoot primaryH="10">
+          <span />
+        </Theme>
+      );
+      const element = document.getElementById('bestax-bulma-theme-vars');
+
+      rerender(
+        <Theme isRoot primaryH="30">
+          <span />
+        </Theme>
+      );
+
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBe(element);
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 30; }');
+    });
+
+    it('withdraws a Theme whose isRoot is cleared', () => {
+      const { rerender } = render(
+        <>
+          <Theme isRoot primaryH="10">
+            <span />
+          </Theme>
+          <Theme isRoot primaryH="20">
+            <span />
+          </Theme>
+        </>
+      );
+
+      rerender(
+        <>
+          <Theme isRoot primaryH="10">
+            <span />
+          </Theme>
+          <Theme primaryH="20">
+            <span />
+          </Theme>
+        </>
+      );
+
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 10; }');
+    });
+
+    it('writes each Theme once under StrictMode', () => {
+      const { unmount } = render(
+        <StrictMode>
+          <Theme isRoot primaryH="1">
+            <Theme isRoot primaryH="2">
+              <span />
+            </Theme>
+          </Theme>
+          <Theme isRoot primaryH="3">
+            <span />
+          </Theme>
+        </StrictMode>
+      );
+
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 1; }\n' +
+          ':root { --bulma-primary-h: 2; }\n' +
+          ':root { --bulma-primary-h: 3; }'
+      );
+      expect(
+        document.querySelectorAll('#bestax-bulma-theme-vars')
+      ).toHaveLength(1);
+
+      unmount();
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+    });
+
+    it('leaves an existing element alone when a root Theme has no variables', () => {
+      const preExisting = document.createElement('style');
+      preExisting.id = 'bestax-bulma-theme-vars';
+      preExisting.textContent = ':root { --bulma-primary-h: 5; }';
+      document.head.appendChild(preExisting);
+
+      const { unmount } = render(
+        <Theme isRoot>
+          <span />
+        </Theme>
+      );
+      unmount();
+
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBe(
+        preExisting
+      );
+      expect(preExisting.textContent).toBe(':root { --bulma-primary-h: 5; }');
+      preExisting.remove();
+    });
   });
 
   describe('colorMode', () => {
