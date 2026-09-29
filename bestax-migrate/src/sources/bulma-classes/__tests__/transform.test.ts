@@ -1234,6 +1234,16 @@ describe('an element whose component builds its icons from props', () => {
     expect(output).toMatch(/<IconText \/\* the house \*\/ iconProps=/);
   });
 
+  it('keeps the TODO an icon it takes carried, with the class', () => {
+    const { output, rules } = migrate(
+      iconText(
+        '<span className="icon tile" aria-label="Home"><i className="fas fa-home"></i></span>'
+      )
+    );
+    expect(rules).toEqual(['legacy:tile']);
+    expect(output).toMatch(/className: "tile",/);
+  });
+
   it('keeps its icons as markup when a computed className leaves it to a person', () => {
     const source = iconText(home).replace(
       'className="icon-text"',
