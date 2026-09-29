@@ -396,15 +396,16 @@ export const Avatar = forwardRef(function Avatar(
   // choice, and a message naming an `as` they never passed sends them looking
   // for it. A value counts when it is truthy, the same test that picks `'a'`
   // over `'figure'`, so an empty `href` from data asks for no link and draws no
-  // warning. The key is per element, not per combination, so a re-render or a
-  // list of avatars warns once; the message names what the first one passed.
+  // warning. The key is the element plus the attributes passed, so a re-render
+  // or a list of avatars warns once, while a different combination on the same
+  // element still gets its own warning rather than hiding behind the first.
   if (as != null && !isLinkLike) {
     const dropped = Object.entries({ href, target })
       .filter(([, value]) => value)
       .map(([key]) => key);
     if (dropped.length > 0) {
       warnOnce(
-        `Avatar:link-props-on-${as}`,
+        `Avatar:link-props-on-${as}:${dropped.join('+')}`,
         `[bestax-bulma] <Avatar as="${as}" ${dropped.join(' ')}>: this ` +
           `<${as}> renders without ` +
           `${dropped.map(key => `"${key}"`).join(' and ')}, because Avatar ` +
