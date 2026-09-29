@@ -233,9 +233,43 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [
         {
           message:
-            "`radius=\"6px\"` is not a value radius accepts. On Theme it still sets `--bulma-radius`, but through a deprecated route: write `bulmaVars={{ '--bulma-radius': '6px' }}` instead.",
+            "`radius=\"6px\"` is not a value radius accepts, so on Theme it sets `--bulma-radius` instead, through a deprecated route. If a radius of `6px` is what you meant, write `bulmaVars={{ '--bulma-radius': '6px' }}`. Valid values: `radiusless`.",
         },
       ],
+    },
+    {
+      // Anything else that is not a near miss of `radiusless` takes the same
+      // route in the library, a `var()` included, so it gets the same report.
+      code: imported('Theme', '<Theme radius="var(--my-radius)">x</Theme>'),
+      errors: [{ messageId: 'deprecatedVariable' }],
+    },
+    {
+      // A near miss of `radiusless` is most likely that value mistyped, so it
+      // gets the suggestion, as on every other element, rather than advice
+      // to move the typo into `bulmaVars`. The message still says what the
+      // value does on `Theme`, because the library sends it to the variable
+      // too. Pinned by message for the same reason as the case above.
+      code: imported('Theme', '<Theme radius="radiusles">x</Theme>'),
+      errors: [
+        {
+          message:
+            '`radius="radiusles"` is not a value radius accepts, so on Theme it sets `--bulma-radius` instead, through a deprecated route. Did you mean `radiusless`?',
+        },
+      ],
+    },
+    {
+      // Reads as "round the corners" and is no near miss of `radiusless`, so
+      // there is nothing to suggest. What is true is the deprecated route:
+      // it sets the variable, and the message lists the one valid value and
+      // offers `bulmaVars` only for the case where that radius was meant.
+      code: imported('Theme', '<Theme radius="rounded">x</Theme>'),
+      errors: [{ messageId: 'deprecatedVariable' }],
+    },
+    {
+      // An empty string sets nothing on `Theme`, as in the library, so the
+      // ordinary message is the true one.
+      code: imported('Theme', '<Theme radius="">x</Theme>'),
+      errors: [{ messageId: 'invalid' }],
     },
     {
       // The route keys on the RESOLVED element, so it follows an alias and a
@@ -252,6 +286,7 @@ ruleTester.run('valid-helper-value', rule, {
             value: '6px',
             element: 'Theme',
             cssVar: '--bulma-radius',
+            valid: '`radiusless`',
           },
         },
       ],

@@ -176,10 +176,12 @@ There is also one element where a wrong value still does something, and the
 rule knows it. `radius` on `Theme` is the `radiusless` helper, as everywhere
 else, but `Theme` used to set `--bulma-radius` from it, and a string outside
 the helper's values still does, through a deprecated route. The rule reports
-that with its own message, pointing at `bulmaVars`:
+that with its own message, pointing at `bulmaVars`, unless the value is a near
+miss of `radiusless`, which gets the usual suggestion:
 
 ```jsx
 <Theme radius="6px" />                            // ✗ deprecated → bulmaVars
+<Theme radius="radiusles" />                      // ✗ Did you mean `radiusless`?
 <Theme bulmaVars={{ '--bulma-radius': '6px' }} /> // ✓
 ```
 

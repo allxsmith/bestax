@@ -29,7 +29,9 @@
  * particular element the rule needs is `DEPRECATED_VARIABLE_ROUTE`: on
  * `Theme`, a `radius` string outside the tuple still sets `--bulma-radius`
  * through a deprecated route, so that report says so rather than claiming
- * nothing renders.
+ * nothing renders. A near miss of a valid value still gets the suggestion
+ * there, because it is most likely that value mistyped, and pointing it at
+ * `bulmaVars` would only move the typo.
  */
 import type { Rule } from 'eslint';
 import {
@@ -103,7 +105,9 @@ const rule: Rule.RuleModule = {
       shorthandRemoves:
         '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so nothing renders. It is also not a switch: its only value {{valid}} REMOVES the {{thing}}. Omit `{{prop}}` to keep the {{thing}}, or write `{{prop}}="{{only}}"` to remove it.',
       deprecatedVariable:
-        "`{{prop}}=\"{{value}}\"` is not a value {{prop}} accepts. On {{element}} it still sets `{{cssVar}}`, but through a deprecated route: write `bulmaVars={{ '{{cssVar}}': '{{value}}' }}` instead.",
+        "`{{prop}}=\"{{value}}\"` is not a value {{prop}} accepts, so on {{element}} it sets `{{cssVar}}` instead, through a deprecated route. If a {{prop}} of `{{value}}` is what you meant, write `bulmaVars={{ '{{cssVar}}': '{{value}}' }}`. Valid values: {{valid}}.",
+      deprecatedVariableWithSuggestion:
+        '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so on {{element}} it sets `{{cssVar}}` instead, through a deprecated route. Did you mean {{suggestions}}?',
     },
   },
   create(context) {
@@ -166,25 +170,28 @@ const rule: Rule.RuleModule = {
           }
           const value = literalValue(attr);
           if (value === null || valid.includes(value)) continue;
-          // The value does render here, as a variable, so "nothing renders"
-          // would be false. Only a string reaches this route, which is why
-          // the `true` and numeric cases above need no such branch.
-          const cssVar = routes?.get(prop);
-          if (cssVar !== undefined) {
-            context.report({
-              node: attr,
-              messageId: 'deprecatedVariable',
-              data: { prop, value, element, cssVar },
-            });
-            continue;
-          }
           const suggestions = suggest(value, valid);
+          // Where the element has a deprecated route, the value renders as a
+          // variable, so "nothing renders" would be false. Only a non-empty
+          // string takes that route, as in the library: an empty one sets
+          // nothing, and the `true` and numeric cases above go to the helper.
+          // A near miss still gets the suggestion rather than `bulmaVars`.
+          const cssVar = value === '' ? undefined : routes?.get(prop);
+          const [withSuggestion, withoutSuggestion] =
+            cssVar === undefined
+              ? (['invalidWithSuggestion', 'invalid'] as const)
+              : ([
+                  'deprecatedVariableWithSuggestion',
+                  'deprecatedVariable',
+                ] as const);
           context.report({
             node: attr,
-            messageId: suggestions.length ? 'invalidWithSuggestion' : 'invalid',
+            messageId: suggestions.length ? withSuggestion : withoutSuggestion,
             data: {
               prop,
               value,
+              element,
+              cssVar: cssVar ?? '',
               valid: valid.map(v => `\`${v}\``).join(', '),
               suggestions: suggestions.map(v => `\`${v}\``).join(' or '),
             },
