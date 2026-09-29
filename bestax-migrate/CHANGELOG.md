@@ -1,3 +1,22 @@
+## [2.21.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.21.0...bestax-migrate@2.21.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** flag react-bulma-components Pagination's delta={0} rather than renaming it ([e339ff1](https://github.com/allxsmith/bestax/commit/e339ff1dc13b252cf3cc6693a12d3387e5910943))
+* **bestax-migrate:** leave a wrapper tag alone when none of its classes would become a prop ([2397b9d](https://github.com/allxsmith/bestax/commit/2397b9d6875f2aaf1e142a8bf84a629b45def953))
+* **bestax-migrate:** leave a wrapper tag with no helper class alone, TODOs and all ([1167a29](https://github.com/allxsmith/bestax/commit/1167a293a6e0a0e6bb52a1b5e02e76609897e073))
+* **bestax-migrate:** map react-bulma-components Pagination onto the props it now renders from ([6cd4b51](https://github.com/allxsmith/bestax/commit/6cd4b512349b691541e6d7728249e23b323030fb))
+* **bestax-migrate:** write a tabIndex string as a number on every root ([546bf8a](https://github.com/allxsmith/bestax/commit/546bf8aedb8ef97756789ed413f5826db48237f8)), closes [#814](https://github.com/allxsmith/bestax/issues/814)
+* **bulma-ui:** name Pagination's page links, and read a count that's no number as its default ([0a1cf06](https://github.com/allxsmith/bestax/commit/0a1cf0689a42918a562eb1b43d7fee104de9bd73))
+* **bulma-ui:** prefix the is-current and is-disabled classes on Pagination's parts ([c9a5fae](https://github.com/allxsmith/bestax/commit/c9a5faee73c0027d5cbd9c54e8565b122a7bca7b))
+* **bulma-ui:** read a Pagination current page that's no number as the first ([68e963b](https://github.com/allxsmith/bestax/commit/68e963b8a6de517d0fd109691dd988a364dc7034))
+
+
+### Features
+
+* **bulma-ui:** render Pagination from total, current and onPageChange ([f7ddf04](https://github.com/allxsmith/bestax/commit/f7ddf045b11027ec139824d6c2712f1f017c82c2)), closes [#813](https://github.com/allxsmith/bestax/issues/813)
+
 # [2.21.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.20.0...bestax-migrate@2.21.0) (2026-09-28)
 
 
