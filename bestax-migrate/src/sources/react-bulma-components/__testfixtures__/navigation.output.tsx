@@ -3,7 +3,7 @@ import { Breadcrumb, Dropdown, Menu, Navbar, Pagination, Panel, Tabs } from "@al
 export function Chrome({ page, setPage }: { page: number; setPage: (p: number) => void }) {
   // TODO(bestax-migrate): `boxed` — no boxed prop; add className="is-boxed" to Navbar.DropdownMenu
   // TODO(bestax-migrate): `value` — bestax Dropdown.Item has no value prop; use onClick and your own state
-  // TODO(bestax-migrate): `delta` — no delta prop in bestax Pagination
+  // TODO(bestax-migrate): `delta={0}` — RBC renders no page links for it, and bestax Pagination still shows the current, first and last pages from `siblingCount={0}`; compose the parts by hand for a Pagination with no page links
   return (
     <div>
       <Navbar color="dark" fixed="top" transparent>
@@ -60,7 +60,8 @@ export function Chrome({ page, setPage }: { page: number; setPage: (p: number) =
         <Dropdown.Divider />
         <Dropdown.Item value="b">Second</Dropdown.Item>
       </Dropdown>
-      <Pagination current={page} total={10} onPageChange={setPage} align="centered" rounded delta={2} />
+      <Pagination current={page} total={10} onPageChange={setPage} align="centered" rounded siblingCount={2} />
+      <Pagination current={page} total={10} onPageChange={setPage} delta={0} />
     </div>
   );
 }

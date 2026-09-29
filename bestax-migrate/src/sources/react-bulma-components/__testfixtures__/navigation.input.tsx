@@ -58,6 +58,7 @@ export function Chrome({ page, setPage }: { page: number; setPage: (p: number) =
         <Dropdown.Item value="b">Second</Dropdown.Item>
       </Dropdown>
       <Pagination current={page} total={10} onChange={setPage} align="center" rounded delta={2} />
+      <Pagination current={page} total={10} onChange={setPage} delta={0} />
     </div>
   );
 }
