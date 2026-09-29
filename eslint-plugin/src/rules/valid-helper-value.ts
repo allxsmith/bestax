@@ -25,15 +25,16 @@
  * It is deliberately not a substitute for typechecking, and the overlap on
  * `.tsx` is expected rather than a defect.
  *
- * The table is keyed by prop rather than by element, with one exception the
- * rule has to know about: a name in it can mean something else entirely on a
- * particular element, and then judging it reports working code.
- * `NOT_A_HELPER_PROP` is that list, and `Theme`'s `radius` is why it exists.
+ * The table is keyed by prop rather than by element. The one fact about a
+ * particular element the rule needs is `DEPRECATED_VARIABLE_ROUTE`: on
+ * `Theme`, a `radius` string outside the tuple still sets `--bulma-radius`
+ * through a deprecated route, so that report says so rather than claiming
+ * nothing renders.
  */
 import type { Rule } from 'eslint';
 import {
+  DEPRECATED_VARIABLE_ROUTE,
   HELPER_VALUES,
-  NOT_A_HELPER_PROP,
   REMOVES_ONLY,
 } from '../lib/values.js';
 import {
@@ -101,6 +102,8 @@ const rule: Rule.RuleModule = {
         '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
       shorthandRemoves:
         '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so nothing renders. It is also not a switch: its only value {{valid}} REMOVES the {{thing}}. Omit `{{prop}}` to keep the {{thing}}, or write `{{prop}}="{{only}}"` to remove it.',
+      deprecatedVariable:
+        "`{{prop}}=\"{{value}}\"` is not a value {{prop}} accepts. On {{element}} it still sets `{{cssVar}}`, but through a deprecated route: write `bulmaVars={{ '{{cssVar}}': '{{value}}' }}` instead.",
     },
   },
   create(context) {
@@ -114,13 +117,12 @@ const rule: Rule.RuleModule = {
         };
         const element = elementOf(context, opening, imports);
         if (element === null) return;
-        // A name in the table can mean something else on a particular
-        // element, in which case the table says nothing about it. `Theme`'s
-        // `radius` is the case; see NOT_A_HELPER_PROP.
-        const shadowed = NOT_A_HELPER_PROP.get(element);
+        // Props whose out-of-tuple strings still set a variable on this
+        // element. `Theme`'s `radius` is the case; see
+        // DEPRECATED_VARIABLE_ROUTE.
+        const routes = DEPRECATED_VARIABLE_ROUTE.get(element);
         for (const attr of valuesThatRender(opening)) {
           const prop: string = attr.name.name;
-          if (shadowed?.has(prop)) continue;
           const valid = HELPER_VALUES.get(prop);
           if (!valid) continue;
           // `true`, bare or explicit, matches no tuple of strings. Same
@@ -164,6 +166,18 @@ const rule: Rule.RuleModule = {
           }
           const value = literalValue(attr);
           if (value === null || valid.includes(value)) continue;
+          // The value does render here, as a variable, so "nothing renders"
+          // would be false. Only a string reaches this route, which is why
+          // the `true` and numeric cases above need no such branch.
+          const cssVar = routes?.get(prop);
+          if (cssVar !== undefined) {
+            context.report({
+              node: attr,
+              messageId: 'deprecatedVariable',
+              data: { prop, value, element, cssVar },
+            });
+            continue;
+          }
           const suggestions = suggest(value, valid);
           context.report({
             node: attr,

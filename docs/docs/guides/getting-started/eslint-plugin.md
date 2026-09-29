@@ -172,12 +172,16 @@ One family is outside its reach, knowingly: component-specific `color` props
 have their own unions, so `<Button color="ghost">` is correct and the value
 rule has no business reporting it.
 
-There is also one element where a helper name means something else, and the
-rule knows it. `Theme` accepts a prop for every Bulma CSS variable, and
-`--bulma-radius` gives it a `radius` prop, so on `Theme` that prop sets the
-variable instead of emitting a class. The rule skips `radius` on `Theme`
-alone: every other helper prop on it, and `radius` on everything else, is
-still checked.
+There is also one element where a wrong value still does something, and the
+rule knows it. `radius` on `Theme` is the `radiusless` helper, as everywhere
+else, but `Theme` used to set `--bulma-radius` from it, and a string outside
+the helper's values still does, through a deprecated route. The rule reports
+that with its own message, pointing at `bulmaVars`:
+
+```jsx
+<Theme radius="6px" />                            // ✗ deprecated → bulmaVars
+<Theme bulmaVars={{ '--bulma-radius': '6px' }} /> // ✓
+```
 
 It knows the documented extras, so these are all accepted:
 
