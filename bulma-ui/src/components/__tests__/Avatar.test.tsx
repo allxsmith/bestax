@@ -732,4 +732,23 @@ describe('Link attributes on an as that cannot be a link (#733)', () => {
       process.env.NODE_ENV = previous;
     }
   });
+
+  it('stays silent and renders when the process global is missing (fail closed)', () => {
+    // A page with no bundler and no Node has no `process`. The guard reads it
+    // before `warnOnce` does, so it has to skip the block rather than throw.
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'process')!;
+    Object.defineProperty(globalThis, 'process', {
+      value: undefined,
+      configurable: true,
+    });
+    try {
+      const { container } = render(
+        <Avatar name="Ada" as="div" href="/profile" />
+      );
+      expect(container.firstChild?.nodeName).toBe('DIV');
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(globalThis, 'process', descriptor);
+    }
+  });
 });
