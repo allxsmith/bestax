@@ -374,6 +374,22 @@ describe('Custom element targets', () => {
     expect(el).not.toHaveAttribute('role', 'img');
     expect(el).toHaveAttribute('href', '/p');
   });
+
+  it('passes target and rel on to a custom element, as it does href', () => {
+    render(
+      <Avatar
+        as={'x-avatar' as never}
+        href="/p"
+        target="_blank"
+        rel="noopener"
+        name="Ada"
+        data-testid="a"
+      />
+    );
+    const el = screen.getByTestId('a');
+    expect(el).toHaveAttribute('target', '_blank');
+    expect(el).toHaveAttribute('rel', 'noopener');
+  });
 });
 
 describe('Custom component targets (#668)', () => {

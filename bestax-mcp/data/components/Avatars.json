@@ -236,7 +236,7 @@
           "name": "target",
           "type": "string",
           "default": null,
-          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning.",
+          "description": "Anchor target, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -245,7 +245,7 @@
           "name": "rel",
           "type": "string",
           "default": null,
-          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is.",
+          "description": "Anchor rel, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is.",
           "required": false,
           "inherited": false,
           "deprecated": false
