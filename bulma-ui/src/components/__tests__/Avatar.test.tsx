@@ -2,6 +2,7 @@ import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Avatar } from '../Avatar';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 describe('Avatar', () => {
   it('renders an image when src is provided', () => {
@@ -272,15 +273,6 @@ describe('Avatar', () => {
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener');
-  });
-
-  it('does not forward href to a non-anchor element rendered via as', () => {
-    const { container } = render(
-      <Avatar name="Ada" as="div" href="https://example.com" />
-    );
-    const el = container.firstChild as HTMLElement;
-    expect(el.nodeName).toBe('DIV');
-    expect(el).not.toHaveAttribute('href');
   });
 
   it('forwards href to a custom component rendered via as', () => {
@@ -571,5 +563,99 @@ describe('Ref forwarding', () => {
     const ref = createRef<HTMLAnchorElement>();
     render(<Avatar name="Ada" href="https://example.com" ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
+  });
+});
+
+describe('An href on an as that cannot be a link (#733)', () => {
+  // The type offers `href` on any target that declares none, so a plain
+  // element accepts it; the runtime keeps it off that element, since
+  // `<div href>` is invalid HTML. The drop stays, and development says so.
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    resetDevWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it.each(['figure', 'div', 'button'] as const)(
+    'drops the href on as="%s" and warns once in development',
+    tag => {
+      const { container, rerender } = render(
+        <Avatar name="Ada" as={tag} href="/profile" target="_blank" />
+      );
+      rerender(<Avatar name="Ada" as={tag} href="/profile" target="_blank" />);
+      const el = container.firstChild as HTMLElement;
+      expect(el.nodeName).toBe(tag.toUpperCase());
+      expect(el).not.toHaveAttribute('href');
+      expect(el).not.toHaveAttribute('target');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`<Avatar as="${tag}" href>`)
+      );
+      // The message names the fix, not just the problem.
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('as="a"'));
+    }
+  );
+
+  it('warns once for the element, not once per avatar', () => {
+    render(
+      <>
+        <Avatar name="Ada" as="div" href="/ada" />
+        <Avatar name="Grace" as="div" href="/grace" />
+        <Avatar name="Katherine" as="figure" href="/katherine" />
+      </>
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('stays quiet when the target can be a link', () => {
+    const CustomLink: React.FC<{
+      href?: string;
+      children?: React.ReactNode;
+    }> = ({ href, children, ...rest }) => (
+      <a data-testid="custom" href={href} {...rest}>
+        {children}
+      </a>
+    );
+    render(
+      <>
+        <Avatar name="Ada" href="/profile" data-testid="default" />
+        <Avatar name="Ada" as="a" href="/profile" data-testid="anchor" />
+        <Avatar
+          name="Ada"
+          as={'x-avatar' as never}
+          href="/profile"
+          data-testid="element"
+        />
+        <Avatar name="Ada" as={CustomLink} href="/profile" />
+      </>
+    );
+    for (const id of ['default', 'anchor', 'element', 'custom']) {
+      expect(screen.getByTestId(id)).toHaveAttribute('href', '/profile');
+    }
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet on a plain element given no href', () => {
+    render(<Avatar name="Ada" as="div" />);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not warn in production', () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const { container } = render(
+        <Avatar name="Ada" as="div" href="/profile" />
+      );
+      expect(container.firstChild).not.toHaveAttribute('href');
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      process.env.NODE_ENV = previous;
+    }
   });
 });
