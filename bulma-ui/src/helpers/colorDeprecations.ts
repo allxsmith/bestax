@@ -24,8 +24,8 @@ const CSS_BACKED =
   'primary, link, info, success, warning, danger, black, white, light, dark';
 
 /**
- * Test-only: re-arm the warn-once registry. The registry is shared with the
- * library's other development warnings, so this re-arms those too.
+ * Test-only: re-arm the warn-once registry. The registry lives in
+ * `devWarnings`, shared with the other dev warnings, so this re-arms those too.
  */
 export const resetColorDeprecationWarnings = resetDevWarnings;
 

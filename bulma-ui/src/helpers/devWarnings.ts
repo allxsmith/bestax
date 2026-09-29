@@ -23,9 +23,9 @@ const isDev = (): boolean => {
 };
 
 /**
- * Log `message` with `console.warn` the first time `key` is seen, in
- * development only. Keys are shared by every caller, so prefix them with the
- * component name.
+ * Logs a console warning in development, once per `key` for the life of the
+ * page. Safe to call during render: a re-render, or a second instance hitting
+ * the same case, finds the key already recorded and stays quiet.
  */
 export const warnOnce = (key: string, message: string): void => {
   if (!isDev() || warnedKeys.has(key)) return;
