@@ -164,9 +164,9 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * with no `as` it renders a `<figure>`, and it draws no warning.
    */
   href?: string;
-  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning. */
+  /** Anchor target, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning. */
   target?: string;
-  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
+  /** Anchor rel, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. */
   rel?: string;
   /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
