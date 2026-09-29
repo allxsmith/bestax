@@ -159,14 +159,6 @@ let notifications: NotificationInstance[] = [];
 let queuedNotifications: NotificationInstance[] = [];
 let currentQueuedNotification: NotificationInstance | null = null;
 
-// What a container shows right now: the stacked notifications, then the queued
-// one on screen. NotificationContainer renders from this rather than from
-// updates alone, so notifications raised before it mounted still appear. It is
-// replaced rather than mutated, and only when listeners are notified, because
-// useSyncExternalStore needs the same array back between changes.
-let visibleNotifications: NotificationInstance[] = [];
-const getVisibleNotifications = () => visibleNotifications;
-
 // The server has nowhere to portal a notification to, and its copy of this
 // module is shared by every request, so server rendering reads an empty list.
 // Hydration reads it too, which keeps the first client render matching the
@@ -174,12 +166,23 @@ const getVisibleNotifications = () => visibleNotifications;
 const noNotifications: NotificationInstance[] = [];
 const getServerNotifications = () => noNotifications;
 
+// What a container shows right now: the stacked notifications, then the queued
+// one on screen. NotificationContainer renders from this rather than from
+// updates alone, so notifications raised before it mounted still appear. It is
+// replaced rather than mutated, and only when listeners are notified, because
+// useSyncExternalStore needs the same array back between changes. An empty
+// list is `noNotifications` itself, so a container that hydrates with nothing
+// to show reads the same snapshot the server did and has no reason to render
+// again.
+let visibleNotifications: NotificationInstance[] = noNotifications;
+const getVisibleNotifications = () => visibleNotifications;
+
 const notifyNotificationListeners = () => {
   const allVisible = [...notifications];
   if (currentQueuedNotification) {
     allVisible.push(currentQueuedNotification);
   }
-  visibleNotifications = allVisible;
+  visibleNotifications = allVisible.length > 0 ? allVisible : noNotifications;
   notificationListeners.forEach(listener => listener([...allVisible]));
 };
 

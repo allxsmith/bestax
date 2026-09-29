@@ -353,26 +353,28 @@ let toasts: ToastInstance[] = [];
 let queuedToasts: ToastInstance[] = [];
 let currentQueuedToast: ToastInstance | null = null;
 
-// What a container shows right now: the stacked toasts, then the queued one on
-// screen. ToastContainer renders from this rather than from updates alone, so
-// toasts raised before it mounted still appear. It is replaced rather than
-// mutated, and only when listeners are notified, because useSyncExternalStore
-// needs the same array back between changes.
-let visibleToasts: ToastInstance[] = [];
-const getVisibleToasts = () => visibleToasts;
-
 // The server has nowhere to portal a toast to, and its copy of this module is
 // shared by every request, so server rendering reads an empty list. Hydration
 // reads it too, which keeps the first client render matching the server's.
 const noToasts: ToastInstance[] = [];
 const getServerToasts = () => noToasts;
 
+// What a container shows right now: the stacked toasts, then the queued one on
+// screen. ToastContainer renders from this rather than from updates alone, so
+// toasts raised before it mounted still appear. It is replaced rather than
+// mutated, and only when listeners are notified, because useSyncExternalStore
+// needs the same array back between changes. An empty list is `noToasts`
+// itself, so a container that hydrates with nothing to show reads the same
+// snapshot the server did and has no reason to render again.
+let visibleToasts: ToastInstance[] = noToasts;
+const getVisibleToasts = () => visibleToasts;
+
 const notifyListeners = () => {
   const allVisible = [...toasts];
   if (currentQueuedToast) {
     allVisible.push(currentQueuedToast);
   }
-  visibleToasts = allVisible;
+  visibleToasts = allVisible.length > 0 ? allVisible : noToasts;
   toastListeners.forEach(listener => listener([...allVisible]));
 };
 

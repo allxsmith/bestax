@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { Profiler, StrictMode } from 'react';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -659,6 +659,40 @@ describe('NotificationContainer mounted after notifications are raised', () => {
       // A root left mounted would add its notifications to every later test's.
       await act(async () => unmountRoot());
       errorSpy.mockRestore();
+      document.body.removeChild(container);
+    }
+  });
+
+  it('renders once when it hydrates with nothing to show', async () => {
+    // Empty the way a closed notification leaves it, not only the way it
+    // starts.
+    const id = notification.show({ message: 'Gone', duration: 0 });
+    notification.close(id);
+
+    const onRender = jest.fn();
+    const app = (
+      <main>
+        <Profiler id="notifications" onRender={onRender}>
+          <NotificationContainer />
+        </Profiler>
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      // A client snapshot that is a different array from the server's, even
+      // an empty one, would add an 'update' render after the mount.
+      expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount']);
+    } finally {
+      await act(async () => unmountRoot());
       document.body.removeChild(container);
     }
   });

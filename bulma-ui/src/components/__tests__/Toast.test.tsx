@@ -1032,6 +1032,39 @@ describe('ToastContainer mounted after toasts are raised', () => {
       document.body.removeChild(container);
     }
   });
+
+  it('renders once when it hydrates with nothing to show', async () => {
+    // Empty the way a closed toast leaves it, not only the way it starts.
+    const id = toast.show({ message: 'Gone', duration: 0 });
+    toast.close(id);
+
+    const onRender = jest.fn();
+    const app = (
+      <main>
+        <React.Profiler id="toasts" onRender={onRender}>
+          <ToastContainer />
+        </React.Profiler>
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      // A client snapshot that is a different array from the server's, even
+      // an empty one, would add an 'update' render after the mount.
+      expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount']);
+    } finally {
+      await act(async () => unmountRoot());
+      document.body.removeChild(container);
+    }
+  });
 });
 
 describe('Toast Queue', () => {
