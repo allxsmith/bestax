@@ -23,7 +23,7 @@
     },
     {
       "title": "Valid Colors and Sizes",
-      "code": "import { Checkbox, Checkboxes, checkboxColors } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <Checkboxes>\n      {checkboxColors.map(color => (\n        <Checkbox key={color} color={color} defaultChecked>\n          {color}\n        </Checkbox>\n      ))}\n    </Checkboxes>\n  );\n}"
+      "code": "import { Checkbox, Checkboxes } from '@allxsmith/bestax-bulma';\nimport { checkboxColors, checkboxSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Checkboxes>\n        {checkboxColors.map(color => (\n          <Checkbox key={color} color={color} defaultChecked>\n            {color}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n      <Checkboxes>\n        {checkboxSizes.map(size => (\n          <Checkbox key={size} size={size} defaultChecked>\n            {size}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.",

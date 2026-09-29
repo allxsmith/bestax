@@ -23,7 +23,7 @@
     },
     {
       "title": "Valid Colors and Sizes",
-      "code": "import { Radio, Radios, radioColors } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <Radios label=\"Accent color\" name=\"accent\" defaultValue=\"primary\">\n      {radioColors.map(color => (\n        <Radio key={color} value={color} color={color}>\n          {color}\n        </Radio>\n      ))}\n    </Radios>\n  );\n}"
+      "code": "import { Radio, Radios } from '@allxsmith/bestax-bulma';\nimport { radioColors, radioSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Radios label=\"Accent color\" name=\"accent\" defaultValue=\"primary\">\n        {radioColors.map(color => (\n          <Radio key={color} value={color} color={color}>\n            {color}\n          </Radio>\n        ))}\n      </Radios>\n      <Radios label=\"Size\" name=\"accent-size\" defaultValue=\"normal\">\n        {radioSizes.map(size => (\n          <Radio key={size} value={size} size={size}>\n            {size}\n          </Radio>\n        ))}\n      </Radios>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.",

@@ -19,7 +19,7 @@
     },
     {
       "title": "Valid Colors and Sizes",
-      "code": "import { Switch, switchColors } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      {switchColors.map(color => (\n        <Switch key={color} color={color} defaultChecked>\n          {color}\n        </Switch>\n      ))}\n    </Block>\n  );\n}"
+      "code": "import { Block, Switch } from '@allxsmith/bestax-bulma';\nimport { switchColors, switchSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Block display=\"flex\" flexDirection=\"column\">\n        {switchColors.map(color => (\n          <Switch key={color} color={color} defaultChecked>\n            {color}\n          </Switch>\n        ))}\n      </Block>\n      <Block display=\"flex\" flexDirection=\"column\">\n        {switchSizes.map(size => (\n          <Switch key={size} size={size} defaultChecked>\n            {size}\n          </Switch>\n        ))}\n      </Block>\n    </>\n  );\n}"
     },
     {
       "title": "Rounded Style",

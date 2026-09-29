@@ -109,17 +109,27 @@ function example() {
 The values `color`, `passiveType` and `size` accept are exported as readonly tuples: `switchColors` for the two color props, and `switchSizes` for `size`. The prop types are built from them, so they hold the same values as the Props table below. Map over them to build a color or size picker, or check a value that arrives at runtime (from a CMS or a query string, say) before you pass it in: a value outside the tuple adds no modifier class. Import them from the package root. The [valid value constants](../helpers/valid-values.md#form-control-constants) page covers the typing and validation idioms.
 
 ```tsx live
-import { Switch, switchColors } from '@allxsmith/bestax-bulma';
+import { Block, Switch } from '@allxsmith/bestax-bulma';
+import { switchColors, switchSizes } from '@allxsmith/bestax-bulma';
 
 function example() {
   return (
-    <Block display="flex" flexDirection="column">
-      {switchColors.map(color => (
-        <Switch key={color} color={color} defaultChecked>
-          {color}
-        </Switch>
-      ))}
-    </Block>
+    <>
+      <Block display="flex" flexDirection="column">
+        {switchColors.map(color => (
+          <Switch key={color} color={color} defaultChecked>
+            {color}
+          </Switch>
+        ))}
+      </Block>
+      <Block display="flex" flexDirection="column">
+        {switchSizes.map(size => (
+          <Switch key={size} size={size} defaultChecked>
+            {size}
+          </Switch>
+        ))}
+      </Block>
+    </>
   );
 }
 ```
