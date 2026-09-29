@@ -113,8 +113,10 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   // that used to live here was removed when the band became the indicator —
   // pinning a ring to the selected item caused a broken-outline artefact
   // whenever position was mid-flight (item offset from band).
+  //
+  // The ring reads the band's colour, so a coloured wheel keeps one accent.
   &:focus-visible {
-    outline: 2px solid cv.getVar('primary');
+    outline: 2px solid cv.getVar('timeinput-wheel-selected-bg');
     outline-offset: 2px;
     border-radius: cv.getVar('timeinput-wheel-radius');
   }
@@ -216,6 +218,22 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   )
   .#{iv.$class-prefix}timeinput-footer-ok:not(:focus-visible) {
   background-color: hsla(0, 0%, 50%, 0.12);
+}
+
+// Colour variants. `color` lands on each wheel as `is-<colour>`, and the wheel
+// re-points its selection variables at that colour, pairing it with its
+// `-invert` for the selected value the way the `primary` default does. The
+// band, the selected item and the focus ring all read these variables, so
+// they follow without rules of their own.
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        'timeinput-wheel-selected-bg': #{cv.getVar($name)},
+        'timeinput-wheel-selected-color': #{cv.getVar('#{$name}-invert')},
+      )
+    );
+  }
 }
 
 // Sizes scale the item height + wheel width.

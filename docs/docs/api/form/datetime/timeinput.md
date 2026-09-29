@@ -807,6 +807,24 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 </Block>
 ```
 
+**Inline:** the wheels carry the color too, and rendered inline they show it without opening a popover.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(8, 30, 0, 0);
+  return (
+    <Block display="flex" flexWrap="wrap">
+      {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(c => (
+        <Block key={c} mr="4">
+          <TimeInput label={c} color={c} inline defaultValue={v} />
+        </Block>
+      ))}
+    </Block>
+  );
+}
+```
+
 ---
 
 ### States
@@ -1007,7 +1025,7 @@ Combine `incrementMinutes={5}` (or `15`/`30`) with `min` and `max` to build a ti
 | `closeOnSelect`     | `boolean`                                                                        | `false`          | Close the popover after a time is selected (off by default).                                                                                                                                                                       |
 | `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the input.                                                                                                                                                                                     |
 | `appendToBody`      | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal.                                                                                                                                                                                |
-| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier.                                                                                                                                                                                                              |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier for the input, also carried by the wheels, where it colors the selection band and the keyboard focus ring. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.          |
 | `size`              | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size variant.                                                                                                                                                                                                                      |
 | `isRounded`         | `boolean`                                                                        | `false`          | Render the input with rounded corners.                                                                                                                                                                                             |
 | `hourFormat`        | `'12'` \| `'24'`                                                                 | `'24'`           | Hour format. `'12'` shows an AM/PM toggle.                                                                                                                                                                                         |
