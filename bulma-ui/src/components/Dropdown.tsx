@@ -330,7 +330,11 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
             break;
           }
           e.preventDefault();
-          item.click();
+          // A held key sends a keydown per auto-repeat. Clicking on each would
+          // toggle a checkbox item over and over while `closeOnClick` is off,
+          // so only the first press activates. The default is still prevented
+          // on the repeats above, so a held Space does not scroll the page.
+          if (!e.repeat) item.click();
           break;
         }
         default:

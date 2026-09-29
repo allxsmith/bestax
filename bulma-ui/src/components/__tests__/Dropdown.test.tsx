@@ -1459,6 +1459,38 @@ describe('Dropdown item activation', () => {
     expect(item).toHaveAttribute('aria-checked', 'true');
   });
 
+  test.each([
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ])(
+    'a held %s activates once and keeps preventing the default',
+    (_name, key) => {
+      const onClick = jest.fn();
+      render(
+        <Dropdown label="Menu" active closeOnClick={false}>
+          <Dropdown.Item
+            role="menuitemcheckbox"
+            aria-checked="false"
+            onClick={onClick}
+          >
+            Unread
+          </Dropdown.Item>
+        </Dropdown>
+      );
+      const item = screen.getByText('Unread');
+      item.focus();
+      fireEvent.keyDown(item, { key });
+      // Auto-repeat sends further keydowns with `repeat` set while the key
+      // stays down.
+      for (let i = 0; i < 3; i++) {
+        const held = createEvent.keyDown(item, { key, repeat: true });
+        fireEvent(item, held);
+        expect(held.defaultPrevented).toBe(true);
+      }
+      expect(onClick).toHaveBeenCalledTimes(1);
+    }
+  );
+
   test('leaves a key alone when a caller handler already prevented it', async () => {
     const user = userEvent.setup();
     const onClick = jest.fn();
