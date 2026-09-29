@@ -51,16 +51,16 @@ export const RENDER_TODO: PropAction = {
 
 /**
  * `isFullWidth` is universal in bloomer (via `withHelpersModifiers`), but
- * Bulma's `is-fullwidth` only means something on a handful of elements, and
- * bestax declares `isFullWidth` on exactly those: Button, Select, Table and
- * Tabs opt in with `FULLWIDTH_OK`.
+ * Bulma's `is-fullwidth` only means something on a handful of elements. The
+ * components bestax gives a prop for it opt in with `FULLWIDTH`, which writes
+ * its current spelling, `isFullwidth`: `isFullWidth` is a deprecated alias.
  */
 const FULLWIDTH_TODO: PropAction = {
   todo: 'Bulma defines `is-fullwidth` only on buttons, files, images, inputs, textareas, selects, tables and tabs, and this is none of them — drop it, or add className="is-fullwidth" if your own CSS styled the class',
 };
 /** Bulma styles `is-fullwidth` here, but bestax declares no prop for it. */
 const FULLWIDTH_CLASS: PropAction = { toClass: 'is-fullwidth' };
-const FULLWIDTH_OK: PropAction = {};
+const FULLWIDTH: PropAction = { rename: 'isFullwidth' };
 
 /**
  * `textColor` is not part of `BulmaClassesProps` — each component declares it
@@ -276,7 +276,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isHovered: {},
       isFocused: {},
       isLoading: {},
-      isFullWidth: FULLWIDTH_OK,
+      isFullWidth: FULLWIDTH,
       tag: TAG_AS,
       hasTextColor: TEXT_COLOR_OK,
     },
@@ -327,7 +327,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isBordered: {},
       isStriped: {},
       isNarrow: {},
-      isFullWidth: FULLWIDTH_OK,
+      isFullWidth: FULLWIDTH,
     },
   },
   Tag: {
@@ -409,7 +409,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isColor: color,
       isSize: size,
       isLoading: {},
-      isFullWidth: FULLWIDTH_OK,
+      isFullWidth: FULLWIDTH,
     },
   },
   TextArea: {
@@ -791,7 +791,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isSize: size,
       isBoxed: { rename: 'boxed' },
       isToggle: { rename: 'toggle' },
-      isFullWidth: FULLWIDTH_OK,
+      isFullWidth: FULLWIDTH,
     },
   },
   TabList: {

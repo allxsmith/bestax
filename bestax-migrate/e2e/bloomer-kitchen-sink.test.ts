@@ -187,6 +187,14 @@ describe('bloomer kitchen-sink e2e', () => {
     );
   });
 
+  it('writes isFullwidth where bestax has the prop, not its deprecated alias', () => {
+    for (const file of ['elements.tsx', 'components.tsx', 'form.tsx']) {
+      const migrated = fs.readFileSync(path.join(tmpDir, 'src', file), 'utf8');
+      expect(migrated).toContain('isFullwidth');
+      expect(migrated).not.toContain('isFullWidth');
+    }
+  });
+
   it('migrates the SCSS entry to Bulma v1 modules', () => {
     const scss = fs.readFileSync(
       path.join(tmpDir, 'src', 'styles.scss'),
