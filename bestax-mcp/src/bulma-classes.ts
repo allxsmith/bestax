@@ -792,9 +792,7 @@ export function renderLookup(lookup: Lookup): string {
               `\`name\` (\`fas fa-home\` as \`library: 'fa', name: 'home'\`) ` +
               `and its \`aria-label\` as \`ariaLabel\`, with the bare <span> of ` +
               `text after it as its text. One icon goes in \`iconProps\`, with ` +
-              `its text as the children, and more than one in \`items\`. The ` +
-              `codemod does that when each \`.icon\` holds a bare, empty <i> ` +
-              `naming a Font Awesome or Material Design Icons glyph.`
+              `its text as the children, and more than one in \`items\`.`
             : '') +
           (element.topLevel
             ? ` It renders \`.${element.topLevel}\` only when no other ` +
