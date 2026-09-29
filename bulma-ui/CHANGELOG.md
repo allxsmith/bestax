@@ -1,3 +1,51 @@
+# [5.18.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.17.0...@allxsmith/bestax-bulma@5.18.0) (2026-09-29)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give .image's ratios their reason in the lookup ([3ea4d0c](https://github.com/allxsmith/bestax/commit/3ea4d0ca6cef7368e74dadcbcc1d0f617e001c27))
+* **bestax-mcp:** say an .image converts around elements written out, not an expression ([49bb27b](https://github.com/allxsmith/bestax/commit/49bb27bb34c345bc9780e9dedef01c2bfb6fc22b))
+* **bestax-migrate:** convert an .image around its children only when they're elements ([ff99907](https://github.com/allxsmith/bestax/commit/ff99907ce1ee7dd0a9f4f0c6da51bcf6ac566f9a))
+* **bestax-migrate:** flag react-bulma-components Pagination's delta={0} rather than renaming it ([e339ff1](https://github.com/allxsmith/bestax/commit/e339ff1dc13b252cf3cc6693a12d3387e5910943))
+* **bestax-migrate:** keep a .menu-list around a bestax Menu.List as markup ([2119c3f](https://github.com/allxsmith/bestax/commit/2119c3fa95b5af80ec7397cec3d70ec14a45ad12))
+* **bestax-migrate:** keep a Modal part as markup inside an existing bestax Modal ([cfd5f15](https://github.com/allxsmith/bestax/commit/cfd5f1566dbf9b794375ce24ebcb9239d383a39b))
+* **bestax-migrate:** keep a named anchor as markup instead of saying its name does nothing ([74dc360](https://github.com/allxsmith/bestax/commit/74dc360a48000ee5522ec0143e4d56256566c676)), closes [#fragment](https://github.com/allxsmith/bestax/issues/fragment)
+* **bestax-migrate:** know a bestax part imported under its flat export ([7a325ee](https://github.com/allxsmith/bestax/commit/7a325eedd802bd1a8574f18c19fb376dc30ab53e))
+* **bestax-migrate:** leave a wrapper tag alone when none of its classes would become a prop ([2397b9d](https://github.com/allxsmith/bestax/commit/2397b9d6875f2aaf1e142a8bf84a629b45def953))
+* **bestax-migrate:** leave a wrapper tag with no helper class alone, TODOs and all ([1167a29](https://github.com/allxsmith/bestax/commit/1167a293a6e0a0e6bb52a1b5e02e76609897e073))
+* **bestax-migrate:** map react-bulma-components Pagination onto the props it now renders from ([6cd4b51](https://github.com/allxsmith/bestax/commit/6cd4b512349b691541e6d7728249e23b323030fb))
+* **bestax-migrate:** say why .image's ratios stay classes ([2fbfbd5](https://github.com/allxsmith/bestax/commit/2fbfbd55a8b3492c76c67b25a0558f1d80ea8aca))
+* **bestax-migrate:** write a tabIndex string as a number on every root ([546bf8a](https://github.com/allxsmith/bestax/commit/546bf8aedb8ef97756789ed413f5826db48237f8)), closes [#814](https://github.com/allxsmith/bestax/issues/814)
+* **bulma-ui:** name Pagination's page links, and read a count that's no number as its default ([0a1cf06](https://github.com/allxsmith/bestax/commit/0a1cf0689a42918a562eb1b43d7fee104de9bd73))
+* **bulma-ui:** prefix the is-current and is-disabled classes on Pagination's parts ([c9a5fae](https://github.com/allxsmith/bestax/commit/c9a5faee73c0027d5cbd9c54e8565b122a7bca7b))
+* **bulma-ui:** read a Pagination current page that's no number as the first ([68e963b](https://github.com/allxsmith/bestax/commit/68e963b8a6de517d0fd109691dd988a364dc7034))
+* **eslint-plugin:** report .image with the message for a class the codemod converts ([d27c19b](https://github.com/allxsmith/bestax/commit/d27c19bc984ae60bb8e65bac4c8a6378a07b3c87))
+* **eslint-plugin:** report .menu, .menu-label and .menu-list with the converts message ([8ffaccc](https://github.com/allxsmith/bestax/commit/8ffacccd2bdfdce642ecbe05bf20388c99560ba3))
+* **eslint-plugin:** report Modal's parts with the message for a class the codemod converts ([87f3c08](https://github.com/allxsmith/bestax/commit/87f3c08aeca1f6c99921aa0b11ee9fd69584ccea))
+* **eslint-plugin:** report Pagination's converting parts with the converts message ([6b94f14](https://github.com/allxsmith/bestax/commit/6b94f14f77448e2da27e3ac81de31965d9b0ea2f))
+
+
+### Features
+
+* **bestax-mcp:** look up .image as Image, with the props it takes from its <img> ([3e63230](https://github.com/allxsmith/bestax/commit/3e63230c541d2521bcc2a3456022491b929b9dc5))
+* **bestax-mcp:** look up .menu and its label and list as Menu's parts ([f9fe7cd](https://github.com/allxsmith/bestax/commit/f9fe7cd75b4d2cfdfa93a0575db22bbcdf860376))
+* **bestax-mcp:** look up Card's title and footer items on the tags their as takes ([ba8193e](https://github.com/allxsmith/bestax/commit/ba8193ee2809131876919a28d5d681dccc8b7880))
+* **bestax-mcp:** look up Modal's parts as components ([b71583a](https://github.com/allxsmith/bestax/commit/b71583a058f9fc5fe830fe0290bbfb1fa058d1ab))
+* **bestax-mcp:** look up Pagination, its list and its previous and next links as components ([f1298df](https://github.com/allxsmith/bestax/commit/f1298df03e009ddd1119c29251573bc7d51f18d1))
+* **bestax-mcp:** say an .image converts around anything but a bare <img> ([60e9219](https://github.com/allxsmith/bestax/commit/60e92190a0b067635592cbc9b8e190e499f25925))
+* **bestax-mcp:** say Menu.List renders .menu-list only at the top level ([dcce74f](https://github.com/allxsmith/bestax/commit/dcce74f0671249bf149fe4e323026fac2b13452e))
+* **bestax-migrate:** convert .menu, its labels and its top-level lists ([02f4db6](https://github.com/allxsmith/bestax/commit/02f4db6b56a90adf4678693e153c8764ef3c60b0))
+* **bestax-migrate:** convert .tabs and .icon around their children ([#815](https://github.com/allxsmith/bestax/issues/815)) ([3967a80](https://github.com/allxsmith/bestax/commit/3967a804f0b90e1e897811c729e6b627d98c4103))
+* **bestax-migrate:** convert a menu list's items to Menu.Item ([#816](https://github.com/allxsmith/bestax/issues/816)) ([b385687](https://github.com/allxsmith/bestax/commit/b385687939f87ca146c2cae800466132279a49e6))
+* **bestax-migrate:** convert an .image and its <img> to Image ([d4f3673](https://github.com/allxsmith/bestax/commit/d4f3673fcff77d4f3a7e2f032433de22b09556f7)), closes [#793](https://github.com/allxsmith/bestax/issues/793)
+* **bestax-migrate:** convert an .image around anything but a bare <img> ([0a31c5b](https://github.com/allxsmith/bestax/commit/0a31c5b46834a4f1cbe4cb5155da65053852e382)), closes [#801](https://github.com/allxsmith/bestax/issues/801)
+* **bestax-migrate:** convert Card's title and footer items on the tags their as takes ([20bc0c6](https://github.com/allxsmith/bestax/commit/20bc0c6fe740a90a3f32097b9d66cb9667f89cc8)), closes [#794](https://github.com/allxsmith/bestax/issues/794)
+* **bestax-migrate:** convert Modal's parts element by element ([4d41ad2](https://github.com/allxsmith/bestax/commit/4d41ad22de93a6515da99bb057adcfe8b4e8d146)), closes [#805](https://github.com/allxsmith/bestax/issues/805)
+* **bestax-migrate:** convert navbar dividers with classes, and navbar text colors ([#796](https://github.com/allxsmith/bestax/issues/796)) ([c97c7e9](https://github.com/allxsmith/bestax/commit/c97c7e9467426021588e81db58b0a4a9fe94dc20))
+* **bestax-migrate:** convert Pagination, its list and its previous and next links ([d75bc70](https://github.com/allxsmith/bestax/commit/d75bc70ff9643f165508bfd443151559d1d12c38)), closes [#807](https://github.com/allxsmith/bestax/issues/807)
+* **bestax-migrate:** convert Panel and its heading, tabs and blocks ([#811](https://github.com/allxsmith/bestax/issues/811)) ([0694e54](https://github.com/allxsmith/bestax/commit/0694e54f7229e161a1641c7879cfdd97760ef18f))
+* **bulma-ui:** render Pagination from total, current and onPageChange ([f7ddf04](https://github.com/allxsmith/bestax/commit/f7ddf045b11027ec139824d6c2712f1f017c82c2)), closes [#813](https://github.com/allxsmith/bestax/issues/813)
+
 # [5.17.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.16.11...@allxsmith/bestax-bulma@5.17.0) (2026-09-27)
 
 
