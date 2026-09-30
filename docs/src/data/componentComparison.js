@@ -288,6 +288,9 @@ const CHAKRA = {
   Square: 'center',
   SkipNavLink: 'skip-nav',
   preflight: '/docs/theming/overview',
+  // A capability Chakra documents as an example rather than a component.
+  'TagsInput + Combobox':
+    'https://chakra-ui.com/docs/components/tags-input#combobox',
   // Exported from @chakra-ui/react without a docs page; link the source.
   Toggle:
     'https://github.com/chakra-ui/chakra-ui/tree/main/packages/react/src/components/toggle',
@@ -827,7 +830,7 @@ export const categories = [
         0,
         '~Autocomplete',
         0,
-        '~TagsInput',
+        '~TagsInput + Combobox',
         '~Combobox',
       ],
       ['PIN / OTP input', 0, 'PinInput', 0, 0, 0, 'PinInput', 'InputOTP'],
