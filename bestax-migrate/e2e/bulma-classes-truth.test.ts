@@ -72,7 +72,9 @@ const mapped = Object.entries(ROOTS).filter(
 ) as Array<[string, RootEntry]>;
 
 function tagsFor(entry: RootEntry): string[] {
-  if (entry.as === 'any') return [entry.tag!, 'a', 'span', 'div', 'input'];
+  if (entry.as === 'any') {
+    return [...new Set([entry.tag!, 'a', 'span', 'div', 'input', 'button'])];
+  }
   return [...new Set([entry.tag!, ...(entry.as ?? [])])];
 }
 
@@ -89,7 +91,7 @@ interface Child {
  */
 function partChild(target: string): Child {
   const [root, entry] = mapped.find(([, found]) => found.target === target)!;
-  const attributes = { ...(entry.defaults ?? {}) };
+  const attributes = defaultsFor(entry, entry.tag!);
   const inner = childFor(entry);
   return {
     target,
