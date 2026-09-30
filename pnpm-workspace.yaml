@@ -169,10 +169,11 @@ overrides:
   # Force patched undici 7.x (transitive via semantic-release/github and
   # wrangler>miniflare: release and CI-deploy tooling, never published output)
   # for its high advisories. The floor is the newest fix on the 7.x line:
-  # 7.29.1 patches GHSA-rfgv-xxqx-mfg5 and GHSA-w293-vg96-wgc3. Scoped to the
-  # affected 7.x major, since each major gets its own backport. Prune once
-  # those parents require >=7.29.1 themselves.
-  'undici@7': '>=7.29.1 <8'
+  # 7.29.1 patches GHSA-rfgv-xxqx-mfg5 and GHSA-w293-vg96-wgc3. Capped at the
+  # 7.29 line because wrangler and miniflare pin undici exactly and nothing in
+  # CI exercises them before a deploy, so they move by a patch rather than to
+  # the newest minor. Prune once their pin reaches >=7.29.1.
+  'undici@7': '>=7.29.1 <7.30'
   # bestax:review 2026-11-13 — quarterly sweep
   # The 6.x copy (under @actions/http-client), held to the newest fix on its
   # line: 6.28.1 patches the high GHSA-rfgv-xxqx-mfg5. Keep this floor at the
