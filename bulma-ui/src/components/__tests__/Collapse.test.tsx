@@ -382,6 +382,81 @@ describe('Collapse', () => {
     });
   });
 
+  describe('closed panels leave the tab order', () => {
+    // jsdom implements neither `inert` nor a tab order, so this applies the
+    // browser's rule itself: a focusable element inside an inert subtree
+    // cannot take focus. The attribute it reads is the one React rendered.
+    const tabbable = (root: HTMLElement) =>
+      Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button, input, select, textarea, [tabindex]'
+        )
+      )
+        .filter(el => el.tabIndex >= 0 && !el.closest('[inert]'))
+        .map(el => el.textContent || el.getAttribute('aria-label'));
+
+    const panel = (
+      <>
+        <a href="#docs">Docs link</a>
+        <input aria-label="Email field" />
+      </>
+    );
+
+    it.each(['fade', 'slide', false] as const)(
+      'with animation=%s, takes a closed panel out and puts it back on open',
+      animation => {
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+        const { container } = render(
+          <Collapse trigger={<span>Toggle</span>} animation={animation}>
+            {panel}
+          </Collapse>
+        );
+        const content = container.querySelector('.collapse-content')!;
+        const trigger =
+          container.querySelector<HTMLElement>('.collapse-trigger')!;
+
+        // Closed: inert, hidden from assistive tech, only the trigger tabs.
+        expect(content).toHaveAttribute('inert');
+        expect(content).toHaveAttribute('aria-hidden', 'true');
+        expect(tabbable(container)).toEqual(['Toggle']);
+
+        act(() => {
+          fireEvent.click(trigger);
+        });
+        expect(content).not.toHaveAttribute('inert');
+        expect(content).toHaveAttribute('aria-hidden', 'false');
+        expect(tabbable(container)).toEqual([
+          'Toggle',
+          'Docs link',
+          'Email field',
+        ]);
+
+        act(() => {
+          fireEvent.click(trigger);
+        });
+        expect(content).toHaveAttribute('inert');
+        expect(tabbable(container)).toEqual(['Toggle']);
+
+        // Spelled for the React in use: neither major warns about it.
+        expect(errorSpy).not.toHaveBeenCalled();
+        errorSpy.mockRestore();
+      }
+    );
+
+    it('renders a closed panel inert on the server, and an open one not', () => {
+      const closed = renderToStaticMarkup(
+        <Collapse trigger={<span>Toggle</span>}>{panel}</Collapse>
+      );
+      const open = renderToStaticMarkup(
+        <Collapse trigger={<span>Toggle</span>} defaultOpen>
+          {panel}
+        </Collapse>
+      );
+      expect(closed).toMatch(/class="collapse-content"[^>]*inert=""/);
+      expect(open).not.toContain('inert');
+    });
+  });
+
   describe('animation', () => {
     it('defaults to fade animation', () => {
       const { container } = render(

@@ -301,7 +301,9 @@ The Collapse component supports these additional CSS classes:
 - Trigger has `role="button"` and `tabIndex="0"` for keyboard access
 - Trigger has `aria-expanded` to indicate open/closed state
 - Trigger has `aria-controls` pointing to the content element
-- Content has `aria-hidden` matching the collapsed state
+- Content has `aria-hidden` matching the collapsed state, and is `inert` while closed, so its
+  links and fields leave the tab order until it opens (under `fade` and `slide` a closed panel
+  is only squeezed to height 0)
 - Supports keyboard navigation (Enter and Space to toggle)
 
 ---

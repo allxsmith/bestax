@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { inertProps } from '../helpers/inertProps';
 import { CollapsesItemContext } from './collapsesContext';
 
 /**
@@ -251,11 +252,16 @@ export const Collapse: React.FC<CollapseProps> = ({
 
   const contentElement = (
     <div style={contentWrapperStyle}>
+      {/* A closed panel under `fade` or `slide` is only squeezed to height 0,
+          so its links and fields would stay in the tab order. `inert` takes
+          them out (and from pointer and find-in-page), matching
+          `aria-hidden`, and costs the animations nothing. */}
       <div
         ref={contentRef}
         id={uniqueId}
         className={combinedContentClasses}
         aria-hidden={!isOpen}
+        {...inertProps(!isOpen)}
       >
         {children}
       </div>
