@@ -101,14 +101,90 @@ describe('useOtherClasses', () => {
     });
   });
 
-  it('applies overflow on each axis alongside overflow', () => {
-    expect(
-      renderUseOtherClasses({
-        overflow: 'hidden',
-        overflowX: 'auto',
-        overflowY: 'scroll',
-      })
-    ).toBe('is-overflow-hidden is-overflow-x-auto is-overflow-y-scroll');
+  // Bulma's overflow helpers are all `!important` at one class of specificity
+  // and ordered by value, not by axis, so `is-overflow-hidden` beside
+  // `is-overflow-y-auto` rendered hidden on both axes: whichever value came
+  // later in the stylesheet won. The hook now never emits a both-axes class
+  // beside an axis class, so each axis has exactly one class and the order
+  // cannot decide anything.
+  describe('overflow beside overflowX and overflowY', () => {
+    it('lets the axis prop win its axis and overflow fill in the other', () => {
+      expect(
+        renderUseOtherClasses({ overflow: 'hidden', overflowY: 'auto' })
+      ).toBe('is-overflow-x-hidden is-overflow-y-auto');
+      expect(
+        renderUseOtherClasses({ overflow: 'scroll', overflowX: 'visible' })
+      ).toBe('is-overflow-x-visible is-overflow-y-scroll');
+    });
+
+    it('fills in clipped as hidden, which is what is-clipped sets', () => {
+      expect(
+        renderUseOtherClasses({ overflow: 'clipped', overflowX: 'scroll' })
+      ).toBe('is-overflow-x-scroll is-overflow-y-hidden');
+    });
+
+    it('leaves overflow nothing to set when both axis props are set', () => {
+      expect(
+        renderUseOtherClasses({
+          overflow: 'hidden',
+          overflowX: 'auto',
+          overflowY: 'scroll',
+        })
+      ).toBe('is-overflow-x-auto is-overflow-y-scroll');
+    });
+
+    it('keeps overflow whole when the axis prop is not a value it takes', () => {
+      expect(
+        renderUseOtherClasses({
+          overflow: 'hidden',
+          overflowX: 'clipped' as never,
+        })
+      ).toBe('is-overflow-hidden');
+      expect(
+        renderUseOtherClasses({
+          overflow: 'clipped',
+          overflowY: 'sideways' as never,
+        })
+      ).toBe('is-clipped');
+    });
+
+    it('sets only the axis prop when overflow is not a value it takes', () => {
+      expect(
+        renderUseOtherClasses({
+          overflow: 'overlay' as never,
+          overflowY: 'auto',
+        })
+      ).toBe('is-overflow-y-auto');
+    });
+
+    // Every combination, so no pairing of values can reintroduce a second
+    // class on one axis.
+    const overflows = [undefined, ...validOverflows];
+    const axes = [undefined, ...validAxisOverflows];
+    const combos = overflows.flatMap(overflow =>
+      axes.flatMap(overflowX =>
+        axes
+          .filter(overflowY => overflowX || overflowY)
+          .map(overflowY => ({ overflow, overflowX, overflowY }))
+      )
+    );
+
+    it.each(combos)(
+      'writes one class per axis for %o',
+      ({ overflow, overflowX, overflowY }) => {
+        const classes = renderUseOtherClasses({
+          overflow,
+          overflowX,
+          overflowY,
+        }).split(' ');
+        const rest = overflow === 'clipped' ? 'hidden' : overflow;
+        const expected = [
+          (overflowX ?? rest) && `is-overflow-x-${overflowX ?? rest}`,
+          (overflowY ?? rest) && `is-overflow-y-${overflowY ?? rest}`,
+        ].filter(Boolean);
+        expect(classes).toEqual(expected);
+      }
+    );
   });
 
   it('prefixes the new helper families', () => {
@@ -124,7 +200,7 @@ describe('useOtherClasses', () => {
         'bestax-'
       )
     ).toBe(
-      'bestax-is-overflow-auto bestax-is-overflow-y-hidden bestax-has-radius-rounded bestax-is-position-sticky bestax-is-aspect-ratio-16by9'
+      'bestax-is-overflow-x-auto bestax-is-overflow-y-hidden bestax-has-radius-rounded bestax-is-position-sticky bestax-is-aspect-ratio-16by9'
     );
   });
 

@@ -203,10 +203,16 @@ Use the `overflow` prop.
 More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
 :::
 
-Use the `overflow` prop with a CSS keyword (`auto`, `clip`, `hidden`, `scroll`, `visible`), or `overflowX` and `overflowY` for one axis.
+Use the `overflow` prop with a CSS keyword (`auto`, `clip`, `hidden`, `scroll`, `visible`), or `overflowX` and `overflowY` for one axis, which win over `overflow` on their own axis. A scrolling region takes focus so a keyboard can scroll it.
 
 ```tsx live
-<Box aspectRatio="3by1" overflowY="auto">
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  tabIndex={0}
+  role="region"
+  aria-label="Scrolling list"
+>
   {Array.from({ length: 20 }, (_, i) => (
     <p key={i}>Line {i + 1}</p>
   ))}

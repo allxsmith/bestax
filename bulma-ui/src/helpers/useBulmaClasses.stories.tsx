@@ -603,7 +603,14 @@ export const Overflow: Story = {
         This is a very long line of text that will be clipped and not overflow
         the box.
       </Box>
-      <Box aspectRatio="3by1" overflowY="auto">
+      {/* A scrolling region takes focus so a keyboard can scroll it. */}
+      <Box
+        aspectRatio="3by1"
+        overflowY="auto"
+        tabIndex={0}
+        role="region"
+        aria-label="Scrolling list"
+      >
         {Array.from({ length: 20 }, (_, i) => (
           <p key={i}>
             Line {i + 1}: the aspect ratio bounds the height and overflowY
@@ -681,7 +688,14 @@ export const AspectRatio: Story = {
 
 export const Position: Story = {
   render: () => (
-    <Box aspectRatio="3by1" overflowY="auto" p="0">
+    <Box
+      aspectRatio="3by1"
+      overflowY="auto"
+      p="0"
+      tabIndex={0}
+      role="region"
+      aria-label="Rows under a sticky header"
+    >
       {/* The position helpers set position only; sticky needs its offset. */}
       <Notification color="primary" pos="sticky" mb="0" style={{ top: 0 }}>
         pos=&quot;sticky&quot; keeps this header in view

@@ -26,11 +26,21 @@ export interface BulmaOtherProps {
    * Overflow behavior on both axes. `clipped` renders `is-clipped`; the CSS
    * keywords (`auto`, `clip`, `hidden`, `scroll`, `visible`) render
    * `is-overflow-<value>`.
+   *
+   * Beside `overflowX` or `overflowY`, the axis prop wins on its own axis and
+   * `overflow` sets only the other one, with `clipped` counting as `hidden`:
+   * `overflow="hidden" overflowY="auto"` clips sideways and scrolls down.
    */
   overflow?: (typeof validOverflows)[number];
-  /** Horizontal overflow behavior (e.g., 'auto', 'hidden'). */
+  /**
+   * Horizontal overflow behavior (e.g., 'auto', 'hidden'). Wins over
+   * `overflow` on this axis.
+   */
   overflowX?: (typeof validAxisOverflows)[number];
-  /** Vertical overflow behavior (e.g., 'auto', 'scroll'). */
+  /**
+   * Vertical overflow behavior (e.g., 'auto', 'scroll'). Wins over `overflow`
+   * on this axis.
+   */
   overflowY?: (typeof validAxisOverflows)[number];
   /** Applies overlay styling if true. */
   overlay?: boolean;
@@ -45,7 +55,10 @@ export interface BulmaOtherProps {
    *
    * The class lands on the component's root element, so where an inner
    * element draws the radius, such as the `<img>` in `Image` or the
-   * `<select>` in `Select`, that element keeps its own.
+   * `<select>` in `Select`, that element keeps its own. The sizes are not
+   * `!important`, unlike `radiusless`, so a component rule more specific than
+   * one class still wins: an `isRounded` control stays a pill, and a joined
+   * addon keeps its square inner corners.
    */
   radius?: (typeof validRadii)[number];
   /** Shadow style (e.g., 'shadowless'). */
@@ -131,15 +144,24 @@ export const useOtherClasses = (props: BulmaOtherProps): string => {
     if (float) {
       addClassNoViewport('is-pulled', float, validFloats);
     }
-    // `clipped` is the older helper and keeps its own class; the CSS keywords
-    // share the `is-overflow-` stem.
-    if (overflow === 'clipped') {
+    // Bulma's overflow helpers are all `!important` at the same specificity
+    // and ordered by value rather than by axis, so a both-axes class beside an
+    // axis class would be settled by which value comes later in the
+    // stylesheet. Once an axis prop is set, both axes are written per axis
+    // instead: the axis prop wins its own, and `overflow` fills in the other,
+    // `clipped` being `overflow: hidden`.
+    const axisX = validAxisOverflows.find(v => v === overflowX);
+    const axisY = validAxisOverflows.find(v => v === overflowY);
+    if (axisX || axisY) {
+      const rest = overflow === 'clipped' ? 'hidden' : overflow;
+      addClassNoViewport('is-overflow-x', axisX ?? rest, validAxisOverflows);
+      addClassNoViewport('is-overflow-y', axisY ?? rest, validAxisOverflows);
+    } else if (overflow === 'clipped') {
+      // The older helper, which keeps its own class.
       addPrefixedClass('is-clipped');
     } else {
       addClassNoViewport('is-overflow', overflow, validAxisOverflows);
     }
-    addClassNoViewport('is-overflow-x', overflowX, validAxisOverflows);
-    addClassNoViewport('is-overflow-y', overflowY, validAxisOverflows);
     if (overlay) {
       addPrefixedClass('is-overlay');
     }

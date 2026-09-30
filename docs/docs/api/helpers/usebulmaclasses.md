@@ -623,10 +623,18 @@ Show a Box with clipped overflow:
 </Box>
 ```
 
-`overflow` also takes the CSS keywords Bulma has helpers for (`auto`, `clip`, `hidden`, `scroll`, `visible`), and `overflowX` and `overflowY` set one axis. Here an aspect ratio fixes the height and the list scrolls inside it:
+`overflow` also takes the CSS keywords Bulma has helpers for (`auto`, `clip`, `hidden`, `scroll`, `visible`), and `overflowX` and `overflowY` set one axis. Beside `overflow`, an axis prop wins on its own axis and `overflow` sets the other, with `clipped` counting as `hidden`, so `overflow="hidden" overflowY="auto"` clips sideways and scrolls down.
+
+Here an aspect ratio fixes the height and the list scrolls inside it. A region that scrolls needs to be reachable from the keyboard, so the example gives it `tabIndex={0}`, a `region` role and a name.
 
 ```tsx live
-<Box aspectRatio="3by1" overflowY="auto">
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  tabIndex={0}
+  role="region"
+  aria-label="Scrolling list"
+>
   {Array.from({ length: 20 }, (_, i) => (
     <p key={i}>Line {i + 1} of a list longer than the box.</p>
   ))}
@@ -688,7 +696,7 @@ Use the `cursor` prop to set the cursor style. `'pointer'` reuses Bulma's `is-cl
 </Buttons>
 ```
 
-The class goes on the component's root element, so where an inner element draws the radius, such as the `<img>` inside `Image`, that element keeps its own.
+The class goes on the component's root element, so where an inner element draws the radius, such as the `<img>` inside `Image`, that element keeps its own. The sizes are not `!important`, unlike `radiusless`, so a component rule more specific than one class still wins: an `isRounded` control stays a pill, and a joined addon keeps its square inner corners.
 
 ### Shadowless
 

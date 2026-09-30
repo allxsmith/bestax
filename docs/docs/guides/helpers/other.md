@@ -279,7 +279,7 @@ function OverlayExamples() {
 
 ## Overflow
 
-The overflow helpers decide what happens to content that extends beyond an element's boundaries. `overflow="clipped"` is the classic one, clipping it with `overflow: hidden`. `overflow` also takes the CSS keywords Bulma has helpers for, and `overflowX` and `overflowY` set one axis.
+The overflow helpers decide what happens to content that extends beyond an element's boundaries. `overflow="clipped"` is the classic one, clipping it with `overflow: hidden`. `overflow` also takes the CSS keywords Bulma has helpers for, and `overflowX` and `overflowY` set one axis. Beside `overflow`, an axis prop wins on its own axis and `overflow` sets the other, with `clipped` counting as `hidden`, so `overflow="hidden" overflowY="auto"` clips sideways and scrolls down.
 
 | Property                                                       | Bulma Class            | CSS Property         |
 | -------------------------------------------------------------- | ---------------------- | -------------------- |
@@ -339,10 +339,16 @@ function OverflowExamples() {
 }
 ```
 
-To scroll one axis instead, give the element a bounded height and set `overflowY`. Here an [aspect ratio](#aspect-ratio) bounds it:
+To scroll one axis instead, give the element a bounded height and set `overflowY`. Here an [aspect ratio](#aspect-ratio) bounds it. A region that scrolls needs to be reachable from the keyboard, so the example gives it `tabIndex={0}`, a `region` role and a name.
 
 ```tsx live
-<Box aspectRatio="3by1" overflowY="auto">
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  tabIndex={0}
+  role="region"
+  aria-label="Scrolling list"
+>
   {Array.from({ length: 20 }, (_, i) => (
     <Paragraph key={i}>Line {i + 1} of a list longer than the box.</Paragraph>
   ))}
@@ -361,7 +367,7 @@ The radius helper either removes an element's border radius or sets one from Bul
 | `radius="large"`      | `has-radius-large`   | `border-radius: var(--bulma-radius-large)`           |
 | `radius="rounded"`    | `has-radius-rounded` | `border-radius: var(--bulma-radius-rounded)`, a pill |
 
-`radiusless` is particularly useful when you want to override default rounded corners on components like buttons, cards, or images. The class goes on the component's root element, so where an inner element draws the radius, such as the `<img>` inside `Image`, that element keeps its own.
+`radiusless` is particularly useful when you want to override default rounded corners on components like buttons, cards, or images. The class goes on the component's root element, so where an inner element draws the radius, such as the `<img>` inside `Image`, that element keeps its own. The sizes are not `!important`, unlike `radiusless`, so a component rule more specific than one class still wins: an `isRounded` control stays a pill, and a joined addon keeps its square inner corners.
 
 ### Border Radius Examples
 
@@ -735,10 +741,17 @@ function PositionExamples() {
 }
 ```
 
-A sticky header stays at the top of its scrolling container while the rest scrolls under it:
+A sticky header stays at the top of its scrolling container while the rest scrolls under it. The container takes focus so a keyboard can scroll it:
 
 ```tsx live
-<Box aspectRatio="3by1" overflowY="auto" p="0">
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  p="0"
+  tabIndex={0}
+  role="region"
+  aria-label="Rows under a sticky header"
+>
   <Notification color="primary" pos="sticky" mb="0" style={{ top: 0 }}>
     Sticky header
   </Notification>
