@@ -14,6 +14,7 @@ import {
   ANCHOR_ONLY_ATTRS,
   omitAttrs,
 } from '../helpers/anchorAttrs';
+import { buttonType } from '../helpers/buttonType';
 
 /**
  * Checks if code is running in a browser environment.
@@ -445,7 +446,12 @@ export type DropdownItemProps<
   T extends DropdownItemElement = DropdownItemElement,
 > = DropdownItemOwnProps &
   Omit<React.ComponentPropsWithoutRef<T>, keyof DropdownItemOwnProps | 'as'> & {
-    /** The element type to render. */
+    /**
+     * The element type to render.
+     *
+     * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
+     * an item inside a form does not submit it.
+     */
     as?: T;
   };
 
@@ -540,9 +546,10 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       role={(forwarded as { role?: React.AriaRole }).role ?? 'menuitem'}
       // A menu item inside a form must not submit it. `<button>` defaults to
       // type="submit", and a filter or sort menu sitting in a form is ordinary.
-      // Dropdown's own trigger sets it. `Avatar` and `Menu.Item` do NOT get this
-      // right — Avatar spreads its default BEFORE `rest`, so `type={undefined}`
-      // arriving through a spread erases it, and Menu defaults none at all.
+      // Dropdown's own trigger sets it, and `Avatar` and `Menu.Item` default it
+      // the same way. A caller's `submit` or `reset` still wins, and anything
+      // else becomes `button`, since HTML reads a value it does not define for
+      // a button as submit too; `buttonType` says more.
       //
       // After `forwarded`, reading through it rather than before it: React
       // treats `type={undefined}` as "remove the attribute", and a spread
@@ -550,14 +557,7 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
       // let such a spread erase it and restore the submit behaviour, so the
       // guard only held for callers who passed nothing.
       {...(Component === 'button'
-        ? {
-            type:
-              (
-                forwarded as {
-                  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
-                }
-              ).type ?? 'button',
-          }
+        ? { type: buttonType((forwarded as { type?: unknown }).type) }
         : {})}
     >
       {children}
