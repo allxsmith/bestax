@@ -52,38 +52,58 @@ describe('TimeInput wheel colour styles', () => {
             .getPropertyValue('--bulma-timeinput-wheel-selected-color')
             .trim()
         ).toBe(`var(--bulma-${color}-invert)`);
-        // The ring takes the contrast-adjusted variant: plain `warning` or
-        // `success` is too faint for a focus indicator on a light surface.
-        expect(
-          style
-            .getPropertyValue('--bulma-timeinput-wheel-focus-ring-color')
-            .trim()
-        ).toBe(`var(--bulma-${color}-on-scheme)`);
       }
     }
   );
 
   it('leaves an uncoloured wheel on the inherited default', () => {
-    const { container, getAllByRole } = render(<TimeInput inline />);
+    const { getAllByRole } = render(<TimeInput inline />);
     for (const wheel of getAllByRole('spinbutton')) {
-      const style = getComputedStyle(wheel);
       expect(
-        style.getPropertyValue('--bulma-timeinput-wheel-selected-bg').trim()
-      ).toBe('');
-      expect(
-        style
-          .getPropertyValue('--bulma-timeinput-wheel-focus-ring-color')
+        getComputedStyle(wheel)
+          .getPropertyValue('--bulma-timeinput-wheel-selected-bg')
           .trim()
       ).toBe('');
     }
-    // Where the default lives, the ring follows the band.
-    const root = container.querySelector<HTMLElement>('.timeinput');
-    expect(root).not.toBeNull();
-    expect(
-      getComputedStyle(root as HTMLElement)
-        .getPropertyValue('--bulma-timeinput-wheel-focus-ring-color')
-        .trim()
-    ).toBe('var(--bulma-timeinput-wheel-selected-bg)');
+  });
+});
+
+/** Every top-level style rule whose selector is a keyboard focus state. */
+function focusRules(sheet: CSSStyleSheet): CSSStyleRule[] {
+  return Array.from(sheet.cssRules).filter(
+    (rule): rule is CSSStyleRule =>
+      rule instanceof CSSStyleRule &&
+      rule.selectorText.includes(':focus-visible')
+  );
+}
+
+describe('TimeInput focus ring', () => {
+  // The wheel carries a mask, and the mask clips everything outside the
+  // wheel's border box, so an outline on the wheel itself (which sits outside
+  // it) never paints. The ring goes inset on the band, which the mask leaves
+  // whole.
+  it('puts no ring on the masked wheel itself', () => {
+    const own = focusRules(styleEl.sheet as CSSStyleSheet).filter(
+      r => r.selectorText === '.timeinput-wheel:focus-visible'
+    );
+    for (const rule of own) {
+      expect(rule.style.getPropertyValue('outline')).toBe('');
+      expect(rule.style.getPropertyValue('outline-style')).toBe('');
+    }
+  });
+
+  it('draws it inset on the band in the selected value colour', () => {
+    // It sits on the selection fill, which follows `color`, and the selected
+    // value's colour is the one chosen to contrast with that fill.
+    const band = focusRules(styleEl.sheet as CSSStyleSheet).find(
+      r =>
+        r.selectorText ===
+        '.timeinput-wheel:focus-visible .timeinput-wheel-band'
+    );
+    expect(band?.style.getPropertyValue('outline')).toBe(
+      '2px solid var(--bulma-timeinput-wheel-selected-color)'
+    );
+    expect(band?.style.getPropertyValue('outline-offset')).toBe('-2px');
   });
 });
 

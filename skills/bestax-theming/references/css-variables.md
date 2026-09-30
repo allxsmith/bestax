@@ -381,11 +381,10 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-timeinput-footer-padding`, `--bulma-timeinput-separator-color`,
 `--bulma-timeinput-separator-size`, `--bulma-timeinput-wheel-bg`,
 `--bulma-timeinput-wheel-color`, `--bulma-timeinput-wheel-dim-color`,
-`--bulma-timeinput-wheel-focus-ring-color`, `--bulma-timeinput-wheel-gap`,
-`--bulma-timeinput-wheel-hover-bg`, `--bulma-timeinput-wheel-item-height`,
-`--bulma-timeinput-wheel-mask`, `--bulma-timeinput-wheel-radius`,
-`--bulma-timeinput-wheel-selected-bg`, `--bulma-timeinput-wheel-selected-color`,
-`--bulma-timeinput-wheel-width`
+`--bulma-timeinput-wheel-gap`, `--bulma-timeinput-wheel-hover-bg`,
+`--bulma-timeinput-wheel-item-height`, `--bulma-timeinput-wheel-mask`,
+`--bulma-timeinput-wheel-radius`, `--bulma-timeinput-wheel-selected-bg`,
+`--bulma-timeinput-wheel-selected-color`, `--bulma-timeinput-wheel-width`
 
 `--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
 wheel item's height inline.
