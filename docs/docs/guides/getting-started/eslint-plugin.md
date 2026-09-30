@@ -173,11 +173,11 @@ have their own unions, so `<Button color="ghost">` is correct and the value
 rule has no business reporting it.
 
 There is also one element where a wrong value still does something, and the
-rule knows it. `radius` on `Theme` is the `radiusless` helper, as everywhere
+rule knows it. `radius` on `Theme` is the border radius helper, as everywhere
 else, but `Theme` used to set `--bulma-radius` from it, and a string outside
 the helper's values still does, through a deprecated route. The rule reports
 that with its own message, pointing at `bulmaVars`, unless the value is a near
-miss of `radiusless`, which gets the usual suggestion:
+miss of one of the helper's values, which gets the usual suggestion:
 
 ```jsx
 <Theme radius="6px" />                            // ✗ deprecated → bulmaVars

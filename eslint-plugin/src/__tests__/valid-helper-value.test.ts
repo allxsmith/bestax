@@ -48,16 +48,29 @@ ruleTester.run('valid-helper-value', rule, {
     // Duplicate JSX attributes are legal JavaScript and React resolves them
     // last-wins, so only the winner is judged. This renders `m="4"`.
     imported('Box', '<Box m="bogus" m="4" />'),
-    // The `BulmaOtherProps` family, every accepted value. These were the last
-    // helper props with no tuple to check against, and the single-value ones
-    // (`overflow`, `radius`, `shadow`) are where an off-by-one table entry
-    // would show up first.
+    // The `BulmaOtherProps` family. These were the last helper props with no
+    // tuple to check against, and the single-value one (`shadow`) is where an
+    // off-by-one table entry would show up first.
     imported('Box', '<Box float="left" overflow="clipped" />'),
     imported('Box', '<Box float="right" interaction="unselectable" />'),
     imported('Box', '<Box interaction="clickable" cursor="pointer" />'),
     imported('Box', '<Box cursor="help" radius="radiusless" />'),
     imported('Box', '<Box shadow="shadowless" responsive="mobile" />'),
     imported('Box', '<Box responsive="narrow" />'),
+    // `overflow` keeps `clipped` and takes the CSS keywords Bulma ships
+    // helpers for; the per-axis props take the keywords alone.
+    imported(
+      'Box',
+      '<Box overflow="scroll" overflowX="auto" overflowY="clip" />'
+    ),
+    // The radius sizes, which add a radius where `radiusless` removes one.
+    imported('Box', '<Box radius="small" />'),
+    imported('Box', '<Box radius="rounded" />'),
+    // `pos` is the position helper; `relative` is still its boolean shortcut.
+    imported('Box', '<Box pos="sticky" />'),
+    imported('Box', '<Box pos="absolute" relative />'),
+    imported('Box', '<Box aspectRatio="16by9" />'),
+    imported('Box', '<Box aspectRatio="9by16" />'),
     // The boolean members of the same interface take no value, so they must
     // stay out of the table: a shorthand on one of them is correct usage.
     imported('Box', '<Box overlay skeleton clearfix relative fullHeight />'),
@@ -168,10 +181,54 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [{ messageId: 'invalid' }],
     },
     {
-      // `overflow` takes only the one value Bulma ships a helper for, so
-      // every CSS overflow keyword renders nothing.
-      code: imported('Box', '<Box overflow="scroll" />'),
+      // A CSS overflow keyword Bulma ships no helper for.
+      code: imported('Box', '<Box overflow="overlay" />'),
       errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // `clipped` is the both-axes helper only; the axis props have no class
+      // for it, and `clip` is the keyword they do take.
+      code: imported('Box', '<Box overflowX="clipped" />'),
+      errors: [
+        {
+          messageId: 'invalidWithSuggestion',
+          data: {
+            prop: 'overflowX',
+            value: 'clipped',
+            suggestions: '`clip`',
+          },
+        },
+      ],
+    },
+    {
+      // The CSS spelling of a ratio rather than Bulma's.
+      code: imported('Box', '<Box aspectRatio="16/9" />'),
+      errors: [
+        {
+          messageId: 'invalidWithSuggestion',
+          data: {
+            prop: 'aspectRatio',
+            value: '16/9',
+            suggestions: '`16by9`',
+          },
+        },
+      ],
+    },
+    {
+      // A ratio Bulma does not ship, so no class exists for it. Its
+      // neighbours on the scale are the suggestions.
+      code: imported('Box', '<Box aspectRatio="4by1" />'),
+      errors: [{ messageId: 'invalidWithSuggestion' }],
+    },
+    {
+      // A CSS position keyword with no Bulma helper.
+      code: imported('Box', '<Box pos="inherit" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // A near miss of `sticky`, answered with the suggestion.
+      code: imported('Box', '<Box pos="stikcy" />'),
+      errors: [{ messageId: 'invalidWithSuggestion' }],
     },
     {
       code: imported('Box', '<Box interaction="hover" />'),
@@ -185,9 +242,8 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [{ messageId: 'invalid' }],
     },
     {
-      // Reads as "round the corners" and does the opposite of nothing: the
-      // prop exists only to REMOVE the radius.
-      code: imported('Box', '<Box radius="rounded" />'),
+      // Bulma's radius scale has no `medium` step.
+      code: imported('Box', '<Box radius="medium" />'),
       errors: [{ messageId: 'invalid' }],
     },
     {
@@ -212,11 +268,16 @@ ruleTester.run('valid-helper-value', rule, {
       ],
     },
     {
-      // Same shape, and the reason the message names the thing rather than
-      // the prop: "removes the border radius" reads, "removes the radius"
-      // does not say which.
+      // `radius` used to take only `radiusless` and got the message above.
+      // It takes sizes that add a radius as well now, so the ordinary
+      // remedy, listing every value, is the true one.
       code: imported('Box', '<Box radius />'),
-      errors: [{ messageId: 'shorthandRemoves' }],
+      errors: [
+        {
+          message:
+            '`radius` is `true` here, and radius is matched against strings, so the class is never emitted and nothing renders. Give it a value: `radiusless`, `small`, `normal`, `large`, `rounded`.',
+        },
+      ],
     },
     {
       // `Theme` routes its helper props through `useBulmaClasses` like any
@@ -233,7 +294,7 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [
         {
           message:
-            "`radius=\"6px\"` is not a value radius accepts, so on Theme it sets `--bulma-radius` instead, through a deprecated route. If a radius of `6px` is what you meant, write `bulmaVars={{ '--bulma-radius': '6px' }}`. Valid values: `radiusless`.",
+            "`radius=\"6px\"` is not a value radius accepts, so on Theme it sets `--bulma-radius` instead, through a deprecated route. If a radius of `6px` is what you meant, write `bulmaVars={{ '--bulma-radius': '6px' }}`. Valid values: `radiusless`, `small`, `normal`, `large`, `rounded`.",
         },
       ],
     },
@@ -258,12 +319,18 @@ ruleTester.run('valid-helper-value', rule, {
       ],
     },
     {
-      // Reads as "round the corners" and is no near miss of `radiusless`, so
-      // there is nothing to suggest. What is true is the deprecated route:
-      // it sets the variable, and the message lists the one valid value and
-      // offers `bulmaVars` only for the case where that radius was meant.
-      code: imported('Theme', '<Theme radius="rounded">x</Theme>'),
+      // A length is no near miss of any value, so there is nothing to
+      // suggest. What is true is the deprecated route: it sets the variable,
+      // and the message lists the valid values and offers `bulmaVars` only
+      // for the case where that radius was meant.
+      code: imported('Theme', '<Theme radius="1rem">x</Theme>'),
       errors: [{ messageId: 'deprecatedVariable' }],
+    },
+    {
+      // A near miss of a radius size gets the suggestion, as a near miss of
+      // `radiusless` does.
+      code: imported('Theme', '<Theme radius="roundd">x</Theme>'),
+      errors: [{ messageId: 'deprecatedVariableWithSuggestion' }],
     },
     {
       // An empty string sets nothing on `Theme`, as in the library, so the
@@ -286,7 +353,7 @@ ruleTester.run('valid-helper-value', rule, {
             value: '6px',
             element: 'Theme',
             cssVar: '--bulma-radius',
-            valid: '`radiusless`',
+            valid: '`radiusless`, `small`, `normal`, `large`, `rounded`',
           },
         },
       ],
@@ -302,7 +369,7 @@ ruleTester.run('valid-helper-value', rule, {
       // helper on `Theme` too, where they render nothing, so the ordinary
       // messages are the true ones.
       code: imported('Theme', '<Theme radius>x</Theme>'),
-      errors: [{ messageId: 'shorthandRemoves' }],
+      errors: [{ messageId: 'shorthand' }],
     },
     {
       code: imported('Theme', '<Theme radius={6}>x</Theme>'),
