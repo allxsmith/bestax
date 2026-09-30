@@ -229,6 +229,14 @@ test('a release step outside the publish job does not count', () => {
   only(check({ ci: text }), /release step for eslint-plugin/);
 });
 
+test('two release steps for one directory do not stand in for a missing one', () => {
+  // Release steps are collected, not looked up by name, so a duplicate adds a
+  // directory rather than displacing one. Pinned so that stays true.
+  const release =
+    DIRS.slice(0, 2).map(releaseStep).join('') + releaseStep(DIRS[1]);
+  only(check({ ci: ci({ release }) }), /release step for eslint-plugin/);
+});
+
 test('a missing publish job is one message naming the constant to update', () => {
   only(
     check({ ci: ci({ publishJob: 'release' }) }),
@@ -274,6 +282,45 @@ test('a missing Archive Coverage step is one message naming the constant', () =>
     }),
     /has no "Archive Coverage" step/,
     /update COVERAGE_STEP/
+  );
+});
+
+/** A second step by the coverage step's name, archiving every directory. */
+const decoyCoverage = `      - name: Archive Coverage
+        uses: actions/upload-artifact@0000000000000000000000000000000000000000 # v7
+        with:
+          name: decoy
+          path: |
+${DIRS.map(dir => `            ${dir}/coverage`).join('\n')}
+
+`;
+
+const incomplete = DIRS.slice(0, 2)
+  .map(dir => `            ${dir}/coverage`)
+  .join('\n');
+
+test('a second Archive Coverage step earlier in the file is ambiguity, not a pass', () => {
+  // Taking the first match validated the decoy while the step that really
+  // archives coverage went unchecked, and it is missing a directory.
+  const text = ci({ coverage: incomplete }).replace(
+    '      - name: Test Coverage\n',
+    decoyCoverage + '      - name: Test Coverage\n'
+  );
+  only(
+    check({ ci: text }),
+    /^\.github\/workflows\/ci\.yml has 2 "Archive Coverage" steps \(in build-and-test\)/,
+    /cannot tell which one keeps coverage/
+  );
+});
+
+test('an Archive Coverage step in another job is ambiguity too, naming both jobs', () => {
+  const text = ci({ coverage: incomplete }).replace(
+    '  build-and-test:\n',
+    `  lint:\n    runs-on: ubuntu-latest\n    steps:\n${decoyCoverage}  build-and-test:\n`
+  );
+  only(
+    check({ ci: text }),
+    /has 2 "Archive Coverage" steps \(in lint, build-and-test\)/
   );
 });
 

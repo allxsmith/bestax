@@ -4345,7 +4345,9 @@ const bareDir = path =>
 /**
  * The package names every `npm install` (or `npm i`, `npm add`) in a shell
  * script is asked for, versions stripped. A name only in an echo, an argument
- * to some other command, or a comment is not an install.
+ * to some other command, or a comment is not an install. Known misses, both
+ * reading as not installed: an install nested in if/for/while, and every name
+ * on a line whose trailing comment holds an unpaired quote.
  */
 export function npmInstallNames(script) {
   const names = [];
@@ -4443,16 +4445,30 @@ export function releaseWiringViolations(packages, { ci, supplyChain }) {
     }
 
     // 2. The package's coverage directory in the step that keeps coverage.
-    const coverage = [...ciJobs.values()]
-      .flatMap(jobSteps)
-      .find(step => stepScalar(step, 'name') === COVERAGE_STEP);
-    if (!coverage) {
+    // Found by name, so a second step by that name is reported rather than
+    // resolved: taking the first would validate whichever comes first while
+    // the other went unchecked.
+    const found = [...ciJobs].flatMap(([id, job]) =>
+      jobSteps(job)
+        .filter(step => stepScalar(step, 'name') === COVERAGE_STEP)
+        .map(step => ({ id, step }))
+    );
+    if (!found.length) {
       violations.push(
         `${CI_WORKFLOW} has no "${COVERAGE_STEP}" step, so no package's ` +
           `coverage report can be shown to be kept. If the step was renamed, ` +
           `update COVERAGE_STEP in scripts/check-conformance.mjs (#710).`
       );
+    } else if (found.length > 1) {
+      const ids = [...new Set(found.map(({ id }) => id))];
+      violations.push(
+        `${CI_WORKFLOW} has ${found.length} "${COVERAGE_STEP}" steps ` +
+          `(in ${ids.join(', ')}), so this check cannot tell which one keeps ` +
+          `coverage and will not guess. Rename all but the one that archives ` +
+          `the coverage directories (#710).`
+      );
     } else {
+      const [{ step: coverage }] = found;
       const paths = new Set(
         (yamlScalar(yamlGet(coverage.get('with')?.lines ?? [], 'path')) ?? '')
           .split('\n')
