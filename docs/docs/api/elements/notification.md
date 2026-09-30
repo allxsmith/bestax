@@ -142,7 +142,7 @@ function App() {
 }
 ```
 
-The container's `position` (`top-left`, `top`, `top-right`, `bottom-left`, `bottom`, or `bottom-right`) places every notification it shows.
+The container's `position` (`top-left`, `top`, `top-right`, `bottom-left`, `bottom`, or `bottom-right`) places every notification shown without one. Pass `position` to `notification.show()` to put a notification somewhere else, and the container keeps a separate stack at each position in use. Queued notifications share one queue whatever their position, so a queued notification waits for the one on screen even when it's headed somewhere else.
 
 ### API Methods
 
@@ -162,6 +162,9 @@ notification.show({
   isLight: true,
   duration: 5000,
 });
+
+// Show one away from the container's position
+notification.show({ message: 'Upload finished', position: 'bottom-left' });
 
 // Queued notifications display one at a time (FIFO)
 notification.show({ message: 'Step 1', queue: true });
