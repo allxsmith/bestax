@@ -32,11 +32,11 @@ export interface CollapsesSingleProps extends CollapsesBaseProps {
    * @defaultValue false
    */
   multiple?: false;
-  /** Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. */
+  /** Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. An index is a position among the children, so rendering an item conditionally or reordering them moves the open state onto a neighbour: render every item and hide one with `visibility="hidden"`, or keep `value` in step yourself. */
   value?: number | null;
-  /** Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. */
+  /** Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. Indexes are positions among the children, as for `value`. */
   defaultValue?: number | null;
-  /** Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or an array of indexes with `multiple`. */
+  /** Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or with `multiple` an array of indexes in ascending order. Indexes are positions among the children, as for `value`. */
   onChange?: (value: number | null) => void;
 }
 
@@ -49,11 +49,11 @@ export interface CollapsesMultipleProps extends CollapsesBaseProps {
    * @defaultValue false
    */
   multiple: true;
-  /** Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. */
+  /** Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. An index is a position among the children, so rendering an item conditionally or reordering them moves the open state onto a neighbour: render every item and hide one with `visibility="hidden"`, or keep `value` in step yourself. */
   value?: number[];
-  /** Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. */
+  /** Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. Indexes are positions among the children, as for `value`. */
   defaultValue?: number[];
-  /** Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or an array of indexes with `multiple`. */
+  /** Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or with `multiple` an array of indexes in ascending order. Indexes are positions among the children, as for `value`. */
   onChange?: (value: number[]) => void;
 }
 
@@ -142,7 +142,11 @@ const CollapsesComponent: React.FC<CollapsesProps> = ({
   const setItemOpen = (index: number, open: boolean) => {
     const others = openIndexes.filter(i => i !== index);
     // Single mode keeps at most one item open, so opening one drops the rest.
-    const next = open ? (multiple ? [...others, index] : [index]) : others;
+    // Ascending order, whatever order the items were opened in, so the value
+    // reads and compares the same way however the user got there.
+    const next = (
+      open ? (multiple ? [...others, index] : [index]) : others
+    ).sort((a, b) => a - b);
     if (!isControlled) setInternalOpen(next);
     reportChange?.(multiple ? next : (next[0] ?? null));
   };

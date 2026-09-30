@@ -61,7 +61,7 @@ const meta: Meta<typeof Collapses> = {
     onChange: {
       control: false,
       description:
-        'Called with the new open items each time a trigger asks for a change, controlled or not.',
+        'Called with the new open items each time a trigger asks for a change, controlled or not. With `multiple`, the indexes come in ascending order.',
     },
   },
 };
@@ -150,7 +150,8 @@ export const Seamless: Story = {
 
 /**
  * Controlled with `value` and `onChange`, the way `Tabs` is. The buttons and the
- * triggers change the same state.
+ * triggers change the same state, and `onChange` reports the open indexes in
+ * ascending order, so the list below follows the page order.
  */
 export const Controlled: Story = {
   render: function ControlledExample() {
@@ -164,7 +165,8 @@ export const Controlled: Story = {
           <Button onClick={() => setOpen([])}>Close all</Button>
         </Buttons>
         <Paragraph mb="4">
-          Open: {open.length ? open.join(', ') : 'none'}
+          Open:{' '}
+          {open.length ? open.map(i => sections[i].title).join(', ') : 'none'}
         </Paragraph>
         <Collapses multiple value={open} onChange={setOpen}>
           {sections.map(s => (

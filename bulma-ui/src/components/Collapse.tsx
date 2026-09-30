@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { warnOnce } from '../helpers/devWarnings';
 import { inertProps } from '../helpers/inertProps';
 import { CollapsesItemContext } from './collapsesContext';
 
@@ -113,6 +114,37 @@ export const Collapse: React.FC<CollapseProps> = ({
   const groupItem = isControlled ? null : group;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = controlledOpen ?? groupItem?.open ?? internalOpen;
+
+  // A group owns the state of the items it manages, so these props do
+  // nothing there. That is easy to miss, so development says which ones and
+  // what to use instead, once per combination (the way Avatar keys its
+  // warning), and `warnOnce` keeps production silent.
+  if (groupItem) {
+    const ignored = [
+      defaultOpen && 'defaultOpen',
+      onOpen && 'onOpen',
+      onClose && 'onClose',
+    ].filter((name): name is string => Boolean(name));
+    if (ignored.length > 0) {
+      const callbacks = ignored.filter(name => name !== 'defaultOpen');
+      warnOnce(
+        `Collapse:ignored-in-Collapses:${ignored.join('+')}`,
+        `[bestax-bulma] <Collapse ${ignored.join(' ')}> inside <Collapses>: ` +
+          [
+            ignored.includes('defaultOpen') &&
+              `defaultOpen has no effect, because the group decides which ` +
+                `items start open. Pass the item's index in the group's ` +
+                `defaultValue instead.`,
+            callbacks.length > 0 &&
+              `${callbacks.join(' and ')} never fire${callbacks.length > 1 ? '' : 's'}, ` +
+                `because the group holds the item's open state. Use the ` +
+                `item's onOpenChange, or the group's onChange, instead.`,
+          ]
+            .filter(Boolean)
+            .join(' ')
+      );
+    }
+  }
 
   // Start from the resolved state rather than `defaultOpen`, so an item that
   // mounts open through `open` or a group is not first painted (or rendered

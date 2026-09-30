@@ -60,7 +60,7 @@
           "name": "value",
           "type": "number | null | number[]",
           "default": null,
-          "description": "Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes.",
+          "description": "Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. An index is a position among the children, so rendering an item conditionally or reordering them moves the open state onto a neighbour: render every item and hide one with `visibility=\"hidden\"`, or keep `value` in step yourself.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -69,7 +69,7 @@
           "name": "defaultValue",
           "type": "number | null | number[]",
           "default": null,
-          "description": "Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default.",
+          "description": "Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. Indexes are positions among the children, as for `value`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -78,7 +78,7 @@
           "name": "onChange",
           "type": "(value: number | null) => void | (value: number[]) => void",
           "default": null,
-          "description": "Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or an array of indexes with `multiple`.",
+          "description": "Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or with `multiple` an array of indexes in ascending order. Indexes are positions among the children, as for `value`.",
           "required": false,
           "inherited": true,
           "deprecated": false

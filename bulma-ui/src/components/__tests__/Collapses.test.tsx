@@ -5,6 +5,7 @@ import '@testing-library/jest-dom';
 import { Collapses } from '../Collapses';
 import { Collapse } from '../Collapse';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 /** The trigger of the item whose trigger text is `name`. */
 const trigger = (name: string) => screen.getByRole('button', { name });
@@ -164,6 +165,32 @@ describe('Collapses', () => {
 
       expect(onChange.mock.calls).toEqual([[[0]], [[0, 2]], [[2]]]);
     });
+
+    it('reports open indexes in ascending order, not the order opened', () => {
+      const onChange = jest.fn();
+      render(
+        <Collapses multiple onChange={onChange}>
+          {threeItems}
+        </Collapses>
+      );
+
+      fireEvent.click(trigger('C'));
+      fireEvent.click(trigger('A'));
+      fireEvent.click(trigger('B'));
+
+      expect(onChange.mock.calls).toEqual([[[2]], [[0, 2]], [[0, 1, 2]]]);
+    });
+
+    it('sorts a controlled value it reports on, however it was passed', () => {
+      const onChange = jest.fn();
+      render(
+        <Collapses multiple value={[2, 0]} onChange={onChange}>
+          {threeItems}
+        </Collapses>
+      );
+      fireEvent.click(trigger('B'));
+      expect(onChange).toHaveBeenLastCalledWith([0, 1, 2]);
+    });
   });
 
   describe('controlled', () => {
@@ -265,6 +292,8 @@ describe('Collapses', () => {
     });
 
     it("fires an item's onOpenChange, but not its onOpen or onClose", () => {
+      // The warning these props draw is covered below.
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       const onOpenChange = jest.fn();
       const onOpen = jest.fn();
       const onClose = jest.fn();
@@ -287,9 +316,11 @@ describe('Collapses', () => {
       expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
       expect(onOpen).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
 
     it("ignores an item's defaultOpen in favour of the group's defaultValue", () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       render(
         <Collapses defaultValue={1}>
           <Collapse trigger="A" defaultOpen>
@@ -299,6 +330,7 @@ describe('Collapses', () => {
         </Collapses>
       );
       expect(openNames()).toEqual(['B']);
+      warnSpy.mockRestore();
     });
 
     it('indexes the children of a fragment one by one', () => {
@@ -351,6 +383,111 @@ describe('Collapses', () => {
       fireEvent.click(trigger('Inner'));
       expect(isOpen('Inner')).toBe(true);
       expect(isOpen('Outer')).toBe(true);
+    });
+  });
+
+  describe('development warnings for props the group makes inert', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it("warns once about an item's defaultOpen, naming the group's defaultValue", () => {
+      const group = (
+        <Collapses>
+          <Collapse trigger="A" defaultOpen>
+            Panel A
+          </Collapse>
+          <Collapse trigger="B" defaultOpen>
+            Panel B
+          </Collapse>
+        </Collapses>
+      );
+      const { rerender } = render(group);
+      rerender(group);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('<Collapse defaultOpen> inside <Collapses>');
+      expect(message).toContain("group's defaultValue");
+    });
+
+    it("warns about onOpen and onClose, naming onOpenChange and the group's onChange", () => {
+      render(
+        <Collapses>
+          <Collapse trigger="A" onOpen={() => {}} onClose={() => {}}>
+            Panel A
+          </Collapse>
+          <Collapse trigger="B" onClose={() => {}}>
+            Panel B
+          </Collapse>
+        </Collapses>
+      );
+
+      // Each combination of props gets its own warning, once.
+      expect(warnSpy).toHaveBeenCalledTimes(2);
+      const [both, one] = warnSpy.mock.calls.map(call => call[0] as string);
+      expect(both).toContain('onOpen and onClose never fire');
+      expect(both).toContain('onOpenChange');
+      expect(both).toContain("group's onChange");
+      expect(one).toContain('onClose never fires');
+    });
+
+    it('names every ignored prop in one warning', () => {
+      render(
+        <Collapses>
+          <Collapse trigger="A" defaultOpen onOpen={() => {}}>
+            Panel A
+          </Collapse>
+        </Collapses>
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('<Collapse defaultOpen onOpen>');
+      expect(message).toContain('defaultValue');
+      expect(message).toContain('onOpen never fires');
+    });
+
+    it('stays quiet where the props still work', () => {
+      render(
+        <>
+          <Collapse trigger="Alone" defaultOpen onOpen={() => {}}>
+            Standalone
+          </Collapse>
+          <Collapses>
+            <Collapse trigger="Own" open onOpen={() => {}}>
+              Its own state
+            </Collapse>
+            <Collapse trigger="Reports" onOpenChange={() => {}}>
+              Reports through onOpenChange
+            </Collapse>
+          </Collapses>
+        </>
+      );
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('is silent in production', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(
+          <Collapses>
+            <Collapse trigger="A" defaultOpen onOpen={() => {}}>
+              Panel A
+            </Collapse>
+          </Collapses>
+        );
+        expect(warnSpy).not.toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
     });
   });
 
