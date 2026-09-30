@@ -275,9 +275,12 @@ $dateinput-nav-button-size: 1.75rem !default;
 
 // Colour variants. `color` lands on the calendar root as `is-<colour>`, and
 // the root re-points its accent variables at that colour: the selection fill
-// paired with its `-invert` for the selected value, today's tint and the focus
-// ring, the same pairings the `primary` defaults use. Every rule that paints
-// an accent reads one of these, so they follow without rules of their own.
+// paired with its `-invert` for the selected value, and today's tint. The
+// focus ring takes the colour's `-on-scheme` variant instead, which Bulma
+// darkens or lightens until it contrasts with `scheme-main`, since a ring in
+// plain `warning` or `success` is too faint to see on a light surface. Every
+// rule that paints an accent reads one of these, so they follow without rules
+// of their own.
 @each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
   .#{iv.$class-prefix}dateinput.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
@@ -285,7 +288,7 @@ $dateinput-nav-button-size: 1.75rem !default;
         'dateinput-cell-selected-bg': #{cv.getVar($name)},
         'dateinput-cell-selected-color': #{cv.getVar('#{$name}-invert')},
         'dateinput-cell-today-color': #{cv.getVar($name)},
-        'dateinput-focus-ring-color': #{cv.getVar($name)},
+        'dateinput-focus-ring-color': #{cv.getVar('#{$name}-on-scheme')},
       )
     );
   }

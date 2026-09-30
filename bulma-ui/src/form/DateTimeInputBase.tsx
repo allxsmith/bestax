@@ -135,11 +135,13 @@ export interface DateTimeInputBaseProps
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the input, also carried by the calendar and the
-   * time wheels, where it colors the selected date, today's date, the
-   * selection band and the keyboard focus rings. Unset, they use their
-   * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
-   * follow `primary` by default. The footer's time pill and Done button stay
-   * `primary` either way.
+   * time wheels, where it colors the selected date, today's date and the
+   * selection band. The keyboard focus rings take the color's `-on-scheme`
+   * variant, which Bulma adjusts to contrast with the background, so pale
+   * colors stay visible; that makes `'primary'` a shade off the unset rings,
+   * which are plain `primary`. Unset, they use their `--bulma-dateinput-*` and
+   * `--bulma-timeinput-wheel-*` variables, which follow `primary` by default.
+   * The footer's time pill and Done button stay `primary` either way.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */

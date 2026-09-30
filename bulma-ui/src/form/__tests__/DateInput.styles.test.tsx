@@ -31,13 +31,24 @@ const colors = [
 ] as const;
 type Color = (typeof colors)[number];
 
-/** The variables a colour re-points, and what each should read for it. */
+/**
+ * The variables a colour re-points, and what each should read for it. The
+ * ring takes the `-on-scheme` variant, which Bulma adjusts until it contrasts
+ * with `scheme-main`: plain `warning` or `success` is too faint for a focus
+ * indicator on a light surface.
+ */
 const accents = (color: string) => ({
   '--bulma-dateinput-cell-selected-bg': `var(--bulma-${color})`,
   '--bulma-dateinput-cell-selected-color': `var(--bulma-${color}-invert)`,
   '--bulma-dateinput-cell-today-color': `var(--bulma-${color})`,
-  '--bulma-dateinput-focus-ring-color': `var(--bulma-${color})`,
+  '--bulma-dateinput-focus-ring-color': `var(--bulma-${color}-on-scheme)`,
 });
+
+/** What an uncoloured calendar reads: `primary` throughout, ring included. */
+const defaults = {
+  ...accents('primary'),
+  '--bulma-dateinput-focus-ring-color': 'var(--bulma-primary)',
+};
 
 /** The accent variables as the calendar root computes them. */
 function computedAccents(root: HTMLElement) {
@@ -92,9 +103,7 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
 
   it('leaves an uncoloured calendar on the primary defaults', () => {
     const { container } = render(picker());
-    expect(computedAccents(calendarRoot(container))).toEqual(
-      accents('primary')
-    );
+    expect(computedAccents(calendarRoot(container))).toEqual(defaults);
   });
 });
 

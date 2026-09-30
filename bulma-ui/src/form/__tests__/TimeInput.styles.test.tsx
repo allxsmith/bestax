@@ -52,19 +52,38 @@ describe('TimeInput wheel colour styles', () => {
             .getPropertyValue('--bulma-timeinput-wheel-selected-color')
             .trim()
         ).toBe(`var(--bulma-${color}-invert)`);
+        // The ring takes the contrast-adjusted variant: plain `warning` or
+        // `success` is too faint for a focus indicator on a light surface.
+        expect(
+          style
+            .getPropertyValue('--bulma-timeinput-wheel-focus-ring-color')
+            .trim()
+        ).toBe(`var(--bulma-${color}-on-scheme)`);
       }
     }
   );
 
   it('leaves an uncoloured wheel on the inherited default', () => {
-    const { getAllByRole } = render(<TimeInput inline />);
+    const { container, getAllByRole } = render(<TimeInput inline />);
     for (const wheel of getAllByRole('spinbutton')) {
+      const style = getComputedStyle(wheel);
       expect(
-        getComputedStyle(wheel)
-          .getPropertyValue('--bulma-timeinput-wheel-selected-bg')
+        style.getPropertyValue('--bulma-timeinput-wheel-selected-bg').trim()
+      ).toBe('');
+      expect(
+        style
+          .getPropertyValue('--bulma-timeinput-wheel-focus-ring-color')
           .trim()
       ).toBe('');
     }
+    // Where the default lives, the ring follows the band.
+    const root = container.querySelector<HTMLElement>('.timeinput');
+    expect(root).not.toBeNull();
+    expect(
+      getComputedStyle(root as HTMLElement)
+        .getPropertyValue('--bulma-timeinput-wheel-focus-ring-color')
+        .trim()
+    ).toBe('var(--bulma-timeinput-wheel-selected-bg)');
   });
 });
 

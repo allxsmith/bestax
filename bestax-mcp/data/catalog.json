@@ -1891,6 +1891,7 @@
     "--bulma-timeinput-wheel-bg": "TimeInput",
     "--bulma-timeinput-wheel-color": "TimeInput",
     "--bulma-timeinput-wheel-dim-color": "TimeInput",
+    "--bulma-timeinput-wheel-focus-ring-color": "TimeInput",
     "--bulma-timeinput-wheel-gap": "TimeInput",
     "--bulma-timeinput-wheel-hover-bg": "TimeInput",
     "--bulma-timeinput-wheel-item-height": "TimeInput",

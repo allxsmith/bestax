@@ -20,6 +20,8 @@ $timeinput-wheel-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
 $timeinput-wheel-selected-bg: cv.getVar('primary') !default;
 $timeinput-wheel-selected-color: cv.getVar('primary-invert') !default;
 $timeinput-wheel-radius: cv.getVar('radius') !default;
+// Follows the band unless a colour sets it (see the colour variants below).
+$timeinput-wheel-focus-ring-color: cv.getVar('timeinput-wheel-selected-bg') !default;
 // The per-item depth fade applied inline in TimeWheels.tsx now does the heavy
 // lifting of dimming away-from-centre values. The mask just trims the very
 // edges so partial items at the top/bottom don't get a hard cut-off — keep
@@ -49,6 +51,7 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
       'timeinput-wheel-selected-bg': #{$timeinput-wheel-selected-bg},
       'timeinput-wheel-selected-color': #{$timeinput-wheel-selected-color},
       'timeinput-wheel-radius': #{$timeinput-wheel-radius},
+      'timeinput-wheel-focus-ring-color': #{$timeinput-wheel-focus-ring-color},
       'timeinput-wheel-mask': #{$timeinput-wheel-mask},
       'timeinput-separator-color': #{$timeinput-separator-color},
       'timeinput-separator-size': #{$timeinput-separator-size},
@@ -123,10 +126,8 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   // that used to live here was removed when the band became the indicator —
   // pinning a ring to the selected item caused a broken-outline artefact
   // whenever position was mid-flight (item offset from band).
-  //
-  // The ring reads the band's colour, so a coloured wheel keeps one accent.
   &:focus-visible {
-    outline: 2px solid cv.getVar('timeinput-wheel-selected-bg');
+    outline: 2px solid cv.getVar('timeinput-wheel-focus-ring-color');
     outline-offset: 2px;
     border-radius: cv.getVar('timeinput-wheel-radius');
   }
@@ -161,9 +162,8 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     color 0.1s ease,
     font-weight 0.1s ease;
 
-  // The fill is left out of the transition above for the reason the calendar
-  // cells give in `_dateinput.scss`: Chrome can strand a button's background
-  // transition mid-flight.
+  // The fill is not in the transition list above, so it snaps on and off the
+  // way the calendar cells' hover does.
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
     color: cv.getVar('timeinput-wheel-color');
     background-color: cv.getVar('timeinput-wheel-hover-bg');
@@ -237,14 +237,18 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 // Colour variants. `color` lands on each wheel as `is-<colour>`, and the wheel
 // re-points its selection variables at that colour, pairing it with its
 // `-invert` for the selected value the way the `primary` default does. The
-// band, the selected item and the focus ring all read these variables, so
-// they follow without rules of their own.
+// focus ring takes the colour's `-on-scheme` variant instead, which Bulma
+// darkens or lightens until it contrasts with `scheme-main`, since a ring in
+// plain `warning` or `success` is too faint to see on a light surface. The
+// band, the selected item and the ring all read these variables, so they
+// follow without rules of their own.
 @each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
   .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
         'timeinput-wheel-selected-bg': #{cv.getVar($name)},
         'timeinput-wheel-selected-color': #{cv.getVar('#{$name}-invert')},
+        'timeinput-wheel-focus-ring-color': #{cv.getVar('#{$name}-on-scheme')},
       )
     );
   }
