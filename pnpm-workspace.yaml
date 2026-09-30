@@ -139,10 +139,11 @@ overrides:
   # holds today.
   'browserslist@<4.28.7': '>=4.28.7'
   # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched brace-expansion per major for its high advisories, which
-  # ship per-major backports. Each floor is the newest fix on its line:
-  # 1.1.20 / 2.1.6 / 3.0.8 / 5.0.11 patch GHSA-qhr7-859c-m2p7 and
-  # GHSA-6j4f-fj2g-mc7p (stack exhaustion on nested or comma-heavy braces).
+  # Force patched brace-expansion per major for its advisories, which ship
+  # per-major backports. Each floor is the newest fix on its line, including
+  # the moderate ones the audit gate doesn't see: 1.1.21 / 2.1.7 / 3.0.9 /
+  # 5.0.12 patch GHSA-q2hr-2g5m-vwhr, released with the high advisories
+  # GHSA-qhr7-859c-m2p7 and GHSA-6j4f-fj2g-mc7p fixed a patch below.
   # Do NOT collapse this into an unscoped cross-major force: brace-expansion
   # 5.x's CommonJS entry exports a named `expand` and the module value itself
   # is not callable, so minimatch@3 (`const expand = require('brace-expansion')`)
@@ -150,13 +151,13 @@ overrides:
   # no consumer in this tree; if one ever appears the audit gate will flag it,
   # and the cross-major question gets decided then, against that consumer's
   # import style.
-  'brace-expansion@1': '>=1.1.20 <2'
+  'brace-expansion@1': '>=1.1.21 <2'
   # bestax:review 2026-11-13 — quarterly sweep; 2.x line, prunable on its own
-  'brace-expansion@2': '>=2.1.6 <3'
+  'brace-expansion@2': '>=2.1.7 <3'
   # bestax:review 2026-11-13 — quarterly sweep; 3.x line, prunable on its own
-  'brace-expansion@3': '>=3.0.8 <4'
+  'brace-expansion@3': '>=3.0.9 <4'
   # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
-  'brace-expansion@5': '>=5.0.11 <6'
+  'brace-expansion@5': '>=5.0.12 <6'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
   # schema-utils, the eslint toolchain and the MCP SDK) for its high
