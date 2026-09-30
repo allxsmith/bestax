@@ -118,6 +118,10 @@ const BESTAX = {
   'visibility="sr-only"': '/docs/guides/helpers/visibility',
   overlay: '/docs/guides/helpers/other',
   'bestax.css': '/docs/guides/getting-started/installation',
+  // Capabilities bestax documents as a recipe rather than a component.
+  'Dropdown (split button recipe)': 'components/dropdown#split-button',
+  'Input (password reveal recipe)': 'form/input#password-reveal',
+  'Input (copy button recipe)': 'form/input#copy-button',
 };
 const bestaxHref = name => {
   const v = BESTAX[name];
@@ -591,7 +595,16 @@ export const categories = [
         'CloseButton',
         '~Button',
       ],
-      ['Copy button', 0, 'CopyButton', 0, 0, 0, 'Clipboard', '~InputGroup'],
+      [
+        'Copy button',
+        '~Input (copy button recipe)',
+        'CopyButton',
+        0,
+        0,
+        0,
+        'Clipboard',
+        '~InputGroup',
+      ],
       [
         'File-trigger button',
         '~File',
@@ -624,7 +637,7 @@ export const categories = [
       ],
       [
         'Split button',
-        0,
+        '~Dropdown (split button recipe)',
         '~Menu',
         'SplitButton',
         '~ButtonGroup',
@@ -691,7 +704,7 @@ export const categories = [
       ],
       [
         'Password input',
-        0,
+        '~Input (password reveal recipe)',
         'PasswordInput',
         0,
         '~TextField',

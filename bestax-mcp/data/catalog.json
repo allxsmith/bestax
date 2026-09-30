@@ -426,7 +426,7 @@
       "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 17,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "Emphasis",
@@ -547,7 +547,7 @@
       "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 29,
-      "exampleCount": 28
+      "exampleCount": 30
     },
     {
       "name": "Level",

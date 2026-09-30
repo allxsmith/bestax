@@ -339,6 +339,108 @@ Pass `hasAddons="right"` to right-align the group.
 
 ---
 
+### Password Reveal
+
+A show-password toggle is an addon: the `Input` in one `Control` and a `Button` in the next, switching the input's `type` between `password` and `text`. It can't be an icon inside the input the way `iconRight` draws one, because Bulma gives control icons `pointer-events: none` and a click on one lands on the input instead.
+
+The button keeps one accessible name, "Show password", and reports whether it's on through `aria-pressed`, so a screen reader announces a toggle that is pressed or not. `type="button"` stops it submitting the form it sits in. The label goes on an outer `Field`, since a `hasAddons` field lays its children out in a row, and `labelProps={{ htmlFor }}` with a matching `id` associates it with the input across the nested field.
+
+```tsx live
+function PasswordReveal() {
+  const id = React.useId();
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <Field label="Password" labelProps={{ htmlFor: id }}>
+      <Field hasAddons>
+        <Control isExpanded>
+          <Input
+            id={id}
+            type={visible ? 'text' : 'password'}
+            autoComplete="current-password"
+          />
+        </Control>
+        <Control>
+          <Button
+            type="button"
+            aria-label="Show password"
+            aria-pressed={visible}
+            onClick={() => setVisible(shown => !shown)}
+          >
+            <Icon name={visible ? 'eye-slash' : 'eye'} aria-hidden="true" />
+          </Button>
+        </Control>
+      </Field>
+    </Field>
+  );
+}
+```
+
+---
+
+### Copy Button
+
+A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards, and a `role="status"` line under the field says so to screen readers, which don't reliably announce a change to a button's label.
+
+The clipboard can be missing, since `navigator.clipboard` exists only on secure (HTTPS) pages, and the browser can refuse the write. Either way the example focuses and selects the text and says what happened, so the reader can copy it themselves.
+
+```tsx live
+function CopyButton() {
+  const id = React.useId();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const link = 'https://bestax.io/docs/api/form/input';
+
+  // Put the button's label back after a moment.
+  useEffect(() => {
+    if (status !== 'copied') return undefined;
+    const timer = setTimeout(() => setStatus('idle'), 2000);
+    return () => clearTimeout(timer);
+  }, [status]);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setStatus('copied');
+    } catch {
+      // No clipboard on this page, or the browser refused the write.
+      inputRef.current?.focus();
+      inputRef.current?.select();
+      setStatus('failed');
+    }
+  };
+
+  return (
+    <Field label="Share link" labelProps={{ htmlFor: id }}>
+      <Field hasAddons>
+        <Control isExpanded>
+          <Input ref={inputRef} id={id} value={link} readOnly />
+        </Control>
+        <Control>
+          <Button type="button" onClick={copy}>
+            <Icon
+              name={status === 'copied' ? 'check' : 'copy'}
+              aria-hidden="true"
+            />
+            <span>{status === 'copied' ? 'Copied' : 'Copy'}</span>
+          </Button>
+        </Control>
+      </Field>
+      <p
+        role="status"
+        className={status === 'failed' ? 'help is-danger' : 'help'}
+      >
+        {status === 'copied' && 'Copied to the clipboard.'}
+        {status === 'failed' &&
+          "Couldn't copy automatically. The link is selected, so copy it from the field."}
+      </p>
+    </Field>
+  );
+}
+```
+
+---
+
 ### Form Group
 
 Use `<Field grouped>` to lay multiple controls out on a single row with consistent spacing — common for form action buttons and search-style rows.
