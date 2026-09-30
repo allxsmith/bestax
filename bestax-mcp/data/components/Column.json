@@ -7,7 +7,7 @@
   "examples": [
     {
       "title": "Basic Columns Example",
-      "code": "import { Columns, Column } from '@allxsmith/bestax-bulma';\nimport { Notification } from '@allxsmith/bestax-bulma/elements/Notification';\n\n<Columns>\n  <Column>\n    <Notification color=\"primary\">First column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"info\">Second column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"link\">Third column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"warning\">Fourth column</Notification>\n  </Column>\n</Columns>;"
+      "code": "import { Columns, Column, Notification } from '@allxsmith/bestax-bulma';\n\n<Columns>\n  <Column>\n    <Notification color=\"primary\">First column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"info\">Second column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"link\">Third column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"warning\">Fourth column</Notification>\n  </Column>\n</Columns>;"
     },
     {
       "title": "Column Sizes",
