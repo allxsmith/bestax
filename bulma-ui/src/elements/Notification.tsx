@@ -472,6 +472,12 @@ const notificationStackStyle = (
  * @returns {JSX.Element | null} The rendered notification container, or null on the server and while hydrating.
  */
 export const NotificationContainer: React.FC<{
+  /**
+   * Where a notification shown without a `position` of its own appears.
+   * Default: 'top-right'. When it changes, those notifications move without
+   * remounting, but one shown with its own `position` equal to the old or new
+   * value remounts and starts over as if it had just been shown.
+   */
   position?: NotificationPosition;
 }> = ({ position = 'top-right' }) => {
   // Starts from the notifications already showing instead of an empty list,

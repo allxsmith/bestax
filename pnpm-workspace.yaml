@@ -167,23 +167,32 @@ overrides:
   'fast-uri@3': '>=3.1.7 <4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched undici 7.x (transitive via semantic-release/github and
-  # wrangler>miniflare — release and CI-deploy tooling, never published
-  # output) — high advisory GHSA-4cwx-7wf7-3272: cross-user information
-  # disclosure and parse-time crash via degenerate private cache directives.
-  # Scoped to the affected 7.x major. Prune once those parents require
-  # >=7.29.0 themselves.
-  'undici@7': '>=7.29.0 <8'
+  # wrangler>miniflare: release and CI-deploy tooling, never published output)
+  # for its high advisories. The floor is the newest fix on the 7.x line:
+  # 7.29.1 patches GHSA-rfgv-xxqx-mfg5 and GHSA-w293-vg96-wgc3. Capped at the
+  # 7.29 line because wrangler and miniflare pin undici exactly and nothing in
+  # CI exercises them before a deploy, so they move by a patch rather than to
+  # the newest minor. Prune once their pin reaches >=7.29.1.
+  'undici@7': '>=7.29.1 <7.30'
   # bestax:review 2026-11-13 — quarterly sweep
-  # The 6.x copy (under @actions/http-client) was genuinely exempt from
-  # GHSA-4cwx-7wf7-3272 — this comment used to say so and stopped there. It is
-  # NOT exempt from the three moderate advisories that followed, all fixed in
-  # 6.28.0: GHSA-8xcm-r25x-g524 (downstream response desynchronization),
-  # GHSA-m8rv-5g2x-5cg5 (CRLF injection via a blob-like body `type`), and
-  # GHSA-v3r7-h72x-cjcm (cookie attribute injection). None of them trip
-  # `pnpm audit --audit-level=high`, which is exactly why they sat here
+  # The 6.x copy (under @actions/http-client), held to the newest fix on its
+  # line: 6.28.1 patches the high GHSA-rfgv-xxqx-mfg5. Keep this floor at the
+  # newest fix even when only moderate advisories move it. Those never trip
+  # `pnpm audit --audit-level=high`, which is why three of them sat here
   # unnoticed until the OpenSSF Scorecard run counted them (#404). Prune once
-  # @actions/http-client requires >=6.28.0 itself.
-  'undici@6': '>=6.28.0 <7'
+  # @actions/http-client requires >=6.28.1 itself.
+  'undici@6': '>=6.28.1 <7'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched joi per major for high advisory GHSA-6h2x-m376-mqjq
+  # (quadratic backtracking in `Joi.string().isoDate()`). The 17.x copy rides
+  # the Docusaurus types and the storybook test runner's wait-on; the 18.x copy
+  # is create-bestax's wait-on, a dev dependency. Both patched releases are
+  # past the cooldown and every parent range admits them; the lockfile just
+  # predates them. Prune each entry once its line resolves to >=17.13.7 /
+  # >=18.2.6 without the force.
+  'joi@17': '>=17.13.7 <18'
+  # bestax:review 2026-11-13 — quarterly sweep; 18.x line, prunable on its own
+  'joi@18': '>=18.2.6 <19'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
   # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than

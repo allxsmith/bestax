@@ -41,9 +41,9 @@ export interface ToastProps
   /** Color variant — colors the **action button** text. */
   actionType?: ToastType;
   /**
-   * Position on the screen. Default: 'top-right'. Through `toast.show()` it
-   * places that toast, and a toast shown without one goes to
-   * `ToastContainer`'s `position` instead.
+   * Position on the screen. Default: 'top-right'. On a standalone `<Toast>`
+   * this places it. Through `toast.show()` it places that toast, and a toast
+   * shown without one goes to `ToastContainer`'s `position` instead.
    */
   position?: ToastPosition;
   /** Duration in ms before auto-close. `0` disables auto-close. */
@@ -505,15 +505,21 @@ const toastStackOrder: readonly ToastPosition[] = [
  * Container component for rendering programmatic toasts.
  * Place once at your app root to enable the toast API. A toast shown with a
  * `position` appears there, and one shown without goes to the container's
- * `position`, so the container renders a stack for each position in use.
+ * `position`.
  *
  * @function
  * @param {{ position?: ToastPosition }} props - Container props.
  * @returns {JSX.Element | null} The rendered toast container, or null if empty.
  */
-export const ToastContainer: React.FC<{ position?: ToastPosition }> = ({
-  position = 'top-right',
-}) => {
+export const ToastContainer: React.FC<{
+  /**
+   * Where a toast shown without a `position` of its own appears. Default:
+   * 'top-right'. When it changes, those toasts move without remounting, but
+   * one shown with its own `position` equal to the old or new value
+   * remounts and starts over as if it had just been shown.
+   */
+  position?: ToastPosition;
+}> = ({ position = 'top-right' }) => {
   // Starts from the toasts already showing instead of an empty list, then
   // follows changes.
   const toastList = useSyncExternalStore(
