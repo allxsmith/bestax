@@ -1487,6 +1487,30 @@ describe('the declaration-extension guard', () => {
     assert.match(mts, /'\.\/plain\.js'/);
   });
 
+  it('gives a relative reference types in a .d.cts the pick a specifier gets', async () => {
+    // The directive shares the specifier's arm, so from a `.d.cts` or `.d.mts`
+    // it too gets `.js` probed against `.d.ts`. The limitation the walk case
+    // records for an import does not carry over. Measured against tsc in a
+    // `type: module` package: `/// <reference types="./plain.js" />` in a
+    // `.d.cts` is clean under `module: node16` and `nodenext` alike, while
+    // `import './plain.js'` in the same file is TS1479 under node16. So this
+    // pins an answer that holds, where the walk case pins one it does not
+    // endorse.
+    const root = tree({
+      'index.d.cts': '/// <reference types="./plain" />\nexport {};\n',
+      'esm.d.mts': '/// <reference types="./plain" />\nexport {};\n',
+      'plain.d.ts': 'declare var fromPlain: number;\n',
+    });
+    await run(root);
+    for (const name of ['index.d.cts', 'esm.d.mts']) {
+      assert.match(
+        readFileSync(join(root, name), 'utf8'),
+        /types="\.\/plain\.js"/,
+        name
+      );
+    }
+  });
+
   it('fails when a .cjs specifier has only a .d.ts beside it', async () => {
     // The mapping is the point: probing `.d.ts` for a `.cjs` would accept this
     // tree, and TypeScript would then find no declaration for the target.
@@ -1798,6 +1822,7 @@ describe('the declaration-extension guard', () => {
     // with `a.d.ts` right beside it. The reference used to share the specifier
     // predicate, which maps `./a.js` to `a.d.ts` before probing, so each of
     // these was certified and shipped dangling.
+    const escapeRegExp = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     for (const [target, beside] of [
       ['./a.js', 'a.d.ts'],
       ['./a.cjs', 'a.d.cts'],
@@ -1814,7 +1839,7 @@ describe('the declaration-extension guard', () => {
             [beside]: 'export {};\n',
           })
         ),
-        new RegExp(`after the rewrite: ${target.replace(/\./g, '\\.')}\\.`),
+        new RegExp(`after the rewrite: ${escapeRegExp(target)}\\.`),
         `a reference to ${target} was certified by ${beside}`
       );
     }
