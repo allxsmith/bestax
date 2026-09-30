@@ -159,6 +159,14 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
   'brace-expansion@5': '>=5.0.12 <6'
   # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched axios under wait-on (create-bestax's dev dependency, and the
+  # storybook test runner's jest-process-manager) for its high advisories. The
+  # floor is the newest fix on the 1.x line: 1.20.0 patches GHSA-c29m-xwm3-cm6r,
+  # GHSA-mghh-pgcx-3jjj, GHSA-x97p-jq2g-jp4f, GHSA-3pq3-5fj3-cg6v and
+  # GHSA-542g-h47m-68v8. Both wait-on ranges admit it and it is past the
+  # cooldown. Prune once wait-on resolves to >=1.20.0 without the force.
+  'axios@1': '>=1.20.0 <2'
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
   # schema-utils, the eslint toolchain and the MCP SDK) for its high
   # advisories. The floor is the newest fix on the 3.x line: 3.1.7 patches
