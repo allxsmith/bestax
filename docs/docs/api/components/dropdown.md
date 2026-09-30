@@ -202,6 +202,10 @@ out of the box:
   <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu
   and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue
   naturally.
+- On an item: <kbd>Enter</kbd> or <kbd>Space</kbd> activates it the way a click does, so its
+  `onClick` runs and the menu closes unless `closeOnClick` is `false`. That includes the
+  default anchor without an `href` and `as="div"`, which the browser would not activate on
+  its own.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
   `aria-disabled="true"`) and dividers are skipped during arrow-key navigation.
 
@@ -236,22 +240,22 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                   | Default | Description                                       |
-| ---------------- | ------------------------------------------------------ | ------- | ------------------------------------------------- |
-| `label`          | `React.ReactNode`                                      | —       | The dropdown button/trigger content.              |
-| `children`       | `React.ReactNode`                                      | —       | Dropdown menu items and dividers.                 |
-| `className`      | `string`                                               | —       | Additional CSS classes for root.                  |
-| `menuClassName`  | `string`                                               | —       | Additional CSS classes for the dropdown menu.     |
-| `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).        |
-| `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                       |
-| `right`          | `boolean`                                              | `false` | Menu is right-aligned.                            |
-| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click.                   |
-| `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                    |
-| `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.      |
-| `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked.       |
-| `id`             | `string`                                               | —       | Root element ID (for aria-controls, etc).         |
-| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.       |
-| `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop             | Type                                                   | Default | Description                                                                   |
+| ---------------- | ------------------------------------------------------ | ------- | ----------------------------------------------------------------------------- |
+| `label`          | `React.ReactNode`                                      | —       | The dropdown button/trigger content.                                          |
+| `children`       | `React.ReactNode`                                      | —       | Dropdown menu items and dividers.                                             |
+| `className`      | `string`                                               | —       | Additional CSS classes for root.                                              |
+| `menuClassName`  | `string`                                               | —       | Additional CSS classes for the dropdown menu.                                 |
+| `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).                                    |
+| `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                                                   |
+| `right`          | `boolean`                                              | `false` | Menu is right-aligned.                                                        |
+| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click.                                               |
+| `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                |
+| `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                  |
+| `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space. |
+| `id`             | `string`                                               | —       | Root element ID (for aria-controls, etc).                                     |
+| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.                                   |
+| `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                             |
 
 **Subcomponents:**
 

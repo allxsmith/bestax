@@ -3,6 +3,7 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
 import { Field } from '../Field';
 import { TimeInputBase } from '../TimeInputBase';
+import { ConfigProvider } from '../../helpers/Config';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 
 beforeAll(() => {
@@ -1472,5 +1473,53 @@ describe('TimeInput label association (#368)', () => {
     const label = container.querySelector('label.label');
     expect(label).toHaveTextContent('Departure');
     expect(label).not.toHaveAttribute('for');
+  });
+});
+
+describe('TimeInput color on the wheels (#701)', () => {
+  // `_timeinput.scss` colours a wheel through `.timeinput-wheel.is-<colour>`,
+  // so the modifier has to land on every wheel root, not only on the input.
+  it('puts the colour modifier on every inline wheel', () => {
+    const { getAllByRole } = render(
+      <TimeInput inline color="danger" enableSeconds />
+    );
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels.length).toBe(3);
+    for (const wheel of wheels) {
+      expect(wheel).toHaveClass('timeinput-wheel', 'is-danger');
+    }
+  });
+
+  it('puts the colour modifier on every popover wheel, AM/PM included', () => {
+    const { getByRole, getAllByRole } = render(
+      <TimeInput color="success" hourFormat="12" enableSeconds />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels.length).toBe(4);
+    for (const wheel of wheels) {
+      expect(wheel).toHaveClass('timeinput-wheel', 'is-success');
+    }
+  });
+
+  it('prefixes the colour modifier with the configured class prefix', () => {
+    const { getAllByRole } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <TimeInput inline color="warning" />
+      </ConfigProvider>
+    );
+    for (const wheel of getAllByRole('spinbutton')) {
+      expect(wheel).toHaveClass('bestax-timeinput-wheel', 'bestax-is-warning');
+      expect(wheel).not.toHaveClass('is-warning');
+    }
+  });
+
+  it('adds no colour modifier to the wheels without a color', () => {
+    const { getAllByRole } = render(<TimeInput inline />);
+    for (const wheel of getAllByRole('spinbutton')) {
+      expect(wheel.className).not.toMatch(
+        /\bis-(primary|link|info|success|warning|danger)\b/
+      );
+    }
   });
 });

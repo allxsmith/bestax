@@ -295,7 +295,7 @@ const [tags, setTags] = useState(['react']);
 
 `<Notification>` itself is unchanged in render output (one new optional prop, `textColor`, for setting text color separately from the background color). Existing JSX usage stays the same.
 
-What's new is a programmatic singleton API. Render `NotificationContainer` once near your app root, then call `notification` once it has mounted, for example from an event handler. More on the [Notification page](/docs/api/elements/notification#programmatic-api).
+What's new is a programmatic singleton API. Render `NotificationContainer` once near your app root, then call `notification` from anywhere in your app. More on the [Notification page](/docs/api/elements/notification#programmatic-api).
 
 ```jsx
 import {

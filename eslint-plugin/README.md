@@ -148,10 +148,18 @@ keep the two in step.
 
 One family is outside its reach, knowingly: component-specific `color` props
 have their own unions, so `<Button color="ghost">` is correct and reporting it
-would be worse than reporting nothing. And one element shadows a helper name:
-`Theme` takes a prop per Bulma CSS variable, so its `radius` sets
-`--bulma-radius` rather than emitting a class, while its type still says
-otherwise. The rule skips that one pair until the library picks a meaning.
+would be worse than reporting nothing.
+
+`radius` on `Theme` is the helper, as everywhere else, but a string outside
+its values still sets `--bulma-radius` there through a deprecated route. The
+rule reports it with a message that says so and points at `bulmaVars`, unless
+it is a near miss of `radiusless`, which gets the usual suggestion:
+
+```jsx
+<Theme radius="6px" />                            // ✗ deprecated → bulmaVars
+<Theme radius="radiusles" />                      // ✗ Did you mean `radiusless`?
+<Theme bulmaVars={{ '--bulma-radius': '6px' }} /> // ✓
+```
 
 ### no-deprecated-props
 

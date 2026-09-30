@@ -73,7 +73,7 @@ stock stylesheet.
   parts, `navbar` and most of its parts, `field` and its parts, `control`, `input`, `textarea`,
   `select`, `breadcrumb`, `image`, `menu` and its label, list and items, the parts inside a `modal`
   but its close button, `pagination` and its list, links and ellipses, `panel` and its
-  heading, tabs and blocks, `tabs`, `icon`, `icon-text`, `delete`, `progress`, `skeleton-block`, `footer` and
+  heading, tabs and blocks, `tabs`, `icon`, `icon-text`, `file` inside a `field`, `delete`, `progress`, `skeleton-block`, `footer` and
   `table` become their bestax components, with their modifier classes as props (`is-primary` →
   `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
@@ -135,8 +135,8 @@ Anything that would change the markup stays as written:
   variable or another function is flagged with the component the element would become
   (`dynamic-class:<Target>`). Converting it means turning each condition into a prop, which is
   quick by hand and risky to guess at.
-- **Components that render parts of their own.** `Modal` adds dialog attributes, `File` renders
-  its own wrappers, and so on. These families are flagged once each (`family:<class>`) and
+- **Components that render parts of their own.** `Modal` adds dialog attributes, `Dropdown` renders
+  its own trigger and menu, and so on. These families are flagged once each (`family:<class>`) and
   converted by hand.
 - **Form markup around bestax already.** `Field` and `Control` tell bestax's form controls
   inside them to skip their own wrappers, so a `.field` or `.control` that already holds one

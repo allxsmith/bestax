@@ -127,7 +127,7 @@ To show a notification from anywhere in your app, not just where you render one,
 
 ### Setup
 
-Render `NotificationContainer` once, near your app root, and call `notification` after it has mounted, for example from an event handler. A call made before any container mounts doesn't appear when one does.
+Render `NotificationContainer` once, near your app root:
 
 ```tsx title="src/App.tsx"
 import { NotificationContainer } from '@allxsmith/bestax-bulma';

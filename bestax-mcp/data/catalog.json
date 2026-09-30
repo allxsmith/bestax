@@ -261,7 +261,7 @@
       "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 7,
-      "exampleCount": 4
+      "exampleCount": 5
     },
     {
       "name": "Checkboxes",
@@ -756,7 +756,7 @@
       "import": "import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 7,
-      "exampleCount": 4
+      "exampleCount": 5
     },
     {
       "name": "Radios",
@@ -899,7 +899,7 @@
       "import": "import { Switch } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 9,
-      "exampleCount": 10
+      "exampleCount": 11
     },
     {
       "name": "Table",
@@ -987,7 +987,7 @@
       "import": "import { TimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 54,
-      "exampleCount": 41
+      "exampleCount": 42
     },
     {
       "name": "Title",

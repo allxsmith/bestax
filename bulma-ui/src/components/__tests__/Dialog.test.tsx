@@ -617,3 +617,96 @@ describe('DialogContainer', () => {
     expect(calls).toHaveLength(1);
   });
 });
+
+describe('DialogContainer mounted after a dialog is raised', () => {
+  afterEach(() => {
+    // The container is still mounted here, so closing re-renders it.
+    act(() => {
+      dialog.close();
+    });
+  });
+
+  it('opens a confirm raised before it mounts, and resolves it from there', async () => {
+    let result: boolean | undefined;
+    dialog.confirm({ title: 'Early', message: 'Raised first' }).then(r => {
+      result = r;
+    });
+
+    render(<DialogContainer />);
+
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Raised first');
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }));
+    await act(async () => {});
+
+    expect(result).toBe(true);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('opens an alert raised before it mounts, and resolves it from there', async () => {
+    let resolved = false;
+    dialog.alert('Heads up').then(() => {
+      resolved = true;
+    });
+
+    render(<DialogContainer />);
+
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Heads up');
+    expect(
+      screen.queryByRole('button', { name: 'Cancel' })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }));
+    await act(async () => {});
+
+    expect(resolved).toBe(true);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('opens it once under StrictMode', () => {
+    dialog.confirm('Strict');
+    render(
+      <React.StrictMode>
+        <DialogContainer />
+      </React.StrictMode>
+    );
+
+    expect(screen.getAllByRole('alertdialog')).toHaveLength(1);
+  });
+
+  it('renders nothing on the server, then opens it once hydrated', async () => {
+    dialog.confirm('Before hydration');
+    const app = (
+      <main>
+        <DialogContainer />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server's markup has no dialog in it, whatever has been raised, so
+    // the hydrating render has to produce none either.
+    expect(container.innerHTML).toBe('<main></main>');
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(screen.getByRole('alertdialog')).toHaveTextContent(
+        'Before hydration'
+      );
+    } finally {
+      // A root left mounted would add its dialog to every later test's.
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    }
+  });
+});

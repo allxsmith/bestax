@@ -6,6 +6,7 @@ import {
   isCustomElement,
   type PolymorphicComponent,
 } from '../helpers/polymorphic';
+import { warnOnce } from '../helpers/devWarnings';
 
 const avatarColors = [
   'primary',
@@ -60,6 +61,19 @@ const NON_INTERACTIVE_ROLES: readonly string[] = [
   'img',
   'presentation',
   'none',
+];
+
+/**
+ * Elements other than `a` that declare `target` themselves, so on them it is
+ * the element's own attribute and not a link attribute Avatar withholds for
+ * want of one. The link attribute warning leaves `target` out on these, the way
+ * it leaves `rel` out everywhere. `area` and `base` are void elements, which
+ * Avatar's content rules out, so `form` is the one a caller can reach.
+ */
+const ELEMENTS_WITH_OWN_TARGET: readonly React.ElementType[] = [
+  'form',
+  'area',
+  'base',
 ];
 
 /** Valid shape values for the Avatar component. */
@@ -138,11 +152,22 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   shape?: AvatarShape;
   /** Background color for initials/icon avatars (else auto-derived from `name`). */
   color?: AvatarColor;
-  /** When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An `as` target declaring its own `href` supersedes this one, and its type and its requiredness are what apply. */
+  /**
+   * When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An
+   * `as` target declaring its own `href` supersedes this one, and its type and its requiredness
+   * are what apply.
+   *
+   * It is passed on only to a target that can be a link: an `a`, a custom element, or a
+   * component. Any other `as` you pass, such as `'figure'` or `'div'`, still accepts it but
+   * renders without it, because an `href` is not valid HTML on those elements, and a
+   * development build logs a console warning naming what was dropped. To make such an avatar a
+   * link, render it `as="a"` or pass a link component to `as`. An empty `href` asks for no link:
+   * with no `as` it renders a `<figure>`, and it draws no warning.
+   */
   href?: string;
-  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
+  /** Anchor target, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning. */
   target?: string;
-  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component), and superseded by the target's own declaration the way `href` is. */
+  /** Anchor rel, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. */
   rel?: string;
   /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
@@ -375,6 +400,53 @@ export const Avatar = forwardRef(function Avatar(
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
   const isLinkLike =
     Tag === 'a' || typeof Tag !== 'string' || isCustomElement(Tag);
+  // A plain element like a `div` declares no `href` or `target`, so the type
+  // accepts them as Avatar's own while the drop below withholds them, and
+  // without this they would vanish in silence (#733). Forwarding them would put
+  // them where HTML has no such attribute, so the drop stays and development
+  // reports it instead, naming only the ones actually passed.
+  //
+  // `rel` is withheld too but left out here. React declares it on every
+  // element, so on a plain `as` it is that element's own attribute, and
+  // "render it as a link" would be the wrong advice for it. `target` is the
+  // same on an element that declares it, such as `form`, so it is left out
+  // there. Whether to forward either one to such an element is a separate
+  // question from this warning.
+  //
+  // Only for an `as` the caller wrote. Without one the element is Avatar's own
+  // choice, and a message naming an `as` they never passed sends them looking
+  // for it. A value counts when it is truthy, the same test that picks `'a'`
+  // over `'figure'`, so an empty `href` from data asks for no link and draws no
+  // warning. The key is the element plus the attributes passed, so a re-render
+  // or a list of avatars warns once, while a different combination on the same
+  // element still gets its own warning rather than hiding behind the first.
+  //
+  // Development-only is `warnOnce`'s job, as it is for the colour warnings, so
+  // this block has no production check of its own. One here would have to read
+  // `process` safely, and a `typeof process` test is not something a bundler
+  // replaces: in a browser it is false, and the warning never fired in the
+  // development builds it exists for. The cost is that production still
+  // collects the attributes and builds the message for an avatar that needs
+  // it, which is small and limited to the case the warning is about.
+  if (as != null && !isLinkLike) {
+    const dropped = Object.entries({
+      href,
+      target: ELEMENTS_WITH_OWN_TARGET.includes(as) ? undefined : target,
+    })
+      .filter(([, value]) => value)
+      .map(([key]) => key);
+    if (dropped.length > 0) {
+      warnOnce(
+        `Avatar:link-props-on-${as}:${dropped.join('+')}`,
+        `[bestax-bulma] <Avatar as="${as}" ${dropped.join(' ')}>: this ` +
+          `<${as}> renders without ` +
+          `${dropped.map(key => `"${key}"`).join(' and ')}, because Avatar ` +
+          `passes link attributes on only to a target that can be a link (an ` +
+          `"a", a custom element, or a component). To make it a link, render ` +
+          `it as="a" or pass a link component to "as".`
+      );
+    }
+  }
   // Present-only, not `{ href, target, rel }`. An unconditional spread hands the
   // target these keys whatever the caller passed, and a key existing is not free:
   // a target that tests for one sees a link where there is none, and one that

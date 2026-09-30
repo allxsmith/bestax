@@ -56,6 +56,7 @@ function planned(tag: string, tokens: string[]): Outcome {
   let soleChild: ElementFacts['soleChild'];
   let soleChildOf: ElementFacts['soleChildOf'];
   let text: string | undefined;
+  let classesAround: string[] | undefined;
   let childElements: ElementFacts['childElements'];
   let counted: string | undefined;
   for (const token of tokens) {
@@ -125,6 +126,37 @@ function planned(tag: string, tokens: string[]): Outcome {
       }));
       counted = counts.prop;
     }
+    // One that renders the whole `.file` tree holds it, inside a `.field`,
+    // which the lookup states as a condition.
+    if (entry?.status === 'mapped' && entry.buildsFile && !childElements) {
+      const bare = (tag: string, token: string, extra = {}) => ({
+        tag,
+        tokens: [token],
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: false,
+        ...extra,
+      });
+      childElements = [
+        bare('label', 'file-label', {
+          children: [
+            bare('input', 'file-input', {
+              attributes: new Map([['type', 'file']]),
+              isEmpty: true,
+            }),
+            bare('span', 'file-cta', {
+              children: [
+                bare('span', 'file-label', {
+                  staticContent: true,
+                  text: 'Upload',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      classesAround = ['field'];
+    }
     // One that builds its icons from props holds an icon, planned the way
     // the codemod plans it first, which the lookup states as a condition.
     if (entry?.status === 'mapped' && entry.buildsIcons && !childElements) {
@@ -170,6 +202,7 @@ function planned(tag: string, tokens: string[]): Outcome {
     childElements,
     soleChildOf,
     text,
+    classesAround,
   });
   if (result.conversion) {
     const { target, props, className } = result.conversion;

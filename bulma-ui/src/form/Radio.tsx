@@ -8,7 +8,23 @@ import {
 import { useRadiosGroup } from './FormContext';
 
 /**
- * Valid colors for the Radio component.
+ * The values the Radio `color` prop accepts, as a readonly tuple.
+ *
+ * `RadioProps['color']` is typed from it, so the two list the same values.
+ * Map over it to build a color picker, or check a value that arrives at
+ * runtime before passing it in: the component adds no color class for a value
+ * outside the tuple.
+ *
+ * @example
+ * import { Radio, Radios, radioColors } from '@allxsmith/bestax-bulma';
+ *
+ * <Radios name="accent" defaultValue="primary">
+ *   {radioColors.map(color => (
+ *     <Radio key={color} value={color} color={color}>
+ *       {color}
+ *     </Radio>
+ *   ))}
+ * </Radios>;
  */
 export const radioColors = [
   'primary',
@@ -20,7 +36,17 @@ export const radioColors = [
 ] as const;
 
 /**
- * Valid sizes for the Radio component.
+ * The values the Radio `size` prop accepts, as a readonly tuple.
+ *
+ * `RadioProps['size']` is typed from it, so the two list the same values. Use
+ * it to offer a size choice or to check a value that arrives at runtime: the
+ * component adds no size class for a value outside the tuple. These are
+ * element sizes, not the spacing scale in `validSizes`.
+ *
+ * @example
+ * import { radioSizes } from '@allxsmith/bestax-bulma';
+ *
+ * type RadioSize = (typeof radioSizes)[number];
  */
 export const radioSizes = ['small', 'normal', 'medium', 'large'] as const;
 

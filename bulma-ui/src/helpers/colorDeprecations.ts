@@ -1,5 +1,7 @@
 // INTERNAL — deliberately not exported from src/index.ts.
 
+import { resetDevWarnings, warnOnce } from './devWarnings';
+
 /**
  * Color values that emit an `is-<color>` modifier no shipped Bulma 1.0.4 rule
  * matches on `.progress`/`.notification`/`.hero`. The `has-text-*` and
@@ -21,33 +23,11 @@ export const UNSTYLED_MODIFIER_COLORS = [
 const CSS_BACKED =
   'primary, link, info, success, warning, danger, black, white, light, dark';
 
-const warnedKeys = new Set<string>();
-
-/** Test-only: re-arm the warn-once registry. */
-export const resetColorDeprecationWarnings = (): void => {
-  warnedKeys.clear();
-};
-
-// Local declaration because the library tsconfig has no Node types. The
-// reference must stay a bare `process.env.NODE_ENV` so bundlers can replace
-// it statically.
-declare const process: { env: { NODE_ENV?: string } };
-
-// Fail closed: with no bundler and no Node (raw CDN ESM), reading `process`
-// throws and warnings stay off, so production can never warn by accident.
-const isDev = (): boolean => {
-  try {
-    return process.env.NODE_ENV !== 'production';
-  } catch {
-    return false;
-  }
-};
-
-const warnOnce = (key: string, message: string): void => {
-  if (!isDev() || warnedKeys.has(key)) return;
-  warnedKeys.add(key);
-  console.warn(message);
-};
+/**
+ * Test-only: re-arm the warn-once registry. The registry lives in
+ * `devWarnings`, shared with the other dev warnings, so this re-arms those too.
+ */
+export const resetColorDeprecationWarnings = resetDevWarnings;
 
 /**
  * Dev warning for a `color` value whose `is-<color>` modifier has no shipped

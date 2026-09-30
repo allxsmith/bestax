@@ -1,6 +1,9 @@
-import { render } from '@testing-library/react';
+import { StrictMode, useState } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Theme } from '../Theme';
+import { Theme, ThemeProps } from '../Theme';
+import { ConfigProvider } from '../Config';
+import { resetDevWarnings } from '../devWarnings';
 
 describe('Theme', () => {
   it('applies CSS variables from bulmaVars object to local div', () => {
@@ -276,6 +279,201 @@ describe('Theme', () => {
     expect(themeDiv.style.getPropertyValue('--bulma-shadow')).toBe('');
   });
 
+  describe('radius (#694)', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('renders radiusless as the class and zeroes the radius inside', () => {
+      const { container, getByTestId } = render(
+        <Theme radius="radiusless">
+          <div data-testid="inside">Test</div>
+        </Theme>
+      );
+
+      // Before #694 this wrote `--bulma-radius: radiusless`, which is invalid
+      // and so squared everything inside that reads the variable. A real 0
+      // keeps that, as valid CSS, and the typed value never warns.
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv).toHaveClass('is-radiusless');
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('0');
+      // jsdom does not cascade custom properties, so pin what the browser
+      // inherits from instead: the content sits in the element setting it.
+      expect(getByTestId('inside').parentElement).toBe(themeDiv);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('writes radiusless at :root on an isRoot Theme, without warning', () => {
+      render(
+        <Theme isRoot radius="radiusless">
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(
+        document.getElementById('bestax-bulma-theme-vars')?.textContent
+      ).toBe(':root { --bulma-radius: 0; }');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('lets radiusless win over bulmaVars, as the prop always did', () => {
+      const { container } = render(
+        <Theme radius="radiusless" bulmaVars={{ '--bulma-radius': '6px' }}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('0');
+    });
+
+    it('prefixes the helper class like every other helper prop', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Theme radius="radiusless">
+            <div>Test</div>
+          </Theme>
+        </ConfigProvider>
+      );
+
+      expect(container.firstChild).toHaveClass('bestax-is-radiusless');
+    });
+
+    it('still sets --bulma-radius for any other value, and warns', () => {
+      const { container } = render(
+        // The type is the helper union, as it was before #694, so a length
+        // is a type error. JavaScript callers can still pass one.
+        // @ts-expect-error radius is typed as the helper, not a length
+        <Theme radius="6px">
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('6px');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<Theme radius="6px">')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("bulmaVars={{ '--bulma-radius': '6px' }}")
+      );
+    });
+
+    it('warns once however many Themes pass a length', () => {
+      const legacy = { radius: '6px' } as unknown as ThemeProps;
+      const { rerender } = render(
+        <Theme {...legacy}>
+          <div>Test</div>
+        </Theme>
+      );
+      rerender(
+        <Theme {...legacy}>
+          <div>Test</div>
+        </Theme>
+      );
+      render(
+        <Theme {...({ radius: '1rem' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets the legacy value win over bulmaVars, as the prop always did', () => {
+      const { container } = render(
+        <Theme
+          {...({ radius: '6px' } as unknown as ThemeProps)}
+          bulmaVars={{ '--bulma-radius': '2px' }}
+        >
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('6px');
+    });
+
+    it('sets the legacy value at :root on an isRoot Theme', () => {
+      const { unmount } = render(
+        <Theme isRoot {...({ radius: '12px' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(
+        document.getElementById('bestax-bulma-theme-vars')?.textContent
+      ).toBe(':root { --bulma-radius: 12px; }');
+      unmount();
+    });
+
+    it('leaves --bulma-radius to bulmaVars when radius is unset', () => {
+      const { container } = render(
+        <Theme bulmaVars={{ '--bulma-radius': '2px' }}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('2px');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('ignores an empty radius, which never set anything', () => {
+      const { container } = render(
+        <Theme {...({ radius: '' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('sends a non-string to the helper, which ignores it', () => {
+      const { container } = render(
+        <Theme {...({ radius: 6 } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('');
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('still sets the variable in production, without warning', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { container } = render(
+          <Theme {...({ radius: '6px' } as unknown as ThemeProps)}>
+            <div>Test</div>
+          </Theme>
+        );
+
+        const themeDiv = container.firstChild as HTMLElement;
+        expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('6px');
+        expect(warnSpy).not.toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+    });
+  });
+
   it('skips invalid CSS variable keys when building the local style object', () => {
     // Inject a non-Bulma key via bulmaVars; the local-style branch's
     // `bulmaCssVars.includes(key) && value` guard should drop it.
@@ -295,6 +493,218 @@ describe('Theme', () => {
     expect(themeDiv.style.getPropertyValue('--bulma-scheme-h')).toBe('50');
     // Invalid var skipped.
     expect(themeDiv.style.getPropertyValue('--not-a-bulma-var')).toBe('');
+  });
+
+  describe('several isRoot Themes (#736)', () => {
+    const rootCss = () =>
+      document.getElementById('bestax-bulma-theme-vars')?.textContent;
+
+    it('applies every root Theme, each as its own :root block', () => {
+      render(
+        <>
+          <Theme isRoot primaryH="350">
+            <span />
+          </Theme>
+          <Theme isRoot bulmaVars={{ '--bulma-radius': '12px' }}>
+            <span />
+          </Theme>
+        </>
+      );
+
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 350; }\n' +
+          ':root { --bulma-radius: 12px; }'
+      );
+      expect(
+        document.querySelectorAll('#bestax-bulma-theme-vars')
+      ).toHaveLength(1);
+    });
+
+    it('keeps the other Theme when one unmounts (the issue reproduction)', () => {
+      function App() {
+        const [rounded, setRounded] = useState(true);
+        return (
+          <Theme isRoot primaryH="350" primaryS="73%" primaryL="44%">
+            {rounded && (
+              <Theme isRoot bulmaVars={{ '--bulma-radius': '12px' }}>
+                <span />
+              </Theme>
+            )}
+            <button onClick={() => setRounded(false)}>drop</button>
+          </Theme>
+        );
+      }
+
+      render(<App />);
+      expect(rootCss()).toContain('--bulma-radius: 12px;');
+      expect(rootCss()).toContain('--bulma-primary-h: 350;');
+
+      fireEvent.click(screen.getByText('drop'));
+
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 350; --bulma-primary-s: 73%; ' +
+          '--bulma-primary-l: 44%; }'
+      );
+    });
+
+    it('removes the element only when the last root Theme unmounts', () => {
+      const first = render(
+        <Theme isRoot primaryH="10">
+          <span />
+        </Theme>
+      );
+      const second = render(
+        <Theme isRoot primaryH="20">
+          <span />
+        </Theme>
+      );
+
+      first.unmount();
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 20; }');
+
+      second.unmount();
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+    });
+
+    it('lets an inner root Theme win over the one around it', () => {
+      render(
+        <Theme isRoot primaryH="1">
+          <Theme isRoot primaryH="2">
+            <span />
+          </Theme>
+        </Theme>
+      );
+
+      // Later in the stylesheet wins a variable both set, so the inner
+      // Theme's block must come second even though React runs its effects
+      // first.
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 1; }\n:root { --bulma-primary-h: 2; }'
+      );
+    });
+
+    it('lets a later-mounted root Theme win, and keeps that on update', () => {
+      function App({ hue }: { hue: string }) {
+        const [late, setLate] = useState(false);
+        return (
+          <>
+            <Theme isRoot primaryH={hue}>
+              <span />
+            </Theme>
+            {late && (
+              <Theme isRoot primaryH="200">
+                <span />
+              </Theme>
+            )}
+            <button onClick={() => setLate(true)}>mount</button>
+          </>
+        );
+      }
+
+      const { rerender } = render(<App hue="100" />);
+      fireEvent.click(screen.getByText('mount'));
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 100; }\n:root { --bulma-primary-h: 200; }'
+      );
+
+      // Updating the earlier Theme rewrites its own block in place. It does
+      // not move to the end, which would flip which Theme wins.
+      rerender(<App hue="150" />);
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 150; }\n:root { --bulma-primary-h: 200; }'
+      );
+    });
+
+    it('rewrites the same element on update rather than replacing it', () => {
+      const { rerender } = render(
+        <Theme isRoot primaryH="10">
+          <span />
+        </Theme>
+      );
+      const element = document.getElementById('bestax-bulma-theme-vars');
+
+      rerender(
+        <Theme isRoot primaryH="30">
+          <span />
+        </Theme>
+      );
+
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBe(element);
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 30; }');
+    });
+
+    it('withdraws a Theme whose isRoot is cleared', () => {
+      const { rerender } = render(
+        <>
+          <Theme isRoot primaryH="10">
+            <span />
+          </Theme>
+          <Theme isRoot primaryH="20">
+            <span />
+          </Theme>
+        </>
+      );
+
+      rerender(
+        <>
+          <Theme isRoot primaryH="10">
+            <span />
+          </Theme>
+          <Theme primaryH="20">
+            <span />
+          </Theme>
+        </>
+      );
+
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 10; }');
+    });
+
+    it('writes each Theme once under StrictMode', () => {
+      const { unmount } = render(
+        <StrictMode>
+          <Theme isRoot primaryH="1">
+            <Theme isRoot primaryH="2">
+              <span />
+            </Theme>
+          </Theme>
+          <Theme isRoot primaryH="3">
+            <span />
+          </Theme>
+        </StrictMode>
+      );
+
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-h: 1; }\n' +
+          ':root { --bulma-primary-h: 2; }\n' +
+          ':root { --bulma-primary-h: 3; }'
+      );
+      expect(
+        document.querySelectorAll('#bestax-bulma-theme-vars')
+      ).toHaveLength(1);
+
+      unmount();
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+    });
+
+    it('leaves an existing element alone when a root Theme has no variables', () => {
+      const preExisting = document.createElement('style');
+      preExisting.id = 'bestax-bulma-theme-vars';
+      preExisting.textContent = ':root { --bulma-primary-h: 5; }';
+      document.head.appendChild(preExisting);
+
+      const { unmount } = render(
+        <Theme isRoot>
+          <span />
+        </Theme>
+      );
+      unmount();
+
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBe(
+        preExisting
+      );
+      expect(preExisting.textContent).toBe(':root { --bulma-primary-h: 5; }');
+      preExisting.remove();
+    });
   });
 
   describe('colorMode', () => {

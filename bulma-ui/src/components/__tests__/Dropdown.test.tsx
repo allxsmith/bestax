@@ -851,6 +851,32 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveFocus();
   });
 
+  test('a tabIndex of undefined falls back to 0 and stays focusable', () => {
+    // A spread carrying `tabIndex: undefined` used to erase the default, and
+    // an anchor with neither an href nor a tabindex cannot take focus.
+    const spread: { tabIndex?: number } = { tabIndex: undefined };
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem {...spread}>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('First')).toHaveAttribute('tabindex', '0');
+    fireEvent.keyDown(screen.getByRole('button', { name: /menu/i }), {
+      key: 'ArrowDown',
+    });
+    expect(screen.getByText('First')).toHaveFocus();
+  });
+
+  test('an explicit tabIndex wins over the default', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <DropdownItem tabIndex={-1}>First</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('First')).toHaveAttribute('tabindex', '-1');
+  });
+
   test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
     render(
       <Dropdown label="Menu">
@@ -1262,6 +1288,249 @@ describe('Dropdown keyboard navigation', () => {
   });
 });
 
+describe('Dropdown item activation', () => {
+  // `user-event` plays the browser's own activation as well as the keydown:
+  // Enter clicks a <button> or a link with an href, and Space clicks a
+  // <button>. A click the menu added on top of those would show up here as a
+  // second call, which `fireEvent.keyDown` alone could not reveal.
+  const keys = [
+    ['Enter', '{Enter}'],
+    ['Space', ' '],
+  ];
+
+  test.each(keys)(
+    '%s activates an anchor item without an href',
+    async (_name, key) => {
+      const user = userEvent.setup();
+      const onClick = jest.fn();
+      const onActiveChange = jest.fn();
+      render(
+        <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+          <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
+        </Dropdown>
+      );
+      const item = screen.getByText('Archive');
+      expect(item.tagName).toBe('A');
+      expect(item).not.toHaveAttribute('href');
+      item.focus();
+      await user.keyboard(key);
+      expect(onClick).toHaveBeenCalledTimes(1);
+      // Closing follows `closeOnClick`, as it does for a mouse click.
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+    }
+  );
+
+  test.each(keys)('%s activates a div item', async (_name, key) => {
+    const user = userEvent.setup();
+    const onClick = jest.fn();
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="div" onClick={onClick}>
+          Archive
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    screen.getByText('Archive').focus();
+    await user.keyboard(key);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  test.each(keys)(
+    '%s activates a button item once, leaving it to the browser',
+    async (_name, key) => {
+      const user = userEvent.setup();
+      const onClick = jest.fn();
+      render(
+        <Dropdown label="Menu" active>
+          <Dropdown.Item as="button" onClick={onClick}>
+            Sort
+          </Dropdown.Item>
+        </Dropdown>
+      );
+      screen.getByText('Sort').focus();
+      await user.keyboard(key);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  test.each(keys)(
+    '%s activates a link with an href once',
+    async (_name, key) => {
+      const user = userEvent.setup();
+      // Prevented so jsdom does not try to navigate.
+      const onClick = jest.fn((e: { preventDefault: () => void }) =>
+        e.preventDefault()
+      );
+      render(
+        <Dropdown label="Menu" active>
+          <Dropdown.Item href="#docs" onClick={onClick}>
+            Docs
+          </Dropdown.Item>
+        </Dropdown>
+      );
+      screen.getByText('Docs').focus();
+      await user.keyboard(key);
+      // Enter comes from the browser, which activates a link on its own.
+      // Space does not, so the menu supplies that one.
+      expect(onClick).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  test('Space on an item does not scroll the page', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item>Archive</Dropdown.Item>
+        <Dropdown.Item href="#docs" onClick={e => e.preventDefault()}>
+          Docs
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    for (const name of ['Archive', 'Docs']) {
+      const item = screen.getByText(name);
+      item.focus();
+      const space = createEvent.keyDown(item, { key: ' ' });
+      fireEvent(item, space);
+      expect(space.defaultPrevented).toBe(true);
+    }
+  });
+
+  test('keys the browser handles on its own are not prevented', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button">Sort</Dropdown.Item>
+        <Dropdown.Item href="#docs">Docs</Dropdown.Item>
+      </Dropdown>
+    );
+    const cases: [string, string][] = [
+      ['Sort', 'Enter'],
+      ['Sort', ' '],
+      ['Docs', 'Enter'],
+    ];
+    for (const [name, key] of cases) {
+      const item = screen.getByText(name);
+      item.focus();
+      const event = createEvent.keyDown(item, { key });
+      fireEvent(item, event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+  });
+
+  test('Enter activates without closing when closeOnClick is false', async () => {
+    const user = userEvent.setup();
+    const onClick = jest.fn();
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown
+        label="Menu"
+        active
+        closeOnClick={false}
+        onActiveChange={onActiveChange}
+      >
+        <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    screen.getByText('Archive').focus();
+    await user.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onActiveChange).not.toHaveBeenCalled();
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('Space toggles a menuitemcheckbox item', async () => {
+    const user = userEvent.setup();
+    function Filter() {
+      const [checked, setChecked] = useState(false);
+      return (
+        <Dropdown label="Menu" active closeOnClick={false}>
+          <Dropdown.Item
+            role="menuitemcheckbox"
+            aria-checked={checked}
+            onClick={() => setChecked(c => !c)}
+          >
+            Unread
+          </Dropdown.Item>
+        </Dropdown>
+      );
+    }
+    render(<Filter />);
+    const item = screen.getByText('Unread');
+    item.focus();
+    await user.keyboard(' ');
+    expect(item).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test.each([
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ])(
+    'a held %s activates once and keeps preventing the default',
+    (_name, key) => {
+      const onClick = jest.fn();
+      render(
+        <Dropdown label="Menu" active closeOnClick={false}>
+          <Dropdown.Item
+            role="menuitemcheckbox"
+            aria-checked="false"
+            onClick={onClick}
+          >
+            Unread
+          </Dropdown.Item>
+        </Dropdown>
+      );
+      const item = screen.getByText('Unread');
+      item.focus();
+      fireEvent.keyDown(item, { key });
+      // Auto-repeat sends further keydowns with `repeat` set while the key
+      // stays down.
+      for (let i = 0; i < 3; i++) {
+        const held = createEvent.keyDown(item, { key, repeat: true });
+        fireEvent(item, held);
+        expect(held.defaultPrevented).toBe(true);
+      }
+      expect(onClick).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  test('leaves a key alone when a caller handler already prevented it', async () => {
+    const user = userEvent.setup();
+    const onClick = jest.fn();
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item
+          onClick={onClick}
+          onKeyDown={e => {
+            if (e.key === 'Enter') e.preventDefault();
+          }}
+        >
+          Archive
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    screen.getByText('Archive').focus();
+    await user.keyboard('{Enter}');
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  test('does not activate a disabled item or anything that is not an item', () => {
+    const onClick = jest.fn();
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="div" aria-disabled="true" onClick={onClick}>
+          Disabled
+        </Dropdown.Item>
+        <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    screen.getByText('Disabled').focus();
+    fireEvent.keyDown(screen.getByText('Disabled'), { key: 'Enter' });
+    // The menu's content wrapper takes focus too, and is not an item.
+    const content = screen.getByText('Archive').parentElement as HTMLElement;
+    content.focus();
+    fireEvent.keyDown(content, { key: ' ' });
+    expect(onClick).not.toHaveBeenCalled();
+  });
+});
+
 describe('Compound components', () => {
   test('Dropdown.Item is the DropdownItem component', () => {
     expect(Dropdown.Item).toBe(DropdownItem);
@@ -1362,7 +1631,7 @@ describe('href routing', () => {
     expect(screen.getByTestId('dropdown-item')).toHaveAttribute('href', '/x');
   });
 
-  it('withholds every anchor-only attribute from a non-anchor tag', () => {
+  it('withholds every anchor-only attribute, type included, from a div', () => {
     render(
       <Dropdown label="Menu" active>
         {/* @ts-expect-error a div takes no anchor attributes */}
@@ -1382,8 +1651,55 @@ describe('href routing', () => {
       </Dropdown>
     );
     const item = screen.getByTestId('dropdown-item');
-    // Every attribute the strip set names, and each one supplied above — an
+    // Every attribute the strip set names, and each one supplied above. An
     // assertion for a prop that was never passed proves nothing.
+    for (const attr of [
+      'href',
+      'target',
+      'download',
+      'hreflang',
+      'ping',
+      'referrerpolicy',
+      'media',
+      'type',
+    ]) {
+      expect(item).not.toHaveAttribute(attr);
+    }
+  });
+
+  it('withholds a type arriving through a loose spread from a div', () => {
+    // The shape #692 reported: a spread the type system cannot see into.
+    const props = { type: 'text' } as Record<string, unknown>;
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="div" {...props}>
+          Static
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).not.toHaveAttribute('type');
+  });
+
+  it('withholds the anchor attributes from a button but keeps its type', () => {
+    render(
+      <Dropdown label="Menu" active>
+        {/* @ts-expect-error a button takes no anchor attributes */}
+        <Dropdown.Item
+          as="button"
+          href="/x"
+          target="_blank"
+          download="f"
+          hrefLang="en"
+          ping="/p"
+          referrerPolicy="no-referrer"
+          media="print"
+          type="submit"
+        >
+          Save
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    const item = screen.getByTestId('dropdown-item');
     for (const attr of [
       'href',
       'target',
@@ -1395,9 +1711,8 @@ describe('href routing', () => {
     ]) {
       expect(item).not.toHaveAttribute(attr);
     }
-    // `type` is deliberately NOT stripped: `as="button"` takes one. That it
-    // reaches a <div> too is the per-tag gap the set does not express.
-    expect(item).toHaveAttribute('type');
+    // `type="submit"` is valid on a <button>, so the button's set keeps it.
+    expect(item).toHaveAttribute('type', 'submit');
   });
 
   it('keeps them on the anchor', () => {
