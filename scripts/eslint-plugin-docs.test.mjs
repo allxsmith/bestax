@@ -229,6 +229,14 @@ describe('the plugin documents what it does', async () => {
  * names the library really exports, read from the build the plugin resolves,
  * so an app's `<App>` or a router's `<Route>` is not linted as Bulma's.
  *
+ * Two readings keep that exemption from hiding the library itself. A subpath
+ * of the package (`@allxsmith/bestax-bulma/elements/Box`) is read as the
+ * package: the rules match the bare specifier only, so as written the name
+ * would count as bound elsewhere. And a `live` fence is read the way the site
+ * runs it. `docs/src/theme/CodeBlock/index.js` drops a live fence's import
+ * lines and binds every tag from the library, so an import there binds nothing
+ * on the page, and the gate drops those lines too.
+ *
  * A fence is read the first way that parses: as a module, then as bare JSX
  * (react-live renders a fence that is one or more sibling elements), then as a
  * list of one-line elements, the shape of a rule's ✗/✓ list or a migration
@@ -252,6 +260,14 @@ const EXAMPLE_LANGS = new Set(['jsx', 'tsx']);
 const OPT_OUT = 'nolint';
 const LIBRARY = '@allxsmith/bestax-bulma';
 
+/**
+ * A live fence's code as the site runs it: the same lines the docs code block
+ * drops are blanked, so every line keeps its number.
+ */
+function asRendered(lines) {
+  return lines.map(line => (line.trim().startsWith('import') ? '' : line));
+}
+
 /** The jsx/tsx fences in one markdown source, with their 1-based opening line. */
 function fencedExamples(src) {
   const { lines } = splitLines(src);
@@ -262,10 +278,11 @@ function fencedExamples(src) {
       .trim()
       .split(/\s+/);
     if (!EXAMPLE_LANGS.has(lang)) continue;
+    const body = lines.slice(open + 1, close);
     out.push({
       fence: open + 1,
       lang,
-      code: lines.slice(open + 1, close).join('\n'),
+      code: (meta.includes('live') ? asRendered(body) : body).join('\n'),
       optOut: meta.includes(OPT_OUT),
     });
   }
@@ -372,13 +389,17 @@ function lintSnippet(code, head, tail, tools) {
 /** A line that starts an element, and the tag it opens. */
 const ELEMENT_LINE = /^\s*<([A-Za-z][\w.]*)/;
 
+/** A quoted module specifier naming a subpath of the package. */
+const LIBRARY_SUBPATH = new RegExp(`(['"])${LIBRARY}/[^'"\\n]*\\1`, 'g');
+
 /**
  * Lint an example the first way it parses (see the header above). Returns
  * `{ messages }` with lines relative to the example, or `{ parseError }`
  * carrying the error from reading it whole, which is the one an author can act
  * on.
  */
-function lintExample(code, tools) {
+function lintExample(source, tools) {
+  const code = source.replace(LIBRARY_SUBPATH, `$1${LIBRARY}$1`);
   const whole = lintSnippet(code, '', '', tools);
   if (!whole.parseError) return whole;
   const bare = lintSnippet(code, '<>', '\n</>', tools);
@@ -464,6 +485,30 @@ describe('the docs and skills examples pass the recommended rules', async () => 
     assert.deepEqual(rules(lint(elsewhere)), []);
   });
 
+  it('reads a subpath of the package as the package', () => {
+    const subpath = `import { Box } from '${LIBRARY}/elements/Box';\n<Box mt="1rem" />;`;
+    assert.deepEqual(rules(lint(subpath)), [
+      '2 @allxsmith/bestax/valid-helper-value',
+    ]);
+  });
+
+  it('reads a live fence without its imports, as the site runs it', () => {
+    const body = [
+      "import { Buttons } from './Buttons';",
+      '',
+      '<Buttons mt="1rem" />;',
+      '```',
+    ];
+    const [live] = fencedExamples(['```tsx live', ...body].join('\n'));
+    const [copied] = fencedExamples(['```tsx', ...body].join('\n'));
+    // On the page that import binds nothing, so `Buttons` is the library's.
+    assert.deepEqual(rules(lint(live.code)), [
+      '3 @allxsmith/bestax/valid-helper-value',
+    ]);
+    // In code a reader copies, an import means what it says.
+    assert.deepEqual(rules(lint(copied.code)), []);
+  });
+
   it('reads sibling elements, and a list of one-line elements', () => {
     assert.deepEqual(rules(lint('<Box />\n<Box mt="1rem" />')), [
       '2 @allxsmith/bestax/valid-helper-value',
@@ -518,9 +563,20 @@ describe('the docs and skills examples pass the recommended rules', async () => 
     );
   });
 
-  for (const root of EXAMPLE_ROOTS) {
-    const examples = examplesUnder(root);
+  const corpus = EXAMPLE_ROOTS.map(root => [root, examplesUnder(root)]);
 
+  it('finds the standalone jsx and tsx example files', () => {
+    // The walk's file branch can go dead on its own, and those files are the
+    // examples nothing else lints. No root has to hold one, so this asks the
+    // corpus as a whole.
+    assert.ok(
+      corpus.some(([, examples]) => examples.some(e => e.fence === 0)),
+      'no standalone .jsx/.tsx example files found; the file pattern in the ' +
+        'walk has probably stopped matching'
+    );
+  });
+
+  for (const [root, examples] of corpus) {
     it(`finds jsx and tsx examples under ${root}`, () => {
       // A walk or fence pattern that silently stopped matching would pass the
       // gate below having checked nothing.
