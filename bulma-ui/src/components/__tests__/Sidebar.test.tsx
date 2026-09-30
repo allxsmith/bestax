@@ -631,6 +631,41 @@ describe('Sidebar', () => {
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps the Sidebar.Close type and name through a spread carrying absent values', () => {
+      // React reads an `undefined` attribute as "remove it", and a props spread
+      // whose key has no value is how that arrives. Defaults written before
+      // the spread were erased by it: a nameless button that submits a form.
+      const spread: {
+        type?: 'button' | 'submit' | 'reset';
+        'aria-label'?: string;
+      } = { type: undefined, 'aria-label': undefined };
+      render(<Sidebar.Close data-testid="close" {...spread} />);
+      const close = screen.getByTestId('close');
+      expect(close).toHaveAttribute('type', 'button');
+      expect(close).toHaveAttribute('aria-label', 'Close');
+    });
+
+    it('lets an explicit Sidebar.Close type and aria-label win', () => {
+      render(
+        <>
+          <Sidebar.Close data-testid="submit" type="submit" aria-label="Done" />
+          <Sidebar.Close data-testid="reset" type="reset" />
+        </>
+      );
+      expect(screen.getByTestId('submit')).toHaveAttribute('type', 'submit');
+      expect(screen.getByTestId('submit')).toHaveAttribute(
+        'aria-label',
+        'Done'
+      );
+      expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
+    });
+
+    it('replaces a Sidebar.Close type HTML would read as submit with type="button"', () => {
+      const loose: object = { type: 'text/html' };
+      render(<Sidebar.Close data-testid="close" {...loose} />);
+      expect(screen.getByTestId('close')).toHaveAttribute('type', 'button');
+    });
+
     it('renders Sidebar.Footer with sidebar-footer class', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>

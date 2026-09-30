@@ -435,11 +435,13 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 
 ### Sidebar.Close
 
-| Prop        | Type                               | Default | Description                            |
-| ----------- | ---------------------------------- | ------- | -------------------------------------- |
-| `className` | `string`                           | —       | Additional CSS classes.                |
-| `children`  | `React.ReactNode`                  | —       | Content rendered inside the component. |
-| `...`       | All standard `<button>` attributes | —       |                                        |
+| Prop         | Type                                  | Default    | Description                                                                                                                                                                                                           |
+| ------------ | ------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`  | `string`                              | —          | Additional CSS classes.                                                                                                                                                                                               |
+| `children`   | `React.ReactNode`                     | —          | Content rendered inside the component.                                                                                                                                                                                |
+| `type`       | `'button'` \| `'submit'` \| `'reset'` | `'button'` | Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`. |
+| `aria-label` | `string`                              | `'Close'`  | Accessible name. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.                                                                   |
+| `...`        | All standard `<button>` attributes    | —          |                                                                                                                                                                                                                       |
 
 ### Sidebar.Body
 

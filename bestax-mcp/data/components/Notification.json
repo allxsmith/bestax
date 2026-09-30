@@ -89,7 +89,7 @@
           "name": "hasDelete",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a close (delete) button in the notification.",
+          "description": "Shows a close (delete) button in the notification. It renders `type=\"button\"`, so it does not submit a form around it.",
           "required": false,
           "inherited": false,
           "deprecated": false

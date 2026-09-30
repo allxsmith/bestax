@@ -300,6 +300,70 @@ describe('Navbar.Item', () => {
     );
     expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });
+
+  describe('as="button"', () => {
+    it('renders type="button", so it does not submit a form around it', () => {
+      render(<Navbar.Item as="button">Save draft</Navbar.Item>);
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('keeps the button type default through a spread carrying an absent type', () => {
+      // React reads `type={undefined}` as "remove the attribute", and a props
+      // spread whose `type` is undefined is how that arrives.
+      const spread: { type?: 'button' | 'submit' | 'reset' } = {
+        type: undefined,
+      };
+      render(
+        <Navbar.Item as="button" {...spread}>
+          Save draft
+        </Navbar.Item>
+      );
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('lets an explicit submit or reset type win', () => {
+      render(
+        <>
+          <Navbar.Item as="button" type="submit">
+            Search
+          </Navbar.Item>
+          <Navbar.Item as="button" type="reset">
+            Clear
+          </Navbar.Item>
+        </>
+      );
+      expect(screen.getByText('Search')).toHaveAttribute('type', 'submit');
+      expect(screen.getByText('Clear')).toHaveAttribute('type', 'reset');
+    });
+
+    it('replaces a type HTML would read as submit with type="button"', () => {
+      const loose: object = { type: 'text/html' };
+      render(
+        <Navbar.Item as="button" {...loose}>
+          Save draft
+        </Navbar.Item>
+      );
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('sets no type on an item that is not a button', () => {
+      const Custom = (props: ComponentProps<'a'>) => <a {...props} />;
+      render(
+        <>
+          <Navbar.Item data-testid="a">Home</Navbar.Item>
+          <Navbar.Item as="span" data-testid="span">
+            Static
+          </Navbar.Item>
+          <Navbar.Item as={Custom} data-testid="custom">
+            Custom
+          </Navbar.Item>
+        </>
+      );
+      expect(screen.getByTestId('a')).not.toHaveAttribute('type');
+      expect(screen.getByTestId('span')).not.toHaveAttribute('type');
+      expect(screen.getByTestId('custom')).not.toHaveAttribute('type');
+    });
+  });
 });
 
 describe('Navbar.Burger', () => {
@@ -349,6 +413,55 @@ describe('Navbar.Burger', () => {
     const burger = screen.getByTestId('burger');
     expect(burger).toHaveAttribute('aria-label', 'open menu');
     expect(burger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('renders type="button", aria-label="menu" and aria-expanded from active', () => {
+    render(<Navbar.Burger active data-testid="burger" />);
+    const burger = screen.getByTestId('burger');
+    expect(burger).toHaveAttribute('type', 'button');
+    expect(burger).toHaveAttribute('aria-label', 'menu');
+    expect(burger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('keeps its defaults through a spread carrying absent values', () => {
+    // React reads an `undefined` attribute as "remove it", and a props spread
+    // whose key has no value is how that arrives. Defaults written before the
+    // spread were erased by it: a nameless burger that submits a form and
+    // reports no expanded state.
+    const spread: {
+      type?: 'button' | 'submit' | 'reset';
+      'aria-label'?: string;
+      'aria-expanded'?: boolean;
+    } = {
+      type: undefined,
+      'aria-label': undefined,
+      'aria-expanded': undefined,
+    };
+    render(<Navbar.Burger active data-testid="burger" {...spread} />);
+    const burger = screen.getByTestId('burger');
+    expect(burger).toHaveAttribute('type', 'button');
+    expect(burger).toHaveAttribute('aria-label', 'menu');
+    expect(burger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('lets an explicit type and aria-expanded win', () => {
+    render(
+      <Navbar.Burger
+        active
+        type="submit"
+        aria-expanded={false}
+        data-testid="burger"
+      />
+    );
+    const burger = screen.getByTestId('burger');
+    expect(burger).toHaveAttribute('type', 'submit');
+    expect(burger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    const loose: object = { type: 'text/html' };
+    render(<Navbar.Burger data-testid="burger" {...loose} />);
+    expect(screen.getByTestId('burger')).toHaveAttribute('type', 'button');
   });
 
   it('forwards ref to the burger button element', () => {
@@ -1090,6 +1203,71 @@ describe('Navbar.Link', () => {
       </Navbar.Link>
     );
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+  });
+
+  describe('as="button"', () => {
+    it('renders type="button", so it does not submit a form around it', () => {
+      render(
+        <Navbar.Dropdown>
+          <Navbar.Link as="button">More</Navbar.Link>
+        </Navbar.Dropdown>
+      );
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('keeps the button type default through a spread carrying an absent type', () => {
+      // React reads `type={undefined}` as "remove the attribute", and a props
+      // spread whose `type` is undefined is how that arrives.
+      const spread: { type?: 'button' | 'submit' | 'reset' } = {
+        type: undefined,
+      };
+      render(
+        <Navbar.Link as="button" {...spread}>
+          More
+        </Navbar.Link>
+      );
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('lets an explicit submit or reset type win', () => {
+      render(
+        <>
+          <Navbar.Link as="button" type="submit">
+            Search
+          </Navbar.Link>
+          <Navbar.Link as="button" type="reset">
+            Clear
+          </Navbar.Link>
+        </>
+      );
+      expect(screen.getByText('Search')).toHaveAttribute('type', 'submit');
+      expect(screen.getByText('Clear')).toHaveAttribute('type', 'reset');
+    });
+
+    it('replaces a type HTML would read as submit with type="button"', () => {
+      const loose: object = { type: 'text/html' };
+      render(
+        <Navbar.Link as="button" {...loose}>
+          More
+        </Navbar.Link>
+      );
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('sets no type on a link that is not a button', () => {
+      render(
+        <>
+          <Navbar.Link href="/more" data-testid="a">
+            More
+          </Navbar.Link>
+          <Navbar.Link as="span" data-testid="span">
+            Static
+          </Navbar.Link>
+        </>
+      );
+      expect(screen.getByTestId('a')).not.toHaveAttribute('type');
+      expect(screen.getByTestId('span')).not.toHaveAttribute('type');
+    });
   });
 });
 

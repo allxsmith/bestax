@@ -12,6 +12,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -164,6 +165,8 @@ export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Props for Modal.Close component.
+ * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
+ * @extraProp {string} [aria-label='close'] - Accessible name. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.
  */
 export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Additional CSS classes. */
@@ -327,7 +330,16 @@ const ModalClose: React.FC<ModalCloseProps> = ({
     className
   );
   return (
-    <button className={classes} aria-label="close" type="button" {...props} />
+    <button
+      className={classes}
+      {...props}
+      // After the spread, reading through it: a key the spread carries with no
+      // value would otherwise erase the default, leaving a nameless button
+      // that submits the form around it. A caller's own value still wins;
+      // `buttonType` says more.
+      aria-label={props['aria-label'] ?? 'close'}
+      type={buttonType(props.type)}
+    />
   );
 };
 

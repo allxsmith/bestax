@@ -382,14 +382,16 @@ You can combine the traditional prop-based API with compound components:
 
 ### Card.Header.Icon
 
-| Prop        | Type                                                                    | Default | Description                                             |
-| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
-| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
-| `children`  | `React.ReactNode`                                                       | —       | Icon content (e.g. an icon element).                    |
-| `...`       | All standard `<button>` attributes and Bulma helper props               | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
+| Prop         | Type                                                                    | Default          | Description                                                                                                                                                                                                          |
+| ------------ | ----------------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —                | Bulma color modifier (text color helper).                                                                                                                                                                            |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —                | Background color helper.                                                                                                                                                                                             |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —                | Text color helper; wins over `color` when both are set.                                                                                                                                                              |
+| `className`  | `string`                                                                | —                | Additional CSS classes.                                                                                                                                                                                              |
+| `children`   | `React.ReactNode`                                                       | —                | Icon content (e.g. an icon element).                                                                                                                                                                                 |
+| `type`       | `'button'` \| `'submit'` \| `'reset'`                                   | `'button'`       | Button type. Defaults to `'button'`, so a header icon inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`. |
+| `aria-label` | `string`                                                                | `'more options'` | Accessible name. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.                                                                  |
+| `...`        | All standard `<button>` attributes and Bulma helper props               | —                | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                    |
 
 ### Card.Image
 

@@ -134,6 +134,7 @@ The `Delete` component can be placed in a message header for dismissible message
 
 - **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default is `'Close'`).
 - **Keyboard:** The button is focusable and supports keyboard activation.
+- **Forms:** It renders `type="button"`, so a delete button inside a form doesn't submit it.
 - **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.
 
 :::tip
@@ -170,7 +171,7 @@ For custom close actions, use the `onClick` prop.
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Background color helper.                                                                                                                                                                                                              |
 | `onClick`   | `(event: React.MouseEvent<HTMLButtonElement>) => void`                          | —         | Click handler for the button.                                                                                                                                                                                                         |
 | `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.                                                                                                                                                                                                  |
-| `ariaLabel` | `string`                                                                        | `'Close'` | ARIA label for accessibility (default: 'Close').                                                                                                                                                                                      |
+| `ariaLabel` | `string`                                                                        | `'Close'` | Accessible name for the button, `'Close'` by default. An `aria-label` you pass takes precedence over it, and a spread carrying `'aria-label': undefined` keeps this one rather than leaving the button unnamed.                       |
 | `disabled`  | `boolean`                                                                       | `false`   | Whether the button is disabled (default: false).                                                                                                                                                                                      |
 | `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                     |
 

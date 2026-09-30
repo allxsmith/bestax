@@ -50,6 +50,14 @@ describe('Notification Component', () => {
     expect(deleteButton).toHaveClass('delete');
   });
 
+  test('renders the delete button with type="button", so it does not submit a form around it', () => {
+    render(<Notification {...defaultProps} hasDelete />);
+    expect(screen.getByLabelText('Close notification')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
   test('calls onDelete when delete button is clicked', () => {
     const onDelete = jest.fn();
     render(<Notification {...defaultProps} hasDelete onDelete={onDelete} />);
@@ -786,8 +794,8 @@ describe('NotificationContainer with notifications shown at their own position',
         .map(el => el.outerHTML)
     ).toEqual([
       '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: 100%; bottom: 0px; left: 50%; transform: translateX(-50%); align-items: center;">' +
-        '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">One</span></div>' +
-        '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">Two</span></div>' +
+        '<div class="notification" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">One</span></div>' +
+        '<div class="notification" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">Two</span></div>' +
         '</div>',
     ]);
   });

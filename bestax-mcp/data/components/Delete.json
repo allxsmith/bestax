@@ -31,17 +31,17 @@
       "code": "<Message color=\"success\" title=\"Success Message\">\n  This is a success message with a delete button in the header.\n</Message>"
     }
   ],
-  "accessibility": "- **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default is `'Close'`).\n- **Keyboard:** The button is focusable and supports keyboard activation.\n- **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.\n\n:::tip\nFor custom close actions, use the `onClick` prop.\n:::",
+  "accessibility": "- **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default is `'Close'`).\n- **Keyboard:** The button is focusable and supports keyboard activation.\n- **Forms:** It renders `type=\"button\"`, so a delete button inside a form doesn't submit it.\n- **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.\n\n:::tip\nFor custom close actions, use the `onClick` prop.\n:::",
   "related": ["Message", "Notification", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-delete--default",
-  "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.",
+  "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more. It renders `type=\"button\"`, so a delete button inside a form does not submit it.",
   "import": "import { Delete } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Delete.tsx",
   "rootClass": "delete",
   "parts": [
     {
       "path": "Delete",
-      "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.",
+      "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more. It renders `type=\"button\"`, so a delete button inside a form does not submit it.",
       "component": null,
       "props": [
         {
@@ -104,7 +104,7 @@
           "name": "ariaLabel",
           "type": "string",
           "default": "'Close'",
-          "description": "ARIA label for accessibility (default: 'Close').",
+          "description": "Accessible name for the button, `'Close'` by default. An `aria-label` you pass takes precedence over it, and a spread carrying `'aria-label': undefined` keeps this one rather than leaving the button unnamed.",
           "required": false,
           "inherited": false,
           "deprecated": false

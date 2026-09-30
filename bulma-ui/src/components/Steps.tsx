@@ -59,7 +59,11 @@ export interface StepsProps
   mobileMode?: 'minimal' | 'compact' | 'right';
   /** Displays step numbers in the markers. */
   showStepNumbers?: boolean;
-  /** Shows previous/next navigation buttons. */
+  /**
+   * Shows previous/next navigation buttons. They render `type="button"`, so a
+   * multi-step form wrapped around the steps is not submitted by moving
+   * between them.
+   */
   hasNavigation?: boolean;
   /** Label for the previous button. */
   prevLabel?: string;
@@ -314,6 +318,7 @@ const StepsComponent: React.FC<StepsProps> = ({
       {hasNavigation && (
         <div className={stepsNavigationClass}>
           <button
+            type="button"
             className={prevButtonClass}
             disabled={value === 0}
             onClick={onPrev ?? (() => onStepClick?.(value - 1))}
@@ -321,6 +326,7 @@ const StepsComponent: React.FC<StepsProps> = ({
             {prevLabel ?? 'Previous'}
           </button>
           <button
+            type="button"
             className={nextButtonClass}
             disabled={value === totalSteps - 1}
             onClick={onNext ?? (() => onStepClick?.(value + 1))}

@@ -468,12 +468,14 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 
 ### Modal.Close
 
-| Prop        | Type                                 | Default    | Description                                                                                     |
-| ----------- | ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------- |
-| `className` | `string`                             | —          | Additional CSS classes.                                                                         |
-| `size`      | `'small'` \| `'medium'` \| `'large'` | `'large'`  | Size of the close button (only applies to 'floating' variant).                                  |
-| `variant`   | `'delete'` \| `'floating'`           | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button. |
-| `...`       | All standard `<button>` attributes   | —          |                                                                                                 |
+| Prop         | Type                                  | Default    | Description                                                                                                                                                                                                           |
+| ------------ | ------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`  | `string`                              | —          | Additional CSS classes.                                                                                                                                                                                               |
+| `size`       | `'small'` \| `'medium'` \| `'large'`  | `'large'`  | Size of the close button (only applies to 'floating' variant).                                                                                                                                                        |
+| `variant`    | `'delete'` \| `'floating'`            | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button.                                                                                                                       |
+| `type`       | `'button'` \| `'submit'` \| `'reset'` | `'button'` | Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`. |
+| `aria-label` | `string`                              | `'close'`  | Accessible name. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.                                                                   |
+| `...`        | All standard `<button>` attributes    | —          |                                                                                                                                                                                                                       |
 
 <!-- /bestax:generated props -->
 

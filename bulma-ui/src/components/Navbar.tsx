@@ -2,6 +2,7 @@ import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
+import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -214,7 +215,13 @@ export interface NavbarItemOwnProps extends Omit<
 export type NavbarItemProps<T extends React.ElementType = 'a'> =
   NavbarItemOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof NavbarItemOwnProps | 'as'> & {
-      /** Render as another intrinsic element (`'span'`, `'div'`) or a custom component (e.g. a router link). Defaults to `'a'`. */
+      /**
+       * Render as another intrinsic element (`'span'`, `'div'`, `'button'`) or a custom component (e.g. a router link). Defaults to `'a'`.
+       *
+       * `'button'` renders `type="button"`, so an item inside a form does not submit it. Pass
+       * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
+       * carrying `type: undefined`, renders `type="button"`.
+       */
       as?: T;
     };
 
@@ -222,7 +229,10 @@ export type NavbarItemProps<T extends React.ElementType = 'a'> =
  * The shape the implementation destructures. The public contract is the generic
  * `NavbarItemProps<T>` above — the body cannot see through `T`.
  */
-type NavbarItemImplProps = NavbarItemOwnProps & { as?: React.ElementType };
+type NavbarItemImplProps = NavbarItemOwnProps & {
+  as?: React.ElementType;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
+};
 
 /**
  * Navigation links, buttons, or custom content
@@ -262,6 +272,11 @@ export const NavbarItem = forwardRef(function NavbarItem(
         className
       )}
       {...rest}
+      // A `<button>` defaults to type="submit", and a navbar inside a form must
+      // not submit it. After the spread, reading through it, so a spread
+      // carrying `type: undefined` cannot erase the default. A caller's
+      // `submit` or `reset` still wins; `buttonType` says more.
+      {...(Component === 'button' ? { type: buttonType(rest.type) } : {})}
     >
       {children}
     </Component>
@@ -273,6 +288,7 @@ NavbarItem.displayName = 'NavbarItem';
 /**
  * Props for the NavbarBurger component.
  * @extraProp {React.Ref<HTMLButtonElement>} [ref] - Ref forwarded to the burger button element.
+ * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a burger inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
  */
 export interface NavbarBurgerProps
   extends
@@ -297,9 +313,16 @@ export interface NavbarBurgerProps
    * draws an extra bar.
    */
   children?: React.ReactNode;
-  /** Aria label for accessibility. */
+  /**
+   * Accessible name, `'menu'` by default. Pass your own to replace it; a spread
+   * carrying `'aria-label': undefined` keeps the default rather than leaving
+   * the button unnamed.
+   */
   'aria-label'?: string;
-  /** Aria expanded state. */
+  /**
+   * Expanded state for assistive technology. Follows `active` unless you pass
+   * it, including through a spread carrying `'aria-expanded': undefined`.
+   */
   'aria-expanded'?: boolean;
   /** Click handler. */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -326,7 +349,6 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
     return (
       <button
         ref={ref}
-        type="button"
         className={classNames(
           usePrefixedClassNames('navbar-burger', {
             'is-active': active,
@@ -334,9 +356,14 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
           bulmaHelperClasses,
           className
         )}
-        aria-label={props['aria-label'] || 'menu'}
-        aria-expanded={props['aria-expanded'] ?? !!active}
         {...rest}
+        // After the spread, reading through it: a key the spread carries with
+        // no value would otherwise erase the default, leaving a nameless
+        // button that submits the form around it. A caller's own value still
+        // wins; `buttonType` says more.
+        aria-label={rest['aria-label'] ?? 'menu'}
+        aria-expanded={rest['aria-expanded'] ?? !!active}
+        type={buttonType(rest.type)}
       >
         {/* Bulma v1's burger mixin positions four spans: the first two meet
             in the middle (they rotate into the X), the third and fourth draw
@@ -559,6 +586,10 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
        * If your custom component renders something non-interactive, pass `role="button"` and
        * it takes that fallback too — `tabIndex` and click included. The keyboard path is
        * attached either way.
+       *
+       * `'button'` renders `type="button"`, so a link inside a form does not submit it. Pass
+       * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
+       * carrying `type: undefined`, renders `type="button"`.
        */
       as?: T;
     };
@@ -574,6 +605,7 @@ type NavbarLinkImplProps = NavbarLinkOwnProps & {
   role?: React.AriaRole;
   onKeyDown?: React.KeyboardEventHandler<HTMLAnchorElement>;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
 };
 
 /**
@@ -684,6 +716,8 @@ export const NavbarLink = forwardRef(function NavbarLink(
           onClick: handleClick,
         }),
       })}
+      // The same button type default as `Navbar.Item`, for the same reason.
+      {...(Component === 'button' ? { type: buttonType(rest.type) } : {})}
     >
       {children}
     </Component>

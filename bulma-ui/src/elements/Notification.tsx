@@ -37,7 +37,10 @@ export interface NotificationProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Use the light color variant. */
   isLight?: boolean;
-  /** Shows a close (delete) button in the notification. */
+  /**
+   * Shows a close (delete) button in the notification. It renders
+   * `type="button"`, so it does not submit a form around it.
+   */
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
@@ -90,6 +93,7 @@ export const Notification: React.FC<NotificationProps> = ({
     <div className={notificationClasses} {...rest}>
       {hasDelete && (
         <button
+          type="button"
           className={deleteClasses}
           onClick={onDelete}
           aria-label="Close notification"
