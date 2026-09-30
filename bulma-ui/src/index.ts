@@ -128,6 +128,15 @@ export * from './helpers/useBulmaClasses';
 export * from './helpers/Theme';
 export * from './helpers/Config';
 
+// Overlay building blocks
+export { Portal } from './helpers/portal';
+export type { PortalProps } from './helpers/portal';
+export { ClientOnly } from './helpers/ClientOnly';
+export type { ClientOnlyProps } from './helpers/ClientOnly';
+export { useIsHydrated } from './helpers/useIsHydrated';
+export { useFocusTrap } from './helpers/useFocusTrap';
+export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
+
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

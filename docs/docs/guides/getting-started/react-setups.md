@@ -849,6 +849,8 @@ bestax-bulma is designed to work seamlessly with SSR frameworks. Here are some i
 
 3. **No Browser Dependencies**: bestax-bulma components don't rely on browser-specific APIs during initial render, making them SSR-safe.
 
+4. **Your Own Browser-Only Code**: wrap content that differs between server and browser (a time zone, a `localStorage` value) in [`ClientOnly`](../../api/helpers/clientonly.md), and render your own overlays through [`Portal`](../../api/helpers/portal.md). Both wait for hydration, so the first client render still matches the server's.
+
 ### Next.js Specific
 
 ```tsx

@@ -94,6 +94,59 @@ overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
 hard-coding values.
 
+## Overlays: `Portal`, `useFocusTrap`, `ClientOnly` / `useIsHydrated`
+
+For a panel, command palette or popover of your own. All of them are server-rendering safe, so
+don't reach for `createPortal`, a hand-written Tab handler or a `typeof window` check instead.
+
+- `<Portal container?>` (`helpers/portal.tsx`) renders its children into `document.body`, or into
+  `container` (an element or a selector). It renders nothing on the server and during hydration,
+  so the first client render matches; `disabled` renders in place instead.
+- `useFocusTrap(ref, { active, initialFocusRef, restoreFocus })` (`helpers/useFocusTrap.ts`)
+  moves focus into `ref` when `active` turns on, wraps Tab at the first and last tab stops
+  (skipping hidden, disabled, inert and `tabIndex={-1}` elements) and restores focus when it
+  turns off. It handles Tab only: wire Escape to close. Pass the trigger's ref as
+  `restoreFocus` for a panel opened from a button. It waits for hydration too, so it finds a
+  container rendered through `Portal`.
+- `<ClientOnly fallback?>` (`helpers/ClientOnly.tsx`) renders its children only after hydration;
+  pass them as a function to keep browser-only expressions off the server.
+  `useIsHydrated()` (`helpers/useIsHydrated.ts`) is the hook underneath.
+
+```tsx
+function FilterPanel({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
+
+  return (
+    <>
+      <Button
+        ref={buttonRef}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+      >
+        Filters
+      </Button>
+      {open && (
+        <Portal>
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-label="Filters"
+            tabIndex={-1}
+            onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+          >
+            {children}
+          </div>
+        </Portal>
+      )}
+    </>
+  );
+}
+```
+
 ## SCSS utilities — from the `bulma` package
 
 ```scss

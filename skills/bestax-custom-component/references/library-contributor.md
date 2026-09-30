@@ -159,6 +159,14 @@ Rules that keep components consistent:
   Run `pnpm exec prettier --write` on your new files (or `pnpm format` from the repo root) before
   `pnpm lint`. Copy snippets as a starting point, then let Prettier normalize them.
 
+- **Floating content builds on the shared helpers.** A new component that portals, traps focus or
+  renders browser-only markup uses `Portal` (`helpers/portal.tsx`), `useFocusTrap`
+  (`helpers/useFocusTrap.ts`) and `useIsHydrated` (`helpers/useIsHydrated.ts`) rather than its own
+  `createPortal`, Tab handler or `typeof document` check. `Portal` renders nothing on the server
+  or during hydration and the other two wait for hydration, so the first client render matches
+  the server markup. Test that with `renderToString` plus `hydrateRoot` and a `console.error`
+  spy, as `portal.test.tsx` does.
+
 See `api.md` for the full helper API and `patterns.md` for the complete Dialog walkthrough.
 
 ## SCSS pattern (required)
