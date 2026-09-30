@@ -388,14 +388,68 @@ describe('Theme', () => {
       }
     );
 
-    it('writes nothing at :root for a radius size on an isRoot Theme', () => {
-      render(
+    // A root Theme renders no wrapper, so a size has no element for its class
+    // and writes no variable: it does nothing. Silence there would read as
+    // the prop working, so it warns, once, and says what to do instead.
+    it('writes nothing for a radius size on an isRoot Theme, and warns once', () => {
+      const { rerender } = render(
         <Theme isRoot radius="rounded">
+          <div>Test</div>
+        </Theme>
+      );
+      rerender(
+        <Theme isRoot radius="rounded">
+          <div>Test</div>
+        </Theme>
+      );
+      render(
+        <Theme isRoot radius="small">
           <div>Test</div>
         </Theme>
       );
 
       expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<Theme isRoot radius="rounded">')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('put radius="rounded" on it')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("bulmaVars={{ '--bulma-radius': '…' }}")
+      );
+    });
+
+    it('does not warn for a radius size on a scoped Theme or radiusless at the root', () => {
+      render(
+        <Theme radius="large">
+          <div>Test</div>
+        </Theme>
+      );
+      const { unmount } = render(
+        <Theme isRoot radius="radiusless">
+          <div>Test</div>
+        </Theme>
+      );
+      unmount();
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not warn for a radius size on an isRoot Theme in production', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(
+          <Theme isRoot radius="normal">
+            <div>Test</div>
+          </Theme>
+        );
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+
       expect(warnSpy).not.toHaveBeenCalled();
     });
 

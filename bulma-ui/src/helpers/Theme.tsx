@@ -817,7 +817,7 @@ export interface ThemeProps extends Omit<
    * The sizes (`small`, `normal`, `large`, `rounded`) add their
    * `has-radius-<value>` class to the wrapper div and set no variable, so
    * they round the wrapper and leave what is inside it alone. Under `isRoot`
-   * there is no wrapper, so they do nothing.
+   * there is no wrapper, so they do nothing, and say so in development.
    *
    * To change the radius of what is inside, set the variable through `bulmaVars`
    * (`bulmaVars={{ '--bulma-radius': '6px' }}`). This prop used to write the
@@ -897,6 +897,20 @@ export const Theme: React.FC<ThemeProps> = ({
   const radiusHelper = (validRadii as readonly unknown[]).includes(radius)
     ? radius
     : undefined;
+
+  // A radius size only adds its class, and a root Theme renders no wrapper to
+  // carry one, so on `isRoot` it does nothing at all. Say so, as the other
+  // radius routes that do not do what they look like do.
+  if (isRoot && radiusHelper && radiusHelperVars[radiusHelper] === undefined) {
+    warnOnce(
+      'Theme:root-radius-size',
+      `[bestax-bulma] <Theme isRoot radius="${radiusHelper}">: a root Theme ` +
+        `has no wrapper element for has-radius-${radiusHelper}, and the ` +
+        'radius sizes set no variable, so this does nothing. To round one ' +
+        `element, put radius="${radiusHelper}" on it. To change the radius ` +
+        "across the page, set bulmaVars={{ '--bulma-radius': '…' }} instead."
+    );
+  }
 
   // Extract Bulma variable props from restProps
   const { bulmaVarProps, otherProps } = useMemo(() => {
