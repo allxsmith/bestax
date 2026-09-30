@@ -113,8 +113,10 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   // that used to live here was removed when the band became the indicator —
   // pinning a ring to the selected item caused a broken-outline artefact
   // whenever position was mid-flight (item offset from band).
+  //
+  // The ring reads the band's colour, so a coloured wheel keeps one accent.
   &:focus-visible {
-    outline: 2px solid cv.getVar('primary');
+    outline: 2px solid cv.getVar('timeinput-wheel-selected-bg');
     outline-offset: 2px;
     border-radius: cv.getVar('timeinput-wheel-radius');
   }
@@ -218,6 +220,22 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   background-color: hsla(0, 0%, 50%, 0.12);
 }
 
+// Colour variants. `color` lands on each wheel as `is-<colour>`, and the wheel
+// re-points its selection variables at that colour, pairing it with its
+// `-invert` for the selected value the way the `primary` default does. The
+// band, the selected item and the focus ring all read these variables, so
+// they follow without rules of their own.
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        'timeinput-wheel-selected-bg': #{cv.getVar($name)},
+        'timeinput-wheel-selected-color': #{cv.getVar('#{$name}-invert')},
+      )
+    );
+  }
+}
+
 // Sizes scale the item height + wheel width.
 .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-small {
   width: 2.5rem;
@@ -240,19 +258,26 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 // viewports by TimeInputBase; the rules below adjust everything that's CSS-only
 // (font size, wheel width, gap, separator, mask intensity).
 @media (max-width: 768px) {
+  // Registered through `cv.register-vars` like the defaults above, so the
+  // overrides land on the names the rules read.
   .#{iv.$class-prefix}timeinput {
-    --bestax-timeinput-wheel-width: 4rem;
-    --bestax-timeinput-wheel-gap: 0.5rem;
-    // Mobile mask: with the per-item depth fade already pulling brightness
-    // down toward the edges, the mask only needs to handle the final crop.
-    // Slightly tighter than desktop because mobile items are bigger and the
-    // edge taper benefits from a touch more softening.
-    --bestax-timeinput-wheel-mask: linear-gradient(
-      180deg,
-      transparent 0,
-      black 28%,
-      black 72%,
-      transparent 100%
+    @include cv.register-vars(
+      (
+        'timeinput-wheel-width': 4rem,
+        'timeinput-wheel-gap': 0.5rem,
+        // Mobile mask: with the per-item depth fade already pulling
+        // brightness down toward the edges, the mask only needs to handle the
+        // final crop. Slightly tighter than desktop because mobile items are
+        // bigger and the edge taper benefits from a touch more softening.
+        'timeinput-wheel-mask':
+          linear-gradient(
+            180deg,
+            transparent 0,
+            black 28%,
+            black 72%,
+            transparent 100%
+          ),
+      )
     );
   }
 
@@ -302,7 +327,10 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     // already references `cv.getVar('picker-popover-radius')`) updates
     // automatically. We use Bulma's `radius-large` scaled by 4 for an
     // iOS-sheet-sized corner without hard-coding a px value.
-    --bestax-picker-popover-radius: calc(#{cv.getVar('radius-large')} * 4);
+    @include cv.register-var(
+      'picker-popover-radius',
+      calc(#{cv.getVar('radius-large')} * 4)
+    );
     position: fixed;
     left: 1rem;
     right: 1rem;

@@ -987,7 +987,7 @@
       "import": "import { TimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 54,
-      "exampleCount": 41
+      "exampleCount": 42
     },
     {
       "name": "Title",
