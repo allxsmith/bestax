@@ -1256,3 +1256,96 @@ describe('an element whose component builds its icons from props', () => {
     expect(migrate(output!).output).toBeNull();
   });
 });
+
+describe('an element whose component renders its whole tree from props', () => {
+  const tree = (
+    cta: string,
+    input = '<input className="file-input" type="file" name="cv" />'
+  ) =>
+    `<div className="file">\n        <label className="file-label">\n          ${input}\n          <span className="file-cta">${cta}</span>\n        </label>\n      </div>`;
+  const inField = (
+    file: string,
+    open = '<div className="field">',
+    close = '</div>'
+  ) =>
+    `export const A = () => (\n  <form>\n    ${open}\n      ${file}\n    ${close}\n  </form>\n);\n`;
+  const upload = '<span className="file-label">Upload</span>';
+
+  it('converts inside a Field already in the file, and imports only what it wrote', () => {
+    const { output, rules } = migrate(
+      `import { Field } from "@allxsmith/bestax-bulma";\n${inField(tree(upload), '<Field>', '</Field>')}`
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<File name="cv" buttonLabel="Upload" />');
+    expect(output).toContain(
+      'import { Field, File } from "@allxsmith/bestax-bulma";'
+    );
+  });
+
+  it('stays markup when the .field around it stays markup', () => {
+    const source = inField(tree(upload), '<div className="field" {...rest}>');
+    const { output, rules } = migrate(
+      source.replace(
+        'export const A = () =>',
+        'export const A = (rest: object) =>'
+      )
+    );
+    expect(rules).toEqual(['spread:Field', 'context:File']);
+    expect(output).toContain('<div className="file">');
+    expect(migrate(output!).output).toBeNull();
+  });
+
+  it('writes the input its classes and attributes as the component takes them', () => {
+    const { output } = migrate(
+      inField(
+        tree(
+          upload,
+          '<input className="file-input is-hidden-mobile" type="file" aria-label="Your CV" tabIndex="0" onChange={() => {}} />'
+        )
+      )
+    );
+    expect(output).toMatch(
+      /<File\s+aria-label="Your CV"\s+tabIndex=\{0\}\s+onChange=\{\(\) => \{\}\}\s+inputClassName="is-hidden-mobile"\s+buttonLabel="Upload" \/>/
+    );
+  });
+
+  it('writes a text with a backslash as a string, since an attribute has no escapes', () => {
+    const { output } = migrate(
+      inField(
+        tree(
+          '<span className="file-label">C:\\Uploads</span>',
+          '<input className="file-input" type="file" />'
+        )
+      )
+    );
+    expect(output).toContain('buttonLabel={"C:\\\\Uploads"}');
+  });
+
+  it('writes button text JSX would read differently as the string it renders', () => {
+    const { output } = migrate(
+      inField(
+        tree(
+          '<span className="file-label">Upload <strong>your CV</strong> &amp; more</span>'
+        )
+      )
+    );
+    expect(output).toContain(
+      'buttonLabel={<>{"Upload "}<strong>your CV</strong>{" & more"}</>}'
+    );
+  });
+
+  it('keeps the comments in its tree when the tree goes', () => {
+    const { output } = migrate(
+      inField(
+        tree(
+          '<span className="file-label" /* the button */>Upload</span>',
+          '<input /* the input */ className="file-input" type="file" />'
+        )
+      )
+    );
+    expect(output).not.toContain('file-cta');
+    expect(output).toContain('/* the input */');
+    expect(output).toContain('/* the button */');
+    expect(migrate(output!).output).toBeNull();
+  });
+});

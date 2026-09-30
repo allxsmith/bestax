@@ -36,6 +36,12 @@ import {
   type ElementFacts,
 } from '../src/sources/bulma-classes/plan.js';
 import {
+  fileChildren,
+  fileProps,
+  rawFrom,
+  type FileTree,
+} from './support/file-tree.js';
+import {
   GLYPHS,
   iconChild,
   iconProps,
@@ -199,9 +205,14 @@ function renderBoth(
   // A target that builds its icons from props: the children as written, and
   // the component given them as props, with one icon's text as its own.
   const icons = result.conversion.icons;
+  // A target that renders the whole tree from props: the tree as written,
+  // inside a `.field`, against the component inside a `Field`.
+  const file = result.conversion.file;
   const rawChildren = icons
     ? facts.childElements!.map(rawChild)
-    : (counted ?? soleElement ?? (child ? child.raw : children));
+    : file
+      ? facts.childElements!.map(rawFrom)
+      : (counted ?? soleElement ?? (child ? child.raw : children));
   // A target that renders the element around this one too is compared with
   // the raw element inside that one.
   const raw = result.conversion.replacesParent
@@ -210,7 +221,13 @@ function renderBoth(
         null,
         createElement(facts.tag, rawProps, rawChildren)
       )
-    : renderElement(facts.tag, rawProps, rawChildren);
+    : file
+      ? renderElement(
+          'div',
+          { className: 'field' },
+          createElement(facts.tag, rawProps, rawChildren)
+        )
+      : renderElement(facts.tag, rawProps, rawChildren);
   const { target, props, className, drop, numbers, absorbs } =
     result.conversion;
   const given = { ...extra };
@@ -227,37 +244,42 @@ function renderBoth(
         numbers.includes(name) ? Number(value) : value,
       ])
   );
-  const converted = renderElement(
-    target,
-    {
-      ...kept,
-      ...Object.fromEntries(
-        [...props, ...(absorbs?.props ?? [])].map(([name, value]) => [
-          name,
-          numbers.includes(name) ? Number(value) : value,
-        ])
-      ),
-      ...Object.fromEntries(flags.map(([prop, token]) => [prop, when[token]])),
-      ...(className || stays.length > 0
-        ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
-        : {}),
-      ...(icons && builtProps(icons, facts.childElements!)),
-    },
-    // A target that couldn't absorb the child renders it as given.
-    icons
-      ? icons.length === 1
-        ? icons[0].text
-        : undefined
-      : counted
-        ? undefined
-        : sole
-          ? absorbs
-            ? soleChildren
-            : soleElement
-          : child
-            ? child.converted
-            : children
-  );
+  const convertedProps = {
+    ...kept,
+    ...Object.fromEntries(
+      [...props, ...(absorbs?.props ?? [])].map(([name, value]) => [
+        name,
+        numbers.includes(name) ? Number(value) : value,
+      ])
+    ),
+    ...Object.fromEntries(flags.map(([prop, token]) => [prop, when[token]])),
+    ...(className || stays.length > 0
+      ? { className: [className ?? '', ...stays.flat()].join(' ').trim() }
+      : {}),
+    ...(icons && builtProps(icons, facts.childElements!)),
+    ...(file && fileProps(file, facts.childElements!, numbers)),
+  };
+  // A target that couldn't absorb the child renders it as given.
+  const convertedChildren = icons
+    ? icons.length === 1
+      ? icons[0].text
+      : undefined
+    : counted || file
+      ? undefined
+      : sole
+        ? absorbs
+          ? soleChildren
+          : soleElement
+        : child
+          ? child.converted
+          : children;
+  const converted = file
+    ? renderElement(
+        'Field',
+        {},
+        createElement(target, convertedProps, convertedChildren)
+      )
+    : renderElement(target, convertedProps, convertedChildren);
   return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
 }
 
@@ -322,6 +344,12 @@ function factsFor(
     // One that builds its icons from props holds an icon and its text.
     ...(entries.some(entry => entry?.buildsIcons) && {
       childElements: [iconChild(['fas', 'fa-home']), textChild()],
+    }),
+    // One that renders the whole `.file` tree holds that tree, inside a
+    // `.field`.
+    ...(entries.some(entry => entry?.buildsFile) && {
+      childElements: fileChildren({ iconLeft: ['fas', 'fa-upload'] }),
+      classesAround: ['field'],
     }),
     // One that needs element children holds one (`Icon` around an <i>).
     ...(!absorbs &&
@@ -1073,6 +1101,60 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
           title: 'hint',
         }
       );
+    });
+  }
+);
+
+/**
+ * An element whose target renders its whole tree from props, around each
+ * shape of tree it reads, inside a `.field`: the markup and the component
+ * given what it builds, inside a `Field`, render the same.
+ */
+describe.each(mapped.filter(([, entry]) => entry.buildsFile))(
+  'the tree `.%s` renders',
+  (root, entry) => {
+    const same = (label: string, tree: FileTree, tokens: string[] = []) => {
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root, ...tokens]),
+        childElements: fileChildren(tree),
+        classesAround: ['field'],
+      };
+      const found = renderBoth(facts);
+      expect({ label, converts: found !== null }).toEqual({
+        label,
+        converts: true,
+      });
+      expect({ label, html: found!.converted }).toEqual({
+        label,
+        html: found!.raw,
+      });
+    };
+
+    it('renders each shape of tree the same', () => {
+      same('bare', {});
+      same('with the text it renders by default', {
+        label: 'Choose a file\u2026',
+      });
+      same('with an icon on each side', {
+        iconLeft: ['fas', 'fa-upload'],
+        iconRight: ['fas', 'fa-check'],
+      });
+      same('with the input its attributes and classes', {
+        input: { name: 'cv', accept: 'image/*', multiple: true, id: 'x' },
+        inputTokens: ['my-input'],
+      });
+      same('with a number attribute on the input', {
+        input: { tabIndex: '0' },
+      });
+      same('with a name', { name: 'cv.pdf' }, ['has-name']);
+      same('with a name slot and no name', {}, ['has-name']);
+      same('with its modifiers together', { iconLeft: ['fas', 'fa-upload'] }, [
+        'is-boxed',
+        'is-fullwidth',
+        'is-right',
+        'is-small',
+        'mt-2',
+      ]);
     });
   }
 );

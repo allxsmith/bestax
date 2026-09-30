@@ -79,6 +79,11 @@ export interface RootRecord {
    * icon's props, and a bare `<span>` of text after one as its text.
    */
   buildsIcons: boolean;
+  /**
+   * The component renders the whole `.file` tree from props, and a `.field`
+   * of its own around it outside a `Field`.
+   */
+  buildsFile: boolean;
   /** What each item in a list with this class becomes, found by where it sits. */
   items: Items | null;
   /** The component renders a bare `<tag>` around the element too. */
@@ -184,6 +189,8 @@ export type Element =
       counts?: Counts;
       /** Builds its icons from props, out of the element's children. */
       buildsIcons?: true;
+      /** Renders the element's whole tree from props. */
+      buildsFile?: true;
       /** Renders this class only when no other of itself is around it. */
       topLevel?: string;
       /** What each item inside it becomes. */
@@ -438,6 +445,7 @@ export function lookupClasses(
       writes: null,
       countsChildren: null,
       buildsIcons: false,
+      buildsFile: false,
       items: null,
       parent: null,
       rendersText: null,
@@ -637,6 +645,7 @@ export function lookupClasses(
     writes: entry.writes ?? undefined,
     counts: entry.countsChildren ?? undefined,
     buildsIcons: entry.buildsIcons || undefined,
+    buildsFile: entry.buildsFile || undefined,
     topLevel: entry.topLevelOnly && root ? root : undefined,
     items: entry.items ?? undefined,
     parent: entry.parent?.tag,
@@ -793,6 +802,15 @@ export function renderLookup(lookup: Lookup): string {
               `and its \`aria-label\` as \`ariaLabel\`, with the bare <span> of ` +
               `text after it as its text. One icon goes in \`iconProps\`, with ` +
               `its text as the children, and more than one in \`items\`.`
+            : '') +
+          (element.buildsFile
+            ? ` It renders the whole \`.file\` tree from props: write the ` +
+              `<input>'s attributes on it, the \`.file-label\` <span>'s ` +
+              `content as \`buttonLabel\` (left out for its default text), ` +
+              `each \`.file-icon\`'s content as \`iconLeft\` or ` +
+              `\`iconRight\`, and the \`.file-name\`'s text as \`fileName\` ` +
+              `beside \`hasName\`. Outside a \`Field\` it renders a ` +
+              `\`.field\` of its own around it.`
             : '') +
           (element.topLevel
             ? ` It renders \`.${element.topLevel}\` only when no other ` +
