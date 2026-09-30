@@ -78,7 +78,7 @@
           "name": "position",
           "type": "'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'",
           "default": "'top-right'",
-          "description": "Position on the screen. Default: 'top-right'. Through `toast.show()` it places that toast, and a toast shown without one goes to `ToastContainer`'s `position` instead.",
+          "description": "Position on the screen. Default: 'top-right'. On a standalone `<Toast>` this places it. Through `toast.show()` it places that toast, and a toast shown without one goes to `ToastContainer`'s `position` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
