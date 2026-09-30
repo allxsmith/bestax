@@ -758,8 +758,8 @@ export const hasModuleSpecifiers = text => {
   const sourceFile = parseDeclaration(text);
   // All THREE triple-slash forms. A `path` and a relative `types` move with the
   // copy; a bare `types` and a `lib` do not, but the pattern this replaced
-  // flagged every `<reference`, and
-  // swapping it for the parser was meant to close holes rather than open one.
+  // flagged every `<reference`, and swapping it for the parser was meant to
+  // close holes rather than open one.
   // `lib` is here because leaving it out is precisely the loosening the line
   // above told itself not to do.
   if (sourceFile.referencedFiles.length) return true;
