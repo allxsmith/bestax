@@ -187,6 +187,9 @@ Callback refs behave the same on React 18 and 19: a cleanup function you return 
 - The dropdown root is a `<div class="dropdown">` with ARIA roles/attributes for menu and trigger.
 - The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.
 - Menu items are focusable and use `role="menuitem"`. An item given `role="menuitemcheckbox"` or `role="menuitemradio"` stays in the arrow-key order.
+- `Dropdown.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
+  submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
+  renders `type="button"`.
 - Clicking outside closes the dropdown in most cases.
 
 `Dropdown` implements the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)
@@ -263,7 +266,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 | Prop        | Type                                                                   | Default | Description                                                                                                                                                                      |
 | ----------- | ---------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `as`        | `'a'` \| `'div'` \| `'button'`                                         | `'a'`   | The element type to render.                                                                                                                                                      |
+| `as`        | `'a'` \| `'div'` \| `'button'`                                         | `'a'`   | The element type to render. `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                   |
 | `active`    | `boolean`                                                              | `false` | Whether the item is active.                                                                                                                                                      |
 | `className` | `string`                                                               | —       | Additional CSS classes.                                                                                                                                                          |
 | `disabled`  | `boolean`                                                              | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. |
