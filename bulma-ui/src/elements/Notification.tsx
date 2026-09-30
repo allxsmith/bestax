@@ -12,6 +12,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { warnUnstyledColor } from '../helpers/colorDeprecations';
+import { groupIntoPositionStacks } from '../helpers/positionStacks';
 
 /**
  * Props for the Notification component.
@@ -126,11 +127,14 @@ export interface NotificationOptions {
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;
   /**
-   * Position on the screen. Currently ignored: `NotificationContainer`'s own
-   * `position` places every notification it shows, so set it there.
+   * Position on the screen. A notification shown without one goes to
+   * `NotificationContainer`'s `position`.
    */
   position?: NotificationPosition;
-  /** When true, notifications enter a FIFO queue and display one at a time. Default false. */
+  /**
+   * When true, notifications enter a FIFO queue and display one at a time,
+   * one queue across every `position`. Default false.
+   */
   queue?: boolean;
   /** Show a delete (close) button. Default true. */
   hasDelete?: boolean;
@@ -379,34 +383,32 @@ const NotificationItem: React.FC<{
   );
 };
 
+// The order NotificationContainer renders its stacks in: across the top of the
+// screen, then across the bottom.
+const notificationStackOrder: readonly NotificationPosition[] = [
+  'top-left',
+  'top',
+  'top-right',
+  'bottom-left',
+  'bottom',
+  'bottom-right',
+];
+
 /**
- * Container component for rendering programmatic notifications.
- * Place once at your app root to enable the notification API.
+ * Inline style that fixes a stack of notifications to its place on the screen.
  *
  * @function
- * @param {{ position?: NotificationPosition }} props - Container props.
- * @returns {JSX.Element | null} The rendered notification container, or null if empty.
+ * @param {NotificationPosition} position - Where the stack sits.
+ * @returns {React.CSSProperties} The stack's style.
  */
-export const NotificationContainer: React.FC<{
-  position?: NotificationPosition;
-}> = ({ position = 'top-right' }) => {
-  // Starts from the notifications already showing instead of an empty list,
-  // then follows changes.
-  const items = useSyncExternalStore(
-    notification.subscribe,
-    getVisibleNotifications,
-    getServerNotifications
-  );
-
-  if (typeof document === 'undefined' || items.length === 0) {
-    return null;
-  }
-
+const notificationStackStyle = (
+  position: NotificationPosition
+): React.CSSProperties => {
   const isBottom = position.startsWith('bottom');
   const isCenter = position === 'top' || position === 'bottom';
   const isRight = position.endsWith('right');
 
-  const containerStyle: React.CSSProperties = {
+  return {
     position: 'fixed',
     zIndex: 100,
     display: 'flex',
@@ -422,17 +424,59 @@ export const NotificationContainer: React.FC<{
         ? { right: 0, alignItems: 'flex-end' }
         : { left: 0, alignItems: 'flex-start' }),
   };
+};
+
+/**
+ * Container component for rendering programmatic notifications.
+ * Place once at your app root to enable the notification API. A notification
+ * shown with a `position` appears there, and one shown without goes to the
+ * container's `position`, so the container renders a stack for each position
+ * in use.
+ *
+ * @function
+ * @param {{ position?: NotificationPosition }} props - Container props.
+ * @returns {JSX.Element | null} The rendered notification container, or null if empty.
+ */
+export const NotificationContainer: React.FC<{
+  /**
+   * Where a notification shown without a `position` of its own appears.
+   * Default: 'top-right'. When it changes, those notifications move without
+   * remounting, but one shown with its own `position` equal to the old or new
+   * value remounts and starts over as if it had just been shown.
+   */
+  position?: NotificationPosition;
+}> = ({ position = 'top-right' }) => {
+  // Starts from the notifications already showing instead of an empty list,
+  // then follows changes.
+  const items = useSyncExternalStore(
+    notification.subscribe,
+    getVisibleNotifications,
+    getServerNotifications
+  );
+
+  if (typeof document === 'undefined' || items.length === 0) {
+    return null;
+  }
+
+  const stacks = groupIntoPositionStacks(
+    items,
+    item => item.options.position,
+    position,
+    notificationStackOrder
+  );
 
   return createPortal(
-    <div style={containerStyle}>
-      {items.map(item => (
-        <NotificationItem
-          key={item.id}
-          instance={item}
-          onClose={notification.close}
-        />
-      ))}
-    </div>,
+    stacks.map(stack => (
+      <div key={stack.key} style={notificationStackStyle(stack.position)}>
+        {stack.items.map(item => (
+          <NotificationItem
+            key={item.id}
+            instance={item}
+            onClose={notification.close}
+          />
+        ))}
+      </div>
+    )),
     document.body
   );
 };

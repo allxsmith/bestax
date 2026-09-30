@@ -493,6 +493,17 @@ export const ProgrammaticAPI: Story = {
           >
             With Action
           </Button>
+          <Button
+            onClick={() =>
+              toast.show({
+                message: 'Shown at bottom-center',
+                position: 'bottom-center',
+                duration: 3000,
+              })
+            }
+          >
+            Bottom Center
+          </Button>
           <Button color="danger" onClick={() => toast.closeAll()}>
             Close All
           </Button>
