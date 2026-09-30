@@ -4346,8 +4346,9 @@ const bareDir = path =>
  * The package names every `npm install` (or `npm i`, `npm add`) in a shell
  * script is asked for, versions stripped. A name only in an echo, an argument
  * to some other command, or a comment is not an install. Known misses, both
- * reading as not installed: an install nested in if/for/while, and every name
- * on a line whose trailing comment holds an unpaired quote.
+ * reading as not installed: an install that directly follows a shell keyword
+ * such as `if`, `then` or `do` (later commands in the same body are read), and
+ * every name on a line whose trailing comment holds an unpaired quote.
  */
 export function npmInstallNames(script) {
   const names = [];
