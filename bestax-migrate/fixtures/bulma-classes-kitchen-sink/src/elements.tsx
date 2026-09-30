@@ -103,6 +103,20 @@ export function Elements() {
           </div>
         </div>
         <div className="field">
+          <div className="file has-name is-boxed">
+            <label className="file-label">
+              <input className="file-input" type="file" name="resume" />
+              <span className="file-cta">
+                <span className="file-icon">
+                  <i className="fas fa-upload"></i>
+                </span>
+                <span className="file-label">Choose a file…</span>
+              </span>
+              <span className="file-name">resume.pdf</span>
+            </label>
+          </div>
+        </div>
+        <div className="field">
           <div className="control">
             <div className="select is-fullwidth">
               <select id="plan" defaultValue="pro">

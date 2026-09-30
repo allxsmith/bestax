@@ -81,6 +81,7 @@ a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax re
 | `.breadcrumb`          | `Breadcrumb`          | `<nav>` only                                                   |
 | `.skeleton-block`      | `Skeleton`            | `<div>` only                                                   |
 | `.skeleton-lines`      | `Skeleton`            | `<div>` only                                                   |
+| `.file`                | `File`                | `<div>` only                                                   |
 | `.icon`                | `Icon`                | `<span>` only                                                  |
 | `.icon-text`           | `IconText`            | `<span>` only                                                  |
 | `.image`               | `Image`               | `<div>`, `<figure>`, `<p>` via `as`                            |
@@ -281,12 +282,48 @@ It converts only when every `.icon` inside converts to `Icon` on its own and hol
 texts, bare and static. Anything else keeps it as markup with a `children:IconText` TODO, and the
 `.icon`s inside convert on their own.
 
+## A tree a component renders from props
+
+`File` renders the whole `.file` tree from props, so a `.file` converts together with everything
+inside it. The `<input>`'s attributes become `File`'s own (it puts the ones it doesn't read on the
+`<input>`), its other classes become `inputClassName`, the `.file-label` `<span>`'s content becomes
+`buttonLabel` (left out when it's `File`'s own default, `Choose a file…`), each `.file-icon`'s
+content becomes `iconLeft` or `iconRight`, and the `.file-name`'s text becomes `fileName` beside
+`hasName`.
+
+```jsx
+<div className="field">
+  <div className="file has-name">
+    <label className="file-label">
+      <input className="file-input" type="file" name="cv" />
+      <span className="file-cta">
+        <span className="file-icon"><i className="fas fa-upload"></i></span>
+        <span className="file-label">Upload</span>
+      </span>
+      <span className="file-name">cv.pdf</span>
+    </label>
+  </div>
+</div>
+// becomes
+<Field>
+  <File hasName name="cv" buttonLabel="Upload" iconLeft={<i className="fas fa-upload"></i>} fileName="cv.pdf" />
+</Field>
+```
+
+It converts only inside a `Field`, a bestax one already in the file or a `.field` that converts
+in the same run, since outside one `File` renders a `.field` of its own. The tree has to be exactly
+the one `File` renders, and the `.file` itself can carry no attribute but a `key`, since `File`
+puts the attributes it's given on its `<input>`. A color class stays a class, since `color`
+renders `has-text-<color>` too, and so does `is-centered`, which `isCentered` renders nothing of
+beside `isRight`. Anything else keeps it as markup with a `children:File`, `context:File` or
+`attr` TODO.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or
 adds attributes), so the family's outermost class gets a `family:<class>` TODO and the markup
 stays. [unmappables.md](unmappables.md) has the recipe for each. The families are Checkbox,
-Checkboxes, Dropdown, File, the menu's `.menu-item`, Message, Modal's root and close
+Checkboxes, Dropdown, the menu's `.menu-item`, Message, Modal's root and close
 button, the navbar's burger and dropdown link, the panel's icon, Radio and Radios.
 
 ## Classes left alone

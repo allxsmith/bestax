@@ -80,6 +80,25 @@ const dedupe = (payload, ctx = {}) =>
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'triage-render-'));
 
+/**
+ * Collect what main() prints, for the rest of the calling test.
+ *
+ * Its failures are `::error::` workflow commands and its warnings
+ * `::warning::` ones. Left on the real console, a runner files each of them
+ * as an annotation against a green test run (#723), so a test that drives
+ * one captures the lines and asserts on them instead.
+ */
+function captureConsole(t) {
+  const lines = [];
+  const push = (...args) => lines.push(args.join(' '));
+  t.mock.method(console, 'log', push);
+  t.mock.method(console, 'error', push);
+  return lines;
+}
+
+/** The `::error::` annotations among captured lines. */
+const errorsIn = lines => lines.filter(l => l.startsWith('::error::'));
+
 // --- sentinel extraction ----------------------------------------------------
 
 test('one sentinel is read for an issue run, after tolerated narration', () => {
@@ -1072,10 +1091,11 @@ test('render handles the two-command PR path end to end', async () => {
   assert.ok(!existsSync(join(dir, 'triage-find-duplicate-prs.md')));
 });
 
-test("one bad payload does not discard its sibling command's comment", async () => {
+test("one bad payload does not discard its sibling command's comment", async t => {
   // Failing the whole step looked like the loud, safe choice and was not: the
   // sibling's rendered comment was thrown away and `cleanup` spends the label
   // regardless, so the PR ended with NO comment and nothing to retry from.
+  const lines = captureConsole(t);
   const dir = tmp();
   const file = join(dir, 'exec.json');
   writeFileSync(
@@ -1102,9 +1122,20 @@ test("one bad payload does not discard its sibling command's comment", async () 
   assert.equal(code, 0, 'the good comment must still publish');
   assert.ok(existsSync(join(dir, 'triage-find-issues.md')));
   assert.ok(!existsSync(join(dir, 'triage-find-duplicate-prs.md')));
+  // The failed command still annotates the run, and a warning says a comment
+  // is missing, so a green step does not read as a complete one.
+  const errors = errorsIn(lines);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /^::error::triage-find-duplicate-prs: .*malformed/);
+  assert.ok(
+    lines.some(
+      l => l.startsWith('::warning::1 comment(s) rendered') && /missing/.test(l)
+    )
+  );
 });
 
-test('a run where NOTHING renders still fails loudly', async () => {
+test('a run where NOTHING renders still fails loudly', async t => {
+  const lines = captureConsole(t);
   const dir = tmp();
   const file = join(dir, 'exec.json');
   writeFileSync(
@@ -1113,6 +1144,9 @@ test('a run where NOTHING renders still fails loudly', async () => {
   );
   assert.equal(await main(renderArgs(dir, file)), 1);
   assert.ok(!existsSync(join(dir, 'triage-dedupe.md')));
+  const errors = errorsIn(lines);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /^::error::triage-dedupe: .*malformed/);
 });
 
 test('render writes nothing and exits 0 when there is no execution file', async () => {
@@ -1121,15 +1155,20 @@ test('render writes nothing and exits 0 when there is no execution file', async 
   assert.ok(!existsSync(join(dir, 'triage-dedupe.md')));
 });
 
-test('render exits 1 and writes nothing on an unreadable payload', async () => {
+test('render exits 1 and writes nothing on an unreadable payload', async t => {
+  const lines = captureConsole(t);
   const dir = tmp();
   const file = join(dir, 'exec.json');
   writeFileSync(file, execText('TRIAGE-RESULT: triage-dedupe publish {oops}'));
   assert.equal(await main(renderArgs(dir, file)), 1);
   assert.ok(!existsSync(join(dir, 'triage-dedupe.md')));
+  assert.deepEqual(errorsIn(lines), [
+    '::error::triage-dedupe: payload missing, oversized or malformed.',
+  ]);
 });
 
-test('render refuses a body that carries the session credential', async () => {
+test('render refuses a body that carries the session credential', async t => {
+  const lines = captureConsole(t);
   const dir = tmp();
   const file = join(dir, 'exec.json');
   const secret = 'sk-ant-oat01-LEAKEDLEAKEDLEAKED';
@@ -1150,6 +1189,15 @@ test('render refuses a body that carries the session credential', async () => {
     if (prev === undefined) delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
     else process.env.CLAUDE_CODE_OAUTH_TOKEN = prev;
   }
+  const errors = errorsIn(lines);
+  assert.equal(errors.length, 1);
+  assert.match(
+    errors[0],
+    /^::error::triage-dedupe: rendered comment contains /
+  );
+  // The refusal says what it found, never the value itself: the job log is
+  // public.
+  assert.ok(!lines.some(l => l.includes(secret)), 'the secret reached the log');
 });
 
 // --- main(): publish mode, against a stubbed fetch --------------------------
@@ -1284,7 +1332,8 @@ test('publish POSTs fresh when the marker comment belongs to another identity', 
   }
 });
 
-test('publish re-asserts invariants on what crossed the job boundary', async () => {
+test('publish re-asserts invariants on what crossed the job boundary', async t => {
+  const lines = captureConsole(t);
   const realFetch = globalThis.fetch;
   process.env.GITHUB_TOKEN = 'x';
   try {
@@ -1301,9 +1350,13 @@ test('publish re-asserts invariants on what crossed the job boundary', async () 
   } finally {
     globalThis.fetch = realFetch;
   }
+  const errors = errorsIn(lines);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /^::error::triage-dedupe: .*a live @mention/);
 });
 
-test('publish surfaces an API failure without having posted', async () => {
+test('publish surfaces an API failure without having posted', async t => {
+  const lines = captureConsole(t);
   const realFetch = globalThis.fetch;
   process.env.GITHUB_TOKEN = 'x';
   try {
@@ -1319,6 +1372,9 @@ test('publish surfaces an API failure without having posted', async () => {
   } finally {
     globalThis.fetch = realFetch;
   }
+  const errors = errorsIn(lines);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /^::error::triage-dedupe: publish failed: .*500/);
 });
 
 test('a changed duplicate verdict is REPOSTED, so the objection clock restarts', async () => {
@@ -1475,17 +1531,15 @@ test('an UNCHANGED verdict still refreshes in place', async () => {
   }
 });
 
-test('an unresolvable publishing identity warns instead of failing silently', async () => {
+test('an unresolvable publishing identity warns instead of failing silently', async t => {
   // Posting fresh is the safe fallback, but an unlogged one is byte-identical
   // to a legitimate first post — and `GET /user` 403s for an App installation
   // token, so this warning is the only thing that would explain a sudden
   // repo-wide switch from refreshing to posting.
   const realFetch = globalThis.fetch;
-  const realLog = console.log;
-  const lines = [];
+  const lines = captureConsole(t);
   process.env.GITHUB_TOKEN = 'x';
   try {
-    console.log = (...a) => lines.push(a.join(' '));
     globalThis.fetch = async url => {
       const ok = !url.endsWith('/user');
       return {
@@ -1514,15 +1568,15 @@ test('an unresolvable publishing identity warns instead of failing silently', as
     );
   } finally {
     globalThis.fetch = realFetch;
-    console.log = realLog;
   }
 });
 
-test('a plain 403 is not retried — only one carrying rate-limit evidence is', async () => {
+test('a plain 403 is not retried — only one carrying rate-limit evidence is', async t => {
   // GitHub uses 403 for ordinary permission denials, and one of those is a
   // documented path here: `GET /user` 403s for a GitHub App installation token.
   // Retrying every 403 made that sleep through the fallback twice — 60s per
   // comment in production, and 60s of real wall clock in the test above.
+  const lines = captureConsole(t);
   const realFetch = globalThis.fetch;
   process.env.GITHUB_TOKEN = 'x';
   try {
@@ -1545,6 +1599,9 @@ test('a plain 403 is not retried — only one carrying rate-limit evidence is', 
   } finally {
     globalThis.fetch = realFetch;
   }
+  const errors = errorsIn(lines);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /^::error::triage-dedupe: publish failed: .*403/);
 });
 
 test('--dry-run makes no request at all in publish mode', async () => {
@@ -1560,12 +1617,18 @@ test('--dry-run makes no request at all in publish mode', async () => {
   }
 });
 
-test('an unreadable execution file is an error, not a silent no-session', async () => {
+test('an unreadable execution file is an error, not a silent no-session', async t => {
   // EISDIR/EACCES used to map onto the ENOENT tolerance: four green jobs, no
   // comment, a consumed label, and nothing in the log to tell them apart.
+  const lines = captureConsole(t);
   const dir = tmp();
   assert.equal(await main(renderArgs(dir, dir)), 1); // a directory, not a file
   assert.equal(await main(renderArgs(dir, join(dir, 'absent.json'))), 0);
+  // And the log now tells them apart.
+  assert.deepEqual(lines, [
+    '::error::execution file could not be read (EISDIR) — publishing nothing.',
+    'no execution file — the action ran no session',
+  ]);
 });
 
 test('a command is refused on the wrong item type', () => {

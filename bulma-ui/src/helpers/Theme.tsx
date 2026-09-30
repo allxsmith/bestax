@@ -1,6 +1,14 @@
-import React, { useEffect, useMemo, ReactNode, CSSProperties } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  ReactNode,
+  CSSProperties,
+} from 'react';
 import classNames from './classNames';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
+import { validRadii } from './bulmaClassHelpers';
+import { warnOnce } from './devWarnings';
 
 // --- FULL Bulma v1 CSS variable keys (auto-generated from CSSVAR_KEYS) ---
 const bulmaCssVars = [
@@ -584,26 +592,147 @@ function cssVarToProp(varName: string): string {
 }
 
 /**
- * Mapping of camelCase prop names to their Bulma CSS variable counterparts.
+ * Prop names `cssVarToProp` would mint that are already `BulmaOtherProps`
+ * helper props: `--bulma-shadow` becomes `shadow` and `--bulma-radius` becomes
+ * `radius`. They stay out of `bulmaVarPropMap`, so on Theme each is the helper
+ * prop it is on every other component, and both variables are still reachable
+ * through `bulmaVars`.
  *
- * `--bulma-shadow` is excluded: `cssVarToProp` would mint it as `shadow`,
- * which already exists as a `BulmaOtherProps` prop applied via
- * `useBulmaClasses` — keeping it out of this map means that
- * prop keeps its existing class-based meaning, while `--bulma-shadow` is
- * still reachable through the `bulmaVars` object.
+ * `radius` was missed here once and set `--bulma-radius` while typed as the
+ * helper (#694). It still writes that variable, so what it did then keeps
+ * working; see `themeRadiusVar`.
+ */
+const helperPropNames: readonly string[] = ['shadow', 'radius'];
+
+/**
+ * Mapping of camelCase prop names to their Bulma CSS variable counterparts,
+ * minus the `helperPropNames` above.
  */
 const bulmaVarPropMap = Object.fromEntries(
   bulmaCssVars
     .map(cssVar => [cssVarToProp(cssVar), cssVar])
-    .filter(([prop]) => prop !== 'shadow')
+    .filter(([prop]) => !helperPropNames.includes(prop))
 ) as Record<string, string>;
+
+/**
+ * What each helper value of `radius` writes to `--bulma-radius` on a Theme,
+ * alongside its class.
+ *
+ * Before #694, `radius="radiusless"` wrote `--bulma-radius: radiusless`. That
+ * is not a length, and a declaration reading an invalid variable falls back
+ * to its property's initial value, which for a border radius is 0. So
+ * everything inside the Theme that takes its radius from that variable lost
+ * it, and under `isRoot` so did everything on the page that does. Writing a
+ * real 0 keeps what
+ * people see and makes it valid CSS. Keyed by the helper values, so adding
+ * one means saying what it writes.
+ */
+const radiusHelperVars: Record<(typeof validRadii)[number], string> = {
+  radiusless: '0',
+};
+
+/**
+ * What `radius` writes to `--bulma-radius` on a Theme, or `undefined` when it
+ * writes nothing.
+ *
+ * A helper value writes its `radiusHelperVars` entry. Any other non-empty
+ * string is written as given: before #694 every `radius` on Theme set the
+ * variable whatever its type said, and a JavaScript caller passing a length
+ * got the radius it asked for. That keeps working so nothing breaks, but the
+ * type rejects it, so it warns in development and points at `bulmaVars`.
+ *
+ * Only a string writes anything, because only a string ever set the variable
+ * to something usable: an empty value or zero was dropped, and a boolean or
+ * any other bare number is not a length. The helper ignores those too, the
+ * way it does on every other component.
+ */
+const themeRadiusVar = (radius: unknown): string | undefined => {
+  if (typeof radius !== 'string' || radius === '') {
+    return undefined;
+  }
+  if ((validRadii as readonly string[]).includes(radius)) {
+    return radiusHelperVars[radius as keyof typeof radiusHelperVars];
+  }
+  warnOnce(
+    'Theme:radius-variable',
+    `[bestax-bulma] <Theme radius="${radius}">: setting --bulma-radius ` +
+      'through the radius prop is deprecated and will stop working in a ' +
+      'future major version. On Theme, as on every other component, radius ' +
+      `is the "${validRadii.join('", "')}" helper. Set the variable with ` +
+      `bulmaVars={{ '--bulma-radius': '${radius}' }} instead.`
+  );
+  return radius;
+};
+
+/** The one `<style>` element every `isRoot` Theme writes into. */
+const ROOT_STYLE_ID = 'bestax-bulma-theme-vars';
+
+/**
+ * The `:root` rules of every mounted `isRoot` Theme that has any, keyed by the
+ * Theme's render order.
+ *
+ * Root Themes share one `<style>` element, so each keeps its rules here and
+ * the element is rebuilt from all of them whenever one mounts, changes or
+ * unmounts. Before this each Theme overwrote the element with only its own
+ * rules, and the first to unmount removed it for all of them (#736).
+ *
+ * The key is a number each Theme takes when it first renders. React renders a
+ * parent before its children and an earlier sibling before a later one, so an
+ * inner or later-mounted root Theme sorts later, comes later in the
+ * stylesheet, and wins a variable two of them set, as an inner scoped Theme
+ * does. Effects would give the wrong answer for nesting: React runs a child's
+ * effects before its parent's. Only the relative order matters, so a number
+ * skipped by StrictMode calling the initializer twice, or by a render React
+ * throws away, is harmless. The key never changes, so an update keeps its
+ * place and re-rendering one Theme never changes which one wins.
+ */
+const rootThemeRules = new Map<number, string>();
+let nextRootOrder = 0;
+
+/**
+ * Write every registered root Theme's rules into the shared element, creating
+ * it when needed and removing it once no Theme has any rules left.
+ */
+const renderRootThemeRules = (): void => {
+  let element = document.getElementById(ROOT_STYLE_ID);
+  if (rootThemeRules.size === 0) {
+    element?.remove();
+    return;
+  }
+  if (!element) {
+    element = document.createElement('style');
+    element.id = ROOT_STYLE_ID;
+    document.head.appendChild(element);
+  }
+  element.textContent = [...rootThemeRules]
+    .sort(([a], [b]) => a - b)
+    .map(([, rules]) => rules)
+    .join('\n');
+};
+
+/**
+ * Record one Theme's `:root` rules, where an empty string means it has none,
+ * and rebuild the shared element if that changed anything. A Theme with no
+ * rules never touches the element, which is what it did before the registry
+ * too.
+ */
+const setRootThemeRules = (order: number, rules: string): void => {
+  if ((rootThemeRules.get(order) ?? '') === rules) {
+    return;
+  }
+  if (rules) {
+    rootThemeRules.set(order, rules);
+  } else {
+    rootThemeRules.delete(order);
+  }
+  renderRootThemeRules();
+};
 
 /**
  * Props for the Theme component.
  *
  * @property {React.ReactNode} children - Content to render inside the theme scope.
  * @property {string} [className] - Additional CSS classes (only when isRoot is false).
- * @property {boolean} [isRoot] - Inject CSS variables globally at :root level. Default: false.
  * @property {'light' | 'dark' | 'system'} [colorMode] - Set Bulma's light/dark scheme by writing
  *   the `data-theme` attribute on the document root (`<html>`). This is always global, even on a
  *   scoped Theme. `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`.
@@ -652,9 +781,35 @@ export interface ThemeProps extends Omit<
 > {
   children: ReactNode;
   className?: string;
+  /**
+   * Inject the variables globally at `:root` instead of scoping them to a
+   * wrapper div. Default: false.
+   *
+   * Several root Themes can be mounted at once, and each contributes its own
+   * variables. Where two set the same one, the inner or later-mounted Theme
+   * wins, as with nested scoped Themes, and unmounting a Theme removes only
+   * what it contributed. The variables are written from an effect, so a
+   * server render does not include them.
+   */
   isRoot?: boolean;
   colorMode?: 'light' | 'dark' | 'system';
   bulmaVars?: BulmaVars;
+  /**
+   * Border radius helper, as on every other component: `radiusless` adds
+   * `is-radiusless` to the wrapper div. On a Theme it also sets
+   * `--bulma-radius` to 0, so what is inside the Theme loses its radius too.
+   * Under `isRoot` there is no wrapper for the class, and the variable is
+   * written at `:root`, which squares everything on the page that takes its
+   * radius from it.
+   *
+   * For any other radius, set the variable through `bulmaVars`
+   * (`bulmaVars={{ '--bulma-radius': '6px' }}`). This prop used to write the
+   * variable for every value, so any other non-empty string still does, but
+   * that route is deprecated and logs a warning in development. A number or
+   * a boolean never produced a usable radius that way, and is now ignored as
+   * it is on every other component.
+   */
+  radius?: (typeof validRadii)[number];
   // Bulma scheme variables
   schemeH?: string;
   schemeS?: string;
@@ -718,8 +873,14 @@ export const Theme: React.FC<ThemeProps> = ({
   className,
   isRoot = false,
   colorMode,
+  radius,
   ...restProps
 }) => {
+  const radiusVar = themeRadiusVar(radius);
+  const radiusHelper = (validRadii as readonly unknown[]).includes(radius)
+    ? radius
+    : undefined;
+
   // Extract Bulma variable props from restProps
   const { bulmaVarProps, otherProps } = useMemo(() => {
     const varProps: Record<string, string | undefined> = {};
@@ -736,8 +897,12 @@ export const Theme: React.FC<ThemeProps> = ({
     return { bulmaVarProps: varProps, otherProps: otherPropsObj };
   }, [restProps]);
 
-  // Use Bulma classes for styling (only when not isRoot)
-  const { bulmaHelperClasses, rest } = useBulmaClasses(otherProps);
+  // Use Bulma classes for styling (only when not isRoot). Only a helper value
+  // of `radius` reaches the helper; a legacy string went to the variable.
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    ...otherProps,
+    radius: radiusHelper,
+  });
 
   // Merge bulmaVars and individual props, with props taking precedence
   const mergedVars: BulmaVars = useMemo(() => {
@@ -747,46 +912,40 @@ export const Theme: React.FC<ThemeProps> = ({
         vars[cssVar as BulmaVarKey] = bulmaVarProps[propName] as string;
       }
     }
+    if (radiusVar !== undefined) {
+      vars['--bulma-radius'] = radiusVar;
+    }
     return vars;
-  }, [bulmaVars, bulmaVarProps]);
+  }, [bulmaVars, bulmaVarProps, radiusVar]);
 
-  // Inject CSS variables globally at :root level
-  useEffect(() => {
+  // This Theme's place among root Themes; see `rootThemeRules`.
+  const [rootOrder] = useState(() => nextRootOrder++);
+
+  // The `:root` rules this Theme contributes, or '' when it contributes none.
+  const rootRules = useMemo(() => {
     if (!isRoot) {
-      return;
+      return '';
     }
-
-    const validVars = Object.entries(mergedVars).filter(
-      ([key, value]) => bulmaCssVars.includes(key as BulmaVarKey) && value
-    );
-
-    if (validVars.length === 0) {
-      return;
-    }
-
-    // Create and inject a style element for global CSS variables
-    const styleId = 'bestax-bulma-theme-vars';
-    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
-
-    if (!styleElement) {
-      styleElement = document.createElement('style');
-      styleElement.id = styleId;
-      document.head.appendChild(styleElement);
-    }
-
-    const cssRules = validVars
+    const cssRules = Object.entries(mergedVars)
+      .filter(
+        ([key, value]) => bulmaCssVars.includes(key as BulmaVarKey) && value
+      )
       .map(([key, value]) => `${key}: ${value};`)
       .join(' ');
-    styleElement.textContent = `:root { ${cssRules} }`;
-
-    // Cleanup function to remove the style element when component unmounts
-    return () => {
-      const element = document.getElementById(styleId);
-      if (element) {
-        element.remove();
-      }
-    };
+    return cssRules ? `:root { ${cssRules} }` : '';
   }, [mergedVars, isRoot]);
+
+  // Inject CSS variables globally at :root level, alongside any other root
+  // Themes. Clearing `isRoot` or every variable passes '', which withdraws
+  // this Theme's rules.
+  useEffect(() => {
+    setRootThemeRules(rootOrder, rootRules);
+  }, [rootOrder, rootRules]);
+
+  // Withdraw them on unmount. Kept apart from the effect above so a change
+  // rewrites the shared element in place rather than removing and recreating
+  // it between the cleanup and the next run.
+  useEffect(() => () => setRootThemeRules(rootOrder, ''), [rootOrder]);
 
   // Toggle Bulma's light/dark scheme by writing the `data-theme` attribute on
   // the document root (<html>). This is always global, even on a scoped Theme.

@@ -18,6 +18,7 @@ import {
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
 import { plan, type ChildFacts } from '../src/sources/bulma-classes/plan.js';
+import { fileChildren, type FileTree } from './support/file-tree.js';
 import {
   GLYPHS,
   iconChild,
@@ -157,6 +158,12 @@ function converted(
       root.buildsIcons && {
         childElements: children ?? [iconChild(['fas', 'fa-home']), textChild()],
       }),
+    // One that renders the whole `.file` tree holds it, inside a `.field`.
+    ...(root?.status === 'mapped' &&
+      root.buildsFile && {
+        childElements: children ?? fileChildren(),
+        classesAround: ['field'],
+      }),
     // One that renders its children from a count holds a few of them.
     ...(root?.status === 'mapped' &&
       root.countsChildren && {
@@ -221,6 +228,37 @@ function converted(
     return text === undefined
       ? `<${name} ${attrs.join(' ')} />`
       : `<${name} ${attrs.join(' ')}>${text}</${name}>`;
+  }
+  // One that renders the whole `.file` tree is given the <input>'s
+  // attributes and the parts, as the transform writes them.
+  const file = conversion.file;
+  if (file) {
+    const [label] = children ?? fileChildren();
+    const [input, cta] = label.children!;
+    const parts = cta.children!;
+    const jsx = (child: ChildFacts): string =>
+      `<${child.tag}${child.tokens ? ` className="${child.tokens.join(' ')}"` : ''} />`;
+    const content = (part: ChildFacts) =>
+      part.children ? `{${jsx(part.children[0])}}` : JSON.stringify(part.text);
+    for (const [attribute, value] of input.attributes) {
+      if (attribute === 'type') continue;
+      attrs.push(
+        conversion.numbers.includes(attribute)
+          ? `${attribute}={${Number(value)}}`
+          : jsxAttr(attribute, value as string | true)
+      );
+    }
+    if (file.inputClassName !== null) {
+      attrs.push(jsxAttr('inputClassName', file.inputClassName));
+    }
+    for (const key of ['buttonLabel', 'iconLeft', 'iconRight'] as const) {
+      const index = file[key];
+      if (index !== undefined) attrs.push(`${key}=${content(parts[index])}`);
+    }
+    if (file.fileName !== undefined) {
+      attrs.push(jsxAttr('fileName', file.fileName));
+    }
+    return `<${name} ${attrs.join(' ')} />`;
   }
   // A target that renders the children itself closes itself, as the
   // transform writes it, and so does one in place of a void child.
@@ -361,6 +399,47 @@ describe('every bulma-classes conversion typechecks', () => {
             icons[2],
             textChild('b'),
           ])
+        );
+      }
+      // The tree it renders from props: the <input>'s attributes it takes as
+      // its own, its extra classes, the icons, the default text and a name.
+      if (entry.buildsFile) {
+        const trees: FileTree[] = [
+          { label: 'Choose a file\u2026' },
+          { iconLeft: ['fas', 'fa-upload'], iconRight: ['fas', 'fa-check'] },
+          { inputTokens: ['my-input'] },
+          ...[
+            ...COMMON,
+            ['name', 'resume'],
+            ['accept', 'image/*'],
+            ['multiple', true],
+            ['required', true],
+            ['disabled', true],
+          ].map(([attribute, value]): FileTree => ({
+            input: { [attribute as string]: value as string | true },
+          })),
+        ];
+        for (const tree of trees) {
+          add(
+            converted(
+              entry.tag!,
+              [root],
+              [],
+              undefined,
+              undefined,
+              fileChildren(tree)
+            )
+          );
+        }
+        add(
+          converted(
+            entry.tag!,
+            [root, 'has-name'],
+            [],
+            undefined,
+            undefined,
+            fileChildren({ name: 'cv.pdf' })
+          )
         );
       }
       expect({ root, conversions: lines.length > 0 }).toEqual({

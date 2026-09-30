@@ -295,10 +295,10 @@ export interface CardFooterProps
  * The set withheld from a non-anchor `Card.FooterItem` (`span`/`button`): the
  * derived anchor-only attributes, minus `type` (also valid on a `<button>` as
  * `submit`/`button`/`reset`, so stripping it there would remove a working
- * attribute — the same trade `DropdownItem`'s own `STRIP_FROM_NON_ANCHOR`
- * accepts, in `./Dropdown.tsx`), plus `rel` (React declares it on
- * `HTMLAttributes` for every element, so the derived set alone would not
- * withhold it — the same addition `Level.Item` makes).
+ * attribute; one set for both tags means a `type` also reaches a `<span>`,
+ * which `Dropdown.Item` avoids by choosing its set per tag), plus `rel` (React
+ * declares it on `HTMLAttributes` for every element, so the derived set alone
+ * would not withhold it — the same addition `Level.Item` makes).
  */
 const STRIP_FROM_NON_ANCHOR: Readonly<
   Record<Exclude<keyof AnchorOnlyAttributes, 'type'> | 'rel', true>

@@ -56,6 +56,22 @@ function tree(pkg, version) {
   return dir;
 }
 
+/**
+ * Collect what main() prints, for the rest of the calling test.
+ *
+ * Its failures are `::error::` workflow commands. Left on the real console, a
+ * runner files each one as a failure annotation against a green test run
+ * (#723), so a test that drives one captures the lines and asserts on them
+ * instead.
+ */
+function captureConsole(t) {
+  const lines = [];
+  const push = (...args) => lines.push(args.join(' '));
+  t.mock.method(console, 'log', push);
+  t.mock.method(console, 'error', push);
+  return lines;
+}
+
 // --- release tags ------------------------------------------------------------
 
 test('parseReleaseTag splits a scoped tag on the LAST @', () => {
@@ -289,7 +305,7 @@ test('parseArgs requires a known mode', () => {
   );
 });
 
-test('spec requires --event, because its absence disables the pin silently', () => {
+test('spec requires --event, because its absence disables the pin silently', t => {
   // installSpec treats an absent event as "not a release", so without this a
   // malformed invocation exits 0 and resolves `latest` — turning item 1 OFF
   // with nothing anywhere reporting it. A workflow edit dropping the flag is
@@ -298,7 +314,9 @@ test('spec requires --event, because its absence disables the pin silently', () 
     () => parseArgs(['spec', '--package', 'x']),
     /spec requires --event/
   );
+  const lines = captureConsole(t);
   assert.equal(main(['spec', '--package', 'x'], {}), 2);
+  assert.deepEqual(lines, ['::error::spec requires --event']);
 
   // --tag stays optional: schedule and dispatch legitimately have none.
   assert.equal(
@@ -337,9 +355,10 @@ test('main stamps version and basename into GITHUB_OUTPUT', () => {
   );
 });
 
-test('main fails when the tree disagrees with the pinned version', () => {
+test('main fails when the tree disagrees with the pinned version', t => {
   // The assertion the pin buys: without it, pinning is a request rather than a
   // guarantee, and a registry serving something else goes unnoticed.
+  const lines = captureConsole(t);
   const dir = tree(SCOPED, '5.11.1');
   const code = main(
     [
@@ -356,33 +375,44 @@ test('main fails when the tree disagrees with the pinned version', () => {
     {}
   );
   assert.equal(code, 1);
+  // Both versions are named, so the log says which side was wrong.
+  assert.equal(lines.length, 1);
+  assert.ok(
+    lines[0].startsWith(
+      `::error::asked npm for ${SCOPED}@"5.12.0" but the tree carries "5.11.1".`
+    ),
+    lines[0]
+  );
 });
 
-test('main separates usage errors from assertion failures', () => {
+test('main separates usage errors from assertion failures', t => {
   // Exit 2 must not be readable as a supply-chain failure, and the converse:
   // a mistyped invocation must not be reported as one. A missing --slug is a
   // usage error, so parseArgs owns it and the code is 2, not 1.
+  const lines = captureConsole(t);
   assert.equal(main(['nonsense'], {}), 2);
   assert.equal(main(['stamp', '--package', SCOPED], {}), 2);
   assert.equal(main(['stamp', '--package', SCOPED, '--slug', 'x'], {}), 2);
   assert.equal(main(['spec'], {}), 2);
+  assert.deepEqual(lines, [
+    '::error::usage: consumer-sbom-meta.mjs <spec|stamp> [flags]',
+    '::error::stamp requires --slug',
+    '::error::stamp requires --dir',
+    '::error::spec requires --package',
+  ]);
 
   // 1 is reserved for a real assertion failure — here, a tree that does not
   // contain the package it was asked about.
+  lines.length = 0;
+  const dir = tree(SCOPED, '5.12.0');
   assert.equal(
-    main(
-      [
-        'stamp',
-        '--package',
-        'absent-pkg',
-        '--slug',
-        'x',
-        '--dir',
-        tree(SCOPED, '5.12.0'),
-      ],
-      {}
-    ),
+    main(['stamp', '--package', 'absent-pkg', '--slug', 'x', '--dir', dir], {}),
     1
+  );
+  assert.equal(lines.length, 1);
+  assert.ok(
+    lines[0].startsWith(`::error::absent-pkg is not installed under ${dir} `),
+    lines[0]
   );
 });
 
@@ -494,7 +524,7 @@ test('the tarball read-back cannot forge one either', () => {
   );
 });
 
-test('an unknown flag is rejected, not ignored', () => {
+test('an unknown flag is rejected, not ignored', t => {
   // Every optional flag here disables a safeguard by being absent, so a typo
   // that is silently ignored turns the safeguard off and exits 0. `--tagg`
   // makes a release leg resolve `latest` — no pin at all — and `--exepct`
@@ -541,8 +571,12 @@ test('an unknown flag is rejected, not ignored', () => {
       ]),
     /spec does not take --dir/
   );
+  const lines = captureConsole(t);
   assert.equal(
     main(['spec', '--package', 'p', '--event', 'release', '--tagg', 'x'], {}),
     2
   );
+  assert.deepEqual(lines, [
+    '::error::spec does not take --tagg (expected --package, --event, --tag)',
+  ]);
 });

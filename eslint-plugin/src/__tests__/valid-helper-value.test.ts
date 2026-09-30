@@ -61,19 +61,9 @@ ruleTester.run('valid-helper-value', rule, {
     // The boolean members of the same interface take no value, so they must
     // stay out of the table: a shorthand on one of them is correct usage.
     imported('Box', '<Box overlay skeleton clearfix relative fullHeight />'),
-    // `radius` on `Theme` is the CSS variable `--bulma-radius` at runtime and
-    // the helper union in its type, and those disagree (#694). `6px` is how a
-    // JSX consumer sets that variable, and `radiusless` is what this rule
-    // would have called the fix while rendering
-    // `--bulma-radius: radiusless`, which does nothing. Neither is
-    // reportable, so the pair is skipped: both cases here, not just the first.
-    imported('Theme', '<Theme radius="6px">x</Theme>'),
+    // `radius` on `Theme` is the helper, as everywhere else, since #694 kept
+    // it out of Theme's CSS-variable props.
     imported('Theme', '<Theme radius="radiusless">x</Theme>'),
-    // The exception keys on the RESOLVED element, so it follows an alias and
-    // a namespace the same way the rest of the rule does. A tag-name check
-    // would get these two wrong in opposite directions.
-    'import { Theme as T } from \'@allxsmith/bestax-bulma\';\nconst x = <T radius="6px">y</T>;\n',
-    'import * as B from \'@allxsmith/bestax-bulma\';\nconst x = <B.Theme radius="6px">y</B.Theme>;\n',
     // Not our element at all, whatever it is called.
     "const Theme = 'div';\nconst x = <Theme radius='6px'>y</Theme>;\n",
   ],
@@ -229,11 +219,94 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [{ messageId: 'shorthandRemoves' }],
     },
     {
-      // The exception is per element and per prop, not a blanket pass on
-      // `Theme`: its other helper props still route through
-      // `useBulmaClasses`, so a wrong spacing value still reports.
+      // `Theme` routes its helper props through `useBulmaClasses` like any
+      // other element, so a wrong spacing value reports as usual.
       code: imported('Theme', '<Theme m="9">x</Theme>'),
       errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // A string outside the tuple still sets `--bulma-radius` on `Theme`,
+      // through a route the library keeps for old code and warns about
+      // (#694). Worth reporting, and the ordinary message would say nothing
+      // renders, which is false here. Pinned by message for that reason.
+      code: imported('Theme', '<Theme radius="6px">x</Theme>'),
+      errors: [
+        {
+          message:
+            "`radius=\"6px\"` is not a value radius accepts, so on Theme it sets `--bulma-radius` instead, through a deprecated route. If a radius of `6px` is what you meant, write `bulmaVars={{ '--bulma-radius': '6px' }}`. Valid values: `radiusless`.",
+        },
+      ],
+    },
+    {
+      // Anything else that is not a near miss of `radiusless` takes the same
+      // route in the library, a `var()` included, so it gets the same report.
+      code: imported('Theme', '<Theme radius="var(--my-radius)">x</Theme>'),
+      errors: [{ messageId: 'deprecatedVariable' }],
+    },
+    {
+      // A near miss of `radiusless` is most likely that value mistyped, so it
+      // gets the suggestion, as on every other element, rather than advice
+      // to move the typo into `bulmaVars`. The message still says what the
+      // value does on `Theme`, because the library sends it to the variable
+      // too. Pinned by message for the same reason as the case above.
+      code: imported('Theme', '<Theme radius="radiusles">x</Theme>'),
+      errors: [
+        {
+          message:
+            '`radius="radiusles"` is not a value radius accepts, so on Theme it sets `--bulma-radius` instead, through a deprecated route. Did you mean `radiusless`?',
+        },
+      ],
+    },
+    {
+      // Reads as "round the corners" and is no near miss of `radiusless`, so
+      // there is nothing to suggest. What is true is the deprecated route:
+      // it sets the variable, and the message lists the one valid value and
+      // offers `bulmaVars` only for the case where that radius was meant.
+      code: imported('Theme', '<Theme radius="rounded">x</Theme>'),
+      errors: [{ messageId: 'deprecatedVariable' }],
+    },
+    {
+      // An empty string sets nothing on `Theme`, as in the library, so the
+      // ordinary message is the true one.
+      code: imported('Theme', '<Theme radius="">x</Theme>'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // The route keys on the RESOLVED element, so it follows an alias and a
+      // namespace the same way the rest of the rule does, and the message
+      // names the element rather than the tag as written.
+      code:
+        "import { Theme as T } from '@allxsmith/bestax-bulma';\n" +
+        'const x = <T radius="6px">y</T>;\n',
+      errors: [
+        {
+          messageId: 'deprecatedVariable',
+          data: {
+            prop: 'radius',
+            value: '6px',
+            element: 'Theme',
+            cssVar: '--bulma-radius',
+            valid: '`radiusless`',
+          },
+        },
+      ],
+    },
+    {
+      code:
+        "import * as B from '@allxsmith/bestax-bulma';\n" +
+        'const x = <B.Theme radius="6px">y</B.Theme>;\n',
+      errors: [{ messageId: 'deprecatedVariable' }],
+    },
+    {
+      // Only a string reaches that route. `true` and a number go to the
+      // helper on `Theme` too, where they render nothing, so the ordinary
+      // messages are the true ones.
+      code: imported('Theme', '<Theme radius>x</Theme>'),
+      errors: [{ messageId: 'shorthandRemoves' }],
+    },
+    {
+      code: imported('Theme', '<Theme radius={6}>x</Theme>'),
+      errors: [{ messageId: 'numericInvalid' }],
     },
     {
       // And `shadow` on `Theme` is still the helper prop, because
@@ -243,8 +316,8 @@ ruleTester.run('valid-helper-value', rule, {
     },
     {
       // The other direction of the resolution point above: a tag spelled
-      // `Theme` that is really `Box` gets no exception, because the exception
-      // is about the element, not the name in the source.
+      // `Theme` that is really `Box` gets the ordinary report, because the
+      // route belongs to the element, not the name in the source.
       code:
         "import { Box as Theme } from '@allxsmith/bestax-bulma';\n" +
         'const x = <Theme radius="6px">y</Theme>;\n',

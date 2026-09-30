@@ -8,7 +8,21 @@ import {
 import { useCheckboxesGroup } from './FormContext';
 
 /**
- * Valid colors for the Checkbox component.
+ * The values the Checkbox `color` prop accepts, as a readonly tuple.
+ *
+ * `CheckboxProps['color']` is typed from it, so the two list the same values.
+ * Map over it to build a color picker, or check a value that arrives at
+ * runtime before passing it in: the component adds no color class for a value
+ * outside the tuple.
+ *
+ * @example
+ * import { Checkbox, checkboxColors } from '@allxsmith/bestax-bulma';
+ *
+ * checkboxColors.map(color => (
+ *   <Checkbox key={color} color={color}>
+ *     {color}
+ *   </Checkbox>
+ * ));
  */
 export const checkboxColors = [
   'primary',
@@ -20,7 +34,17 @@ export const checkboxColors = [
 ] as const;
 
 /**
- * Valid sizes for the Checkbox component.
+ * The values the Checkbox `size` prop accepts, as a readonly tuple.
+ *
+ * `CheckboxProps['size']` is typed from it, so the two list the same values.
+ * Use it to offer a size choice or to check a value that arrives at runtime:
+ * the component adds no size class for a value outside the tuple. These are
+ * element sizes, not the spacing scale in `validSizes`.
+ *
+ * @example
+ * import { checkboxSizes } from '@allxsmith/bestax-bulma';
+ *
+ * type CheckboxSize = (typeof checkboxSizes)[number];
  */
 export const checkboxSizes = ['small', 'normal', 'medium', 'large'] as const;
 

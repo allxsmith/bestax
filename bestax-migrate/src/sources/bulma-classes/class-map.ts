@@ -249,6 +249,13 @@ export interface RootEntry {
    * and each `.icon` converts on its own; they go.
    */
   readonly buildsIcons?: boolean;
+  /**
+   * The target renders the whole `.file` tree from props (`File`): its
+   * `<input>`, button text, icons and file name. The element converts only
+   * when its tree is exactly that one, and only inside a `Field`, since
+   * outside one the target renders a `.field` of its own around it.
+   */
+  readonly buildsFile?: boolean;
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
@@ -1599,10 +1606,61 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     'Radios',
     'bestax `Radios` renders its own `.field` and `.control` wrappers'
   ),
-  file: todo(
-    'File',
-    'bestax `File` renders the whole `.file-label` tree itself'
-  ),
+  // `File` renders the whole `.file` tree from props, and puts the
+  // attributes it's given on its `<input>`. `color` renders `has-text-<color>`
+  // too, so a color stays a class, and `isCentered` renders nothing beside
+  // `isRight`.
+  file: {
+    ...BASE,
+    target: 'File',
+    tag: 'div',
+    textColor: null,
+    bgColor: 'backgroundColor',
+    modifiers: {
+      ...tokens('is-', ['small', 'medium', 'large'], 'size'),
+      ...flags({
+        'is-boxed': 'isBoxed',
+        'is-fullwidth': 'isFullwidth',
+        'is-right': 'isRight',
+      }),
+      // `File` renders `{hasName && fileName && …}`, so a condition handed to
+      // it as it is would render a falsy number (`0`) as text.
+      'has-name': { writes: [{ prop: 'hasName' }], onlyTrue: true },
+    },
+    omits: {
+      ...Object.fromEntries(
+        COMPONENT_COLORS.map(color => [
+          `is-${color}`,
+          '`color` renders `has-text-<color>` on the `.file` as well',
+        ])
+      ),
+      'is-centered': '`isCentered` renders nothing beside `isRight`',
+    },
+    buildsFile: true,
+    ownProps: [
+      'label',
+      'labelSize',
+      'labelProps',
+      'horizontal',
+      'message',
+      'messageColor',
+      'fieldClassName',
+      'color',
+      'size',
+      'isBoxed',
+      'isFullwidth',
+      'isFullWidth',
+      'isRight',
+      'isCentered',
+      'hasName',
+      'buttonLabel',
+      'iconLeft',
+      'iconRight',
+      'inputClassName',
+      'fileName',
+    ],
+    passThrough: ['ref'],
+  },
   'file-label': part(),
   'file-input': part(),
   'file-cta': part(),
@@ -2236,6 +2294,7 @@ export const FORWARDS_REF: readonly string[] = [
   'InputBase',
   'TextAreaBase',
   'SelectBase',
+  'File',
 ];
 
 /**

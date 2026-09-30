@@ -1,28 +1,29 @@
 /**
- * Hold `NOT_A_HELPER_PROP` to the library it describes.
+ * Hold `DEPRECATED_VARIABLE_ROUTE` to the library it describes.
  *
  * `valid-helper-value` keys its value table by prop name, not by element, and
- * that is safe only while a name means the same thing everywhere. `Theme`
- * breaks it: it mints a prop for every Bulma CSS variable, so `--bulma-radius`
- * becomes a `radius` prop that sets the variable and never reaches
- * `useBulmaClasses`, while its declared type stays the helper union. The rule
- * reported `<Theme radius="6px" />`, which is how a JSX consumer sets that
- * variable, and called `radiusless` the fix, which on `Theme` renders
- * `--bulma-radius: radiusless` and does nothing. Neither reading is
- * reportable, so the pair is skipped. The library-side disagreement is #694.
+ * that is safe only while a name means the same thing everywhere. `Theme` is
+ * where that can break: it mints a prop for every Bulma CSS variable, so a
+ * variable whose camelCase name matches a helper prop would make that prop set
+ * the variable on `Theme` and emit a class everywhere else. `--bulma-shadow`
+ * and `--bulma-radius` are the two that do, and `Theme` keeps both names out
+ * of its variable map so they stay helpers. `radius` was missed once and set
+ * the variable while typed as the helper (#694), so a string outside its tuple
+ * still reaches `--bulma-radius` through a deprecated route, and the rule
+ * reports that with its own message rather than saying nothing renders.
  *
  * A declaration no test can falsify becomes a fiction, which is the argument
  * `check-conformance.mjs` makes for `SIBLING_RUNTIME_DEPS`, so this recomputes
- * the collision from the library's own variable list and fails if the two
- * disagree. Three ways it can fail, all loud: the variable list stops being
- * findable, the one exclusion from the prop map stops matching, or a new
- * collision appears that nobody declared.
+ * both facts from the library's source and fails if the plugin disagrees.
+ * The ways it can fail, all loud: the variable list or the helper-name list
+ * stops being findable, a helper name the plugin judges is taken as a variable
+ * prop, or the declared routes and the ones Theme really has stop matching.
  *
  * The reason it reads source text rather than importing the map is that
  * neither `bulmaCssVars` nor `bulmaVarPropMap` is exported, and widening the
  * library's public API to make a guard convenient is the wrong trade. A
- * brittle read is acceptable here BECAUSE it is asserted: if either pattern
- * stops matching, this fails and says to re-derive it by hand.
+ * brittle read is acceptable here BECAUSE it is asserted: if a pattern stops
+ * matching, this fails and says to re-derive it by hand.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -45,13 +46,12 @@ const cssVarToProp = varName =>
     .join('');
 
 /**
- * Every prop name `Theme` intercepts as a CSS variable, read from the source.
- *
- * Mirrors `bulmaVarPropMap`: the `bulmaCssVars` tuple, mapped through
- * `cssVarToProp`, minus the names that map filters out. Both halves of that
- * are asserted below rather than assumed.
+ * What Theme's source says about its props, read the way `bulmaVarPropMap`
+ * is built: the `bulmaCssVars` tuple mapped through `cssVarToProp`, minus the
+ * `helperPropNames` that map filters out. Both halves are asserted rather
+ * than assumed, and so is the filter that joins them.
  */
-function themeVarProps(source) {
+function readTheme(source) {
   const list = source.match(/const bulmaCssVars = \[([\s\S]*?)\n\] as const;/);
   assert.ok(
     list,
@@ -67,23 +67,34 @@ function themeVarProps(source) {
       'assertion here vacuously true'
   );
 
-  // The exclusions from `bulmaVarPropMap`. Asserted against the source so the
-  // mirror cannot silently stop matching: a name added to or removed from that
-  // filter changes which props are helper props on Theme.
-  const excluded = ['shadow'];
-  for (const name of excluded) {
-    assert.match(
-      source,
-      new RegExp(`\\.filter\\(\\[?\\(?\\[prop\\]\\)? => prop !== '${name}'\\)`),
-      `Theme.tsx no longer filters \`${name}\` out of bulmaVarPropMap the way ` +
-        'this guard expects. If the filter changed, that changes which names ' +
-        'are helper props on Theme: re-derive and update both sides.'
-    );
-  }
+  const names = source.match(
+    /const helperPropNames: readonly string\[\] = \[([^\]]*)\];/
+  );
+  assert.ok(
+    names,
+    'could not find `helperPropNames` in Theme.tsx. It is the list of names ' +
+      'kept out of bulmaVarPropMap so they stay helper props; re-derive it by ' +
+      'hand and fix this pattern in the same change.'
+  );
+  const excluded = [...names[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  assert.match(
+    source,
+    /\.filter\(\(\[prop\]\) => !helperPropNames\.includes\(prop\)\)/,
+    'Theme.tsx no longer filters bulmaVarPropMap through `helperPropNames` ' +
+      'the way this guard expects. That filter decides which names are ' +
+      'helper props on Theme: re-derive and update both sides.'
+  );
 
-  return new Set(
+  const intercepted = new Set(
     vars.map(cssVarToProp).filter(prop => !excluded.includes(prop))
   );
+  // Every variable Theme writes by name outside the map loop. That is what a
+  // deprecated route looks like in the source, so a route added or removed
+  // there changes this set.
+  const routed = new Set(
+    [...source.matchAll(/vars\['(--bulma-[a-z0-9-]+)'\] = /g)].map(m => m[1])
+  );
+  return { vars, excluded, intercepted, routed };
 }
 
 /**
@@ -105,45 +116,82 @@ const watchedProps = values =>
     'textColor',
   ]);
 
-describe('helper prop collisions', () => {
-  it('declares every Theme prop name the plugin must not judge', async () => {
-    assert.ok(
-      existsSync(PLUGIN_VALUES),
-      'eslint-plugin/dist is absent, so the declared table cannot be read. ' +
-        'Run the build, or the whole gate with `pnpm all`.'
-    );
-    const values = await import(pathToFileURL(PLUGIN_VALUES).href);
-    const { NOT_A_HELPER_PROP } = values;
+async function loadValues() {
+  assert.ok(
+    existsSync(PLUGIN_VALUES),
+    'eslint-plugin/dist is absent, so the declared table cannot be read. ' +
+      'Run the build, or the whole gate with `pnpm all`.'
+  );
+  return import(pathToFileURL(PLUGIN_VALUES).href);
+}
 
-    const intercepted = themeVarProps(readFileSync(THEME, 'utf8'));
+describe('helper prop collisions', () => {
+  it('takes no prop the plugin judges as a Theme CSS variable', async () => {
+    const values = await loadValues();
+    const { intercepted } = readTheme(readFileSync(THEME, 'utf8'));
     const collisions = [...watchedProps(values)]
       .filter(prop => intercepted.has(prop))
       .sort();
-    const declared = [...(NOT_A_HELPER_PROP.get('Theme') ?? [])].sort();
 
     assert.deepEqual(
-      declared,
       collisions,
-      'NOT_A_HELPER_PROP.get("Theme") and the real collision between the ' +
-        "props the plugin judges and Theme's CSS-variable props disagree. A " +
-        'name in the real set and not the declared one is a false positive on ' +
-        'working code; the reverse is a prop going unchecked for no reason.'
+      [],
+      'Theme takes these as CSS-variable props, and the plugin judges them as helper props everywhere, so the rule would report working Theme code: ' +
+        collisions.join(', ') +
+        '. Add each name to `helperPropNames` in Theme.tsx, as #694 did for ' +
+        '`radius`, so it stays a helper on Theme and its variable goes ' +
+        'through `bulmaVars`.'
     );
   });
 
-  it('keeps `shadow` a helper prop on Theme', async () => {
-    const { HELPER_VALUES, NOT_A_HELPER_PROP } = await import(
-      pathToFileURL(PLUGIN_VALUES).href
+  it('declares exactly the deprecated variable routes Theme has', async () => {
+    const { DEPRECATED_VARIABLE_ROUTE, HELPER_VALUES } = await loadValues();
+    const { vars, excluded, routed } = readTheme(readFileSync(THEME, 'utf8'));
+
+    assert.deepEqual(
+      [...DEPRECATED_VARIABLE_ROUTE.keys()],
+      ['Theme'],
+      'DEPRECATED_VARIABLE_ROUTE declares routes on an element other than ' +
+        'Theme, and this guard only reads Theme.tsx. Extend it to hold the ' +
+        'new element to its source before declaring one.'
     );
-    // The other half of the same fact, and the reason the exclusion above is
-    // worth asserting: `--bulma-shadow` would collide exactly like
-    // `--bulma-radius`, and Theme keeps `shadow` out of its variable map so
-    // the helper prop wins. If that ever flips, the test above fails and this
-    // one says what changed.
+    const declared = DEPRECATED_VARIABLE_ROUTE.get('Theme');
+
+    for (const [prop, cssVar] of declared) {
+      assert.ok(
+        vars.includes(cssVar) && cssVarToProp(cssVar) === prop,
+        `the route ${prop} -> ${cssVar} does not name one of Theme's ` +
+          'variables by the prop it would be minted as'
+      );
+      assert.ok(
+        excluded.includes(prop) && HELPER_VALUES.has(prop),
+        `\`${prop}\` is declared as a deprecated route, which only makes ` +
+          'sense for a helper prop Theme keeps out of its variable map'
+      );
+    }
+
+    assert.deepEqual(
+      [...declared.values()].sort(),
+      [...routed].sort(),
+      'DEPRECATED_VARIABLE_ROUTE.get("Theme") and the variables Theme.tsx ' +
+        'writes outside its variable map disagree. A route Theme has and the ' +
+        'plugin does not declare gets a message saying nothing renders, which ' +
+        'is false; a declared route Theme lacks gets a message saying the ' +
+        'variable is set, which is false the other way.'
+    );
+  });
+
+  it('keeps `shadow` a helper prop on Theme with no variable route', async () => {
+    const { DEPRECATED_VARIABLE_ROUTE, HELPER_VALUES } = await loadValues();
+    const { excluded } = readTheme(readFileSync(THEME, 'utf8'));
+    // `--bulma-shadow` was kept out of Theme's variable map from the start,
+    // so unlike `radius` no value of `shadow` ever set it and there is no
+    // route to declare. Asserted on its own so a change to either side says
+    // which fact moved.
     assert.ok(HELPER_VALUES.has('shadow'));
+    assert.ok(excluded.includes('shadow'));
     // Truthiness rather than `=== false`, so this asserts only its own claim:
-    // an absent Theme entry does not declare `shadow` either, and reading
-    // that as a failure would just restate the case above.
-    assert.ok(!NOT_A_HELPER_PROP.get('Theme')?.has('shadow'));
+    // an absent Theme entry does not declare `shadow` either.
+    assert.ok(!DEPRECATED_VARIABLE_ROUTE.get('Theme')?.has('shadow'));
   });
 });

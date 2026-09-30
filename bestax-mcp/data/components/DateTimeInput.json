@@ -530,7 +530,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier.",
+          "description": "Bulma color modifier for the input, also carried by the time wheels, where it colors the selection band and the keyboard focus ring. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`. The calendar does not take it.",
           "required": false,
           "inherited": true,
           "deprecated": false

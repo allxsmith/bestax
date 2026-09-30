@@ -640,6 +640,33 @@ export const Colors: Story = {
   ),
 };
 
+export const InlineColors: Story = {
+  render: () => (
+    <Block display="flex" flexWrap="wrap">
+      {(
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
+      ).map(color => (
+        <Block key={color} mr="4">
+          <TimeInput
+            label={color}
+            color={color}
+            inline
+            defaultValue={today(8, 30)}
+          />
+        </Block>
+      ))}
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Rendered inline so the wheels are visible without opening the popover: `color` tints the selection band and, for keyboard users, the focus ring. Tab into a wheel to see the ring.',
+      },
+    },
+  },
+};
+
 export const States: Story = {
   render: () => (
     <Block>
