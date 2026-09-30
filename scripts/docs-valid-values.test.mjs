@@ -13,6 +13,12 @@
  * test fails if one of them starts listing its values plainly, so an exemption
  * cannot outlive its reason.
  *
+ * The page also says which tuples the `./constants` subpath serves: the
+ * helper tuples in its Constants table, and not the ones in the sections its
+ * "not on this subpath" sentence links to. Both halves are read from the page
+ * and held to what the subpath actually exports, so a tuple moved into or out
+ * of the constants module cannot leave that prose wrong.
+ *
  * The exports are read from the built package, which is what a consumer
  * imports, rather than by following the source's re-exports. So this needs the
  * build, and asserts that rather than skipping: `node --test` exits 0 on a
@@ -43,8 +49,11 @@ const SUMMARISED = new Map([
 /** A Values cell that is nothing but backticked, quoted literals. */
 const LITERAL_LIST = /^`'[^'`]*'`(?:, `'[^'`]*'`)*$/;
 
-/** The string tuples the package root exports, by name. */
-function exportedTuples() {
+/**
+ * The string tuples an entry of the package exports, by name: the root by
+ * default, or a subpath such as `/constants`.
+ */
+function exportedTuples(subpath = '') {
   assert.ok(
     existsSync(join(PKG_DIR, 'dist')),
     'bulma-ui/dist is absent, so the tuples cannot be read. Run ' +
@@ -54,7 +63,7 @@ function exportedTuples() {
   // By specifier, through the package's own export map, so this reads what a
   // consumer's require() gets.
   const pkg = createRequire(join(PKG_DIR, 'package.json'))(
-    '@allxsmith/bestax-bulma'
+    `@allxsmith/bestax-bulma${subpath}`
   );
   return new Map(
     Object.entries(pkg).filter(
@@ -64,25 +73,70 @@ function exportedTuples() {
   );
 }
 
-/** The Values cell of each page table row that names a constant. */
+/** A `##` heading's anchor, as the docs site builds it. */
+const slug = heading =>
+  heading
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-');
+
+/**
+ * Every page table row that names a constant, in page order, with the anchor
+ * of the section it sits in. A list rather than a map, so a second row for the
+ * same constant is seen rather than overwriting the first.
+ */
 function pageRows() {
-  const rows = new Map();
-  for (const line of readFileSync(PAGE, 'utf8').split(/\r?\n/)) {
-    if (!line.startsWith('|')) continue;
-    // An escaped pipe belongs to its cell.
-    const cells = line
-      .split(/(?<!\\)\|/)
-      .slice(1, -1)
-      .map(c => c.trim());
-    const name = /^`(\w+)`$/.exec(cells[0] ?? '')?.[1];
-    if (name) rows.set(name, cells[1] ?? '');
-  }
+  const rows = [];
+  let section = '';
+  readFileSync(PAGE, 'utf8')
+    .split(/\r?\n/)
+    .forEach((line, i) => {
+      const heading = /^## (.*)$/.exec(line)?.[1];
+      if (heading) section = slug(heading);
+      if (!line.startsWith('|')) return;
+      // An escaped pipe belongs to its cell.
+      const cells = line
+        .split(/(?<!\\)\|/)
+        .slice(1, -1)
+        .map(c => c.trim());
+      const name = /^`(\w+)`$/.exec(cells[0] ?? '')?.[1];
+      if (name) rows.push({ name, cell: cells[1] ?? '', line: i + 1, section });
+    });
   return rows;
 }
 
+/** The section anchors the page's "not on this subpath" sentence links to. */
+function sectionsOffSubpath() {
+  const paragraph = readFileSync(PAGE, 'utf8')
+    .split(/\r?\n\s*\r?\n/)
+    .find(p => /not on this subpath/.test(p));
+  assert.ok(
+    paragraph,
+    `${PAGE_REL} no longer says which constants are "not on this subpath", ` +
+      'so this test cannot hold that claim. Update it with the wording.'
+  );
+  const anchors = [...paragraph.matchAll(/\]\(#([\w-]+)\)/g)].map(m => m[1]);
+  assert.ok(anchors.length > 0, 'the subpath sentence links to no section');
+  return anchors;
+}
+
 describe(PAGE_REL, () => {
+  it('has one row per constant', () => {
+    const seen = new Map();
+    for (const row of pageRows()) {
+      const first = seen.get(row.name);
+      assert.ok(
+        !first,
+        `${PAGE_REL} has two rows for \`${row.name}\`, at lines ${first?.line} ` +
+          `and ${row.line}. Keep one.`
+      );
+      seen.set(row.name, row);
+    }
+  });
+
   it('has a row for every tuple the package exports', () => {
-    const rows = pageRows();
+    const rows = new Set(pageRows().map(r => r.name));
     const missing = [...exportedTuples().keys()].filter(n => !rows.has(n));
     assert.deepEqual(
       missing,
@@ -95,7 +149,7 @@ describe(PAGE_REL, () => {
 
   it('lists each tuple exactly, unless the row is a named summary', () => {
     const tuples = exportedTuples();
-    for (const [name, cell] of pageRows()) {
+    for (const { name, cell } of pageRows()) {
       assert.ok(
         tuples.has(name),
         `${PAGE_REL} has a row for \`${name}\`, which the package does not ` +
@@ -126,7 +180,7 @@ describe(PAGE_REL, () => {
   });
 
   it('names only summaries that have a row', () => {
-    const rows = pageRows();
+    const rows = new Set(pageRows().map(r => r.name));
     const stale = [...SUMMARISED.keys()].filter(n => !rows.has(n));
     assert.deepEqual(
       stale,
@@ -134,5 +188,37 @@ describe(PAGE_REL, () => {
       `SUMMARISED names ${stale.join(', ')}, which has no row in ` +
         `${PAGE_REL}. Remove the entry.`
     );
+  });
+
+  it('says truly which tuples the ./constants subpath serves', () => {
+    const served = exportedTuples('/constants');
+    const rows = pageRows();
+    const unserved = rows
+      .filter(r => r.section === 'constants' && !served.has(r.name))
+      .map(r => r.name);
+    assert.deepEqual(
+      unserved,
+      [],
+      `${PAGE_REL} lists ${unserved.join(', ')} in its Constants table, ` +
+        'which the page says the ./constants subpath serves, but the subpath ' +
+        'does not export it. Move the row to a section of its own and link ' +
+        'that section from the "not on this subpath" sentence.'
+    );
+    for (const anchor of sectionsOffSubpath()) {
+      const named = rows.filter(r => r.section === anchor);
+      assert.ok(
+        named.length > 0,
+        `the "not on this subpath" sentence links #${anchor}, which has no ` +
+          'constant rows under it'
+      );
+      const onSubpath = named.filter(r => served.has(r.name)).map(r => r.name);
+      assert.deepEqual(
+        onSubpath,
+        [],
+        `${PAGE_REL} says the #${anchor} constants are not on the ` +
+          `./constants subpath, but it exports ${onSubpath.join(', ')}. ` +
+          'Correct the sentence and move the row to the Constants table.'
+      );
+    }
   });
 });
