@@ -1,4 +1,10 @@
-import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useIsHydrated } from '../helpers/useIsHydrated';
@@ -368,6 +374,16 @@ type DialogState = {
 let dialogListeners: Set<(dialog: DialogState | null) => void> = new Set();
 let currentDialog: DialogState | null = null;
 
+// DialogContainer renders from the open dialog rather than from updates alone,
+// so a dialog raised before it mounted still opens once it does.
+const getCurrentDialog = () => currentDialog;
+
+// The server renders no dialog: its copy of this module is shared by every
+// request, so the dialog it holds may belong to another page. Hydration reads
+// the same empty value, which keeps the first client render matching the
+// server's, and the dialog opens right after.
+const getServerDialog = (): DialogState | null => null;
+
 const notifyDialogListeners = () => {
   dialogListeners.forEach(listener => listener(currentDialog));
 };
@@ -434,11 +450,12 @@ export const dialog = {
  * @returns {JSX.Element | null} The rendered dialog, or null if none is active.
  */
 export const DialogContainer: React.FC = () => {
-  const [current, setCurrent] = React.useState<DialogState | null>(null);
-
-  useEffect(() => {
-    return dialog.subscribe(setCurrent);
-  }, []);
+  // Starts from the dialog already open instead of none, then follows changes.
+  const current = useSyncExternalStore(
+    dialog.subscribe,
+    getCurrentDialog,
+    getServerDialog
+  );
 
   if (!current) {
     return null;

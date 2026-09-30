@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useSyncExternalStore,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
@@ -154,11 +159,30 @@ let notifications: NotificationInstance[] = [];
 let queuedNotifications: NotificationInstance[] = [];
 let currentQueuedNotification: NotificationInstance | null = null;
 
+// The server has nowhere to portal a notification to, and its copy of this
+// module is shared by every request, so server rendering reads an empty list.
+// Hydration reads it too, which keeps the first client render matching the
+// server's.
+const noNotifications: NotificationInstance[] = [];
+const getServerNotifications = () => noNotifications;
+
+// What a container shows right now: the stacked notifications, then the queued
+// one on screen. NotificationContainer renders from this rather than from
+// updates alone, so notifications raised before it mounted still appear. It is
+// replaced rather than mutated, and only when listeners are notified, because
+// useSyncExternalStore needs the same array back between changes. An empty
+// list is `noNotifications` itself, so a container that hydrates with nothing
+// to show reads the same snapshot the server did and has no reason to render
+// again.
+let visibleNotifications: NotificationInstance[] = noNotifications;
+const getVisibleNotifications = () => visibleNotifications;
+
 const notifyNotificationListeners = () => {
   const allVisible = [...notifications];
   if (currentQueuedNotification) {
     allVisible.push(currentQueuedNotification);
   }
+  visibleNotifications = allVisible.length > 0 ? allVisible : noNotifications;
   notificationListeners.forEach(listener => listener([...allVisible]));
 };
 
@@ -357,9 +381,7 @@ const NotificationItem: React.FC<{
 
 /**
  * Container component for rendering programmatic notifications.
- * Place once at your app root to enable the notification API. Mount it
- * before calling `notification`: a notification shown while no container is
- * mounted doesn't appear when one mounts, only alongside the next call.
+ * Place once at your app root to enable the notification API.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
@@ -368,11 +390,13 @@ const NotificationItem: React.FC<{
 export const NotificationContainer: React.FC<{
   position?: NotificationPosition;
 }> = ({ position = 'top-right' }) => {
-  const [items, setItems] = useState<NotificationInstance[]>([]);
-
-  useEffect(() => {
-    return notification.subscribe(setItems);
-  }, []);
+  // Starts from the notifications already showing instead of an empty list,
+  // then follows changes.
+  const items = useSyncExternalStore(
+    notification.subscribe,
+    getVisibleNotifications,
+    getServerNotifications
+  );
 
   if (typeof document === 'undefined' || items.length === 0) {
     return null;
