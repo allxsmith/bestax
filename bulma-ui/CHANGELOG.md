@@ -1,3 +1,43 @@
+## [5.18.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.0...@allxsmith/bestax-bulma@5.18.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a page link as markup when its li is a component's only child ([0e72683](https://github.com/allxsmith/bestax/commit/0e72683e6eb50326a889ee579b3f3e415b7e2df9))
+* **bestax-migrate:** rename rbx innerRef to ref on a plain Navbar.Item too ([bb6ace0](https://github.com/allxsmith/bestax/commit/bb6ace00ee77099f2e5f9ddb1f6aa19832ad25d2)), closes [#734](https://github.com/allxsmith/bestax/issues/734)
+* **bestax-migrate:** write a File text with a backslash as a string ([212831e](https://github.com/allxsmith/bestax/commit/212831e2f56b51cc38e6c0f0788e07c2b5ad2cec))
+* **bestax-migrate:** write isFullwidth from react-bulma-components too ([01da047](https://github.com/allxsmith/bestax/commit/01da047a6b5a34505ddb02209f6b867bee497a39))
+* **bestax-migrate:** write isFullwidth rather than its deprecated alias from bloomer ([c2a1d22](https://github.com/allxsmith/bestax/commit/c2a1d2274402e5de9afa1569dcd0d51b2a46a3f5)), closes [#680](https://github.com/allxsmith/bestax/issues/680)
+* **bulma-ui:** color TimeInput's wheels from the color prop ([#832](https://github.com/allxsmith/bestax/issues/832)) ([ad370c9](https://github.com/allxsmith/bestax/commit/ad370c94510ae3887a64343616224812ed6c1689))
+* **bulma-ui:** document the checkbox, radio and switch color and size tuples ([bd39ff3](https://github.com/allxsmith/bestax/commit/bd39ff352cca12dc6f518dd6cca288515ae7b6b3))
+* **bulma-ui:** Dropdown items withhold attributes by tag and answer Enter and Space ([#827](https://github.com/allxsmith/bestax/issues/827)) ([f6aeb2d](https://github.com/allxsmith/bestax/commit/f6aeb2dc658f4c3b0b7bb4151b10feda6fa73819))
+* **bulma-ui:** keep radiusless zeroing the radius inside a Theme ([07db6a3](https://github.com/allxsmith/bestax/commit/07db6a31836b76d05eaf4691c770b254a6f79a31)), closes [#829](https://github.com/allxsmith/bestax/issues/829) [#694](https://github.com/allxsmith/bestax/issues/694)
+* **bulma-ui:** key the Avatar link warning on the element and attributes ([e628eba](https://github.com/allxsmith/bestax/commit/e628eba6356f6d9a8c09eec87cbddf4c8936c165)), closes [#733](https://github.com/allxsmith/bestax/issues/733) [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** leave rel out of the Avatar link attribute warning ([b059476](https://github.com/allxsmith/bestax/commit/b059476fd9cb2697996d0a81b3459122632b976f)), closes [#733](https://github.com/allxsmith/bestax/issues/733) [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** let several isRoot Themes share the :root style element ([04f399f](https://github.com/allxsmith/bestax/commit/04f399f69b18652dbc471e9c0611c3205a64d858)), closes [#736](https://github.com/allxsmith/bestax/issues/736)
+* **bulma-ui:** let warnOnce decide when the Avatar link warning fires ([1a5965c](https://github.com/allxsmith/bestax/commit/1a5965c953ee9ad63b622183747d4966ffe4a6c5)), closes [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** make Theme's radius the helper it is typed as ([36c73d3](https://github.com/allxsmith/bestax/commit/36c73d3868103d969d1448a65bf3992dc50552ca)), closes [#694](https://github.com/allxsmith/bestax/issues/694)
+* **bulma-ui:** name custom elements among the targets that get Avatar's target and rel ([a962259](https://github.com/allxsmith/bestax/commit/a962259b03c3a3042b32d17941b20aa6ac6a2971)), closes [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** show toasts, notifications and dialogs raised before their container mounts ([#828](https://github.com/allxsmith/bestax/issues/828)) ([2ab4493](https://github.com/allxsmith/bestax/commit/2ab4493b16186fc58ca1f60da08c91a70d25d2c6))
+* **bulma-ui:** skip the Avatar target warning on elements with their own target ([27b58f4](https://github.com/allxsmith/bestax/commit/27b58f4a217820dbd143fd5ac9fbe0a817092a67)), closes [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** strip the Avatar link warning from production builds ([a243fa5](https://github.com/allxsmith/bestax/commit/a243fa55fae084c7e153d08d47e327832007ed97)), closes [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** warn about a dropped Avatar href only for an as the caller wrote ([c93b27c](https://github.com/allxsmith/bestax/commit/c93b27c9deacd4ded9d51cd39ccff87ff690928a)), closes [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** warn in development when Avatar drops an href on a non-link as ([c76e632](https://github.com/allxsmith/bestax/commit/c76e6323a62dd889fe9e82c7663456395a1ecdb8)), closes [#733](https://github.com/allxsmith/bestax/issues/733)
+* **bulma-ui:** warn when Avatar drops a target or rel on a non-link as ([50c385e](https://github.com/allxsmith/bestax/commit/50c385e312b52ab5c4bab313eeca59549ac65998)), closes [#733](https://github.com/allxsmith/bestax/issues/733) [#733](https://github.com/allxsmith/bestax/issues/733)
+* **eslint-plugin:** report .file as a class the codemod converts ([72a32c9](https://github.com/allxsmith/bestax/commit/72a32c9705a7b94b6aadb8a9a02d1ad35d68802a))
+* **eslint-plugin:** report the pagination links and ellipsis as classes the codemod converts ([54ba0b3](https://github.com/allxsmith/bestax/commit/54ba0b3190233c308c3b92dd27e2ea8b91424163))
+* **eslint-plugin:** report Theme's deprecated radius route accurately ([5605816](https://github.com/allxsmith/bestax/commit/5605816dd460d9b92bafc88aa821f96cd933dfdb)), closes [#694](https://github.com/allxsmith/bestax/issues/694)
+* **eslint-plugin:** suggest radiusless for a near miss on Theme ([21aa9a7](https://github.com/allxsmith/bestax/commit/21aa9a79de0a9f1d7088f372841aef0c07a9c48c)), closes [#694](https://github.com/allxsmith/bestax/issues/694)
+
+
+### Features
+
+* **bestax-mcp:** say when a component renders the li around its element, or its own text ([8fd3faf](https://github.com/allxsmith/bestax/commit/8fd3faf939e33f323a981f6da101930e5140dac2))
+* **bestax-mcp:** say when a component renders the whole .file tree from props ([976d8a3](https://github.com/allxsmith/bestax/commit/976d8a30f913e23d8a0026565d1845fdba23d67b))
+* **bestax-migrate:** convert .file inside a Field, building its tree from props ([724dff5](https://github.com/allxsmith/bestax/commit/724dff56dc2416d7305590cb579323b3cc31c532)), closes [#809](https://github.com/allxsmith/bestax/issues/809)
+* **bestax-migrate:** convert .icon-text, building its icons from props ([#823](https://github.com/allxsmith/bestax/issues/823)) ([933868f](https://github.com/allxsmith/bestax/commit/933868f002f80f4d1441d109b3f4eb3a2206245a))
+* **bestax-migrate:** convert Pagination's page links and ellipsis in their li's place ([ae720fa](https://github.com/allxsmith/bestax/commit/ae720faaca0a8bcef860e3daa576aa686a7bb8a5)), closes [#809](https://github.com/allxsmith/bestax/issues/809)
+
 # [5.18.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.17.0...@allxsmith/bestax-bulma@5.18.0) (2026-09-29)
 
 

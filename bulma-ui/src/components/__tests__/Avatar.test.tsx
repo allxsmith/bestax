@@ -153,6 +153,46 @@ describe('Avatar', () => {
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
 
+  it('keeps the button type default through a spread carrying an absent type', () => {
+    // React reads `type={undefined}` as "remove the attribute", and a props
+    // spread whose `type` is undefined is how that arrives. Defaulting before
+    // the spread let it erase the guard and restore submit (#690).
+    const spread: { type?: 'button' | 'submit' | 'reset' } = {
+      type: undefined,
+    };
+    render(<Avatar name="Ada Lovelace" as="button" {...spread} />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('lets an explicit type win on an as="button" avatar', () => {
+    render(<Avatar name="Ada Lovelace" as="button" type="submit" />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'submit');
+  });
+
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    // The types reject this, but a loose spread or an untyped caller can still
+    // deliver it, and HTML treats an invalid button type as submit.
+    const loose: object = { type: 'text/html' };
+    render(<Avatar name="Ada Lovelace" as="button" {...loose} />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('sets no type on an avatar that is not a button', () => {
+    render(
+      <>
+        <Avatar name="Ada Lovelace" data-testid="figure" />
+        <Avatar name="Ada Lovelace" href="/ada" data-testid="link" />
+        <Avatar name="Ada Lovelace" as="div" data-testid="div" />
+      </>
+    );
+    expect(screen.getByTestId('figure').tagName).toBe('FIGURE');
+    expect(screen.getByTestId('link').tagName).toBe('A');
+    expect(screen.getByTestId('div').tagName).toBe('DIV');
+    for (const id of ['figure', 'link', 'div']) {
+      expect(screen.getByTestId(id)).not.toHaveAttribute('type');
+    }
+  });
+
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();
@@ -355,6 +395,61 @@ describe('Avatar', () => {
     const avatar = screen.getByTestId('avatar');
     expect(avatar).toHaveClass('bulma-avatar');
     expect(avatar).not.toHaveClass('avatar');
+  });
+});
+
+describe('Accessibility defaults and a spread carrying undefined', () => {
+  // React reads an `undefined` attribute as "remove it", and a props spread
+  // with the key present but undefined is how that arrives. Spreading the
+  // defaults before the caller's props let such a spread erase them.
+  it('keeps the fallback name on a nameless image button', () => {
+    const spread: { 'aria-label'?: string } = { 'aria-label': undefined };
+    render(<Avatar as="button" src="/a.jpg" {...spread} />);
+    expect(screen.getByRole('button', { name: 'Avatar' })).toBeInTheDocument();
+  });
+
+  it('keeps the name on an initials avatar', () => {
+    const spread: { 'aria-label'?: string } = { 'aria-label': undefined };
+    render(<Avatar name="Ada Lovelace" {...spread} />);
+    expect(
+      screen.getByRole('img', { name: 'Ada Lovelace' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps role="img" on an initials avatar', () => {
+    const spread: { role?: React.AriaRole } = { role: undefined };
+    render(<Avatar name="Ada Lovelace" data-testid="a" {...spread} />);
+    expect(screen.getByTestId('a')).toHaveAttribute('role', 'img');
+  });
+
+  it('keeps a decorative avatar hidden', () => {
+    const spread: { 'aria-hidden'?: boolean } = { 'aria-hidden': undefined };
+    render(<Avatar alt="" name="Ada Lovelace" data-testid="a" {...spread} />);
+    expect(screen.getByTestId('a')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('lets an explicit aria-label win over the name', () => {
+    render(<Avatar name="Ada Lovelace" aria-label="Profile" />);
+    expect(screen.getByRole('img', { name: 'Profile' })).toBeInTheDocument();
+  });
+
+  it('lets an explicit aria-label win over the fallback name', () => {
+    render(<Avatar as="button" src="/a.jpg" aria-label="Open profile" />);
+    expect(
+      screen.getByRole('button', { name: 'Open profile' })
+    ).toBeInTheDocument();
+  });
+
+  it('lets an explicit role win over role="img"', () => {
+    render(<Avatar name="Ada Lovelace" role="presentation" data-testid="a" />);
+    expect(screen.getByTestId('a')).toHaveAttribute('role', 'presentation');
+  });
+
+  it('lets an explicit aria-hidden={false} win on a decorative avatar', () => {
+    render(
+      <Avatar alt="" name="Ada Lovelace" aria-hidden={false} data-testid="a" />
+    );
+    expect(screen.getByTestId('a')).toHaveAttribute('aria-hidden', 'false');
   });
 });
 
