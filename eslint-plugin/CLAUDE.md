@@ -165,8 +165,10 @@ Each rule's suite carries valid cases for the ways the rule could wrongly fire,
 not just invalid cases for what it should catch. Several of those silences came
 from linting the library's own documentation — a corpus of examples that are
 supposed to be correct, so anything reported there is either a docs bug or a
-rule bug. Running the rules over the docs' code fences is worth repeating
-whenever a rule changes.
+rule bug. For the `recommended` rules that sweep is a gate now (below), so a
+rule change that starts reporting correct examples fails `pnpm test`. The
+opt-in rules are not in it, and are still worth running over the fences by
+hand when one changes.
 
 This package's OWN documented examples are a gate rather than a habit:
 `scripts/eslint-plugin-docs.test.mjs` reads every line in the README and the
@@ -174,7 +176,11 @@ guide carrying a `✗` or `✓`, synthesises the import the fence omits, and
 asserts the real rules agree with the marker. It covers what a reader would
 copy and nothing else, so a false claim in prose still gets past it, which is
 how the README came to say a CommonJS config could not `require()` the
-plugin. The autofix is pinned with
+plugin. The same file runs the `recommended` preset, as shipped, over every
+jsx and tsx example under `docs/docs` and `skills`, synthesising the import
+for the library names a fence leaves unbound. The guide's wrong-on-purpose
+fences opt out of that with `nolint`, and the verdict check still holds each
+marked line in them. The autofix is pinned with
 `output`, and `output: null` asserts that no fix is offered — which is the
 assertion for a deprecation with no replacement, and for a rename onto a prop
 the element already sets.

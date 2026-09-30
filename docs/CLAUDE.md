@@ -85,6 +85,15 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
+- **`jsx` and `tsx` fences are linted** with the ESLint plugin's `recommended` rules, in
+  `pnpm test` (`scripts/eslint-plugin-docs.test.mjs`, whose header says how a fence is read).
+  That catches a helper value the library drops without a word (`textAlign="center"`), a
+  deprecated prop, and a flex prop that emits nothing. A fence needs no import for it. A fence
+  that is wrong on purpose, such as a rule's ✗ example, takes `nolint` in its info string
+  (` ```jsx nolint `), which changes nothing on the rendered page. The marker is per fence so
+  the rest of the page is still checked, and it fails once nothing in the fence is reported,
+  so it goes when the mistake does. A fence the test cannot parse fails too, since no rule can
+  read it.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 
