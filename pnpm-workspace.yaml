@@ -139,24 +139,30 @@ overrides:
   # holds today.
   'browserslist@<4.28.7': '>=4.28.7'
   # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched brace-expansion per major — high advisories
-  # GHSA-mh99-v99m-4gvg (unbounded expansion length, OOM) and its follow-up
-  # GHSA-rgw5-rvv9-x895 (DoS via unbounded intermediate arrays) both ship
-  # per-major backports (1.1.18 / 2.1.4 / 3.0.6 / 5.0.9), so pin each major to
-  # its own patched line. Do NOT collapse this into an unscoped cross-major
-  # force: brace-expansion 5.x's CommonJS entry exports a named `expand` and
-  # the module value itself is not callable, so minimatch@3
-  # (`const expand = require('brace-expansion')`) throws on any brace pattern
-  # when handed 5.x. 4.x has no in-major patch and no consumer in this tree;
-  # if one ever appears the audit gate will flag it — decide the cross-major
-  # question then, against that consumer's import style.
-  'brace-expansion@1': '>=1.1.18 <2'
+  # Force patched brace-expansion per major for its advisories, which ship
+  # per-major backports. Each floor is the newest fix on its line, including
+  # the moderate ones the audit gate doesn't see.
+  # Do NOT collapse this into an unscoped cross-major force: brace-expansion
+  # 5.x's CommonJS entry exports a named `expand` and the module value itself
+  # is not callable, so minimatch@3 (`const expand = require('brace-expansion')`)
+  # throws on any brace pattern when handed 5.x. 4.x has no in-major patch and
+  # no consumer in this tree; if one ever appears the audit gate will flag it,
+  # and the cross-major question gets decided then, against that consumer's
+  # import style.
+  'brace-expansion@1': '>=1.1.21 <2'
   # bestax:review 2026-11-13 — quarterly sweep; 2.x line, prunable on its own
-  'brace-expansion@2': '>=2.1.4 <3'
+  'brace-expansion@2': '>=2.1.7 <3'
   # bestax:review 2026-11-13 — quarterly sweep; 3.x line, prunable on its own
-  'brace-expansion@3': '>=3.0.6 <4'
+  'brace-expansion@3': '>=3.0.9 <4'
   # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
-  'brace-expansion@5': '>=5.0.9 <6'
+  'brace-expansion@5': '>=5.0.12 <6'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched axios under wait-on (create-bestax's dev dependency, and the
+  # storybook test runner's jest-process-manager) for its high advisories. The
+  # floor is the newest fix on the 1.x line. Both wait-on ranges admit it and
+  # it is past the cooldown. Prune once wait-on resolves to >=1.20.0 without
+  # the force.
+  'axios@1': '>=1.20.0 <2'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
   # schema-utils, the eslint toolchain and the MCP SDK) for its high

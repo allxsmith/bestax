@@ -1602,6 +1602,23 @@ describe('button form', () => {
       'submit'
     );
   });
+
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    // The types reject this, but a loose spread or an untyped caller can still
+    // deliver it, and HTML treats an invalid button type as submit.
+    const loose: object = { type: 'text/html' };
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" {...loose}>
+          Sort
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-item')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
 });
 
 describe('href routing', () => {

@@ -54,6 +54,9 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 - Run `pnpm format` before `pnpm lint`: lint includes prettier (`eslint-plugin-prettier`), so an
   unformatted tree fails lint while typecheck and tests pass, and `pnpm all` runs lint before
   `format:check` without formatting, so it fails there too. A multi-task `turbo run` buries the cause.
+- `pnpm all` runs `bundle:stats` in a `turbo run` of its own, after the tests. It rebuilds
+  `bulma-ui/dist`, which other packages' tests typecheck against, and nothing orders the two inside
+  one run, so folding it back in brings back a flaky "is not a module" failure.
 
 ## Quality gates
 
