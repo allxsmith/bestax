@@ -128,6 +128,8 @@ Enable the `isResponsive` prop to make your table horizontally scrollable on sma
 
 Apply the `color` prop to individual `Td` cells to use Bulma's color modifiers. This is helpful for highlighting important data, categorizing information, or simply making your tables more visually engaging. You can use colors like `primary`, `success`, `warning`, `danger`, `info`, and more.
 
+`Tr` and `Th` take the same colors. They are exported as the `validTableColors` tuple, for building a color picker or checking a value that arrives at runtime. See [valid value constants](../helpers/valid-values.md#table-color-constant).
+
 ```tsx live
 <Table isBordered isFullwidth>
   <Thead>
