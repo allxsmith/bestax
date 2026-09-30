@@ -141,9 +141,7 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched brace-expansion per major for its advisories, which ship
   # per-major backports. Each floor is the newest fix on its line, including
-  # the moderate ones the audit gate doesn't see: 1.1.21 / 2.1.7 / 3.0.9 /
-  # 5.0.12 patch GHSA-q2hr-2g5m-vwhr, released with the high advisories
-  # GHSA-qhr7-859c-m2p7 and GHSA-6j4f-fj2g-mc7p fixed a patch below.
+  # the moderate ones the audit gate doesn't see.
   # Do NOT collapse this into an unscoped cross-major force: brace-expansion
   # 5.x's CommonJS entry exports a named `expand` and the module value itself
   # is not callable, so minimatch@3 (`const expand = require('brace-expansion')`)
@@ -161,10 +159,9 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched axios under wait-on (create-bestax's dev dependency, and the
   # storybook test runner's jest-process-manager) for its high advisories. The
-  # floor is the newest fix on the 1.x line: 1.20.0 patches GHSA-c29m-xwm3-cm6r,
-  # GHSA-mghh-pgcx-3jjj, GHSA-x97p-jq2g-jp4f, GHSA-3pq3-5fj3-cg6v and
-  # GHSA-542g-h47m-68v8. Both wait-on ranges admit it and it is past the
-  # cooldown. Prune once wait-on resolves to >=1.20.0 without the force.
+  # floor is the newest fix on the 1.x line. Both wait-on ranges admit it and
+  # it is past the cooldown. Prune once wait-on resolves to >=1.20.0 without
+  # the force.
   'axios@1': '>=1.20.0 <2'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
