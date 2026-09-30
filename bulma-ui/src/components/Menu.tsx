@@ -3,6 +3,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { omitAttrs } from '../helpers/anchorAttrs';
+import { buttonType } from '../helpers/buttonType';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -174,7 +175,12 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
 export type MenuItemProps<T extends React.ElementType = 'a'> =
   MenuItemOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof MenuItemOwnProps | 'as'> & {
-      /** Custom link component (e.g. `Link` from router). */
+      /**
+       * Custom link component (e.g. `Link` from router).
+       *
+       * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
+       * an item inside a form does not submit it.
+       */
       as?: T;
     };
 
@@ -188,7 +194,10 @@ const STRIP_FROM_NON_LINK: Readonly<Record<'href', true>> = { href: true };
  * The shape the implementation destructures. The public contract is the generic
  * `MenuItemProps<T>` above — the body cannot see through `T`.
  */
-type MenuItemImplProps = MenuItemOwnProps & { as?: React.ElementType };
+type MenuItemImplProps = MenuItemOwnProps & {
+  as?: React.ElementType;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
+};
 
 /**
  * MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
@@ -265,7 +274,25 @@ export const MenuItem = forwardRef(function MenuItem(
       role={role}
       tabIndex={tabIndex}
     >
-      <Component ref={ref} className={itemClass || undefined} {...linkProps}>
+      <Component
+        ref={ref}
+        className={itemClass || undefined}
+        {...linkProps}
+        // A menu item inside a form must not submit it, and `<button>` defaults
+        // to type="submit". A sidebar menu sitting in a form is ordinary. A
+        // caller's `submit` or `reset` still wins. Anything else becomes
+        // `button`, since HTML reads a value it does not define for a button as
+        // submit too; `buttonType` says more.
+        //
+        // After `linkProps`, reading through it rather than before it: React
+        // treats `type={undefined}` as "remove the attribute", and a spread
+        // carrying the key with no value is how that arrives, so a default
+        // spread first would be erased by it. `Dropdown.Item` and `Avatar`
+        // apply their button type after the spread too.
+        {...(Component === 'button'
+          ? { type: buttonType(linkProps.type) }
+          : {})}
+      >
         {labelChildren}
       </Component>
       {nestedMenuLists}

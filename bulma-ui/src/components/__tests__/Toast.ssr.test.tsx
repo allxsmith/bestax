@@ -41,4 +41,16 @@ describe('Toast SSR (node environment)', () => {
       toast.closeAll();
     }
   });
+
+  it('renders ToastContainer as nothing with toasts at several positions', () => {
+    toast.show({ message: 'Default', duration: 0 });
+    toast.show({ message: 'Placed', position: 'bottom-left', duration: 0 });
+    toast.show({ message: 'Inline', position: 'top-left', inline: true });
+    try {
+      const html = renderToStaticMarkup(React.createElement(ToastContainer));
+      expect(html).toBe('');
+    } finally {
+      toast.closeAll();
+    }
+  });
 });

@@ -668,10 +668,12 @@ export const declarationExtensions = (
  * renaming, and no rewriting `./x.js` to `./x.cjs`, because inside that tree
  * `./x.js` already resolves to a CommonJS `x.d.ts`.
  *
- * No `rm` before the copy. `pnpm all` hands `build` and `bundle:stats` to one
- * `turbo run` with no edge between them, and both are `rollup -c` over this same
- * `dist`, so they run concurrently. Two processes writing identical bytes is
- * harmless; one clearing the directory first is not, and the quiet outcome —
+ * No `rm` before the copy. `build` and `bundle:stats` are both `rollup -c` over
+ * this same `dist`, and `turbo.json` orders nothing between them, so any
+ * `turbo run` that names both runs them concurrently. `pnpm all` keeps them in
+ * separate runs, but nothing stops a hand-typed one. Two processes writing
+ * identical bytes is harmless; one clearing the directory first is not, and
+ * the quiet outcome —
  * an `rm` landing after the other wrote the manifest — leaves a tree with no
  * `package.json`, which falls back to the root `type: module` and puts TS1479
  * back with everything green.
