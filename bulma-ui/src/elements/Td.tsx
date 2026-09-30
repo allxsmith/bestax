@@ -5,7 +5,26 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
-/** Valid Bulma color values for table cells. */
+/**
+ * The values the table `color` prop accepts, as a readonly tuple.
+ *
+ * `TableColor` is typed from it, and `Tr`, `Th` and `Td` all take a
+ * `TableColor`, so the tuple and those props list the same values. Map over
+ * it to build a color picker, or check a value that arrives at runtime before
+ * passing it in: the components add no color class for a value outside the
+ * tuple.
+ *
+ * @example
+ * import { Tr, Td, validTableColors } from '@allxsmith/bestax-bulma';
+ *
+ * <Tr>
+ *   {validTableColors.map(color => (
+ *     <Td key={color} color={color}>
+ *       {color}
+ *     </Td>
+ *   ))}
+ * </Tr>;
+ */
 export const validTableColors = [
   'primary',
   'link',
