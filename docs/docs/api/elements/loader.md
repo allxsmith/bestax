@@ -125,7 +125,7 @@ The ring has a fixed width, so `mx="auto"` centers it. Mark the region that is l
   when the content arrives.
 - **Reduced motion:** under `prefers-reduced-motion: reduce` the ring stops spinning and stays
   drawn, so the loading state is still visible. That rule ships in bestax's stylesheets:
-  `bestax.css`, or `extras.css` next to your own Bulma.
+  `bestax.css` and its variants, or `extras.css` next to your own Bulma, in either order.
 
 ---
 

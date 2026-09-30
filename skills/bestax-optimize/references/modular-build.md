@@ -88,8 +88,11 @@ Notes:
 - Extras `Tabs` **extends** stock Bulma tabs (vertical variant) — an app using `Tabs` needs
   both `bulma/sass/components/tabs` and `@allxsmith/bestax-bulma/scss/components/tabs`.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
-- `Loader` is stock Bulma styled by `bulma/sass/elements/loader`. Its extras partial only
-  stops the spin under `prefers-reduced-motion: reduce`, so include both.
+- `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
+  spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
+  stops all of them under `prefers-reduced-motion: reduce`, so include it next to the Bulma
+  modules in any build that shows one. Its rules are `!important`, so the order of the two
+  `@use` lines does not matter.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.

@@ -72,7 +72,11 @@ export interface AutocompleteProps
   maxHeight?: number;
   /** Render as dropdown style. */
   dropdown?: boolean;
-  /** Show loading state. */
+  /**
+   * Show a loading spinner in the input.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   loading?: boolean;
   /** Whether the input is disabled. */
   disabled?: boolean;

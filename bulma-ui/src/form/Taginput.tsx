@@ -100,7 +100,11 @@ export interface TaginputProps
   keepFirst?: boolean;
   /** Keeps the autocomplete dropdown open after selection. */
   keepOpen?: boolean;
-  /** Shows a loading indicator. */
+  /**
+   * Shows a loading spinner in the input.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   loading?: boolean;
   /** ARIA label for tag close buttons. */
   ariaCloseLabel?: string;

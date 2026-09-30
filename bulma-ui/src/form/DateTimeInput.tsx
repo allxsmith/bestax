@@ -36,7 +36,11 @@ export interface DateTimeInputProps extends DateTimeInputBaseProps {
   hasIconsLeft?: boolean;
   /** Force the right icon container. */
   hasIconsRight?: boolean;
-  /** Show a loading indicator on the control. */
+  /**
+   * Show a loading spinner on the control.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Expand the control to fill its container. */
   isExpanded?: boolean;
