@@ -47,9 +47,12 @@
  *                        `pnpm publish` is declared, not inferred (#436,
  *                        #532)
  *   version-regression    no publishable manifest sits below a release tag
- *                         reachable from HEAD. `--allow-untagged` stands this
- *                         one rule down for a checkout git cannot answer for;
- *                         never pass it in CI.
+ *                         reachable from HEAD, no changelog lacks a section
+ *                         for one of those tags, and a package whose
+ *                         changelog records a release has a tag reachable
+ *                         (#711). `--allow-untagged` stands this one rule
+ *                         down for a checkout git cannot answer for; never
+ *                         pass it in CI.
  *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
@@ -4142,7 +4145,7 @@ async function checkTurboTasks() {
 
 /**
  * Hold every publishable manifest to the highest release tag REACHABLE FROM
- * HEAD.
+ * HEAD, and its changelog to a section for each of those tags.
  *
  * Reachable, not "the highest tag that exists", and the difference is the whole
  * usability of the check. A branch cut before a release legitimately carries the
@@ -4173,6 +4176,7 @@ async function checkVersionRegression(allowUntagged = false) {
     // and two rounds of pattern-matching could not see any of that.
     importConfig: dir =>
       import(pathToFileURL(join(REPO, dir, 'release.config.js')).href),
+    readChangelog: dir => readFile(join(REPO, dir, 'CHANGELOG.md'), 'utf8'),
   });
 }
 
