@@ -8,6 +8,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { getActiveElement, isEventInside } from '../helpers/shadowDom';
 import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
 import {
   type AnchorOnlyAttributes,
@@ -156,8 +157,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       if (!isBrowser(window, document)) return;
 
       const handleClick = (e: MouseEvent) => {
-        /* istanbul ignore next: dropdownRef.current is never null while the listener is attached */
-        if (!dropdownRef.current?.contains(e.target as Node)) {
+        if (!isEventInside(e, dropdownRef.current)) {
           setActive(false);
           onActiveChange?.(false);
         }
@@ -175,10 +175,16 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       onActiveChange?.(newActive);
     };
 
-    const handleMenuClick = () => {
+    const handleMenuClick = (e: React.MouseEvent<HTMLDivElement>) => {
       if (closeOnClick) {
         setActive(false);
         onActiveChange?.(false);
+        // Closing hides the item that has focus, and the browser drops focus
+        // to the page when that happens. Hand it back to the trigger, as
+        // Escape does. An item that moved focus somewhere else keeps it there.
+        if (e.currentTarget.contains(getActiveElement(e.currentTarget))) {
+          triggerRef.current?.focus();
+        }
       }
     };
 
@@ -244,6 +250,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         case 'Enter':
         case ' ':
           e.preventDefault();
+          // A held key sends a keydown per auto-repeat. Running an item hands
+          // focus back here, so without this a held Enter would reopen the
+          // menu and run whichever item it focused next.
+          if (e.repeat) break;
           if (!active) {
             pendingFocusRef.current = 'first';
             setActive(true);
@@ -283,7 +293,9 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
 
       const items = getMenuItems();
       if (!items.length) return;
-      const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+      const currentIndex = items.indexOf(
+        getActiveElement(e.currentTarget) as HTMLElement
+      );
       switch (e.key) {
         case 'ArrowDown': {
           e.preventDefault();

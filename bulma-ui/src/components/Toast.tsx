@@ -7,6 +7,7 @@ import React, {
   useSyncExternalStore,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { isEventInside } from '../helpers/shadowDom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { resolvePortalContainer } from '../helpers/portal';
@@ -159,7 +160,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       if (!dismissible || !isVisible) return undefined;
 
       const handleDocumentClick = (e: MouseEvent) => {
-        if (toastRef.current && !toastRef.current.contains(e.target as Node)) {
+        if (toastRef.current && !isEventInside(e, toastRef.current)) {
           handleClose();
         }
       };
