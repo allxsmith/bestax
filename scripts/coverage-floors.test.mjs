@@ -11,9 +11,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
@@ -22,8 +28,10 @@ import {
   floorsReporter,
   measuredRow,
 } from './coverage-floors.mjs';
+import { tokenize } from './lib/shell-words.mjs';
 
 const ROOT = join(tmpdir(), 'repo');
+const REPO = join(import.meta.dirname, '..');
 
 /** Node's percentage for `covered` of `total`, which calls an empty metric 100. */
 const percent = (covered, total) => (total ? (100 * covered) / total : 100);
@@ -91,9 +99,9 @@ test('a metric that covers something never gets a floor of 0', () => {
 
 test('a branch floor survives two units of noise in either direction', () => {
   // The guarantee the branch allowance exists for, written with its own
-  // number rather than SLACK so that shrinking SLACK fails here: the one
-  // never-run branch V8 counts in some runs, plus one to spare. Checked over
-  // every count a script here plausibly has.
+  // number rather than SLACK so that shrinking SLACK fails here. Branch
+  // counts drift in both shapes, branches counted and branches covered, so
+  // both are checked, over every count a script here plausibly has.
   const noise = 2;
   for (let total = 1; total <= 600; total++) {
     for (let covered = 0; covered < total; covered++) {
@@ -101,7 +109,7 @@ test('a branch floor survives two units of noise in either direction', () => {
       const added = percent(covered, total + noise);
       const lost = percent(Math.max(0, covered - noise), total);
       const at = `${covered}/${total} (floor ${floor})`;
-      // Never-run branches counted: the noise actually measured.
+      // Never-run branches counted.
       assert.ok(added >= floor, `${at}: ${added} with noise counted`);
       // Covered branches lost. A floor of 1 is exempt: it is the bar that
       // exists to fail when the last covered branches go.
@@ -173,6 +181,68 @@ test('a row missing a metric is reported instead of passing', () => {
   assert.deepEqual(problems, [
     'scripts/a.mjs: its row has no number for "functions".',
   ]);
+});
+
+test('a figure the run did not report fails instead of passing', () => {
+  // The same hazard on the measured side: a field Node renamed compares
+  // false against every floor, so it would pass every file at once.
+  const renamed = flat('scripts/a.mjs', 95);
+  delete renamed.coveredBranchPercent;
+  const nan = { ...flat('scripts/b.mjs', 95), coveredLinePercent: NaN };
+  const problems = checkFloors(
+    [renamed, nan],
+    { 'scripts/a.mjs': row(90, 90, 90), 'scripts/b.mjs': row(90, 90, 90) },
+    ROOT
+  );
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /^scripts\/a\.mjs: .*"coveredBranchPercent"/);
+  assert.match(problems[1], /^scripts\/b\.mjs: .*"coveredLinePercent"/);
+  assert.match(problems[0], /was not checked/);
+});
+
+test('a new file with a missing count gets no made-up row', () => {
+  // Without the check, a missing count works out to a floor of 0 in the row
+  // offered to paste in: a bar that reads as one and is not.
+  const measured = flat('scripts/new.mjs', 95);
+  delete measured.totalFunctionCount;
+  const problems = checkFloors([measured], {}, ROOT);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /"totalFunctionCount"/);
+  assert.doesNotMatch(problems[0], /add this row/);
+});
+
+test('the root scripts wire the gate in, and both entry points run it', () => {
+  // Nothing else reads this back. Without the coverage flag the reporter
+  // fails the run, but without the reporter flag the suite goes green with
+  // no gate at all, and the docs promise that `pnpm test` and `pnpm all`
+  // both check the floors.
+  const { scripts } = JSON.parse(
+    readFileSync(join(REPO, 'package.json'), 'utf8')
+  );
+  const words = tokenize(scripts['test:scripts'] ?? '');
+  assert.ok(
+    words.includes('--experimental-test-coverage'),
+    'test:scripts no longer turns coverage on'
+  );
+  const reporters = words.flatMap((word, i) => {
+    if (word === '--test-reporter') return [words[i + 1]];
+    if (word.startsWith('--test-reporter=')) return [word.split('=')[1]];
+    return [];
+  });
+  assert.ok(
+    reporters.some(
+      path =>
+        resolve(REPO, path) === join(REPO, 'scripts', 'coverage-floors.mjs')
+    ),
+    `test:scripts no longer loads the floors reporter (it loads: ${reporters.join(', ')})`
+  );
+  for (const entry of ['test', 'all']) {
+    assert.match(
+      scripts[entry] ?? '',
+      /\bpnpm (?:run )?test:scripts\b/,
+      `\`${entry}\` no longer runs test:scripts`
+    );
+  }
 });
 
 /** Drives a reporter over `events`, collecting its text and any failure. */

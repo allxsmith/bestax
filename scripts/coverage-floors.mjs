@@ -26,9 +26,9 @@
  * of its coverage without moving it.
  *
  * A floor is where the file stood when its row was written, rounded down to a
- * whole percent, with an allowance on branches only. V8 counts a branch that
- * never ran in some runs and not in others, so a branch floor sits
- * `SLACK.branches` covered branches lower. Lines and functions are counted from the source and
+ * whole percent, with an allowance on branches only. V8's branch counts move
+ * between runs, in how many branches it counts and in how many it counts as
+ * covered, so a branch floor sits `SLACK.branches` covered branches lower. Lines and functions are counted from the source and
  * from what ran, which do not move between runs, and an allowance there would
  * cost the most on the small files: two functions of six is a third of the
  * file. A metric at 100% keeps a floor of 100 whatever the allowance, since
@@ -87,11 +87,10 @@ const METRICS = [
 
 /**
  * How many covered units below the measured count a row allows, per metric.
- * The branch noise moves a count by one; two leaves a unit to spare beyond
- * it, so no row sits a single unexplained branch from failing every open PR.
- * Rounding down to a whole percent alone does not do this: on any count under
- * a hundred it leaves less than one unit. Lines and functions do not drift,
- * so they get none.
+ * Branch counts move between runs, and rounding down to a whole percent
+ * alone leaves less than one unit of margin on any count under a hundred, so
+ * a branch row without this could fail every open PR on noise. Lines and
+ * functions do not drift, so they get none.
  */
 const SLACK = { lines: 0, branches: 2, functions: 0 };
 
@@ -144,6 +143,21 @@ export function checkFloors(files, floors, root) {
   for (const file of files) {
     const key = keyOf(root, file.path);
     measured.add(key);
+    // Every comparison below is false against a missing or NaN figure, so a
+    // field Node renamed would read as a pass on every file at once. Anything
+    // this module reads from the summary must be a real number first.
+    const unusable = METRICS.flatMap(([, ...fields]) => fields).filter(
+      field => !Number.isFinite(file[field])
+    );
+    if (unusable.length) {
+      problems.push(
+        `${key}: the run reported no usable ` +
+          `${unusable.map(field => `"${field}"`).join(', ')}, so this file ` +
+          "was not checked. This module reads Node's coverage summary by " +
+          'field name.'
+      );
+      continue;
+    }
     const floor = floors[key];
     if (!floor) {
       const now = METRICS.map(([name, field]) => `${name} ${pct(file[field])}`);
