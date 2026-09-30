@@ -1141,6 +1141,106 @@ describe('the declaration-extension guard', () => {
     await assert.rejects(run(root), /\.\/gone\.d\.ts/);
   });
 
+  it('rewrites and checks a relative reference types like an import', async () => {
+    // A `reference types` directive is a comment, so the walk over nodes never
+    // reaches it, and a relative one shipped neither rewritten nor checked.
+    // TypeScript looks a relative one up the way it looks up a relative
+    // import, so from an ESM declaration it needs the same extension.
+    const root = tree({
+      'index.d.ts':
+        '/// <reference types="./x" />\n' +
+        '/// <reference types="./dir" />\n' +
+        '/// <reference types="./y.d.ts" />\n' +
+        '/// <reference types="node" />\n' +
+        'export {};\n',
+      'x.d.ts': 'declare var fromX: number;\n',
+      'dir/index.d.ts': 'declare var fromDir: number;\n',
+      'y.d.ts': 'declare var fromY: number;\n',
+    });
+    await run(root);
+    const out = readFileSync(join(root, 'index.d.ts'), 'utf8');
+    assert.match(out, /types="\.\/x\.js"/);
+    assert.match(out, /types="\.\/dir\/index\.js"/);
+    // A declaration spelling resolves as written, and a bare name is a
+    // package, so neither is touched.
+    assert.match(out, /types="\.\/y\.d\.ts"/);
+    assert.match(out, /types="node"/);
+
+    // And a dangling one stops the build, in each spelling the rewrite
+    // distinguishes.
+    for (const target of ['./gone', './gone.js', './gone.d.ts']) {
+      await assert.rejects(
+        run(
+          tree({
+            'index.d.ts': `/// <reference types="${target}" />\nexport {};\n`,
+          })
+        ),
+        /gone/,
+        `a dangling reference types shipped: ${target}`
+      );
+    }
+  });
+
+  it('a rewritten reference types still resolves for a real consumer', async () => {
+    // Rewriting a directive is right only if TypeScript then follows it, so
+    // this runs `tsc`, as the augmentation case does. Left extensionless, the
+    // same consumer gets TS2688 and the global the directive declares is gone.
+    const root = tree({
+      'x.d.ts': 'declare var fromX: number;\n',
+      'index.d.ts':
+        '/// <reference types="./x" />\n' +
+        'export declare const y: typeof fromX;\n',
+    });
+    await run(root);
+    assert.match(
+      readFileSync(join(root, 'index.d.ts'), 'utf8'),
+      /types="\.\/x\.js"/
+    );
+
+    const dir = mkdtempSync(join(tmpdir(), 'bestax-types-ref-'));
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({ name: 'ref-consumer', version: '1.0.0', type: 'module' })
+    );
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          module: 'nodenext',
+          moduleResolution: 'nodenext',
+          noEmit: true,
+          strict: true,
+          skipLibCheck: false,
+          types: [],
+        },
+        files: ['use.ts'],
+      })
+    );
+    copyFileSync(join(root, 'x.d.ts'), join(dir, 'x.d.ts'));
+    copyFileSync(join(root, 'index.d.ts'), join(dir, 'index.d.ts'));
+    writeFileSync(
+      join(dir, 'use.ts'),
+      "import { y } from './index.js';\nexport const z: number = y;\n"
+    );
+    const localRequire = createRequire(join(PKG_DIR, 'package.json'));
+    const tsc = join(
+      dirname(localRequire.resolve('typescript')),
+      '..',
+      'bin',
+      'tsc'
+    );
+    const compiled = spawnSync(process.execPath, [tsc, '-p', dir], {
+      encoding: 'utf8',
+    });
+    assert.equal(
+      compiled.status,
+      0,
+      `the rewritten reference types does not resolve:\n${
+        compiled.stdout || compiled.stderr
+      }`
+    );
+  });
+
   it('does not mistake a string or a nested template for a comment', async () => {
     // A FALSE comment range is the worst thing this file can get wrong, because
     // both passes consult it: the specifier inside would be neither rewritten
@@ -1277,6 +1377,34 @@ describe('the declaration-extension guard', () => {
       readFileSync(join(bare, 'index.d.ts'), 'utf8'),
       /declare module 'react'/
     );
+  });
+
+  it('answers a nested module name for itself, not by its file', async () => {
+    // TypeScript resolves a relative `declare module` name only at the top
+    // level of a module file. Measured against tsc: nested inside a package
+    // augmentation in a module file it is TS2435, and nested inside a
+    // top-level `declare module` in a global file it is accepted and merges
+    // nothing, with or without an extension. So no extension is right for
+    // either, and each is left as written and checked, which refuses the
+    // extensionless spelling.
+    //
+    // The module-file body is the one a file-wide answer got wrong: the file
+    // is a module, so the nested name was rewritten to `./a.js`, which then
+    // passed its own check. The global body pins the other direction. It is
+    // the shape that reads as an augmentation, and rewriting it would send a
+    // declaration that merges nothing through the check green.
+    for (const body of [
+      "export {};\ndeclare module 'foo' {\n  module './a' { export const x: number; }\n}\n",
+      "declare module 'foo' {\n  module './a' { export const x: number; }\n}\n",
+    ]) {
+      const root = tree({ 'index.d.ts': body, 'a.d.ts': 'export {};\n' });
+      await assert.rejects(
+        run(root),
+        /after the rewrite: \.\/a\./,
+        `a nested module name was given an extension: ${body}`
+      );
+      assert.equal(readFileSync(join(root, 'index.d.ts'), 'utf8'), body);
+    }
   });
 
   it('fails on a trailing-slash specifier that a stale sibling would mask', async () => {
@@ -1638,8 +1766,8 @@ describe('the declaration-extension guard', () => {
   });
 
   it('resolves a reference path spelled .d.cts as well as .d.ts', async () => {
-    // The declaration-extension arm of `resolvesToDeclaration` was driven only
-    // by the `.d.ts` spelling, while its `.cjs`/`.mjs` sibling had cases.
+    // `referenceResolves` accepts every declaration spelling, and only the
+    // `.d.ts` one was driven.
     const root = tree({
       'index.d.cts': '/// <reference path="./x.d.cts" />\nexport {};\n',
       'x.d.cts': 'export {};\n',
@@ -1659,13 +1787,41 @@ describe('the declaration-extension guard', () => {
   });
 
   it('fails on a reference path that resolves nowhere', async () => {
-    // The `.d.ts` arm of `resolvesToDeclaration` is the only probe a reference
-    // path ever gets, and only its acceptance was pinned: stubbing that arm to
-    // `true` left every case green while a dangling reference shipped.
+    // `referenceResolves` is the only probe a reference path ever gets, and
+    // only its acceptance was pinned: stubbing its probe to `true` left every
+    // case green while a dangling reference shipped.
     const root = tree({
       'index.d.ts': '/// <reference path="./gone.d.ts" />\nexport {};\n',
     });
     await assert.rejects(run(root), /resolve to no declaration/);
+  });
+
+  it('probes a reference path as the file it names, not as a specifier', async () => {
+    // TypeScript reads a reference target as a file path. Measured against
+    // tsc, `reference path="./a.js"` reads `a.js` and fails for the consumer
+    // with `a.d.ts` right beside it. The reference used to share the specifier
+    // predicate, which maps `./a.js` to `a.d.ts` before probing, so each of
+    // these was certified and shipped dangling.
+    for (const [target, beside] of [
+      ['./a.js', 'a.d.ts'],
+      ['./a.cjs', 'a.d.cts'],
+      ['./a.mjs', 'a.d.mts'],
+      // Extensionless is refused as well. TypeScript would complete it with an
+      // extension of its own choosing, and refusing it stops the build rather
+      // than shipping anything.
+      ['./a', 'a.d.ts'],
+    ]) {
+      await assert.rejects(
+        run(
+          tree({
+            'index.d.ts': `/// <reference path="${target}" />\nexport {};\n`,
+            [beside]: 'export {};\n',
+          })
+        ),
+        new RegExp(`after the rewrite: ${target.replace(/\./g, '\\.')}\\.`),
+        `a reference to ${target} was certified by ${beside}`
+      );
+    }
   });
 
   it('prefers the index for a bare dot even when a sibling declaration exists', async () => {
