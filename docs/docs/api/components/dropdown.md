@@ -27,7 +27,13 @@ Dropdowns can be fully controlled, used as hoverable, or triggered by click. Men
 <!-- bestax:generated import -->
 
 ```tsx
-import { Dropdown } from '@allxsmith/bestax-bulma';
+import {
+  Dropdown,
+  Button,
+  Field,
+  Control,
+  Span,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->

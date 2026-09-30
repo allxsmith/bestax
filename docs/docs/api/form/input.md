@@ -23,7 +23,14 @@ It is suitable for all standard text input types.
 <!-- bestax:generated import -->
 
 ```tsx
-import { Input, Field, Control } from '@allxsmith/bestax-bulma';
+import {
+  Input,
+  Field,
+  Control,
+  Button,
+  Select,
+  Icon,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -382,7 +389,7 @@ function PasswordReveal() {
 
 A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards. Screen readers don't reliably announce a change to a button's label, so a `role="status"` line under the field says it too.
 
-The clipboard can be missing, since `navigator.clipboard` exists only on secure (HTTPS) pages, and the browser can refuse the write. Either way the example focuses and selects the text, so the reader can copy it themselves, and explains in a `role="alert"` line. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. Both lines are in the page from the start, since a live region that appears together with its text isn't reliably announced.
+The clipboard can be missing, since `navigator.clipboard` exists only in secure contexts (HTTPS or localhost), and the browser can refuse the write. Either way the example focuses and selects the text, so the reader can copy it themselves, and explains in a `role="alert"` line. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. Both lines are in the page from the start, since a live region that appears together with its text isn't reliably announced.
 
 ```tsx live
 function CopyButton() {

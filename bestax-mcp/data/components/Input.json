@@ -130,7 +130,7 @@
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
   "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
-  "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",
+  "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Input.tsx",
   "rootClass": "input",
   "parts": [
