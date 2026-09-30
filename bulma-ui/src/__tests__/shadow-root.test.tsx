@@ -12,7 +12,13 @@
  * these, so focus is read from the shadow root instead.
  */
 import React, { useState } from 'react';
-import { render, fireEvent, act, createEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  createEvent,
+} from '@testing-library/react';
 import { Dropdown } from '../components/Dropdown';
 import { Taginput } from '../form/Taginput';
 import { Toast } from '../components/Toast';
@@ -267,22 +273,23 @@ describe('Modal in a shadow root', () => {
     expect(shadowRoot.activeElement).toBe(getByText('First'));
   });
 
-  test('closing hands focus back to the control that opened it', () => {
-    function Harness() {
-      const [open, setOpen] = useState(false);
-      return (
-        <>
-          <button type="button" onClick={() => setOpen(true)}>
-            Open
+  function Harness({ portal }: { portal?: boolean }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <button type="button" onClick={() => setOpen(true)}>
+          Open
+        </button>
+        <Modal portal={portal} active={open} onClose={() => setOpen(false)}>
+          <button type="button" onClick={() => setOpen(false)}>
+            Done
           </button>
-          <Modal active={open} onClose={() => setOpen(false)}>
-            <button type="button" onClick={() => setOpen(false)}>
-              Done
-            </button>
-          </Modal>
-        </>
-      );
-    }
+        </Modal>
+      </>
+    );
+  }
+
+  test('closing hands focus back to the control that opened it', () => {
     const { getByText } = renderInShadowRoot(<Harness />);
     const opener = getByText('Open');
 
@@ -291,6 +298,21 @@ describe('Modal in a shadow root', () => {
     expect(shadowRoot.activeElement).toBe(getByText('Done'));
 
     fireEvent.click(getByText('Done'));
+    expect(shadowRoot.activeElement).toBe(opener);
+  });
+
+  test('a portaled modal hands focus back to an opener inside the shadow root', () => {
+    const { getByText } = renderInShadowRoot(<Harness portal />);
+    const opener = getByText('Open');
+
+    opener.focus();
+    fireEvent.click(opener);
+    // The modal renders under `document.body`, outside the opener's tree.
+    const done = screen.getByText('Done');
+    expect(shadowRoot.contains(done)).toBe(false);
+    expect(done).toHaveFocus();
+
+    fireEvent.click(done);
     expect(shadowRoot.activeElement).toBe(opener);
   });
 });

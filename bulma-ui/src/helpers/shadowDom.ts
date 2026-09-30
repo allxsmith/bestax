@@ -9,6 +9,11 @@
  * click on its own menu for an outside click, or cannot tell which of its
  * items is focused. A web component or a sandboxed preview puts a component
  * in exactly that position.
+ *
+ * Focus comes in two questions, and each has its own function here. "Is focus
+ * inside me, and on which of my elements?" is `getActiveElementInTree`. "Which
+ * element has focus, wherever it is?", the one to record before moving focus
+ * away and restore to later, is `getDeepestActiveElement`.
  */
 
 /**
@@ -31,7 +36,9 @@ export function isEventInside(
  * The focused element as `node`'s own tree sees it: its shadow root's
  * `activeElement` when `node` is inside one, `document.activeElement` when it
  * is not. The result is comparable with `node` and its descendants, which
- * live in that same tree.
+ * live in that same tree, so use it to ask whether focus is inside `node`.
+ * Focus inside a shadow root nested within `node` reads as that root's host,
+ * which `node` contains.
  *
  * A shadow root with nothing focused inside reports `null`, and a detached
  * node has no document above it. Both fall back to `document.activeElement`,
@@ -40,9 +47,27 @@ export function isEventInside(
  * @param node - An element of the component, or nothing while it is unmounted.
  * @returns The focused element in `node`'s tree, or the document's.
  */
-export function getActiveElement(
+export function getActiveElementInTree(
   node: Node | null | undefined
 ): Element | null {
   const root = node?.getRootNode() as Partial<DocumentOrShadowRoot> | undefined;
   return root?.activeElement ?? document.activeElement;
+}
+
+/**
+ * The element that really has focus, followed down from
+ * `document.activeElement` through every open shadow root on the way. Use it
+ * to record where focus was before moving it, so it can be restored to that
+ * element later: the tree a component renders into need not be the tree its
+ * opener sits in. A closed shadow root cannot be entered, so focus inside one
+ * reads as its host.
+ *
+ * @returns The focused element, or `null` when the document has none.
+ */
+export function getDeepestActiveElement(): Element | null {
+  let active = document.activeElement;
+  while (active?.shadowRoot?.activeElement) {
+    active = active.shadowRoot.activeElement;
+  }
+  return active;
 }

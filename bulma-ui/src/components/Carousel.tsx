@@ -15,7 +15,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
-import { getActiveElement } from '../helpers/shadowDom';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -396,7 +396,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         const node = carouselRef.current;
-        if (!node?.contains(getActiveElement(node))) return;
+        if (!node?.contains(getActiveElementInTree(node))) return;
 
         switch (e.key) {
           case 'ArrowLeft':

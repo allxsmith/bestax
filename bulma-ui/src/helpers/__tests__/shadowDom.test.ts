@@ -1,4 +1,8 @@
-import { getActiveElement, isEventInside } from '../shadowDom';
+import {
+  getActiveElementInTree,
+  getDeepestActiveElement,
+  isEventInside,
+} from '../shadowDom';
 
 describe('shadowDom helpers', () => {
   let host: HTMLDivElement;
@@ -57,28 +61,73 @@ describe('shadowDom helpers', () => {
     });
   });
 
-  describe('getActiveElement', () => {
+  describe('getActiveElementInTree', () => {
     it('reads focus inside a shadow root, where the document sees the host', () => {
       inner.focus();
       expect(document.activeElement).toBe(host);
-      expect(getActiveElement(inner)).toBe(inner);
+      expect(getActiveElementInTree(inner)).toBe(inner);
     });
 
     it('reads the document for a node outside any shadow root', () => {
       outside.focus();
-      expect(getActiveElement(outside)).toBe(outside);
+      expect(getActiveElementInTree(outside)).toBe(outside);
     });
 
     it('falls back to the document when nothing in the shadow root has focus', () => {
       outside.focus();
       expect(shadowRoot.activeElement).toBeNull();
-      expect(getActiveElement(inner)).toBe(outside);
+      expect(getActiveElementInTree(inner)).toBe(outside);
     });
 
     it('falls back to the document for a detached or missing node', () => {
       outside.focus();
-      expect(getActiveElement(document.createElement('div'))).toBe(outside);
-      expect(getActiveElement(null)).toBe(outside);
+      expect(getActiveElementInTree(document.createElement('div'))).toBe(
+        outside
+      );
+      expect(getActiveElementInTree(null)).toBe(outside);
+    });
+
+    it("reads focus in a nested shadow root as that root's host", () => {
+      const nestedHost = document.createElement('div');
+      shadowRoot.appendChild(nestedHost);
+      const deep = document.createElement('button');
+      nestedHost.attachShadow({ mode: 'open' }).appendChild(deep);
+      deep.focus();
+      expect(getActiveElementInTree(inner)).toBe(nestedHost);
+    });
+  });
+
+  describe('getDeepestActiveElement', () => {
+    it('follows focus down through open shadow roots', () => {
+      const nestedHost = document.createElement('div');
+      shadowRoot.appendChild(nestedHost);
+      const deep = document.createElement('button');
+      nestedHost.attachShadow({ mode: 'open' }).appendChild(deep);
+      deep.focus();
+      expect(document.activeElement).toBe(host);
+      expect(getDeepestActiveElement()).toBe(deep);
+    });
+
+    it('reads the document when focus is not in a shadow root', () => {
+      outside.focus();
+      expect(getDeepestActiveElement()).toBe(outside);
+    });
+
+    it('stops at the host of a closed shadow root', () => {
+      const closedHost = document.createElement('div');
+      const hidden = document.createElement('button');
+      closedHost.attachShadow({ mode: 'closed' }).appendChild(hidden);
+      document.body.appendChild(closedHost);
+      hidden.focus();
+      expect(getDeepestActiveElement()).toBe(closedHost);
+      closedHost.remove();
+    });
+
+    it('stops at a shadow host whose root has nothing focused', () => {
+      host.tabIndex = 0;
+      host.focus();
+      expect(shadowRoot.activeElement).toBeNull();
+      expect(getDeepestActiveElement()).toBe(host);
     });
   });
 });

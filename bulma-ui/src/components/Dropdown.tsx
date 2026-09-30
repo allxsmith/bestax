@@ -8,7 +8,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { getActiveElement, isEventInside } from '../helpers/shadowDom';
+import { getActiveElementInTree, isEventInside } from '../helpers/shadowDom';
 import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
 import {
   type AnchorOnlyAttributes,
@@ -182,7 +182,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         // Closing hides the item that has focus, and the browser drops focus
         // to the page when that happens. Hand it back to the trigger, as
         // Escape does. An item that moved focus somewhere else keeps it there.
-        if (e.currentTarget.contains(getActiveElement(e.currentTarget))) {
+        if (e.currentTarget.contains(getActiveElementInTree(e.currentTarget))) {
           triggerRef.current?.focus();
         }
       }
@@ -294,7 +294,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       const items = getMenuItems();
       if (!items.length) return;
       const currentIndex = items.indexOf(
-        getActiveElement(e.currentTarget) as HTMLElement
+        getActiveElementInTree(e.currentTarget) as HTMLElement
       );
       switch (e.key) {
         case 'ArrowDown': {
