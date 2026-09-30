@@ -121,6 +121,22 @@ function writeDoc(doc) {
   return file;
 }
 
+/**
+ * Collect what the script prints, for the rest of the calling test.
+ *
+ * Its failures are `::error::` workflow commands and its warnings
+ * `::warning::` ones. Left on the real console, a runner files each of them
+ * as an annotation against a green test run (#723), so a test that drives
+ * one captures the lines and asserts on them instead.
+ */
+function captureConsole(t) {
+  const lines = [];
+  const push = (...args) => lines.push(args.join(' '));
+  t.mock.method(console, 'log', push);
+  t.mock.method(console, 'error', push);
+  return lines;
+}
+
 // --- the happy path ----------------------------------------------------------
 
 test('a clean SPDX closure has no problems', () => {
@@ -550,35 +566,58 @@ const cli = (spdx, cdx) => [
   VERSION,
 ];
 
-test('main returns 0 on a clean pair and 1 on a dirty one', () => {
+test('main returns 0 on a clean pair and 1 on a dirty one', t => {
+  const lines = captureConsole(t);
   assert.equal(main(cli(writeDoc(healthySpdx()), writeDoc(healthyCdx()))), 0);
+  assert.equal(lines.length, 1, 'a clean pair says one thing');
+  assert.ok(
+    lines[0].startsWith(`check-consumer-sbom: ${PKG}@${VERSION} — `),
+    lines[0]
+  );
 
+  lines.length = 0;
   const doc = healthySpdx();
   doc.packages.push({
     name: 'actions/checkout',
     downloadLocation: 'NOASSERTION',
   });
-  assert.equal(main(cli(writeDoc(doc), writeDoc(healthyCdx()))), 1);
+  const dirty = writeDoc(doc);
+  assert.equal(main(cli(dirty, writeDoc(healthyCdx()))), 1);
+  assert.ok(
+    lines[0].startsWith(`::error::${dirty} is not a clean consumer closure`),
+    lines[0]
+  );
+  // The problems follow the annotation and name the offending entry.
+  assert.ok(
+    lines.some(l => l.startsWith('  - ') && l.includes('actions/checkout'))
+  );
 });
 
-test('main fails when the two documents disagree, though each is clean alone', () => {
+test('main fails when the two documents disagree, though each is clean alone', t => {
   // The case two separate invocations could not catch: both documents satisfy
   // every per-document assertion and still describe different closures. This
   // is the shape a git dependency takes in CycloneDX, where nothing can
   // origin-check it.
+  const lines = captureConsole(t);
   const c = healthyCdx();
   c.components.push(cdxDep('ghost-package', '9.9.9'));
   assert.deepEqual(inspect(healthySpdx(), TARGET), []);
   assert.deepEqual(inspect(c, TARGET), []);
   assert.equal(main(cli(writeDoc(healthySpdx()), writeDoc(c))), 1);
+  assert.equal(
+    lines[0],
+    '::error::the two documents do not describe the same closure'
+  );
+  assert.ok(lines.some(l => l.includes('ghost-package@9.9.9')));
 });
 
-test('main rejects a document whose contents contradict its flag', () => {
+test('main rejects a document whose contents contradict its flag', t => {
   // The flags are a claim about each file; normalize() reads the format off
   // the document. Until those are compared the flags are decoration — the same
   // CycloneDX file passed twice satisfies every per-document assertion and
   // agrees with itself, while the release ships a `.spdx.json` that is not
   // SPDX. A `format:` typo on either sbom-action step produces exactly that.
+  const lines = captureConsole(t);
   const cdx = writeDoc(healthyCdx());
   assert.equal(main(cli(cdx, cdx)), 1);
 
@@ -587,12 +626,28 @@ test('main rejects a document whose contents contradict its flag', () => {
 
   // Swapped, each individually well-formed.
   assert.equal(main(cli(cdx, spdx)), 1);
+
+  // Each rejection names the file, the flag it came in under, and what the
+  // document actually is.
+  const expected = [
+    `::error::${cdx} was passed as --spdx but its contents are "cyclonedx"`,
+    `::error::${spdx} was passed as --cdx but its contents are "spdx"`,
+    `::error::${cdx} was passed as --spdx but its contents are "cyclonedx"`,
+  ];
+  assert.equal(lines.length, expected.length);
+  expected.forEach((start, i) =>
+    assert.ok(lines[i].startsWith(start), lines[i])
+  );
 });
 
-test('main separates usage and read errors from assertion failures', () => {
+test('main separates usage and read errors from assertion failures', t => {
   // Exit 2 must not be readable as "the SBOM is wrong".
+  const lines = captureConsole(t);
   assert.equal(main([]), 2);
+  assert.ok(lines[0].startsWith('::error::--spdx is required\nusage: '));
   assert.equal(main(cli('/nope/missing.json', writeDoc(healthyCdx()))), 2);
+  assert.equal(lines[1], '::error::cannot read /nope/missing.json: ENOENT');
+  assert.equal(lines.length, 2);
 });
 
 // --- log injection through the rejection message -----------------------------
@@ -621,12 +676,14 @@ test('forLog neutralises every value read out of a document', () => {
   assert.ok(!forLog('x\ny').includes('\n'));
 });
 
-test('NO message path can emit a raw newline, swept exhaustively', () => {
+test('NO message path can emit a raw newline, swept exhaustively', t => {
   // Written as a sweep rather than a list because eyeballing the call sites is
   // exactly what missed `readDocument`'s parser message and `crossCheck`'s
   // identity list after a previous pass claimed the file was clean. Every
   // string-valued field a document can carry gets the payload, and every
-  // problem string from both entry points is checked.
+  // problem string from both entry points is checked, along with the warnings
+  // inspect() prints on the way.
+  const printed = captureConsole(t);
   const EVIL = 'x\n::error::FORGED';
   const collect = [];
 
@@ -655,7 +712,8 @@ test('NO message path can emit a raw newline, swept exhaustively', () => {
   collect.push(...crossCheck(ps, healthyCdx(), TARGET));
 
   assert.ok(collect.length > 0, 'the sweep must actually produce problems');
-  for (const p of collect) {
+  assert.ok(printed.length > 0, 'the sweep must actually reach the warnings');
+  for (const p of [...collect, ...printed]) {
     assert.ok(!p.includes('\n'), `raw newline in: ${JSON.stringify(p)}`);
     assert.ok(!p.includes('\r'), `raw CR in: ${JSON.stringify(p)}`);
   }
