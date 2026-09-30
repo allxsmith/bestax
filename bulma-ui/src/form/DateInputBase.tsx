@@ -101,7 +101,12 @@ export interface DateInputBaseProps
   position?: PickerPosition;
   /** Render the popover into `document.body` via portal. */
   appendToBody?: boolean;
-  /** Bulma color modifier. */
+  /**
+   * Bulma color modifier for the input, also carried by the calendar, where it
+   * colors the selected date, today's date and the keyboard focus ring. Unset,
+   * the calendar uses its `--bulma-dateinput-*` variables, which follow
+   * `primary` by default.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */
   size?: 'small' | 'medium' | 'large';

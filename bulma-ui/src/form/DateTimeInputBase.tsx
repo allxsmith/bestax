@@ -134,10 +134,12 @@ export interface DateTimeInputBaseProps
   /** Render the popover into `document.body` via portal. */
   appendToBody?: boolean;
   /**
-   * Bulma color modifier for the input, also carried by the time wheels, where
-   * it colors the selection band and the keyboard focus ring. Unset, the
-   * wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to
-   * `primary`. The calendar does not take it.
+   * Bulma color modifier for the input, also carried by the calendar and the
+   * time wheels, where it colors the selected date, today's date, the
+   * selection band and the keyboard focus rings. Unset, they use their
+   * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
+   * follow `primary` by default. The footer's time pill and Done button stay
+   * `primary` either way.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */

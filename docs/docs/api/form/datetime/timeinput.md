@@ -1074,7 +1074,7 @@ When you pass an explicit token `format`, **that format is the source of truth f
 | `--bulma-timeinput-wheel-width` ‡             | `$timeinput-wheel-width`             | `3rem`                                                                                                                   |
 | `--bulma-timeinput-wheel-item-height` ‡       | `$timeinput-wheel-item-height`       | `2rem`                                                                                                                   |
 | `--bulma-timeinput-wheel-gap` ‡               | `$timeinput-wheel-gap`               | `0.4rem`                                                                                                                 |
-| `--bulma-timeinput-wheel-bg` ‡                | `$timeinput-wheel-bg`                | `var(--bulma-scheme-main)`                                                                                               |
+| `--bulma-timeinput-wheel-bg` ‡                | `$timeinput-wheel-bg`                | `transparent`                                                                                                            |
 | `--bulma-timeinput-wheel-color` ‡             | `$timeinput-wheel-color`             | `var(--bulma-text)`                                                                                                      |
 | `--bulma-timeinput-wheel-dim-color` ‡         | `$timeinput-wheel-dim-color`         | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-timeinput-wheel-hover-bg` ‡          | `$timeinput-wheel-hover-bg`          | `hsla(0, 0%, 50%, 0.13)`                                                                                                 |
@@ -1119,3 +1119,5 @@ When you pass an explicit token `format`, **that format is the source of truth f
 ‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->
+
+**Item height:** `--bulma-timeinput-wheel-item-height` (`$timeinput-wheel-item-height`) is registered, and nothing reads it. The component sets each wheel item's height inline, taller on small viewports, because the wheels position their items from that height in script. It stays registered so a Sass build that configures it keeps compiling.

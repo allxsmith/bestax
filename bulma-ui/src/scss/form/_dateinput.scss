@@ -9,6 +9,7 @@ $dateinput-cell-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
 $dateinput-cell-selected-bg: cv.getVar('primary') !default;
 $dateinput-cell-selected-color: cv.getVar('primary-invert') !default;
 $dateinput-cell-today-color: cv.getVar('primary') !default;
+$dateinput-focus-ring-color: cv.getVar('primary') !default;
 $dateinput-cell-disabled-color: cv.getVar('text-weak') !default;
 $dateinput-cell-other-month-color: cv.getVar('text-weak') !default;
 $dateinput-header-padding: 0.5rem 0 !default;
@@ -27,6 +28,7 @@ $dateinput-nav-button-size: 1.75rem !default;
       'dateinput-cell-selected-bg': #{$dateinput-cell-selected-bg},
       'dateinput-cell-selected-color': #{$dateinput-cell-selected-color},
       'dateinput-cell-today-color': #{$dateinput-cell-today-color},
+      'dateinput-focus-ring-color': #{$dateinput-focus-ring-color},
       'dateinput-cell-disabled-color': #{$dateinput-cell-disabled-color},
       'dateinput-cell-other-month-color': #{$dateinput-cell-other-month-color},
       'dateinput-header-padding': #{$dateinput-header-padding},
@@ -80,7 +82,7 @@ $dateinput-nav-button-size: 1.75rem !default;
     background-color: cv.getVar('dateinput-cell-hover-bg');
   }
   &:focus-visible {
-    outline: 2px solid cv.getVar('primary');
+    outline: 2px solid cv.getVar('dateinput-focus-ring-color');
     outline-offset: 2px;
   }
 }
@@ -121,7 +123,7 @@ $dateinput-nav-button-size: 1.75rem !default;
     background-color: cv.getVar('dateinput-cell-hover-bg');
   }
   &:focus-visible {
-    outline: 2px solid cv.getVar('primary');
+    outline: 2px solid cv.getVar('dateinput-focus-ring-color');
     outline-offset: 1px;
   }
   &:disabled {
@@ -172,7 +174,7 @@ $dateinput-nav-button-size: 1.75rem !default;
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
     background-color: cv.getVar('dateinput-cell-hover-bg');
   }
-  // Hover for the selected cell: darken the primary fill rather than
+  // Hover for the selected cell: darken the selection fill rather than
   // replacing it, so the selection stays visible under the cursor while
   // still giving interactive feedback.
   &.#{iv.$class-prefix}is-selected:hover:not(:disabled) {
@@ -183,10 +185,10 @@ $dateinput-nav-button-size: 1.75rem !default;
     );
   }
   // Inset focus ring so it can't bleed into an adjacent selected cell's
-  // primary fill (the grid gap is only 2px). Outline respects the cell's
+  // fill (the grid gap is only 2px). Outline respects the cell's
   // border-radius in modern browsers.
   &:focus-visible {
-    outline: 2px solid cv.getVar('primary');
+    outline: 2px solid cv.getVar('dateinput-focus-ring-color');
     outline-offset: -2px;
   }
   // Today: tinted bold text (no ring), so it doesn't collide visually with
@@ -200,7 +202,7 @@ $dateinput-nav-button-size: 1.75rem !default;
     color: cv.getVar('dateinput-cell-selected-color');
   }
   // When focus lands on the selected cell, swap the ring to scheme-main so
-  // it stays visible against the primary-colored fill.
+  // it stays visible against the selection fill.
   &.#{iv.$class-prefix}is-selected:focus-visible {
     outline-color: cv.getVar('scheme-main');
   }
@@ -250,7 +252,7 @@ $dateinput-nav-button-size: 1.75rem !default;
     );
   }
   &:focus-visible {
-    outline: 2px solid cv.getVar('primary');
+    outline: 2px solid cv.getVar('dateinput-focus-ring-color');
     outline-offset: -2px;
   }
   &.#{iv.$class-prefix}is-today {
@@ -268,6 +270,24 @@ $dateinput-nav-button-size: 1.75rem !default;
     color: cv.getVar('dateinput-cell-disabled-color');
     cursor: not-allowed;
     opacity: 0.55;
+  }
+}
+
+// Colour variants. `color` lands on the calendar root as `is-<colour>`, and
+// the root re-points its accent variables at that colour: the selection fill
+// paired with its `-invert` for the selected value, today's tint and the focus
+// ring, the same pairings the `primary` defaults use. Every rule that paints
+// an accent reads one of these, so they follow without rules of their own.
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}dateinput.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        'dateinput-cell-selected-bg': #{cv.getVar($name)},
+        'dateinput-cell-selected-color': #{cv.getVar('#{$name}-invert')},
+        'dateinput-cell-today-color': #{cv.getVar($name)},
+        'dateinput-focus-ring-color': #{cv.getVar($name)},
+      )
+    );
   }
 }
 

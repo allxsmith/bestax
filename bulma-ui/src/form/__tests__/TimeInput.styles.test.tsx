@@ -68,22 +68,70 @@ describe('TimeInput wheel colour styles', () => {
   });
 });
 
+/** Every custom property the style rules in a list set, media blocks skipped. */
+function customProperties(rules: CSSRuleList): string[] {
+  const names = new Set<string>();
+  for (const rule of Array.from(rules)) {
+    if (!(rule instanceof CSSStyleRule)) continue;
+    for (let i = 0; i < rule.style.length; i++) {
+      const name = rule.style[i];
+      if (name.startsWith('--')) names.add(name);
+    }
+  }
+  return [...names];
+}
+
 /** Every custom property a `(max-width: …)` media block in the sheet sets. */
 function mobileCustomProperties(sheet: CSSStyleSheet): string[] {
   const names = new Set<string>();
   for (const rule of Array.from(sheet.cssRules)) {
     if (!(rule instanceof CSSMediaRule)) continue;
     if (!/max-width/.test(rule.media.mediaText)) continue;
-    for (const inner of Array.from(rule.cssRules)) {
-      if (!(inner instanceof CSSStyleRule)) continue;
-      for (let i = 0; i < inner.style.length; i++) {
-        const name = inner.style[i];
-        if (name.startsWith('--')) names.add(name);
-      }
-    }
+    for (const name of customProperties(rule.cssRules)) names.add(name);
   }
   return [...names];
 }
+
+/** The names no `var()` in the shipped stylesheet reads. */
+let shipped: string | undefined;
+function unread(names: string[]): string[] {
+  shipped ??= compile('bestax.scss');
+  const css = shipped;
+  return names.filter(
+    name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(css)
+  );
+}
+
+describe('TimeInput variables', () => {
+  // A registered variable nothing reads is a theming knob that turns nothing,
+  // which is where the wheel background and hover fill sat. The item height
+  // is left that way on purpose: the wheels position items from a height the
+  // component passes them, and dropping the Sass variable would break a theme
+  // that sets it. So it is named here, and has to stay unread to stay named.
+  const UNREAD = ['--bulma-timeinput-wheel-item-height'];
+
+  it('registers only variables that some rule reads', () => {
+    const registered = customProperties(
+      (styleEl.sheet as CSSStyleSheet).cssRules
+    );
+    expect(registered).toEqual(expect.arrayContaining(UNREAD));
+    expect(unread(registered)).toEqual(UNREAD);
+  });
+
+  it('leaves the wheel background transparent by default', () => {
+    // The wheel sits on the popover, the inline frame or DateTimeInput's time
+    // card, each with a background variable of its own. Any other default
+    // would paint over whichever of those a theme had changed.
+    const { container } = render(<TimeInput inline />);
+    const root = container.querySelector<HTMLElement>('.timeinput');
+    expect(root).not.toBeNull();
+    expect(
+      getComputedStyle(root as HTMLElement)
+        .getPropertyValue('--bulma-timeinput-wheel-bg')
+        .trim()
+    ).toBe('transparent');
+  });
+});
 
 describe('TimeInput mobile overrides', () => {
   // The small-viewport block adjusts the wheels and the popover by setting
@@ -92,11 +140,6 @@ describe('TimeInput mobile overrides', () => {
   it('sets only custom properties that some rule reads', () => {
     const set = mobileCustomProperties(styleEl.sheet as CSSStyleSheet);
     expect(set.length).toBeGreaterThan(0);
-
-    const shipped = compile('bestax.scss');
-    const unread = set.filter(
-      name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(shipped)
-    );
-    expect(unread).toEqual([]);
+    expect(unread(set)).toEqual([]);
   });
 });

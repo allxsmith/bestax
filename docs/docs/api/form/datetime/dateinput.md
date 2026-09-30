@@ -629,6 +629,35 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 </Block>
 ```
 
+**Inline:** the calendar carries the color too, on the selected date, today's date and the keyboard focus ring, and rendered inline it shows without opening a popover.
+
+```tsx live
+function example() {
+  // The 1st of this month (the 2nd when today is the 1st), so the selected
+  // date and today's date both show.
+  const picked = new Date();
+  picked.setDate(picked.getDate() === 1 ? 2 : 1);
+  return (
+    <Block display="flex" flexWrap="wrap">
+      <Block mr="4" mb="4">
+        <DateInput label="Link" color="link" inline defaultValue={picked} />
+      </Block>
+      <Block mr="4" mb="4">
+        <DateInput
+          label="Success"
+          color="success"
+          inline
+          defaultValue={picked}
+        />
+      </Block>
+      <Block mr="4" mb="4">
+        <DateInput label="Danger" color="danger" inline defaultValue={picked} />
+      </Block>
+    </Block>
+  );
+}
+```
+
 ---
 
 ### States
@@ -868,7 +897,7 @@ Use `inline` instead of the popover when you have vertical room to spare — boo
 | `closeOnSelect`     | `boolean`                                                                        | `true`           | Close the popover after a date is selected.                                                                                                                                                                                                                                         |
 | `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the input.                                                                                                                                                                                                                                      |
 | `appendToBody`      | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal.                                                                                                                                                                                                                                 |
-| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier.                                                                                                                                                                                                                                                               |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier for the input, also carried by the calendar, where it colors the selected date, today's date and the keyboard focus ring. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` by default.                                     |
 | `size`              | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size variant.                                                                                                                                                                                                                                                                       |
 | `isRounded`         | `boolean`                                                                        | `false`          | Render the input with rounded corners.                                                                                                                                                                                                                                              |
 | `shouldDisableDate` | `(d: Date) => boolean`                                                           | —                | Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing.                                                                                                                                                                          |
@@ -908,6 +937,7 @@ Use `inline` instead of the popover when you have vertical room to spare — boo
 | `--bulma-dateinput-cell-selected-bg` ‡        | `$dateinput-cell-selected-bg`        | `var(--bulma-primary)`                                                                                                   |
 | `--bulma-dateinput-cell-selected-color` ‡     | `$dateinput-cell-selected-color`     | `var(--bulma-primary-invert)`                                                                                            |
 | `--bulma-dateinput-cell-today-color` ‡        | `$dateinput-cell-today-color`        | `var(--bulma-primary)`                                                                                                   |
+| `--bulma-dateinput-focus-ring-color` ‡        | `$dateinput-focus-ring-color`        | `var(--bulma-primary)`                                                                                                   |
 | `--bulma-dateinput-cell-disabled-color` ‡     | `$dateinput-cell-disabled-color`     | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-dateinput-cell-other-month-color` ‡  | `$dateinput-cell-other-month-color`  | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-dateinput-header-padding` ‡          | `$dateinput-header-padding`          | `0.5rem 0`                                                                                                               |

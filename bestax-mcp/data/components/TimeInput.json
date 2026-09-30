@@ -795,7 +795,7 @@
     {
       "css": "--bulma-timeinput-wheel-bg",
       "sass": "$timeinput-wheel-bg",
-      "default": "var(--bulma-scheme-main)",
+      "default": "transparent",
       "scope": "element"
     },
     {

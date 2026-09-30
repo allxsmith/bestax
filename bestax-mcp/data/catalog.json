@@ -371,7 +371,7 @@
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 52,
-      "exampleCount": 37
+      "exampleCount": 38
     },
     {
       "name": "DateTimeInput",
@@ -382,7 +382,7 @@
       "import": "import { DateTimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 62,
-      "exampleCount": 39
+      "exampleCount": 40
     },
     {
       "name": "Delete",
@@ -1297,6 +1297,7 @@
     "--bulma-dateinput-cell-today-color": "DateTimeInput",
     "--bulma-dateinput-day-name-color": "DateTimeInput",
     "--bulma-dateinput-day-name-size": "DateTimeInput",
+    "--bulma-dateinput-focus-ring-color": "DateTimeInput",
     "--bulma-dateinput-header-padding": "DateTimeInput",
     "--bulma-dateinput-min-width": "DateTimeInput",
     "--bulma-dateinput-nav-button-size": "DateTimeInput",
