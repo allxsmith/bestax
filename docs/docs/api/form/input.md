@@ -380,9 +380,9 @@ function PasswordReveal() {
 
 ### Copy Button
 
-A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards, and a `role="status"` line under the field says so to screen readers, which don't reliably announce a change to a button's label.
+A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards. Screen readers don't reliably announce a change to a button's label, so a `role="status"` line under the field says it too.
 
-The clipboard can be missing, since `navigator.clipboard` exists only on secure (HTTPS) pages, and the browser can refuse the write. Either way the example focuses and selects the text and says what happened, so the reader can copy it themselves.
+The clipboard can be missing, since `navigator.clipboard` exists only on secure (HTTPS) pages, and the browser can refuse the write. Either way the example focuses and selects the text, so the reader can copy it themselves, and explains in a `role="alert"` line. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. Both lines are in the page from the start, since a live region that appears together with its text isn't reliably announced.
 
 ```tsx live
 function CopyButton() {
@@ -426,11 +426,10 @@ function CopyButton() {
           </Button>
         </Control>
       </Field>
-      <p
-        role="status"
-        className={status === 'failed' ? 'help is-danger' : 'help'}
-      >
+      <p role="status" className="help">
         {status === 'copied' && 'Copied to the clipboard.'}
+      </p>
+      <p role="alert" className="help is-danger">
         {status === 'failed' &&
           "Couldn't copy automatically. The link is selected, so copy it from the field."}
       </p>
