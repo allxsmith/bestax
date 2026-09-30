@@ -134,8 +134,8 @@ const VERSION = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)
  * Strict on purpose. Release notes carry commit bodies verbatim, so a looser
  * pattern could read a stray line of one as a section and pass a changelog
  * whose real section is gone. The other direction is covered by
- * `VERSION_HEADING` below, so a shape this does not know is named as one
- * rather than reported as a deletion.
+ * `VERSION_HEADING` and `headingLikeVersion` below, so a shape this does not
+ * know is named as one rather than reported as a deletion.
  */
 const SECTION_HEADING = new RegExp(
   String.raw`^#{1,2} (?:\[(${VERSION})\]\([^\s()]+\)|(${VERSION}))(?: \((\d{4}-\d{2}-\d{2})\))?[ \t]*$`
@@ -154,10 +154,47 @@ const VERSION_HEADING = new RegExp(
 );
 
 /**
+ * The version a heading-LIKE line opens with, for a shape neither pattern above
+ * reads, or null.
+ *
+ * Heading-like, not any line. A version named in the body of another release's
+ * notes ("reverts 5.17.0") must not pass for its section, or it would hide a
+ * real deletion behind a message about heading shapes. So the line has to be a
+ * heading by some markup (`#` at any depth, an HTML `<h1>` to `<h6>`, or text
+ * over a setext `===` or `---` underline), or open with emphasis or an emoji
+ * the way a pseudo-heading does. And the version has to open its text as a
+ * whole token, after nothing but decoration, so `5.17.0-rc.1` and `15.17.0` do
+ * not count for `5.17.0`.
+ */
+const DECORATION = String.raw`(?:\s|[*_~\[(]|<[^>]*>|\p{Extended_Pictographic}|\uFE0F)*`;
+const OPENS_WITH_VERSION = new RegExp(
+  String.raw`^${DECORATION}v?(${VERSION})(?![0-9A-Za-z.+-]*[0-9A-Za-z])`,
+  'u'
+);
+const PSEUDO_HEADING = /^\s*(?:[*_~]|\p{Extended_Pictographic})/u;
+const LIST_ITEM = /^\s*(?:[*+-]|\d+[.)])\s/;
+const SETEXT_UNDERLINE = /^ {0,3}(?:=+|-+)[ \t]*$/;
+
+const headingLikeVersion = (line, next = '') => {
+  const atx = /^ {0,3}#{1,6}(.*)$/.exec(line);
+  const html = /^\s*<h[1-6]\b[^>]*>(.*)$/i.exec(line);
+  let text = null;
+  if (atx) text = atx[1];
+  else if (html) text = html[1];
+  else if (LIST_ITEM.test(line)) return null;
+  else if (line.trim() && SETEXT_UNDERLINE.test(next)) text = line;
+  else if (PSEUDO_HEADING.test(line)) text = line;
+  if (text === null) return null;
+  return OPENS_WITH_VERSION.exec(text)?.[1] ?? null;
+};
+
+/**
  * What a CHANGELOG.md records: `versions`, every version it has a section
  * for; `released`, those whose heading has the link or date a release writes;
- * and `unread`, each version that opens a heading in a shape `SECTION_HEADING`
- * does not accept, mapped to that heading.
+ * `unread`, each version that opens a heading in a shape `SECTION_HEADING`
+ * does not accept but `VERSION_HEADING` does; and `mentioned`, each version a
+ * heading-like line opens with in a shape neither reads. The last two map the
+ * version to that line.
  *
  * A bare heading is a section wherever a tag stands behind it, which is how
  * bulma-ui's history from before semantic-release is held. It is not, on its
@@ -168,7 +205,9 @@ export const changelogSections = text => {
   const versions = new Set();
   const released = new Set();
   const unread = new Map();
-  for (const line of String(text).split(/\r?\n/)) {
+  const mentioned = new Map();
+  const lines = String(text).split(/\r?\n/);
+  lines.forEach((line, index) => {
     const section = SECTION_HEADING.exec(line);
     if (section) {
       const [, linked, bare, date] = section;
@@ -176,12 +215,19 @@ export const changelogSections = text => {
       if (linked !== undefined || date !== undefined) {
         released.add(linked ?? bare);
       }
-      continue;
+      return;
     }
     const heading = VERSION_HEADING.exec(line);
-    if (heading && !unread.has(heading[1])) unread.set(heading[1], line.trim());
-  }
-  return { versions, released, unread };
+    if (heading) {
+      if (!unread.has(heading[1])) unread.set(heading[1], line.trim());
+      return;
+    }
+    const named = headingLikeVersion(line, lines[index + 1]);
+    if (named !== null && !mentioned.has(named)) {
+      mentioned.set(named, line.trim());
+    }
+  });
+  return { versions, released, unread, mentioned };
 };
 
 /**
@@ -219,9 +265,9 @@ export const loadChangelog = async (dir, readChangelog) => {
  * @param anyTagsExist boolean whether the repository has any tags at all
  * @param tagFormatFor (dir) => string|null the `tagFormat` literal in that
  *   package's release config, or null when it has none to read
- * @param changelogFor (dir) => { versions, released, unread }|null|
+ * @param changelogFor (dir) => what that package's CHANGELOG.md records, as
+ *   `loadChangelog` answers: `changelogSections`'s object, null, or
  *   UNREADABLE_CHANGELOG
- *   what that package's CHANGELOG.md records, as `loadChangelog` answers
  */
 export const findVersionRegressions = ({
   packages,
@@ -476,8 +522,16 @@ export const findVersionRegressions = ({
     // A missing version that still opens a heading was not deleted. Its
     // heading is in a shape the parser does not accept, which is what drift in
     // the release tooling looks like, and restoring the file would not help.
+    // One that only a heading-like line names is probably the same thing in a
+    // shape neither pattern knows yet. Only a version no such line names is
+    // called deleted.
     const misread = missing.filter(v => changelog.unread.has(v));
-    const deleted = missing.filter(v => !changelog.unread.has(v));
+    const unknown = missing.filter(
+      v => !changelog.unread.has(v) && changelog.mentioned.has(v)
+    );
+    const deleted = missing.filter(
+      v => !changelog.unread.has(v) && !changelog.mentioned.has(v)
+    );
     if (misread.length) {
       problems.push(
         `${pkg.dir}/CHANGELOG.md has a heading for ${listed(misread)} that ` +
@@ -488,6 +542,19 @@ export const findVersionRegressions = ({
           `the release tooling now writes headings that way, teach it the new ` +
           `one, and if the heading was edited by hand, restore it from ` +
           `\`origin/main\`.`
+      );
+    }
+    if (unknown.length) {
+      problems.push(
+        `${pkg.dir}/CHANGELOG.md names ${listed(unknown)} in a line that ` +
+          `looks like a heading, ` +
+          `\`${changelog.mentioned.get(unknown[0])}\`, but in a shape neither ` +
+          `\`SECTION_HEADING\` nor \`VERSION_HEADING\` in ` +
+          `scripts/lib/version-regression.mjs reads. That is more likely a ` +
+          `change in heading shape than a deletion: if the release tooling ` +
+          `now writes headings that way, teach \`SECTION_HEADING\` to read it ` +
+          `and \`VERSION_HEADING\` to recognise it, and if the heading was ` +
+          `edited by hand, restore it from \`origin/main\`.`
       );
     }
     if (deleted.length) {

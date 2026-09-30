@@ -39,6 +39,7 @@ const sections = (...versions) => ({
   versions: new Set(versions),
   released: new Set(versions),
   unread: new Map(),
+  mentioned: new Map(),
 });
 const versionOf = tag => tag.slice(tag.lastIndexOf('@') + 1);
 
@@ -1423,4 +1424,89 @@ test('the wiring reads each changelog before git answers', async () => {
   assert.deepEqual(read, ['a', 'b']);
   assert.equal(found.length, 1);
   assert.match(found[0], /^a\/CHANGELOG\.md has no section for `1\.0\.0`/);
+});
+
+test('changelogSections names a heading-like line neither pattern reads', () => {
+  // Past what VERSION_HEADING knows: markup it has never seen, or decoration
+  // in front of the version. None is a section, and each is named, so the
+  // check can say "heading shape" instead of "deleted".
+  const shapes = [
+    // An emoji, or emphasis, in front of the version.
+    ['## 🚀 1.2.3 (2026-01-01)', '1.2.3'],
+    ['## **1.2.4** (2026-01-01)', '1.2.4'],
+    // HTML headings, with attributes and a link inside.
+    ['<h2>1.2.5 (2026-01-01)</h2>', '1.2.5'],
+    ['<h2 id="x"><a href="https://x.test">v1.2.6</a></h2>', '1.2.6'],
+    // A pseudo-heading: no heading markup, but opening the way one does.
+    ['**1.2.7** (2026-01-01)', '1.2.7'],
+    ['🎉 1.2.8', '1.2.8'],
+    // An emoji carrying a variation selector, which is not pictographic.
+    ['❤️ 1.2.9', '1.2.9'],
+  ];
+  for (const [line, version] of shapes) {
+    const read = changelogSections(line);
+    assert.deepEqual([...read.versions], [], `read as a section: ${line}`);
+    assert.deepEqual([...read.unread.keys()], [], `recognised: ${line}`);
+    assert.equal(read.mentioned.get(version), line, `not named: ${line}`);
+  }
+  // Setext: text over an underline of either kind.
+  for (const underline of ['===', '---']) {
+    const read = changelogSections(`1.3.0 (2026-01-01)\n${underline}\n`);
+    assert.equal(read.mentioned.get('1.3.0'), '1.3.0 (2026-01-01)');
+  }
+});
+
+test('a version named in the body of another release is not a heading', () => {
+  // The direction that would hide a deletion. If any of these counted,
+  // removing the 5.17.0 section would read as a change of heading shape
+  // rather than the damage it is.
+  const body = [
+    '* reverts 5.17.0 ([abc1234](https://x.test/commit/abc1234))',
+    // A note's continuation line, which lands at column 0.
+    '5.17.0 introduced a regression in the select',
+    'See `5.17.0` for the original change.',
+    // A list item over what would otherwise be a setext underline.
+    '* 5.17.0 was reverted',
+    '---',
+    // A heading, but one that does not open with the version.
+    '## Upgrading from 5.17.0',
+  ];
+  assert.deepEqual(
+    [...changelogSections(body.join('\n')).mentioned.keys()],
+    []
+  );
+  // A whole token only: a longer version is a different one, not this one.
+  const longer = changelogSections(
+    '## 🚀 15.17.0\n\n## 🚀 5.17.0-rc.1\n\n## 🚀 5.17.0.1\n'
+  );
+  assert.deepEqual([...longer.mentioned.keys()], ['15.17.0', '5.17.0-rc.1']);
+});
+
+test('a version only a heading-like line names is not called deleted', () => {
+  // A shape neither pattern knows, with the older sections still reading:
+  // what drift into it looks like. And beside it a version that only another
+  // release's notes mention, whose section really is gone.
+  const text = [
+    '## 🚀 5.17.0 (2026-01-09)',
+    '',
+    '* reverts 5.15.0',
+    '',
+    '# [5.16.0](https://x.test/compare) (2026-01-01)',
+  ].join('\n');
+  const problems = run({
+    packages: [pkg('5.17.0')],
+    tags: { 'pkg-a': ['pkg-a@5.15.0', 'pkg-a@5.16.0', 'pkg-a@5.17.0'] },
+    changelogs: { 'pkg-a': changelogSections(text) },
+  });
+  assert.equal(problems.length, 2);
+  assert.match(
+    problems[0],
+    /^pkg-a\/CHANGELOG\.md names `5\.17\.0` in a line that looks like a heading, `## 🚀 5\.17\.0 \(2026-01-09\)`/
+  );
+  assert.match(problems[0], /neither `SECTION_HEADING` nor `VERSION_HEADING`/);
+  assert.doesNotMatch(problems[0], /deleted since|git show/);
+  assert.match(
+    problems[1],
+    /^pkg-a\/CHANGELOG\.md has no section for `5\.15\.0`, though its tag/
+  );
 });
