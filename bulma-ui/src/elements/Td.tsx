@@ -39,7 +39,7 @@ export const validTableColors = [
 ] as const;
 
 /**
- * Valid color values for the Td component (Bulma table cell colors).
+ * The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
  */
 export type TableColor = (typeof validTableColors)[number];
 

@@ -319,7 +319,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 **Types:**
 
-- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Td component (Bulma table cell colors).
+- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
 
 ### Table.Th
 
@@ -334,7 +334,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 **Types:**
 
-- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Td component (Bulma table cell colors).
+- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
 
 ### Table.Td
 
@@ -347,7 +347,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 **Types:**
 
-- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Td component (Bulma table cell colors).
+- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
 
 <!-- /bestax:generated props -->
 
