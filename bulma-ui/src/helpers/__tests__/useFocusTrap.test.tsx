@@ -5,6 +5,13 @@ import { hydrateRoot } from 'react-dom/client';
 import { useFocusTrap, UseFocusTrapOptions } from '../useFocusTrap';
 import { Portal } from '../portal';
 
+/** The element with focus, inside open shadow roots too. */
+function focused(): Element {
+  let el = document.activeElement as Element;
+  while (el.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+  return el;
+}
+
 /** Presses Tab on whatever has focus, the way a browser dispatches it. */
 function pressTab(shiftKey = false): KeyboardEvent {
   const event = new KeyboardEvent('keydown', {
@@ -12,8 +19,9 @@ function pressTab(shiftKey = false): KeyboardEvent {
     shiftKey,
     bubbles: true,
     cancelable: true,
+    composed: true,
   });
-  (document.activeElement ?? document.body).dispatchEvent(event);
+  focused().dispatchEvent(event);
   return event;
 }
 
@@ -184,6 +192,29 @@ describe('useFocusTrap', () => {
         <span ref={el => el?.setAttribute('inert', '')}>
           <button>inside inert</button>
         </span>
+        <span ref={el => el?.setAttribute('tabindex', 'soon')}>
+          invalid tabindex
+        </span>
+        <a>link without href</a>
+        <video />
+        <audio />
+        <summary>summary outside a details</summary>
+        <details open>
+          <summary tabIndex={-1}>summary out of the tab order</summary>
+          <summary>second summary</summary>
+        </details>
+        <details>
+          <summary tabIndex={-1}>closed</summary>
+          <button>inside a closed details</button>
+        </details>
+        <div contentEditable={false}>not editable</div>
+        <div contentEditable="inherit">inherits nothing editable</div>
+        <div contentEditable suppressContentEditableWarning tabIndex={-1}>
+          <span contentEditable suppressContentEditableWarning>
+            editable inside an editable region
+          </span>
+        </div>
+        <iframe hidden title="hidden frame" />
       </span>
     );
 
@@ -215,6 +246,375 @@ describe('useFocusTrap', () => {
     it('counts an element with a non-negative tabindex', () => {
       screen.getByText('Real middle').focus();
       expect(pressTab().defaultPrevented).toBe(false);
+    });
+  });
+
+  // Kinds the browser visits without a tabindex. Placed after the only other
+  // stop, each has to be counted or Tab wraps past it and it can't be reached.
+  // Several aren't focusable in jsdom, so the wrap is proven by the call.
+  describe.each([
+    [
+      'an editable region',
+      () => (
+        <div contentEditable suppressContentEditableWarning data-testid="kind">
+          Notes
+        </div>
+      ),
+    ],
+    [
+      'a plaintext-only editable region',
+      () => (
+        <div
+          contentEditable="plaintext-only"
+          suppressContentEditableWarning
+          data-testid="kind"
+        >
+          Notes
+        </div>
+      ),
+    ],
+    [
+      'an editable region inside a non-editable one',
+      () => (
+        <div contentEditable={false}>
+          <span
+            contentEditable
+            suppressContentEditableWarning
+            data-testid="kind"
+          >
+            Notes
+          </span>
+        </div>
+      ),
+    ],
+    [
+      'the summary of a closed details',
+      () => (
+        <details>
+          <summary data-testid="kind">More</summary>
+          <p>Hidden until opened</p>
+        </details>
+      ),
+    ],
+    ['audio with controls', () => <audio controls data-testid="kind" />],
+    ['video with controls', () => <video controls data-testid="kind" />],
+    ['an iframe', () => <iframe title="Frame" data-testid="kind" />],
+    ['an embed', () => <embed data-testid="kind" />],
+    ['an object', () => <object aria-label="Object" data-testid="kind" />],
+    [
+      'an image map area',
+      () => (
+        <>
+          <img alt="Map" useMap="#trap-map" />
+          <map name="trap-map">
+            <area href="#area" alt="Area" data-testid="kind" />
+          </map>
+        </>
+      ),
+    ],
+  ])('%s', (_, renderKind) => {
+    it('is a tab stop Tab reaches and Shift+Tab wraps to', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          {renderKind()}
+        </Trap>
+      );
+      const focusSpy = jest.spyOn(screen.getByTestId('kind'), 'focus');
+      expect(button('First')).toHaveFocus();
+      expect(pressTab().defaultPrevented).toBe(false);
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(focusSpy).toHaveBeenCalled();
+      // jsdom reports no active element at all once a focused iframe is
+      // removed, where a browser falls back to <body>, so hand focus back
+      // before cleanup unmounts it.
+      button('First').focus();
+    });
+  });
+
+  describe('radio groups', () => {
+    const Sizes: React.FC<{ checked?: string; disabled?: string }> = ({
+      checked,
+      disabled,
+    }) => (
+      <>
+        {['Small', 'Medium', 'Large'].map(size => (
+          <input
+            key={size}
+            type="radio"
+            name="size"
+            aria-label={size}
+            defaultChecked={size === checked}
+            disabled={size === disabled}
+          />
+        ))}
+      </>
+    );
+    const radio = (name: string) => screen.getByRole('radio', { name });
+
+    it('are one stop: the checked button', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <Sizes checked="Medium" />
+        </Trap>
+      );
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(radio('Medium')).toHaveFocus();
+      // Tab from the checked button leaves the group, so it wraps here.
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('are one stop: the first button when none is checked', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <Sizes />
+        </Trap>
+      );
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(radio('Small')).toHaveFocus();
+    });
+
+    it('stand at the group’s place whichever button has focus', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <Sizes checked="Large" />
+        </Trap>
+      );
+      // Focused by a script: Tab from here leaves the group all the same.
+      radio('Small').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('pass over a checked button that is disabled', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <Sizes checked="Medium" disabled="Medium" />
+        </Trap>
+      );
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(radio('Small')).toHaveFocus();
+    });
+
+    it('are told apart by form', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <form>
+            <input type="radio" name="x" aria-label="In one" defaultChecked />
+          </form>
+          <form>
+            <input type="radio" name="x" aria-label="In another" />
+          </form>
+        </Trap>
+      );
+      radio('In one').focus();
+      expect(pressTab().defaultPrevented).toBe(false);
+      radio('In another').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+    });
+
+    it('leave a radio without a name as a stop of its own', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <input type="radio" aria-label="Unnamed" defaultChecked />
+          <input type="radio" aria-label="Also unnamed" />
+        </Trap>
+      );
+      radio('Unnamed').focus();
+      expect(pressTab().defaultPrevented).toBe(false);
+      radio('Also unnamed').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+    });
+  });
+
+  describe('shadow roots inside the container', () => {
+    /** A custom-element-like host with two buttons in an open shadow root. */
+    const Host: React.FC<{ tabIndex?: number; children?: React.ReactNode }> = ({
+      tabIndex,
+      children,
+    }) => (
+      <div
+        data-testid="host"
+        tabIndex={tabIndex}
+        ref={el => {
+          if (el && !el.shadowRoot) {
+            el.attachShadow({ mode: 'open' }).innerHTML =
+              '<button>Shadow one</button><button>Shadow two</button><slot></slot>';
+          }
+        }}
+      >
+        {children}
+      </div>
+    );
+    const inShadow = (name: string) =>
+      Array.from(
+        screen.getByTestId('host').shadowRoot!.querySelectorAll('button')
+      ).find(b => b.textContent === name)!;
+
+    it('reach the stops inside and wrap after the last of them', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <Host />
+        </Trap>
+      );
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(focused()).toBe(inShadow('Shadow two'));
+
+      inShadow('Shadow one').focus();
+      expect(pressTab().defaultPrevented).toBe(false);
+      inShadow('Shadow two').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('place shadow content after its host and before the host’s children', () => {
+      render(
+        <Trap>
+          <Host>
+            <button>Slotted</button>
+          </Host>
+          <button>After</button>
+        </Trap>
+      );
+      inShadow('Shadow two').focus();
+      expect(pressTab().defaultPrevented).toBe(false);
+      button('Slotted').focus();
+      expect(pressTab(true).defaultPrevented).toBe(false);
+      expect(pressTab().defaultPrevented).toBe(false);
+      button('After').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(focused()).toBe(inShadow('Shadow one'));
+    });
+
+    it('put a host that is a tab stop before its shadow content', () => {
+      render(
+        <Trap>
+          <Host tabIndex={0} />
+        </Trap>
+      );
+      const host = screen.getByTestId('host');
+      expect(host).toHaveFocus();
+      expect(pressTab().defaultPrevented).toBe(false);
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(focused()).toBe(inShadow('Shadow two'));
+    });
+
+    it('wrap Shift+Tab from a host that is focused but not a stop', () => {
+      render(
+        <Trap>
+          <Host tabIndex={-1} />
+          <button>Last</button>
+        </Trap>
+      );
+      screen.getByTestId('host').focus();
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(button('Last')).toHaveFocus();
+    });
+
+    it('restore focus when it was last inside one', () => {
+      // Deactivated with the container still on the page, so focus is still
+      // inside the shadow root when the trap lets go.
+      const Panel: React.FC = () => {
+        const [active, setActive] = useState(true);
+        const triggerRef = useRef<HTMLButtonElement>(null);
+        return (
+          <>
+            <button ref={triggerRef} onClick={() => setActive(false)}>
+              Trigger
+            </button>
+            <Trap active={active} restoreFocus={triggerRef}>
+              <button>First</button>
+              <Host />
+            </Trap>
+          </>
+        );
+      };
+      render(<Panel />);
+      inShadow('Shadow two').focus();
+      fireEvent.click(button('Trigger'));
+      expect(button('Trigger')).toHaveFocus();
+    });
+  });
+
+  // The browser can skip a stop the trap counts (Safari passes over links by
+  // default), so a Tab the trap lets through can still leave. jsdom has no
+  // default Tab action, so each test moves focus the way the browser would.
+  describe('when a Tab it let through leaves anyway', () => {
+    const outside = () => screen.getByRole('button', { name: 'Outside' });
+    const Page: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+      <>
+        <button>Outside</button>
+        <Trap>{children}</Trap>
+        <button>Also outside</button>
+      </>
+    );
+
+    it('sends focus forward to the first stop', () => {
+      render(
+        <Page>
+          <button>First</button>
+          <a href="#skipped">Skipped by the browser</a>
+        </Page>
+      );
+      expect(pressTab().defaultPrevented).toBe(false);
+      button('Also outside').focus();
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('sends focus back to the last stop on Shift+Tab', () => {
+      render(
+        <Page>
+          <a href="#skipped">Skipped by the browser</a>
+          <button>Last</button>
+        </Page>
+      );
+      button('Last').focus();
+      expect(pressTab(true).defaultPrevented).toBe(false);
+      outside().focus();
+      expect(button('Last')).toHaveFocus();
+    });
+
+    it('leaves focus that moves on inside the container', () => {
+      render(
+        <Page>
+          <button>First</button>
+          <button>Second</button>
+        </Page>
+      );
+      pressTab();
+      button('Second').focus();
+      expect(button('Second')).toHaveFocus();
+    });
+
+    it('leaves focus a pointer or a script moves out', () => {
+      render(
+        <Page>
+          <button>First</button>
+        </Page>
+      );
+      outside().focus();
+      expect(outside()).toHaveFocus();
+    });
+
+    it('stops watching once that Tab is over', async () => {
+      render(
+        <Page>
+          <button>First</button>
+          <a href="#skipped">Skipped by the browser</a>
+        </Page>
+      );
+      pressTab();
+      await act(() => new Promise(resolve => setTimeout(resolve)));
+      outside().focus();
+      expect(outside()).toHaveFocus();
     });
   });
 
@@ -376,6 +776,24 @@ describe('useFocusTrap', () => {
     } finally {
       document.body.removeChild(host);
       document.body.removeChild(opener);
+    }
+  });
+
+  it('inside a shadow root, leaves focus the page holds when it lets go', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const mount = document.createElement('div');
+    host.attachShadow({ mode: 'open' }).appendChild(mount);
+    const elsewhere = document.createElement('button');
+    document.body.appendChild(elsewhere);
+    try {
+      const { unmount } = render(<Trap />, { container: mount });
+      elsewhere.focus();
+      unmount();
+      expect(elsewhere).toHaveFocus();
+    } finally {
+      document.body.removeChild(host);
+      document.body.removeChild(elsewhere);
     }
   });
 

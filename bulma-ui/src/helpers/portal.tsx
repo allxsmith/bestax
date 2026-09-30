@@ -39,8 +39,11 @@ export interface PortalProps {
   /**
    * Where the content goes: an element, or a `document.querySelector`
    * selector. Omitted, empty, or a selector that matches nothing, it goes to
-   * `document.body`. A selector is looked up on each render, so the target
-   * has to exist by the time the content shows.
+   * `document.body`. A selector is looked up again on each render, so the
+   * content follows the target when it changes. Moving to another target
+   * remounts the children and resets their state, which includes a selector
+   * that only starts matching after the content has shown in `document.body`.
+   * Render the target first, or pass the element once you have it.
    */
   container?: string | HTMLElement;
   /**
@@ -66,6 +69,11 @@ export interface PortalProps {
  * sets its variables on a wrapper element the portaled content has left, so
  * that content sees the page-level theme. Point `container` at an element
  * inside the themed area to keep it.
+ *
+ * Tab order and focus follow the DOM too. Content portaled from inside a
+ * `useFocusTrap` container is no longer inside it, so the trap neither
+ * reaches it nor holds focus there: render nested overlays inside the
+ * container, or give them a trap of their own.
  *
  * @function
  * @param {PortalProps} props - Props for the Portal component.

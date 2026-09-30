@@ -104,10 +104,12 @@ don't reach for `createPortal`, a hand-written Tab handler or a `typeof window` 
   so the first client render matches; `disabled` renders in place instead.
 - `useFocusTrap(ref, { active, initialFocusRef, restoreFocus })` (`helpers/useFocusTrap.ts`)
   moves focus into `ref` when `active` turns on, wraps Tab at the first and last tab stops
-  (skipping hidden, disabled, inert and `tabIndex={-1}` elements) and restores focus when it
-  turns off. It handles Tab only: wire Escape to close. Pass the trigger's ref as
-  `restoreFocus` for a panel opened from a button. It waits for hydration too, so it finds a
-  container rendered through `Portal`.
+  (the ones the browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are
+  skipped and a radio group counts once) and restores focus when it turns off. It handles Tab
+  only: wire Escape to close. Pass the trigger's ref as `restoreFocus` for a panel opened from a
+  button. It waits for hydration too, so it finds a container rendered through `Portal`. The
+  reverse escapes it: a `Portal` inside the trapped container puts its content outside the
+  trap, so render nested overlays inside the container.
 - `<ClientOnly fallback?>` (`helpers/ClientOnly.tsx`) renders its children only after hydration;
   pass them as a function to keep browser-only expressions off the server.
   `useIsHydrated()` (`helpers/useIsHydrated.ts`) is the hook underneath.

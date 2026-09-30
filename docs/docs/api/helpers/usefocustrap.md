@@ -96,16 +96,44 @@ Focus only moves back while the trap still holds it. If a click has already put 
 
 A trapped panel is often rendered through [`Portal`](./portal.md). Portaled content only exists from the commit after hydration, and the trap waits for hydration the same way, so it attaches when the panel appears. See [A floating panel](./portal.md#a-floating-panel) for the whole pattern.
 
+The other way round doesn't work: a `Portal` rendered _inside_ the trapped container puts its content somewhere else in the DOM, outside the container, where Tab from the trap can't reach it and the trap doesn't hold focus. Render a nested overlay inside the container, or give it a trap of its own.
+
 ### Which elements are tab stops
 
-Tab stops are taken in document order. Elements the browser's Tab skips are skipped here too, so none of them can become an end of the trap and let Tab walk out of the container:
+The trap wraps at the first and last elements the browser's Tab would visit, taken in document order:
+
+- links and image map areas with an `href`, buttons, inputs other than `type="hidden"`, selects and text areas
+- frames: `<iframe>`, `<embed>` and `<object>`
+- `<audio>` and `<video>` with `controls`
+- the summary of a `<details>`, which stays a stop while the details is closed
+- an editable region (`contentEditable`), counted once rather than once per editable element inside it
+- anything with a `tabIndex` of `0` or more
+- the content of an open shadow root inside the container, such as a web component's own controls
+
+Within those, what the browser's Tab skips is skipped here too, so none of it can become an end of the trap and let Tab walk out of the container:
 
 - a negative `tabIndex`, such as the unfocused items of a roving-tabindex grid
 - disabled controls, including those inside a disabled `<fieldset>`
-- anything not rendered: `hidden`, `display: none` on the element or an ancestor, `visibility: hidden`
+- anything not rendered: `hidden`, `display: none` on the element or an ancestor, `visibility: hidden`, and the content of a closed `<details>`
 - anything inside an `inert` subtree
+- all but one button of a radio group: the checked one, or the first when none is checked
 
 A positive `tabIndex` is not reordered; the trap wraps at the first and last stops in document order.
+
+### When Tab leaves anyway
+
+A browser can leave out a stop the page has, such as links when its settings say to. When a Tab the trap let through still takes focus out of the container, the trap sends it back to the other end. If the container is the last thing on the page, there is nothing outside for focus to land on and the browser can take it to its own toolbar instead, so avoid ending a trap with a link.
+
+Only Tab is watched. A click or a script that moves focus out of the container is left alone, and the next Tab starts from wherever focus went. Pulling focus back from a click is modal behaviour, and a modal also has to block the page behind it; [`Modal`](../components/modal.md) does both. For a non-modal panel, close it when focus or a click goes elsewhere.
+
+### What the trap can't see into
+
+Some elements move focus among parts of their own, and the trap sees them as one stop:
+
+- A frame's content is its own document. Once focus is inside, Tab moves through the frame without the trap seeing it, and Tab from the frame's last stop goes on to whatever follows the frame. At the end of the trap, that is outside it: follow a frame with another stop.
+- A native date or time input has a stop for each field. At the edge of the trap, Tab wraps instead of visiting the later fields. Keep it away from the edges, or follow it with another stop.
+- A closed shadow root is opaque: its host counts, not the stops inside it.
+- A scrollable region with nothing focusable inside is a stop in some browsers and not in others. Give it `tabIndex={0}` so it is one everywhere, which also lets keyboard users scroll it.
 
 ### Nested traps
 
@@ -147,7 +175,7 @@ It returns nothing. On the server it does nothing, and the container renders as 
 - Pair the trap with a way out. The trap handles Tab only, so wire Escape (and any close button) to turn it off.
 - Give the container a role and an accessible name (`role="dialog"` with `aria-label` or `aria-labelledby`), and give the button that opens it `aria-haspopup`, `aria-expanded` and `aria-controls`.
 - Return focus to the element that opened the content when it closes. The default does, and a ref to the trigger makes it reliable.
-- The trap is for the keyboard. It doesn't hide the rest of the page from screen readers or pointers; for fully modal content, use [`Modal`](../components/modal.md), which sets `aria-modal`.
+- The trap is for the keyboard. It doesn't hide the rest of the page from screen readers or pointers, and it doesn't pull focus back from a click; for fully modal content, use [`Modal`](../components/modal.md), which sets `aria-modal`.
 
 ---
 

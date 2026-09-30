@@ -72,6 +72,8 @@ function example() {
 
 An empty selector, or one that matches nothing, falls back to `document.body` rather than throwing.
 
+A selector is looked up again on each render, so the content follows the target when the target changes. Moving to another target remounts the children, which resets their state. That includes a selector that only starts matching after the content has already shown in `document.body`, so render the target first (an overlay root in the page shell is), or pass the element once you have it, as above.
+
 ### Rendering in place
 
 `disabled` renders the children where the `Portal` is, on the server as well as the client. A component that portals only sometimes (behind an `appendToBody` option, say) can keep one code path.
@@ -128,6 +130,8 @@ function FilterPanel() {
 
 Positioning the panel next to its button is up to you; `Portal` only decides where it sits in the DOM.
 
+Keep the trap and the portal in that order. A `Portal` rendered _inside_ a trapped container puts its content outside the container, where Tab from the trap can't reach it and the trap doesn't hold focus. Render a nested overlay inside the container, or give it a trap of its own.
+
 ### Context and styles
 
 React context reaches portaled children, so a `ConfigProvider` class prefix still applies, and their React events bubble up the React tree to the components around the `Portal`. CSS inheritance follows the DOM instead. A scoped `Theme` (one without `isRoot`) sets its CSS variables on a wrapper element that portaled content has left, so that content sees the page-level theme. Point `container` at an element inside the themed area to keep it themed.
@@ -161,8 +165,8 @@ React context reaches portaled children, so a `ConfigProvider` class prefix stil
 
 ## Props
 
-| Prop        | Type                      | Default         | Description                                                                                                                                    |
-| ----------- | ------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`               | —               | Content to render into the container.                                                                                                          |
-| `container` | `string` \| `HTMLElement` | `document.body` | An element, or a `document.querySelector` selector looked up on each render. Empty, or a selector that matches nothing, means `document.body`. |
-| `disabled`  | `boolean`                 | `false`         | Render the children in place instead, on the server as well as the client.                                                                     |
+| Prop        | Type                      | Default         | Description                                                                                                                                                                                    |
+| ----------- | ------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`               | —               | Content to render into the container.                                                                                                                                                          |
+| `container` | `string` \| `HTMLElement` | `document.body` | An element, or a `document.querySelector` selector looked up on each render. Empty, or a selector that matches nothing, means `document.body`. Moving to another target remounts the children. |
+| `disabled`  | `boolean`                 | `false`         | Render the children in place instead, on the server as well as the client.                                                                                                                     |
