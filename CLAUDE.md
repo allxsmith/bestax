@@ -63,11 +63,12 @@ Enforced by CI (`.github/workflows/ci.yml`):
   every other jest package 95% (78% branches). `docs` has no jest suite.
 - The root `scripts/` suite has a coverage floor per file in `scripts/coverage-floors.json`,
   checked by `pnpm test:scripts` (which `pnpm test` and `pnpm all` run). Per file because a
-  total hides a small script losing most of its coverage. A floor sits a little under where
-  the file stood, not at a target. A file below its floor fails, as does a loaded file with
-  no row or a row no test loads. Floors are judged only on a green run, so without
-  `bulma-ui/dist` the suites still fail on their own "build first" messages.
-  `scripts/coverage-floors.mjs` has the rest, including when lowering a floor is the right fix.
+  total hides a small script losing most of its coverage. A floor is where the file stood,
+  less a small allowance on branches for run-to-run noise, not a target. A file below its
+  floor fails, as does a loaded file with no row or a row no test loads. Floors are judged
+  only on a green run, so without `bulma-ui/dist` the suites still fail on their own "build
+  first" messages. `scripts/coverage-floors.mjs` has the rest, including when lowering a
+  floor is the right fix.
 - A stale generated artefact fails its own step: the skill catalog
   (`gen:catalog:check`), the MCP index (`gen:mcp:check`) and the ESLint
   plugin's metadata (`gen:eslint-meta:check`). Plus build, typecheck, lint,

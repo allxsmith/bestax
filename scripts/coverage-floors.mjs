@@ -25,14 +25,19 @@
  * the total is dominated by the largest of them: a small script can lose most
  * of its coverage without moving it.
  *
- * A floor sits a little under where the file stood when its row was written:
- * the percentage it would measure with SLACK fewer covered lines, branches or
- * functions, rounded down. That allowance is for run-to-run noise, which is
- * V8 counting a branch that never ran in some runs and not in others. A
- * metric at 100% has no code that never ran, so it keeps a floor of 100,
- * where one new function nothing calls is exactly what the gate should catch.
- * A row of 0 records that there is no bar yet, not a bar: the file is mostly
- * unreached, or too small for the allowance to leave anything.
+ * A floor is where the file stood when its row was written, rounded down to a
+ * whole percent, with an allowance on branches only. V8 counts a branch that
+ * never ran in some runs and not in others, so a branch floor sits
+ * `SLACK.branches` covered branches lower. Lines and functions are counted from the source and
+ * from what ran, which do not move between runs, and an allowance there would
+ * cost the most on the small files: two functions of six is a third of the
+ * file. A metric at 100% keeps a floor of 100 whatever the allowance, since
+ * one new function nothing calls is exactly what the gate should catch.
+ *
+ * No covered metric gets a floor of 0. Where the branch allowance would take
+ * one there, its floor is 1, the smallest bar there is: it fails only if the
+ * tests stop reaching that metric at all. So a row of 0 means the file itself
+ * measured 0 (or under 1%): no bar yet, and not a number standing in for one.
  *
  * A floor is not a target, and nothing raises it for you: the gate is there
  * so a drop gets looked at. When the uncovered code is a branch that only a
@@ -81,13 +86,14 @@ const METRICS = [
 ];
 
 /**
- * How many covered units below the measured count a row allows. The noise
- * moves a count by one; two leaves a unit to spare beyond it, so no row sits
- * a single unexplained branch from failing every open PR. Rounding down to a
- * whole percent alone does not do this: on any count under a hundred it
- * leaves less than one unit.
+ * How many covered units below the measured count a row allows, per metric.
+ * The branch noise moves a count by one; two leaves a unit to spare beyond
+ * it, so no row sits a single unexplained branch from failing every open PR.
+ * Rounding down to a whole percent alone does not do this: on any count under
+ * a hundred it leaves less than one unit. Lines and functions do not drift,
+ * so they get none.
  */
-const SLACK = 2;
+const SLACK = { lines: 0, branches: 2, functions: 0 };
 
 const TAG = '[coverage-floors]';
 const TABLE = 'scripts/coverage-floors.json';
@@ -98,13 +104,18 @@ const pct = n => `${n.toFixed(2)}%`;
 const keyOf = (root, path) => relative(root, path).split(sep).join('/');
 
 /**
- * The floor a metric would get from `covered` of `total`: 100 when fully
- * covered (Node reports an empty metric as 100% too), otherwise the
- * percentage with SLACK fewer covered, rounded down and never below 0.
+ * The floor a metric would get from `covered` of `total` with `slack`
+ * covered units allowed: 100 when fully covered (Node reports an empty metric
+ * as 100% too), otherwise the percentage with `slack` fewer covered, rounded
+ * down. When that comes out at 0 for a metric that covers something, the
+ * floor is 1, provided `slack` more never-run units still clear it; only a
+ * coverage under 1% after that noise gets a 0.
  */
-export function floorFor(covered, total) {
+export function floorFor(covered, total, slack = 0) {
   if (covered >= total) return 100;
-  return Math.max(0, Math.floor((100 * (covered - SLACK)) / total));
+  const floor = Math.floor((100 * (covered - slack)) / total);
+  if (floor > 0) return floor;
+  return covered > 0 && 100 * covered >= total + slack ? 1 : 0;
 }
 
 /** The row a file would get from this run. */
@@ -112,7 +123,7 @@ export function measuredRow(file) {
   return Object.fromEntries(
     METRICS.map(([name, , covered, total]) => [
       name,
-      floorFor(file[covered], file[total]),
+      floorFor(file[covered], file[total], SLACK[name]),
     ])
   );
 }

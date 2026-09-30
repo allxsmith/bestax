@@ -2,8 +2,8 @@
  * Covers scripts/coverage-floors.mjs (#724).
  *
  * The unit cases hold the comparison to its three failure modes, the rule
- * that a red run is not judged, and the allowance a new row leaves for
- * run-to-run noise. The end-to-end cases run a real `node --test` with the
+ * that a red run is not judged, and how a new row is worked out: the branch
+ * allowance for run-to-run noise, and no floor of 0 for a covered metric. The end-to-end cases run a real `node --test` with the
  * reporter loaded, because the one thing a unit case cannot show is that a
  * failed floor fails the process: a gate whose verdict never reaches the exit
  * code prints its complaint and goes green.
@@ -50,13 +50,17 @@ const flat = (key, p) => file(key, [p, 100], [p, 100], [p, 100]);
 
 const row = (lines, branches, functions) => ({ lines, branches, functions });
 
-test('a new row allows SLACK covered units, rounded down', () => {
-  // 246 of 276 is 89.13%; 244 of 276 is 88.41%.
-  assert.equal(floorFor(246, 276), 88);
-  assert.equal(floorFor(1, 3), 0, 'never below 0');
+test('only branches get an allowance; lines and functions round down', () => {
+  // 246 of 276 branches is 89.13%; with two fewer covered, 88.41%.
+  assert.equal(floorFor(246, 276, 2), 88);
+  // A function allowance of two would take 5 of 6 to 50 and 2 of 4 to 0,
+  // letting a third of a small file go uncovered.
+  assert.equal(floorFor(5, 6), 83);
+  assert.equal(floorFor(2, 4), 50);
+  // 46 of 48 branches: 95 with no allowance, 93 with one, 91 with two.
   assert.deepEqual(
-    measuredRow(file('scripts/a.mjs', [335, 337], [246, 276], [9, 10])),
-    row(98, 88, 70)
+    measuredRow(file('scripts/a.mjs', [335, 337], [46, 48], [5, 6])),
+    row(99, 91, 83)
   );
 });
 
@@ -64,27 +68,46 @@ test('a fully covered metric keeps a floor of 100', () => {
   // The allowance is for a never-run branch that V8 counts in some runs and
   // not others. Fully covered code has none, and one function nothing calls
   // is what the floor exists to catch, so it is not traded away here.
-  assert.equal(floorFor(10, 10), 100);
+  assert.equal(floorFor(10, 10, 2), 100);
   assert.equal(floorFor(0, 0), 100, 'Node calls an empty metric 100%');
-  assert.equal(floorFor(9, 10), 70);
+  assert.equal(floorFor(9, 10, 2), 70);
 });
 
-test('a new row survives two units of noise in either direction', () => {
-  // The guarantee the allowance exists for, written with its own number
-  // rather than SLACK so that shrinking SLACK fails here: the one never-run
-  // branch V8 counts in some runs, plus one to spare. Two covered units
-  // lost, or two never-run units counted, still meet the floor the row was
-  // written with, over every count a script here plausibly has.
+test('a metric that covers something never gets a floor of 0', () => {
+  // A floor of 0 can never fail, so writing one for a covered metric reads
+  // as a bar and is not one. The allowance would take 1 of 3 there.
+  assert.equal(floorFor(1, 3, 2), 1);
+  assert.deepEqual(
+    measuredRow(file('scripts/a.mjs', [10, 20], [1, 3], [0, 12])),
+    row(50, 1, 0),
+    'a metric that measured 0 is the one place a 0 belongs'
+  );
+  // Under 1% there is no whole-percent bar the file clears.
+  assert.equal(floorFor(1, 200), 0);
+  // 1 of 99 clears 1% until two never-run branches are counted.
+  assert.equal(floorFor(1, 99, 2), 0);
+  assert.equal(floorFor(1, 98, 2), 1);
+});
+
+test('a branch floor survives two units of noise in either direction', () => {
+  // The guarantee the branch allowance exists for, written with its own
+  // number rather than SLACK so that shrinking SLACK fails here: the one
+  // never-run branch V8 counts in some runs, plus one to spare. Checked over
+  // every count a script here plausibly has.
   const noise = 2;
   for (let total = 1; total <= 600; total++) {
     for (let covered = 0; covered < total; covered++) {
-      const floor = floorFor(covered, total);
-      const lost = percent(Math.max(0, covered - noise), total);
+      const floor = floorFor(covered, total, noise);
       const added = percent(covered, total + noise);
-      assert.ok(
-        floor === 0 || (lost >= floor && added >= floor),
-        `${covered}/${total}: floor ${floor}, after noise ${lost} / ${added}`
-      );
+      const lost = percent(Math.max(0, covered - noise), total);
+      const at = `${covered}/${total} (floor ${floor})`;
+      // Never-run branches counted: the noise actually measured.
+      assert.ok(added >= floor, `${at}: ${added} with noise counted`);
+      // Covered branches lost. A floor of 1 is exempt: it is the bar that
+      // exists to fail when the last covered branches go.
+      assert.ok(floor <= 1 || lost >= floor, `${at}: ${lost} after losing`);
+      // Only a coverage under 1% once the noise is counted gets a 0.
+      assert.ok(floor > 0 || covered === 0 || added < 1, `${at}: 0 floor`);
     }
   }
 });
@@ -126,7 +149,7 @@ test('a loaded file with no row fails, offering a row that pastes in', () => {
   // The last line is the row itself, in the table's JSON, with the same
   // allowance the committed rows have.
   const pasted = JSON.parse(`{${problem.split('\n').at(-1)}}`);
-  assert.deepEqual(pasted, { 'scripts/lib/new.mjs': row(98, 91, 50) });
+  assert.deepEqual(pasted, { 'scripts/lib/new.mjs': row(99, 91, 75) });
 });
 
 test('a row no test loaded fails, so a lost test sibling cannot go quiet', () => {
