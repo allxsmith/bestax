@@ -166,9 +166,12 @@ not just invalid cases for what it should catch. Several of those silences came
 from linting the library's own documentation — a corpus of examples that are
 supposed to be correct, so anything reported there is either a docs bug or a
 rule bug. For the `recommended` rules that sweep is a gate now (below), so a
-rule change that starts reporting correct examples fails `pnpm test`. The
-opt-in rules are not in it, and are still worth running over the fences by
-hand when one changes.
+rule change that starts reporting correct examples fails CI and `pnpm all`,
+which build before they test. `pnpm test` alone does not rebuild this
+package: it runs whatever `dist` holds, so after a rule change run it behind
+`pnpm exec turbo run build --filter=@allxsmith/eslint-plugin-bestax`. The
+opt-in rules are not in the gate, and are still worth running over the fences
+by hand when one changes.
 
 This package's OWN documented examples are a gate rather than a habit:
 `scripts/eslint-plugin-docs.test.mjs` reads every line in the README and the

@@ -233,9 +233,11 @@ describe('the plugin documents what it does', async () => {
  * of the package (`@allxsmith/bestax-bulma/elements/Box`) is read as the
  * package: the rules match the bare specifier only, so as written the name
  * would count as bound elsewhere. And a `live` fence is read the way the site
- * runs it. `docs/src/theme/CodeBlock/index.js` drops a live fence's import
- * lines and binds every tag from the library, so an import there binds nothing
- * on the page, and the gate drops those lines too.
+ * runs it. `transformCode` in `docs/src/theme/CodeBlock/index.js` drops a
+ * live fence's `import` and `export default` lines and binds every tag from
+ * the library, so an import there binds nothing on the page. The gate drops
+ * the same lines, so a fence those drops leave broken on the page does not
+ * parse here either.
  *
  * A fence is read the first way that parses: as a module, then as bare JSX
  * (react-live renders a fence that is one or more sibling elements), then as a
@@ -249,10 +251,16 @@ describe('the plugin documents what it does', async () => {
  * `nolint` in the info string (```` ```jsx nolint ````) exempts one fence, for
  * an example that is wrong on purpose, such as a rule's ✗ case. It is a
  * per-fence word rather than a path exclusion so the rest of that page is
- * still checked, and a `nolint` fence that no rule reports anything in fails
- * too, so the marker cannot outlive the mistake it was there for. The ESLint
- * guide's wrong-on-purpose fences carry it, and the first pass above still
- * holds each marked line in them to its verdict.
+ * still checked, and it holds only while a rule reports something in the
+ * fence, so the marker cannot outlive the mistake it was there for. A marked
+ * fence that nothing reports in fails, and so does a marked fence that does
+ * not parse, since it can no longer show it is still wrong on purpose. The
+ * ESLint guide's wrong-on-purpose fences carry it, and the first pass above
+ * still holds each marked line in them to its verdict.
+ *
+ * An example that is not code at all (a signature sketch, pseudo-code) is not
+ * a `jsx` or `tsx` fence, and saying so with `text` is the honest label for
+ * the reader as well as the way past this gate: no rule could read it anyway.
  */
 
 const EXAMPLE_ROOTS = ['docs/docs', 'skills'];
@@ -261,11 +269,17 @@ const OPT_OUT = 'nolint';
 const LIBRARY = '@allxsmith/bestax-bulma';
 
 /**
- * A live fence's code as the site runs it: the same lines the docs code block
- * drops are blanked, so every line keeps its number.
+ * A live fence's code as the site runs it: the lines the docs code block's
+ * `transformCode` drops are blanked rather than removed, so every line keeps
+ * its number. The predicate is the same one it applies.
  */
 function asRendered(lines) {
-  return lines.map(line => (line.trim().startsWith('import') ? '' : line));
+  return lines.map(line => {
+    const trimmed = line.trim();
+    return trimmed.startsWith('import') || trimmed.startsWith('export default')
+      ? ''
+      : line;
+  });
 }
 
 /** The jsx/tsx fences in one markdown source, with their 1-based opening line. */
@@ -426,27 +440,32 @@ function problemsIn(examples, tools) {
   for (const { file, fence, lang, code, optOut } of examples) {
     const where = fence ? ` (the ${lang} fence opened at line ${fence})` : '';
     const { messages, parseError } = lintExample(code, tools);
+    if (parseError) {
+      // Marked or not: the marker holds only while a rule reports something,
+      // and in a fence no rule can read, nothing can.
+      const at = parseError.lineNumber
+        ? fence + parseError.lineNumber - 1
+        : fence;
+      const marked = optOut
+        ? ` is marked \`${OPT_OUT}\`, which holds only while a rule reports ` +
+          'something in it, and'
+        : '';
+      problems.push(
+        `${file}:${at}${where}${marked} does not parse, so no rule can read ` +
+          `it: ${parseError.message.replace(/\.$/, '')}. Make it valid ` +
+          `${lang}, or a list of one-line elements. An example that is not ` +
+          `code at all belongs in a \`text\` fence, not a ${lang} one.`
+      );
+      continue;
+    }
     if (optOut) {
-      // An opt-out on a fence no rule can read is still doing its job.
-      if (messages && messages.length === 0) {
+      if (messages.length === 0) {
         problems.push(
           `${file}:${fence}: the ${lang} fence is marked \`${OPT_OUT}\` and ` +
             'no rule reports anything in it. Remove the marker so the fence ' +
             'is checked again.'
         );
       }
-      continue;
-    }
-    if (parseError) {
-      const at = parseError.lineNumber
-        ? fence + parseError.lineNumber - 1
-        : fence;
-      problems.push(
-        `${file}:${at}${where} does not parse, so no rule can read it: ` +
-          `${parseError.message.replace(/\.$/, '')}. Make it valid ${lang}, or a list of ` +
-          `one-line elements; a fence that is not meant to be copied takes ` +
-          `\`${OPT_OUT}\`.`
-      );
       continue;
     }
     for (const m of messages) {
@@ -509,6 +528,23 @@ describe('the docs and skills examples pass the recommended rules', async () => 
     assert.deepEqual(rules(lint(copied.code)), []);
   });
 
+  it('drops an `export default` line from a live fence, as the preview does', () => {
+    const body = [
+      'export default function Example() {',
+      '  return <Box mt="1rem" />;',
+      '}',
+      '```',
+    ];
+    const [live] = fencedExamples(['```tsx live', ...body].join('\n'));
+    const [copied] = fencedExamples(['```tsx', ...body].join('\n'));
+    // The preview is left with an unmatched brace and cannot run it, so the
+    // gate cannot read it either.
+    assert.ok(lint(live.code).parseError);
+    assert.deepEqual(rules(lint(copied.code)), [
+      '2 @allxsmith/bestax/valid-helper-value',
+    ]);
+  });
+
   it('reads sibling elements, and a list of one-line elements', () => {
     assert.deepEqual(rules(lint('<Box />\n<Box mt="1rem" />')), [
       '2 @allxsmith/bestax/valid-helper-value',
@@ -561,6 +597,22 @@ describe('the docs and skills examples pass the recommended rules', async () => 
       problemsIn([{ ...example, code: '<Box mt="4rem" />' }], tools),
       []
     );
+    // A marked fence that stops parsing can no longer show it is wrong on
+    // purpose, so the marker does not cover it.
+    const unreadable = '<Box\n  mt="1rem"\n  <Box />';
+    const [marked, ...rest] = problemsIn(
+      [{ ...example, code: unreadable }],
+      tools
+    );
+    assert.deepEqual(rest, []);
+    assert.match(marked, /is marked `nolint`.* does not parse/);
+    // Nor does the parse failure offer the marker as the way out.
+    const [unmarked] = problemsIn(
+      [{ ...example, optOut: false, code: unreadable }],
+      tools
+    );
+    assert.match(unmarked, /does not parse/);
+    assert.doesNotMatch(unmarked, /nolint/);
   });
 
   const corpus = EXAMPLE_ROOTS.map(root => [root, examplesUnder(root)]);

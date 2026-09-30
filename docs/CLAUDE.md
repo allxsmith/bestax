@@ -92,8 +92,8 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   that is wrong on purpose, such as a rule's ✗ example, takes `nolint` in its info string
   (` ```jsx nolint `), which changes nothing on the rendered page. The marker is per fence so
   the rest of the page is still checked, and it fails once nothing in the fence is reported,
-  so it goes when the mistake does. A fence the test cannot parse fails too, since no rule can
-  read it.
+  so it goes when the mistake does. A fence the test cannot parse fails too, marked or not,
+  since no rule can read it. An example that is not code at all belongs in a `text` fence.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 
