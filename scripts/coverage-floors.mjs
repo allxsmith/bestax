@@ -15,17 +15,29 @@
  * - a row names a file no test loaded, so deleting a test sibling cannot
  *   quietly take its script out of the gate.
  *
+ * Coverage only sees files a test imports. A script that no test loads at
+ * all appears in neither the report nor this check, so the missing-row rule
+ * cannot point at a new script that shipped without a test.
+ *
  * Per file rather than Node's own `--test-coverage-*` thresholds because
  * those judge the total. These files run from fully covered parsers to CLI
  * entry points whose `main()` calls GitHub or rewrites files in the repo, and
  * the total is dominated by the largest of them: a small script can lose most
  * of its coverage without moving it.
  *
- * A floor is where the file stood when its row was written, rounded down to a
- * whole percent. It is not a target, and nothing raises it for you: the gate
- * is there so a drop gets looked at. When the uncovered code is a branch that
- * only a test asserting nothing could reach, lowering the row in the same
- * change, with the reason in the PR, is the right fix. That test is not.
+ * A floor sits a little under where the file stood when its row was written:
+ * the percentage it would measure with SLACK fewer covered lines, branches or
+ * functions, rounded down. That allowance is for run-to-run noise, which is
+ * V8 counting a branch that never ran in some runs and not in others. A
+ * metric at 100% has no code that never ran, so it keeps a floor of 100,
+ * where one new function nothing calls is exactly what the gate should catch.
+ * A row of 0 records that there is no bar yet, not a bar: the file is mostly
+ * unreached, or too small for the allowance to leave anything.
+ *
+ * A floor is not a target, and nothing raises it for you: the gate is there
+ * so a drop gets looked at. When the uncovered code is a branch that only a
+ * test asserting nothing could reach, lowering the row in the same change,
+ * with the reason in the PR, is the right fix. That test is not.
  *
  * Floors are judged only on a passing run. A failing test stops short of code
  * it would have covered, so a red run's numbers would pile coverage failures
@@ -47,12 +59,35 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
 const FLOORS_FILE = join(HERE, 'coverage-floors.json');
 
-/** Each floor's name, paired with the field Node's coverage summary reports it in. */
+/**
+ * Each floor's name, with the fields Node's coverage summary reports it in:
+ * the percentage the floor is compared against, then the covered and total
+ * counts a new row is worked out from.
+ */
 const METRICS = [
-  ['lines', 'coveredLinePercent'],
-  ['branches', 'coveredBranchPercent'],
-  ['functions', 'coveredFunctionPercent'],
+  ['lines', 'coveredLinePercent', 'coveredLineCount', 'totalLineCount'],
+  [
+    'branches',
+    'coveredBranchPercent',
+    'coveredBranchCount',
+    'totalBranchCount',
+  ],
+  [
+    'functions',
+    'coveredFunctionPercent',
+    'coveredFunctionCount',
+    'totalFunctionCount',
+  ],
 ];
+
+/**
+ * How many covered units below the measured count a row allows. The noise
+ * moves a count by one; two leaves a unit to spare beyond it, so no row sits
+ * a single unexplained branch from failing every open PR. Rounding down to a
+ * whole percent alone does not do this: on any count under a hundred it
+ * leaves less than one unit.
+ */
+const SLACK = 2;
 
 const TAG = '[coverage-floors]';
 const TABLE = 'scripts/coverage-floors.json';
@@ -62,10 +97,23 @@ const pct = n => `${n.toFixed(2)}%`;
 /** A row's key: the file's path from the repo root, with forward slashes. */
 const keyOf = (root, path) => relative(root, path).split(sep).join('/');
 
-/** The row a file would get today: each metric rounded down to a whole percent. */
+/**
+ * The floor a metric would get from `covered` of `total`: 100 when fully
+ * covered (Node reports an empty metric as 100% too), otherwise the
+ * percentage with SLACK fewer covered, rounded down and never below 0.
+ */
+export function floorFor(covered, total) {
+  if (covered >= total) return 100;
+  return Math.max(0, Math.floor((100 * (covered - SLACK)) / total));
+}
+
+/** The row a file would get from this run. */
 export function measuredRow(file) {
   return Object.fromEntries(
-    METRICS.map(([name, field]) => [name, Math.floor(file[field])])
+    METRICS.map(([name, , covered, total]) => [
+      name,
+      floorFor(file[covered], file[total]),
+    ])
   );
 }
 

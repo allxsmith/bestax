@@ -1,11 +1,12 @@
 /**
  * Covers scripts/coverage-floors.mjs (#724).
  *
- * The unit cases hold the comparison to its three failure modes and to the
- * rule that a red run is not judged. The end-to-end cases run a real
- * `node --test` with the reporter loaded, because the one thing a unit case
- * cannot show is that a failed floor fails the process: a gate whose verdict
- * never reaches the exit code prints its complaint and goes green.
+ * The unit cases hold the comparison to its three failure modes, the rule
+ * that a red run is not judged, and the allowance a new row leaves for
+ * run-to-run noise. The end-to-end cases run a real `node --test` with the
+ * reporter loaded, because the one thing a unit case cannot show is that a
+ * failed floor fails the process: a gate whose verdict never reaches the exit
+ * code prints its complaint and goes green.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,31 +18,79 @@ import { pathToFileURL } from 'node:url';
 
 import {
   checkFloors,
+  floorFor,
   floorsReporter,
   measuredRow,
 } from './coverage-floors.mjs';
 
 const ROOT = join(tmpdir(), 'repo');
 
-/** A coverage summary entry the way Node reports one. */
-const file = (key, lines, branches, functions) => ({
+/** Node's percentage for `covered` of `total`, which calls an empty metric 100. */
+const percent = (covered, total) => (total ? (100 * covered) / total : 100);
+
+/**
+ * A coverage summary entry the way Node reports one, from a
+ * `[covered, total]` pair per metric.
+ */
+const file = (key, [lc, lt], [bc, bt], [fc, ft]) => ({
   path: join(ROOT, ...key.split('/')),
-  coveredLinePercent: lines,
-  coveredBranchPercent: branches,
-  coveredFunctionPercent: functions,
+  coveredLineCount: lc,
+  totalLineCount: lt,
+  coveredLinePercent: percent(lc, lt),
+  coveredBranchCount: bc,
+  totalBranchCount: bt,
+  coveredBranchPercent: percent(bc, bt),
+  coveredFunctionCount: fc,
+  totalFunctionCount: ft,
+  coveredFunctionPercent: percent(fc, ft),
 });
+
+/** A file at `p` percent on every metric, out of a hundred of each. */
+const flat = (key, p) => file(key, [p, 100], [p, 100], [p, 100]);
 
 const row = (lines, branches, functions) => ({ lines, branches, functions });
 
-test('a row rounds each metric down to a whole percent', () => {
+test('a new row allows SLACK covered units, rounded down', () => {
+  // 246 of 276 is 89.13%; 244 of 276 is 88.41%.
+  assert.equal(floorFor(246, 276), 88);
+  assert.equal(floorFor(1, 3), 0, 'never below 0');
   assert.deepEqual(
-    measuredRow(file('scripts/a.mjs', 89.99, 100, 0)),
-    row(89, 100, 0)
+    measuredRow(file('scripts/a.mjs', [335, 337], [246, 276], [9, 10])),
+    row(98, 88, 70)
   );
 });
 
+test('a fully covered metric keeps a floor of 100', () => {
+  // The allowance is for a never-run branch that V8 counts in some runs and
+  // not others. Fully covered code has none, and one function nothing calls
+  // is what the floor exists to catch, so it is not traded away here.
+  assert.equal(floorFor(10, 10), 100);
+  assert.equal(floorFor(0, 0), 100, 'Node calls an empty metric 100%');
+  assert.equal(floorFor(9, 10), 70);
+});
+
+test('a new row survives two units of noise in either direction', () => {
+  // The guarantee the allowance exists for, written with its own number
+  // rather than SLACK so that shrinking SLACK fails here: the one never-run
+  // branch V8 counts in some runs, plus one to spare. Two covered units
+  // lost, or two never-run units counted, still meet the floor the row was
+  // written with, over every count a script here plausibly has.
+  const noise = 2;
+  for (let total = 1; total <= 600; total++) {
+    for (let covered = 0; covered < total; covered++) {
+      const floor = floorFor(covered, total);
+      const lost = percent(Math.max(0, covered - noise), total);
+      const added = percent(covered, total + noise);
+      assert.ok(
+        floor === 0 || (lost >= floor && added >= floor),
+        `${covered}/${total}: floor ${floor}, after noise ${lost} / ${added}`
+      );
+    }
+  }
+});
+
 test('a file at or above every floor passes, including exactly on one', () => {
-  const files = [file('scripts/a.mjs', 90, 80.5, 100)];
+  const files = [file('scripts/a.mjs', [90, 100], [161, 200], [1, 1])];
   assert.deepEqual(
     checkFloors(files, { 'scripts/a.mjs': row(90, 80, 100) }, ROOT),
     []
@@ -49,10 +98,11 @@ test('a file at or above every floor passes, including exactly on one', () => {
 });
 
 test('each metric below its floor is named, and only that one', () => {
+  const all = [1, 1];
   const files = [
-    file('scripts/lines.mjs', 49.5, 100, 100),
-    file('scripts/branches.mjs', 100, 49.5, 100),
-    file('scripts/functions.mjs', 100, 100, 87.5),
+    file('scripts/lines.mjs', [99, 200], all, all),
+    file('scripts/branches.mjs', all, [99, 200], all),
+    file('scripts/functions.mjs', all, all, [7, 8]),
   ];
   const floors = {
     'scripts/lines.mjs': row(50, 50, 50),
@@ -67,20 +117,21 @@ test('each metric below its floor is named, and only that one', () => {
 });
 
 test('a loaded file with no row fails, offering a row that pastes in', () => {
-  const measured = file('scripts/lib/new.mjs', 99.41, 95.83, 75);
+  const measured = file('scripts/lib/new.mjs', [335, 337], [46, 48], [6, 8]);
   const [problem, ...rest] = checkFloors([measured], {}, ROOT);
   assert.deepEqual(rest, []);
   assert.match(problem, /^scripts\/lib\/new\.mjs has no floor/);
   assert.match(problem, /lines 99\.41%, branches 95\.83%, functions 75\.00%/);
 
-  // The last line is the row itself, in the table's JSON.
+  // The last line is the row itself, in the table's JSON, with the same
+  // allowance the committed rows have.
   const pasted = JSON.parse(`{${problem.split('\n').at(-1)}}`);
-  assert.deepEqual(pasted, { 'scripts/lib/new.mjs': row(99, 95, 75) });
+  assert.deepEqual(pasted, { 'scripts/lib/new.mjs': row(98, 91, 50) });
 });
 
 test('a row no test loaded fails, so a lost test sibling cannot go quiet', () => {
   const problems = checkFloors(
-    [file('scripts/a.mjs', 100, 100, 100)],
+    [flat('scripts/a.mjs', 100)],
     { 'scripts/a.mjs': row(100, 100, 100), 'scripts/gone.mjs': row(1, 1, 1) },
     ROOT
   );
@@ -92,7 +143,7 @@ test('a row missing a metric is reported instead of passing', () => {
   // `x < undefined` is false, so without the check a misspelled key would
   // switch that metric off and read as a pass.
   const problems = checkFloors(
-    [file('scripts/a.mjs', 0, 0, 0)],
+    [flat('scripts/a.mjs', 0)],
     { 'scripts/a.mjs': { lines: 0, branches: 0, function: 100 } },
     ROOT
   );
@@ -119,7 +170,7 @@ const summary = success => ({ type: 'test:summary', data: { success } });
 test('a green run inside its floors passes and says it checked', async () => {
   const { text, failed } = await report({ 'scripts/a.mjs': row(90, 90, 90) }, [
     summary(true),
-    coverage(file('scripts/a.mjs', 95, 95, 95)),
+    coverage(flat('scripts/a.mjs', 95)),
     summary(true),
   ]);
   assert.equal(failed, 0);
@@ -128,7 +179,7 @@ test('a green run inside its floors passes and says it checked', async () => {
 
 test('a green run below a floor fails once and names the file', async () => {
   const { text, failed } = await report({ 'scripts/a.mjs': row(90, 90, 90) }, [
-    coverage(file('scripts/a.mjs', 95, 95, 60)),
+    coverage(file('scripts/a.mjs', [95, 100], [95, 100], [60, 100])),
     summary(true),
   ]);
   assert.equal(failed, 1);
@@ -140,7 +191,7 @@ test('a red run is not judged, whatever its coverage', async () => {
   // would judge floors on a run whose tests failed.
   const { text, failed } = await report({ 'scripts/a.mjs': row(90, 90, 90) }, [
     summary(true),
-    coverage(file('scripts/a.mjs', 0, 0, 0)),
+    coverage(flat('scripts/a.mjs', 0)),
     summary(false),
   ]);
   assert.equal(failed, 0);
