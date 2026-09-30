@@ -1,6 +1,7 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { buttonType } from '../helpers/buttonType';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -235,6 +236,9 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      * `role="img"`. A role claiming the opposite, such as `"button"`, says nothing here, and
      * neither does an `href`: that settles it on its own. A genuine `'a'`/`'button'`/`href`
      * avatar keeps its accessible name either way.
+     *
+     * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
+     * an avatar inside a form does not submit it.
      */
     as?: T;
   };
@@ -248,6 +252,8 @@ type AvatarImplProps = AvatarOwnProps & {
   as?: React.ElementType;
   role?: React.AriaRole;
   'aria-hidden'?: React.AriaAttributes['aria-hidden'];
+  'aria-label'?: string;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
 };
 
 /**
@@ -465,32 +471,57 @@ export const Avatar = forwardRef(function Avatar(
   // button must always expose an accessible name.
   const isDecorative = alt === '' && !isInteractive;
 
-  const a11yProps = showImage
+  const a11yDefaults: {
+    'aria-label'?: string;
+    role?: 'img';
+    'aria-hidden'?: true;
+  } = showImage
     ? isInteractive && !accessibleName
       ? // The img alt normally names the control; with no alt/name (an API
         // returning only a photo URL) the link/button would be nameless.
         { 'aria-label': name || 'Avatar' }
       : {}
     : isDecorative
-      ? { 'aria-hidden': true as const }
+      ? { 'aria-hidden': true }
       : {
           ...(isInteractive ? {} : { role: 'img' as const }),
           'aria-label': accessibleName || name || 'Avatar',
         };
 
-  // A clickable avatar inside a form must not submit it; default the native
-  // button type (an explicit type passed through rest still wins).
-  const buttonTypeProps = Tag === 'button' ? { type: 'button' as const } : {};
+  // Each default yields to a value the caller passed, and is applied after
+  // `rest` reading through it rather than spread before it. React treats an
+  // `undefined` attribute as "remove it", and a spread carrying the key with no
+  // value is how that arrives, so a default spread first was erased by it: an
+  // `aria-label: undefined` left a button avatar nameless, and `role` and
+  // `aria-hidden` went the same way. The button `type` below has the same
+  // shape (#690).
+  const a11yProps = Object.fromEntries(
+    Object.entries(a11yDefaults).map(([key, fallback]) => [
+      key,
+      rest[key as keyof typeof a11yDefaults] ?? fallback,
+    ])
+  );
 
   return (
     <Tag
       ref={ref}
       className={combinedClasses}
       style={{ ...sizeStyle, ...style }}
-      {...buttonTypeProps}
       {...linkProps}
-      {...a11yProps}
       {...rest}
+      {...a11yProps}
+      // A clickable avatar inside a form must not submit it, and `<button>`
+      // defaults to type="submit". A caller's `submit` or `reset` still wins.
+      // Anything else becomes `button`, since HTML reads a value it does not
+      // define for a button as submit too; `buttonType` says more.
+      //
+      // After `rest`, reading through it rather than before it: React treats
+      // `type={undefined}` as "remove the attribute", and a spread carrying the
+      // key with no value is how that arrives. Spreading the default first let
+      // such a spread erase it (#690), so the guard only held for callers who
+      // passed nothing. `Dropdown.Item` and `Menu.Item` apply their button
+      // type after the spread too.
+      {...(Tag === 'button' ? { type: buttonType(rest.type) } : {})}
     >
       {showImage && (
         <img
