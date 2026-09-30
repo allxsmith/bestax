@@ -26,6 +26,7 @@
         "Link",
         "LinkButton",
         "ListItem",
+        "Loader",
         "Notification",
         "OrderedList",
         "Paragraph",
@@ -592,6 +593,17 @@
       "compound": false,
       "propCount": 4,
       "exampleCount": 6
+    },
+    {
+      "name": "Loader",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states.",
+      "slug": "elements/loader",
+      "import": "import { Loader } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 2,
+      "exampleCount": 5
     },
     {
       "name": "Loading",

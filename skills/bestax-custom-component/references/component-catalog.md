@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-87 documented components. Generated from the API docs — every exported
+88 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -58,6 +58,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Link](https://bestax.io/docs/api/elements/link) — The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
 - [LinkButton](https://bestax.io/docs/api/elements/linkbutton) — The `LinkButton` component renders a `<button>` that visually looks like text or a link.
 - [ListItem](https://bestax.io/docs/api/elements/listitem) — The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
+- [Loader](https://bestax.io/docs/api/elements/loader) — The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states.
 - [Notification](https://bestax.io/docs/api/elements/notification) — The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
 - [OrderedList](https://bestax.io/docs/api/elements/orderedlist) — The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
 - [Paragraph](https://bestax.io/docs/api/elements/paragraph) — The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.

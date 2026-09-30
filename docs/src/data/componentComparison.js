@@ -43,6 +43,7 @@ const BESTAX = {
   Link: 'elements/link',
   LinkButton: 'elements/linkbutton',
   ListItem: 'elements/listitem',
+  Loader: 'elements/loader',
   Notification: 'elements/notification',
   OrderedList: 'elements/orderedlist',
   Paragraph: 'elements/paragraph',
@@ -1510,7 +1511,7 @@ export const categories = [
       ],
       [
         'Spinner (standalone)',
-        '~Loading',
+        'Loader',
         'Loader',
         'Spinner',
         'CircularProgress',

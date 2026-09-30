@@ -142,21 +142,21 @@ test holds to rbx's own export surface in both directions.
 
 ## The renames worth memorising
 
-| rbx                                | bestax-bulma                                                                                               |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `Tag.Group`                        | `Tags`                                                                                                     |
-| `Button.Group`                     | `Buttons`                                                                                                  |
-| `Column.Group`                     | `Columns`                                                                                                  |
-| `Card.Footer.Item`                 | `Card.FooterItem`                                                                                          |
-| `Table.Head` / `.Body` / `.Foot`   | `Table.Thead` / `.Tbody` / `.Tfoot`                                                                        |
-| `Table.Row` / `.Cell` / `.Heading` | `Table.Tr` / `.Td` / `.Th`                                                                                 |
-| `Textarea`                         | `TextArea`                                                                                                 |
-| `PageLoader`                       | `Loading` with `isFullPage`                                                                                |
-| `Loader`                           | a plain `<div className="loader">` — bestax's `Loading` is an overlay that renders nothing unless `active` |
-| `Menu.List.Item`                   | `Menu.Item`                                                                                                |
-| `Tab` / `Tab.Group`                | `Tabs.Item` / `Tabs`                                                                                       |
-| `Panel.Tab.Group`                  | `Panel.Tabs`                                                                                               |
-| `Title subtitle`                   | `SubTitle`                                                                                                 |
+| rbx                                | bestax-bulma                                                                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tag.Group`                        | `Tags`                                                                                                                                                                                            |
+| `Button.Group`                     | `Buttons`                                                                                                                                                                                         |
+| `Column.Group`                     | `Columns`                                                                                                                                                                                         |
+| `Card.Footer.Item`                 | `Card.FooterItem`                                                                                                                                                                                 |
+| `Table.Head` / `.Body` / `.Foot`   | `Table.Thead` / `.Tbody` / `.Tfoot`                                                                                                                                                               |
+| `Table.Row` / `.Cell` / `.Heading` | `Table.Tr` / `.Td` / `.Th`                                                                                                                                                                        |
+| `Textarea`                         | `TextArea`                                                                                                                                                                                        |
+| `PageLoader`                       | `Loading` with `isFullPage`                                                                                                                                                                       |
+| `Loader`                           | a plain `<div className="loader">` — bestax's `Loading` is an overlay that renders nothing unless `active`; bestax's `Loader` renders the same ring as a named progressbar, so swap it in by hand |
+| `Menu.List.Item`                   | `Menu.Item`                                                                                                                                                                                       |
+| `Tab` / `Tab.Group`                | `Tabs.Item` / `Tabs`                                                                                                                                                                              |
+| `Panel.Tab.Group`                  | `Panel.Tabs`                                                                                                                                                                                      |
+| `Title subtitle`                   | `SubTitle`                                                                                                                                                                                        |
 
 ## Value-chosen targets
 

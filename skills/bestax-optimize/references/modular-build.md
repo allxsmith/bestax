@@ -77,7 +77,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
 `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`, `loader`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -88,6 +88,8 @@ Notes:
 - Extras `Tabs` **extends** stock Bulma tabs (vertical variant) — an app using `Tabs` needs
   both `bulma/sass/components/tabs` and `@allxsmith/bestax-bulma/scss/components/tabs`.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
+- `Loader` is stock Bulma styled by `bulma/sass/elements/loader`. Its extras partial only
+  stops the spin under `prefers-reduced-motion: reduce`, so include both.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.

@@ -1,0 +1,12 @@
+// Bestax Extras - Loader Styles
+// Bulma styles `.loader` itself, but its spin has no reduced-motion rule. This
+// stops the spin for users who ask for less motion. The ring stays drawn, so
+// the loading state is still visible.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}loader {
+    animation: none;
+  }
+}

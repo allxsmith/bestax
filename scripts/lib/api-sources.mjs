@@ -147,6 +147,7 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_linkbutton.scss' },
   ],
   ListItem: [],
+  Loader: [],
   Loading: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },
   ],
