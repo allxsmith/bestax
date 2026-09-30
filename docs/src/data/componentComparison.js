@@ -64,6 +64,7 @@ const BESTAX = {
   Card: 'components/card',
   Carousel: 'components/carousel',
   Collapse: 'components/collapse',
+  Collapses: 'components/collapses',
   Dialog: 'components/dialog',
   Dropdown: 'components/dropdown',
   Loading: 'components/loading',
@@ -1627,7 +1628,7 @@ export const categories = [
     rows: [
       [
         'Accordion (grouped)',
-        '~Collapse',
+        'Collapses',
         'Accordion',
         'Accordion',
         'Accordion',

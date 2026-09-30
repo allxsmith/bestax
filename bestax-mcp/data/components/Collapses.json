@@ -1,0 +1,257 @@
+{
+  "name": "Collapses",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/collapses",
+  "docsUrl": "https://bestax.io/docs/api/components/collapses",
+  "examples": [
+    {
+      "title": "Accordion",
+      "code": "<Collapses defaultValue={0}>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Shipping</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Orders leave the warehouse within two business days.\n    </Paragraph>\n  </Collapse>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Returns</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Send anything back within 30 days for a full refund.\n    </Paragraph>\n  </Collapse>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Warranty</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Every product carries a one-year warranty against defects.\n    </Paragraph>\n  </Collapse>\n</Collapses>"
+    },
+    {
+      "title": "Multiple Open Items",
+      "code": "<Collapses multiple defaultValue={[0, 2]}>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Shipping</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Orders leave the warehouse within two business days.\n    </Paragraph>\n  </Collapse>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Returns</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Send anything back within 30 days for a full refund.\n    </Paragraph>\n  </Collapse>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Warranty</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Every product carries a one-year warranty against defects.\n    </Paragraph>\n  </Collapse>\n</Collapses>"
+    },
+    {
+      "title": "Seamless",
+      "code": "<Collapses seamless defaultValue={1}>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Shipping</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Orders leave the warehouse within two business days.\n    </Paragraph>\n  </Collapse>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Returns</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Send anything back within 30 days for a full refund.\n    </Paragraph>\n  </Collapse>\n  <Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Warranty</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Every product carries a one-year warranty against defects.\n    </Paragraph>\n  </Collapse>\n</Collapses>"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [open, setOpen] = useState<number | null>(0);\n  const items = [\n    {\n      title: 'Shipping',\n      body: 'Orders leave the warehouse within two business days.',\n    },\n    {\n      title: 'Returns',\n      body: 'Send anything back within 30 days for a full refund.',\n    },\n    {\n      title: 'Warranty',\n      body: 'Every product carries a one-year warranty against defects.',\n    },\n  ];\n\n  return (\n    <Collapses value={open} onChange={setOpen}>\n      {items.map((item, index) => (\n        <Collapse\n          key={item.title}\n          bordered\n          trigger={\n            <Block\n              p=\"4\"\n              display=\"flex\"\n              justifyContent=\"space-between\"\n              alignItems=\"center\"\n            >\n              <Strong>{item.title}</Strong>\n              <Span aria-hidden=\"true\">{open === index ? '−' : '+'}</Span>\n            </Block>\n          }\n        >\n          <Paragraph p=\"4\">{item.body}</Paragraph>\n        </Collapse>\n      ))}\n    </Collapses>\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [open, setOpen] = useState<number[]>([]);\n  const items = [\n    {\n      title: 'Shipping',\n      body: 'Orders leave the warehouse within two business days.',\n    },\n    {\n      title: 'Returns',\n      body: 'Send anything back within 30 days for a full refund.',\n    },\n    {\n      title: 'Warranty',\n      body: 'Every product carries a one-year warranty against defects.',\n    },\n  ];\n\n  return (\n    <Block>\n      <Buttons>\n        <Button onClick={() => setOpen(items.map((_, index) => index))}>\n          Expand all\n        </Button>\n        <Button onClick={() => setOpen([])}>Collapse all</Button>\n      </Buttons>\n      <Collapses multiple value={open} onChange={setOpen}>\n        {items.map(item => (\n          <Collapse\n            key={item.title}\n            bordered\n            trigger={\n              <Block p=\"4\">\n                <Strong>{item.title}</Strong>\n              </Block>\n            }\n          >\n            <Paragraph p=\"4\">{item.body}</Paragraph>\n          </Collapse>\n        ))}\n      </Collapses>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "An Item With Its Own State",
+      "code": "function example() {\n  const [pinned, setPinned] = useState(true);\n\n  return (\n    <Collapses defaultValue={0}>\n      <Collapse\n        bordered\n        trigger={\n          <Block p=\"4\">\n            <Strong>Shipping</Strong>\n          </Block>\n        }\n      >\n        <Paragraph p=\"4\">\n          Orders leave the warehouse within two business days.\n        </Paragraph>\n      </Collapse>\n      <Collapse\n        bordered\n        open={pinned}\n        onOpenChange={setPinned}\n        trigger={\n          <Block p=\"4\">\n            <Strong>Pinned note</Strong>\n          </Block>\n        }\n      >\n        <Paragraph p=\"4\">\n          Opening another item does not close this one.\n        </Paragraph>\n      </Collapse>\n      <Collapse\n        bordered\n        trigger={\n          <Block p=\"4\">\n            <Strong>Returns</Strong>\n          </Block>\n        }\n      >\n        <Paragraph p=\"4\">\n          Send anything back within 30 days for a full refund.\n        </Paragraph>\n      </Collapse>\n    </Collapses>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Collapses defaultValue={0}>\n  <Collapses.Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Shipping</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Orders leave the warehouse within two business days.\n    </Paragraph>\n  </Collapses.Collapse>\n  <Collapses.Collapse\n    bordered\n    trigger={\n      <Block p=\"4\">\n        <Strong>Returns</Strong>\n      </Block>\n    }\n  >\n    <Paragraph p=\"4\">\n      Send anything back within 30 days for a full refund.\n    </Paragraph>\n  </Collapses.Collapse>\n</Collapses>"
+    }
+  ],
+  "accessibility": "- Each item keeps the wiring `Collapse` gives it: the trigger has `role=\"button\"` and\n  `tabIndex=\"0\"`, toggles on Enter and Space, and carries `aria-expanded` and an\n  `aria-controls` that points at its own panel. The group only decides which items are open.\n- Each trigger is its own tab stop. Arrow-key movement between triggers, which the WAI-ARIA\n  accordion pattern lists as optional, is not built in.\n- A trigger's text is its accessible name, so name what the item opens (\"Returns\", not\n  \"Click here\"). Mark a decorative icon in a trigger `aria-hidden` so it adds nothing to that\n  name.\n- The trigger is already a button, so don't put another button or link inside it. Assistive\n  tech treats what's inside a button as plain content, so the inner control loses its role\n  while still taking a tab stop.",
+  "related": ["Collapse", "Tabs", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-collapses--default",
+  "summary": "The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.",
+  "import": "import { Collapses, Collapse } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Collapses.tsx",
+  "rootClass": "collapses",
+  "parts": [
+    {
+      "path": "Collapses",
+      "summary": "The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.",
+      "component": null,
+      "props": [
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": "false",
+          "description": "Lets items open independently. Without it, opening one item closes the others.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number | null | number[]",
+          "default": null,
+          "description": "Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number | null | number[]",
+          "default": null,
+          "description": "Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number | null) => void | (value: number[]) => void",
+          "default": null,
+          "description": "Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or an array of indexes with `multiple`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "seamless",
+          "type": "boolean",
+          "default": "false",
+          "description": "Joins the items into one block, with no gap between them and only the outer corners rounded. The joins show on `bordered` items.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The `Collapse` items. Each child element is one item, indexed from 0 in order, with the children of a fragment counted one by one. A child that sets its own `open` keeps it: the group leaves that item alone.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Collapses.Collapse",
+      "summary": "The `Collapse` component provides an expandable/collapsible content panel.",
+      "component": "Collapse",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled open state. If provided, component is controlled, and the trigger only reports through `onOpenChange`. Inside a `Collapses` group, a Collapse that sets `open` stays yours: the group neither overrides it nor closes it when another item opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state for uncontrolled usage. Ignored inside a `Collapses` group, whose `defaultValue` decides.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Called when the trigger opens the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Called when the trigger closes the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the state the trigger asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the trigger drive a controlled Collapse.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "trigger",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The clickable trigger element (header/button).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "animation",
+          "type": "'fade' | 'slide' | false",
+          "default": "'fade'",
+          "description": "Animation style, or `false` to disable.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top' | 'bottom'",
+          "default": "'top'",
+          "description": "Position of the trigger relative to content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaId",
+          "type": "string",
+          "default": "auto",
+          "description": "Custom aria id for accessibility.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bordered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a border around the collapse.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the trigger wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "contentClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the content wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The collapsible content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

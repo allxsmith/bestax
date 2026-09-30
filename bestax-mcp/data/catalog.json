@@ -53,6 +53,7 @@
         "Card",
         "Carousel",
         "Collapse",
+        "Collapses",
         "Dialog",
         "Dropdown",
         "Loading",
@@ -293,7 +294,18 @@
       "slug": "components/collapse",
       "import": "import { Collapse } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 11,
+      "propCount": 12,
+      "exampleCount": 7
+    },
+    {
+      "name": "Collapses",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.",
+      "slug": "components/collapses",
+      "import": "import { Collapses, Collapse } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 19,
       "exampleCount": 7
     },
     {

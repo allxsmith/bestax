@@ -225,6 +225,11 @@ own-selector override rule applies.
 `--bulma-collapse-margin-bottom`, `--bulma-collapse-radius`,
 `--bulma-collapse-trigger-icon-margin`, `--bulma-collapse-trigger-icon-size`
 
+`--bulma-collapse-group-gap` is the exception to the own-selector rule above. It spaces the
+items of a `Collapses` group, which reads it with a 0.5rem fallback and declares no value itself,
+so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
+list it, so set it in your CSS or through a `style` prop.)
+
 ### DateInput
 
 `--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,

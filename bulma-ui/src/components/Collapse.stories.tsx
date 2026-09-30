@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Collapse } from './Collapse';
+import { Collapses } from './Collapses';
 import { Card } from './Card';
 import { Panel } from './Panel';
 import { Icon } from '../elements/Icon';
@@ -37,6 +38,11 @@ const meta: Meta<typeof Collapse> = {
     defaultOpen: {
       control: 'boolean',
       description: 'Initial open state for uncontrolled usage',
+    },
+    onOpenChange: {
+      control: false,
+      description:
+        'Called with the state the trigger asks for (true to open), controlled or not',
     },
     animation: {
       control: 'select',
@@ -207,7 +213,8 @@ export const TriggerBottom: Story = {
 };
 
 /**
- * Controlled collapse with external state management.
+ * Controlled collapse with external state management. `onOpenChange` reports the
+ * trigger, so the trigger and the button change the same state.
  */
 export const Controlled: Story = {
   render: function ControlledCollapse() {
@@ -223,9 +230,10 @@ export const Controlled: Story = {
         </Block>
         <Collapse
           open={isOpen}
+          onOpenChange={setIsOpen}
           trigger={
             <Notification mb="4">
-              Controlled collapse (click button above)
+              Controlled collapse (click here or the button above)
             </Notification>
           }
         >
@@ -234,8 +242,8 @@ export const Controlled: Story = {
               This collapse is controlled by external state.
             </Paragraph>
             <Paragraph>
-              The trigger click doesn&apos;t toggle it — only the button above
-              does.
+              Its trigger reports through onOpenChange, which sets the same
+              state as the button above.
             </Paragraph>
           </Notification>
         </Collapse>
@@ -245,7 +253,7 @@ export const Controlled: Story = {
 };
 
 /**
- * Multiple collapses as an accordion.
+ * Multiple collapses as an accordion, grouped by `Collapses`.
  */
 export const Accordion: Story = {
   render: function AccordionExample() {
@@ -267,16 +275,13 @@ export const Accordion: Story = {
     ];
 
     return (
-      <div>
+      <Collapses value={openIndex} onChange={setOpenIndex}>
         {items.map((item, index) => (
           <Collapse
             key={index}
             className="card"
-            open={openIndex === index}
             trigger={
-              <Card.Header
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              >
+              <Card.Header>
                 <Card.Header.Title>{item.title}</Card.Header.Title>
                 <Card.Header.Icon aria-label="toggle">
                   <Icon
@@ -292,7 +297,7 @@ export const Accordion: Story = {
             </Card.Content>
           </Collapse>
         ))}
-      </div>
+      </Collapses>
     );
   },
 };
@@ -411,7 +416,7 @@ export const GhostTrigger: Story = {
 };
 
 /**
- * FAQ example with multiple collapses.
+ * FAQ example: `Collapses multiple` lets the answers open independently.
  */
 export const FAQExample: Story = {
   render: function FAQCollapse() {
@@ -432,42 +437,37 @@ export const FAQExample: Story = {
       },
     ];
 
-    const [openStates, setOpenStates] = useState<boolean[]>(
-      faqs.map(() => false)
-    );
-
-    const toggle = (index: number) => {
-      setOpenStates(prev =>
-        prev.map((state, i) => (i === index ? !state : state))
-      );
-    };
+    const [open, setOpen] = useState<number[]>([]);
 
     return (
       <div>
         <Title size="4">Frequently Asked Questions</Title>
 
-        {faqs.map((faq, index) => (
-          <Collapse
-            key={index}
-            className="card"
-            open={openStates[index]}
-            trigger={
-              <Card.Header onClick={() => toggle(index)}>
-                <Card.Header.Title>{faq.question}</Card.Header.Title>
-                <Card.Header.Icon aria-label="toggle">
-                  <Icon
-                    name={openStates[index] ? 'chevron-up' : 'chevron-down'}
-                    variant="solid"
-                  />
-                </Card.Header.Icon>
-              </Card.Header>
-            }
-          >
-            <Card.Content>
-              <Paragraph textColor="grey">{faq.answer}</Paragraph>
-            </Card.Content>
-          </Collapse>
-        ))}
+        <Collapses multiple value={open} onChange={setOpen}>
+          {faqs.map((faq, index) => (
+            <Collapse
+              key={index}
+              className="card"
+              trigger={
+                <Card.Header>
+                  <Card.Header.Title>{faq.question}</Card.Header.Title>
+                  <Card.Header.Icon aria-label="toggle">
+                    <Icon
+                      name={
+                        open.includes(index) ? 'chevron-up' : 'chevron-down'
+                      }
+                      variant="solid"
+                    />
+                  </Card.Header.Icon>
+                </Card.Header>
+              }
+            >
+              <Card.Content>
+                <Paragraph textColor="grey">{faq.answer}</Paragraph>
+              </Card.Content>
+            </Collapse>
+          ))}
+        </Collapses>
       </div>
     );
   },

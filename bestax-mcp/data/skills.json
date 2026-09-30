@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 17445
+          "bytes": 17647
         },
         {
           "id": "library-contributor",
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 26899
+          "bytes": 27242
         },
         {
           "id": "themeable-components",

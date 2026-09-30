@@ -1,6 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback, useId } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useContext,
+  useId,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { CollapsesItemContext } from './collapsesContext';
 
 /**
  * Props for the Collapse component.
@@ -11,14 +19,21 @@ export interface CollapseProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Controlled open state. If provided, component is controlled. */
+  /**
+   * Controlled open state. If provided, component is controlled, and the
+   * trigger only reports through `onOpenChange`. Inside a `Collapses` group, a
+   * Collapse that sets `open` stays yours: the group neither overrides it nor
+   * closes it when another item opens.
+   */
   open?: boolean;
-  /** Initial open state for uncontrolled usage. */
+  /** Initial open state for uncontrolled usage. Ignored inside a `Collapses` group, whose `defaultValue` decides. */
   defaultOpen?: boolean;
-  /** Callback when collapse opens. */
+  /** Called when the trigger opens the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode. */
   onOpen?: () => void;
-  /** Callback when collapse closes. */
+  /** Called when the trigger closes the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode. */
   onClose?: () => void;
+  /** Called with the state the trigger asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the trigger drive a controlled Collapse. */
+  onOpenChange?: (open: boolean) => void;
   /** The clickable trigger element (header/button). */
   trigger?: React.ReactNode;
   /** Animation style, or `false` to disable. */
@@ -52,12 +67,9 @@ export interface CollapseProps
  * </Collapse>
  *
  * @example
- * // Controlled collapse
+ * // Controlled collapse, driven by its own trigger
  * const [isOpen, setIsOpen] = useState(false);
- * <Collapse
- *   open={isOpen}
- *   trigger={<button onClick={() => setIsOpen(!isOpen)}>Toggle</button>}
- * >
+ * <Collapse open={isOpen} onOpenChange={setIsOpen} trigger={<strong>Toggle</strong>}>
  *   <p>Content</p>
  * </Collapse>
  *
@@ -76,6 +88,7 @@ export const Collapse: React.FC<CollapseProps> = ({
   defaultOpen = false,
   onOpen,
   onClose,
+  onOpenChange,
   trigger,
   animation = 'fade',
   position = 'top',
@@ -89,14 +102,21 @@ export const Collapse: React.FC<CollapseProps> = ({
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | 'auto'>(
-    defaultOpen ? 'auto' : 0
-  );
 
-  // Determine if controlled or uncontrolled
+  // Three possible owners of the open state, in order: the caller when `open`
+  // is set, an enclosing Collapses group, and this Collapse itself. A caller's
+  // `open` wins over the group, which is how the group leaves such an item
+  // alone.
   const isControlled = controlledOpen !== undefined;
+  const group = useContext(CollapsesItemContext);
+  const groupItem = isControlled ? null : group;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isOpen = isControlled ? controlledOpen : internalOpen;
+  const isOpen = controlledOpen ?? groupItem?.open ?? internalOpen;
+
+  // Start from the resolved state rather than `defaultOpen`, so an item that
+  // mounts open through `open` or a group is not first painted (or rendered
+  // on the server) at height 0 under the slide animation.
+  const [height, setHeight] = useState<number | 'auto'>(isOpen ? 'auto' : 0);
 
   // Generate unique ID for accessibility (useId is SSR-safe and stable across
   // renders; works in React 18 and 19).
@@ -142,18 +162,23 @@ export const Collapse: React.FC<CollapseProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, animation]);
 
-  // Handle toggle
+  // The trigger reports in every mode, then changes only the state this
+  // Collapse owns. `onOpen`/`onClose` belong to that last case alone.
   const handleToggle = useCallback(() => {
-    if (!isControlled) {
-      const newOpen = !internalOpen;
-      setInternalOpen(newOpen);
-      if (newOpen) {
-        onOpen?.();
-      } else {
-        onClose?.();
-      }
+    const next = !isOpen;
+    onOpenChange?.(next);
+    if (isControlled) return;
+    if (groupItem) {
+      groupItem.setOpen(next);
+      return;
     }
-  }, [isControlled, internalOpen, onOpen, onClose]);
+    setInternalOpen(next);
+    if (next) {
+      onOpen?.();
+    } else {
+      onClose?.();
+    }
+  }, [isOpen, isControlled, groupItem, onOpenChange, onOpen, onClose]);
 
   // Handle keyboard interaction
   const handleKeyDown = useCallback(
@@ -237,20 +262,24 @@ export const Collapse: React.FC<CollapseProps> = ({
     </div>
   );
 
+  // The group's item context stops here: a Collapse nested in this one's
+  // content is not an item of this one's group.
   return (
-    <div className={combinedClasses} {...rest}>
-      {position === 'bottom' ? (
-        <>
-          {contentElement}
-          {triggerElement}
-        </>
-      ) : (
-        <>
-          {triggerElement}
-          {contentElement}
-        </>
-      )}
-    </div>
+    <CollapsesItemContext.Provider value={null}>
+      <div className={combinedClasses} {...rest}>
+        {position === 'bottom' ? (
+          <>
+            {contentElement}
+            {triggerElement}
+          </>
+        ) : (
+          <>
+            {triggerElement}
+            {contentElement}
+          </>
+        )}
+      </div>
+    </CollapsesItemContext.Provider>
   );
 };
 

@@ -1,3 +1,5 @@
+import { useState, type SyntheticEvent } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Collapse } from '../Collapse';
@@ -140,6 +142,112 @@ describe('Collapse', () => {
       fireEvent.click(trigger);
 
       expect(handleClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onOpenChange with the next state before onOpen and onClose when uncontrolled', () => {
+      const calls: string[] = [];
+      const { container } = render(
+        <Collapse
+          trigger={<span>Toggle</span>}
+          onOpenChange={open => calls.push(`toggle:${open}`)}
+          onOpen={() => calls.push('open')}
+          onClose={() => calls.push('close')}
+        >
+          Content
+        </Collapse>
+      );
+
+      const trigger = container.querySelector('.collapse-trigger')!;
+      fireEvent.click(trigger);
+      fireEvent.click(trigger);
+
+      expect(calls).toEqual(['toggle:true', 'open', 'toggle:false', 'close']);
+    });
+
+    it('reports a controlled trigger through onOpenChange and leaves the state to the caller', () => {
+      const handleToggle = jest.fn();
+      const handleOpen = jest.fn();
+      const handleClose = jest.fn();
+      const { container, rerender } = render(
+        <Collapse
+          trigger={<span>Toggle</span>}
+          open={false}
+          onOpenChange={handleToggle}
+          onOpen={handleOpen}
+          onClose={handleClose}
+        >
+          Content
+        </Collapse>
+      );
+
+      const trigger = container.querySelector('.collapse-trigger')!;
+      fireEvent.click(trigger);
+      expect(handleToggle).toHaveBeenLastCalledWith(true);
+      expect(container.querySelector('.collapse')).not.toHaveClass('is-active');
+
+      rerender(
+        <Collapse
+          trigger={<span>Toggle</span>}
+          open
+          onOpenChange={handleToggle}
+          onOpen={handleOpen}
+          onClose={handleClose}
+        >
+          Content
+        </Collapse>
+      );
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(handleToggle).toHaveBeenLastCalledWith(false);
+      fireEvent.keyDown(trigger, { key: ' ' });
+      expect(handleToggle).toHaveBeenCalledTimes(3);
+
+      // onOpen/onClose keep their meaning: the Collapse's own state changed.
+      expect(handleOpen).not.toHaveBeenCalled();
+      expect(handleClose).not.toHaveBeenCalled();
+    });
+
+    it('lets onOpenChange drive a controlled Collapse from its own trigger', () => {
+      function Harness() {
+        const [open, setOpen] = useState(false);
+        return (
+          <Collapse
+            open={open}
+            onOpenChange={setOpen}
+            trigger={<span>Toggle</span>}
+          >
+            Content
+          </Collapse>
+        );
+      }
+      const { container } = render(<Harness />);
+
+      const trigger = container.querySelector('.collapse-trigger')!;
+      fireEvent.click(trigger);
+      expect(container.querySelector('.collapse')).toHaveClass('is-active');
+      fireEvent.click(trigger);
+      expect(container.querySelector('.collapse')).not.toHaveClass('is-active');
+    });
+
+    it('still accepts the inherited DOM onToggle, which the trigger does not call', () => {
+      // Typed as the DOM event handler it has always been, so existing code
+      // passing one keeps compiling; onOpenChange is the trigger's report.
+      const domToggle = jest.fn(
+        (event: SyntheticEvent<HTMLDivElement>) => event.type
+      );
+      const onOpenChange = jest.fn();
+      const { container } = render(
+        <Collapse
+          trigger={<span>Toggle</span>}
+          onToggle={domToggle}
+          onOpenChange={onOpenChange}
+        >
+          Content
+        </Collapse>
+      );
+
+      fireEvent.click(container.querySelector('.collapse-trigger')!);
+      expect(onOpenChange).toHaveBeenCalledWith(true);
+      expect(domToggle).not.toHaveBeenCalled();
     });
 
     it('does not call callbacks when controlled', () => {
@@ -653,6 +761,29 @@ describe('Collapse', () => {
       expect(wrapper.style.opacity).toBe('1');
       // rAF should not have been invoked because the slide-effect early-returns
       expect(rafSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('initial slide height', () => {
+    // The effect that measures the panel only runs in the browser, so the
+    // server markup is whatever height the state starts from.
+    it('renders a controlled open Collapse at full height on the server', () => {
+      const html = renderToStaticMarkup(
+        <Collapse trigger={<span>Toggle</span>} animation="slide" open>
+          Content
+        </Collapse>
+      );
+      expect(html).toContain('height:auto');
+      expect(html).not.toContain('height:0px');
+    });
+
+    it('renders a controlled closed Collapse at height 0 on the server', () => {
+      const html = renderToStaticMarkup(
+        <Collapse trigger={<span>Toggle</span>} animation="slide" open={false}>
+          Content
+        </Collapse>
+      );
+      expect(html).toContain('height:0px');
     });
   });
 

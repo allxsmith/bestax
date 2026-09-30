@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-87 documented components. Generated from the API docs — every exported
+88 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -82,6 +82,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Card](https://bestax.io/docs/api/components/card) — The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 - [Collapse](https://bestax.io/docs/api/components/collapse) — The `Collapse` component provides an expandable/collapsible content panel.
+- [Collapses](https://bestax.io/docs/api/components/collapses) — The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.

@@ -16,6 +16,7 @@ export * from './components/Panel';
 export * from './components/Tabs';
 export * from './components/Loading';
 export * from './components/Collapse';
+export * from './components/Collapses';
 export * from './components/Tooltip';
 export * from './components/Steps';
 export * from './components/Sidebar';
