@@ -30,7 +30,7 @@
       "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active>Dashboard</Menu.Item>\n    <Menu.Item>Customers</Menu.Item>\n  </Menu.List>\n</Menu>"
     }
   ],
-  "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Ensure each item is focusable and accessible if interactive.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
+  "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Ensure each item is focusable and accessible if interactive.\n- `Menu.Item as=\"button\"` defaults to `type=\"button\"`, so a menu item inside a form doesn't\n  submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used instead; any other value\n  renders `type=\"button\"`.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
   "related": ["Panel", "Sidebar", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-menu--basic",
   "summary": "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.",
@@ -131,7 +131,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'a'",
-          "description": "Custom link component (e.g. `Link` from router).",
+          "description": "Custom link component (e.g. `Link` from router). `'button'` renders `type=\"button\"` unless you pass `type=\"submit\"` or `type=\"reset\"`, so an item inside a form does not submit it.",
           "required": false,
           "inherited": false,
           "deprecated": false
