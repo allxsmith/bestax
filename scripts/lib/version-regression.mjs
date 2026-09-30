@@ -133,23 +133,55 @@ const VERSION = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)
  *
  * Strict on purpose. Release notes carry commit bodies verbatim, so a looser
  * pattern could read a stray line of one as a section and pass a changelog
- * whose real section is gone. A strict pattern that misses a NEW heading shape
- * fails the other way, loudly, naming every tagged version as missing.
+ * whose real section is gone. The other direction is covered by
+ * `VERSION_HEADING` below, so a shape this does not know is named as one
+ * rather than reported as a deletion.
  */
 const SECTION_HEADING = new RegExp(
-  String.raw`^#{1,2} (?:\[(${VERSION})\]\([^\s()]+\)|(${VERSION}))(?: \(\d{4}-\d{2}-\d{2}\))?[ \t]*$`
+  String.raw`^#{1,2} (?:\[(${VERSION})\]\([^\s()]+\)|(${VERSION}))(?: \((\d{4}-\d{2}-\d{2})\))?[ \t]*$`
 );
 
 /**
- * The versions a CHANGELOG.md has a released section for.
+ * Any heading that OPENS with a version, read as loosely as the release
+ * tooling could plausibly vary it: any depth, an optional link, `v` or
+ * `<small>` in front, and anything after. Depth is what changelog templates
+ * pick by release type, and some add a quoted title or wrap a patch in
+ * `<small>`. A heading this reads and `SECTION_HEADING` does not is a shape to
+ * teach the parser, not a section someone deleted.
  */
-export const changelogVersions = text => {
+const VERSION_HEADING = new RegExp(
+  String.raw`^ {0,3}#{1,6}[ \t]+(?:<small>[ \t]*)?\[?v?(${VERSION})`
+);
+
+/**
+ * What a CHANGELOG.md records: `versions`, every version it has a section
+ * for; `released`, those whose heading has the link or date a release writes;
+ * and `unread`, each version that opens a heading in a shape `SECTION_HEADING`
+ * does not accept, mapped to that heading.
+ *
+ * A bare heading is a section wherever a tag stands behind it, which is how
+ * bulma-ui's history from before semantic-release is held. It is not, on its
+ * own, evidence that a package has released: a changelog seeded by hand ahead
+ * of a first release looks exactly like it.
+ */
+export const changelogSections = text => {
   const versions = new Set();
+  const released = new Set();
+  const unread = new Map();
   for (const line of String(text).split(/\r?\n/)) {
-    const match = SECTION_HEADING.exec(line);
-    if (match) versions.add(match[1] ?? match[2]);
+    const section = SECTION_HEADING.exec(line);
+    if (section) {
+      const [, linked, bare, date] = section;
+      versions.add(linked ?? bare);
+      if (linked !== undefined || date !== undefined) {
+        released.add(linked ?? bare);
+      }
+      continue;
+    }
+    const heading = VERSION_HEADING.exec(line);
+    if (heading && !unread.has(heading[1])) unread.set(heading[1], line.trim());
   }
-  return versions;
+  return { versions, released, unread };
 };
 
 /**
@@ -164,9 +196,9 @@ export const changelogVersions = text => {
 export const UNREADABLE_CHANGELOG = Symbol('unreadable changelog');
 
 /**
- * The released versions a package's changelog records: a Set, `null` when
- * there is no changelog, `UNREADABLE_CHANGELOG` when there is one this could
- * not read.
+ * What a package's changelog records, as `changelogSections` reads it, `null`
+ * when there is no changelog, `UNREADABLE_CHANGELOG` when there is one this
+ * could not read.
  */
 export const loadChangelog = async (dir, readChangelog) => {
   let text;
@@ -177,7 +209,7 @@ export const loadChangelog = async (dir, readChangelog) => {
     return UNREADABLE_CHANGELOG;
   }
   return typeof text === 'string'
-    ? changelogVersions(text)
+    ? changelogSections(text)
     : UNREADABLE_CHANGELOG;
 };
 
@@ -187,8 +219,9 @@ export const loadChangelog = async (dir, readChangelog) => {
  * @param anyTagsExist boolean whether the repository has any tags at all
  * @param tagFormatFor (dir) => string|null the `tagFormat` literal in that
  *   package's release config, or null when it has none to read
- * @param changelogFor (dir) => Set|null|UNREADABLE_CHANGELOG the versions that
- *   package's CHANGELOG.md has a section for, as `loadChangelog` answers
+ * @param changelogFor (dir) => { versions, released, unread }|null|
+ *   UNREADABLE_CHANGELOG
+ *   what that package's CHANGELOG.md records, as `loadChangelog` answers
  */
 export const findVersionRegressions = ({
   packages,
@@ -334,9 +367,21 @@ export const findVersionRegressions = ({
     ];
   }
 
+  // A version list for a message: newest first, cut short past a handful.
+  const newestFirst = (a, b) => compareVersions(b, a);
+  const listed = versions => {
+    const shown = versions.slice(0, 5).map(v => `\`${v}\``);
+    const more = versions.length - shown.length;
+    return shown.join(', ') + (more > 0 ? ` and ${more} more` : '');
+  };
+
+  // Packages with released sections and no reachable tag, said once after the
+  // loop: a truncated clone loses several at once, and the fix is the same.
+  const untagged = [];
+
   for (const pkg of comparable) {
     const tags = tagsFor(pkg.name);
-    const sections = changelogFor(pkg.dir);
+    const changelog = changelogFor(pkg.dir);
     if (!tags.length) {
       // No tag of THIS package is reachable, while some other package's is.
       // Tags alone cannot say whether it should have one: a new package, or a
@@ -349,28 +394,20 @@ export const findVersionRegressions = ({
       //
       // It asks whether ANY tag of the package is reachable, not each one, so
       // a history cut between two of its releases is compared against the
-      // tags it still reaches and says nothing about the rest. And a package
-      // that lost its tags AND had every section deleted looks unreleased:
-      // that takes a broken checkout and a broken file at once.
-      if (!allowUntagged && sections instanceof Set && sections.size) {
-        let newest = null;
-        for (const version of sections) {
-          if (newest === null || compareVersions(version, newest) > 0) {
-            newest = version;
-          }
-        }
-        problems.push(
-          `${pkg.dir}/CHANGELOG.md has released sections up to \`${newest}\`, ` +
-            `but no \`${tagGlob(pkg.name)}\` tag is reachable from HEAD, so ` +
-            `neither the version of ${pkg.name} nor its changelog could be ` +
-            `compared. A release writes its section in the commit its tag ` +
-            `points at, so on a whole history the two arrive together: this ` +
-            `checkout is missing that package's tags, or its history stops ` +
-            `short of them. The fix is \`git fetch --tags\` (with ` +
-            `\`--unshallow\` in a shallow clone), or a full clone. If you ` +
-            `genuinely cannot, re-run with \`--allow-untagged\`, which turns ` +
-            `THIS rule off and leaves the rest of the run intact. Never pass ` +
-            `that in CI.`
+      // tags it still reaches and says nothing about the rest. A package that
+      // lost its tags AND had every section deleted looks unreleased, which
+      // takes a broken checkout and a broken file at once. And only headings
+      // with the link or date a release writes count here, so a bare one
+      // seeded by hand does not stop a new package, but one written by hand
+      // with a date does.
+      const recorded =
+        changelog && changelog !== UNREADABLE_CHANGELOG
+          ? [...changelog.released].sort(newestFirst)
+          : [];
+      if (!allowUntagged && recorded.length) {
+        untagged.push(
+          `${pkg.dir}/CHANGELOG.md (releases up to \`${recorded[0]}\`, ` +
+            `no \`${tagGlob(pkg.name)}\` tag)`
         );
       }
       continue;
@@ -422,9 +459,8 @@ export const findVersionRegressions = ({
     // tag reachable from HEAD says that version was released on this line, so
     // its section has to be here. Order and wording are not this check's
     // business, and neither is a section with no tag behind it.
-    if (sections === UNREADABLE_CHANGELOG) continue; // reported with the contract
-    const newestFirst = (a, b) => compareVersions(b, a);
-    if (sections === null) {
+    if (changelog === UNREADABLE_CHANGELOG) continue; // reported with the contract
+    if (changelog === null) {
       problems.push(
         `${pkg.dir}/CHANGELOG.md does not exist, but release tags of ` +
           `${pkg.name} are reachable from HEAD, up to \`${highest}\`. Every ` +
@@ -434,30 +470,59 @@ export const findVersionRegressions = ({
       );
       continue;
     }
-    const missing = released.filter(v => !sections.has(v)).sort(newestFirst);
-    if (!missing.length) continue;
-    const shown = missing.slice(0, 5).map(v => `\`${v}\``);
-    const more =
-      missing.length > shown.length
-        ? ` and ${missing.length - shown.length} more`
-        : '';
+    const missing = released
+      .filter(v => !changelog.versions.has(v))
+      .sort(newestFirst);
+    // A missing version that still opens a heading was not deleted. Its
+    // heading is in a shape the parser does not accept, which is what drift in
+    // the release tooling looks like, and restoring the file would not help.
+    const misread = missing.filter(v => changelog.unread.has(v));
+    const deleted = missing.filter(v => !changelog.unread.has(v));
+    if (misread.length) {
+      problems.push(
+        `${pkg.dir}/CHANGELOG.md has a heading for ${listed(misread)} that ` +
+          `does not read as a released section: ` +
+          `\`${changelog.unread.get(misread[0])}\`. The section is there, so ` +
+          `this is not a deletion. \`SECTION_HEADING\` in ` +
+          `scripts/lib/version-regression.mjs does not accept that shape: if ` +
+          `the release tooling now writes headings that way, teach it the new ` +
+          `one, and if the heading was edited by hand, restore it from ` +
+          `\`origin/main\`.`
+      );
+    }
+    if (deleted.length) {
+      problems.push(
+        `${pkg.dir}/CHANGELOG.md has no section for ${listed(deleted)}, ` +
+          `though ${deleted.length === 1 ? 'its tag is' : 'their tags are'} ` +
+          `reachable from HEAD: released on this line, and deleted since. ` +
+          `Nothing rebuilds a released section, because the next release ` +
+          `writes above the gap. Restore ` +
+          `${deleted.length === 1 ? 'it' : 'them'} from \`origin/main\`, or ` +
+          `from the release that wrote ` +
+          `${deleted.length === 1 ? 'it' : 'the newest'}: ` +
+          `\`git show ${pkg.name}@${deleted[0]}:${pkg.dir}/CHANGELOG.md\`.`
+      );
+    }
+  }
+
+  if (untagged.length) {
+    const one = untagged.length === 1;
     problems.push(
-      `${pkg.dir}/CHANGELOG.md has no section for ${shown.join(', ')}${more}, ` +
-        `though ${missing.length === 1 ? 'its tag is' : 'their tags are'} ` +
-        `reachable from HEAD: released on this line, and deleted since. ` +
-        `Nothing rebuilds a released section, because the next release writes ` +
-        `above the gap. Restore ${missing.length === 1 ? 'it' : 'them'} from ` +
-        `\`origin/main\`, or from the release that wrote ` +
-        `${missing.length === 1 ? 'it' : 'the newest'}: ` +
-        `\`git show ${pkg.name}@${missing[0]}:${pkg.dir}/CHANGELOG.md\`.` +
-        // Every tagged version missing and not one heading read: likelier a
-        // heading shape this does not know than a file emptied by hand.
-        (sections.size
-          ? ''
-          : ' No heading in the file reads as a released section at all, so ' +
-            'if the release tooling now writes them in another shape, teach ' +
-            '`changelogVersions` in scripts/lib/version-regression.mjs the ' +
-            'new one.')
+      'version-regression: ' +
+        (one
+          ? 'this changelog records releases, but no tag of its package is ' +
+            'reachable from HEAD, so neither its version nor its changelog ' +
+            'could be compared: '
+          : 'these changelogs record releases, but no tag of their package is ' +
+            'reachable from HEAD, so none of those versions or changelogs ' +
+            'could be compared: ') +
+        `${untagged.join('; ')}. A release writes its section in the commit ` +
+        `its tag points at, so on a whole history the two arrive together: ` +
+        `this checkout is missing those tags, or its history stops short of ` +
+        `them. The fix is \`git fetch --tags\` (with \`--unshallow\` in a ` +
+        `shallow clone), or a full clone. If you genuinely cannot, re-run ` +
+        `with \`--allow-untagged\`, which turns THIS rule off and leaves the ` +
+        `rest of the run intact. Never pass that in CI.`
     );
   }
 
