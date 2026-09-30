@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { resolvePortalContainer } from '../helpers/portal';
+import { groupIntoPositionStacks } from '../helpers/positionStacks';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -41,8 +42,8 @@ export interface ToastProps
   actionType?: ToastType;
   /**
    * Position on the screen. Default: 'top-right'. On a standalone `<Toast>`
-   * this places it; through `toast.show()` it is currently ignored, because
-   * `ToastContainer`'s own `position` places every toast it shows.
+   * this places it. Through `toast.show()` it places that toast, and a toast
+   * shown without one goes to `ToastContainer`'s `position` instead.
    */
   position?: ToastPosition;
   /** Duration in ms before auto-close. `0` disables auto-close. */
@@ -331,7 +332,10 @@ Toast.displayName = 'Toast';
 export interface ToastOptions extends Omit<ToastProps, 'message'> {
   /** The message to display. */
   message: string;
-  /** When true, toasts enter a FIFO queue and display one at a time. Default false. */
+  /**
+   * When true, toasts enter a FIFO queue and display one at a time, one queue
+   * across every `position`. Default false.
+   */
   queue?: boolean;
 }
 
@@ -486,17 +490,36 @@ export const toast = {
   },
 };
 
+// The order ToastContainer renders its stacks in: across the top of the
+// screen, then across the bottom.
+const toastStackOrder: readonly ToastPosition[] = [
+  'top-left',
+  'top-center',
+  'top-right',
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+];
+
 /**
  * Container component for rendering programmatic toasts.
- * Place once at your app root to enable the toast API.
+ * Place once at your app root to enable the toast API. A toast shown with a
+ * `position` appears there, and one shown without goes to the container's
+ * `position`.
  *
  * @function
  * @param {{ position?: ToastPosition }} props - Container props.
  * @returns {JSX.Element | null} The rendered toast container, or null if empty.
  */
-export const ToastContainer: React.FC<{ position?: ToastPosition }> = ({
-  position = 'top-right',
-}) => {
+export const ToastContainer: React.FC<{
+  /**
+   * Where a toast shown without a `position` of its own appears. Default:
+   * 'top-right'. When it changes, those toasts move without remounting, but
+   * one shown with its own `position` equal to the old or new value
+   * remounts and starts over as if it had just been shown.
+   */
+  position?: ToastPosition;
+}> = ({ position = 'top-right' }) => {
   // Starts from the toasts already showing instead of an empty list, then
   // follows changes.
   const toastList = useSyncExternalStore(
@@ -509,20 +532,29 @@ export const ToastContainer: React.FC<{ position?: ToastPosition }> = ({
     return null;
   }
 
+  const stacks = groupIntoPositionStacks(
+    toastList,
+    t => t.props.position,
+    position,
+    toastStackOrder
+  );
+
   return createPortal(
-    <div className={`toast-container is-${position}`}>
-      {toastList.map(t => {
-        const { queue: _queue, ...toastProps } = t.props;
-        return (
-          <Toast
-            key={t.id}
-            {...toastProps}
-            position={position}
-            onClose={() => toast.close(t.id)}
-          />
-        );
-      })}
-    </div>,
+    stacks.map(stack => (
+      <div key={stack.key} className={`toast-container is-${stack.position}`}>
+        {stack.items.map(t => {
+          const { queue: _queue, ...toastProps } = t.props;
+          return (
+            <Toast
+              key={t.id}
+              {...toastProps}
+              position={stack.position}
+              onClose={() => toast.close(t.id)}
+            />
+          );
+        })}
+      </div>
+    )),
     document.body
   );
 };

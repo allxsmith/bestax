@@ -10,6 +10,7 @@ import {
   ANCHOR_ONLY_ATTRS,
   omitAttrs,
 } from '../helpers/anchorAttrs';
+import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -686,7 +687,6 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   const forwarded = omitAttrs(rest, STRIP_FROM_NON_ANCHOR);
 
   if (as === 'button') {
-    const forwardedType = (forwarded as { type?: string }).type;
     return (
       <button
         className={itemClasses}
@@ -699,15 +699,9 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
         // typed here as the `<a>` MIME string (`STRIP_FROM_NON_ANCHOR` above
         // says why it is not withheld), so `as="button" type="text/html"`
         // compiles, and HTML's INVALID-value default for a button's `type` is
-        // submit too. So anything that is not one of the three native button
-        // types falls back to `button` rather than being forwarded.
-        type={
-          forwardedType === 'submit' ||
-          forwardedType === 'reset' ||
-          forwardedType === 'button'
-            ? forwardedType
-            : 'button'
-        }
+        // submit too. `buttonType` keeps `button`, `submit` and `reset` and
+        // turns anything else into `button`.
+        type={buttonType((forwarded as { type?: string }).type)}
       >
         {children}
       </button>
