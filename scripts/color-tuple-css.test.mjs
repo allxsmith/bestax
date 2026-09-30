@@ -31,14 +31,13 @@
  * What the single signal gives up is stated rather than papered over: a
  * component that emits the modifier and never warns is not detected, which is
  * the shape of the defect that started this. Several do emit it without
- * warning and are invisible here, and something IS exposed by that: the time
- * wheels take a public `color` and put `is-<colour>` on an element with no
- * colour rule, so the value is dead and silent. An earlier version of this
- * comment claimed otherwise on the grounds that each narrows `color` to a
- * CSS-backed union, which is true of the union and says nothing about the
- * element the class lands on. Grep the emission rather than trusting a list
- * here. Closing the gap wants the library to say which components warn,
- * rather than a test guessing from source.
+ * warning and are invisible here. Narrowing `color` to a CSS-backed union does
+ * not make that safe, because the union says nothing about the element the
+ * class lands on: the time wheels put `is-<colour>` on an element with no
+ * colour rule until #701, and that element now has a case of its own below.
+ * Grep the emission rather than trusting a list here. Closing the gap wants
+ * the library to say which components warn, rather than a test guessing from
+ * source.
  *
  * `codeOnly` is a textual strip, with the limit that implies: a comment
  * opener inside a string literal removes real code along with itself — `//`
@@ -79,6 +78,7 @@ const DEPRECATIONS = join(
   'helpers',
   'colorDeprecations.ts'
 );
+const TIME_WHEELS = join(SRC, 'form', '_pickerInternals', 'TimeWheels.tsx');
 
 /**
  * The stylesheet, or an actionable failure.
@@ -2648,5 +2648,53 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
         'carry them, so the library drops the value and renders nothing ' +
         'while the CSS for it exists.'
     );
+  });
+});
+
+/**
+ * The colours the time wheels' own `color` prop accepts.
+ *
+ * Read from the wheel rather than from the components that feed it, because
+ * the wheel is where the class lands and every feeder has to pass a value
+ * this type admits, so one read covers `TimeInput`, `DateTimeInput` and any
+ * later caller without a list of them here.
+ */
+function timeWheelColors() {
+  const source = codeOnly(readFileSync(TIME_WHEELS, 'utf8'));
+  const props = /export interface TimeWheelsProps\s*\{([\s\S]*?)\n\}/.exec(
+    source
+  );
+  const color = props && /\bcolor\?:\s*([^;]+);/.exec(props[1]);
+  assert.ok(
+    color,
+    `could not find \`TimeWheelsProps.color\` in ${TIME_WHEELS}, so the ` +
+      'wheel colours cannot be read. Fix the pattern in the same change ' +
+      'that moved it.'
+  );
+  const values = [...color[1].matchAll(QUOTED)].map(m => m[2]);
+  assert.ok(
+    values.length > 0,
+    '`TimeWheelsProps.color` named no literal colour, so the check below ' +
+      'would pass on nothing. A union spelled through an alias hides its ' +
+      'literals from this read.'
+  );
+  return values;
+}
+
+describe('the time wheels style every colour they accept', () => {
+  // Nothing on the wheels calls `warnUnstyledColor`, so the comparison above
+  // never reaches them, and `is-<colour>` sat dead on every wheel until #701.
+  // The wheel rule is asked for directly instead.
+  it('ships a `.timeinput-wheel.is-<colour>` rule for each', () => {
+    const css = stylesheet();
+    for (const color of timeWheelColors()) {
+      assert.ok(
+        shipsClass(css, `timeinput-wheel.is-${color}`),
+        `the time wheels accept \`color="${color}"\` and put ` +
+          `\`is-${color}\` on each wheel, and the stylesheet has no ` +
+          `\`.timeinput-wheel.is-${color}\` rule, so the value renders ` +
+          'nothing. The colour loop in `_timeinput.scss` needs it.'
+      );
+    }
   });
 });

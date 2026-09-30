@@ -149,6 +149,13 @@ export interface ChildFacts {
   becomes?: Conversion;
   soleChild?: ChildFacts;
   text?: string;
+  /**
+   * Its own `childElements`, read the same way, and whether its content is
+   * static: text and elements only, at least one of them rendered. What an
+   * entry that `buildsFile` reads, down the tree.
+   */
+  children?: readonly ChildFacts[];
+  staticContent?: boolean;
 }
 
 export interface Todo {
@@ -210,6 +217,47 @@ export interface Conversion {
    * has a text, which becomes its children.
    */
   icons?: BuiltIcon[];
+  /**
+   * The target renders the element's whole tree from props (`File`): the
+   * `<input>`'s attributes join the element's, and the parts below become
+   * props. The tree goes, and the element closes itself.
+   */
+  file?: BuiltFile;
+}
+
+/**
+ * The `.file` tree a target that `buildsFile` renders from props. The one
+ * child of the element is its `.file-label` <label>, holding the <input>,
+ * the `.file-cta` and at most one `.file-name`.
+ */
+export interface BuiltFile {
+  /** The <input>'s classes but `file-input`, as `inputClassName`, or null. */
+  inputClassName: string | null;
+  /**
+   * Which of the `.file-cta`'s children holds the button text, when it isn't
+   * the text the target renders by default.
+   */
+  buttonLabel?: number;
+  /** Which of them holds the icon before that text, and after it. */
+  iconLeft?: number;
+  iconRight?: number;
+  /** The `.file-name`'s text. */
+  fileName?: string;
+}
+
+/** The button text `File` renders when it's given none. */
+const DEFAULT_FILE_LABEL = 'Choose a file\u2026';
+
+/**
+ * Why a target that `buildsFile` stays markup outside a `Field`, for the
+ * planner here and for the transform, which can see whether the `.field`
+ * around it converts.
+ */
+export function fileContextTodo(target: string): Todo {
+  return {
+    rule: ruleId('context', target),
+    message: `bestax \`${target}\` renders a \`.field\` of its own around the \`.file\` unless it sits inside a \`Field\`, and nothing around this element is one or becomes one here; keep it as markup, or convert the \`.field\` around it, then re-run`,
+  };
 }
 
 /** One icon a target that `buildsIcons` builds from props. */
@@ -355,6 +403,22 @@ export function plan(facts: ElementFacts): Plan {
       target,
       `this element spreads props, which bestax \`${target}\` may read differently than the element did (a spread \`className\` merges with its classes instead of replacing them); convert it to \`${target}\` by hand`
     );
+  }
+  if (entry.buildsFile) {
+    const own = [...facts.attributes.keys()].find(name => name !== 'key');
+    if (own) {
+      return refuse(
+        'attr',
+        own,
+        `bestax \`${target}\` puts the attributes it's given on its <input>, so this element's \`${own}\` would move there; move it onto the <input> if that's what you want, then re-run`
+      );
+    }
+    if (
+      !facts.bestaxAround?.includes('Field') &&
+      !facts.classesAround?.includes('field')
+    ) {
+      return { conversion: null, todos: [...todos, fileContextTodo(target)] };
+    }
   }
   if (facts.hasRef && !FORWARDS_REF.includes(target)) {
     return refuse(
@@ -687,6 +751,13 @@ export function plan(facts: ElementFacts): Plan {
     if ('why' in built) return refuse('children', target, built.why);
     icons = built.icons;
   }
+  let file: BuiltFile | undefined;
+  if (entry.buildsFile) {
+    const built = buildFile(facts.childElements, entry, writes.has('hasName'));
+    if ('why' in built) return refuse(built.kind, built.token, built.why);
+    file = built.file;
+    numbers.push(...built.numbers);
+  }
 
   const props: Array<[string, string | true]> = [];
   if (as) props.push(['as', as]);
@@ -757,8 +828,97 @@ export function plan(facts: ElementFacts): Plan {
       ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
       ...(icons ? { icons } : {}),
+      ...(file ? { file } : {}),
     },
     todos,
+  };
+}
+
+/**
+ * The tree a target that `buildsFile` renders from props, read from an
+ * element's children: exactly the one it renders, with static content where
+ * it takes a prop. The <input>'s attributes become the target's, so one it
+ * reads as a prop of its own refuses.
+ */
+function buildFile(
+  children: readonly ChildFacts[] | undefined,
+  entry: RootEntry,
+  hasName: boolean
+):
+  | { file: BuiltFile; numbers: string[] }
+  | { kind: string; token: string; why: string } {
+  const target = entry.target!;
+  const shape = {
+    kind: 'children',
+    token: target,
+    why: `bestax \`${target}\` renders the whole \`.file\` tree itself, so this converts only when its tree is the one it renders: one bare \`.file-label\` <label> holding a \`.file-input\` <input type="file">, a bare \`.file-cta\` <span> with a bare \`.file-label\` <span> of static content and at most one bare \`.file-icon\` <span> of static content on each side of it, and, with \`has-name\`, at most one bare \`.file-name\` <span> of static text; keep it as markup, or convert it by hand`,
+  };
+  const bare = (child: ChildFacts | undefined, tag: string, token: string) =>
+    child?.tag === tag &&
+    child.tokens?.length === 1 &&
+    child.tokens[0] === token &&
+    child.attributes.size === 0 &&
+    !child.hasSpread;
+  const [label, ...beside] = children ?? [];
+  if (beside.length > 0 || !bare(label, 'label', 'file-label')) return shape;
+  const [input, cta, name, ...more] = label.children ?? [];
+  if (
+    more.length > 0 ||
+    input?.tag !== 'input' ||
+    !input.tokens?.includes('file-input') ||
+    input.attributes.get('type') !== 'file' ||
+    input.attributes.has('key') ||
+    input.hasSpread ||
+    !bare(cta, 'span', 'file-cta')
+  ) {
+    return shape;
+  }
+  const parts = cta.children ?? [];
+  const at = parts.findIndex(part => bare(part, 'span', 'file-label'));
+  const icons = parts.filter((_, index) => index !== at);
+  if (
+    at === -1 ||
+    at > 1 ||
+    parts.length - at > 2 ||
+    !parts[at].staticContent ||
+    !icons.every(icon => bare(icon, 'span', 'file-icon') && icon.staticContent)
+  ) {
+    return shape;
+  }
+  if (name && !(hasName && bare(name, 'span', 'file-name') && name.text)) {
+    return shape;
+  }
+  const numbers: string[] = [];
+  for (const [attribute, value] of input.attributes) {
+    if (attribute === 'type') continue;
+    if (entry.ownProps?.includes(attribute) || HELPER_PROPS.has(attribute)) {
+      return {
+        kind: 'attr',
+        token: attribute,
+        why: `bestax \`${target}\` takes the <input>'s attributes as its own props, and \`${attribute}\` is one it reads differently; rename or drop the attribute, then re-run`,
+      };
+    }
+    if (!numberAttrsOf(entry).includes(attribute)) continue;
+    if (typeof value !== 'string') continue;
+    if (!/^-?\d+(?:\.\d+)?$/.test(value) || String(Number(value)) !== value) {
+      return {
+        kind: 'attr',
+        token: attribute,
+        why: `bestax \`${target}\` types \`${attribute}\` as a number, and \`${value}\` is not a number spelled the way it renders; keep this element as markup`,
+      };
+    }
+    numbers.push(attribute);
+  }
+  const inputClasses = input.tokens.filter(token => token !== 'file-input');
+  return {
+    file: {
+      inputClassName: inputClasses.length > 0 ? inputClasses.join(' ') : null,
+      ...(parts[at].text !== DEFAULT_FILE_LABEL && { buttonLabel: at }),
+      ...(at === 1 && { iconLeft: 0 }),
+      ...(parts.length - at === 2 && { iconRight: at + 1 }),
+      ...(name && { fileName: name.text }),
+    },
+    numbers,
   };
 }
 

@@ -100,7 +100,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `.table-container`) or a TODO out; an entry that `absorbs` its only child (`.select`'s
   `<select>`) converts together with it, written in the child's place, and one that
   `countsChildren` (`.skeleton-lines`) writes their count and drops them, one that `buildsIcons`
-  (`.icon-text`) takes its `.icon`s and the texts beside them as props, and one with a
+  (`.icon-text`) takes its `.icon`s and the texts beside them as props, one that `buildsFile`
+  (`.file`) takes its whole tree as props, inside a `Field` only, and one with a
   `parent` (`.pagination-link`) takes the place of the bare `<li>` its target renders too; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
   before their parents; and an element with no class to go by, a menu list's `<li>`, is found

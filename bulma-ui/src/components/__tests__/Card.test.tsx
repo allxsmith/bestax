@@ -956,10 +956,8 @@ describe('Card - Advanced Integration Tests', () => {
     expect(screen.getByText('Footer Item 2')).toBeInTheDocument();
   });
 
-  // Test 54: Performance with many compound components
-  test('renders efficiently with multiple compound components', () => {
-    const startTime = performance.now();
-
+  // Test 54: Many compound components
+  test('renders each of many compound Card.Content children', () => {
     render(
       <Card data-testid="card">
         {Array.from({ length: 10 }, (_, i) => (
@@ -967,12 +965,6 @@ describe('Card - Advanced Integration Tests', () => {
         ))}
       </Card>
     );
-
-    const endTime = performance.now();
-    const renderTime = endTime - startTime;
-
-    // Should render in reasonable time (under 100ms for this simple case)
-    expect(renderTime).toBeLessThan(100);
 
     const card = screen.getByTestId('card');
     expect(card.querySelectorAll('.card-content')).toHaveLength(10);

@@ -162,7 +162,7 @@ Use the `float` prop.
 
 ```tsx live
 <>
-  <Button float="Right">Pulled Right</Button>
+  <Button float="right">Pulled Right</Button>
   <Button float="left">Pulled Left</Button>
 </>
 ```

@@ -150,6 +150,15 @@ keeps it as markup, and the `.icon`s inside convert on their own. The markup ren
 it is; to use `IconText` anyway, write it by hand with `iconProps={{ name: ... }}` (the
 `bestax-icons` skill covers `Icon`'s library and name props).
 
+On a `.file`, `File` renders the whole tree from props, so it converts only when its tree is the one
+`File` renders: one bare `.file-label` `<label>` holding a `.file-input` `<input type="file">`, a
+bare `.file-cta` `<span>` with a bare `.file-label` `<span>` and at most one bare `.file-icon`
+`<span>` on each side of it, and, with `has-name`, at most one bare `.file-name` `<span>` of
+static text. A class or attribute on any part of the tree, text between the parts, or content
+that isn't text and elements written out keeps it as markup. Rebuild it as one `File` by hand
+(its API page lists the props for the button text, the file name and the icons), or keep the
+markup, which renders the same.
+
 On a `.skeleton-lines`, `Skeleton` renders the children itself: `lines` bare, empty `<div>`s. So
 the element converts only when its children are just that, and a class, an attribute, text or a
 comment in one of them, or anything else beside them, keeps it as markup. Keep it if the
@@ -162,6 +171,10 @@ children matter; otherwise make them bare `<div>`s, then re-run.
 from an earlier, partial migration) would change how that component renders once converted, so
 it stays markup. Convert it by hand and check that the component inside still renders what you
 want, or leave it.
+
+On a `.file` it's the other way round: `File` renders a `.field` of its own unless it sits inside
+a `Field`, so a `.file` converts only inside a bestax `Field` or a `.field` that converts in the
+same run. Convert the `.field` around it (its own TODO says what keeps it), then re-run.
 
 On an input or textarea it's the other direction: inside a bestax `Field` with a `label`,
 `InputBase` and `TextAreaBase` take the Field's generated `id` when they have none, which the
@@ -265,9 +278,6 @@ in the browser:
   `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
   into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
   with `Navbar.Dropdown` (`hoverable` for `is-hoverable`) and the link with `Navbar.Link`.
-- **`family:file`**: `File` renders the whole `.file-label` tree itself, and a `.field` around
-  it unless it's already inside one. Replace the `.file` block with one `File`; its API page
-  lists the props for the button text, the file name and the icons.
 - **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
   bestax renders its own styled checkbox and radio markup, not Bulma's.
 - **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and

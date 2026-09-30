@@ -140,6 +140,22 @@ function stubFetch(handler) {
   };
 }
 
+/**
+ * Collect what main() prints, for the rest of the calling test.
+ *
+ * Its failures are `::error::` workflow commands. Left on the real console, a
+ * runner files each one as a failure annotation against a green test run
+ * (#723), so a test that drives one captures the lines and asserts on them
+ * instead.
+ */
+function captureConsole(t) {
+  const lines = [];
+  const push = (...args) => lines.push(args.join(' '));
+  t.mock.method(console, 'log', push);
+  t.mock.method(console, 'error', push);
+  return lines;
+}
+
 // --- argument parsing -------------------------------------------------------
 
 test('parseArgs takes --dir in both spellings plus the package list', () => {
@@ -449,7 +465,8 @@ test('main exits 0 when every package checks out', async () => {
   }
 });
 
-test('main exits 1 when a package was built somewhere else', async () => {
+test('main exits 1 when a package was built somewhere else', async t => {
+  const lines = captureConsole(t);
   const dir = await fixtureTree();
   const bad = goodStatement();
   bad.predicate.buildDefinition.externalParameters.workflow.repository =
@@ -463,10 +480,21 @@ test('main exits 1 when a package was built somewhere else', async () => {
   } finally {
     s.restore();
   }
+  // The annotation names the package, and the problem under it names the
+  // repository that actually built it.
+  const at = lines.indexOf(
+    '::error::bestax-migrate@2.0.0 provenance does not check out'
+  );
+  assert.ok(at >= 0, lines.join('\n'));
+  assert.match(lines[at + 1], /^ {2}- .*someone-else\/evil/);
 });
 
-test('main exits 2 on bad usage, distinct from a failed verification', async () => {
+test('main exits 2 on bad usage, distinct from a failed verification', async t => {
+  const lines = captureConsole(t);
   assert.equal(await main([]), 2);
+  assert.deepEqual(lines, [
+    '::error::verify-attestation: --dir <scratch-tree> is required',
+  ]);
 });
 
 // --- roster derived from the tree -------------------------------------------

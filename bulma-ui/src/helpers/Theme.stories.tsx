@@ -3,6 +3,8 @@ import { Theme } from './Theme';
 import Box from '../elements/Box';
 import Title from '../elements/Title';
 import Button from '../elements/Button';
+import { Notification } from '../elements/Notification';
+import { Tag } from '../elements/Tag';
 
 export default {
   title: 'Helpers/Theme',
@@ -544,6 +546,26 @@ export const ShadowTheme = () => (
         cascaded ring.
       </p>
     </Box>
+  </Theme>
+);
+
+// Radius: `radius` on Theme is the `radiusless` helper, as on every other
+// component, so any other `--bulma-radius` goes through `bulmaVars`.
+// Notification and Tag declare their own radius from it, so a scoped override
+// reaches them; controls resolve theirs at :root and need an isRoot Theme.
+export const RadiusTheme = () => (
+  <Theme bulmaVars={{ '--bulma-radius': '1rem' }}>
+    <Title size="3">Custom radius via --bulma-radius</Title>
+    <p className="mb-4">
+      Passing <code>--bulma-radius</code> through <code>bulmaVars</code> rounds
+      the Notification and Tag below. The <code>radius</code> prop is the{' '}
+      <code>radiusless</code> helper here too:{' '}
+      <code>&lt;Theme radius=&quot;radiusless&quot;&gt;</code> adds{' '}
+      <code>is-radiusless</code> to the wrapper and sets{' '}
+      <code>--bulma-radius</code> to 0, squaring what is inside it.
+    </p>
+    <Notification color="primary">A rounder notification.</Notification>
+    <Tag color="info">Rounder tag</Tag>
   </Theme>
 );
 

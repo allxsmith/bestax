@@ -155,7 +155,7 @@ function TypographyTheme() {
 
 ```tsx
 function RadiusTheme() {
-  // `radius` is typed as the `radiusless` helper, so the radius scale goes through bulmaVars
+  // `radius` is the `radiusless` helper, as on every component, so the radius scale goes through bulmaVars
   const radii = {
     '--bulma-radius-small': '6px',
     '--bulma-radius': '12px',
@@ -310,6 +310,10 @@ function PrefixedTheme() {
 - Use `isRoot={true}` for application-wide themes that should affect all components
 - Use local themes (default `isRoot={false}`) for component-specific styling or theme variations
 - Local themes inherit from parent themes and can override specific variables
+- Several `isRoot` themes can be mounted at once, such as a color theme at the app root and a
+  typography theme next to it. Each adds its own variables at `:root`; where two set the same
+  variable, the inner or later-mounted one wins, as with nested local themes, and unmounting one
+  removes only its own variables
 
 ### CSS Variable Naming
 
@@ -322,7 +326,6 @@ function PrefixedTheme() {
 ### Performance Considerations
 
 - Prefer setting themes at higher levels in your component tree rather than deeply nested
-- Put every root-level variable on one `isRoot` theme; separate root themes overwrite each other ([#736](https://github.com/allxsmith/bestax/issues/736))
 - CSS variables are inherited, so child themes only need to override specific variables
 
 ### Color System
@@ -374,8 +377,13 @@ typed API, so move it to `bulmaVars`:
 
 Two of those names are already helper props, so they cannot double as CSS-variable props:
 
-- `radius` is typed as the `radiusless` helper, so `<Theme radius="2px" />` is a type error. Set
-  `--bulma-radius` through `bulmaVars`.
+- `radius` is the `radiusless` helper, as on every other component, so `<Theme radius="radiusless">`
+  adds `is-radiusless` to the wrapper. On a Theme it also sets `--bulma-radius` to `0`, so what
+  is inside the Theme loses its radius too; under `isRoot` it writes that at `:root`, squaring
+  everything on the page that takes its radius from it. Set any other `--bulma-radius` through
+  `bulmaVars`. `<Theme radius="2px" />` is a type error; in JavaScript it still sets
+  `--bulma-radius`, which is how the prop used to behave, but that route is deprecated and logs
+  a warning in development.
 - `shadow` is the `shadowless` helper. Set `--bulma-shadow` through `bulmaVars`.
 
 ### Props vs bulmaVars
@@ -453,9 +461,10 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 | ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `children`  | `ReactNode`                     | The child components to apply the theme to.                                                                                                                                                                                                               |
 | `className` | `string`                        | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
-| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
+| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div. Several root themes compose; an inner or later-mounted one wins a variable they share.                                   |
 | `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
 | `bulmaVars` | `ThemeProps['bulmaVars']`       | Object mapping Bulma CSS variable names to string values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is not applied.                                                                            |
+| `radius`    | `'radiusless'`                  | The border radius helper: adds `is-radiusless` to the wrapper div and sets `--bulma-radius` to `0`, at `:root` under `isRoot`. Any other string still sets `--bulma-radius`, a deprecated route that warns in development.                                |
 
 ### CSS Variable Props
 

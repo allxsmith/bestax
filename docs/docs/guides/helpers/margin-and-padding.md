@@ -320,7 +320,15 @@ function PaddingExamples() {
 You can combine margin and padding properties to create sophisticated spacing layouts:
 
 ```tsx live
-import { Box, Card, Title, Content, Button } from '@allxsmith/bestax-bulma';
+// import {
+//   Box,
+//   Card,
+//   Title,
+//   Content,
+//   Button,
+//   Grid,
+//   Cell,
+// } from '@allxsmith/bestax-bulma';
 
 function CombinedSpacingExample() {
   return (
@@ -360,14 +368,14 @@ function CombinedSpacingExample() {
         </Card.Content>
       </Card>
 
-      {/* Grid-like layout with spacing */}
+      {/* Grid layout: gap spaces the cards */}
       <Box mt="6">
         <Title size="4" mb="4">
           Grid Layout with Spacing
         </Title>
-        <Box display="flex" flexWrap="wrap" mx="-2">
+        <Grid isFixed fixedCols={3} gap={2}>
           {[1, 2, 3, 4, 5, 6].map(num => (
-            <Box key={num} style={{ width: '33.333%' }} px="2" mb="4">
+            <Cell key={num}>
               <Card p="4" bgColor="light" textColor="dark">
                 <Title size="6" mb="2" textColor="dark">
                   Item {num}
@@ -376,14 +384,16 @@ function CombinedSpacingExample() {
                   Content with consistent spacing using margin and padding.
                 </Content>
               </Card>
-            </Box>
+            </Cell>
           ))}
-        </Box>
+        </Grid>
       </Box>
     </Box>
   );
 }
 ```
+
+The grid at the end spaces its cards with the `gap` prop on [`Grid`](../../api/grid/grid.md), which puts space between cells and none around the outside, so the grid's edges line up with the content above it. The spacing scale has no negative steps, so the flex pattern that pads every child and pulls the wrapper outward with a negative margin can't be built from these props. When the space you want is between items, use `gap` on `Grid` or [`Columns`](../../api/columns/columns.md) instead.
 
 ## Best Practices
 
