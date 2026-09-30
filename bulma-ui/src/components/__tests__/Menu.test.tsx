@@ -437,3 +437,101 @@ describe('anchor-only attributes on a non-link tag', () => {
     }
   });
 });
+
+describe('button form', () => {
+  it('does not submit the form it sits in', () => {
+    // `<button>` defaults to type="submit", so a menu item in a sidebar that
+    // sits inside a form would post it on click (#691).
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" data-testid="item">
+            Filter
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(screen.getByTestId('item').querySelector('button')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
+  it('survives a spread carrying an absent type', () => {
+    // React reads `type={undefined}` as "remove the attribute", and a props
+    // spread whose `type` is undefined is how that arrives. A default spread
+    // before it would be erased.
+    const spread: { type?: 'button' | 'submit' | 'reset' } = {
+      type: undefined,
+    };
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" data-testid="item" {...spread}>
+            Filter
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(screen.getByTestId('item').querySelector('button')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
+  it('lets an explicit type win', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" type="submit" data-testid="item">
+            Save
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(screen.getByTestId('item').querySelector('button')).toHaveAttribute(
+      'type',
+      'submit'
+    );
+  });
+
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    // The types reject this, but a loose spread or an untyped caller can still
+    // deliver it, and HTML treats an invalid button type as submit.
+    const loose: object = { type: 'text/html' };
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" data-testid="item" {...loose}>
+            Filter
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(screen.getByTestId('item').querySelector('button')).toHaveAttribute(
+      'type',
+      'button'
+    );
+  });
+
+  it('sets no type on an item that is not a button', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="/x" data-testid="link">
+            Link
+          </Menu.Item>
+          <Menu.Item as="div" data-testid="div">
+            Static
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    const link = screen.getByTestId('link').querySelector('a');
+    const div = screen.getByTestId('div').querySelector('div');
+    expect(link).toBeInTheDocument();
+    expect(div).toBeInTheDocument();
+    expect(link).not.toHaveAttribute('type');
+    expect(div).not.toHaveAttribute('type');
+  });
+});
