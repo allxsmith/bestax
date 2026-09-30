@@ -1239,6 +1239,253 @@ describe('NotificationContainer with notifications shown at their own position',
   });
 });
 
+describe('NotificationContainer with notifications shown at their own position', () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+    act(() => {
+      notification.closeAll();
+    });
+  });
+
+  // Where a stack sits, read back from the inline style that fixes it there.
+  const positionOf = (stack: HTMLElement) => {
+    const edge = stack.style.bottom === '0px' ? 'bottom' : 'top';
+    if (stack.style.left === '50%') return edge;
+    return `${edge}-${stack.style.right === '0px' ? 'right' : 'left'}`;
+  };
+
+  // Each stack the container renders, in page order, with its messages.
+  const stacks = () =>
+    Array.from(document.body.children)
+      .filter(el => el.querySelector(':scope > .notification'))
+      .map(stack => [
+        positionOf(stack as HTMLElement),
+        Array.from(stack.children).map(el => el.textContent),
+      ]);
+
+  it('puts a notification shown with a position at that position', () => {
+    render(<NotificationContainer position="top-right" />);
+    act(() => {
+      notification.show({ message: 'Placed', position: 'bottom', duration: 0 });
+    });
+
+    expect(stacks()).toEqual([['bottom', ['Placed']]]);
+  });
+
+  it("puts a notification shown without one at the container's position", () => {
+    render(<NotificationContainer position="bottom-left" />);
+    act(() => {
+      notification.show({ message: 'Placed', position: 'top', duration: 0 });
+      notification.info('Unplaced', { duration: 0 });
+    });
+
+    expect(stacks()).toEqual([
+      ['top', ['Placed']],
+      ['bottom-left', ['Unplaced']],
+    ]);
+  });
+
+  it('renders a stack for each position in use, in screen order', () => {
+    render(<NotificationContainer position="top-right" />);
+    act(() => {
+      notification.show({
+        message: 'BR',
+        position: 'bottom-right',
+        duration: 0,
+      });
+      notification.show({ message: 'Default', duration: 0 });
+      notification.show({ message: 'TL', position: 'top-left', duration: 0 });
+      notification.show({
+        message: 'BR 2',
+        position: 'bottom-right',
+        duration: 0,
+      });
+    });
+
+    // Across the top, then across the bottom, whatever order they were used
+    // in, and no stack for a position nothing is shown at. Each stack keeps
+    // its notifications in the order they were shown.
+    expect(stacks()).toEqual([
+      ['top-left', ['TL']],
+      ['top-right', ['Default']],
+      ['bottom-right', ['BR', 'BR 2']],
+    ]);
+  });
+
+  it("gives a notification at the container's own position the container's stack", () => {
+    // What a container rendered before notifications could be placed on
+    // their own: one stack, fixed to the container's position.
+    const { container } = render(<NotificationContainer position="bottom" />);
+    act(() => {
+      notification.show({ message: 'One', duration: 0 });
+      notification.show({ message: 'Two', position: 'bottom', duration: 0 });
+    });
+
+    expect(
+      Array.from(document.body.children)
+        .filter(el => el !== container)
+        .map(el => el.outerHTML)
+    ).toEqual([
+      '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: 100%; bottom: 0px; left: 50%; transform: translateX(-50%); align-items: center;">' +
+        '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">One</span></div>' +
+        '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">Two</span></div>' +
+        '</div>',
+    ]);
+  });
+
+  it('removes a stack once its last notification is closed, leaving the others', () => {
+    render(<NotificationContainer position="top-right" />);
+    act(() => {
+      notification.show({ message: 'Stay', duration: 0 });
+      notification.show({ message: 'Go', position: 'top-left', duration: 0 });
+    });
+    expect(stacks()).toHaveLength(2);
+
+    const go = screen.getByText('Go').closest<HTMLElement>('.notification')!;
+    fireEvent.click(within(go).getByRole('button'));
+
+    expect(stacks()).toEqual([['top-right', ['Stay']]]);
+  });
+
+  it('times a notification out at its own position', () => {
+    render(<NotificationContainer position="top-right" />);
+    act(() => {
+      notification.show({ message: 'Stay', duration: 0 });
+      notification.show({
+        message: 'Timed',
+        position: 'bottom-left',
+        duration: 1000,
+      });
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(999);
+    });
+    expect(stacks()).toEqual([
+      ['top-right', ['Stay']],
+      ['bottom-left', ['Timed']],
+    ]);
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(stacks()).toEqual([['top-right', ['Stay']]]);
+  });
+
+  it('keeps one queue across positions, each shown at its own', () => {
+    render(<NotificationContainer position="top-right" />);
+    let first = '';
+    act(() => {
+      first = notification.show({
+        message: 'Q1',
+        position: 'bottom-right',
+        queue: true,
+        duration: 0,
+      });
+      notification.show({ message: 'Q2', queue: true, duration: 0 });
+    });
+
+    // The second waits for the first, although it would go somewhere else.
+    expect(stacks()).toEqual([['bottom-right', ['Q1']]]);
+
+    act(() => {
+      notification.close(first);
+    });
+    expect(stacks()).toEqual([['top-right', ['Q2']]]);
+  });
+
+  it("moves the notifications at the container's position when it changes, without remounting them", () => {
+    const { rerender } = render(<NotificationContainer position="top-right" />);
+    act(() => {
+      notification.show({ message: 'Follows', duration: 0 });
+      notification.show({
+        message: 'Stays',
+        position: 'bottom-left',
+        duration: 0,
+      });
+    });
+    const follows = screen.getByText('Follows').closest('.notification');
+
+    rerender(<NotificationContainer position="top-left" />);
+
+    expect(stacks()).toEqual([
+      ['top-left', ['Follows']],
+      ['bottom-left', ['Stays']],
+    ]);
+    expect(screen.getByText('Follows').closest('.notification')).toBe(follows);
+  });
+
+  it('places notifications shown before it mounts', () => {
+    notification.show({ message: 'Early', position: 'bottom', duration: 0 });
+    notification.show({ message: 'Early default', duration: 0 });
+
+    render(<NotificationContainer position="top-left" />);
+
+    expect(stacks()).toEqual([
+      ['top-left', ['Early default']],
+      ['bottom', ['Early']],
+    ]);
+  });
+
+  it('shows each once under StrictMode', () => {
+    notification.show({
+      message: 'Early',
+      position: 'bottom-left',
+      duration: 0,
+    });
+    render(
+      <StrictMode>
+        <NotificationContainer />
+      </StrictMode>
+    );
+    act(() => {
+      notification.show({ message: 'Later', duration: 0 });
+    });
+
+    expect(stacks()).toEqual([
+      ['top-right', ['Later']],
+      ['bottom-left', ['Early']],
+    ]);
+  });
+
+  it('renders nothing on the server, then places them once hydrated', async () => {
+    notification.show({
+      message: 'Placed',
+      position: 'bottom-right',
+      duration: 0,
+    });
+    notification.show({ message: 'Default', duration: 0 });
+    const app = (
+      <main>
+        <NotificationContainer />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+    expect(container.innerHTML).toBe('<main></main>');
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app);
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(stacks()).toEqual([
+        ['top-right', ['Default']],
+        ['bottom-right', ['Placed']],
+      ]);
+    } finally {
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      document.body.removeChild(container);
+    }
+  });
+});
+
 describe('Notification deprecated color values', () => {
   let warnSpy: jest.SpyInstance;
 
