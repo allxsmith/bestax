@@ -162,11 +162,16 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     color 0.1s ease,
     font-weight 0.1s ease;
 
-  // The fill is not in the transition list above, so it snaps on and off the
-  // way the calendar cells' hover does.
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
     color: cv.getVar('timeinput-wheel-color');
-    background-color: cv.getVar('timeinput-wheel-hover-bg');
+
+    // Only where the pointer can hover: a touch browser can leave `:hover` on
+    // the last item a finger lifted from, and a drag leaves that item off the
+    // band, where the fill would stick. The fill is not in the transition list
+    // above, so it snaps on and off the way the calendar cells' hover does.
+    @media (hover: hover) {
+      background-color: cv.getVar('timeinput-wheel-hover-bg');
+    }
   }
 
   // The selected item (whichever is currently centred over the band) is

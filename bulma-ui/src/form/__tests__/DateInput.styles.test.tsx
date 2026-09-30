@@ -32,21 +32,23 @@ const colors = [
 type Color = (typeof colors)[number];
 
 /**
- * The variables a colour re-points, and what each should read for it. The
- * ring takes the `-on-scheme` variant, which Bulma adjusts until it contrasts
- * with `scheme-main`: plain `warning` or `success` is too faint for a focus
- * indicator on a light surface.
+ * The variables a colour re-points, and what each should read for it. Today's
+ * tint and the ring sit on the calendar's surface, so they take the
+ * `-on-scheme` variant, which Bulma adjusts until it contrasts with
+ * `scheme-main`: plain `warning` or `info` is too faint there on a light
+ * surface.
  */
 const accents = (color: string) => ({
   '--bulma-dateinput-cell-selected-bg': `var(--bulma-${color})`,
   '--bulma-dateinput-cell-selected-color': `var(--bulma-${color}-invert)`,
-  '--bulma-dateinput-cell-today-color': `var(--bulma-${color})`,
+  '--bulma-dateinput-cell-today-color': `var(--bulma-${color}-on-scheme)`,
   '--bulma-dateinput-focus-ring-color': `var(--bulma-${color}-on-scheme)`,
 });
 
-/** What an uncoloured calendar reads: `primary` throughout, ring included. */
+/** What an uncoloured calendar reads: plain `primary` for today and the ring. */
 const defaults = {
   ...accents('primary'),
+  '--bulma-dateinput-cell-today-color': 'var(--bulma-primary)',
   '--bulma-dateinput-focus-ring-color': 'var(--bulma-primary)',
 };
 
@@ -139,6 +141,50 @@ function setProperties(rules: CSSRuleList): string[] {
   }
   return [...names];
 }
+
+/** Every top-level style rule whose selector is a keyboard focus state. */
+function focusRules(rules: CSSRuleList): CSSStyleRule[] {
+  return Array.from(rules).filter(
+    (rule): rule is CSSStyleRule =>
+      rule instanceof CSSStyleRule &&
+      rule.selectorText.includes(':focus-visible')
+  );
+}
+
+/** The colour a rule gives its outline, from the longhand or the shorthand. */
+const ringOf = (rule: CSSStyleRule) =>
+  rule.style.getPropertyValue('outline-color') ||
+  rule.style.getPropertyValue('outline');
+
+describe('calendar focus rings', () => {
+  it('reads a calendar variable for every ring', () => {
+    // A ring that names a colour itself, `scheme-main` included, stays that
+    // colour whatever `color` does to the surface or the fill under it.
+    const rules = focusRules(sheet.cssRules);
+    expect(rules.length).toBeGreaterThan(0);
+    for (const rule of rules) {
+      expect([rule.selectorText, ringOf(rule)]).toEqual([
+        rule.selectorText,
+        expect.stringMatching(/var\(--bulma-dateinput-/),
+      ]);
+    }
+  });
+
+  it.each(['dateinput-cell', 'dateinput-year-cell'])(
+    'gives a selected %s the selected value colour for its ring',
+    cls => {
+      // That ring is inset into the selection fill, which follows `color`,
+      // and the selected value's colour is the one chosen to contrast with
+      // it. The focused year is always the selected one.
+      const rule = focusRules(sheet.cssRules).find(
+        r => r.selectorText === `.${cls}.is-selected:focus-visible`
+      );
+      expect(rule && ringOf(rule)).toBe(
+        'var(--bulma-dateinput-cell-selected-color)'
+      );
+    }
+  );
+});
 
 describe('calendar variables', () => {
   it('registers only variables that some rule reads', () => {

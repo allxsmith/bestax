@@ -152,6 +152,39 @@ describe('TimeInput variables', () => {
   });
 });
 
+/** Where each rule that paints the hover fill sits: a media query, or none. */
+function hoverFillContexts(rules: CSSRuleList, media = ''): string[] {
+  const found: string[] = [];
+  for (const rule of Array.from(rules)) {
+    if (rule instanceof CSSMediaRule) {
+      found.push(...hoverFillContexts(rule.cssRules, rule.media.mediaText));
+    } else if (rule instanceof CSSStyleRule) {
+      for (let i = 0; i < rule.style.length; i++) {
+        const name = rule.style[i];
+        if (name.startsWith('--')) continue;
+        if (
+          rule.style
+            .getPropertyValue(name)
+            .includes('var(--bulma-timeinput-wheel-hover-bg)')
+        ) {
+          found.push(media || '(top level)');
+        }
+      }
+    }
+  }
+  return found;
+}
+
+describe('TimeInput hover fill', () => {
+  // A touch browser can leave `:hover` on the last item a finger lifted from,
+  // and a drag leaves that item off the band, so an ungated fill sticks there.
+  it('fills a hovered item only where the pointer can hover', () => {
+    expect(
+      hoverFillContexts((styleEl.sheet as CSSStyleSheet).cssRules)
+    ).toEqual(['(hover: hover)']);
+  });
+});
+
 describe('TimeInput mobile overrides', () => {
   // The small-viewport block adjusts the wheels and the popover by setting
   // custom properties. Setting one that no rule reads changes nothing, so
