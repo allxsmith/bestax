@@ -20,6 +20,10 @@
     {
       "title": "Group/List of Checkboxes",
       "code": "<Checkboxes>\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n  <Checkbox> Feed the pet </Checkbox>\n  <Checkbox> Take out the trash </Checkbox>\n  <Checkbox> Clean your room </Checkbox>\n  <Checkbox> Set the table </Checkbox>\n  <Checkbox> Help with dishes </Checkbox>\n  <Checkbox> Water the plants </Checkbox>\n  <Checkbox> Put away toys </Checkbox>\n</Checkboxes>"
+    },
+    {
+      "title": "Valid Colors and Sizes",
+      "code": "import { Checkbox, Checkboxes } from '@allxsmith/bestax-bulma';\nimport { checkboxColors, checkboxSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Checkboxes>\n        {checkboxColors.map(color => (\n          <Checkbox key={color} color={color} defaultChecked>\n            {color}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n      <Checkboxes>\n        {checkboxSizes.map(size => (\n          <Checkbox key={size} size={size} defaultChecked>\n            {size}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.",

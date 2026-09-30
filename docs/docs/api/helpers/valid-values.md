@@ -25,7 +25,7 @@ Every constant on this page is importable the same way.
 
 ### Without loading the library
 
-Tooling that only needs the tuples can take them from the `./constants`
+Tooling that only needs the helper tuples can take them from the `./constants`
 subpath, which serves the value module on its own, with no React and no
 component code:
 
@@ -35,7 +35,8 @@ import { validColors } from '@allxsmith/bestax-bulma/constants';
 
 It resolves from both ESM and CommonJS. This is how
 [`@allxsmith/eslint-plugin-bestax`](../../guides/getting-started/eslint-plugin.md)
-validates helper values at lint time rather than keeping a copy of them.
+validates helper values at lint time rather than keeping a copy of them. The
+[form control constants](#form-control-constants) are not on this subpath.
 
 ---
 
@@ -69,6 +70,30 @@ validates helper values at lint time rather than keeping a copy of them.
 | `validRadii`           | `'radiusless'`                                                                                                                                                                             | `radius`. The prop removes the border radius; there is no value that adds one.                                                                                                                                                                                                                                             |
 | `validShadows`         | `'shadowless'`                                                                                                                                                                             | `shadow`. Same shape as `radius`: it removes the shadow, so `<Box shadow />` renders nothing.                                                                                                                                                                                                                              |
 | `validResponsives`     | `'mobile'`, `'narrow'`                                                                                                                                                                     | `responsive`. A different axis from `validViewports`: these are the Bulma column and table modifiers.                                                                                                                                                                                                                      |
+
+---
+
+## Form control constants
+
+`Checkbox`, `Radio` and `Switch` each export the values their own `color` and `size` props accept, as `as const` tuples like the ones above, and each prop's type is built from its tuple. They are not the helper tuples under another name: the colors are a subset of `validColors`, and the sizes are element sizes, not the spacing scale in `validSizes`. Each component checks membership at runtime too, so a value outside its tuple adds no modifier class.
+
+| Constant         | Values                                                                | Used by prop family                                     |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| `checkboxColors` | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'` | [`Checkbox`](../form/checkbox.md) `color`               |
+| `checkboxSizes`  | `'small'`, `'normal'`, `'medium'`, `'large'`                          | [`Checkbox`](../form/checkbox.md) `size`                |
+| `radioColors`    | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'` | [`Radio`](../form/radio.md) `color`                     |
+| `radioSizes`     | `'small'`, `'normal'`, `'medium'`, `'large'`                          | [`Radio`](../form/radio.md) `size`                      |
+| `switchColors`   | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'` | [`Switch`](../form/switch.md) `color` and `passiveType` |
+| `switchSizes`    | `'small'`, `'normal'`, `'medium'`, `'large'`                          | [`Switch`](../form/switch.md) `size`                    |
+
+Import them from the package root. The `./constants` subpath serves the helper module only, so tooling that reads these loads the main entry:
+
+```ts
+import { switchColors, switchSizes } from '@allxsmith/bestax-bulma';
+
+type SwitchColor = (typeof switchColors)[number];
+type SwitchSize = (typeof switchSizes)[number];
+```
 
 ---
 

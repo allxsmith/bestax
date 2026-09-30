@@ -7,7 +7,21 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Valid colors for the Switch component.
+ * The values the Switch `color` and `passiveType` props accept, as a readonly
+ * tuple.
+ *
+ * Both props are typed from it, so they list the same values. Map over it to
+ * build a color picker, or check a value that arrives at runtime before
+ * passing it in: the component adds no class for a value outside the tuple.
+ *
+ * @example
+ * import { Switch, switchColors } from '@allxsmith/bestax-bulma';
+ *
+ * switchColors.map(color => (
+ *   <Switch key={color} color={color} defaultChecked>
+ *     {color}
+ *   </Switch>
+ * ));
  */
 export const switchColors = [
   'primary',
@@ -19,7 +33,17 @@ export const switchColors = [
 ] as const;
 
 /**
- * Valid sizes for the Switch component.
+ * The values the Switch `size` prop accepts, as a readonly tuple.
+ *
+ * `SwitchProps['size']` is typed from it, so the two list the same values. Use
+ * it to offer a size choice or to check a value that arrives at runtime: the
+ * component adds no size class for a value outside the tuple. These are
+ * element sizes, not the spacing scale in `validSizes`.
+ *
+ * @example
+ * import { switchSizes } from '@allxsmith/bestax-bulma';
+ *
+ * type SwitchSize = (typeof switchSizes)[number];
  */
 export const switchSizes = ['small', 'normal', 'medium', 'large'] as const;
 
