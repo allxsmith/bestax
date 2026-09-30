@@ -327,22 +327,87 @@ function example() {
 }
 ```
 
-:::note How items are counted
+### How Items Are Indexed
 
 Items are indexed in child order, and the children of a fragment count one by one. A child can
 be a component of your own that renders a single `Collapse`. Inside the group an item's
 `defaultOpen` is ignored, since the group's `defaultValue` decides, and its `onOpen`/`onClose`
-do not fire, since the group owns its state. Use the item's `onOpenChange` or the group's
-`onChange` to react to a trigger.
+do not fire, since the group owns its state; development builds warn about both. Use the item's
+`onOpenChange` or the group's `onChange` to react to a trigger. With `multiple`, `onChange`
+reports the open indexes in ascending order.
 
-:::
+An index is a position, not an identity. If you render an item conditionally
+(`{show && <Collapse … />}`) or reorder the list, the items after it change index while the open
+state stays where it was, so it lands on a different panel. Render every item and hide one with
+`visibility="hidden"` instead of removing it, or control `value` yourself and update it along
+with the list. Here Warranty stays index 2, and stays open, whether Returns is shown or not:
+
+```tsx live
+function example() {
+  const [showReturns, setShowReturns] = useState(true);
+
+  return (
+    <Block>
+      <Button mb="4" onClick={() => setShowReturns(shown => !shown)}>
+        {showReturns ? 'Hide' : 'Show'} Returns
+      </Button>
+      <Collapses defaultValue={2}>
+        <Collapse
+          bordered
+          trigger={
+            <Block p="4">
+              <Strong>Shipping</Strong>
+            </Block>
+          }
+        >
+          <Paragraph p="4">
+            Orders leave the warehouse within two business days.
+          </Paragraph>
+        </Collapse>
+        <Collapse
+          bordered
+          visibility={showReturns ? undefined : 'hidden'}
+          trigger={
+            <Block p="4">
+              <Strong>Returns</Strong>
+            </Block>
+          }
+        >
+          <Paragraph p="4">
+            Send anything back within 30 days for a full refund.
+          </Paragraph>
+        </Collapse>
+        <Collapse
+          bordered
+          trigger={
+            <Block p="4">
+              <Strong>Warranty</Strong>
+            </Block>
+          }
+        >
+          <Paragraph p="4">
+            Every product carries a one-year warranty against defects.
+          </Paragraph>
+        </Collapse>
+      </Collapses>
+    </Block>
+  );
+}
+```
 
 ### Spacing
 
-The group's `gap` spaces the items, and it reads `--bulma-collapse-group-gap` (`$collapse-group-gap`
-in Sass), 0.5rem by default. The group declares no value of its own, so set the variable on the
-group (through `className` or `style`) or on any ancestor, `:root` included. Here every group
-gets 1rem, and one with `className="faq"` gets 0.25rem:
+The group's `gap` spaces the items. It reads one variable, which the group declares no value for
+itself, so the default comes from a fallback in the stylesheet:
+
+| CSS Variable                 | Sass Variable         | Default  |
+| ---------------------------- | --------------------- | -------- |
+| `--bulma-collapse-group-gap` | `$collapse-group-gap` | `0.5rem` |
+
+Because the group declares nothing, set the variable on the group (through `className` or
+`style`) or on any ancestor, `:root` included, and it applies whatever order the stylesheets
+load in. Set `$collapse-group-gap` when you compile the Sass yourself to change the fallback.
+Here every group gets 1rem, and one with `className="faq"` gets 0.25rem:
 
 ```css
 :root {
@@ -395,11 +460,23 @@ group itself.
 
 ## Accessibility
 
-- Each item keeps the wiring `Collapse` gives it: the trigger has `role="button"` and
-  `tabIndex="0"`, toggles on Enter and Space, and carries `aria-expanded` and an
-  `aria-controls` that points at its own panel. The group only decides which items are open.
-- Each trigger is its own tab stop. Arrow-key movement between triggers, which the WAI-ARIA
-  accordion pattern lists as optional, is not built in.
+Measured against the
+[WAI-ARIA accordion pattern](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/):
+
+- **Implemented.** Each item keeps the wiring `Collapse` gives it: the trigger has
+  `role="button"` and `tabIndex="0"`, toggles on Enter and Space, and carries `aria-expanded`
+  and an `aria-controls` that points at its own panel. A closed panel is `aria-hidden` and
+  `inert`, so its links and fields leave the tab order until it opens. The group only decides
+  which items are open.
+- **Not implemented: the heading.** The pattern wraps each trigger button in a heading
+  (`role="heading"` with an `aria-level`), so screen reader users can move between items by
+  heading. `Collapse` renders the button itself and has no prop to wrap it, and a heading
+  placed inside `trigger` doesn't count, because assistive tech reads a button's contents as
+  plain text. A heading above the group still names the section as a whole.
+- **Optional parts, not built in.** Arrow keys, Home and End between triggers: each trigger is
+  its own tab stop instead. And `role="region"` on panels: to add one, wrap an item's content in
+  an element with `role="region"` and an `aria-label` naming the item. The pattern suggests
+  regions only when few panels can be open at once, since each one is a landmark.
 - A trigger's text is its accessible name, so name what the item opens ("Returns", not
   "Click here"). Mark a decorative icon in a trigger `aria-hidden` so it adds nothing to that
   name.

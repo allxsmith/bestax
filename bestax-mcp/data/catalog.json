@@ -306,7 +306,7 @@
       "import": "import { Collapses, Collapse } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 19,
-      "exampleCount": 7
+      "exampleCount": 8
     },
     {
       "name": "Column",

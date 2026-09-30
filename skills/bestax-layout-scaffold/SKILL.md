@@ -48,8 +48,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - Interactive extras don't share a state API — never transfer one by analogy:
   `Collapse trigger={node} open/defaultOpen onOpenChange` (`onOpenChange(open)` reports every
   trigger; `onOpen/onClose` fire only when the Collapse holds its own state), an accordion is
-  `Collapses value/defaultValue/onChange` around plain `Collapse` children indexed from 0
-  (`number | null`, or `number[]` with `multiple`) rather than hand-rolled open-index state,
+  `Collapses value/defaultValue/onChange` around plain `Collapse` children indexed from 0 by
+  position (`number | null`, or `number[]` with `multiple`; hide an item with
+  `visibility="hidden"`, never `{cond && …}`, or the open state shifts to its neighbour) rather
+  than hand-rolled open-index state,
   `Tabs value={i}/onChange`
   (each `Tabs.Tab`/`Tabs.Content.Item` requires `index={i}`, and `Tabs.Content` must be a
   **child of `<Tabs>`** — the active-tab context lives on it; a sibling panel never
