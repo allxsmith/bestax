@@ -1,3 +1,11 @@
+## [5.18.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.1...@allxsmith/bestax-bulma@5.18.2) (2026-09-30)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep button types and Avatar's accessible name through a spread ([#826](https://github.com/allxsmith/bestax/issues/826)) ([dc798d4](https://github.com/allxsmith/bestax/commit/dc798d429a9608225d892f0a02fdbad2f9713b53))
+* **bulma-ui:** place toasts and notifications at the position they were shown with ([#834](https://github.com/allxsmith/bestax/issues/834)) ([62feab9](https://github.com/allxsmith/bestax/commit/62feab91a37e28cc753fbbb22075b302d585d141))
+
 ## [5.18.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.0...@allxsmith/bestax-bulma@5.18.1) (2026-09-30)
 
 
