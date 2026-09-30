@@ -117,6 +117,8 @@ const BESTAX = {
   'display="flex"': '/docs/guides/helpers/flex',
   'visibility="sr-only"': '/docs/guides/helpers/visibility',
   overlay: '/docs/guides/helpers/other',
+  aspectRatio: '/docs/guides/helpers/other',
+  'pos="sticky"': '/docs/guides/helpers/other',
   'bestax.css': '/docs/guides/getting-started/installation',
 };
 const bestaxHref = name => {
@@ -1172,7 +1174,7 @@ export const categories = [
       ['Spacer', '~Block', 'Space', 0, 0, '~Block', 'Spacer', 0],
       [
         'Aspect ratio',
-        '~Image',
+        '~aspectRatio',
         'AspectRatio',
         'Ratio',
         0,
@@ -1191,7 +1193,7 @@ export const categories = [
         'ScrollArea',
       ],
       ['Splitter (resizable)', 0, 'Splitter', 0, 0, 0, 'Splitter', 'Resizable'],
-      ['Affix (sticky)', 0, 'Affix', 0, 0, 0, 'Sticky', 0],
+      ['Affix (sticky)', '~pos="sticky"', 'Affix', 0, 0, 0, 'Sticky', 0],
       ['Section', 'Section', 0, 0, 0, 'Section', 0, 0],
       ['Hero / banner', 'Hero', 0, 0, 0, 'Hero', 0, 0],
       [

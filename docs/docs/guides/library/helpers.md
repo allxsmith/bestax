@@ -20,7 +20,7 @@ Most components accept these shared helper props (they map to Bulma utility clas
 | **Typography** | `textSize` `textAlign` `textWeight` `textTransform` `fontFamily`              | `textAlign="centered"`    | `has-text-centered`         |
 | **Display**    | `display` `visibility`                                                        | `display="flex"`          | `is-flex`                   |
 | **Flexbox**    | `flexDirection` `justifyContent` `alignItems` `flexGrow` `flexShrink`         | `justifyContent="center"` | `is-justify-content-center` |
-| **Other**      | `float` `radius` `shadow` `overflow` `clearfix`                               | `float="right"`           | `is-pulled-right`           |
+| **Other**      | `float` `radius` `shadow` `overflow` `pos` `aspectRatio` `clearfix`           | `float="right"`           | `is-pulled-right`           |
 
 ## Inline styles → helper props
 
@@ -197,6 +197,22 @@ Use the `overflow` prop.
 </Message>
 ```
 
+#### is-overflow-\*
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+Use the `overflow` prop with a CSS keyword (`auto`, `clip`, `hidden`, `scroll`, `visible`), or `overflowX` and `overflowY` for one axis.
+
+```tsx live
+<Box aspectRatio="3by1" overflowY="auto">
+  {Array.from({ length: 20 }, (_, i) => (
+    <p key={i}>Line {i + 1}</p>
+  ))}
+</Box>
+```
+
 #### is-radiusless
 
 :::info
@@ -207,6 +223,22 @@ Use the `radius` prop.
 
 ```tsx live
 <Button radius="radiusless">Radiusless Button</Button>
+```
+
+#### has-radius-\*
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+Use the `radius` prop with a size: `small`, `normal`, `large` or `rounded`.
+
+```tsx live
+<Buttons>
+  <Button radius="small">Small</Button>
+  <Button radius="large">Large</Button>
+  <Button radius="rounded">Rounded</Button>
+</Buttons>
 ```
 
 #### is-shadowless
@@ -257,13 +289,37 @@ Use the `interaction` prop.
 More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
 :::
 
-Use the `relative` prop.
+Use the `relative` prop, the shortcut for `pos="relative"`.
 
 ```tsx live
 <Box relative p="4" style={{ height: '100px', border: '1px dashed #ccc' }}>
-  <Tag style={{ position: 'absolute', top: '8px', right: '8px' }}>Badge</Tag>
+  <Tag pos="absolute" style={{ top: '8px', right: '8px' }}>
+    Badge
+  </Tag>
   Relative container
 </Box>
+```
+
+#### is-position-\*
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+Use the `pos` prop: `absolute`, `fixed`, `relative`, `static` or `sticky`. It sets `position` and nothing else, so give an `absolute`, `fixed` or `sticky` element its offsets yourself, as the Badge above does.
+
+#### is-aspect-ratio-\*
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+Use the `aspectRatio` prop with one of Bulma's ratios, such as `1by1`, `4by3`, `16by9` or the portrait `9by16`.
+
+```tsx live
+<Notification color="info" aspectRatio="16by9">
+  Always sixteen by nine
+</Notification>
 ```
 
 #### is-cursor-help

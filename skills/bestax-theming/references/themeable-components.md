@@ -90,15 +90,15 @@ entries follow the scheme variables.
 
 ## Typography & misc helper props (on most components)
 
-| Prop                                         | Accepts                                                   | Class                  |
-| -------------------------------------------- | --------------------------------------------------------- | ---------------------- |
-| `textSize`                                   | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7`                         | `is-size-<n>`          |
-| `textWeight`                                 | `light \| normal \| medium \| semibold \| bold`           | `has-text-weight-<w>`  |
-| `fontFamily`                                 | `sans-serif \| monospace \| primary \| secondary \| code` | `is-family-<f>`        |
-| `textAlign`                                  | `centered \| justified \| left \| right`                  | `has-text-<a>`         |
-| `radius`                                     | `radiusless`                                              | `is-radiusless`        |
-| `shadow`                                     | `shadowless`                                              | `is-shadowless`        |
-| `m` / `p` (+ `mt/mr/mb/ml/mx/my`, `pt/…/py`) | `0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6 \| auto`                 | `m-<n>` / `p-<n>` etc. |
+| Prop                                         | Accepts                                                   | Class                             |
+| -------------------------------------------- | --------------------------------------------------------- | --------------------------------- |
+| `textSize`                                   | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7`                         | `is-size-<n>`                     |
+| `textWeight`                                 | `light \| normal \| medium \| semibold \| bold`           | `has-text-weight-<w>`             |
+| `fontFamily`                                 | `sans-serif \| monospace \| primary \| secondary \| code` | `is-family-<f>`                   |
+| `textAlign`                                  | `centered \| justified \| left \| right`                  | `has-text-<a>`                    |
+| `radius`                                     | `radiusless \| small \| normal \| large \| rounded`       | `is-radiusless`, `has-radius-<r>` |
+| `shadow`                                     | `shadowless`                                              | `is-shadowless`                   |
+| `m` / `p` (+ `mt/mr/mb/ml/mx/my`, `pt/…/py`) | `0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6 \| auto`                 | `m-<n>` / `p-<n>` etc.            |
 
 These map to Bulma utility classes that read the same `--bulma-*` variables, so a custom theme
 flows through them automatically.

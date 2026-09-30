@@ -314,6 +314,22 @@ describe('useBulmaClasses', () => {
     );
   });
 
+  it('applies the position, overflow, radius and aspect-ratio helpers', () => {
+    const { bulmaHelperClasses, rest } = renderUseBulmaClasses({
+      overflow: 'hidden',
+      overflowX: 'auto',
+      overflowY: 'scroll',
+      radius: 'small',
+      pos: 'absolute',
+      aspectRatio: '3by2',
+    });
+    expect(bulmaHelperClasses).toBe(
+      'is-overflow-hidden is-overflow-x-auto is-overflow-y-scroll has-radius-small is-position-absolute is-aspect-ratio-3by2'
+    );
+    // Consumed as helper props, so none of them reaches the DOM.
+    expect(rest).toEqual({});
+  });
+
   it('ignores invalid other helper values', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({ float: 'invalid' });
     expect(bulmaHelperClasses).toBe('');

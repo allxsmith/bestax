@@ -5,10 +5,13 @@ import { useOtherClasses, BulmaOtherProps } from '../useOtherClasses';
 import { ConfigProvider } from '../Config';
 import {
   cursorClasses,
+  validAspectRatios,
+  validAxisOverflows,
   validCursors,
   validFloats,
   validInteractions,
   validOverflows,
+  validPositions,
   validRadii,
   validResponsives,
   validShadows,
@@ -74,6 +77,57 @@ describe('useOtherClasses', () => {
     expect(renderUseOtherClasses({ cursor: 'help' })).toBe('is-cursor-help');
   });
 
+  // `pos` is the position helper and `relative` the older shortcut for one of
+  // its values. Two position classes would leave the stylesheet's rule order
+  // to decide which applies, so a valid `pos` settles it on its own.
+  describe('pos and relative', () => {
+    it('keeps relative rendering is-relative when pos is unset', () => {
+      expect(renderUseOtherClasses({ relative: true })).toBe('is-relative');
+    });
+
+    it('lets pos decide when both are set', () => {
+      expect(renderUseOtherClasses({ relative: true, pos: 'absolute' })).toBe(
+        'is-position-absolute'
+      );
+      expect(renderUseOtherClasses({ relative: true, pos: 'relative' })).toBe(
+        'is-position-relative'
+      );
+    });
+
+    it('falls back to relative when pos is not a value it accepts', () => {
+      expect(
+        renderUseOtherClasses({ relative: true, pos: 'center' as never })
+      ).toBe('is-relative');
+    });
+  });
+
+  it('applies overflow on each axis alongside overflow', () => {
+    expect(
+      renderUseOtherClasses({
+        overflow: 'hidden',
+        overflowX: 'auto',
+        overflowY: 'scroll',
+      })
+    ).toBe('is-overflow-hidden is-overflow-x-auto is-overflow-y-scroll');
+  });
+
+  it('prefixes the new helper families', () => {
+    expect(
+      renderUseOtherClasses(
+        {
+          overflow: 'auto',
+          overflowY: 'hidden',
+          radius: 'rounded',
+          pos: 'sticky',
+          aspectRatio: '16by9',
+        },
+        'bestax-'
+      )
+    ).toBe(
+      'bestax-is-overflow-auto bestax-is-overflow-y-hidden bestax-has-radius-rounded bestax-is-position-sticky bestax-is-aspect-ratio-16by9'
+    );
+  });
+
   it('ignores invalid cursor and float values', () => {
     expect(
       renderUseOtherClasses({ cursor: 'grab' as never, float: 'up' as never })
@@ -109,7 +163,23 @@ describe('useOtherClasses', () => {
       ),
       ...validOverflows.map(
         v =>
-          [`overflow="${v}"`, { overflow: v }, `is-${v}`] as [
+          [
+            `overflow="${v}"`,
+            { overflow: v },
+            v === 'clipped' ? 'is-clipped' : `is-overflow-${v}`,
+          ] as [string, BulmaOtherProps, string]
+      ),
+      ...validAxisOverflows.map(
+        v =>
+          [`overflowX="${v}"`, { overflowX: v }, `is-overflow-x-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validAxisOverflows.map(
+        v =>
+          [`overflowY="${v}"`, { overflowY: v }, `is-overflow-y-${v}`] as [
             string,
             BulmaOtherProps,
             string,
@@ -133,11 +203,11 @@ describe('useOtherClasses', () => {
       ),
       ...validRadii.map(
         v =>
-          [`radius="${v}"`, { radius: v }, `is-${v}`] as [
-            string,
-            BulmaOtherProps,
-            string,
-          ]
+          [
+            `radius="${v}"`,
+            { radius: v },
+            v === 'radiusless' ? 'is-radiusless' : `has-radius-${v}`,
+          ] as [string, BulmaOtherProps, string]
       ),
       ...validShadows.map(
         v =>
@@ -155,6 +225,22 @@ describe('useOtherClasses', () => {
             string,
           ]
       ),
+      ...validPositions.map(
+        v =>
+          [`pos="${v}"`, { pos: v }, `is-position-${v}`] as [
+            string,
+            BulmaOtherProps,
+            string,
+          ]
+      ),
+      ...validAspectRatios.map(
+        v =>
+          [
+            `aspectRatio="${v}"`,
+            { aspectRatio: v },
+            `is-aspect-ratio-${v}`,
+          ] as [string, BulmaOtherProps, string]
+      ),
     ];
 
     it.each(rendering)('%s renders %s', (_label, props, expected) => {
@@ -171,7 +257,19 @@ describe('useOtherClasses', () => {
     // cannot leave a case that passes for the wrong reason.
     const dropped: [string, readonly string[], string, BulmaOtherProps][] = [
       ['float', validFloats, 'center', { float: 'center' as never }],
-      ['overflow', validOverflows, 'scroll', { overflow: 'scroll' as never }],
+      ['overflow', validOverflows, 'overlay', { overflow: 'overlay' as never }],
+      [
+        'overflowX',
+        validAxisOverflows,
+        'clipped',
+        { overflowX: 'clipped' as never },
+      ],
+      [
+        'overflowY',
+        validAxisOverflows,
+        'clipped',
+        { overflowY: 'clipped' as never },
+      ],
       [
         'interaction',
         validInteractions,
@@ -179,13 +277,20 @@ describe('useOtherClasses', () => {
         { interaction: 'hover' as never },
       ],
       ['cursor', validCursors, 'grab', { cursor: 'grab' as never }],
-      ['radius', validRadii, 'rounded', { radius: 'rounded' as never }],
+      ['radius', validRadii, 'medium', { radius: 'medium' as never }],
       ['shadow', validShadows, 'none', { shadow: 'none' as never }],
       [
         'responsive',
         validResponsives,
         'tablet',
         { responsive: 'tablet' as never },
+      ],
+      ['pos', validPositions, 'center', { pos: 'center' as never }],
+      [
+        'aspectRatio',
+        validAspectRatios,
+        '16:9',
+        { aspectRatio: '16:9' as never },
       ],
     ];
 

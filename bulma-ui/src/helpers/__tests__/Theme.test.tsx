@@ -368,6 +368,51 @@ describe('Theme', () => {
       );
     });
 
+    // The sizes are Bulma's `has-radius-*` helpers, which read the radius
+    // variables. Writing `--bulma-radius` from them would make `normal` refer
+    // to itself, which computes to 0, and `rounded` would pill every control
+    // inside, so they add the class and nothing else.
+    it.each(['small', 'normal', 'large', 'rounded'] as const)(
+      'renders radius="%s" as the class and writes no variable',
+      size => {
+        const { container } = render(
+          <Theme radius={size} bulmaVars={{ '--bulma-radius': '2px' }}>
+            <div>Test</div>
+          </Theme>
+        );
+
+        const themeDiv = container.firstChild as HTMLElement;
+        expect(themeDiv).toHaveClass(`has-radius-${size}`);
+        expect(themeDiv.style.getPropertyValue('--bulma-radius')).toBe('2px');
+        expect(warnSpy).not.toHaveBeenCalled();
+      }
+    );
+
+    it('writes nothing at :root for a radius size on an isRoot Theme', () => {
+      render(
+        <Theme isRoot radius="rounded">
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('names every helper value in the deprecation warning', () => {
+      render(
+        <Theme {...({ radius: '6px' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'the border radius helper ("radiusless", "small", "normal", "large", "rounded")'
+        )
+      );
+    });
+
     it('warns once however many Themes pass a length', () => {
       const legacy = { radius: '6px' } as unknown as ThemeProps;
       const { rerender } = render(
