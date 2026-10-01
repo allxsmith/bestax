@@ -80,7 +80,11 @@ export interface NumberinputProps
   disabled?: boolean;
   /** Whether the input can be typed in. */
   editable?: boolean;
-  /** Shows a loading state. */
+  /**
+   * Shows a loading spinner on the input's control.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Enables exponential step increments when holding buttons. */
   exponential?: boolean;

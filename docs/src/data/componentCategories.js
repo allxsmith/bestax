@@ -16,6 +16,7 @@ const categories = [
       { name: 'Icon', link: '/docs/api/elements/icon' },
       { name: 'IconText', link: '/docs/api/elements/icontext' },
       { name: 'Image', link: '/docs/api/elements/image' },
+      { name: 'Loader', link: '/docs/api/elements/loader' },
       { name: 'Notification', link: '/docs/api/elements/notification' },
       { name: 'Progress', link: '/docs/api/elements/progress' },
       { name: 'Skeleton', link: '/docs/api/elements/skeleton' },

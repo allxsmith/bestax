@@ -156,11 +156,11 @@ Every Bulma class has a corresponding React component in the matching tier, so t
 
 ---
 
-## Elements (30)
+## Elements (31)
 
 Foundational building blocks: typography, buttons, media, lists, data display, and feedback.
 
-[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [Content](/docs/api/elements/content), [Delete](/docs/api/elements/delete), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [UnorderedList](/docs/api/elements/unorderedlist)
+[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [Content](/docs/api/elements/content), [Delete](/docs/api/elements/delete), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [UnorderedList](/docs/api/elements/unorderedlist)
 
 ```tsx live
 <div>

@@ -40,6 +40,7 @@ export * from './elements/IconText';
 export * from './elements/Image';
 export * from './elements/Link';
 export * from './elements/ListItem';
+export * from './elements/Loader';
 export * from './elements/Notification';
 export * from './elements/OrderedList';
 export * from './elements/Paragraph';

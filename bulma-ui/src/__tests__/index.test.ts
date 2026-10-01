@@ -64,6 +64,7 @@ const PUBLIC_EXPORTS = [
   'Link',
   'LinkButton',
   'ListItem',
+  'Loader',
   'Loading',
   'Media',
   'MediaContent',

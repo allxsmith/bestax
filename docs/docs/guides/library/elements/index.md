@@ -392,6 +392,16 @@ A Bulma-styled progress bar for visualizing task completion, loading states, or 
 
 ---
 
+### Loader
+
+Bulma's small spinning ring for inline loading states, such as a table cell while a row saves, exposed to screen readers as an indeterminate progress bar. [View full documentation.](../../../api/elements/loader.md)
+
+```tsx live
+<Loader ariaLabel="Saving" />
+```
+
+---
+
 ### Skeleton
 
 A skeleton loader for indicating loading content, with block or lines variants. [View full documentation.](../../../api/elements/skeleton.md)

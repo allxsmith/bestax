@@ -330,7 +330,8 @@ button, the navbar's burger and dropdown link, the panel's icon, Radio and Radio
 
 ## Classes left alone
 
-`.help`, `.label`, `.loader`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`,
-`.fa`, `.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
-Bulma with nothing in bestax to convert to.
+`.help`, `.label`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`, `.fa`,
+`.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
+Bulma with nothing in bestax to convert to. `.loader` is left alone as well, although bestax's
+`Loader` renders the same element: swap it in by hand for its progressbar role and accessible name.
 An element carrying one stays as written, and gets no TODO.

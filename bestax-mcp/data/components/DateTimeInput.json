@@ -282,7 +282,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Show a loading indicator on the control.",
+          "description": "Show a loading spinner on the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false
