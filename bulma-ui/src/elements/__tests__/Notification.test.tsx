@@ -192,7 +192,10 @@ describe('Notification Programmatic API', () => {
 
       const status = screen.getByRole('status');
       expect(status).toHaveAttribute('aria-live', 'polite');
-      expect(status).toHaveClass('is-sr-only');
+      expect(status).toHaveStyle({
+        position: 'absolute',
+        clip: 'rect(0px, 0px, 0px, 0px)',
+      });
       expect(status).toBeEmptyDOMElement();
 
       // The region is all an empty container adds to the page. There's no
@@ -406,14 +409,32 @@ describe('Notification Programmatic API', () => {
       expect(screen.getByRole('status')).toBe(status);
     });
 
-    it('prefixes the class that hides the region', () => {
+    it('hides the region with no stylesheet, whatever the class prefix', () => {
+      // No CSS is loaded here, Bulma's helpers included, and the region
+      // doesn't rely on any.
+      expect(document.styleSheets).toHaveLength(0);
       render(
         <ConfigProvider classPrefix="bestax-">
           <NotificationContainer />
         </ConfigProvider>
       );
+      act(() => {
+        notification.success('Hidden copy', { duration: 0 });
+      });
+      waitForAnnouncements();
 
-      expect(screen.getByRole('status')).toHaveClass('bestax-is-sr-only');
+      const status = screen.getByRole('status');
+      expect(status).toHaveTextContent('Hidden copy');
+      expect(status).not.toHaveAttribute('class');
+      expect(status).toHaveStyle({
+        position: 'absolute',
+        width: '1px',
+        height: '1px',
+        overflow: 'hidden',
+        clip: 'rect(0px, 0px, 0px, 0px)',
+        'clip-path': 'inset(50%)',
+        'white-space': 'nowrap',
+      });
     });
 
     it("leaves getByRole('alert') to a toast shown beside it", () => {
@@ -1082,7 +1103,7 @@ describe('NotificationContainer with notifications shown at their own position',
         '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span>One</span></div>' +
         '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
         '</div>',
-      '<div class="is-sr-only" role="status" aria-live="polite"></div>',
+      '<div role="status" aria-live="polite" style="position: absolute; width: 1px; height: 1px; margin: 0px; padding: 0px; border: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap;"></div>',
     ]);
   });
 

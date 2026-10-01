@@ -1,15 +1,15 @@
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { render, screen, act } from '@testing-library/react';
 import {
   StatusRegion,
   announceDelay,
   announcementLifetime,
 } from '../statusRegion';
-import { ConfigProvider } from '../Config';
 
 interface Item {
   id: string;
-  text: string;
+  text: string | null;
 }
 
 const describeItem = (item: Item) => item.text;
@@ -40,19 +40,36 @@ describe('StatusRegion', () => {
     jest.useRealTimers();
   });
 
-  it('renders an empty, visually hidden, polite status region', () => {
+  it('renders an empty, polite status region', () => {
     render(region([]));
 
     const status = screen.getByRole('status');
-    expect(status).toHaveClass('is-sr-only');
     expect(status).toHaveAttribute('aria-live', 'polite');
     expect(status).toBeEmptyDOMElement();
   });
 
-  it('prefixes the class that hides it', () => {
-    render(<ConfigProvider classPrefix="bestax-">{region([])}</ConfigProvider>);
+  it('hides itself without any stylesheet', () => {
+    // No CSS is loaded here, Bulma's included, so the computed style is the
+    // region's own.
+    expect(document.styleSheets).toHaveLength(0);
+    render(region([alpha]));
+    advance(announceDelay);
 
-    expect(screen.getByRole('status')).toHaveClass('bestax-is-sr-only');
+    const status = screen.getByRole('status');
+    expect(status).not.toHaveAttribute('class');
+    expect(status).toHaveStyle({
+      position: 'absolute',
+      width: '1px',
+      height: '1px',
+      margin: '0px',
+      padding: '0px',
+      overflow: 'hidden',
+      clip: 'rect(0px, 0px, 0px, 0px)',
+      'clip-path': 'inset(50%)',
+      'white-space': 'nowrap',
+    });
+    expect(getComputedStyle(status).borderTopWidth).toBe('0px');
+    expect(status).toHaveTextContent('Alpha');
   });
 
   it('writes an announcement a moment after its item appears', () => {
@@ -162,13 +179,59 @@ describe('StatusRegion', () => {
   });
 
   it('skips an item with nothing to say', () => {
-    const { rerender } = render(region([{ id: 'e', text: '' }]));
+    const empty: Item = { id: 'e', text: '' };
+    const nothing: Item = { id: 'n', text: null };
+    const { rerender } = render(region([empty, nothing]));
     advance(announceDelay);
     expect(said()).toEqual([]);
 
-    rerender(region([{ id: 'e', text: '' }, alpha]));
+    rerender(region([empty, nothing, alpha]));
     advance(announceDelay);
     expect(said()).toEqual(['Alpha']);
+  });
+
+  describe('with a timer from the batch before coming due', () => {
+    // Showing the new items synchronously runs their effect straight away, so
+    // the effect sets the new batch inside the act below, while the render
+    // that cancels the old batch's timers waits for the act to end. The old
+    // timer comes due in that gap.
+    let showItems: (items: Item[]) => void = () => {};
+    const Harness = () => {
+      const [items, setItems] = useState([alpha]);
+      showItems = setItems;
+      return region(items);
+    };
+    const showNow = (items: Item[]) =>
+      // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the render and its effect have to happen ahead of the timer, inside the act
+      flushSync(() => showItems(items));
+
+    it("doesn't let the old clear empty the new batch", () => {
+      render(<Harness />);
+      advance(announceDelay + announcementLifetime - 1);
+      expect(said()).toEqual(['Alpha']);
+
+      act(() => {
+        showNow([alpha, bravo]);
+        jest.advanceTimersByTime(1);
+      });
+      advance(announceDelay);
+
+      expect(said()).toEqual(['Bravo']);
+    });
+
+    it("doesn't let the old write cut the new batch's wait short", () => {
+      render(<Harness />);
+      advance(announceDelay - 1);
+
+      act(() => {
+        showNow([alpha, bravo]);
+        jest.advanceTimersByTime(1);
+      });
+      expect(said()).toEqual([]);
+
+      advance(announceDelay);
+      expect(said()).toEqual(['Alpha', 'Bravo']);
+    });
   });
 
   it('renders one region and announces once under StrictMode', () => {

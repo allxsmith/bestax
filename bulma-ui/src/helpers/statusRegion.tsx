@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { usePrefixedClassNames } from './classNames';
 
 /**
  * What a status region says for one of a container's items.
@@ -46,6 +45,23 @@ const noBatch: Batch = {
   written: false,
 };
 
+// Hides the region with inline styles rather than a class, so it needs no
+// stylesheet, including the helper classes a modular Bulma build can leave
+// out. Clipping it, rather than using `display` or `visibility`, keeps it in
+// the accessibility tree.
+const visuallyHidden: React.CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  margin: 0,
+  padding: 0,
+  border: 0,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  clipPath: 'inset(50%)',
+  whiteSpace: 'nowrap',
+};
+
 /**
  * Works out what a status region says. Each item is announced once. Its
  * announcement is written `announceDelay` after it appears, or after the last
@@ -61,15 +77,15 @@ const noBatch: Batch = {
  *
  * @function useAnnouncements
  * @param items - The items to announce, in the order they were shown.
- * @param describe - The text to announce for an item. It runs once the item
- *   is on screen, and it must keep its identity between renders (a
- *   module-level function or a `useCallback`), or every render re-checks the
- *   items.
+ * @param describe - The text to announce for an item, or nothing to skip it.
+ *   It runs once the item is on screen, and it must keep its identity between
+ *   renders (a module-level function or a `useCallback`), or every render
+ *   re-checks the items.
  * @returns The announcements to render, in the order their items were shown.
  */
 function useAnnouncements<Item extends { id: string }>(
   items: readonly Item[],
-  describe: (item: Item) => string
+  describe: (item: Item) => string | null
 ): Announcement[] {
   // The ids of the items on screen that have been announced already.
   const announcedIdsRef = useRef(new Set<string>());
@@ -84,10 +100,13 @@ function useAnnouncements<Item extends { id: string }>(
     // forgetting them can't bring an old item back.
     announcedIdsRef.current = new Set(items.map(item => item.id));
 
-    const next = appeared
-      .map(item => ({ id: item.id, text: describe(item) }))
-      .filter(announcement => announcement.text !== '');
+    const next: Announcement[] = [];
+    for (const item of appeared) {
+      const text = describe(item);
+      if (text) next.push({ id: item.id, text });
+    }
     if (next.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- an item's rendered text can only be read once it's on screen
       setBatch(current => ({
         key: current.key + 1,
         // Announcements still waiting go out with the new ones. Ones already
@@ -101,17 +120,27 @@ function useAnnouncements<Item extends { id: string }>(
   }, [items, describe]);
 
   // Both timers start together, so the clear doesn't wait on a render after
-  // the write.
+  // the write. Each only touches the batch it was started for: a newer batch
+  // can be set before the render that cancels these timers, and a clear left
+  // over from the batch before it would otherwise empty the newer one before
+  // it's ever written.
   const { key } = batch;
   useEffect(() => {
     if (key === noBatch.key) return undefined;
     const write = setTimeout(
-      () => setBatch(current => ({ ...current, written: true })),
+      () =>
+        setBatch(current =>
+          current.key === key ? { ...current, written: true } : current
+        ),
       announceDelay
     );
     const clear = setTimeout(
       () =>
-        setBatch(current => ({ ...current, announcements: noAnnouncements })),
+        setBatch(current =>
+          current.key === key
+            ? { ...current, announcements: noAnnouncements }
+            : current
+        ),
       announceDelay + announcementLifetime
     );
     return () => {
@@ -133,8 +162,11 @@ function useAnnouncements<Item extends { id: string }>(
 export interface StatusRegionProps<Item extends { id: string }> {
   /** The items to announce politely, in the order they were shown. */
   items: readonly Item[];
-  /** The text to announce for an item, as `useAnnouncements` takes it. */
-  describe: (item: Item) => string;
+  /**
+   * The text to announce for an item, or nothing to skip it, as
+   * `useAnnouncements` takes it.
+   */
+  describe: (item: Item) => string | null;
 }
 
 /**
@@ -157,10 +189,9 @@ export function StatusRegion<Item extends { id: string }>({
   describe,
 }: StatusRegionProps<Item>): React.ReactElement {
   const announcements = useAnnouncements(items, describe);
-  const srOnly = usePrefixedClassNames('is-sr-only');
 
   return (
-    <div className={srOnly} role="status" aria-live="polite">
+    <div role="status" aria-live="polite" style={visuallyHidden}>
       {announcements.map(announcement => (
         <div key={announcement.id}>{announcement.text}</div>
       ))}

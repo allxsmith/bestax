@@ -463,9 +463,11 @@ const notificationStackStyle = (
  * the notification appears. Those notifications carry no `role="status"` of
  * their own, so `getByRole('status')` finds the region, not the notification.
  * The text stays in the region briefly, and while it's there the page holds a
- * second copy of it. `danger` and `warning` notifications announce themselves
- * with `role="alert"`. Bulma's `is-sr-only` helper class is what hides the
- * region.
+ * second copy of it. A polite notification that closes before its
+ * announcement is written, a moment after it appears, isn't announced at all.
+ * `danger` and `warning` notifications announce themselves with
+ * `role="alert"`. The region is hidden with inline styles, so it needs no
+ * stylesheet.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
@@ -513,12 +515,19 @@ export const NotificationContainer: React.FC<{
     []
   );
   // StatusRegion only describes polite notifications that are on screen, and
-  // each of those registered its message element when it mounted.
-  const describe = useCallback(
-    (item: NotificationInstance) =>
-      messageNodesRef.current.get(item.id)!.textContent!,
-    []
-  );
+  // each of those registered its message element when it mounted. The
+  // fallback is for a notification announced without being rendered, should
+  // the container ever render fewer than it announces: a plain-text message
+  // still says itself, and anything else is skipped.
+  const describe = useCallback((item: NotificationInstance) => {
+    const node = messageNodesRef.current.get(item.id);
+    /* istanbul ignore if: every polite notification on screen registers its message element when it mounts */
+    if (!node) {
+      const { message } = item.options;
+      return typeof message === 'string' ? message : null;
+    }
+    return node.textContent;
+  }, []);
 
   if (typeof document === 'undefined' || !isHydrated) {
     return null;
