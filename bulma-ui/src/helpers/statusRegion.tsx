@@ -269,12 +269,13 @@ const blockLevelTags = new Set([
  * @function isHidden
  * @param element - The element to check.
  * @returns True for `aria-hidden="true"`, the `hidden` attribute, and an
- *   inline `display: none`.
+ *   inline `display: none`, on an HTML, SVG or any other element with an
+ *   inline style.
  */
 const isHidden = (element: Element): boolean =>
   element.getAttribute('aria-hidden') === 'true' ||
   element.hasAttribute('hidden') ||
-  (element instanceof HTMLElement && element.style.display === 'none');
+  (element as Partial<ElementCSSInlineStyle>).style?.display === 'none';
 
 /**
  * The text `spokenText` reads for an element, before its whitespace is

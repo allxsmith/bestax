@@ -354,6 +354,19 @@ describe('spokenText', () => {
     expect(read('<span style="display: inline">Still</span> read')).toBe(
       'Still read'
     );
+    expect(
+      read('Saved<svg style="display: none"><text> debug id 42</text></svg>')
+    ).toBe('Saved');
+  });
+
+  it('reads an element that has no inline style at all', () => {
+    // An element outside the HTML and SVG namespaces has no `style`.
+    const element = document.createElement('span');
+    const note = document.createElementNS('urn:example:notes', 'note');
+    note.textContent = 'kept';
+    element.append('Saved, ', note);
+
+    expect(spokenText(element)).toBe('Saved, kept');
   });
 
   it('reads the text inside an svg', () => {
