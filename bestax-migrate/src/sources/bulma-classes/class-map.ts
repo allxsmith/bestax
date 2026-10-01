@@ -723,6 +723,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     target: 'Card.Header.Icon',
     tag: 'button',
     defaults: { 'aria-label': 'more options' },
+    writesAttr: {
+      type: {
+        on: ['button'],
+        fallback: 'button',
+        keeps: ['button', 'submit', 'reset'],
+      },
+    },
     ownProps: ['color', 'bgColor', 'textColor'],
   },
   'card-image': {
@@ -1378,6 +1385,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'a',
     as: 'any',
     modifiers: flags({ 'is-active': 'active' }),
+    writesAttr: {
+      type: {
+        on: ['button'],
+        fallback: 'button',
+        keeps: ['button', 'submit', 'reset'],
+      },
+    },
     ownProps: ['as', 'active', 'textColor', 'bgColor'],
   },
   'navbar-dropdown': {

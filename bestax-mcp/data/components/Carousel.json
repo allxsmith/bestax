@@ -117,7 +117,7 @@
           "name": "arrow",
           "type": "boolean",
           "default": "true",
-          "description": "Show navigation arrows. Default: true.",
+          "description": "Show navigation arrows. Default: true. They render `type=\"button\"`, so a carousel inside a form is not submitted by moving between slides.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -135,7 +135,7 @@
           "name": "indicator",
           "type": "boolean",
           "default": "true",
-          "description": "Show slide indicators. Default: true.",
+          "description": "Show slide indicators. Default: true. They render `type=\"button\"`, so a carousel inside a form is not submitted by picking a slide.",
           "required": false,
           "inherited": false,
           "deprecated": false

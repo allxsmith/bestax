@@ -68,7 +68,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'a'",
-          "description": "Render as another intrinsic element (`'span'`, `'button'`) or a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`.",
+          "description": "Render as another intrinsic element (`'span'`, `'button'`) or a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. `'button'` renders `type=\"button\"`, so a link inside a form does not submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used; any other value, or a spread carrying `type: undefined`, renders `type=\"button\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false

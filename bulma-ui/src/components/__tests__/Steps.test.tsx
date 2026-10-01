@@ -323,6 +323,18 @@ describe('Steps', () => {
       expect(screen.getByText('Next')).toBeInTheDocument();
     });
 
+    it('renders prev/next with type="button", so moving between steps does not submit a form', () => {
+      render(
+        <Steps
+          hasNavigation
+          value={1}
+          items={[{ label: 'A' }, { label: 'B' }, { label: 'C' }]}
+        />
+      );
+      expect(screen.getByText('Previous')).toHaveAttribute('type', 'button');
+      expect(screen.getByText('Next')).toHaveAttribute('type', 'button');
+    });
+
     it('does not render nav buttons when hasNavigation is false', () => {
       render(
         <Steps

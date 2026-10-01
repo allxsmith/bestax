@@ -445,3 +445,173 @@ describe('the three sources agree on the same shape', () => {
     expect(out[2]).toBe(out[0]);
   });
 });
+
+/**
+ * A source element that asked for a <button> and wrote no usable `type`
+ * submitted the form around it, since every source here rendered the tag it
+ * was given. bestax's `Dropdown.Item`, `Menu.Item`, `Navbar.Item` and
+ * `Navbar.Link` write `type="button"` there instead, so the migrated element
+ * stops submitting. The code does not show that change, so it gets a TODO, in
+ * each source's own spelling of the element prop.
+ *
+ * Each case builds its JSX from the attributes a test writes before and after
+ * that prop. Order matters here: JSX applies attributes last-write-wins, so a
+ * spread decides the `type` only when nothing literal follows it, and an rbx
+ * spread written after `as` could replace the element itself.
+ */
+type ButtonItem = [string, (before: string, after: string) => string];
+
+const item = (names: string, tag: string, elementProp: string): ButtonItem => [
+  names,
+  (before, after) =>
+    `<${tag}${before} ${elementProp}="button"${after}>x</${tag}>`,
+];
+
+const BUTTON_ITEMS: Array<[string, ButtonItem, ButtonItem, ButtonItem]> = [
+  [
+    'Navbar.Item',
+    item('NavbarItem', 'NavbarItem', 'tag'),
+    item('Navbar', 'Navbar.Item', 'as'),
+    item('Navbar', 'Navbar.Item', 'renderAs'),
+  ],
+  [
+    'Navbar.Link',
+    item('NavbarLink', 'NavbarLink', 'tag'),
+    item('Navbar', 'Navbar.Link', 'as'),
+    item('Navbar', 'Navbar.Link', 'renderAs'),
+  ],
+  [
+    'Menu.Item',
+    item('MenuLink', 'MenuLink', 'tag'),
+    item('Menu', 'Menu.List.Item', 'as'),
+    item('Menu', 'Menu.List.Item', 'renderAs'),
+  ],
+  [
+    'Dropdown.Item',
+    item('DropdownItem', 'DropdownItem', 'tag'),
+    item('Dropdown', 'Dropdown.Item', 'as'),
+    item('Dropdown', 'Dropdown.Item', 'renderAs'),
+  ],
+];
+
+/** The TODO rules a migration of one case left. */
+function rulesFor(
+  source: MigrationSource,
+  pkg: string,
+  [names, jsx]: Case
+): string[] {
+  const rules: string[] = [];
+  const input =
+    `import { ${names} } from '${pkg}';\n` +
+    `export const A = (p: Record<string, string>) => (${jsx});\n`;
+  const { output } = runTransform(source.transform, 'case.tsx', input, {
+    add: todo => rules.push(todo.rule),
+  });
+  if (output === null) {
+    throw new Error(`${pkg}: transform declined \`${jsx}\``);
+  }
+  return rules;
+}
+
+describe('a <button> item that submitted its form in the source', () => {
+  const each = BUTTON_ITEMS.flatMap(([target, ...items]) =>
+    items.map(
+      (buttonItem, i): [string, string, MigrationSource, ButtonItem] => [
+        target,
+        SOURCES[i][1],
+        SOURCES[i][0],
+        buttonItem,
+      ]
+    )
+  );
+  /** The case with `after` following the element prop and `before` ahead of it. */
+  const written = (
+    [names, jsx]: ButtonItem,
+    after: string,
+    before = ''
+  ): Case => [names, jsx(before, after)];
+
+  it.each(each)(
+    '%s from %s gets a TODO when it sets no type',
+    (_target, pkg, source, buttonItem) => {
+      expect(rulesFor(source, pkg, written(buttonItem, ''))).toContain(
+        'prop:type'
+      );
+    }
+  );
+
+  it.each(each)(
+    '%s from %s gets a TODO for a type HTML reads as submit',
+    (_target, pkg, source, buttonItem) => {
+      expect(
+        rulesFor(source, pkg, written(buttonItem, ' type="text/html"'))
+      ).toContain('prop:type');
+    }
+  );
+
+  it.each(each)(
+    '%s from %s gets none when its type is written out',
+    (_target, pkg, source, buttonItem) => {
+      for (const type of ['button', 'submit', 'reset']) {
+        expect(
+          rulesFor(source, pkg, written(buttonItem, ` type="${type}"`))
+        ).not.toContain('prop:type');
+      }
+    }
+  );
+
+  it.each(each)(
+    '%s from %s gets none when a spread or an expression may set the type',
+    (_target, pkg, source, buttonItem) => {
+      expect(
+        rulesFor(source, pkg, written(buttonItem, '', ' {...p}'))
+      ).not.toContain('prop:type');
+      expect(
+        rulesFor(source, pkg, written(buttonItem, ' type={p.type}'))
+      ).not.toContain('prop:type');
+      // A spread after a literal `type` may replace it, so that literal is
+      // not the one that renders.
+      expect(
+        rulesFor(
+          source,
+          pkg,
+          written(buttonItem, '', ' type="text/html" {...p}')
+        )
+      ).not.toContain('prop:type');
+    }
+  );
+
+  it.each(each)(
+    '%s from %s judges a literal type written after a spread',
+    (_target, pkg, source, buttonItem) => {
+      // The literal comes last, so it is the `type` that renders whatever the
+      // spread held.
+      expect(
+        rulesFor(
+          source,
+          pkg,
+          written(buttonItem, ' type="text/html"', ' {...p}')
+        )
+      ).toContain('prop:type');
+      expect(
+        rulesFor(source, pkg, written(buttonItem, ' type="submit"', ' {...p}'))
+      ).not.toContain('prop:type');
+    }
+  );
+
+  it('leaves an item that is not a <button>, and a Button, alone', () => {
+    expect(
+      rulesFor(rbx, 'rbx', ['Navbar', '<Navbar.Item>x</Navbar.Item>'])
+    ).not.toContain('prop:type');
+    expect(
+      rulesFor(reactBulmaComponents, 'react-bulma-components', [
+        'Navbar',
+        '<Navbar.Item renderAs="div">x</Navbar.Item>',
+      ])
+    ).not.toContain('prop:type');
+    // bestax leaves Button's `type` to the caller, as the sources did.
+    expect(
+      rulesFor(bloomer, 'bloomer', ['Button', '<Button>x</Button>'])
+    ).not.toContain('prop:type');
+  });
+});

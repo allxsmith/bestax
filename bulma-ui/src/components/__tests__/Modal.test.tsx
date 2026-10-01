@@ -315,6 +315,53 @@ describe('Modal', () => {
       expect(screen.getByTestId('close-btn')).toHaveClass('is-medium');
     });
 
+    it('Modal.Close keeps its type and name through a spread carrying absent values', () => {
+      // React reads an `undefined` attribute as "remove it", and a props spread
+      // whose key has no value is how that arrives. Defaults written before
+      // the spread were erased by it: a nameless button that submits a form.
+      const spread: {
+        type?: 'button' | 'submit' | 'reset';
+        'aria-label'?: string;
+      } = { type: undefined, 'aria-label': undefined };
+      render(<Modal.Close data-testid="close-btn" {...spread} />);
+      expect(screen.getByTestId('close-btn')).toHaveAttribute('type', 'button');
+      expect(screen.getByTestId('close-btn')).toHaveAttribute(
+        'aria-label',
+        'close'
+      );
+    });
+
+    it('Modal.Close lets an explicit type and aria-label win', () => {
+      render(
+        <>
+          <Modal.Close data-testid="submit" type="submit" aria-label="Done" />
+          <Modal.Close data-testid="reset" type="reset" />
+        </>
+      );
+      expect(screen.getByTestId('submit')).toHaveAttribute('type', 'submit');
+      expect(screen.getByTestId('submit')).toHaveAttribute(
+        'aria-label',
+        'Done'
+      );
+      expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
+    });
+
+    it('Modal.Close falls back to its name when given an empty aria-label', () => {
+      // `''` names nothing, and the button is drawn as an icon, so an empty
+      // label would leave it unnamed. It falls back like a missing one.
+      render(<Modal.Close data-testid="close-btn" aria-label="" />);
+      expect(screen.getByTestId('close-btn')).toHaveAttribute(
+        'aria-label',
+        'close'
+      );
+    });
+
+    it('Modal.Close replaces a type HTML would read as submit with type="button"', () => {
+      const loose: object = { type: 'text/html' };
+      render(<Modal.Close data-testid="close-btn" {...loose} />);
+      expect(screen.getByTestId('close-btn')).toHaveAttribute('type', 'button');
+    });
+
     it('allows mixing compound components with custom classes', () => {
       render(
         <Modal isActive className="custom-modal">

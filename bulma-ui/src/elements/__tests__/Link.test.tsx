@@ -234,3 +234,64 @@ describe('Ref forwarding', () => {
     expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });
 });
+
+describe('as="button"', () => {
+  it('renders type="button", so it does not submit a form around it', () => {
+    render(<Link as="button">Show more</Link>);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('keeps the button type default through a spread carrying an absent type', () => {
+    // React reads `type={undefined}` as "remove the attribute", and a props
+    // spread whose `type` is undefined is how that arrives.
+    const spread: { type?: 'button' | 'submit' | 'reset' } = {
+      type: undefined,
+    };
+    render(
+      <Link as="button" {...spread}>
+        Show more
+      </Link>
+    );
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('lets an explicit submit or reset type win', () => {
+    render(
+      <>
+        <Link as="button" type="submit">
+          Search
+        </Link>
+        <Link as="button" type="reset">
+          Clear
+        </Link>
+      </>
+    );
+    expect(screen.getByText('Search')).toHaveAttribute('type', 'submit');
+    expect(screen.getByText('Clear')).toHaveAttribute('type', 'reset');
+  });
+
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    const loose: object = { type: 'text/html' };
+    render(
+      <Link as="button" {...loose}>
+        Show more
+      </Link>
+    );
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('sets no type on a link that is not a button', () => {
+    render(
+      <>
+        <Link href="/docs" data-testid="a">
+          Docs
+        </Link>
+        <Link as="span" data-testid="span">
+          Static
+        </Link>
+      </>
+    );
+    expect(screen.getByTestId('a')).not.toHaveAttribute('type');
+    expect(screen.getByTestId('span')).not.toHaveAttribute('type');
+  });
+});
