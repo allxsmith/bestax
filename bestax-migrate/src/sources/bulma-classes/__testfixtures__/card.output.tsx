@@ -7,7 +7,7 @@ export function Cards() {
         <Card bgColor="light">
           <Card.Header>
             <Card.Header.Title centered>Built from parts</Card.Header.Title>
-            <Card.Header.Icon aria-label="more options">
+            <Card.Header.Icon type="button" aria-label="more options">
               More
             </Card.Header.Icon>
           </Card.Header>

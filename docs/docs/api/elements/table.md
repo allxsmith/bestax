@@ -128,6 +128,8 @@ Enable the `isResponsive` prop to make your table horizontally scrollable on sma
 
 Apply the `color` prop to individual `Td` cells to use Bulma's color modifiers. This is helpful for highlighting important data, categorizing information, or simply making your tables more visually engaging. You can use colors like `primary`, `success`, `warning`, `danger`, `info`, and more.
 
+`Tr` and `Th` take the same colors. They are exported as the `validTableColors` tuple, for building a color picker or checking a value that arrives at runtime. See [valid value constants](../helpers/valid-values.md#table-color-constant).
+
 ```tsx live
 <Table isBordered isFullwidth>
   <Thead>
@@ -317,7 +319,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 **Types:**
 
-- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Td component (Bulma table cell colors).
+- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
 
 ### Table.Th
 
@@ -332,7 +334,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 **Types:**
 
-- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Td component (Bulma table cell colors).
+- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
 
 ### Table.Td
 
@@ -345,7 +347,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 **Types:**
 
-- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Td component (Bulma table cell colors).
+- `TableColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`.
 
 <!-- /bestax:generated props -->
 

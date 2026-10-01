@@ -1531,6 +1531,125 @@ describe('Dropdown item activation', () => {
   });
 });
 
+describe('Dropdown focus after an item runs', () => {
+  // Closing hides the focused item, and a browser drops focus to the page when
+  // that happens. The WAI-ARIA menu button examples hand it back to the
+  // trigger instead, the way Escape does here.
+  const openMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  };
+
+  test.each([
+    ['Enter', '{Enter}'],
+    ['Space', ' '],
+  ])('%s on an item hands focus back to the trigger', async (_name, key) => {
+    const user = userEvent.setup();
+    const onClick = jest.fn();
+    render(
+      <Dropdown label="Menu">
+        <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    await openMenu(user);
+    screen.getByText('Archive').focus();
+    await user.keyboard(key);
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+  });
+
+  test('Enter on a button item, which the browser activates, does too', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dropdown label="Menu">
+        <Dropdown.Item as="button">Sort</Dropdown.Item>
+      </Dropdown>
+    );
+    await openMenu(user);
+    screen.getByText('Sort').focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+  });
+
+  test('a click on an item hands focus back to the trigger', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dropdown label="Menu">
+        <Dropdown.Item>Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    await openMenu(user);
+    await user.click(screen.getByText('Archive'));
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+  });
+
+  test('an item that moves focus elsewhere keeps it there', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Dropdown label="Menu">
+          <Dropdown.Item
+            onClick={() =>
+              screen.getByRole('textbox', { name: 'Name' }).focus()
+            }
+          >
+            Rename
+          </Dropdown.Item>
+        </Dropdown>
+        <input aria-label="Name" />
+      </>
+    );
+    await openMenu(user);
+    screen.getByText('Rename').focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus();
+  });
+
+  test('focus stays on the item while closeOnClick keeps the menu open', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dropdown label="Menu" closeOnClick={false}>
+        <Dropdown.Item>Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    await openMenu(user);
+    const item = screen.getByText('Archive');
+    item.focus();
+    await user.keyboard('{Enter}');
+    expect(item).toHaveFocus();
+  });
+
+  test.each([
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ])(
+    'a held %s that lands on the trigger does not reopen the menu',
+    async (_name, key) => {
+      const user = userEvent.setup();
+      render(
+        <Dropdown label="Menu">
+          <Dropdown.Item>Archive</Dropdown.Item>
+        </Dropdown>
+      );
+      await openMenu(user);
+      const item = screen.getByText('Archive');
+      item.focus();
+      fireEvent.keyDown(item, { key });
+      const trigger = screen.getByRole('button', { name: 'Menu' });
+      expect(trigger).toHaveFocus();
+      // Auto-repeat keeps sending keydowns, now to the trigger. The default
+      // stays prevented, so the browser does not click the trigger either.
+      for (let i = 0; i < 3; i++) {
+        const held = createEvent.keyDown(trigger, { key, repeat: true });
+        fireEvent(trigger, held);
+        expect(held.defaultPrevented).toBe(true);
+      }
+      expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    }
+  );
+});
+
 describe('Compound components', () => {
   test('Dropdown.Item is the DropdownItem component', () => {
     expect(Dropdown.Item).toBe(DropdownItem);

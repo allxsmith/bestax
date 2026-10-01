@@ -778,6 +778,62 @@ describe('Card Component', () => {
       expect(headerIcon).toHaveAttribute('aria-label', 'more options');
     });
 
+    test('Card.Header.Icon renders type="button", so it does not submit a form around it', () => {
+      render(<Card.Header.Icon data-testid="header-icon" />);
+      expect(screen.getByTestId('header-icon')).toHaveAttribute(
+        'type',
+        'button'
+      );
+    });
+
+    test('Card.Header.Icon keeps its type and name through a spread carrying absent values', () => {
+      // React reads an `undefined` attribute as "remove it", and a props
+      // spread whose key has no value is how that arrives. The name default
+      // was written before the spread and erased by it.
+      const spread: {
+        type?: 'button' | 'submit' | 'reset';
+        'aria-label'?: string;
+      } = { type: undefined, 'aria-label': undefined };
+      render(<Card.Header.Icon data-testid="header-icon" {...spread} />);
+      const headerIcon = screen.getByTestId('header-icon');
+      expect(headerIcon).toHaveAttribute('type', 'button');
+      expect(headerIcon).toHaveAttribute('aria-label', 'more options');
+    });
+
+    test('Card.Header.Icon lets an explicit submit or reset type win', () => {
+      render(
+        <>
+          <Card.Header.Icon data-testid="submit" type="submit" />
+          <Card.Header.Icon data-testid="reset" type="reset" />
+        </>
+      );
+      expect(screen.getByTestId('submit')).toHaveAttribute('type', 'submit');
+      expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
+    });
+
+    test('Card.Header.Icon falls back to its name when given an empty aria-label', () => {
+      // `''` names nothing, and the button is drawn as an icon, so an empty
+      // label would leave it unnamed. It falls back like a missing one.
+      render(
+        <Card.Header.Icon data-testid="header-icon" aria-label="">
+          <span className="icon">⋮</span>
+        </Card.Header.Icon>
+      );
+      expect(screen.getByTestId('header-icon')).toHaveAttribute(
+        'aria-label',
+        'more options'
+      );
+    });
+
+    test('Card.Header.Icon replaces a type HTML would read as submit with type="button"', () => {
+      const loose: object = { type: 'text/html' };
+      render(<Card.Header.Icon data-testid="header-icon" {...loose} />);
+      expect(screen.getByTestId('header-icon')).toHaveAttribute(
+        'type',
+        'button'
+      );
+    });
+
     test('Card.Header with both Title and Icon renders correctly', () => {
       render(
         <Card.Header data-testid="header">

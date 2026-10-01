@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-90 documented components. Generated from the API docs — every exported
+92 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -58,6 +58,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Link](https://bestax.io/docs/api/elements/link) — The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
 - [LinkButton](https://bestax.io/docs/api/elements/linkbutton) — The `LinkButton` component renders a `<button>` that visually looks like text or a link.
 - [ListItem](https://bestax.io/docs/api/elements/listitem) — The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
+- [Loader](https://bestax.io/docs/api/elements/loader) — The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states.
 - [Notification](https://bestax.io/docs/api/elements/notification) — The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
 - [OrderedList](https://bestax.io/docs/api/elements/orderedlist) — The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
 - [Paragraph](https://bestax.io/docs/api/elements/paragraph) — The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
@@ -82,6 +83,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Card](https://bestax.io/docs/api/components/card) — The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 - [Collapse](https://bestax.io/docs/api/components/collapse) — The `Collapse` component provides an expandable/collapsible content panel.
+- [Collapses](https://bestax.io/docs/api/components/collapses) — The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
@@ -145,7 +147,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [ConfigProvider](https://bestax.io/docs/api/helpers/config) — The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.
 - [Portal](https://bestax.io/docs/api/helpers/portal) — `Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise…
 - [Theme](https://bestax.io/docs/api/helpers/theme) — The `Theme` component provides a powerful way to customize Bulma's appearance using CSS custom properties (CSS variables).
-- [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
+- [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.
 - [useBulmaClasses](https://bestax.io/docs/api/helpers/usebulmaclasses) — `useBulmaClasses` is a custom React hook that generates Bulma helper class strings from a set of props.
 - [useFocusTrap](https://bestax.io/docs/api/helpers/usefocustrap) — `useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on…

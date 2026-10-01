@@ -12,6 +12,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -19,6 +20,10 @@ import {
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
 import { useScrollLock } from '../helpers/scrollLock';
+import {
+  getActiveElementInTree,
+  getDeepestActiveElement,
+} from '../helpers/shadowDom';
 import { resolvePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 
@@ -164,6 +169,8 @@ export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Props for Modal.Close component.
+ * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
+ * @extraProp {string} [aria-label='close'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
  */
 export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Additional CSS classes. */
@@ -327,7 +334,17 @@ const ModalClose: React.FC<ModalCloseProps> = ({
     className
   );
   return (
-    <button className={classes} aria-label="close" type="button" {...props} />
+    <button
+      className={classes}
+      {...props}
+      // After the spread, reading through it: a key the spread carries with no
+      // value would otherwise erase the default, leaving a nameless button
+      // that submits the form around it. An empty label falls back too: the
+      // button is drawn as an icon, so `''` would leave it unnamed. A caller's
+      // own value still wins; `buttonType` says more.
+      aria-label={props['aria-label'] || 'close'}
+      type={buttonType(props.type)}
+    />
   );
 };
 
@@ -475,7 +492,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       // Keep Tab within the modal — `aria-modal` hides the rest of the page
       // from assistive technology, so the keyboard order has to agree.
       const focusable = getTabbable(node);
-      const activeElement = document.activeElement;
+      const activeElement = getActiveElementInTree(node);
       if (focusable.length === 0) {
         e.preventDefault();
         node.focus();
@@ -504,7 +521,10 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   useEffect(() => {
     if (!isModalActive) return undefined;
 
-    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    // The element that had focus, wherever it sits: a portaled modal renders
+    // under `document.body` while its opener can be inside a shadow root.
+    previouslyFocusedRef.current =
+      getDeepestActiveElement() as HTMLElement | null;
     const node = modalRootRef.current;
     const focusable = node ? getTabbable(node)[0] : undefined;
     (focusable ?? node)?.focus();
@@ -513,7 +533,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       // Only hand focus back if this modal still owns it: closing a background
       // modal must not pull focus out of one that is still open on top. A
       // removed subtree leaves focus on <body>, which still counts as ours.
-      const activeElement = document.activeElement;
+      const activeElement = getActiveElementInTree(node);
       if (
         activeElement &&
         activeElement !== document.body &&

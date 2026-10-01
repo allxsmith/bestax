@@ -43,6 +43,7 @@ const NAMED_INDIVIDUALLY = [
   'Dropdown',
   'Link',
   'LinkButton',
+  'Loader',
   'Menu.Item',
   'Modal',
   'Navbar',

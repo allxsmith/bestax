@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.18.1"
+    "version": "5.20.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -26,6 +26,7 @@
         "Link",
         "LinkButton",
         "ListItem",
+        "Loader",
         "Notification",
         "OrderedList",
         "Paragraph",
@@ -53,6 +54,7 @@
         "Card",
         "Carousel",
         "Collapse",
+        "Collapses",
         "Dialog",
         "Dropdown",
         "Loading",
@@ -307,8 +309,19 @@
       "slug": "components/collapse",
       "import": "import { Collapse } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 11,
+      "propCount": 12,
       "exampleCount": 7
+    },
+    {
+      "name": "Collapses",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.",
+      "slug": "components/collapses",
+      "import": "import { Collapses, Collapse } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 19,
+      "exampleCount": 8
     },
     {
       "name": "Column",
@@ -385,7 +398,7 @@
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 52,
-      "exampleCount": 37
+      "exampleCount": 38
     },
     {
       "name": "DateTimeInput",
@@ -396,7 +409,7 @@
       "import": "import { DateTimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 62,
-      "exampleCount": 39
+      "exampleCount": 40
     },
     {
       "name": "Delete",
@@ -437,10 +450,10 @@
       "category": "components",
       "purpose": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
       "slug": "components/dropdown",
-      "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
+      "import": "import { Dropdown, Button, Field, Control, Span } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 17,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "Emphasis",
@@ -558,10 +571,10 @@
       "category": "form",
       "purpose": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and…",
       "slug": "form/input",
-      "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",
+      "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 29,
-      "exampleCount": 28
+      "exampleCount": 30
     },
     {
       "name": "Level",
@@ -606,6 +619,17 @@
       "compound": false,
       "propCount": 4,
       "exampleCount": 6
+    },
+    {
+      "name": "Loader",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states.",
+      "slug": "elements/loader",
+      "import": "import { Loader } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 2,
+      "exampleCount": 5
     },
     {
       "name": "Loading",
@@ -1062,7 +1086,7 @@
       "name": "Valid value constants",
       "kind": "helper",
       "category": "helpers",
-      "purpose": "The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
+      "purpose": "The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
       "slug": "helpers/valid-values",
       "import": "import { Valid value constants } from '@allxsmith/bestax-bulma';",
       "compound": false,
@@ -1089,7 +1113,7 @@
       "import": "import { useBulmaClasses } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
-      "exampleCount": 43
+      "exampleCount": 45
     },
     {
       "name": "useFocusTrap",
@@ -1333,6 +1357,7 @@
     "--bulma-dateinput-cell-today-color": "DateTimeInput",
     "--bulma-dateinput-day-name-color": "DateTimeInput",
     "--bulma-dateinput-day-name-size": "DateTimeInput",
+    "--bulma-dateinput-focus-ring-color": "DateTimeInput",
     "--bulma-dateinput-header-padding": "DateTimeInput",
     "--bulma-dateinput-min-width": "DateTimeInput",
     "--bulma-dateinput-nav-button-size": "DateTimeInput",

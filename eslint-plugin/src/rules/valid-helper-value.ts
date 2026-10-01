@@ -132,10 +132,10 @@ const rule: Rule.RuleModule = {
           // `true`, bare or explicit, matches no tuple of strings. Same
           // argument as the numeric case, one type further out.
           if (isTrueValue(attr)) {
-            // `radius` and `shadow` are the props a shorthand is most natural
-            // on and most wrong on, because their one value removes rather
-            // than adds. The length check is what keeps "its only value" true
-            // rather than trusting the table to stay a single value.
+            // A prop in REMOVES_ONLY is where a shorthand is most natural and
+            // most wrong, because its one value removes rather than adds. The
+            // length check is what keeps "its only value" true rather than
+            // trusting the table to stay a single value.
             const thing = REMOVES_ONLY.get(prop);
             const removes = thing !== undefined && valid.length === 1;
             context.report({

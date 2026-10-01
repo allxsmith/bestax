@@ -279,6 +279,7 @@ When `canCancel` is true, the loading can be cancelled by:
 
 ## Related
 
+- [Loader](../elements/loader.md) - A small inline spinner, with no overlay
 - [Skeleton](../elements/skeleton.md) - Placeholder loading states
 - [Progress](../elements/progress.md) - Progress bar component
 

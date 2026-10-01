@@ -46,10 +46,18 @@
  *                        cannot resolve (#412). Which packages publish with
  *                        `pnpm publish` is declared, not inferred (#436,
  *                        #532)
+ *   release-wiring       every package in PNPM_PUBLISHED has the workflow
+ *                        steps that act on the declaration: a semantic-release
+ *                        step and an archived coverage directory in ci.yml, a
+ *                        consumer-sbom leg and a verify-provenance install in
+ *                        supply-chain.yml (#710)
  *   version-regression    no publishable manifest sits below a release tag
- *                         reachable from HEAD. `--allow-untagged` stands this
- *                         one rule down for a checkout git cannot answer for;
- *                         never pass it in CI.
+ *                         reachable from HEAD, no changelog lacks a section
+ *                         for one of those tags, and a package whose
+ *                         changelog records a release has a tag reachable
+ *                         (#711). `--allow-untagged` stands this one rule
+ *                         down for a checkout git cannot answer for; never
+ *                         pass it in CI.
  *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
  *                        carries a `# bestax:review <date>` or
  *                        `# bestax:permanent` marker, and no review date has
@@ -132,7 +140,7 @@ const BASELINE = join(HERE, 'conformance-baseline.json');
 // Plural group containers of "Beyond Bulma" extras are not listed as homepage
 // cards (owner call on #257: Avatar yes, Avatars no). The guide page still
 // lists them.
-const HOME_EXEMPT = new Set(['Avatars']);
+const HOME_EXEMPT = new Set(['Avatars', 'Collapses']);
 
 // Legacy API pages missing `## Accessibility`. New pages must have it.
 const ACCESSIBILITY_EXEMPT = new Set([
@@ -4142,7 +4150,7 @@ async function checkTurboTasks() {
 
 /**
  * Hold every publishable manifest to the highest release tag REACHABLE FROM
- * HEAD.
+ * HEAD, and its changelog to a section for each of those tags.
  *
  * Reachable, not "the highest tag that exists", and the difference is the whole
  * usability of the check. A branch cut before a release legitimately carries the
@@ -4173,7 +4181,414 @@ async function checkVersionRegression(allowUntagged = false) {
     // and two rounds of pattern-matching could not see any of that.
     importConfig: dir =>
       import(pathToFileURL(join(REPO, dir, 'release.config.js')).href),
+    readChangelog: dir => readFile(join(REPO, dir, 'CHANGELOG.md'), 'utf8'),
   });
+}
+
+// ---------------------------------------------------------------------------
+// release-wiring (#710)
+//
+// PNPM_PUBLISHED says which packages publish, and publishable-manifests.test
+// holds that to the release configs. Nothing held it to the workflow steps
+// that act on it, so a package could be fully declared and publish nowhere
+// with CI green: @allxsmith/eslint-plugin-bestax did exactly that until #709
+// (#706). This check reads the workflows and asserts that every declared
+// package has the steps that release it, keep its coverage, describe what a
+// consumer installs, and verify what was published. It asserts that the
+// wiring exists, not that it is correct.
+// ---------------------------------------------------------------------------
+
+const CI_WORKFLOW = '.github/workflows/ci.yml';
+const SUPPLY_CHAIN_WORKFLOW = '.github/workflows/supply-chain.yml';
+
+// The job and step names this check navigates by. A rename in the workflow
+// reports the rename, naming the constant to update, rather than passing.
+const RELEASE_JOB = 'publish';
+const COVERAGE_STEP = 'Archive Coverage';
+const CONSUMER_SBOM_JOB = 'consumer-sbom';
+const PROVENANCE_JOB = 'verify-provenance';
+
+/*
+ * A small reader for the block-style YAML the workflows are written in,
+ * hand-written for the reason parseWorkspacePackages gives (#438): the root
+ * declares no YAML dependency. It reads block mappings, block sequences, and
+ * plain, quoted and literal (`|`) scalars, which is what those files use.
+ *
+ * Outside that subset a value reads as missing rather than present: a folded
+ * scalar, a flow collection or an alias does not match the string it stands
+ * for. That is the direction this check can afford, because it only asserts
+ * presence, so a shape it cannot read fails the check instead of passing it.
+ */
+
+const yamlStructural = line => line.trim() !== '' && !/^\s*#/.test(line);
+const yamlIndent = line => line.length - line.trimStart().length;
+
+/** `key: rest` split off one line, or null when the line is not an entry. */
+function yamlEntry(line) {
+  const m = line
+    .trim()
+    .match(
+      /^(?:'((?:[^']|'')*)'|"((?:[^"\\]|\\.)*)"|([\w.-]+))[ \t]*:(?:[ \t]+(.*))?$/
+    );
+  if (!m) return null;
+  return {
+    key: m[1]?.replace(/''/g, "'") ?? m[2] ?? m[3],
+    value: m[4]?.trim() ?? '',
+  };
+}
+
+/**
+ * The mapping whose keys sit at the shallowest indentation of `lines`, as
+ * key -> { indent, value, lines }. `lines` are the lines nested under the key,
+ * and `value` is whatever followed the colon.
+ */
+export function yamlMap(lines) {
+  const map = new Map();
+  const structural = lines.filter(yamlStructural);
+  if (!structural.length) return map;
+  const base = Math.min(...structural.map(yamlIndent));
+  let current = null;
+  for (const line of lines) {
+    if (yamlStructural(line) && yamlIndent(line) === base) {
+      const entry = yamlEntry(line);
+      current = entry && { indent: base, value: entry.value, lines: [] };
+      if (entry && !map.has(entry.key)) map.set(entry.key, current);
+      continue;
+    }
+    current?.lines.push(line);
+  }
+  return map;
+}
+
+/**
+ * The items of the block sequence in `lines`, each as the lines of its body.
+ * An item's dash becomes a space, so `- name: x` reads as a mapping whose keys
+ * line up with the rest of the item.
+ */
+export function yamlItems(lines) {
+  const items = [];
+  const structural = lines.filter(yamlStructural);
+  if (!structural.length) return items;
+  const base = Math.min(...structural.map(yamlIndent));
+  let current = null;
+  for (const line of lines) {
+    if (yamlStructural(line) && yamlIndent(line) === base) {
+      current = /^\s*-(\s|$)/.test(line) ? [line.replace('-', ' ')] : null;
+      if (current) items.push(current);
+      continue;
+    }
+    current?.push(line);
+  }
+  return items;
+}
+
+/** The entry at `keys` below `lines`, one mapping level per key, or null. */
+export function yamlGet(lines, ...keys) {
+  let entry = null;
+  for (const key of keys) {
+    entry = yamlMap(entry ? entry.lines : lines).get(key) ?? null;
+    if (!entry) return null;
+  }
+  return entry;
+}
+
+/** An entry's scalar value, or null for a shape this reader does not read. */
+export function yamlScalar(entry) {
+  if (!entry) return null;
+  const { value } = entry;
+  if (/^\|[-+0-9]*(\s+#.*)?$/.test(value)) {
+    const body = [];
+    for (const line of entry.lines) {
+      // A less-indented line ends the scalar, comments included: YAML reads a
+      // `#` line inside the block as content only while it is indented under
+      // the key.
+      if (line.trim() && yamlIndent(line) <= entry.indent) break;
+      body.push(line);
+    }
+    const content = body.filter(line => line.trim());
+    if (!content.length) return '';
+    const indent = Math.min(...content.map(yamlIndent));
+    return body
+      .map(line => line.slice(indent))
+      .join('\n')
+      .trimEnd();
+  }
+  if (/^[>&*!{[]/.test(value)) return null;
+  const single = value.match(/^'((?:[^']|'')*)'/);
+  if (single) return single[1].replace(/''/g, "'");
+  const double = value.match(/^"((?:[^"\\]|\\.)*)"/);
+  if (double) {
+    try {
+      return JSON.parse(`"${double[1]}"`);
+    } catch {
+      return null;
+    }
+  }
+  return value.replace(/(^|\s)#.*$/, '').trim();
+}
+
+/** A workflow's jobs, by id. */
+const workflowJobs = text =>
+  yamlMap(yamlGet(text.split(/\r?\n/), 'jobs')?.lines ?? []);
+
+const jobSteps = job =>
+  yamlItems(yamlGet(job?.lines ?? [], 'steps')?.lines ?? []).map(yamlMap);
+
+const stepScalar = (step, key) => yamlScalar(step.get(key) ?? null);
+
+/** A shell script with its comment lines removed. */
+const shellCode = script =>
+  (script ?? '')
+    .split('\n')
+    .filter(line => !/^\s*#/.test(line))
+    .join('\n');
+
+const bareDir = path =>
+  (path ?? '').trim().replace(/^\.\//, '').replace(/\/+$/, '');
+
+/**
+ * The package names every `npm install` (or `npm i`, `npm add`) in a shell
+ * script is asked for, versions stripped. A name only in an echo, an argument
+ * to some other command, or a comment is not an install. Known misses, both
+ * reading as not installed: an install that directly follows a shell keyword
+ * such as `if`, `then` or `do` (later commands in the same body are read), and
+ * every name on a line whose trailing comment holds an unpaired quote.
+ */
+export function npmInstallNames(script) {
+  const names = [];
+  const code = (script ?? '').replace(/\\\r?\n/g, ' ');
+  for (const line of code.split('\n')) {
+    let words;
+    try {
+      words = tokenize(line);
+    } catch {
+      continue; // unbalanced quotes: the shell would not run it either
+    }
+    const hash = words.findIndex(word => word.startsWith('#'));
+    if (hash !== -1) words = words.slice(0, hash);
+    let command = [];
+    for (const word of [...words, ';']) {
+      if (!/^[;|&()`<>]$/.test(word)) {
+        command.push(word);
+        continue;
+      }
+      let at = 0;
+      while (/^\w+=/.test(command[at] ?? '')) at += 1; // VAR=value prefixes
+      if (
+        command[at] === 'npm' &&
+        ['install', 'i', 'add'].includes(command[at + 1])
+      ) {
+        for (const arg of command.slice(at + 2)) {
+          if (!arg.startsWith('-')) {
+            names.push(arg.replace(/^(@?[^@]+)@.*$/, '$1'));
+          }
+        }
+      }
+      command = [];
+    }
+  }
+  return names;
+}
+
+/**
+ * Violations for the release wiring of `packages` ([{ dir, name }], the
+ * PNPM_PUBLISHED roster with each manifest's name). Pure, so
+ * scripts/release-wiring.test.mjs can drive it on fixtures. A workflow passed
+ * as anything but a string was not readable.
+ */
+export function releaseWiringViolations(packages, { ci, supplyChain }) {
+  // Every assertion below is satisfied by an empty roster.
+  if (!packages.length) {
+    return [
+      'No packages were read from PNPM_PUBLISHED, so the release-wiring ' +
+        'check would pass without asserting anything (#710).',
+    ];
+  }
+
+  const violations = [];
+  const unreadable = rel =>
+    `${rel} could not be read, so no PNPM_PUBLISHED package can be shown to ` +
+    `be wired to it. Restore it, or update the path in ` +
+    `scripts/check-conformance.mjs if it moved (#710).`;
+
+  if (typeof ci !== 'string') {
+    violations.push(unreadable(CI_WORKFLOW));
+  } else {
+    // 1. A semantic-release step per package, in the job that publishes. The
+    // working directory is what points a step at a package; its name is only
+    // a label, and a copied step renamed but not retargeted still releases
+    // the package it was copied from.
+    const ciJobs = workflowJobs(ci);
+    const release = ciJobs.get(RELEASE_JOB);
+    if (!release) {
+      violations.push(
+        `${CI_WORKFLOW} has no \`${RELEASE_JOB}\` job, so no PNPM_PUBLISHED ` +
+          `package can be shown to release. If the job was renamed, update ` +
+          `RELEASE_JOB in scripts/check-conformance.mjs (#710).`
+      );
+    } else {
+      const released = new Set(
+        jobSteps(release)
+          .filter(step =>
+            /(^|\s)semantic-release(\s|$)/m.test(
+              shellCode(stepScalar(step, 'run'))
+            )
+          )
+          .map(step => bareDir(stepScalar(step, 'working-directory')))
+      );
+      for (const { dir, name } of packages) {
+        if (released.has(dir)) continue;
+        violations.push(
+          `${CI_WORKFLOW}: the \`${RELEASE_JOB}\` job has no semantic-release ` +
+            `step for ${dir}, so ${name} is declared in PNPM_PUBLISHED and ` +
+            `never publishes, with CI green (#706). Add a ` +
+            `\`Semantic Release (${dir})\` step with ` +
+            `\`working-directory: ${dir}\` that runs ` +
+            `\`pnpm exec semantic-release\`, modelled on the others.`
+        );
+      }
+    }
+
+    // 2. The package's coverage directory in the step that keeps coverage.
+    // Found by name, so a second step by that name is reported rather than
+    // resolved: taking the first would validate whichever comes first while
+    // the other went unchecked.
+    const found = [...ciJobs].flatMap(([id, job]) =>
+      jobSteps(job)
+        .filter(step => stepScalar(step, 'name') === COVERAGE_STEP)
+        .map(step => ({ id, step }))
+    );
+    if (!found.length) {
+      violations.push(
+        `${CI_WORKFLOW} has no "${COVERAGE_STEP}" step, so no package's ` +
+          `coverage report can be shown to be kept. If the step was renamed, ` +
+          `update COVERAGE_STEP in scripts/check-conformance.mjs (#710).`
+      );
+    } else if (found.length > 1) {
+      const ids = [...new Set(found.map(({ id }) => id))];
+      violations.push(
+        `${CI_WORKFLOW} has ${found.length} "${COVERAGE_STEP}" steps ` +
+          `(in ${ids.join(', ')}), so this check cannot tell which one keeps ` +
+          `coverage and will not guess. Rename all but the one that archives ` +
+          `the coverage directories (#710).`
+      );
+    } else {
+      const [{ step: coverage }] = found;
+      const paths = new Set(
+        (yamlScalar(yamlGet(coverage.get('with')?.lines ?? [], 'path')) ?? '')
+          .split('\n')
+          .map(bareDir)
+      );
+      for (const { dir } of packages) {
+        if (paths.has(`${dir}/coverage`)) continue;
+        violations.push(
+          `${CI_WORKFLOW}: the "${COVERAGE_STEP}" step's \`path\` list has no ` +
+            `${dir}/coverage, so the coverage report CI produces for ${dir} ` +
+            `is never archived. Add \`${dir}/coverage\` to that list (#710).`
+        );
+      }
+    }
+  }
+
+  if (typeof supplyChain !== 'string') {
+    violations.push(unreadable(SUPPLY_CHAIN_WORKFLOW));
+    return violations;
+  }
+
+  // 3. A consumer-sbom leg per package, keyed by the name a consumer installs.
+  const supplyJobs = workflowJobs(supplyChain);
+  const sbom = supplyJobs.get(CONSUMER_SBOM_JOB);
+  const legs = new Set(
+    yamlItems(
+      yamlGet(sbom?.lines ?? [], 'strategy', 'matrix', 'include')?.lines ?? []
+    )
+      .map(item => yamlScalar(yamlMap(item).get('package') ?? null))
+      .filter(Boolean)
+  );
+  if (!legs.size) {
+    violations.push(
+      `${SUPPLY_CHAIN_WORKFLOW}: no legs could be read from the ` +
+        `\`${CONSUMER_SBOM_JOB}\` job's \`strategy.matrix.include\`, so no ` +
+        `package can be shown to get a consumer SBOM. This check reads a ` +
+        `block list of \`- package:\` entries. If the job was renamed, update ` +
+        `CONSUMER_SBOM_JOB in scripts/check-conformance.mjs (#710).`
+    );
+  } else {
+    for (const { dir, name } of packages) {
+      if (legs.has(name)) continue;
+      violations.push(
+        `${SUPPLY_CHAIN_WORKFLOW}: the \`${CONSUMER_SBOM_JOB}\` matrix has no ` +
+          `leg for ${name} (${dir}), so its releases ship without a consumer ` +
+          `SBOM. Add an \`include\` entry with \`package: '${name}'\` and a ` +
+          `\`slug\`, modelled on the others (#710).`
+      );
+    }
+  }
+
+  // 4. The provenance roster. verify-attestation.mjs reads the packages back
+  // out of the tree this job installs, so the install command is the list.
+  const installed = new Set(
+    jobSteps(supplyJobs.get(PROVENANCE_JOB)).flatMap(step =>
+      npmInstallNames(stepScalar(step, 'run'))
+    )
+  );
+  if (!installed.size) {
+    violations.push(
+      `${SUPPLY_CHAIN_WORKFLOW}: no \`npm install\` could be read from the ` +
+        `\`${PROVENANCE_JOB}\` job, so no package can be shown to have its ` +
+        `provenance verified. If the job was renamed, update PROVENANCE_JOB ` +
+        `in scripts/check-conformance.mjs (#710).`
+    );
+  } else {
+    for (const { dir, name } of packages) {
+      if (installed.has(name)) continue;
+      violations.push(
+        `${SUPPLY_CHAIN_WORKFLOW}: the \`${PROVENANCE_JOB}\` job never ` +
+          `installs ${name} (${dir}), so its provenance is never verified and ` +
+          `the job stays green (#710). Add it to that job's \`npm install\`, ` +
+          `which scripts/verify-attestation.mjs reads its roster back from.`
+      );
+    }
+  }
+
+  return violations;
+}
+
+export async function checkReleaseWiring(root = REPO) {
+  const read = async rel => {
+    try {
+      return await readFile(join(root, rel), 'utf8');
+    } catch {
+      return null;
+    }
+  };
+  // The roster is the declaration, with each manifest's name for the checks
+  // that key on what a consumer installs. A declared directory with no
+  // publishable manifest is reported rather than skipped, since skipping it
+  // would drop the package from every assertion below in silence.
+  const { packages } = await publishablePackages(root);
+  const roster = [];
+  const violations = [];
+  for (const dir of PNPM_PUBLISHED) {
+    const pkg = packages.find(p => p.dir === dir);
+    if (pkg) {
+      roster.push(pkg);
+      continue;
+    }
+    violations.push(
+      `${dir} is declared in PNPM_PUBLISHED, but the workspace has no ` +
+        `publishable package with a readable, named manifest there, so its ` +
+        `release wiring cannot be checked. Fix ${dir}/package.json, or drop ` +
+        `${dir} from PNPM_PUBLISHED if it no longer publishes (#710).`
+    );
+  }
+  return [
+    ...violations,
+    ...releaseWiringViolations(roster, {
+      ci: await read(CI_WORKFLOW),
+      supplyChain: await read(SUPPLY_CHAIN_WORKFLOW),
+    }),
+  ];
 }
 
 const CHECKS = {
@@ -4191,6 +4606,7 @@ const CHECKS = {
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
   'publishable-manifests': checkPublishableManifests,
+  'release-wiring': checkReleaseWiring,
   'bypass-expiry': checkBypassExpiry,
   'telemetry-core': checkTelemetryCore,
   'telemetry-allowlists': checkTelemetryAllowlists,

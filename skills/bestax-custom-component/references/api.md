@@ -32,14 +32,14 @@ on the root element with `mergeBulmaStyles(bulmaHelperStyles, style)`
 `BulmaClassesProps` is the union of all helper prop groups, composed from per-concern hooks
 that can also be used on their own:
 
-| Group      | Hook                   | Representative props                                                                                                             |
-| ---------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Color      | `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                 |
-| Spacing    | `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                 |
-| Typography | `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily` (+ responsive variants)                                     |
-| Visibility | `useVisibilityClasses` | `display`, `visibility` (+ per-viewport variants)                                                                                |
-| Flexbox    | `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignItems`, `alignContent`, `alignSelf`, `flexGrow`, `flexShrink`               |
-| Other      | `useOtherClasses`      | `float`, `overflow`, `radius`, `shadow`, `interaction`, `cursor`, `skeleton`, `clearfix`, `relative`, `fullHeight`, `responsive` |
+| Group      | Hook                   | Representative props                                                                                                                                                             |
+| ---------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Color      | `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                                                                 |
+| Spacing    | `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                                 |
+| Typography | `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily` (+ responsive variants)                                                                                     |
+| Visibility | `useVisibilityClasses` | `display`, `visibility` (+ per-viewport variants)                                                                                                                                |
+| Flexbox    | `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignItems`, `alignContent`, `alignSelf`, `flexGrow`, `flexShrink`                                                               |
+| Other      | `useOtherClasses`      | `float`, `overflow`, `overflowX`, `overflowY`, `radius`, `shadow`, `interaction`, `cursor`, `skeleton`, `clearfix`, `pos`, `relative`, `fullHeight`, `aspectRatio`, `responsive` |
 
 Because the component destructures these into `bulmaHelperClasses`, callers get the full Bulma
 helper surface for free on every component built this way, and `rest` stays clean for DOM
@@ -73,8 +73,8 @@ Storybook `argTypes`/tests:
 `validDisplays`, `validVisibilities`, `validFlexDirections`, `validFlexWraps`,
 `validJustifyContents`, `validAlignContents`, `validAlignItems`, `validAlignSelfs`,
 `validFlexGrowShrink`, `validViewports`, `validFloats`, `validOverflows`,
-`validInteractions`, `validCursors`, `validRadii`, `validShadows`,
-`validResponsives`.
+`validAxisOverflows`, `validInteractions`, `validCursors`, `validRadii`,
+`validShadows`, `validResponsives`, `validPositions`, `validAspectRatios`.
 
 ```ts
 export type MyColor = (typeof validColors)[number];

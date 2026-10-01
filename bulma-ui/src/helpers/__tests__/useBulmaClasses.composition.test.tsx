@@ -96,6 +96,8 @@ describe('useBulmaClasses composition', () => {
     const otherClasses = useOtherClasses({
       float: props.float,
       overflow: props.overflow,
+      overflowX: props.overflowX,
+      overflowY: props.overflowY,
       overlay: props.overlay,
       interaction: props.interaction,
       cursor: props.cursor,
@@ -104,8 +106,10 @@ describe('useBulmaClasses composition', () => {
       responsive: props.responsive,
       skeleton: props.skeleton,
       clearfix: props.clearfix,
+      pos: props.pos,
       relative: props.relative,
       fullHeight: props.fullHeight,
+      aspectRatio: props.aspectRatio,
     });
 
     return {
@@ -151,8 +155,14 @@ describe('useBulmaClasses composition', () => {
     alignSelf: 'center',
     flexGrow: '1',
     float: 'left',
+    overflow: 'auto',
+    overflowX: 'hidden',
+    overflowY: 'scroll',
     cursor: 'pointer',
+    radius: 'large',
     skeleton: true,
+    pos: 'sticky',
+    aspectRatio: '4by3',
     'data-x': 'y',
   };
 

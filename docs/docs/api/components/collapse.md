@@ -14,7 +14,7 @@ The `Collapse` component provides an expandable/collapsible content panel.
 
 <!-- /bestax:generated overview -->
 
-It's perfect for accordions, FAQs, settings panels, and any content that should be hidden by default. Supports both controlled and uncontrolled modes, with smooth animations and full accessibility support.
+It's perfect for accordions, FAQs, settings panels, and any content that should be hidden by default. Supports both controlled and uncontrolled modes, with smooth animations and full accessibility support. To group several into an accordion, wrap them in [`Collapses`](./collapses.md).
 
 ---
 
@@ -126,7 +126,9 @@ function example() {
 
 ### Controlled Mode
 
-Collapse with external state management.
+Collapse with external state management. The trigger reports through `onOpenChange` with the state
+it asks for, so wiring `onOpenChange` to the same setter lets the trigger and the button both
+change it. Without `onOpenChange`, a controlled trigger changes nothing.
 
 ```tsx live
 function example() {
@@ -142,9 +144,10 @@ function example() {
       </Block>
       <Collapse
         open={isOpen}
+        onOpenChange={setIsOpen}
         trigger={
           <Block p="3" bgColor="white-ter" style={{ borderRadius: '4px' }}>
-            Controlled collapse (use button above)
+            Controlled collapse (click here or the button above)
           </Block>
         }
       >
@@ -161,11 +164,13 @@ function example() {
 
 ### Accordion
 
-Multiple collapses working together as an accordion.
+Wrap collapses in [`Collapses`](./collapses.md) to group them into an accordion: it keeps one
+item open at a time and addresses items by index, the way `Tabs` addresses tabs. Here the group
+is controlled so each trigger can show its item's state.
 
 ```tsx live
 function example() {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const items = [
     { title: 'Section 1', content: 'Content for section 1.' },
@@ -174,29 +179,27 @@ function example() {
   ];
 
   return (
-    <Block display="flex" flexDirection="column">
+    <Collapses value={openIndex} onChange={setOpenIndex}>
       {items.map((item, index) => (
         <Collapse
-          key={index}
-          className="collapse is-bordered"
-          open={openIndex === index}
+          key={item.title}
+          bordered
           trigger={
             <Block
               p="4"
-              onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
             >
               <Strong>{item.title}</Strong>
-              <Span>{openIndex === index ? '−' : '+'}</Span>
+              <Span aria-hidden="true">{openIndex === index ? '−' : '+'}</Span>
             </Block>
           }
         >
           <Paragraph p="4">{item.content}</Paragraph>
         </Collapse>
       ))}
-    </Block>
+    </Collapses>
   );
 }
 ```
@@ -233,7 +236,8 @@ function example() {
 
 ### FAQ Example
 
-A common FAQ pattern with multiple collapses.
+A common FAQ pattern, where answers open independently: `Collapses` with `multiple` holds the
+open items as an array of indexes.
 
 ```tsx live
 function example() {
@@ -246,43 +250,33 @@ function example() {
     { q: 'Is it free?', a: 'Yes, Bestax is open source and free to use.' },
   ];
 
-  const [openStates, setOpenStates] = useState(faqs.map(() => false));
-
-  const toggle = index => {
-    setOpenStates(prev =>
-      prev.map((state, i) => (i === index ? !state : state))
-    );
-  };
+  const [open, setOpen] = useState<number[]>([]);
 
   return (
     <Block>
       <Title size="5" mb="4">
         FAQ
       </Title>
-      <Block display="flex" flexDirection="column">
+      <Collapses multiple value={open} onChange={setOpen}>
         {faqs.map((faq, index) => (
           <Collapse
-            key={index}
-            className="collapse is-bordered"
+            key={faq.q}
+            bordered
             trigger={
-              <Block
-                p="4"
-                onClick={() => toggle(index)}
-                display="flex"
-                justifyContent="space-between"
-              >
+              <Block p="4" display="flex" justifyContent="space-between">
                 <Strong>{faq.q}</Strong>
-                <Span>{openStates[index] ? '▲' : '▼'}</Span>
+                <Span aria-hidden="true">
+                  {open.includes(index) ? '▲' : '▼'}
+                </Span>
               </Block>
             }
-            open={openStates[index]}
           >
             <Paragraph p="4" textColor="grey-dark">
               {faq.a}
             </Paragraph>
           </Collapse>
         ))}
-      </Block>
+      </Collapses>
     </Block>
   );
 }
@@ -307,13 +301,16 @@ The Collapse component supports these additional CSS classes:
 - Trigger has `role="button"` and `tabIndex="0"` for keyboard access
 - Trigger has `aria-expanded` to indicate open/closed state
 - Trigger has `aria-controls` pointing to the content element
-- Content has `aria-hidden` matching the collapsed state
+- Content has `aria-hidden` matching the collapsed state, and is `inert` while closed, so its
+  links and fields leave the tab order until it opens (under `fade` and `slide` a closed panel
+  is only squeezed to height 0)
 - Supports keyboard navigation (Enter and Space to toggle)
 
 ---
 
 ## Related
 
+- [Collapses](./collapses.md) - Groups collapses into an accordion
 - [Tabs](./tabs.md) - Tabbed content panels
 - [Panel](./panel.md) - Bulma panel component
 
@@ -323,22 +320,23 @@ The Collapse component supports these additional CSS classes:
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                   | Default  | Description                                                  |
-| ------------------ | ------------------------------------------------------ | -------- | ------------------------------------------------------------ |
-| `open`             | `boolean`                                              | —        | Controlled open state. If provided, component is controlled. |
-| `defaultOpen`      | `boolean`                                              | `false`  | Initial open state for uncontrolled usage.                   |
-| `onOpen`           | `() => void`                                           | —        | Callback when collapse opens.                                |
-| `onClose`          | `() => void`                                           | —        | Callback when collapse closes.                               |
-| `trigger`          | `React.ReactNode`                                      | —        | The clickable trigger element (header/button).               |
-| `animation`        | `'fade'` \| `'slide'` \| `false`                       | `'fade'` | Animation style, or `false` to disable.                      |
-| `position`         | `'top'` \| `'bottom'`                                  | `'top'`  | Position of the trigger relative to content.                 |
-| `ariaId`           | `string`                                               | `auto`   | Custom aria id for accessibility.                            |
-| `bordered`         | `boolean`                                              | `false`  | Adds a border around the collapse.                           |
-| `triggerClassName` | `string`                                               | —        | Additional classes for the trigger wrapper.                  |
-| `contentClassName` | `string`                                               | —        | Additional classes for the content wrapper.                  |
-| `children`         | `React.ReactNode`                                      | —        | The collapsible content.                                     |
-| `className`        | `string`                                               | —        | Additional CSS classes.                                      |
-| `...`              | All standard `<div>` attributes and Bulma helper props | —        | See [Helper Props](../helpers/usebulmaclasses.md)            |
+| Prop               | Type                                                   | Default  | Description                                                                                                                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `open`             | `boolean`                                              | —        | Controlled open state. If provided, component is controlled, and the trigger only reports through `onOpenChange`. Inside a `Collapses` group, a Collapse that sets `open` stays yours: the group neither overrides it nor closes it when another item opens. |
+| `defaultOpen`      | `boolean`                                              | `false`  | Initial open state for uncontrolled usage. Ignored inside a `Collapses` group, whose `defaultValue` decides.                                                                                                                                                 |
+| `onOpen`           | `() => void`                                           | —        | Called when the trigger opens the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode.                                                    |
+| `onClose`          | `() => void`                                           | —        | Called when the trigger closes the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode.                                                   |
+| `onOpenChange`     | `(open: boolean) => void`                              | —        | Called with the state the trigger asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the trigger drive a controlled Collapse.                                                     |
+| `trigger`          | `React.ReactNode`                                      | —        | The clickable trigger element (header/button).                                                                                                                                                                                                               |
+| `animation`        | `'fade'` \| `'slide'` \| `false`                       | `'fade'` | Animation style, or `false` to disable.                                                                                                                                                                                                                      |
+| `position`         | `'top'` \| `'bottom'`                                  | `'top'`  | Position of the trigger relative to content.                                                                                                                                                                                                                 |
+| `ariaId`           | `string`                                               | `auto`   | Custom aria id for accessibility.                                                                                                                                                                                                                            |
+| `bordered`         | `boolean`                                              | `false`  | Adds a border around the collapse.                                                                                                                                                                                                                           |
+| `triggerClassName` | `string`                                               | —        | Additional classes for the trigger wrapper.                                                                                                                                                                                                                  |
+| `contentClassName` | `string`                                               | —        | Additional classes for the content wrapper.                                                                                                                                                                                                                  |
+| `children`         | `React.ReactNode`                                      | —        | The collapsible content.                                                                                                                                                                                                                                     |
+| `className`        | `string`                                               | —        | Additional CSS classes.                                                                                                                                                                                                                                      |
+| `...`              | All standard `<div>` attributes and Bulma helper props | —        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                            |
 
 <!-- /bestax:generated props -->
 
@@ -361,3 +359,7 @@ The Collapse component supports these additional CSS classes:
 | `--bulma-collapse-group-gap`           | `$collapse-group-gap`           | `0.5rem`                       |
 
 <!-- /bestax:generated cssvars -->
+
+`--bulma-collapse-group-gap` is the exception: it spaces the items of a
+[`Collapses`](./collapses.md#spacing) group, which reads it without declaring it, so set it on
+the group or on any ancestor of the group rather than on a `Collapse`.

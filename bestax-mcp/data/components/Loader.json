@@ -1,0 +1,74 @@
+{
+  "name": "Loader",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/loader",
+  "docsUrl": "https://bestax.io/docs/api/elements/loader",
+  "examples": [
+    { "title": "Default Loader", "code": "<Loader />" },
+    {
+      "title": "Sizes",
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Loader textSize=\"7\" mr=\"5\" />\n  <Loader textSize=\"5\" mr=\"5\" />\n  <Loader textSize=\"3\" mr=\"5\" />\n  <Loader textSize=\"1\" />\n</Block>"
+    },
+    {
+      "title": "Next to a Label",
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Loader aria-labelledby=\"loader-save-status\" mr=\"2\" />\n  <Span id=\"loader-save-status\">Saving changes</Span>\n</Block>"
+    },
+    {
+      "title": "In a Table Cell",
+      "code": "<Table>\n  <Thead>\n    <Tr>\n      <Th>Name</Th>\n      <Th>Status</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Ada Lovelace</Td>\n      <Td>\n        <Loader ariaLabel=\"Saving Ada Lovelace\" />\n      </Td>\n    </Tr>\n    <Tr>\n      <Td>Grace Hopper</Td>\n      <Td>Saved</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "Centered in a Container",
+      "code": "<Box aria-busy=\"true\">\n  <Loader textSize=\"3\" mx=\"auto\" ariaLabel=\"Loading account details\" />\n</Box>"
+    }
+  ],
+  "accessibility": "- **Role:** `Loader` renders `role=\"progressbar\"` with no `aria-valuenow`, which is how ARIA marks\n  progress of unknown length.\n- **Name:** the accessible name comes from `ariaLabel` (default `'Loading'`). Name what is loading\n  when it helps (`\"Saving Ada Lovelace\"`), or point `aria-labelledby` at visible text beside it.\n- **Announcements:** a progressbar is not a live region, so a loader appearing is not announced\n  on its own. Screen reader users find it by reading the page. To announce that loading started or\n  finished, change the text of a live region that is already on the page.\n- **Busy regions:** set `aria-busy=\"true\"` on the region the loader stands in for, and remove it\n  when the content arrives.\n- **Reduced motion:** under `prefers-reduced-motion: reduce` the ring stops spinning and stays\n  drawn, so the loading state is still visible. That rule ships in bestax's stylesheets:\n  `bestax.css` and its variants, or `extras.css` next to your own Bulma, in either order.",
+  "related": ["Button", "Loading", "Progress", "Skeleton", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-loader--default",
+  "summary": "The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states. The ring is `1em` square, so `textSize` scales it. It is exposed as an indeterminate `progressbar` named by `ariaLabel`, and it stops spinning under `prefers-reduced-motion: reduce` while staying drawn.",
+  "import": "import { Loader } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Loader.tsx",
+  "rootClass": "loader",
+  "parts": [
+    {
+      "path": "Loader",
+      "summary": "The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states. The ring is `1em` square, so `textSize` scales it. It is exposed as an indeterminate `progressbar` named by `ariaLabel`, and it stops spinning under `prefers-reduced-motion: reduce` while staying drawn.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'Loading'",
+          "description": "Accessible name of the progress indicator. Name what is loading (`\"Saving row\"`) when more than one loader can be on screen at once.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLSpanElement>",
+          "default": null,
+          "description": "Ref forwarded to the loader element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

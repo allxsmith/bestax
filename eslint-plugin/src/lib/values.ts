@@ -18,6 +18,8 @@ import {
   validAlignItems,
   validAlignSelfs,
   validAlignments,
+  validAspectRatios,
+  validAxisOverflows,
   validColorShades,
   validColors,
   validCursors,
@@ -30,6 +32,7 @@ import {
   validInteractions,
   validJustifyContents,
   validOverflows,
+  validPositions,
   validRadii,
   validResponsives,
   validSchemeColors,
@@ -158,11 +161,15 @@ export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
   ['viewport', validViewports],
   ['float', validFloats],
   ['overflow', validOverflows],
+  ['overflowX', validAxisOverflows],
+  ['overflowY', validAxisOverflows],
   ['interaction', validInteractions],
   ['cursor', validCursors],
   ['radius', validRadii],
   ['shadow', validShadows],
   ['responsive', validResponsives],
+  ['pos', validPositions],
+  ['aspectRatio', validAspectRatios],
   ['colorShade', validColorShades],
   ['backgroundColorShade', validColorShades],
   // The colour props take the tuple plus the two CSS-wide keywords that
@@ -179,19 +186,20 @@ export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
  * Props whose only value REMOVES the thing the prop names, and what to call
  * that thing in a message.
  *
- * `radius` and `shadow` read like switches for "give this a radius" and "give
- * this a shadow", and their one value does the reverse: `radiusless`,
- * `shadowless`. The generic shorthand remedy, "give it a value:
- * `shadowless`", therefore tells an author who wrote `<Box shadow />` to do
- * the opposite of what they meant, on an element whose shadow is on by
+ * `shadow` reads like a switch for "give this a shadow", and its one value
+ * does the reverse: `shadowless`. The generic shorthand remedy, "give it a
+ * value: `shadowless`", therefore tells an author who wrote `<Box shadow />`
+ * to do the opposite of what they meant, on an element whose shadow is on by
  * default. The report is right either way; only the remedy needed separating.
+ *
+ * `radius` left this map when it took Bulma's radius sizes, so `<Box radius />`
+ * now gets the ordinary remedy, whose list includes values that add one.
  *
  * The rule pairs this with a `valid.length === 1` check rather than trusting
  * it alone, so "its only value" cannot become false by a value being added to
- * one of those tuples.
+ * a prop's tuple.
  */
 export const REMOVES_ONLY: ReadonlyMap<string, string> = new Map([
-  ['radius', 'border radius'],
   ['shadow', 'shadow'],
 ]);
 

@@ -1,3 +1,42 @@
+# [5.20.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.19.0...@allxsmith/bestax-bulma@5.20.0) (2026-10-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** stop Bulma's spinners under reduced motion in every stylesheet ([b234712](https://github.com/allxsmith/bestax/commit/b2347127f1944bc284cfa8a57876498067288d96)), closes [#770](https://github.com/allxsmith/bestax/issues/770)
+
+
+### Features
+
+* **bulma-ui:** add Loader, Bulma's inline spinner ([c5e9eb0](https://github.com/allxsmith/bestax/commit/c5e9eb0103eb63b13ec4d05f2d9a834f6c9fb079)), closes [#770](https://github.com/allxsmith/bestax/issues/770)
+
+# [5.19.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.2...@allxsmith/bestax-bulma@5.19.0) (2026-10-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** announce polite notifications through a status region kept from mount ([#835](https://github.com/allxsmith/bestax/issues/835)) ([c93478d](https://github.com/allxsmith/bestax/commit/c93478d1d95ae8c66c1fe4526de6c0da456c47b5))
+* **bulma-ui:** color the calendar from the color prop and read TimeInput's wheel variables ([2251e67](https://github.com/allxsmith/bestax/commit/2251e67327ddcbb8282f411db58797c2e66264df)), closes [#832](https://github.com/allxsmith/bestax/issues/832)
+* **bulma-ui:** draw the time wheel focus ring where the wheel's mask shows it ([e1d8c9f](https://github.com/allxsmith/bestax/commit/e1d8c9fdcb6397cb9b6c1ca0fe99223e87cf50f1)), closes [#832](https://github.com/allxsmith/bestax/issues/832)
+* **bulma-ui:** give the selected calendar cell a ring that shows on its fill ([b3eecc6](https://github.com/allxsmith/bestax/commit/b3eecc63ecb10a909684708c5643a0441196e4ef))
+* **bulma-ui:** keep button defaults through a spread, and type the buttons that had none ([#853](https://github.com/allxsmith/bestax/issues/853)) ([0810482](https://github.com/allxsmith/bestax/commit/0810482a7c71e46c6e01d30ece763c2fbbf8ab76))
+* **bulma-ui:** keep the picker focus rings visible in every color ([612aa09](https://github.com/allxsmith/bestax/commit/612aa09a8973e84b351df01fc1f01dc76b2155a7))
+* **bulma-ui:** read clicks and focus inside a shadow root ([474f2cc](https://github.com/allxsmith/bestax/commit/474f2cc98bc2d7af4cb1f44ae0c071ac8c094c0d))
+* **bulma-ui:** restore a portaled Modal's focus to an opener in a shadow root ([c564bd3](https://github.com/allxsmith/bestax/commit/c564bd3e5c64245bb632c91be9be9620229ddab4))
+
+
+### Features
+
+* **bulma-ui:** add Bulma's position, overflow, radius and aspect-ratio helper props ([#845](https://github.com/allxsmith/bestax/issues/845)) ([64fb91c](https://github.com/allxsmith/bestax/commit/64fb91ce032c91c6867cc5d61becc9cd704d9bc5))
+
+## [5.18.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.1...@allxsmith/bestax-bulma@5.18.2) (2026-09-30)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep button types and Avatar's accessible name through a spread ([#826](https://github.com/allxsmith/bestax/issues/826)) ([dc798d4](https://github.com/allxsmith/bestax/commit/dc798d429a9608225d892f0a02fdbad2f9713b53))
+* **bulma-ui:** place toasts and notifications at the position they were shown with ([#834](https://github.com/allxsmith/bestax/issues/834)) ([62feab9](https://github.com/allxsmith/bestax/commit/62feab91a37e28cc753fbbb22075b302d585d141))
+
 ## [5.18.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.0...@allxsmith/bestax-bulma@5.18.1) (2026-09-30)
 
 

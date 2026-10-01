@@ -53,6 +53,72 @@ describe('Delete Component', () => {
     expect(button).toBeInTheDocument();
   });
 
+  it('renders type="button"', () => {
+    render(<Delete />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('keeps its type and name through a spread carrying absent values', () => {
+    // React reads an `undefined` attribute as "remove it", and a props spread
+    // whose key has no value is how that arrives. Defaults written before the
+    // spread were erased by it: a nameless button that submits a form.
+    const spread: object = { type: undefined, 'aria-label': undefined };
+    render(<Delete data-testid="del" {...spread} />);
+    const button = screen.getByTestId('del');
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveAttribute('aria-label', 'Close');
+  });
+
+  it('keeps a custom ariaLabel through a spread carrying an absent aria-label', () => {
+    const spread: { 'aria-label'?: string } = { 'aria-label': undefined };
+    render(<Delete ariaLabel="Dismiss" {...spread} />);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Dismiss');
+  });
+
+  it('falls back to its name when given an empty aria-label or ariaLabel', () => {
+    // `''` names nothing, and the button is drawn as a cross, so an empty
+    // label would leave it unnamed. Either spelling falls back like a missing
+    // one: an empty `aria-label` to `ariaLabel`, an empty `ariaLabel` to the
+    // default.
+    render(
+      <>
+        <Delete data-testid="empty-aria" ariaLabel="Dismiss" aria-label="" />
+        <Delete data-testid="empty-prop" ariaLabel="" />
+      </>
+    );
+    expect(screen.getByTestId('empty-aria')).toHaveAttribute(
+      'aria-label',
+      'Dismiss'
+    );
+    expect(screen.getByTestId('empty-prop')).toHaveAttribute(
+      'aria-label',
+      'Close'
+    );
+  });
+
+  it('lets an explicit aria-label, or a submit or reset type, win', () => {
+    // `type` is not in Delete's own props, so a caller's value arrives through
+    // a spread; the defaults must not override a real one.
+    const submit: object = { type: 'submit' };
+    const reset: object = { type: 'reset' };
+    render(
+      <>
+        <Delete data-testid="named" aria-label="Remove" />
+        <Delete data-testid="submit" {...submit} />
+        <Delete data-testid="reset" {...reset} />
+      </>
+    );
+    expect(screen.getByTestId('named')).toHaveAttribute('aria-label', 'Remove');
+    expect(screen.getByTestId('submit')).toHaveAttribute('type', 'submit');
+    expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
+  });
+
+  it('replaces a type HTML would read as submit with type="button"', () => {
+    const loose: object = { type: 'text/html' };
+    render(<Delete {...loose} />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
   it('applies textColor using useBulmaClasses', () => {
     render(<Delete textColor="primary" />);
     const button = screen.getByRole('button', { name: /close/i });

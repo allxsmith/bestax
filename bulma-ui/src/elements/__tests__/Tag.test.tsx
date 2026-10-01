@@ -101,6 +101,58 @@ describe('Tag Component', () => {
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
+  test('renders the delete button with type="button", so it does not submit a form around it', () => {
+    render(<Tag isDelete />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  test('keeps the delete button type and name through a spread carrying absent values', () => {
+    // React reads an `undefined` attribute as "remove it", and a props spread
+    // whose key has no value is how that arrives. The name default was
+    // written before the spread and erased by it.
+    const spread: object = { type: undefined, 'aria-label': undefined };
+    render(<Tag isDelete data-testid="del" {...spread} />);
+    const button = screen.getByTestId('del');
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveAttribute('aria-label', 'Delete tag');
+  });
+
+  test('falls back to the delete button name when given an empty aria-label', () => {
+    // `''` names nothing, and the button is drawn as a cross, so an empty
+    // label would leave it unnamed. It falls back like a missing one.
+    render(<Tag isDelete data-testid="del" aria-label="" />);
+    expect(screen.getByTestId('del')).toHaveAttribute(
+      'aria-label',
+      'Delete tag'
+    );
+  });
+
+  test('lets an explicit aria-label, or a submit or reset type, win on the delete button', () => {
+    // `type` is not in Tag's own props, so a caller's value arrives through a
+    // spread; the defaults must not override a real one.
+    const submit: object = { type: 'submit' };
+    const reset: object = { type: 'reset' };
+    render(
+      <>
+        <Tag isDelete data-testid="named" aria-label="Remove filter" />
+        <Tag isDelete data-testid="submit" {...submit} />
+        <Tag isDelete data-testid="reset" {...reset} />
+      </>
+    );
+    expect(screen.getByTestId('named')).toHaveAttribute(
+      'aria-label',
+      'Remove filter'
+    );
+    expect(screen.getByTestId('submit')).toHaveAttribute('type', 'submit');
+    expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
+  });
+
+  test('replaces a delete button type HTML would read as submit with type="button"', () => {
+    const loose: object = { type: 'text/html' };
+    render(<Tag isDelete {...loose} />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
   test('applies Bulma helper classes (e.g., margin)', () => {
     render(<Tag {...defaultProps} m="4" />);
     const tag = screen.getByText('Test Tag');

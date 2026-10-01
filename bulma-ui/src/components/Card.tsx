@@ -397,6 +397,8 @@ export interface CardHeaderTitleProps
 
 /**
  * Props for the Card.Header.Icon compound component.
+ * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a header icon inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
+ * @extraProp {string} [aria-label='more options'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
  */
 export interface CardHeaderIconProps
   extends
@@ -536,8 +538,14 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
         bulmaHelperClasses,
         className
       )}
-      aria-label={props['aria-label'] || 'more options'}
       {...rest}
+      // After the spread, reading through it: a key the spread carries with no
+      // value would otherwise erase the default, leaving a nameless button
+      // that submits the form around it. An empty label falls back too: the
+      // button is drawn as an icon, so `''` would leave it unnamed. A caller's
+      // own value still wins; `buttonType` says more.
+      aria-label={rest['aria-label'] || 'more options'}
+      type={buttonType(rest.type)}
     >
       {children}
     </button>

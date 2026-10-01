@@ -626,9 +626,21 @@ const bulmaVarPropMap = Object.fromEntries(
  * real 0 keeps what
  * people see and makes it valid CSS. Keyed by the helper values, so adding
  * one means saying what it writes.
+ *
+ * The sizes write nothing and only add their class. Their classes read the
+ * radius variables, so `normal` would point `--bulma-radius` at itself, which
+ * is invalid and computes to 0, and `rounded` would turn every control inside
+ * the Theme into a pill.
  */
-const radiusHelperVars: Record<(typeof validRadii)[number], string> = {
+const radiusHelperVars: Record<
+  (typeof validRadii)[number],
+  string | undefined
+> = {
   radiusless: '0',
+  small: undefined,
+  normal: undefined,
+  large: undefined,
+  rounded: undefined,
 };
 
 /**
@@ -658,7 +670,7 @@ const themeRadiusVar = (radius: unknown): string | undefined => {
     `[bestax-bulma] <Theme radius="${radius}">: setting --bulma-radius ` +
       'through the radius prop is deprecated and will stop working in a ' +
       'future major version. On Theme, as on every other component, radius ' +
-      `is the "${validRadii.join('", "')}" helper. Set the variable with ` +
+      `is the border radius helper ("${validRadii.join('", "')}"). Set the variable with ` +
       `bulmaVars={{ '--bulma-radius': '${radius}' }} instead.`
   );
   return radius;
@@ -802,7 +814,12 @@ export interface ThemeProps extends Omit<
    * written at `:root`, which squares everything on the page that takes its
    * radius from it.
    *
-   * For any other radius, set the variable through `bulmaVars`
+   * The sizes (`small`, `normal`, `large`, `rounded`) add their
+   * `has-radius-<value>` class to the wrapper div and set no variable, so
+   * they round the wrapper and leave what is inside it alone. Under `isRoot`
+   * there is no wrapper, so they do nothing, and say so in development.
+   *
+   * To change the radius of what is inside, set the variable through `bulmaVars`
    * (`bulmaVars={{ '--bulma-radius': '6px' }}`). This prop used to write the
    * variable for every value, so any other non-empty string still does, but
    * that route is deprecated and logs a warning in development. A number or
@@ -880,6 +897,20 @@ export const Theme: React.FC<ThemeProps> = ({
   const radiusHelper = (validRadii as readonly unknown[]).includes(radius)
     ? radius
     : undefined;
+
+  // A radius size only adds its class, and a root Theme renders no wrapper to
+  // carry one, so on `isRoot` it does nothing at all. Say so, as the other
+  // radius routes that do not do what they look like do.
+  if (isRoot && radiusHelper && radiusHelperVars[radiusHelper] === undefined) {
+    warnOnce(
+      'Theme:root-radius-size',
+      `[bestax-bulma] <Theme isRoot radius="${radiusHelper}">: a root Theme ` +
+        `has no wrapper element for has-radius-${radiusHelper}, and the ` +
+        'radius sizes set no variable, so this does nothing. To round one ' +
+        `element, put radius="${radiusHelper}" on it. To change the radius ` +
+        "across the page, set bulmaVars={{ '--bulma-radius': '…' }} instead."
+    );
+  }
 
   // Extract Bulma variable props from restProps
   const { bulmaVarProps, otherProps } = useMemo(() => {

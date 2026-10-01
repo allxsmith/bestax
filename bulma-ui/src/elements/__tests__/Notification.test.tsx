@@ -10,6 +10,11 @@ import {
 } from '../Notification';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
+import {
+  announceDelay,
+  announcementLifetime,
+} from '../../helpers/statusRegion';
+import { ToastContainer, toast } from '../../components/Toast';
 
 describe('Notification Component', () => {
   const defaultProps: NotificationProps = {
@@ -48,6 +53,14 @@ describe('Notification Component', () => {
     const deleteButton = screen.getByLabelText('Close notification');
     expect(deleteButton).toBeInTheDocument();
     expect(deleteButton).toHaveClass('delete');
+  });
+
+  test('renders the delete button with type="button", so it does not submit a form around it', () => {
+    render(<Notification {...defaultProps} hasDelete />);
+    expect(screen.getByLabelText('Close notification')).toHaveAttribute(
+      'type',
+      'button'
+    );
   });
 
   test('calls onDelete when delete button is clicked', () => {
@@ -176,40 +189,380 @@ describe('Notification Programmatic API', () => {
   });
 
   describe('announcements', () => {
-    it.each([
-      ['success', 'status', 'polite'],
-      ['info', 'status', 'polite'],
-      ['warning', 'alert', 'assertive'],
-      ['danger', 'alert', 'assertive'],
-    ] as const)('a %s notification announces as %s', (color, role, live) => {
-      render(<NotificationContainer />);
+    // Lets the container write what it announces.
+    const waitForAnnouncements = () =>
       act(() => {
-        notification.show({ message: `Msg ${color}`, color, duration: 0 });
+        jest.advanceTimersByTime(announceDelay);
       });
-      const region = screen.getByRole(role);
-      expect(region).toHaveTextContent(`Msg ${color}`);
-      expect(region).toHaveAttribute('aria-live', live);
+
+    it('keeps a status region in the page from mount, with nothing visible', () => {
+      const { container } = render(<NotificationContainer />);
+
+      const status = screen.getByRole('status');
+      expect(status).toHaveAttribute('aria-live', 'polite');
+      expect(status).toHaveStyle({
+        position: 'absolute',
+        clip: 'rect(0px, 0px, 0px, 0px)',
+      });
+      expect(status).toBeEmptyDOMElement();
+
+      // The region is all an empty container adds to the page. There's no
+      // alert region: alerts announce themselves.
+      expect(
+        Array.from(document.body.children).filter(el => el !== container)
+      ).toEqual([status]);
+      expect(screen.queryByRole('alert')).toBeNull();
     });
 
-    it('a notification with no color announces as a status', () => {
+    it.each(['success', 'info', 'primary'] as const)(
+      'announces a %s notification through the status region',
+      color => {
+        render(<NotificationContainer />);
+        act(() => {
+          notification.show({ message: `Msg ${color}`, color, duration: 0 });
+        });
+        waitForAnnouncements();
+
+        expect(screen.getByRole('status')).toHaveTextContent(
+          new RegExp(`^Msg ${color}$`)
+        );
+        expect(screen.queryByRole('alert')).toBeNull();
+      }
+    );
+
+    it('announces a notification with no color through the status region', () => {
       render(<NotificationContainer />);
       act(() => {
         notification.show({ message: 'Plain', duration: 0 });
       });
-      expect(screen.getByRole('status')).toHaveTextContent('Plain');
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toHaveTextContent(/^Plain$/);
+    });
+
+    it.each(['warning', 'danger'] as const)(
+      'leaves a %s notification to announce itself as an alert',
+      color => {
+        render(<NotificationContainer />);
+        act(() => {
+          notification.show({ message: `Msg ${color}`, color, duration: 0 });
+        });
+
+        // The alert arrives with its text, in the notification itself.
+        const alert = screen.getByRole('alert');
+        expect(alert).toHaveAttribute('aria-live', 'assertive');
+        expect(alert).toHaveTextContent(new RegExp(`^Msg ${color}$`));
+        expect(alert.closest('.notification')).not.toBeNull();
+
+        // And it isn't written anywhere else.
+        waitForAnnouncements();
+        expect(screen.getByRole('status')).toBeEmptyDOMElement();
+        expect(screen.getAllByRole('alert')).toEqual([alert]);
+      }
+    );
+
+    it('writes only the polite ones when they appear together with an alert', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.success('Saved', { duration: 0 });
+        notification.warning('Almost full', { duration: 0 });
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toHaveTextContent(/^Saved$/);
+      expect(screen.getByRole('alert')).toHaveTextContent(/^Almost full$/);
+    });
+
+    it('writes the announcement into the region that was already there', () => {
+      render(<NotificationContainer />);
+      const status = screen.getByRole('status');
+
+      act(() => {
+        notification.success('Saved', { duration: 0 });
+      });
+      // Not in the commit that shows the notification.
+      expect(status).toBeEmptyDOMElement();
+
+      waitForAnnouncements();
+      expect(screen.getByRole('status')).toBe(status);
+      expect(status).toHaveTextContent('Saved');
     });
 
     it('announces only the message, not the close button', () => {
       render(<NotificationContainer />);
       act(() => {
+        notification.success('Saved', { duration: 0 });
         notification.danger('Something went wrong', { duration: 0 });
       });
-      const region = screen.getByRole('alert');
-      expect(region).toHaveTextContent(/^Something went wrong$/);
-      expect(within(region).queryByRole('button')).toBeNull();
+      waitForAnnouncements();
+
+      for (const [role, text] of [
+        ['status', /^Saved$/],
+        ['alert', /^Something went wrong$/],
+      ] as const) {
+        const region = screen.getByRole(role);
+        expect(region).toHaveTextContent(text);
+        expect(within(region).queryByRole('button')).toBeNull();
+      }
       expect(
-        screen.getByRole('button', { name: 'Close notification' })
-      ).toBeInTheDocument();
+        screen.getAllByRole('button', { name: 'Close notification' })
+      ).toHaveLength(2);
+    });
+
+    it('announces the text a message renders, without its markup', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.info(
+          <>
+            <strong>Draft</strong> saved
+          </>,
+          { duration: 0 }
+        );
+      });
+      waitForAnnouncements();
+
+      const region = screen.getByRole('status');
+      expect(region).toHaveTextContent(/^Draft saved$/);
+      expect(region.querySelector('strong')).toBeNull();
+    });
+
+    it("announces an image's alt, and leaves out what's hidden from screen readers", () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.success(
+          <>
+            <span aria-hidden="true">✓</span>
+            <img src="done.png" alt="Upload complete" />
+          </>,
+          { duration: 0 }
+        );
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toHaveTextContent(/^Upload complete$/);
+    });
+
+    it('announces each polite notification once, through the region alone', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.success('Once', { duration: 0 });
+      });
+      waitForAnnouncements();
+
+      // The notification carries no live region of its own, so the region is
+      // the only one in the page, and it says it once.
+      expect(screen.getAllByRole('status')).toEqual([
+        screen.getByRole('status'),
+      ]);
+      expect(screen.queryByRole('alert')).toBeNull();
+      const shown = document.querySelector('.notification')!;
+      expect(shown).not.toHaveAttribute('role');
+      expect(shown.querySelector('[role], [aria-live]')).toBeNull();
+      expect(screen.getByRole('status').children).toHaveLength(1);
+      const first = screen.getByRole('status').firstElementChild;
+
+      // A later notification is added as a node of its own, and the first one
+      // stays as it was for the rest of its time in the region.
+      act(() => {
+        notification.info('Next', { duration: 0 });
+      });
+      waitForAnnouncements();
+      const status = screen.getByRole('status');
+      expect(Array.from(status.children, el => el.textContent)).toEqual([
+        'Once',
+        'Next',
+      ]);
+      expect(status.firstElementChild).toBe(first);
+    });
+
+    it('clears an announcement after a moment, leaving the notification', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.success('Stays up', { indefinite: true });
+      });
+      waitForAnnouncements();
+      expect(screen.getByRole('status')).toHaveTextContent('Stays up');
+
+      act(() => {
+        jest.advanceTimersByTime(announcementLifetime);
+      });
+
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+      expect(document.querySelector('.notification')).toHaveTextContent(
+        'Stays up'
+      );
+    });
+
+    it('announces the next queued notification when it appears', () => {
+      render(<NotificationContainer />);
+      let first = '';
+      act(() => {
+        first = notification.show({ message: 'Q1', duration: 0, queue: true });
+        notification.show({ message: 'Q2', duration: 0, queue: true });
+      });
+      waitForAnnouncements();
+      expect(screen.getByRole('status')).toHaveTextContent(/^Q1$/);
+
+      act(() => {
+        notification.close(first);
+      });
+      waitForAnnouncements();
+      // Q1 closed after its announcement was written, so it keeps the rest of
+      // its time in the region beside Q2.
+      expect(
+        Array.from(screen.getByRole('status').children, el => el.textContent)
+      ).toEqual(['Q1', 'Q2']);
+    });
+
+    it('keeps an announcement for its whole lifetime after its notification closes', () => {
+      // The pattern the programmatic API shows: an indefinite notification
+      // while something runs, closed and followed by the result.
+      render(<NotificationContainer />);
+      let uploading = '';
+      act(() => {
+        uploading = notification.show({
+          message: 'Uploading…',
+          indefinite: true,
+        });
+      });
+      waitForAnnouncements();
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      act(() => {
+        notification.close(uploading);
+        notification.success('Saved!', { duration: 0 });
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(/^Uploading…$/);
+
+      waitForAnnouncements();
+      expect(
+        Array.from(screen.getByRole('status').children, el => el.textContent)
+      ).toEqual(['Uploading…', 'Saved!']);
+
+      // Each leaves when its own lifetime is up.
+      act(() => {
+        jest.advanceTimersByTime(announcementLifetime - announceDelay - 50);
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(/^Saved!$/);
+    });
+
+    it("doesn't announce a notification that closes before its announcement is due", () => {
+      render(<NotificationContainer />);
+      let id = '';
+      act(() => {
+        id = notification.success('Gone', { duration: 0 });
+      });
+      expect(document.querySelector('.notification')).toHaveTextContent('Gone');
+
+      act(() => {
+        notification.close(id);
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('keeps the lines of a block-level message apart', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.info(
+          <>
+            <p>Upload complete</p>
+            <p>3 files added</p>
+          </>,
+          { duration: 0 }
+        );
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toHaveTextContent(
+        /^Upload complete 3 files added$/
+      );
+    });
+
+    it('announces notifications at different positions together', () => {
+      render(<NotificationContainer position="top-right" />);
+      act(() => {
+        notification.show({ message: 'Here', duration: 0 });
+        notification.info('There', { position: 'bottom-left', duration: 0 });
+      });
+      waitForAnnouncements();
+
+      expect(
+        Array.from(screen.getByRole('status').children).map(
+          el => el.textContent
+        )
+      ).toEqual(['Here', 'There']);
+    });
+
+    it('keeps its region in place while stacks come and go', () => {
+      render(<NotificationContainer />);
+      const status = screen.getByRole('status');
+
+      act(() => {
+        notification.show({ message: 'Top', duration: 0 });
+        notification.show({ message: 'Bottom', position: 'bottom' });
+      });
+      act(() => {
+        notification.closeAll();
+      });
+
+      expect(screen.getByRole('status')).toBe(status);
+    });
+
+    it('hides the region with no stylesheet, whatever the class prefix', () => {
+      // No CSS is loaded here, Bulma's helpers included, and the region
+      // doesn't rely on any.
+      expect(document.styleSheets).toHaveLength(0);
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <NotificationContainer />
+        </ConfigProvider>
+      );
+      act(() => {
+        notification.success('Hidden copy', { duration: 0 });
+      });
+      waitForAnnouncements();
+
+      const status = screen.getByRole('status');
+      expect(status).toHaveTextContent('Hidden copy');
+      expect(status).not.toHaveAttribute('class');
+      expect(status).toHaveStyle({
+        position: 'absolute',
+        width: '1px',
+        height: '1px',
+        margin: '-1px',
+        overflow: 'hidden',
+        clip: 'rect(0px, 0px, 0px, 0px)',
+        'clip-path': 'inset(50%)',
+        'white-space': 'nowrap',
+      });
+    });
+
+    it("leaves getByRole('alert') to a toast shown beside it", () => {
+      // Without an alert region of its own, a container with no danger or
+      // warning notification showing adds no alert to the page, so a toast's
+      // alert is the only one.
+      render(
+        <>
+          <NotificationContainer />
+          <ToastContainer />
+        </>
+      );
+      act(() => {
+        notification.success('Saved', { duration: 0 });
+        toast.info('Synced', { duration: 0 });
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('alert')).toHaveClass('toast');
+      expect(screen.getByRole('alert')).toHaveTextContent('Synced');
+
+      act(() => {
+        toast.closeAll();
+      });
     });
   });
 
@@ -578,6 +931,51 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     expect(shownMessages()).toEqual(['Strict', 'Strict later']);
   });
 
+  it('announces them once the region it mounts is in the page', () => {
+    notification.show({ message: 'Early', duration: 0 });
+    notification.warning('Early warning', { duration: 0 });
+
+    render(<NotificationContainer />);
+    const status = screen.getByRole('status');
+    // The region mounts empty, alongside the notifications. The warning
+    // arrives as an alert, holding its own text.
+    expect(status).toBeEmptyDOMElement();
+    expect(screen.getByRole('alert')).toHaveTextContent(/^Early warning$/);
+
+    act(() => {
+      jest.advanceTimersByTime(announceDelay);
+    });
+
+    expect(status).toHaveTextContent(/^Early$/);
+  });
+
+  it('keeps one status region and announces once under StrictMode', () => {
+    notification.show({ message: 'Strict', duration: 0 });
+    render(
+      <StrictMode>
+        <NotificationContainer />
+      </StrictMode>
+    );
+    act(() => {
+      jest.advanceTimersByTime(announceDelay);
+    });
+
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(
+      Array.from(screen.getByRole('status').children).map(el => el.textContent)
+    ).toEqual(['Strict']);
+  });
+
+  it('stops announcing once it unmounts', () => {
+    notification.show({ message: 'Unmounted', duration: 0 });
+    const { unmount } = render(<NotificationContainer />);
+
+    unmount();
+
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   it('times each from when it appears, and drops it from the store after', () => {
     notification.show({ message: 'Timed', duration: 3000 });
     // Time spent waiting for a container does not count against it.
@@ -655,6 +1053,15 @@ describe('NotificationContainer mounted after notifications are raised', () => {
 
       expect(errorSpy).not.toHaveBeenCalled();
       expect(shownMessages()).toEqual(['Before hydration']);
+
+      // The status region arrives with it, and announces it once it's in.
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+      act(() => {
+        jest.advanceTimersByTime(announceDelay);
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(
+        /^Before hydration$/
+      );
     } finally {
       // A root left mounted would add its notifications to every later test's.
       await act(async () => unmountRoot());
@@ -663,7 +1070,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     }
   });
 
-  it('renders once when it hydrates with nothing to show', async () => {
+  it('adds only its status region, in one render, when it hydrates with nothing to show', async () => {
     // Empty the way a closed notification leaves it, not only the way it
     // starts.
     const id = notification.show({ message: 'Gone', duration: 0 });
@@ -681,6 +1088,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     container.innerHTML = renderToString(app);
     document.body.appendChild(container);
 
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -688,11 +1096,20 @@ describe('NotificationContainer mounted after notifications are raised', () => {
         unmountRoot = () => root.unmount();
       });
 
-      // A client snapshot that is a different array from the server's, even
-      // an empty one, would add an 'update' render after the mount.
-      expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount']);
+      // The hydrating render matches the server's empty markup, and the one
+      // render after it portals the region in.
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual([
+        'mount',
+        'update',
+      ]);
+      expect(container.innerHTML).toBe('<main></main>');
+      expect(
+        Array.from(document.body.children).filter(el => el !== container)
+      ).toEqual([screen.getByRole('status')]);
     } finally {
       await act(async () => unmountRoot());
+      errorSpy.mockRestore();
       document.body.removeChild(container);
     }
   });
@@ -773,7 +1190,8 @@ describe('NotificationContainer with notifications shown at their own position',
 
   it("gives a notification at the container's own position the container's stack", () => {
     // What a container rendered before notifications could be placed on
-    // their own: one stack, fixed to the container's position.
+    // their own: one stack, fixed to the container's position, and then the
+    // status region, which says nothing until the announcements are due.
     const { container } = render(<NotificationContainer position="bottom" />);
     act(() => {
       notification.show({ message: 'One', duration: 0 });
@@ -786,9 +1204,10 @@ describe('NotificationContainer with notifications shown at their own position',
         .map(el => el.outerHTML)
     ).toEqual([
       '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: 100%; bottom: 0px; left: 50%; transform: translateX(-50%); align-items: center;">' +
-        '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">One</span></div>' +
-        '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span role="status" aria-live="polite">Two</span></div>' +
+        '<div class="notification" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>One</span></div>' +
+        '<div class="notification" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
         '</div>',
+      '<div role="status" aria-live="polite" aria-atomic="false" style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap; border: 0px;"></div>',
     ]);
   });
 

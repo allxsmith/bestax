@@ -290,7 +290,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Show a loading indicator on the control.",
+          "description": "Show a loading spinner on the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -542,7 +542,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the wheels, where it colors the selection band and the keyboard focus ring. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.",
+          "description": "Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -795,7 +795,7 @@
     {
       "css": "--bulma-timeinput-wheel-bg",
       "sass": "$timeinput-wheel-bg",
-      "default": "var(--bulma-scheme-main)",
+      "default": "transparent",
       "scope": "element"
     },
     {

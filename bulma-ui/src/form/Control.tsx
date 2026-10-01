@@ -25,7 +25,11 @@ export interface ControlBaseProps
   hasIconsLeft?: boolean;
   /** Adds right icon container. */
   hasIconsRight?: boolean;
-  /** Shows loading indicator. */
+  /**
+   * Shows a loading spinner inside the control.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Makes the control expand to fill available space. */
   isExpanded?: boolean;

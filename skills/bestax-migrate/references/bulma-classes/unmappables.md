@@ -80,7 +80,8 @@ give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
 `Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, so give each
 element the attribute it's missing.
-`Card.FooterItem` renders `type="button"` on a `<button>` that sets none. One whose `type` isn't
+`Card.FooterItem`, `Card.Header.Icon` and `Navbar.Item` render `type="button"` on a `<button>` that
+sets none, and `Card.Header.Icon` renders `aria-label="more options"` too. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
 

@@ -75,6 +75,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Tabs.Tab>,
     ],
   },
+  Collapses: {
+    seamless: true,
+    defaultValue: 0,
+    children: [
+      <Library.Collapse key="a" bordered trigger="A">
+        A
+      </Library.Collapse>,
+      <Library.Collapse key="b" bordered trigger="B">
+        B
+      </Library.Collapse>,
+    ],
+  },
   Dropdown: { label: 'Menu', children: 'Item', active: true },
   Sidebar: { isOpen: true, children: 'Sidebar content' },
   Pagination: { current: 1, total: 5 },
