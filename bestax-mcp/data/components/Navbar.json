@@ -223,7 +223,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'a'",
-          "description": "Render as another intrinsic element (`'span'`, `'div'`) or a custom component (e.g. a router link). Defaults to `'a'`.",
+          "description": "Render as another intrinsic element (`'span'`, `'div'`, `'button'`) or a custom component (e.g. a router link). Defaults to `'a'`. `'button'` renders `type=\"button\"`, so an item inside a form does not submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used; any other value, or a spread carrying `type: undefined`, renders `type=\"button\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -299,7 +299,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'a'",
-          "description": "Render as another intrinsic element (`'button'`, `'span'`) or a custom component. Defaults to `'a'`. Inside a `Navbar.Dropdown` this also decides the trigger's semantics. A custom component is taken to be interactive already — a router link, typically — so it keeps its own role and click behaviour. An intrinsic tag is judged on what it is: `'button'`, or anything carrying an `href`, is left alone, and everything else (`'span'`, a bare `'a'`, a custom element) gets `role=\"button\"`, `tabIndex` and a click that opens the dropdown. If your custom component renders something non-interactive, pass `role=\"button\"` and it takes that fallback too — `tabIndex` and click included. The keyboard path is attached either way.",
+          "description": "Render as another intrinsic element (`'button'`, `'span'`) or a custom component. Defaults to `'a'`. Inside a `Navbar.Dropdown` this also decides the trigger's semantics. A custom component is taken to be interactive already — a router link, typically — so it keeps its own role and click behaviour. An intrinsic tag is judged on what it is: `'button'`, or anything carrying an `href`, is left alone, and everything else (`'span'`, a bare `'a'`, a custom element) gets `role=\"button\"`, `tabIndex` and a click that opens the dropdown. If your custom component renders something non-interactive, pass `role=\"button\"` and it takes that fallback too — `tabIndex` and click included. The keyboard path is attached either way. `'button'` renders `type=\"button\"`, so a link inside a form does not submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used; any other value, or a spread carrying `type: undefined`, renders `type=\"button\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -420,8 +420,8 @@
         {
           "name": "aria-label",
           "type": "string",
-          "default": null,
-          "description": "Aria label for accessibility.",
+          "default": "'menu'",
+          "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -429,8 +429,8 @@
         {
           "name": "aria-expanded",
           "type": "boolean",
-          "default": "false",
-          "description": "Aria expanded state.",
+          "default": "active",
+          "description": "Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`; a spread carrying `'aria-expanded': undefined` still follows `active`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -451,6 +451,15 @@
           "type": "React.Ref<HTMLButtonElement>",
           "default": null,
           "description": "Ref forwarded to the burger button element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "'button'",
+          "description": "Button type. Defaults to `'button'`, so a burger inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.",
           "required": false,
           "inherited": false,
           "deprecated": false

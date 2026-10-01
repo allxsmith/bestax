@@ -676,6 +676,70 @@ function dropInertLinkAttrs(
 }
 
 /**
+ * The targets that write `type="button"` on the <button> an `as` makes them
+ * render, in place of a missing `type` or one HTML does not define
+ * (`buttonType` in bulma-ui). A plain <button> with neither submits the form
+ * around it, and every source here rendered the tag it was given, so a source
+ * element asking for a <button> with no usable `type` was a submit button that
+ * the migrated one no longer is.
+ *
+ * `Button` is not here: bestax leaves its `type` to the caller, as the sources
+ * did. Nor are `Card.Header.Icon`, `Delete` and the other targets that always
+ * render a <button>. The author never asked for a <button> there, so what the
+ * source rendered is a question about the source library, not this element.
+ */
+const TYPES_ITS_BUTTON = new Set([
+  'Dropdown.Item',
+  'Menu.Item',
+  'Navbar.Item',
+  'Navbar.Link',
+]);
+
+/** The `type` values a <button> keeps under `buttonType`. */
+const BUTTON_TYPES = ['button', 'submit', 'reset'];
+
+/**
+ * Flag a <button> that submitted its form in the source and will not once
+ * migrated. Only where the element is known to be a <button> and its `type`
+ * is known: a dynamic `type` may hold any value, and a spread may carry one,
+ * and either is the author's to know. A spread decides only when nothing
+ * literal follows it, since JSX applies attributes last-write-wins, so a
+ * literal `type` written after every spread is the one that renders.
+ */
+function flagButtonType(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string,
+  rendered: string | undefined
+): void {
+  if (rendered !== 'button' || !TYPES_ITS_BUTTON.has(target)) return;
+  let attr: any | undefined;
+  let spreadWins = false;
+  for (const a of element.openingElement.attributes) {
+    if (a.type === 'JSXSpreadAttribute') spreadWins = true;
+    else if (a.name.name === 'type') {
+      attr = a;
+      spreadWins = false;
+    }
+  }
+  if (spreadWins) return;
+  if (attr) {
+    const literal = literalValueOf(attr);
+    if (literal.kind !== 'string' || BUTTON_TYPES.includes(literal.value)) {
+      return;
+    }
+  }
+  addTodo(
+    ctx,
+    path,
+    'prop:type',
+    `bestax \`${target}\` writes \`type="button"\` on its <button> ${attr ? 'in place of a `type` HTML does not define' : 'when none is given'}, so it no longer submits the form around it the way a plain <button> does -- add \`type="submit"\` if this one should`
+  );
+  ctx.dirty = true;
+}
+
+/**
  * The `as` attribute only if no spread can overwrite it. `findAttr` reads by
  * name and knows nothing about `{...rest}`, which JSX applies last-write-wins.
  */
@@ -768,6 +832,7 @@ export function enforcePolymorphicProps(
         ? undefined
         : HREF_OK[target];
   dropInertLinkAttrs(ctx, path, element, target, rendered);
+  flagButtonType(ctx, path, element, target, rendered);
   restrictAsValue(ctx, path, element, target, attr, literal);
 
   // Only now, and only if something element-dependent actually survived. The

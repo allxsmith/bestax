@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
+import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -51,7 +52,13 @@ export interface LinkOwnProps extends Omit<
  */
 export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
   Omit<React.ComponentPropsWithoutRef<T>, keyof LinkOwnProps | 'as'> & {
-    /** Render as another intrinsic element (`'span'`, `'button'`) or a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
+    /**
+     * Render as another intrinsic element (`'span'`, `'button'`) or a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`.
+     *
+     * `'button'` renders `type="button"`, so a link inside a form does not submit it. Pass
+     * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
+     * carrying `type: undefined`, renders `type="button"`.
+     */
     as?: T;
   };
 
@@ -60,7 +67,10 @@ export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
  * `LinkProps<T>` above — the body cannot see through `T`, so it reads the widest
  * form of the props it actually touches.
  */
-type LinkImplProps = LinkOwnProps & { as?: React.ElementType };
+type LinkImplProps = LinkOwnProps & {
+  as?: React.ElementType;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
+};
 
 /**
  * The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
@@ -99,7 +109,16 @@ export const Link = forwardRef(function Link(
   const linkClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
-    <Component ref={ref} className={linkClasses || undefined} {...rest}>
+    <Component
+      ref={ref}
+      className={linkClasses || undefined}
+      {...rest}
+      // A `<button>` defaults to type="submit", and a link-styled button inside
+      // a form must not submit it. After the spread, reading through it, so a
+      // spread carrying `type: undefined` cannot erase the default. A caller's
+      // `submit` or `reset` still wins; `buttonType` says more.
+      {...(Component === 'button' ? { type: buttonType(rest.type) } : {})}
+    >
       {children}
     </Component>
   );
