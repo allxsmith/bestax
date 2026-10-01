@@ -51,5 +51,12 @@ intro bullet exist.
 - Skill docs state facts an agent can act on (props, valid values, copy-pasteable patterns) —
   when fixing a skill bug, fix the _guidance that produced the bad output_, not just the
   example.
+- `jsx`/`tsx` fences and the `.tsx` files in `examples/` are linted with the ESLint plugin's
+  `recommended` rules, in `pnpm test` (`scripts/eslint-plugin-docs.test.mjs`). A fence that is
+  wrong on purpose takes `nolint` in its info string (` ```tsx nolint `), and the marker fails
+  once nothing in the fence is reported, which includes the fence no longer parsing. A
+  migration "before" that imports from its own library needs no marker, because the rules
+  follow the import rather than the tag name. An example that is not code at all belongs in a
+  `text` fence.
 - Storybook renders agent-generated showcases of these skills from
   `bulma-ui/src/skill-examples/` — update those when a skill's canonical example changes.
