@@ -1,3 +1,10 @@
+# [5.21.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.20.0...@allxsmith/bestax-bulma@5.21.0) (2026-10-01)
+
+
+### Features
+
+* **bulma-ui:** add Collapses, an accordion group for Collapse ([#849](https://github.com/allxsmith/bestax/issues/849)) ([a12c823](https://github.com/allxsmith/bestax/commit/a12c82324ab787fc85f4da08a87877c32a0d2e2b))
+
 # [5.20.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.19.0...@allxsmith/bestax-bulma@5.20.0) (2026-10-01)
 
 
