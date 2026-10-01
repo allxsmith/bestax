@@ -206,6 +206,9 @@ out of the box:
   `onClick` runs and the menu closes unless `closeOnClick` is `false`. That includes the
   default anchor without an `href` and `as="div"`, which the browser would not activate on
   its own.
+- When running an item closes the menu, by click or by key, focus goes back to the trigger,
+  as it does for <kbd>Escape</kbd>. An item whose `onClick` moves focus somewhere else keeps
+  it there.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
   `aria-disabled="true"`) and dividers are skipped during arrow-key navigation.
 

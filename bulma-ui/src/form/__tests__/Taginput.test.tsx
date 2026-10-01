@@ -1117,8 +1117,8 @@ describe('Taginput', () => {
       fireEvent.change(input, { target: { value: 'r' } });
       expect(screen.getByRole('listbox')).toBeInTheDocument();
 
-      // Mousedown on the input itself (inside containerRef) -> false branch
-      // of `containerRef.current && !containerRef.current.contains(target)`.
+      // Mousedown on the input itself (inside containerRef) -> the inside
+      // branch of the click-outside check.
       fireEvent.mouseDown(input);
 
       expect(screen.getByRole('listbox')).toBeInTheDocument();
