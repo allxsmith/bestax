@@ -303,7 +303,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
  * Props for the SidebarClose component.
  * Extends standard button attributes.
  * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
- * @extraProp {string} [aria-label='Close'] - Accessible name. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.
+ * @extraProp {string} [aria-label='Close'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
  */
 type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -326,9 +326,10 @@ const SidebarClose: React.FC<SidebarCloseProps> = ({
       {...props}
       // After the spread, reading through it: a key the spread carries with no
       // value would otherwise erase the default, leaving a nameless button
-      // that submits the form around it. A caller's own value still wins;
-      // `buttonType` says more.
-      aria-label={props['aria-label'] ?? 'Close'}
+      // that submits the form around it. An empty label falls back too: the
+      // button is drawn as an icon, so `''` would leave it unnamed. A caller's
+      // own value still wins; `buttonType` says more.
+      aria-label={props['aria-label'] || 'Close'}
       type={buttonType(props.type)}
     >
       {children}

@@ -30,10 +30,11 @@ interface DeleteProps
   /** Size modifier for the delete button. */
   size?: 'small' | 'medium' | 'large';
   /**
-   * Accessible name for the button, `'Close'` by default. An `aria-label` you
-   * pass takes precedence over it, and a spread carrying
-   * `'aria-label': undefined` keeps this one rather than leaving the button
-   * unnamed.
+   * Accessible name for the button. An `aria-label` you pass takes precedence
+   * over it, unless it is empty or arrives as `undefined` through a spread.
+   * An empty `ariaLabel` falls back to the default too, so the button is never
+   * left unnamed.
+   * @defaultValue 'Close'
    */
   ariaLabel?: string;
   /** Whether the button is disabled (default: false). */
@@ -57,7 +58,7 @@ export const Delete: React.FC<DeleteProps> = ({
   bgColor,
   onClick,
   size,
-  ariaLabel = 'Close',
+  ariaLabel,
   disabled = false,
   ...props
 }) => {
@@ -85,9 +86,10 @@ export const Delete: React.FC<DeleteProps> = ({
       {...rest}
       // After the spread, reading through it: a key the spread carries with no
       // value would otherwise erase the default, leaving a nameless button
-      // that submits the form around it. A caller's own value still wins;
-      // `buttonType` says more.
-      aria-label={rest['aria-label'] ?? ariaLabel}
+      // that submits the form around it. An empty label falls back too: the
+      // button is drawn as an icon, so `''` would leave it unnamed. A caller's
+      // own value still wins; `buttonType` says more.
+      aria-label={rest['aria-label'] || ariaLabel || 'Close'}
       type={buttonType((rest as { type?: unknown }).type)}
     />
   );

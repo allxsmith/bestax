@@ -104,7 +104,7 @@
           "name": "ariaLabel",
           "type": "string",
           "default": "'Close'",
-          "description": "Accessible name for the button, `'Close'` by default. An `aria-label` you pass takes precedence over it, and a spread carrying `'aria-label': undefined` keeps this one rather than leaving the button unnamed.",
+          "description": "Accessible name for the button. An `aria-label` you pass takes precedence over it, unless it is empty or arrives as `undefined` through a spread. An empty `ariaLabel` falls back to the default too, so the button is never left unnamed.",
           "required": false,
           "inherited": false,
           "deprecated": false

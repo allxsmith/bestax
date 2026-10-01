@@ -314,14 +314,17 @@ export interface NavbarBurgerProps
    */
   children?: React.ReactNode;
   /**
-   * Accessible name, `'menu'` by default. Pass your own to replace it; a spread
-   * carrying `'aria-label': undefined` keeps the default rather than leaving
+   * Accessible name. Pass your own to replace it. An empty one, or a spread
+   * carrying `'aria-label': undefined`, keeps the default rather than leaving
    * the button unnamed.
+   * @defaultValue 'menu'
    */
   'aria-label'?: string;
   /**
-   * Expanded state for assistive technology. Follows `active` unless you pass
-   * it, including through a spread carrying `'aria-expanded': undefined`.
+   * Expanded state for assistive technology. It follows `active` unless you
+   * pass `true` or `false`; a spread carrying `'aria-expanded': undefined`
+   * still follows `active`.
+   * @defaultValue active
    */
   'aria-expanded'?: boolean;
   /** Click handler. */
@@ -359,9 +362,10 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
         {...rest}
         // After the spread, reading through it: a key the spread carries with
         // no value would otherwise erase the default, leaving a nameless
-        // button that submits the form around it. A caller's own value still
-        // wins; `buttonType` says more.
-        aria-label={rest['aria-label'] ?? 'menu'}
+        // button that submits the form around it. An empty label falls back
+        // too: the button is drawn as an icon, so `''` would leave it unnamed.
+        // A caller's own value still wins; `buttonType` says more.
+        aria-label={rest['aria-label'] || 'menu'}
         aria-expanded={rest['aria-expanded'] ?? !!active}
         type={buttonType(rest.type)}
       >

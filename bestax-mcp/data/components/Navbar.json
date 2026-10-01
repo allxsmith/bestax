@@ -420,8 +420,8 @@
         {
           "name": "aria-label",
           "type": "string",
-          "default": null,
-          "description": "Accessible name, `'menu'` by default. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.",
+          "default": "'menu'",
+          "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -429,8 +429,8 @@
         {
           "name": "aria-expanded",
           "type": "boolean",
-          "default": "false",
-          "description": "Expanded state for assistive technology. Follows `active` unless you pass it, including through a spread carrying `'aria-expanded': undefined`.",
+          "default": "active",
+          "description": "Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`; a spread carrying `'aria-expanded': undefined` still follows `active`.",
           "required": false,
           "inherited": false,
           "deprecated": false

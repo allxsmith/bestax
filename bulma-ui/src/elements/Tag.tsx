@@ -47,9 +47,9 @@ export interface TagProps
   /**
    * Renders a delete-style tag (delete button). The button renders
    * `type="button"`, so it does not submit a form around it, and is named
-   * "Delete tag" unless you pass an `aria-label`. A spread carrying
-   * `'aria-label': undefined` keeps that name rather than leaving the button
-   * unnamed.
+   * "Delete tag" unless you pass an `aria-label`. An empty one, or a spread
+   * carrying `'aria-label': undefined`, keeps that name rather than leaving
+   * the button unnamed.
    */
   isDelete?: boolean;
   /** Adds hover effect to the tag. */
@@ -104,9 +104,10 @@ export const Tag: React.FC<TagProps> = ({
         {...rest}
         // After the spread, reading through it: a key the spread carries with
         // no value would otherwise erase the default, leaving a nameless
-        // button that submits the form around it. A caller's own value still
-        // wins; `buttonType` says more.
-        aria-label={rest['aria-label'] ?? 'Delete tag'}
+        // button that submits the form around it. An empty label falls back
+        // too: the button is drawn as an icon, so `''` would leave it unnamed.
+        // A caller's own value still wins; `buttonType` says more.
+        aria-label={rest['aria-label'] || 'Delete tag'}
         type={buttonType((rest as { type?: unknown }).type)}
       />
     );

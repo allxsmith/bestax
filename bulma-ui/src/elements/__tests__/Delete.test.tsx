@@ -75,6 +75,27 @@ describe('Delete Component', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Dismiss');
   });
 
+  it('falls back to its name when given an empty aria-label or ariaLabel', () => {
+    // `''` names nothing, and the button is drawn as a cross, so an empty
+    // label would leave it unnamed. Either spelling falls back like a missing
+    // one: an empty `aria-label` to `ariaLabel`, an empty `ariaLabel` to the
+    // default.
+    render(
+      <>
+        <Delete data-testid="empty-aria" ariaLabel="Dismiss" aria-label="" />
+        <Delete data-testid="empty-prop" ariaLabel="" />
+      </>
+    );
+    expect(screen.getByTestId('empty-aria')).toHaveAttribute(
+      'aria-label',
+      'Dismiss'
+    );
+    expect(screen.getByTestId('empty-prop')).toHaveAttribute(
+      'aria-label',
+      'Close'
+    );
+  });
+
   it('lets an explicit aria-label, or a submit or reset type, win', () => {
     // `type` is not in Delete's own props, so a caller's value arrives through
     // a spread; the defaults must not override a real one.

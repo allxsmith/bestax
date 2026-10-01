@@ -811,6 +811,20 @@ describe('Card Component', () => {
       expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
     });
 
+    test('Card.Header.Icon falls back to its name when given an empty aria-label', () => {
+      // `''` names nothing, and the button is drawn as an icon, so an empty
+      // label would leave it unnamed. It falls back like a missing one.
+      render(
+        <Card.Header.Icon data-testid="header-icon" aria-label="">
+          <span className="icon">⋮</span>
+        </Card.Header.Icon>
+      );
+      expect(screen.getByTestId('header-icon')).toHaveAttribute(
+        'aria-label',
+        'more options'
+      );
+    });
+
     test('Card.Header.Icon replaces a type HTML would read as submit with type="button"', () => {
       const loose: object = { type: 'text/html' };
       render(<Card.Header.Icon data-testid="header-icon" {...loose} />);

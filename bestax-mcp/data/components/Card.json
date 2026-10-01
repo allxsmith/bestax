@@ -411,7 +411,7 @@
           "name": "aria-label",
           "type": "string",
           "default": "'more options'",
-          "description": "Accessible name. Pass your own to replace it; a spread carrying `'aria-label': undefined` keeps the default rather than leaving the button unnamed.",
+          "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -660,6 +660,16 @@ describe('Sidebar', () => {
       expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
     });
 
+    it('falls back to the Sidebar.Close name when given an empty aria-label', () => {
+      // `''` names nothing, and the button is drawn as an icon, so an empty
+      // label would leave it unnamed. It falls back like a missing one.
+      render(<Sidebar.Close data-testid="close" aria-label="" />);
+      expect(screen.getByTestId('close')).toHaveAttribute(
+        'aria-label',
+        'Close'
+      );
+    });
+
     it('replaces a Sidebar.Close type HTML would read as submit with type="button"', () => {
       const loose: object = { type: 'text/html' };
       render(<Sidebar.Close data-testid="close" {...loose} />);

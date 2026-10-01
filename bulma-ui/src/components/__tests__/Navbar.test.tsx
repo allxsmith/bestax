@@ -444,6 +444,13 @@ describe('Navbar.Burger', () => {
     expect(burger).toHaveAttribute('aria-expanded', 'true');
   });
 
+  it('falls back to its name when given an empty aria-label', () => {
+    // `''` names nothing, and the burger is drawn as bars, so an empty label
+    // would leave it unnamed. It falls back like a missing one.
+    render(<Navbar.Burger data-testid="burger" aria-label="" />);
+    expect(screen.getByTestId('burger')).toHaveAttribute('aria-label', 'menu');
+  });
+
   it('lets an explicit type and aria-expanded win', () => {
     render(
       <Navbar.Burger

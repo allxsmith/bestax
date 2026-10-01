@@ -117,6 +117,16 @@ describe('Tag Component', () => {
     expect(button).toHaveAttribute('aria-label', 'Delete tag');
   });
 
+  test('falls back to the delete button name when given an empty aria-label', () => {
+    // `''` names nothing, and the button is drawn as a cross, so an empty
+    // label would leave it unnamed. It falls back like a missing one.
+    render(<Tag isDelete data-testid="del" aria-label="" />);
+    expect(screen.getByTestId('del')).toHaveAttribute(
+      'aria-label',
+      'Delete tag'
+    );
+  });
+
   test('lets an explicit aria-label, or a submit or reset type, win on the delete button', () => {
     // `type` is not in Tag's own props, so a caller's value arrives through a
     // spread; the defaults must not override a real one.

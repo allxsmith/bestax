@@ -107,7 +107,7 @@
           "name": "isDelete",
           "type": "boolean",
           "default": "false",
-          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. A spread carrying `'aria-label': undefined` keeps that name rather than leaving the button unnamed.",
+          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed.",
           "required": false,
           "inherited": false,
           "deprecated": false

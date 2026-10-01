@@ -346,6 +346,16 @@ describe('Modal', () => {
       expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
     });
 
+    it('Modal.Close falls back to its name when given an empty aria-label', () => {
+      // `''` names nothing, and the button is drawn as an icon, so an empty
+      // label would leave it unnamed. It falls back like a missing one.
+      render(<Modal.Close data-testid="close-btn" aria-label="" />);
+      expect(screen.getByTestId('close-btn')).toHaveAttribute(
+        'aria-label',
+        'close'
+      );
+    });
+
     it('Modal.Close replaces a type HTML would read as submit with type="button"', () => {
       const loose: object = { type: 'text/html' };
       render(<Modal.Close data-testid="close-btn" {...loose} />);
